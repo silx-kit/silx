@@ -215,6 +215,23 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self.sigCurrentUrlChanged.emit(url)
 
 
+class UrlLoader(qt.QThread):
+    """
+    Thread use to load DataUrl
+    """
+    def __init__(self, parent, url):
+        super(UrlLoader, self).__init__(parent=parent)
+        assert isinstance(url, DataUrl)
+        self.url = url
+        self.data = None
+
+    def run(self):
+        try:
+            self.data = get_data(self.url)
+        except IOError:
+            self.data = None
+
+
 class ImageStack(qt.QMainWindow):
     """Widget loading on the fly images contained the given urls.
 
@@ -232,6 +249,8 @@ class ImageStack(qt.QMainWindow):
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
         self._current_url = None
+        self._url_loader = UrlLoader
+        "class to instantiate for loading urls"
 
         # main widget
         self._plot = _PlotWithWaitingLabel(parent=self)
@@ -262,6 +281,24 @@ class ImageStack(qt.QMainWindow):
         self._freeLoadingThreads()
         self._plot.close()
         super(ImageStack, self).close()
+
+    def setUrlLoaderClass(self, urlLoader: typing.Type[UrlLoader]) -> None:
+        """
+
+        :param urlLoader: define the class to call for loading urls.
+                          warning: this should be a class object and not a
+                          class instance.
+        """
+        assert isinstance(urlLoader, type(UrlLoader))
+        self._url_loader = urlLoader
+
+    def getUrlLoaderClass(self):
+        """
+
+        :return: class to instantiate for loading urls
+        :rtype: typing.Type[UrlLoader]
+        """
+        return self._url_loader
 
     def _freeLoadingThreads(self):
         for thread in self._loadingThreads:
@@ -307,7 +344,7 @@ class ImageStack(qt.QMainWindow):
         assert isinstance(url, DataUrl)
         url_path = url.path()
         assert url_path in self._urlIndexes
-        loader = self.getUrlLoader(url)
+        loader = self._url_loader(parent=self, url=url)
         loader.finished.connect(self._urlLoaded, qt.Qt.QueuedConnection)
         self._loadingThreads.append(loader)
         loader.start()
@@ -514,27 +551,3 @@ class ImageStack(qt.QMainWindow):
         """display a simple image of loading..."""
         self._plot.setWaiting(activate=True)
 
-    def getUrlLoader(self, url):
-        """
-        Might be overwrite if some children class want to redefine ways /
-        scheme for loading data
-        :return: UrlLoader
-        """
-        return UrlLoader(parent=self, url=url)
-
-
-class UrlLoader(qt.QThread):
-    """
-    Thread use to load DataUrl
-    """
-    def __init__(self, parent, url):
-        super(UrlLoader, self).__init__(parent=parent)
-        assert isinstance(url, DataUrl)
-        self.url = url
-        self.data = None
-
-    def run(self):
-        try:
-            self.data = get_data(self.url)
-        except IOError:
-            self.data = None

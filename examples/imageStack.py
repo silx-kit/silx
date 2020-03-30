@@ -104,12 +104,6 @@ def create_datasets(folder):
     return urls
 
 
-class MyImageStack(ImageStack):
-    """Redefine the UrlLoader to use in order to be able to load .npy files"""
-    def getUrlLoader(self, url):
-        return MyOwnUrlLoader(parent=self, url=url)
-
-
 class MyOwnUrlLoader(UrlLoader):
     """
     Thread use to load DataUrl
@@ -132,7 +126,8 @@ def main():
     dataset_folder = tempfile.mkdtemp()
 
     qapp = qt.QApplication([])
-    widget = MyImageStack()
+    widget = ImageStack()
+    widget.setUrlLoaderClass(MyOwnUrlLoader)
     widget.setNPrefetch(1)
     urls = create_datasets(folder=dataset_folder)
     widget.setUrls(urls=urls)
