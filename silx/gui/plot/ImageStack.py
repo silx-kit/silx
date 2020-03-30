@@ -412,7 +412,7 @@ class ImageStack(qt.QMainWindow):
             first_url = self._urls[list(self._urls.keys())[0]]
             self.setCurrentUrl(first_url)
 
-    def getNextUrl(self, url: DataUrl) -> typing.Union[None, DataUrl]:
+    def _getNextUrl(self, url: DataUrl) -> typing.Union[None, DataUrl]:
         """
         return the next url in the stack
 
@@ -433,7 +433,7 @@ class ImageStack(qt.QMainWindow):
             else:
                 return self._urls[res[0]]
 
-    def getPreviousUrl(self, url: DataUrl) -> typing.Union[None, DataUrl]:
+    def _getPreviousUrl(self, url: DataUrl) -> typing.Union[None, DataUrl]:
         """
         return the previous url in the stack
 
@@ -453,7 +453,7 @@ class ImageStack(qt.QMainWindow):
             else:
                 return self._urls[res[-1]]
 
-    def getNNextUrls(self, n: int, url: DataUrl) -> list:
+    def _getNNextUrls(self, n: int, url: DataUrl) -> list:
         """
         Deduce the next urls in the stack after `url`
 
@@ -465,14 +465,14 @@ class ImageStack(qt.QMainWindow):
         :rtype: list
         """
         res = []
-        next_free = self.getNextUrl(url=url)
+        next_free = self._getNextUrl(url=url)
         while len(res) < n and next_free is not None:
             assert isinstance(next_free, DataUrl)
             res.append(next_free)
-            next_free = self.getNextUrl(res[-1])
+            next_free = self._getNextUrl(res[-1])
         return res
 
-    def getNPreviousUrls(self, n: int, url: DataUrl):
+    def _getNPreviousUrls(self, n: int, url: DataUrl):
         """
         Deduce the previous urls in the stack after `url`
 
@@ -484,10 +484,10 @@ class ImageStack(qt.QMainWindow):
         :rtype: list
         """
         res = []
-        next_free = self.getPreviousUrl(url=url)
+        next_free = self._getPreviousUrl(url=url)
         while len(res) < n and next_free is not None:
             res.insert(0, next_free)
-            next_free = self.getPreviousUrl(res[0])
+            next_free = self._getPreviousUrl(res[0])
         return res
 
     def setCurrentUrlIndex(self, index: int):
@@ -526,8 +526,8 @@ class ImageStack(qt.QMainWindow):
             else:
                 self._load(url)
                 self._notifyLoading()
-            self._preFetch(self.getNNextUrls(self.__n_prefetch, url))
-            self._preFetch(self.getNPreviousUrls(self.__n_prefetch, url))
+            self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
+            self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
         self._slider.blockSignals(old_slider)
 

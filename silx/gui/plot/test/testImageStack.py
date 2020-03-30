@@ -119,19 +119,19 @@ class TestImageStack(TestCaseQt):
         self.assertEqual(urls_values[0], self.urls[0])
         self.assertEqual(urls_values[7], self.urls[7])
 
-        self.assertEqual(self.widget.getNextUrl(urls_values[2]).path(),
+        self.assertEqual(self.widget._getNextUrl(urls_values[2]).path(),
                          urls_values[3].path())
-        self.assertEqual(self.widget.getPreviousUrl(urls_values[0]), None)
-        self.assertEqual(self.widget.getPreviousUrl(urls_values[6]).path(),
+        self.assertEqual(self.widget._getPreviousUrl(urls_values[0]), None)
+        self.assertEqual(self.widget._getPreviousUrl(urls_values[6]).path(),
                          urls_values[5].path())
 
-        self.assertEqual(self.widget.getNNextUrls(2, urls_values[0]),
+        self.assertEqual(self.widget._getNNextUrls(2, urls_values[0]),
                          urls_values[1:3])
-        self.assertEqual(self.widget.getNNextUrls(5, urls_values[7]),
+        self.assertEqual(self.widget._getNNextUrls(5, urls_values[7]),
                          urls_values[8:])
-        self.assertEqual(self.widget.getNPreviousUrls(3, urls_values[2]),
+        self.assertEqual(self.widget._getNPreviousUrls(3, urls_values[2]),
                          urls_values[:2])
-        self.assertEqual(self.widget.getNPreviousUrls(5, urls_values[8]),
+        self.assertEqual(self.widget._getNPreviousUrls(5, urls_values[8]),
                          urls_values[3:8])
 
     def _waitUntilUrlLoaded(self, timeout=2.0):
