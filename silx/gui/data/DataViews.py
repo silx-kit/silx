@@ -813,10 +813,13 @@ class _Plot1dView(DataView):
 
     def setData(self, data):
         data = self.normalizeData(data)
-        self.getWidget().addCurve(legend="data",
-                                  x=range(len(data)),
-                                  y=data,
-                                  resetzoom=self.__resetZoomNextTime)
+        plotWidget = self.getWidget()
+        legend = "data"
+        plotWidget.addCurve(legend=legend,
+                            x=range(len(data)),
+                            y=data,
+                            resetzoom=self.__resetZoomNextTime)
+        plotWidget.setActiveCurve(legend)
         self.__resetZoomNextTime = True
 
     def axesNames(self, data, info):
