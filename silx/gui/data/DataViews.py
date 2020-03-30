@@ -365,6 +365,29 @@ class DataView(object):
         """
         return None
 
+    def __formatSlices(self, indices):
+        """Format an iterable of slice objects
+
+        :param indices: The slices to format
+        :type indices: Union[None,List[Union[slice,int]]]
+        :rtype: str
+        """
+        if indices is None:
+            return ''
+
+        def formatSlice(slice_):
+            start, stop, step = slice_.start, slice_.stop, slice_.step
+            string = ('' if start is None else str(start)) + ':'
+            if stop is not None:
+                string += str(stop)
+            if step not in (None, 1):
+                string += ':' + step
+            return string
+
+        return '[' + ', '.join(
+            formatSlice(index) if isinstance(index, slice) else str(index)
+            for index in indices) + ']'
+
     def titleForSelection(self, selection):
         """Build title from given selection information.
 
@@ -375,15 +398,12 @@ class DataView(object):
             return None
         else:
             directory, filename = os.path.split(selection.filename)
-            slicing = selection.slice
-            if slicing == None:
-                slicing = "()"
             params = dict(directory=directory,
                           filename=filename,
                           datapath=selection.datapath,
-                          slice=slicing)
+                          slicing=self.__formatSlices(selection.slice))
             # FIXME: This could be an configurable field of the view
-            pattern = "{filename}::{datapath}[{slice}]"
+            pattern = "{filename}::{datapath}{slicing}"
             try:
                 title = pattern.format(**params)
             except Exception:
