@@ -240,6 +240,12 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
+    TITLE_PATTERN = "{datapath}{slicing} {permuted}"
+    """Pattern used to format the title of the plot.
+
+    Supported fields: `{filename}`, `{datapath}`, `{slicing}`, `{permuted}`.
+    """
+
     def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
@@ -404,12 +410,10 @@ class DataView(object):
                 _logger.debug("Error while formatting slices", exc_info=True)
                 slicing = '[sliced]'
 
-            permuted = '[permuted]' if selection.permutation is not None else ''
+            permuted = '(permuted)' if selection.permutation is not None else ''
 
-            # FIXME: This could be a configurable field of the view
-            pattern = "{filename}::{datapath}{slicing} {permuted}"
             try:
-                title = pattern.format(
+                title = self.TITLE_PATTERN.format(
                     directory=directory,
                     filename=filename,
                     datapath=selection.datapath,
