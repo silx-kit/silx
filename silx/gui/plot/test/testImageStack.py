@@ -111,6 +111,7 @@ class TestImageStack(TestCaseQt):
         """Test that some utils functions are working"""
         self.widget.show()
         self.widget.setUrls(list(self.urls.values()))
+        self.assertEqual(len(self.widget.getUrls()), len(self.urls))
 
         # wait for image to be loaded
         self._waitUntilUrlLoaded()

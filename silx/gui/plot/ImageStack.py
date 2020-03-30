@@ -412,6 +412,14 @@ class ImageStack(qt.QMainWindow):
             first_url = self._urls[list(self._urls.keys())[0]]
             self.setCurrentUrl(first_url)
 
+    def getUrls(self) -> tuple:
+        """
+
+        :return: tuple of urls
+        :rtype: tuple
+        """
+        return tuple(self._urlIndexes.keys())
+
     def _getNextUrl(self, url: DataUrl) -> typing.Union[None, DataUrl]:
         """
         return the next url in the stack
