@@ -243,6 +243,9 @@ class ImageStack(qt.QMainWindow):
     sigLoaded = qt.Signal(str)
     """Signal emitted when new data is available"""
 
+    sigCurrentUrlChanged = qt.Signal(str)
+    """Signal emitted when the current url change"""
+
     def __init__(self, parent=None) -> None:
         super(ImageStack, self).__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
@@ -528,7 +531,10 @@ class ImageStack(qt.QMainWindow):
         assert isinstance(url, (DataUrl, str))
         if isinstance(url, str):
             url = DataUrl(path=url)
-        self._current_url = url
+        if url != self._current_url:
+            self._current_url = url
+            self.sigCurrentUrlChanged.emit(url.path())
+
         old_url_table = self._urlsTable.blockSignals(True)
         old_slider = self._slider.blockSignals(True)
 

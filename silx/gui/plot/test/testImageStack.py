@@ -67,8 +67,11 @@ class TestImageStack(TestCaseQt):
                                        scheme='silx')
         self.widget = ImageStack()
 
-        self.listener = SignalListener()
-        self.widget.sigLoaded.connect(self.listener.partial())
+        self.urlLoadedListener = SignalListener()
+        self.widget.sigLoaded.connect(self.urlLoadedListener)
+
+        self.currentUrlChangedListener = SignalListener()
+        self.widget.sigCurrentUrlChanged.connect(self.currentUrlChangedListener)
 
     def tearDown(self):
         shutil.rmtree(self._folder)
@@ -90,7 +93,7 @@ class TestImageStack(TestCaseQt):
         self.assertEqual(self.widget.getCurrentUrl(), self.urls[0])
 
         # make sure all image are loaded
-        self.assertEqual(self.listener.callCount(), self._n_urls)
+        self.assertEqual(self.urlLoadedListener.callCount(), self._n_urls)
         numpy.testing.assert_array_equal(
             self.widget.getPlotWidget().getActiveImage(just_legend=False).getData(),
             self._raw_data[0])
@@ -110,6 +113,31 @@ class TestImageStack(TestCaseQt):
             self._raw_data[6])
         self.assertEqual(self.widget._urlsTable.currentItem().text(),
                          self.urls[6].path())
+
+    def testCurrentUrlSignals(self):
+        """Test emission of 'currentUrlChangedListener'"""
+        # check initialization
+        self.assertEqual(self.currentUrlChangedListener.callCount(), 0)
+        self.widget.setUrls(list(self.urls.values()))
+        self.qapp.processEvents()
+        time.sleep(0.5)
+        self.qapp.processEvents()
+        # once loaded the two signals should have been sended
+        self.assertEqual(self.currentUrlChangedListener.callCount(), 1)
+        # if the slider is stuck to the same position no signal should be
+        # emitted
+        self.qapp.processEvents()
+        time.sleep(0.5)
+        self.qapp.processEvents()
+        self.assertEqual(self.widget._slider.value(), 0)
+        self.assertEqual(self.currentUrlChangedListener.callCount(), 1)
+        # if slider position is changed, one of each signal should have been
+        # emitted
+        self.widget._urlsTable.setUrl(self.urls[4])
+        self.qapp.processEvents()
+        time.sleep(1.5)
+        self.qapp.processEvents()
+        self.assertEqual(self.currentUrlChangedListener.callCount(), 2)
 
     def testUtils(self):
         """Test that some utils functions are working"""
