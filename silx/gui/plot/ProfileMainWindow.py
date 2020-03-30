@@ -59,10 +59,7 @@ class ProfileMainWindow(qt.QMainWindow):
     sum or mean)"""
 
     def __init__(self, parent=None, backend=None):
-        qt.QMainWindow.__init__(
-            self,
-            parent=parent,
-            flags=qt.Qt.Window | qt.Qt.WindowStaysOnTopHint)
+        qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
 
         self.setWindowTitle('Profile window')
         # plots are created on demand, in self.setProfileDimensions()
