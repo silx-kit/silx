@@ -404,19 +404,20 @@ class DataView(object):
                 _logger.debug("Error while formatting slices", exc_info=True)
                 slicing = '[sliced]'
 
-            # FIXME: This could be an configurable field of the view
-            pattern = "{filename}::{datapath}{slicing}"
+            permuted = '[permuted]' if selection.permutation is not None else ''
+
+            # FIXME: This could be a configurable field of the view
+            pattern = "{filename}::{datapath}{slicing} {permuted}"
             try:
                 title = pattern.format(
                     directory=directory,
                     filename=filename,
                     datapath=selection.datapath,
-                    slicing=slicing)
+                    slicing=slicing,
+                    permuted=permuted)
             except Exception:
                 _logger.debug("Error while formatting title", exc_info=True)
                 title = selection.datapath + slicing
-            if selection.permutation is not None:
-                title = title + " [axis permutation]"
 
             return title
 
