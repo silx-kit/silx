@@ -839,6 +839,9 @@ class Plot1D(PlotWindow):
             self.setWindowTitle('Plot1D')
         self.getXAxis().setLabel('X')
         self.getYAxis().setLabel('Y')
+        action = self.getFitAction()
+        action.setXRangeUpdatedOnZoom(True)
+        action.setFittedItemUpdatedFromActiveCurve(True)
 
 
 class Plot2D(PlotWindow):
