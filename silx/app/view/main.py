@@ -71,6 +71,12 @@ def createParser():
     return parser
 
 
+def createWindow(parent, settings):
+    from .Viewer import Viewer
+    window = Viewer(parent=None, settings=settings)
+    return window
+
+
 def mainQt(options):
     """Part of the main depending on Qt"""
     if options.debug:
@@ -124,8 +130,7 @@ def mainQt(options):
     if options.fresh_preferences:
         settings.clear()
 
-    from .Viewer import Viewer
-    window = Viewer(parent=None, settings=settings)
+    window = createWindow(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 
     if options.use_opengl_plot:

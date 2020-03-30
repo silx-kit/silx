@@ -65,7 +65,7 @@ class Viewer(qt.QMainWindow):
         silxIcon = icons.getQIcon("silx")
         self.setWindowIcon(silxIcon)
 
-        self.__context = ApplicationContext(self, settings)
+        self.__context = self.createApplicationContext(settings)
         self.__context.restoreLibrarySettings()
 
         self.__dialogState = None
@@ -146,6 +146,9 @@ class Viewer(qt.QMainWindow):
         self.createActions()
         self.createMenus()
         self.__context.restoreSettings()
+
+    def createApplicationContext(self, settings):
+        return ApplicationContext(self, settings)
 
     def __createTreeWindow(self, treeView):
         toolbar = qt.QToolBar(self)

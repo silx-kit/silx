@@ -231,6 +231,9 @@ class DataViewHooks(object):
         """Returns a color dialog for this view."""
         return None
 
+    def viewWidgetCreated(self, view, plot):
+        """Called when the widget of the view was created"""
+        return
 
 class DataView(object):
     """Holder for the data view."""
@@ -342,6 +345,9 @@ class DataView(object):
         """
         if self.__widget is None:
             self.__widget = self.createWidget(self.__parent)
+            hooks = self.getHooks()
+            if hooks is not None:
+                hooks.viewWidgetCreated(self, self.__widget)
         return self.__widget
 
     def createWidget(self, parent):
