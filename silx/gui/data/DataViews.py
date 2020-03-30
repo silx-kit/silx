@@ -243,7 +243,7 @@ class DataView(object):
     TITLE_PATTERN = "{datapath}{slicing} {permuted}"
     """Pattern used to format the title of the plot.
 
-    Supported fields: `{filename}`, `{datapath}`, `{slicing}`, `{permuted}`.
+    Supported fields: `{directory}`, `{filename}`, `{datapath}`, `{slicing}`, `{permuted}`.
     """
 
     def __init__(self, parent, modeId=None, icon=None, label=None):
