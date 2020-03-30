@@ -370,13 +370,21 @@ class ImageStack(qt.QMainWindow):
         """
         Define the number of url to prefetch around
 
-        :param int n: number of url to prefetch on the and on the right.
+        :param int n: number of url to prefetch on left and right sides.
                       In total n*2 DataUrl will be prefetch
         """
         self.__n_prefetch = n
         current_url = self.getCurrentUrl()
         if current_url is not None:
             self.setCurrentUrl(current_url)
+
+    def getNPrefetch(self) -> int:
+        """
+
+        :return: number of url to prefetch on left and right sides. In total
+                 will load 2* NPrefetch DataUrls
+        """
+        return self.__n_prefetch
 
     def setUrls(self, urls: list) -> None:
         """list of urls within an index. Warning: urls should contain an image
