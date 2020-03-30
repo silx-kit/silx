@@ -29,6 +29,7 @@ from collections import OrderedDict
 import logging
 import numbers
 import numpy
+import os
 
 import silx.io
 from silx.utils import deprecation
@@ -242,6 +243,12 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
+    TITLE_PATTERN = "{datapath}{slicing} {permuted}"
+    """Pattern used to format the title of the plot.
+
+    Supported fields: `{directory}`, `{filename}`, `{datapath}`, `{slicing}`, `{permuted}`.
+    """
+
     def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
@@ -369,6 +376,70 @@ class DataView(object):
         :type data: numpy.ndarray or h5py.Dataset
         """
         return None
+
+    def __formatSlices(self, indices):
+        """Format an iterable of slice objects
+
+        :param indices: The slices to format
+        :type indices: Union[None,List[Union[slice,int]]]
+        :rtype: str
+        """
+        if indices is None:
+            return ''
+
+        def formatSlice(slice_):
+            start, stop, step = slice_.start, slice_.stop, slice_.step
+            string = ('' if start is None else str(start)) + ':'
+            if stop is not None:
+                string += str(stop)
+            if step not in (None, 1):
+                string += ':' + step
+            return string
+
+        return '[' + ', '.join(
+            formatSlice(index) if isinstance(index, slice) else str(index)
+            for index in indices) + ']'
+
+    def titleForSelection(self, selection):
+        """Build title from given selection information.
+
+        :param NamedTuple selection: Data selected
+        :rtype: str
+        """
+        if selection is None:
+            return None
+        else:
+            directory, filename = os.path.split(selection.filename)
+            try:
+                slicing = self.__formatSlices(selection.slice)
+            except Exception:
+                _logger.debug("Error while formatting slices", exc_info=True)
+                slicing = '[sliced]'
+
+            permuted = '(permuted)' if selection.permutation is not None else ''
+
+            try:
+                title = self.TITLE_PATTERN.format(
+                    directory=directory,
+                    filename=filename,
+                    datapath=selection.datapath,
+                    slicing=slicing,
+                    permuted=permuted)
+            except Exception:
+                _logger.debug("Error while formatting title", exc_info=True)
+                title = selection.datapath + slicing
+
+            return title
+
+    def setDataSelection(self, selection):
+        """Set the data selection displayed by the view
+
+        If called, it have to be called directly after `setData`.
+
+        :param selection: Data selected
+        :type selection: NamedTuple
+        """
+        pass
 
     def axesNames(self, data, info):
         """Returns names of the expected axes of the view, according to the
@@ -592,6 +663,11 @@ class SelectOneDataView(_CompositeDataView):
             return
         self.__updateDisplayedView()
         self.__currentView.setData(data)
+
+    def setDataSelection(self, selection):
+        if self.__currentView is None:
+            return
+        self.__currentView.setDataSelection(selection)
 
     def axesNames(self, data, info):
         view = self.__getBestView(data, info)
@@ -819,6 +895,9 @@ class _Plot1dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = True
 
+    def setDataSelection(self, selection):
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
+
     def axesNames(self, data, info):
         return ["y"]
 
@@ -895,6 +974,9 @@ class _Plot2dRecordView(DataView):
             self._yAxisDropDown = self.getWidget().getAxesSelectionToolBar().getYAxisDropDown()
             self._xAxisDropDown.activated.connect(self._onAxesSelectionChaned)
             self._yAxisDropDown.activated.connect(self._onAxesSelectionChaned)
+
+    def setDataSelection(self, selection):
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
 
     def _onAxesSelectionChaned(self):
         fieldNameX = self._xAxisDropDown.currentData()
@@ -974,6 +1056,9 @@ class _Plot2dView(DataView):
                                   data=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
+
+    def setDataSelection(self, selection):
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
 
     def axesNames(self, data, info):
         return ["y", "x"]
@@ -1081,6 +1166,10 @@ class _ComplexImageView(DataView):
         data = self.normalizeData(data)
         self.getWidget().setData(data)
 
+    def setDataSelection(self, selection):
+        self.getWidget().getPlot().setGraphTitle(
+            self.titleForSelection(selection))
+
     def axesNames(self, data, info):
         return ["y", "x"]
 
@@ -1179,6 +1268,11 @@ class _StackView(DataView):
         # Override the colormap, while setStack overwrite it
         self.getWidget().setColormap(self.defaultColormap())
         self.__resetZoomNextTime = False
+
+    def setDataSelection(self, selection):
+        title = self.titleForSelection(selection)
+        self.getWidget().setTitleCallback(
+            lambda idx: "%s z=%d" % (title, idx))
 
     def axesNames(self, data, info):
         return ["depth", "y", "x"]
