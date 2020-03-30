@@ -365,6 +365,37 @@ class DataView(object):
         """
         return None
 
+    def titleForSelection(self, selection):
+        """Build title from given selection information.
+
+        :param NamedTuple selection: Data selected
+        :rtype: str
+        """
+        if selection is None:
+            return None
+        else:
+            directory, filename = os.path.split(selection.filename)
+            slicing = selection.slice
+            if slicing == None:
+                slicing = "()"
+            params = dict(directory=directory,
+                          filename=filename,
+                          datapath=selection.datapath,
+                          slice=slicing)
+            # FIXME: This could be an configurable field of the view
+            pattern = "{filename}::{datapath}[{slice}]"
+            try:
+                title = pattern.format(**params)
+            except Exception:
+                _logger.debug("Error while formatting title", exc_info=True)
+                title = selection.datapath
+                if selection.slice is not None:
+                    title = title + " [sliced]"
+            if selection.permutation is not None:
+                title = title + " [axis permutation]"
+
+            return title
+
     def setDataSelection(self, selection):
         """Set the data selection displayed by the view
 
@@ -598,6 +629,11 @@ class SelectOneDataView(_CompositeDataView):
         self.__updateDisplayedView()
         self.__currentView.setData(data)
 
+    def setDataSelection(self, selection):
+        if self.__currentView is None:
+            return
+        self.__currentView.setDataSelection(selection)
+
     def axesNames(self, data, info):
         view = self.__getBestView(data, info)
         self.__currentView = view
@@ -825,31 +861,7 @@ class _Plot1dView(DataView):
         self.__resetZoomNextTime = True
 
     def setDataSelection(self, selection):
-        if selection is None:
-            title = None
-        else:
-            directory, filename = os.path.split(selection.filename)
-            slicing = selection.slice
-            if slicing == None:
-                slicing = "()"
-            params = dict(directory=directory,
-                          filename=filename,
-                          datapath=selection.datapath,
-                          slice=slicing)
-            # FIXME: This could be an configurable field of the view
-            pattern = "{filename}::{datapath}[{slice}]"
-            try:
-                title = pattern.format(**params)
-            except Exception:
-                _logger.debug("Error while formatting title", exc_info=True)
-                title = selection.datapath
-                if selection.slice is not None:
-                    title = title + " [sliced]"
-            if selection.permutation is not None:
-                title = title + " [axis permutation]"
-
-        plot = self.getWidget()
-        plot.setGraphTitle(title)
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
 
     def axesNames(self, data, info):
         return ["y"]
@@ -927,6 +939,9 @@ class _Plot2dRecordView(DataView):
             self._yAxisDropDown = self.getWidget().getAxesSelectionToolBar().getYAxisDropDown()
             self._xAxisDropDown.activated.connect(self._onAxesSelectionChaned)
             self._yAxisDropDown.activated.connect(self._onAxesSelectionChaned)
+
+    def setDataSelection(self, selection):
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
 
     def _onAxesSelectionChaned(self):
         fieldNameX = self._xAxisDropDown.currentData()
@@ -1006,6 +1021,9 @@ class _Plot2dView(DataView):
                                   data=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
+
+    def setDataSelection(self, selection):
+        self.getWidget().setGraphTitle(self.titleForSelection(selection))
 
     def axesNames(self, data, info):
         return ["y", "x"]
@@ -1112,6 +1130,10 @@ class _ComplexImageView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         self.getWidget().setData(data)
+
+    def setDataSelection(self, selection):
+        self.getWidget().getPlot().setGraphTitle(
+            self.titleForSelection(selection))
 
     def axesNames(self, data, info):
         return ["y", "x"]
