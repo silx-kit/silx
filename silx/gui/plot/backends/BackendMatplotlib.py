@@ -1330,7 +1330,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def leaveEvent(self, event):
         """QWidget event handler"""
-        self._plot.onMouseLeaveWidget()
+        try:
+            plot = self._plot
+        except RuntimeError:
+            pass
+        else:
+            plot.onMouseLeaveWidget()
 
     # picking
 
