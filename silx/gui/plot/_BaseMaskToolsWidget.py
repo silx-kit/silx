@@ -550,57 +550,75 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Transparency
         self.transparencyWidget = self._initTransparencyWidget()
 
-        # Buttons group
-        invertBtn = qt.QPushButton('Invert')
-        invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
-        invertBtn.setToolTip('Invert current mask <b>%s</b>' %
-                             invertBtn.shortcut().toString())
-        invertBtn.clicked.connect(self._handleInvertMask)
+        undoAction = qt.QAction(self)
+        undoAction.setText('Undo')
+        undoAction.setShortcut(qt.QKeySequence.Undo)
+        undoAction.setToolTip('Undo last mask change <b>%s</b>' %
+                              undoAction.shortcut().toString())
+        self._mask.sigUndoable.connect(undoAction.setEnabled)
+        undoAction.triggered.connect(self._mask.undo)
 
-        clearBtn = qt.QPushButton('Clear')
-        clearBtn.setShortcut(qt.QKeySequence.Delete)
-        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
-                            clearBtn.shortcut().toString())
-        clearBtn.clicked.connect(self._handleClearMask)
+        redoAction = qt.QAction(self)
+        redoAction.setText('Redo')
+        redoAction.setShortcut(qt.QKeySequence.Redo)
+        redoAction.setToolTip('Redo last undone mask change <b>%s</b>' %
+                              redoAction.shortcut().toString())
+        self._mask.sigRedoable.connect(redoAction.setEnabled)
+        redoAction.triggered.connect(self._mask.redo)
+
+        loadAction = qt.QAction(self)
+        loadAction.setText('Load...')
+        loadAction.triggered.connect(self._loadMask)
+
+        saveAction = qt.QAction(self)
+        saveAction.setText('Save...')
+        saveAction.triggered.connect(self._saveMask)
+
+        invertAction = qt.QAction(self)
+        invertAction.setText('Invert')
+        invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertAction.setToolTip('Invert current mask <b>%s</b>' %
+                                invertAction.shortcut().toString())
+        invertAction.triggered.connect(self._handleInvertMask)
+
+        clearAction = qt.QAction(self)
+        clearAction.setText('Clear')
+        clearAction.setShortcut(qt.QKeySequence.Delete)
+        clearAction.setToolTip('Clear current mask level <b>%s</b>' %
+                               clearAction.shortcut().toString())
+        clearAction.triggered.connect(self._handleClearMask)
+
+        clearAllAction = qt.QAction(self)
+        clearAllAction.setText('Clear all')
+        clearAllAction.setToolTip('Clear all mask levels')
+        clearAllAction.triggered.connect(self.resetSelectionMask)
+
+        # Buttons group
+        invertBtn = qt.QToolButton(self)
+        invertBtn.setDefaultAction(invertAction)
+
+        clearBtn = qt.QToolButton(self)
+        clearBtn.setDefaultAction(clearAction)
+
+        self.clearAllBtn = qt.QToolButton(self)
+        self.clearAllBtn.setDefaultAction(clearAllAction)
 
         invertClearWidget = self._hboxWidget(
-                invertBtn, clearBtn, stretch=False)
+                invertBtn, clearBtn, self.clearAllBtn, stretch=False)
 
-        undoBtn = qt.QPushButton('Undo')
-        undoBtn.setShortcut(qt.QKeySequence.Undo)
-        undoBtn.setToolTip('Undo last mask change <b>%s</b>' %
-                           undoBtn.shortcut().toString())
-        self._mask.sigUndoable.connect(undoBtn.setEnabled)
-        undoBtn.clicked.connect(self._mask.undo)
-
-        redoBtn = qt.QPushButton('Redo')
-        redoBtn.setShortcut(qt.QKeySequence.Redo)
-        redoBtn.setToolTip('Redo last undone mask change <b>%s</b>' %
-                           redoBtn.shortcut().toString())
-        self._mask.sigRedoable.connect(redoBtn.setEnabled)
-        redoBtn.clicked.connect(self._mask.redo)
-
-        undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
-
-        self.clearAllBtn = qt.QPushButton('Clear all')
-        self.clearAllBtn.setToolTip('Clear all mask levels')
-        self.clearAllBtn.clicked.connect(self.resetSelectionMask)
-
-        loadBtn = qt.QPushButton('Load...')
-        loadBtn.clicked.connect(self._loadMask)
-
-        saveBtn = qt.QPushButton('Save...')
-        saveBtn.clicked.connect(self._saveMask)
-
-        self.loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
+        actions = (loadAction, saveAction, redoAction, undoAction)
+        actionButtons = []
+        for action in actions:
+            btn = qt.QToolButton()
+            btn.setDefaultAction(action)
+            actionButtons.append(btn)
+        container = self._hboxWidget(*actionButtons)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self.levelWidget)
         layout.addWidget(self.transparencyWidget)
         layout.addWidget(invertClearWidget)
-        layout.addWidget(undoRedoWidget)
-        layout.addWidget(self.clearAllBtn)
-        layout.addWidget(self.loadSaveWidget)
+        layout.addWidget(container)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
