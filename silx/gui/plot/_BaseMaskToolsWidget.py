@@ -550,8 +550,23 @@ class BaseMaskToolsWidget(qt.QWidget):
         # Transparency
         self._transparencyWidget = self._initTransparencyWidget()
 
+        style = qt.QApplication.style()
+
+        def getIcon(*identifiyers):
+            for i in identifiyers:
+                if isinstance(i, str):
+                    if qt.QIcon.hasThemeIcon(i):
+                        return qt.QIcon.fromTheme(i)
+                elif isinstance(i, qt.QIcon):
+                    return i
+                else:
+                    return style.standardIcon(i)
+            return qt.QIcon()
+
         undoAction = qt.QAction(self)
         undoAction.setText('Undo')
+        icon = getIcon("edit-undo", qt.QStyle.SP_ArrowBack)
+        undoAction.setIcon(icon)
         undoAction.setShortcut(qt.QKeySequence.Undo)
         undoAction.setToolTip('Undo last mask change <b>%s</b>' %
                               undoAction.shortcut().toString())
@@ -560,6 +575,8 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         redoAction = qt.QAction(self)
         redoAction.setText('Redo')
+        icon = getIcon("edit-redo", qt.QStyle.SP_ArrowForward)
+        redoAction.setIcon(icon)
         redoAction.setShortcut(qt.QKeySequence.Redo)
         redoAction.setToolTip('Redo last undone mask change <b>%s</b>' %
                               redoAction.shortcut().toString())
@@ -568,14 +585,20 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         loadAction = qt.QAction(self)
         loadAction.setText('Load...')
+        icon = icons.getQIcon("document-open")
+        loadAction.setIcon(icon)
         loadAction.triggered.connect(self._loadMask)
 
         saveAction = qt.QAction(self)
         saveAction.setText('Save...')
+        icon = icons.getQIcon("document-save")
+        saveAction.setIcon(icon)
         saveAction.triggered.connect(self._saveMask)
 
         invertAction = qt.QAction(self)
         invertAction.setText('Invert')
+        icon = icons.getQIcon("mask-invert")
+        invertAction.setIcon(icon)
         invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
         invertAction.setToolTip('Invert current mask <b>%s</b>' %
                                 invertAction.shortcut().toString())
@@ -583,6 +606,8 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         clearAction = qt.QAction(self)
         clearAction.setText('Clear')
+        icon = icons.getQIcon("mask-clear")
+        clearAction.setIcon(icon)
         clearAction.setShortcut(qt.QKeySequence.Delete)
         clearAction.setToolTip('Clear current mask level <b>%s</b>' %
                                clearAction.shortcut().toString())
@@ -590,36 +615,37 @@ class BaseMaskToolsWidget(qt.QWidget):
 
         clearAllAction = qt.QAction(self)
         clearAllAction.setText('Clear all')
+        icon = icons.getQIcon("mask-clear-all")
+        clearAllAction.setIcon(icon)
         clearAllAction.setToolTip('Clear all mask levels')
         clearAllAction.triggered.connect(self.resetSelectionMask)
 
         # Buttons group
-        invertBtn = qt.QToolButton(self)
-        invertBtn.setDefaultAction(invertAction)
+        margin1 = qt.QWidget(self)
+        margin1.setMinimumWidth(6)
+        margin2 = qt.QWidget(self)
+        margin2.setMinimumWidth(6)
 
-        clearBtn = qt.QToolButton(self)
-        clearBtn.setDefaultAction(clearAction)
-
-        clearAllBtn = qt.QToolButton(self)
-        clearAllBtn.setDefaultAction(clearAllAction)
-        self._clearAllBtn = clearAllBtn
-
-        invertClearWidget = self._hboxWidget(
-                invertBtn, clearBtn, clearAllBtn, stretch=False)
-
-        actions = (loadAction, saveAction, redoAction, undoAction)
-        actionButtons = []
+        actions = (loadAction, saveAction, margin1,
+                   undoAction, redoAction, margin2,
+                   invertAction, clearAction, clearAllAction)
+        widgets = []
         for action in actions:
+            if isinstance(action, qt.QWidget):
+                widgets.append(action)
+                continue
             btn = qt.QToolButton()
             btn.setDefaultAction(action)
-            actionButtons.append(btn)
-        container = self._hboxWidget(*actionButtons)
+            widgets.append(btn)
+            if action is clearAllAction:
+                self._clearAllBtn = btn
+        container = self._hboxWidget(*widgets)
+        container.layout().setSpacing(1)
 
         layout = qt.QVBoxLayout()
+        layout.addWidget(container)
         layout.addWidget(self._levelWidget)
         layout.addWidget(self._transparencyWidget)
-        layout.addWidget(invertClearWidget)
-        layout.addWidget(container)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
