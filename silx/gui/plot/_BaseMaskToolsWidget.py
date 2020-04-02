@@ -456,8 +456,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         assert mode in ('exclusive', 'single')
         if mode != self._multipleMasks:
             self._multipleMasks = mode
-            self.levelWidget.setVisible(self._multipleMasks != 'single')
-            self.clearAllBtn.setVisible(self._multipleMasks != 'single')
+            self._levelWidget.setVisible(self._multipleMasks != 'single')
+            self._clearAllBtn.setVisible(self._multipleMasks != 'single')
 
     @property
     def maskFileDir(self):
@@ -545,10 +545,10 @@ class BaseMaskToolsWidget(qt.QWidget):
                 'Choose which mask level is edited.\n'
                 'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
-        self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
+        self._levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
         # Transparency
-        self.transparencyWidget = self._initTransparencyWidget()
+        self._transparencyWidget = self._initTransparencyWidget()
 
         undoAction = qt.QAction(self)
         undoAction.setText('Undo')
@@ -600,11 +600,12 @@ class BaseMaskToolsWidget(qt.QWidget):
         clearBtn = qt.QToolButton(self)
         clearBtn.setDefaultAction(clearAction)
 
-        self.clearAllBtn = qt.QToolButton(self)
-        self.clearAllBtn.setDefaultAction(clearAllAction)
+        clearAllBtn = qt.QToolButton(self)
+        clearAllBtn.setDefaultAction(clearAllAction)
+        self._clearAllBtn = clearAllBtn
 
         invertClearWidget = self._hboxWidget(
-                invertBtn, clearBtn, self.clearAllBtn, stretch=False)
+                invertBtn, clearBtn, clearAllBtn, stretch=False)
 
         actions = (loadAction, saveAction, redoAction, undoAction)
         actionButtons = []
@@ -615,8 +616,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         container = self._hboxWidget(*actionButtons)
 
         layout = qt.QVBoxLayout()
-        layout.addWidget(self.levelWidget)
-        layout.addWidget(self.transparencyWidget)
+        layout.addWidget(self._levelWidget)
+        layout.addWidget(self._transparencyWidget)
         layout.addWidget(invertClearWidget)
         layout.addWidget(container)
         layout.addStretch(1)
