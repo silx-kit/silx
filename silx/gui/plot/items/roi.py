@@ -41,7 +41,7 @@ from ... import qt
 from .. import items
 from ...colors import rgba
 import silx.utils.deprecation
-from silx.utils.proxy import docstring
+from silx.gui.qt import inspect
 
 
 logger = logging.getLogger(__name__)
@@ -489,10 +489,10 @@ class RegionOfInterest(_RegionOfInterestBase):
         """Remove items from their plot."""
         for item in itertools.chain(list(self._items),
                                     list(self._editAnchors)):
-
             plot = item.getPlot()
             if plot is not None:
-                plot.removeItem(item)
+                if inspect.isValid(plot):
+                    plot.removeItem(item)
         self._items = WeakList()
         self._editAnchors = WeakList()
 
@@ -500,7 +500,8 @@ class RegionOfInterest(_RegionOfInterestBase):
             item = self._labelItem
             plot = item.getPlot()
             if plot is not None:
-                plot.removeItem(item)
+                if inspect.isValid(plot):
+                    plot.removeItem(item)
         self._labelItem = None
 
     def _updated(self, event=None, checkVisibility=True):
