@@ -322,6 +322,7 @@ class RegionOfInterestManager(qt.QObject):
             raise ValueError(
                 'RegionOfInterest does not belong to this instance')
 
+        roi.sigAboutToBeRemoved.emit()
         self.sigRoiAboutToBeRemoved.emit(roi)
 
         self._rois.remove(roi)

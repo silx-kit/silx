@@ -54,6 +54,9 @@ class _RegionOfInterestBase(qt.QObject):
     :param str name: The name of the ROI
     """
 
+    sigAboutToBeRemoved = qt.Signal()
+    """Signal emitted just before this ROI is removed from its manager."""
+
     sigItemChanged = qt.Signal(object)
     """Signal emitted when item has changed.
 
