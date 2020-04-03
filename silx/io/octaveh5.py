@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ Here is an example of a simple read and write :
     strucDict = reader.get('mt_struct_name')
 
 .. note:: These functions depend on the `h5py <http://www.h5py.org/>`_ 
-    library, which is not a mandatory dependency for `silx`.
+    library, which is a mandatory dependency for `silx`.
 
 """
 
