@@ -323,27 +323,31 @@ class RegionOfInterest(_RegionOfInterestBase):
         nbPointsChanged = (self._points is None or
                            points.shape != self._points.shape)
 
-        if nbPointsChanged or not numpy.all(numpy.equal(points, self._points)):
-            self._points = points
+        if not nbPointsChanged and numpy.allclose(points, self._points,
+                                                  rtol=0, atol=0, equal_nan=True):
+            # There is no changes
+            return
 
-            self._updateShape()
-            if self._items and not nbPointsChanged:  # Update plot items
-                item = self._getLabelItem()
-                if item is not None:
-                    markerPos = self._getLabelPosition()
-                    item.setPosition(*markerPos)
+        self._points = points
 
-                if self._editAnchors:  # Update anchors
-                    for anchor, point in zip(self._editAnchors, points):
-                        old = anchor.blockSignals(True)
-                        anchor.setPosition(*point)
-                        anchor.blockSignals(old)
+        self._updateShape()
+        if self._items and not nbPointsChanged:  # Update plot items
+            item = self._getLabelItem()
+            if item is not None:
+                markerPos = self._getLabelPosition()
+                item.setPosition(*markerPos)
 
-            else:  # No items or new point added
-                # re-create plot items
-                self._createPlotItems()
+            if self._editAnchors:  # Update anchors
+                for anchor, point in zip(self._editAnchors, points):
+                    old = anchor.blockSignals(True)
+                    anchor.setPosition(*point)
+                    anchor.blockSignals(old)
 
-            self.sigRegionChanged.emit()
+        else:  # No items or new point added
+            # re-create plot items
+            self._createPlotItems()
+
+        self.sigRegionChanged.emit()
 
     def _updateShape(self):
         """Called when shape must be updated.
