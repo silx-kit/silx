@@ -121,6 +121,9 @@ class ProfileManager(qt.QObject):
         self._item = None
         """The selected item"""
 
+        self.__singleProfileAtATime = True
+        """When it's true, only a single profile is displayed at a time."""
+
         self._previousWindowGeometry = []
 
         # Listen to plot limits changed
@@ -129,6 +132,12 @@ class ProfileManager(qt.QObject):
 
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
         roiManager.sigRoiAdded.connect(self.__roiAdded)
+
+    def setSingleProfile(self, enable):
+        self.__singleProfileAtATime = enable
+
+    def isSingleProfile(self):
+        return self.__singleProfileAtATime
 
     def __interactionFinished(self):
         """Handle end of interactive mode"""
@@ -140,7 +149,9 @@ class ProfileManager(qt.QObject):
         if not isinstance(roi, core.ProfileRoiMixIn):
             return
 
-        # self.clearProfile()
+        if self.__singleProfileAtATime:
+            # FIXME: It would be good to reuse the windows to avoid blinking
+            self.clearProfile()
 
         roi.setName('Profile')
         roi.setEditable(True)
