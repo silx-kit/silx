@@ -114,6 +114,9 @@ class RegionOfInterestManager(qt.QObject):
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
 
+        self._aboutToRemove = []
+        """Avoid reentrant signal"""
+
         self._eventLoop = None
 
         self._modeActions = {}
@@ -315,16 +318,24 @@ class RegionOfInterestManager(qt.QObject):
         :param roi_items.RegionOfInterest roi: The ROI to remove
         :raise ValueError: When ROI does not belong to this object
         """
+        if roi in self._aboutToRemove:
+            # Avoid reentrant signal
+            return
         if not (isinstance(roi, roi_items.RegionOfInterest) and
                 roi.parent() is self and
                 roi in self._rois):
             raise ValueError(
                 'RegionOfInterest does not belong to this instance')
 
-        roi.sigAboutToBeRemoved.emit()
-        self.sigRoiAboutToBeRemoved.emit(roi)
+        self._aboutToRemove.append(roi)
+        try:
+            roi.sigAboutToBeRemoved.emit()
+            self.sigRoiAboutToBeRemoved.emit(roi)
+        finally:
+            self._aboutToRemove.remove(roi)
 
         self._rois.remove(roi)
+
         roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.sigItemChanged.disconnect(self._regionOfInterestChanged)
         roi.setParent(None)
