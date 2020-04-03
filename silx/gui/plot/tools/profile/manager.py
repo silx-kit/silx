@@ -121,6 +121,8 @@ class ProfileManager(qt.QObject):
         self._item = None
         """The selected item"""
 
+        self._previousWindowGeometry = []
+
         # Listen to plot limits changed
         plot.getXAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
         plot.getYAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
@@ -191,6 +193,8 @@ class ProfileManager(qt.QObject):
     def removeProfile(self, profileRoi):
         window = self._disconnectProfileWindow(profileRoi)
         if window is not None:
+            geometry = window.geometry()
+            self._previousWindowGeometry.append(geometry)
             window.deleteLater()
         roiManager = self.getRoiManager()
         roiManager.removeRoi(profileRoi)
@@ -235,7 +239,8 @@ class ProfileManager(qt.QObject):
         window = roi.getProfileWindow()
         if window is None:
             # FIXME: reach geometry from the previous closed window
-            window = self.createProfileWindow(roi, geometry=None)
+            window = self.createProfileWindow(roi)
+            self.initProfileWindow(window)
             window.show()
             roi.setProfileWindow(window)
         window.setProfile(profileData)
@@ -293,8 +298,37 @@ class ProfileManager(qt.QObject):
         """
         return self._roiManagerRef()
 
-    def createProfileWindow(self, roi, geometry=None):
+    def createProfileWindow(self, roi):
         """Create new profile window.
         """
         plot = self.getPlotWidget()
         return ProfileMainWindow(plot)
+
+    def initProfileWindow(self, profileWindow):
+        """This function is called just after the profile window creation in
+        order to initialize the window location."""
+        profileWindow.show()
+        profileWindow.raise_()
+
+        if len(self._previousWindowGeometry) > 0:
+            geometry = self._previousWindowGeometry.pop()
+            profileWindow.setGeometry(geometry)
+            return
+
+        window = self.getPlotWidget().window()
+        winGeom = window.frameGeometry()
+        qapp = qt.QApplication.instance()
+        desktop = qapp.desktop()
+        screenGeom = desktop.availableGeometry(window)
+        spaceOnLeftSide = winGeom.left()
+        spaceOnRightSide = screenGeom.width() - winGeom.right()
+
+        frameGeometry = profileWindow.frameGeometry()
+        profileWindowWidth = frameGeometry.width()
+        if profileWindowWidth < spaceOnRightSide:
+            # Place profile on the right
+            profileWindow.move(winGeom.right(), winGeom.top())
+        elif profileWindowWidth < spaceOnLeftSide:
+            # Place profile on the left
+            left = max(0, winGeom.left() - profileWindowWidth)
+            profileWindow.move(left, winGeom.top())
