@@ -79,7 +79,9 @@ class ProfileRoiMixIn:
             self.__profileWindow.setRoiProfile(self)
 
     def __profileWindowAboutToClose(self):
-        pass
+        roiManager = self.getProfileManager()
+        roiManager.removeProfile(self)
+        self.deleteLater()
 
     def computeProfile(self, item):
         raise NotImplementedError()
