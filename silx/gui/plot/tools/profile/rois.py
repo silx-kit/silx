@@ -29,6 +29,8 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "03/04/2020"
 
+import numpy
+
 from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from silx.gui.plot.Profile import createProfile
@@ -95,30 +97,56 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         return roiStart, roiEnd, lineProjectionMode
 
     def computeProfile(self, item):
-        if not isinstance(item, items.ImageData):
+        if not isinstance(item, items.ImageBase):
             raise TypeError("Unexpected class %s" % type(item))
 
-        currentData = item.getData(copy=False)
         origin = item.getOrigin()
         scale = item.getScale()
         colormap = None  # Not used for 2D data
         method = self.getProfileMethod()
 
-        coords, profile, _area, profileName, xLabel = createProfile(
-            roiInfo=self._getRoiInfo(),
-            currentData=currentData,
-            origin=origin,
-            scale=scale,
-            lineWidth=self.getProfileLineWidth(),
-            method=method)
+        def createProfile2(currentData):
+            coords, profile, _area, profileName, xLabel = createProfile(
+                roiInfo=self._getRoiInfo(),
+                currentData=currentData,
+                origin=origin,
+                scale=scale,
+                lineWidth=self.getProfileLineWidth(),
+                method=method)
+            return coords, profile, profileName, xLabel
 
         data = core.ProfileData()
+
+        if isinstance(item, items.ImageData):
+            currentData = item.getData(copy=False)
+        elif isinstance(item, items.ImageRgba):
+            rgba = item.getData(copy=False)
+            is_uint8 = rgba.dtype.type == numpy.uint8
+            # luminosity
+            if is_uint8:
+                rgba = rgba.astype(numpy.float)
+            currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
+
+        coords, profile, profileName, xLabel = createProfile2(currentData)
+
         data.coords = coords
         data.profile = profile
         data.profileName = profileName
         data.xLabel = xLabel
         data.colormap = colormap
         data.currentData = currentData
+
+        if isinstance(item, items.ImageRgba):
+            rgba = item.getData(copy=False)
+            _coords, r, _profileName, _xLabel = createProfile2(rgba[..., 0])
+            _coords, g, _profileName, _xLabel = createProfile2(rgba[..., 1])
+            _coords, b, _profileName, _xLabel = createProfile2(rgba[..., 2])
+            data.r = r
+            data.g = g
+            data.b = b
+            if rgba.shape[-1] == 4:
+                _coords, a, _profileName, _xLabel = createProfile(rgba[..., 3])
+                data.a = a
 
         return data
 

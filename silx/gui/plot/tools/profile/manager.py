@@ -134,6 +134,17 @@ class ProfileMainWindow(_ProfileMainWindow):
                           origin=(coords[0], 0),
                           scale=profileScale)
             plot.getYAxis().setLabel("Frame index (depth)")
+        elif hasattr(profileData, "r"):
+            plot.addCurve(coords, profile[0], legend=profileName, color="black")
+            red = profileData.r
+            green = profileData.g
+            blue = profileData.b
+            plot.addCurve(coords, red[0], legend=profileName+"_r", color="red")
+            plot.addCurve(coords, green[0], legend=profileName+"_g", color="green")
+            plot.addCurve(coords, blue[0], legend=profileName+"_b", color="blue")
+            if hasattr(profileData, "a"):
+                alpha = profileData.a
+                plot.addCurve(coords, alpha[0], legend=profileName+"_a", color="gray")
         else:
             plot.addCurve(coords,
                                  profile[0],
