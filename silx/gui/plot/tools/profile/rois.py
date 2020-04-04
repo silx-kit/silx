@@ -31,6 +31,8 @@ __date__ = "03/04/2020"
 
 import numpy
 
+from silx.gui import colors
+
 from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from silx.gui.plot.Profile import createProfile
@@ -44,7 +46,12 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__method = "mean"
         self.__width = 1
+        self.__area = None
         self.sigRegionChanged.connect(self.__regionChanged)
+
+    def setProfileWindow(self, profileWindow):
+        core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
+        self._updateArea()
 
     def __regionChanged(self):
         self.invalidateProfile()
@@ -72,6 +79,54 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
     def getProfileLineWidth(self):
         return self.__width
+
+    def _createAreaItem(self):
+        area = items.Shape("polygon")
+        color = colors.rgba(self.getColor())
+        area.setColor(color)
+        area.setFill(True)
+        area.setPoints([[0, 0]])  # Else it segfault
+        area.setVisible(False)
+        self.__area = area
+        return area
+
+    def _updateArea(self):
+        area = self.__area
+        if area is None:
+            return
+        profileManager = self.getProfileManager()
+        if profileManager is None:
+            area.setVisible(False)
+            return
+        item = profileManager.getPlotItem()
+        if item is None:
+            area.setVisible(False)
+            return
+        polygon = self._computePolygon(item)
+        area.setVisible(True)
+        polygon = numpy.array(polygon).T
+        area.setPoints(polygon, copy=False)
+
+    def _computePolygon(self, item):
+        if not isinstance(item, items.ImageBase):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        if isinstance(item, items.ImageData):
+            currentData = item.getData(copy=False)
+        elif isinstance(item, items.ImageRgba):
+            rgba = item.getData(copy=False)
+            currentData = rgba[..., 0]
+
+        origin = item.getOrigin()
+        scale = item.getScale()
+        _coords, _profile, area, _profileName, _xLabel = createProfile(
+            roiInfo=self._getRoiInfo(),
+            currentData=currentData,
+            origin=origin,
+            scale=scale,
+            lineWidth=self.getProfileLineWidth(),
+            method="dry-run")
+        return area
 
     def _getRoiInfo(self):
         """Wrapper to allow to reuse the previous Profile code.
@@ -162,6 +217,18 @@ class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
+    def _updateShape(self):
+        """Connect ProfileRoi method with ROI methods"""
+        super(ProfileImageHorizontalLineROI, self)._updateShape()
+        self._updateArea()
+
+    def _createShapeItems(self, points):
+        """Connect ProfileRoi method with ROI methods"""
+        result = super(ProfileImageHorizontalLineROI, self)._createShapeItems(points)
+        area = self._createAreaItem()
+        result.append(area)
+        return result
+
 
 class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
                                   _DefaultImageProfileRoiMixIn):
@@ -174,6 +241,17 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
         roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
+    def _updateShape(self):
+        """Connect ProfileRoi method with ROI methods"""
+        super(ProfileImageVerticalLineROI, self)._updateShape()
+        self._updateArea()
+
+    def _createShapeItems(self, points):
+        """Connect ProfileRoi method with ROI methods"""
+        result = super(ProfileImageVerticalLineROI, self)._createShapeItems(points)
+        area = self._createAreaItem()
+        result.append(area)
+        return result
 
 class ProfileImageLineROI(roi_items.LineROI,
                           _DefaultImageProfileRoiMixIn):
@@ -185,3 +263,15 @@ class ProfileImageLineROI(roi_items.LineROI,
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
+
+    def _updateShape(self):
+        """Connect ProfileRoi method with ROI methods"""
+        super(ProfileImageLineROI, self)._updateShape()
+        self._updateArea()
+
+    def _createShapeItems(self, points):
+        """Connect ProfileRoi method with ROI methods"""
+        result = super(ProfileImageLineROI, self)._createShapeItems(points)
+        area = self._createAreaItem()
+        result.append(area)
+        return result
