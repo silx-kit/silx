@@ -34,7 +34,6 @@ import weakref
 
 from silx.gui import qt
 from silx.gui import colors
-from ....utils.concurrent import submitToQtMainThread
 
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
@@ -42,11 +41,58 @@ from silx.gui.plot import PlotWidget
 from silx.gui.plot.ProfileMainWindow import ProfileMainWindow as _ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot import items
+from silx.gui.qt import silxGlobalThreadPool
+from silx.gui.qt import inspect
 from . import rois
 from . import core
 
 
 _logger = logging.getLogger(__name__)
+
+
+class _RunnableComputeProfile(qt.QRunnable):
+    """Runner to process profiles"""
+
+    class _Signals(qt.QObject):
+        """Signal holder"""
+        resultReady = qt.Signal(object, object)
+        runnerFinished = qt.Signal(object)
+
+    def autoDelete(self):
+        return False
+
+    def __init__(self, threadPool, item, roi):
+        """Constructor
+
+        :param LoadingItemWorker worker: Object holding data and signals
+        """
+        super(_RunnableComputeProfile, self).__init__()
+        self._signals = self._Signals()
+        self._signals.moveToThread(threadPool.thread())
+        self._item = item
+        self._roi = roi
+
+    def getRoi(self):
+        return self._roi
+
+    @property
+    def resultReady(self):
+        return self._signals.resultReady
+
+    @property
+    def runnerFinished(self):
+        return self._signals.runnerFinished
+
+    def run(self):
+        """Process the profile computation.
+        """
+        try:
+            profileData = self._roi.computeProfile(self._item)
+        except Exception:
+            _logger.error("Error while computing profile", exc_info=True)
+        else:
+            self.resultReady.emit(self._roi, profileData)
+        self.runnerFinished.emit(self)
 
 
 class ProfileMainWindow(_ProfileMainWindow):
@@ -115,7 +161,7 @@ class ProfileManager(qt.QObject):
 
         self._roiManagerRef = weakref.ref(roiManager)
         self._rois = []
-        self._pendingTasks = []
+        self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
         self._item = None
@@ -217,36 +263,42 @@ class ProfileManager(qt.QObject):
             self.removeProfile(roi)
 
     def hasPendingOperations(self):
-        return len(self._pendingTasks) > 0
+        return len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
         for roi in self._rois:
             self.requestUpdateProfile(roi)
 
     def requestUpdateProfile(self, profileRoi):
-        if profileRoi in self._pendingTasks:
-            self._pendingTasks.remove(profileRoi)
-        self._pendingTasks.append(profileRoi)
-        # FIXME: do it asynchronously
-        self.__processTasks()
+        if profileRoi.computeProfile is None:
+            return
+        threadPool = silxGlobalThreadPool()
 
-    def __processTasks(self):
+        # Clean up deprecated runners
+        for runner in list(self._pendingRunners):
+            if not inspect.isValid(runner):
+                self._pendingRunners.remove(runner)
+                continue
+            if runner.getRoi() is profileRoi:
+                if threadPool.tryTake(runner):
+                    self._pendingRunners.remove(runner)
+
         item = self.getPlotItem()
         if item is None:
             # FIXME: It means the result is None profile window have to be updated
             return
-        while len(self._pendingTasks) > 0:
-            roi = self._pendingTasks.pop(0)
-            profileData = roi.computeProfile(item)
-            submitToQtMainThread(self.__profileComputedSafe, roi, profileData)
 
-    def __profileComputedSafe(self, *args, **kwargs):
-        try:
-            return self.__profileComputed(*args, **kwargs)
-        except Exception:
-            _logger.error("Backtrace", exc_info=True)
+        runner = _RunnableComputeProfile(threadPool, item, profileRoi)
+        runner.runnerFinished.connect(self.__cleanUpRunner)
+        runner.resultReady.connect(self.__displayResult)
+        self._pendingRunners.append(runner)
+        threadPool.start(runner)
 
-    def __profileComputed(self, roi, profileData):
+    def __cleanUpRunner(self, runner):
+        if runner in self._pendingRunners:
+            self._pendingRunners.remove(runner)
+
+    def __displayResult(self, roi, profileData):
         window = roi.getProfileWindow()
         if window is None:
             # FIXME: reach geometry from the previous closed window
@@ -263,7 +315,7 @@ class ProfileManager(qt.QObject):
         """
         self._plotRef = None
         self._roiManagerRef = None
-        self._pendingTasks = []
+        self._pendingRunners = []
 
     def setPlotItem(self, item):
         previous = self.getPlotItem()
