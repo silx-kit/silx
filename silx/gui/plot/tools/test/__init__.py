@@ -33,6 +33,7 @@ from . import testROI
 from . import testTools
 from . import testScatterProfileToolBar
 from . import testCurveLegendsWidget
+from . import testProfile
 
 
 def suite():
@@ -42,6 +43,7 @@ def suite():
          testTools.suite(),
          testScatterProfileToolBar.suite(),
          testCurveLegendsWidget.suite(),
+         testProfile.suite(),
          ])
     return test_suite
 
