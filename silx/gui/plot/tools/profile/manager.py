@@ -236,6 +236,12 @@ class ProfileManager(qt.QObject):
         action.setToolTip('Enables line profile selection mode')
         actions.append(action)
 
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileImageCrossROI)
+        action.setIcon(icons.getQIcon('shape-cross'))
+        action.setToolTip('Enables cross profile selection mode')
+        actions.append(action)
+
         # Add clear action
         icon = icons.getQIcon('profile-clear')
         action = qt.QAction(icon, 'Clear profile', parent)
