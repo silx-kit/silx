@@ -275,3 +275,140 @@ class ProfileImageLineROI(roi_items.LineROI,
         area = self._createAreaItem()
         result.append(area)
         return result
+
+
+class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
+    """ROI to manage a cross of profiles
+
+    It is managed using 2 sub ROIs for vertical and horizontal.
+    """
+
+    def __init__(self, parent=None):
+        roi_items.PointROI.__init__(self, parent=parent)
+        core.ProfileRoiMixIn.__init__(self, parent=parent)
+        self.sigRegionChanged.connect(self.__regionChanged)
+        self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.setSymbol("s")
+        self.__vline = None
+        self.__hline = None
+        self.computeProfile = None
+
+    def _createLines(self, parent):
+        """Inherit this function to return 2 ROI objects for respectivly
+        the horizontal, and the vertical lines."""
+        raise NotImplementedError()
+
+    def _setProfileManager(self, profileManager):
+        core.ProfileRoiMixIn._setProfileManager(self, profileManager)
+        self._createSubRois()
+
+    def _createSubRois(self):
+        hline, vline = self._createLines(parent=None)
+        vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
+        vline.setEditable(False)
+        vline.setFocusProxy(self)
+        hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
+        hline.setEditable(False)
+        hline.setFocusProxy(self)
+        self.__vline = vline
+        self.__hline = hline
+        self.__regionChanged()
+        profileManager = self.getProfileManager()
+        roiManager = profileManager.getRoiManager()
+        roiManager.addRoi(self.__vline)
+        roiManager.addRoi(self.__hline)
+
+    def _getLines(self):
+        return self.__hline, self.__vline
+
+    def __regionChanged(self):
+        x, y = self.getPosition()
+        hline, vline = self._getLines()
+        if hline is None:
+            return
+        hline.setPosition(y)
+        vline.setPosition(x)
+
+    def __aboutToBeRemoved(self):
+        vline = self.__vline
+        hline = self.__hline
+        # Avoid side remove signals
+        if hline is not None:
+            hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
+        if vline is not None:
+            vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+        # Clean up the child
+        profileManager = self.getProfileManager()
+        roiManager = profileManager.getRoiManager()
+        if hline is not None:
+            roiManager.removeRoi(hline)
+            self.__hline = None
+        if vline is not None:
+            roiManager.removeRoi(vline)
+            self.__vline = None
+
+    def __hlineRemoved(self):
+        self.__lineRemoved(isHline=True)
+
+    def __vlineRemoved(self):
+        self.__lineRemoved(isHline=False)
+
+    def __lineRemoved(self, isHline):
+        """If any of the lines is removed: disconnect this objects, and let the
+        other one persist"""
+        hline, vline = self._getLines()
+
+        hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
+        vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+
+        self.__hline = None
+        self.__vline = None
+        profileManager = self.getProfileManager()
+        roiManager = profileManager.getRoiManager()
+        if isHline:
+            vline.setFocusProxy(None)
+            vline.setName("Profile")
+            vline.setEditable(True)
+        else:
+            hline.setFocusProxy(None)
+            hline.setName("Profile")
+            hline.setEditable(True)
+        roiManager.removeRoi(self)
+
+
+class ProfileImageCrossROI(_ProfileCrossROI):
+    """ROI to manage a cross of profiles
+
+    It is managed using 2 sub ROIs for vertical and horizontal.
+    """
+
+    ICON = 'shape-cross'
+    NAME = 'cross profile'
+
+    def _createLines(self, parent):
+        vline = ProfileImageVerticalLineROI(parent=parent)
+        hline = ProfileImageHorizontalLineROI(parent=parent)
+        return hline, vline
+
+    def setProfileMethod(self, method):
+        """
+        :param str method: method to compute the profile. Can be 'mean' or 'sum'
+        """
+        hline, vline = self._getLines()
+        hline.setProfileMethod(method)
+        vline.setProfileMethod(method)
+        self.sigPropertyChanged.emit()
+
+    def getProfileMethod(self):
+        hline, _vline = self._getLines()
+        return hline.getProfileMethod()
+
+    def setProfileLineWidth(self, width):
+        hline, vline = self._getLines()
+        hline.setProfileLineWidth(width)
+        vline.setProfileLineWidth(width)
+        self.sigPropertyChanged.emit()
+
+    def getProfileLineWidth(self):
+        hline, _vline = self._getLines()
+        return hline.getProfileLineWidth()
