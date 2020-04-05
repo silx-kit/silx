@@ -189,6 +189,7 @@ class ProfileManager(qt.QObject):
 
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
         roiManager.sigRoiAdded.connect(self.__roiAdded)
+        roiManager.sigRoiAboutToBeRemoved.connect(self.__roiRemoved)
 
     def setSingleProfile(self, enable):
         self.__singleProfileAtATime = enable
@@ -202,17 +203,16 @@ class ProfileManager(qt.QObject):
 
     def __roiAdded(self, roi):
         """Handle new ROI"""
-        # Remove any other ROI
+        # Filter out non profile ROIs
         if not isinstance(roi, core.ProfileRoiMixIn):
             return
+        self.__addProfile(roi)
 
-        if self.__singleProfileAtATime:
-            # FIXME: It would be good to reuse the windows to avoid blinking
-            self.clearProfile()
-
-        roi.setName('Profile')
-        roi.setEditable(True)
-        self.addProfile(roi)
+    def __roiRemoved(self, roi):
+        # Filter out non profile ROIs
+        if not isinstance(roi, core.ProfileRoiMixIn):
+            return
+        self.__removeProfile(roi)
 
     def createActions(self, parent):
         actions = []
@@ -245,33 +245,41 @@ class ProfileManager(qt.QObject):
 
         return actions
 
-    def addProfile(self, profileRoi):
-        roiManager = self.getRoiManager()
-        if profileRoi not in roiManager.getRois():
-            roiManager.addRoi(profileRoi)
+    def __addProfile(self, profileRoi):
+        if profileRoi.getParentRoi() is None:
+            if self.__singleProfileAtATime:
+                # FIXME: It would be good to reuse the windows to avoid blinking
+                self.clearProfile()
+            # FIXME: This should be removed
+            profileRoi.setName('Profile')
+            profileRoi.setEditable(True)
+
         profileRoi._setProfileManager(self)
         self._rois.append(profileRoi)
         self.requestUpdateProfile(profileRoi)
+
+    def __removeProfile(self, profileRoi):
+        window = self._disconnectProfileWindow(profileRoi)
+        if window is not None:
+            geometry = window.geometry()
+            self._previousWindowGeometry.append(geometry)
+            window.deleteLater()
+        if profileRoi in self._rois:
+            self._rois.remove(profileRoi)
 
     def _disconnectProfileWindow(self, profileRoi):
         window = profileRoi.getProfileWindow()
         profileRoi.setProfileWindow(None)
         return window
 
-    def removeProfile(self, profileRoi):
-        window = self._disconnectProfileWindow(profileRoi)
-        if window is not None:
-            geometry = window.geometry()
-            self._previousWindowGeometry.append(geometry)
-            window.deleteLater()
-        roiManager = self.getRoiManager()
-        roiManager.removeRoi(profileRoi)
-        self._rois.remove(profileRoi)
-
     def clearProfile(self):
         """Clear the associated ROI profile"""
+        roiManager = self.getRoiManager()
         for roi in list(self._rois):
-            self.removeProfile(roi)
+            if roi.getParentRoi() is not None:
+                # Skip sub ROIs, it will be removed by their parents
+                continue
+            roiManager.removeRoi(roi)
 
     def hasPendingOperations(self):
         return len(self._pendingRunners) > 0
