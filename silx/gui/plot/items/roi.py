@@ -67,6 +67,7 @@ class _RegionOfInterestBase(qt.QObject):
     def __init__(self, parent=None, name=''):
         qt.QObject.__init__(self, parent=parent)
         self.__name = str(name)
+        self.__parentRoi = None
 
     def getName(self):
         """Returns the name of the ROI
@@ -85,6 +86,20 @@ class _RegionOfInterestBase(qt.QObject):
         if self.__name != name:
             self.__name = name
             self.sigItemChanged.emit(items.ItemChangedType.NAME)
+
+    def setParentRoi(self, roi):
+        """Set the parent ROI of this ROI.
+
+        It is used to create ROI composition.
+        """
+        self.__parentRoi = roi
+
+    def getParentRoi(self):
+        """Returns the parent ROI of this ROI.
+
+        It is used to create ROI composition.
+        """
+        return self.__parentRoi
 
 
 class RegionOfInterest(_RegionOfInterestBase):

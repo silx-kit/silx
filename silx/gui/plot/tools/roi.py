@@ -264,6 +264,13 @@ class RegionOfInterestManager(qt.QObject):
             legend = event['label']
             marker = plot._getMarker(legend=legend)
             roi = self.__getRoiFromMarker(marker)
+            if roi is not None:
+                # Retrieve the ROI parent
+                while True:
+                    parent = roi.getParentRoi()
+                    if parent is None:
+                        break
+                    roi = parent
             self.setSelectedRoi(roi)
         elif event['event'] == 'mouseClicked' and event['button'] == 'left':
             self.setSelectedRoi(None)
