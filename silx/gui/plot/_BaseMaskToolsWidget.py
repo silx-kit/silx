@@ -584,15 +584,17 @@ class BaseMaskToolsWidget(qt.QWidget):
         redoAction.triggered.connect(self._mask.redo)
 
         loadAction = qt.QAction(self)
-        loadAction.setText('Load mask from file...')
+        loadAction.setText('Load...')
         icon = icons.getQIcon("document-open")
         loadAction.setIcon(icon)
+        loadAction.setToolTip('Load mask from file')
         loadAction.triggered.connect(self._loadMask)
 
         saveAction = qt.QAction(self)
-        saveAction.setText('Save mask to file...')
+        saveAction.setText('Save...')
         icon = icons.getQIcon("document-save")
         saveAction.setIcon(icon)
+        saveAction.setToolTip('Save mask to file')
         saveAction.triggered.connect(self._saveMask)
 
         invertAction = qt.QAction(self)
