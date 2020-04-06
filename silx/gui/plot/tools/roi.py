@@ -77,6 +77,9 @@ class RegionOfInterestManager(qt.QObject):
     sigRoiChanged = qt.Signal()
     """Signal emitted whenever the ROIs have changed."""
 
+    sigRoiSelected = qt.Signal(object)
+    """Signal emitted whenever a ROI is selected."""
+
     sigInteractiveModeStarted = qt.Signal(object)
     """Signal emitted when switching to ROI drawing interactive mode.
 
@@ -117,9 +120,14 @@ class RegionOfInterestManager(qt.QObject):
         self._aboutToRemove = []
         """Avoid reentrant signal"""
 
+        self._selectedRoi = None
+        """Hold selected ROI"""
+
         self._eventLoop = None
 
         self._modeActions = {}
+
+        parent.sigPlotSignal.connect(self._plotSignals)
 
         parent.sigInteractiveModeChanged.connect(
             self._plotInteractiveModeChanged)
@@ -226,6 +234,40 @@ class RegionOfInterestManager(qt.QObject):
                         self._drawnROI.setFirstShapePoints(points[:-1])
                     self._drawnROI = None  # Stop drawing
 
+    # RegionOfInterest selection
+
+    def __getRoiFromMarker(self, marker):
+        """Returns a ROI from a marker, else None"""
+        # This should be speed up
+        for roi in self._rois:
+            if marker in roi._editAnchors:
+                return roi
+            if marker in roi._items:
+                return roi
+        return None
+
+    def setSelectedRoi(self, roi):
+        """Set the selected ROI, and emit a signal."""
+        if self._selectedRoi is roi:
+            return
+        self._selectedRoi = roi
+        self.sigRoiSelected.emit(roi)
+
+    def getSelectedRoi(self, roi):
+        """Returns the selected ROI, else None."""
+        return self._selectedRoi
+
+    def _plotSignals(self, event):
+        """Handle mouse interaction for ROI addition"""
+        if event['event'] in ('markerClicked', 'markerMoving'):
+            plot = self.parent()
+            legend = event['label']
+            marker = plot._getMarker(legend=legend)
+            roi = self.__getRoiFromMarker(marker)
+            self.setSelectedRoi(roi)
+        elif event['event'] == 'mouseClicked' and event['button'] == 'left':
+            self.setSelectedRoi(None)
+
     # RegionOfInterest API
 
     def getRois(self):
@@ -278,6 +320,7 @@ class RegionOfInterestManager(qt.QObject):
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
+        self.setSelectedRoi(roi)
         return roi
 
     def addRoi(self, roi, index=None, useManagerColor=True):
