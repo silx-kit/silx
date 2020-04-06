@@ -296,6 +296,19 @@ class ProfileOptionToolButton(PlotToolButton):
         self.sigMethodChanged.emit(self._method)
         self._update()
 
+    def setMethod(self, method):
+        if method == self._method:
+            return
+        if method == "sum":
+            self.setSum()
+        elif method == "mean":
+            self.setMean()
+        else:
+            _logger.warning("Unsupported method '%s'. Setting ignored.", method)
+
+    def getMethod(self):
+        return self._method
+
 
 class ProfileToolButton(PlotToolButton):
     """Button used in Profile3DToolbar to switch between 2D profile
