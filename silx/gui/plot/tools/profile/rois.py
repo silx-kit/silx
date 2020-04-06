@@ -414,3 +414,160 @@ class ProfileImageCrossROI(_ProfileCrossROI):
     def getProfileLineWidth(self):
         hline, _vline = self._getLines()
         return hline.getProfileLineWidth()
+
+
+class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
+    """Provide common behavior for silx default scatter profile ROI.
+    """
+    def __init__(self, parent=None):
+        core.ProfileRoiMixIn.__init__(self, parent=parent)
+        self.__nPoints = 1024
+        self.sigRegionChanged.connect(self.__regionChanged)
+
+    def __regionChanged(self):
+        self.invalidateProfile()
+
+    # Number of points
+
+    def getNPoints(self):
+        """Returns the number of points of the profiles
+
+        :rtype: int
+        """
+        return self.__nPoints
+
+    def setNPoints(self, npoints):
+        """Set the number of points of the profiles
+
+        :param int npoints:
+        """
+        npoints = int(npoints)
+        if npoints < 1:
+            raise ValueError("Unsupported number of points: %d" % npoints)
+        elif npoints != self.__nPoints:
+            self.__nPoints = npoints
+            self.invalidateProperties()
+            self.invalidateProfile()
+
+    def _computeProfileTitle(self, x0, y0, x1, y1):
+        """Compute corresponding plot title
+
+        This can be overridden to change title behavior.
+
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point Y coord
+        :return: Title to use
+        :rtype: str
+        """
+        if x0 == x1:
+            title = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
+        elif y0 == y1:
+            title = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
+        else:
+            m = (y1 - y0) / (x1 - x0)
+            b = y0 - m * x0
+            title = 'Y = %g * X %+g' % (m, b)
+
+        return title
+
+    def _computeProfile(self, scatter, x0, y0, x1, y1):
+        """Compute corresponding profile
+
+        :param float x0: Profile start point X coord
+        :param float y0: Profile start point Y coord
+        :param float x1: Profile end point X coord
+        :param float y1: Profile end point Y coord
+        :return: (points, values) profile data or None
+        """
+        future = scatter._getInterpolator()
+        interpolator = future.result()
+        if interpolator is None:
+            return None  # Cannot init an interpolator
+
+        nPoints = self.getNPoints()
+        points = numpy.transpose((
+            numpy.linspace(x0, x1, nPoints, endpoint=True),
+            numpy.linspace(y0, y1, nPoints, endpoint=True)))
+
+        values = interpolator(points)
+
+        if not numpy.any(numpy.isfinite(values)):
+            return None  # Profile outside convex hull
+
+        return points, values
+
+    def computeProfile(self, item):
+        """Update profile according to current ROI"""
+        if not isinstance(item, items.Scatter):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        # Get end points
+        if isinstance(self, roi_items.LineROI):
+            points = self.getEndPoints()
+            x0, y0 = points[0]
+            x1, y1 = points[1]
+        elif isinstance(self, (roi_items.VerticalLineROI, roi_items.HorizontalLineROI)):
+            profileManager = self.getProfileManager()
+            plot = profileManager.getPlotWidget()
+
+            if isinstance(self, roi_items.HorizontalLineROI):
+                x0, x1 = plot.getXAxis().getLimits()
+                y0 = y1 = self.getPosition()
+
+            elif isinstance(self, roi_items.VerticalLineROI):
+                x0 = x1 = self.getPosition()
+                y0, y1 = plot.getYAxis().getLimits()
+        else:
+            raise RuntimeError('Unsupported ROI for profile: {}'.format(self.__class__))
+
+        if x1 < x0 or (x1 == x0 and y1 < y0):
+            # Invert points
+            x0, y0, x1, y1 = x1, y1, x0, y0
+
+        profile = self._computeProfile(item, x0, y0, x1, y1)
+        if profile is None:
+            return None
+        title = self._computeProfileTitle(x0, y0, x1, y1)
+        data = core.ScatterProfileData()
+        data.points = profile[0]
+        data.values = profile[1]
+        data.title = title
+        return data
+
+
+class ProfileScatterHorizontalLineROI(roi_items.HorizontalLineROI,
+                                      _DefaultScatterProfileRoiMixIn):
+    """ROI for an horizontal profile at a location of a scatter"""
+
+    ICON = 'shape-horizontal'
+    NAME = 'horizontal line profile'
+
+    def __init__(self, parent=None):
+        roi_items.HorizontalLineROI.__init__(self, parent=parent)
+        _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)
+
+
+class ProfileScatterVerticalLineROI(roi_items.VerticalLineROI,
+                                    _DefaultScatterProfileRoiMixIn):
+    """ROI for an horizontal profile at a location of a scatter"""
+
+    ICON = 'shape-vertical'
+    NAME = 'vertical line profile'
+
+    def __init__(self, parent=None):
+        roi_items.VerticalLineROI.__init__(self, parent=parent)
+        _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)
+
+
+class ProfileScatterLineROI(roi_items.LineROI,
+                            _DefaultScatterProfileRoiMixIn):
+    """ROI for an horizontal profile at a location of a scatter"""
+
+    ICON = 'shape-diagonal'
+    NAME = 'line profile'
+
+    def __init__(self, parent=None):
+        roi_items.LineROI.__init__(self, parent=parent)
+        _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)

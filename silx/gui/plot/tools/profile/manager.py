@@ -31,6 +31,7 @@ __date__ = "28/06/2018"
 
 import logging
 import weakref
+import numpy
 
 from silx.gui import qt
 from silx.gui import colors
@@ -103,10 +104,38 @@ class ProfileMainWindow(_ProfileMainWindow):
             return
         self.__color = colors.rgba(roi.getColor())
 
+    def _setScatterProfile(self, profileData):
+        profilePlot = self.getPlot()
+        if profilePlot is None:
+            return
+
+        points = profileData.points
+        values = profileData.values
+        title = profileData.title
+
+        profilePlot.clear()
+        profilePlot.setGraphTitle(title)
+
+        if points is not None and values is not None:
+            if (numpy.abs(points[-1, 0] - points[0, 0]) >
+                    numpy.abs(points[-1, 1] - points[0, 1])):
+                xProfile = points[:, 0]
+                profilePlot.getXAxis().setLabel('X')
+            else:
+                xProfile = points[:, 1]
+                profilePlot.getXAxis().setLabel('Y')
+
+            profilePlot.addCurve(
+                xProfile, values, legend='Profile', color=self.__color)
+
     def setProfile(self, profileData):
         if profileData is None:
             plot = self.getPlot()
             plot.clear()
+            return
+
+        if isinstance(profileData, core.ScatterProfileData):
+            self._setScatterProfile(profileData)
             return
 
         dataIs3D = False

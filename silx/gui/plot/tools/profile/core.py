@@ -37,6 +37,11 @@ class ProfileData:
     def __init__(self):
         pass
 
+class ScatterProfileData(ProfileData):
+    """Object to store the result of a profile computation"""
+    def __init__(self):
+        super(ScatterProfileData, self).__init__()
+
 
 class ProfileRoiMixIn:
     """Base mix-in for ROI which can be used to select a profile."""
