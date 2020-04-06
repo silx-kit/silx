@@ -96,6 +96,40 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
         roi.setProfileMethod(method)
 
 
+class _DefaultScatterProfileRoiEditor(qt.QWidget):
+
+    sigDataCommited = qt.Signal()
+
+    def __init__(self, parent=None):
+        qt.QWidget.__init__(self, parent=parent)
+
+        self._nPoints = qt.QSpinBox(self)
+        self._nPoints.setRange(1, 9999)
+        self._nPoints.setValue(1024)
+        self._nPoints.valueChanged[int].connect(self.__widgetChanged)
+
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        label = qt.QLabel('W:')
+        label.setToolTip("Line width in pixels")
+        layout.addWidget(label)
+        layout.addWidget(self._nPoints)
+
+    def __widgetChanged(self, value=None):
+        self.commitData()
+
+    def commitData(self):
+        self.sigDataCommited.emit()
+
+    def setEditorData(self, roi):
+        with blockSignals(self._nPoints):
+            self._nPoints.setValue(roi.getNPoints())
+
+    def setRoiData(self, roi):
+        nPoints = self._nPoints.value()
+        roi.setNPoints(nPoints)
+
+
 class ProfileRoiEditAction(qt.QWidgetAction):
 
     def __init__(self, parent=None):
@@ -160,6 +194,8 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         elif isinstance(self.__roi, (rois._DefaultImageProfileRoiMixIn,
                                      rois.ProfileImageCrossROI)):
             editor = _DefaultImageProfileRoiEditor(parent)
+        elif isinstance(self.__roi, rois._DefaultScatterProfileRoiMixIn):
+            editor = _DefaultScatterProfileRoiEditor(parent)
         else:
             # Unsupported
             editor = _NoProfileRoiEditor(parent)
