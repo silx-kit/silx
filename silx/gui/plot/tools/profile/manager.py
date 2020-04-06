@@ -45,6 +45,7 @@ from silx.gui.qt import silxGlobalThreadPool
 from silx.gui.qt import inspect
 from . import rois
 from . import core
+from . import editors
 
 
 _logger = logging.getLogger(__name__)
@@ -244,6 +245,11 @@ class ProfileManager(qt.QObject):
         actions.append(action)
 
         return actions
+
+    def createEditorAction(self, parent):
+        action = editors.ProfileRoiEditAction(parent)
+        action.setRoiManager(self.getRoiManager())
+        return action
 
     def __addProfile(self, profileRoi):
         if profileRoi.getFocusProxy() is None:
