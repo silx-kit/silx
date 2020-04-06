@@ -393,6 +393,8 @@ class RegionOfInterest(_RegionOfInterestBase):
             item.setName(legendPrefix + str(itemIndex))
             plot.addItem(item)
             item.setVisible(self.isVisible())
+            if hasattr(item, "_setSelectable"):
+                item._setSelectable(True)
             self._items.append(item)
             itemIndex += 1
 
@@ -405,6 +407,7 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.setName(legendPrefix + str(itemIndex))
                 item.setColor(color)
                 item.setVisible(self.isVisible())
+                item._setSelectable(True)
                 plot.addItem(item)
                 # connect item changed
                 item.sigItemChanged.connect(functools.partial(
