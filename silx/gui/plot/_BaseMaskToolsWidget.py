@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -584,13 +584,13 @@ class BaseMaskToolsWidget(qt.QWidget):
         redoAction.triggered.connect(self._mask.redo)
 
         loadAction = qt.QAction(self)
-        loadAction.setText('Load...')
+        loadAction.setText('Load mask from file...')
         icon = icons.getQIcon("document-open")
         loadAction.setIcon(icon)
         loadAction.triggered.connect(self._loadMask)
 
         saveAction = qt.QAction(self)
-        saveAction.setText('Save...')
+        saveAction.setText('Save mask to file...')
         icon = icons.getQIcon("document-save")
         saveAction.setIcon(icon)
         saveAction.triggered.connect(self._saveMask)
