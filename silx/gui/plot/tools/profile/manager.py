@@ -281,6 +281,37 @@ class ProfileManager(qt.QObject):
 
         return actions
 
+    def createScatterActions(self, parent):
+        actions = []
+
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterHorizontalLineROI)
+        action.setIcon(icons.getQIcon('shape-horizontal'))
+        action.setToolTip('Enables horizontal line profile selection mode')
+        actions.append(action)
+
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterVerticalLineROI)
+        action.setIcon(icons.getQIcon('shape-vertical'))
+        action.setToolTip('Enables vertical line profile selection mode')
+        actions.append(action)
+
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterLineROI)
+        action.setIcon(icons.getQIcon('shape-diagonal'))
+        action.setToolTip('Enables line profile selection mode')
+        actions.append(action)
+
+        # Add clear action
+        icon = icons.getQIcon('profile-clear')
+        action = qt.QAction(icon, 'Clear profile', parent)
+        action.setToolTip('Clear the profiles')
+        action.setCheckable(False)
+        action.triggered.connect(self.clearProfile)
+        actions.append(action)
+
+        return actions
+
     def createEditorAction(self, parent):
         action = editors.ProfileRoiEditAction(parent)
         action.setRoiManager(self.getRoiManager())
