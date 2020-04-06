@@ -858,6 +858,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         layout.addWidget(toolBar)
         layout.addLayout(config)
         layout.addWidget(self.applyMaskBtn)
+        layout.addStretch(1)
 
         self.thresholdGroup = qt.QGroupBox('Threshold')
         self.thresholdGroup.setLayout(layout)
@@ -875,6 +876,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
         self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
         layout.addWidget(self.maskNanBtn)
+        layout.addStretch(1)
 
         self.otherToolGroup = qt.QGroupBox('Other tools')
         self.otherToolGroup.setLayout(layout)
