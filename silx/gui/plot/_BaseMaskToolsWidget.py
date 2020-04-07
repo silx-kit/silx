@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -456,8 +456,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         assert mode in ('exclusive', 'single')
         if mode != self._multipleMasks:
             self._multipleMasks = mode
-            self.levelWidget.setVisible(self._multipleMasks != 'single')
-            self.clearAllBtn.setVisible(self._multipleMasks != 'single')
+            self._levelWidget.setVisible(self._multipleMasks != 'single')
+            self._clearAllBtn.setVisible(self._multipleMasks != 'single')
 
     @property
     def maskFileDir(self):
@@ -545,62 +545,109 @@ class BaseMaskToolsWidget(qt.QWidget):
                 'Choose which mask level is edited.\n'
                 'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
-        self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
+        self._levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
         # Transparency
-        self.transparencyWidget = self._initTransparencyWidget()
+        self._transparencyWidget = self._initTransparencyWidget()
+
+        style = qt.QApplication.style()
+
+        def getIcon(*identifiyers):
+            for i in identifiyers:
+                if isinstance(i, str):
+                    if qt.QIcon.hasThemeIcon(i):
+                        return qt.QIcon.fromTheme(i)
+                elif isinstance(i, qt.QIcon):
+                    return i
+                else:
+                    return style.standardIcon(i)
+            return qt.QIcon()
+
+        undoAction = qt.QAction(self)
+        undoAction.setText('Undo')
+        icon = getIcon("edit-undo", qt.QStyle.SP_ArrowBack)
+        undoAction.setIcon(icon)
+        undoAction.setShortcut(qt.QKeySequence.Undo)
+        undoAction.setToolTip('Undo last mask change <b>%s</b>' %
+                              undoAction.shortcut().toString())
+        self._mask.sigUndoable.connect(undoAction.setEnabled)
+        undoAction.triggered.connect(self._mask.undo)
+
+        redoAction = qt.QAction(self)
+        redoAction.setText('Redo')
+        icon = getIcon("edit-redo", qt.QStyle.SP_ArrowForward)
+        redoAction.setIcon(icon)
+        redoAction.setShortcut(qt.QKeySequence.Redo)
+        redoAction.setToolTip('Redo last undone mask change <b>%s</b>' %
+                              redoAction.shortcut().toString())
+        self._mask.sigRedoable.connect(redoAction.setEnabled)
+        redoAction.triggered.connect(self._mask.redo)
+
+        loadAction = qt.QAction(self)
+        loadAction.setText('Load...')
+        icon = icons.getQIcon("document-open")
+        loadAction.setIcon(icon)
+        loadAction.setToolTip('Load mask from file')
+        loadAction.triggered.connect(self._loadMask)
+
+        saveAction = qt.QAction(self)
+        saveAction.setText('Save...')
+        icon = icons.getQIcon("document-save")
+        saveAction.setIcon(icon)
+        saveAction.setToolTip('Save mask to file')
+        saveAction.triggered.connect(self._saveMask)
+
+        invertAction = qt.QAction(self)
+        invertAction.setText('Invert')
+        icon = icons.getQIcon("mask-invert")
+        invertAction.setIcon(icon)
+        invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertAction.setToolTip('Invert current mask <b>%s</b>' %
+                                invertAction.shortcut().toString())
+        invertAction.triggered.connect(self._handleInvertMask)
+
+        clearAction = qt.QAction(self)
+        clearAction.setText('Clear')
+        icon = icons.getQIcon("mask-clear")
+        clearAction.setIcon(icon)
+        clearAction.setShortcut(qt.QKeySequence.Delete)
+        clearAction.setToolTip('Clear current mask level <b>%s</b>' %
+                               clearAction.shortcut().toString())
+        clearAction.triggered.connect(self._handleClearMask)
+
+        clearAllAction = qt.QAction(self)
+        clearAllAction.setText('Clear all')
+        icon = icons.getQIcon("mask-clear-all")
+        clearAllAction.setIcon(icon)
+        clearAllAction.setToolTip('Clear all mask levels')
+        clearAllAction.triggered.connect(self.resetSelectionMask)
 
         # Buttons group
-        invertBtn = qt.QPushButton('Invert')
-        invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
-        invertBtn.setToolTip('Invert current mask <b>%s</b>' %
-                             invertBtn.shortcut().toString())
-        invertBtn.clicked.connect(self._handleInvertMask)
+        margin1 = qt.QWidget(self)
+        margin1.setMinimumWidth(6)
+        margin2 = qt.QWidget(self)
+        margin2.setMinimumWidth(6)
 
-        clearBtn = qt.QPushButton('Clear')
-        clearBtn.setShortcut(qt.QKeySequence.Delete)
-        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
-                            clearBtn.shortcut().toString())
-        clearBtn.clicked.connect(self._handleClearMask)
-
-        invertClearWidget = self._hboxWidget(
-                invertBtn, clearBtn, stretch=False)
-
-        undoBtn = qt.QPushButton('Undo')
-        undoBtn.setShortcut(qt.QKeySequence.Undo)
-        undoBtn.setToolTip('Undo last mask change <b>%s</b>' %
-                           undoBtn.shortcut().toString())
-        self._mask.sigUndoable.connect(undoBtn.setEnabled)
-        undoBtn.clicked.connect(self._mask.undo)
-
-        redoBtn = qt.QPushButton('Redo')
-        redoBtn.setShortcut(qt.QKeySequence.Redo)
-        redoBtn.setToolTip('Redo last undone mask change <b>%s</b>' %
-                           redoBtn.shortcut().toString())
-        self._mask.sigRedoable.connect(redoBtn.setEnabled)
-        redoBtn.clicked.connect(self._mask.redo)
-
-        undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
-
-        self.clearAllBtn = qt.QPushButton('Clear all')
-        self.clearAllBtn.setToolTip('Clear all mask levels')
-        self.clearAllBtn.clicked.connect(self.resetSelectionMask)
-
-        loadBtn = qt.QPushButton('Load...')
-        loadBtn.clicked.connect(self._loadMask)
-
-        saveBtn = qt.QPushButton('Save...')
-        saveBtn.clicked.connect(self._saveMask)
-
-        self.loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
+        actions = (loadAction, saveAction, margin1,
+                   undoAction, redoAction, margin2,
+                   invertAction, clearAction, clearAllAction)
+        widgets = []
+        for action in actions:
+            if isinstance(action, qt.QWidget):
+                widgets.append(action)
+                continue
+            btn = qt.QToolButton()
+            btn.setDefaultAction(action)
+            widgets.append(btn)
+            if action is clearAllAction:
+                self._clearAllBtn = btn
+        container = self._hboxWidget(*widgets)
+        container.layout().setSpacing(1)
 
         layout = qt.QVBoxLayout()
-        layout.addWidget(self.levelWidget)
-        layout.addWidget(self.transparencyWidget)
-        layout.addWidget(invertClearWidget)
-        layout.addWidget(undoRedoWidget)
-        layout.addWidget(self.clearAllBtn)
-        layout.addWidget(self.loadSaveWidget)
+        layout.addWidget(container)
+        layout.addWidget(self._levelWidget)
+        layout.addWidget(self._transparencyWidget)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
@@ -813,6 +860,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         layout.addWidget(toolBar)
         layout.addLayout(config)
         layout.addWidget(self.applyMaskBtn)
+        layout.addStretch(1)
 
         self.thresholdGroup = qt.QGroupBox('Threshold')
         self.thresholdGroup.setLayout(layout)
@@ -830,6 +878,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
         self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
         layout.addWidget(self.maskNanBtn)
+        layout.addStretch(1)
 
         self.otherToolGroup = qt.QGroupBox('Other tools')
         self.otherToolGroup.setLayout(layout)
