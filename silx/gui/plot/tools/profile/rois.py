@@ -602,3 +602,197 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
         hline.setNPoints(npoints)
         vline.setNPoints(npoints)
         self.sigPropertyChanged.emit()
+
+
+class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
+    """Default ROI to allow to slice in the scatter data."""
+
+    def __init__(self, parent=None):
+        core.ProfileRoiMixIn.__init__(self, parent=parent)
+        self.__area = None
+        self.sigRegionChanged.connect(self.invalidateProfile)
+
+    def setProfileWindow(self, profileWindow):
+        core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
+        self._updateArea()
+
+    def _createAreaItem(self):
+        area = items.Shape("polylines")
+        color = colors.rgba(self.getColor())
+        area.setColor(color)
+        area.setFill(False)
+        area.setPoints([[0, 0]])  # Else it segfault
+        area.setVisible(False)
+        self.__area = area
+        return area
+
+    def _updateArea(self):
+        area = self.__area
+        if area is None:
+            return
+        profileManager = self.getProfileManager()
+        if profileManager is None:
+            area.setVisible(False)
+        item = profileManager.getPlotItem()
+        if item is None:
+            area.setVisible(False)
+            return
+        polylines = self._computePolylines(item)
+        if polylines is None or len(polylines) == 0:
+            area.setVisible(False)
+            return
+        area.setVisible(True)
+        area.setPoints(polylines, copy=False)
+
+    def _computePolylines(self, item):
+        if not isinstance(item, items.Scatter):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        slicing = self.__getSlice(item)
+        if slicing is None:
+            return None
+
+        xx, yy, _values, _xx_error, _yy_error = item.getData(copy=False)
+        xx, yy = xx[slicing], yy[slicing]
+        return numpy.array((xx, yy)).T
+
+    def __getSlice(self, item):
+        position = self.getPosition()
+        bounds = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_BOUNDS)
+        if isinstance(self, roi_items.HorizontalLineROI):
+            axis = 1
+        elif isinstance(self, roi_items.VerticalLineROI):
+            axis = 0
+        else:
+            assert False
+        if position < bounds[0][axis] or position > bounds[1][axis]:
+            # ROI outside of the scatter bound
+            return None
+
+        major_order = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_MAJOR_ORDER)
+        assert major_order == 'row'
+        max_grid_yy, max_grid_xx = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_SHAPE)
+
+        xx, yy, _values, _xx_error, _yy_error = item.getData(copy=False)
+        if isinstance(self, roi_items.HorizontalLineROI):
+            axis = yy
+            max_grid_first = max_grid_yy
+            max_grid_second = max_grid_xx
+            major_axis = major_order == 'column'
+        elif isinstance(self, roi_items.VerticalLineROI):
+            axis = xx
+            max_grid_first = max_grid_xx
+            max_grid_second = max_grid_yy
+            major_axis = major_order == 'row'
+        else:
+            assert False
+
+        def argnearest(array, value):
+            array = numpy.abs(array - value)
+            return numpy.argmin(array)
+
+        if major_axis:
+            # slice in the middle of the scatter
+            start = max_grid_second // 2 * max_grid_first
+            vslice = axis[start:start + max_grid_second]
+            index = argnearest(vslice, position)
+            slicing = slice(index, None, max_grid_first)
+        else:
+            # slice in the middle of the scatter
+            vslice = axis[max_grid_second // 2::max_grid_second]
+            index = argnearest(vslice, position)
+            start = index * max_grid_second
+            slicing = slice(start, start + max_grid_second)
+
+        return slicing
+
+    def computeProfile(self, item):
+        if not isinstance(item, items.Scatter):
+            raise TypeError("Unsupported %s item" % type(item))
+
+        slicing = self.__getSlice(item)
+        if slicing is None:
+            # ROI out of bounds
+            return None
+
+        _xx, _yy, values, _xx_error, _yy_error = item.getData(copy=False)
+        profile = values[slicing]
+
+        data = core.ProfileData()
+        data.coords = numpy.arange(len(profile))
+        data.profile = [profile]
+
+        if isinstance(self, roi_items.HorizontalLineROI):
+            data.profileName = "Horizontal slice"
+            data.xLabel = "Column index"
+        elif isinstance(self, roi_items.VerticalLineROI):
+            data.profileName = "Vertical slice"
+            data.xLabel = "Row index"
+        else:
+            assert False
+
+        return data
+
+
+class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
+                                       _DefaulScatterProfileSliceRoiMixIn):
+    """ROI for an horizontal profile at a location of a scatter
+    using data slicing.
+    """
+
+    ICON = 'slice-horizontal'
+    NAME = 'horizontal data slice profile'
+
+    def __init__(self, parent=None):
+        roi_items.HorizontalLineROI.__init__(self, parent=parent)
+        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+
+    def _updateShape(self):
+        """Connect ProfileRoi method with ROI methods"""
+        super(ProfileScatterHorizontalSliceROI, self)._updateShape()
+        self._updateArea()
+
+    def _createShapeItems(self, points):
+        """Connect ProfileRoi method with ROI methods"""
+        result = super(ProfileScatterHorizontalSliceROI, self)._createShapeItems(points)
+        area = self._createAreaItem()
+        result.append(area)
+        return result
+
+class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
+                                       _DefaulScatterProfileSliceRoiMixIn):
+    """ROI for a vertical profile at a location of a scatter
+    using data slicing.
+    """
+
+    ICON = 'slice-vertical'
+    NAME = 'vertical data slice profile'
+
+    def __init__(self, parent=None):
+        roi_items.VerticalLineROI.__init__(self, parent=parent)
+        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+
+    def _updateShape(self):
+        """Connect ProfileRoi method with ROI methods"""
+        super(ProfileScatterVerticalSliceROI, self)._updateShape()
+        self._updateArea()
+
+    def _createShapeItems(self, points):
+        """Connect ProfileRoi method with ROI methods"""
+        result = super(ProfileScatterVerticalSliceROI, self)._createShapeItems(points)
+        area = self._createAreaItem()
+        result.append(area)
+        return result
+
+
+class ProfileScatterCrossSliceROI(_ProfileCrossROI):
+    """ROI to manage a cross of slicing profiles on scatters.
+    """
+
+    ICON = 'slice-cross'
+    NAME = 'cross data slice profile'
+
+    def _createLines(self, parent):
+        vline = ProfileScatterVerticalSliceROI(parent=parent)
+        hline = ProfileScatterHorizontalSliceROI(parent=parent)
+        return hline, vline

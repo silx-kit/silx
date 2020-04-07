@@ -308,6 +308,24 @@ class ProfileManager(qt.QObject):
         action.setToolTip('Enables cross profile selection mode')
         actions.append(action)
 
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterHorizontalSliceROI)
+        action.setIcon(icons.getQIcon('slice-horizontal'))
+        action.setToolTip('Enables horizontal slicing profile selection mode')
+        actions.append(action)
+
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterVerticalSliceROI)
+        action.setIcon(icons.getQIcon('slice-vertical'))
+        action.setToolTip('Enables vertical slicing profile selection mode')
+        actions.append(action)
+
+        roiManager = self.getRoiManager()
+        action = roiManager.getInteractionModeAction(rois.ProfileScatterCrossSliceROI)
+        action.setIcon(icons.getQIcon('slice-cross'))
+        action.setToolTip('Enables cross slicing profile selection mode')
+        actions.append(action)
+
         # Add clear action
         icon = icons.getQIcon('profile-clear')
         action = qt.QAction(icon, 'Clear profile', parent)
