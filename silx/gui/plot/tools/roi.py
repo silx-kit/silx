@@ -142,7 +142,7 @@ class RegionOfInterestManager(qt.QObject):
 
     # Associated QActions
 
-    def getInteractionModeAction(self, roiClass):
+    def getInteractionModeAction(self, roiClass, parent=None):
         """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
@@ -165,7 +165,7 @@ class RegionOfInterestManager(qt.QObject):
                 if name is None:
                     name = roiClass.__name__
                 text = 'Add %s' % name
-            action = qt.QAction(self)
+            action = qt.QAction(parent)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
             action.setCheckable(True)
