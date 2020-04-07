@@ -78,6 +78,7 @@ import silx
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
+from .items.image import ImageStack
 from ..colors import Colormap
 from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
@@ -186,7 +187,11 @@ class StackView(qt.QMainWindow):
         self._perspective = 0
         """Orthogonal dimension (depth) in :attr:`_stack`"""
 
-        self.__imageLegend = '__StackView__image' + str(id(self))
+        self._stackItem = ImageStack()
+        """Hold the item displaying the stack"""
+        imageLegend = '__StackView__image' + str(id(self))
+        self._stackItem.setName(imageLegend)
+
         self.__autoscaleCmap = False
         """Flag to disable/enable colormap auto-scaling
         based on the min/max values of the entire 3D volume"""
@@ -216,6 +221,7 @@ class StackView(qt.QMainWindow):
                                 copy=copy, save=save, print_=print_,
                                 control=control, position=position,
                                 roi=False, mask=mask)
+        self._plot.addItem(self._stackItem)
         self._plot.getIntensityHistogramAction().setVisible(True)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
@@ -387,6 +393,12 @@ class StackView(qt.QMainWindow):
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
 
+        # Update the item structure
+        self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
+        self._stackItem.setColormap(self.getColormap())
+        self._stackItem.setOrigin(self._getImageOrigin())
+        self._stackItem.setScale(self._getImageScale())
+
     def __updateFrameNumber(self, index):
         """Update the current image.
 
@@ -395,11 +407,9 @@ class StackView(qt.QMainWindow):
         if self.__transposed_view is None:
             # no data set
             return
-        self._plot.addImage(self.__transposed_view[index, :, :],
-                            origin=self._getImageOrigin(),
-                            scale=self._getImageScale(),
-                            legend=self.__imageLegend,
-                            resetzoom=False)
+
+        self._stackItem.setStackPosition(index)
+
         self._updateTitle()
         self.sigFrameChanged.emit(index)
 
@@ -551,14 +561,18 @@ class StackView(qt.QMainWindow):
             self.setColormap(colormap=colormap)
 
         # init plot
-        self._plot.addImage(self.__transposed_view[0, :, :],
-                            legend=self.__imageLegend,
-                            colormap=self.getColormap(),
-                            origin=self._getImageOrigin(),
-                            scale=self._getImageScale(),
-                            replace=True,
-                            resetzoom=False)
-        self._plot.setActiveImage(self.__imageLegend)
+        self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
+        self._stackItem.setColormap(self.getColormap())
+        self._stackItem.setOrigin(self._getImageOrigin())
+        self._stackItem.setScale(self._getImageScale())
+        self._stackItem.setVisible(True)
+
+        # Put back the item in the plot in case it was cleared
+        exists = self._plot.getImage(self._stackItem.getName())
+        if exists is None:
+            self._stackItem.addItem(self._stackItem)
+
+        self._plot.setActiveImage(self._stackItem.getName())
         self.__updatePlotLabels()
         self._updateTitle()
 
@@ -587,14 +601,11 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self._plot.getActiveImage()
-        if image is None:
+        if self._stack is None:
             return None
 
-        if isinstance(image, items.ColormapMixIn):
-            colormap = image.getColormap()
-        else:
-            colormap = None
+        image = self._stackItem
+        colormap = image.getColormap()
 
         params = {
             'info': image.getInfo(),
