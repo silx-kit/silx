@@ -507,7 +507,7 @@ class StackView(qt.QMainWindow):
         :param calibrations: Sequence of 3 calibration objects for each axis.
             These objects can be a subclass of :class:`AbstractCalibration`,
             or 2-tuples *(a, b)* where *a* is the y-intercept and *b* is the
-            slope of a linear calibration (:math:`x \mapsto a + b x`)
+            slope of a linear calibration (:math:`x \\mapsto a + b x`)
         """
         if stack is None:
             self.clear()
