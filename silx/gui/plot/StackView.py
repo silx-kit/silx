@@ -300,7 +300,7 @@ class StackView(qt.QMainWindow):
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
         cursor location in the plot."""
         if eventDict['event'] == 'mouseMoved':
-            activeImage = self._plot.getActiveImage()
+            activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData()
                 height, width = data.shape
@@ -649,7 +649,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self._plot.getActiveImage()
+        image = self.getActiveImage()
         if image is None:
             return None
 
@@ -894,7 +894,7 @@ class StackView(qt.QMainWindow):
         self._plot.setDefaultColormap(_colormap)
 
         # Update active image colormap
-        activeImage = self._plot.getActiveImage()
+        activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
@@ -1058,23 +1058,11 @@ class StackView(qt.QMainWindow):
 
     # kind of private methods, but needed by Profile
     def getActiveImage(self, just_legend=False):
-        """Returns the currently active image object.
-
-        It returns None in case of not having an active image.
-
-        This method is a simple proxy to the legacy :class:`PlotWidget` method
-        of the same name. Using the object oriented approach is now
-        preferred::
-
-            stackview.getPlot().getActiveImage()
-
-        :param bool just_legend: True to get the legend of the image,
-            False (the default) to get the image data and info.
-            Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or image object
-        :rtype: str or list or None
+        """Returns the stack image object.
         """
-        return self._plot.getActiveImage(just_legend=just_legend)
+        if just_legend:
+            return self._stackItem.getName()
+        return self._stackItem
 
     def getColorBarAction(self):
         """Returns the action managing the visibility of the colorbar.
