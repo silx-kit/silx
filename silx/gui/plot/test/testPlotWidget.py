@@ -561,9 +561,13 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         for visualization in ('solid',
                               'points',
                               'regular_grid',
+                              'irregular_grid',
+                              'binned_statistic',
                               scatter.Visualization.SOLID,
                               scatter.Visualization.POINTS,
-                              scatter.Visualization.REGULAR_GRID):
+                              scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID,
+                              scatter.Visualization.BINNED_STATISTIC):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
@@ -629,6 +633,34 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                             self.assertIsNotNone(result)
                             self.assertIs(result.getItem(), scatter)
                             self.assertEqual(result.getIndices(), (index,))
+
+    def testBinnedStatisticVisualization(self):
+        """Test binned display"""
+        self.plot.addScatter((), (), ())
+        scatter = self.plot.getItems()[0]
+        scatter.setVisualization(scatter.Visualization.BINNED_STATISTIC)
+        self.assertIs(scatter.getVisualization(),
+                      scatter.Visualization.BINNED_STATISTIC)
+        self.assertEqual(
+            scatter.getVisualizationParameter(
+                scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
+            'mean')
+
+        self.qapp.processEvents()
+
+        scatter.setData(*numpy.random.random(3000).reshape(3, -1))
+
+        for reduction in ('count', 'sum', 'mean'):
+            with self.subTest(reduction=reduction):
+                scatter.setVisualizationParameter(
+                    scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
+                    reduction)
+                self.assertEqual(
+                    scatter.getVisualizationParameter(
+                        scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
+                    reduction)
+
+                self.qapp.processEvents()
 
 
 class TestPlotMarker(PlotWidgetTestCase):

@@ -459,12 +459,40 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         # Add visualization modes
 
         for mode in Scatter.supportedVisualizations():
-            name = mode.value.capitalize()
-            action = qt.QAction(name, menu)
-            action.setCheckable(False)
-            action.triggered.connect(
-                functools.partial(self._visualizationChanged, mode))
-            menu.addAction(action)
+            if mode is not Scatter.Visualization.BINNED_STATISTIC:
+                name = mode.value.capitalize()
+                action = qt.QAction(name, menu)
+                action.setCheckable(False)
+                action.triggered.connect(
+                    functools.partial(self._visualizationChanged, mode, None))
+                menu.addAction(action)
+
+        if Scatter.Visualization.BINNED_STATISTIC in Scatter.supportedVisualizations():
+            reductions = Scatter.supportedVisualizationParameterValues(
+                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION)
+            if reductions:
+                submenu = menu.addMenu('Binned Statistic')
+                for reduction in reductions:
+                    name = reduction.capitalize()
+                    action = qt.QAction(name, menu)
+                    action.setCheckable(False)
+                    action.triggered.connect(functools.partial(
+                        self._visualizationChanged,
+                        Scatter.Visualization.BINNED_STATISTIC,
+                        {Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction}))
+                    submenu.addAction(action)
+
+                submenu.addSeparator()
+                binsmenu = submenu.addMenu('N Bins')
+
+                slider = qt.QSlider(qt.Qt.Horizontal)
+                slider.setRange(10, 1000)
+                slider.setValue(100)
+                slider.setTracking(False)
+                slider.valueChanged.connect(self._binningChanged)
+                widgetAction = qt.QWidgetAction(binsmenu)
+                widgetAction.setDefaultWidget(slider)
+                binsmenu.addAction(widgetAction)
 
         menu.addSeparator()
 
@@ -477,11 +505,14 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-    def _visualizationChanged(self, mode):
+    def _visualizationChanged(self, mode, parameters=None):
         """Handle change of visualization mode.
 
         :param ScatterVisualizationMixIn.Visualization mode:
             The visualization mode to use for scatter
+        :param Union[dict,None] parameters:
+            Dict of VisualizationParameter: parameter_value to set
+            with the visualization.
         """
         plot = self.plot()
         if plot is None:
@@ -489,4 +520,23 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
 
         for item in plot.getItems():
             if isinstance(item, Scatter):
+                if parameters:
+                    for parameter, value in parameters.items():
+                        item.setVisualizationParameter(parameter, value)
                 item.setVisualization(mode)
+
+    def _binningChanged(self, value):
+        """Handle change of binning.
+
+        :param int value: The number of bin on each dimension.
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot.getItems():
+            if isinstance(item, Scatter):
+                item.setVisualizationParameter(
+                    Scatter.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                    (value, value))
+                item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)

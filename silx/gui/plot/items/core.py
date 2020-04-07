@@ -1021,8 +1021,8 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
-        HISTOGRAM = 'histogram'
-        """Display scatter plot as a 2D histogram.
+        BINNED_STATISTIC = 'binned_statistic'
+        """Display scatter plot as 2D binned statistic (i.e., generalized histogram).
         """
 
     @enum.unique
@@ -1051,14 +1051,30 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         in which case the grid is not fully filled.
         """
 
-        HISTOGRAM_SHAPE = 'histogram_shape'
-        """The number of bins of the histogram in each dimension (height, width).
+        BINNED_STATISTIC_SHAPE = 'binned_statistic_shape'
+        """The number of bins in each dimension (height, width).
         """
+
+        BINNED_STATISTIC_FUNCTION = 'binned_statistic_function'
+        """The reduction function to apply to each bin (str).
+
+        Available reduction functions are: 'mean' (default), 'count', 'sum'.
+        """
+
+    _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
+        VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
+        VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
+    }
+    """Supported visualization parameter values.
+
+    Defined for parameters with a set of acceptable values.
+    """
 
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
         self.__parameters = dict(  # Init parameters to None
             (parameter, None) for parameter in self.VisualizationParameter)
+        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = 'mean'
 
     @classmethod
     def supportedVisualizations(cls):
@@ -1072,6 +1088,20 @@ class ScatterVisualizationMixIn(ItemMixInBase):
             return cls.Visualization.members()
         else:
             return cls._SUPPORTED_SCATTER_VISUALIZATION
+
+    @classmethod
+    def supportedVisualizationParameterValues(cls, parameter):
+        """Returns the list of supported scatter visualization modes.
+
+        See :meth:`VisualizationParameters`
+
+        :param VisualizationParameter parameter:
+            This parameter for which to retrieve the supported values.
+        :returns: tuple of supported of values or None if not defined.
+        """
+        parameter = cls.VisualizationParameter(parameter)
+        return cls._SUPPORTED_VISUALIZATION_PARAMETER_VALUES.get(
+            parameter, None)
 
     def setVisualization(self, mode):
         """Set the scatter plot visualization mode to use.
@@ -1112,10 +1142,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :raises ValueError: If parameter is not supported
         :return: True if parameter was set, False if is was already set
         :rtype: bool
+        :raise ValueError: If value is not supported
         """
         parameter = self.VisualizationParameter.from_value(parameter)
 
         if self.__parameters[parameter] != value:
+            validValues = self.supportedVisualizationParameterValues(parameter)
+            if validValues is not None and value not in validValues:
+                raise ValueError("Unsupported parameter value: %s" % str(value))
+
             self.__parameters[parameter] = value
             self._updated(ItemChangedType.VISUALIZATION_MODE)
             return True
