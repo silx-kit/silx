@@ -569,3 +569,34 @@ class ProfileScatterLineROI(roi_items.LineROI,
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
         _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)
+
+
+class ProfileScatterCrossROI(_ProfileCrossROI):
+    """ROI to manage a cross of profiles for scatters.
+    """
+
+    ICON = 'shape-cross'
+    NAME = 'cross profile'
+
+    def _createLines(self, parent):
+        vline = ProfileScatterVerticalLineROI(parent=parent)
+        hline = ProfileScatterHorizontalLineROI(parent=parent)
+        return hline, vline
+
+    def getNPoints(self):
+        """Returns the number of points of the profiles
+
+        :rtype: int
+        """
+        hline, _vline = self._getLines()
+        return hline.getNPoints()
+
+    def setNPoints(self, npoints):
+        """Set the number of points of the profiles
+
+        :param int npoints:
+        """
+        hline, vline = self._getLines()
+        hline.setNPoints(npoints)
+        vline.setNPoints(npoints)
+        self.sigPropertyChanged.emit()
