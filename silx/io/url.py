@@ -212,7 +212,7 @@ class DataUrl(object):
             pos = self.__path.index(url.path)
             file_path = self.__path[0:pos] + url.path
         else:
-            scheme = url.scheme if url.scheme is not "" else None
+            scheme = url.scheme if url.scheme != "" else None
             file_path = url.path
 
             # Check absolute windows path
