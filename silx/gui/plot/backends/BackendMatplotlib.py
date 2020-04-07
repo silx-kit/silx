@@ -375,8 +375,9 @@ class Image(AxesImage):
             x, y = mouseevent.xdata, mouseevent.ydata
             ox, oy = self.__silx_origin
             sx, sy = self.__silx_scale
-            column = int((x - ox) / sx)
-            row = int((y - oy) / sy)
+            height, width = self.get_size()
+            column = numpy.clip(int((x - ox) / sx), 0, width - 1)
+            row = numpy.clip(int((y - oy) / sy), 0, height - 1)
             info['ind'] = (row,), (column,)
         return inside, info
 
