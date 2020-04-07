@@ -41,6 +41,7 @@ from silx.gui import icons
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.ProfileMainWindow import ProfileMainWindow as _ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.tools.roi import CreateRoiModeAction
 from silx.gui.plot import items
 from silx.gui.qt import silxGlobalThreadPool
 from silx.gui.qt import inspect
@@ -244,97 +245,52 @@ class ProfileManager(qt.QObject):
             return
         self.__removeProfile(roi)
 
-    def createActions(self, parent):
-        actions = []
-
+    def createProfileAction(self, profileRoiClass, parent=None):
+        """Create an action from a class of ProfileRoi"""
+        if not issubclass(profileRoiClass, core.ProfileRoiMixIn):
+            raise TypeError("Type %s not expected" % type(profileRoiClass))
         roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileImageHorizontalLineROI)
-        action.setIcon(icons.getQIcon('shape-horizontal'))
-        action.setToolTip('Enables horizontal line profile selection mode')
-        actions.append(action)
+        action = CreateRoiModeAction(parent, roiManager, profileRoiClass)
+        if hasattr(profileRoiClass, "ICON"):
+            action.setIcon(icons.getQIcon(profileRoiClass.ICON))
+        if hasattr(profileRoiClass, "NAME"):
+            action.setToolTip('Enables %s selection mode' % profileRoiClass.NAME)
+        return action
 
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileImageVerticalLineROI)
-        action.setIcon(icons.getQIcon('shape-vertical'))
-        action.setToolTip('Enables vertical line profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileImageLineROI)
-        action.setIcon(icons.getQIcon('shape-diagonal'))
-        action.setToolTip('Enables line profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileImageCrossROI)
-        action.setIcon(icons.getQIcon('shape-cross'))
-        action.setToolTip('Enables cross profile selection mode')
-        actions.append(action)
-
+    def createClearAction(self, parent):
         # Add clear action
         icon = icons.getQIcon('profile-clear')
         action = qt.QAction(icon, 'Clear profile', parent)
         action.setToolTip('Clear the profiles')
         action.setCheckable(False)
         action.triggered.connect(self.clearProfile)
-        actions.append(action)
+        return action
 
-        return actions
+    def createImageActions(self, parent):
+        profileClasses = [
+            rois.ProfileImageHorizontalLineROI,
+            rois.ProfileImageVerticalLineROI,
+            rois.ProfileImageLineROI,
+            rois.ProfileImageCrossROI,
+            ]
+        return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createScatterActions(self, parent):
-        actions = []
+        profileClasses = [
+            rois.ProfileScatterHorizontalLineROI,
+            rois.ProfileScatterVerticalLineROI,
+            rois.ProfileScatterLineROI,
+            rois.ProfileScatterCrossROI,
+            ]
+        return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterHorizontalLineROI)
-        action.setIcon(icons.getQIcon('shape-horizontal'))
-        action.setToolTip('Enables horizontal line profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterVerticalLineROI)
-        action.setIcon(icons.getQIcon('shape-vertical'))
-        action.setToolTip('Enables vertical line profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterLineROI)
-        action.setIcon(icons.getQIcon('shape-diagonal'))
-        action.setToolTip('Enables line profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterCrossROI)
-        action.setIcon(icons.getQIcon('shape-cross'))
-        action.setToolTip('Enables cross profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterHorizontalSliceROI)
-        action.setIcon(icons.getQIcon('slice-horizontal'))
-        action.setToolTip('Enables horizontal slicing profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterVerticalSliceROI)
-        action.setIcon(icons.getQIcon('slice-vertical'))
-        action.setToolTip('Enables vertical slicing profile selection mode')
-        actions.append(action)
-
-        roiManager = self.getRoiManager()
-        action = roiManager.getInteractionModeAction(rois.ProfileScatterCrossSliceROI)
-        action.setIcon(icons.getQIcon('slice-cross'))
-        action.setToolTip('Enables cross slicing profile selection mode')
-        actions.append(action)
-
-        # Add clear action
-        icon = icons.getQIcon('profile-clear')
-        action = qt.QAction(icon, 'Clear profile', parent)
-        action.setToolTip('Clear the profiles')
-        action.setCheckable(False)
-        action.triggered.connect(self.clearProfile)
-        actions.append(action)
-
-        return actions
+    def createScatterSliceActions(self, parent):
+        profileClasses = [
+            rois.ProfileScatterHorizontalSliceROI,
+            rois.ProfileScatterVerticalSliceROI,
+            rois.ProfileScatterCrossSliceROI,
+            ]
+        return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createEditorAction(self, parent):
         action = editors.ProfileRoiEditAction(parent)
