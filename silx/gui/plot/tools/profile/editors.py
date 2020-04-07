@@ -193,7 +193,8 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         elif isinstance(self.__roi, (rois._DefaultImageProfileRoiMixIn,
                                      rois.ProfileImageCrossROI)):
             editor = _DefaultImageProfileRoiEditor(parent)
-        elif isinstance(self.__roi, rois._DefaultScatterProfileRoiMixIn):
+        elif isinstance(self.__roi, (rois._DefaultScatterProfileRoiMixIn,
+                                     rois.ProfileScatterCrossROI)):
             editor = _DefaultScatterProfileRoiEditor(parent)
         else:
             # Unsupported
