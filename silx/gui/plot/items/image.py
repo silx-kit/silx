@@ -42,7 +42,6 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
