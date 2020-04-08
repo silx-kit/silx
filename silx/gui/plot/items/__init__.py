@@ -39,7 +39,7 @@ from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
 from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
-from .image import ImageBase, ImageData, ImageRgba, MaskImageData  # noqa
+from .image import ImageBase, ImageData, ImageRgba, ImageStack, MaskImageData  # noqa
 from .shape import Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
