@@ -105,7 +105,7 @@ class ProfileMainWindow(_ProfileMainWindow):
         self.__color = colors.rgba(roi.getColor())
 
     def _setScatterProfile(self, profileData):
-        profilePlot = self.getPlot()
+        profilePlot = self._getPlot1D()
         if profilePlot is None:
             return
 
@@ -128,43 +128,44 @@ class ProfileMainWindow(_ProfileMainWindow):
             profilePlot.addCurve(
                 xProfile, values, legend='Profile', color=self.__color)
 
-    def setProfile(self, profileData):
-        if profileData is None:
-            plot = self.getPlot()
-            plot.clear()
-            return
+        self._showPlot1D()
 
-        if isinstance(profileData, core.ScatterProfileData):
-            self._setScatterProfile(profileData)
-            return
-
-        dataIs3D = False
-        if hasattr(profileData, "currentData"):
-            # FIXME: currentData is not needed for now, it could be removed
-            currentData = profileData.currentData
-            dataIs3D = len(currentData.shape) > 2
-
+    def _setImageProfile(self, profileData):
         profileName = profileData.profileName
         xLabel = profileData.xLabel
         coords = profileData.coords
         profile = profileData.profile
 
-        plot = self.getPlot()
+        plot = self._getPlot2D()
 
         plot.clear()
         plot.setGraphTitle(profileName)
         plot.getXAxis().setLabel(xLabel)
 
-        if dataIs3D:
-            colormap = profileData.colormap
-            profileScale = (coords[-1] - coords[0]) / profile.shape[1], 1
-            plot.addImage(profile,
-                          legend=profileName,
-                          colormap=colormap,
-                          origin=(coords[0], 0),
-                          scale=profileScale)
-            plot.getYAxis().setLabel("Frame index (depth)")
-        elif hasattr(profileData, "r"):
+        colormap = profileData.colormap
+        profileScale = (coords[-1] - coords[0]) / profile.shape[1], 1
+        plot.addImage(profile,
+                      legend=profileName,
+                      colormap=colormap,
+                      origin=(coords[0], 0),
+                      scale=profileScale)
+        plot.getYAxis().setLabel("Frame index (depth)")
+
+        self._showPlot2D()
+
+    def _setDefaultProfile(self, profileData):
+        profileName = profileData.profileName
+        xLabel = profileData.xLabel
+        coords = profileData.coords
+        profile = profileData.profile
+
+        plot = self._getPlot1D()
+
+        plot.clear()
+        plot.setGraphTitle(profileName)
+        plot.getXAxis().setLabel(xLabel)
+
+        if hasattr(profileData, "r"):
             plot.addCurve(coords, profile[0], legend=profileName, color="black")
             red = profileData.r
             green = profileData.g
@@ -180,6 +181,23 @@ class ProfileMainWindow(_ProfileMainWindow):
                                  profile[0],
                                  legend=profileName,
                                  color=self.__color)
+
+        self._showPlot1D()
+
+    def setProfile(self, profileData):
+        if profileData is None:
+            plot = self._getPlot1D(init=False)
+            if plot is not None:
+                plot.clear()
+            plot = self._getPlot2D(init=False)
+            if plot is not None:
+                plot.clear()
+        elif isinstance(profileData, core.ScatterProfileData):
+            self._setScatterProfile(profileData)
+        elif isinstance(profileData, core.ImageProfileData):
+            self._setImageProfile(profileData)
+        else:
+            self._setDefaultProfile(profileData)
 
 
 class ProfileManager(qt.QObject):
@@ -291,6 +309,16 @@ class ProfileManager(qt.QObject):
             rois.ProfileScatterCrossSliceROI,
             ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
+
+    def createImageStackActions(self, parent):
+        profileClasses = [
+            rois.ProfileImageStackHorizontalLineROI,
+            rois.ProfileImageStackVerticalLineROI,
+            rois.ProfileImageStackLineROI,
+            rois.ProfileImageStackCrossROI,
+            ]
+        return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
+
 
     def createEditorAction(self, parent):
         action = editors.ProfileRoiEditAction(parent)

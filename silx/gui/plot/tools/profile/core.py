@@ -37,6 +37,12 @@ class ProfileData:
     def __init__(self):
         pass
 
+class ImageProfileData:
+    """Object to store the result of a profile computation which returns an
+    image"""
+    def __init__(self):
+        pass
+
 class ScatterProfileData(ProfileData):
     """Object to store the result of a profile computation"""
     def __init__(self):

@@ -796,3 +796,133 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
         vline = ProfileScatterVerticalSliceROI(parent=parent)
         hline = ProfileScatterHorizontalSliceROI(parent=parent)
         return hline, vline
+
+
+class _DefaultImageStackProfileRoiMixIn:
+    def __init__(self, parent=None):
+        self.__profileType = "1D"
+        """Kind of profile"""
+
+    def getProfileType(self):
+        return self.__profileType
+
+    def setProfileType(self, kind):
+        assert kind in ["1D", "2D"]
+        if self.__profileType == kind:
+            return
+        self.__profileType = kind
+        self.invalidateProperties()
+        self.invalidateProfile()
+
+    def computeProfile(self, item):
+        if not isinstance(item, items.ImageStack):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        kind = self.getProfileType()
+        if kind == "1D":
+            result = _DefaultImageProfileRoiMixIn.computeProfile(self, item)
+            # z = item.getStackPosition()
+            return result
+
+        assert kind == "2D"
+
+        def createProfile2(currentData):
+            coords, profile, _area, profileName, xLabel = createProfile(
+                roiInfo=self._getRoiInfo(),
+                currentData=currentData,
+                origin=origin,
+                scale=scale,
+                lineWidth=self.getProfileLineWidth(),
+                method=method)
+            return coords, profile, profileName, xLabel
+
+        currentData = numpy.array(item.getStackData(copy=False))
+        origin = item.getOrigin()
+        scale = item.getScale()
+        colormap = item.getColormap()
+        method = self.getProfileMethod()
+
+        data = core.ImageProfileData()
+
+        coords, profile, profileName, xLabel = createProfile2(currentData)
+
+        data.coords = coords
+        data.profile = profile
+        data.profileName = profileName
+        #data.xLabel = "X"
+        data.xLabel = xLabel
+        data.yLabel = "Y"
+        data.colormap = colormap
+        data.currentData = currentData
+
+        return data
+
+
+class ProfileImageStackHorizontalLineROI(ProfileImageHorizontalLineROI,
+                                         _DefaultImageStackProfileRoiMixIn):
+    """ROI for an horizontal profile at a location of a stack of images"""
+
+    ICON = 'shape-horizontal'
+    NAME = 'horizontal line profile'
+
+    def __init__(self, parent=None):
+        ProfileImageHorizontalLineROI.__init__(self, parent=parent)
+        _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
+
+    def computeProfile(self, item):
+        # Make sure the right function is called
+        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+
+
+class ProfileImageStackVerticalLineROI(ProfileImageVerticalLineROI,
+                                       _DefaultImageStackProfileRoiMixIn):
+    """ROI for an vertical profile at a location of a stack of images"""
+
+    ICON = 'shape-vertical'
+    NAME = 'vertical line profile'
+
+    def __init__(self, parent=None):
+        ProfileImageVerticalLineROI.__init__(self, parent=parent)
+        _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
+
+    def computeProfile(self, item):
+        # Make sure the right function is called
+        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+
+
+class ProfileImageStackLineROI(ProfileImageLineROI,
+                               _DefaultImageStackProfileRoiMixIn):
+    """ROI for an vertical profile at a location of a stack of images"""
+
+    ICON = 'shape-diagonal'
+    NAME = 'line profile'
+
+    def __init__(self, parent=None):
+        ProfileImageLineROI.__init__(self, parent=parent)
+        _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
+
+    def computeProfile(self, item):
+        # Make sure the right function is called
+        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+
+
+class ProfileImageStackCrossROI(ProfileImageCrossROI):
+    """ROI for an vertical profile at a location of a stack of images"""
+
+    ICON = 'shape-cross'
+    NAME = 'cross profile'
+
+    def _createLines(self, parent):
+        vline = ProfileImageStackVerticalLineROI(parent=parent)
+        hline = ProfileImageStackHorizontalLineROI(parent=parent)
+        return hline, vline
+
+    def getProfileType(self):
+        hline, _vline = self._getLines()
+        return hline.getProfileType()
+
+    def setProfileType(self, kind):
+        hline, vline = self._getLines()
+        hline.setProfileType(kind)
+        vline.setProfileType(kind)
+        self.sigPropertyChanged.emit()
