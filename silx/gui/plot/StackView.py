@@ -910,20 +910,6 @@ class StackView(qt.QMainWindow):
         """
         return self._plot
 
-    def getProfileWindow1D(self):
-        """Plot window used to display 1D profile curve.
-
-        :return: :class:`Plot1D`
-        """
-        return self._plot.profile.getProfileWindow1D()
-
-    def getProfileWindow2D(self):
-        """Plot window used to display 2D profile image.
-
-        :return: :class:`Plot2D`
-        """
-        return self._plot.profile.getProfileWindow2D()
-
     def setOptionVisible(self, isVisible):
         """
         Set the visibility of the browsing options.
