@@ -1917,6 +1917,27 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._setActiveItem(kind='image', legend=legend)
 
+    def getActiveScatter(self, just_legend=False):
+        """Returns the currently active scatter.
+
+        It returns None in case of not having an active scatter.
+
+        :param bool just_legend: True to get the legend of the scatter,
+                                 False (the default) to get the scatter data
+                                 and info.
+        :return: Active scatter's legend or corresponding scatter object
+        :rtype: str, :class:`.items.Scatter` or None
+        """
+        return self._getActiveItem(kind='scatter', just_legend=just_legend)
+
+    def setActiveScatter(self, legend):
+        """Make the scatter associated to legend the active scatter.
+
+        :param str legend: The legend associated to the scatter
+                           or None to have no active scatter.
+        """
+        return self._setActiveItem(kind='scatter', legend=legend)
+
     def _getActiveItem(self, kind, just_legend=False):
         """Return the currently active item of that kind if any
 
