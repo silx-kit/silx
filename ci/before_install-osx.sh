@@ -10,6 +10,6 @@ VENV_DIR=./venv
 # source $VENV_DIR/bin/activate
 
 # Alternative python installation using miniconda
-curl -o miniconda_installer.sh "https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
+curl -o miniconda_installer.sh "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
 bash miniconda_installer.sh -b -p miniconda
 export PATH="`pwd`/miniconda/bin":$PATH
