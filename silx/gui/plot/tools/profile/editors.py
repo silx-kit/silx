@@ -35,6 +35,7 @@ from silx.gui import qt
 
 from silx.gui.utils import blockSignals
 from silx.gui.plot.PlotToolButtons import ProfileOptionToolButton
+from silx.gui.plot.PlotToolButtons import ProfileToolButton
 from . import rois
 from . import core
 
@@ -59,24 +60,26 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent=parent)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self._initLayout(layout)
 
+    def _initLayout(self, layout):
         self._lineWidth = qt.QSpinBox(self)
         self._lineWidth.setRange(1, 1000)
         self._lineWidth.setValue(1)
-        self._lineWidth.valueChanged[int].connect(self.__widgetChanged)
+        self._lineWidth.valueChanged[int].connect(self._widgetChanged)
 
         self._methodsButton = ProfileOptionToolButton(parent=self, plot=None)
-        self._methodsButton.sigMethodChanged.connect(self.__widgetChanged)
+        self._methodsButton.sigMethodChanged.connect(self._widgetChanged)
 
-        layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
         label = qt.QLabel('W:')
         label.setToolTip("Line width in pixels")
         layout.addWidget(label)
         layout.addWidget(self._lineWidth)
         layout.addWidget(self._methodsButton)
 
-    def __widgetChanged(self, value=None):
+    def _widgetChanged(self, value=None):
         self.commitData()
 
     def commitData(self):
@@ -94,6 +97,28 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
         roi.setProfileLineWidth(lineWidth)
         method = self._methodsButton.getMethod()
         roi.setProfileMethod(method)
+
+
+class _DefaultImageStackProfileRoiEditor(_DefaultImageProfileRoiEditor):
+
+    def _initLayout(self, layout):
+        super(_DefaultImageStackProfileRoiEditor, self)._initLayout(layout)
+        self._profileDim = ProfileToolButton(parent=self, plot=None)
+        self._profileDim.sigDimensionChanged.connect(self._widgetChanged)
+        layout.addWidget(self._profileDim)
+
+    def setEditorData(self, roi):
+        super(_DefaultImageStackProfileRoiEditor, self).setEditorData(roi)
+        with blockSignals(self._profileDim):
+            kind = roi.getProfileType()
+            dim = {"1D": 1, "2D": 2}[kind]
+            self._profileDim.setDimension(dim)
+
+    def setRoiData(self, roi):
+        super(_DefaultImageStackProfileRoiEditor, self).setRoiData(roi)
+        dim = self._profileDim.getDimension()
+        kind = {1: "1D", 2: "2D"}[dim]
+        roi.setProfileType(kind)
 
 
 class _DefaultScatterProfileRoiEditor(qt.QWidget):
@@ -191,6 +216,11 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         parent = self.parent()
         if self.__roi is None:
             editor = _NoProfileRoiEditor(parent)
+        elif isinstance(self.__roi, (rois._DefaultImageStackProfileRoiMixIn,
+                                     rois.ProfileImageStackCrossROI)):
+            # Must be done before the default image ROI
+            # Cause ImageStack ROIs inherit from Image ROIs
+            editor = _DefaultImageStackProfileRoiEditor(parent)
         elif isinstance(self.__roi, (rois._DefaultImageProfileRoiMixIn,
                                      rois.ProfileImageCrossROI)):
             editor = _DefaultImageProfileRoiEditor(parent)
