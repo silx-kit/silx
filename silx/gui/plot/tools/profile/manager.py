@@ -224,6 +224,12 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self.__itemTypes = []
+        """Kind of items to use"""
+
+        self.__tracking = False
+        """Is the plot active items are tracked"""
+
         self._item = None
         """The selected item"""
 
@@ -319,11 +325,49 @@ class ProfileManager(qt.QObject):
             ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
-
     def createEditorAction(self, parent):
         action = editors.ProfileRoiEditAction(parent)
         action.setRoiManager(self.getRoiManager())
         return action
+
+    def setItemType(self, image=False, scatter=False):
+        """Set the item type to use and select the active one."""
+        self.__itemTypes = []
+        plot = self.getPlotWidget()
+        item = None
+        if image:
+            self.__itemTypes.append("image")
+            item = plot.getActiveImage()
+        if scatter:
+            self.__itemTypes.append("scatter")
+            if item is None:
+                item = plot.getActiveScatter()
+        self.setPlotItem(item)
+
+    def setActiveItemTracking(self, tracking):
+        """Enable/diable the tracking of the active item of the plot."""
+        if self.__tracking == tracking:
+            return
+        plot = self.getPlotWidget()
+        if self.__tracking:
+            plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+            plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
+        self.__tracking = tracking
+        if self.__tracking:
+            plot.sigActiveImageChanged.connect(self.__activeImageChanged)
+            plot.sigActiveScatterChanged.connect(self.__activeScatterChanged)
+
+    def __activeImageChanged(self, previous, legend):
+        if "image" in self.__itemTypes:
+            plot = self.getPlotWidget()
+            item = plot.getImage(legend)
+            self.setPlotItem(item)
+
+    def __activeScatterChanged(self, previous, legend):
+        if "scatter" in self.__itemTypes:
+            plot = self.getPlotWidget()
+            item = plot.getScatter(legend)
+            self.setPlotItem(item)
 
     def __addProfile(self, profileRoi):
         if profileRoi.getFocusProxy() is None:
