@@ -898,7 +898,11 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
+    @deprecated(replacement="getPlotWidget", since_version="0.13")
     def getPlot(self):
+        return self.getPlotWidget()
+
+    def getPlotWidget(self):
         """Return the :class:`PlotWidget`.
 
         This gives access to advanced plot configuration options.

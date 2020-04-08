@@ -775,7 +775,7 @@ class Profile3DToolBar(ProfileToolBar):
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent,
-                                               plot=stackview.getPlot(),
+                                               plot=stackview.getPlotWidget(),
                                                title=title)
         self._method3D = 'sum'
         self._profileType = None

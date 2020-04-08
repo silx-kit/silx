@@ -1798,7 +1798,7 @@ class _NXdataStackView(DataView):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
         widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getStackView().getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
@@ -1899,7 +1899,7 @@ class _NXdataVolumeAsStackView(DataView):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
         widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getStackView().getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
