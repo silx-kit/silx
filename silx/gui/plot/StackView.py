@@ -232,9 +232,9 @@ class StackView(qt.QMainWindow):
 
         self._addColorBarAction()
 
-        self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              stackview=self)
-        self._plot.addToolBar(self._plot.profile)
+        self._profileToolBar = Profile3DToolBar(parent=self._plot,
+                                                stackview=self)
+        self._plot.addToolBar(self._profileToolBar)
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
@@ -262,9 +262,9 @@ class StackView(qt.QMainWindow):
 
         # clear profile lines when the perspective changes (plane browsed changed)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._plot.profile.getProfilePlot().clear)
+            self._profileToolBar.getProfilePlot().clear)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._plot.profile.clearProfile)
+            self._profileToolBar.clearProfile)
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
@@ -922,10 +922,8 @@ class StackView(qt.QMainWindow):
     # proxies to PlotWidget or PlotWindow methods
     def getProfileToolbar(self):
         """Profile tools attached to this plot
-
-        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
         """
-        return self._plot.profile
+        return self._profileToolBar
 
     def getGraphTitle(self):
         """Return the plot main title as a str.
@@ -1200,13 +1198,14 @@ class StackViewMainWindow(StackView):
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self._plot.profile.hLineAction)
-        menu.addAction(self._plot.profile.vLineAction)
-        menu.addAction(self._plot.profile.lineAction)
+        profileToolBar = self._profileToolBar
+        menu.addAction(profileToolBar.hLineAction)
+        menu.addAction(profileToolBar.vLineAction)
+        menu.addAction(profileToolBar.lineAction)
         menu.addSeparator()
-        menu.addAction(self._plot.profile.clearAction)
-        self._plot.profile.profile3dAction.computeProfileIn2D()
-        menu.addMenu(self._plot.profile.profile3dAction.menu())
+        menu.addAction(profileToolBar.clearAction)
+        profileToolBar.profile3dAction.computeProfileIn2D()
+        menu.addMenu(profileToolBar.profile3dAction.menu())
 
         # Connect to StackView's signal
         self.valueChanged.connect(self._statusBarSlot)
