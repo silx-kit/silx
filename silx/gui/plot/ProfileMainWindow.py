@@ -48,6 +48,8 @@ class ProfileMainWindow(qt.QMainWindow):
     """This signal is emitted when :meth:`setProfileDimensions` is called.
     It carries the number of dimensions for the profile data (1 or 2).
     It can be used to be notified that the profile plot widget has changed.
+
+    Note: This signal should be removed.
     """
 
     sigClose = qt.Signal()
@@ -56,7 +58,10 @@ class ProfileMainWindow(qt.QMainWindow):
 
     sigProfileMethodChanged = qt.Signal(str)
     """Emitted when the method to compute the profile changed (for now can be
-    sum or mean)"""
+    sum or mean)
+
+    Note: This signal should be removed.
+    """
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
@@ -103,6 +108,8 @@ class ProfileMainWindow(qt.QMainWindow):
     def getPlot(self):
         """Return the profile plot widget which is currently in use.
         This can be the 2D profile plot or the 1D profile plot.
+
+        Note: This method should be removed.
         """
         if self._profileType == "2D":
             return self._plot2D
@@ -115,6 +122,7 @@ class ProfileMainWindow(qt.QMainWindow):
 
     def setProfileMethod(self, method):
         """
+        Note: This method should be removed.
 
         :param str method: method to manage the 'width' in the profile
             (computing mean or sum).
