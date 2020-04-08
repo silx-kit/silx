@@ -332,6 +332,8 @@ class ProfileToolButton(PlotToolButton):
 
         super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
 
+        self._dimension = 1
+
         profile1DAction = self._createAction(1)
         profile1DAction.triggered.connect(self.computeProfileIn1D)
         profile1DAction.setIconVisibleInMenu(True)
@@ -346,6 +348,7 @@ class ProfileToolButton(PlotToolButton):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         menu.setTitle('Select profile dimension')
+        self.computeProfileIn1D()
 
     def _createAction(self, profileDimension):
         icon = self.STATE[profileDimension, "icon"]
@@ -356,6 +359,7 @@ class ProfileToolButton(PlotToolButton):
         """Update icon in toolbar, emit number of dimensions for profile"""
         self.setIcon(self.STATE[profileDimension, "icon"])
         self.setToolTip(self.STATE[profileDimension, "state"])
+        self._dimension = profileDimension
         self.sigDimensionChanged.emit(profileDimension)
 
     def computeProfileIn1D(self):
@@ -364,6 +368,24 @@ class ProfileToolButton(PlotToolButton):
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
 
+    def setDimension(self, dimension):
+        """Set the selected dimension"""
+        assert dimension in [1, 2]
+        if self._dimension == dimension:
+            return
+        if dimension == 1:
+            self.computeProfileIn1D()
+        elif dimension == 2:
+            self.computeProfileIn2D()
+        else:
+            _logger.warning("Unsupported dimension '%s'. Setting ignored.", dimension)
+
+    def getDimension(self):
+        """Get the selected dimension.
+
+        :rtype: int (1 or 2)
+        """
+        return self._dimension
 
 
 class _SymbolToolButtonBase(PlotToolButton):
