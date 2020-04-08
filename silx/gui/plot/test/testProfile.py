@@ -179,7 +179,7 @@ class TestProfile3DToolBar(TestCaseQt):
         self.assertIsNot(toolButton, None)
         self.mouseMove(toolButton)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
-        plot2D = self.plot.getPlot().getWidgetHandle()
+        plot2D = self.plot.getPlotWidget().getWidgetHandle()
         pos1 = plot2D.width() * 0.5, plot2D.height() * 0.5
         self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
         self.assertTrue(numpy.array_equal(
@@ -221,7 +221,7 @@ class TestProfile3DToolBar(TestCaseQt):
         self.assertIsNot(toolButton, None)
         self.mouseMove(toolButton)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
-        plot2D = self.plot.getPlot().getWidgetHandle()
+        plot2D = self.plot.getPlotWidget().getWidgetHandle()
         pos1 = plot2D.width() * 0.5, plot2D.height() * 0.2
         pos2 = plot2D.width() * 0.5, plot2D.height() * 0.8
 

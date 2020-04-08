@@ -775,8 +775,11 @@ class Profile3DToolBar(ProfileToolBar):
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent,
-                                               plot=stackview.getPlot(),
+                                               plot=stackview.getPlotWidget(),
                                                title=title)
+        self._method3D = 'sum'
+        self._profileType = None
+
         self.stackView = stackview
         """:class:`StackView` instance"""
 
@@ -788,9 +791,7 @@ class Profile3DToolBar(ProfileToolBar):
         self.profile3dAction.sigDimensionChanged.connect(self._setProfileType)
 
         # create the 3D toolbar
-        self._profileType = None
         self._setProfileType(2)
-        self._method3D = 'sum'
 
     def _setProfileType(self, dimensions):
         """Set the profile type: "1D" for a curve (profile on a single image)

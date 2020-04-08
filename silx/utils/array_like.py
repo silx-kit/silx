@@ -53,6 +53,7 @@ import sys
 
 import numpy
 import six
+import numbers
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -363,7 +364,7 @@ class ListOfImages(object):
         frozen_dimensions = []
         for i, idx in enumerate(item):
             # slices and sequences
-            if not isinstance(idx, int):
+            if not isinstance(idx, numbers.Integral):
                 output_dimensions.append(self.transposition[i])
             # regular integer index
             else:

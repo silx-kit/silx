@@ -78,6 +78,7 @@ import silx
 from silx.gui import qt
 from .. import icons
 from . import items, PlotWindow, actions
+from .items.image import ImageStack
 from ..colors import Colormap
 from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
@@ -186,7 +187,11 @@ class StackView(qt.QMainWindow):
         self._perspective = 0
         """Orthogonal dimension (depth) in :attr:`_stack`"""
 
-        self.__imageLegend = '__StackView__image' + str(id(self))
+        self._stackItem = ImageStack()
+        """Hold the item displaying the stack"""
+        imageLegend = '__StackView__image' + str(id(self))
+        self._stackItem.setName(imageLegend)
+
         self.__autoscaleCmap = False
         """Flag to disable/enable colormap auto-scaling
         based on the min/max values of the entire 3D volume"""
@@ -216,6 +221,7 @@ class StackView(qt.QMainWindow):
                                 copy=copy, save=save, print_=print_,
                                 control=control, position=position,
                                 roi=False, mask=mask)
+        self._plot.addItem(self._stackItem)
         self._plot.getIntensityHistogramAction().setVisible(True)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
@@ -226,9 +232,9 @@ class StackView(qt.QMainWindow):
 
         self._addColorBarAction()
 
-        self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              stackview=self)
-        self._plot.addToolBar(self._plot.profile)
+        self._profileToolBar = Profile3DToolBar(parent=self._plot,
+                                                stackview=self)
+        self._plot.addToolBar(self._profileToolBar)
         self._plot.getXAxis().setLabel('Columns')
         self._plot.getYAxis().setLabel('Rows')
         self._plot.sigPlotSignal.connect(self._plotCallback)
@@ -256,9 +262,9 @@ class StackView(qt.QMainWindow):
 
         # clear profile lines when the perspective changes (plane browsed changed)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._plot.profile.getProfilePlot().clear)
+            self._profileToolBar.getProfilePlot().clear)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._plot.profile.clearProfile)
+            self._profileToolBar.clearProfile)
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
@@ -294,7 +300,7 @@ class StackView(qt.QMainWindow):
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
         cursor location in the plot."""
         if eventDict['event'] == 'mouseMoved':
-            activeImage = self._plot.getActiveImage()
+            activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData()
                 height, width = data.shape
@@ -387,6 +393,12 @@ class StackView(qt.QMainWindow):
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
 
+        # Update the item structure
+        self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
+        self._stackItem.setColormap(self.getColormap())
+        self._stackItem.setOrigin(self._getImageOrigin())
+        self._stackItem.setScale(self._getImageScale())
+
     def __updateFrameNumber(self, index):
         """Update the current image.
 
@@ -395,11 +407,9 @@ class StackView(qt.QMainWindow):
         if self.__transposed_view is None:
             # no data set
             return
-        self._plot.addImage(self.__transposed_view[index, :, :],
-                            origin=self._getImageOrigin(),
-                            scale=self._getImageScale(),
-                            legend=self.__imageLegend,
-                            resetzoom=False)
+
+        self._stackItem.setStackPosition(index)
+
         self._updateTitle()
         self.sigFrameChanged.emit(index)
 
@@ -507,7 +517,7 @@ class StackView(qt.QMainWindow):
         :param calibrations: Sequence of 3 calibration objects for each axis.
             These objects can be a subclass of :class:`AbstractCalibration`,
             or 2-tuples *(a, b)* where *a* is the y-intercept and *b* is the
-            slope of a linear calibration (:math:`x \mapsto a + b x`)
+            slope of a linear calibration (:math:`x \\mapsto a + b x`)
         """
         if stack is None:
             self.clear()
@@ -551,14 +561,18 @@ class StackView(qt.QMainWindow):
             self.setColormap(colormap=colormap)
 
         # init plot
-        self._plot.addImage(self.__transposed_view[0, :, :],
-                            legend=self.__imageLegend,
-                            colormap=self.getColormap(),
-                            origin=self._getImageOrigin(),
-                            scale=self._getImageScale(),
-                            replace=True,
-                            resetzoom=False)
-        self._plot.setActiveImage(self.__imageLegend)
+        self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
+        self._stackItem.setColormap(self.getColormap())
+        self._stackItem.setOrigin(self._getImageOrigin())
+        self._stackItem.setScale(self._getImageScale())
+        self._stackItem.setVisible(True)
+
+        # Put back the item in the plot in case it was cleared
+        exists = self._plot.getImage(self._stackItem.getName())
+        if exists is None:
+            self._stackItem.addItem(self._stackItem)
+
+        self._plot.setActiveImage(self._stackItem.getName())
         self.__updatePlotLabels()
         self._updateTitle()
 
@@ -587,14 +601,11 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self._plot.getActiveImage()
-        if image is None:
+        if self._stack is None:
             return None
 
-        if isinstance(image, items.ColormapMixIn):
-            colormap = image.getColormap()
-        else:
-            colormap = None
+        image = self._stackItem
+        colormap = image.getColormap()
 
         params = {
             'info': image.getInfo(),
@@ -638,7 +649,7 @@ class StackView(qt.QMainWindow):
         :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
-        image = self._plot.getActiveImage()
+        image = self.getActiveImage()
         if image is None:
             return None
 
@@ -883,11 +894,15 @@ class StackView(qt.QMainWindow):
         self._plot.setDefaultColormap(_colormap)
 
         # Update active image colormap
-        activeImage = self._plot.getActiveImage()
+        activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
+    @deprecated(replacement="getPlotWidget", since_version="0.13")
     def getPlot(self):
+        return self.getPlotWidget()
+
+    def getPlotWidget(self):
         """Return the :class:`PlotWidget`.
 
         This gives access to advanced plot configuration options.
@@ -898,20 +913,6 @@ class StackView(qt.QMainWindow):
         :return: instance of :class:`PlotWidget` used in widget
         """
         return self._plot
-
-    def getProfileWindow1D(self):
-        """Plot window used to display 1D profile curve.
-
-        :return: :class:`Plot1D`
-        """
-        return self._plot.profile.getProfileWindow1D()
-
-    def getProfileWindow2D(self):
-        """Plot window used to display 2D profile image.
-
-        :return: :class:`Plot2D`
-        """
-        return self._plot.profile.getProfileWindow2D()
 
     def setOptionVisible(self, isVisible):
         """
@@ -925,10 +926,8 @@ class StackView(qt.QMainWindow):
     # proxies to PlotWidget or PlotWindow methods
     def getProfileToolbar(self):
         """Profile tools attached to this plot
-
-        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
         """
-        return self._plot.profile
+        return self._profileToolBar
 
     def getGraphTitle(self):
         """Return the plot main title as a str.
@@ -1047,23 +1046,11 @@ class StackView(qt.QMainWindow):
 
     # kind of private methods, but needed by Profile
     def getActiveImage(self, just_legend=False):
-        """Returns the currently active image object.
-
-        It returns None in case of not having an active image.
-
-        This method is a simple proxy to the legacy :class:`PlotWidget` method
-        of the same name. Using the object oriented approach is now
-        preferred::
-
-            stackview.getPlot().getActiveImage()
-
-        :param bool just_legend: True to get the legend of the image,
-            False (the default) to get the image data and info.
-            Note: :class:`StackView` uses the same legend for all frames.
-        :return: legend or image object
-        :rtype: str or list or None
+        """Returns the stack image object.
         """
-        return self._plot.getActiveImage(just_legend=just_legend)
+        if just_legend:
+            return self._stackItem.getName()
+        return self._stackItem
 
     def getColorBarAction(self):
         """Returns the action managing the visibility of the colorbar.
@@ -1215,13 +1202,14 @@ class StackViewMainWindow(StackView):
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self._plot.profile.hLineAction)
-        menu.addAction(self._plot.profile.vLineAction)
-        menu.addAction(self._plot.profile.lineAction)
+        profileToolBar = self._profileToolBar
+        menu.addAction(profileToolBar.hLineAction)
+        menu.addAction(profileToolBar.vLineAction)
+        menu.addAction(profileToolBar.lineAction)
         menu.addSeparator()
-        menu.addAction(self._plot.profile.clearAction)
-        self._plot.profile.profile3dAction.computeProfileIn2D()
-        menu.addMenu(self._plot.profile.profile3dAction.menu())
+        menu.addAction(profileToolBar.clearAction)
+        profileToolBar.profile3dAction.computeProfileIn2D()
+        menu.addMenu(profileToolBar.profile3dAction.menu())
 
         # Connect to StackView's signal
         self.valueChanged.connect(self._statusBarSlot)
