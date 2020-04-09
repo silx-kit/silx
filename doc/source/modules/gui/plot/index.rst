@@ -54,7 +54,7 @@ Additionnal plot tool widgets:
 
    actions/index.rst
    plottoolbuttons.rst
-   tools.rst
+   tools/index.rst
    profile.rst
    roi.rst
    printpreviewtoolbutton.rst
