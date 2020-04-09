@@ -31,7 +31,6 @@ __date__ = "28/06/2018"
 
 import logging
 import weakref
-import numpy
 
 from silx.gui import qt
 from silx.gui import colors
@@ -104,48 +103,25 @@ class ProfileMainWindow(_ProfileMainWindow):
             return
         self.__color = colors.rgba(roi.getColor())
 
-    def _setScatterProfile(self, profileData):
-        profilePlot = self._getPlot1D()
-        if profilePlot is None:
-            return
+    def _setImageProfile(self, data):
+        """
+        Setup the window to display a new profile data which is represented
+        by an image.
 
-        points = profileData.points
-        values = profileData.values
-        title = profileData.title
-
-        profilePlot.clear()
-        profilePlot.setGraphTitle(title)
-
-        if points is not None and values is not None:
-            if (numpy.abs(points[-1, 0] - points[0, 0]) >
-                    numpy.abs(points[-1, 1] - points[0, 1])):
-                xProfile = points[:, 0]
-                profilePlot.getXAxis().setLabel('X')
-            else:
-                xProfile = points[:, 1]
-                profilePlot.getXAxis().setLabel('Y')
-
-            profilePlot.addCurve(
-                xProfile, values, legend='Profile', color=self.__color)
-
-        self._showPlot1D()
-
-    def _setImageProfile(self, profileData):
-        profileName = profileData.profileName
-        xLabel = profileData.xLabel
-        coords = profileData.coords
-        profile = profileData.profile
-
+        :param core.ImageProfileData data: Computed data profile
+        """
         plot = self._getPlot2D()
 
         plot.clear()
-        plot.setGraphTitle(profileName)
-        plot.getXAxis().setLabel(xLabel)
+        plot.setGraphTitle(data.title)
+        plot.getXAxis().setLabel(data.xLabel)
 
-        colormap = profileData.colormap
-        profileScale = (coords[-1] - coords[0]) / profile.shape[1], 1
-        plot.addImage(profile,
-                      legend=profileName,
+
+        coords = data.coords
+        colormap = data.colormap
+        profileScale = (coords[-1] - coords[0]) / data.profile.shape[1], 1
+        plot.addImage(data.profile,
+                      legend="profile",
                       colormap=colormap,
                       origin=(coords[0], 0),
                       scale=profileScale)
@@ -153,51 +129,80 @@ class ProfileMainWindow(_ProfileMainWindow):
 
         self._showPlot2D()
 
-    def _setDefaultProfile(self, profileData):
-        profileName = profileData.profileName
-        xLabel = profileData.xLabel
-        coords = profileData.coords
-        profile = profileData.profile
+    def _setCurveProfile(self, data):
+        """
+        Setup the window to display a new profile data which is represented
+        by a curve.
 
+        :param core.CurveProfileData data: Computed data profile
+        """
         plot = self._getPlot1D()
 
         plot.clear()
-        plot.setGraphTitle(profileName)
-        plot.getXAxis().setLabel(xLabel)
+        plot.setGraphTitle(data.title)
+        plot.getXAxis().setLabel(data.xLabel)
 
-        if hasattr(profileData, "r"):
-            plot.addCurve(coords, profile[0], legend=profileName, color="black")
-            red = profileData.r
-            green = profileData.g
-            blue = profileData.b
-            plot.addCurve(coords, red[0], legend=profileName+"_r", color="red")
-            plot.addCurve(coords, green[0], legend=profileName+"_g", color="green")
-            plot.addCurve(coords, blue[0], legend=profileName+"_b", color="blue")
-            if hasattr(profileData, "a"):
-                alpha = profileData.a
-                plot.addCurve(coords, alpha[0], legend=profileName+"_a", color="gray")
-        else:
-            plot.addCurve(coords,
-                                 profile[0],
-                                 legend=profileName,
-                                 color=self.__color)
+        plot.addCurve(data.coords,
+                      data.profile,
+                      legend="level",
+                      color=self.__color)
 
         self._showPlot1D()
 
-    def setProfile(self, profileData):
-        if profileData is None:
-            plot = self._getPlot1D(init=False)
-            if plot is not None:
-                plot.clear()
-            plot = self._getPlot2D(init=False)
-            if plot is not None:
-                plot.clear()
-        elif isinstance(profileData, core.ScatterProfileData):
-            self._setScatterProfile(profileData)
-        elif isinstance(profileData, core.ImageProfileData):
-            self._setImageProfile(profileData)
+    def _setRgbaProfile(self, data):
+        """
+        Setup the window to display a new profile data which is represented
+        by a curve.
+
+        :param core.RgbaProfileData data: Computed data profile
+        """
+        plot = self._getPlot1D()
+
+        plot.clear()
+        plot.setGraphTitle(data.title)
+        plot.getXAxis().setLabel(data.xLabel)
+
+        self._showPlot1D()
+
+        plot.addCurve(data.coords, data.profile,
+                      legend="level", color="black")
+        plot.addCurve(data.coords, data.profile_r,
+                      legend="red", color="red")
+        plot.addCurve(data.coords, data.profile_g,
+                      legend="green", color="green")
+        plot.addCurve(data.coords, data.profile_b,
+                      legend="blue", color="blue")
+        if data.profile_a is not None:
+            plot.addCurve(data.coords, data.profile_a, legend="alpha", color="gray")
+
+    def clear(self):
+        """Clear the window profile"""
+        plot = self._getPlot1D(init=False)
+        if plot is not None:
+            plot.clear()
+        plot = self._getPlot2D(init=False)
+        if plot is not None:
+            plot.clear()
+
+    def setProfile(self, data):
+        """
+        Setup the window to display a new profile data.
+
+        This method dispatch the result to a specific method according to the
+        data type.
+
+        :param data: Computed data profile
+        """
+        if data is None:
+            self.clear()
+        elif isinstance(data, core.ImageProfileData):
+            self._setImageProfile(data)
+        elif isinstance(data, core.RgbaProfileData):
+            self._setRgbaProfile(data)
+        elif isinstance(data, core.CurveProfileData):
+            self._setCurveProfile(data)
         else:
-            self._setDefaultProfile(profileData)
+            raise TypeError("Unsupported type %s" % type(data))
 
 
 class ProfileManager(qt.QObject):

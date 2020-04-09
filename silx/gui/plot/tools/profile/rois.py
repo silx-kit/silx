@@ -157,7 +157,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
         origin = item.getOrigin()
         scale = item.getScale()
-        colormap = None  # Not used for 2D data
         method = self.getProfileMethod()
 
         def createProfile2(currentData):
@@ -169,8 +168,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 lineWidth=self.getProfileLineWidth(),
                 method=method)
             return coords, profile, profileName, xLabel
-
-        data = core.ProfileData()
 
         if isinstance(item, items.ImageData):
             currentData = item.getData(copy=False)
@@ -184,25 +181,32 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
-        data.coords = coords
-        data.profile = profile
-        data.profileName = profileName
-        data.xLabel = xLabel
-        data.colormap = colormap
-        data.currentData = currentData
-
         if isinstance(item, items.ImageRgba):
             rgba = item.getData(copy=False)
             _coords, r, _profileName, _xLabel = createProfile2(rgba[..., 0])
             _coords, g, _profileName, _xLabel = createProfile2(rgba[..., 1])
             _coords, b, _profileName, _xLabel = createProfile2(rgba[..., 2])
-            data.r = r
-            data.g = g
-            data.b = b
             if rgba.shape[-1] == 4:
                 _coords, a, _profileName, _xLabel = createProfile(rgba[..., 3])
-                data.a = a
-
+            else:
+                a = [None]
+            data = core.RgbaProfileData(
+                coords=coords,
+                profile=profile[0],
+                profile_r=r[0],
+                profile_g=g[0],
+                profile_b=b[0],
+                profile_a=a[0],
+                title=profileName,
+                xLabel=xLabel,
+            )
+        else:
+            data = core.CurveProfileData(
+                coords=coords,
+                profile=profile[0],
+                title=profileName,
+                xLabel=xLabel,
+            )
         return data
 
 
@@ -530,10 +534,24 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         if profile is None:
             return None
         title = self._computeProfileTitle(x0, y0, x1, y1)
-        data = core.ScatterProfileData()
-        data.points = profile[0]
-        data.values = profile[1]
-        data.title = title
+
+        points = profile[0]
+        values = profile[1]
+
+        if (numpy.abs(points[-1, 0] - points[0, 0]) >
+                numpy.abs(points[-1, 1] - points[0, 1])):
+            xProfile = points[:, 0]
+            xLabel = 'X'
+        else:
+            xProfile = points[:, 1]
+            xLabel = 'Y'
+
+        data = core.CurveProfileData(
+            coords=xProfile,
+            profile=values,
+            xLabel=xLabel,
+            title=title
+        )
         return data
 
 
@@ -718,19 +736,21 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         _xx, _yy, values, _xx_error, _yy_error = item.getData(copy=False)
         profile = values[slicing]
 
-        data = core.ProfileData()
-        data.coords = numpy.arange(len(profile))
-        data.profile = [profile]
-
         if isinstance(self, roi_items.HorizontalLineROI):
-            data.profileName = "Horizontal slice"
-            data.xLabel = "Column index"
+            title = "Horizontal slice"
+            xLabel = "Column index"
         elif isinstance(self, roi_items.VerticalLineROI):
-            data.profileName = "Vertical slice"
-            data.xLabel = "Row index"
+            title = "Vertical slice"
+            xLabel = "Row index"
         else:
             assert False
 
+        data = core.CurveProfileData(
+            coords=numpy.arange(len(profile)),
+            profile=profile,
+            title=title,
+            xLabel=xLabel
+        )
         return data
 
 
@@ -842,19 +862,16 @@ class _DefaultImageStackProfileRoiMixIn:
         colormap = item.getColormap()
         method = self.getProfileMethod()
 
-        data = core.ImageProfileData()
-
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
-        data.coords = coords
-        data.profile = profile
-        data.profileName = profileName
-        #data.xLabel = "X"
-        data.xLabel = xLabel
-        data.yLabel = "Y"
-        data.colormap = colormap
-        data.currentData = currentData
-
+        data = core.ImageProfileData(
+            coords=coords,
+            profile=profile,
+            title=profileName,
+            xLabel=xLabel,
+            yLabel="Y",
+            colormap=colormap,
+        )
         return data
 
 
