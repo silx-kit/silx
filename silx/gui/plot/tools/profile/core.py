@@ -29,24 +29,40 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "03/04/2020"
 
+import collections
+
 from silx.gui import qt
 
 
-class ProfileData:
-    """Object to store the result of a profile computation"""
-    def __init__(self):
-        pass
+CurveProfileData = collections.namedtuple(
+    'CurveProfileData', [
+        "coords",
+        "profile",
+        "title",
+        "xLabel",
+    ])
 
-class ImageProfileData:
-    """Object to store the result of a profile computation which returns an
-    image"""
-    def __init__(self):
-        pass
+RgbaProfileData = collections.namedtuple(
+    'RgbaProfileData', [
+        "coords",
+        "profile",
+        "profile_r",
+        "profile_g",
+        "profile_b",
+        "profile_a",
+        "title",
+        "xLabel",
+    ])
 
-class ScatterProfileData(ProfileData):
-    """Object to store the result of a profile computation"""
-    def __init__(self):
-        super(ScatterProfileData, self).__init__()
+ImageProfileData = collections.namedtuple(
+    'ImageProfileData', [
+        'coords',
+        'profile',
+        'title',
+        'xLabel',
+        'yLabel',
+        'colormap',
+    ])
 
 
 class ProfileRoiMixIn:
