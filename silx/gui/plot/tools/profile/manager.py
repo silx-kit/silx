@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module prvide a manager to compute profiles.
+"""This module provides a manager to compute and display profiles.
 """
 
 __authors__ = ["V. Valls"]
@@ -53,20 +53,23 @@ _logger = logging.getLogger(__name__)
 
 
 class _RunnableComputeProfile(qt.QRunnable):
-    """Runner to process profiles"""
+    """Runner to process profiles
+
+    :param qt.QThreadPool threadPool: The thread which will be used to
+        execute this runner. It is used to update the used signals
+    :param ~silx.gui.plot.items.Item item: Item in which the profile is
+        computed
+    :param ~silx.gui.plot.tools.profile.core.ProfileRoiMixIn roi: ROI
+        defining the profile shape and other characteristics
+    """
 
     class _Signals(qt.QObject):
         """Signal holder"""
         resultReady = qt.Signal(object, object)
         runnerFinished = qt.Signal(object)
 
-    def autoDelete(self):
-        return False
-
     def __init__(self, threadPool, item, roi):
         """Constructor
-
-        :param LoadingItemWorker worker: Object holding data and signals
         """
         super(_RunnableComputeProfile, self).__init__()
         self._signals = self._Signals()
@@ -74,15 +77,30 @@ class _RunnableComputeProfile(qt.QRunnable):
         self._item = item
         self._roi = roi
 
+    def autoDelete(self):
+        return False
+
     def getRoi(self):
+        """Returns the ROI in which the runner will compute a profile.
+
+        :rtype: ~silx.gui.plot.tools.profile.core.ProfileRoiMixIn
+        """
         return self._roi
 
     @property
     def resultReady(self):
+        """Signal emitted when the result of the computation is available.
+
+        This signal provides 2 values: The ROI, and the computation result.
+        """
         return self._signals.resultReady
 
     @property
     def runnerFinished(self):
+        """Signal emitted when runner have finished.
+
+        This signal provides a single value: the runner itself.
+        """
         return self._signals.runnerFinished
 
     def run(self):
@@ -100,6 +118,11 @@ class _RunnableComputeProfile(qt.QRunnable):
 class ProfileMainWindow(_ProfileMainWindow):
 
     def setRoiProfile(self, roi):
+        """Set the profile ROI which it the source of the following data
+        to display.
+
+        :param ProfileRoiMixIn roi: The profile ROI data source
+        """
         if roi is None:
             return
         self.__color = colors.rgba(roi.getColor())
@@ -252,9 +275,23 @@ class ProfileManager(qt.QObject):
         roiManager.sigRoiAboutToBeRemoved.connect(self.__roiRemoved)
 
     def setSingleProfile(self, enable):
+        """
+        Enable or disable the single profile mode.
+
+        In single mode, the manager enforce a single ROI at the same
+        time. A new one will remove the previous one.
+
+        If this mode is not enabled, many ROIs can be created, and many
+        profile windows will be displayed.
+        """
         self.__singleProfileAtATime = enable
 
     def isSingleProfile(self):
+        """
+        Returns true if the manager is in a single profile mode.
+
+        :rtype: bool
+        """
         return self.__singleProfileAtATime
 
     def __interactionFinished(self):
@@ -269,13 +306,19 @@ class ProfileManager(qt.QObject):
         self.__addProfile(roi)
 
     def __roiRemoved(self, roi):
+        """Handle removed ROI"""
         # Filter out non profile ROIs
         if not isinstance(roi, core.ProfileRoiMixIn):
             return
         self.__removeProfile(roi)
 
     def createProfileAction(self, profileRoiClass, parent=None):
-        """Create an action from a class of ProfileRoi"""
+        """Create an action from a class of ProfileRoi
+
+        :param core.ProfileRoiMixIn profileRoiClass: A class of a profile ROI
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: qt.QAction
+        """
         if not issubclass(profileRoiClass, core.ProfileRoiMixIn):
             raise TypeError("Type %s not expected" % type(profileRoiClass))
         roiManager = self.getRoiManager()
@@ -287,6 +330,11 @@ class ProfileManager(qt.QObject):
         return action
 
     def createClearAction(self, parent):
+        """Create an action to clean up the plot from the profile ROIs.
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: qt.QAction
+        """
         # Add clear action
         icon = icons.getQIcon('profile-clear')
         action = qt.QAction(icon, 'Clear profile', parent)
@@ -296,6 +344,12 @@ class ProfileManager(qt.QObject):
         return action
 
     def createImageActions(self, parent):
+        """Create actions designed for image items. This actions created
+        new ROIs.
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: List[qt.QAction]
+        """
         profileClasses = [
             rois.ProfileImageHorizontalLineROI,
             rois.ProfileImageVerticalLineROI,
@@ -305,6 +359,12 @@ class ProfileManager(qt.QObject):
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createScatterActions(self, parent):
+        """Create actions designed for scatter items. This actions created
+        new ROIs.
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: List[qt.QAction]
+        """
         profileClasses = [
             rois.ProfileScatterHorizontalLineROI,
             rois.ProfileScatterVerticalLineROI,
@@ -314,6 +374,15 @@ class ProfileManager(qt.QObject):
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createScatterSliceActions(self, parent):
+        """Create actions designed for regular scatter items. This actions
+        created new ROIs.
+
+        This ROIs was designed to use the input data without interpolation,
+        like you could do with an image.
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: List[qt.QAction]
+        """
         profileClasses = [
             rois.ProfileScatterHorizontalSliceROI,
             rois.ProfileScatterVerticalSliceROI,
@@ -322,6 +391,15 @@ class ProfileManager(qt.QObject):
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createImageStackActions(self, parent):
+        """Create actions designed for stack image items. This actions
+        created new ROIs.
+
+        This ROIs was designed to create both profile on the displayed image
+        and profile on the full stack (2D result).
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: List[qt.QAction]
+        """
         profileClasses = [
             rois.ProfileImageStackHorizontalLineROI,
             rois.ProfileImageStackVerticalLineROI,
@@ -331,12 +409,21 @@ class ProfileManager(qt.QObject):
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createEditorAction(self, parent):
-        action = editors.ProfileRoiEditAction(parent)
+        """Create an action containing GUI to edit the selected profile ROI.
+
+        :param qt.QObject parent: The parent of the created action.
+        :rtype: qt.QAction
+        """
+        action = editors.ProfileRoiEditorAction(parent)
         action.setRoiManager(self.getRoiManager())
         return action
 
     def setItemType(self, image=False, scatter=False):
-        """Set the item type to use and select the active one."""
+        """Set the item type to use and select the active one.
+
+        :param bool image: Image item are allowed
+        :param bool scatter: Scatter item are allowed
+        """
         self.__itemTypes = []
         plot = self.getPlotWidget()
         item = None
@@ -350,7 +437,10 @@ class ProfileManager(qt.QObject):
         self.setPlotItem(item)
 
     def setActiveItemTracking(self, tracking):
-        """Enable/diable the tracking of the active item of the plot."""
+        """Enable/disable the tracking of the active item of the plot.
+
+        :param bool tracking: Tracking mode
+        """
         if self.__tracking == tracking:
             return
         plot = self.getPlotWidget()
@@ -363,18 +453,21 @@ class ProfileManager(qt.QObject):
             plot.sigActiveScatterChanged.connect(self.__activeScatterChanged)
 
     def __activeImageChanged(self, previous, legend):
+        """Handle plot item selection"""
         if "image" in self.__itemTypes:
             plot = self.getPlotWidget()
             item = plot.getImage(legend)
             self.setPlotItem(item)
 
     def __activeScatterChanged(self, previous, legend):
+        """Handle plot item selection"""
         if "scatter" in self.__itemTypes:
             plot = self.getPlotWidget()
             item = plot.getScatter(legend)
             self.setPlotItem(item)
 
     def __addProfile(self, profileRoi):
+        """Add a new ROI to the manager."""
         if profileRoi.getFocusProxy() is None:
             if self.__singleProfileAtATime:
                 # FIXME: It would be good to reuse the windows to avoid blinking
@@ -388,6 +481,7 @@ class ProfileManager(qt.QObject):
         self.requestUpdateProfile(profileRoi)
 
     def __removeProfile(self, profileRoi):
+        """Remove a ROI from the manager."""
         window = self._disconnectProfileWindow(profileRoi)
         if window is not None:
             geometry = window.geometry()
@@ -397,6 +491,7 @@ class ProfileManager(qt.QObject):
             self._rois.remove(profileRoi)
 
     def _disconnectProfileWindow(self, profileRoi):
+        """Handle profile window close."""
         window = profileRoi.getProfileWindow()
         profileRoi.setProfileWindow(None)
         return window
@@ -411,13 +506,23 @@ class ProfileManager(qt.QObject):
             roiManager.removeRoi(roi)
 
     def hasPendingOperations(self):
+        """Returns true if a thread is still computing a profile.
+
+        :rtype: bool
+        """
         return len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
+        """Request to update the profile of all the managed ROIs.
+        """
         for roi in self._rois:
             self.requestUpdateProfile(roi)
 
     def requestUpdateProfile(self, profileRoi):
+        """Request to update a specific profile ROI.
+
+        :param ~core.ProfileRoiMixIn profileRoi:
+        """
         if profileRoi.computeProfile is None:
             return
         threadPool = silxGlobalThreadPool()
@@ -443,10 +548,19 @@ class ProfileManager(qt.QObject):
         threadPool.start(runner)
 
     def __cleanUpRunner(self, runner):
+        """Remove a thread pool runner from the list of hold tasks.
+
+        Called at the termination of the runner.
+        """
         if runner in self._pendingRunners:
             self._pendingRunners.remove(runner)
 
     def __displayResult(self, roi, profileData):
+        """Display the result of a ROI.
+
+        :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
+        :param ~core.CurveProfileData profileData: Computed data profile
+        """
         window = roi.getProfileWindow()
         if window is None:
             # FIXME: reach geometry from the previous closed window
@@ -466,6 +580,10 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
 
     def setPlotItem(self, item):
+        """Set the plot item focused by the profile manager.
+
+        :param ~silx.gui.plot.items.Item item: A plot item
+        """
         previous = self.getPlotItem()
         if previous is item:
             return
@@ -477,12 +595,18 @@ class ProfileManager(qt.QObject):
         self.requestUpdateAllProfile()
 
     def __itemChanged(self, changeType):
+        """Handle item changes.
+        """
         if changeType in (items.ItemChangedType.DATA,
                           items.ItemChangedType.POSITION,
                           items.ItemChangedType.SCALE):
             self.requestUpdateAllProfile()
 
     def getPlotItem(self):
+        """Returns the item focused by the profile manager.
+
+        :rtype: ~silx.gui.plot.items.Item
+        """
         if self._item is None:
             return None
         item = self._item()
@@ -491,9 +615,9 @@ class ProfileManager(qt.QObject):
         return item
 
     def getPlotWidget(self):
-        """The :class:`~silx.gui.plot.PlotWidget` associated to the toolbar.
+        """The plot associated to the profile manager.
 
-        :rtype: Union[~silx.gui.plot.PlotWidget,None]
+        :rtype: ~silx.gui.plot.PlotWidget
         """
         if self._plotRef is None:
             return None
@@ -510,14 +634,21 @@ class ProfileManager(qt.QObject):
         return self._roiManagerRef()
 
     def createProfileWindow(self, roi):
-        """Create new profile window.
+        """Create a new profile window.
+
+        :param ~core.ProfileRoiMixIn roi: A managed ROI
+        :rtype: ~ProfileMainWindow
         """
         plot = self.getPlotWidget()
         return ProfileMainWindow(plot)
 
     def initProfileWindow(self, profileWindow):
         """This function is called just after the profile window creation in
-        order to initialize the window location."""
+        order to initialize the window location.
+
+        :param ~ProfileMainWindow profileWindow:
+            The profile window to initialize.
+        """
         profileWindow.show()
         profileWindow.raise_()
 

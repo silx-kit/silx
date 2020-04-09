@@ -1,9 +1,22 @@
+.. currentmodule:: silx.gui.plot.tools
+
 :mod:`~silx.gui.plot.tools`: Tool widgets for PlotWidget
 ========================================================
 
-.. currentmodule:: silx.gui.plot.tools
-
 .. automodule:: silx.gui.plot.tools
+
+Tools API
+---------
+
+Tools are divided into the following sub-modules:
+
+.. toctree::
+   :maxdepth: 1
+
+   profile.rst
+
+Other tools API
+---------------
 
 :class:`PositionInfo` class
 ---------------------------
@@ -97,14 +110,6 @@
 .. automodule:: silx.gui.plot.tools.profile
 
 .. currentmodule:: silx.gui.plot.tools.profile
-
-:class:`ScatterProfileToolBar`
-++++++++++++++++++++++++++++++
-
-.. autoclass:: ScatterProfileToolBar
-   :members: sigProfileChanged, getProfilePoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
-
-.. currentmodule:: silx.gui.plot
 
 :mod:`ColorBar`: ColorBar Widget
 ================================
