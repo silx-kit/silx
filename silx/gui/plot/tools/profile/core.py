@@ -66,9 +66,14 @@ ImageProfileData = collections.namedtuple(
 
 
 class ProfileRoiMixIn:
-    """Base mix-in for ROI which can be used to select a profile."""
+    """Base mix-in for ROI which can be used to select a profile.
+
+    This mix-in have to be applied to a :class:`~silx.gui.plot.items.roi.RegionOfInterest`
+    in order to be usable by a :class:`~silx.gui.plot.tools.profile.manager.ProfileManager`.
+    """
 
     sigPropertyChanged = qt.Signal()
+    """Emitted when a property from the ROI have changed"""
 
     def __init__(self, parent=None):
         self.__profileWindow = None
@@ -89,12 +94,28 @@ class ProfileRoiMixIn:
         self.__profileManager = profileManager
 
     def getProfileManager(self):
+        """
+        Returns the profile manager connected to this ROI.
+
+        :rtype: ~silx.gui.plot.tools.profile.manager.ProfileManager
+        """
         return self.__profileManager
 
     def getProfileWindow(self):
+        """
+        Returns the windows associated to this ROI, else None.
+
+        :rtype: ProfileMainWindow
+        """
         return self.__profileWindow
 
     def setProfileWindow(self, profileWindow):
+        """
+        Associate a window to this ROI. Can be None.
+
+        :param ProfileMainWindow profileWindow: A main window
+            to display the profile.
+        """
         if profileWindow is self.__profileWindow:
             return
         if self.__profileWindow is not None:
@@ -111,4 +132,13 @@ class ProfileRoiMixIn:
         roiManager.removeRoi(self)
 
     def computeProfile(self, item):
+        """
+        Compute the profile which will be displayed.
+
+        This method is not called from the main Qt thread, but from a thread
+        pool.
+
+        :param ~silx.gui.plot.items.Item item: A plot item
+        :rtype: Union[CurveProfileData,ImageProfileData]
+        """
         raise NotImplementedError()

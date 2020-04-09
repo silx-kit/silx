@@ -155,10 +155,14 @@ class _DefaultScatterProfileRoiEditor(qt.QWidget):
         roi.setNPoints(nPoints)
 
 
-class ProfileRoiEditAction(qt.QWidgetAction):
+class ProfileRoiEditorAction(qt.QWidgetAction):
+    """
+    Action displaying GUI to edit the selected ROI.
 
+    :param qt.QWidget parent: Parent widget
+    """
     def __init__(self, parent=None):
-        super(ProfileRoiEditAction, self).__init__(parent)
+        super(ProfileRoiEditorAction, self).__init__(parent)
         self.__widget = qt.QWidget(parent)
         layout = qt.QHBoxLayout(self.__widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -170,6 +174,11 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         self.__inhibiteReentance = False
 
     def setRoiManager(self, roiManager):
+        """
+        Connect this action to a ROI manager.
+
+        :param RegionOfInterestManager roiManager: A ROI manager
+        """
         if self.__roiManager is roiManager:
             return
         if self.__roiManager is not None:
@@ -179,11 +188,16 @@ class ProfileRoiEditAction(qt.QWidgetAction):
             self.__roiManager.sigRoiSelected.connect(self.__selectedRoiChanged)
 
     def __selectedRoiChanged(self, roi):
+        """Handle changes of the selected ROI"""
         if roi is not None and not isinstance(roi, core.ProfileRoiMixIn):
             return
         self.setProfileRoi(roi)
 
     def setProfileRoi(self, roi):
+        """Set a profile ROI to edit.
+
+        :param ProfileRoiMixIn roi: A profile ROI
+        """
         if self.__roi is roi:
             return
         if self.__roi is not None:
@@ -194,11 +208,17 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         self._updateWidget()
 
     def __roiPropertyChanged(self):
+        """Handle changes on the property defining the ROI.
+        """
         if self.__inhibiteReentance:
             return
         self._updateWidgetValues()
 
     def __setEditor(self, editor):
+        """Set the editor to display.
+
+        :param qt.QWidget editor: The editor to display
+        """
         layout = self.__widget.layout()
         if self.__editor is editor:
             return
@@ -212,6 +232,8 @@ class ProfileRoiEditAction(qt.QWidgetAction):
             layout.addWidget(self.__editor)
 
     def _updateWidget(self):
+        """Update the kind of editor to display, according to the selected
+        profile ROI."""
         parent = self.parent()
         if self.__roi is None:
             editor = _NoProfileRoiEditor(parent)
@@ -233,9 +255,12 @@ class ProfileRoiEditAction(qt.QWidgetAction):
         self.__setEditor(editor)
 
     def _updateWidgetValues(self):
+        """Update the content of the displayed editor, according to the
+        selected profile ROI."""
         self.__editor.setEditorData(self.__roi)
 
     def __editorDataCommited(self):
+        """Handle changes from the editor."""
         if self.__roi is not None:
             self.__inhibiteReentance = True
             self.__editor.setRoiData(self.__roi)
