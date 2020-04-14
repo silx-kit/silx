@@ -119,7 +119,6 @@ class TestCurvesROIWidget(TestCaseQt):
             self.qWait(200)
             rois = self.widget.getRois()
             self.assertEqual(len(rois), 1)
-            print(rois)
             roiID = list(rois.keys())[0]
             self.assertEqual(rois[roiID].getName(), 'ICR')
 
@@ -372,7 +371,6 @@ class TestRoiWidgetSignals(TestCaseQt):
 
     def testSigROISignalAddRmRois(self):
         """Test SigROISignal when adding and removing ROIS"""
-        print(self.listener.callCount())
         self.assertEqual(self.listener.callCount(), 1)
         self.listener.clear()
 
