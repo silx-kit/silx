@@ -86,7 +86,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         area.setColor(color)
         area.setFill(True)
         area.setPoints([[0, 0], [0, 0]])  # Else it segfault
-        area.setVisible(False)
         self.__area = area
         return area
 
@@ -234,6 +233,7 @@ class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
         """Connect ProfileRoi method with ROI methods"""
         result = super(ProfileImageHorizontalLineROI, self)._createShapeItems(points)
         area = self._createAreaItem()
+        self._updateArea()
         result.append(area)
         return result
 
@@ -258,6 +258,7 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
         """Connect ProfileRoi method with ROI methods"""
         result = super(ProfileImageVerticalLineROI, self)._createShapeItems(points)
         area = self._createAreaItem()
+        self._updateArea()
         result.append(area)
         return result
 
@@ -281,6 +282,7 @@ class ProfileImageLineROI(roi_items.LineROI,
         """Connect ProfileRoi method with ROI methods"""
         result = super(ProfileImageLineROI, self)._createShapeItems(points)
         area = self._createAreaItem()
+        self._updateArea()
         result.append(area)
         return result
 
@@ -790,6 +792,7 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
         """Connect ProfileRoi method with ROI methods"""
         result = super(ProfileScatterHorizontalSliceROI, self)._createShapeItems(points)
         area = self._createAreaItem()
+        self._updateArea()
         result.append(area)
         return result
 
@@ -815,6 +818,7 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
         """Connect ProfileRoi method with ROI methods"""
         result = super(ProfileScatterVerticalSliceROI, self)._createShapeItems(points)
         area = self._createAreaItem()
+        self._updateArea()
         result.append(area)
         return result
 
