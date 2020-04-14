@@ -1069,7 +1069,8 @@ class ROI(_RegionOfInterestBase):
     """Signal emitted when the ROI is edited"""
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
-        _RegionOfInterestBase.__init__(self, name=name)
+        _RegionOfInterestBase.__init__(self)
+        self.setName(name)
         global _indexNextROI
         self._id = _indexNextROI
         _indexNextROI += 1
