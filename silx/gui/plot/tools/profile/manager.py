@@ -475,9 +475,6 @@ class ProfileManager(qt.QObject):
             if self.__singleProfileAtATime:
                 # FIXME: It would be good to reuse the windows to avoid blinking
                 self.clearProfile()
-            # FIXME: This should be removed
-            profileRoi.setName('Profile')
-            profileRoi.setEditable(True)
 
         profileRoi._setProfileManager(self)
         self._rois.append(profileRoi)
