@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -289,10 +289,10 @@ class XYVScatterPlot(qt.QWidget):
 
         idx = self._slider.value()
 
-        title = ""
         if self.__graph_title:
-            title += self.__graph_title + "\n"  # main NXdata @title
-        title += self.__scatter_titles[idx]     # scatter dataset name
+            title = self.__graph_title  # main NXdata @title
+        else:
+            title = self.__scatter_titles[idx]  # scatter dataset name
 
         self._plot.setGraphTitle(title)
         self._plot.setData(x, y, self.__values[idx],
@@ -484,11 +484,10 @@ class ArrayImagePlot(qt.QWidget):
                                   numpy.ravel(image),
                                   legend=legend)
 
-        title = ""
         if self.__title:
-            title += self.__title
-        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
-            title += "\n" + self.__signals_names[auxSigIdx]
+            title = self.__title
+        else:
+            title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
@@ -672,11 +671,10 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setOrigin((xorigin, yorigin))
         self._plot.setScale((xscale, yscale))
 
-        title = ""
         if self.__title:
-            title += self.__title
-        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
-            title += "\n" + self.__signals_names[auxSigIdx]
+            title = self.__title
+        else:
+            title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
