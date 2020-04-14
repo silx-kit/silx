@@ -93,18 +93,22 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
     def _updateArea(self):
         area = self.__area
         if area is None:
+            self.setLineStyle("-")
             return
         profileManager = self.getProfileManager()
         if profileManager is None:
             area.setVisible(False)
+            self.setLineStyle("-")
             return
         item = profileManager.getPlotItem()
         if item is None:
             area.setVisible(False)
+            self.setLineStyle("-")
             return
         polygon = self._computePolygon(item)
         area.setVisible(True)
         polygon = numpy.array(polygon).T
+        self.setLineStyle("--")
         area.setPoints(polygon, copy=False)
 
     def _computePolygon(self, item):
@@ -653,19 +657,25 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
     def _updateArea(self):
         area = self.__area
         if area is None:
+            self.setLineStyle("-")
             return
         profileManager = self.getProfileManager()
         if profileManager is None:
+            self.setLineStyle("-")
             area.setVisible(False)
+            return
         item = profileManager.getPlotItem()
         if item is None:
             area.setVisible(False)
+            self.setLineStyle("-")
             return
         polylines = self._computePolylines(item)
         if polylines is None or len(polylines) == 0:
             area.setVisible(False)
+            self.setLineStyle("-")
             return
         area.setVisible(True)
+        self.setLineStyle("--")
         area.setPoints(polylines, copy=False)
 
     def _computePolylines(self, item):
