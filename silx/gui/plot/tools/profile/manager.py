@@ -260,6 +260,9 @@ class ProfileManager(qt.QObject):
         self.__tracking = False
         """Is the plot active items are tracked"""
 
+        self.__useColorFromCursor = True
+        """If true, force the ROI color with the colormap marker color"""
+
         self._item = None
         """The selected item"""
 
@@ -455,6 +458,15 @@ class ProfileManager(qt.QObject):
             plot.sigActiveImageChanged.connect(self.__activeImageChanged)
             plot.sigActiveScatterChanged.connect(self.__activeScatterChanged)
 
+    def setDefaultColorFromCursorColor(self, enabled):
+        """Enabled/disable the use of the colormap cursor color to display the
+        ROIs.
+
+        If set, the manager will update the color of the profile ROIs using the
+        current colormap cursor color from the selected item.
+        """
+        self.__useColorFromCursor = enabled
+
     def __activeImageChanged(self, previous, legend):
         """Handle plot item selection"""
         if "image" in self.__itemTypes:
@@ -477,6 +489,7 @@ class ProfileManager(qt.QObject):
                 self.clearProfile()
 
         profileRoi._setProfileManager(self)
+        self._updateRoiColor(profileRoi)
         self._rois.append(profileRoi)
         self.requestUpdateProfile(profileRoi)
 
@@ -593,7 +606,43 @@ class ProfileManager(qt.QObject):
         else:
             item.sigItemChanged.connect(self.__itemChanged)
             self._item = weakref.ref(item)
+        self._updateRoiColors()
         self.requestUpdateAllProfile()
+
+    def getDefaultColor(self, item):
+        """Returns the default ROI color to use according to the given item.
+
+        :param ~silx.gui.plot.items.item.Item item: AN item
+        :rtype: qt.QColor
+        """
+        color = 'pink'
+        if isinstance(item, items.ColormapMixIn):
+            colormap = item.getColormap()
+            name = colormap.getName()
+            if name is not None:
+                color = colors.cursorColorForColormap(name)
+        color = colors.asQColor(color)
+        return color
+
+    def _updateRoiColors(self):
+        """Update ROI color according to the item selection"""
+        if not self.__useColorFromCursor:
+            return
+        item = self.getPlotItem()
+        color = self.getDefaultColor(item)
+        for roi in self._rois:
+            roi.setColor(color)
+
+    def _updateRoiColor(self, roi):
+        """Update a specific ROI according to the current selected item.
+
+        :param RegionOfInterest roi: The ROI to update
+        """
+        if not self.__useColorFromCursor:
+            return
+        item = self.getPlotItem()
+        color = self.getDefaultColor(item)
+        roi.setColor(color)
 
     def __itemChanged(self, changeType):
         """Handle item changes.
@@ -602,6 +651,8 @@ class ProfileManager(qt.QObject):
                           items.ItemChangedType.POSITION,
                           items.ItemChangedType.SCALE):
             self.requestUpdateAllProfile()
+        elif changeType == (items.ItemChangedType.COLORMAP):
+            self._updateRoiColors()
 
     def getPlotItem(self):
         """Returns the item focused by the profile manager.
