@@ -36,6 +36,7 @@ from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
+from silx.gui.plot.tools.roi import  RegionOfInterestManager
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.utils.testutils import ParametricTestCase
 import unittest
@@ -45,12 +46,8 @@ import numpy
 _logger = logging.getLogger(__name__)
 
 
-class TestStats(TestCaseQt):
-    """
-    Test :class:`BaseClass` class and inheriting classes
-    """
+class TestStatsBase(object):
     def setUp(self):
-        TestCaseQt.setUp(self)
         self.createCurveContext()
         self.createImageContext()
         self.createScatterContext()
@@ -117,6 +114,19 @@ class TestStats(TestCaseQt):
             'mean': stats.Stat(name='mean', fct=numpy.mean),
             'com': stats.StatCOM()
         }
+
+
+class TestStats(TestStatsBase, TestCaseQt):
+    """
+    Test :class:`BaseClass` class and inheriting classes
+    """
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        TestStatsBase.setUp(self)
+
+    def tearDown(self):
+        TestStatsBase.tearDown(self)
+        TestCaseQt.tearDown(self)
 
     def testBasicStatsCurve(self):
         """Test result for simple stats on a curve"""
@@ -264,7 +274,8 @@ class TestStatsFormatter(TestCaseQt):
         self.curveContext = stats._CurveContext(
             item=self.plot1d.getCurve('curve0'),
             plot=self.plot1d,
-            onlimits=False)
+            onlimits=False,
+            roi=None)
 
         self.stat = stats.StatMin()
 
@@ -502,7 +513,6 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 tableItems = self.statsTable._itemToTableItems(self.plot.getCurve('curve0'))
                 curve0_min = tableItems['min'].text()
-                print(curve0_min)
                 self.assertTrue(float(curve0_min) == -1.)
 
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(1, 5))
@@ -815,34 +825,38 @@ class TestUpdateModeWidget(TestCaseQt):
         self.assertEqual(manualUpdateListener.callCount(), 2)
 
 
-class TestStatsROI(TestStats):
+class TestStatsROI(TestStatsBase, TestCaseQt):
     """
     Test stats based on ROI
     """
     def setUp(self):
         TestCaseQt.setUp(self)
         self.createRois()
-        self.createCurveContext()
-        self.createImageContext()
-        self.createScatterContext()
+        TestStatsBase.setUp(self)
+
+        self.roiManager = RegionOfInterestManager(self.plot2d)
+        self.roiManager.addRoi(self._2Droi_rect)
+        self.roiManager.addRoi(self._2Droi_poly)
 
     def tearDown(self):
-        self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot1d.close()
-        self.plot2d.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot2d.close()
-        self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.scatterPlot.close()
+        self.roiManager.clear()
+        self.roiManager = None
+        self._1Droi = None
+        self._2Droi_rect = None
+        self._2Droi_poly = None
+        TestStatsBase.tearDown(self)
+        TestCaseQt.tearDown(self)
 
     def createRois(self):
         self._1Droi = ROI(name='my1DRoi', fromdata=2.0, todata=5.0)
         self._2Droi_rect = RectangleROI()
+        self._2Droi_rect.setGeometry(size=(10, 10), origin=(10, 0))
         self._2Droi_poly = PolygonROI()
-
+        points = numpy.array(((0, 20), (0, 0), (10, 0)))
+        self._2Droi_poly.setPoints(points=points)
 
     def createCurveContext(self):
         TestStats.createCurveContext(self)
-
         self.curveContext = stats._CurveContext(
             item=self.plot1d.getCurve('curve0'),
             plot=self.plot1d,
@@ -851,7 +865,6 @@ class TestStatsROI(TestStats):
 
     def createScatterContext(self):
         TestStats.createScatterContext(self)
-
         self.scatterContext = stats._ScatterContext(
             item=self.scatterPlot.getScatter('scatter plot'),
             plot=self.scatterPlot,
@@ -879,17 +892,17 @@ class TestStatsROI(TestStats):
     def testErrors(self):
         # test if onlimits is True and give also a roi
         with self.assertRaises(ValueError):
-            context = stats._CurveContext(item=self.plot1d.getCurve('curve0'),
-                                          plot=self.plot1d,
-                                          onlimits=True,
-                                          roi=self._1Droi)
+            stats._CurveContext(item=self.plot1d.getCurve('curve0'),
+                                plot=self.plot1d,
+                                onlimits=True,
+                                roi=self._1Droi)
 
         # test if is a curve context and give an invalid 2D roi
         with self.assertRaises(ValueError):
-            context = stats._CurveContext(item=self.plot1d.getCurve('curve0'),
-                                          plot=self.plot1d,
-                                          onlimits=False,
-                                          roi=self._2Droi_rect)
+            stats._CurveContext(item=self.plot1d.getCurve('curve0'),
+                                plot=self.plot1d,
+                                onlimits=False,
+                                roi=self._2Droi_rect)
 
     def testBasicStatsCurve(self):
         """Test result for simple stats on a curve"""
@@ -904,27 +917,41 @@ class TestStatsROI(TestStats):
         com = numpy.sum(xData * yData) / numpy.sum(yData)
         self.assertEqual(_stats['com'].calculate(self.curveContext), com)
 
-    def testBasicStatsImage(self):
+    def testBasicStatsImageRectRoi(self):
         """Test result for simple stats on an image"""
-        return
+        self.assertEqual(self.imageContext.values.compressed().size, 100)
         _stats = self.getBasicStats()
-        self.assertEqual(_stats['min'].calculate(self.imageContext), 0)
-        self.assertEqual(_stats['max'].calculate(self.imageContext), 128 * 32 - 1)
-        self.assertEqual(_stats['minCoords'].calculate(self.imageContext), (0, 0))
-        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (127, 31))
-        self.assertEqual(_stats['std'].calculate(self.imageContext), numpy.std(self.imageData))
-        self.assertEqual(_stats['mean'].calculate(self.imageContext), numpy.mean(self.imageData))
+        self.assertEqual(_stats['min'].calculate(self.imageContext), 10)
+        self.assertEqual(_stats['max'].calculate(self.imageContext), 1171)
+        self.assertEqual(_stats['minCoords'].calculate(self.imageContext), (10, 0))
+        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext), (19, 9))
+        self.assertEqual(_stats['std'].calculate(self.imageContext), numpy.std(self.imageData[0:10, 10:20]))
+        self.assertEqual(_stats['mean'].calculate(self.imageContext), numpy.mean(self.imageData[0:10, 10:20]))
 
-        yData = numpy.sum(self.imageData.astype(numpy.float64), axis=1)
-        xData = numpy.sum(self.imageData.astype(numpy.float64), axis=0)
-        dataXRange = range(self.imageData.shape[1])
-        dataYRange = range(self.imageData.shape[0])
+        compressed_values = self.imageContext.values.compressed()
+        compressed_values = compressed_values.reshape(10, 10)
+        yData = numpy.sum(compressed_values.astype(numpy.float64), axis=1)
+        xData = numpy.sum(compressed_values.astype(numpy.float64), axis=0)
+        # TODO: check, inversion x / y
+        dataYRange = range(10)
+        dataXRange = range(10, 20)
 
         ycom = numpy.sum(yData*dataYRange) / numpy.sum(yData)
         xcom = numpy.sum(xData*dataXRange) / numpy.sum(xData)
-
         self.assertEqual(_stats['com'].calculate(self.imageContext), (xcom, ycom))
 
+    def testBasicStatsImagePolyRoi(self):
+        """Test a simple rectangle ROI"""
+        _stats = self.getBasicStats()
+        self.assertEqual(_stats['min'].calculate(self.imageContext_2), 0)
+        self.assertEqual(_stats['max'].calculate(self.imageContext_2), 2304)
+        self.assertEqual(_stats['minCoords'].calculate(self.imageContext_2), (0.0, 0.0))
+        # not 0.0, 19.0 because not fully in. Should all pixel have a weight,
+        # on to manage them in stats. For now 0 if the center is not in, else 1
+        self.assertEqual(_stats['maxCoords'].calculate(self.imageContext_2), (0.0, 18.0))
+
+    def testBaicStatsScatter(self):
+        pass
 
 
 def suite():

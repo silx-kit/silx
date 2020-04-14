@@ -178,7 +178,7 @@ class StatsHandler(object):
                 else:
                     return self.formatters[name].format(val)
 
-    def calculate(self, item, plot, onlimits):
+    def calculate(self, item, plot, onlimits, roi=None):
         """
         compute all statistic registered and return the list of formatted
         statistics result.
@@ -190,7 +190,7 @@ class StatsHandler(object):
         :return: list of formatted statistics (as str)
         :rtype: dict
         """
-        res = self.stats.calculate(item, plot, onlimits)
+        res = self.stats.calculate(item, plot, onlimits, roi)
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res

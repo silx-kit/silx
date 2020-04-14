@@ -34,6 +34,7 @@ from collections import OrderedDict
 import logging
 
 import numpy
+import numpy.ma
 
 from .. import items
 from ..CurvesROIWidget import ROI
@@ -146,7 +147,8 @@ class _StatsContext(object):
         self.onlimits = onlimits
 
         self.values = None
-        """The array of data"""
+        """The array of data with limit filtering if any. Is a numpy.ma.array,
+        meaining that it embed the mask applied by the roi if any"""
 
         self.axes = None
         """A list of array of position on each axis.
@@ -160,6 +162,14 @@ class _StatsContext(object):
         """
 
         self.createContext(item, plot, onlimits, roi=roi)
+
+    @property
+    def mask(self):
+        if self.values is not None:
+            assert isinstance(self.values, numpy.ma.MaskedArray)
+            return self.values.mask
+        else:
+            return None
 
     def createContext(self, item, plot, onlimits, roi):
         raise NotImplementedError("Base class")
@@ -221,27 +231,30 @@ class _CurveContext(_StatsContext):
         self.onlimits = onlimits
         xData, yData = item.getData(copy=True)[0:2]
 
-        def filter_data(xData, yData, minX, maxX):
+        if onlimits:
+            minX, maxX = plot.getXAxis().getLimits()
             mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
-            return xData, yData
-
-        if onlimits:
-            minX, maxX = plot.getXAxis().getLimits()
-            xData, yData = filter_data(xData, yData, minX=minX, maxX=maxX)
-        elif roi is not None:
+            mask = numpy.zeros_like(yData)
+        elif roi:
             minX, maxX = roi.getFrom(), roi.getTo()
-            xData, yData = filter_data(xData, yData, minX=minX, maxX=maxX)
+            mask = (minX <= xData) & (xData <= maxX)
+            mask = mask == 0
+            mask = mask.astype(numpy.int)
+        else:
+            mask = numpy.zeros_like(yData)
 
         self.xData = xData
         self.yData = yData
-        if len(yData) > 0:
-            self.min, self.max = min_max(yData)
+        self.values = numpy.ma.array(yData, mask=mask)
+        unmasked_data = self.values.compressed()
+        if len(unmasked_data) > 0:
+            self.min, self.max = min_max(unmasked_data)
         else:
             self.min, self.max = None, None
         self.data = (xData, yData)
-        self.values = yData
+
         self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
@@ -272,21 +285,30 @@ class _HistogramContext(_StatsContext):
                                  roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
+
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
             mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
+        elif roi:
+            mask = (roi._fromdata <= xData) & (xData <= roi._todata)
+            mask = mask==0
+        else:
+            mask = numpy.zeros_like(self.data)
+
+        self.data = (xData, yData)
+        self.values = numpy.ma.array(yData, mask=mask)
+        self.axes = (xData,)
 
         self.xData = xData
         self.yData = yData
-        if len(yData) > 0:
-            self.min, self.max = min_max(yData)
+
+        unmasked_data = self.values.compressed()
+        if len(unmasked_data) > 0:
+            self.min, self.max = min_max(unmasked_data)
         else:
             self.min, self.max = None, None
-        self.data = (xData, yData)
-        self.values = yData
-        self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(self, item=item, plot=plot,
@@ -333,13 +355,17 @@ class _ScatterContext(_StatsContext):
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
 
+        # TODO: remove the mask, or create a property to access it from values
+        mask = numpy.zeros_like(self.data)
+        self.data = (xData, yData, valueData)
+        self.values = numpy.ma.array(valueData, mask=self.mask)
+        self.axes = (xData, yData)
+
+        valueData = valueData[self.mask==0]
         if len(valueData) > 0:
             self.min, self.max = min_max(valueData)
         else:
             self.min, self.max = None, None
-        self.data = (xData, yData, valueData)
-        self.values = valueData
-        self.axes = (xData, yData)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(self, item=item, plot=plot,
@@ -373,8 +399,10 @@ class _ImageContext(_StatsContext):
         self.scale = item.getScale()
 
         self.data = item.getData(copy=True)
+        mask = numpy.zeros_like(self.data)
+        """mask use to know of the stat should be count in or not"""
 
-        if onlimits:
+        if onlimits or roi:
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
@@ -386,16 +414,26 @@ class _ImageContext(_StatsContext):
             XMinBound = max(XMinBound, 0)
             YMinBound = max(YMinBound, 0)
 
+        if onlimits:
             if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
                 self.data = None
             else:
                 self.data = self.data[YMinBound:YMaxBound + 1,
                                       XMinBound:XMaxBound + 1]
-        if self.data.size > 0:
-            self.min, self.max = min_max(self.data)
+            mask = numpy.zeros_like(self.data)
+        elif roi:
+            for x in range(XMinBound, XMaxBound):
+                for y in range(YMinBound, YMaxBound):
+                    _x = x + self.origin[0]
+                    _y = y + self.origin[1]
+                    # TODO: make sure the +0.5 is always valid
+                    mask[y, x] = not roi.isIn((_x+0.5, _y+0.5))
+            mask = mask.astype(numpy.int)
+        self.values = numpy.ma.array(self.data, mask=mask)
+        if self.values.compressed().size > 0:
+            self.min, self.max = min_max(self.values.compressed())
         else:
             self.min, self.max = None, None
-        self.values = self.data
 
         if self.values is not None:
             self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
@@ -599,14 +637,20 @@ class _StatCoord(StatBase):
         :param int index: Index in the flattened data array
         :rtype: List[int]
         """
-        if context.isStructuredData():
+        # TODO: recuperer un buffer x, y, value
+        # get x y values
+        # TODO: should be managed by the context
+
+        axes = context.axes
+
+        if context.isStructuredData() or context.roi:
             coordinates = []
-            for axis in reversed(context.axes):
+            for axis in reversed(axes):
                 coordinates.append(axis[index % len(axis)])
                 index = index // len(axis)
             return tuple(coordinates)
         else:
-            return tuple(axis[index] for axis in context.axes)
+            return tuple(axis[index] for axis in axes)
 
 
 class StatCoordMin(_StatCoord):
@@ -618,7 +662,7 @@ class StatCoordMin(_StatCoord):
         if context.values is None or not context.isScalarData():
             return None
 
-        index = numpy.argmin(context.values)
+        index = context.values.argmin()
         return self._indexToCoordinates(context, index)
 
     def getToolTip(self, kind):
@@ -634,7 +678,9 @@ class StatCoordMax(_StatCoord):
         if context.values is None or not context.isScalarData():
             return None
 
-        index = numpy.argmax(context.values)
+        # TODO: the values should be a mask array by default, will be simpler
+        # if possible
+        index = context.values.argmax()
         return self._indexToCoordinates(context, index)
 
     def getToolTip(self, kind):
@@ -650,7 +696,7 @@ class StatCOM(StatBase):
         if context.values is None or not context.isScalarData():
             return None
 
-        values = numpy.array(context.values, dtype=numpy.float64)
+        values = numpy.ma.array(context.values, mask=context.mask, dtype=numpy.float64)
         sum_ = numpy.sum(values)
         if sum_ == 0.:
             return (numpy.nan,) * len(context.axes)
