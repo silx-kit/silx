@@ -61,7 +61,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
-        self.__isdragged = False
+        self.__isBeingDragged = False
 
     def _addRendererCall(self, backend,
                          symbol=None, linestyle='-', linewidth=1):
@@ -174,16 +174,16 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         return args
 
     def _startDrag(self):
-        self.__isdragged = True
+        self.__isBeingDragged = True
         self.sigDragStarted.emit()
 
     def _endDrag(self):
-        self.__isdragged = False
+        self.__isBeingDragged = False
         self.sigDragFinished.emit()
 
-    def isDragged(self) -> bool:
+    def isBeingDragged(self) -> bool:
         """Returns whether the marker is currently dragged by the user."""
-        return self.__isdragged
+        return self.__isBeingDragged
 
 
 class Marker(MarkerBase, SymbolMixIn):
