@@ -251,6 +251,9 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self._computedProfiles = 0
+        """Statistics for tests"""
+
         self.__itemTypes = []
         """Kind of items to use"""
 
@@ -561,6 +564,7 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
         :param ~core.CurveProfileData profileData: Computed data profile
         """
+        self._computedProfiles = self._computedProfiles + 1
         window = roi.getProfileWindow()
         if window is None:
             # FIXME: reach geometry from the previous closed window
