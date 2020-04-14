@@ -309,7 +309,7 @@ class RegionOfInterestManager(qt.QObject):
         """Handle ROI object changed"""
         self.sigRoiChanged.emit()
 
-    def createRoi(self, roiClass, points, label='', index=None):
+    def createRoi(self, roiClass, points, label=None, index=None):
         """Create a new ROI and add it to list of ROIs.
 
         :param class roiClass: The class of the ROI to create
@@ -323,7 +323,8 @@ class RegionOfInterestManager(qt.QObject):
            number of ROIs has been reached.
         """
         roi = roiClass(parent=None)
-        roi.setName(str(label))
+        if label is not None:
+            roi.setName(str(label))
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)

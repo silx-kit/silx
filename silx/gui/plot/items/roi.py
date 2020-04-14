@@ -64,9 +64,9 @@ class _RegionOfInterestBase(qt.QObject):
     See :class:`ItemChangedType` for flags description.
     """
 
-    def __init__(self, parent=None, name=''):
+    def __init__(self, parent=None):
         qt.QObject.__init__(self, parent=parent)
-        self.__name = str(name)
+        self.__name = ''
         self.__parentRoi = None
 
     def getName(self):
@@ -129,7 +129,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         # Avoid circular dependency
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        _RegionOfInterestBase.__init__(self, parent, '')
+        _RegionOfInterestBase.__init__(self, parent)
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
@@ -399,6 +399,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._labelItem = self._createLabelItem()
             if self._labelItem is not None:
                 self._labelItem.setName(legendPrefix + "label")
+                self._labelItem.setText(self.getName())
                 plot.addItem(self._labelItem)
                 self._labelItem.setVisible(self.isVisible())
 
@@ -588,6 +589,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
@@ -772,6 +775,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
@@ -842,6 +847,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
