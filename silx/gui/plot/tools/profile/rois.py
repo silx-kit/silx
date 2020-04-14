@@ -295,6 +295,8 @@ class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
         self.setSymbol("s")
         self.__vline = None
         self.__hline = None
+        self.__vlineName = None
+        self.__hlineName = None
         self.computeProfile = None
 
     def _createLines(self, parent):
@@ -308,12 +310,16 @@ class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
 
     def _createSubRois(self):
         hline, vline = self._createLines(parent=None)
+        self.__vlineName = vline.getName()
+        self.__hlineName = hline.getName()
         vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
         vline.setEditable(False)
         vline.setFocusProxy(self)
+        vline.setName("")
         hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
         hline.setEditable(False)
         hline.setFocusProxy(self)
+        hline.setName("")
         self.__vline = vline
         self.__hline = hline
         self.__regionChanged()
@@ -371,11 +377,11 @@ class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
         roiManager = profileManager.getRoiManager()
         if isHline:
             vline.setFocusProxy(None)
-            vline.setName("Profile")
+            vline.setName(self.__vlineName)
             vline.setEditable(True)
         else:
             hline.setFocusProxy(None)
-            hline.setName("Profile")
+            hline.setName(self.__hlineName)
             hline.setEditable(True)
         roiManager.removeRoi(self)
 

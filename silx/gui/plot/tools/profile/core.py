@@ -78,6 +78,8 @@ class ProfileRoiMixIn:
     def __init__(self, parent=None):
         self.__profileWindow = None
         self.__profileManager = None
+        self.setName("Profile")
+        self.setEditable(True)
         self.setSelectable(True)
 
     def invalidateProfile(self):
