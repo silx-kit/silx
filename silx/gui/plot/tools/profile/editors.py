@@ -173,6 +173,10 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
         self.__roi = None
         self.__inhibiteReentance = False
 
+    def _getEditor(self):
+        """Returns the current set editor"""
+        return self.__editor
+
     def setRoiManager(self, roiManager):
         """
         Connect this action to a ROI manager.
