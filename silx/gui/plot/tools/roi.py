@@ -375,6 +375,8 @@ class RegionOfInterestManager(qt.QObject):
         roi.sigAboutToBeRemoved.emit()
         self.sigRoiAboutToBeRemoved.emit(roi)
 
+        if roi is self._drawnROI:
+            self._drawnROI = None
         self._rois.remove(roi)
         roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.sigItemChanged.disconnect(self._regionOfInterestChanged)
