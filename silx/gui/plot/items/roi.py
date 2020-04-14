@@ -554,6 +554,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def __init__(self, parent=None):
         items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        self._points = numpy.array([[0, 0]])
 
     def getPosition(self):
         """Returns the position of this ROI
