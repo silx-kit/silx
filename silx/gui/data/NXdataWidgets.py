@@ -291,6 +291,9 @@ class XYVScatterPlot(qt.QWidget):
 
         if self.__graph_title:
             title = self.__graph_title  # main NXdata @title
+            if len(self.__scatter_titles) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__scatter_titles[idx]
         else:
             title = self.__scatter_titles[idx]  # scatter dataset name
 
@@ -486,6 +489,9 @@ class ArrayImagePlot(qt.QWidget):
 
         if self.__title:
             title = self.__title
+            if len(self.__signals_names) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__signals_names[auxSigIdx]
         else:
             title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
@@ -673,6 +679,9 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         if self.__title:
             title = self.__title
+            if len(self.__signals_names) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__signals_names[auxSigIdx]
         else:
             title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
