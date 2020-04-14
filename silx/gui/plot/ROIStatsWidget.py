@@ -115,7 +115,15 @@ class _GetROIItemCoupleDialog(qt.QDialog):
         self._kind_name_to_item = {}
         # key is (kind, legend name) value is item
         for kind in _GetROIItemCoupleDialog._COMPATIBLE_KINDS:
-            items = self._plot._getItems(kind=kind)
+            def getItems(kind):
+                output = []
+                for item in self._plot.getItems():
+                    type_ = self._plot._itemKind(item)
+                    if type_ in kind and item.isVisible():
+                        output.append(item)
+                return output
+
+            items = getItems(kind=kind)
             rois = self._getCompatibleRois(kind=kind)
             if len(items) > 0 and len(rois) > 0:
                 self._valid_kinds[kind] = items
