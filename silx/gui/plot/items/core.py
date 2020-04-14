@@ -374,7 +374,7 @@ class Item(qt.QObject):
 
 # Mix-in classes ##############################################################
 
-class ItemMixInBase(qt.QObject):
+class ItemMixInBase(object):
     """Base class for Item mix-in"""
 
     def _updated(self, event=None, checkVisibility=True):
