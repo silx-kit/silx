@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
+        self.__isBeingDragged = False
 
     def _addRendererCall(self, backend,
                          symbol=None, linestyle='-', linewidth=1):
@@ -173,10 +174,16 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         return args
 
     def _startDrag(self):
+        self.__isBeingDragged = True
         self.sigDragStarted.emit()
 
     def _endDrag(self):
+        self.__isBeingDragged = False
         self.sigDragFinished.emit()
+
+    def isBeingDragged(self) -> bool:
+        """Returns whether the marker is currently dragged by the user."""
+        return self.__isBeingDragged
 
 
 class Marker(MarkerBase, SymbolMixIn):
