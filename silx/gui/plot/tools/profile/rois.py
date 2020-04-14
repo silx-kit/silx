@@ -85,7 +85,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         color = colors.rgba(self.getColor())
         area.setColor(color)
         area.setFill(True)
-        area.setPoints([[0, 0]])  # Else it segfault
+        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
         area.setVisible(False)
         self.__area = area
         return area
@@ -649,8 +649,8 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         color = colors.rgba(self.getColor())
         area.setColor(color)
         area.setFill(False)
-        area.setPoints([[0, 0]])  # Else it segfault
         area.setVisible(False)
+        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
         self.__area = area
         return area
 
