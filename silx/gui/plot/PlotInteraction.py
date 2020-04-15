@@ -1547,6 +1547,63 @@ class PanAndSelect(ItemsInteraction):
 
 # Interaction mode control ####################################################
 
+# Mapping of draw modes: event handler
+_DRAW_MODES = {
+    'polygon': SelectPolygon,
+    'rectangle': SelectRectangle,
+    'ellipse': SelectEllipse,
+    'line': SelectLine,
+    'vline': SelectVLine,
+    'hline': SelectHLine,
+    'polylines': SelectFreeLine,
+    'pencil': DrawFreeHand,
+    }
+
+
+class DrawMode(FocusManager):
+    """Interactive mode for draw and select"""
+
+    def __init__(self, plot, shape, label, color, width):
+        eventHandlerClass = _DRAW_MODES[shape]
+        parameters = {
+            'shape': shape,
+            'label': label,
+            'color': color,
+            'width': width,
+            }
+        super().__init__((
+            Pan(plot, clickButtons=(), dragButtons=(MIDDLE_BTN,)),
+            eventHandlerClass(plot, parameters)))
+
+    def getDescription(self):
+        """Returns the dict describing this interactive mode"""
+        params = self.eventHandlers[1].parameters.copy()
+        params['mode'] = 'draw'
+        return params
+
+
+class DrawSelectMode(FocusManager):
+    """Interactive mode for draw and select"""
+
+    def __init__(self, plot, shape, label, color, width):
+        eventHandlerClass = _DRAW_MODES[shape]
+        parameters = {
+            'shape': shape,
+            'label': label,
+            'color': color,
+            'width': width,
+            }
+        super().__init__((
+            ItemsInteractionForCombo(plot),
+            eventHandlerClass(plot, parameters)))
+
+    def getDescription(self):
+        """Returns the dict describing this interactive mode"""
+        params = self.eventHandlers[1].parameters.copy()
+        params['mode'] = 'select-draw'
+        return params
+
+
 class PlotInteraction(object):
     """Proxy to currently use state machine for interaction.
 
@@ -1579,26 +1636,15 @@ class PlotInteraction(object):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
-        Mode can be: 'draw', 'pan', 'select', 'zoom'.
+        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
 
-        elif isinstance(self._eventHandler, FocusManager):
-            drawHandler = self._eventHandler.eventHandlers[1]
-            if not isinstance(drawHandler, Select):
-                raise RuntimeError('Unknown interactive mode')
-
-            result = drawHandler.parameters.copy()
-            result['mode'] = 'draw'
-            return result
-
-        elif isinstance(self._eventHandler, Select):
-            result = self._eventHandler.parameters.copy()
-            result['mode'] = 'draw'
-            return result
+        elif isinstance(self._eventHandler, (DrawMode, DrawSelectMode)):
+            return self._eventHandler.getDescription()
 
         elif isinstance(self._eventHandler, PanAndSelect):
             return {'mode': 'pan'}
@@ -1633,26 +1679,9 @@ class PlotInteraction(object):
             color = colors.rgba(color)
 
         if mode in ('draw', 'select-draw'):
-            assert shape in self._DRAW_MODES
-            eventHandlerClass = self._DRAW_MODES[shape]
-            parameters = {
-                'shape': shape,
-                'label': label,
-                'color': color,
-                'width': width,
-            }
-            eventHandler = eventHandlerClass(plot, parameters)
-
             self._eventHandler.cancel()
-
-            if mode == 'draw':
-                self._eventHandler = FocusManager((
-                    Pan(plot, clickButtons=(), dragButtons=(MIDDLE_BTN,)),
-                    eventHandler))
-
-            else:  # mode == 'select-draw'
-                self._eventHandler = FocusManager(
-                    (ItemsInteractionForCombo(plot), eventHandler))
+            handlerClass = DrawMode if mode == 'draw' else DrawSelectMode
+            self._eventHandler = handlerClass(plot, shape, label, color, width)
 
         elif mode == 'pan':
             # Ignores color, shape and label
