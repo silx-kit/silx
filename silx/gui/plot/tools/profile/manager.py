@@ -228,6 +228,53 @@ class ProfileMainWindow(_ProfileMainWindow):
             raise TypeError("Unsupported type %s" % type(data))
 
 
+class _ResetInteractionAfterRoiCreationBehavior(qt.QObject):
+    """The class allow to manage to reset the plot interaction to a
+    default interaction after a ROI creation"""
+
+    def __init__(self, parent=None):
+        qt.QObject.__init__(self, parent=parent)
+        assert isinstance(parent, ProfileManager)
+        self.__previousMode = None
+        self.__followingInteraction = False
+        plot = parent.getPlotWidget()
+        plot.sigInteractiveModeChanged.connect(self.__plotInteractionChanged)
+        roiManager = parent.getRoiManager()
+        roiManager.sigInteractiveModeStarted.connect(self.__interactionStarted)
+        roiManager.sigInteractiveRoiCreationFinished.connect(self.__roiCreated)
+        self.__saveDefaultInteraction()
+
+    def __plotInteractionChanged(self, interaction):
+        self.__saveDefaultInteraction()
+
+    def __interactionStarted(self, profileClass):
+        self.__followingInteraction = issubclass(profileClass, core.ProfileRoiMixIn)
+
+    def __roiCreated(self, roi):
+        if not self.__followingInteraction:
+            return
+        parent = self.parent()
+        roiManager = parent.getRoiManager()
+        if not roiManager.containsRoi(roi):
+            return
+        self.__followingInteraction = False
+        self.__setDefaultInteraction()
+
+    def __saveDefaultInteraction(self):
+        plot = self.parent().getPlotWidget()
+        info = plot.getInteractiveMode()
+        mode = info['mode']
+        if mode in ["pan", "zoom"]:
+            self.__previousMode = mode
+
+    def __setDefaultInteraction(self):
+        mode = self.__previousMode
+        if mode is None:
+            mode = "zoom"
+        plot = self.parent().getPlotWidget()
+        plot.setInteractiveMode(mode)
+
+
 class ProfileManager(qt.QObject):
     """Base class for profile management tools
 
@@ -269,6 +316,9 @@ class ProfileManager(qt.QObject):
         self.__singleProfileAtATime = True
         """When it's true, only a single profile is displayed at a time."""
 
+        self.__singleRoiPerAction = None
+        """Hold a behavior class to manage a single use of profile actions."""
+
         self._previousWindowGeometry = []
 
         # Listen to plot limits changed
@@ -278,6 +328,22 @@ class ProfileManager(qt.QObject):
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
         roiManager.sigRoiAdded.connect(self.__roiAdded)
         roiManager.sigRoiAboutToBeRemoved.connect(self.__roiRemoved)
+
+    def setSingleRoiPerAction(self, enable):
+        """
+        Enable or disable the use of a single profile creation per action.
+
+        If enabled, after the use of an action to create a ROI, the plot
+        interaction will be updated to the previous default one, in order
+        to only create a single ROI.
+        """
+        if enable == self.__singleRoiPerAction is not None:
+            return
+        if enable:
+            self.__singleRoiPerAction = _ResetInteractionAfterRoiCreationBehavior(self)
+        else:
+            self.__singleRoiPerAction.deleteLater()
+            self.__singleRoiPerAction = None
 
     def setSingleProfile(self, enable):
         """
