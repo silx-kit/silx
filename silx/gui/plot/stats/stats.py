@@ -81,7 +81,10 @@ class Stats(OrderedDict):
                               visible data.
         :param roi: region of interest for statistic calculation. Incompatible
                     with the `onlimits` option.
-        :type: Union[None,:class:`_RegionOfInterestBase`]
+        :type roi: Union[None, :class:`~_RegionOfInterestBase`]
+        :param bool data_changed: did the data changed since last calculation.
+        :param bool roi_changed: did the associated roi (if any) has changed
+                                 since last calculation.
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
@@ -109,6 +112,10 @@ class Stats(OrderedDict):
         OrderedDict.__setitem__(self, key, value)
 
     def add(self, stat):
+        """Add a :class:`Stat` to the set
+
+        :param Stat stat: stat to add to the set
+        """
         self.__setitem__(key=stat.name, value=stat)
 
     @staticmethod
@@ -192,11 +199,12 @@ class _StatsContext(object):
         """
         Clip the data to the current mask to have accurate statistics
 
-        :param item:
-        :param plot:
-        :param onlimits:
-        :param roi:
-        :return:
+        :param item: item for whiwh we want to clip data
+        :param plot: plot containing the item
+        :param onlimits: do we want to apply statistic only on
+                         visible data.
+        :param roi: Region of interest for computing the statistics.
+        :type roi: Union[None,:class:`_RegionOfInterestBase`]
         """
         raise NotImplementedError()
 
@@ -849,6 +857,7 @@ class StatCoordMin(_StatCoord):
         index = context.values.argmin()
         return self._indexToCoordinates(context, index)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Coordinates of the first minimum value of the data"
 
@@ -868,6 +877,7 @@ class StatCoordMax(_StatCoord):
         index = context.values.argmax()
         return self._indexToCoordinates(context, index)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Coordinates of the first maximum value of the data"
 
@@ -898,5 +908,6 @@ class StatCOM(StatBase):
             return tuple(
                 numpy.sum(axis * values) / sum_ for axis in context.axes)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Compute the center of mass of the dataset"
