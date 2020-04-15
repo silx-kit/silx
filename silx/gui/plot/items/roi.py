@@ -1558,3 +1558,183 @@ class ArcROI(RegionOfInterest, items.LineMixIn):
         except ValueError:
             params = "invalid"
         return "%s(%s)" % (self.__class__.__name__, params)
+
+
+class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
+    """A ROI identifying an horizontal range in a 1D plot."""
+
+    _kind = "HRange"
+    """Label for this kind of ROI"""
+
+    _plotShape = "line"
+    """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        RegionOfInterest.__init__(self, parent=parent)
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _createControlPointsFromFirstShape(self, points):
+        v1 = points[0, 0]
+        v2 = points[1, 0]
+        vmin = numpy.array([min(v1, v2), float('nan')])
+        vmax = numpy.array([max(v1, v2), float('nan')])
+        center = numpy.mean([vmin, vmax], axis=0)
+        controlPoints = numpy.array([vmin, vmax, center])
+        return controlPoints
+
+    def setRange(self, vmin, vmax):
+        """Set the range of this ROI.
+
+        :param float vmin: Staring location of the range
+        :param float vmax: Ending location of the range
+        """
+        if vmin is None or vmax is None:
+            err = "Can't set vmin or vmax to None"
+            raise ValueError(err)
+        if vmin > vmax:
+            err = "Can't set vmin and vmax because vmin >= vmax " \
+                  "vmin = %s, vmax = %s" % (vmin, vmax)
+            raise ValueError(err)
+        shapePoints = numpy.array([[vmin, float('nan')], [vmax, float('nan')]])
+        controlPoints = self._createControlPointsFromFirstShape(shapePoints)
+        self._setControlPoints(controlPoints)
+
+    def getRange(self):
+        """Returns the range of this ROI.
+
+        :rtype: Tuple[float,float]
+        """
+        points = self._points
+        return points[0, 0], points[1, 0]
+
+    def setMin(self, vmin):
+        """Set the min of this ROI.
+
+        :param float vmin: New min
+        """
+        vmax = self.getMax()
+        self.setRange(vmin, vmax)
+
+    def getMin(self):
+        """Returns the min value of this ROI.
+
+        :rtype: float
+        """
+        points = self._points
+        return points[0, 0]
+
+    def setMax(self, vmax):
+        """Set the max of this ROI.
+
+        :param float vmax: New max
+        """
+        vmin = self.getMin()
+        self.setRange(vmin, vmax)
+
+    def getMax(self):
+        """Returns the max value of this ROI.
+
+        :rtype: float
+        """
+        points = self._points
+        return points[1, 0]
+
+    def setCenter(self, center):
+        """Set the center of this ROI.
+
+        :param float center: New center
+        """
+        vmin, vmax = self.getRange()
+        previousCenter = (vmin + vmax) * 0.5
+        delta = center - previousCenter
+        self.setRange(vmin + delta, vmax + delta)
+
+    def getCenter(self):
+        """Returns the center location of this ROI.
+
+        :rtype: float
+        """
+        points = self._points
+        return points[2, 0]
+
+    def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) < 3:
+            return
+        self._items[2].setText(label)
+
+    def _updateShape(self):
+        if len(self._items) >= 3:
+            controlPoints = self._getControlPoints()
+            for i in range(3):
+                item = self._items[i]
+                item.setPosition(*controlPoints[i])
+
+    def _createLabelItem(self):
+        return None
+
+    def _createShapeItems(self, points):
+        shapes = []
+        for i in range(3):
+            marker = items.XMarker()
+            marker.setPosition(points[i][0], points[i][1])
+            marker.setColor(rgba(self.getColor()))
+            marker.setLineWidth(self.getLineWidth())
+            marker.setLineStyle(self.getLineStyle())
+            marker._setDraggable(self.isEditable())
+            shapes.append(marker)
+
+        markerMin, markerMax, markerCen = shapes
+        markerCen.setLineStyle(":")
+        markerCen.setText(self.getName())
+        markerMin._setConstraint(self.__positionMinConstraint)
+        markerMax._setConstraint(self.__positionMaxConstraint)
+        if self.isEditable():
+            markerMin.sigItemChanged.connect(self.__positionMinChanged)
+            markerMax.sigItemChanged.connect(self.__positionMaxChanged)
+            markerCen.sigItemChanged.connect(self.__positionCenChanged)
+        return [markerMin, markerMax, markerCen]
+
+    def __positionMinConstraint(self, x, y):
+        """Constraint of the min marker"""
+        vmax = self.getMax()
+        if vmax is None:
+            return x, y
+        return min(x, vmax), y
+
+    def __positionMaxConstraint(self, x, y):
+        """Constraint of the max marker"""
+        vmin = self.getMin()
+        if vmin is None:
+            return x, y
+        return max(x, vmin), y
+
+    def __positionMinChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.XMarker):
+                self.setMin(marker.getXPosition())
+
+    def __positionMaxChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.XMarker):
+                self.setMax(marker.getXPosition())
+
+    def __positionCenChanged(self, event):
+        """Handle position changed events of the marker"""
+        if event is items.ItemChangedType.POSITION:
+            marker = self.sender()
+            if isinstance(marker, items.XMarker):
+                self.setCenter(marker.getXPosition())
+
+    def __str__(self):
+        points = self._getControlPoints()
+        params = points[0][0], points[0][1]
+        params = 'min: %f; max: %f' % params
+        return "%s(%s)" % (self.__class__.__name__, params)
