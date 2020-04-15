@@ -339,6 +339,14 @@ class RegionOfInterestManager(qt.QObject):
         self.setSelectedRoi(roi)
         return roi
 
+    def containsRoi(self, roi):
+        """Returns true if the this ROI is port of this manager.
+
+        :param roi_items.RegionOfInterest roi: The ROI to add
+        :rtype: bool
+        """
+        return roi in self._rois
+
     def addRoi(self, roi, index=None, useManagerColor=True):
         """Add the ROI to the list of ROIs.
 
