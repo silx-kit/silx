@@ -3081,7 +3081,7 @@ class PlotWidget(qt.QMainWindow):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
-        Mode can be: 'draw', 'pan', 'select', 'zoom'.
+        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
