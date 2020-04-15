@@ -87,6 +87,12 @@ class RegionOfInterestManager(qt.QObject):
     mode.
     """
 
+    sigInteractiveRoiCreationFinished = qt.Signal(object)
+    """Signal emitted when a ROI creation is complet.
+
+    It provides the ROI object which was just been created.
+    """
+
     sigInteractiveModeFinished = qt.Signal()
     """Signal emitted when leaving and interactive ROI drawing.
 
@@ -216,8 +222,8 @@ class RegionOfInterestManager(qt.QObject):
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.createRoi(roiClass, points=points)
-
+                roi = self.createRoi(roiClass, points=points)
+                self.sigInteractiveRoiCreationFinished.emit(roi)
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
                     event['parameters']['label'] == self._label):
@@ -232,7 +238,9 @@ class RegionOfInterestManager(qt.QObject):
                 if event['event'] == 'drawingFinished':
                     if kind == 'polygon' and len(points) > 1:
                         self._drawnROI.setFirstShapePoints(points[:-1])
+                    roi = self._drawnROI
                     self._drawnROI = None  # Stop drawing
+                    self.sigInteractiveRoiCreationFinished.emit(roi)
 
     # RegionOfInterest selection
 
