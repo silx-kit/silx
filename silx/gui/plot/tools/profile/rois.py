@@ -248,7 +248,11 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
 
 class ProfileImageLineROI(roi_items.LineROI,
                           _DefaultImageProfileRoiMixIn):
-    """ROI for an image profile between 2 points"""
+    """ROI for an image profile between 2 points.
+
+    The X profile of this ROI is the projecting into one of the x/y axes,
+    using its scale and its orientation.
+    """
 
     ICON = 'shape-diagonal'
     NAME = 'line profile'
