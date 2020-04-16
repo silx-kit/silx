@@ -35,6 +35,7 @@ import itertools
 import logging
 import collections
 import numpy
+import weakref
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -122,6 +123,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._labelItem = None
         self._editable = False
         self._selectable = False
+        self._selectionProxy = None
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -258,6 +260,31 @@ class RegionOfInterest(_RegionOfInterestBase):
             # This should be avoided (better to edit the items, than recreate them)
             self._createPlotItems()
             self.sigItemChanged.emit(items.ItemChangedType.SELECTABLE)
+
+    def getSelectionProxy(self):
+        """Returns the ROI which have to be selected when this ROI is selected,
+        else None if no proxy specified.
+
+        :rtype: RegionOfInterest
+        """
+        proxy = self._selectionProxy
+        if proxy is None:
+            return None
+        proxy = proxy()
+        if proxy is None:
+            self._selectionProxy = None
+        return proxy
+
+    def setSelectionProxy(self, roi):
+        """Set the real ROI which will be selected when this ROI is selected,
+        else None to remove the proxy already specified.
+
+        :param RegionOfInterest roi: A ROI
+        """
+        if roi is not None:
+            self._selectionProxy = weakref.ref(roi)
+        else:
+            self._selectionProxy = None
 
     def isVisible(self):
         """Returns whether the ROI is visible in the plot.

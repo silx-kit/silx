@@ -251,6 +251,16 @@ class RegionOfInterestManager(qt.QObject):
         """
         if self._selectedRoi is roi:
             return
+        if roi is not None:
+            # Note: Fixed range to avoid infinite loops
+            for _ in range(10):
+                target = roi.getSelectionProxy()
+                if target is None:
+                    break
+                roi = target
+            else:
+                logger.error("May be a selection proxy cycle")
+
         self._selectedRoi = roi
         self.sigRoiSelected.emit(roi)
 
