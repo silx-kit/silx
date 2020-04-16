@@ -1707,7 +1707,11 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def _updateLabelItem(self, label):
         if self._items is None or len(self._items) < 3:
             return
-        self._items[2].setText(label)
+        if self.isEditable():
+            item = self._items[2]
+        else:
+            item = self._items[0]
+        item.setText(label)
 
     def _updateShape(self):
         if len(self._items) >= 3:
@@ -1732,14 +1736,22 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             shapes.append(marker)
 
         markerMin, markerMax, markerCen = shapes
-        markerCen.setLineStyle(":")
-        markerCen.setText(self.getName())
         markerMin._setConstraint(self.__positionMinConstraint)
         markerMax._setConstraint(self.__positionMaxConstraint)
         if self.isEditable():
             markerMin.sigItemChanged.connect(self.__positionMinChanged)
             markerMax.sigItemChanged.connect(self.__positionMaxChanged)
             markerCen.sigItemChanged.connect(self.__positionCenChanged)
+            markerCen.setLineStyle(":")
+        else:
+            markerCen.setLineStyle(" ")
+
+        if self.isEditable():
+            label = markerCen
+        else:
+            label = markerMin
+        label.setText(self.getName())
+
         return [markerMin, markerMax, markerCen]
 
     def __positionMinConstraint(self, x, y):
