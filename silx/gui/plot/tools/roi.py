@@ -268,7 +268,8 @@ class RegionOfInterestManager(qt.QObject):
             legend = event['label']
             marker = plot._getMarker(legend=legend)
             roi = self.__getRoiFromMarker(marker)
-            self.setSelectedRoi(roi)
+            if roi.isSelectable():
+                self.setSelectedRoi(roi)
         elif event['event'] == 'mouseClicked' and event['button'] == 'left':
             self.setSelectedRoi(None)
 
@@ -325,7 +326,8 @@ class RegionOfInterestManager(qt.QObject):
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
-        self.setSelectedRoi(roi)
+        if roi.isSelectable():
+            self.setSelectedRoi(roi)
         return roi
 
     def addRoi(self, roi, index=None, useManagerColor=True):

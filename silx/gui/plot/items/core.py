@@ -144,6 +144,9 @@ class ItemChangedType(enum.Enum):
     EDITABLE = 'editableChanged'
     """Item's editable state changed flags."""
 
+    SELECTABLE = 'selectableChanged'
+    """Item's selectable state changed flags."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""

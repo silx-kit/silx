@@ -121,6 +121,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._points = None
         self._labelItem = None
         self._editable = False
+        self._selectable = False
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -236,6 +237,27 @@ class RegionOfInterest(_RegionOfInterestBase):
             # This can be avoided once marker.setDraggable is public
             self._createPlotItems()
             self.sigItemChanged.emit(items.ItemChangedType.EDITABLE)
+
+    def isSelectable(self):
+        """Returns whether the ROI is selectable by the user or not.
+
+        :rtype: bool
+        """
+        return self._selectable
+
+    def setSelectable(self, selectable):
+        """Set whether the ROI can be selected interactively.
+
+        :param bool selectable: True to allow selection by the user,
+           False to disable.
+        """
+        selectable = bool(selectable)
+        if self._selectable != selectable:
+            self._selectable = selectable
+            # Recreate plot items
+            # This should be avoided (better to edit the items, than recreate them)
+            self._createPlotItems()
+            self.sigItemChanged.emit(items.ItemChangedType.SELECTABLE)
 
     def isVisible(self):
         """Returns whether the ROI is visible in the plot.
@@ -395,7 +417,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             plot.addItem(item)
             item.setVisible(self.isVisible())
             if hasattr(item, "_setSelectable"):
-                item._setSelectable(True)
+                item._setSelectable(self.isSelectable())
             self._items.append(item)
             itemIndex += 1
 
@@ -408,7 +430,7 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.setName(legendPrefix + str(itemIndex))
                 item.setColor(color)
                 item.setVisible(self.isVisible())
-                item._setSelectable(True)
+                item._setSelectable(self.isSelectable())
                 plot.addItem(item)
                 # connect item changed
                 item.sigItemChanged.connect(functools.partial(
@@ -786,6 +808,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
         marker._setDraggable(self.isEditable())
+        marker._setSelectable(self.isSelectable())
         if self.isEditable():
             marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
@@ -858,6 +881,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
         marker._setDraggable(self.isEditable())
+        marker._setSelectable(self.isSelectable())
         if self.isEditable():
             marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
@@ -1704,6 +1728,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             marker.setLineWidth(self.getLineWidth())
             marker.setLineStyle(self.getLineStyle())
             marker._setDraggable(self.isEditable())
+            marker._setSelectable(self.isSelectable())
             shapes.append(marker)
 
         markerMin, markerMax, markerCen = shapes
