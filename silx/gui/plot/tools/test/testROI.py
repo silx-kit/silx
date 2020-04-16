@@ -186,6 +186,15 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getEndAngle(), endAngle)
         self.assertAlmostEqual(item.isClosed(), False)
 
+    def testHRange_geometry(self):
+        item = roi_items.HorizontalRangeROI()
+        vmin = 1
+        vmax = 3
+        item.setRange(vmin, vmax)
+        numpy.testing.assert_allclose(item.getMin(), vmin)
+        numpy.testing.assert_allclose(item.getMax(), vmax)
+        numpy.testing.assert_allclose(item.getCenter(), 2)
+
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     """Tests for RegionOfInterestManager class"""
@@ -227,6 +236,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 numpy.array((((10., 20.), (10., 30.)),
                             ((30., 40.), (30., 50.))))),
             (roi_items.VerticalLineROI,
+                numpy.array((((10., 20.), (10., 30.)),
+                            ((30., 40.), (30., 50.))))),
+            (roi_items.HorizontalLineROI,
                 numpy.array((((10., 20.), (10., 30.)),
                             ((30., 40.), (30., 50.))))),
         )
@@ -355,6 +367,10 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         center = numpy.array([10, 20])
         innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
         item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+        rois.append(item)
+        # Horizontal Range
+        item = roi_items.HorizontalRangeROI()
+        item.setRange(-1, 3)
         rois.append(item)
 
         manager = roi.RegionOfInterestManager(self.plot)
