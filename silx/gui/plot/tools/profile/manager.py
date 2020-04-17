@@ -171,6 +171,9 @@ class ProfileWindow(qt.QMainWindow):
         plot = self._getPlot2D()
         self._layout.setCurrentWidget(plot)
 
+    def getCurrentPlotWidget(self):
+        return self._layout.currentWidget()
+
     def closeEvent(self, qCloseEvent):
         self.sigClose.emit()
         qCloseEvent.accept()
