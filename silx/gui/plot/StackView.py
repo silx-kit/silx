@@ -262,8 +262,6 @@ class StackView(qt.QMainWindow):
 
         # clear profile lines when the perspective changes (plane browsed changed)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._profileToolBar.getProfilePlot().clear)
-        self.__planeSelection.sigPlaneSelectionChanged.connect(
             self._profileToolBar.clearProfile)
 
     def _saveImageStack(self, plot, filename, nameFilter):
