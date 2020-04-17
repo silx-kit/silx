@@ -609,19 +609,11 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        value = max(0.0, value)
-        value = min(value, 1.0)
-
-        vmin = self.vmin
-        vmax = self.vmax
-        if colormap.getNormalization() == colors.Colormap.LINEAR:
-            return vmin + (vmax - vmin) * value
-        elif colormap.getNormalization() == colors.Colormap.LOGARITHM:
-            rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
-            return numpy.power(10., rpos)
-        else:
-            err = "normalization type (%s) is not managed by the _ColorScale Widget" % colormap['normalization']
-            raise ValueError(err)
+        value = numpy.clip(value, 0., 1.)
+        normalizer = colormap._getNormalizer()
+        return normalizer.revert(
+            normalizer.apply(self.vmin) +
+            (normalizer.apply(self.vmax) - normalizer.apply(self.vmin)) * value)
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -747,11 +739,9 @@ class _TickBar(qt.QWidget):
             self.subTicks = ()
         elif self._norm == colors.Colormap.LOGARITHM:
             self._computeTicksLog(nticks)
-        elif self._norm == colors.Colormap.LINEAR:
+        else:  # Fallback: use linear
             self._computeTicksLin(nticks)
-        else:
-            err = 'TickBar - Wrong normalization %s' % self._norm
-            raise ValueError(err)
+
         # update the form
         font = qt.QFont()
         font.setPixelSize(_TickBar._FONT_SIZE)
@@ -804,12 +794,12 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        if self._norm == colors.Colormap.LINEAR:
-            return 1 - (val - self._vmin) / (self._vmax - self._vmin)
-        elif self._norm == colors.Colormap.LOGARITHM:
-            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log10(self._vmin))
+        norm = colors.Colormap(normalization=self._norm)._getNormalizer()
+        range_ = norm.apply(self._vmax) - norm.apply(self._vmin)
+        if range_ == 0.:
+            return 0.
         else:
-            raise ValueError('Norm is not recognized')
+            return 1. - (norm.apply(val) - norm.apply(self._vmin)) / range_
 
     def _paintTick(self, val, painter, majorTick=True):
         """
