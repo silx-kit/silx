@@ -109,10 +109,6 @@ DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
 DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
-DEFAULT_MIN_LOG = 1
-"""Default min value if in log normalization"""
-DEFAULT_MAX_LOG = 10
-"""Default max value if in log normalization"""
 
 
 def rgba(color, colorDict=None):
@@ -1015,12 +1011,6 @@ class Colormap(qt.QObject):
 
     def __str__(self):
         return str(self._toDict())
-
-    def _getDefaultMin(self):
-        return self._NORMALIZATIONS[self.getNormalization()].DEFAULT_RANGE[0]
-
-    def _getDefaultMax(self):
-        return self._NORMALIZATIONS[self.getNormalization()].DEFAULT_RANGE[1]
 
     def __eq__(self, other):
         """Compare colormap values and not pointers"""
