@@ -396,6 +396,15 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager.setSelectedRoi(item1)
         self.assertIs(manager.getSelectedRoi(), item2)
 
+    def testRemovedSelection(self):
+        item1 = roi_items.PointROI()
+        item1.setSelectable(True)
+        manager = roi.RegionOfInterestManager(self.plot)
+        manager.addRoi(item1)
+        manager.setSelectedRoi(item1)
+        manager.removeRoi(item1)
+        self.assertIs(manager.getSelectedRoi(), None)
+
     def testMaxROI(self):
         """Test Max ROI"""
         origin1 = numpy.array([1., 10.])
