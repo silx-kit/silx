@@ -42,7 +42,6 @@ from . import testPlotInteraction
 from . import testPlotWidgetNoBackend
 from . import testPlotWidget
 from . import testPlotWindow
-from . import testProfile
 from . import testStackView
 from . import testImageStack
 from . import testItem
@@ -76,7 +75,6 @@ def suite():
          testPlotWidgetNoBackend.suite(),
          testPlotWidget.suite(),
          testPlotWindow.suite(),
-         testProfile.suite(),
          testStackView.suite(),
          testImageStack.suite(),
          testItem.suite(),
