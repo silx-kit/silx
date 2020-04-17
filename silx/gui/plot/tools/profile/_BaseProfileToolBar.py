@@ -37,7 +37,6 @@ import numpy
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import qt, icons, colors
 from silx.gui.plot import PlotWidget, items
-from silx.gui.plot.ProfileMainWindow import ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.items import roi as roi_items
 
@@ -184,6 +183,7 @@ class _BaseProfileToolBar(qt.QToolBar):
         """
         if self.isDefaultProfileWindowEnabled() != enabled:
             if enabled:
+                from silx.gui.plot.ProfileMainWindow import ProfileMainWindow
                 self._profileWindow = ProfileMainWindow(self)
                 self._profileWindow.sigClose.connect(self.clearProfile)
                 self.sigProfileChanged.connect(self.__updateDefaultProfilePlot)

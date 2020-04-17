@@ -24,15 +24,24 @@
 # ###########################################################################*/
 """This module contains a QMainWindow class used to display profile plots.
 """
-from silx.gui import qt
-
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "21/02/2017"
 
+import silx.utils.deprecation
+from silx.gui import qt
+from .tools.profile.manager import ProfileWindow
 
-class ProfileMainWindow(qt.QMainWindow):
+silx.utils.deprecation.deprecated_warning("Module",
+                                          name="silx.gui.plot.ProfileMainWindow",
+                                          reason="moved",
+                                          replacement="silx.gui.plot.tools.profile.manager.ProfileWindow",
+                                          since_version="0.13.0",
+                                          only_once=True,
+                                          skip_backtrace_count=1)
+
+class ProfileMainWindow(ProfileWindow):
     """QMainWindow providing 2 plot widgets specialized in
     1D and 2D plotting, with different toolbars.
 
@@ -52,10 +61,6 @@ class ProfileMainWindow(qt.QMainWindow):
     Note: This signal should be removed.
     """
 
-    sigClose = qt.Signal()
-    """Emitted by :meth:`closeEvent` (e.g. when the window is closed
-    through the window manager's close icon)."""
-
     sigProfileMethodChanged = qt.Signal(str)
     """Emitted when the method to compute the profile changed (for now can be
     sum or mean)
@@ -64,54 +69,12 @@ class ProfileMainWindow(qt.QMainWindow):
     """
 
     def __init__(self, parent=None, backend=None):
-        qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
-
-        self.setWindowTitle('Profile window')
-        # plots are created on demand, in self.setProfileDimensions()
-        self._plot1D = None
-        self._plot2D = None
-        self._backend = backend
+        ProfileWindow.__init__(self, parent=parent, backend=backend)
         # by default, profile is assumed to be a 1D curve
         self._profileType = None
 
-        widget = qt.QWidget()
-        self._layout = qt.QStackedLayout(widget)
-        self._layout.setContentsMargins(0, 0, 0, 0)
-        self.setCentralWidget(widget)
-
         self.setProfileType("1D")
         self.setProfileMethod('sum')
-
-    def _getPlot1D(self, init=True):
-        if not init:
-            return self._plot1D
-        if self._plot1D is None:
-            # import here to avoid circular import
-            from .PlotWindow import Plot1D
-            self._plot1D = Plot1D(parent=self, backend=self._backend)
-            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
-            self._plot1D.setGraphYLabel('Profile')
-            self._plot1D.setGraphXLabel('')
-            self._layout.addWidget(self._plot1D)
-        return self._plot1D
-
-    def _showPlot1D(self):
-        plot = self._getPlot1D()
-        self._layout.setCurrentWidget(plot)
-
-    def _getPlot2D(self, init=True):
-        if not init:
-            return self._plot1D
-        if self._plot2D is None:
-            # import here to avoid circular import
-            from .PlotWindow import Plot2D
-            self._plot2D = Plot2D(parent=self, backend=self._backend)
-            self._layout.addWidget(self._plot2D)
-        return self._plot2D
-
-    def _showPlot2D(self):
-        plot = self._getPlot2D()
-        self._layout.setCurrentWidget(plot)
 
     def setProfileType(self, profileType):
         """Set which profile plot widget (1D or 2D) is to be used
@@ -140,10 +103,6 @@ class ProfileMainWindow(qt.QMainWindow):
             return self._plot2D
         else:
             return self._plot1D
-
-    def closeEvent(self, qCloseEvent):
-        self.sigClose.emit()
-        qCloseEvent.accept()
 
     def setProfileMethod(self, method):
         """

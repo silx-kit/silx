@@ -38,7 +38,6 @@ from silx.gui import colors
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.ProfileMainWindow import ProfileMainWindow as _ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import CreateRoiModeAction
 from silx.gui.plot import items
@@ -115,7 +114,65 @@ class _RunnableComputeProfile(qt.QRunnable):
         self.runnerFinished.emit(self)
 
 
-class ProfileMainWindow(_ProfileMainWindow):
+class ProfileWindow(qt.QMainWindow):
+    """
+    Display a computed profile.
+
+    The content can be described using :meth:`setRoiProfile` if the source of
+    the profile is a profile ROI, and :meth:`setProfile` for the data content.
+    """
+
+    sigClose = qt.Signal()
+    """Emitted by :meth:`closeEvent` (e.g. when the window is closed
+    through the window manager's close icon)."""
+
+    def __init__(self, parent=None, backend=None):
+        qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
+
+        self.setWindowTitle('Profile window')
+        self._plot1D = None
+        self._plot2D = None
+        self._backend = backend
+
+        widget = qt.QWidget()
+        self._layout = qt.QStackedLayout(widget)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self.setCentralWidget(widget)
+
+    def _getPlot1D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot1D is None:
+            # import here to avoid circular import
+            from ...PlotWindow import Plot1D
+            self._plot1D = Plot1D(parent=self, backend=self._backend)
+            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
+            self._plot1D.setGraphYLabel('Profile')
+            self._plot1D.setGraphXLabel('')
+            self._layout.addWidget(self._plot1D)
+        return self._plot1D
+
+    def _showPlot1D(self):
+        plot = self._getPlot1D()
+        self._layout.setCurrentWidget(plot)
+
+    def _getPlot2D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot2D is None:
+            # import here to avoid circular import
+            from ...PlotWindow import Plot2D
+            self._plot2D = Plot2D(parent=self, backend=self._backend)
+            self._layout.addWidget(self._plot2D)
+        return self._plot2D
+
+    def _showPlot2D(self):
+        plot = self._getPlot2D()
+        self._layout.setCurrentWidget(plot)
+
+    def closeEvent(self, qCloseEvent):
+        self.sigClose.emit()
+        qCloseEvent.accept()
 
     def setRoiProfile(self, roi):
         """Set the profile ROI which it the source of the following data
@@ -690,16 +747,16 @@ class ProfileManager(qt.QObject):
         """Create a new profile window.
 
         :param ~core.ProfileRoiMixIn roi: A managed ROI
-        :rtype: ~ProfileMainWindow
+        :rtype: ~ProfileWindow
         """
         plot = self.getPlotWidget()
-        return ProfileMainWindow(plot)
+        return ProfileWindow(plot)
 
     def initProfileWindow(self, profileWindow):
         """This function is called just after the profile window creation in
         order to initialize the window location.
 
-        :param ~ProfileMainWindow profileWindow:
+        :param ~ProfileWindow profileWindow:
             The profile window to initialize.
         """
         profileWindow.show()

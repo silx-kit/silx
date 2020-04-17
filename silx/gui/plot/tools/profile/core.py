@@ -110,7 +110,7 @@ class ProfileRoiMixIn:
         """
         Returns the windows associated to this ROI, else None.
 
-        :rtype: ProfileMainWindow
+        :rtype: ProfileWindow
         """
         return self.__profileWindow
 
@@ -118,7 +118,7 @@ class ProfileRoiMixIn:
         """
         Associate a window to this ROI. Can be None.
 
-        :param ProfileMainWindow profileWindow: A main window
+        :param ProfileWindow profileWindow: A main window
             to display the profile.
         """
         if profileWindow is self.__profileWindow:
