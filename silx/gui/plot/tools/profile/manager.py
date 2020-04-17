@@ -133,6 +133,7 @@ class ProfileWindow(qt.QMainWindow):
         self._plot1D = None
         self._plot2D = None
         self._backend = backend
+        self._data = None
 
         widget = qt.QWidget()
         self._layout = qt.QStackedLayout(widget)
@@ -265,6 +266,10 @@ class ProfileWindow(qt.QMainWindow):
         if plot is not None:
             plot.clear()
 
+    def getProfile(self):
+        """Returns the profile data which is displayed"""
+        return self.__data
+
     def setProfile(self, data):
         """
         Setup the window to display a new profile data.
@@ -274,6 +279,7 @@ class ProfileWindow(qt.QMainWindow):
 
         :param data: Computed data profile
         """
+        self.__data = data
         if data is None:
             self.clear()
         elif isinstance(data, core.ImageProfileData):
