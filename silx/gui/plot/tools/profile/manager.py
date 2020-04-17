@@ -742,6 +742,19 @@ class ProfileManager(qt.QObject):
             self._plotRef = None
         return plot
 
+    def getSelectedRoi(self):
+        """Returns the selected ROI, else None.
+
+        :rtype: core.ProfileRoiMixIn
+        """
+        roiManager = self.getRoiManager()
+        if roiManager is None:
+            return None
+        roi = roiManager.getSelectedRoi()
+        if not isinstance(roi, core.ProfileRoiMixIn):
+            return None
+        return roi
+
     def getRoiManager(self):
         """Returns the used ROI manager
 
