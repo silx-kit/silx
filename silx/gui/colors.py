@@ -784,14 +784,18 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
+    def _getNormalizer(self):
+        """Returns normalizer object"""
+        return self._NORMALIZATIONS[self.getNormalization()]
+
     def _computeAutoscaleRange(self, data):
         """Compute the data range which will be used in autoscale mode.
 
         :param numpy.ndarray data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
-        normalizer = self._NORMALIZATIONS[self.getNormalization()]
-        return normalizer.autoscale(data, mode=self.getAutoscaleMode())
+        return self._getNormalizer().autoscale(
+            data, mode=self.getAutoscaleMode())
 
     def getColormapRange(self, data=None):
         """Return (vmin, vmax) the range of the colormap for the given data or item.
@@ -805,7 +809,7 @@ class Colormap(qt.QObject):
         vmax = self._vmax
         assert vmin is None or vmax is None or vmin <= vmax  # TODO handle this in setters
 
-        normalizer = self._NORMALIZATIONS[self.getNormalization()]
+        normalizer = self._getNormalizer()
 
         # Handle invalid bounds as autoscale
         if vmin is not None and not normalizer.isValid(vmin):
