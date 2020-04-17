@@ -37,6 +37,7 @@ from silx.gui.utils.testutils import (
 from silx.gui import qt
 from silx.gui.plot import PlotWindow, Plot1D, Plot2D, Profile
 from silx.gui.plot.StackView import StackView
+from silx.gui.plot.tools.profile import rois
 
 
 class TestProfileToolBar(TestCaseQt, ParametricTestCase):
@@ -99,6 +100,12 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.mouseMove(widget)
                         self.mouseClick(widget, qt.Qt.LeftButton)
 
+                        manager = self.toolBar.getProfileManager()
+                        for _ in range(20):
+                            self.qWait(200)
+                            if not manager.hasPendingOperations():
+                                break
+
     def testDiagonalProfile(self):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
@@ -106,8 +113,6 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
         for method in ('sum', 'mean'):
             with self.subTest(method=method):
-                self.toolBar.setProfileMethod(method)
-
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4
                 pos2 = widget.width() * 0.6, widget.height() * 0.6
@@ -124,7 +129,6 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.assertIsNot(toolButton, None)
                         self.mouseMove(toolButton)
                         self.mouseClick(toolButton, qt.Qt.LeftButton)
-                        self.toolBar.lineWidthSpinBox.setValue(3)
 
                         # draw profile line
                         self.mouseMove(widget, pos=pos1)
@@ -132,13 +136,22 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.mouseMove(widget, pos=pos2)
                         self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
+                        manager = self.toolBar.getProfileManager()
+                        roi = manager.getSelectedRoi()
+                        roi.setProfileLineWidth(3)
+                        roi.setProfileMethod(method)
+
+                        for _ in range(20):
+                            self.qWait(200)
+                            if not manager.hasPendingOperations():
+                                break
+
                         if image is True:
                             profileCurve = self.toolBar.getProfilePlot().getAllCurves()[0]
                             if method == 'sum':
                                 self.assertTrue(profileCurve.getData()[1].max() > 10000)
                             elif method == 'mean':
                                 self.assertTrue(profileCurve.getData()[1].max() < 10000)
-                        self.plot.clear()
 
 
 class TestProfile3DToolBar(TestCaseQt):
@@ -163,61 +176,43 @@ class TestProfile3DToolBar(TestCaseQt):
 
         super(TestProfile3DToolBar, self).tearDown()
 
-    def testMethodProfile1DAnd2D(self):
+    def testMethodProfile2D(self):
         """Test that the profile can have a different method if we want to
         compute then in 1D or in 2D"""
 
-        _3DProfileToolbar = self.plot.getProfileToolbar()
-        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
-        self.plot.getProfileToolbar().setProfileMethod('mean')
-        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
-        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'mean')
+        toolBar = self.plot.getProfileToolbar()
 
-        # check 2D 'mean' profile
-        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
-        toolButton = getQToolButtonFromAction(_3DProfileToolbar.vLineAction)
+        toolButton = getQToolButtonFromAction(toolBar.vLineAction)
         self.assertIsNot(toolButton, None)
         self.mouseMove(toolButton)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
         plot2D = self.plot.getPlotWidget().getWidgetHandle()
         pos1 = plot2D.width() * 0.5, plot2D.height() * 0.5
         self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
-        self.assertTrue(numpy.array_equal(
-            _2DProfilePlot.getActiveImage().getData(),
-            numpy.array([[1, 4], [7, 10], [13, 16]])
-        ))
 
-        # check 1D 'sum' profile
-        _2DProfileToolbar = _2DProfilePlot.getProfileToolbar()
-        _2DProfileToolbar.setProfileMethod('sum')
-        self.assertTrue(_2DProfileToolbar.getProfileMethod() == 'sum')
-        _1DProfilePlot = _2DProfileToolbar.getProfilePlot()
+        manager = toolBar.getProfileManager()
+        roi = manager.getSelectedRoi()
+        roi.setProfileMethod("mean")
+        roi.setProfileType("2D")
+        roi.setProfileLineWidth(3)
 
-        _2DProfileToolbar.lineWidthSpinBox.setValue(3)
-        toolButton = getQToolButtonFromAction(_2DProfileToolbar.vLineAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseMove(toolButton)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
-        plot1D = _2DProfilePlot.getWidgetHandle()
-        pos1 = plot1D.width() * 0.5, plot1D.height() * 0.5
-        self.mouseClick(plot1D, qt.Qt.LeftButton, pos=pos1)
-        self.assertTrue(numpy.array_equal(
-            _1DProfilePlot.getAllCurves()[0].getData()[1],
-            numpy.array([5, 17, 29])
-        ))
+        for _ in range(20):
+            self.qWait(200)
+            if not manager.hasPendingOperations():
+                break
+
+        # check 2D 'mean' profile
+        profilePlot = toolBar.getProfilePlot()
+        data = profilePlot.getActiveImage().getData()
+        expected = numpy.array([[1, 4], [7, 10], [13, 16]])
+        numpy.testing.assert_almost_equal(data, expected)
 
     def testMethodSumLine(self):
         """Simple interaction test to make sure the sum is correctly computed
         """
-        _3DProfileToolbar = self.plot.getProfileToolbar()
-        _2DProfilePlot = _3DProfileToolbar.getProfilePlot()
-        self.plot.getProfileToolbar().setProfileMethod('sum')
-        self.plot.getProfileToolbar().lineWidthSpinBox.setValue(3)
-        self.assertTrue(_3DProfileToolbar.getProfileMethod() == 'sum')
+        toolBar = self.plot.getProfileToolbar()
 
-        # check 2D 'mean' profile
-        _3DProfileToolbar.profile3dAction.computeProfileIn2D()
-        toolButton = getQToolButtonFromAction(_3DProfileToolbar.lineAction)
+        toolButton = getQToolButtonFromAction(toolBar.lineAction)
         self.assertIsNot(toolButton, None)
         self.mouseMove(toolButton)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
@@ -229,10 +224,23 @@ class TestProfile3DToolBar(TestCaseQt):
         self.mousePress(plot2D, qt.Qt.LeftButton, pos=pos1)
         self.mouseMove(plot2D, pos=pos2)
         self.mouseRelease(plot2D, qt.Qt.LeftButton, pos=pos2)
-        self.assertTrue(numpy.array_equal(
-            _2DProfilePlot.getActiveImage().getData(),
-            numpy.array([[3, 12], [21, 30], [39, 48]])
-        ))
+
+        manager = toolBar.getProfileManager()
+        roi = manager.getSelectedRoi()
+        roi.setProfileMethod("sum")
+        roi.setProfileType("2D")
+        roi.setProfileLineWidth(3)
+
+        for _ in range(20):
+            self.qWait(200)
+            if not manager.hasPendingOperations():
+                break
+
+        # check 2D 'sum' profile
+        profilePlot = toolBar.getProfilePlot()
+        data = profilePlot.getActiveImage().getData()
+        expected = numpy.array([[3, 12], [21, 30], [39, 48]])
+        numpy.testing.assert_almost_equal(data, expected)
 
 
 class TestGetProfilePlot(TestCaseQt):
@@ -242,10 +250,26 @@ class TestGetProfilePlot(TestCaseQt):
         plot.show()
         self.qWaitForWindowExposed(plot)
         plot.addImage([[0, 1], [2, 3]])
-        self.assertIsInstance(plot.getProfileToolbar().getProfileMainWindow(),
-                              qt.QMainWindow)
-        self.assertIsInstance(plot.getProfilePlot(),
-                              Plot1D)
+
+        toolBar = plot.getProfileToolbar()
+        self.assertIsNone(toolBar.getProfileMainWindow())
+
+
+        manager = toolBar.getProfileManager()
+        roiManager = manager.getRoiManager()
+
+        roi = rois.ProfileImageHorizontalLineROI()
+        roi.setPosition(0.5)
+        roiManager.addRoi(roi)
+        roiManager.setSelectedRoi(roi)
+
+        for _ in range(20):
+            self.qWait(200)
+            if not manager.hasPendingOperations():
+                break
+
+        self.assertIsInstance(toolBar.getProfileMainWindow(), qt.QMainWindow)
+        self.assertIsInstance(plot.getProfilePlot(), Plot1D)
         plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         plot.close()
         del plot
@@ -260,14 +284,34 @@ class TestGetProfilePlot(TestCaseQt):
         plot.setStack(numpy.array([[[0, 1], [2, 3]],
                                    [[4, 5], [6, 7]]]))
 
-        self.assertIsInstance(plot.getProfileToolbar().getProfileMainWindow(),
-                              qt.QMainWindow)
+        toolBar = plot.getProfileToolbar()
+        self.assertIsNone(toolBar.getProfileMainWindow())
 
-        self.assertIsInstance(plot.getProfileToolbar().getProfilePlot(),
-                              Plot2D)
-        plot.getProfileToolbar().profile3dAction.computeProfileIn1D()
-        self.assertIsInstance(plot.getProfileToolbar().getProfilePlot(),
-                              Plot1D)
+        manager = toolBar.getProfileManager()
+        roiManager = manager.getRoiManager()
+
+        roi = rois.ProfileImageStackHorizontalLineROI()
+        roi.setPosition(0.5)
+        roi.setProfileType("2D")
+        roiManager.addRoi(roi)
+        roiManager.setSelectedRoi(roi)
+
+        for _ in range(20):
+            self.qWait(200)
+            if not manager.hasPendingOperations():
+                break
+
+        self.assertIsInstance(toolBar.getProfileMainWindow(), qt.QMainWindow)
+        self.assertIsInstance(toolBar.getProfilePlot(), Plot2D)
+
+        roi.setProfileType("1D")
+
+        for _ in range(20):
+            self.qWait(200)
+            if not manager.hasPendingOperations():
+                break
+
+        self.assertIsInstance(toolBar.getProfilePlot(), Plot1D)
 
         plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         plot.close()

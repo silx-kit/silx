@@ -33,16 +33,14 @@ __date__ = "12/04/2019"
 
 import weakref
 
-from .. import icons
 from .. import qt
-from . import items
-from ..colors import cursorColorForColormap
 from . import actions
-from .PlotToolButtons import ProfileToolButton, ProfileOptionToolButton
-from .ProfileMainWindow import ProfileMainWindow
 from .tools.profile import core
+from .tools.profile import manager
+from .tools.profile import rois
 
 from silx.utils.deprecation import deprecated
+from silx.utils.deprecation import deprecated_warning
 
 
 @deprecated(replacement="silx.gui.plot.tools.profile.createProfile", since_version="0.13.0")
@@ -76,78 +74,31 @@ class ProfileToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
-    # TODO Make it a QActionGroup instead of a QToolBar
-
-    _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
-
-    DEFAULT_PROF_METHOD = 'mean'
 
     def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title='Profile Selection'):
+                 title=None):
         super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
+
+        if title is not None:
+            deprecated_warning("Attribute",
+                               name="title",
+                               reason="removed",
+                               since_version="0.13.0",
+                               only_once=True,
+                               skip_backtrace_count=1)
+
         self._plotRef = weakref.ref(plot)
-
-        self._overlayColor = None
-        self._defaultOverlayColor = 'red'  # update when active image change
-        self._method = self.DEFAULT_PROF_METHOD
-
-        self._roiInfo = None  # Store start and end points and type of ROI
-
-        self._profileWindow = profileWindow
-        """User provided plot widget in which the profile curve is plotted.
-        None if no custom profile plot was provided."""
-
-        self._profileMainWindow = None
-        """Main window providing 2 profile plot widgets for 1D or 2D profiles.
-        The window provides two public methods
-            - :meth:`setProfileDimensions`
-            - :meth:`getPlot`: return handle on the actual plot widget
-              currently being used
-        None if the user specified a custom profile plot window.
-        """
-
-        self.__profileMainWindowNeverShown = True
-
-        if self._profileWindow is None:
-            backend = type(plot._backend)
-            self._profileMainWindow = ProfileMainWindow(self, backend=backend)
+        self._manager = manager.ProfileManager(self, plot)
+        self._manager.setDefaultColorFromCursorColor(True)
+        self._manager.setItemType(image=True)
+        self._manager.setActiveItemTracking(True)
 
         # Actions
         self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
         self._browseAction.setVisible(False)
-
-        self.hLineAction = qt.QAction(icons.getQIcon('shape-horizontal'),
-                                      'Horizontal Profile Mode',
-                                      self)
-        self.hLineAction.setToolTip(
-            'Enables horizontal profile selection mode')
-        self.hLineAction.setCheckable(True)
-        self.hLineAction.toggled[bool].connect(self._hLineActionToggled)
-
-        self.vLineAction = qt.QAction(icons.getQIcon('shape-vertical'),
-                                      'Vertical Profile Mode',
-                                      self)
-        self.vLineAction.setToolTip(
-            'Enables vertical profile selection mode')
-        self.vLineAction.setCheckable(True)
-        self.vLineAction.toggled[bool].connect(self._vLineActionToggled)
-
-        self.lineAction = qt.QAction(icons.getQIcon('shape-diagonal'),
-                                     'Free Line Profile Mode',
-                                     self)
-        self.lineAction.setToolTip(
-            'Enables line profile selection mode')
-        self.lineAction.setCheckable(True)
-        self.lineAction.toggled[bool].connect(self._lineActionToggled)
-
-        self.clearAction = qt.QAction(icons.getQIcon('profile-clear'),
-                                      'Clear Profile',
-                                      self)
-        self.clearAction.setToolTip(
-            'Clear the profile Region of interest')
-        self.clearAction.setCheckable(False)
-        self.clearAction.triggered.connect(self.clearProfile)
+        self._createProfileActions()
+        self._editor = self._manager.createEditorAction(self)
 
         # ActionGroup
         self.actionGroup = qt.QActionGroup(self)
@@ -155,39 +106,22 @@ class ProfileToolBar(qt.QToolBar):
         self.actionGroup.addAction(self.hLineAction)
         self.actionGroup.addAction(self.vLineAction)
         self.actionGroup.addAction(self.lineAction)
+        self.actionGroup.addAction(self._editor)
 
         # Add actions to ToolBar
         self.addAction(self._browseAction)
         self.addAction(self.hLineAction)
         self.addAction(self.vLineAction)
         self.addAction(self.lineAction)
+        self.addAction(self.crossAction)
         self.addAction(self.clearAction)
 
-        # Add width spin box to toolbar
-        self.addWidget(qt.QLabel('W:'))
-        self.lineWidthSpinBox = qt.QSpinBox(self)
-        self.lineWidthSpinBox.setRange(1, 1000)
-        self.lineWidthSpinBox.setValue(1)
-        self.lineWidthSpinBox.valueChanged[int].connect(
-            self._lineWidthSpinBoxValueChangedSlot)
-        self.addWidget(self.lineWidthSpinBox)
-
-        self.methodsButton = ProfileOptionToolButton(parent=self, plot=self)
-        self.__profileOptionToolAction = self.addWidget(self.methodsButton)
-        # TODO: add connection with the signal
-        self.methodsButton.sigMethodChanged.connect(self.setProfileMethod)
-
-        self.plot.sigInteractiveModeChanged.connect(
-            self._interactiveModeChanged)
-
-        # Enable toolbar only if there is an active image
-        self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
-        self.plot.sigActiveImageChanged.connect(
-            self._activeImageChanged)
-
-        # listen to the profile window signals to clear profile polygon on close
-        if self.getProfileMainWindow() is not None:
-            self.getProfileMainWindow().sigClose.connect(self.clearProfile)
+    def _createProfileActions(self):
+        self.hLineAction = self._manager.createProfileAction(rois.ProfileImageHorizontalLineROI, self)
+        self.vLineAction = self._manager.createProfileAction(rois.ProfileImageVerticalLineROI, self)
+        self.lineAction = self._manager.createProfileAction(rois.ProfileImageLineROI, self)
+        self.crossAction = self._manager.createProfileAction(rois.ProfileImageCrossROI, self)
+        self.clearAction = self._manager.createClearAction(self)
 
     @property
     def plot(self):
@@ -204,257 +138,96 @@ class ProfileToolBar(qt.QToolBar):
     def profileWindow(self):
         return self.getProfilePlot()
 
+    def getProfileManager(self):
+        """Return the manager of the profiles.
+
+        :rtype: ProfileManager
+        """
+        return self._manager
+
+    @deprecated(since_version="0.13.0")
     def getProfilePlot(self):
         """Return plot widget in which the profile curve or the
         profile image is plotted.
         """
-        if self.getProfileMainWindow() is not None:
-            return self.getProfileMainWindow().getPlot()
+        window = self.getProfileMainWindow()
+        if window is None:
+            return None
+        return window.getCurrentPlotWidget()
 
-        # in case the user provided a custom plot for profiles
-        return self._profileWindow
-
+    @deprecated(replacement="getProfileManager().getSelectedRoi().getProfileWindow()", since_version="0.13.0")
     def getProfileMainWindow(self):
         """Return window containing the profile curve widget.
-        This can return *None* if a custom profile plot window was
-        specified in the constructor.
+
+        This can return None if no profile was computed.
         """
-        return self._profileMainWindow
-
-    def _activeImageChanged(self, previous, legend):
-        """Handle active image change: toggle enabled toolbar, update curve"""
-        if legend is None:
-            self.setEnabled(False)
-        else:
-            activeImage = self.plot.getActiveImage()
-
-            # Disable for empty image
-            self.setEnabled(activeImage.getData(copy=False).size > 0)
-
-            # Update default profile color
-            if isinstance(activeImage, items.ColormapMixIn):
-                self._defaultOverlayColor = cursorColorForColormap(
-                    activeImage.getColormap()['name'])
-            else:
-                self._defaultOverlayColor = 'black'
-
-            self.updateProfile()
-
-    def _lineWidthSpinBoxValueChangedSlot(self, value):
-        """Listen to ROI width widget to refresh ROI and profile"""
-        self.updateProfile()
-
-    def _interactiveModeChanged(self, source):
-        """Handle plot interactive mode changed:
-
-        If changed from elsewhere, disable drawing tool
-        """
-        if source is not self:
-            self.clearProfile()
-
-            # Uncheck all drawing profile modes
-            self.hLineAction.setChecked(False)
-            self.vLineAction.setChecked(False)
-            self.lineAction.setChecked(False)
-
-            if self.getProfileMainWindow() is not None:
-                self.getProfileMainWindow().hide()
-
-    def _hLineActionToggled(self, checked):
-        """Handle horizontal line profile action toggle"""
-        if checked:
-            self.plot.setInteractiveMode('draw', shape='hline',
-                                         color=None, source=self)
-            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
-        else:
-            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
-
-    def _vLineActionToggled(self, checked):
-        """Handle vertical line profile action toggle"""
-        if checked:
-            self.plot.setInteractiveMode('draw', shape='vline',
-                                         color=None, source=self)
-            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
-        else:
-            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
-
-    def _lineActionToggled(self, checked):
-        """Handle line profile action toggle"""
-        if checked:
-            self.plot.setInteractiveMode('draw', shape='line',
-                                         color=None, source=self)
-            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
-        else:
-            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
-
-    def _plotWindowSlot(self, event):
-        """Listen to Plot to handle drawing events to refresh ROI and profile.
-        """
-        if event['event'] not in ('drawingProgress', 'drawingFinished'):
-            return
-
-        checkedAction = self.actionGroup.checkedAction()
-        if checkedAction == self.hLineAction:
-            lineProjectionMode = 'X'
-        elif checkedAction == self.vLineAction:
-            lineProjectionMode = 'Y'
-        elif checkedAction == self.lineAction:
-            lineProjectionMode = 'D'
-        else:
-            return
-
-        roiStart, roiEnd = event['points'][0], event['points'][1]
-
-        self._roiInfo = roiStart, roiEnd, lineProjectionMode
-        self.updateProfile()
+        roi = self._manager.getSelectedRoi()
+        if roi is None:
+            return None
+        return roi.getProfileWindow()
 
     @property
+    @deprecated(since_version="0.13.0")
     def overlayColor(self):
-        """The color to use for the ROI.
+        """This method does nothing anymore. But could be implemented if needed.
+
+        It was used to set color to use for the ROI.
 
         If set to None (the default), the overlay color is adapted to the
         active image colormap and changes if the active image colormap changes.
         """
-        return self._overlayColor or self._defaultOverlayColor
+        pass
 
     @overlayColor.setter
+    @deprecated(since_version="0.13.0")
     def overlayColor(self, color):
-        self._overlayColor = color
-        self.updateProfile()
+        """This method does nothing anymore. But could be implemented if needed.
+        """
+        pass
 
     def clearProfile(self):
         """Remove profile curve and profile area."""
-        self._roiInfo = None
-        self.updateProfile()
+        self._manager.clearProfile()
 
+    @deprecated(since_version="0.13.0")
     def updateProfile(self):
-        """Update the displayed profile and profile ROI.
+        """This method does nothing anymore. But could be implemented if needed.
+
+        It was used to update the displayed profile and profile ROI.
 
         This uses the current active image of the plot and the current ROI.
         """
-        image = self.plot.getActiveImage()
-        if image is None:
-            return
+        pass
 
-        # Clean previous profile area, and previous curve
-        self.plot.remove(self._POLYGON_LEGEND, kind='item')
-        self.getProfilePlot().clear()
-        self.getProfilePlot().setGraphTitle('')
-        self.getProfilePlot().getXAxis().setLabel('X')
-        self.getProfilePlot().getYAxis().setLabel('Y')
-
-        self._createProfile(currentData=image.getData(copy=False),
-                            origin=image.getOrigin(),
-                            scale=image.getScale(),
-                            colormap=None,  # Not used for 2D data
-                            z=image.getZValue(),
-                            method=self.getProfileMethod())
-
-    def _createProfile(self, currentData, origin, scale, colormap, z, method):
-        """Create the profile line for the the given image.
-
-        :param numpy.ndarray currentData: the image or the stack of images
-            on which we compute the profile
-        :param origin: (ox, oy) the offset from origin
-        :type origin: 2-tuple of float
-        :param scale: (sx, sy) the scale to use
-        :type scale: 2-tuple of float
-        :param dict colormap: The colormap to use
-        :param int z: The z layer of the image
-        """
-        if self._roiInfo is None:
-            return
-
-        coords, profile, area, profileName, xLabel = createProfile(
-            roiInfo=self._roiInfo,
-            currentData=currentData,
-            origin=origin,
-            scale=scale,
-            lineWidth=self.lineWidthSpinBox.value(),
-            method=method)
-
-        profilePlot = self.getProfilePlot()
-
-        profilePlot.setGraphTitle(profileName)
-        profilePlot.getXAxis().setLabel(xLabel)
-
-        dataIs3D = len(currentData.shape) > 2
-        if dataIs3D:
-            profileScale = (coords[-1] - coords[0]) / profile.shape[1], 1
-            profilePlot.addImage(profile,
-                                 legend=profileName,
-                                 colormap=colormap,
-                                 origin=(coords[0], 0),
-                                 scale=profileScale)
-            profilePlot.getYAxis().setLabel("Frame index (depth)")
-        else:
-            profilePlot.addCurve(coords,
-                                 profile[0],
-                                 legend=profileName,
-                                 color=self.overlayColor)
-
-        self.plot.addShape(area[0], area[1],
-                           legend=self._POLYGON_LEGEND,
-                           color=self.overlayColor,
-                           shape='polygon', fill=True,
-                           replace=False, z=z + 1)
-
-        self._showProfileMainWindow()
-
-    def _showProfileMainWindow(self):
-        """If profile window was created by this toolbar,
-        try to avoid overlapping with the toolbar's parent window.
-        """
-        profileMainWindow = self.getProfileMainWindow()
-        if profileMainWindow is not None:
-            if self.__profileMainWindowNeverShown:
-                # Places the profile window in order to avoid overlapping the plot
-                self.__profileMainWindowNeverShown = False
-                winGeom = self.window().frameGeometry()
-                qapp = qt.QApplication.instance()
-                screenGeom = qapp.desktop().availableGeometry(self)
-                spaceOnLeftSide = winGeom.left()
-                spaceOnRightSide = screenGeom.width() - winGeom.right()
-
-                profileWindowWidth = profileMainWindow.frameGeometry().width()
-                if (profileWindowWidth < spaceOnRightSide):
-                    # Place profile on the right
-                    profileMainWindow.move(winGeom.right(), winGeom.top())
-                elif(profileWindowWidth < spaceOnLeftSide):
-                    # Place profile on the left
-                    profileMainWindow.move(
-                        max(0, winGeom.left() - profileWindowWidth), winGeom.top())
-
-                profileMainWindow.raise_()
-
-            profileMainWindow.show()
-        else:
-            self.getProfilePlot().show()
-            self.getProfilePlot().raise_()
-
+    @deprecated(replacement="clearProfile()", since_version="0.13.0")
     def hideProfileWindow(self):
         """Hide profile window.
         """
-        # this method is currently only used by StackView when the perspective
-        # is changed
-        if self.getProfileMainWindow() is not None:
-            self.getProfileMainWindow().hide()
+        self.clearProfile()
 
+    @deprecated(since_version="0.13.0")
     def setProfileMethod(self, method):
         assert method in ('sum', 'mean')
-        self._method = method
-        self.updateProfile()
+        roi = self._manager.getSelectedRoi()
+        if roi is None:
+            raise RuntimeError("No profile ROI selected")
+        roi.setProfileMethod(method)
 
+    @deprecated(since_version="0.13.0")
     def getProfileMethod(self):
-        return self._method
+        roi = self._manager.getSelectedRoi()
+        if roi is None:
+            raise RuntimeError("No profile ROI selected")
+        return roi.getProfileMethod()
 
+    @deprecated(since_version="0.13.0")
     def getProfileOptionToolAction(self):
-        return self.__profileOptionToolAction
+        return self._editor
 
 
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, stackview=None,
-                 title='Profile Selection'):
+                 title=None):
         """QToolBar providing profile tools for an image or a stack of images.
 
         :param parent: the parent QWidget
@@ -464,67 +237,22 @@ class Profile3DToolBar(ProfileToolBar):
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent,
-                                               plot=stackview.getPlotWidget(),
-                                               title=title)
-        self._method3D = 'sum'
-        self._profileType = None
+                                               plot=stackview.getPlotWidget())
+
+        if title is not None:
+            deprecated_warning("Attribute",
+                               name="title",
+                               reason="removed",
+                               since_version="0.13.0",
+                               only_once=True,
+                               skip_backtrace_count=1)
 
         self.stackView = stackview
         """:class:`StackView` instance"""
 
-        self.profile3dAction = ProfileToolButton(
-            parent=self, plot=self.plot)
-        self.profile3dAction.computeProfileIn2D()
-        self.profile3dAction.setVisible(True)
-        self.addWidget(self.profile3dAction)
-        self.profile3dAction.sigDimensionChanged.connect(self._setProfileType)
-
-        # create the 3D toolbar
-        self._setProfileType(2)
-
-    def _setProfileType(self, dimensions):
-        """Set the profile type: "1D" for a curve (profile on a single image)
-        or "2D" for an image (profile on a stack of images).
-
-        :param int dimensions: 1 for a "1D" profile or 2 for a "2D" profile
-        """
-        # fixme this assumes that we created _profileMainWindow
-        self._profileType = "1D" if dimensions == 1 else "2D"
-        self.getProfileMainWindow().setProfileType(self._profileType)
-        self.updateProfile()
-
-    def updateProfile(self):
-        """Method overloaded from :class:`ProfileToolBar`,
-        to pass the stack of images instead of just the active image.
-
-        In 1D profile mode, use the regular parent method.
-        """
-        if self._profileType == "1D":
-            super(Profile3DToolBar, self).updateProfile()
-        elif self._profileType == "2D":
-            stackData = self.stackView.getCurrentView(copy=False,
-                                                      returnNumpyArray=True)
-            if stackData is None:
-                return
-            self.plot.remove(self._POLYGON_LEGEND, kind='item')
-            self.getProfilePlot().clear()
-            self.getProfilePlot().setGraphTitle('')
-            self.getProfilePlot().getXAxis().setLabel('X')
-            self.getProfilePlot().getYAxis().setLabel('Y')
-            self._createProfile(currentData=stackData[0],
-                                origin=stackData[1]['origin'],
-                                scale=stackData[1]['scale'],
-                                colormap=stackData[1]['colormap'],
-                                z=stackData[1]['z'],
-                                method=self.getProfileMethod())
-        else:
-            raise ValueError(
-                    "Profile type must be 1D or 2D, not %s" % self._profileType)
-
-    def setProfileMethod(self, method):
-        assert method in ('sum', 'mean')
-        self._method3D = method
-        self.updateProfile()
-
-    def getProfileMethod(self):
-        return self._method3D
+    def _createProfileActions(self):
+        self.hLineAction = self._manager.createProfileAction(rois.ProfileImageStackHorizontalLineROI, self)
+        self.vLineAction = self._manager.createProfileAction(rois.ProfileImageStackVerticalLineROI, self)
+        self.lineAction = self._manager.createProfileAction(rois.ProfileImageStackLineROI, self)
+        self.crossAction = self._manager.createProfileAction(rois.ProfileImageStackCrossROI, self)
+        self.clearAction = self._manager.createClearAction(self)

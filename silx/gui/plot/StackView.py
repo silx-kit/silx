@@ -1204,10 +1204,11 @@ class StackViewMainWindow(StackView):
         menu.addAction(profileToolBar.hLineAction)
         menu.addAction(profileToolBar.vLineAction)
         menu.addAction(profileToolBar.lineAction)
+        menu.addAction(profileToolBar.crossAction)
+        menu.addSeparator()
+        menu.addAction(profileToolBar._editor)
         menu.addSeparator()
         menu.addAction(profileToolBar.clearAction)
-        profileToolBar.profile3dAction.computeProfileIn2D()
-        menu.addMenu(profileToolBar.profile3dAction.menu())
 
         # Connect to StackView's signal
         self.valueChanged.connect(self._statusBarSlot)
