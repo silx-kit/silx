@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -183,10 +183,13 @@ def getScalarMappable(colormap, data=None):
         cmap = matplotlib.colors.ListedColormap(colors)
 
     vmin, vmax = colormap.getColormapRange(data)
-    if colormap.getNormalization().startswith('log'):
+    normalization = colormap.getNormalization()
+    if normalization == colormap.LOGARITHM:
         norm = matplotlib.colors.LogNorm(vmin, vmax)
-    else:  # Linear normalization
+    elif normalization == colormap.LINEAR:
         norm = matplotlib.colors.Normalize(vmin, vmax)
+    else:
+        raise RuntimeError("Unsupported normalization: %s" % normalization)
 
     return matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
