@@ -340,10 +340,13 @@ class _Normalization:
 
         Override in subclass.
 
-        :param float value:
-        :rtype: bool
+        :param Union[float,numpy.ndarray] value:
+        :rtype: Union[bool,numpy.ndarray]
         """
-        return True
+        if isinstance(value, collections.abc.Iterable):
+            return numpy.ones_like(value, dtype=numpy.bool_)
+        else:
+            return True
 
     @staticmethod
     def apply(data):
