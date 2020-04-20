@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -386,7 +386,7 @@ class Colormap(event.Notifier, ProgramFunction):
     _declTemplate = string.Template("""
     uniform struct {
         sampler2D texture;
-        bool isLog;
+        int normalization;
         float min;
         float oneOverRange;
     } cmap;
@@ -394,10 +394,17 @@ class Colormap(event.Notifier, ProgramFunction):
     const float oneOverLog10 = 0.43429448190325176;
 
     vec4 colormap(float value) {
-        if (cmap.isLog) { /* Log10 mapping */
+        if (cmap.normalization == 1) { /* Log10 mapping */
             if (value > 0.0) {
                 value = clamp(cmap.oneOverRange *
                               (oneOverLog10 * log(value) - cmap.min),
+                              0.0, 1.0);
+            } else {
+                value = 0.0;
+            }
+        } else if (cmap.normalization == 2) { /* Sqrt mapping */
+            if (value > 0.0) {
+                value = clamp(cmap.oneOverRange * (sqrt(value) - cmap.min),
                               0.0, 1.0);
             } else {
                 value = 0.0;
@@ -421,7 +428,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    NORMS = 'linear', 'log'
+    NORMS = 'linear', 'log', 'sqrt'
     """Tuple of supported normalizations."""
 
     _COLORMAP_TEXTURE_UNIT = 1
@@ -432,7 +439,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
         :param colormap: RGB(A) color look-up table (default: gray)
         :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
-        :param str norm: Normalization to apply: 'linear' (default) or 'log'.
+        :param str norm: Normalization to apply: see :attr:`NORMS`.
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
         """
@@ -482,8 +489,8 @@ class Colormap(event.Notifier, ProgramFunction):
     def norm(self):
         """Normalization to use for colormap mapping.
 
-        Either 'linear' (the default) or 'log' for log10 mapping.
-        With 'log' normalization, values <= 0. are set to 1. (i.e. log == 0)
+        One of 'linear' (the default), 'log' for log10 mapping or 'sqrt'.
+        Invalid values (e.g., negative values with 'log' or 'sqrt') are mapped to 0.
         """
         return self._norm
 
@@ -492,7 +499,7 @@ class Colormap(event.Notifier, ProgramFunction):
         if norm != self._norm:
             assert norm in self.NORMS
             self._norm = norm
-            if norm == 'log':
+            if norm in ('log', 'sqrt'):
                 self.range_ = self.range_  # To test for positive range_
             self.notify()
 
@@ -517,6 +524,10 @@ class Colormap(event.Notifier, ProgramFunction):
                 "Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
             range_ = max(range_[0], minPos), max(range_[1], minPos)
+        elif self.norm == 'sqrt' and (range_[0] < 0. or range_[1] < 0.):
+            _logger.warning(
+                "Sqrt normalization and negative range: updating range.")
+            range_ = max(range_[0], 0.), max(range_[1], 0.)
 
         if range_ != self._range:
             self._range = range_
@@ -551,12 +562,18 @@ class Colormap(event.Notifier, ProgramFunction):
 
         gl.glUniform1i(program.uniforms['cmap.texture'],
                        self._texture.texUnit)
-        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
 
         min_, max_ = self.range_
         if self._norm == 'log':
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
+            normID = 1
+        elif self._norm == 'sqrt':
+            min_, max_ = numpy.sqrt(min_), numpy.sqrt(max_)
+            normID = 2
+        else:  # Linear
+            normID = 0
 
+        gl.glUniform1i(program.uniforms['cmap.normalization'], normID)
         gl.glUniform1f(program.uniforms['cmap.min'], min_)
         gl.glUniform1f(program.uniforms['cmap.oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
