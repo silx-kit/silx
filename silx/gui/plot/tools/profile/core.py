@@ -189,12 +189,12 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     else:
         if start < height and end > 0:
             if method == 'mean':
-                _fct = numpy.mean
+                fct = numpy.mean
             elif method == 'sum':
-                _fct = numpy.sum
+                fct = numpy.sum
             else:
                 raise ValueError('method not managed')
-            profile = _fct(data[:, max(0, start):min(end, height), :], axis=1).astype(numpy.float32)
+            profile = fct(data[:, max(0, start):min(end, height), :], axis=1).astype(numpy.float32)
         else:
             profile = numpy.zeros((nimages, width), dtype=numpy.float32)
 
