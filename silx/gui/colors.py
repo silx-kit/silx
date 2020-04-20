@@ -503,9 +503,9 @@ class Colormap(qt.QObject):
     """constant for square root normalization"""
 
     _NORMALIZATIONS = {
-        LINEAR: _LinearNormalization,
-        LOGARITHM: _LogNormalization,
-        SQRT: _SqrtNormalization,
+        LINEAR: _LinearNormalization(),
+        LOGARITHM: _LogNormalization(),
+        SQRT: _SqrtNormalization(),
         }
     """Descriptions of all normalizations"""
 
