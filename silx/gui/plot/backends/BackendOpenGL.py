@@ -857,17 +857,23 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     'addImage: Convert %s data to float32', str(data.dtype))
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
-            colormapIsLog = colormap.getNormalization() == 'log'
-            cmapRange = colormap.getColormapRange(data=data)
-            colormapLut = colormap.getNColors(nbColors=256)
+            if colormap.getNormalization() in (colormap.LINEAR, colormap.LOGARITHM):
+                # Fast path applying colormap on the GPU
+                colormapIsLog = colormap.getNormalization() == 'log'
+                cmapRange = colormap.getColormapRange(data=data)
+                colormapLut = colormap.getNColors(nbColors=256)
 
-            image = GLPlotColormap(data,
-                                   origin,
-                                   scale,
-                                   colormapLut,
-                                   colormapIsLog,
-                                   cmapRange,
-                                   alpha)
+                image = GLPlotColormap(data,
+                                       origin,
+                                       scale,
+                                       colormapLut,
+                                       colormapIsLog,
+                                       cmapRange,
+                                       alpha)
+
+            else:  # Fallback applying colormap on CPU
+                rgba = colormap.applyToData(data)
+                image = GLPlotRGBAImage(rgba, origin, scale, alpha)
 
         elif len(data.shape) == 3:
             # For RGB, RGBA data
