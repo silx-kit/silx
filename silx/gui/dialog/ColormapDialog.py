@@ -476,7 +476,7 @@ class _ColormapHistogram(qt.QWidget):
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
             elif norm == Colormap.SQRT:
-                return max(0., dataRange[0]), dataRange[2]
+                return dataRange[1], dataRange[2]
             else:
                 _logger.error("Undefined %s normalization", norm)
 
