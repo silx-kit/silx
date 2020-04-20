@@ -491,8 +491,8 @@ class _ColormapHistogram(qt.QWidget):
                 return dataRange[0], dataRange[2]
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
-            elif norm == Colormap.SQRT:  # TODO
-                return dataRange[1], dataRange[2]
+            elif norm == Colormap.SQRT:  # TODO improve
+                return max(0., dataRange[0]), dataRange[2]
             else:
                 _logger.error("Undefined %s normalization", norm)
 
@@ -707,11 +707,21 @@ class _ColormapHistogram(qt.QWidget):
                 self._lutItem2.setSymbol("|")
                 self._lutItem2.setVisible(True)
                 self._lutItem.setVisible(False)
-            elif norm == Colormap.SQRT:  # TODO
-                self._lutItem.setVisible(False)
-                self._lutItem2.setVisible(False)
             else:
-                assert(False)
+                # Fallback: Display with linear axis and applied normalization
+                self._lutItem2.setVisible(False)
+                normColormap.setNormalization(norm)
+                self._lutItem2.setColormap(normColormap)
+                xx = numpy.linspace(posMin, posMax, 256, endpoint=True)
+                self._lutItem2.setData(
+                    x=xx,
+                    y=self.__lutY,
+                    value=self.__lutV,
+                    copy=False)
+                self._lutItem2.setSymbol("|")
+                self._lutItem2.setVisible(True)
+                self._lutItem.setVisible(False)
+
             self._bound.setBounds((posMin, posMax, -0.1, 1))
 
     def _plotMinMarkerConstraint(self, x, y):
