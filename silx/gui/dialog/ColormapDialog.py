@@ -431,18 +431,13 @@ class _ColormapHistogram(qt.QWidget):
         histo = self.parent()._getHistogram()
         if histo is not None:
             counts, edges = histo
-            if norm == Colormap.LINEAR:
-                return counts, edges
-            elif norm == Colormap.LOGARITHM:
-                ipositive = numpy.argmax(edges > 0)
-                if edges[ipositive] > 0:
-                    counts = counts[ipositive:]
-                    edges = edges[ipositive:]
-                    return counts, edges
-                else:
-                    return None, None
-            else:
-                _logger.error("Undefined %s normalization", norm)
+            normalizer = Colormap(normalization=norm)._getNormalizer()
+            mask = normalizer.isValid(edges[:-1])  # Check lower bin edges only
+            firstValid = numpy.argmax(mask)  # edges increases monotonically
+            if firstValid == 0:  # Mask is all False or all True
+                return (counts, edges) if mask[0] else (None, None)
+            else:  # Clip to valid values
+                return counts[firstValid:], edges[firstValid:]
 
         data = self.parent()._getArray()
         if data is None:
@@ -480,6 +475,8 @@ class _ColormapHistogram(qt.QWidget):
                 return dataRange[0], dataRange[2]
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
+            elif norm == Colormap.SQRT:
+                return dataRange[1], dataRange[2]
             else:
                 _logger.error("Undefined %s normalization", norm)
 
@@ -487,13 +484,13 @@ class _ColormapHistogram(qt.QWidget):
         histo = self.parent()._getHistogram()
         if histo is not None:
             _histo, edges = histo
-            dataRange = min_max(edges, min_positive=True, finite=True)
-            if norm == Colormap.LINEAR:
-                return dataRange.minimum, dataRange.maximum
-            elif norm == Colormap.LOGARITHM:
-                return dataRange.min_positive, dataRange.maximum
+            normalizer = Colormap(normalization=norm)._getNormalizer()
+            edges = edges[normalizer.isValid(edges)]
+            if edges.size == 0:
+                return None, None
             else:
-                _logger.error("Undefined %s normalization", norm)
+                dataRange = min_max(edges, finite=True)
+                return dataRange.minimum, dataRange.maximum
 
         item = self.parent()._getItem()
         if item is not None:
@@ -691,7 +688,20 @@ class _ColormapHistogram(qt.QWidget):
                 self._lutItem2.setVisible(True)
                 self._lutItem.setVisible(False)
             else:
-                assert(False)
+                # Fallback: Display with linear axis and applied normalization
+                self._lutItem2.setVisible(False)
+                normColormap.setNormalization(norm)
+                self._lutItem2.setColormap(normColormap)
+                xx = numpy.linspace(posMin, posMax, 256, endpoint=True)
+                self._lutItem2.setData(
+                    x=xx,
+                    y=self.__lutY,
+                    value=self.__lutV,
+                    copy=False)
+                self._lutItem2.setSymbol("|")
+                self._lutItem2.setVisible(True)
+                self._lutItem.setVisible(False)
+
             self._bound.setBounds((posMin, posMax, -0.1, 1))
 
     def _plotMinMarkerConstraint(self, x, y):
@@ -844,22 +854,12 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxColormap.currentIndexChanged[int].connect(self._comboBoxColormapUpdated)
 
         # Normalization row
-        self._normButtonLinear = qt.QRadioButton('Linear')
-        self._normButtonLinear.setChecked(True)
-        self._normButtonLog = qt.QRadioButton('Log')
-
-        normButtonGroup = qt.QButtonGroup(self)
-        normButtonGroup.setExclusive(True)
-        normButtonGroup.addButton(self._normButtonLinear)
-        normButtonGroup.addButton(self._normButtonLog)
-        normButtonGroup.buttonClicked[qt.QAbstractButton].connect(self._normalizationUpdated)
-        self._normButtonGroup = normButtonGroup
-
-        normLayout = qt.QHBoxLayout()
-        normLayout.setContentsMargins(0, 0, 0, 0)
-        normLayout.setSpacing(10)
-        normLayout.addWidget(self._normButtonLinear)
-        normLayout.addWidget(self._normButtonLog)
+        self._comboBoxNormalization = qt.QComboBox(parent=self)
+        self._comboBoxNormalization.addItem('Linear', Colormap.LINEAR)
+        self._comboBoxNormalization.addItem('Logarithmic', Colormap.LOGARITHM)
+        self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
+        self._comboBoxNormalization.currentIndexChanged[int].connect(
+            self._normalizationUpdated)
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
@@ -926,7 +926,7 @@ class ColormapDialog(qt.QDialog):
         formLayout = qt.QFormLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
-        formLayout.addRow('Normalization:', normLayout)
+        formLayout.addRow('Normalization:', self._comboBoxNormalization)
         formLayout.addRow(self._histoWidget)
         formLayout.addRow(rangeLayout)
         label = qt.QLabel('Mode:', self)
@@ -938,9 +938,8 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
 
-        self.setTabOrder(self._comboBoxColormap, self._normButtonLinear)
-        self.setTabOrder(self._normButtonLinear, self._normButtonLog)
-        self.setTabOrder(self._normButtonLog, self._minValue)
+        self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
+        self.setTabOrder(self._comboBoxNormalization, self._minValue)
         self.setTabOrder(self._minValue, self._maxValue)
         self.setTabOrder(self._maxValue, self._autoButtons)
         self.setTabOrder(self._autoButtons, self._autoScaleCombo)
@@ -1111,7 +1110,7 @@ class ColormapDialog(qt.QDialog):
         # bad hack: get 256 bins in the case we have a B&W
         if numpy.issubdtype(data.dtype, numpy.integer):
             if nbins > xmax - xmin:
-                nbins = xmax - xmin
+                nbins = int(xmax - xmin)
 
         nbins = max(2, nbins)
         data = data.ravel().astype(numpy.float32)
@@ -1369,8 +1368,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is None:
             self._comboBoxColormap.setEnabled(False)
-            self._normButtonLinear.setEnabled(False)
-            self._normButtonLog.setEnabled(False)
+            self._comboBoxNormalization.setEnabled(False)
             self._autoScaleCombo.setEnabled(False)
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
@@ -1383,12 +1381,15 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._comboBoxColormap):
                 self._comboBoxColormap.setCurrentLut(colormap)
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
-            with utils.blockSignals(self._normButtonGroup):
-                norm = colormap.getNormalization()
-                self._normButtonLinear.setChecked(norm == Colormap.LINEAR)
-                self._normButtonLog.setChecked(norm == Colormap.LOGARITHM)
-                self._normButtonLinear.setEnabled(colormap.isEditable())
-                self._normButtonLog.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._comboBoxNormalization):
+                index = self._comboBoxNormalization.findData(
+                    colormap.getNormalization())
+                if index < 0:
+                    _logger.error('Unsupported normalization: %s' %
+                                  colormap.getNormalization())
+                else:
+                    self._comboBoxNormalization.setCurrentIndex(index)
+                self._comboBoxNormalization.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
@@ -1452,24 +1453,15 @@ class ColormapDialog(qt.QDialog):
 
         self._updateWidgetRange()
 
-    def _normalizationUpdated(self, button):
+    def _normalizationUpdated(self, index):
         """Callback executed when the normalization widget
         is updated by user input.
         """
-        if not button.isChecked():
-            return
-
-        if button is self._normButtonLinear:
-            norm = Colormap.LINEAR
-        elif button is self._normButtonLog:
-            norm = Colormap.LOGARITHM
-        else:
-            assert(False)
-
         colormap = self.getColormap()
         if colormap is not None:
             with self._colormapChange:
-                colormap.setNormalization(norm)
+                colormap.setNormalization(
+                    self._comboBoxNormalization.itemData(index))
                 self._histoWidget.updateNormalization()
 
         self._updateWidgetRange()

@@ -109,10 +109,6 @@ DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
 DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
-DEFAULT_MIN_LOG = 1
-"""Default min value if in log normalization"""
-DEFAULT_MAX_LOG = 10
-"""Default max value if in log normalization"""
 
 
 def rgba(color, colorDict=None):
@@ -330,6 +326,150 @@ def _getColormap(name):
     return _COLORMAP_CACHE[name]
 
 
+# Normalizations
+
+class _Normalization:
+    """Base class for describing a colormap normalization"""
+
+    DEFAULT_RANGE = 0, 1
+    """Fallback for (vmin, vmax)"""
+
+    def isValid(self, value):
+        """Check if a value is in the valid range for this normalization.
+
+        Override in subclass.
+
+        :param Union[float,numpy.ndarray] value:
+        :rtype: Union[bool,numpy.ndarray]
+        """
+        if isinstance(value, collections.abc.Iterable):
+            return numpy.ones_like(value, dtype=numpy.bool_)
+        else:
+            return True
+
+    def apply(self, data):
+        """Apply normalization.
+
+        Override in subclass.
+
+        :param Union[float,numpy.ndarray] data:
+        :rtype: Union[float,numpy.ndarray]
+        """
+        return data
+
+    def revert(self, data):
+        """Revert normalization.
+
+        Override in subclass.
+
+        :param Union[float,numpy.ndarray] data:
+        :rtype: Union[float,numpy.ndarray]
+        """
+        return data
+
+    def autoscale(self, data, mode):
+        """Returns range for given data and autoscale mode.
+
+        :param Union[None,numpy.ndarray] data:
+        :param str mode: Autoscale mode, see :class:`Colormap`
+        :returns: Range as (min, max)
+        :rtype: Tuple[float,float]
+        """
+        data = None if data is None else numpy.array(data, copy=False)
+        if data is None or data.size == 0:
+            return self.DEFAULT_RANGE
+
+        if mode == Colormap.MINMAX:
+            vmin, vmax = self.autoscaleMinMax(data)
+        elif mode == Colormap.STDDEV3:
+            vmin, vmax = self.autoscaleMean3Std(data)
+        else:
+            raise ValueError('Unsupported mode: %s' % mode)
+
+        # Check returned range and handle fallbacks
+        if vmin is None or not numpy.isfinite(vmin):
+            vmin = self.DEFAULT_RANGE[0]
+        if vmax is None or not numpy.isfinite(vmax):
+            vmax = self.DEFAULT_RANGE[1]
+        if vmax < vmin:
+            vmax = vmin
+        return float(vmin), float(vmax)
+
+    def autoscaleMinMax(self, data):
+        """Autoscale using min/max
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        vmin, vmax = min_max(self.apply(data), min_positive=False, finite=True)
+        return (None if vmin is None else self.revert(vmin),
+                None if vmax is None else self.revert(vmax))
+
+    def autoscaleMean3Std(self, data):
+        """Autoscale using mean+/-3std
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        normdata = self.apply(data)
+        if normdata.dtype.kind == 'f':  # Replaces inf by NaN
+            normdata[numpy.isfinite(normdata) == False] = numpy.nan
+        if normdata.size == 0:  # Fallback
+            return None, None
+        mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+        return self.revert(mean - 3 * std), self.revert(mean + 3 * std)
+
+
+class _LinearNormalization(_Normalization):
+    """Linear normalization"""
+    pass
+
+
+class _LogNormalization(_Normalization):
+    """Logarithm normalization"""
+
+    DEFAULT_RANGE = 1, 10
+
+    def isValid(self, value):
+        return value > 0.
+
+    def apply(self, data):
+        with numpy.errstate(divide='ignore', invalid='ignore'):
+            return numpy.log10(data)
+
+    def revert(self, data):
+        return 10**data
+
+    def autoscaleMinMax(self, data):
+        result = min_max(data, min_positive=True, finite=True)
+        return result.min_positive, result.maximum
+
+
+class _SqrtNormalization(_Normalization):
+    """Square root normalization"""
+
+    DEFAULT_RANGE = 0, 1
+
+    def isValid(self, value):
+        return value >= 0.
+
+    def apply(self, data):
+        with numpy.errstate(invalid='ignore'):
+            return numpy.sqrt(data)
+
+    def revert(self, data):
+        return data**2
+
+    def autoscaleMinMax(self, data):
+        data = data[data >= 0]
+        if data.size == 0:
+            return None, None
+        result = min_max(data, min_positive=False, finite=True)
+        return result.min_positive, result.maximum
+
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -353,7 +493,17 @@ class Colormap(qt.QObject):
     LOGARITHM = 'log'
     """constant for logarithmic normalization"""
 
-    NORMALIZATIONS = (LINEAR, LOGARITHM)
+    SQRT = 'sqrt'
+    """constant for square root normalization"""
+
+    _NORMALIZATIONS = {
+        LINEAR: _LinearNormalization(),
+        LOGARITHM: _LogNormalization(),
+        SQRT: _SqrtNormalization(),
+        }
+    """Descriptions of all normalizations"""
+
+    NORMALIZATIONS = tuple(_NORMALIZATIONS.keys())
     """Tuple of managed normalizations"""
 
     MINMAX = 'minmax'
@@ -515,7 +665,9 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     def getNormalization(self):
-        """Return the normalization of the colormap ('log' or 'linear')
+        """Return the normalization of the colormap.
+
+        See :meth:`setNormalization` for returned values.
 
         :return: the normalization of the colormap
         :rtype: str
@@ -523,10 +675,13 @@ class Colormap(qt.QObject):
         return self._normalization
 
     def setNormalization(self, norm):
-        """Set the norm ('log', 'linear')
+        """Set the colormap normalization.
+
+        Accepted normalizations: 'log', 'linear', 'sqrt'
 
         :param str norm: the norm to set
         """
+        assert norm in self.NORMALIZATIONS
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
         self._normalization = str(norm)
@@ -624,43 +779,18 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
+    def _getNormalizer(self):
+        """Returns normalizer object"""
+        return self._NORMALIZATIONS[self.getNormalization()]
+
     def _computeAutoscaleRange(self, data):
         """Compute the data range which will be used in autoscale mode.
 
         :param numpy.ndarray data: The data for which to compute the range
-        :return: (vmin, vmax) range (vmin and /or vmax might be `None`)
+        :return: (vmin, vmax) range
         """
-        if data is None:
-            return None, None
-        if data.size == 0:
-            return None, None
-
-        if self.getNormalization() == Colormap.LOGARITHM:
-            if self._autoscaleMode == Colormap.MINMAX:
-                result = min_max(data, min_positive=True, finite=True)
-                vMin = result.min_positive  # >0 or None
-                vMax = result.maximum  # can be <= 0
-            elif self._autoscaleMode == Colormap.STDDEV3:
-                with numpy.errstate(divide='ignore', invalid='ignore'):
-                    normdata = numpy.log10(data)
-                    # log(0) became inf, which fail computing further statistics
-                    normdata[numpy.isfinite(normdata) == False] = numpy.nan
-                mean = numpy.nanmean(normdata)
-                std = numpy.nanstd(normdata)
-                vMin = float(10**(mean - 3 * std))
-                vMax = float(10**(mean + 3 * std))
-            else:
-                assert False
-        else:
-            if self._autoscaleMode == Colormap.MINMAX:
-                vMin, vMax = min_max(data, min_positive=False, finite=True)
-            elif self._autoscaleMode == Colormap.STDDEV3:
-                mean = numpy.nanmean(data)
-                std = numpy.nanstd(data)
-                vMin, vMax = float(mean - 3 * std), float(mean + 3 * std)
-            else:
-                assert False
-        return vMin, vMax
+        return self._getNormalizer().autoscale(
+            data, mode=self.getAutoscaleMode())
 
     def getColormapRange(self, data=None):
         """Return (vmin, vmax) the range of the colormap for the given data or item.
@@ -674,33 +804,28 @@ class Colormap(qt.QObject):
         vmax = self._vmax
         assert vmin is None or vmax is None or vmin <= vmax  # TODO handle this in setters
 
-        if self.getNormalization() == self.LOGARITHM:
-            # Handle negative bounds as autoscale
-            if vmin is not None and vmin <= 0.:
-                mess = 'negative vmin, moving to autoscale for lower bound'
-                _logger.warning(mess)
-                vmin = None
-            if vmax is not None and vmax <= 0.:
-                mess = 'negative vmax, moving to autoscale for upper bound'
-                _logger.warning(mess)
-                vmax = None
+        normalizer = self._getNormalizer()
+
+        # Handle invalid bounds as autoscale
+        if vmin is not None and not normalizer.isValid(vmin):
+            _logger.info(
+                'Invalid vmin, switching to autoscale for lower bound')
+            vmin = None
+        if vmax is not None and not normalizer.isValid(vmax):
+            _logger.info(
+                'Invalid vmax, switching to autoscale for upper bound')
+            vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
-            # Get min/max from data
-            if data is not None:
-                from .plot.items.core import ColormapMixIn  # avoid cyclic import
-                if isinstance(data, ColormapMixIn):
-                    min_, max_ = data._getColormapAutoscaleRange(self)
-                else:
-                    data = numpy.array(data, copy=False)
-                    min_, max_ = self._computeAutoscaleRange(data)
-                # Handle fallback
-                if min_ is None or not numpy.isfinite(min_):
-                    min_ = self._getDefaultMin()
-                if max_ is None or not numpy.isfinite(max_):
-                    max_ = self._getDefaultMax()
-            else:  # Fallback if no data is provided
-                min_, max_ = self._getDefaultMin(), self._getDefaultMax()
+            from .plot.items.core import ColormapMixIn  # avoid cyclic import
+            if isinstance(data, ColormapMixIn):
+                min_, max_ = data._getColormapAutoscaleRange(self)
+                # Make sure min_, max_ are not None
+                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+            else:
+                min_, max_ = normalizer.autoscale(
+                    data, mode=self.getAutoscaleMode())
 
             if vmin is None:  # Set vmin respecting provided vmax
                 vmin = min_ if vmax is None else min(min_, vmax)
@@ -773,9 +898,9 @@ class Colormap(qt.QObject):
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
-            'normalization': self._normalization,
-            'autoscaleMode': self._autoscaleMode
-        }
+            'normalization': self.getNormalization(),
+            'autoscaleMode': self.getAutoscaleMode(),
+            }
 
     def _setFromDict(self, dic):
         """Set values to the colormap from a dictionary
@@ -844,8 +969,8 @@ class Colormap(qt.QObject):
                         colors=self.getColormapLUT(),
                         vmin=self._vmin,
                         vmax=self._vmax,
-                        normalization=self._normalization,
-                        autoscaleMode=self._autoscaleMode)
+                        normalization=self.getNormalization(),
+                        autoscaleMode=self.getAutoscaleMode())
 
     def applyToData(self, data, reference=None):
         """Apply the colormap to the data
@@ -888,12 +1013,6 @@ class Colormap(qt.QObject):
 
     def __str__(self):
         return str(self._toDict())
-
-    def _getDefaultMin(self):
-        return DEFAULT_MIN_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MIN_LOG
-
-    def _getDefaultMax(self):
-        return DEFAULT_MAX_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MAX_LOG
 
     def __eq__(self, other):
         """Compare colormap values and not pointers"""
