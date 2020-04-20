@@ -165,7 +165,7 @@ class GLPlotColormap(_GLPlotData2D):
     uniform sampler2D data;
     uniform struct {
         sampler2D texture;
-        bool isLog;
+        int normalization;
         float min;
         float oneOverRange;
     } cmap;
@@ -179,7 +179,7 @@ class GLPlotColormap(_GLPlotData2D):
 
     void main(void) {
         float value = texture2D(data, textureCoords()).r;
-        if (cmap.isLog) {
+        if (cmap.normalization == 1) { /*Logarithm mapping*/
             if (value > 0.) {
                 value = clamp(cmap.oneOverRange *
                               (oneOverLog10 * log(value) - cmap.min),
@@ -187,7 +187,14 @@ class GLPlotColormap(_GLPlotData2D):
             } else {
                 value = 0.;
             }
-        } else { /*Linear mapping*/
+        } else if (cmap.normalization == 2) { /*Square root mapping*/
+            if (value >= 0.) {
+                value = clamp(cmap.oneOverRange * (sqrt(value) - cmap.min),
+                              0., 1.);
+            } else {
+                value = 0.;
+            }
+        } else { /*Linear mapping and fallback*/
             value = clamp(cmap.oneOverRange * (value - cmap.min), 0., 1.);
         }
 
@@ -217,8 +224,10 @@ class GLPlotColormap(_GLPlotData2D):
                           _SHADERS['log']['fragTransform'],
                           attrib0='position')
 
+    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt'
+
     def __init__(self, data, origin, scale,
-                 colormap, cmapIsLog=False, cmapRange=None,
+                 colormap, normalization='linear', cmapRange=None,
                  alpha=1.0):
         """Create a 2D colormap
 
@@ -231,7 +240,8 @@ class GLPlotColormap(_GLPlotData2D):
         :type scale: 2-tuple of floats.
         :param str colormap: Name of the colormap to use
             TODO: Accept a 1D scalar array as the colormap
-        :param bool cmapIsLog: If True, uses log10 of the data value
+        :param str normalization: The colormap normalization.
+            One of: 'linear', 'log', 'sqrt'
         :param cmapRange: The range of colormap or None for autoscale colormap
             For logarithmic colormap, the range is in the untransformed data
             TODO: check consistency with matplotlib
@@ -239,10 +249,11 @@ class GLPlotColormap(_GLPlotData2D):
         :param float alpha: Opacity from 0 (transparent) to 1 (opaque)
         """
         assert data.dtype in self._INTERNAL_FORMATS
+        assert normalization in self.SUPPORTED_NORMALIZATIONS
 
         super(GLPlotColormap, self).__init__(data, origin, scale)
         self.colormap = numpy.array(colormap, copy=False)
-        self.cmapIsLog = cmapIsLog
+        self.normalization = normalization
         self._cmapRange = (1., 10.)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
@@ -263,8 +274,10 @@ class GLPlotColormap(_GLPlotData2D):
 
     @property
     def cmapRange(self):
-        if self.cmapIsLog:
+        if self.normalization == 'log':
             assert self._cmapRange[0] > 0. and self._cmapRange[1] > 0.
+        elif self.normalization == 'sqrt':
+            assert self._cmapRange[0] >= 0. and self._cmapRange[1] > 0.
         return self._cmapRange
 
     @cmapRange.setter
@@ -326,13 +339,20 @@ class GLPlotColormap(_GLPlotData2D):
             maxInt = float(numpy.iinfo(self.data.dtype).max)
             dataMin, dataMax = dataMin / maxInt, dataMax / maxInt
 
-        if self.cmapIsLog:
+        if self.normalization == 'log':
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
+            normID = 1
+        elif self.normalization == 'sqrt':
+            dataMin = math.sqrt(dataMin)
+            dataMax = math.sqrt(dataMax)
+            normID = 2
+        else:  # Linear and fallback
+            normID = 0
 
         gl.glUniform1i(prog.uniforms['cmap.texture'],
                        self._cmap_texture.texUnit)
-        gl.glUniform1i(prog.uniforms['cmap.isLog'], self.cmapIsLog)
+        gl.glUniform1i(prog.uniforms['cmap.normalization'], normID)
         gl.glUniform1f(prog.uniforms['cmap.min'], dataMin)
         if dataMax > dataMin:
             oneOverRange = 1. / (dataMax - dataMin)

@@ -857,9 +857,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     'addImage: Convert %s data to float32', str(data.dtype))
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
-            if colormap.getNormalization() in (colormap.LINEAR, colormap.LOGARITHM):
+            normalization = colormap.getNormalization()
+            if normalization in GLPlotColormap.SUPPORTED_NORMALIZATIONS:
                 # Fast path applying colormap on the GPU
-                colormapIsLog = colormap.getNormalization() == 'log'
                 cmapRange = colormap.getColormapRange(data=data)
                 colormapLut = colormap.getNColors(nbColors=256)
 
@@ -867,7 +867,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                        origin,
                                        scale,
                                        colormapLut,
-                                       colormapIsLog,
+                                       normalization,
                                        cmapRange,
                                        alpha)
 
