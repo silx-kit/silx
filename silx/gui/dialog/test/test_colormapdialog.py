@@ -76,7 +76,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         self.colormapDiag._comboBoxColormap._setCurrentName('red')
-        self.colormapDiag._normButtonLog.click()
+        self.colormapDiag._comboBoxNormalization.setCurrentIndex(
+            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM))
         self.assertTrue(self.colormap.getName() == 'red')
         self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
         self.assertTrue(self.colormap.getNormalization() == 'log')
@@ -84,7 +85,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMax() == 20)
         # checked second colormap dialog
         self.assertTrue(colormapDiag2._comboBoxColormap.getCurrentName() == 'red')
-        self.assertTrue(colormapDiag2._normButtonLog.isChecked())
+        self.assertEqual(colormapDiag2._comboBoxNormalization.currentData(),
+                         Colormap.LOGARITHM)
         self.assertTrue(int(colormapDiag2._minValue.getValue()) == 10)
         self.assertTrue(int(colormapDiag2._maxValue.getValue()) == 20)
         colormapDiag2.close()
@@ -182,8 +184,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                 self.colormap.setNormalization(norm)
                 with self.subTest(colormap=self.colormap):
                     self.colormapDiag.setColormap(self.colormap)
-                    self.assertTrue(
-                        self.colormapDiag._normButtonLinear.isChecked() == (norm is Colormap.LINEAR))
+                    self.assertEqual(
+                        self.colormapDiag._comboBoxNormalization.currentData(), norm)
                     self.assertTrue(
                         self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
                     self.assertTrue(
@@ -220,7 +222,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(
             self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
         self.colormap.setNormalization(Colormap.LOGARITHM)
-        self.assertFalse(self.colormapDiag._normButtonLinear.isChecked())
+        self.assertEqual(self.colormapDiag._comboBoxNormalization.currentData(),
+                         Colormap.LOGARITHM)
         self.colormap.setVRange(11, 201)
         self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
         self.assertTrue(self.colormapDiag._maxValue.getValue() == 201)
@@ -294,15 +297,14 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                 self.assertTrue(
                     self.colormapDiag._maxValue.isEnabled() is editable)
                 self.assertTrue(
-                    self.colormapDiag._normButtonLinear.isEnabled() is editable)
-                self.assertTrue(
-                    self.colormapDiag._normButtonLog.isEnabled() is editable)
+                    self.colormapDiag._comboBoxNormalization.isEnabled() is editable)
 
         # Make sure the reset button is also set to enable when edition mode is
         # False
         self.colormapDiag.setModal(False)
         colormap.setEditable(True)
-        self.colormapDiag._normButtonLog.click()
+        self.colormapDiag._comboBoxNormalization.setCurrentIndex(
+            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM))
         resetButton = self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
         self.assertTrue(resetButton.isEnabled())
         colormap.setEditable(False)

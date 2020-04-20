@@ -376,6 +376,7 @@ class _Normalization:
         :returns: Range as (min, max)
         :rtype: List[float]
         """
+        data = None if data is None else numpy.array(data, copy=False)
         if data is None or data.size == 0:
             return cls.DEFAULT_RANGE
 
@@ -825,6 +826,9 @@ class Colormap(qt.QObject):
             from .plot.items.core import ColormapMixIn  # avoid cyclic import
             if isinstance(data, ColormapMixIn):
                 min_, max_ = data._getColormapAutoscaleRange(self)
+                # Make sure min_, max_ are not None
+                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
             else:
                 min_, max_ = normalizer.autoscale(
                     data, mode=self.getAutoscaleMode())
