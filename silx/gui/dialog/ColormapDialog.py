@@ -1110,7 +1110,7 @@ class ColormapDialog(qt.QDialog):
         # bad hack: get 256 bins in the case we have a B&W
         if numpy.issubdtype(data.dtype, numpy.integer):
             if nbins > xmax - xmin:
-                nbins = xmax - xmin
+                nbins = int(xmax - xmin)
 
         nbins = max(2, nbins)
         data = data.ravel().astype(numpy.float32)
