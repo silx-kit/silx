@@ -419,7 +419,7 @@ class _Normalization:
         """
         normdata = cls.apply(data)
         if normdata.dtype.kind == 'f':  # Replaces inf by NaN
-            normdata[numpy.isfinite(data) == False] = numpy.nan
+            normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
         mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
