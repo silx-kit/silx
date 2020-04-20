@@ -377,7 +377,7 @@ class _Normalization:
         :param Union[None,numpy.ndarray] data:
         :param str mode: Autoscale mode, see :class:`Colormap`
         :returns: Range as (min, max)
-        :rtype: List[float]
+        :rtype: Tuple[float,float]
         """
         data = None if data is None else numpy.array(data, copy=False)
         if data is None or data.size == 0:
@@ -405,6 +405,7 @@ class _Normalization:
 
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
         """
         vmin, vmax = min_max(cls.apply(data), min_positive=False, finite=True)
         return (None if vmin is None else cls.revert(vmin),
@@ -416,6 +417,7 @@ class _Normalization:
 
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
         """
         normdata = cls.apply(data)
         if normdata.dtype.kind == 'f':  # Replaces inf by NaN
