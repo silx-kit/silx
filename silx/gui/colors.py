@@ -820,11 +820,11 @@ class Colormap(qt.QObject):
 
         # Handle invalid bounds as autoscale
         if vmin is not None and not normalizer.isValid(vmin):
-            _logger.warning(
+            _logger.info(
                 'Invalid vmin, switching to autoscale for lower bound')
             vmin = None
         if vmax is not None and not normalizer.isValid(vmax):
-            _logger.warning(
+            _logger.info(
                 'Invalid vmax, switching to autoscale for upper bound')
             vmax = None
 
