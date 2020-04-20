@@ -154,6 +154,9 @@ def dicttoh5(treedict, h5file, h5path='/',
     any other data type, it is cast into a numpy array and written as a
     :mod:`h5py` dataset. Dictionary keys must be strings and cannot contain
     the ``/`` character.
+    
+    If dictionary keys are tuples they are interpreted to set h5 attributes.
+    The tuples should have the format (dataset_name,attr_name)
 
     .. note::
 
@@ -207,7 +210,7 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
-        for key in treedict:
+        for key in filter(lambda k: not isinstance(k, tuple), treedict):
             if isinstance(treedict[key], dict) and len(treedict[key]):
                 # non-empty group: recurse
                 dicttoh5(treedict[key], h5f, h5path + key,
@@ -252,6 +255,53 @@ def dicttoh5(treedict, h5file, h5path='/',
                     h5f.create_dataset(h5path + key,
                                        data=ds,
                                        **create_dataset_args)
+
+        # deal with h5 attributes which have tuples as keys in treedict
+        for key in filter(lambda k: isinstance(k, tuple), treedict):
+            if (key[0] == "" or key[0] in treedict) and (h5path + key[0]) in h5f:
+                h5f[h5path + key[0]].attrs[key[1]] = treedict[key]
+            else:
+                # TODO: What to do in this case?
+                # how permissive should this be?
+                logger.warning(
+                    "key (%s) does not exist. "
+                    "attr %s not written." % (h5path + key[0], key[1])
+                )
+
+
+def dicttonx(
+    treedict,
+    h5file,
+    h5path="/",
+    mode="w",
+    overwrite_data=False,
+    create_dataset_args=None,
+):
+    """ToDo: add meaningful doc string"""
+
+    def copy_keys_keep_values(original):
+        # create a new treedict with with modified keys but keep values
+        copy = dict()
+        for key, value in original.items():
+            if "@" in key:
+                newkey = tuple(key.rsplit("@", 1))
+            else:
+                newkey = key
+            if isinstance(value, dict):
+                copy[newkey] = copy_keys_keep_values(value)
+            else:
+                copy[newkey] = value
+        return copy
+
+    nxtreedict = copy_keys_keep_values(treedict)
+    dicttoh5(
+        nxtreedict,
+        h5file,
+        h5path=h5path,
+        mode=mode,
+        overwrite_data=overwrite_data,
+        create_dataset_args=create_dataset_args,
+    )
 
 
 def _name_contains_string_in_list(name, strlist):
