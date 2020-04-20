@@ -431,29 +431,13 @@ class _ColormapHistogram(qt.QWidget):
         histo = self.parent()._getHistogram()
         if histo is not None:
             counts, edges = histo
-            if norm == Colormap.LINEAR:
-                return counts, edges
-
-            elif norm == Colormap.LOGARITHM:
-                ipositive = numpy.argmax(edges > 0)
-                if edges[ipositive] > 0:
-                    counts = counts[ipositive:]
-                    edges = edges[ipositive:]
-                    return counts, edges
-                else:
-                    return None, None
-
-            elif norm == Colormap.SQRT:
-                ipositive = numpy.argmax(edges >= 0)
-                if edges[ipositive] >= 0:
-                    counts = counts[ipositive:]
-                    edges = edges[ipositive:]
-                    return counts, edges
-                else:
-                    return None, None
-
-            else:
-                _logger.error("Undefined %s normalization", norm)
+            normalizer = Colormap(normalization=norm)._getNormalizer()
+            mask = normalizer.isValid(edges[:-1])  # Check lower bin edges only
+            firstValid = numpy.argmax(mask)  # edges increases monotonically
+            if firstValid == 0:  # Mask is all False or all True
+                return (counts, edges) if mask[0] else (None, None)
+            else:  # Clip to valid values
+                return counts[firstValid:], edges[firstValid:]
 
         data = self.parent()._getArray()
         if data is None:
@@ -491,7 +475,7 @@ class _ColormapHistogram(qt.QWidget):
                 return dataRange[0], dataRange[2]
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
-            elif norm == Colormap.SQRT:  # TODO improve
+            elif norm == Colormap.SQRT:
                 return max(0., dataRange[0]), dataRange[2]
             else:
                 _logger.error("Undefined %s normalization", norm)
@@ -500,17 +484,13 @@ class _ColormapHistogram(qt.QWidget):
         histo = self.parent()._getHistogram()
         if histo is not None:
             _histo, edges = histo
-            if norm == Colormap.LINEAR:
-                dataRange = min_max(edges, min_positive=False, finite=True)
-                return dataRange.minimum, dataRange.maximum
-            elif norm == Colormap.LOGARITHM:
-                dataRange = min_max(edges, min_positive=True, finite=True)
-                return dataRange.min_positive, dataRange.maximum
-            elif norm == Colormap.SQRT:
-                dataRange = min_max(edges[edges >= 0], min_positive=False, finite=True)
-                return dataRange.minimum, dataRange.maximum
+            normalizer = Colormap(normalization=norm)._getNormalizer()
+            edges = edges[normalizer.isValid(edges)]
+            if edges.size == 0:
+                return None, None
             else:
-                _logger.error("Undefined %s normalization", norm)
+                dataRange = min_max(edges, finite=True)
+                return dataRange.minimum, dataRange.maximum
 
         item = self.parent()._getItem()
         if item is not None:
