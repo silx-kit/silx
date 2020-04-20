@@ -334,8 +334,7 @@ class _Normalization:
     DEFAULT_RANGE = 0, 1
     """Fallback for (vmin, vmax)"""
 
-    @staticmethod
-    def isValid(value):
+    def isValid(self, value):
         """Check if a value is in the valid range for this normalization.
 
         Override in subclass.
@@ -348,8 +347,7 @@ class _Normalization:
         else:
             return True
 
-    @staticmethod
-    def apply(data):
+    def apply(self, data):
         """Apply normalization.
 
         Override in subclass.
@@ -359,8 +357,7 @@ class _Normalization:
         """
         return data
 
-    @staticmethod
-    def revert(data):
+    def revert(self, data):
         """Revert normalization.
 
         Override in subclass.
@@ -370,60 +367,59 @@ class _Normalization:
         """
         return data
 
-    @classmethod
-    def autoscale(cls, data, mode):
+    def autoscale(self, data, mode):
         """Returns range for given data and autoscale mode.
 
         :param Union[None,numpy.ndarray] data:
         :param str mode: Autoscale mode, see :class:`Colormap`
         :returns: Range as (min, max)
-        :rtype: List[float]
+        :rtype: Tuple[float,float]
         """
         data = None if data is None else numpy.array(data, copy=False)
         if data is None or data.size == 0:
-            return cls.DEFAULT_RANGE
+            return self.DEFAULT_RANGE
 
         if mode == Colormap.MINMAX:
-            vmin, vmax = cls.autoscaleMinMax(data)
+            vmin, vmax = self.autoscaleMinMax(data)
         elif mode == Colormap.STDDEV3:
-            vmin, vmax = cls.autoscaleMean3Std(data)
+            vmin, vmax = self.autoscaleMean3Std(data)
         else:
             raise ValueError('Unsupported mode: %s' % mode)
 
         # Check returned range and handle fallbacks
         if vmin is None or not numpy.isfinite(vmin):
-            vmin = cls.DEFAULT_RANGE[0]
+            vmin = self.DEFAULT_RANGE[0]
         if vmax is None or not numpy.isfinite(vmax):
-            vmax = cls.DEFAULT_RANGE[1]
+            vmax = self.DEFAULT_RANGE[1]
         if vmax < vmin:
             vmax = vmin
         return float(vmin), float(vmax)
 
-    @classmethod
-    def autoscaleMinMax(cls, data):
+    def autoscaleMinMax(self, data):
         """Autoscale using min/max
 
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
         """
-        vmin, vmax = min_max(cls.apply(data), min_positive=False, finite=True)
-        return (None if vmin is None else cls.revert(vmin),
-                None if vmax is None else cls.revert(vmax))
+        vmin, vmax = min_max(self.apply(data), min_positive=False, finite=True)
+        return (None if vmin is None else self.revert(vmin),
+                None if vmax is None else self.revert(vmax))
 
-    @classmethod
-    def autoscaleMean3Std(cls, data):
+    def autoscaleMean3Std(self, data):
         """Autoscale using mean+/-3std
 
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
         """
-        normdata = cls.apply(data)
+        normdata = self.apply(data)
         if normdata.dtype.kind == 'f':  # Replaces inf by NaN
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
         mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
-        return cls.revert(mean - 3 * std), cls.revert(mean + 3 * std)
+        return self.revert(mean - 3 * std), self.revert(mean + 3 * std)
 
 
 class _LinearNormalization(_Normalization):
@@ -436,21 +432,17 @@ class _LogNormalization(_Normalization):
 
     DEFAULT_RANGE = 1, 10
 
-    @staticmethod
-    def isValid(value):
+    def isValid(self, value):
         return value > 0.
 
-    @staticmethod
-    def apply(data):
+    def apply(self, data):
         with numpy.errstate(divide='ignore', invalid='ignore'):
             return numpy.log10(data)
 
-    @staticmethod
-    def revert(data):
+    def revert(self, data):
         return 10**data
 
-    @classmethod
-    def autoscaleMinMax(cls, data):
+    def autoscaleMinMax(self, data):
         result = min_max(data, min_positive=True, finite=True)
         return result.min_positive, result.maximum
 
@@ -460,21 +452,17 @@ class _SqrtNormalization(_Normalization):
 
     DEFAULT_RANGE = 0, 1
 
-    @staticmethod
-    def isValid(value):
+    def isValid(self, value):
         return value >= 0.
 
-    @staticmethod
-    def apply(data):
+    def apply(self, data):
         with numpy.errstate(invalid='ignore'):
             return numpy.sqrt(data)
 
-    @staticmethod
-    def revert(data):
+    def revert(self, data):
         return data**2
 
-    @classmethod
-    def autoscaleMinMax(cls, data):
+    def autoscaleMinMax(self, data):
         data = data[data >= 0]
         if data.size == 0:
             return None, None
