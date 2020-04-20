@@ -472,8 +472,11 @@ class _SqrtNormalization(_Normalization):
 
     @classmethod
     def autoscaleMinMax(cls, data):
-        return _Normalization.autoscaleMinMax(
-            None if data is None else data[data >= 0])
+        data = data[data >= 0]
+        if data.size == 0:
+            return None, None
+        result = min_max(data, min_positive=False, finite=True)
+        return result.min_positive, result.maximu
 
 
 class Colormap(qt.QObject):
