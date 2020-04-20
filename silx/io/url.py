@@ -30,7 +30,7 @@ __date__ = "29/01/2018"
 
 import logging
 import six
-from collections import Iterable
+from collections.abc import Iterable
 
 parse = six.moves.urllib.parse
 
