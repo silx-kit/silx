@@ -476,7 +476,7 @@ class _SqrtNormalization(_Normalization):
         if data.size == 0:
             return None, None
         result = min_max(data, min_positive=False, finite=True)
-        return result.min_positive, result.maximu
+        return result.min_positive, result.maximum
 
 
 class Colormap(qt.QObject):
