@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -393,17 +393,17 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         item2.setSelectable(True)
         item1.setSelectionProxy(item2)
         manager = roi.RegionOfInterestManager(self.plot)
-        manager.setSelectedRoi(item1)
-        self.assertIs(manager.getSelectedRoi(), item2)
+        manager.setCurrentRoi(item1)
+        self.assertIs(manager.getCurrentRoi(), item2)
 
     def testRemovedSelection(self):
         item1 = roi_items.PointROI()
         item1.setSelectable(True)
         manager = roi.RegionOfInterestManager(self.plot)
         manager.addRoi(item1)
-        manager.setSelectedRoi(item1)
+        manager.setCurrentRoi(item1)
         manager.removeRoi(item1)
-        self.assertIs(manager.getSelectedRoi(), None)
+        self.assertIs(manager.getCurrentRoi(), None)
 
     def testMaxROI(self):
         """Test Max ROI"""
