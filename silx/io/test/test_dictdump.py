@@ -30,6 +30,7 @@ __date__ = "17/01/2018"
 from collections import OrderedDict
 import numpy
 import os
+import io
 import tempfile
 import unittest
 import h5py
@@ -39,6 +40,7 @@ from collections import defaultdict
 from silx.utils.testutils import TestLogging
 
 from ..configdict import ConfigDict
+from .. import dictdump
 from ..dictdump import dicttoh5, dicttojson, dump
 from ..dictdump import h5todict, load
 from ..dictdump import logger as dictdump_logger
@@ -64,7 +66,8 @@ class TestDictToH5(unittest.TestCase):
         self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
 
     def tearDown(self):
-        os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_fname):
+            os.unlink(self.h5_fname)
         os.rmdir(self.tempdir)
 
     def testH5CityAttrs(self):
@@ -109,6 +112,137 @@ class TestDictToH5(unittest.TestCase):
 
         res = h5todict(self.h5_fname)
         assert(res['t'] == False)
+
+    def testAttributes(self):
+        """Any kind of attribute can be described"""
+        ddict = {
+            "group": {"datatset": "hmmm", ("", "group_attr"): 10},
+            "dataset": "aaaaaaaaaaaaaaa",
+            ("", "root_attr"): 11,
+            ("dataset", "dataset_attr"): 12,
+            ("group", "group_attr2"): 13,
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttoh5(ddict, h5file)
+            self.assertEqual(h5file["group"].attrs['group_attr'], 10)
+            self.assertEqual(h5file.attrs['root_attr'], 11)
+            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
+            self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
+
+    def testKeyOrder(self):
+        ddict1 = {
+            "d": "plow",
+            ("d", "a"): "ox",
+        }
+        ddict2 = {
+            ("d", "a"): "ox",
+            "d": "plow",
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttoh5(ddict1, h5file, h5path="g1")
+            dictdump.dicttoh5(ddict2, h5file, h5path="g2")
+            self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
+            self.assertEqual(h5file["g2/d"].attrs['a'], "ox")
+
+    def testAttributeValues(self):
+        """Any NX data types can be used"""
+        ddict = {
+            ("", "bool"): True,
+            ("", "int"): 11,
+            ("", "float"): 1.1,
+            ("", "str"): "a",
+            ("", "boollist"): [True, False, True],
+            ("", "intlist"): [11, 22, 33],
+            ("", "floatlist"): [1.1, 2.2, 3.3],
+            ("", "strlist"): ["a", "bb", "ccc"],
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttoh5(ddict, h5file)
+            for k, expected in ddict.items():
+                result = h5file.attrs[k[1]]
+                if isinstance(expected, list):
+                    if isinstance(expected[0], str):
+                        numpy.testing.assert_array_equal(result, expected)
+                    else:
+                        numpy.testing.assert_array_almost_equal(result, expected)
+                else:
+                    self.assertEqual(result, expected)
+
+    def testAttributeAlreadyExists(self):
+        """A duplicated attribute warns if overwriting is not enabled"""
+        ddict = {
+            "group": {"dataset": "hmmm", ("", "attr"): 10},
+            ("group", "attr"): 10,
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            with TestLogging(dictdump_logger, warning=1):
+                dictdump.dicttoh5(ddict, h5file)
+            self.assertEqual(h5file["group"].attrs['attr'], 10)
+
+
+class TestDictToNx(unittest.TestCase):
+
+    def testAttributes(self):
+        """Any kind of attribute can be described"""
+        ddict = {
+            "group": {"datatset": "hmmm", "@group_attr": 10},
+            "dataset": "aaaaaaaaaaaaaaa",
+            "@root_attr": 11,
+            "dataset@dataset_attr": 12,
+            "group@group_attr2": 13,
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttonx(ddict, h5file)
+            self.assertEqual(h5file["group"].attrs['group_attr'], 10)
+            self.assertEqual(h5file.attrs['root_attr'], 11)
+            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
+            self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
+
+    def testKeyOrder(self):
+        ddict1 = {
+            "d": "plow",
+            "d@a": "ox",
+        }
+        ddict2 = {
+            "d@a": "ox",
+            "d": "plow",
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttonx(ddict1, h5file, h5path="g1")
+            dictdump.dicttonx(ddict2, h5file, h5path="g2")
+            self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
+            self.assertEqual(h5file["g2/d"].attrs['a'], "ox")
+
+    def testAttributeValues(self):
+        """Any NX data types can be used"""
+        ddict = {
+            "@bool": True,
+            "@int": 11,
+            "@float": 1.1,
+            "@str": "a",
+            "@boollist": [True, False, True],
+            "@intlist": [11, 22, 33],
+            "@floatlist": [1.1, 2.2, 3.3],
+            "@strlist": ["a", "bb", "ccc"],
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttonx(ddict, h5file)
+            for k, expected in ddict.items():
+                result = h5file.attrs[k[1:]]
+                if isinstance(expected, list):
+                    if isinstance(expected[0], str):
+                        numpy.testing.assert_array_equal(result, expected)
+                    else:
+                        numpy.testing.assert_array_almost_equal(result, expected)
+                else:
+                    self.assertEqual(result, expected)
 
 
 class TestH5ToDict(unittest.TestCase):
@@ -260,14 +394,12 @@ class TestDictToIni(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToIni))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToJson))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5ToDict))
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestDictToIni))
+    test_suite.addTest(loadTests(TestDictToH5))
+    test_suite.addTest(loadTests(TestDictToNx))
+    test_suite.addTest(loadTests(TestDictToJson))
+    test_suite.addTest(loadTests(TestH5ToDict))
     return test_suite
 
 
