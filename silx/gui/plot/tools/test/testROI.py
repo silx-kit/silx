@@ -391,7 +391,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         item1.setSelectable(True)
         item2 = roi_items.PointROI()
         item2.setSelectable(True)
-        item1.setSelectionProxy(item2)
+        item1.setFocusProxy(item2)
         manager = roi.RegionOfInterestManager(self.plot)
         manager.setCurrentRoi(item1)
         self.assertIs(manager.getCurrentRoi(), item2)

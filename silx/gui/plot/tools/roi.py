@@ -262,7 +262,7 @@ class RegionOfInterestManager(qt.QObject):
         if roi is not None:
             # Note: Fixed range to avoid infinite loops
             for _ in range(10):
-                target = roi.getSelectionProxy()
+                target = roi.getFocusProxy()
                 if target is None:
                     break
                 roi = target
