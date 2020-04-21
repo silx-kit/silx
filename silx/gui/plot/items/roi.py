@@ -123,7 +123,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._labelItem = None
         self._editable = False
         self._selectable = False
-        self._selectionProxy = None
+        self._focusProxy = None
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -261,30 +261,30 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._createPlotItems()
             self.sigItemChanged.emit(items.ItemChangedType.SELECTABLE)
 
-    def getSelectionProxy(self):
+    def getFocusProxy(self):
         """Returns the ROI which have to be selected when this ROI is selected,
         else None if no proxy specified.
 
         :rtype: RegionOfInterest
         """
-        proxy = self._selectionProxy
+        proxy = self._focusProxy
         if proxy is None:
             return None
         proxy = proxy()
         if proxy is None:
-            self._selectionProxy = None
+            self._focusProxy = None
         return proxy
 
-    def setSelectionProxy(self, roi):
+    def setFocusProxy(self, roi):
         """Set the real ROI which will be selected when this ROI is selected,
         else None to remove the proxy already specified.
 
         :param RegionOfInterest roi: A ROI
         """
         if roi is not None:
-            self._selectionProxy = weakref.ref(roi)
+            self._focusProxy = weakref.ref(roi)
         else:
-            self._selectionProxy = None
+            self._focusProxy = None
 
     def isVisible(self):
         """Returns whether the ROI is visible in the plot.
@@ -443,8 +443,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             item.setName(legendPrefix + str(itemIndex))
             plot.addItem(item)
             item.setVisible(self.isVisible())
-            if hasattr(item, "_setSelectable"):
-                item._setSelectable(self.isSelectable())
+            item._setSelectable(self.isSelectable())
             self._items.append(item)
             itemIndex += 1
 
@@ -550,18 +549,16 @@ class RegionOfInterest(_RegionOfInterestBase):
         for item in itertools.chain(list(self._items),
                                     list(self._editAnchors)):
             plot = item.getPlot()
-            if plot is not None:
-                if inspect.isValid(plot):
-                    plot.removeItem(item)
+            if plot is not None and inspect.isValid(plot):
+                plot.removeItem(item)
         self._items = WeakList()
         self._editAnchors = WeakList()
 
         if self._labelItem is not None:
             item = self._labelItem
             plot = item.getPlot()
-            if plot is not None:
-                if inspect.isValid(plot):
-                    plot.removeItem(item)
+            if plot is not None and inspect.isValid(plot):
+                plot.removeItem(item)
         self._labelItem = None
 
     def _updated(self, event=None, checkVisibility=True):
