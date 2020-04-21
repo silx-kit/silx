@@ -443,8 +443,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             item.setName(legendPrefix + str(itemIndex))
             plot.addItem(item)
             item.setVisible(self.isVisible())
-            if hasattr(item, "_setSelectable"):
-                item._setSelectable(self.isSelectable())
+            item._setSelectable(self.isSelectable())
             self._items.append(item)
             itemIndex += 1
 
