@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,7 +87,7 @@ class RegionOfInterestManager(qt.QObject):
     mode.
     """
 
-    sigInteractiveRoiCreationFinished = qt.Signal(object)
+    sigInteractiveRoiCreated = qt.Signal(object)
     """Signal emitted when a ROI creation is complet.
 
     It provides the ROI object which was just been created.
@@ -221,7 +221,7 @@ class RegionOfInterestManager(qt.QObject):
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
                 roi = self.createRoi(roiClass, points=points)
-                self.sigInteractiveRoiCreationFinished.emit(roi)
+                self.sigInteractiveRoiCreated.emit(roi)
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
                     event['parameters']['label'] == self._label):
@@ -238,7 +238,7 @@ class RegionOfInterestManager(qt.QObject):
                         self._drawnROI.setFirstShapePoints(points[:-1])
                     roi = self._drawnROI
                     self._drawnROI = None  # Stop drawing
-                    self.sigInteractiveRoiCreationFinished.emit(roi)
+                    self.sigInteractiveRoiCreated.emit(roi)
 
     # RegionOfInterest selection
 
