@@ -349,7 +349,7 @@ class RegionOfInterestManager(qt.QObject):
         return roi
 
     def containsRoi(self, roi):
-        """Returns true if the this ROI is port of this manager.
+        """Returns true if the ROI is part of this manager.
 
         :param roi_items.RegionOfInterest roi: The ROI to add
         :rtype: bool
