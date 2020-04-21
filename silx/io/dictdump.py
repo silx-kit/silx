@@ -163,9 +163,9 @@ def dicttoh5(treedict, h5file, h5path='/',
         This function requires `h5py <http://www.h5py.org/>`_ to be installed.
 
     :param treedict: Nested dictionary/tree structure with strings or tuples as
-         keys and array-like objects as leafs. The ``"/"`` character is not
-         allowed in keys. If tuples are used as keys they should have the format
-        (dataset_name,attr_name) and will add a 5h attribute with the
+        keys and array-like objects as leafs. The ``"/"`` character can be used
+        to define sub trees. If tuples are used as keys they should have the
+        format (dataset_name,attr_name) and will add a 5h attribute with the
         corresponding value.
     :param h5file: HDF5 file name or handle. If a file name is provided, the
         function opens the file in the specified mode and closes it again
@@ -296,8 +296,8 @@ def dicttonx(
     therefor the dataset_names should not contain ``"@"``.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
-         and array-like objects as leafs. The ``"/"`` character is not allowed
-         in keys. The ``"@"`` character is used to write attributes.
+         and array-like objects as leafs. The ``"/"`` character can be used
+         to define sub tree. The ``"@"`` character is used to write attributes.
 
     Detais on all other params can be found in doc of dicttoh5.
 
