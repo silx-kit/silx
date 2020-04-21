@@ -363,8 +363,10 @@ class RegionOfInterestManager(qt.QObject):
             legend = event['label']
             marker = plot._getMarker(legend=legend)
             roi = self.__getRoiFromMarker(marker)
-            if roi.isSelectable():
+            if roi is not None and roi.isSelectable():
                 self.setCurrentRoi(roi)
+            else:
+                self.setCurrentRoi(None)
         elif event['event'] == 'mouseClicked' and event['button'] == 'left':
             self.setCurrentRoi(None)
 
