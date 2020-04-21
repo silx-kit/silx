@@ -195,6 +195,9 @@ class GLPlotColormap(_GLPlotData2D):
             value = pow(
                 clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.),
                 cmap_parameter);
+        } else if (cmap_normalization == 4) { /* arcsinh mapping */
+            /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+             value = clamp(cmap.oneOverRange * (log(value + sqrt(value*value + 1)) - cmap.min), 0., 1.);
         } else { /*Linear mapping and fallback*/
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
         }
@@ -225,7 +228,7 @@ class GLPlotColormap(_GLPlotData2D):
                           _SHADERS['log']['fragTransform'],
                           attrib0='position')
 
-    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt', 'gamma'
+    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
 
     def __init__(self, data, origin, scale,
                  colormap, normalization='linear', gamma=0., cmapRange=None,
@@ -356,6 +359,10 @@ class GLPlotColormap(_GLPlotData2D):
             # Keep dataMin, dataMax as is
             param = self.gamma
             normID = 3
+        elif self.normalization == 'arcsinh':
+            dataMin = numpy.arcsinh(dataMin)
+            dataMax = numpy.arcsinh(dataMax)
+            normID = 4
         else:  # Linear and fallback
             param = 0.
             normID = 0
