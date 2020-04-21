@@ -183,6 +183,20 @@ class TestDictToH5(unittest.TestCase):
                 dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['attr'], 10)
 
+    def testFlatDict(self):
+        """Description of a tree with a single level of keys"""
+        ddict = {
+            "group/group/dataset": 10,
+            ("group/group/dataset", "attr"): 11,
+            ("group/group", "attr"): 12,
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttoh5(ddict, h5file)
+            self.assertEqual(h5file["group/group/dataset"][()], 10)
+            self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
+            self.assertEqual(h5file["group/group"].attrs['attr'], 12)
+
 
 class TestDictToNx(unittest.TestCase):
 
@@ -243,6 +257,20 @@ class TestDictToNx(unittest.TestCase):
                         numpy.testing.assert_array_almost_equal(result, expected)
                 else:
                     self.assertEqual(result, expected)
+
+    def testFlatDict(self):
+        """Description of a tree with a single level of keys"""
+        ddict = {
+            "group/group/dataset": 10,
+            "group/group/dataset@attr": 11,
+            "group/group@attr": 12,
+        }
+        mem = io.BytesIO()
+        with h5py.File(mem, "w") as h5file:
+            dictdump.dicttonx(ddict, h5file)
+            self.assertEqual(h5file["group/group/dataset"][()], 10)
+            self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
+            self.assertEqual(h5file["group/group"].attrs['attr'], 12)
 
 
 class TestH5ToDict(unittest.TestCase):
