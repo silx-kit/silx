@@ -307,15 +307,22 @@ def dicttonx(
         from silx.io.dictdump import dicttonx
 
         gauss = {
-            "plot": {
-                "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
+            "entry":{
+                "title":u"A plot of a gaussian",
+                "plot": {
+                    "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
                                   0.9, 0.66, 0.39, 0.19, 0.08]),
-                "x": numpy.arange(0,1.1,.1),
-                "@signal": "y",
-                "@axes": "x",
-            },
+                    "x": numpy.arange(0,1.1,.1),
+                    "@signal": u"y",
+                    "@axes": u"x",
+                    "@NX_class":u"NXdata",
+                    "title:u"Gauss Plot",
+                 },
+                 "@NX_class":u"NXentry",
+                 "default":"plot", 
+            }
             "@NX_class": "NXroot",
-            "plot@NX_class": "NXdata",
+            "@default": "entry",
         }
 
         dicttonx(gauss,"test.h5")
