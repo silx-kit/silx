@@ -260,14 +260,11 @@ class TestDictToIni(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToIni))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToJson))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5ToDict))
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestDictToIni))
+    test_suite.addTest(loadTests(TestDictToH5))
+    test_suite.addTest(loadTests(TestDictToJson))
+    test_suite.addTest(loadTests(TestH5ToDict))
     return test_suite
 
 
