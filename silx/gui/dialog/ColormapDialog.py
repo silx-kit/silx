@@ -471,7 +471,7 @@ class _ColormapHistogram(qt.QWidget):
         # Try to use the one defined in the dialog
         dataRange = self.parent()._getDataRange()
         if dataRange is not None:
-            if norm in (Colormap.LINEAR, Colormap.GAMMA):
+            if norm in (Colormap.LINEAR, Colormap.GAMMA, Colormap.ARCSINH):
                 return dataRange[0], dataRange[2]
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
@@ -859,6 +859,7 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxNormalization.addItem('Logarithmic', Colormap.LOGARITHM)
         self._comboBoxNormalization.addItem('Gamma correction', Colormap.GAMMA)
         self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
+        self._comboBoxNormalization.addItem('Arcsinh', Colormap.ARCSINH)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
             self._normalizationUpdated)
 
