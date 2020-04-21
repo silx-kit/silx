@@ -267,7 +267,7 @@ class RegionOfInterestManager(qt.QObject):
                     break
                 roi = target
             else:
-                logger.error("May be a selection proxy cycle")
+                raise RuntimeError("Max selection proxy depth (10) reached.")
 
         self._currentRoi = roi
         self.sigCurrentRoiChanged.emit(roi)
