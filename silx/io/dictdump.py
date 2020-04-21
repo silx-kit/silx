@@ -313,15 +313,15 @@ def dicttonx(
                     "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
                                   0.9, 0.66, 0.39, 0.19, 0.08]),
                     "x": numpy.arange(0,1.1,.1),
-                    "@signal": u"y",
-                    "@axes": u"x",
+                    "@signal": "y",
+                    "@axes": "x",
                     "@NX_class":u"NXdata",
                     "title:u"Gauss Plot",
                  },
                  "@NX_class":u"NXentry",
                  "default":"plot", 
             }
-            "@NX_class": "NXroot",
+            "@NX_class": u"NXroot",
             "@default": "entry",
         }
 
