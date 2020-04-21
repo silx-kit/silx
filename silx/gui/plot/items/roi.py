@@ -549,18 +549,16 @@ class RegionOfInterest(_RegionOfInterestBase):
         for item in itertools.chain(list(self._items),
                                     list(self._editAnchors)):
             plot = item.getPlot()
-            if plot is not None:
-                if inspect.isValid(plot):
-                    plot.removeItem(item)
+            if plot is not None and inspect.isValid(plot):
+                plot.removeItem(item)
         self._items = WeakList()
         self._editAnchors = WeakList()
 
         if self._labelItem is not None:
             item = self._labelItem
             plot = item.getPlot()
-            if plot is not None:
-                if inspect.isValid(plot):
-                    plot.removeItem(item)
+            if plot is not None and inspect.isValid(plot):
+                plot.removeItem(item)
         self._labelItem = None
 
     def _updated(self, event=None, checkVisibility=True):
