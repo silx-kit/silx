@@ -270,6 +270,14 @@ def dicttoh5(treedict, h5file, h5path='/',
                     "will be written to ." % (h5path + key[0], key[1])
                 )
 
+            if key[1] in h5f[h5path + key[0]].attrs:
+                if not overwrite_data:
+                    logger.warning(
+                        "attribute %s@%s already exists. Not overwriting."
+                        "" % (h5path + key[0], key[1])
+                    )
+                    continue
+
             # Write attribute
             h5f[h5path + key[0]].attrs[key[1]] = treedict[key]
 
