@@ -144,6 +144,9 @@ class ItemChangedType(enum.Enum):
     EDITABLE = 'editableChanged'
     """Item's editable state changed flags."""
 
+    SELECTABLE = 'selectableChanged'
+    """Item's selectable state changed flags."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""
@@ -374,7 +377,7 @@ class Item(qt.QObject):
 
 # Mix-in classes ##############################################################
 
-class ItemMixInBase(qt.QObject):
+class ItemMixInBase(object):
     """Base class for Item mix-in"""
 
     def _updated(self, event=None, checkVisibility=True):

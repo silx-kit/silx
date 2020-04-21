@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -77,11 +77,20 @@ class RegionOfInterestManager(qt.QObject):
     sigRoiChanged = qt.Signal()
     """Signal emitted whenever the ROIs have changed."""
 
+    sigCurrentRoiChanged = qt.Signal(object)
+    """Signal emitted whenever a ROI is selected."""
+
     sigInteractiveModeStarted = qt.Signal(object)
     """Signal emitted when switching to ROI drawing interactive mode.
 
     It provides the class of the ROI which will be created by the interactive
     mode.
+    """
+
+    sigInteractiveRoiCreated = qt.Signal(object)
+    """Signal emitted when a ROI creation is complet.
+
+    It provides the ROI object which was just been created.
     """
 
     sigInteractiveModeFinished = qt.Signal()
@@ -115,9 +124,14 @@ class RegionOfInterestManager(qt.QObject):
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
 
+        self._currentRoi = None
+        """Hold currently selected ROI"""
+
         self._eventLoop = None
 
         self._modeActions = {}
+
+        parent.sigPlotSignal.connect(self._plotSignals)
 
         parent.sigInteractiveModeChanged.connect(
             self._plotInteractiveModeChanged)
@@ -132,7 +146,7 @@ class RegionOfInterestManager(qt.QObject):
 
     # Associated QActions
 
-    def getInteractionModeAction(self, roiClass):
+    def getInteractionModeAction(self, roiClass, parent=None):
         """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
@@ -155,7 +169,7 @@ class RegionOfInterestManager(qt.QObject):
                 if name is None:
                     name = roiClass.__name__
                 text = 'Add %s' % name
-            action = qt.QAction(self)
+            action = qt.QAction(parent)
             action.setIcon(icons.getQIcon(iconName))
             action.setText(text)
             action.setCheckable(True)
@@ -206,8 +220,8 @@ class RegionOfInterestManager(qt.QObject):
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                self.createRoi(roiClass, points=points)
-
+                roi = self.createRoi(roiClass, points=points)
+                self.sigInteractiveRoiCreated.emit(roi)
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
                     event['parameters']['label'] == self._label):
@@ -222,7 +236,60 @@ class RegionOfInterestManager(qt.QObject):
                 if event['event'] == 'drawingFinished':
                     if kind == 'polygon' and len(points) > 1:
                         self._drawnROI.setFirstShapePoints(points[:-1])
+                    roi = self._drawnROI
                     self._drawnROI = None  # Stop drawing
+                    self.sigInteractiveRoiCreated.emit(roi)
+
+    # RegionOfInterest selection
+
+    def __getRoiFromMarker(self, marker):
+        """Returns a ROI from a marker, else None"""
+        # This should be speed up
+        for roi in self._rois:
+            if marker in roi._editAnchors:
+                return roi
+            if marker in roi._items:
+                return roi
+        return None
+
+    def setCurrentRoi(self, roi):
+        """Set the currently selected ROI, and emit a signal.
+
+        :param Union[RegionOfInterest,None] roi: The ROI to select
+        """
+        if self._currentRoi is roi:
+            return
+        if roi is not None:
+            # Note: Fixed range to avoid infinite loops
+            for _ in range(10):
+                target = roi.getFocusProxy()
+                if target is None:
+                    break
+                roi = target
+            else:
+                raise RuntimeError("Max selection proxy depth (10) reached.")
+
+        self._currentRoi = roi
+        self.sigCurrentRoiChanged.emit(roi)
+
+    def getCurrentRoi(self):
+        """Returns the currently selected ROI, else None.
+
+        :rtype: Union[RegionOfInterest,None]
+        """
+        return self._currentRoi
+
+    def _plotSignals(self, event):
+        """Handle mouse interaction for ROI addition"""
+        if event['event'] in ('markerClicked', 'markerMoving'):
+            plot = self.parent()
+            legend = event['label']
+            marker = plot._getMarker(legend=legend)
+            roi = self.__getRoiFromMarker(marker)
+            if roi.isSelectable():
+                self.setCurrentRoi(roi)
+        elif event['event'] == 'mouseClicked' and event['button'] == 'left':
+            self.setCurrentRoi(None)
 
     # RegionOfInterest API
 
@@ -258,7 +325,7 @@ class RegionOfInterestManager(qt.QObject):
         """Handle ROI object changed"""
         self.sigRoiChanged.emit()
 
-    def createRoi(self, roiClass, points, label='', index=None):
+    def createRoi(self, roiClass, points, label=None, index=None):
         """Create a new ROI and add it to list of ROIs.
 
         :param class roiClass: The class of the ROI to create
@@ -272,11 +339,22 @@ class RegionOfInterestManager(qt.QObject):
            number of ROIs has been reached.
         """
         roi = roiClass(parent=None)
-        roi.setName(str(label))
+        if label is not None:
+            roi.setName(str(label))
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
+        if roi.isSelectable():
+            self.setCurrentRoi(roi)
         return roi
+
+    def containsRoi(self, roi):
+        """Returns true if the ROI is part of this manager.
+
+        :param roi_items.RegionOfInterest roi: The ROI to add
+        :rtype: bool
+        """
+        return roi in self._rois
 
     def addRoi(self, roi, index=None, useManagerColor=True):
         """Add the ROI to the list of ROIs.
@@ -322,8 +400,14 @@ class RegionOfInterestManager(qt.QObject):
             raise ValueError(
                 'RegionOfInterest does not belong to this instance')
 
+        roi.sigAboutToBeRemoved.emit()
         self.sigRoiAboutToBeRemoved.emit(roi)
 
+        if roi is self._currentRoi:
+            self.setCurrentRoi(None)
+
+        if roi is self._drawnROI:
+            self._drawnROI = None
         self._rois.remove(roi)
         roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.sigItemChanged.disconnect(self._regionOfInterestChanged)

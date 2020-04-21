@@ -35,13 +35,14 @@ import itertools
 import logging
 import collections
 import numpy
+import weakref
 
 from ....utils.weakref import WeakList
 from ... import qt
 from .. import items
 from ...colors import rgba
 import silx.utils.deprecation
-from silx.utils.proxy import docstring
+from silx.gui.qt import inspect
 
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,9 @@ class _RegionOfInterestBase(qt.QObject):
     :param str name: The name of the ROI
     """
 
+    sigAboutToBeRemoved = qt.Signal()
+    """Signal emitted just before this ROI is removed from its manager."""
+
     sigItemChanged = qt.Signal(object)
     """Signal emitted when item has changed.
 
@@ -61,9 +65,9 @@ class _RegionOfInterestBase(qt.QObject):
     See :class:`ItemChangedType` for flags description.
     """
 
-    def __init__(self, parent=None, name=''):
-        qt.QObject.__init__(self)
-        self.__name = str(name)
+    def __init__(self, parent=None):
+        qt.QObject.__init__(self, parent=parent)
+        self.__name = ''
 
     def getName(self):
         """Returns the name of the ROI
@@ -111,13 +115,15 @@ class RegionOfInterest(_RegionOfInterestBase):
         # Avoid circular dependency
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
-        _RegionOfInterestBase.__init__(self, parent, '')
+        _RegionOfInterestBase.__init__(self, parent)
         self._color = rgba('red')
         self._items = WeakList()
         self._editAnchors = WeakList()
         self._points = None
         self._labelItem = None
         self._editable = False
+        self._selectable = False
+        self._focusProxy = None
         self._visible = True
         self.sigItemChanged.connect(self.__itemChanged)
 
@@ -234,6 +240,52 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._createPlotItems()
             self.sigItemChanged.emit(items.ItemChangedType.EDITABLE)
 
+    def isSelectable(self):
+        """Returns whether the ROI is selectable by the user or not.
+
+        :rtype: bool
+        """
+        return self._selectable
+
+    def setSelectable(self, selectable):
+        """Set whether the ROI can be selected interactively.
+
+        :param bool selectable: True to allow selection by the user,
+           False to disable.
+        """
+        selectable = bool(selectable)
+        if self._selectable != selectable:
+            self._selectable = selectable
+            # Recreate plot items
+            # This should be avoided (better to edit the items, than recreate them)
+            self._createPlotItems()
+            self.sigItemChanged.emit(items.ItemChangedType.SELECTABLE)
+
+    def getFocusProxy(self):
+        """Returns the ROI which have to be selected when this ROI is selected,
+        else None if no proxy specified.
+
+        :rtype: RegionOfInterest
+        """
+        proxy = self._focusProxy
+        if proxy is None:
+            return None
+        proxy = proxy()
+        if proxy is None:
+            self._focusProxy = None
+        return proxy
+
+    def setFocusProxy(self, roi):
+        """Set the real ROI which will be selected when this ROI is selected,
+        else None to remove the proxy already specified.
+
+        :param RegionOfInterest roi: A ROI
+        """
+        if roi is not None:
+            self._focusProxy = weakref.ref(roi)
+        else:
+            self._focusProxy = None
+
     def isVisible(self):
         """Returns whether the ROI is visible in the plot.
 
@@ -320,27 +372,31 @@ class RegionOfInterest(_RegionOfInterestBase):
         nbPointsChanged = (self._points is None or
                            points.shape != self._points.shape)
 
-        if nbPointsChanged or not numpy.all(numpy.equal(points, self._points)):
-            self._points = points
+        if not nbPointsChanged and numpy.allclose(points, self._points,
+                                                  rtol=0, atol=0, equal_nan=True):
+            # There is no changes
+            return
 
-            self._updateShape()
-            if self._items and not nbPointsChanged:  # Update plot items
-                item = self._getLabelItem()
-                if item is not None:
-                    markerPos = self._getLabelPosition()
-                    item.setPosition(*markerPos)
+        self._points = points
 
-                if self._editAnchors:  # Update anchors
-                    for anchor, point in zip(self._editAnchors, points):
-                        old = anchor.blockSignals(True)
-                        anchor.setPosition(*point)
-                        anchor.blockSignals(old)
+        self._updateShape()
+        if self._items and not nbPointsChanged:  # Update plot items
+            item = self._getLabelItem()
+            if item is not None:
+                markerPos = self._getLabelPosition()
+                item.setPosition(*markerPos)
 
-            else:  # No items or new point added
-                # re-create plot items
-                self._createPlotItems()
+            if self._editAnchors:  # Update anchors
+                for anchor, point in zip(self._editAnchors, points):
+                    old = anchor.blockSignals(True)
+                    anchor.setPosition(*point)
+                    anchor.blockSignals(old)
 
-            self.sigRegionChanged.emit()
+        else:  # No items or new point added
+            # re-create plot items
+            self._createPlotItems()
+
+        self.sigRegionChanged.emit()
 
     def _updateShape(self):
         """Called when shape must be updated.
@@ -377,6 +433,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._labelItem = self._createLabelItem()
             if self._labelItem is not None:
                 self._labelItem.setName(legendPrefix + "label")
+                self._labelItem.setText(self.getName())
                 plot.addItem(self._labelItem)
                 self._labelItem.setVisible(self.isVisible())
 
@@ -386,6 +443,7 @@ class RegionOfInterest(_RegionOfInterestBase):
             item.setName(legendPrefix + str(itemIndex))
             plot.addItem(item)
             item.setVisible(self.isVisible())
+            item._setSelectable(self.isSelectable())
             self._items.append(item)
             itemIndex += 1
 
@@ -398,6 +456,7 @@ class RegionOfInterest(_RegionOfInterestBase):
                 item.setName(legendPrefix + str(itemIndex))
                 item.setColor(color)
                 item.setVisible(self.isVisible())
+                item._setSelectable(self.isSelectable())
                 plot.addItem(item)
                 # connect item changed
                 item.sigItemChanged.connect(functools.partial(
@@ -489,9 +548,8 @@ class RegionOfInterest(_RegionOfInterestBase):
         """Remove items from their plot."""
         for item in itertools.chain(list(self._items),
                                     list(self._editAnchors)):
-
             plot = item.getPlot()
-            if plot is not None:
+            if plot is not None and inspect.isValid(plot):
                 plot.removeItem(item)
         self._items = WeakList()
         self._editAnchors = WeakList()
@@ -499,7 +557,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         if self._labelItem is not None:
             item = self._labelItem
             plot = item.getPlot()
-            if plot is not None:
+            if plot is not None and inspect.isValid(plot):
                 plot.removeItem(item)
         self._labelItem = None
 
@@ -542,6 +600,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def __init__(self, parent=None):
         items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        self._points = numpy.array([[0, 0]])
 
     def getPosition(self):
         """Returns the position of this ROI
@@ -562,6 +621,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
@@ -746,6 +807,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
@@ -769,6 +832,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
         marker._setDraggable(self.isEditable())
+        marker._setSelectable(self.isSelectable())
         if self.isEditable():
             marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
@@ -816,6 +880,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         return None
 
     def _updateLabelItem(self, label):
+        if self._items is None or len(self._items) == 0:
+            return
         self._items[0].setText(label)
 
     def _updateShape(self):
@@ -839,6 +905,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         marker.setLineWidth(self.getLineWidth())
         marker.setLineStyle(self.getLineStyle())
         marker._setDraggable(self.isEditable())
+        marker._setSelectable(self.isSelectable())
         if self.isEditable():
             marker.sigItemChanged.connect(self.__positionChanged)
         return [marker]
@@ -1664,7 +1731,11 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def _updateLabelItem(self, label):
         if self._items is None or len(self._items) < 3:
             return
-        self._items[2].setText(label)
+        if self.isEditable():
+            item = self._items[2]
+        else:
+            item = self._items[0]
+        item.setText(label)
 
     def _updateShape(self):
         if len(self._items) >= 3:
@@ -1685,17 +1756,26 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             marker.setLineWidth(self.getLineWidth())
             marker.setLineStyle(self.getLineStyle())
             marker._setDraggable(self.isEditable())
+            marker._setSelectable(self.isSelectable())
             shapes.append(marker)
 
         markerMin, markerMax, markerCen = shapes
-        markerCen.setLineStyle(":")
-        markerCen.setText(self.getName())
         markerMin._setConstraint(self.__positionMinConstraint)
         markerMax._setConstraint(self.__positionMaxConstraint)
         if self.isEditable():
             markerMin.sigItemChanged.connect(self.__positionMinChanged)
             markerMax.sigItemChanged.connect(self.__positionMaxChanged)
             markerCen.sigItemChanged.connect(self.__positionCenChanged)
+            markerCen.setLineStyle(":")
+        else:
+            markerCen.setLineStyle(" ")
+
+        if self.isEditable():
+            label = markerCen
+        else:
+            label = markerMin
+        label.setText(self.getName())
+
         return [markerMin, markerMax, markerCen]
 
     def __positionMinConstraint(self, x, y):
