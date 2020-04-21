@@ -412,6 +412,9 @@ class Colormap(event.Notifier, ProgramFunction):
             value = pow(
                 clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0),
                 cmap_parameter);
+        } else if (cmap_normalization == 4) { /* arcsinh mapping */
+            /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+            value = clamp(cmap.oneOverRange * (log(value + sqrt(value*value + 1)) - cmap.min), 0.0, 1.0);
         } else { /* Linear mapping */
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0);
         }
@@ -431,7 +434,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    NORMS = 'linear', 'log', 'sqrt', 'gamma'
+    NORMS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
     """Tuple of supported normalizations."""
 
     _COLORMAP_TEXTURE_UNIT = 1
@@ -593,6 +596,9 @@ class Colormap(event.Notifier, ProgramFunction):
             # Keep min_, max_ as is
             param = self._gamma
             normID = 3
+        elif self._norm == 'arcsinh':
+            min_, max_ = numpy.arcsinh(min_), numpy.arcsinh(max_)
+            normID = 4
         else:  # Linear
             normID = 0
 
