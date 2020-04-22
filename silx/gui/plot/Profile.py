@@ -60,12 +60,12 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     :param int roiWidth: Width of the profile in image pixels.
     :param int axis: 0 for horizontal profile, 1 for vertical.
     :param str method: method to compute the profile. Can be 'mean' or 'sum' or
-        'dry-run'
+        'none'
     :return: profile image + effective ROI area corners in plot coords
     """
     assert axis in (0, 1)
     assert len(data.shape) == 3
-    assert method in ('mean', 'sum', 'dry-run')
+    assert method in ('mean', 'sum', 'none')
 
     # Convert from plot to image coords
     imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
@@ -83,7 +83,7 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     start = min(max(0, start), height - roiWidth)
     end = start + roiWidth
 
-    if method == 'dry-run':
+    if method == 'none':
         profile = None
     else:
         if start < height and end > 0:
@@ -184,7 +184,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
     :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
     :param str method: method to compute the profile. Can be 'mean' or 'sum'
-        or 'dry-run', to compute everything but the profile
+        or 'none': to compute everything except the profile
     :return: `coords, profile, area, profileName, xLabel`, where:
         - coords is the X coordinate to use to display the profile
         - profile is a 2D array of the profiles of the stack of images.
@@ -217,7 +217,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=0,
                                             method=method)
 
-        if method == 'dry-run':
+        if method == 'none':
             coords = None
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
@@ -237,7 +237,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=1,
                                             method=method)
 
-        if method == 'dry-run':
+        if method == 'none':
             coords = None
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
@@ -274,7 +274,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                 rowRange = (int(startPt[0] + 0.5 - 0.5 * roiWidth),
                             int(startPt[0] + 0.5 + 0.5 * roiWidth))
                 colRange = startPt[1], endPt[1] + 1
-                if method == 'dry-run':
+                if method == 'none':
                     profile = None
                 else:
                     profile = _alignedPartialProfile(currentData3D,
@@ -286,7 +286,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                 rowRange = startPt[0], endPt[0] + 1
                 colRange = (int(startPt[1] + 0.5 - 0.5 * roiWidth),
                             int(startPt[1] + 0.5 + 0.5 * roiWidth))
-                if method == 'dry-run':
+                if method == 'none':
                     profile = None
                 else:
                     profile = _alignedPartialProfile(currentData3D,
@@ -309,7 +309,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                     startPt[1] == endPt[1] and startPt[0] > endPt[0])):
                 startPt, endPt = endPt, startPt
 
-            if method == 'dry-run':
+            if method == 'none':
                 profile = None
             else:
                 profile = []
@@ -357,7 +357,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
 
         if startPt[1] == endPt[1]:
             profileName = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
-            if method == 'dry-run':
+            if method == 'none':
                 coords = None
             else:
                 coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
@@ -366,7 +366,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
 
         elif startPt[0] == endPt[0]:
             profileName = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
-            if method == 'dry-run':
+            if method == 'none':
                 coords = None
             else:
                 coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
@@ -377,7 +377,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
             profileName = 'y = %g * x %+g ; width=%d' % (m, b, roiWidth)
-            if method == 'dry-run':
+            if method == 'none':
                 coords = None
             else:
                 coords = numpy.linspace(x0, x1, len(profile[0]),

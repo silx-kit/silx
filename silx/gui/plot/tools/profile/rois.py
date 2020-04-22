@@ -129,7 +129,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             origin=origin,
             scale=scale,
             lineWidth=self.getProfileLineWidth(),
-            method="dry-run")
+            method="none")
         return area
 
     def _getRoiInfo(self):
