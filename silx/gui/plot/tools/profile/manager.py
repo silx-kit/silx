@@ -585,6 +585,10 @@ class ProfileManager(qt.QObject):
                 continue
             roiManager.removeRoi(roi)
 
+        if not roiManager.isDrawing():
+            # Clean the selected mode
+            roiManager.stop()
+
     def hasPendingOperations(self):
         """Returns true if a thread is still computing a profile.
 
