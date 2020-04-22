@@ -34,10 +34,13 @@ import logging
 import weakref
 
 from silx.gui import qt
+from silx.gui.widgets.MultiModeAction import MultiModeAction
 from . import manager
 
 
 _logger = logging.getLogger(__name__)
+
+
 
 
 class ProfileToolBar(qt.QToolBar):
@@ -80,8 +83,12 @@ class ProfileToolBar(qt.QToolBar):
         if scheme == "image":
             self.__manager.setItemType(image=True)
             self.__manager.setActiveItemTracking(True)
+
+            multiAction = MultiModeAction(self)
+            self.addAction(multiAction)
             for action in self.__manager.createImageActions(self):
-                self.addAction(action)
+                multiAction.addAction(action)
+
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
@@ -89,10 +96,14 @@ class ProfileToolBar(qt.QToolBar):
         elif scheme == "scatter":
             self.__manager.setItemType(scatter=True)
             self.__manager.setActiveItemTracking(True)
+
+            multiAction = MultiModeAction(self)
+            self.addAction(multiAction)
             for action in self.__manager.createScatterActions(self):
-                self.addAction(action)
+                multiAction.addAction(action)
             for action in self.__manager.createScatterSliceActions(self):
-                self.addAction(action)
+                multiAction.addAction(action)
+
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
@@ -100,8 +111,12 @@ class ProfileToolBar(qt.QToolBar):
         elif scheme == "imagestack":
             self.__manager.setItemType(image=True)
             self.__manager.setActiveItemTracking(True)
+
+            multiAction = MultiModeAction(self)
+            self.addAction(multiAction)
             for action in self.__manager.createImageStackActions(self):
-                self.addAction(action)
+                multiAction.addAction(action)
+
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
