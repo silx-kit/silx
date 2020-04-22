@@ -268,6 +268,7 @@ class PlotWidget(qt.QMainWindow):
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
         self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._previousDefaultMode = "zoom", True
 
         self._pressedButtons = []  # Currently pressed mouse buttons
 
@@ -3087,6 +3088,15 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._eventHandler.getInteractiveMode()
 
+    def resetInteractiveMode(self):
+        """Reset the interactive mode to use the previous basic interactive
+        mode used.
+
+        It can be one of "zoom" or "pan".
+        """
+        mode, zoomOnWheel = self._previousDefaultMode
+        self.setInteractiveMode(mode=mode, zoomOnWheel=zoomOnWheel)
+
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
                            zoomOnWheel=True, source=None, width=None):
@@ -3112,6 +3122,8 @@ class PlotWidget(qt.QMainWindow):
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
+        if mode in ["pan", "zoom"]:
+            self._previousDefaultMode = mode, zoomOnWheel
 
         self.notify(
             'interactiveModeChanged', source=source)
