@@ -154,14 +154,19 @@ def dicttoh5(treedict, h5file, h5path='/',
     any other data type, it is cast into a numpy array and written as a
     :mod:`h5py` dataset. Dictionary keys must be strings and cannot contain
     the ``/`` character.
+    
+    If dictionary keys are tuples they are interpreted to set h5 attributes.
+    The tuples should have the format (dataset_name,attr_name)
 
     .. note::
 
         This function requires `h5py <http://www.h5py.org/>`_ to be installed.
 
-    :param treedict: Nested dictionary/tree structure with strings as keys
-         and array-like objects as leafs. The ``"/"`` character is not allowed
-         in keys.
+    :param treedict: Nested dictionary/tree structure with strings or tuples as
+         keys and array-like objects as leafs. The ``"/"`` character is not
+         allowed in keys. If tuples are used as keys they should have the format
+        (dataset_name,attr_name) and will add a 5h attribute with the
+        corresponding value.
     :param h5file: HDF5 file name or handle. If a file name is provided, the
         function opens the file in the specified mode and closes it again
         before completing.
@@ -186,10 +191,12 @@ def dicttoh5(treedict, h5file, h5path='/',
             "Europe": {
                 "France": {
                     "Isère": {
-                        "Grenoble": "18.44 km2"
+                        "Grenoble": 18.44,
+                        ("Grenoble","unit"): "km2"
                     },
                     "Nord": {
-                        "Tourcoing": "15.19 km2"
+                        "Tourcoing": 15.19,
+                        ("Tourcoing","unit"): "km2"
                     },
                 },
             },
@@ -207,7 +214,7 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
-        for key in treedict:
+        for key in filter(lambda k: not isinstance(k, tuple), treedict):
             if isinstance(treedict[key], dict) and len(treedict[key]):
                 # non-empty group: recurse
                 dicttoh5(treedict[key], h5f, h5path + key,
@@ -252,6 +259,98 @@ def dicttoh5(treedict, h5file, h5path='/',
                     h5f.create_dataset(h5path + key,
                                        data=ds,
                                        **create_dataset_args)
+
+        # deal with h5 attributes which have tuples as keys in treedict
+        for key in filter(lambda k: isinstance(k, tuple), treedict):
+            if (h5path + key[0]) not in h5f:
+                # Create empty group if key for attr does not exist
+                h5f.create_group(h5path + key[0])
+                logger.warning(
+                    "key (%s) does not exist. attr %s "
+                    "will be written to ." % (h5path + key[0], key[1])
+                )
+
+            if key[1] in h5f[h5path + key[0]].attrs:
+                if not overwrite_data:
+                    logger.warning(
+                        "attribute %s@%s already exists. Not overwriting."
+                        "" % (h5path + key[0], key[1])
+                    )
+                    continue
+
+            # Write attribute
+            h5f[h5path + key[0]].attrs[key[1]] = treedict[key]
+
+
+def dicttonx(
+    treedict,
+    h5file,
+    h5path="/",
+    mode="w",
+    overwrite_data=False,
+    create_dataset_args=None,
+):
+    """
+    Write a nested dictionary to a HDF5 file, using string keys as member names.
+    The NeXus convention is used to identify attributes with ``"@"`` character,
+    therefor the dataset_names should not contain ``"@"``.
+
+    :param treedict: Nested dictionary/tree structure with strings as keys
+         and array-like objects as leafs. The ``"/"`` character is not allowed
+         in keys. The ``"@"`` character is used to write attributes.
+
+    Detais on all other params can be found in doc of dicttoh5.
+
+    Example::
+
+        import numpy
+        from silx.io.dictdump import dicttonx
+
+        gauss = {
+            "entry":{
+                "title":u"A plot of a gaussian",
+                "plot": {
+                    "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
+                                  0.9, 0.66, 0.39, 0.19, 0.08]),
+                    "x": numpy.arange(0,1.1,.1),
+                    "@signal": "y",
+                    "@axes": "x",
+                    "@NX_class":u"NXdata",
+                    "title:u"Gauss Plot",
+                 },
+                 "@NX_class":u"NXentry",
+                 "default":"plot", 
+            }
+            "@NX_class": u"NXroot",
+            "@default": "entry",
+        }
+
+        dicttonx(gauss,"test.h5")
+    """
+
+    def copy_keys_keep_values(original):
+        # create a new treedict with with modified keys but keep values
+        copy = dict()
+        for key, value in original.items():
+            if "@" in key:
+                newkey = tuple(key.rsplit("@", 1))
+            else:
+                newkey = key
+            if isinstance(value, dict):
+                copy[newkey] = copy_keys_keep_values(value)
+            else:
+                copy[newkey] = value
+        return copy
+
+    nxtreedict = copy_keys_keep_values(treedict)
+    dicttoh5(
+        nxtreedict,
+        h5file,
+        h5path=h5path,
+        mode=mode,
+        overwrite_data=overwrite_data,
+        create_dataset_args=create_dataset_args,
+    )
 
 
 def _name_contains_string_in_list(name, strlist):
