@@ -590,7 +590,7 @@ class RegionOfInterestManager(qt.QObject):
         if plot is not None:
             # This leads to call __roiInteractiveModeEnded through
             # interactive mode changed signal
-            plot.setInteractiveMode(mode='zoom', source=None)
+            plot.resetInteractiveMode()
         else:  # Fallback
             self.__roiInteractiveModeEnded()
 
