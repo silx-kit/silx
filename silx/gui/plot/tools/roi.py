@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 
 class CreateRoiModeAction(qt.QAction):
     """
-    This action is a plot mode which allow to create new ROIs using a ROI
+    This action is a plot mode which allows to create new ROIs using a ROI
     manager.
 
     A ROI is created using a specific `roiClass`. `initRoi` and `finalizeRoi`
@@ -264,7 +264,7 @@ class RegionOfInterestManager(qt.QObject):
         The QAction allows to enable the corresponding drawing
         interactive mode.
 
-        :param class roiClass: The ROI class which will be crated by this action.
+        :param class roiClass: The ROI class which will be created by this action.
         :rtype: QAction
         :raise ValueError: If kind is not supported
         """
