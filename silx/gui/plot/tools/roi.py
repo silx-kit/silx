@@ -234,7 +234,7 @@ class RegionOfInterestManager(qt.QObject):
 
     # Associated QActions
 
-    def getInteractionModeAction(self, roiClass, parent=None):
+    def getInteractionModeAction(self, roiClass):
         """Returns the QAction corresponding to a kind of ROI
 
         The QAction allows to enable the corresponding drawing
@@ -249,7 +249,7 @@ class RegionOfInterestManager(qt.QObject):
 
         action = self._modeActions.get(roiClass, None)
         if action is None:  # Lazy-loading
-            action = CreateRoiModeAction(parent, self, roiClass)
+            action = CreateRoiModeAction(self, self, roiClass)
             self._modeActions[roiClass] = action
         return action
 
