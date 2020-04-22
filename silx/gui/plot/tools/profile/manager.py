@@ -333,6 +333,7 @@ class ProfileManager(qt.QObject):
             action.setIcon(icons.getQIcon(profileRoiClass.ICON))
         if hasattr(profileRoiClass, "NAME"):
             action.setToolTip('Enables %s selection mode' % profileRoiClass.NAME)
+        action.setSingleShot(True)
         return action
 
     def createClearAction(self, parent):
