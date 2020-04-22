@@ -68,6 +68,7 @@ class CreateRoiModeAction(qt.QAction):
         qt.QAction.__init__(self, parent=parent)
         self._roiManager = weakref.ref(roiManager)
         self._roiClass = roiClass
+        self._singleShot = False
         self._initAction()
         self.triggered[bool].connect(self._actionTriggered)
 
@@ -91,6 +92,22 @@ class CreateRoiModeAction(qt.QAction):
     def getRoiManager(self):
         return self._roiManager()
 
+    def setSingleShot(self, singleShot):
+        """Set it to True to deactivate the action after the first creation
+        of a ROI.
+
+        :param bool singleShot: New single short state
+        """
+        self._singleShot = singleShot
+
+    def getSingleShot(self):
+        """If True, after the first creation of a ROI with this mode,
+        the mode is deactivated.
+
+        :rtype: bool
+        """
+        return self._singleShot
+
     def _actionTriggered(self, checked):
         """Handle mode actions being checked by the user
 
@@ -111,14 +128,14 @@ class CreateRoiModeAction(qt.QAction):
 
     def __interactiveModeStarted(self, roiManager):
         roiManager.sigInteractiveRoiCreated.connect(self.initRoi)
-        roiManager.sigInteractiveRoiFinalized.connect(self.finalizeRoi)
+        roiManager.sigInteractiveRoiFinalized.connect(self.__finalizeRoi)
         roiManager.sigInteractiveModeFinished.connect(self.__interactiveModeFinished)
 
     def __interactiveModeFinished(self):
         roiManager = self.getRoiManager()
         if roiManager is not None:
             roiManager.sigInteractiveRoiCreated.disconnect(self.initRoi)
-            roiManager.sigInteractiveRoiFinalized.disconnect(self.finalizeRoi)
+            roiManager.sigInteractiveRoiFinalized.disconnect(self.__finalizeRoi)
             roiManager.sigInteractiveModeFinished.disconnect(self.__interactiveModeFinished)
         self.setChecked(False)
 
@@ -126,6 +143,13 @@ class CreateRoiModeAction(qt.QAction):
         """Inherit it to custom the new ROI at it's creation during the
         interaction."""
         pass
+
+    def __finalizeRoi(self, roi):
+        self.finalizeRoi(roi)
+        if self._singleShot:
+            roiManager = self.getRoiManager()
+            if roiManager is not None:
+                roiManager.stop()
 
     def finalizeRoi(self, roi):
         """Inherit it to custom the new ROI after it's creation when the
