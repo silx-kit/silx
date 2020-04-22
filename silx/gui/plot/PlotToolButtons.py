@@ -271,7 +271,8 @@ class ProfileOptionToolButton(PlotToolButton):
         menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        self.setMean()
+        self._method = 'mean'
+        self._update()
 
     def _createAction(self, method):
         icon = self.STATE[method, "icon"]
@@ -279,10 +280,7 @@ class ProfileOptionToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def setSum(self):
-        """Configure the plot to use y-axis upward"""
-        self._method = 'sum'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('sum')
 
     def _update(self):
         icon = self.STATE[self._method, "icon"]
@@ -291,22 +289,27 @@ class ProfileOptionToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
     def setMean(self):
-        """Configure the plot to use y-axis downward"""
-        self._method = 'mean'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('mean')
 
     def setMethod(self, method):
-        if method == self._method:
-            return
-        if method == "sum":
-            self.setSum()
-        elif method == "mean":
-            self.setMean()
-        else:
-            _logger.warning("Unsupported method '%s'. Setting ignored.", method)
+        """Set the method to use.
+
+        :param str method: Either 'sum' or 'mean'
+        """
+        if method != self._method:
+            if method in ('sum', 'mean'):
+                self._method = method
+                self.sigMethodChanged.emit(self._method)
+                self._update()
+            else:
+                _logger.warning(
+                    "Unsupported method '%s'. Setting ignored.", method)
 
     def getMethod(self):
+        """Returns the current method in use (See :meth:`setMethod`).
+
+        :rtype: str
+        """
         return self._method
 
 
