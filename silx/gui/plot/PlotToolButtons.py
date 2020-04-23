@@ -271,7 +271,8 @@ class ProfileOptionToolButton(PlotToolButton):
         menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        self.setMean()
+        self._method = 'mean'
+        self._update()
 
     def _createAction(self, method):
         icon = self.STATE[method, "icon"]
@@ -279,10 +280,7 @@ class ProfileOptionToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def setSum(self):
-        """Configure the plot to use y-axis upward"""
-        self._method = 'sum'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('sum')
 
     def _update(self):
         icon = self.STATE[self._method, "icon"]
@@ -291,10 +289,28 @@ class ProfileOptionToolButton(PlotToolButton):
         self.setToolTip(toolTip)
 
     def setMean(self):
-        """Configure the plot to use y-axis downward"""
-        self._method = 'mean'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('mean')
+
+    def setMethod(self, method):
+        """Set the method to use.
+
+        :param str method: Either 'sum' or 'mean'
+        """
+        if method != self._method:
+            if method in ('sum', 'mean'):
+                self._method = method
+                self.sigMethodChanged.emit(self._method)
+                self._update()
+            else:
+                _logger.warning(
+                    "Unsupported method '%s'. Setting ignored.", method)
+
+    def getMethod(self):
+        """Returns the current method in use (See :meth:`setMethod`).
+
+        :rtype: str
+        """
+        return self._method
 
 
 class ProfileToolButton(PlotToolButton):
@@ -319,6 +335,8 @@ class ProfileToolButton(PlotToolButton):
 
         super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
 
+        self._dimension = 1
+
         profile1DAction = self._createAction(1)
         profile1DAction.triggered.connect(self.computeProfileIn1D)
         profile1DAction.setIconVisibleInMenu(True)
@@ -333,6 +351,7 @@ class ProfileToolButton(PlotToolButton):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         menu.setTitle('Select profile dimension')
+        self.computeProfileIn1D()
 
     def _createAction(self, profileDimension):
         icon = self.STATE[profileDimension, "icon"]
@@ -343,6 +362,7 @@ class ProfileToolButton(PlotToolButton):
         """Update icon in toolbar, emit number of dimensions for profile"""
         self.setIcon(self.STATE[profileDimension, "icon"])
         self.setToolTip(self.STATE[profileDimension, "state"])
+        self._dimension = profileDimension
         self.sigDimensionChanged.emit(profileDimension)
 
     def computeProfileIn1D(self):
@@ -351,6 +371,24 @@ class ProfileToolButton(PlotToolButton):
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
 
+    def setDimension(self, dimension):
+        """Set the selected dimension"""
+        assert dimension in [1, 2]
+        if self._dimension == dimension:
+            return
+        if dimension == 1:
+            self.computeProfileIn1D()
+        elif dimension == 2:
+            self.computeProfileIn2D()
+        else:
+            _logger.warning("Unsupported dimension '%s'. Setting ignored.", dimension)
+
+    def getDimension(self):
+        """Get the selected dimension.
+
+        :rtype: int (1 or 2)
+        """
+        return self._dimension
 
 
 class _SymbolToolButtonBase(PlotToolButton):

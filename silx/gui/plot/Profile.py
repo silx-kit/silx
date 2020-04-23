@@ -59,12 +59,13 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
                            on the axis orthogonal to the profile direction.
     :param int roiWidth: Width of the profile in image pixels.
     :param int axis: 0 for horizontal profile, 1 for vertical.
-    :param str method: method to compute the profile. Can be 'mean' or 'sum'
+    :param str method: method to compute the profile. Can be 'mean' or 'sum' or
+        'none'
     :return: profile image + effective ROI area corners in plot coords
     """
     assert axis in (0, 1)
     assert len(data.shape) == 3
-    assert method in ('mean', 'sum')
+    assert method in ('mean', 'sum', 'none')
 
     # Convert from plot to image coords
     imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
@@ -82,16 +83,19 @@ def _alignedFullProfile(data, origin, scale, position, roiWidth, axis, method):
     start = min(max(0, start), height - roiWidth)
     end = start + roiWidth
 
-    if start < height and end > 0:
-        if method == 'mean':
-            _fct = numpy.mean
-        elif method == 'sum':
-            _fct = numpy.sum
-        else:
-            raise ValueError('method not managed')
-        profile = _fct(data[:, max(0, start):min(end, height), :], axis=1).astype(numpy.float32)
+    if method == 'none':
+        profile = None
     else:
-        profile = numpy.zeros((nimages, width), dtype=numpy.float32)
+        if start < height and end > 0:
+            if method == 'mean':
+                _fct = numpy.mean
+            elif method == 'sum':
+                _fct = numpy.sum
+            else:
+                raise ValueError('method not managed')
+            profile = _fct(data[:, max(0, start):min(end, height), :], axis=1).astype(numpy.float32)
+        else:
+            profile = numpy.zeros((nimages, width), dtype=numpy.float32)
 
     # Compute effective ROI in plot coords
     profileBounds = numpy.array(
@@ -180,6 +184,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
     :type scale: 2-tuple of float
     :param int lineWidth: width of the profile line
     :param str method: method to compute the profile. Can be 'mean' or 'sum'
+        or 'none': to compute everything except the profile
     :return: `coords, profile, area, profileName, xLabel`, where:
         - coords is the X coordinate to use to display the profile
         - profile is a 2D array of the profiles of the stack of images.
@@ -212,8 +217,11 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=0,
                                             method=method)
 
-        coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-        coords = coords * scale[0] + origin[0]
+        if method == 'none':
+            coords = None
+        else:
+            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            coords = coords * scale[0] + origin[0]
 
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
@@ -229,8 +237,11 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                                             axis=1,
                                             method=method)
 
-        coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-        coords = coords * scale[1] + origin[1]
+        if method == 'none':
+            coords = None
+        else:
+            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            coords = coords * scale[1] + origin[1]
 
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
@@ -263,20 +274,25 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                 rowRange = (int(startPt[0] + 0.5 - 0.5 * roiWidth),
                             int(startPt[0] + 0.5 + 0.5 * roiWidth))
                 colRange = startPt[1], endPt[1] + 1
-                profile = _alignedPartialProfile(currentData3D,
-                                                 rowRange, colRange,
-                                                 axis=0,
-                                                 method=method)
+                if method == 'none':
+                    profile = None
+                else:
+                    profile = _alignedPartialProfile(currentData3D,
+                                                     rowRange, colRange,
+                                                     axis=0,
+                                                     method=method)
 
             else:  # Column aligned
                 rowRange = startPt[0], endPt[0] + 1
                 colRange = (int(startPt[1] + 0.5 - 0.5 * roiWidth),
                             int(startPt[1] + 0.5 + 0.5 * roiWidth))
-                profile = _alignedPartialProfile(currentData3D,
-                                                 rowRange, colRange,
-                                                 axis=1,
-                                                 method=method)
-
+                if method == 'none':
+                    profile = None
+                else:
+                    profile = _alignedPartialProfile(currentData3D,
+                                                     rowRange, colRange,
+                                                     axis=1,
+                                                     method=method)
             # Convert ranges to plot coords to draw ROI area
             area = (
                 numpy.array(
@@ -293,16 +309,19 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                     startPt[1] == endPt[1] and startPt[0] > endPt[0])):
                 startPt, endPt = endPt, startPt
 
-            profile = []
-            for slice_idx in range(currentData3D.shape[0]):
-                bilinear = BilinearImage(currentData3D[slice_idx, :, :])
+            if method == 'none':
+                profile = None
+            else:
+                profile = []
+                for slice_idx in range(currentData3D.shape[0]):
+                    bilinear = BilinearImage(currentData3D[slice_idx, :, :])
 
-                profile.append(bilinear.profile_line(
-                    (startPt[0] - 0.5, startPt[1] - 0.5),
-                    (endPt[0] - 0.5, endPt[1] - 0.5),
-                    roiWidth,
-                    method=method))
-            profile = numpy.array(profile)
+                    profile.append(bilinear.profile_line(
+                        (startPt[0] - 0.5, startPt[1] - 0.5),
+                        (endPt[0] - 0.5, endPt[1] - 0.5),
+                        roiWidth,
+                        method=method))
+                profile = numpy.array(profile)
 
             # Extend ROI with half a pixel on each end, and
             # Convert back to plot coords (x, y)
@@ -338,23 +357,32 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
 
         if startPt[1] == endPt[1]:
             profileName = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
-            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-            coords = coords * scale[1] + y0
+            if method == 'none':
+                coords = None
+            else:
+                coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+                coords = coords * scale[1] + y0
             xLabel = 'Y'
 
         elif startPt[0] == endPt[0]:
             profileName = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
-            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
-            coords = coords * scale[0] + x0
+            if method == 'none':
+                coords = None
+            else:
+                coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+                coords = coords * scale[0] + x0
             xLabel = 'X'
 
         else:
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
             profileName = 'y = %g * x %+g ; width=%d' % (m, b, roiWidth)
-            coords = numpy.linspace(x0, x1, len(profile[0]),
-                                    endpoint=True,
-                                    dtype=numpy.float32)
+            if method == 'none':
+                coords = None
+            else:
+                coords = numpy.linspace(x0, x1, len(profile[0]),
+                                        endpoint=True,
+                                        dtype=numpy.float32)
             xLabel = 'X'
 
     return coords, profile, area, profileName, xLabel

@@ -48,6 +48,8 @@ class ProfileMainWindow(qt.QMainWindow):
     """This signal is emitted when :meth:`setProfileDimensions` is called.
     It carries the number of dimensions for the profile data (1 or 2).
     It can be used to be notified that the profile plot widget has changed.
+
+    Note: This signal should be removed.
     """
 
     sigClose = qt.Signal()
@@ -56,7 +58,10 @@ class ProfileMainWindow(qt.QMainWindow):
 
     sigProfileMethodChanged = qt.Signal(str)
     """Emitted when the method to compute the profile changed (for now can be
-    sum or mean)"""
+    sum or mean)
+
+    Note: This signal should be removed.
+    """
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
@@ -68,41 +73,68 @@ class ProfileMainWindow(qt.QMainWindow):
         self._backend = backend
         # by default, profile is assumed to be a 1D curve
         self._profileType = None
+
+        widget = qt.QWidget()
+        self._layout = qt.QStackedLayout(widget)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self.setCentralWidget(widget)
+
         self.setProfileType("1D")
         self.setProfileMethod('sum')
+
+    def _getPlot1D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot1D is None:
+            # import here to avoid circular import
+            from .PlotWindow import Plot1D
+            self._plot1D = Plot1D(parent=self, backend=self._backend)
+            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
+            self._plot1D.setGraphYLabel('Profile')
+            self._plot1D.setGraphXLabel('')
+            self._layout.addWidget(self._plot1D)
+        return self._plot1D
+
+    def _showPlot1D(self):
+        plot = self._getPlot1D()
+        self._layout.setCurrentWidget(plot)
+
+    def _getPlot2D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot2D is None:
+            # import here to avoid circular import
+            from .PlotWindow import Plot2D
+            self._plot2D = Plot2D(parent=self, backend=self._backend)
+            self._layout.addWidget(self._plot2D)
+        return self._plot2D
+
+    def _showPlot2D(self):
+        plot = self._getPlot2D()
+        self._layout.setCurrentWidget(plot)
 
     def setProfileType(self, profileType):
         """Set which profile plot widget (1D or 2D) is to be used
 
+        Note: This method should be removed.
+
         :param str profileType: Type of profile data,
             "1D" for a curve or "2D" for an image
         """
-        # import here to avoid circular import
-        from .PlotWindow import Plot1D, Plot2D      # noqa
         self._profileType = profileType
         if self._profileType == "1D":
-            if self._plot2D is not None:
-                self._plot2D.setParent(None)   # necessary to avoid widget destruction
-            if self._plot1D is None:
-                self._plot1D = Plot1D(backend=self._backend)
-                self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
-                self._plot1D.setGraphYLabel('Profile')
-                self._plot1D.setGraphXLabel('')
-            self.setCentralWidget(self._plot1D)
+            self._showPlot1D()
         elif self._profileType == "2D":
-            if self._plot1D is not None:
-                self._plot1D.setParent(None)   # necessary to avoid widget destruction
-            if self._plot2D is None:
-                self._plot2D = Plot2D(backend=self._backend)
-            self.setCentralWidget(self._plot2D)
+            self._showPlot2D()
         else:
             raise ValueError("Profile type must be '1D' or '2D'")
-
         self.sigProfileDimensionsChanged.emit(profileType)
 
     def getPlot(self):
         """Return the profile plot widget which is currently in use.
         This can be the 2D profile plot or the 1D profile plot.
+
+        Note: This method should be removed.
         """
         if self._profileType == "2D":
             return self._plot2D
@@ -115,6 +147,7 @@ class ProfileMainWindow(qt.QMainWindow):
 
     def setProfileMethod(self, method):
         """
+        Note: This method should be removed.
 
         :param str method: method to manage the 'width' in the profile
             (computing mean or sum).
