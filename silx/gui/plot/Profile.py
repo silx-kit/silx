@@ -38,6 +38,7 @@ from . import actions
 from .tools.profile import core
 from .tools.profile import manager
 from .tools.profile import rois
+from silx.gui.widgets.MultiModeAction import MultiModeAction
 
 from silx.utils.deprecation import deprecated
 from silx.utils.deprecation import deprecated_warning
@@ -108,12 +109,15 @@ class ProfileToolBar(qt.QToolBar):
         self.actionGroup.addAction(self.lineAction)
         self.actionGroup.addAction(self._editor)
 
+        modes = MultiModeAction(self)
+        modes.addAction(self.hLineAction)
+        modes.addAction(self.vLineAction)
+        modes.addAction(self.lineAction)
+        modes.addAction(self.crossAction)
+
         # Add actions to ToolBar
         self.addAction(self._browseAction)
-        self.addAction(self.hLineAction)
-        self.addAction(self.vLineAction)
-        self.addAction(self.lineAction)
-        self.addAction(self.crossAction)
+        self.addAction(modes)
         self.addAction(self.clearAction)
 
     def _createProfileActions(self):
