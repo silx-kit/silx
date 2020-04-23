@@ -323,10 +323,11 @@ class RegionOfInterestManager(qt.QObject):
         """Returns a ROI from a marker, else None"""
         # This should be speed up
         for roi in self._rois:
-            if marker in roi._editAnchors:
-                return roi
-            if marker in roi._items:
-                return roi
+            if isinstance(roi, roi_items._AnchorBasedROI):
+                if marker in roi._editAnchors:
+                    return roi
+                if marker in roi._items:
+                    return roi
         return None
 
     def setCurrentRoi(self, roi):

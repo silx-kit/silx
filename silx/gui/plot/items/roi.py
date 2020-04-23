@@ -39,6 +39,7 @@ import weakref
 
 from ....utils.weakref import WeakList
 from ... import qt
+from ... import utils
 from .. import items
 from ...colors import rgba
 import silx.utils.deprecation
@@ -125,100 +126,44 @@ class RegionOfInterest(_RegionOfInterestBase):
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent)
         self._color = rgba('red')
-        self._items = WeakList()
-        self._editAnchors = WeakList()
-        self._points = None
-        self._labelItem = None
         self._editable = False
         self._selectable = False
         self._focusProxy = None
         self._visible = True
 
-    def _updated(self, event=None, checkVisibility=True):
-        """Implement Item mix-in update method by updating the plot items
+    def _connectToPlot(self, plot):
+        """Called after connection to a plot"""
+        pass
 
-        See :class:`~silx.gui.plot.items.Item._updated`
-        """
-        if event == items.ItemChangedType.NAME:
-            self._updateLabelItem(self.getName())
-        elif event == items.ItemChangedType.COLOR:
-            # Update color of shape items in the plot
-            rgbaColor = rgba(self.getColor())
-            for item in self._iterItems(event):
-                item.setColor(rgbaColor)
+    def _disconnectFromPlot(self, plot):
+        """Called before deconnection from a plot"""
+        pass
 
-            rgbaColor = self._getAnchorColor(rgbaColor)
-            for item in list(self._editAnchors):
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgbaColor)
-        elif event == items.ItemChangedType.LINE_STYLE:
-            value = self.getLineStyle()
-            for item in self._iterItems(event):
-                item.setLineStyle(value)
-        elif event == items.ItemChangedType.LINE_WIDTH:
-            value = self.getLineWidth()
-            for item in self._iterItems(event):
-                item.setLineWidth(value)
-        elif event == items.ItemChangedType.SYMBOL:
-            value = self.getSymbol()
-            for item in self._iterItems(event):
-                item.setSymbol(value)
-        elif event == items.ItemChangedType.SYMBOL_SIZE:
-            value = self.getSymbolSize()
-            for item in self._iterItems(event):
-                item.setSymbolSize(value)
-        elif items.ItemChangedType.EDITABLE:
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
-        elif items.ItemChangedType.EDITABLE:
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
-        elif event == items.ItemChangedType.VISIBLE:
-            visible = self.isVisible()
-            if self._labelItem is not None:
-                self._labelItem.setVisible(visible)
-            for item in self._items + self._editAnchors:
-                item.setVisible(visible)
-
-        super(RegionOfInterest, self)._updated()
-
-    def _iterItems(self, event):
-        if event == items.ItemChangedType.COLOR:
-            # Update color of shape items in the plot
-            for item in self._items:
-                if isinstance(item, items.ColorMixIn):
-                    yield item
-            item = self._getLabelItem()
-            if isinstance(item, items.ColorMixIn):
-                yield item
-        elif event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            for item in self._items:
-                if isinstance(item, items.LineMixIn):
-                    yield item
-        elif event in [items.ItemChangedType.SYMBOL, items.ItemChangedType.SYMBOL_SIZE]:
-            for item in self._items:
-                if isinstance(item, items.SymbolMixIn):
-                    yield item
-
-    def __del__(self):
-        # Clean-up plot items
-        self._removePlotItems()
+    def _setItemName(self, item):
+        """Helper to generate a unique id to a plot item"""
+        legend = "__ROI-%d__%d" % (id(self), id(item))
+        item.setName(legend)
 
     def setParent(self, parent):
         """Set the parent of the RegionOfInterest
 
-        :param Union[None,RegionOfInterestManager] parent:
+        :param Union[None,RegionOfInterestManager] parent: The new parent
         """
         # Avoid circular dependency
         from ..tools import roi as roi_tools
         if (parent is not None and not isinstance(parent, roi_tools.RegionOfInterestManager)):
             raise ValueError('Unsupported parent')
 
-        self._removePlotItems()
+        previousParent = self.parent()
+        if previousParent is not None:
+            previousPlot = previousParent.parent()
+            if previousPlot is not None:
+                self._disconnectFromPlot(previousPlot)
         super(RegionOfInterest, self).setParent(parent)
-        self._createPlotItems()
+        if parent is not None:
+            plot = parent.parent()
+            if plot is not None:
+                self._connectToPlot(plot)
 
     @classmethod
     def _getKind(cls):
@@ -234,14 +179,6 @@ class RegionOfInterest(_RegionOfInterestBase):
         :rtype: QColor
         """
         return qt.QColor.fromRgbF(*self._color)
-
-    def _getAnchorColor(self, color):
-        """Returns the anchor color from the base ROI color
-
-        :param Union[numpy.array,Tuple,List]: color
-        :rtype: Union[numpy.array,Tuple,List]
-        """
-        return color[:3] + (0.5,)
 
     def setColor(self, color):
         """Set the color used for this ROI.
@@ -359,16 +296,6 @@ class RegionOfInterest(_RegionOfInterestBase):
             self._visible = visible
             self._updated(items.ItemChangedType.VISIBLE)
 
-    def _getControlPoints(self):
-        """Returns the current ROI control points.
-
-        It returns an empty tuple if there is currently no ROI.
-
-        :return: Array of (x, y) position in plot coordinates
-        :rtype: numpy.ndarray
-        """
-        return None if self._points is None else numpy.array(self._points)
-
     @classmethod
     def showFirstInteractionShape(cls):
         """Returns True if the shape created by the first interaction and
@@ -395,8 +322,171 @@ class RegionOfInterest(_RegionOfInterestBase):
         This interaction is constrained by the plot API and only supports few
         shapes.
         """
+        raise NotImplementedError()
+
+    def _updateItemProperty(self, event, source, destination):
+        """Update the item property of a destination from an item source.
+
+        :param items.ItemChangedType event: Property type to update
+        :param silx.gui.plot.items.Item source: The reference for the data
+        :param event Union[Item,List[Item]] destination: The item(s) to update
+        """
+        if not isinstance(destination, (list, tuple)):
+            destination = [destination]
+        if event == items.ItemChangedType.NAME:
+            value = source.getName()
+            for d in destination:
+                d.setName(value)
+        elif event == items.ItemChangedType.EDITABLE:
+            value = source.isEditable()
+            for d in destination:
+                d.setEditable(value)
+        elif event == items.ItemChangedType.SELECTABLE:
+            value = source.isSelectable()
+            for d in destination:
+                d._setSelectable(value)
+        elif event == items.ItemChangedType.COLOR:
+            value = rgba(source.getColor())
+            for d in destination:
+                d.setColor(value)
+        elif event == items.ItemChangedType.LINE_STYLE:
+            value = self.getLineStyle()
+            for d in destination:
+                d.setLineStyle(value)
+        elif event == items.ItemChangedType.LINE_WIDTH:
+            value = self.getLineWidth()
+            for d in destination:
+                d.setLineWidth(value)
+        elif event == items.ItemChangedType.SYMBOL:
+            value = self.getSymbol()
+            for d in destination:
+                d.setSymbol(value)
+        elif event == items.ItemChangedType.SYMBOL_SIZE:
+            value = self.getSymbolSize()
+            for d in destination:
+                d.setSymbolSize(value)
+        elif event == items.ItemChangedType.VISIBLE:
+            value = self.isVisible()
+            for d in destination:
+                d.setVisible(value)
+        else:
+            assert False
+
+    def _editingStarted(self):
+        assert self._editable is True
+        self.sigEditingStarted.emit()
+
+    def _editingFinished(self):
+        self.sigEditingFinished.emit()
+
+
+class _AnchorBasedROI(RegionOfInterest):
+    """This class manage the ROI based on a set of anchors"""
+
+    def __init__(self, parent=None):
+        RegionOfInterest.__init__(self, parent=parent)
+        self._items = WeakList()
+        self._editAnchors = WeakList()
+        self._points = None
+        self._labelItem = None
+
+    def setFirstShapePoints(self, points):
+        """"Initialize the ROI using the points from the first interaction.
+
+        This interaction is constrained by the plot API and only supports few
+        shapes.
+        """
         points = self._createControlPointsFromFirstShape(points)
         self._setControlPoints(points)
+
+    def _connectToPlot(self, plot):
+        """Called after connection to a plot"""
+        self._createPlotItems()
+
+    def _disconnectFromPlot(self, plot):
+        """Called before deconnection from a plot"""
+        self._removePlotItems()
+
+    def _updated(self, event=None, checkVisibility=True):
+        """Implement Item mix-in update method by updating the plot items
+
+        See :class:`~silx.gui.plot.items.Item._updated`
+        """
+        if event == items.ItemChangedType.NAME:
+            self._updateLabelItem(self.getName())
+        elif event == items.ItemChangedType.COLOR:
+            # Update color of shape items in the plot
+            rgbaColor = rgba(self.getColor())
+            for item in self._iterItems(event):
+                item.setColor(rgbaColor)
+        elif event == items.ItemChangedType.LINE_STYLE:
+            value = self.getLineStyle()
+            for item in self._iterItems(event):
+                item.setLineStyle(value)
+        elif event == items.ItemChangedType.LINE_WIDTH:
+            value = self.getLineWidth()
+            for item in self._iterItems(event):
+                item.setLineWidth(value)
+        elif event == items.ItemChangedType.SYMBOL:
+            value = self.getSymbol()
+            for item in self._iterItems(event):
+                item.setSymbol(value)
+        elif event == items.ItemChangedType.SYMBOL_SIZE:
+            value = self.getSymbolSize()
+            for item in self._iterItems(event):
+                item.setSymbolSize(value)
+        elif items.ItemChangedType.EDITABLE:
+            # Recreate plot items
+            # This can be avoided once marker.setDraggable is public
+            self._createPlotItems()
+        elif items.ItemChangedType.EDITABLE:
+            # Recreate plot items
+            # This can be avoided once marker.setDraggable is public
+            self._createPlotItems()
+        elif event == items.ItemChangedType.VISIBLE:
+            visible = self.isVisible()
+            if self._labelItem is not None:
+                self._labelItem.setVisible(visible)
+            for item in self._items + self._editAnchors:
+                item.setVisible(visible)
+
+        super(_AnchorBasedROI, self)._updated(event, checkVisibility)
+
+    def _iterItems(self, event):
+        if event == items.ItemChangedType.COLOR:
+            # Update color of shape items in the plot
+            for item in self._items:
+                if isinstance(item, items.ColorMixIn):
+                    yield item
+            item = self._getLabelItem()
+            if isinstance(item, items.ColorMixIn):
+                yield item
+        elif event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            for item in self._items:
+                if isinstance(item, items.LineMixIn):
+                    yield item
+        elif event in [items.ItemChangedType.SYMBOL, items.ItemChangedType.SYMBOL_SIZE]:
+            for item in self._items:
+                if isinstance(item, items.SymbolMixIn):
+                    yield item
+
+    def _getAnchorColor(self, color):
+        """Returns the anchor color from the base ROI color
+
+        :param Union[numpy.array,Tuple,List]: color
+        :rtype: Union[numpy.array,Tuple,List]
+        """
+        return color[:3] + (0.5,)
+
+    def _getControlPoints(self):
+        """Returns the current ROI control points.
+
+        It returns an empty tuple if there is currently no ROI.
+
+        :return: Array of (x, y) position in plot coordinates
+        :rtype: numpy.ndarray
+        """
+        return None if self._points is None else numpy.array(self._points)
 
     def _createControlPointsFromFirstShape(self, points):
         """Returns the list of control points from the very first shape
@@ -612,13 +702,6 @@ class RegionOfInterest(_RegionOfInterestBase):
         params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    def _editingStarted(self):
-        assert self._editable is True
-        self.sigEditingStarted.emit()
-
-    def _editingFinished(self):
-        self.sigEditingFinished.emit()
-
 
 class PointROI(RegionOfInterest, items.SymbolMixIn):
     """A ROI identifying a point in a 2D plot."""
@@ -638,63 +721,74 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def __init__(self, parent=None):
         items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
-        self._points = numpy.array([[0, 0]])
+        self._marker = items.Marker()
+        self._setItemName(self._marker)
+        self._marker.setSymbol(self._DEFAULT_SYMBOL)
+        self._marker.sigDragStarted.connect(self._editingStarted)
+        self._marker.sigDragFinished.connect(self._editingFinished)
+        self.__filterReentrant = utils.LockReentrant()
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def setFirstShapePoints(self, points):
+        pos = points[0]
+        self._marker.setPosition(pos[0], pos[1])
+
+    def _connectToPlot(self, plot):
+        plot.addItem(self._marker)
+
+    def _disconnectFromPlot(self, plot):
+        plot.removeItem(self._marker)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.NAME:
+            label = self.getName()
+            self._marker.setText(label)
+        elif event == items.ItemChangedType.EDITABLE:
+            editable = self.isEditable()
+            if editable:
+                self._marker.sigItemChanged.connect(self.__positionChanged)
+            else:
+                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+            self._marker._setDraggable(editable)
+        elif event in [items.ItemChangedType.COLOR,
+                       items.ItemChangedType.VISIBLE,
+                       items.ItemChangedType.SELECTABLE]:
+            self._updateItemProperty(event, self, self._marker)
+        super(PointROI, self)._updated(event, checkVisibility)
 
     def getPosition(self):
         """Returns the position of this ROI
 
         :rtype: numpy.ndarray
         """
-        return self._points[0].copy()
+        return self._marker.getPosition()
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        controlPoints = numpy.array([pos])
-        self._setControlPoints(controlPoints)
-
-    def _createLabelItem(self):
-        return None
-
-    def _updateLabelItem(self, label):
-        if self._items is None or len(self._items) == 0:
-            return
-        self._items[0].setText(label)
-
-    def _updateShape(self):
-        if len(self._items) > 0:
-            controlPoints = self._getControlPoints()
-            item = self._items[0]
-            item.setPosition(*controlPoints[0])
+        with self.__filterReentrant:
+            self._marker.setPosition(pos[0], pos[1])
+        self.sigRegionChanged.emit()
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.Marker):
-                self.setPosition(marker.getPosition())
-
-    def _createShapeItems(self, points):
-        marker = items.Marker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getName())
-        marker.setSymbol(self.getSymbol())
-        marker.setSymbolSize(self.getSymbolSize())
-        marker.setColor(rgba(self.getColor()))
-        marker._setDraggable(self.isEditable())
-        if self.isEditable():
-            marker.sigItemChanged.connect(self.__positionChanged)
-        return [marker]
+            self.setPosition(marker.getPosition())
 
     def __str__(self):
-        points = self._getControlPoints()
-        params = '%f %f' % (points[0, 0], points[0, 1])
+        params = '%f %f' % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class LineROI(RegionOfInterest, items.LineMixIn):
+class LineROI(_AnchorBasedROI, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -709,14 +803,14 @@ class LineROI(RegionOfInterest, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        RegionOfInterest.__init__(self, parent=parent)
+        _AnchorBasedROI.__init__(self, parent=parent)
 
     def _iterItems(self, event):
         if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
             if len(self._items) >= 1:
                 yield self._items[0]
         else:
-            for item in RegionOfInterest._iterItems(self, event):
+            for item in _AnchorBasedROI._iterItems(self, event):
                 yield item
 
     def _createControlPointsFromFirstShape(self, points):
@@ -828,72 +922,74 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        self._marker = items.YMarker()
+        self._setItemName(self._marker)
+        self._marker.sigDragStarted.connect(self._editingStarted)
+        self._marker.sigDragFinished.connect(self._editingFinished)
+        self.__filterReentrant = utils.LockReentrant()
 
-    def _iterItems(self, event):
-        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            if len(self._items) >= 1:
-                yield self._items[0]
-        else:
-            for item in RegionOfInterest._iterItems(self, event):
-                yield item
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
 
-    def _createControlPointsFromFirstShape(self, points):
-        points = numpy.array([(float('nan'), points[0, 1])],
-                             dtype=numpy.float64)
-        return points
+    def _connectToPlot(self, plot):
+        plot.addItem(self._marker)
+
+    def _disconnectFromPlot(self, plot):
+        plot.removeItem(self._marker)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.NAME:
+            label = self.getName()
+            self._marker.setText(label)
+        elif event == items.ItemChangedType.EDITABLE:
+            editable = self.isEditable()
+            if editable:
+                self._marker.sigItemChanged.connect(self.__positionChanged)
+            else:
+                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+            self._marker._setDraggable(editable)
+        elif event in [items.ItemChangedType.COLOR,
+                       items.ItemChangedType.LINE_STYLE,
+                       items.ItemChangedType.LINE_WIDTH,
+                       items.ItemChangedType.VISIBLE,
+                       items.ItemChangedType.SELECTABLE]:
+            self._updateItemProperty(event, self, self._marker)
+        super(HorizontalLineROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        pos = points[0, 1]
+        if pos == self.getPosition():
+            return
+        self.setPosition(pos)
 
     def getPosition(self):
         """Returns the position of this line if the horizontal axis
 
         :rtype: float
         """
-        return self._points[0, 1]
+        pos = self._marker.getPosition()
+        return pos[1]
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
         :param float pos: Horizontal position of this line
         """
-        controlPoints = numpy.array([[float('nan'), pos]])
-        self._setControlPoints(controlPoints)
-
-    def _createLabelItem(self):
-        return None
-
-    def _updateLabelItem(self, label):
-        if self._items is None or len(self._items) == 0:
-            return
-        self._items[0].setText(label)
-
-    def _updateShape(self):
-        if len(self._items) > 0:
-            controlPoints = self._getControlPoints()
-            item = self._items[0]
-            item.setPosition(*controlPoints[0])
+        with self.__filterReentrant:
+            self._marker.setPosition(0, pos)
+        self.sigRegionChanged.emit()
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.YMarker):
-                self.setPosition(marker.getYPosition())
-
-    def _createShapeItems(self, points):
-        marker = items.YMarker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getName())
-        marker.setColor(rgba(self.getColor()))
-        marker.setLineWidth(self.getLineWidth())
-        marker.setLineStyle(self.getLineStyle())
-        marker._setDraggable(self.isEditable())
-        marker._setSelectable(self.isSelectable())
-        if self.isEditable():
-            marker.sigItemChanged.connect(self.__positionChanged)
-        return [marker]
+            self.setPosition(marker.getYPosition())
 
     def __str__(self):
-        points = self._getControlPoints()
-        params = 'y: %f' % points[0, 1]
+        params = 'y: %f' % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
@@ -909,76 +1005,78 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        self._marker = items.XMarker()
+        self._setItemName(self._marker)
+        self._marker.sigDragStarted.connect(self._editingStarted)
+        self._marker.sigDragFinished.connect(self._editingFinished)
+        self.__filterReentrant = utils.LockReentrant()
 
-    def _iterItems(self, event):
-        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            if len(self._items) >= 1:
-                yield self._items[0]
-        else:
-            for item in RegionOfInterest._iterItems(self, event):
-                yield item
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
 
-    def _createControlPointsFromFirstShape(self, points):
-        points = numpy.array([(points[0, 0], float('nan'))],
-                             dtype=numpy.float64)
-        return points
+    def _connectToPlot(self, plot):
+        plot.addItem(self._marker)
+
+    def _disconnectFromPlot(self, plot):
+        plot.removeItem(self._marker)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.NAME:
+            label = self.getName()
+            self._marker.setText(label)
+        elif event == items.ItemChangedType.EDITABLE:
+            editable = self.isEditable()
+            if editable:
+                self._marker.sigItemChanged.connect(self.__positionChanged)
+            else:
+                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+            self._marker._setDraggable(editable)
+        elif event in [items.ItemChangedType.COLOR,
+                       items.ItemChangedType.LINE_STYLE,
+                       items.ItemChangedType.LINE_WIDTH,
+                       items.ItemChangedType.VISIBLE,
+                       items.ItemChangedType.SELECTABLE]:
+            self._updateItemProperty(event, self, self._marker)
+        super(VerticalLineROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        pos = points[0, 0]
+        if pos == self.getPosition():
+            return
+        self.setPosition(pos)
 
     def getPosition(self):
         """Returns the position of this line if the horizontal axis
 
         :rtype: float
         """
-        return self._points[0, 0]
+        pos = self._marker.getPosition()
+        return pos[0]
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
         :param float pos: Horizontal position of this line
         """
-        controlPoints = numpy.array([[pos, float('nan')]])
-        self._setControlPoints(controlPoints)
-
-    def _createLabelItem(self):
-        return None
-
-    def _updateLabelItem(self, label):
-        if self._items is None or len(self._items) == 0:
-            return
-        self._items[0].setText(label)
-
-    def _updateShape(self):
-        if len(self._items) > 0:
-            controlPoints = self._getControlPoints()
-            item = self._items[0]
-            item.setPosition(*controlPoints[0])
+        with self.__filterReentrant:
+            self._marker.setPosition(pos, 0)
+        self.sigRegionChanged.emit()
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.XMarker):
-                self.setPosition(marker.getXPosition())
-
-    def _createShapeItems(self, points):
-        marker = items.XMarker()
-        marker.setPosition(points[0][0], points[0][1])
-        marker.setText(self.getName())
-        marker.setColor(rgba(self.getColor()))
-        marker.setLineWidth(self.getLineWidth())
-        marker.setLineStyle(self.getLineStyle())
-        marker._setDraggable(self.isEditable())
-        marker._setSelectable(self.isSelectable())
-        if self.isEditable():
-            marker.sigItemChanged.connect(self.__positionChanged)
-        return [marker]
+            self.setPosition(marker.getXPosition())
 
     def __str__(self):
-        points = self._getControlPoints()
-        params = 'x: %f' % points[0, 0]
+        params = 'x: %f' % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class RectangleROI(RegionOfInterest, items.LineMixIn):
+class RectangleROI(_AnchorBasedROI, items.LineMixIn):
     """A ROI identifying a rectangle in a 2D plot.
 
     This ROI provides 1 anchor for each corner, plus an anchor in the
@@ -993,7 +1091,7 @@ class RectangleROI(RegionOfInterest, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        RegionOfInterest.__init__(self, parent=parent)
+        _AnchorBasedROI.__init__(self, parent=parent)
 
     def _createControlPointsFromFirstShape(self, points):
         point0 = points[0]
@@ -1073,7 +1171,7 @@ class RectangleROI(RegionOfInterest, items.LineMixIn):
             points = numpy.array([center - size * 0.5, center + size * 0.5])
             controlPoints = self._createControlPointsFromFirstShape(points)
         else:
-            raise ValueError("Origin or cengter expected")
+            raise ValueError("Origin or center expected")
         self._setControlPoints(controlPoints)
 
     def _getLabelPosition(self):
@@ -1158,7 +1256,7 @@ class RectangleROI(RegionOfInterest, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class PolygonROI(RegionOfInterest, items.LineMixIn):
+class PolygonROI(_AnchorBasedROI, items.LineMixIn):
     """A ROI identifying a closed polygon in a 2D plot.
 
     This ROI provides 1 anchor for each point of the polygon.
@@ -1172,7 +1270,7 @@ class PolygonROI(RegionOfInterest, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        RegionOfInterest.__init__(self, parent=parent)
+        _AnchorBasedROI.__init__(self, parent=parent)
 
     def getPoints(self):
         """Returns the list of the points of this polygon.
@@ -1237,7 +1335,7 @@ class PolygonROI(RegionOfInterest, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class ArcROI(RegionOfInterest, items.LineMixIn):
+class ArcROI(_AnchorBasedROI, items.LineMixIn):
     """A ROI identifying an arc of a circle with a width.
 
     This ROI provides 3 anchors to control the curvature, 1 anchor to control
@@ -1257,7 +1355,7 @@ class ArcROI(RegionOfInterest, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        RegionOfInterest.__init__(self, parent=parent)
+        _AnchorBasedROI.__init__(self, parent=parent)
         self._geometry = None
 
     def _getInternalGeometry(self):
@@ -1477,7 +1575,7 @@ class ArcROI(RegionOfInterest, items.LineMixIn):
     def _setControlPoints(self, points):
         # Invalidate the geometry
         self._geometry = None
-        RegionOfInterest._setControlPoints(self, points)
+        _AnchorBasedROI._setControlPoints(self, points)
 
     def getGeometry(self):
         """Returns a tuple containing the geometry of this ROI
@@ -1701,28 +1799,91 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
-
-    def _iterItems(self, event):
-        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            if len(self._items) >= 2:
-                yield self._items[0]
-                yield self._items[1]
-        else:
-            for item in RegionOfInterest._iterItems(self, event):
-                yield item
+        self._markerMin = items.XMarker()
+        self._markerMax = items.XMarker()
+        self._markerCen = items.XMarker()
+        self._setItemName(self._markerMin)
+        self._setItemName(self._markerMax)
+        self._setItemName(self._markerCen)
+        self._markerCen.setLineStyle(" ")
+        self._markerMin._setConstraint(self.__positionMinConstraint)
+        self._markerMax._setConstraint(self.__positionMaxConstraint)
+        self._markerMin.sigDragStarted.connect(self._editingStarted)
+        self._markerMin.sigDragFinished.connect(self._editingFinished)
+        self._markerMax.sigDragStarted.connect(self._editingStarted)
+        self._markerMax.sigDragFinished.connect(self._editingFinished)
+        self._markerCen.sigDragStarted.connect(self._editingStarted)
+        self._markerCen.sigDragFinished.connect(self._editingFinished)
+        self.__filterReentrant = utils.LockReentrant()
 
     @classmethod
     def showFirstInteractionShape(cls):
         return False
 
-    def _createControlPointsFromFirstShape(self, points):
-        v1 = points[0, 0]
-        v2 = points[1, 0]
-        vmin = numpy.array([min(v1, v2), float('nan')])
-        vmax = numpy.array([max(v1, v2), float('nan')])
-        center = numpy.mean([vmin, vmax], axis=0)
-        controlPoints = numpy.array([vmin, vmax, center])
-        return controlPoints
+    def setFirstShapePoints(self, points):
+        vmin = min(points[:, 0])
+        vmax = max(points[:, 0])
+        self._updatePos(vmin, vmax)
+
+    def _connectToPlot(self, plot):
+        plot.addItem(self._markerMin)
+        plot.addItem(self._markerMax)
+        plot.addItem(self._markerCen)
+
+    def _disconnectFromPlot(self, plot):
+        plot.removeItem(self._markerMin)
+        plot.removeItem(self._markerMax)
+        plot.removeItem(self._markerCen)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.NAME:
+            self._updateText()
+        elif event == items.ItemChangedType.EDITABLE:
+            self._updateEditable()
+            self._updateText()
+        elif event == items.ItemChangedType.LINE_STYLE:
+            markers = [self._markerMin, self._markerMax]
+            self._updateItemProperty(event, self, markers)
+        elif event in [items.ItemChangedType.COLOR,
+                       items.ItemChangedType.LINE_WIDTH,
+                       items.ItemChangedType.VISIBLE,
+                       items.ItemChangedType.SELECTABLE]:
+            markers = [self._markerMin, self._markerMax, self._markerCen]
+            self._updateItemProperty(event, self, markers)
+        super(HorizontalRangeROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self):
+        text = self.getName()
+        if self.isEditable():
+            self._markerMin.setText("")
+            self._markerCen.setText(text)
+        else:
+            self._markerMin.setText(text)
+            self._markerCen.setText("")
+
+    def _updateEditable(self):
+        editable = self.isEditable()
+        self._markerMin._setDraggable(editable)
+        self._markerMax._setDraggable(editable)
+        self._markerCen._setDraggable(editable)
+        if self.isEditable():
+            self._markerMin.sigItemChanged.connect(self.__positionMinChanged)
+            self._markerMax.sigItemChanged.connect(self.__positionMaxChanged)
+            self._markerCen.sigItemChanged.connect(self.__positionCenChanged)
+            self._markerCen.setLineStyle(":")
+        else:
+            self._markerMin.sigItemChanged.disconnect(self.__positionMinChanged)
+            self._markerMax.sigItemChanged.disconnect(self.__positionMaxChanged)
+            self._markerCen.sigItemChanged.disconnect(self.__positionCenChanged)
+            self._markerCen.setLineStyle(" ")
+
+    def _updatePos(self, vmin, vmax):
+        center = (vmin + vmax) * 0.5
+        with self.__filterReentrant:
+            self._markerMin.setPosition(vmin, 0)
+            self._markerCen.setPosition(center, 0)
+            self._markerMax.setPosition(vmax, 0)
+        self.sigRegionChanged.emit()
 
     def setRange(self, vmin, vmax):
         """Set the range of this ROI.
@@ -1737,17 +1898,16 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             err = "Can't set vmin and vmax because vmin >= vmax " \
                   "vmin = %s, vmax = %s" % (vmin, vmax)
             raise ValueError(err)
-        shapePoints = numpy.array([[vmin, float('nan')], [vmax, float('nan')]])
-        controlPoints = self._createControlPointsFromFirstShape(shapePoints)
-        self._setControlPoints(controlPoints)
+        self._updatePos(vmin, vmax)
 
     def getRange(self):
         """Returns the range of this ROI.
 
         :rtype: Tuple[float,float]
         """
-        points = self._points
-        return points[0, 0], points[1, 0]
+        vmin = self.getMin()
+        vmax = self.getMax()
+        return vmin, vmax
 
     def setMin(self, vmin):
         """Set the min of this ROI.
@@ -1755,15 +1915,14 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         :param float vmin: New min
         """
         vmax = self.getMax()
-        self.setRange(vmin, vmax)
+        self._updatePos(vmin, vmax)
 
     def getMin(self):
         """Returns the min value of this ROI.
 
         :rtype: float
         """
-        points = self._points
-        return points[0, 0]
+        return self._markerMin.getPosition()[0]
 
     def setMax(self, vmax):
         """Set the max of this ROI.
@@ -1771,15 +1930,14 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         :param float vmax: New max
         """
         vmin = self.getMin()
-        self.setRange(vmin, vmax)
+        self._updatePos(vmin, vmax)
 
     def getMax(self):
         """Returns the max value of this ROI.
 
         :rtype: float
         """
-        points = self._points
-        return points[1, 0]
+        return self._markerMax.getPosition()[0]
 
     def setCenter(self, center):
         """Set the center of this ROI.
@@ -1789,68 +1947,21 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         vmin, vmax = self.getRange()
         previousCenter = (vmin + vmax) * 0.5
         delta = center - previousCenter
-        self.setRange(vmin + delta, vmax + delta)
+        self._updatePos(vmin + delta, vmax + delta)
 
     def getCenter(self):
         """Returns the center location of this ROI.
 
         :rtype: float
         """
-        points = self._points
-        return points[2, 0]
-
-    def _updateLabelItem(self, label):
-        if self._items is None or len(self._items) < 3:
-            return
-        if self.isEditable():
-            item = self._items[2]
-        else:
-            item = self._items[0]
-        item.setText(label)
-
-    def _updateShape(self):
-        if len(self._items) >= 3:
-            controlPoints = self._getControlPoints()
-            for i in range(3):
-                item = self._items[i]
-                item.setPosition(*controlPoints[i])
-
-    def _createLabelItem(self):
-        return None
-
-    def _createShapeItems(self, points):
-        shapes = []
-        for i in range(3):
-            marker = items.XMarker()
-            marker.setPosition(points[i][0], points[i][1])
-            marker.setColor(rgba(self.getColor()))
-            marker.setLineWidth(self.getLineWidth())
-            marker.setLineStyle(self.getLineStyle())
-            marker._setDraggable(self.isEditable())
-            marker._setSelectable(self.isSelectable())
-            shapes.append(marker)
-
-        markerMin, markerMax, markerCen = shapes
-        markerMin._setConstraint(self.__positionMinConstraint)
-        markerMax._setConstraint(self.__positionMaxConstraint)
-        if self.isEditable():
-            markerMin.sigItemChanged.connect(self.__positionMinChanged)
-            markerMax.sigItemChanged.connect(self.__positionMaxChanged)
-            markerCen.sigItemChanged.connect(self.__positionCenChanged)
-            markerCen.setLineStyle(":")
-        else:
-            markerCen.setLineStyle(" ")
-
-        if self.isEditable():
-            label = markerCen
-        else:
-            label = markerMin
-        label.setText(self.getName())
-
-        return [markerMin, markerMax, markerCen]
+        vmin, vmax = self.getRange()
+        return (vmin + vmax) * 0.5
 
     def __positionMinConstraint(self, x, y):
         """Constraint of the min marker"""
+        if self.__filterReentrant.locked():
+            # Ignore the constraint when we set an explicit value
+            return x, y
         vmax = self.getMax()
         if vmax is None:
             return x, y
@@ -1858,6 +1969,9 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
 
     def __positionMaxConstraint(self, x, y):
         """Constraint of the max marker"""
+        if self.__filterReentrant.locked():
+            # Ignore the constraint when we set an explicit value
+            return x, y
         vmin = self.getMin()
         if vmin is None:
             return x, y
@@ -1865,27 +1979,29 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
 
     def __positionMinChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.XMarker):
-                self.setMin(marker.getXPosition())
+            self.setMin(marker.getXPosition())
 
     def __positionMaxChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.XMarker):
-                self.setMax(marker.getXPosition())
+            self.setMax(marker.getXPosition())
 
     def __positionCenChanged(self, event):
         """Handle position changed events of the marker"""
+        if self.__filterReentrant.locked():
+            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            if isinstance(marker, items.XMarker):
-                self.setCenter(marker.getXPosition())
+            self.setCenter(marker.getXPosition())
 
     def __str__(self):
-        points = self._getControlPoints()
-        params = points[0][0], points[0][1]
-        params = 'min: %f; max: %f' % params
+        vrange = self.getRange()
+        params = 'min: %f; max: %f' % vrange
         return "%s(%s)" % (self.__class__.__name__, params)
