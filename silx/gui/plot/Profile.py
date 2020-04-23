@@ -123,6 +123,7 @@ class ProfileToolBar(qt.QToolBar):
         # Actions
         self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
         self._browseAction.setVisible(False)
+        self.freeLineAction = None
         self._createProfileActions()
         self._editor = self._manager.createEditorAction(self)
 
@@ -138,6 +139,8 @@ class ProfileToolBar(qt.QToolBar):
         modes.addAction(self.hLineAction)
         modes.addAction(self.vLineAction)
         modes.addAction(self.lineAction)
+        if self.freeLineAction is not None:
+            modes.addAction(self.freeLineAction)
         modes.addAction(self.crossAction)
 
         # Add actions to ToolBar
@@ -150,6 +153,7 @@ class ProfileToolBar(qt.QToolBar):
         self.hLineAction = self._manager.createProfileAction(rois.ProfileImageHorizontalLineROI, self)
         self.vLineAction = self._manager.createProfileAction(rois.ProfileImageVerticalLineROI, self)
         self.lineAction = self._manager.createProfileAction(rois.ProfileImageLineROI, self)
+        self.freeLineAction = self._manager.createProfileAction(rois.ProfileImageDirectedLineROI, self)
         self.crossAction = self._manager.createProfileAction(rois.ProfileImageCrossROI, self)
         self.clearAction = self._manager.createClearAction(self)
 
