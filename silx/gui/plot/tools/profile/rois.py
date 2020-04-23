@@ -414,7 +414,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setProfileMethod(method)
         vline.setProfileMethod(method)
-        self.sigProfilePropertyChanged.emit()
+        self.invalidateProperties()
 
     def getProfileMethod(self):
         hline, _vline = self._getLines()
@@ -424,7 +424,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setProfileLineWidth(width)
         vline.setProfileLineWidth(width)
-        self.sigProfilePropertyChanged.emit()
+        self.invalidateProperties()
 
     def getProfileLineWidth(self):
         hline, _vline = self._getLines()
@@ -630,7 +630,7 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setNPoints(npoints)
         vline.setNPoints(npoints)
-        self.sigProfilePropertyChanged.emit()
+        self.invalidateProperties()
 
 
 class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
@@ -962,4 +962,4 @@ class ProfileImageStackCrossROI(ProfileImageCrossROI):
         hline, vline = self._getLines()
         hline.setProfileType(kind)
         vline.setProfileType(kind)
-        self.sigProfilePropertyChanged.emit()
+        self.invalidateProperties()
