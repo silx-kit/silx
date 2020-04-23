@@ -711,6 +711,14 @@ class LineROI(RegionOfInterest, items.LineMixIn):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
 
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
+
     def _createControlPointsFromFirstShape(self, points):
         center = numpy.mean(points, axis=0)
         controlPoints = numpy.array([points[0], points[1], center])
@@ -821,6 +829,14 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
 
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
+
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(float('nan'), points[0, 1])],
                              dtype=numpy.float64)
@@ -893,6 +909,14 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
 
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(points[0, 0], float('nan'))],
@@ -1677,6 +1701,15 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 2:
+                yield self._items[0]
+                yield self._items[1]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
 
     @classmethod
     def showFirstInteractionShape(cls):
