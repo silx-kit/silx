@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -72,8 +72,8 @@ class ProfileRoiMixIn:
     in order to be usable by a :class:`~silx.gui.plot.tools.profile.manager.ProfileManager`.
     """
 
-    sigPropertyChanged = qt.Signal()
-    """Emitted when a property from the ROI have changed"""
+    sigProfilePropertyChanged = qt.Signal()
+    """Emitted when a property of the profile have changed"""
 
     def __init__(self, parent=None):
         self.__profileWindow = None
@@ -90,8 +90,8 @@ class ProfileRoiMixIn:
             profileManager.requestUpdateProfile(self)
 
     def invalidateProperties(self):
-        """Must be called when a property of the ROI have changed."""
-        self.sigPropertyChanged.emit()
+        """Must be called when a property of the profile have changed."""
+        self.sigProfilePropertyChanged.emit()
 
     def _setProfileManager(self, profileManager):
         self.__profileManager = profileManager

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -414,7 +414,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setProfileMethod(method)
         vline.setProfileMethod(method)
-        self.sigPropertyChanged.emit()
+        self.sigProfilePropertyChanged.emit()
 
     def getProfileMethod(self):
         hline, _vline = self._getLines()
@@ -424,7 +424,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setProfileLineWidth(width)
         vline.setProfileLineWidth(width)
-        self.sigPropertyChanged.emit()
+        self.sigProfilePropertyChanged.emit()
 
     def getProfileLineWidth(self):
         hline, _vline = self._getLines()
@@ -630,7 +630,7 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
         hline, vline = self._getLines()
         hline.setNPoints(npoints)
         vline.setNPoints(npoints)
-        self.sigPropertyChanged.emit()
+        self.sigProfilePropertyChanged.emit()
 
 
 class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
@@ -962,4 +962,4 @@ class ProfileImageStackCrossROI(ProfileImageCrossROI):
         hline, vline = self._getLines()
         hline.setProfileType(kind)
         vline.setProfileType(kind)
-        self.sigPropertyChanged.emit()
+        self.sigProfilePropertyChanged.emit()
