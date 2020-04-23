@@ -295,6 +295,47 @@ class ProfileWindow(qt.QMainWindow):
             raise TypeError("Unsupported type %s" % type(data))
 
 
+class _ClearAction(qt.QAction):
+    """Action to clear the profile manager
+
+    The action is only enabled if something can be cleaned up.
+    """
+
+    def __init__(self, parent, profileManager):
+        super(_ClearAction, self).__init__(parent)
+        self.__profileManager = weakref.ref(profileManager)
+        icon = icons.getQIcon('profile-clear')
+        self.setIcon(icon)
+        self.setText('Clear profile')
+        self.setToolTip('Clear the profiles')
+        self.setCheckable(False)
+        self.setEnabled(False)
+        self.triggered.connect(profileManager.clearProfile)
+        plot = profileManager.getPlotWidget()
+        roiManager = profileManager.getRoiManager()
+        plot.sigInteractiveModeChanged.connect(self.__modeUpdated)
+        roiManager.sigRoiChanged.connect(self.__roiListUpdated)
+
+    def getProfileManager(self):
+        return self.__profileManager()
+
+    def __roiListUpdated(self):
+        self.__update()
+
+    def __modeUpdated(self, source):
+        self.__update()
+
+    def __update(self):
+        profileManager = self.getProfileManager()
+        if profileManager is None:
+            return
+        roiManager = profileManager.getRoiManager()
+        if roiManager is None:
+            return
+        enabled = roiManager.isStarted() or len(roiManager.getRois()) > 0
+        self.setEnabled(enabled)
+
+
 class ProfileManager(qt.QObject):
     """Base class for profile management tools
 
@@ -408,12 +449,7 @@ class ProfileManager(qt.QObject):
         :param qt.QObject parent: The parent of the created action.
         :rtype: qt.QAction
         """
-        # Add clear action
-        icon = icons.getQIcon('profile-clear')
-        action = qt.QAction(icon, 'Clear profile', parent)
-        action.setToolTip('Clear the profiles')
-        action.setCheckable(False)
-        action.triggered.connect(self.clearProfile)
+        action = _ClearAction(parent, self)
         return action
 
     def createImageActions(self, parent):
