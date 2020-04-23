@@ -619,7 +619,7 @@ class PlotWidget(qt.QMainWindow):
         :param Item item: The item that required update
         """
         assert item.getPlot() == self
-        # Pu item at the end of the list
+        # Put item at the end of the list
         if item in self._contentToUpdate:
             self._contentToUpdate.remove(item)
         self._contentToUpdate.append(item)
