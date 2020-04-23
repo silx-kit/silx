@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -785,15 +785,15 @@ class ProfileManager(qt.QObject):
             self._plotRef = None
         return plot
 
-    def getSelectedRoi(self):
-        """Returns the selected ROI, else None.
+    def getCurrentRoi(self):
+        """Returns the currently selected ROI, else None.
 
         :rtype: core.ProfileRoiMixIn
         """
         roiManager = self.getRoiManager()
         if roiManager is None:
             return None
-        roi = roiManager.getSelectedRoi()
+        roi = roiManager.getCurrentRoi()
         if not isinstance(roi, core.ProfileRoiMixIn):
             return None
         return roi

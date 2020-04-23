@@ -159,13 +159,13 @@ class ProfileToolBar(qt.QToolBar):
             return None
         return window.getCurrentPlotWidget()
 
-    @deprecated(replacement="getProfileManager().getSelectedRoi().getProfileWindow()", since_version="0.13.0")
+    @deprecated(replacement="getProfileManager().getCurrentRoi().getProfileWindow()", since_version="0.13.0")
     def getProfileMainWindow(self):
         """Return window containing the profile curve widget.
 
         This can return None if no profile was computed.
         """
-        roi = self._manager.getSelectedRoi()
+        roi = self._manager.getCurrentRoi()
         if roi is None:
             return None
         return roi.getProfileWindow()
@@ -212,14 +212,14 @@ class ProfileToolBar(qt.QToolBar):
     @deprecated(since_version="0.13.0")
     def setProfileMethod(self, method):
         assert method in ('sum', 'mean')
-        roi = self._manager.getSelectedRoi()
+        roi = self._manager.getCurrentRoi()
         if roi is None:
             raise RuntimeError("No profile ROI selected")
         roi.setProfileMethod(method)
 
     @deprecated(since_version="0.13.0")
     def getProfileMethod(self):
-        roi = self._manager.getSelectedRoi()
+        roi = self._manager.getCurrentRoi()
         if roi is None:
             raise RuntimeError("No profile ROI selected")
         return roi.getProfileMethod()

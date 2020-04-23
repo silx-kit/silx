@@ -447,7 +447,7 @@ class TestProfile3DToolBar(TestCaseQt):
         self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
 
         manager = toolBar.getProfileManager()
-        roi = manager.getSelectedRoi()
+        roi = manager.getCurrentRoi()
         roi.setProfileMethod("mean")
         roi.setProfileType("2D")
         roi.setProfileLineWidth(3)
@@ -482,7 +482,7 @@ class TestProfile3DToolBar(TestCaseQt):
         self.mouseRelease(plot2D, qt.Qt.LeftButton, pos=pos2)
 
         manager = toolBar.getProfileManager()
-        roi = manager.getSelectedRoi()
+        roi = manager.getCurrentRoi()
         roi.setProfileMethod("sum")
         roi.setProfileType("2D")
         roi.setProfileLineWidth(3)
@@ -517,7 +517,7 @@ class TestGetProfilePlot(TestCaseQt):
         roi = rois.ProfileImageHorizontalLineROI()
         roi.setPosition(0.5)
         roiManager.addRoi(roi)
-        roiManager.setSelectedRoi(roi)
+        roiManager.setCurrentRoi(roi)
 
         for _ in range(20):
             self.qWait(200)
@@ -550,7 +550,7 @@ class TestGetProfilePlot(TestCaseQt):
         roi.setPosition(0.5)
         roi.setProfileType("2D")
         roiManager.addRoi(roi)
-        roiManager.setSelectedRoi(roi)
+        roiManager.setCurrentRoi(roi)
 
         for _ in range(20):
             self.qWait(200)
