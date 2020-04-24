@@ -130,14 +130,17 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._selectable = False
         self._focusProxy = None
         self._visible = True
+        self._child = WeakList()
 
     def _connectToPlot(self, plot):
         """Called after connection to a plot"""
-        pass
+        for item in self.iterChild():
+            plot.addItem(item)
 
     def _disconnectFromPlot(self, plot):
         """Called before deconnection from a plot"""
-        pass
+        for item in self.iterChild():
+            plot.removeItem(item)
 
     def _setItemName(self, item):
         """Helper to generate a unique id to a plot item"""
@@ -164,6 +167,47 @@ class RegionOfInterest(_RegionOfInterestBase):
             plot = parent.parent()
             if plot is not None:
                 self._connectToPlot(plot)
+
+    def addItem(self, item):
+        """Add an item to the set of this ROI children.
+
+        This item will be added and removed to the plot used by the ROI.
+
+        If the ROI is already part of a plot, the item will also be added to
+        the plot.
+
+        It the item do not have a name already, a unique one is generated to
+        avoid item collision in the plot.
+
+        :param silx.gui.plot.items.Item item: A plot item
+        """
+        assert item is not None
+        self._child.append(item)
+        if item.getName() == '':
+            self._setItemName(item)
+        manager = plot = self.parent()
+        if manager is not None:
+            plot = manager.getParent()
+            if plot is not None:
+                plot.addItem(item)
+
+    def removeItem(self, item):
+        """Remove an item from this ROI children.
+
+        If the item is part of a plot it will be removed too.
+
+        :param silx.gui.plot.items.Item item: A plot item
+        """
+        assert item is not None
+        self._child.remove(item)
+        plot = item.getPlot()
+        if plot is not None:
+            plot.removeItem(item)
+
+    def iterChild(self):
+        """Iterate through the all ROI child"""
+        for i in self._child:
+            yield i
 
     @classmethod
     def _getKind(cls):
@@ -722,10 +766,10 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
         self._marker = items.Marker()
-        self._setItemName(self._marker)
         self._marker.setSymbol(self._DEFAULT_SYMBOL)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
 
     @classmethod
@@ -735,12 +779,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def setFirstShapePoints(self, points):
         pos = points[0]
         self._marker.setPosition(pos[0], pos[1])
-
-    def _connectToPlot(self, plot):
-        plot.addItem(self._marker)
-
-    def _disconnectFromPlot(self, plot):
-        plot.removeItem(self._marker)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -923,20 +961,14 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
         self._marker = items.YMarker()
-        self._setItemName(self._marker)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
 
     @classmethod
     def showFirstInteractionShape(cls):
         return False
-
-    def _connectToPlot(self, plot):
-        plot.addItem(self._marker)
-
-    def _disconnectFromPlot(self, plot):
-        plot.removeItem(self._marker)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1006,20 +1038,14 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
         self._marker = items.XMarker()
-        self._setItemName(self._marker)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
 
     @classmethod
     def showFirstInteractionShape(cls):
         return False
-
-    def _connectToPlot(self, plot):
-        plot.addItem(self._marker)
-
-    def _disconnectFromPlot(self, plot):
-        plot.removeItem(self._marker)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1802,10 +1828,6 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMin = items.XMarker()
         self._markerMax = items.XMarker()
         self._markerCen = items.XMarker()
-        self._setItemName(self._markerMin)
-        self._setItemName(self._markerMax)
-        self._setItemName(self._markerCen)
-        self._markerCen.setLineStyle(" ")
         self._markerMin._setConstraint(self.__positionMinConstraint)
         self._markerMax._setConstraint(self.__positionMaxConstraint)
         self._markerMin.sigDragStarted.connect(self._editingStarted)
@@ -1814,6 +1836,9 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMax.sigDragFinished.connect(self._editingFinished)
         self._markerCen.sigDragStarted.connect(self._editingStarted)
         self._markerCen.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._markerMin)
+        self.addItem(self._markerMax)
+        self.addItem(self._markerCen)
         self.__filterReentrant = utils.LockReentrant()
 
     @classmethod
@@ -1824,16 +1849,6 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         vmin = min(points[:, 0])
         vmax = max(points[:, 0])
         self._updatePos(vmin, vmax)
-
-    def _connectToPlot(self, plot):
-        plot.addItem(self._markerMin)
-        plot.addItem(self._markerMax)
-        plot.addItem(self._markerCen)
-
-    def _disconnectFromPlot(self, plot):
-        plot.removeItem(self._markerMin)
-        plot.removeItem(self._markerMax)
-        plot.removeItem(self._markerCen)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:

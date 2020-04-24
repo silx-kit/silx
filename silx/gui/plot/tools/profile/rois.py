@@ -48,13 +48,13 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         self.__width = 1
 
         area = items.Shape("polygon")
-        self._setItemName(area)
         color = colors.rgba(self.getColor())
         area.setColor(color)
         area.setFill(True)
         area.setOverlay(True)
         area.setPoints([[0, 0], [0, 0]])  # Else it segfault
         self.__area = area
+        self.addItem(area)
 
         self.sigRegionChanged.connect(self.__regionChanged)
 
@@ -224,16 +224,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
         self._updateAreaProperty(event, checkVisibility)
 
-    def _connectToPlot(self, plot):
-        """Glue with the ROI object"""
-        self._inheritedRoi._connectToPlot(self, plot)
-        plot.addItem(self.__area)
-
-    def _disconnectFromPlot(self, plot):
-        """Glue with the ROI object"""
-        self._inheritedRoi._disconnectFromPlot(self, plot)
-        plot.removeItem(self.__area)
-
 
 class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
                                     _DefaultImageProfileRoiMixIn):
@@ -249,8 +239,6 @@ class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
@@ -267,8 +255,6 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageLineROI(roi_items.LineROI,
@@ -285,8 +271,6 @@ class ProfileImageLineROI(roi_items.LineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
 
 class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
@@ -641,13 +625,13 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
 
         area = items.Shape("polylines")
-        self._setItemName(area)
         color = colors.rgba(self.getColor())
         area.setColor(color)
         area.setFill(True)
         area.setOverlay(True)
         area.setPoints([[0, 0], [0, 0]])  # Else it segfault
         self.__area = area
+        self.addItem(area)
 
         self.sigRegionChanged.connect(self.__regionChanged)
 
@@ -785,16 +769,6 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
         self._updateAreaProperty(event, checkVisibility)
 
-    def _connectToPlot(self, plot):
-        """Glue with the ROI object"""
-        self._inheritedRoi._connectToPlot(self, plot)
-        plot.addItem(self.__area)
-
-    def _disconnectFromPlot(self, plot):
-        """Glue with the ROI object"""
-        self._inheritedRoi._disconnectFromPlot(self, plot)
-        plot.removeItem(self.__area)
-
 
 class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
                                        _DefaulScatterProfileSliceRoiMixIn):
@@ -812,8 +786,6 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaulScatterProfileSliceRoiMixIn._updated
-    _connectToPlot = _DefaulScatterProfileSliceRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaulScatterProfileSliceRoiMixIn._disconnectFromPlot
 
 
 class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
@@ -832,8 +804,6 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaulScatterProfileSliceRoiMixIn._updated
-    _connectToPlot = _DefaulScatterProfileSliceRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaulScatterProfileSliceRoiMixIn._disconnectFromPlot
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
@@ -921,8 +891,6 @@ class ProfileImageStackHorizontalLineROI(roi_items.HorizontalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageStackProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
@@ -939,8 +907,6 @@ class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageStackProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageStackLineROI(roi_items.LineROI,
@@ -957,8 +923,6 @@ class ProfileImageStackLineROI(roi_items.LineROI,
 
     # Make sure to use the right inheritance
     _updated = _DefaultImageStackProfileRoiMixIn._updated
-    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
-    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageStackCrossROI(ProfileImageCrossROI):
