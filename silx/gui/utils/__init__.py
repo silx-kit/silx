@@ -48,6 +48,23 @@ def blockSignals(*objs):
             obj.blockSignals(previous)
 
 
+class LockReentrant():
+    """Context manager to lock a code block and check the state.
+    """
+    def __init__(self):
+        self.__locked = False
+
+    def __enter__(self):
+        self.__locked = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__locked = False
+
+    def locked(self):
+        """Returns True if the code block is locked"""
+        return self.__locked
+
+
 def getQEventName(eventType):
     """
     Returns the name of a QEvent.

@@ -828,7 +828,7 @@ class ColormapDialog(qt.QDialog):
         self._item = None
         """Weak ref to an external item"""
 
-        self._colormapChange = _ColormapChanged()
+        self._colormapChange = utils.LockReentrant()
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
         Used instead of n connect and disconnect of the sigChanged. The
@@ -1576,19 +1576,3 @@ class ColormapDialog(qt.QDialog):
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
             super(ColormapDialog, self).keyPressEvent(event)
-
-
-class _ColormapChanged():
-    """Simple context manager to know if we should ignore or not colormap
-    modifications"""
-    def __init__(self):
-        self._ignoreColormapChange = False
-
-    def __enter__(self):
-        self._ignoreColormapChange = True
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._ignoreColormapChange = False
-
-    def locked(self):
-        return self._ignoreColormapChange
