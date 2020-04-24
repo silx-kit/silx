@@ -46,8 +46,23 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__method = "mean"
         self.__width = 1
-        self.__area = None
+
+        area = items.Shape("polygon")
+        self._setItemName(area)
+        color = colors.rgba(self.getColor())
+        area.setColor(color)
+        area.setFill(True)
+        area.setOverlay(True)
+        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
+        self.__area = area
+
         self.sigRegionChanged.connect(self.__regionChanged)
+
+    def _updateAreaProperty(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.COLOR:
+            self._updateItemProperty(event, self, self.__area)
+        elif event == items.ItemChangedType.VISIBLE:
+            self._updateItemProperty(event, self, self.__area)
 
     def setProfileWindow(self, profileWindow):
         core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
@@ -55,6 +70,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
     def __regionChanged(self):
         self.invalidateProfile()
+        self._updateArea()
 
     def setProfileMethod(self, method):
         """
@@ -79,16 +95,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
     def getProfileLineWidth(self):
         return self.__width
-
-    def _createAreaItem(self):
-        area = items.Shape("polygon")
-        color = colors.rgba(self.getColor())
-        area.setColor(color)
-        area.setFill(True)
-        area.setOverlay(True)
-        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
-        self.__area = area
-        return area
 
     def _updateArea(self):
         area = self.__area
@@ -213,6 +219,21 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             )
         return data
 
+    def _updated(self, event=None, checkVisibility=True):
+        """Glue with the ROI object"""
+        self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
+        self._updateAreaProperty(event, checkVisibility)
+
+    def _connectToPlot(self, plot):
+        """Glue with the ROI object"""
+        self._inheritedRoi._connectToPlot(self, plot)
+        plot.addItem(self.__area)
+
+    def _disconnectFromPlot(self, plot):
+        """Glue with the ROI object"""
+        self._inheritedRoi._disconnectFromPlot(self, plot)
+        plot.removeItem(self.__area)
+
 
 class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
                                     _DefaultImageProfileRoiMixIn):
@@ -222,21 +243,14 @@ class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
     NAME = 'horizontal line profile'
 
     def __init__(self, parent=None):
-        roi_items.HorizontalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.HorizontalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
-    def _updateShape(self):
-        """Connect ProfileRoi method with ROI methods"""
-        super(ProfileImageHorizontalLineROI, self)._updateShape()
-        self._updateArea()
-
-    def _createShapeItems(self, points):
-        """Connect ProfileRoi method with ROI methods"""
-        result = super(ProfileImageHorizontalLineROI, self)._createShapeItems(points)
-        area = self._createAreaItem()
-        self._updateArea()
-        result.append(area)
-        return result
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
@@ -247,21 +261,15 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
     NAME = 'vertical line profile'
 
     def __init__(self, parent=None):
-        roi_items.VerticalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.VerticalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
-    def _updateShape(self):
-        """Connect ProfileRoi method with ROI methods"""
-        super(ProfileImageVerticalLineROI, self)._updateShape()
-        self._updateArea()
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
-    def _createShapeItems(self, points):
-        """Connect ProfileRoi method with ROI methods"""
-        result = super(ProfileImageVerticalLineROI, self)._createShapeItems(points)
-        area = self._createAreaItem()
-        self._updateArea()
-        result.append(area)
-        return result
 
 class ProfileImageLineROI(roi_items.LineROI,
                           _DefaultImageProfileRoiMixIn):
@@ -271,21 +279,14 @@ class ProfileImageLineROI(roi_items.LineROI,
     NAME = 'line profile'
 
     def __init__(self, parent=None):
-        roi_items.LineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.LineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
-    def _updateShape(self):
-        """Connect ProfileRoi method with ROI methods"""
-        super(ProfileImageLineROI, self)._updateShape()
-        self._updateArea()
-
-    def _createShapeItems(self, points):
-        """Connect ProfileRoi method with ROI methods"""
-        result = super(ProfileImageLineROI, self)._createShapeItems(points)
-        area = self._createAreaItem()
-        self._updateArea()
-        result.append(area)
-        return result
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageProfileRoiMixIn._disconnectFromPlot
 
 
 class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
@@ -299,7 +300,7 @@ class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.sigRegionChanged.connect(self.__regionChanged)
         self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
-        self.setSymbol("s")
+        self._marker.setSymbol("s")
         self.__vline = None
         self.__hline = None
         self.__vlineName = None
@@ -638,23 +639,31 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
-        self.__area = None
-        self.sigRegionChanged.connect(self.invalidateProfile)
+
+        area = items.Shape("polylines")
+        self._setItemName(area)
+        color = colors.rgba(self.getColor())
+        area.setColor(color)
+        area.setFill(True)
+        area.setOverlay(True)
+        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
+        self.__area = area
+
+        self.sigRegionChanged.connect(self.__regionChanged)
+
+    def _updateAreaProperty(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.COLOR:
+            self._updateItemProperty(event, self, self.__area)
+        elif event == items.ItemChangedType.VISIBLE:
+            self._updateItemProperty(event, self, self.__area)
 
     def setProfileWindow(self, profileWindow):
         core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
         self._updateArea()
 
-    def _createAreaItem(self):
-        area = items.Shape("polylines")
-        color = colors.rgba(self.getColor())
-        area.setColor(color)
-        area.setFill(False)
-        area.setOverlay(True)
-        area.setVisible(False)
-        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
-        self.__area = area
-        return area
+    def __regionChanged(self):
+        self.invalidateProfile()
+        self._updateArea()
 
     def _updateArea(self):
         area = self.__area
@@ -771,6 +780,21 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         )
         return data
 
+    def _updated(self, event=None, checkVisibility=True):
+        """Glue with the ROI object"""
+        self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
+        self._updateAreaProperty(event, checkVisibility)
+
+    def _connectToPlot(self, plot):
+        """Glue with the ROI object"""
+        self._inheritedRoi._connectToPlot(self, plot)
+        plot.addItem(self.__area)
+
+    def _disconnectFromPlot(self, plot):
+        """Glue with the ROI object"""
+        self._inheritedRoi._disconnectFromPlot(self, plot)
+        plot.removeItem(self.__area)
+
 
 class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
                                        _DefaulScatterProfileSliceRoiMixIn):
@@ -782,21 +806,15 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
     NAME = 'horizontal data slice profile'
 
     def __init__(self, parent=None):
-        roi_items.HorizontalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.HorizontalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
-    def _updateShape(self):
-        """Connect ProfileRoi method with ROI methods"""
-        super(ProfileScatterHorizontalSliceROI, self)._updateShape()
-        self._updateArea()
+    # Make sure to use the right inheritance
+    _updated = _DefaulScatterProfileSliceRoiMixIn._updated
+    _connectToPlot = _DefaulScatterProfileSliceRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaulScatterProfileSliceRoiMixIn._disconnectFromPlot
 
-    def _createShapeItems(self, points):
-        """Connect ProfileRoi method with ROI methods"""
-        result = super(ProfileScatterHorizontalSliceROI, self)._createShapeItems(points)
-        area = self._createAreaItem()
-        self._updateArea()
-        result.append(area)
-        return result
 
 class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
                                        _DefaulScatterProfileSliceRoiMixIn):
@@ -808,21 +826,14 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
     NAME = 'vertical data slice profile'
 
     def __init__(self, parent=None):
-        roi_items.VerticalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.VerticalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
-    def _updateShape(self):
-        """Connect ProfileRoi method with ROI methods"""
-        super(ProfileScatterVerticalSliceROI, self)._updateShape()
-        self._updateArea()
-
-    def _createShapeItems(self, points):
-        """Connect ProfileRoi method with ROI methods"""
-        result = super(ProfileScatterVerticalSliceROI, self)._createShapeItems(points)
-        area = self._createAreaItem()
-        self._updateArea()
-        result.append(area)
-        return result
+    # Make sure to use the right inheritance
+    _updated = _DefaulScatterProfileSliceRoiMixIn._updated
+    _connectToPlot = _DefaulScatterProfileSliceRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaulScatterProfileSliceRoiMixIn._disconnectFromPlot
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
@@ -838,8 +849,9 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
         return hline, vline
 
 
-class _DefaultImageStackProfileRoiMixIn:
+class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
     def __init__(self, parent=None):
+        super(_DefaultImageStackProfileRoiMixIn, self).__init__(parent=parent)
         self.__profileType = "1D"
         """Kind of profile"""
 
@@ -895,7 +907,7 @@ class _DefaultImageStackProfileRoiMixIn:
         return data
 
 
-class ProfileImageStackHorizontalLineROI(ProfileImageHorizontalLineROI,
+class ProfileImageStackHorizontalLineROI(roi_items.HorizontalLineROI,
                                          _DefaultImageStackProfileRoiMixIn):
     """ROI for an horizontal profile at a location of a stack of images"""
 
@@ -903,15 +915,17 @@ class ProfileImageStackHorizontalLineROI(ProfileImageHorizontalLineROI,
     NAME = 'horizontal line profile'
 
     def __init__(self, parent=None):
-        ProfileImageHorizontalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.HorizontalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
 
-    def computeProfile(self, item):
-        # Make sure the right function is called
-        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageStackProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
-class ProfileImageStackVerticalLineROI(ProfileImageVerticalLineROI,
+class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
                                        _DefaultImageStackProfileRoiMixIn):
     """ROI for an vertical profile at a location of a stack of images"""
 
@@ -919,15 +933,17 @@ class ProfileImageStackVerticalLineROI(ProfileImageVerticalLineROI,
     NAME = 'vertical line profile'
 
     def __init__(self, parent=None):
-        ProfileImageVerticalLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.VerticalLineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
 
-    def computeProfile(self, item):
-        # Make sure the right function is called
-        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageStackProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
-class ProfileImageStackLineROI(ProfileImageLineROI,
+class ProfileImageStackLineROI(roi_items.LineROI,
                                _DefaultImageStackProfileRoiMixIn):
     """ROI for an vertical profile at a location of a stack of images"""
 
@@ -935,12 +951,14 @@ class ProfileImageStackLineROI(ProfileImageLineROI,
     NAME = 'line profile'
 
     def __init__(self, parent=None):
-        ProfileImageLineROI.__init__(self, parent=parent)
+        self._inheritedRoi = roi_items.LineROI
+        self._inheritedRoi.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
 
-    def computeProfile(self, item):
-        # Make sure the right function is called
-        return _DefaultImageStackProfileRoiMixIn.computeProfile(self, item)
+    # Make sure to use the right inheritance
+    _updated = _DefaultImageStackProfileRoiMixIn._updated
+    _connectToPlot = _DefaultImageStackProfileRoiMixIn._connectToPlot
+    _disconnectFromPlot = _DefaultImageStackProfileRoiMixIn._disconnectFromPlot
 
 
 class ProfileImageStackCrossROI(ProfileImageCrossROI):
