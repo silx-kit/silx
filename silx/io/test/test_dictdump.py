@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __date__ = "17/01/2018"
 from collections import OrderedDict
 import numpy
 import os
-import io
 import tempfile
 import unittest
 import h5py
@@ -122,8 +121,7 @@ class TestDictToH5(unittest.TestCase):
             ("dataset", "dataset_attr"): 12,
             ("group", "group_attr2"): 13,
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['group_attr'], 10)
             self.assertEqual(h5file.attrs['root_attr'], 11)
@@ -139,8 +137,7 @@ class TestDictToH5(unittest.TestCase):
             ("d", "a"): "ox",
             "d": "plow",
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict1, h5file, h5path="g1")
             dictdump.dicttoh5(ddict2, h5file, h5path="g2")
             self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
@@ -158,8 +155,7 @@ class TestDictToH5(unittest.TestCase):
             ("", "floatlist"): [1.1, 2.2, 3.3],
             ("", "strlist"): ["a", "bb", "ccc"],
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
             for k, expected in ddict.items():
                 result = h5file.attrs[k[1]]
@@ -177,8 +173,7 @@ class TestDictToH5(unittest.TestCase):
             "group": {"dataset": "hmmm", ("", "attr"): 10},
             ("group", "attr"): 10,
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname) as h5file:
             with TestLogging(dictdump_logger, warning=1):
                 dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['attr'], 10)
@@ -190,8 +185,7 @@ class TestDictToH5(unittest.TestCase):
             ("group/group/dataset", "attr"): 11,
             ("group/group", "attr"): 12,
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group/group/dataset"][()], 10)
             self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
@@ -199,6 +193,14 @@ class TestDictToH5(unittest.TestCase):
 
 
 class TestDictToNx(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "nx.h5")
+
+    def tearDown(self):
+        if os.path.exists(self.h5_fname):
+            os.unlink(self.h5_fname)
+        os.rmdir(self.tempdir)
 
     def testAttributes(self):
         """Any kind of attribute can be described"""
@@ -209,8 +211,7 @@ class TestDictToNx(unittest.TestCase):
             "dataset@dataset_attr": 12,
             "group@group_attr2": 13,
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['group_attr'], 10)
             self.assertEqual(h5file.attrs['root_attr'], 11)
@@ -226,8 +227,7 @@ class TestDictToNx(unittest.TestCase):
             "d@a": "ox",
             "d": "plow",
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict1, h5file, h5path="g1")
             dictdump.dicttonx(ddict2, h5file, h5path="g2")
             self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
@@ -245,8 +245,7 @@ class TestDictToNx(unittest.TestCase):
             "@floatlist": [1.1, 2.2, 3.3],
             "@strlist": ["a", "bb", "ccc"],
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
             for k, expected in ddict.items():
                 result = h5file.attrs[k[1:]]
@@ -265,8 +264,7 @@ class TestDictToNx(unittest.TestCase):
             "group/group/dataset@attr": 11,
             "group/group@attr": 12,
         }
-        mem = io.BytesIO()
-        with h5py.File(mem, "w") as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
             self.assertEqual(h5file["group/group/dataset"][()], 10)
             self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
