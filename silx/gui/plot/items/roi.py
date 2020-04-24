@@ -85,7 +85,14 @@ class _RegionOfInterestBase(qt.QObject):
         name = str(name)
         if self.__name != name:
             self.__name = name
-            self.sigItemChanged.emit(items.ItemChangedType.NAME)
+            self._updated(items.ItemChangedType.NAME)
+
+    def _updated(self, event=None, checkVisibility=True):
+        """Implement Item mix-in update method by updating the plot items
+
+        See :class:`~silx.gui.plot.items.Item._updated`
+        """
+        self.sigItemChanged.emit(event)
 
 
 class RegionOfInterest(_RegionOfInterestBase):
@@ -106,6 +113,7 @@ class RegionOfInterest(_RegionOfInterestBase):
 
     sigEditingStarted = qt.Signal()
     """Signal emitted when the user start editing the roi"""
+
     sigEditingFinished = qt.Signal()
     """Signal emitted when the region edition is finished. During edition
     sigEditionChanged will be emitted several times and 
@@ -125,12 +133,74 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._selectable = False
         self._focusProxy = None
         self._visible = True
-        self.sigItemChanged.connect(self.__itemChanged)
 
-    def __itemChanged(self, event):
-        """Handle name change"""
+    def _updated(self, event=None, checkVisibility=True):
+        """Implement Item mix-in update method by updating the plot items
+
+        See :class:`~silx.gui.plot.items.Item._updated`
+        """
         if event == items.ItemChangedType.NAME:
             self._updateLabelItem(self.getName())
+        elif event == items.ItemChangedType.COLOR:
+            # Update color of shape items in the plot
+            rgbaColor = rgba(self.getColor())
+            for item in self._iterItems(event):
+                item.setColor(rgbaColor)
+
+            rgbaColor = self._getAnchorColor(rgbaColor)
+            for item in list(self._editAnchors):
+                if isinstance(item, items.ColorMixIn):
+                    item.setColor(rgbaColor)
+        elif event == items.ItemChangedType.LINE_STYLE:
+            value = self.getLineStyle()
+            for item in self._iterItems(event):
+                item.setLineStyle(value)
+        elif event == items.ItemChangedType.LINE_WIDTH:
+            value = self.getLineWidth()
+            for item in self._iterItems(event):
+                item.setLineWidth(value)
+        elif event == items.ItemChangedType.SYMBOL:
+            value = self.getSymbol()
+            for item in self._iterItems(event):
+                item.setSymbol(value)
+        elif event == items.ItemChangedType.SYMBOL_SIZE:
+            value = self.getSymbolSize()
+            for item in self._iterItems(event):
+                item.setSymbolSize(value)
+        elif items.ItemChangedType.EDITABLE:
+            # Recreate plot items
+            # This can be avoided once marker.setDraggable is public
+            self._createPlotItems()
+        elif items.ItemChangedType.EDITABLE:
+            # Recreate plot items
+            # This can be avoided once marker.setDraggable is public
+            self._createPlotItems()
+        elif event == items.ItemChangedType.VISIBLE:
+            visible = self.isVisible()
+            if self._labelItem is not None:
+                self._labelItem.setVisible(visible)
+            for item in self._items + self._editAnchors:
+                item.setVisible(visible)
+
+        super(RegionOfInterest, self)._updated()
+
+    def _iterItems(self, event):
+        if event == items.ItemChangedType.COLOR:
+            # Update color of shape items in the plot
+            for item in self._items:
+                if isinstance(item, items.ColorMixIn):
+                    yield item
+            item = self._getLabelItem()
+            if isinstance(item, items.ColorMixIn):
+                yield item
+        elif event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            for item in self._items:
+                if isinstance(item, items.LineMixIn):
+                    yield item
+        elif event in [items.ItemChangedType.SYMBOL, items.ItemChangedType.SYMBOL_SIZE]:
+            for item in self._items:
+                if isinstance(item, items.SymbolMixIn):
+                    yield item
 
     def __del__(self):
         # Clean-up plot items
@@ -182,22 +252,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         color = rgba(color)
         if color != self._color:
             self._color = color
-
-            # Update color of shape items in the plot
-            rgbaColor = rgba(color)
-            for item in list(self._items):
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgbaColor)
-            item = self._getLabelItem()
-            if isinstance(item, items.ColorMixIn):
-                item.setColor(rgbaColor)
-
-            rgbaColor = self._getAnchorColor(rgbaColor)
-            for item in list(self._editAnchors):
-                if isinstance(item, items.ColorMixIn):
-                    item.setColor(rgbaColor)
-
-            self.sigItemChanged.emit(items.ItemChangedType.COLOR)
+            self._updated(items.ItemChangedType.COLOR)
 
     @silx.utils.deprecation.deprecated(reason='API modification',
                                        replacement='getName()',
@@ -235,10 +290,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         editable = bool(editable)
         if self._editable != editable:
             self._editable = editable
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
-            self.sigItemChanged.emit(items.ItemChangedType.EDITABLE)
+            self._updated(items.ItemChangedType.EDITABLE)
 
     def isSelectable(self):
         """Returns whether the ROI is selectable by the user or not.
@@ -256,10 +308,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         selectable = bool(selectable)
         if self._selectable != selectable:
             self._selectable = selectable
-            # Recreate plot items
-            # This should be avoided (better to edit the items, than recreate them)
-            self._createPlotItems()
-            self.sigItemChanged.emit(items.ItemChangedType.SELECTABLE)
+            self._updated(items.ItemChangedType.SELECTABLE)
 
     def getFocusProxy(self):
         """Returns the ROI which have to be selected when this ROI is selected,
@@ -308,11 +357,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         visible = bool(visible)
         if self._visible != visible:
             self._visible = visible
-            if self._labelItem is not None:
-                self._labelItem.setVisible(visible)
-            for item in self._items + self._editAnchors:
-                item.setVisible(visible)
-            self.sigItemChanged.emit(items.ItemChangedType.VISIBLE)
+            self._updated(items.ItemChangedType.VISIBLE)
 
     def _getControlPoints(self):
         """Returns the current ROI control points.
@@ -561,13 +606,6 @@ class RegionOfInterest(_RegionOfInterestBase):
                 plot.removeItem(item)
         self._labelItem = None
 
-    def _updated(self, event=None, checkVisibility=True):
-        """Implement Item mix-in update method by updating the plot items
-
-        See :class:`~silx.gui.plot.items.Item._updated`
-        """
-        self._createPlotItems()
-
     def __str__(self):
         """Returns parameters of the ROI as a string."""
         points = self._getControlPoints()
@@ -672,6 +710,14 @@ class LineROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
 
     def _createControlPointsFromFirstShape(self, points):
         center = numpy.mean(points, axis=0)
@@ -783,6 +829,14 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
 
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
+
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(float('nan'), points[0, 1])],
                              dtype=numpy.float64)
@@ -855,6 +909,14 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 1:
+                yield self._items[0]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
 
     def _createControlPointsFromFirstShape(self, points):
         points = numpy.array([(points[0, 0], float('nan'))],
@@ -1639,6 +1701,15 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+
+    def _iterItems(self, event):
+        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
+            if len(self._items) >= 2:
+                yield self._items[0]
+                yield self._items[1]
+        else:
+            for item in RegionOfInterest._iterItems(self, event):
+                yield item
 
     @classmethod
     def showFirstInteractionShape(cls):
