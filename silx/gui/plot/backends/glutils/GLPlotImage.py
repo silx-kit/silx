@@ -141,10 +141,8 @@ class GLPlotColormap(_GLPlotData2D):
     """,
             'fragTransform': """
     uniform bvec2 isLog;
-    uniform struct {
-        vec2 oneOverRange;
-        vec2 originOverRange;
-    } bounds;
+    uniform vec2 bounds_oneOverRange;
+    uniform vec2 bounds_originOverRange;
 
     vec2 textureCoords(void) {
         vec2 pos = coords;
@@ -154,7 +152,7 @@ class GLPlotColormap(_GLPlotData2D):
         if (isLog.y) {
             pos.y = pow(10., coords.y);
         }
-        return pos * bounds.oneOverRange - bounds.originOverRange;
+        return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
     }
     """},
@@ -163,12 +161,10 @@ class GLPlotColormap(_GLPlotData2D):
     #version 120
 
     uniform sampler2D data;
-    uniform struct {
-        sampler2D texture;
-        int normalization;
-        float min;
-        float oneOverRange;
-    } cmap;
+    uniform sampler2D cmap_texture;
+    uniform int cmap_normalization;
+    uniform float cmap_min;
+    uniform float cmap_oneOverRange;
     uniform float alpha;
 
     varying vec2 coords;
@@ -179,26 +175,26 @@ class GLPlotColormap(_GLPlotData2D):
 
     void main(void) {
         float value = texture2D(data, textureCoords()).r;
-        if (cmap.normalization == 1) { /*Logarithm mapping*/
+        if (cmap_normalization == 1) { /*Logarithm mapping*/
             if (value > 0.) {
-                value = clamp(cmap.oneOverRange *
-                              (oneOverLog10 * log(value) - cmap.min),
+                value = clamp(cmap_oneOverRange *
+                              (oneOverLog10 * log(value) - cmap_min),
                               0., 1.);
             } else {
                 value = 0.;
             }
-        } else if (cmap.normalization == 2) { /*Square root mapping*/
+        } else if (cmap_normalization == 2) { /*Square root mapping*/
             if (value >= 0.) {
-                value = clamp(cmap.oneOverRange * (sqrt(value) - cmap.min),
+                value = clamp(cmap_oneOverRange * (sqrt(value) - cmap_min),
                               0., 1.);
             } else {
                 value = 0.;
             }
         } else { /*Linear mapping and fallback*/
-            value = clamp(cmap.oneOverRange * (value - cmap.min), 0., 1.);
+            value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
         }
 
-        gl_FragColor = texture2D(cmap.texture, vec2(value, 0.5));
+        gl_FragColor = texture2D(cmap_texture, vec2(value, 0.5));
         gl_FragColor.a *= alpha;
     }
     """
@@ -350,15 +346,15 @@ class GLPlotColormap(_GLPlotData2D):
         else:  # Linear and fallback
             normID = 0
 
-        gl.glUniform1i(prog.uniforms['cmap.texture'],
+        gl.glUniform1i(prog.uniforms['cmap_texture'],
                        self._cmap_texture.texUnit)
-        gl.glUniform1i(prog.uniforms['cmap.normalization'], normID)
-        gl.glUniform1f(prog.uniforms['cmap.min'], dataMin)
+        gl.glUniform1i(prog.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(prog.uniforms['cmap_min'], dataMin)
         if dataMax > dataMin:
             oneOverRange = 1. / (dataMax - dataMin)
         else:
             oneOverRange = 0.  # Fall-back
-        gl.glUniform1f(prog.uniforms['cmap.oneOverRange'], oneOverRange)
+        gl.glUniform1f(prog.uniforms['cmap_oneOverRange'], oneOverRange)
 
         self._cmap_texture.bind()
 
@@ -413,9 +409,9 @@ class GLPlotColormap(_GLPlotData2D):
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
                        ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
                        xOneOverRange, yOneOverRange)
 
         gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
@@ -520,10 +516,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     uniform sampler2D tex;
     uniform bvec2 isLog;
-    uniform struct {
-        vec2 oneOverRange;
-        vec2 originOverRange;
-    } bounds;
+    uniform vec2 bounds_oneOverRange;
+    uniform vec2 bounds_originOverRange;
     uniform float alpha;
 
     varying vec2 coords;
@@ -536,7 +530,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         if (isLog.y) {
             pos.y = pow(10., coords.y);
         }
-        return pos * bounds.oneOverRange - bounds.originOverRange;
+        return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
     }
 
@@ -659,9 +653,9 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
                        ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
                        xOneOverRange, yOneOverRange)
 
         try:
