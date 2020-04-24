@@ -60,7 +60,7 @@ class TestRoiItems(TestCaseQt):
 
     def testPoint_geometry(self):
         point = numpy.array([1, 2])
-        item = roi_items.VerticalLineROI()
+        item = roi_items.PointROI()
         item.setPosition(point)
         numpy.testing.assert_allclose(item.getPosition(), point)
 
