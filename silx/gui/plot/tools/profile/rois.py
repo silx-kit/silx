@@ -57,6 +57,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         self.addItem(area)
 
         self.sigRegionChanged.connect(self.__regionChanged)
+        self.sigItemChanged.connect(self._updateAreaProperty)
 
     def _updateAreaProperty(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.COLOR:
@@ -219,11 +220,6 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             )
         return data
 
-    def _updated(self, event=None, checkVisibility=True):
-        """Glue with the ROI object"""
-        self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
-        self._updateAreaProperty(event, checkVisibility)
-
 
 class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
                                     _DefaultImageProfileRoiMixIn):
@@ -233,12 +229,8 @@ class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
     NAME = 'horizontal line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.HorizontalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageProfileRoiMixIn._updated
 
 
 class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
@@ -249,12 +241,8 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
     NAME = 'vertical line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.VerticalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageProfileRoiMixIn._updated
 
 
 class ProfileImageLineROI(roi_items.LineROI,
@@ -265,12 +253,8 @@ class ProfileImageLineROI(roi_items.LineROI,
     NAME = 'line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.LineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.LineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageProfileRoiMixIn._updated
 
 
 class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
@@ -634,6 +618,7 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         self.addItem(area)
 
         self.sigRegionChanged.connect(self.__regionChanged)
+        self.sigItemChanged.connect(self._updateAreaProperty)
 
     def _updateAreaProperty(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.COLOR:
@@ -764,11 +749,6 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         )
         return data
 
-    def _updated(self, event=None, checkVisibility=True):
-        """Glue with the ROI object"""
-        self._inheritedRoi._updated(self, event=event, checkVisibility=checkVisibility)
-        self._updateAreaProperty(event, checkVisibility)
-
 
 class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
                                        _DefaulScatterProfileSliceRoiMixIn):
@@ -780,12 +760,8 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
     NAME = 'horizontal data slice profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.HorizontalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaulScatterProfileSliceRoiMixIn._updated
 
 
 class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
@@ -798,12 +774,8 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
     NAME = 'vertical data slice profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.VerticalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaulScatterProfileSliceRoiMixIn._updated
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
@@ -885,12 +857,8 @@ class ProfileImageStackHorizontalLineROI(roi_items.HorizontalLineROI,
     NAME = 'horizontal line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.HorizontalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageStackProfileRoiMixIn._updated
 
 
 class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
@@ -901,12 +869,8 @@ class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
     NAME = 'vertical line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.VerticalLineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageStackProfileRoiMixIn._updated
 
 
 class ProfileImageStackLineROI(roi_items.LineROI,
@@ -917,12 +881,8 @@ class ProfileImageStackLineROI(roi_items.LineROI,
     NAME = 'line profile'
 
     def __init__(self, parent=None):
-        self._inheritedRoi = roi_items.LineROI
-        self._inheritedRoi.__init__(self, parent=parent)
+        roi_items.LineROI.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
-
-    # Make sure to use the right inheritance
-    _updated = _DefaultImageStackProfileRoiMixIn._updated
 
 
 class ProfileImageStackCrossROI(ProfileImageCrossROI):
