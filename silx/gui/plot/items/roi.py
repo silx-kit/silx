@@ -30,8 +30,6 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-import functools
-import itertools
 import logging
 import collections
 import numpy
@@ -43,7 +41,6 @@ from ... import utils
 from .. import items
 from ...colors import rgba
 import silx.utils.deprecation
-from silx.gui.qt import inspect
 
 
 logger = logging.getLogger(__name__)
@@ -185,9 +182,9 @@ class RegionOfInterest(_RegionOfInterestBase):
         self._child.append(item)
         if item.getName() == '':
             self._setItemName(item)
-        manager = plot = self.parent()
+        manager = self.parent()
         if manager is not None:
-            plot = manager.getParent()
+            plot = manager.parent()
             if plot is not None:
                 plot.addItem(item)
 
@@ -424,32 +421,108 @@ class RegionOfInterest(_RegionOfInterestBase):
         self.sigEditingFinished.emit()
 
 
-class _AnchorBasedROI(RegionOfInterest):
-    """This class manage the ROI based on a set of anchors"""
+class _HandleBasedROI(RegionOfInterest):
+    """Manage a ROI based on a set of handles"""
 
     def __init__(self, parent=None):
         RegionOfInterest.__init__(self, parent=parent)
-        self._items = WeakList()
-        self._editAnchors = WeakList()
-        self._points = None
-        self._labelItem = None
+        self._handles = []
+        self._posOrigin = None
+        self._posPrevious = None
 
-    def setFirstShapePoints(self, points):
-        """"Initialize the ROI using the points from the first interaction.
-
-        This interaction is constrained by the plot API and only supports few
-        shapes.
+    def addUserHandle(self, item=None):
         """
-        points = self._createControlPointsFromFirstShape(points)
-        self._setControlPoints(points)
+        Add a new free handle to the ROI.
 
-    def _connectToPlot(self, plot):
-        """Called after connection to a plot"""
-        self._createPlotItems()
+        This handle do nothing. It have to be managed by the ROI
+        implementing this class.
 
-    def _disconnectFromPlot(self, plot):
-        """Called before deconnection from a plot"""
-        self._removePlotItems()
+        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+            add, else None to create a default marker.
+        :rtype: silx.gui.plot.items.Marker
+        """
+        return self.addHandle(item, role="user")
+
+    def addLabelHandle(self, item=None):
+        """
+        Add a new label handle to the ROI.
+
+        This handle is not draggable nor selectable.
+
+        It is displayed without symbol, but it is always visible anyway
+        the ROI is editable, in order to display text.
+
+        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+            add, else None to create a default marker.
+        :rtype: silx.gui.plot.items.Marker
+        """
+        return self.addHandle(item, role="label")
+
+    def addTranslateHandle(self, item=None):
+        """
+        Add a new translate handle to the ROI.
+
+        Dragging translate handles affect the position position of the ROI
+        but not the shape itself.
+
+        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+            add, else None to create a default marker.
+        :rtype: silx.gui.plot.items.Marker
+        """
+        return self.addHandle(item, role="translate")
+
+    def addHandle(self, item=None, role="default"):
+        """
+        Add a new handle to the ROI.
+
+        Dragging handles while affect the position or the shape of the
+        ROI.
+
+        :param Union[None,silx.gui.plot.items.Marker] item: The new marker to
+            add, else None to create a default marker.
+        :rtype: silx.gui.plot.items.Marker
+        """
+        if item is None:
+            item = items.Marker()
+            color = rgba(self.getColor())
+            color = self._computeHandleColor(color)
+            item.setColor(color)
+            if role == "default":
+                item.setSymbol("s")
+            elif role == "user":
+                pass
+            elif role == "translate":
+                item.setSymbol("+")
+            elif role == "label":
+                item.setSymbol("")
+
+        if role == "user":
+            pass
+        elif role == "label":
+            item._setSelectable(False)
+            item._setDraggable(False)
+            item.setVisible(True)
+        else:
+            self.__updateEditable(item, self.isEditable(), remove=False)
+            item._setSelectable(False)
+
+        self._handles.append((item, role))
+        self.addItem(item)
+        return item
+
+    def removeHandle(self, handle):
+        data = [d for d in self._handles if d[0] is handle][0]
+        self._handles.remove(data)
+        role = data[1]
+        if role not in ["user", "label"]:
+            if self.isEditable():
+                self.__updateEditable(handle, False)
+        self.removeItem(handle)
+
+    def iterHandles(self):
+        """Iterate though all the handles"""
+        for data in self._handles:
+            yield data[0]
 
     def _updated(self, event=None, checkVisibility=True):
         """Implement Item mix-in update method by updating the plot items
@@ -457,64 +530,80 @@ class _AnchorBasedROI(RegionOfInterest):
         See :class:`~silx.gui.plot.items.Item._updated`
         """
         if event == items.ItemChangedType.NAME:
-            self._updateLabelItem(self.getName())
+            self._updateText(self.getName())
         elif event == items.ItemChangedType.COLOR:
             # Update color of shape items in the plot
-            rgbaColor = rgba(self.getColor())
-            for item in self._iterItems(event):
-                item.setColor(rgbaColor)
-        elif event == items.ItemChangedType.LINE_STYLE:
-            value = self.getLineStyle()
-            for item in self._iterItems(event):
-                item.setLineStyle(value)
-        elif event == items.ItemChangedType.LINE_WIDTH:
-            value = self.getLineWidth()
-            for item in self._iterItems(event):
-                item.setLineWidth(value)
-        elif event == items.ItemChangedType.SYMBOL:
-            value = self.getSymbol()
-            for item in self._iterItems(event):
-                item.setSymbol(value)
-        elif event == items.ItemChangedType.SYMBOL_SIZE:
-            value = self.getSymbolSize()
-            for item in self._iterItems(event):
-                item.setSymbolSize(value)
-        elif items.ItemChangedType.EDITABLE:
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
-        elif items.ItemChangedType.EDITABLE:
-            # Recreate plot items
-            # This can be avoided once marker.setDraggable is public
-            self._createPlotItems()
+            color = rgba(self.getColor())
+            handleColor = self._computeHandleColor(color)
+            for item, role in self._handles:
+                if role == 'user':
+                    pass
+                elif role == 'label':
+                    item.setColor(color)
+                else:
+                    item.setColor(handleColor)
         elif event == items.ItemChangedType.VISIBLE:
-            visible = self.isVisible()
-            if self._labelItem is not None:
-                self._labelItem.setVisible(visible)
-            for item in self._items + self._editAnchors:
+            for item, role in self._handles:
+                visible = self.isVisible() and self.isEditable()
                 item.setVisible(visible)
+        elif event == items.ItemChangedType.EDITABLE:
+            for item, role in self._handles:
+                editable = self.isEditable()
+                if role not in ["user", "label"]:
+                    self.__updateEditable(item, editable)
+        super(_HandleBasedROI, self)._updated(event, checkVisibility)
 
-        super(_AnchorBasedROI, self)._updated(event, checkVisibility)
+    def __updateEditable(self, handle, editable, remove=True):
+        # NOTE: visibility change emit a position update event
+        handle.setVisible(editable and self.isVisible())
+        handle._setDraggable(editable)
+        if editable:
+            handle.sigDragStarted.connect(self.__editingStarted)
+            handle.sigItemChanged.connect(self.__editingUpdated)
+            handle.sigDragFinished.connect(self.__editingFinished)
+        else:
+            if remove:
+                handle.sigDragStarted.disconnect(self.__editingStarted)
+                handle.sigItemChanged.disconnect(self.__editingUpdated)
+                handle.sigDragFinished.disconnect(self.__editingFinished)
 
-    def _iterItems(self, event):
-        if event == items.ItemChangedType.COLOR:
-            # Update color of shape items in the plot
-            for item in self._items:
-                if isinstance(item, items.ColorMixIn):
-                    yield item
-            item = self._getLabelItem()
-            if isinstance(item, items.ColorMixIn):
-                yield item
-        elif event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            for item in self._items:
-                if isinstance(item, items.LineMixIn):
-                    yield item
-        elif event in [items.ItemChangedType.SYMBOL, items.ItemChangedType.SYMBOL_SIZE]:
-            for item in self._items:
-                if isinstance(item, items.SymbolMixIn):
-                    yield item
+    def __editingStarted(self):
+        super(_HandleBasedROI, self)._editingStarted()
+        handle = self.sender()
+        self._posOrigin = numpy.array(handle.getPosition())
+        self._posPrevious = numpy.array(self._posOrigin)
+        self.handleDragStarted(handle, self._posOrigin)
 
-    def _getAnchorColor(self, color):
+    def __editingUpdated(self):
+        if self._posOrigin is None:
+            # Avoid to handle events when visibility change
+            return
+        handle = self.sender()
+        current = numpy.array(handle.getPosition())
+        self.handleDragUpdated(handle, self._posOrigin, self._posPrevious, current)
+        self._posPrevious = current
+
+    def __editingFinished(self):
+        handle = self.sender()
+        current = numpy.array(handle.getPosition())
+        self.handleDragFinished(handle, self._posOrigin, current)
+        self._posPrevious = None
+        self._posOrigin = None
+        super(_HandleBasedROI, self)._editingFinished()
+
+    def handleDragStarted(self, handle, origin):
+        """Called when an handler drag started"""
+        pass
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        """Called when an handle drag position changed"""
+        pass
+
+    def handleDragFinished(self, handle, origin, current):
+        """Called when an handle drag finished"""
+        pass
+
+    def _computeHandleColor(self, color):
         """Returns the anchor color from the base ROI color
 
         :param Union[numpy.array,Tuple,List]: color
@@ -522,229 +611,12 @@ class _AnchorBasedROI(RegionOfInterest):
         """
         return color[:3] + (0.5,)
 
-    def _getControlPoints(self):
-        """Returns the current ROI control points.
+    def _updateText(self, text):
+        """Update the text displayed by this ROI
 
-        It returns an empty tuple if there is currently no ROI.
-
-        :return: Array of (x, y) position in plot coordinates
-        :rtype: numpy.ndarray
+        :param str text: A text
         """
-        return None if self._points is None else numpy.array(self._points)
-
-    def _createControlPointsFromFirstShape(self, points):
-        """Returns the list of control points from the very first shape
-        provided.
-
-        This shape is provided by the plot interaction and constained by the
-        class of the ROI itself.
-        """
-        return points
-
-    def _setControlPoints(self, points):
-        """Set this ROI control points.
-
-        :param points: Iterable of (x, y) control points
-        """
-        points = numpy.array(points)
-
-        nbPointsChanged = (self._points is None or
-                           points.shape != self._points.shape)
-
-        if not nbPointsChanged and numpy.allclose(points, self._points,
-                                                  rtol=0, atol=0, equal_nan=True):
-            # There is no changes
-            return
-
-        self._points = points
-
-        self._updateShape()
-        if self._items and not nbPointsChanged:  # Update plot items
-            item = self._getLabelItem()
-            if item is not None:
-                markerPos = self._getLabelPosition()
-                item.setPosition(*markerPos)
-
-            if self._editAnchors:  # Update anchors
-                for anchor, point in zip(self._editAnchors, points):
-                    old = anchor.blockSignals(True)
-                    anchor.setPosition(*point)
-                    anchor.blockSignals(old)
-
-        else:  # No items or new point added
-            # re-create plot items
-            self._createPlotItems()
-
-        self.sigRegionChanged.emit()
-
-    def _updateShape(self):
-        """Called when shape must be updated.
-
-        Must be reimplemented if a shape item have to be updated.
-        """
-        return
-
-    def _getLabelPosition(self):
-        """Compute position of the label
-
-        :return: (x, y) position of the marker
-        """
-        return None
-
-    def _createPlotItems(self):
-        """Create items displaying the ROI in the plot.
-
-        It first removes any existing plot items.
-        """
-        roiManager = self.parent()
-        if roiManager is None:
-            return
-        plot = roiManager.parent()
-
-        self._removePlotItems()
-
-        legendPrefix = "__RegionOfInterest-%d__" % id(self)
-        itemIndex = 0
-
-        controlPoints = self._getControlPoints()
-
-        if self._labelItem is None:
-            self._labelItem = self._createLabelItem()
-            if self._labelItem is not None:
-                self._labelItem.setName(legendPrefix + "label")
-                self._labelItem.setText(self.getName())
-                plot.addItem(self._labelItem)
-                self._labelItem.setVisible(self.isVisible())
-
-        self._items = WeakList()
-        plotItems = self._createShapeItems(controlPoints)
-        for item in plotItems:
-            item.setName(legendPrefix + str(itemIndex))
-            plot.addItem(item)
-            item.setVisible(self.isVisible())
-            item._setSelectable(self.isSelectable())
-            self._items.append(item)
-            itemIndex += 1
-
-        self._editAnchors = WeakList()
-        if self.isEditable():
-            plotItems = self._createAnchorItems(controlPoints)
-            color = rgba(self.getColor())
-            color = self._getAnchorColor(color)
-            for index, item in enumerate(plotItems):
-                item.setName(legendPrefix + str(itemIndex))
-                item.setColor(color)
-                item.setVisible(self.isVisible())
-                item._setSelectable(self.isSelectable())
-                plot.addItem(item)
-                # connect item changed
-                item.sigItemChanged.connect(functools.partial(
-                    self._controlPointAnchorChanged, index))
-                # connect items pressed and released signals
-                item.sigDragStarted.connect(self._editingStarted)
-                item.sigDragFinished.connect(self._editingFinished)
-                self._editAnchors.append(item)
-                itemIndex += 1
-
-    def _updateLabelItem(self, label):
-        """Update the marker displaying the label.
-
-        Inherite this method to custom the way the ROI display the label.
-
-        :param str label: The new label to use
-        """
-        item = self._getLabelItem()
-        if item is not None:
-            item.setText(label)
-
-    def _createLabelItem(self):
-        """Returns a created marker which will be used to dipslay the label of
-        this ROI.
-
-        Inherite this method to return nothing if no new items have to be
-        created, or your own marker.
-
-        :rtype: Union[None,Marker]
-        """
-        # Add label marker
-        markerPos = self._getLabelPosition()
-        marker = items.Marker()
-        marker.setPosition(*markerPos)
-        marker.setText(self.getName())
-        marker.setColor(rgba(self.getColor()))
-        marker.setSymbol('')
-        marker._setDraggable(False)
-        return marker
-
-    def _getLabelItem(self):
-        """Returns the marker displaying the label of this ROI.
-
-        Inherite this method to choose your own item. In case this item is also
-        a control point.
-        """
-        return self._labelItem
-
-    def _createShapeItems(self, points):
-        """Create shape items from the current control points.
-
-        :rtype: List[PlotItem]
-        """
-        return []
-
-    def _createAnchorItems(self, points):
-        """Create anchor items from the current control points.
-
-        :rtype: List[Marker]
-        """
-        return []
-
-    def _controlPointAnchorChanged(self, index, event):
-        """Handle update of position of an edition anchor
-
-        :param int index: Index of the anchor
-        :param ItemChangedType event: Event type
-        """
-        if event == items.ItemChangedType.POSITION:
-            anchor = self._editAnchors[index]
-            previous = self._points[index].copy()
-            current = anchor.getPosition()
-            self._controlPointAnchorPositionChanged(index, current, previous)
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        """Called when an anchor is manually edited.
-
-        This function have to be inherited to change the behaviours of the
-        control points. This function have to call :meth:`_getControlPoints` to
-        reach the previous state of the control points. Updated the positions
-        of the changed control points. Then call :meth:`_setControlPoints` to
-        update the anchors and send signals.
-        """
-        points = self._getControlPoints()
-        points[index] = current
-        self._setControlPoints(points)
-
-    def _removePlotItems(self):
-        """Remove items from their plot."""
-        for item in itertools.chain(list(self._items),
-                                    list(self._editAnchors)):
-            plot = item.getPlot()
-            if plot is not None and inspect.isValid(plot):
-                plot.removeItem(item)
-        self._items = WeakList()
-        self._editAnchors = WeakList()
-
-        if self._labelItem is not None:
-            item = self._labelItem
-            plot = item.getPlot()
-            if plot is not None and inspect.isValid(plot):
-                plot.removeItem(item)
-        self._labelItem = None
-
-    def __str__(self):
-        """Returns parameters of the ROI as a string."""
-        points = self._getControlPoints()
-        params = '; '.join('(%f; %f)' % (pt[0], pt[1]) for pt in points)
-        return "%s(%s)" % (self.__class__.__name__, params)
+        pass
 
 
 class PointROI(RegionOfInterest, items.SymbolMixIn):
@@ -826,7 +698,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class LineROI(_AnchorBasedROI, items.LineMixIn):
+class LineROI(_HandleBasedROI, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -841,20 +713,40 @@ class LineROI(_AnchorBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _AnchorBasedROI.__init__(self, parent=parent)
+        _HandleBasedROI.__init__(self, parent=parent)
+        self._handleStart = self.addHandle()
+        self._handleEnd = self.addHandle()
+        self._handleCenter = self.addTranslateHandle()
+        self._handleLabel = self.addLabelHandle()
 
-    def _iterItems(self, event):
-        if event in [items.ItemChangedType.LINE_STYLE, items.ItemChangedType.LINE_WIDTH]:
-            if len(self._items) >= 1:
-                yield self._items[0]
-        else:
-            for item in _AnchorBasedROI._iterItems(self, event):
-                yield item
+        shape = items.Shape("polylines")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        self.__shape = shape
+        self.addItem(shape)
 
-    def _createControlPointsFromFirstShape(self, points):
-        center = numpy.mean(points, axis=0)
-        controlPoints = numpy.array([points[0], points[1], center])
-        return controlPoints
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(LineROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        assert len(points) == 2
+        self.setEndPoints(points[0], points[1])
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
 
     def setEndPoints(self, startPoint, endPoint):
         """Set this line location using the ending points
@@ -862,88 +754,49 @@ class LineROI(_AnchorBasedROI, items.LineMixIn):
         :param numpy.ndarray startPoint: Staring bounding point of the line
         :param numpy.ndarray endPoint: Ending bounding point of the line
         """
-        assert(startPoint.shape == (2,) and endPoint.shape == (2,))
-        shapePoints = numpy.array([startPoint, endPoint])
-        controlPoints = self._createControlPointsFromFirstShape(shapePoints)
-        self._setControlPoints(controlPoints)
+        startPoint = numpy.array(startPoint)
+        endPoint = numpy.array(endPoint)
+        center = (startPoint + endPoint) * 0.5
+
+        with utils.blockSignals(self._handleStart):
+            self._handleStart.setPosition(startPoint[0], startPoint[1])
+        with utils.blockSignals(self._handleEnd):
+            self._handleEnd.setPosition(endPoint[0], endPoint[1])
+        with utils.blockSignals(self._handleCenter):
+            self._handleCenter.setPosition(center[0], center[1])
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(center[0], center[1])
+
+        line = numpy.array((startPoint, endPoint))
+        self.__shape.setPoints(line)
+        self.sigRegionChanged.emit()
 
     def getEndPoints(self):
         """Returns bounding points of this ROI.
 
         :rtype: Tuple(numpy.ndarray,numpy.ndarray)
         """
-        startPoint = self._points[0].copy()
-        endPoint = self._points[1].copy()
+        startPoint = numpy.array(self._handleStart.getPosition())
+        endPoint = numpy.array(self._handleEnd.getPosition())
         return (startPoint, endPoint)
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points[-1]
-
-    def _updateShape(self):
-        if len(self._items) == 0:
-            return
-        shape = self._items[0]
-        points = self._getControlPoints()
-        points = self._getShapeFromControlPoints(points)
-        shape.setPoints(points)
-
-    def _getShapeFromControlPoints(self, points):
-        # Remove the center from the control points
-        return points[0:2]
-
-    def _createShapeItems(self, points):
-        shapePoints = self._getShapeFromControlPoints(points)
-        item = items.Shape("polylines")
-        item.setPoints(shapePoints)
-        item.setColor(rgba(self.getColor()))
-        item.setFill(False)
-        item.setOverlay(True)
-        item.setLineStyle(self.getLineStyle())
-        item.setLineWidth(self.getLineWidth())
-        return [item]
-
-    def _createAnchorItems(self, points):
-        anchors = []
-        for point in points[0:-1]:
-            anchor = items.Marker()
-            anchor.setPosition(*point)
-            anchor.setText('')
-            anchor.setSymbol('s')
-            anchor._setDraggable(True)
-            anchors.append(anchor)
-
-        # Add an anchor to the center of the rectangle
-        center = numpy.mean(points, axis=0)
-        anchor = items.Marker()
-        anchor.setPosition(*center)
-        anchor.setText('')
-        anchor.setSymbol('+')
-        anchor._setDraggable(True)
-        anchors.append(anchor)
-
-        return anchors
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        if index == len(self._editAnchors) - 1:
-            # It is the center anchor
-            points = self._getControlPoints()
-            center = numpy.mean(points[0:-1], axis=0)
-            offset = current - previous
-            points[-1] = current
-            points[0:-1] = points[0:-1] + offset
-            self._setControlPoints(points)
-        else:
-            # Update the center
-            points = self._getControlPoints()
-            points[index] = current
-            center = numpy.mean(points[0:-1], axis=0)
-            points[-1] = center
-            self._setControlPoints(points)
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handleStart:
+            _start, end = self.getEndPoints()
+            self.setEndPoints(current, end)
+        elif handle is self._handleEnd:
+            start, _end = self.getEndPoints()
+            self.setEndPoints(start, current)
+        elif handle is self._handleCenter:
+            start, end = self.getEndPoints()
+            delta = current - previous
+            start += delta
+            end += delta
+            self.setEndPoints(start, end)
 
     def __str__(self):
-        points = self._getControlPoints()
-        params = points[0][0], points[0][1], points[1][0], points[1][1]
+        start, end = self.getEndPoints()
+        params = start[0], start[1], end[0], end[1]
         params = 'start: %f %f; end: %f %f' % params
         return "%s(%s)" % (self.__class__.__name__, params)
 
@@ -1102,7 +955,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class RectangleROI(_AnchorBasedROI, items.LineMixIn):
+class RectangleROI(_HandleBasedROI, items.LineMixIn):
     """A ROI identifying a rectangle in a 2D plot.
 
     This ROI provides 1 anchor for each corner, plus an anchor in the
@@ -1117,47 +970,78 @@ class RectangleROI(_AnchorBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _AnchorBasedROI.__init__(self, parent=parent)
+        _HandleBasedROI.__init__(self, parent=parent)
+        self._handleTopLeft = self.addHandle()
+        self._handleTopRight = self.addHandle()
+        self._handleBottomLeft = self.addHandle()
+        self._handleBottomRight = self.addHandle()
+        self._handleCenter = self.addTranslateHandle()
+        self._handleLabel = self.addLabelHandle()
 
-    def _createControlPointsFromFirstShape(self, points):
-        point0 = points[0]
-        point1 = points[1]
+        shape = items.Shape("rectangle")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        shape.setColor(rgba(self.getColor()))
+        self.__shape = shape
+        self.addItem(shape)
 
-        # 4 corners
-        controlPoints = numpy.array([
-            point0[0], point0[1],
-            point0[0], point1[1],
-            point1[0], point1[1],
-            point1[0], point0[1],
-        ])
-        # Central
-        center = numpy.mean(points, axis=0)
-        controlPoints = numpy.append(controlPoints, center)
-        controlPoints.shape = -1, 2
-        return controlPoints
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(RectangleROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        assert len(points) == 2
+        self._setBound(points)
+
+    def _setBound(self, points):
+        """Initialize the rectangle from a bunch of points"""
+        top = max(points[:, 1])
+        bottom = min(points[:, 1])
+        left = min(points[:, 0])
+        right = max(points[:, 0])
+        size = right - left, top - bottom
+        self.setGeometry(origin=(left, bottom), size=size)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
 
     def getCenter(self):
         """Returns the central point of this rectangle
 
         :rtype: numpy.ndarray([float,float])
         """
-        return numpy.mean(self._points, axis=0)
+        pos = self._handleCenter.getPosition()
+        return numpy.array(pos)
 
     def getOrigin(self):
         """Returns the corner point with the smaller coordinates
 
         :rtype: numpy.ndarray([float,float])
         """
-        return numpy.min(self._points, axis=0)
+        pos = self._handleBottomLeft.getPosition()
+        return numpy.array(pos)
 
     def getSize(self):
         """Returns the size of this rectangle
 
         :rtype: numpy.ndarray([float,float])
         """
-        minPoint = numpy.min(self._points, axis=0)
-        maxPoint = numpy.max(self._points, axis=0)
-        return maxPoint - minPoint
+        vmin = self._handleBottomLeft.getPosition()
+        vmax = self._handleTopRight.getPosition()
+        vmin, vmax = numpy.array(vmin), numpy.array(vmax)
+        return vmax - vmin
 
     def setOrigin(self, position):
         """Set the origin position of this ROI
@@ -1190,89 +1074,46 @@ class RectangleROI(_AnchorBasedROI, items.LineMixIn):
             origin = numpy.array(origin)
             size = numpy.array(size)
             points = numpy.array([origin, origin + size])
-            controlPoints = self._createControlPointsFromFirstShape(points)
+            center = origin + size * 0.5
         elif center is not None:
             center = numpy.array(center)
             size = numpy.array(size)
             points = numpy.array([center - size * 0.5, center + size * 0.5])
-            controlPoints = self._createControlPointsFromFirstShape(points)
         else:
             raise ValueError("Origin or center expected")
-        self._setControlPoints(controlPoints)
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points.min(axis=0)
+        with utils.blockSignals(self._handleBottomLeft):
+            self._handleBottomLeft.setPosition(points[0, 0], points[0, 1])
+        with utils.blockSignals(self._handleBottomRight):
+            self._handleBottomRight.setPosition(points[1, 0], points[0, 1])
+        with utils.blockSignals(self._handleTopLeft):
+            self._handleTopLeft.setPosition(points[0, 0], points[1, 1])
+        with utils.blockSignals(self._handleTopRight):
+            self._handleTopRight.setPosition(points[1, 0], points[1, 1])
+        with utils.blockSignals(self._handleCenter):
+            self._handleCenter.setPosition(center[0], center[1])
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(points[0, 0], points[0, 1])
 
-    def _updateShape(self):
-        if len(self._items) == 0:
-            return
-        shape = self._items[0]
-        points = self._getControlPoints()
-        points = self._getShapeFromControlPoints(points)
-        shape.setPoints(points)
+        self.__shape.setPoints(points)
+        self.sigRegionChanged.emit()
 
-    def _getShapeFromControlPoints(self, points):
-        minPoint = points.min(axis=0)
-        maxPoint = points.max(axis=0)
-        return numpy.array([minPoint, maxPoint])
-
-    def _createShapeItems(self, points):
-        shapePoints = self._getShapeFromControlPoints(points)
-        item = items.Shape("rectangle")
-        item.setPoints(shapePoints)
-        item.setColor(rgba(self.getColor()))
-        item.setFill(False)
-        item.setOverlay(True)
-        item.setLineStyle(self.getLineStyle())
-        item.setLineWidth(self.getLineWidth())
-        return [item]
-
-    def _createAnchorItems(self, points):
-        # Remove the center control point
-        points = points[0:-1]
-
-        anchors = []
-        for point in points:
-            anchor = items.Marker()
-            anchor.setPosition(*point)
-            anchor.setText('')
-            anchor.setSymbol('s')
-            anchor._setDraggable(True)
-            anchors.append(anchor)
-
-        # Add an anchor to the center of the rectangle
-        center = numpy.mean(points, axis=0)
-        anchor = items.Marker()
-        anchor.setPosition(*center)
-        anchor.setText('')
-        anchor.setSymbol('+')
-        anchor._setDraggable(True)
-        anchors.append(anchor)
-
-        return anchors
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
-        if index == len(self._editAnchors) - 1:
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handleCenter:
             # It is the center anchor
-            points = self._getControlPoints()
-            center = numpy.mean(points[0:-1], axis=0)
-            offset = current - previous
-            points[-1] = current
-            points[0:-1] = points[0:-1] + offset
-            self._setControlPoints(points)
+            size = self.getSize()
+            self.setGeometry(center=current, size=size)
         else:
-            # Fix other corners
-            constrains = [(1, 3), (0, 2), (3, 1), (2, 0)]
-            constrains = constrains[index]
-            points = self._getControlPoints()
-            points[index] = current
-            points[constrains[0]][0] = current[0]
-            points[constrains[1]][1] = current[1]
-            # Update the center
-            center = numpy.mean(points[0:-1], axis=0)
-            points[-1] = center
-            self._setControlPoints(points)
+            opposed = {
+                self._handleBottomLeft: self._handleTopRight,
+                self._handleTopRight: self._handleBottomLeft,
+                self._handleBottomRight: self._handleTopLeft,
+                self._handleTopLeft: self._handleBottomRight,
+            }
+            handle2 = opposed[handle]
+            current2 = handle2.getPosition()
+            points = numpy.array([current, current2])
+            self._setBound(points)
 
     def __str__(self):
         origin = self.getOrigin()
@@ -1282,7 +1123,7 @@ class RectangleROI(_AnchorBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class PolygonROI(_AnchorBasedROI, items.LineMixIn):
+class PolygonROI(_HandleBasedROI, items.LineMixIn):
     """A ROI identifying a closed polygon in a 2D plot.
 
     This ROI provides 1 anchor for each point of the polygon.
@@ -1296,7 +1137,40 @@ class PolygonROI(_AnchorBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _AnchorBasedROI.__init__(self, parent=parent)
+        _HandleBasedROI.__init__(self, parent=parent)
+        self._handleLabel = self.addLabelHandle()
+        self._handleCenter = self.addTranslateHandle()
+        self._handlePoints = []
+        self._points = numpy.empty((0, 2))
+
+        shape = items.Shape("polygon")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        shape.setColor(rgba(self.getColor()))
+        self.__shape = shape
+        self.addItem(shape)
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(PolygonROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        self.setPoints(points)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
 
     def getPoints(self):
         """Returns the list of the points of this polygon.
@@ -1311,61 +1185,68 @@ class PolygonROI(_AnchorBasedROI, items.LineMixIn):
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
         assert(len(points.shape) == 2 and points.shape[1] == 2)
+
+        # Update the needed handles
+        while len(self._handlePoints) != len(points):
+            if len(self._handlePoints) < len(points):
+                handle = self.addHandle()
+                self._handlePoints.append(handle)
+            else:
+                handle = self._handlePoints.pop(-1)
+                self.removeHandle(handle)
+
+        for handle, position in zip(self._handlePoints, points):
+            with utils.blockSignals(handle):
+                handle.setPosition(position[0], position[1])
+
         if len(points) > 0:
-            controlPoints = numpy.array(points)
-        else:
-            controlPoints = numpy.empty((0, 2))
-        self._setControlPoints(controlPoints)
+            vmin = numpy.min(points, axis=0)
+            vmax = numpy.max(points, axis=0)
+            center = (vmax + vmin) * 0.5
+            with utils.blockSignals(self._handleCenter):
+                self._handleCenter.setPosition(center[0], center[1])
 
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
+            num = numpy.argmin(points[:, 1])
+            pos = points[num]
+            with utils.blockSignals(self._handleLabel):
+                self._handleLabel.setPosition(pos[0], pos[1])
+
         if len(points) == 0:
-            # FIXME: we should return none, this polygon have no location
-            return numpy.array([0, 0])
-        return points[numpy.argmin(points[:, 1])]
-
-    def _updateShape(self):
-        if len(self._items) == 0:
-            return
-        shape = self._items[0]
-        points = self._getControlPoints()
-        shape.setPoints(points)
-
-    def _createShapeItems(self, points):
-        if len(points) == 0:
-            return []
+            self._points = numpy.empty((0, 2))
         else:
-            item = items.Shape("polygon")
-            item.setPoints(points)
-            item.setColor(rgba(self.getColor()))
-            item.setFill(False)
-            item.setOverlay(True)
-            item.setLineStyle(self.getLineStyle())
-            item.setLineWidth(self.getLineWidth())
-            return [item]
+            self._points = points
+        self.__shape.setPoints(self._points)
+        self.sigRegionChanged.emit()
 
-    def _createAnchorItems(self, points):
-        anchors = []
-        for point in points:
-            anchor = items.Marker()
-            anchor.setPosition(*point)
-            anchor.setText('')
-            anchor.setSymbol('s')
-            anchor._setDraggable(True)
-            anchors.append(anchor)
-        return anchors
+    def translate(self, x, y):
+        points = self.getPoints()
+        delta = numpy.array([x, y])
+        self.setPoints(points)
+        self.setPoints(points + delta)
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handleCenter:
+            delta = current - previous
+            self.translate(delta[0], delta[1])
+        else:
+            points = self.getPoints()
+            num = self._handlePoints.index(handle)
+            points[num] = current
+            self.setPoints(points)
 
     def __str__(self):
-        points = self._getControlPoints()
+        points = self._points
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class ArcROI(_AnchorBasedROI, items.LineMixIn):
+class ArcROI(_HandleBasedROI, items.LineMixIn):
     """A ROI identifying an arc of a circle with a width.
 
-    This ROI provides 3 anchors to control the curvature, 1 anchor to control
-    the weigth, and 1 anchor to translate the shape.
+    This ROI provides
+    - 3 handle to control the curvature
+    - 1 handle to control the weight
+    - 1 anchor to translate the shape.
     """
 
     _kind = "Arc"
@@ -1381,8 +1262,56 @@ class ArcROI(_AnchorBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _AnchorBasedROI.__init__(self, parent=parent)
+        _HandleBasedROI.__init__(self, parent=parent)
         self._geometry = None
+        self._points = None
+
+        self._handleLabel = self.addLabelHandle()
+        self._arcHandles = self._createHandles()
+
+        shape = items.Shape("polygon")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        self.__shape = shape
+        self.addItem(shape)
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(ArcROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        """"Initialize the ROI using the points from the first interaction.
+
+        This interaction is constrained by the plot API and only supports few
+        shapes.
+        """
+        points = self._createControlPointsFromFirstShape(points)
+        self._setControlPoints(points)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
+
+    def _getControlPoints(self):
+        """Returns the current ROI control points.
+
+        It returns an empty tuple if there is currently no ROI.
+
+        :return: Array of (x, y) position in plot coordinates
+        :rtype: numpy.ndarray
+        """
+        return None if self._points is None else numpy.array(self._points)
 
     def _getInternalGeometry(self):
         """Returns the object storing the internal geometry of this ROI.
@@ -1395,26 +1324,11 @@ class ArcROI(_AnchorBasedROI, items.LineMixIn):
             self._geometry = self._createGeometryFromControlPoint(controlPoints)
         return self._geometry
 
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
-
-    def _getLabelPosition(self):
-        points = self._getControlPoints()
-        return points.min(axis=0)
-
-    def _updateShape(self):
-        if len(self._items) == 0:
-            return
-        shape = self._items[0]
-        points = self._getControlPoints()
-        points = self._getShapeFromControlPoints(points)
-        shape.setPoints(points)
-
-    def _controlPointAnchorPositionChanged(self, index, current, previous):
+    def handleDragUpdated(self, handle, origin, previous, current):
         controlPoints = self._getControlPoints()
         currentWeigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
 
+        index = self._arcHandles.index(handle)
         if index in [0, 2]:
             # Moving start or end will maintain the same curvature
             # Then we have to custom the curvature control point
@@ -1456,8 +1370,10 @@ class ArcROI(_AnchorBasedROI, items.LineMixIn):
             controlPoints[index] = current
             self._updateWeightControlPoint(controlPoints, currentWeigth)
             self._setControlPoints(controlPoints)
-        else:
-            super(ArcROI, self)._controlPointAnchorPositionChanged(index, current, previous)
+
+        elif index == 3:
+            controlPoints[index] = current
+            self._setControlPoints(controlPoints)
 
     def _updateWeightControlPoint(self, controlPoints, weigth):
         startPoint = controlPoints[0]
@@ -1601,7 +1517,20 @@ class ArcROI(_AnchorBasedROI, items.LineMixIn):
     def _setControlPoints(self, points):
         # Invalidate the geometry
         self._geometry = None
-        _AnchorBasedROI._setControlPoints(self, points)
+        self._points = points
+
+        for handle, pos in zip(self._arcHandles, points):
+            with utils.blockSignals(handle):
+                handle.setPosition(pos[0], pos[1])
+
+        points = self._getShapeFromControlPoints(points)
+        self.__shape.setPoints(points)
+
+        pos = numpy.min(points, axis=0)
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(pos[0], pos[1])
+
+        self.sigRegionChanged.emit()
 
     def getGeometry(self):
         """Returns a tuple containing the geometry of this ROI
@@ -1745,36 +1674,23 @@ class ArcROI(_AnchorBasedROI, items.LineMixIn):
         ])
         return controlPoints
 
-    def _createShapeItems(self, points):
-        shapePoints = self._getShapeFromControlPoints(points)
-        item = items.Shape("polygon")
-        item.setPoints(shapePoints)
-        item.setColor(rgba(self.getColor()))
-        item.setFill(False)
-        item.setOverlay(True)
-        item.setLineStyle(self.getLineStyle())
-        item.setLineWidth(self.getLineWidth())
-        return [item]
-
-    def _createAnchorItems(self, points):
-        anchors = []
+    def _createHandles(self):
+        handles = []
         symbols = ['o', 'o', 'o', 's']
 
-        for index, point in enumerate(points):
+        for index, symbol in enumerate(symbols):
             if index in [1, 3]:
                 constraint = self._arcCurvatureMarkerConstraint
             else:
                 constraint = None
-            anchor = items.Marker()
-            anchor.setPosition(*point)
-            anchor.setText('')
-            anchor.setSymbol(symbols[index])
-            anchor._setDraggable(True)
+            handle = self.addHandle()
+            handle.setText('')
+            handle.setSymbol(symbol)
             if constraint is not None:
-                anchor._setConstraint(constraint)
-            anchors.append(anchor)
+                handle._setConstraint(constraint)
+            handles.append(handle)
 
-        return anchors
+        return handles
 
     def _arcCurvatureMarkerConstraint(self, x, y):
         """Curvature marker remains on "mediatrice" """
@@ -1828,6 +1744,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMin = items.XMarker()
         self._markerMax = items.XMarker()
         self._markerCen = items.XMarker()
+        self._markerCen.setLineStyle(" ")
         self._markerMin._setConstraint(self.__positionMinConstraint)
         self._markerMax._setConstraint(self.__positionMaxConstraint)
         self._markerMin.sigDragStarted.connect(self._editingStarted)
