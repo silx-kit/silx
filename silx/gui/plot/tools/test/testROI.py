@@ -191,9 +191,9 @@ class TestRoiItems(TestCaseQt):
         vmin = 1
         vmax = 3
         item.setRange(vmin, vmax)
-        numpy.testing.assert_allclose(item.getMin(), vmin)
-        numpy.testing.assert_allclose(item.getMax(), vmax)
-        numpy.testing.assert_allclose(item.getCenter(), 2)
+        self.assertAlmostEqual(item.getMin(), vmin)
+        self.assertAlmostEqual(item.getMax(), vmax)
+        self.assertAlmostEqual(item.getCenter(), 2)
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
