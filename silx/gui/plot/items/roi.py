@@ -365,6 +365,16 @@ class RegionOfInterest(_RegionOfInterestBase):
         """
         raise NotImplementedError()
 
+    def creationStarted(self):
+        """"Called when the ROI creation interaction was started.
+        """
+        pass
+
+    def creationFinalized(self):
+        """"Called when the ROI creation interaction was finalized.
+        """
+        pass
+
     def _updateItemProperty(self, event, source, destination):
         """Update the item property of a destination from an item source.
 
@@ -1142,15 +1152,9 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         self._handleCenter = self.addTranslateHandle()
         self._handlePoints = []
         self._points = numpy.empty((0, 2))
+        self._handleClose = None
 
-        shape = items.Shape("polygon")
-        shape.setPoints([[0, 0], [0, 0]])
-        shape.setColor(rgba(self.getColor()))
-        shape.setFill(False)
-        shape.setOverlay(True)
-        shape.setLineStyle(self.getLineStyle())
-        shape.setLineWidth(self.getLineWidth())
-        shape.setColor(rgba(self.getColor()))
+        shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
 
@@ -1166,8 +1170,47 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
             self._updateItemProperty(event, self, self.__shape)
         super(PolygonROI, self)._updated(event, checkVisibility)
 
+    def __createShape(self, interaction=False):
+        kind = "polygon" if not interaction else "polylines"
+        shape = items.Shape(kind)
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        shape.setColor(rgba(self.getColor()))
+        return shape
+
     def setFirstShapePoints(self, points):
+        if self._handleClose is not None:
+            self._handleClose.setPosition(*points[0])
         self.setPoints(points)
+
+    def creationStarted(self):
+        """"Called when the ROI creation interaction was started.
+        """
+        # Handle to see where to close the polygon
+        self._handleClose = self.addUserHandle()
+        self._handleClose.setSymbol("o")
+        color = self._computeHandleColor(rgba(self.getColor()))
+        self._handleClose.setColor(color)
+
+        # In interaction replace the polygon by a line, to display something unclosed
+        self.removeItem(self.__shape)
+        self.__shape = self.__createShape(interaction=True)
+        self.__shape.setPoints(self._points)
+        self.addItem(self.__shape)
+
+    def creationFinalized(self):
+        """"Called when the ROI creation interaction was finalized.
+        """
+        self.removeHandle(self._handleClose)
+        self._handleClose = None
+        self.removeItem(self.__shape)
+        self.__shape = self.__createShape()
+        self.__shape.setPoints(self._points)
+        self.addItem(self.__shape)
 
     def _updateText(self, text):
         self._handleLabel.setText(text)

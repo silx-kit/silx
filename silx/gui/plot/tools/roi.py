@@ -307,6 +307,7 @@ class RegionOfInterestManager(qt.QObject):
 
                 if self._drawnROI is None:  # Create new ROI
                     self._drawnROI = self.createRoi(roiClass, points=points)
+                    self._drawnROI.creationStarted()
                 else:
                     self._drawnROI.setFirstShapePoints(points)
 
@@ -315,6 +316,7 @@ class RegionOfInterestManager(qt.QObject):
                         self._drawnROI.setFirstShapePoints(points[:-1])
                     roi = self._drawnROI
                     self._drawnROI = None  # Stop drawing
+                    roi.creationFinalized()
                     self.sigInteractiveRoiFinalized.emit(roi)
 
     # RegionOfInterest selection
