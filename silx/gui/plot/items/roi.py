@@ -601,6 +601,13 @@ class _HandleBasedROI(RegionOfInterest):
         self._posOrigin = None
         super(_HandleBasedROI, self)._editingFinished()
 
+    def isHandleBeenDragged(self):
+        """Returns True of one of the handles is dragging.
+
+        :rtype: bool
+        """
+        return self._posOrigin is not None
+
     def handleDragStarted(self, handle, origin):
         """Called when an handler drag started"""
         pass
@@ -1243,11 +1250,12 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
                 handle.setPosition(position[0], position[1])
 
         if len(points) > 0:
-            vmin = numpy.min(points, axis=0)
-            vmax = numpy.max(points, axis=0)
-            center = (vmax + vmin) * 0.5
-            with utils.blockSignals(self._handleCenter):
-                self._handleCenter.setPosition(center[0], center[1])
+            if not self.isHandleBeenDragged():
+                vmin = numpy.min(points, axis=0)
+                vmax = numpy.max(points, axis=0)
+                center = (vmax + vmin) * 0.5
+                with utils.blockSignals(self._handleCenter):
+                    self._handleCenter.setPosition(center[0], center[1])
 
             num = numpy.argmin(points[:, 1])
             pos = points[num]
@@ -1276,6 +1284,17 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
             num = self._handlePoints.index(handle)
             points[num] = current
             self.setPoints(points)
+
+    def handleDragFinished(self, handle, origin, current):
+        points = self._points
+        if len(points) > 0:
+            # Only update the center at the end
+            # To avoid to disturb the interaction
+            vmin = numpy.min(points, axis=0)
+            vmax = numpy.max(points, axis=0)
+            center = (vmax + vmin) * 0.5
+            with utils.blockSignals(self._handleCenter):
+                self._handleCenter.setPosition(center[0], center[1])
 
     def __str__(self):
         points = self._points
