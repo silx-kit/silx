@@ -1317,19 +1317,123 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
-    _ArcGeometry = collections.namedtuple('ArcGeometry', ['center',
-                                                          'startPoint', 'endPoint',
-                                                          'radius', 'weight',
-                                                          'startAngle', 'endAngle'])
+    class _Geometry:
+        def __init__(self):
+            self.center = None
+            self.startPoint = None
+            self.endPoint = None
+            self.radius = None
+            self.weight = None
+            self.startAngle = None
+            self.endAngle = None
+            self._closed = None
+
+        @classmethod
+        def createEmpty(cls):
+            zero = numpy.array([0, 0])
+            return cls.create(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
+
+        @classmethod
+        def createRect(cls, startPoint, endPoint, weight):
+            return cls.create(None, startPoint, endPoint, None, weight, None, None, False)
+
+        @classmethod
+        def createCircle(cls, center, startPoint, endPoint, radius,
+                   weight, startAngle, endAngle):
+            return cls.create(center, startPoint, endPoint, radius,
+                              weight, startAngle, endAngle, True)
+
+        @classmethod
+        def create(cls, center, startPoint, endPoint, radius,
+                   weight, startAngle, endAngle, closed=False):
+            g = cls()
+            g.center = center
+            g.startPoint = startPoint
+            g.endPoint = endPoint
+            g.radius = radius
+            g.weight = weight
+            g.startAngle = startAngle
+            g.endAngle = endAngle
+            g._closed = closed
+            return g
+
+        def withWeight(self, weight):
+            """Create a new geometry with another weight
+            """
+            return self.create(self.center, self.startPoint, self.endPoint,
+                               self.radius, weight,
+                               self.startAngle, self.endAngle, self._closed)
+
+        def withRadius(self, radius):
+            """Create a new geometry with another radius.
+
+            The weight and the center is conserved.
+            """
+            startPoint = self.center + (self.startPoint - self.center) / self.radius * radius
+            endPoint = self.center + (self.endPoint - self.center) / self.radius * radius
+            return self.create(self.center, startPoint, endPoint,
+                               radius, self.weight,
+                               self.startAngle, self.endAngle, self._closed)
+
+        def translated(self, x, y):
+            delta = numpy.array([x, y])
+            center = None if self.center is None else self.center + delta
+            startPoint = None if self.startPoint is None else self.startPoint + delta
+            endPoint = None if self.endPoint is None else self.endPoint + delta
+            return self.create(center, startPoint, endPoint,
+                               self.radius, self.weight,
+                               self.startAngle, self.endAngle, self._closed)
+
+        def getKind(self):
+            """Returns the kind of shape defined"""
+            if self.center is None:
+                return "rect"
+            elif numpy.isnan(self.startAngle):
+                return "point"
+            elif self.isClosed():
+                if self.weight <= 0 or self.weight * 0.5 >= self.radius:
+                    return "circle"
+                else:
+                    return "donut"
+            else:
+                if self.weight * 0.5 < self.radius:
+                    return "arc"
+                else:
+                    return "camembert"
+
+        def isClosed(self):
+            """Returns True if the geometry is a circle like"""
+            if self._closed is not None:
+                return self._closed
+            delta = numpy.abs(self.endAngle - self.startAngle)
+            self._closed = numpy.isclose(delta, numpy.pi * 2)
+            return self._closed
+
+        def __str__(self):
+            return str((self.center,
+                        self.startPoint,
+                        self.endPoint,
+                        self.radius,
+                        self.weight,
+                        self.startAngle,
+                        self.endAngle,
+                        self._closed))
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
-        self._geometry = None
-        self._points = None
-
+        self._geometry  = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
-        self._arcHandles = self._createHandles()
+
+        self._handleStart = self.addHandle()
+        self._handleStart.setSymbol("o")
+        self._handleMid = self.addHandle()
+        self._handleMid.setSymbol("o")
+        self._handleEnd = self.addHandle()
+        self._handleEnd.setSymbol("o")
+        self._handleWeight = self.addHandle()
+        self._handleWeight._setConstraint(self._arcCurvatureMarkerConstraint)
+        self._handleMove = self.addTranslateHandle()
 
         shape = items.Shape("polygon")
         shape.setPoints([[0, 0], [0, 0]])
@@ -1359,143 +1463,232 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         This interaction is constrained by the plot API and only supports few
         shapes.
         """
-        points = self._createControlPointsFromFirstShape(points)
-        self._setControlPoints(points)
+        # The first shape is a line
+        point0 = points[0]
+        point1 = points[1]
+
+        # Compute a non collinear point for the curvature
+        center = (point1 + point0) * 0.5
+        normal = point1 - center
+        normal = numpy.array((normal[1], -normal[0]))
+        defaultCurvature = numpy.pi / 5.0
+        weightCoef = 0.20
+        mid = center - normal * defaultCurvature
+        distance = numpy.linalg.norm(point0 - point1)
+        weight =  distance * weightCoef
+
+        geometry = self._createGeometryFromControlPoints(point0, mid, point1, weight)
+        self._geometry = geometry
+        self._updateHandles()
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
 
-    def _getControlPoints(self):
-        """Returns the current ROI control points.
+    def _updateMidHandle(self):
+        """Keep the same geometry, but update the location of the control
+        points.
 
-        It returns an empty tuple if there is currently no ROI.
-
-        :return: Array of (x, y) position in plot coordinates
-        :rtype: numpy.ndarray
+        So calling this function do not trigger sigRegionChanged.
         """
-        return None if self._points is None else numpy.array(self._points)
+        geometry = self._geometry
 
-    def _getInternalGeometry(self):
-        """Returns the object storing the internal geometry of this ROI.
+        if geometry.isClosed():
+            start = numpy.array(self._handleStart.getPosition())
+            geometry.endPoint = start
+            with utils.blockSignals(self._handleEnd):
+                self._handleEnd.setPosition(*start)
+            midPos = geometry.center + geometry.center - start
+        else:
+            if geometry.center is None:
+                midPos = geometry.startPoint * 0.66 + geometry.endPoint * 0.34
+            else:
+                midAngle = geometry.startAngle * 0.66 + geometry.endAngle * 0.34
+                vector = numpy.array([numpy.cos(midAngle), numpy.sin(midAngle)])
+                midPos = geometry.center + geometry.radius * vector
 
-        This geometry is derived from the control points and cached for
-        efficiency. Calling :meth:`_setControlPoints` invalidate the cache.
+        with utils.blockSignals(self._handleMid):
+            self._handleMid.setPosition(*midPos)
+
+    def _updateWeightHandle(self):
+        geometry = self._geometry
+        if geometry.center is None:
+            # rectangle
+            center = (geometry.startPoint + geometry.endPoint) * 0.5
+            normal = geometry.endPoint - geometry.startPoint
+            normal = numpy.array((normal[1], -normal[0]))
+            distance = numpy.linalg.norm(normal)
+            if distance != 0:
+                normal = normal / distance
+            weightPos = center + normal * geometry.weight * 0.5
+        else:
+            if geometry.isClosed():
+                midAngle = geometry.startAngle + numpy.pi * 0.5
+            elif geometry.center is not None:
+                midAngle = (geometry.startAngle + geometry.endAngle) * 0.5
+            vector = numpy.array([numpy.cos(midAngle), numpy.sin(midAngle)])
+            weightPos = geometry.center + (geometry.radius + geometry.weight * 0.5) * vector
+
+        with utils.blockSignals(self._handleWeight):
+            self._handleWeight.setPosition(*weightPos)
+
+    def _getWeightFromHandle(self, weightPos):
+        geometry = self._geometry
+        if geometry.center is None:
+            # rectangle
+            center = (geometry.startPoint + geometry.endPoint) * 0.5
+            return numpy.linalg.norm(center - weightPos) * 2
+        else:
+            distance = numpy.linalg.norm(geometry.center - weightPos)
+            return abs(distance - geometry.radius) * 2
+
+    def _updateHandles(self):
+        geometry = self._geometry
+        with utils.blockSignals(self._handleStart):
+            self._handleStart.setPosition(*geometry.startPoint)
+        with utils.blockSignals(self._handleEnd):
+            self._handleEnd.setPosition(*geometry.endPoint)
+
+        self._updateMidHandle()
+        self._updateWeightHandle()
+
+        self._updateShape()
+
+    def _updateCurvature(self, start, mid, end, updateCurveHandles, checkClosed=False):
+        """Update the curvature using 3 control points in the curve
+
+        :param bool updateCurveHandles: If False curve handles are already at
+            the right location
         """
-        if self._geometry is None:
-            controlPoints = self._getControlPoints()
-            self._geometry = self._createGeometryFromControlPoint(controlPoints)
-        return self._geometry
+        if updateCurveHandles:
+            with utils.blockSignals(self._handleStart):
+                self._handleStart.setPosition(*start)
+            with utils.blockSignals(self._handleMid):
+                self._handleMid.setPosition(*mid)
+            with utils.blockSignals(self._handleEnd):
+                self._handleEnd.setPosition(*end)
+
+        if checkClosed:
+            closed = self._isCloseInPixel(start, end)
+        else:
+            closed = self._geometry.isClosed()
+
+        weight = self._geometry.weight
+        geometry = self._createGeometryFromControlPoints(start, mid, end, weight, closed=closed)
+        self._geometry = geometry
+
+        self._updateWeightHandle()
+        self._updateShape()
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        controlPoints = self._getControlPoints()
-        currentWeigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
-
-        index = self._arcHandles.index(handle)
-        if index in [0, 2]:
-            # Moving start or end will maintain the same curvature
-            # Then we have to custom the curvature control point
-            startPoint = controlPoints[0]
-            endPoint = controlPoints[2]
-            center = (startPoint + endPoint) * 0.5
-            normal = (endPoint - startPoint)
-            normal = numpy.array((normal[1], -normal[0]))
-            distance = numpy.linalg.norm(normal)
-            # Compute the coeficient which have to be constrained
-            if distance != 0:
-                normal /= distance
-                midVector = controlPoints[1] - center
-                constainedCoef = numpy.dot(midVector, normal) / distance
+        if handle is self._handleStart:
+            mid = numpy.array(self._handleMid.getPosition())
+            end = numpy.array(self._handleEnd.getPosition())
+            self._updateCurvature(current, mid, end,
+                                  checkClosed=True, updateCurveHandles=False)
+        elif handle is self._handleMid:
+            if self._geometry.isClosed():
+                radius = numpy.linalg.norm(self._geometry.center - current)
+                self._geometry = self._geometry.withRadius(radius)
+                self._updateHandles()
             else:
-                constainedCoef = 1.0
+                start = numpy.array(self._handleStart.getPosition())
+                end = numpy.array(self._handleEnd.getPosition())
+                self._updateCurvature(start, current, end, updateCurveHandles=False)
+        elif handle is self._handleEnd:
+            start = numpy.array(self._handleStart.getPosition())
+            mid = numpy.array(self._handleMid.getPosition())
+            self._updateCurvature(start, mid, current,
+                                  checkClosed=True, updateCurveHandles=False)
+        elif handle is self._handleWeight:
+            weight = self._getWeightFromHandle(current)
+            self._geometry = self._geometry.withWeight(weight)
+            self._updateShape()
+        elif handle is self._handleMove:
+            delta = current - previous
+            self.translate(*delta)
 
-            # Compute the location of the curvature point
-            controlPoints[index] = current
-            startPoint = controlPoints[0]
-            endPoint = controlPoints[2]
-            center = (startPoint + endPoint) * 0.5
-            normal = (endPoint - startPoint)
-            normal = numpy.array((normal[1], -normal[0]))
-            distance = numpy.linalg.norm(normal)
-            if distance != 0:
-                # BTW we dont need to divide by the distance here
-                # Cause we compute normal * distance after all
-                normal /= distance
-            midPoint = center + normal * constainedCoef * distance
-            controlPoints[1] = midPoint
+    def _isCloseInPixel(self, point1, point2):
+        manager = self.parent()
+        if manager is None:
+            return False
+        plot = manager.parent()
+        if plot is None:
+            return False
+        point1 = plot.dataToPixel(*point1)
+        if point1 is None:
+            return False
+        point2 = plot.dataToPixel(*point2)
+        if point2 is None:
+            return False
+        return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1]) < 15
 
-            # The weight have to be fixed
-            self._updateWeightControlPoint(controlPoints, currentWeigth)
-            self._setControlPoints(controlPoints)
+    def _normalizeGeometry(self):
+        """Keep the same phisical geometry, but with normalized parameters.
+        """
+        geometry = self._geometry
+        if geometry.weight * 0.5 >= geometry.radius:
+            radius = (geometry.weight * 0.5 + geometry.radius) * 0.5
+            geometry = geometry.withRadius(radius)
+            geometry = geometry.withWeight(radius * 2)
+            self._geometry = geometry
+            return True
+        return False
 
-        elif index == 1:
-            # The weight have to be fixed
-            controlPoints[index] = current
-            self._updateWeightControlPoint(controlPoints, currentWeigth)
-            self._setControlPoints(controlPoints)
+    def handleDragFinished(self, handle, origin, current):
+        if handle in [self._handleStart, self._handleMid, self._handleEnd]:
+            if self._normalizeGeometry():
+                self._updateHandles()
+            else:
+                self._updateMidHandle()
+        if self._geometry.isClosed():
+            self._handleStart.setSymbol("x")
+            self._handleEnd.setSymbol("x")
+        else:
+            self._handleStart.setSymbol("o")
+            self._handleEnd.setSymbol("o")
 
-        elif index == 3:
-            controlPoints[index] = current
-            self._setControlPoints(controlPoints)
-
-    def _updateWeightControlPoint(self, controlPoints, weigth):
-        startPoint = controlPoints[0]
-        midPoint = controlPoints[1]
-        endPoint = controlPoints[2]
-        normal = (endPoint - startPoint)
-        normal = numpy.array((normal[1], -normal[0]))
-        distance = numpy.linalg.norm(normal)
-        if distance != 0:
-            normal /= distance
-        controlPoints[3] = midPoint + normal * weigth * 0.5
-
-    def _createGeometryFromControlPoint(self, controlPoints):
+    def _createGeometryFromControlPoints(self, start, mid, end, weight, closed=None):
         """Returns the geometry of the object"""
-        weigth = numpy.linalg.norm(controlPoints[3] - controlPoints[1]) * 2
-        if numpy.allclose(controlPoints[0], controlPoints[2]):
+        if closed or (closed is None and numpy.allclose(start, end)):
             # Special arc: It's a closed circle
-            center = (controlPoints[0] + controlPoints[1]) * 0.5
-            radius = numpy.linalg.norm(controlPoints[0] - center)
-            v = controlPoints[0] - center
+            center = (start + mid) * 0.5
+            radius = numpy.linalg.norm(start - center)
+            v = start - center
             startAngle = numpy.angle(complex(v[0], v[1]))
             endAngle = startAngle + numpy.pi * 2.0
-            return self._ArcGeometry(center, controlPoints[0], controlPoints[2],
-                                     radius, weigth, startAngle, endAngle)
+            return self._Geometry.createCircle(center, start, end, radius,
+                                               weight, startAngle, endAngle)
 
-        elif numpy.linalg.norm(
-            numpy.cross(controlPoints[1] - controlPoints[0],
-                        controlPoints[2] - controlPoints[0])) < 1e-5:
+        elif numpy.linalg.norm(numpy.cross(mid - start, end - start)) < 1e-5:
             # Degenerated arc, it's a rectangle
-            return self._ArcGeometry(None, controlPoints[0], controlPoints[2],
-                                     None, weigth, None, None)
+            return self._Geometry.createRect(start, end, weight)
         else:
-            center, radius = self._circleEquation(*controlPoints[:3])
-            v = controlPoints[0] - center
+            center, radius = self._circleEquation(start, mid, end)
+            v = start - center
             startAngle = numpy.angle(complex(v[0], v[1]))
-            v = controlPoints[1] - center
+            v = mid - center
             midAngle = numpy.angle(complex(v[0], v[1]))
-            v = controlPoints[2] - center
+            v = end - center
             endAngle = numpy.angle(complex(v[0], v[1]))
+
             # Is it clockwise or anticlockwise
-            if (midAngle - startAngle + 2 * numpy.pi) % (2 * numpy.pi) <= numpy.pi:
+            relativeMid = (endAngle - midAngle + 2 * numpy.pi) % (2 * numpy.pi)
+            relativeEnd = (endAngle - startAngle + 2 * numpy.pi) % (2 * numpy.pi)
+            if relativeMid < relativeEnd:
                 if endAngle < startAngle:
                     endAngle += 2 * numpy.pi
             else:
                 if endAngle > startAngle:
                     endAngle -= 2 * numpy.pi
 
-            return self._ArcGeometry(center, controlPoints[0], controlPoints[2],
-                                     radius, weigth, startAngle, endAngle)
+            return self._Geometry.create(center, start, end,
+                                         radius, weight, startAngle, endAngle)
 
-    def _isCircle(self, geometry):
-        """Returns True if the geometry is a closed circle"""
-        delta = numpy.abs(geometry.endAngle - geometry.startAngle)
-        return numpy.isclose(delta, numpy.pi * 2)
-
-    def _getShapeFromControlPoints(self, controlPoints):
-        geometry = self._createGeometryFromControlPoint(controlPoints)
-        if geometry.center is None:
+    def _createShapeFromGeometry(self, geometry):
+        kind = geometry.getKind()
+        if kind == "rect":
             # It is not an arc
-            # but we can display it as an the intermediat shape
+            # but we can display it as an intermediate shape
             normal = (geometry.endPoint - geometry.startPoint)
             normal = numpy.array((normal[1], -normal[0]))
             distance = numpy.linalg.norm(normal)
@@ -1506,14 +1699,39 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                 geometry.endPoint + normal * geometry.weight * 0.5,
                 geometry.endPoint - normal * geometry.weight * 0.5,
                 geometry.startPoint - normal * geometry.weight * 0.5])
+        elif kind == "point":
+            # It is not an arc
+            # but we can display it as an intermediate shape
+            # NOTE: At least 2 points are expected
+            points = numpy.array([geometry.startPoint, geometry.startPoint])
+        elif kind == "circle":
+            outerRadius = geometry.radius + geometry.weight * 0.5
+            angles = numpy.arange(0, 2 * numpy.pi, 0.1)
+            # It's a circle
+            points = []
+            numpy.append(angles, angles[-1])
+            for angle in angles:
+                direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                points.append(geometry.center + direction * outerRadius)
+            points = numpy.array(points)
+        elif kind == "donut":
+            innerRadius = geometry.radius - geometry.weight * 0.5
+            outerRadius = geometry.radius + geometry.weight * 0.5
+            angles = numpy.arange(0, 2 * numpy.pi, 0.1)
+            # It's a donut
+            points = []
+            # NOTE: NaN value allow to create 2 separated circle shapes
+            # using a single plot item. It's a kind of cheat
+            points.append(numpy.array([float("nan"), float("nan")]))
+            for angle in angles:
+                direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                points.insert(0, geometry.center + direction * innerRadius)
+                points.append(geometry.center + direction * outerRadius)
+            points.append(numpy.array([float("nan"), float("nan")]))
+            points = numpy.array(points)
         else:
             innerRadius = geometry.radius - geometry.weight * 0.5
             outerRadius = geometry.radius + geometry.weight * 0.5
-
-            if numpy.isnan(geometry.startAngle):
-                # Degenerated, it's a point
-                # At least 2 points are expected
-                return numpy.array([geometry.startPoint, geometry.startPoint])
 
             delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
             if geometry.startAngle == geometry.endAngle:
@@ -1529,68 +1747,56 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
             if angles[-1] != geometry.endAngle:
                 angles = numpy.append(angles, geometry.endAngle)
 
-            isCircle = self._isCircle(geometry)
-
-            if isCircle:
-                if innerRadius <= 0:
-                    # It's a circle
-                    points = []
-                    numpy.append(angles, angles[-1])
-                    for angle in angles:
-                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                        points.append(geometry.center + direction * outerRadius)
-                else:
-                    # It's a donut
-                    points = []
-                    # NOTE: NaN value allow to create 2 separated circle shapes
-                    # using a single plot item. It's a kind of cheat
-                    points.append(numpy.array([float("nan"), float("nan")]))
-                    for angle in angles:
-                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                        points.insert(0, geometry.center + direction * innerRadius)
-                        points.append(geometry.center + direction * outerRadius)
-                    points.append(numpy.array([float("nan"), float("nan")]))
+            if kind ==  "camembert":
+                # It's a part of camembert
+                points = []
+                points.append(geometry.center)
+                points.append(geometry.startPoint)
+                delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+                for angle in angles:
+                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                    points.append(geometry.center + direction * outerRadius)
+                points.append(geometry.endPoint)
+                points.append(geometry.center)
+            elif kind == "arc":
+                # It's a part of donut
+                points = []
+                points.append(geometry.startPoint)
+                for angle in angles:
+                    direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
+                    points.insert(0, geometry.center + direction * innerRadius)
+                    points.append(geometry.center + direction * outerRadius)
+                points.insert(0, geometry.endPoint)
+                points.append(geometry.endPoint)
             else:
-                if innerRadius <= 0:
-                    # It's a part of camembert
-                    points = []
-                    points.append(geometry.center)
-                    points.append(geometry.startPoint)
-                    delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
-                    for angle in angles:
-                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                        points.append(geometry.center + direction * outerRadius)
-                    points.append(geometry.endPoint)
-                    points.append(geometry.center)
-                else:
-                    # It's a part of donut
-                    points = []
-                    points.append(geometry.startPoint)
-                    for angle in angles:
-                        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-                        points.insert(0, geometry.center + direction * innerRadius)
-                        points.append(geometry.center + direction * outerRadius)
-                    points.insert(0, geometry.endPoint)
-                    points.append(geometry.endPoint)
+                assert False
+
             points = numpy.array(points)
 
         return points
 
-    def _setControlPoints(self, points):
-        # Invalidate the geometry
-        self._geometry = None
-        self._points = points
-
-        for handle, pos in zip(self._arcHandles, points):
-            with utils.blockSignals(handle):
-                handle.setPosition(pos[0], pos[1])
-
-        points = self._getShapeFromControlPoints(points)
+    def _updateShape(self):
+        geometry = self._geometry
+        points = self._createShapeFromGeometry(geometry)
         self.__shape.setPoints(points)
 
-        pos = numpy.min(points, axis=0)
+        index = numpy.nanargmin(points[:, 1])
+        pos = points[index]
         with utils.blockSignals(self._handleLabel):
             self._handleLabel.setPosition(pos[0], pos[1])
+
+        if geometry.center is None:
+            movePos = geometry.startPoint * 0.34 + geometry.endPoint * 0.66
+        elif (geometry.isClosed()
+              or abs(geometry.endAngle - geometry.startAngle) > numpy.pi * 0.7):
+            movePos = geometry.center
+        else:
+            moveAngle = geometry.startAngle * 0.34 + geometry.endAngle * 0.66
+            vector = numpy.array([numpy.cos(moveAngle), numpy.sin(moveAngle)])
+            movePos = geometry.center + geometry.radius * vector
+
+        with utils.blockSignals(self._handleMove):
+            self._handleMove.setPosition(*movePos)
 
         self.sigRegionChanged.emit()
 
@@ -1606,7 +1812,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         :raise ValueError: In case the ROI can't be represented as section of
             a circle
         """
-        geometry = self._getInternalGeometry()
+        geometry = self._geometry
         if geometry.center is None:
             raise ValueError("This ROI can't be represented as a section of circle")
         return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
@@ -1616,8 +1822,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: bool
         """
-        geometry = self._getInternalGeometry()
-        return self._isCircle(geometry)
+        return self._geometry.isClosed()
 
     def getCenter(self):
         """Returns the center of the circle used to draw arcs of this ROI.
@@ -1626,8 +1831,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: numpy.ndarray
         """
-        geometry = self._getInternalGeometry()
-        return geometry.center
+        return self._geometry.center
 
     def getStartAngle(self):
         """Returns the angle of the start of the section of this ROI (in radian).
@@ -1637,8 +1841,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        geometry = self._getInternalGeometry()
-        return geometry.startAngle
+        return self._geometry.startAngle
 
     def getEndAngle(self):
         """Returns the angle of the end of the section of this ROI (in radian).
@@ -1648,15 +1851,14 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        geometry = self._getInternalGeometry()
-        return geometry.endAngle
+        return self._geometry.endAngle
 
     def getInnerRadius(self):
         """Returns the radius of the smaller arc used to draw this ROI.
 
         :rtype: float
         """
-        geometry = self._getInternalGeometry()
+        geometry = self._geometry
         radius = geometry.radius - geometry.weight * 0.5
         if radius < 0:
             radius = 0
@@ -1667,7 +1869,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        geometry = self._getInternalGeometry()
+        geometry = self._geometry
         radius = geometry.radius + geometry.weight * 0.5
         return radius
 
@@ -1689,83 +1891,44 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         center = numpy.array(center)
         radius = (innerRadius + outerRadius) * 0.5
         weight = outerRadius - innerRadius
-        geometry = self._ArcGeometry(center, None, None, radius, weight, startAngle, endAngle)
-        controlPoints = self._createControlPointsFromGeometry(geometry)
-        self._setControlPoints(controlPoints)
 
-    def _createControlPointsFromGeometry(self, geometry):
-        if geometry.startPoint or geometry.endPoint:
-            # Duplication with the angles
-            raise NotImplementedError("This general case is not implemented")
+        vector = numpy.array([numpy.cos(startAngle), numpy.sin(startAngle)])
+        startPoint = center + vector * radius
+        vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
+        endPoint = center + vector * radius
 
-        angle = geometry.startAngle
-        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-        startPoint = geometry.center + direction * geometry.radius
+        geometry = self._Geometry.create(center, startPoint, endPoint,
+                                         radius, weight,
+                                         startAngle, endAngle, closed=None)
+        self._geometry = geometry
+        self._updateHandles()
 
-        angle = geometry.endAngle
-        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-        endPoint = geometry.center + direction * geometry.radius
-
-        angle = (geometry.startAngle + geometry.endAngle) * 0.5
-        direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
-        curvaturePoint = geometry.center + direction * geometry.radius
-        weightPoint = curvaturePoint + direction * geometry.weight * 0.5
-
-        return numpy.array([startPoint, curvaturePoint, endPoint, weightPoint])
-
-    def _createControlPointsFromFirstShape(self, points):
-        # The first shape is a line
-        point0 = points[0]
-        point1 = points[1]
-
-        # Compute a non colineate point for the curvature
-        center = (point1 + point0) * 0.5
-        normal = point1 - center
-        normal = numpy.array((normal[1], -normal[0]))
-        defaultCurvature = numpy.pi / 5.0
-        defaultWeight = 0.20  # percentage
-        curvaturePoint = center - normal * defaultCurvature
-        weightPoint = center - normal * defaultCurvature * (1.0 + defaultWeight)
-
-        # 3 corners
-        controlPoints = numpy.array([
-            point0,
-            curvaturePoint,
-            point1,
-            weightPoint
-        ])
-        return controlPoints
-
-    def _createHandles(self):
-        handles = []
-        symbols = ['o', 'o', 'o', 's']
-
-        for index, symbol in enumerate(symbols):
-            if index in [1, 3]:
-                constraint = self._arcCurvatureMarkerConstraint
-            else:
-                constraint = None
-            handle = self.addHandle()
-            handle.setText('')
-            handle.setSymbol(symbol)
-            if constraint is not None:
-                handle._setConstraint(constraint)
-            handles.append(handle)
-
-        return handles
+    def translate(self, x, y):
+        self._geometry = self._geometry.translated(x, y)
+        self._updateHandles()
 
     def _arcCurvatureMarkerConstraint(self, x, y):
-        """Curvature marker remains on "mediatrice" """
-        start = self._points[0]
-        end = self._points[2]
-        midPoint = (start + end) / 2.
-        normal = (end - start)
-        normal = numpy.array((normal[1], -normal[0]))
-        distance = numpy.linalg.norm(normal)
-        if distance != 0:
-            normal /= distance
-        v = numpy.dot(normal, (numpy.array((x, y)) - midPoint))
-        x, y = midPoint + v * normal
+        """Curvature marker remains on perpendicular bisector"""
+        geometry = self._geometry
+        if geometry.center is None:
+            center = (geometry.startPoint + geometry.endPoint) * 0.5
+            vector = geometry.startPoint - geometry.endPoint
+            vector = numpy.array((vector[1], -vector[0]))
+            vdist = numpy.linalg.norm(vector)
+            if vdist != 0:
+                normal = numpy.array((vector[1], -vector[0])) / vdist
+            else:
+                normal = numpy.array((0, 0))
+        else:
+            if geometry.isClosed():
+                midAngle = geometry.startAngle + numpy.pi * 0.5
+            else:
+                midAngle = (geometry.startAngle + geometry.endAngle) * 0.5
+            normal = numpy.array([numpy.cos(midAngle), numpy.sin(midAngle)])
+            center = geometry.center
+        dist = numpy.dot(normal, (numpy.array((x, y)) - center))
+        dist = numpy.clip(dist, geometry.radius, geometry.radius * 2)
+        x, y = center + dist * normal
         return x, y
 
     @staticmethod
@@ -1779,7 +1942,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         w = z - x
         w /= y - x
         c = (x - y) * (w - abs(w) ** 2) / 2j / w.imag - x
-        return ((-c.real, -c.imag), abs(c + x))
+        return numpy.array((-c.real, -c.imag)), abs(c + x)
 
     def __str__(self):
         try:
