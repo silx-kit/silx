@@ -50,6 +50,27 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
                               scale, lineWidth, method)
 
 
+class _CustomProfileManager(manager.ProfileManager):
+    """This custom profile manager uses a single predefined profile window
+    if it is specified. Else the behavior is the same as the default
+    ProfileManager """
+
+    def setProfileWindow(self, profileWindow):
+        self.__profileWindow = profileWindow
+
+    def createProfileWindow(self, plot, roi):
+        if self.__profileWindow is not None:
+            return self.__profileWindow
+        else:
+            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+
+    def clearProfileWindow(self, profileWindow):
+        if self.__profileWindow is not None:
+            self.__profileWindow.setProfile(None)
+        else:
+            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
+
+
 class ProfileToolBar(qt.QToolBar):
     """QToolBar providing profile tools operating on a :class:`PlotWindow`.
 
@@ -90,7 +111,11 @@ class ProfileToolBar(qt.QToolBar):
                                skip_backtrace_count=1)
 
         self._plotRef = weakref.ref(plot)
-        self._manager = manager.ProfileManager(self, plot)
+
+        # If a profileWindow is defined,
+        # It will be used to display all the profiles
+        self._manager = _CustomProfileManager(self, plot)
+        self._manager.setProfileWindow(profileWindow)
         self._manager.setDefaultColorFromCursorColor(True)
         self._manager.setItemType(image=True)
         self._manager.setActiveItemTracking(True)
