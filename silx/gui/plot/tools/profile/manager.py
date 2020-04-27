@@ -614,7 +614,7 @@ class ProfileManager(qt.QObject):
         if window is not None:
             geometry = window.geometry()
             self._previousWindowGeometry.append(geometry)
-            window.deleteLater()
+            self.clearProfileWindow(window)
         if profileRoi in self._rois:
             self._rois.remove(profileRoi)
 
@@ -696,8 +696,8 @@ class ProfileManager(qt.QObject):
         self._computedProfiles = self._computedProfiles + 1
         window = roi.getProfileWindow()
         if window is None:
-            # FIXME: reach geometry from the previous closed window
-            window = self.createProfileWindow(roi)
+            plot = self.getPlotWidget()
+            window = self.createProfileWindow(plot, roi)
             self.initProfileWindow(window, roi)
             window.show()
             roi.setProfileWindow(window)
@@ -817,13 +817,13 @@ class ProfileManager(qt.QObject):
         """
         return self._roiManagerRef()
 
-    def createProfileWindow(self, roi):
+    def createProfileWindow(self, plot, roi):
         """Create a new profile window.
 
+        :param ~core.ProfileRoiMixIn roi: The plot containing the raw data
         :param ~core.ProfileRoiMixIn roi: A managed ROI
         :rtype: ~ProfileWindow
         """
-        plot = self.getPlotWidget()
         return ProfileWindow(plot)
 
     def initProfileWindow(self, profileWindow, roi):
@@ -862,3 +862,11 @@ class ProfileManager(qt.QObject):
             # Place profile on the left
             left = max(0, winGeom.left() - profileWindowWidth)
             profileWindow.move(left, winGeom.top())
+
+    def clearProfileWindow(self, profileWindow):
+        """Called when a profile window is not anymore needed.
+
+        By default the window will be closed. But it can be
+        inherited to change this behavior.
+        """
+        profileWindow.deleteLater()
