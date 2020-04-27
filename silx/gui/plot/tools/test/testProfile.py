@@ -36,7 +36,6 @@ from silx.gui import qt
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, Plot1D, Plot2D, Profile
 from silx.gui.plot.StackView import StackView
 from silx.gui.plot.tools.profile import rois
@@ -337,11 +336,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                 for action in (self.toolBar.hLineAction, self.toolBar.vLineAction):
                     with self.subTest(mode=action.text()):
                         # Trigger tool button for mode
-                        toolButton = getQToolButtonFromAction(action)
-                        self.assertIsNot(toolButton, None)
-                        self.mouseMove(toolButton)
-                        self.mouseClick(toolButton, qt.Qt.LeftButton)
-
+                        action.trigger()
                         # Without image
                         self.mouseMove(widget, pos=pos1)
                         self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
@@ -380,11 +375,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                                 numpy.arange(100 * 100).reshape(100, -1))
 
                         # Trigger tool button for diagonal profile mode
-                        toolButton = getQToolButtonFromAction(
-                            self.toolBar.lineAction)
-                        self.assertIsNot(toolButton, None)
-                        self.mouseMove(toolButton)
-                        self.mouseClick(toolButton, qt.Qt.LeftButton)
+                        self.toolBar.lineAction.trigger()
 
                         # draw profile line
                         self.mouseMove(widget, pos=pos1)
@@ -393,7 +384,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
                         manager = self.toolBar.getProfileManager()
-                        roi = manager.getSelectedRoi()
+                        roi = manager.getCurrentRoi()
                         roi.setProfileLineWidth(3)
                         roi.setProfileMethod(method)
 
@@ -438,10 +429,7 @@ class TestProfile3DToolBar(TestCaseQt):
 
         toolBar = self.plot.getProfileToolbar()
 
-        toolButton = getQToolButtonFromAction(toolBar.vLineAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseMove(toolButton)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        toolBar.vLineAction.trigger()
         plot2D = self.plot.getPlotWidget().getWidgetHandle()
         pos1 = plot2D.width() * 0.5, plot2D.height() * 0.5
         self.mouseClick(plot2D, qt.Qt.LeftButton, pos=pos1)
@@ -468,10 +456,7 @@ class TestProfile3DToolBar(TestCaseQt):
         """
         toolBar = self.plot.getProfileToolbar()
 
-        toolButton = getQToolButtonFromAction(toolBar.lineAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseMove(toolButton)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
+        toolBar.lineAction.trigger()
         plot2D = self.plot.getPlotWidget().getWidgetHandle()
         pos1 = plot2D.width() * 0.5, plot2D.height() * 0.2
         pos2 = plot2D.width() * 0.5, plot2D.height() * 0.8
