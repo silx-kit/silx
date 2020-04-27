@@ -37,6 +37,8 @@ from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from silx.gui.plot.Profile import createProfile
 from . import core
+from silx.gui import utils
+
 
 
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
@@ -257,23 +259,68 @@ class ProfileImageLineROI(roi_items.LineROI,
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class _ProfileCrossROI(roi_items.PointROI, core.ProfileRoiMixIn):
+class _ProfileCrossROI(roi_items._HandleBasedROI, core.ProfileRoiMixIn):
     """ROI to manage a cross of profiles
 
     It is managed using 2 sub ROIs for vertical and horizontal.
     """
 
+    _kind = "Cross"
+    """Label for this kind of ROI"""
+
+    _plotShape = "point"
+    """Plot shape which is used for the first interaction"""
+
     def __init__(self, parent=None):
-        roi_items.PointROI.__init__(self, parent=parent)
+        roi_items._HandleBasedROI.__init__(self, parent=parent)
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.sigRegionChanged.connect(self.__regionChanged)
         self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
-        self._marker.setSymbol("s")
+        self.__handle = self.addHandle()
+        self.__handleLabel = self.addLabelHandle()
+        self.__handleLabel.setText(self.getName())
         self.__vline = None
         self.__hline = None
-        self.__vlineName = None
-        self.__hlineName = None
         self.computeProfile = None
+        self.sigItemChanged.connect(self.__updateLineProperty)
+
+    def setFirstShapePoints(self, points):
+        pos = points[0]
+        self.setPosition(pos)
+
+    def getPosition(self):
+        """Returns the position of this ROI
+
+        :rtype: numpy.ndarray
+        """
+        return self.__handle.getPosition()
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param numpy.ndarray pos: 2d-coordinate of this point
+        """
+        with utils.blockSignals(self.__handle):
+            self.__handle.setPosition(*pos)
+        with utils.blockSignals(self.__handleLabel):
+            self.__handleLabel.setPosition(*pos)
+        self.sigRegionChanged.emit()
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self.__handle:
+            self.setPosition(current)
+
+    def __updateLineProperty(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.NAME:
+            self.__handleLabel.setText(self.getName())
+        elif event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE]:
+            lines = []
+            if self.__vline:
+                lines.append(self.__vline)
+            if self.__hline:
+                lines.append(self.__hline)
+            self._updateItemProperty(event, self, lines)
 
     def _createLines(self, parent):
         """Inherit this function to return 2 ROI objects for respectivly
