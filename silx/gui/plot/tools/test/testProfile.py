@@ -33,6 +33,8 @@ import numpy
 import logging
 
 from silx.gui import qt
+from silx.utils import deprecation
+from silx.utils import testutils
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
@@ -47,8 +49,6 @@ from silx.gui import plot as silx_plot
 _logger = logging.getLogger(__name__)
 
 
-
-
 class TestRois(TestCaseQt):
 
     def test_init(self):
@@ -56,6 +56,7 @@ class TestRois(TestCaseQt):
         roi = rois.ProfileImageVerticalLineROI()
         if qt.BINDING not in ["PySide", "PySide2"]:
             self.assertEqual(roi.receivers(roi.sigRegionChanged), 1)
+
 
 class TestInteractions(TestCaseQt):
 
@@ -300,16 +301,12 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
     def setUp(self):
         super(TestProfileToolBar, self).setUp()
-        profileWindow = PlotWindow()
         self.plot = PlotWindow()
-        self.toolBar = Profile.ProfileToolBar(
-            plot=self.plot, profileWindow=profileWindow)
+        self.toolBar = Profile.ProfileToolBar(plot=self.plot)
         self.plot.addToolBar(self.toolBar)
 
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
-        profileWindow.show()
-        self.qWaitForWindowExposed(profileWindow)
 
         self.mouseMove(self.plot)  # Move to center
         self.qapp.processEvents()
@@ -399,6 +396,45 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                                 self.assertTrue(profileCurve.getData()[1].max() > 10000)
                             elif method == 'mean':
                                 self.assertTrue(profileCurve.getData()[1].max() < 10000)
+
+
+class TestDeprecatedProfileToolBar(TestCaseQt):
+    """Tests old features of the ProfileToolBar widget."""
+
+    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    def testCustomProfileWindow(self):
+        from silx.gui.plot import ProfileMainWindow
+        profileWindow = ProfileMainWindow.ProfileMainWindow()
+
+        plot = PlotWindow()
+        toolBar = Profile.ProfileToolBar(plot=plot,
+                                         profileWindow=profileWindow)
+
+        plot.show()
+        self.qWaitForWindowExposed(plot)
+        profileWindow.show()
+        self.qWaitForWindowExposed(profileWindow)
+        self.qapp.processEvents()
+
+        plot.addImage(numpy.arange(10 * 10).reshape(10, -1))
+        profile = rois.ProfileImageHorizontalLineROI()
+        profile.setPosition(5)
+        toolBar.getProfileManager().getRoiManager().addRoi(profile)
+        toolBar.getProfileManager().getRoiManager().setCurrentRoi(profile)
+
+        for _ in range(20):
+            self.qWait(200)
+            if not toolBar.getProfileManager().hasPendingOperations():
+                break
+
+        # There is a displayed profile
+        self.assertIsNotNone(profileWindow.getProfile())
+        self.assertIs(toolBar.getProfileMainWindow(), profileWindow)
+
+        # There is nothing anymore but the window is still there
+        toolBar.getProfileManager().clearProfile()
+        self.qapp.processEvents()
+        self.assertIsNone(profileWindow.getProfile())
 
 
 class TestProfile3DToolBar(TestCaseQt):
@@ -567,6 +603,7 @@ def suite():
     test_suite.addTest(loadTests(TestProfileToolBar))
     test_suite.addTest(loadTests(TestGetProfilePlot))
     test_suite.addTest(loadTests(TestProfile3DToolBar))
+    test_suite.addTest(loadTests(TestDeprecatedProfileToolBar))
     return test_suite
 
 
