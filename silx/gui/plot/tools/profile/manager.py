@@ -140,6 +140,18 @@ class ProfileWindow(qt.QMainWindow):
         self._layout.setContentsMargins(0, 0, 0, 0)
         self.setCentralWidget(widget)
 
+    def prepareWidget(self, roi):
+        """Called before the show to prepare the window to use with
+        a specific ROI."""
+        if isinstance(roi, rois._DefaultImageStackProfileRoiMixIn):
+            profileType = roi.getProfileType()
+        else:
+            profileType = "1D"
+        if profileType == "1D":
+            self._getPlot1D()
+        elif profileType == "2D":
+            self._getPlot2D()
+
     def _getPlot1D(self, init=True):
         if not init:
             return self._plot1D
@@ -686,7 +698,7 @@ class ProfileManager(qt.QObject):
         if window is None:
             # FIXME: reach geometry from the previous closed window
             window = self.createProfileWindow(roi)
-            self.initProfileWindow(window)
+            self.initProfileWindow(window, roi)
             window.show()
             roi.setProfileWindow(window)
         window.setProfile(profileData)
@@ -814,13 +826,17 @@ class ProfileManager(qt.QObject):
         plot = self.getPlotWidget()
         return ProfileWindow(plot)
 
-    def initProfileWindow(self, profileWindow):
+    def initProfileWindow(self, profileWindow, roi):
         """This function is called just after the profile window creation in
         order to initialize the window location.
 
         :param ~ProfileWindow profileWindow:
             The profile window to initialize.
         """
+        # Enforce the use of one of the widgets
+        # To have the correct window size
+        profileWindow.prepareWidget(roi)
+        profileWindow.adjustSize()
         profileWindow.show()
         profileWindow.raise_()
 
