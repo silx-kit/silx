@@ -431,11 +431,17 @@ class RegionOfInterest(_RegionOfInterestBase):
         self.sigEditingFinished.emit()
 
 
-class _HandleBasedROI(RegionOfInterest):
+class _Foo:
+    """This inheritance is needed to avoid wrong __init__ order in Qt"""
+    pass
+
+
+class _HandleBasedROI(RegionOfInterest, _Foo):
     """Manage a ROI based on a set of handles"""
 
     def __init__(self, parent=None):
         RegionOfInterest.__init__(self, parent=parent)
+        _Foo.__init__(self)
         self._handles = []
         self._posOrigin = None
         self._posPrevious = None
