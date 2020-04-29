@@ -380,7 +380,15 @@ class RegionOfInterestManager(qt.QObject):
             else:
                 self.setCurrentRoi(None)
         elif event['event'] == 'mouseClicked' and event['button'] == 'left':
-            self.setCurrentRoi(None)
+            # Marker click is only for dnd
+            # This also can click on a marker
+            plot = self.parent()
+            marker = plot._getMarkerAt(event['xpixel'], event['ypixel'])
+            roi = self.__getRoiFromMarker(marker)
+            if roi is not None and roi.isSelectable():
+                self.setCurrentRoi(roi)
+            else:
+                self.setCurrentRoi(None)
 
     # RegionOfInterest API
 
