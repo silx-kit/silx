@@ -2985,6 +2985,28 @@ class PlotWidget(qt.QMainWindow):
         else:
             return markers
 
+    def _getMarkerAt(self, x, y):
+        """Return the most interactive marker at a location, else None
+
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :rtype: None of marker object
+        """
+        def checkDraggable(item):
+            return isinstance(item, items.MarkerBase) and item.isDraggable()
+        def checkSelectable(item):
+            return isinstance(item, items.MarkerBase) and item.isSelectable()
+        def check(item):
+            return isinstance(item, items.MarkerBase)
+
+        result = self._pickTopMost(x, y, checkDraggable)
+        if not result:
+            result = self._pickTopMost(x, y, checkSelectable)
+        if not result:
+            result = self._pickTopMost(x, y, check)
+        marker = result.getItem() if result is not None else None
+        return marker
+
     def _getMarker(self, legend=None):
         """Get the object describing a specific marker.
 

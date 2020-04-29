@@ -1080,25 +1080,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
-        def _getMarkerAt(self, x, y):
-            """Sort markers by priority"""
-            def checkDraggable(item):
-                return isinstance(item, items.MarkerBase) and item.isDraggable()
-            def checkSelectable(item):
-                return isinstance(item, items.MarkerBase) and item.isSelectable()
-            def check(item):
-                return isinstance(item, items.MarkerBase)
-
-            result = self.machine.plot._pickTopMost(x, y, checkDraggable)
-            if not result:
-                result = self.machine.plot._pickTopMost(x, y, checkSelectable)
-            if not result:
-                result = self.machine.plot._pickTopMost(x, y, check)
-            marker = result.getItem() if result is not None else None
-            return marker
-
         def onMove(self, x, y):
-            marker = self._getMarkerAt(x, y)
+            marker = self.machine.plot._getMarkerAt(x, y)
 
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
