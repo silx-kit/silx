@@ -147,7 +147,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_special_donut(self):
         item = roi_items.ArcROI()
@@ -158,7 +158,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_clockwiseGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
