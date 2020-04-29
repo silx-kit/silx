@@ -354,7 +354,11 @@ class RegionOfInterestManager(qt.QObject):
             else:
                 raise RuntimeError("Max selection proxy depth (10) reached.")
 
+        if self._currentRoi is not None:
+            self._currentRoi.setHighlighted(False)
         self._currentRoi = roi
+        if self._currentRoi is not None:
+            self._currentRoi.setHighlighted(True)
         self.sigCurrentRoiChanged.emit(roi)
 
     def getCurrentRoi(self):
