@@ -137,6 +137,11 @@ class State(object):
         """
         pass
 
+    def validate(self):
+        """Called externally to validate the current interaction in case of a
+        creation.
+        """
+        pass
 
 class StateMachine(object):
     """State machine controller.
@@ -190,6 +195,12 @@ class StateMachine(object):
                 handler = None
         if handler is not None:
             return handler(*args, **kwargs)
+
+    def validate(self):
+        """Called externally to validate the current interaction in case of a
+        creation.
+        """
+        self.state.validate()
 
 
 # clickOrDrag #################################################################

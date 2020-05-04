@@ -468,6 +468,22 @@ class SelectPolygon(Select):
                                              self.machine.parameters)
             self.machine.plot.notify(**eventDict)
 
+        def validate(self):
+            if len(self.points) > 2:
+                self.closePolygon()
+            else:
+                self.machine.cancel()
+
+        def closePolygon(self):
+            self.machine.resetSelectionArea()
+            self.points[-1] = self.points[0]
+            eventDict = prepareDrawingSignal('drawingFinished',
+                                             'polygon',
+                                             self.points,
+                                             self.machine.parameters)
+            self.machine.plot.notify(**eventDict)
+            self.goto('idle')
+
         def onWheel(self, x, y, angle):
             self.machine.onWheel(x, y, angle)
             self.updateFirstPoint()
@@ -484,16 +500,7 @@ class SelectPolygon(Select):
 
                 # Only allow to close polygon after first point
                 if len(self.points) > 2 and dx <= threshold and dy <= threshold:
-                    self.machine.resetSelectionArea()
-
-                    self.points[-1] = self.points[0]
-
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
-                    self.goto('idle')
+                    self.closePolygon()
                     return False
 
                 # Update polygon last point not too close to previous one
@@ -1382,6 +1389,10 @@ class FocusManager(StateMachine):
             self.eventHandler = eventHandler
             self.focusBtns = {btn}
 
+        def validate(self):
+            self.eventHandler.validate()
+            self.goto('idle')
+
         def onPress(self, x, y, btn):
             self.focusBtns.add(btn)
             self.eventHandler.handleEvent('press', x, y, btn)
@@ -1666,6 +1677,13 @@ class PlotInteraction(object):
 
         else:
             return {'mode': 'select'}
+
+    def validate(self):
+        """Validate the current interaction if possible
+
+        If was designed to close the polygon interaction.
+        """
+        self._eventHandler.validate()
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None, width=None):
