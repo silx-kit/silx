@@ -1276,11 +1276,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
 
-    def contextMenuEvent(self, event):
-        """Override QWidget.contextMenuEvent to implement the context menu"""
-        # Makes sure it is overridden (issue with PySide)
-        BackendBase.BackendBase.contextMenuEvent(self, event)
-
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
 

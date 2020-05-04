@@ -382,6 +382,16 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._dirty
 
+    # Default Qt context menu
+
+    def contextMenuEvent(self, event):
+        """Override QWidget.contextMenuEvent to implement the context menu"""
+        from .actions.control import ZoomBackAction  # Avoid cyclic import
+        zoomBackAction = ZoomBackAction(plot=self, parent=self)
+        menu = qt.QMenu(self)
+        menu.addAction(zoomBackAction)
+        menu.exec_(event.globalPos())
+
     def _setDirtyPlot(self, overlayOnly=False):
         """Mark the plot as needing redraw
 

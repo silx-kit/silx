@@ -248,11 +248,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
 
-    def contextMenuEvent(self, event):
-        """Override QWidget.contextMenuEvent to implement the context menu"""
-        # Makes sure it is overridden (issue with PySide)
-        BackendBase.BackendBase.contextMenuEvent(self, event)
-
     def sizeHint(self):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
 
