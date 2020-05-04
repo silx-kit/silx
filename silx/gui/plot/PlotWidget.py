@@ -397,6 +397,10 @@ class PlotWidget(qt.QMainWindow):
             action = ClosePolygonInteractionAction(plot=self, parent=menu)
             menu.addAction(action)
 
+        # Make sure the plot is updated, especially when the plot is in
+        # draw interaction mode
+        menu.aboutToHide.connect(self.__simulateMouseMove)
+
         menu.exec_(event.globalPos())
 
     def _setDirtyPlot(self, overlayOnly=False):
@@ -3203,6 +3207,16 @@ class PlotWidget(qt.QMainWindow):
         qt.Qt.Key_Down: 'down'
     }
 
+    def __simulateMouseMove(self):
+        qapp = qt.QApplication.instance()
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+            qt.Qt.NoButton,
+            qapp.mouseButtons(),
+            qapp.keyboardModifiers())
+        qapp.sendEvent(self.getWidgetHandle(), event)
+
     def keyPressEvent(self, event):
         """Key event handler handling panning on arrow keys.
 
@@ -3215,15 +3229,7 @@ class PlotWidget(qt.QMainWindow):
             # Send a mouse move event to the plot widget to take into account
             # that even if mouse didn't move on the screen, it moved relative
             # to the plotted data.
-            qapp = qt.QApplication.instance()
-            event = qt.QMouseEvent(
-                qt.QEvent.MouseMove,
-                self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
-                qt.Qt.NoButton,
-                qapp.mouseButtons(),
-                qapp.keyboardModifiers())
-            qapp.sendEvent(self.getWidgetHandle(), event)
-
+            self.__simulateMouseMove()
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
