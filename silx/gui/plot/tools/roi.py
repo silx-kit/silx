@@ -124,7 +124,7 @@ class CreateRoiModeAction(qt.QAction):
         else:
             source = roiManager.getInteractionSource()
             if source is self:
-                roiManager.abort()
+                roiManager.stop()
 
     def __interactiveModeStarted(self, roiManager):
         roiManager.sigInteractiveRoiCreated.connect(self.initRoi)
