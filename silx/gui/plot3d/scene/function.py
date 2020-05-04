@@ -384,38 +384,36 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 class Colormap(event.Notifier, ProgramFunction):
 
     _declTemplate = string.Template("""
-    uniform struct {
-        sampler2D texture;
-        int normalization;
-        float min;
-        float oneOverRange;
-    } cmap;
+    uniform sampler2D cmap_texture;
+    uniform int cmap_normalization;
+    uniform float cmap_min;
+    uniform float cmap_oneOverRange;
 
     const float oneOverLog10 = 0.43429448190325176;
 
     vec4 colormap(float value) {
-        if (cmap.normalization == 1) { /* Log10 mapping */
+        if (cmap_normalization == 1) { /* Log10 mapping */
             if (value > 0.0) {
-                value = clamp(cmap.oneOverRange *
-                              (oneOverLog10 * log(value) - cmap.min),
+                value = clamp(cmap_oneOverRange *
+                              (oneOverLog10 * log(value) - cmap_min),
                               0.0, 1.0);
             } else {
                 value = 0.0;
             }
-        } else if (cmap.normalization == 2) { /* Sqrt mapping */
+        } else if (cmap_normalization == 2) { /* Sqrt mapping */
             if (value > 0.0) {
-                value = clamp(cmap.oneOverRange * (sqrt(value) - cmap.min),
+                value = clamp(cmap_oneOverRange * (sqrt(value) - cmap_min),
                               0.0, 1.0);
             } else {
                 value = 0.0;
             }
         } else { /* Linear mapping */
-            value = clamp(cmap.oneOverRange * (value - cmap.min), 0.0, 1.0);
+            value = clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0);
         }
 
         $discard
 
-        vec4 color = texture2D(cmap.texture, vec2(value, 0.5));
+        vec4 color = texture2D(cmap_texture, vec2(value, 0.5));
         return color;
     }
     """)
@@ -560,7 +558,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
         self._texture.bind()
 
-        gl.glUniform1i(program.uniforms['cmap.texture'],
+        gl.glUniform1i(program.uniforms['cmap_texture'],
                        self._texture.texUnit)
 
         min_, max_ = self.range_
@@ -573,9 +571,9 @@ class Colormap(event.Notifier, ProgramFunction):
         else:  # Linear
             normID = 0
 
-        gl.glUniform1i(program.uniforms['cmap.normalization'], normID)
-        gl.glUniform1f(program.uniforms['cmap.min'], min_)
-        gl.glUniform1f(program.uniforms['cmap.oneOverRange'],
+        gl.glUniform1i(program.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(program.uniforms['cmap_min'], min_)
+        gl.glUniform1f(program.uniforms['cmap_oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
 
     def prepareGL2(self, context):
