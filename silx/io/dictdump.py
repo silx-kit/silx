@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -279,7 +279,15 @@ def dicttoh5(treedict, h5file, h5path='/',
                     continue
 
             # Write attribute
-            h5f[h5path + key[0]].attrs[key[1]] = treedict[key]
+            value = treedict[key]
+
+            # Makes list/tuple of str being encoded as vlen unicode array
+            # Workaround for h5py<2.9.0 (e.g. debian 10).
+            if (isinstance(value, (list, tuple)) and
+                    numpy.asarray(value).dtype.type == numpy.unicode_):
+                value = numpy.array(value, dtype=h5py.special_dtype(vlen=str))
+
+            h5f[h5path + key[0]].attrs[key[1]] = value
 
 
 def dicttonx(
