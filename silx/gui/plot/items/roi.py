@@ -742,8 +742,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     """
 
     def __init__(self, parent=None):
-        items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.SymbolMixIn.__init__(self)
         self._marker = items.Marker()
         self._marker.setSymbol(self._DEFAULT_SYMBOL)
         self._marker.sigDragStarted.connect(self._editingStarted)
@@ -821,8 +821,8 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleStart = self.addHandle()
         self._handleEnd = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
@@ -922,8 +922,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._marker = items.YMarker()
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
@@ -1001,8 +1001,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._marker = items.XMarker()
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
@@ -1084,8 +1084,8 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleTopLeft = self.addHandle()
         self._handleTopRight = self.addHandle()
         self._handleBottomLeft = self.addHandle()
@@ -1254,8 +1254,8 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleLabel = self.addLabelHandle()
         self._handleCenter = self.addTranslateHandle()
         self._handlePoints = []
@@ -1524,8 +1524,8 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                         self._closed))
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._geometry  = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
 
@@ -2071,8 +2071,8 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._markerMin = items.XMarker()
         self._markerMax = items.XMarker()
         self._markerCen = items.XMarker()
