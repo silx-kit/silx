@@ -472,6 +472,8 @@ class SelectPolygon(Select):
             if len(self.points) > 2:
                 self.closePolygon()
             else:
+                # It would be nice to have a cancel event.
+                # The plot is not aware that the interaction was cancelled
                 self.machine.cancel()
 
         def closePolygon(self):
