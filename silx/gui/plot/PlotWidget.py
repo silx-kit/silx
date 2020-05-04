@@ -386,10 +386,17 @@ class PlotWidget(qt.QMainWindow):
 
     def contextMenuEvent(self, event):
         """Override QWidget.contextMenuEvent to implement the context menu"""
-        from .actions.control import ZoomBackAction  # Avoid cyclic import
-        zoomBackAction = ZoomBackAction(plot=self, parent=self)
         menu = qt.QMenu(self)
+        from .actions.control import ZoomBackAction  # Avoid cyclic import
+        zoomBackAction = ZoomBackAction(plot=self, parent=menu)
         menu.addAction(zoomBackAction)
+
+        mode = self.getInteractiveMode()
+        if "shape" in mode and mode["shape"] == "polygon":
+            from .actions.control import ClosePolygonInteractionAction  # Avoid cyclic import
+            action = ClosePolygonInteractionAction(plot=self, parent=menu)
+            menu.addAction(action)
+
         menu.exec_(event.globalPos())
 
     def _setDirtyPlot(self, overlayOnly=False):
