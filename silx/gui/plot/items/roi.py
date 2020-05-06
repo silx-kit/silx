@@ -607,8 +607,8 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
         self._posOrigin = None
         super(_HandleBasedROI, self)._editingFinished()
 
-    def isHandleBeenDragged(self):
-        """Returns True of one of the handles is dragging.
+    def isHandleBeingDragged(self):
+        """Returns True if one of the handles is currently being dragged.
 
         :rtype: bool
         """
@@ -1256,7 +1256,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
                 handle.setPosition(position[0], position[1])
 
         if len(points) > 0:
-            if not self.isHandleBeenDragged():
+            if not self.isHandleBeingDragged():
                 vmin = numpy.min(points, axis=0)
                 vmax = numpy.max(points, axis=0)
                 center = (vmax + vmin) * 0.5
