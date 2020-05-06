@@ -60,7 +60,7 @@ class TestRoiItems(TestCaseQt):
 
     def testPoint_geometry(self):
         point = numpy.array([1, 2])
-        item = roi_items.VerticalLineROI()
+        item = roi_items.PointROI()
         item.setPosition(point)
         numpy.testing.assert_allclose(item.getPosition(), point)
 
@@ -147,7 +147,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_special_donut(self):
         item = roi_items.ArcROI()
@@ -158,7 +158,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_clockwiseGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
@@ -191,9 +191,9 @@ class TestRoiItems(TestCaseQt):
         vmin = 1
         vmax = 3
         item.setRange(vmin, vmax)
-        numpy.testing.assert_allclose(item.getMin(), vmin)
-        numpy.testing.assert_allclose(item.getMax(), vmax)
-        numpy.testing.assert_allclose(item.getCenter(), 2)
+        self.assertAlmostEqual(item.getMin(), vmin)
+        self.assertAlmostEqual(item.getMax(), vmax)
+        self.assertAlmostEqual(item.getCenter(), 2)
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
