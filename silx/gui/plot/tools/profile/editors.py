@@ -135,8 +135,8 @@ class _DefaultScatterProfileRoiEditor(qt.QWidget):
 
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        label = qt.QLabel('W:')
-        label.setToolTip("Line width in pixels")
+        label = qt.QLabel('Samples:')
+        label.setToolTip("Number of sample points of the profile")
         layout.addWidget(label)
         layout.addWidget(self._nPoints)
 
