@@ -63,8 +63,6 @@ class BackendBase(object):
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
 
-        self.__zoomBackAction = None
-
     @property
     def _plot(self):
         """The plot this backend is attached to."""
@@ -82,18 +80,6 @@ class BackendBase(object):
         Use with caution, basically **immediately** after init.
         """
         self._plotRef = weakref.ref(plot)
-
-    # Default Qt context menu
-
-    def contextMenuEvent(self, event):
-        """Override QWidget.contextMenuEvent to implement the context menu"""
-        if self.__zoomBackAction is None:
-            from ..actions.control import ZoomBackAction  # Avoid cyclic import
-            self.__zoomBackAction = ZoomBackAction(plot=self._plot,
-                                                   parent=self._plot)
-        menu = qt.QMenu(self)
-        menu.addAction(self.__zoomBackAction)
-        menu.exec_(event.globalPos())
 
     # Add methods
 

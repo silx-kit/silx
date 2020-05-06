@@ -468,6 +468,24 @@ class SelectPolygon(Select):
                                              self.machine.parameters)
             self.machine.plot.notify(**eventDict)
 
+        def validate(self):
+            if len(self.points) > 2:
+                self.closePolygon()
+            else:
+                # It would be nice to have a cancel event.
+                # The plot is not aware that the interaction was cancelled
+                self.machine.cancel()
+
+        def closePolygon(self):
+            self.machine.resetSelectionArea()
+            self.points[-1] = self.points[0]
+            eventDict = prepareDrawingSignal('drawingFinished',
+                                             'polygon',
+                                             self.points,
+                                             self.machine.parameters)
+            self.machine.plot.notify(**eventDict)
+            self.goto('idle')
+
         def onWheel(self, x, y, angle):
             self.machine.onWheel(x, y, angle)
             self.updateFirstPoint()
@@ -484,16 +502,7 @@ class SelectPolygon(Select):
 
                 # Only allow to close polygon after first point
                 if len(self.points) > 2 and dx <= threshold and dy <= threshold:
-                    self.machine.resetSelectionArea()
-
-                    self.points[-1] = self.points[0]
-
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
-                    self.goto('idle')
+                    self.closePolygon()
                     return False
 
                 # Update polygon last point not too close to previous one
@@ -1356,11 +1365,12 @@ class FocusManager(StateMachine):
     """
     class Idle(State):
         def onPress(self, x, y, btn):
-            for eventHandler in self.machine.eventHandlers:
-                requestFocus = eventHandler.handleEvent('press', x, y, btn)
-                if requestFocus:
-                    self.goto('focus', eventHandler, btn)
-                    break
+            if btn == LEFT_BTN:
+                for eventHandler in self.machine.eventHandlers:
+                    requestFocus = eventHandler.handleEvent('press', x, y, btn)
+                    if requestFocus:
+                        self.goto('focus', eventHandler, btn)
+                        break
 
         def _processEvent(self, *args):
             for eventHandler in self.machine.eventHandlers:
@@ -1372,7 +1382,8 @@ class FocusManager(StateMachine):
             self._processEvent('move', x, y)
 
         def onRelease(self, x, y, btn):
-            self._processEvent('release', x, y, btn)
+            if btn == LEFT_BTN:
+                self._processEvent('release', x, y, btn)
 
         def onWheel(self, x, y, angle):
             self._processEvent('wheel', x, y, angle)
@@ -1382,18 +1393,24 @@ class FocusManager(StateMachine):
             self.eventHandler = eventHandler
             self.focusBtns = {btn}
 
+        def validate(self):
+            self.eventHandler.validate()
+            self.goto('idle')
+
         def onPress(self, x, y, btn):
-            self.focusBtns.add(btn)
-            self.eventHandler.handleEvent('press', x, y, btn)
+            if btn == LEFT_BTN:
+                self.focusBtns.add(btn)
+                self.eventHandler.handleEvent('press', x, y, btn)
 
         def onMove(self, x, y):
             self.eventHandler.handleEvent('move', x, y)
 
         def onRelease(self, x, y, btn):
-            self.focusBtns.discard(btn)
-            requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
-            if len(self.focusBtns) == 0 and not requestFocus:
-                self.goto('idle')
+            if btn == LEFT_BTN:
+                self.focusBtns.discard(btn)
+                requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
+                if len(self.focusBtns) == 0 and not requestFocus:
+                    self.goto('idle')
 
         def onWheel(self, x, y, angleInDegrees):
             self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
@@ -1666,6 +1683,13 @@ class PlotInteraction(object):
 
         else:
             return {'mode': 'select'}
+
+    def validate(self):
+        """Validate the current interaction if possible
+
+        If was designed to close the polygon interaction.
+        """
+        self._eventHandler.validate()
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None, width=None):

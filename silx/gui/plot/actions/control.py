@@ -603,3 +603,32 @@ class ShowAxisAction(PlotAction):
     def _actionTriggered(self, checked=False):
         self.plot.setAxesDisplayed(checked)
 
+
+class ClosePolygonInteractionAction(PlotAction):
+    """QAction controlling closure of a polygon in draw interaction mode
+    if the :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        tooltip = 'Close the current polygon drawn'
+        PlotAction.__init__(self,
+                            plot,
+                            icon='add-shape-polygon',
+                            text='Close the polygon',
+                            tooltip=tooltip,
+                            triggered=self._actionTriggered,
+                            checkable=True,
+                            parent=parent)
+        self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
+        self._modeChanged(None)
+
+    def _modeChanged(self, source):
+        mode = self.plot.getInteractiveMode()
+        enabled = "shape" in mode and mode["shape"] == "polygon"
+        self.setEnabled(enabled)
+
+    def _actionTriggered(self, checked=False):
+        self.plot._eventHandler.validate()

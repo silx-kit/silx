@@ -486,13 +486,18 @@ class RegionOfInterestManager(qt.QObject):
         if roi is self._currentRoi:
             self.setCurrentRoi(None)
 
+        mustRestart = False
         if roi is self._drawnROI:
             self._drawnROI = None
+            mustRestart = True
         self._rois.remove(roi)
         roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
         roi.sigItemChanged.disconnect(self._regionOfInterestChanged)
         roi.setParent(None)
         self._roisUpdated()
+
+        if mustRestart:
+            self._restart()
 
     def _roisUpdated(self):
         """Handle update of the ROI list"""
@@ -565,6 +570,21 @@ class RegionOfInterestManager(qt.QObject):
 
         self._roiClass = roiClass
         self._source = source
+
+        self._restart()
+
+        plot.sigPlotSignal.connect(self._handleInteraction)
+
+        self.sigInteractiveModeStarted.emit(roiClass)
+
+        return True
+
+    def _restart(self):
+        """Restart the plot interaction without changing the
+        source or the ROI class.
+        """
+        roiClass = self._roiClass
+        plot = self.parent()
         firstInteractionShapeKind = roiClass.getFirstInteractionShape()
 
         if firstInteractionShapeKind == 'point':
@@ -579,12 +599,6 @@ class RegionOfInterestManager(qt.QObject):
                                     shape=firstInteractionShapeKind,
                                     color=color,
                                     label=self._label)
-
-        plot.sigPlotSignal.connect(self._handleInteraction)
-
-        self.sigInteractiveModeStarted.emit(roiClass)
-
-        return True
 
     def __roiInteractiveModeEnded(self):
         """Handle end of ROI draw interactive mode"""
