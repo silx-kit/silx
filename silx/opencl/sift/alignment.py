@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/02/2018"
+__date__ = "06/05/2020"
 __status__ = "production"
 
 import os
@@ -168,11 +168,11 @@ class LinearAlign(OpenclProcessing):
         """
         free all memory allocated on the device
         """
-        for buffer_name in self.cl_mem:
+        for buffer_name in list(self.cl_mem.keys()):
             if self.cl_mem[buffer_name] is not None:
                 try:
-                    del self.cl_mem[buffer_name]
-                    self.cl_mem[buffer_name] = None
+                    buffer = self.cl_mem.pop(buffer_name)
+                    del buffer
                 except pyopencl.LogicError:
                     logger.error("Error while freeing buffer %s" % buffer_name)
 
