@@ -25,9 +25,8 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "12/02/2019"
+__date__ = "06/05/2020"
 __license__ = "MIT"
-
 
 import sys
 import os
@@ -40,30 +39,35 @@ import glob
 # The silx.io module seems to be loaded instead.
 import io
 
-
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
-
 
 from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
 try:
     from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
-    from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
-    logger.info("Use setuptools")
+    try:
+        from Cython.Build import build_ext
+        logger.info("Use setuptools with cython")
+    except ImportError:
+        from setuptools.command.build_ext import build_ext
+        logger.info("Use setuptools, cython is missing")
 except ImportError:
     try:
         from numpy.distutils.core import Command
     except ImportError:
         from distutils.core import Command
     from distutils.command.build_py import build_py as _build_py
-    from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
-    logger.info("Use distutils")
-
+    try:
+        from Cython.Build import build_ext
+        logger.info("Use distutils with cython")
+    except ImportError:
+        from distutils.command.build_ext import build_ext
+        logger.info("Use distutils, cython is missing")
 try:
     import sphinx
     import sphinx.util.console
@@ -71,7 +75,6 @@ try:
     from sphinx.setup_command import BuildDoc
 except ImportError:
     sphinx = None
-
 
 PROJECT = "silx"
 
@@ -124,25 +127,26 @@ classifiers = ["Development Status :: 4 - Beta",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
 
-
 # ########## #
 # version.py #
 # ########## #
+
 
 class build_py(_build_py):
     """
     Enhanced build_py which copies version.py to <PROJECT>._version.py
     """
+
     def find_package_modules(self, package, package_dir):
         modules = _build_py.find_package_modules(self, package, package_dir)
         if package == PROJECT:
             modules.append((PROJECT, '_version', 'version.py'))
         return modules
 
-
 ########
 # Test #
 ########
+
 
 class PyTest(Command):
     """Command to start tests running the script: run_tests.py"""
@@ -162,12 +166,13 @@ class PyTest(Command):
         if errno != 0:
             raise SystemExit(errno)
 
-
 # ################### #
 # build_doc command   #
 # ################### #
 
+
 if sphinx is None:
+
     class SphinxExpectedCommand(Command):
         """Command to inform that sphinx is missing"""
         user_options = []
@@ -316,6 +321,7 @@ class BuildMan(Command):
 
 
 if sphinx is not None:
+
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
 
@@ -351,6 +357,7 @@ if sphinx is not None:
             sys.path.pop(0)
 
     class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
+
         def run(self):
             old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
             os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
@@ -364,17 +371,18 @@ else:
     BuildDocCommand = SphinxExpectedCommand
     BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
 
-
 # ################### #
 # test_doc command    #
 # ################### #
 
 if sphinx is not None:
+
     class TestDocCommand(BuildDoc):
         """Command to test the documentation using sphynx doctest.
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
+
         def run(self):
             # make sure the python path is pointing to the newly built
             # code so that the documentation is built on this and not a
@@ -394,10 +402,10 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
+
 
 def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
@@ -529,10 +537,10 @@ class BuildExt(build_ext):
         # Cytonize
         from Cython.Build import cythonize
         patched_exts = cythonize(
-            [ext],
-            compiler_directives={'embedsignature': True,
+                                 [ext],
+                                 compiler_directives={'embedsignature': True,
                                  'language_level': 3},
-            force=self.force_cython
+                                 force=self.force_cython
         )
         ext.sources = patched_exts[0].sources
 
@@ -634,7 +642,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-
 ################################################################################
 # Clean command
 ################################################################################
@@ -700,7 +707,6 @@ class CleanCommand(Clean):
                 except OSError:
                     pass
 
-
 ################################################################################
 # Debian source tree
 ################################################################################
@@ -764,10 +770,10 @@ class sdist_debian(sdist):
         self.archive_files = [debian_arch]
         print("Building debian .orig.tar.gz in %s" % self.archive_files[0])
 
-
 # ##### #
 # setup #
 # ##### #
+
 
 def get_project_configuration(dry_run):
     """Returns project arguments for setup"""
