@@ -381,14 +381,15 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
 
                         manager = self.toolBar.getProfileManager()
-                        roi = manager.getCurrentRoi()
-                        roi.setProfileLineWidth(3)
-                        roi.setProfileMethod(method)
 
                         for _ in range(20):
                             self.qWait(200)
                             if not manager.hasPendingOperations():
                                 break
+
+                        roi = manager.getCurrentRoi()
+                        roi.setProfileLineWidth(3)
+                        roi.setProfileMethod(method)
 
                         if image is True:
                             profileCurve = self.toolBar.getProfilePlot().getAllCurves()[0]
