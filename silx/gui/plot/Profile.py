@@ -143,6 +143,7 @@ class ProfileToolBar(qt.QToolBar):
         # Add actions to ToolBar
         self.addAction(self._browseAction)
         self.addAction(modes)
+        self.addAction(self._editor)
         self.addAction(self.clearAction)
 
     def _createProfileActions(self):
