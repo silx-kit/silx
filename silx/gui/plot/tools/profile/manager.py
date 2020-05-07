@@ -475,6 +475,7 @@ class ProfileManager(qt.QObject):
             rois.ProfileImageHorizontalLineROI,
             rois.ProfileImageVerticalLineROI,
             rois.ProfileImageLineROI,
+            rois.ProfileImageDirectedLineROI,
             rois.ProfileImageCrossROI,
             ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]

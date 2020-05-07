@@ -248,7 +248,11 @@ class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
 
 class ProfileImageLineROI(roi_items.LineROI,
                           _DefaultImageProfileRoiMixIn):
-    """ROI for an image profile between 2 points"""
+    """ROI for an image profile between 2 points.
+
+    The X profile of this ROI is the projecting into one of the x/y axes,
+    using its scale and its orientation.
+    """
 
     ICON = 'shape-diagonal'
     NAME = 'line profile'
@@ -258,7 +262,66 @@ class ProfileImageLineROI(roi_items.LineROI,
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
 
+class ProfileImageDirectedLineROI(roi_items.LineROI,
+                                  _DefaultImageProfileRoiMixIn):
+    """ROI for an image profile between 2 points.
+
+    The X profile of the line is displayed projected into the line itself,
+    using its scale and its orientation. It's the distance from the origin.
+    """
+
+    ICON = 'shape-diagonal-directed'
+    NAME = 'line projection'
+
+    def __init__(self, parent=None):
+        roi_items.LineROI.__init__(self, parent=parent)
+        _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
+        self._handleStart.setSymbol('o')
+
+    def computeProfile(self, item):
+        if not isinstance(item, items.ImageData):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        from silx.image.bilinear import BilinearImage
+
+        origin = item.getOrigin()
+        scale = item.getScale()
+        method = self.getProfileMethod()
+        roiWidth = self.getProfileLineWidth()
+        currentData = item.getData(copy=False)
+
+        roiInfo = self._getRoiInfo()
+        roiStart, roiEnd, _lineProjectionMode = roiInfo
+
+        startPt = ((roiStart[1] - origin[1]) / scale[1],
+                   (roiStart[0] - origin[0]) / scale[0])
+        endPt = ((roiEnd[1] - origin[1]) / scale[1],
+                 (roiEnd[0] - origin[0]) / scale[0])
+
+        bilinear = BilinearImage(currentData)
+        profile = bilinear.profile_line(
+            (startPt[0] - 0.5, startPt[1] - 0.5),
+            (endPt[0] - 0.5, endPt[1] - 0.5),
+            roiWidth,
+            method=method)
+
+        # Compute the line size
+        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1])**2 +
+                              (roiEnd[0] - roiStart[0])**2)
+        coords = numpy.linspace(0, lineSize, len(profile),
+                                endpoint=True,
+                                dtype=numpy.float32)
+        data = core.CurveProfileData(
+            coords=coords,
+            profile=profile,
+            title="Line projection",
+            xLabel="Distance",
+        )
+        return data
+
+
 class _ProfileCrossROI(roi_items._HandleBasedROI, core.ProfileRoiMixIn):
+
     """ROI to manage a cross of profiles
 
     It is managed using 2 sub ROIs for vertical and horizontal.
