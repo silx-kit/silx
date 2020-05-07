@@ -1368,7 +1368,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
-            self.setGeometry(current, self.getRadius())
+            self.setCenter(current)
         elif handle is self._handlePerimeter:
             center = self.getCenter()
             self.setRadius(self._calculateDistance(center, current))
