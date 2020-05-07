@@ -94,7 +94,7 @@ class _RegionOfInterestBase(qt.QObject):
         self.sigItemChanged.emit(event)
 
 
-class RegionOfInterest(_RegionOfInterestBase, core.HilightedMixIn):
+class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
@@ -132,7 +132,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HilightedMixIn):
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent)
-        core.HilightedMixIn.__init__(self)
+        core.HighlightedMixIn.__init__(self)
         self._color = rgba('red')
         self._editable = False
         self._selectable = False

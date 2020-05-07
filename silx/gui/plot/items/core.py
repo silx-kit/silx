@@ -1516,7 +1516,7 @@ class _Style:
     """Object which store styles"""
 
 
-class HilightedMixIn(ItemMixInBase):
+class HighlightedMixIn(ItemMixInBase):
 
     def __init__(self):
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE

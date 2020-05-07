@@ -39,7 +39,7 @@ from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
-                   BaselineMixIn, HilightedMixIn, _Style)
+                   BaselineMixIn, HighlightedMixIn, _Style)
 
 
 _logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ class CurveStyle(_Style):
 
 
 class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
-            LineMixIn, BaselineMixIn, HilightedMixIn):
+            LineMixIn, BaselineMixIn, HighlightedMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -181,7 +181,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
         BaselineMixIn.__init__(self)
-        HilightedMixIn.__init__(self)
+        HighlightedMixIn.__init__(self)
 
         self._setBaseline(Curve._DEFAULT_BASELINE)
 
