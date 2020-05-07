@@ -1273,6 +1273,8 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
+        self.__radius = 0
+
     @classmethod
     def showFirstInteractionShape(cls):
         return False
@@ -1323,8 +1325,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        return self._calculateDistance(self._handleCenter.getPosition(),
-                                       self._handlePerimeter.getPosition())
+        return self.__radius
 
     def setCenter(self, position):
         """Set the center point of this ROI
@@ -1345,17 +1346,17 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
     def setGeometry(self, center, radius):
         """Set the geometry of the ROI
         """
-        center = numpy.array(center)
         radius = float(radius)
+        self.__radius = radius
+        center = numpy.array(center)
         perimeter_point = numpy.array([center[0] + radius, center[1]])
-        points = numpy.array([center, perimeter_point])
 
         with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(points[0, 0], points[0, 1])
+            self._handleCenter.setPosition(center[0], center[1])
         with utils.blockSignals(self._handlePerimeter):
-            self._handlePerimeter.setPosition(points[1, 0], points[1, 1])
+            self._handlePerimeter.setPosition(perimeter_point[0], perimeter_point[1])
         with utils.blockSignals(self._handleLabel):
-            self._handleLabel.setPosition(points[0, 0], points[0, 1])
+            self._handleLabel.setPosition(center[0], center[1])
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
@@ -1367,7 +1368,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
-            self.setCenter(current)
+            self.setGeometry(current, self.getRadius())
         elif handle is self._handlePerimeter:
             center = self.getCenter()
             self.setRadius(self._calculateDistance(center, current))
