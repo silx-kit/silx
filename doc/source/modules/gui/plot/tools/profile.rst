@@ -19,10 +19,10 @@ The profile package is divided into several sub-modules.
    :show-inheritance:
    :members:
 
-:class:`ProfileMainWindow` class
+:class:`ProfileWindow` class
 ++++++++++++++++++++++++++++++++
 
-.. autoclass:: ProfileMainWindow
+.. autoclass:: ProfileWindow
    :show-inheritance:
    :members:
 

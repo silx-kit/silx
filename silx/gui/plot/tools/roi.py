@@ -306,6 +306,8 @@ class RegionOfInterestManager(qt.QObject):
                                      dtype=numpy.float64).T
 
                 if self._drawnROI is None:  # Create new ROI
+                    # NOTE: Set something before createRoi, so isDrawing is True
+                    self._drawnROI = object()
                     self._drawnROI = self.createRoi(roiClass, points=points)
                     self._drawnROI.creationStarted()
                 else:
@@ -554,6 +556,13 @@ class RegionOfInterestManager(qt.QObject):
         :rtype: bool
         """
         return self._roiClass is not None
+
+    def isDrawing(self):
+        """Returns True if an interactive ROI is drawing.
+
+        :rtype: bool
+        """
+        return self._drawnROI is not None
 
     def start(self, roiClass, source=None):
         """Start an interactive ROI drawing mode.

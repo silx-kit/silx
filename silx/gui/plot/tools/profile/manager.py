@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ from silx.gui import colors
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
 from silx.gui.plot import PlotWidget
-from silx.gui.plot.ProfileMainWindow import ProfileMainWindow as _ProfileMainWindow
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import CreateRoiModeAction
 from silx.gui.plot import items
@@ -115,7 +114,81 @@ class _RunnableComputeProfile(qt.QRunnable):
         self.runnerFinished.emit(self)
 
 
-class ProfileMainWindow(_ProfileMainWindow):
+class ProfileWindow(qt.QMainWindow):
+    """
+    Display a computed profile.
+
+    The content can be described using :meth:`setRoiProfile` if the source of
+    the profile is a profile ROI, and :meth:`setProfile` for the data content.
+    """
+
+    sigClose = qt.Signal()
+    """Emitted by :meth:`closeEvent` (e.g. when the window is closed
+    through the window manager's close icon)."""
+
+    def __init__(self, parent=None, backend=None):
+        qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
+
+        self.setWindowTitle('Profile window')
+        self._plot1D = None
+        self._plot2D = None
+        self._backend = backend
+        self._data = None
+
+        widget = qt.QWidget()
+        self._layout = qt.QStackedLayout(widget)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self.setCentralWidget(widget)
+
+    def prepareWidget(self, roi):
+        """Called before the show to prepare the window to use with
+        a specific ROI."""
+        if isinstance(roi, rois._DefaultImageStackProfileRoiMixIn):
+            profileType = roi.getProfileType()
+        else:
+            profileType = "1D"
+        if profileType == "1D":
+            self._getPlot1D()
+        elif profileType == "2D":
+            self._getPlot2D()
+
+    def _getPlot1D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot1D is None:
+            # import here to avoid circular import
+            from ...PlotWindow import Plot1D
+            self._plot1D = Plot1D(parent=self, backend=self._backend)
+            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
+            self._plot1D.setGraphYLabel('Profile')
+            self._plot1D.setGraphXLabel('')
+            self._layout.addWidget(self._plot1D)
+        return self._plot1D
+
+    def _showPlot1D(self):
+        plot = self._getPlot1D()
+        self._layout.setCurrentWidget(plot)
+
+    def _getPlot2D(self, init=True):
+        if not init:
+            return self._plot1D
+        if self._plot2D is None:
+            # import here to avoid circular import
+            from ...PlotWindow import Plot2D
+            self._plot2D = Plot2D(parent=self, backend=self._backend)
+            self._layout.addWidget(self._plot2D)
+        return self._plot2D
+
+    def _showPlot2D(self):
+        plot = self._getPlot2D()
+        self._layout.setCurrentWidget(plot)
+
+    def getCurrentPlotWidget(self):
+        return self._layout.currentWidget()
+
+    def closeEvent(self, qCloseEvent):
+        self.sigClose.emit()
+        qCloseEvent.accept()
 
     def setRoiProfile(self, roi):
         """Set the profile ROI which it the source of the following data
@@ -208,6 +281,10 @@ class ProfileMainWindow(_ProfileMainWindow):
         if plot is not None:
             plot.clear()
 
+    def getProfile(self):
+        """Returns the profile data which is displayed"""
+        return self.__data
+
     def setProfile(self, data):
         """
         Setup the window to display a new profile data.
@@ -217,6 +294,7 @@ class ProfileMainWindow(_ProfileMainWindow):
 
         :param data: Computed data profile
         """
+        self.__data = data
         if data is None:
             self.clear()
         elif isinstance(data, core.ImageProfileData):
@@ -227,6 +305,47 @@ class ProfileMainWindow(_ProfileMainWindow):
             self._setCurveProfile(data)
         else:
             raise TypeError("Unsupported type %s" % type(data))
+
+
+class _ClearAction(qt.QAction):
+    """Action to clear the profile manager
+
+    The action is only enabled if something can be cleaned up.
+    """
+
+    def __init__(self, parent, profileManager):
+        super(_ClearAction, self).__init__(parent)
+        self.__profileManager = weakref.ref(profileManager)
+        icon = icons.getQIcon('profile-clear')
+        self.setIcon(icon)
+        self.setText('Clear profile')
+        self.setToolTip('Clear the profiles')
+        self.setCheckable(False)
+        self.setEnabled(False)
+        self.triggered.connect(profileManager.clearProfile)
+        plot = profileManager.getPlotWidget()
+        roiManager = profileManager.getRoiManager()
+        plot.sigInteractiveModeChanged.connect(self.__modeUpdated)
+        roiManager.sigRoiChanged.connect(self.__roiListUpdated)
+
+    def getProfileManager(self):
+        return self.__profileManager()
+
+    def __roiListUpdated(self):
+        self.__update()
+
+    def __modeUpdated(self, source):
+        self.__update()
+
+    def __update(self):
+        profileManager = self.getProfileManager()
+        if profileManager is None:
+            return
+        roiManager = profileManager.getRoiManager()
+        if roiManager is None:
+            return
+        enabled = roiManager.isStarted() or len(roiManager.getRois()) > 0
+        self.setEnabled(enabled)
 
 
 class ProfileManager(qt.QObject):
@@ -342,12 +461,7 @@ class ProfileManager(qt.QObject):
         :param qt.QObject parent: The parent of the created action.
         :rtype: qt.QAction
         """
-        # Add clear action
-        icon = icons.getQIcon('profile-clear')
-        action = qt.QAction(icon, 'Clear profile', parent)
-        action.setToolTip('Clear the profiles')
-        action.setCheckable(False)
-        action.triggered.connect(self.clearProfile)
+        action = _ClearAction(parent, self)
         return action
 
     def createImageActions(self, parent):
@@ -500,7 +614,7 @@ class ProfileManager(qt.QObject):
         if window is not None:
             geometry = window.geometry()
             self._previousWindowGeometry.append(geometry)
-            window.deleteLater()
+            self.clearProfileWindow(window)
         if profileRoi in self._rois:
             self._rois.remove(profileRoi)
 
@@ -518,6 +632,10 @@ class ProfileManager(qt.QObject):
                 # Skip sub ROIs, it will be removed by their parents
                 continue
             roiManager.removeRoi(roi)
+
+        if not roiManager.isDrawing():
+            # Clean the selected mode
+            roiManager.stop()
 
     def hasPendingOperations(self):
         """Returns true if a thread is still computing a profile.
@@ -578,9 +696,9 @@ class ProfileManager(qt.QObject):
         self._computedProfiles = self._computedProfiles + 1
         window = roi.getProfileWindow()
         if window is None:
-            # FIXME: reach geometry from the previous closed window
-            window = self.createProfileWindow(roi)
-            self.initProfileWindow(window)
+            plot = self.getPlotWidget()
+            window = self.createProfileWindow(plot, roi)
+            self.initProfileWindow(window, roi)
             window.show()
             roi.setProfileWindow(window)
         window.setProfile(profileData)
@@ -679,6 +797,19 @@ class ProfileManager(qt.QObject):
             self._plotRef = None
         return plot
 
+    def getCurrentRoi(self):
+        """Returns the currently selected ROI, else None.
+
+        :rtype: core.ProfileRoiMixIn
+        """
+        roiManager = self.getRoiManager()
+        if roiManager is None:
+            return None
+        roi = roiManager.getCurrentRoi()
+        if not isinstance(roi, core.ProfileRoiMixIn):
+            return None
+        return roi
+
     def getRoiManager(self):
         """Returns the used ROI manager
 
@@ -686,22 +817,26 @@ class ProfileManager(qt.QObject):
         """
         return self._roiManagerRef()
 
-    def createProfileWindow(self, roi):
+    def createProfileWindow(self, plot, roi):
         """Create a new profile window.
 
+        :param ~core.ProfileRoiMixIn roi: The plot containing the raw data
         :param ~core.ProfileRoiMixIn roi: A managed ROI
-        :rtype: ~ProfileMainWindow
+        :rtype: ~ProfileWindow
         """
-        plot = self.getPlotWidget()
-        return ProfileMainWindow(plot)
+        return ProfileWindow(plot)
 
-    def initProfileWindow(self, profileWindow):
+    def initProfileWindow(self, profileWindow, roi):
         """This function is called just after the profile window creation in
         order to initialize the window location.
 
-        :param ~ProfileMainWindow profileWindow:
+        :param ~ProfileWindow profileWindow:
             The profile window to initialize.
         """
+        # Enforce the use of one of the widgets
+        # To have the correct window size
+        profileWindow.prepareWidget(roi)
+        profileWindow.adjustSize()
         profileWindow.show()
         profileWindow.raise_()
 
@@ -727,3 +862,11 @@ class ProfileManager(qt.QObject):
             # Place profile on the left
             left = max(0, winGeom.left() - profileWindowWidth)
             profileWindow.move(left, winGeom.top())
+
+    def clearProfileWindow(self, profileWindow):
+        """Called when a profile window is not anymore needed.
+
+        By default the window will be closed. But it can be
+        inherited to change this behavior.
+        """
+        profileWindow.deleteLater()
