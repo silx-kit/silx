@@ -372,7 +372,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
         :rtype: bool
         """
-        return True
+        return False
 
     @classmethod
     def getFirstInteractionShape(cls):
@@ -772,10 +772,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
 
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
-
     def setFirstShapePoints(self, points):
         pos = points[0]
         self._marker.setPosition(pos[0], pos[1])
@@ -862,10 +858,6 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         shape.setLineWidth(self.getLineWidth())
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -980,10 +972,6 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
 
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
-
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
@@ -1062,10 +1050,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
         self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1160,10 +1144,6 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         shape.setColor(rgba(self.getColor()))
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -1337,10 +1317,6 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
 
         self.__radius = 0
 
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
-
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
@@ -1470,10 +1446,6 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self._majorRadius = 0
         self._minorRadius = 0
         self._orientation = 0   # angle in radians between the X-axis and the major axis
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -1723,10 +1695,6 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -2022,10 +1990,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         shape.setLineWidth(self.getLineWidth())
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -2586,10 +2550,6 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._markerMax)
         self.addItem(self._markerCen)
         self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def setFirstShapePoints(self, points):
         vmin = min(points[:, 0])
