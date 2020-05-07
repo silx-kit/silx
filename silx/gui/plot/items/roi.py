@@ -39,6 +39,7 @@ from ....utils.weakref import WeakList
 from ... import qt
 from ... import utils
 from .. import items
+from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
 
@@ -93,12 +94,21 @@ class _RegionOfInterestBase(qt.QObject):
         self.sigItemChanged.emit(event)
 
 
-class RegionOfInterest(_RegionOfInterestBase):
+class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     """Object describing a region of interest in a plot.
 
     :param QObject parent:
         The RegionOfInterestManager that created this object
     """
+
+    _DEFAULT_LINEWIDTH = 1.
+    """Default line width of the curve"""
+
+    _DEFAULT_LINESTYLE = '-'
+    """Default line style of the curve"""
+
+    _DEFAULT_HIGHLIGHT_STYLE = items.CurveStyle(linewidth=2)
+    """Default highlight style of the item"""
 
     _kind = None
     """Label for this kind of ROI.
@@ -122,6 +132,7 @@ class RegionOfInterest(_RegionOfInterestBase):
         from ..tools import roi as roi_tools
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent)
+        core.HighlightedMixIn.__init__(self)
         self._color = rgba('red')
         self._editable = False
         self._selectable = False
@@ -423,6 +434,76 @@ class RegionOfInterest(_RegionOfInterestBase):
         else:
             assert False
 
+    def _updated(self, event=None, checkVisibility=True):
+        if event == items.ItemChangedType.HIGHLIGHTED:
+            style = self.getCurrentStyle()
+            self._updatedStyle(event, style)
+        else:
+            hilighted = self.isHighlighted()
+            if hilighted:
+                if event == items.ItemChangedType.HIGHLIGHTED_STYLE:
+                    style = self.getCurrentStyle()
+                    self._updatedStyle(event, style)
+            else:
+                if event in [items.ItemChangedType.COLOR,
+                             items.ItemChangedType.LINE_STYLE,
+                             items.ItemChangedType.LINE_WIDTH,
+                             items.ItemChangedType.SYMBOL,
+                             items.ItemChangedType.SYMBOL_SIZE]:
+                    style = self.getCurrentStyle()
+                    self._updatedStyle(event, style)
+        super(RegionOfInterest, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        """Called when the current displayed style of the ROI was changed.
+
+        :param event: The event responsible of the change of the style
+        :param items.CurveStyle style: The current style
+        """
+        pass
+
+    def getCurrentStyle(self):
+        """Returns the current curve style.
+
+        Curve style depends on curve highlighting
+
+        :rtype: CurveStyle
+        """
+        baseColor = rgba(self.getColor())
+        if isinstance(self, core.LineMixIn):
+            baseLinestyle = self.getLineStyle()
+            baseLinewidth = self.getLineWidth()
+        else:
+            baseLinestyle = self._DEFAULT_LINESTYLE
+            baseLinewidth = self._DEFAULT_LINEWIDTH
+        if isinstance(self, core.SymbolMixIn):
+            baseSymbol = self.getSymbol()
+            baseSymbolsize = self.getSymbolSize()
+        else:
+            baseSymbol = 'o'
+            baseSymbolsize = 1
+
+        if self.isHighlighted():
+            style = self.getHighlightedStyle()
+            color = style.getColor()
+            linestyle = style.getLineStyle()
+            linewidth = style.getLineWidth()
+            symbol = style.getSymbol()
+            symbolsize = style.getSymbolSize()
+
+            return items.CurveStyle(
+                color=baseColor if color is None else color,
+                linestyle=baseLinestyle if linestyle is None else linestyle,
+                linewidth=baseLinewidth if linewidth is None else linewidth,
+                symbol=baseSymbol if symbol is None else symbol,
+                symbolsize=baseSymbolsize if symbolsize is None else symbolsize)
+        else:
+            return items.CurveStyle(color=baseColor,
+                                    linestyle=baseLinestyle,
+                                    linewidth=baseLinewidth,
+                                    symbol=baseSymbol,
+                                    symbolsize=baseSymbolsize)
+
     def _editingStarted(self):
         assert self._editable is True
         self.sigEditingStarted.emit()
@@ -547,17 +628,6 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
         """
         if event == items.ItemChangedType.NAME:
             self._updateText(self.getName())
-        elif event == items.ItemChangedType.COLOR:
-            # Update color of shape items in the plot
-            color = rgba(self.getColor())
-            handleColor = self._computeHandleColor(color)
-            for item, role in self._handles:
-                if role == 'user':
-                    pass
-                elif role == 'label':
-                    item.setColor(color)
-                else:
-                    item.setColor(handleColor)
         elif event == items.ItemChangedType.VISIBLE:
             for item, role in self._handles:
                 visible = self.isVisible() and self.isEditable()
@@ -568,6 +638,20 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
                 if role not in ["user", "label"]:
                     self.__updateEditable(item, editable)
         super(_HandleBasedROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(_HandleBasedROI, self)._updatedStyle(event, style)
+
+        # Update color of shape items in the plot
+        color = rgba(self.getColor())
+        handleColor = self._computeHandleColor(color)
+        for item, role in self._handles:
+            if role == 'user':
+                pass
+            elif role == 'label':
+                item.setColor(color)
+            else:
+                item.setColor(handleColor)
 
     def __updateEditable(self, handle, editable, remove=True):
         # NOTE: visibility change emit a position update event
@@ -658,8 +742,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     """
 
     def __init__(self, parent=None):
-        items.SymbolMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.SymbolMixIn.__init__(self)
         self._marker = items.Marker()
         self._marker.setSymbol(self._DEFAULT_SYMBOL)
         self._marker.sigDragStarted.connect(self._editingStarted)
@@ -686,11 +770,13 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             else:
                 self._marker.sigItemChanged.disconnect(self.__positionChanged)
             self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.COLOR,
-                       items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(PointROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        self._marker.setColor(style.getColor())
 
     def getPosition(self):
         """Returns the position of this ROI
@@ -735,8 +821,8 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleStart = self.addHandle()
         self._handleEnd = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
@@ -757,12 +843,14 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
         super(LineROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -834,8 +922,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._marker = items.YMarker()
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
@@ -857,13 +945,15 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             else:
                 self._marker.sigItemChanged.disconnect(self.__positionChanged)
             self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.COLOR,
-                       items.ItemChangedType.LINE_STYLE,
-                       items.ItemChangedType.LINE_WIDTH,
-                       items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(HorizontalLineROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        self._marker.setColor(style.getColor())
+        self._marker.setLineStyle(style.getLineStyle())
+        self._marker.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         pos = points[0, 1]
@@ -911,8 +1001,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._marker = items.XMarker()
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
@@ -934,13 +1024,15 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             else:
                 self._marker.sigItemChanged.disconnect(self.__positionChanged)
             self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.COLOR,
-                       items.ItemChangedType.LINE_STYLE,
-                       items.ItemChangedType.LINE_WIDTH,
-                       items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(VerticalLineROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        self._marker.setColor(style.getColor())
+        self._marker.setLineStyle(style.getLineStyle())
+        self._marker.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         pos = points[0, 0]
@@ -992,8 +1084,8 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleTopLeft = self.addHandle()
         self._handleTopRight = self.addHandle()
         self._handleBottomLeft = self.addHandle()
@@ -1017,12 +1109,15 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event in [items.ItemChangedType.VISIBLE]:
             self._updateItemProperty(event, self, self.__shape)
         super(RectangleROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(RectangleROI, self)._updatedStyle(event, style)
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -1159,8 +1254,8 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._handleLabel = self.addLabelHandle()
         self._handleCenter = self.addTranslateHandle()
         self._handlePoints = []
@@ -1176,12 +1271,15 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event in [items.ItemChangedType.VISIBLE]:
             self._updateItemProperty(event, self, self.__shape)
         super(PolygonROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(PolygonROI, self)._updatedStyle(event, style)
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def __createShape(self, interaction=False):
         kind = "polygon" if not interaction else "polylines"
@@ -1426,8 +1524,8 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                         self._closed))
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         _HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._geometry  = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
 
@@ -1456,12 +1554,15 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
         super(ArcROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(ArcROI, self)._updatedStyle(event, style)
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         """"Initialize the ROI using the points from the first interaction.
@@ -1970,8 +2071,8 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        items.LineMixIn.__init__(self)
         RegionOfInterest.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
         self._markerMin = items.XMarker()
         self._markerMax = items.XMarker()
         self._markerCen = items.XMarker()
@@ -2007,13 +2108,17 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         elif event == items.ItemChangedType.LINE_STYLE:
             markers = [self._markerMin, self._markerMax]
             self._updateItemProperty(event, self, markers)
-        elif event in [items.ItemChangedType.COLOR,
-                       items.ItemChangedType.LINE_WIDTH,
-                       items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             markers = [self._markerMin, self._markerMax, self._markerCen]
             self._updateItemProperty(event, self, markers)
         super(HorizontalRangeROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        markers = [self._markerMin, self._markerMax, self._markerCen]
+        for m in markers:
+            m.setColor(style.getColor())
+            m.setLineWidth(style.getLineWidth())
 
     def _updateText(self):
         text = self.getName()

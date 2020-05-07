@@ -74,10 +74,11 @@ def updateAddedRegionOfInterest(roi):
     if roi.getName() == '':
         roi.setName('ROI %d' % len(roiManager.getRois()))
     if isinstance(roi, LineMixIn):
-        roi.setLineWidth(2)
+        roi.setLineWidth(1)
         roi.setLineStyle('--')
     if isinstance(roi, SymbolMixIn):
         roi.setSymbolSize(5)
+    roi.setSelectable(True)
 
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)

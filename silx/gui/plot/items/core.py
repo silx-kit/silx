@@ -1510,3 +1510,54 @@ class BaselineMixIn(object):
             return numpy.array(self._baseline, copy=True)
         else:
             return self._baseline
+
+
+class _Style:
+    """Object which store styles"""
+
+
+class HighlightedMixIn(ItemMixInBase):
+
+    def __init__(self):
+        self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
+        self._highlighted = False
+
+    def isHighlighted(self):
+        """Returns True if curve is highlighted.
+
+        :rtype: bool
+        """
+        return self._highlighted
+
+    def setHighlighted(self, highlighted):
+        """Set the highlight state of the curve
+
+        :param bool highlighted:
+        """
+        highlighted = bool(highlighted)
+        if highlighted != self._highlighted:
+            self._highlighted = highlighted
+            # TODO inefficient: better to use backend's setCurveColor
+            self._updated(ItemChangedType.HIGHLIGHTED)
+
+    def getHighlightedStyle(self):
+        """Returns the highlighted style in use
+
+        :rtype: CurveStyle
+        """
+        return self._highlightStyle
+
+    def setHighlightedStyle(self, style):
+        """Set the style to use for highlighting
+
+        :param CurveStyle style: New style to use
+        """
+        previous = self.getHighlightedStyle()
+        if style != previous:
+            assert isinstance(style, _Style)
+            self._highlightStyle = style
+            self._updated(ItemChangedType.HIGHLIGHTED_STYLE)
+
+            # Backward compatibility event
+            if previous.getColor() != style.getColor():
+                self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
