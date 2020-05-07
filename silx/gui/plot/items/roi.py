@@ -127,8 +127,8 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     _DEFAULT_HIGHLIGHT_STYLE = items.CurveStyle(linewidth=2)
     """Default highlight style of the item"""
 
-    _kind = None
-    """Label for this kind of ROI.
+    ICON, NAME, SHORT_NAME = None, None, None
+    """Metadata to describe the ROI in labels, tooltips and widgets
 
     Should be set by inherited classes to custom the ROI manager widget.
     """
@@ -235,12 +235,16 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             yield i
 
     @classmethod
-    def _getKind(cls):
+    def _getShortName(cls):
         """Return an human readable kind of ROI
 
         :rtype: str
         """
-        return cls._kind
+        if hasattr(cls, "SHORT_NAME"):
+            name = cls.SHORT_NAME
+        if name is None:
+            name = cls.__name__
+        return name
 
     def getColor(self):
         """Returns the color of this ROI
@@ -750,8 +754,10 @@ class HandleBasedROI(RegionOfInterest, _Foo):
 class PointROI(RegionOfInterest, items.SymbolMixIn):
     """A ROI identifying a point in a 2D plot."""
 
-    _kind = "Point"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-point'
+    NAME = 'point markers'
+    SHORT_NAME = "point"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
@@ -835,8 +841,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     in the center to translate the full ROI.
     """
 
-    _kind = "Line"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-diagonal'
+    NAME = 'line ROI'
+    SHORT_NAME = "line"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -957,8 +965,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
 class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal line in a 2D plot."""
 
-    _kind = "HLine"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-horizontal'
+    NAME = 'horizontal line ROI'
+    SHORT_NAME = "hline"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "hline"
     """Plot shape which is used for the first interaction"""
@@ -1036,8 +1046,10 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a vertical line in a 2D plot."""
 
-    _kind = "VLine"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-vertical'
+    NAME = 'vertical line ROI'
+    SHORT_NAME = "vline"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "vline"
     """Plot shape which is used for the first interaction"""
@@ -1119,8 +1131,10 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     center to translate the full ROI.
     """
 
-    _kind = "Rectangle"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-rectangle'
+    NAME = 'rectangle ROI'
+    SHORT_NAME = "rectangle"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "rectangle"
     """Plot shape which is used for the first interaction"""
@@ -1292,6 +1306,11 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
     and one anchor on the perimeter to change the radius.
     """
 
+    ICON = 'add-shape-circle'
+    NAME = 'circle ROI'
+    SHORT_NAME = "circle"
+    """Metadata for this kind of ROI"""
+
     _kind = "Circle"
     """Label for this kind of ROI"""
 
@@ -1419,8 +1438,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     minor-radius. These two anchors also allow to change the orientation.
     """
 
-    _kind = "Ellipse"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-ellipse'
+    NAME = 'ellipse ROI'
+    SHORT_NAME = "ellipse"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -1676,8 +1697,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
     This ROI provides 1 anchor for each point of the polygon.
     """
 
-    _kind = "Polygon"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-polygon'
+    NAME = 'polygon ROI'
+    SHORT_NAME = "polygon"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "polygon"
     """Plot shape which is used for the first interaction"""
@@ -1857,8 +1880,10 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     - 1 anchor to translate the shape.
     """
 
-    _kind = "Arc"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-arc'
+    NAME = 'arc ROI'
+    SHORT_NAME = "arc"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -2525,8 +2550,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal range in a 1D plot."""
 
-    _kind = "HRange"
-    """Label for this kind of ROI"""
+    ICON = 'add-range-horizontal'
+    NAME = 'horizontal range ROI'
+    SHORT_NAME = "hrange"
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
