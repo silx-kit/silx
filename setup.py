@@ -273,6 +273,7 @@ class BuildMan(Command):
         import tempfile
         import stat
         script_name = None
+        workdir = tempfile.mkdtemp()
 
         entry_points = self.entry_points_iterator()
         for target_name, module_name, function_name in entry_points:
@@ -283,12 +284,11 @@ class BuildMan(Command):
             py3 = sys.version_info >= (3, 0)
             try:
                 # create a launcher using the right python interpreter
-                script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
-                script = os.fdopen(script_fid, 'wt')
-                script.write("#!%s\n" % sys.executable)
-                script.write("import %s as app\n" % module_name)
-                script.write("app.%s()\n" % function_name)
-                script.close()
+                script_name = os.path.join(workdir, target_name)
+                with open(script_name, "wt") as script:
+                    script.write("#!%s\n" % sys.executable)
+                    script.write("import %s as app\n" % module_name)
+                    script.write("app.%s()\n" % function_name)
                 # make it executable
                 mode = os.stat(script_name).st_mode
                 os.chmod(script_name, mode + stat.S_IEXEC)
@@ -318,6 +318,7 @@ class BuildMan(Command):
                 # clean up the script
                 if script_name is not None:
                     os.remove(script_name)
+        os.rmdir(workdir)
 
 
 if sphinx is not None:
