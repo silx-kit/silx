@@ -140,7 +140,7 @@ class FitAction(PlotToolAction):
         from ...fit.FitWidget import FitWidget
 
         window = FitWidget(parent=self.plot)
-        window.setWindowFlags(qt.Qt.Window)
+        window.setWindowFlags(qt.Qt.Dialog)
         window.sigFitWidgetSignal.connect(self.handle_signal)
         return window
 
