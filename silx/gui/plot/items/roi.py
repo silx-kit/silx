@@ -31,6 +31,7 @@ __date__ = "28/06/2018"
 
 
 import logging
+import math
 import collections
 import numpy
 import weakref
@@ -1238,6 +1239,144 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         w, h = self.getSize()
         params = origin[0], origin[1], w, h
         params = 'origin: %f %f; width: %f; height: %f' % params
+        return "%s(%s)" % (self.__class__.__name__, params)
+
+
+class CircleROI(_HandleBasedROI, items.LineMixIn):
+    """A ROI identifying a circle in a 2D plot.
+
+    This ROI provides 1 anchor at the center to translate the circle,
+    and one anchor on the perimeter to change the radius.
+    """
+
+    _kind = "Circle"
+    """Label for this kind of ROI"""
+
+    _plotShape = "line"
+    """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        _HandleBasedROI.__init__(self, parent=parent)
+        self._handlePerimeter = self.addHandle()
+        self._handleCenter = self.addTranslateHandle()
+        self._handleLabel = self.addLabelHandle()
+
+        shape = items.Shape("polygon")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        shape.setColor(rgba(self.getColor()))
+        self.__shape = shape
+        self.addItem(shape)
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(CircleROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        assert len(points) == 2
+        self._setRay(points)
+
+    @staticmethod
+    def _calculateDistance(p0, p1):
+        """
+
+        :param p0: first point coordinates
+        :param p1: second point coordinates
+        :return:
+        """
+        return math.sqrt((p0[0] - p1[0]) ** 2
+                         + (p0[1] - p1[1]) ** 2)
+
+    def _setRay(self, points):
+        """Initialize the circle from the center point and a
+        perimeter point."""
+        center = points[0]
+        radius = self._calculateDistance(points[0], points[1])
+        self.setGeometry(center=center, radius=radius)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
+
+    def getCenter(self):
+        """Returns the central point of this rectangle
+
+        :rtype: numpy.ndarray([float,float])
+        """
+        pos = self._handleCenter.getPosition()
+        return numpy.array(pos)
+
+    def getRadius(self):
+        """Returns the radius of this circle
+
+        :rtype: float
+        """
+        return self._calculateDistance(self._handleCenter.getPosition(),
+                                       self._handlePerimeter.getPosition())
+
+    def setCenter(self, position):
+        """Set the center point of this ROI
+
+        :param numpy.ndarray position: Location of the center of the circle
+        """
+        radius = self.getRadius()
+        self.setGeometry(center=position, radius=radius)
+
+    def setRadius(self, radius):
+        """Set the size of this ROI
+
+        :param float size: Radius of the circle
+        """
+        center = self.getCenter()
+        self.setGeometry(center=center, radius=radius)
+
+    def setGeometry(self, center, radius):
+        """Set the geometry of the ROI
+        """
+        center = numpy.array(center)
+        radius = float(radius)
+        perimeter_point = numpy.array([center[0] + radius, center[1]])
+        points = numpy.array([center, perimeter_point])
+
+        with utils.blockSignals(self._handleCenter):
+            self._handleCenter.setPosition(points[0, 0], points[0, 1])
+        with utils.blockSignals(self._handlePerimeter):
+            self._handlePerimeter.setPosition(points[1, 0], points[1, 1])
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(points[0, 0], points[0, 1])
+
+        nbpoints = 27
+        angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
+        circleShape = numpy.array((numpy.cos(angles) * radius,
+                                   numpy.sin(angles) * radius)).T
+        circleShape += center
+        self.__shape.setPoints(circleShape)
+        self.sigRegionChanged.emit()
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handleCenter:
+            self.setCenter(current)
+        elif handle is self._handlePerimeter:
+            center = self.getCenter()
+            self.setRadius(self._calculateDistance(center, current))
+
+    def __str__(self):
+        center = self.getCenter()
+        radius = self.getRadius()
+        params = center[0], center[1], radius
+        params = 'center: %f %f; radius: %f;' % params
         return "%s(%s)" % (self.__class__.__name__, params)
 
 

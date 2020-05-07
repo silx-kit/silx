@@ -218,6 +218,7 @@ class RegionOfInterestManager(qt.QObject):
     _MODE_ACTIONS_PARAMS[roi_items.PointROI] = 'add-shape-point', 'Add point markers'
     _MODE_ACTIONS_PARAMS[roi_items.RectangleROI] = 'add-shape-rectangle', 'Add rectangle ROI'
     _MODE_ACTIONS_PARAMS[roi_items.PolygonROI] = 'add-shape-polygon', 'Add polygon ROI'
+    _MODE_ACTIONS_PARAMS[roi_items.CircleROI] = 'add-shape-unknown', 'Add circle ROI'
     _MODE_ACTIONS_PARAMS[roi_items.LineROI] = 'add-shape-diagonal', 'Add line ROI'
     _MODE_ACTIONS_PARAMS[roi_items.HorizontalLineROI] = 'add-shape-horizontal', 'Add horizontal line ROI'
     _MODE_ACTIONS_PARAMS[roi_items.VerticalLineROI] = 'add-shape-vertical', 'Add vertical line ROI'

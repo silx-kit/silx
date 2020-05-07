@@ -108,6 +108,34 @@ class TestRoiItems(TestCaseQt):
         numpy.testing.assert_allclose(item.getCenter(), expectedCenter)
         numpy.testing.assert_allclose(item.getSize(), size)
 
+    def testCircle_geometry(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        numpy.testing.assert_allclose(item.getRadius(), radius)
+
+    def testCircle_setCenter(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        newCenter = numpy.array([-10, 0])
+        item.setCenter(newCenter)
+        numpy.testing.assert_allclose(item.getCenter(), newCenter)
+        numpy.testing.assert_allclose(item.getRadius(), radius)
+
+    def testCircle_setRadius(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        newRadius = 5.1
+        item.setRadius(newRadius)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        numpy.testing.assert_allclose(item.getRadius(), newRadius)
+
     def testPolygon_emptyGeometry(self):
         points = numpy.empty((0, 2))
         item = roi_items.PolygonROI()
