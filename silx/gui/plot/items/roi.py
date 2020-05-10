@@ -1096,7 +1096,6 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
         shape = items.Shape("rectangle")
         shape.setPoints([[0, 0], [0, 0]])
-        shape.setColor(rgba(self.getColor()))
         shape.setFill(False)
         shape.setOverlay(True)
         shape.setLineStyle(self.getLineStyle())
@@ -1269,7 +1268,6 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         shape.setOverlay(True)
         shape.setLineStyle(self.getLineStyle())
         shape.setLineWidth(self.getLineWidth())
-        shape.setColor(rgba(self.getColor()))
         self.__shape = shape
         self.addItem(shape)
 
@@ -1425,7 +1423,6 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         kind = "polygon" if not interaction else "polylines"
         shape = items.Shape(kind)
         shape.setPoints([[0, 0], [0, 0]])
-        shape.setColor(rgba(self.getColor()))
         shape.setFill(False)
         shape.setOverlay(True)
         shape.setLineStyle(self.getLineStyle())
