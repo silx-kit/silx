@@ -750,7 +750,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             return
         else:
             item = self.sender()
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
             # deal with stat items visibility
             if event is ItemChangedType.VISIBLE:
                 if len(self._itemToTableItems(item).items()) > 0:
@@ -845,7 +845,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.clearContents()
         self.setRowCount(0)
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
@@ -865,7 +865,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
             stats = statsHandler.calculate(
-                item, plot, self._statsOnVisibleData)
+                item, plot, self._statsOnVisibleData,
+                data_changed=data_changed, roi_changed=roi_changed)
         else:
             stats = {}
 
