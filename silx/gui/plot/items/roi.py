@@ -380,6 +380,9 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
+    def isIn(self, value):
+        """Return True if the value is in between fromdata and todata"""
+        raise NotImplementedError("Base class")
 
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
@@ -794,6 +797,9 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
+    def isIn(self, value):
+        raise NotImplementedError()
+
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
@@ -905,6 +911,14 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        raise NotImplementedError()
+
     def __str__(self):
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
@@ -977,6 +991,14 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        raise NotImplementedError()
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1056,6 +1078,14 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        raise NotImplementedError()
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1214,6 +1244,21 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+
+        :param value: should be given as x, y
+        :return:
+        """
+        assert isinstance(value, (tuple, list, numpy.array))
+        points = self._getControlPoints()
+        points = self._getShapeFromControlPoints(points)
+        min_x = min(points[0][0], points[1][0])
+        max_x = max(points[0][0], points[1][0])
+        min_y = min(points[0][1], points[1][1])
+        max_y = max(points[0][1], points[1][1])
+        return (min_x <= value[0] <= max_x) and (min_y <= value[1] <= max_y)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -1795,6 +1840,22 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         points = self._points
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        if self._polygon_shape is None:
+            self._polygon_shape = Polygon(vertices=self._getControlPoints())
+
+        # warning: both the polygon and the value are inverted
+        return self._polygon_shape.is_inside(row=value[0], col=value[1])
+
+    def _setControlPoints(self, points):
+        RegionOfInterest._setControlPoints(self, points=points)
+        self._polygon_shape = None
 
 
 class ArcROI(_HandleBasedROI, items.LineMixIn):
@@ -2400,6 +2461,14 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                                          startAngle, endAngle, closed=None)
         self._geometry = geometry
         self._updateHandles()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        raise NotImplementedError()
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)
