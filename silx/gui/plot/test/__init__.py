@@ -54,6 +54,7 @@ from . import testScatterView
 from . import testPixelIntensityHistoAction
 from . import testCompareImages
 from . import testRoiStatsWidget
+from . import testUtilsBB
 
 
 def suite():
@@ -88,5 +89,6 @@ def suite():
          testPixelIntensityHistoAction.suite(),
          testCompareImages.suite(),
          testRoiStatsWidget.suite(),
+         testUtilsBB.suite(),
          ])
     return test_suite

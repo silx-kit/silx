@@ -42,6 +42,7 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
+from ..utils.boundingbox import BoundingBox
 
 
 logger = logging.getLogger(__name__)
@@ -934,6 +935,19 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
         :return:
         :rtype: bool
         """
+
+        bottom_left = value[0], value[1]
+        bottom_right = value[0] + 1, value[1]
+        top_left = value[0], value[1] + 1
+        top_right = value[0] + 1, value[1] + 1
+
+        line_pt1 = self._points[0]
+        line_pt2 = self._points[1]
+
+        bb1 = BoundingBox.from_points(self._points)
+        if bb1.contains(value) is False:
+            return False
+
         def lines_intersection(line1_pt1, line1_pt2, line2_pt1, line2_pt2):
             """
             line segment intersection using vectors (Computer Graphics by F.S. Hill)
@@ -998,14 +1012,6 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
                     return intersection
                 else:
                     return None
-
-        bottom_left = value[0], value[1]
-        bottom_right = value[0] + 1, value[1]
-        top_left = value[0], value[1] + 1
-        top_right = value[0] + 1, value[1] + 1
-
-        line_pt1 = self._points[0]
-        line_pt2 = self._points[1]
 
         return (
                 segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
@@ -1355,11 +1361,8 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         assert isinstance(value, (tuple, list, numpy.array))
         points = self._getControlPoints()
         points = self._getShapeFromControlPoints(points)
-        min_x = min(points[0][0], points[1][0])
-        max_x = max(points[0][0], points[1][0])
-        min_y = min(points[0][1], points[1][1])
-        max_y = max(points[0][1], points[1][1])
-        return (min_x <= value[0] <= max_x) and (min_y <= value[1] <= max_y)
+        bb1 = BoundingBox.from_points(points)
+        return bb1.contains(value)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -1948,6 +1951,10 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         :param value:
         :return:
         """
+        bb1 = BoundingBox.from_points(self._getControlPoints())
+        if bb1.contains(value) is False:
+            return False
+
         if self._polygon_shape is None:
             self._polygon_shape = Polygon(vertices=self._getControlPoints())
 
@@ -2569,7 +2576,12 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         :param value:
         :return:
         """
+        # first check distance, fastest
         center = self.getCenter()
+        distance = numpy.sqrt((value[1] - center[1])**2 + ((value[0] - center[0]))**2)
+        is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
+        if not is_in_distance:
+            return False
         rel_pos = value[1] - center[1], value[0] - center[0]
         angle = numpy.arctan2(*rel_pos)
         start_angle = self.getStartAngle()
@@ -2583,9 +2595,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
             if end_angle < -numpy.pi and angle > 0:
                 angle = angle - (numpy.pi *2.0)
             is_in_angle = end_angle <= angle <= start_angle
-        distance = numpy.sqrt((value[1] - center[1])**2 + ((value[0] - center[0]))**2)
-        is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
-        return is_in_angle and is_in_distance
+        return is_in_angle
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)
