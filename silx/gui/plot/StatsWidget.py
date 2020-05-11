@@ -1397,7 +1397,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         """
         return self._item_kind
 
-    def _setItem(self, item):
+    def _setItem(self, item, data_changed=True):
         if item is None:
             for stat_name, stat_widget in self._statQlineEdit.items():
                 stat_widget.setText('')
@@ -1407,7 +1407,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             if plot is not None:
                 statsValDict = self._statsHandler.calculate(item,
                                                             plot,
-                                                            self._statsOnVisibleData)
+                                                            self._statsOnVisibleData,
+                                                            data_changed=data_changed)
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
 
@@ -1422,7 +1423,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
         _item = items[0] if len(items) == 1 else None
-        self._setItem(_item)
+        self._setItem(_item, data_changed=True)
 
     def _updateCurrentItem(self):
         self._updateItemObserve()
@@ -1437,7 +1438,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     def _removeItem(self, item):
         raise NotImplementedError('Display only the active item')
 
-    def _plotCurrentChanged(selfself, current):
+    def _plotCurrentChanged(self, current):
         raise NotImplementedError('Display only the active item')
 
     def _updateModeHasChanged(self):
