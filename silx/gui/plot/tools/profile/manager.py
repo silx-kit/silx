@@ -34,6 +34,7 @@ import weakref
 
 from silx.gui import qt
 from silx.gui import colors
+from silx.gui import utils
 
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
@@ -348,6 +349,90 @@ class _ClearAction(qt.QAction):
         self.setEnabled(enabled)
 
 
+class _StoreLastParamBehavior(qt.QObject):
+    """This object allow to store and restore the properties of the ROI
+    profiles"""
+
+    def __init__(self, parent):
+        assert isinstance(parent, ProfileManager)
+        super(_StoreLastParamBehavior, self).__init__(parent=parent)
+        self.__properties = {}
+        self.__profileRoi = None
+        self.__filter = utils.LockReentrant()
+
+    def _roi(self):
+        """Return the spied ROI"""
+        if self.__profileRoi is None:
+            return None
+        roi = self.__profileRoi()
+        if roi is None:
+            self.__profileRoi = None
+        return roi
+
+    def setProfileRoi(self, roi):
+        """Set a profile ROI to spy.
+
+        :param ProfileRoiMixIn roi: A profile ROI
+        """
+        previousRoi = self._roi()
+        if previousRoi is roi:
+            return
+        if previousRoi is not None:
+            previousRoi.sigProfilePropertyChanged.disconnect(self._profilePropertyChanged)
+        self.__profileRoi = None if roi is None else weakref.ref(roi)
+        if roi is not None:
+            roi.sigProfilePropertyChanged.connect(self._profilePropertyChanged)
+
+    def _profilePropertyChanged(self):
+        """Handle changes on the properties defining the profile ROI.
+        """
+        if self.__filter.locked():
+            return
+        roi = self.sender()
+        self.storeProperties(roi)
+
+    def storeProperties(self, roi):
+        if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
+                              rois.ProfileImageStackCrossROI)):
+            self.__properties["method"] = roi.getProfileMethod()
+            self.__properties["line-width"] = roi.getProfileLineWidth()
+            self.__properties["type"] = roi.getProfileType()
+        elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
+                            rois.ProfileImageCrossROI)):
+            self.__properties["method"] = roi.getProfileMethod()
+            self.__properties["line-width"] = roi.getProfileLineWidth()
+        elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
+                              rois.ProfileScatterCrossROI)):
+            self.__properties["npoints"] = roi.getNPoints()
+
+    def restoreProperties(self, roi):
+        with self.__filter:
+            if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
+                                  rois.ProfileImageStackCrossROI)):
+                value = self.__properties.get("method", None)
+                if value is not None:
+                    roi.setProfileMethod(value)
+                value = self.__properties.get("line-width", None)
+                if value is not None:
+                    roi.setProfileLineWidth(value)
+                value = self.__properties.get("type", None)
+                if value is not None:
+                    roi.setProfileType(value)
+            elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
+                                rois.ProfileImageCrossROI)):
+                value = self.__properties.get("method", None)
+                if value is not None:
+                    roi.setProfileMethod(value)
+                value = self.__properties.get("line-width", None)
+                if value is not None:
+                    roi.setProfileLineWidth(value)
+            elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
+                                  rois.ProfileScatterCrossROI)):
+                value = self.__properties.get("npoints", None)
+                if value is not None:
+                    roi.setNPoints(value)
+
+
 class ProfileManager(qt.QObject):
     """Base class for profile management tools
 
@@ -391,11 +476,16 @@ class ProfileManager(qt.QObject):
 
         self._previousWindowGeometry = []
 
+        self._storeProperties = _StoreLastParamBehavior(self)
+        """If defined the profile properties of the last ROI are reused to the
+        new created ones"""
+
         # Listen to plot limits changed
         plot.getXAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
         plot.getYAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
 
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
+        roiManager.sigInteractiveRoiCreated.connect(self.__roiCreated)
         roiManager.sigRoiAdded.connect(self.__roiAdded)
         roiManager.sigRoiAboutToBeRemoved.connect(self.__roiRemoved)
 
@@ -597,9 +687,20 @@ class ProfileManager(qt.QObject):
             item = plot.getScatter(legend)
             self.setPlotItem(item)
 
+    def __roiCreated(self, roi):
+        """Handle ROI creation"""
+        # Filter out non profile ROIs
+        if isinstance(roi, core.ProfileRoiMixIn):
+            if self._storeProperties is not None:
+                # Initialize the properties with the previous ones
+                self._storeProperties.restoreProperties(roi)
+
     def __addProfile(self, profileRoi):
         """Add a new ROI to the manager."""
         if profileRoi.getFocusProxy() is None:
+            if self._storeProperties is not None:
+                # Follow changes on properties
+                self._storeProperties.setProfileRoi(profileRoi)
             if self.__singleProfileAtATime:
                 # FIXME: It would be good to reuse the windows to avoid blinking
                 self.clearProfile()
