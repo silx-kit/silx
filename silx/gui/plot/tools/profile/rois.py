@@ -405,10 +405,12 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         self.__hlineName = hline.getName()
         vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
         vline.setEditable(False)
+        vline.setSelectable(False)
         vline.setFocusProxy(self)
         vline.setName("")
         hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
         hline.setEditable(False)
+        hline.setSelectable(False)
         hline.setFocusProxy(self)
         hline.setName("")
         self.__vline = vline
@@ -467,14 +469,17 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         profileManager = self.getProfileManager()
         roiManager = profileManager.getRoiManager()
         if isHline:
-            vline.setFocusProxy(None)
-            vline.setName(self.__vlineName)
-            vline.setEditable(True)
+            self.__releaseLine(vline)
         else:
-            hline.setFocusProxy(None)
-            hline.setName(self.__hlineName)
-            hline.setEditable(True)
+            self.__releaseLine(hline)
         roiManager.removeRoi(self)
+
+    def __releaseLine(self, line):
+        """Release the line in order to make it independent"""
+        line.setFocusProxy(None)
+        line.setName(self.getName())
+        line.setEditable(self.isEditable())
+        line.setSelectable(self.isSelectable())
 
 
 class ProfileImageCrossROI(_ProfileCrossROI):
