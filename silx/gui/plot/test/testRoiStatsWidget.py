@@ -28,6 +28,7 @@
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
+from silx.gui.plot.stats.stats import Stats
 from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
@@ -81,6 +82,7 @@ class _TestRoiStatsBase(TestCaseQt):
         return self.statsWidget._statsROITable
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.statsWidget.setAttribute(qt.Qt.WA_DeleteOnClose, True)
         self.statsWidget.close()
         self.statsWidget = None

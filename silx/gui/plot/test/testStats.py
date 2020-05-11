@@ -38,6 +38,7 @@ from silx.gui.plot import Plot1D, Plot2D
 from silx.gui.plot3d.SceneWidget import SceneWidget
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.tools.roi import  RegionOfInterestManager
+from silx.gui.plot.stats.stats import Stats
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.utils.testutils import ParametricTestCase
 import unittest
@@ -317,6 +318,7 @@ class TestStatsHandler(TestCaseQt):
         self.stat = stats.StatMin()
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
         self.plot1d = None
@@ -413,6 +415,7 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
         self.statsTable.setStats(mystats)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         self.statsTable = None
@@ -602,6 +605,7 @@ class TestStatsWidgetWithImages(TestCaseQt):
         self.widget.setStats(mystats)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
@@ -662,6 +666,7 @@ class TestStatsWidgetWithScatters(TestCaseQt):
         self.widget.setStats(mystats)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.scatterPlot.close()
         self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
@@ -715,6 +720,7 @@ class TestLineWidget(TestCaseQt):
                                                        stats=mystats)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
