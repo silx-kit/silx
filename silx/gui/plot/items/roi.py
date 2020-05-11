@@ -776,7 +776,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
 
     def setFirstShapePoints(self, points):
         pos = points[0]
@@ -813,7 +812,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
@@ -823,8 +822,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getPosition())
@@ -980,7 +977,6 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1022,7 +1018,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
@@ -1032,8 +1028,6 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getYPosition())
@@ -1061,7 +1055,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1103,7 +1096,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
@@ -1113,8 +1106,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getXPosition())
@@ -2631,9 +2622,12 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def _updatePos(self, vmin, vmax):
         center = (vmin + vmax) * 0.5
         with self.__filterReentrant:
-            self._markerMin.setPosition(vmin, 0)
-            self._markerCen.setPosition(center, 0)
-            self._markerMax.setPosition(vmax, 0)
+            with utils.blockSignals(self._markerMin):
+                self._markerMin.setPosition(vmin, 0)
+            with utils.blockSignals(self._markerCen):
+                self._markerCen.setPosition(center, 0)
+            with utils.blockSignals(self._markerMax):
+                self._markerMax.setPosition(vmax, 0)
         self.sigRegionChanged.emit()
 
     def setRange(self, vmin, vmax):
@@ -2730,24 +2724,18 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
 
     def _minPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setMin(marker.getXPosition())
 
     def _maxPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setMax(marker.getXPosition())
 
     def _cenPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setCenter(marker.getXPosition())
