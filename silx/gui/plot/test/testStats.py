@@ -65,7 +65,6 @@ class TestStatsBase(object):
         self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.scatterPlot.close()
         del self.scatterPlot
-        TestCaseQt.tearDown(self)
 
     def createCurveContext(self):
         self.plot1d = Plot1D()
