@@ -31,7 +31,6 @@ __date__ = "28/06/2018"
 
 
 import logging
-import math
 import collections
 import numpy
 import weakref
@@ -1292,22 +1291,11 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         assert len(points) == 2
         self._setRay(points)
 
-    @staticmethod
-    def _calculateDistance(p0, p1):
-        """
-
-        :param p0: first point coordinates
-        :param p1: second point coordinates
-        :return:
-        """
-        return math.sqrt((p0[0] - p1[0]) ** 2
-                         + (p0[1] - p1[1]) ** 2)
-
     def _setRay(self, points):
         """Initialize the circle from the center point and a
         perimeter point."""
         center = points[0]
-        radius = self._calculateDistance(points[0], points[1])
+        radius = numpy.linalg.norm(points[0] - points[1])
         self.setGeometry(center=center, radius=radius)
 
     def _updateText(self, text):
@@ -1372,7 +1360,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
             self.setCenter(current)
         elif handle is self._handlePerimeter:
             center = self.getCenter()
-            self.setRadius(self._calculateDistance(center, current))
+            self.setRadius(numpy.linalg.norm(center - current))
 
     def __str__(self):
         center = self.getCenter()
@@ -1438,17 +1426,6 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         self._setRay(points)
 
     @staticmethod
-    def _calculateDistance(p0, p1):
-        """
-
-        :param p0: first point coordinates
-        :param p1: second point coordinates
-        :return:
-        """
-        return math.sqrt((p0[0] - p1[0]) ** 2
-                         + (p0[1] - p1[1]) ** 2)
-
-    @staticmethod
     def _calculateOrientation(p0, p1):
         """return angle in radians between the vector p0-p1
         and the X axis
@@ -1459,8 +1436,11 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         """
         vector = (p1[0] - p0[0], p1[1] - p0[1])
         x_unit_vector = (1, 0)
-        theta = numpy.arccos(numpy.dot(vector, x_unit_vector)
-                             / numpy.sqrt(vector[0]**2 + vector[1]**2))
+        norm = numpy.linalg.norm(vector)
+        if norm != 0:
+            theta = numpy.arccos(numpy.dot(vector, x_unit_vector) / norm)
+        else:
+            theta = 0
         if vector[1] < 0:
             # arccos always returns values in range [0, pi]
             theta = 2 * numpy.pi - theta
@@ -1476,7 +1456,7 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         """Initialize the circle from the center point and a
         perimeter point."""
         center = points[0]
-        radius = self._calculateDistance(points[0], points[1])
+        radius = numpy.linalg.norm(points[0] - points[1])
         orientation = self._calculateOrientation(points[0], points[1])
         self.setGeometry(center=center, majorRadius=radius, minorRadius=radius,
                          orientation=orientation)
@@ -1625,12 +1605,12 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
             orientation = self._calculateOrientation(center, current) - numpy.pi / 2
             self.setGeometry(center=self.getCenter(),
                              majorRadius=self._majorRadius,
-                             minorRadius=self._calculateDistance(center, current),
+                             minorRadius=numpy.linalg.norm(center - current),
                              orientation=orientation)
         elif handle is self._handleMajorAxis:
             orientation = self._calculateOrientation(center, current)
             self.setGeometry(center=self.getCenter(),
-                             majorRadius=self._calculateDistance(center, current),
+                             majorRadius=numpy.linalg.norm(center - current),
                              minorRadius=self._minorRadius,
                              orientation=orientation)
 
