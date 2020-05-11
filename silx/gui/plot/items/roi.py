@@ -1278,12 +1278,15 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
         super(CircleROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(CircleROI, self)._updatedStyle(event, style)
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -1420,12 +1423,15 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         return False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.LINE_WIDTH]:
+        if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
         super(EllipseROI, self)._updated(event, checkVisibility)
+
+    def _updatedStyle(self, event, style):
+        super(EllipseROI, self)._updatedStyle(event, style)
+        self.__shape.setColor(style.getColor())
+        self.__shape.setLineStyle(style.getLineStyle())
+        self.__shape.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
