@@ -1109,6 +1109,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 elif marker.isSelectable():
                     self.machine.plot.setGraphCursorShape(CURSOR_POINTING)
+                else:
+                    self.machine.plot.setGraphCursorShape()
 
             return True
 
