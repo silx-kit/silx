@@ -124,7 +124,6 @@ class Stats(OrderedDict):
         context = None
         # Check for PlotWidget items
         if isinstance(item, items.Curve):
-            print('create a new context')
             context = _CurveContext(item, plot, onlimits, roi=roi)
         elif isinstance(item, items.ImageData):
             context = _ImageContext(item, plot, onlimits, roi=roi)
