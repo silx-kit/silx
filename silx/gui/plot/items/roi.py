@@ -34,6 +34,7 @@ import logging
 import collections
 import numpy
 import weakref
+from silx.image.shapes import Polygon
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -1802,6 +1803,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         self._points = numpy.empty((0, 2))
         self._handleClose = None
 
+        self._polygon_shape = None
         shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
@@ -1877,6 +1879,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        self._polygon_shape = None
         assert(len(points.shape) == 2 and points.shape[1] == 2)
 
         # Update the needed handles
