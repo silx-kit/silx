@@ -217,13 +217,13 @@ class TestRoiStatsRoiUpdate(_TestRoiStatsBase):
                                         plotItem=self.img_item)
         assert item is not None
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['sum'].text(), '383800')
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['sum'].text(), '445410')
+        self.assertEqual(tableItems['mean'].text(), '1010.0')
 
         # update roi
         self.rectangle_roi.setOrigin(position=(10, 10))
-        self.assertNotEqual(tableItems['sum'].text(), '383800')
-        self.assertNotEqual(tableItems['mean'].text(), '959.5')
+        self.assertNotEqual(tableItems['sum'].text(), '445410')
+        self.assertNotEqual(tableItems['mean'].text(), '1010.0')
 
     def testUpdateModeScenario(self):
         """Test update according to a simple scenario"""
@@ -233,15 +233,16 @@ class TestRoiStatsRoiUpdate(_TestRoiStatsBase):
 
         assert item is not None
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['sum'].text(), '383800')
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['sum'].text(), '445410')
+        self.assertEqual(tableItems['mean'].text(), '1010.0')
         self.statsWidget._setUpdateMode(UpdateMode.MANUAL)
         self.rectangle_roi.setOrigin(position=(10, 10))
-        self.assertEqual(tableItems['sum'].text(), '383800')
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.qapp.processEvents()
+        self.assertNotEqual(tableItems['sum'].text(), '445410')
+        self.assertNotEqual(tableItems['mean'].text(), '1010.0')
         self.statsWidget._updateAllStats(is_request=True)
-        self.assertNotEqual(tableItems['sum'].text(), '383800')
-        self.assertNotEqual(tableItems['mean'].text(), '959.5')
+        self.assertNotEqual(tableItems['sum'].text(), '445410')
+        self.assertNotEqual(tableItems['mean'].text(), '1010.0')
 
 
 class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
