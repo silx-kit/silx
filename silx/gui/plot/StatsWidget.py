@@ -812,7 +812,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                 self.setItem(row, column, tableItem)
 
             # Update table items content
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
 
         # Listen for item changes
         # Using queued connection to avoid issue with sender
@@ -896,7 +896,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item)
+                self._updateStats(item, data_changed=is_request)
 
     def _currentItemChanged(self, current, previous):
         """Handle change of selection in table and sync plot selection

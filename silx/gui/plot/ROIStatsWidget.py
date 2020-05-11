@@ -337,7 +337,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 self.setItem(row, column, tableItem)
 
             # Update table items content
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
 
         # Listen for item changes
         # Using queued connection to avoid issue with sender
