@@ -261,10 +261,13 @@ class ProfileOptionToolButton(PlotToolButton):
         self.sumAction = self._createAction('sum')
         self.sumAction.triggered.connect(self.setSum)
         self.sumAction.setIconVisibleInMenu(True)
+        self.sumAction.setCheckable(True)
+        self.sumAction.setChecked(True)
 
         self.meanAction = self._createAction('mean')
         self.meanAction.triggered.connect(self.setMean)
         self.meanAction.setIconVisibleInMenu(True)
+        self.meanAction.setCheckable(True)
 
         menu = qt.QMenu(self)
         menu.addAction(self.sumAction)
@@ -287,6 +290,8 @@ class ProfileOptionToolButton(PlotToolButton):
         toolTip = self.STATE[self._method, "state"]
         self.setIcon(icon)
         self.setToolTip(toolTip)
+        self.sumAction.setChecked(self._method == "sum")
+        self.meanAction.setChecked(self._method == "mean")
 
     def setMean(self):
         self.setMethod('mean')
@@ -340,10 +345,15 @@ class ProfileToolButton(PlotToolButton):
         profile1DAction = self._createAction(1)
         profile1DAction.triggered.connect(self.computeProfileIn1D)
         profile1DAction.setIconVisibleInMenu(True)
+        profile1DAction.setCheckable(True)
+        profile1DAction.setChecked(True)
+        self._profile1DAction = profile1DAction
 
         profile2DAction = self._createAction(2)
         profile2DAction.triggered.connect(self.computeProfileIn2D)
         profile2DAction.setIconVisibleInMenu(True)
+        profile2DAction.setCheckable(True)
+        self._profile2DAction = profile2DAction
 
         menu = qt.QMenu(self)
         menu.addAction(profile1DAction)
@@ -364,6 +374,8 @@ class ProfileToolButton(PlotToolButton):
         self.setToolTip(self.STATE[profileDimension, "state"])
         self._dimension = profileDimension
         self.sigDimensionChanged.emit(profileDimension)
+        self._profile1DAction.setChecked(profileDimension == 1)
+        self._profile2DAction.setChecked(profileDimension == 2)
 
     def computeProfileIn1D(self):
         self._profileDimensionChanged(1)
