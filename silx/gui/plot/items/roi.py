@@ -1456,6 +1456,7 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         theta = numpy.arccos(numpy.dot(vector, x_unit_vector)
                              / numpy.sqrt(vector[0]**2 + vector[1]**2))
         if vector[1] < 0:
+            # arccos always returns values in range [0, pi]
             theta = 2 * numpy.pi - theta
         return theta
 
@@ -1490,14 +1491,16 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        return self._majorRadius
+        # during interaction, the values can be incorrectly sorted
+        return max(self._majorRadius, self._minorRadius)
 
     def getMinorRadius(self):
         """Returns the half-diameter of the minor axis.
 
         :rtype: float
         """
-        return self._minorRadius
+        # during interaction, the values can be incorrectly sorted
+        return min(self._majorRadius, self._minorRadius)
 
     def getOrientation(self):
         """Return angle in radians between the horizontal (X) axis
@@ -1505,6 +1508,9 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
 
         :rtype: float:
         """
+        if self._minorRadius > self._majorRadius:
+            # This can happen while interaction is ongoing.
+            return self._rotateLeft(self._orientation)
         return self._orientation
 
     def setCenter(self, center):
@@ -1515,6 +1521,11 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         """
         self.setGeometry(center=center, majorRadius=self._majorRadius,
                          minorRadius=self._minorRadius, orientation=self._orientation)
+
+    def _swapAxes(self):
+        """swap minor and major axes without changing the shape"""
+        self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
+        self._orientation = self._rotateLeft(self._orientation)
 
     def setMajorRadius(self, radius):
         """Set the half-diameter of the major axis of the ellipse.
@@ -1527,10 +1538,7 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         """
         self._majorRadius = radius
         if radius < self._minorRadius:
-            self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
-            # add pi/2 and ensure result is in [0., 2*pi[ range
-            self._orientation = self._rotateLeft(self._orientation)
-
+            self._swapAxes()
         self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
                          minorRadius=self._minorRadius, orientation=self._orientation)
 
@@ -1545,21 +1553,20 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         """
         self._minorRadius = radius
         if radius > self._majorRadius:
-            self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
-            # add pi/2 and ensure result is in [0., 2*pi[ range
-            self._orientation = self._rotateLeft(self._orientation)
+            self._swapAxes()
 
         self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
                          minorRadius=self._minorRadius, orientation=self._orientation)
 
     def setOrientation(self, orientation):
-        """
+        """Rotate the ellipse
 
         :param float orientation: Angle in radians between the horizontal and
             the major axis.
         :return:
         """
-        self._orientation = self._boundAngle(orientation + numpy.pi / 2)
+        # ensure that we store the orientation in range [0, 2*pi[
+        self._orientation = numpy.arccos(numpy.cos(orientation))
 
         self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
                          minorRadius=self._minorRadius, orientation=self._orientation)
@@ -1592,7 +1599,6 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         with utils.blockSignals(self._handleLabel):
             self._handleLabel.setPosition(*center)
 
-        # fixme
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
         X = (majorRadius * numpy.cos(angles) * numpy.cos(orientation)
