@@ -1103,7 +1103,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         :param value:
         :return:
         """
-        return value[1] == self._getControlPoints()[0][1]
+        return value[1] == self.getPosition()[1]
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1190,7 +1190,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         :param value:
         :return:
         """
-        return value[0] == self._getControlPoints()[0][0]
+        return value[0] == self.getPosition()[0]
 
     def __positionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1359,8 +1359,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         :return:
         """
         assert isinstance(value, (tuple, list, numpy.array))
-        points = self._getControlPoints()
-        points = self._getShapeFromControlPoints(points)
+        points = self.__shape.getPoints()
         bb1 = BoundingBox.from_points(points)
         return bb1.contains(value)
 
@@ -1951,12 +1950,12 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         :param value:
         :return:
         """
-        bb1 = BoundingBox.from_points(self._getControlPoints())
+        bb1 = BoundingBox.from_points(self.getPoints())
         if bb1.contains(value) is False:
             return False
 
         if self._polygon_shape is None:
-            self._polygon_shape = Polygon(vertices=self._getControlPoints())
+            self._polygon_shape = Polygon(vertices=self.getPoints())
 
         # warning: both the polygon and the value are inverted
         return self._polygon_shape.is_inside(row=value[0], col=value[1])
