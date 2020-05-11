@@ -598,8 +598,10 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
         :param bool is_request: True if come from a manual request
         """
-        if self.getUpdateMode() is UpdateMode.MANUAL and not is_request:
+        if (self.getUpdateMode() is UpdateMode.MANUAL and
+                not is_request and not roi_changed):
             return
+
         with self._disableSorting():
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
