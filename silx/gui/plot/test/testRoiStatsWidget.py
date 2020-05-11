@@ -118,9 +118,12 @@ class TestRoiStatsCouple(_TestRoiStatsBase):
         item = self.statsWidget.addItem(roi=self.rectangle_roi,
                                         plotItem=self.img_item)
         assert item is not None
+        self.plot.addImage(numpy.ones(10000).reshape(100, 100),
+                           legend='img1')
+        self.qapp.processEvents()
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['sum'].text(), '383800')
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['sum'].text(), str(float(21*21)))
+        self.assertEqual(tableItems['mean'].text(), '1.0')
 
     def testPolygonImage(self):
         """
@@ -130,8 +133,8 @@ class TestRoiStatsCouple(_TestRoiStatsBase):
                                         plotItem=self.img_item)
         assert item is not None
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['sum'].text(), '20225')
-        self.assertEqual(tableItems['mean'].text(), '404.5')
+        self.assertEqual(tableItems['sum'].text(), '22750')
+        self.assertEqual(tableItems['mean'].text(), '455.0')
 
     def testROIImage(self):
         """
@@ -250,7 +253,7 @@ class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
 
         assert item is not None
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['mean'].text(), '1010.0')
 
         # update plot
         self.plot.addImage(numpy.arange(100, 10100).reshape(100, 100),
@@ -265,12 +268,12 @@ class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
 
         assert item is not None
         tableItems = self.statsTable()._itemToTableItems(item)
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['mean'].text(), '1010.0')
         self.plot.addImage(numpy.arange(100, 10100).reshape(100, 100),
                            legend='img1')
-        self.assertEqual(tableItems['mean'].text(), '959.5')
+        self.assertEqual(tableItems['mean'].text(), '1010.0')
         self.statsWidget._updateAllStats(is_request=True)
-        self.assertEqual(tableItems['mean'].text(), '1059.5')
+        self.assertEqual(tableItems['mean'].text(), '1110.0')
 
 
 def suite():
