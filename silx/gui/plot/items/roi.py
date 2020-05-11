@@ -1379,6 +1379,268 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
+class EllipseROI(_HandleBasedROI, items.LineMixIn):
+    """A ROI identifying an oriented ellipse in a 2D plot.
+
+    This ROI provides 1 anchor at the center to translate the circle,
+    and two anchors on the perimeter to modify the major-radius and
+    minor-radius. These two anchors also allow to change the orientation.
+    """
+
+    _kind = "Ellipse"
+    """Label for this kind of ROI"""
+
+    _plotShape = "line"
+    """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        items.LineMixIn.__init__(self)
+        _HandleBasedROI.__init__(self, parent=parent)
+        self._handleMinorAxis = self.addHandle()
+        self._handleMajorAxis = self.addHandle()
+        self._handleCenter = self.addTranslateHandle()
+        self._handleLabel = self.addLabelHandle()
+
+        shape = items.Shape("polygon")
+        shape.setPoints([[0, 0], [0, 0]])
+        shape.setColor(rgba(self.getColor()))
+        shape.setFill(False)
+        shape.setOverlay(True)
+        shape.setLineStyle(self.getLineStyle())
+        shape.setLineWidth(self.getLineWidth())
+        self.__shape = shape
+        self.addItem(shape)
+
+        self._majorRadius = 0
+        self._minorRadius = 0
+        self._orientation = 0   # angle in radians between the X-axis and the major axis
+
+    @classmethod
+    def showFirstInteractionShape(cls):
+        return False
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.COLOR,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.LINE_STYLE,
+                     items.ItemChangedType.LINE_WIDTH]:
+            self._updateItemProperty(event, self, self.__shape)
+        super(EllipseROI, self)._updated(event, checkVisibility)
+
+    def setFirstShapePoints(self, points):
+        assert len(points) == 2
+        self._setRay(points)
+
+    @staticmethod
+    def _calculateDistance(p0, p1):
+        """
+
+        :param p0: first point coordinates
+        :param p1: second point coordinates
+        :return:
+        """
+        return math.sqrt((p0[0] - p1[0]) ** 2
+                         + (p0[1] - p1[1]) ** 2)
+
+    @staticmethod
+    def _calculateOrientation(p0, p1):
+        """return angle in radians between the vector p0-p1
+        and the X axis
+
+        :param p0: first point coordinates (x, y)
+        :param p1:  second point coordinates
+        :return:
+        """
+        vector = (p1[0] - p0[0], p1[1] - p0[1])
+        x_unit_vector = (1, 0)
+        theta = numpy.arccos(numpy.dot(vector, x_unit_vector)
+                             / numpy.sqrt(vector[0]**2 + vector[1]**2))
+        if vector[1] < 0:
+            theta = 2 * numpy.pi - theta
+        return theta
+
+    @staticmethod
+    def _rotateLeft(angle):
+        """return an angle in range [0, 2*pi[
+        after rotating 90 degrees counter-clockwise"""
+        return numpy.arccos(numpy.cos(angle + numpy.pi / 2))
+
+    def _setRay(self, points):
+        """Initialize the circle from the center point and a
+        perimeter point."""
+        center = points[0]
+        radius = self._calculateDistance(points[0], points[1])
+        orientation = self._calculateOrientation(points[0], points[1])
+        self.setGeometry(center=center, majorRadius=radius, minorRadius=radius,
+                         orientation=orientation)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
+
+    def getCenter(self):
+        """Returns the central point of this rectangle
+
+        :rtype: numpy.ndarray([float,float])
+        """
+        pos = self._handleCenter.getPosition()
+        return numpy.array(pos)
+
+    def getMajorRadius(self):
+        """Returns the half-diameter of the major axis.
+
+        :rtype: float
+        """
+        return self._majorRadius
+
+    def getMinorRadius(self):
+        """Returns the half-diameter of the minor axis.
+
+        :rtype: float
+        """
+        return self._minorRadius
+
+    def getOrientation(self):
+        """Return angle in radians between the horizontal (X) axis
+        and the major axis of the ellipse
+
+        :rtype: float:
+        """
+        return self._orientation
+
+    def setCenter(self, center):
+        """Set the center point of this ROI
+
+        :param numpy.ndarray position: Coordinates (X, Y) of the center
+            of the ellipse
+        """
+        self.setGeometry(center=center, majorRadius=self._majorRadius,
+                         minorRadius=self._minorRadius, orientation=self._orientation)
+
+    def setMajorRadius(self, radius):
+        """Set the half-diameter of the major axis of the ellipse.
+
+        .. note:: If you provide a value smaller than the minor radius,
+            the major axis will become the minor axis and the value
+            of the orientation angle will be increased by 90 degrees.
+
+        :param float size: Radius of the circle. Must be a positive value.
+        """
+        self._majorRadius = radius
+        if radius < self._minorRadius:
+            self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
+            # add pi/2 and ensure result is in [0., 2*pi[ range
+            self._orientation = self._rotateLeft(self._orientation)
+
+        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
+                         minorRadius=self._minorRadius, orientation=self._orientation)
+
+    def setMinorRadius(self, radius):
+        """Set the half-diameter of the minor axis of the ellipse.
+
+        .. note:: If you provide a value larger than the major radius,
+            the minor axis will become the major axis and the value
+            of the orientation angle will be increased by 90 degrees.
+
+        :param float size: Radius of the circle. Must be a positive value.
+        """
+        self._minorRadius = radius
+        if radius > self._majorRadius:
+            self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
+            # add pi/2 and ensure result is in [0., 2*pi[ range
+            self._orientation = self._rotateLeft(self._orientation)
+
+        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
+                         minorRadius=self._minorRadius, orientation=self._orientation)
+
+    def setOrientation(self, orientation):
+        """
+
+        :param float orientation: Angle in radians between the horizontal and
+            the major axis.
+        :return:
+        """
+        self._orientation = self._boundAngle(orientation + numpy.pi / 2)
+
+        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
+                         minorRadius=self._minorRadius, orientation=self._orientation)
+
+    def setGeometry(self, center, majorRadius, minorRadius, orientation):
+        """
+
+        :param center: (X, Y) coordinates
+        :param float majorRadius:
+        :param float minorRadius:
+        :param float orientation: angle in radians between the major axis and the
+            horizontal
+        :return:
+        """
+        self._majorRadius = majorRadius
+        self._minorRadius = minorRadius
+        self._orientation = orientation
+        center = numpy.array(center)
+
+        majorPoint = numpy.array([center[0] + majorRadius * numpy.cos(orientation),
+                                  center[1] + majorRadius * numpy.sin(orientation)])
+        minorPoint = numpy.array([center[0] - minorRadius * numpy.sin(orientation),
+                                  center[1] + minorRadius * numpy.cos(orientation)])
+        with utils.blockSignals(self._handleCenter):
+            self._handleCenter.setPosition(*center)
+        with utils.blockSignals(self._handleMajorAxis):
+            self._handleMajorAxis.setPosition(*majorPoint)
+        with utils.blockSignals(self._handleMinorAxis):
+            self._handleMinorAxis.setPosition(*minorPoint)
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(*center)
+
+        # fixme
+        nbpoints = 27
+        angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
+        X = (majorRadius * numpy.cos(angles) * numpy.cos(orientation)
+             - minorRadius * numpy.sin(angles) * numpy.sin(orientation))
+        Y = (majorRadius * numpy.cos(angles) * numpy.sin(orientation)
+             + minorRadius * numpy.sin(angles) * numpy.cos(orientation))
+
+        ellipseShape = numpy.array((X, Y)).T
+        ellipseShape += center
+        self.__shape.setPoints(ellipseShape)
+        self.sigRegionChanged.emit()
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        center = self.getCenter()
+        if handle is self._handleCenter:
+            self.setCenter(current)
+        elif handle is self._handleMinorAxis:
+            orientation = self._calculateOrientation(center, current) - numpy.pi / 2
+            self.setGeometry(center=self.getCenter(),
+                             majorRadius=self._majorRadius,
+                             minorRadius=self._calculateDistance(center, current),
+                             orientation=orientation)
+        elif handle is self._handleMajorAxis:
+            orientation = self._calculateOrientation(center, current)
+            self.setGeometry(center=self.getCenter(),
+                             majorRadius=self._calculateDistance(center, current),
+                             minorRadius=self._minorRadius,
+                             orientation=orientation)
+
+    def handleDragFinished(self, handle, origin, current):
+        """At the end of the interaction, we want the major radius
+        to be larger than the minor radius."""
+        if self._majorRadius < self._minorRadius:
+            self.setGeometry(center=self.getCenter(),
+                             majorRadius=self._minorRadius,
+                             minorRadius=self._majorRadius,
+                             orientation=self._rotateLeft(self._orientation))
+
+    def __str__(self):
+        center = self.getCenter()
+        major = self.getMajorRadius()
+        minor = self.getMinorRadius()
+        orientation = self.getOrientation()
+        params = center[0], center[1], major, minor, orientation
+        params = 'center: %f %f; major radius: %f: minor radius: %f; orientation: %f' % params
+        return "%s(%s)" % (self.__class__.__name__, params)
+
+
 class PolygonROI(_HandleBasedROI, items.LineMixIn):
     """A ROI identifying a closed polygon in a 2D plot.
 
