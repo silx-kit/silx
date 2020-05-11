@@ -655,8 +655,12 @@ class HandleBasedROI(RegionOfInterest, _Foo):
             self._updateText(self.getName())
         elif event == items.ItemChangedType.VISIBLE:
             for item, role in self._handles:
-                visible = self.isVisible() and self.isEditable()
-                item.setVisible(visible)
+                visible = self.isVisible()
+                editionVisible = visible and self.isEditable()
+                if role not in ["user", "label"]:
+                    item.setVisible(editionVisible)
+                else:
+                    item.setVisible(visible)
         elif event == items.ItemChangedType.EDITABLE:
             for item, role in self._handles:
                 editable = self.isEditable()
