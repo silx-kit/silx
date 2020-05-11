@@ -73,7 +73,7 @@ class _TestRoiStatsBase(TestCaseQt):
         self.roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
         self.rectangle_roi = RectangleROI()
         self.rectangle_roi.setGeometry(origin=(0, 0), size=(20, 20))
-        self.rectangle_roi.setLabel('Initial ROI')
+        self.rectangle_roi.setName('Initial ROI')
         self.polygon_roi = PolygonROI()
         points = numpy.array([[0, 5], [5, 0], [10, 5], [5, 10]])
         self.polygon_roi.setPoints(points)
