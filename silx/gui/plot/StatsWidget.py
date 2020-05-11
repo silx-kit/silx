@@ -449,10 +449,12 @@ class _StatsWidgetBase(object):
         _displayOnlyActItem option."""
         raise NotImplementedError('Base class')
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         raise NotImplementedError('Base class')
 
@@ -849,6 +851,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         if item is None:
             return
