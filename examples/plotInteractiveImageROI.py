@@ -61,6 +61,7 @@ if "--opengl" in sys.argv:
 # Create the plot widget and add an image
 plot = Plot2D(backend=backend)
 plot.getDefaultColormap().setName('viridis')
+plot.setKeepDataAspectRatio(True)
 plot.addImage(dummy_image())
 
 # Create the object controlling the ROIs and set it up
@@ -79,9 +80,29 @@ def updateAddedRegionOfInterest(roi):
     if isinstance(roi, SymbolMixIn):
         roi.setSymbolSize(5)
     roi.setSelectable(True)
+    roi.setEditable(True)
 
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
+
+
+# Enable/disable editing for all ROIs of the current selected type
+def stopEditing():
+    for roi in roiManager.getRois():
+        roi.setEditable(False)
+
+
+roiManager.sigInteractiveModeFinished.connect(stopEditing)
+
+
+def startEditingRoiType(roi_class):
+    for roi in roiManager.getRois():
+        if isinstance(roi, roi_class):
+            roi.setEditable(True)
+
+
+roiManager.sigInteractiveModeStarted.connect(startEditingRoiType)
+
 
 # Add a rectangular region of interest
 roi = RectangleROI()

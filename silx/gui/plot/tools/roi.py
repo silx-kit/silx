@@ -208,9 +208,7 @@ class RegionOfInterestManager(qt.QObject):
     """
 
     sigInteractiveModeFinished = qt.Signal()
-    """Signal emitted when leaving and interactive ROI drawing.
-
-    It provides the list of ROIs.
+    """Signal emitted when leaving interactive ROI drawing mode.
     """
 
     _MODE_ACTIONS_PARAMS = collections.OrderedDict()
