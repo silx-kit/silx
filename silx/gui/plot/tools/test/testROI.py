@@ -492,6 +492,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         item.setEndPoints(points[0], points[1])
         item.setEditable(True)
         manager.addRoi(item)
+        self.qapp.processEvents()
 
         # Drag the center
         widget = self.plot.getWidgetHandle()
