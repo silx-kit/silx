@@ -478,6 +478,40 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
         manager.clear()
 
+    def testLineInteraction(self):
+        """This test make sure that a ROI based on handles can be edited with
+        the mouse."""
+        xlimit = self.plot.getXAxis().getLimits()
+        ylimit = self.plot.getYAxis().getLimits()
+        points = numpy.array([xlimit, ylimit]).T
+        center = numpy.mean(points, axis=0)
+
+        # Create the line
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints(points[0], points[1])
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qapp.processEvents()
+
+        # Drag the center
+        widget = self.plot.getWidgetHandle()
+        mx, my = self.plot.dataToPixel(*center)
+        self.mouseMove(widget, pos=(mx, my))
+        self.mousePress(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseMove(widget, pos=(mx, my+50))
+        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my))
+
+        result = numpy.array(item.getEndPoints())
+        # x location is still the same
+        numpy.testing.assert_allclose(points[:, 0], result[:, 0], atol=0.5)
+        # size is still the same
+        numpy.testing.assert_allclose(points[1] - points[0],
+                                      result[1] - result[0], atol=0.5)
+        # But Y is not the same
+        self.assertNotEqual(points[0, 1], result[0, 1])
+        self.assertNotEqual(points[1, 1], result[1, 1])
+        manager.clear()
 
 def suite():
     test_suite = unittest.TestSuite()

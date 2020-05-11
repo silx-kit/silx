@@ -658,23 +658,23 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
         handle.setVisible(editable and self.isVisible())
         handle._setDraggable(editable)
         if editable:
-            handle.sigDragStarted.connect(self.__editingStarted)
-            handle.sigItemChanged.connect(self.__editingUpdated)
-            handle.sigDragFinished.connect(self.__editingFinished)
+            handle.sigDragStarted.connect(self._handleEditingStarted)
+            handle.sigItemChanged.connect(self._handleEditingUpdated)
+            handle.sigDragFinished.connect(self._handleEditingFinished)
         else:
             if remove:
-                handle.sigDragStarted.disconnect(self.__editingStarted)
-                handle.sigItemChanged.disconnect(self.__editingUpdated)
-                handle.sigDragFinished.disconnect(self.__editingFinished)
+                handle.sigDragStarted.disconnect(self._handleEditingStarted)
+                handle.sigItemChanged.disconnect(self._handleEditingUpdated)
+                handle.sigDragFinished.disconnect(self._handleEditingFinished)
 
-    def __editingStarted(self):
+    def _handleEditingStarted(self):
         super(_HandleBasedROI, self)._editingStarted()
         handle = self.sender()
         self._posOrigin = numpy.array(handle.getPosition())
         self._posPrevious = numpy.array(self._posOrigin)
         self.handleDragStarted(handle, self._posOrigin)
 
-    def __editingUpdated(self):
+    def _handleEditingUpdated(self):
         if self._posOrigin is None:
             # Avoid to handle events when visibility change
             return
@@ -683,7 +683,7 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
         self.handleDragUpdated(handle, self._posOrigin, self._posPrevious, current)
         self._posPrevious = current
 
-    def __editingFinished(self):
+    def _handleEditingFinished(self):
         handle = self.sender()
         current = numpy.array(handle.getPosition())
         self.handleDragFinished(handle, self._posOrigin, current)
