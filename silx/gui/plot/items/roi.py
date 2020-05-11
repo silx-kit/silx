@@ -945,6 +945,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         super(LineROI, self)._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
+        super(LineROI, self)._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
