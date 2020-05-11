@@ -835,6 +835,77 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
+class CrossROI(HandleBasedROI, items.LineMixIn):
+    """A ROI identifying a point in a 2D plot and displayed as a cross
+    """
+
+    ICON = 'add-shape-cross'
+    NAME = 'cross marker'
+    SHORT_NAME = "cross"
+    """Metadata for this kind of ROI"""
+
+    _plotShape = "point"
+    """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
+        self._handle = self.addHandle()
+        self._handleLabel = self.addLabelHandle()
+        self._vmarker = self.addUserHandle(items.YMarker())
+        self._vmarker._setSelectable(False)
+        self._vmarker._setDraggable(False)
+        self._hmarker = self.addUserHandle(items.XMarker())
+        self._hmarker._setSelectable(False)
+        self._hmarker._setDraggable(False)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.VISIBLE]:
+            markers = (self._vmarker, self._hmarker)
+            self._updateItemProperty(event, self, markers)
+        super(CrossROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
+
+    def _updatedStyle(self, event, style):
+        super(CrossROI, self)._updatedStyle(event, style)
+        for marker in [self._vmarker, self._hmarker]:
+            marker.setColor(style.getColor())
+            marker.setLineStyle(style.getLineStyle())
+            marker.setLineWidth(style.getLineWidth())
+
+    def setFirstShapePoints(self, points):
+        pos = points[0]
+        self.setPosition(pos)
+
+    def getPosition(self):
+        """Returns the position of this ROI
+
+        :rtype: numpy.ndarray
+        """
+        return self._handle.getPosition()
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param numpy.ndarray pos: 2d-coordinate of this point
+        """
+        with utils.blockSignals(self._handle):
+            self._handle.setPosition(*pos)
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(*pos)
+        with utils.blockSignals(self._vmarker):
+            self._vmarker.setPosition(*pos)
+        with utils.blockSignals(self._hmarker):
+            self._hmarker.setPosition(*pos)
+        self.sigRegionChanged.emit()
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handle:
+            self.setPosition(current)
+
+
 class LineROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 

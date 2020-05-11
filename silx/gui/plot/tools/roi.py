@@ -217,6 +217,7 @@ class RegionOfInterestManager(qt.QObject):
 
     ROI_CLASSES = (
         roi_items.PointROI,
+        roi_items.CrossROI,
         roi_items.RectangleROI,
         roi_items.CircleROI,
         roi_items.EllipseROI,
