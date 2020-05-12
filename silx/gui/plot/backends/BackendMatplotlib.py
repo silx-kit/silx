@@ -300,7 +300,7 @@ class _MarkerContainer(_PickableContainer):
                     pos = -pos
                 self.text.set_y(center + pos)
 
-            if self.x is None and self.y is not None:  # Horizontal line
+            elif self.x is None and self.y is not None:  # Horizontal line
                 delta = abs(xmax - xmin)
                 if xmin > xmax:
                     xmax = xmin
