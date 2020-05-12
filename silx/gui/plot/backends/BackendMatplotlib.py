@@ -278,13 +278,14 @@ class _MarkerContainer(_PickableContainer):
         if self.text is not None:
             self.text.draw(*args, **kwargs)
 
-    def updateMarkerText(self, xmin, xmax, ymin, ymax):
+    def updateMarkerText(self, xmin, xmax, ymin, ymax, yinverted):
         """Update marker text position and visibility according to plot limits
 
         :param xmin: X axis lower limit
         :param xmax: X axis upper limit
         :param ymin: Y axis lower limit
-        :param ymax: Y axis upprt limit
+        :param ymax: Y axis upper limit
+        :param yinverted: True if the y axis is inverted
         """
         if self.text is not None:
             visible = ((self.x is None or xmin <= self.x <= xmax) and
@@ -292,11 +293,12 @@ class _MarkerContainer(_PickableContainer):
             self.text.set_visible(visible)
 
             if self.x is not None and self.y is None:  # vertical line
-                delta = abs(ymax - ymin)
-                if ymin > ymax:
-                    ymax = ymin
-                ymax -= 0.005 * delta
-                self.text.set_y(ymax)
+                # Always display it on top
+                center = (ymax + ymin) * 0.5
+                pos = (ymax - ymin) * 0.5 * 0.99
+                if yinverted:
+                    pos = -pos
+                self.text.set_y(center + pos)
 
             if self.x is None and self.y is not None:  # Horizontal line
                 delta = abs(xmax - xmin)
@@ -839,7 +841,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         artists = [line] if textArtist is None else [line, textArtist]
         container = _MarkerContainer(artists, x, y, yaxis)
-        container.updateMarkerText(xmin, xmax, ymin, ymax)
+        container.updateMarkerText(xmin, xmax, ymin, ymax, self.isYAxisInverted())
 
         return container
 
@@ -847,12 +849,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xmin, xmax = self.ax.get_xbound()
         ymin1, ymax1 = self.ax.get_ybound()
         ymin2, ymax2 = self.ax2.get_ybound()
+        yinverted = self.isYAxisInverted()
         for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
                 if item.yAxis == 'left':
-                    item.updateMarkerText(xmin, xmax, ymin1, ymax1)
+                    item.updateMarkerText(xmin, xmax, ymin1, ymax1, yinverted)
                 else:
-                    item.updateMarkerText(xmin, xmax, ymin2, ymax2)
+                    item.updateMarkerText(xmin, xmax, ymin2, ymax2, yinverted)
 
     # Remove methods
 
@@ -1112,6 +1115,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
+            self._updateMarkers()
 
     def isYAxisInverted(self):
         return self.ax.yaxis_inverted()
