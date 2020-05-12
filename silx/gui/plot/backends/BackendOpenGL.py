@@ -425,6 +425,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
         isXLog = self._plotFrame.xAxis.isLog
         isYLog = self._plotFrame.yAxis.isLog
+        isYInverted = self._plotFrame.isYAxisInverted
 
         # Used by marker rendering
         labels = []
@@ -566,13 +567,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         # Do not render markers outside visible plot area
                         continue
 
+                    if isYInverted:
+                        valign = BOTTOM
+                        vPixelOffset = -pixelOffset
+                    else:
+                        valign = TOP
+                        vPixelOffset = pixelOffset
+
                     if item['text'] is not None:
                         x = pixelPos[0] + pixelOffset
-                        y = pixelPos[1] + pixelOffset
+                        y = pixelPos[1] + vPixelOffset
                         label = Text2D(item['text'], x, y,
                                        color=item['color'],
                                        bgColor=(1., 1., 1., 0.5),
-                                       align=LEFT, valign=TOP)
+                                       align=LEFT, valign=valign)
                         labels.append(label)
 
                     # For now simple implementation: using a curve for each marker

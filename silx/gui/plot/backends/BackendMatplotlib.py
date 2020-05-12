@@ -263,9 +263,10 @@ class _MarkerContainer(_PickableContainer):
     :param y: Y coordinate of the marker (None for vertical lines)
     """
 
-    def __init__(self, artists, x, y, yAxis):
+    def __init__(self, artists, symbol, x, y, yAxis):
         self.line = artists[0]
         self.text = artists[1] if len(artists) > 1 else None
+        self.symbol = symbol
         self.x = x
         self.y = y
         self.yAxis = yAxis
@@ -292,7 +293,17 @@ class _MarkerContainer(_PickableContainer):
                        (self.y is None or ymin <= self.y <= ymax))
             self.text.set_visible(visible)
 
-            if self.x is not None and self.y is None:  # vertical line
+            if self.x is not None and self.y is not None:
+                if self.symbol is None:
+                    valign = 'baseline'
+                else:
+                    if yinverted:
+                        valign = 'bottom'
+                    else:
+                        valign = 'top'
+                self.text.set_verticalalignment(valign)
+
+            elif self.y is None:  # vertical line
                 # Always display it on top
                 center = (ymax + ymin) * 0.5
                 pos = (ymax - ymin) * 0.5 * 0.99
@@ -300,7 +311,7 @@ class _MarkerContainer(_PickableContainer):
                     pos = -pos
                 self.text.set_y(center + pos)
 
-            elif self.x is None and self.y is not None:  # Horizontal line
+            elif self.x is None:  # Horizontal line
                 delta = abs(xmax - xmin)
                 if xmin > xmax:
                     xmax = xmin
@@ -793,17 +804,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                            markersize=10.)[-1]
 
             if text is not None:
-                if symbol is None:
-                    valign = 'baseline'
-                else:
-                    valign = 'top'
+                if symbol is not None:
                     text = "  " + text
-
                 textArtist = ax.text(x, y, text,
                                      color=color,
-                                     horizontalalignment='left',
-                                     verticalalignment=valign)
-
+                                     horizontalalignment='left')
         elif x is not None:
             line = ax.axvline(x,
                               color=color,
@@ -840,7 +845,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             textArtist.set_animated(True)
 
         artists = [line] if textArtist is None else [line, textArtist]
-        container = _MarkerContainer(artists, x, y, yaxis)
+        container = _MarkerContainer(artists, symbol, x, y, yaxis)
         container.updateMarkerText(xmin, xmax, ymin, ymax, self.isYAxisInverted())
 
         return container
