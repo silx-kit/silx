@@ -7,7 +7,7 @@ from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot import ScatterView
 from silx.gui.plot import StackView
-from silx.gui.plot.tools.profile import manager
+from silx.gui.plot.tools.profile import toolbar
 
 
 def createScatterData():
@@ -51,12 +51,9 @@ class Example(qt.QMainWindow):
         dataLayout.setCurrentWidget(self.plot)
         self.dataLayout = dataLayout
 
-        singleButton = qt.QPushButton()
-        singleButton.setText("Single profile")
-        singleButton.setCheckable(True)
-        singleButton.setCheckable(True)
-        singleButton.setChecked(self.plotProfile.isSingleProfile())
-        singleButton.toggled[bool].connect(self.plotProfile.setSingleProfile)
+        clearButton = qt.QPushButton(self)
+        clearButton.clicked.connect(self._clearData)
+        clearButton.setText("Clear")
 
         imageButton = qt.QPushButton(self)
         imageButton.clicked.connect(self._updateImage)
@@ -77,7 +74,7 @@ class Example(qt.QMainWindow):
         options = qt.QWidget(self)
         layout = qt.QHBoxLayout(options)
         layout.addStretch()
-        layout.addWidget(singleButton)
+        layout.addWidget(clearButton)
         layout.addWidget(imageButton)
         layout.addWidget(imageRgbButton)
         layout.addWidget(scatterButton)
@@ -95,58 +92,42 @@ class Example(qt.QMainWindow):
     def _createPlot2D(self):
         plot = Plot2D(self)
         self.plot = plot
-        self.plotProfile = manager.ProfileManager(self, plot)
-        self.plotProfile.setItemType(image=True)
-        self.plotProfile.setActiveItemTracking(True)
 
-        # Remove the previous profile tools with the new one
+        toolBar = toolbar.ProfileToolBar(plot, plot)
+        toolBar.setScheme("image")
+        plot.addToolBar(toolBar)
+
         toolBar = plot.getProfileToolbar()
         toolBar.clear()
-        for action in self.plotProfile.createImageActions(toolBar):
-            toolBar.addAction(action)
-
-        cleanAction = self.plotProfile.createClearAction(toolBar)
-        toolBar.addAction(cleanAction)
-        editorAction = self.plotProfile.createEditorAction(toolBar)
-        toolBar.addAction(editorAction)
 
     def _createScatterView(self):
-        scatter = ScatterView(self)
-        self.scatter = scatter
-        self.scatterProfile = manager.ProfileManager(self, scatter.getPlotWidget())
-        self.scatterProfile.setItemType(scatter=True)
-        self.scatterProfile.setActiveItemTracking(True)
+        plot = ScatterView(self)
+        self.scatter = plot
 
-        # Remove the previous profile tools with the new one
-        toolBar = scatter.getScatterProfileToolBar()
+        toolBar = toolbar.ProfileToolBar(plot, plot.getPlotWidget())
+        toolBar.setScheme("scatter")
+        plot.addToolBar(toolBar)
+
+        toolBar = plot.getScatterProfileToolBar()
         toolBar.clear()
-        for action in self.scatterProfile.createScatterActions(toolBar):
-            toolBar.addAction(action)
-        for action in self.scatterProfile.createScatterSliceActions(toolBar):
-            toolBar.addAction(action)
-
-        cleanAction = self.scatterProfile.createClearAction(toolBar)
-        toolBar.addAction(cleanAction)
-        editorAction = self.scatterProfile.createEditorAction(toolBar)
-        toolBar.addAction(editorAction)
 
     def _createStackView(self):
-        stack = StackView(self)
-        self.stack = stack
-        self.stackProfile = manager.ProfileManager(self, stack.getPlotWidget())
-        self.stackProfile.setItemType(image=True)
-        self.stackProfile.setActiveItemTracking(True)
+        plot = StackView(self)
+        self.stack = plot
 
-        # Remove the previous profile tools with the new one
-        toolBar = stack.getProfileToolbar()
+        toolBar = toolbar.ProfileToolBar(plot, plot.getPlotWidget())
+        toolBar.setScheme("imagestack")
+        plot.addToolBar(toolBar)
+
+        toolBar = plot.getProfileToolbar()
         toolBar.clear()
-        for action in self.stackProfile.createImageStackActions(toolBar):
-            toolBar.addAction(action)
 
-        cleanAction = self.stackProfile.createClearAction(toolBar)
-        toolBar.addAction(cleanAction)
-        editorAction = self.stackProfile.createEditorAction(toolBar)
-        toolBar.addAction(editorAction)
+    def _clearData(self):
+        image = self.plot.getActiveImage()
+        if image is not None:
+            self.plot.removeItem(image)
+        self.scatter.setData(None, None, None)
+        self.stack.clear()
 
     def _updateImage(self):
         x = numpy.outer(numpy.linspace(-10, 10, 200),
