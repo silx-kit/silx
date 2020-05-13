@@ -121,7 +121,7 @@ class ProfileToolBar(qt.QToolBar):
         self._manager.setActiveItemTracking(True)
 
         # Actions
-        self._browseAction = actions.mode.ZoomModeAction(self.plot, parent=self)
+        self._browseAction = actions.mode.ZoomModeAction(plot, parent=self)
         self._browseAction.setVisible(False)
         self.freeLineAction = None
         self._createProfileActions()
@@ -157,10 +157,14 @@ class ProfileToolBar(qt.QToolBar):
         self.crossAction = self._manager.createProfileAction(rois.ProfileImageCrossROI, self)
         self.clearAction = self._manager.createClearAction(self)
 
-    @property
-    def plot(self):
+    def getPlotWidget(self):
         """The :class:`.PlotWidget` associated to the toolbar."""
         return self._plotRef()
+
+    @property
+    @deprecated(since_version="0.13.0", replacement="getPlotWidget()")
+    def plot(self):
+        return self.getPlotWidget()
 
     @property
     @deprecated(since_version="0.6.0")
