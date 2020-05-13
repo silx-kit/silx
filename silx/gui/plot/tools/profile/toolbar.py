@@ -36,6 +36,8 @@ import weakref
 from silx.gui import qt
 from silx.gui.widgets.MultiModeAction import MultiModeAction
 from . import manager
+from .. import roi as roi_mdl
+from silx.gui.plot import items
 
 
 _logger = logging.getLogger(__name__)
@@ -52,6 +54,7 @@ class ProfileToolBar(qt.QToolBar):
         self.__scheme = None
         self.__manager = None
         self.__plot = weakref.ref(plot)
+        self.__multiAction = None
 
     def getPlotWidget(self):
         """The :class:`~silx.gui.plot.PlotWidget` associated to the toolbar.
@@ -86,11 +89,16 @@ class ProfileToolBar(qt.QToolBar):
             self.addAction(multiAction)
             for action in self.__manager.createImageActions(self):
                 multiAction.addAction(action)
+            self.__multiAction = multiAction
 
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
             self.addAction(editorAction)
+
+            plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            self._activeImageChanged()
+
         elif scheme == "scatter":
             self.__manager.setItemType(scatter=True)
             self.__manager.setActiveItemTracking(True)
@@ -101,11 +109,16 @@ class ProfileToolBar(qt.QToolBar):
                 multiAction.addAction(action)
             for action in self.__manager.createScatterSliceActions(self):
                 multiAction.addAction(action)
+            self.__multiAction = multiAction
 
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
             self.addAction(editorAction)
+
+            plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
+            self._activeScatterChanged()
+
         elif scheme == "imagestack":
             self.__manager.setItemType(image=True)
             self.__manager.setActiveItemTracking(True)
@@ -114,10 +127,46 @@ class ProfileToolBar(qt.QToolBar):
             self.addAction(multiAction)
             for action in self.__manager.createImageStackActions(self):
                 multiAction.addAction(action)
+            self.__multiAction = multiAction
 
             cleanAction = self.__manager.createClearAction(self)
             self.addAction(cleanAction)
             editorAction = self.__manager.createEditorAction(self)
             self.addAction(editorAction)
+
+            plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            self._activeImageChanged()
+
         else:
             raise ValueError("Toolbar scheme %s unsupported" % scheme)
+
+    def _setRoiActionEnabled(self, itemKind, enabled):
+        for action in self.__multiAction.getMenu().actions():
+            if not isinstance(action, roi_mdl.CreateRoiModeAction):
+                continue
+            roiClass = action.getRoiClass()
+            if issubclass(itemKind, roiClass.ITEM_KIND):
+                action.setEnabled(enabled)
+
+    def _activeImageChanged(self, previous=None, legend=None):
+        """Handle active image change to toggle actions"""
+        if legend is None:
+            self._setRoiActionEnabled(items.ImageStack, False)
+            self._setRoiActionEnabled(items.ImageBase, False)
+        else:
+            plot = self.getPlotWidget()
+            image = plot.getActiveImage()
+            # Disable for empty image
+            enabled = image.getData(copy=False).size > 0
+            self._setRoiActionEnabled(type(image), enabled)
+
+    def _activeScatterChanged(self, previous=None, legend=None):
+        """Handle active scatter change to toggle actions"""
+        if legend is None:
+            self._setRoiActionEnabled(items.Scatter, False)
+        else:
+            plot = self.getPlotWidget()
+            scatter = plot.getActiveScatter()
+            # Disable for empty image
+            enabled = scatter.getValueData(copy=False).size > 0
+            self._setRoiActionEnabled(type(scatter), enabled)

@@ -42,6 +42,8 @@ from silx.gui.widgets.MultiModeAction import MultiModeAction
 
 from silx.utils.deprecation import deprecated
 from silx.utils.deprecation import deprecated_warning
+from .tools import roi as roi_mdl
+from silx.gui.plot import items
 
 
 @deprecated(replacement="silx.gui.plot.tools.profile.createProfile", since_version="0.13.0")
@@ -142,12 +144,16 @@ class ProfileToolBar(qt.QToolBar):
         if self.freeLineAction is not None:
             modes.addAction(self.freeLineAction)
         modes.addAction(self.crossAction)
+        self.__multiAction = modes
 
         # Add actions to ToolBar
         self.addAction(self._browseAction)
         self.addAction(modes)
         self.addAction(self._editor)
         self.addAction(self.clearAction)
+
+        plot.sigActiveImageChanged.connect(self._activeImageChanged)
+        self._activeImageChanged()
 
     def _createProfileActions(self):
         self.hLineAction = self._manager.createProfileAction(rois.ProfileImageHorizontalLineROI, self)
@@ -165,6 +171,26 @@ class ProfileToolBar(qt.QToolBar):
     @deprecated(since_version="0.13.0", replacement="getPlotWidget()")
     def plot(self):
         return self.getPlotWidget()
+
+    def _setRoiActionEnabled(self, itemKind, enabled):
+        for action in self.__multiAction.getMenu().actions():
+            if not isinstance(action, roi_mdl.CreateRoiModeAction):
+                continue
+            roiClass = action.getRoiClass()
+            if issubclass(itemKind, roiClass.ITEM_KIND):
+                action.setEnabled(enabled)
+
+    def _activeImageChanged(self, previous=None, legend=None):
+        """Handle active image change to toggle actions"""
+        if legend is None:
+            self._setRoiActionEnabled(items.ImageStack, False)
+            self._setRoiActionEnabled(items.ImageBase, False)
+        else:
+            plot = self.getPlotWidget()
+            image = plot.getActiveImage()
+            # Disable for empty image
+            enabled = image.getData(copy=False).size > 0
+            self._setRoiActionEnabled(type(image), enabled)
 
     @property
     @deprecated(since_version="0.6.0")
