@@ -282,18 +282,27 @@ class TestInteractions(TestCaseQt):
         ]
         with self.defaultPlot() as plot:
             profileManager = manager.ProfileManager(plot, plot)
-            editor = profileManager.createEditorAction(parent=plot)
+            editorAction = profileManager.createEditorAction(parent=plot)
             for roiClass, editorClass in roiClasses:
                 with self.subTest(roiClass=roiClass):
                     roi = roiClass()
                     roi._setProfileManager(profileManager)
                     try:
-                        editor.setProfileRoi(roi)
-                        editorWidget = editor._getEditor()
+                        # Force widget creation
+                        menu = qt.QMenu()
+                        menu.addAction(editorAction)
+                        widgets = editorAction.createdWidgets()
+                        self.assertGreater(len(widgets), 0)
+
+                        editorAction.setProfileRoi(roi)
+                        editorWidget = editorAction._getEditor(widgets[0])
                         self.assertIsInstance(editorWidget, editorClass)
                         self.genericEditorTest(plot, roi, editorWidget)
                     finally:
-                        editor.setProfileRoi(None)
+                        editorAction.setProfileRoi(None)
+                        menu.deleteLater()
+                        menu = None
+                        self.qapp.processEvents()
 
 
 class TestProfileToolBar(TestCaseQt, ParametricTestCase):
