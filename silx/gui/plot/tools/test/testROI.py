@@ -559,7 +559,10 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         # But Y is not the same
         self.assertNotEqual(points[0, 1], result[0, 1])
         self.assertNotEqual(points[1, 1], result[1, 1])
+        item = None
         manager.clear()
+        self.qapp.processEvents()
+
 
 def suite():
     test_suite = unittest.TestSuite()
