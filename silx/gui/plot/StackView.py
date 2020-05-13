@@ -568,7 +568,7 @@ class StackView(qt.QMainWindow):
         # Put back the item in the plot in case it was cleared
         exists = self._plot.getImage(self._stackItem.getName())
         if exists is None:
-            self._stackItem.addItem(self._stackItem)
+            self._plot.addItem(self._stackItem)
 
         self._plot.setActiveImage(self._stackItem.getName())
         self.__updatePlotLabels()
