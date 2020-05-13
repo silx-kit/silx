@@ -49,6 +49,9 @@ from silx.gui import utils
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default image profile ROI.
     """
+
+    ITEM_KIND = items.ImageBase
+
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__method = "mean"
@@ -285,7 +288,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         self._handleStart.setSymbol('o')
 
     def computeProfile(self, item):
-        if not isinstance(item, items.ImageData):
+        if not isinstance(item, items.ImageBase):
             raise TypeError("Unexpected class %s" % type(item))
 
         from silx.image.bilinear import BilinearImage
@@ -490,6 +493,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.ImageBase
 
     def _createLines(self, parent):
         vline = ProfileImageVerticalLineROI(parent=parent)
@@ -523,6 +527,9 @@ class ProfileImageCrossROI(_ProfileCrossROI):
 class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default scatter profile ROI.
     """
+
+    ITEM_KIND = items.Scatter
+
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__nPoints = 1024
@@ -697,6 +704,7 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
         vline = ProfileScatterVerticalLineROI(parent=parent)
@@ -724,6 +732,8 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
 
 class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
     """Default ROI to allow to slice in the scatter data."""
+
+    ITEM_KIND = items.Scatter
 
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
@@ -904,6 +914,7 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
 
     ICON = 'slice-cross'
     NAME = 'cross data slice profile'
+    ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
         vline = ProfileScatterVerticalSliceROI(parent=parent)
@@ -912,6 +923,9 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
 
 
 class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
+
+    ITEM_KIND = items.ImageStack
+
     def __init__(self, parent=None):
         super(_DefaultImageStackProfileRoiMixIn, self).__init__(parent=parent)
         self.__profileType = "1D"
@@ -1010,6 +1024,7 @@ class ProfileImageStackCrossROI(ProfileImageCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.ImageStack
 
     def _createLines(self, parent):
         vline = ProfileImageStackVerticalLineROI(parent=parent)

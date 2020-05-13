@@ -74,6 +74,9 @@ class ProfileRoiMixIn:
     in order to be usable by a :class:`~silx.gui.plot.tools.profile.manager.ProfileManager`.
     """
 
+    ITEM_KIND = None
+    """Define the plot item which can be used with this profile ROI"""
+
     sigProfilePropertyChanged = qt.Signal()
     """Emitted when a property of the profile have changed"""
 
