@@ -93,6 +93,10 @@ class CreateRoiModeAction(qt.QAction):
         self.setCheckable(True)
         self.setToolTip(text)
 
+    def getRoiClass(self):
+        """Return the ROI class used by this action to create ROIs"""
+        return self._roiClass
+
     def getRoiManager(self):
         return self._roiManager()
 
