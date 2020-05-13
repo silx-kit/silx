@@ -41,8 +41,6 @@ from . import manager
 _logger = logging.getLogger(__name__)
 
 
-
-
 class ProfileToolBar(qt.QToolBar):
     """Tool bar to provide profile for a plot.
     
