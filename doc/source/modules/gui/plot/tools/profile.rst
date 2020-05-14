@@ -20,7 +20,7 @@ The profile package is divided into several sub-modules.
    :members:
 
 :class:`ProfileWindow` class
-++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++
 
 .. autoclass:: ProfileWindow
    :show-inheritance:
@@ -32,7 +32,7 @@ The profile package is divided into several sub-modules.
 .. automodule:: silx.gui.plot.tools.profile.editors
 
 :class:`ProfileRoiEditorAction` class
-+++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++
 
 .. autoclass:: ProfileRoiEditorAction
    :show-inheritance:
@@ -74,6 +74,6 @@ The profile package is divided into several sub-modules.
 ++++++++++++++++++++++++++++++
 
 .. autoclass:: ScatterProfileToolBar
-   :members: sigProfileChanged, getProfilePoints, getProfileValues, getProfileTitle, getPlotWidget, isDefaultProfileWindowEnabled, setDefaultProfileWindowEnabled, getDefaultProfileWindow, getColor, setColor, clearProfile, getNPoints, setNPoints
+   :show-inheritance:
+   :members:
 
-.. currentmodule:: silx.gui.plot
