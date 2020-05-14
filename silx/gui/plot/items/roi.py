@@ -766,9 +766,9 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         elif event == items.ItemChangedType.EDITABLE:
             editable = self.isEditable()
             if editable:
-                self._marker.sigItemChanged.connect(self.__positionChanged)
+                self._marker.sigItemChanged.connect(self._pointPositionChanged)
             else:
-                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+                self._marker.sigItemChanged.disconnect(self._pointPositionChanged)
             self._marker._setDraggable(editable)
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
@@ -794,7 +794,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
-    def __positionChanged(self, event):
+    def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
@@ -941,9 +941,9 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         elif event == items.ItemChangedType.EDITABLE:
             editable = self.isEditable()
             if editable:
-                self._marker.sigItemChanged.connect(self.__positionChanged)
+                self._marker.sigItemChanged.connect(self._linePositionChanged)
             else:
-                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
             self._marker._setDraggable(editable)
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
@@ -978,7 +978,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
-    def __positionChanged(self, event):
+    def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
@@ -1020,9 +1020,9 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         elif event == items.ItemChangedType.EDITABLE:
             editable = self.isEditable()
             if editable:
-                self._marker.sigItemChanged.connect(self.__positionChanged)
+                self._marker.sigItemChanged.connect(self._linePositionChanged)
             else:
-                self._marker.sigItemChanged.disconnect(self.__positionChanged)
+                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
             self._marker._setDraggable(editable)
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
@@ -1057,7 +1057,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
-    def __positionChanged(self, event):
+    def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
@@ -2526,14 +2526,14 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMax._setDraggable(editable)
         self._markerCen._setDraggable(editable)
         if self.isEditable():
-            self._markerMin.sigItemChanged.connect(self.__positionMinChanged)
-            self._markerMax.sigItemChanged.connect(self.__positionMaxChanged)
-            self._markerCen.sigItemChanged.connect(self.__positionCenChanged)
+            self._markerMin.sigItemChanged.connect(self._minPositionChanged)
+            self._markerMax.sigItemChanged.connect(self._maxPositionChanged)
+            self._markerCen.sigItemChanged.connect(self._cenPositionChanged)
             self._markerCen.setLineStyle(":")
         else:
-            self._markerMin.sigItemChanged.disconnect(self.__positionMinChanged)
-            self._markerMax.sigItemChanged.disconnect(self.__positionMaxChanged)
-            self._markerCen.sigItemChanged.disconnect(self.__positionCenChanged)
+            self._markerMin.sigItemChanged.disconnect(self._minPositionChanged)
+            self._markerMax.sigItemChanged.disconnect(self._maxPositionChanged)
+            self._markerCen.sigItemChanged.disconnect(self._cenPositionChanged)
             self._markerCen.setLineStyle(" ")
 
     def _updatePos(self, vmin, vmax):
@@ -2636,7 +2636,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             return x, y
         return max(x, vmin), y
 
-    def __positionMinChanged(self, event):
+    def _minPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
@@ -2644,7 +2644,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             marker = self.sender()
             self.setMin(marker.getXPosition())
 
-    def __positionMaxChanged(self, event):
+    def _maxPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
@@ -2652,7 +2652,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             marker = self.sender()
             self.setMax(marker.getXPosition())
 
-    def __positionCenChanged(self, event):
+    def _cenPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return

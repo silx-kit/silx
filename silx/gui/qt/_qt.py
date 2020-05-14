@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -223,6 +223,12 @@ elif BINDING == 'PyQt5':
     Property = pyqtProperty
 
     Slot = pyqtSlot
+
+    # Disable PyQt5's cooperative multi-inheritance since other bindings do not provide it.
+    # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
+    class _Foo(object): pass
+    class QObject(QObject, _Foo): pass
+
 
 elif BINDING == 'PySide2':
     _logger.debug('Using PySide2 bindings')
