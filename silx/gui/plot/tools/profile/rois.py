@@ -347,13 +347,20 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.sigRegionChanged.connect(self.__regionChanged)
         self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.__position = 0, 0
+        self.__vline = None
+        self.__hline = None
         self.__handle = self.addHandle()
         self.__handleLabel = self.addLabelHandle()
         self.__handleLabel.setText(self.getName())
-        self.__vline = None
-        self.__hline = None
+        self.__inhibitReentance = utils.LockReentrant()
         self.computeProfile = None
         self.sigItemChanged.connect(self.__updateLineProperty)
+
+        # Make sure the marker is over the ROIs
+        self.__handle.setZValue(1)
+        # Create the vline and the hline
+        self._createSubRois()
 
     def setFirstShapePoints(self, points):
         pos = points[0]
@@ -364,13 +371,14 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
         :rtype: numpy.ndarray
         """
-        return self.__handle.getPosition()
+        return self.__position
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        self.__position = pos
         with utils.blockSignals(self.__handle):
             self.__handle.setPosition(*pos)
         with utils.blockSignals(self.__handleLabel):
@@ -400,40 +408,57 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
     def _setProfileManager(self, profileManager):
         core.ProfileRoiMixIn._setProfileManager(self, profileManager)
-        self._createSubRois()
-
-    def _createSubRois(self):
-        hline, vline = self._createLines(parent=None)
-        self.__vlineName = vline.getName()
-        self.__hlineName = hline.getName()
-        vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
-        vline.setEditable(False)
-        vline.setSelectable(False)
-        vline.setFocusProxy(self)
-        vline.setName("")
-        hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
-        hline.setEditable(False)
-        hline.setSelectable(False)
-        hline.setFocusProxy(self)
-        hline.setName("")
-        self.__vline = vline
-        self.__hline = hline
-        self.__regionChanged()
-        profileManager = self.getProfileManager()
+        # Connecting the vline and the hline
         roiManager = profileManager.getRoiManager()
         roiManager.addRoi(self.__vline)
         roiManager.addRoi(self.__hline)
+
+    def _createSubRois(self):
+        hline, vline = self._createLines(parent=None)
+        for i, line in enumerate([vline, hline]):
+            line.setPosition(self.__position[i])
+            line.setEditable(True)
+            line.setSelectable(True)
+            line.setFocusProxy(self)
+            line.setName("")
+        self.__vline = vline
+        self.__hline = hline
+        vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
+        vline.sigRegionChanged.connect(self.__vlineRegionChanged)
+        hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
+        hline.sigRegionChanged.connect(self.__hlineRegionChanged)
 
     def _getLines(self):
         return self.__hline, self.__vline
 
     def __regionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
         x, y = self.getPosition()
         hline, vline = self._getLines()
         if hline is None:
             return
-        hline.setPosition(y)
-        vline.setPosition(x)
+        with self.__inhibitReentance:
+            hline.setPosition(y)
+            vline.setPosition(x)
+
+    def __vlineRegionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
+        pos = self.getPosition()
+        vline = self.__vline
+        pos = vline.getPosition(), pos[1]
+        with self.__inhibitReentance:
+            self.setPosition(pos)
+
+    def __hlineRegionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
+        pos = self.getPosition()
+        hline = self.__hline
+        pos = pos[0], hline.getPosition()
+        with self.__inhibitReentance:
+            self.setPosition(pos)
 
     def __aboutToBeRemoved(self):
         vline = self.__vline
@@ -441,8 +466,10 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         # Avoid side remove signals
         if hline is not None:
             hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
+            hline.sigRegionChanged.disconnect(self.__hlineRegionChanged)
         if vline is not None:
             vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+            vline.sigRegionChanged.disconnect(self.__vlineRegionChanged)
         # Clean up the child
         profileManager = self.getProfileManager()
         roiManager = profileManager.getRoiManager()
@@ -466,6 +493,8 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
         hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
         vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+        hline.sigRegionChanged.disconnect(self.__hlineRegionChanged)
+        vline.sigRegionChanged.disconnect(self.__vlineRegionChanged)
 
         self.__hline = None
         self.__vline = None
