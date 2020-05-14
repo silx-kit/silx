@@ -23,6 +23,10 @@
 #
 # ###########################################################################*/
 """This module provides ROI item for the :class:`~silx.gui.plot.PlotWidget`.
+
+.. inheritance-diagram::
+   silx.gui.plot.items.roi
+   :parts: 1
 """
 
 __authors__ = ["T. Vincent"]

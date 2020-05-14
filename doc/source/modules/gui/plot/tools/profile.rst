@@ -77,3 +77,8 @@ The profile package is divided into several sub-modules.
    :show-inheritance:
    :members:
 
+:mod:`~silx.gui.plot.tools.profile.rois` module
+-----------------------------------------------
+
+.. automodule:: silx.gui.plot.tools.profile.rois
+

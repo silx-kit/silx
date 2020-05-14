@@ -23,6 +23,12 @@
 #
 # ###########################################################################*/
 """This module define ROIs for profile tools.
+
+.. inheritance-diagram::
+   silx.gui.plot.tools.profile.rois
+   :top-classes: silx.gui.plot.tools.profile.core.ProfileRoiMixIn, silx.gui.plot.items.roi.RegionOfInterest
+   :parts: 1
+   :private-bases:
 """
 
 __authors__ = ["V. Valls"]
