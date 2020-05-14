@@ -978,7 +978,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
-    def __positionChanged(self, event):
+    def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
             return
