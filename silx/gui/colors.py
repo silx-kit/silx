@@ -36,7 +36,7 @@ import logging
 import collections
 from silx.gui import qt
 from silx.math.combo import min_max
-from silx.math.colormap import cmap as _cmap
+from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
 from silx.utils import deprecation
 from silx.resources import resource_filename as _resource_filename
@@ -328,7 +328,7 @@ def _getColormap(name):
 
 # Normalizations
 
-class _Normalization:
+class _NormalizationMixIn:
     """Base class for describing a colormap normalization"""
 
     DEFAULT_RANGE = 0, 1
@@ -346,26 +346,6 @@ class _Normalization:
             return numpy.ones_like(value, dtype=numpy.bool_)
         else:
             return True
-
-    def apply(self, data):
-        """Apply normalization.
-
-        Override in subclass.
-
-        :param Union[float,numpy.ndarray] data:
-        :rtype: Union[float,numpy.ndarray]
-        """
-        return data
-
-    def revert(self, data):
-        """Revert normalization.
-
-        Override in subclass.
-
-        :param Union[float,numpy.ndarray] data:
-        :rtype: Union[float,numpy.ndarray]
-        """
-        return data
 
     def autoscale(self, data, mode):
         """Returns range for given data and autoscale mode.
@@ -422,12 +402,12 @@ class _Normalization:
         return self.revert(mean - 3 * std), self.revert(mean + 3 * std)
 
 
-class _LinearNormalization(_Normalization):
+class _LinearNormalization(_colormap.LinearNormalization, _NormalizationMixIn):
     """Linear normalization"""
     pass
 
 
-class _LogNormalization(_Normalization):
+class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
     """Logarithm normalization"""
 
     DEFAULT_RANGE = 1, 10
@@ -435,32 +415,18 @@ class _LogNormalization(_Normalization):
     def isValid(self, value):
         return value > 0.
 
-    def apply(self, data):
-        with numpy.errstate(divide='ignore', invalid='ignore'):
-            return numpy.log10(data)
-
-    def revert(self, data):
-        return 10**data
-
     def autoscaleMinMax(self, data):
         result = min_max(data, min_positive=True, finite=True)
         return result.min_positive, result.maximum
 
 
-class _SqrtNormalization(_Normalization):
+class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
     """Square root normalization"""
 
     DEFAULT_RANGE = 0, 1
 
     def isValid(self, value):
         return value >= 0.
-
-    def apply(self, data):
-        with numpy.errstate(invalid='ignore'):
-            return numpy.sqrt(data)
-
-    def revert(self, data):
-        return data**2
 
     def autoscaleMinMax(self, data):
         data = data[data >= 0]
@@ -498,7 +464,7 @@ class Colormap(qt.QObject):
 
     _NORMALIZATIONS = {
         LINEAR: _LinearNormalization(),
-        LOGARITHM: _LogNormalization(),
+        LOGARITHM: _LogarithmicNormalization(),
         SQRT: _SqrtNormalization(),
         }
     """Descriptions of all normalizations"""
@@ -987,8 +953,8 @@ class Colormap(qt.QObject):
         if hasattr(data, "getColormappedData"):  # Use item's data
             data = data.getColormappedData()
 
-        normalization = self.getNormalization()
-        return _cmap(data, self._colors, vmin, vmax, normalization)
+        return _colormap.cmap(
+            data, self._colors, vmin, vmax, self._getNormalizer())
 
     @staticmethod
     def getSupportedColormaps():
