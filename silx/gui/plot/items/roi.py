@@ -517,7 +517,7 @@ class _Foo:
     pass
 
 
-class _HandleBasedROI(RegionOfInterest, _Foo):
+class HandleBasedROI(RegionOfInterest, _Foo):
     """Manage a ROI based on a set of handles"""
 
     def __init__(self, parent=None):
@@ -637,10 +637,10 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
                 editable = self.isEditable()
                 if role not in ["user", "label"]:
                     self.__updateEditable(item, editable)
-        super(_HandleBasedROI, self)._updated(event, checkVisibility)
+        super(HandleBasedROI, self)._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
-        super(_HandleBasedROI, self)._updatedStyle(event, style)
+        super(HandleBasedROI, self)._updatedStyle(event, style)
 
         # Update color of shape items in the plot
         color = rgba(self.getColor())
@@ -668,7 +668,7 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
                 handle.sigDragFinished.disconnect(self._handleEditingFinished)
 
     def _handleEditingStarted(self):
-        super(_HandleBasedROI, self)._editingStarted()
+        super(HandleBasedROI, self)._editingStarted()
         handle = self.sender()
         self._posOrigin = numpy.array(handle.getPosition())
         self._posPrevious = numpy.array(self._posOrigin)
@@ -689,7 +689,7 @@ class _HandleBasedROI(RegionOfInterest, _Foo):
         self.handleDragFinished(handle, self._posOrigin, current)
         self._posPrevious = None
         self._posOrigin = None
-        super(_HandleBasedROI, self)._editingFinished()
+        super(HandleBasedROI, self)._editingFinished()
 
     def isHandleBeingDragged(self):
         """Returns True if one of the handles is currently being dragged.
@@ -807,7 +807,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class LineROI(_HandleBasedROI, items.LineMixIn):
+class LineROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -821,7 +821,7 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._handleStart = self.addHandle()
         self._handleEnd = self.addHandle()
@@ -1070,7 +1070,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class RectangleROI(_HandleBasedROI, items.LineMixIn):
+class RectangleROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a rectangle in a 2D plot.
 
     This ROI provides 1 anchor for each corner, plus an anchor in the
@@ -1084,7 +1084,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._handleTopLeft = self.addHandle()
         self._handleTopRight = self.addHandle()
@@ -1240,7 +1240,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class CircleROI(_HandleBasedROI, items.LineMixIn):
+class CircleROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a circle in a 2D plot.
 
     This ROI provides 1 anchor at the center to translate the circle,
@@ -1255,7 +1255,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         self._handlePerimeter = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
         self._handleLabel = self.addLabelHandle()
@@ -1370,7 +1370,7 @@ class CircleROI(_HandleBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class EllipseROI(_HandleBasedROI, items.LineMixIn):
+class EllipseROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying an oriented ellipse in a 2D plot.
 
     This ROI provides 1 anchor at the center to translate the circle,
@@ -1386,7 +1386,7 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
 
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         self._handleMinorAxis = self.addHandle()
         self._handleMajorAxis = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
@@ -1633,7 +1633,7 @@ class EllipseROI(_HandleBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class PolygonROI(_HandleBasedROI, items.LineMixIn):
+class PolygonROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a closed polygon in a 2D plot.
 
     This ROI provides 1 anchor for each point of the polygon.
@@ -1646,7 +1646,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._handleLabel = self.addLabelHandle()
         self._handleCenter = self.addTranslateHandle()
@@ -1797,7 +1797,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
-class ArcROI(_HandleBasedROI, items.LineMixIn):
+class ArcROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying an arc of a circle with a width.
 
     This ROI provides
@@ -1915,7 +1915,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                         self._closed))
 
     def __init__(self, parent=None):
-        _HandleBasedROI.__init__(self, parent=parent)
+        HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._geometry  = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()

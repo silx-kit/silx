@@ -320,7 +320,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         return data
 
 
-class _ProfileCrossROI(roi_items._HandleBasedROI, core.ProfileRoiMixIn):
+class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
     """ROI to manage a cross of profiles
 
@@ -334,7 +334,7 @@ class _ProfileCrossROI(roi_items._HandleBasedROI, core.ProfileRoiMixIn):
     """Plot shape which is used for the first interaction"""
 
     def __init__(self, parent=None):
-        roi_items._HandleBasedROI.__init__(self, parent=parent)
+        roi_items.HandleBasedROI.__init__(self, parent=parent)
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.sigRegionChanged.connect(self.__regionChanged)
         self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
