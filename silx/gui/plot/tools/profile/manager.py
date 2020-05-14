@@ -153,16 +153,41 @@ class ProfileWindow(qt.QMainWindow):
         elif profileType == "2D":
             self._getPlot2D()
 
+    def _createPlot1D(self, parent, backend):
+        """Inherit this function to create your own plot to render 1D
+        profiles. The default value is a `Plot1D`.
+
+        :param parent: The parent of this widget or None.
+        :param backend: The backend to use for the plot.
+                        See :class:`PlotWidget` for the list of supported backend.
+        :rtype: PlotWidget
+        """
+        # import here to avoid circular import
+        from ...PlotWindow import Plot1D
+        plot = Plot1D(parent=parent, backend=backend)
+        plot.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
+        plot.setGraphYLabel('Profile')
+        plot.setGraphXLabel('')
+        return plot
+
+    def _createPlot2D(self, parent, backend):
+        """Inherit this function to create your own plot to render 2D
+        profiles. The default value is a `Plot2D`.
+
+        :param parent: The parent of this widget or None.
+        :param backend: The backend to use for the plot.
+                        See :class:`PlotWidget` for the list of supported backend.
+        :rtype: PlotWidget
+        """
+        # import here to avoid circular import
+        from ...PlotWindow import Plot2D
+        return Plot2D(parent=parent, backend=backend)
+
     def _getPlot1D(self, init=True):
         if not init:
             return self._plot1D
         if self._plot1D is None:
-            # import here to avoid circular import
-            from ...PlotWindow import Plot1D
-            self._plot1D = Plot1D(parent=self, backend=self._backend)
-            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
-            self._plot1D.setGraphYLabel('Profile')
-            self._plot1D.setGraphXLabel('')
+            self._plot1D = self._createPlot1D(self, self._backend)
             self._layout.addWidget(self._plot1D)
         return self._plot1D
 
@@ -174,9 +199,7 @@ class ProfileWindow(qt.QMainWindow):
         if not init:
             return self._plot1D
         if self._plot2D is None:
-            # import here to avoid circular import
-            from ...PlotWindow import Plot2D
-            self._plot2D = Plot2D(parent=self, backend=self._backend)
+            self._plot2D = self._createPlot2D(parent=self, backend=self._backend)
             self._layout.addWidget(self._plot2D)
         return self._plot2D
 
