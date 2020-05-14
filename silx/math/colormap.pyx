@@ -33,10 +33,12 @@ __date__ = "16/05/2018"
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
-from libc.math cimport frexp, sqrt
+from libc.math cimport frexp, sinh, sqrt
 from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
+import numbers
+
 import numpy
 
 __all__ = ['cmap']
@@ -86,25 +88,82 @@ ctypedef fused image_types:
 
 # Normalization
 
-cdef class Norm:
+ctypedef double (*NormalizationFunction)(double) nogil
+
+
+cdef class Normalization:
     """Base class for colormap normalization"""
 
-    cdef double apply(self, double value) nogil:
-        """Apply normalization to a floating point value"""
+    def apply(self, data):
+        """Apply normalization.
+
+        :param Union[float,numpy.ndarray] data:
+        :rtype: Union[float,numpy.ndarray]
+        """
+        cdef int length
+        cdef double[:] result
+
+        if isinstance(data, numbers.Real):
+            return self.apply_double(<double> data)
+        else:
+            data = numpy.array(data, copy=False)
+            length = <int> data.size
+            result = numpy.empty(length, dtype=numpy.float64)
+            data1d = numpy.ravel(data)
+            for index in range(length):
+                result[index] = self.apply_double(<double> data1d[index])
+            return numpy.array(result).reshape(data.shape)
+
+    def revert(self, data):
+        """Revert normalization.
+
+        :param Union[float,numpy.ndarray] data:
+        :rtype: Union[float,numpy.ndarray]
+        """
+        cdef int length
+        cdef double[:] result
+
+        if isinstance(data, numbers.Real):
+            return self.revert_double(<double> data)
+        else:
+            data = numpy.array(data, copy=False)
+            length = <int> data.size
+            result = numpy.empty(length, dtype=numpy.float64)
+            data1d = numpy.ravel(data)
+            for index in range(length):
+                result[index] = self.revert_double(<double> data1d[index])
+            return numpy.array(result).reshape(data.shape)
+
+    cdef double apply_double(self, double value) nogil:
+        """Apply normalization to a floating point value
+
+        Override in subclass
+        """
+        return value
+
+    cdef double revert_double(self, double value) nogil:
+        """Apply inverse of normalization to a floating point value
+
+        Override in subclass
+        """
         return value
 
 
-cdef class LinearNorm(Norm):
+cdef class LinearNormalization(Normalization):
     """Linear normalization"""
-    cdef double apply(self, double value) nogil:
+
+    cdef double apply_double(self, double value) nogil:
+        return value
+
+    cdef double revert_double(self, double value) nogil:
         return value
 
 
-cdef class LogarithmicNorm(Norm):
+cdef class LogarithmicNormalization(Normalization):
     """Logarithmic normalization using a fast log approximation"""
     cdef:
         readonly int lutsize
-        double[::1] lut # LUT used for fast log approximation
+        readonly double[::1] lut # LUT used for fast log approximation
 
     def __cinit__(self, lutsize=4096):
         # Initialize log approximation LUT
@@ -122,7 +181,7 @@ cdef class LogarithmicNorm(Norm):
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.cdivision(True)
-    cdef double apply(self, double value) nogil:
+    cdef double apply_double(self, double value) nogil:
         """Return log10(value) fast approximation based on LUT"""
         cdef double result = NAN  # if value < 0.0 or value == NAN
         cdef int exponent, index_lut
@@ -141,20 +200,31 @@ cdef class LogarithmicNorm(Norm):
                                             self.lut[index_lut])
         return result
 
+    cdef double revert_double(self, double value) nogil:
+        return 10**value
 
-cdef class ArcsinhNorm(Norm):
+
+cdef class ArcsinhNormalization(Normalization):
     """Inverse hyperbolic sine normalization"""
-    cdef double apply(self, double value) nogil:
+
+    cdef double apply_double(self, double value) nogil:
         return asinh(value)
 
+    cdef double revert_double(self, double value) nogil:
+        return sinh(value)
 
-cdef class SqrtNorm(Norm):
+
+cdef class SqrtNormalization(Normalization):
     """Square root normalization"""
-    cdef double apply(self, double value) nogil:
+
+    cdef double apply_double(self, double value) nogil:
         return sqrt(value)
 
+    cdef double revert_double(self, double value) nogil:
+        return value**2
 
-cdef class PowerNorm(Norm):
+
+cdef class PowerNormalization(Normalization):
     """Gamma correction:
 
     Linear normalization to [0, 1] followed by power normalization.
@@ -180,13 +250,21 @@ cdef class PowerNorm(Norm):
             self.factor = 1./(vmax - vmin)
         self.gamma = gamma
 
-    cdef double apply(self, double value) nogil:
+    cdef double apply_double(self, double value) nogil:
         if value <= self.vmin:
             return 0.
         elif value >= self.vmax:
             return 1.
         else:
             return (self.factor * (value - self.vmin))**self.gamma
+
+    cdef double revert_double(self, double value) nogil:
+        if value <= 0.:
+            return self.vmin
+        elif value >= 1.:
+            return self.vmax
+        else:
+            return self.vmin + (self.vmax - self.vmin) * value**(1.0/self.gamma)
 
 
 # Colormap
@@ -201,7 +279,7 @@ cdef image_types[:, ::1] compute_cmap(
            double normalized_vmin,
            double normalized_vmax,
            image_types[::1] nan_color,
-           Norm norm):
+           Normalization norm):
     """Apply colormap to data.
 
     :param data: Input data
@@ -231,7 +309,7 @@ cdef image_types[:, ::1] compute_cmap(
 
     with nogil:
         for index in prange(length):
-            value = norm.apply(<double> data[index])
+            value = norm.apply_double(<double> data[index])
 
             # Handle NaN
             if isnan(value):
@@ -264,7 +342,7 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
                double normalized_vmin,
                double normalized_vmax,
                image_types[::1] nan_color,
-               Norm norm):
+               Normalization norm):
     """Convert data to colors using look-up table to speed the process.
 
     Only supports data of types: uint8, uint16, int8, int16.
@@ -321,10 +399,10 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
 
 # Normalizations without parameters
 _BASIC_NORMALIZATIONS = {
-    'linear': LinearNorm(),
-    'log': LogarithmicNorm(),
-    'arcsinh': ArcsinhNorm(),
-    'sqrt': SqrtNorm(),
+    'linear': LinearNormalization(),
+    'log': LogarithmicNormalization(),
+    'arcsinh': ArcsinhNormalization(),
+    'sqrt': SqrtNormalization(),
     }
 
 
@@ -334,36 +412,26 @@ _BASIC_NORMALIZATIONS = {
 @cython.cdivision(True)
 def _cmap(data_types[:] data,
           image_types[:, ::1] colors,
-          str normalization,
+          Normalization normalization,
           double vmin,
           double vmax,
-          image_types[::1] nan_color,
-          double gamma):
+          image_types[::1] nan_color):
     """Implementation of colormap.
 
     Use :func:`cmap`.
 
     :param data: Input data
     :param colors: Colors look-up-table
-    :param normalization: Kind of scaling to apply on data
+    :param normalization: Normalization object to apply
     :param vmin: Lower bound of the colormap range
     :param vmax: Upper bound of the colormap range
     :param nan_color: Color to use for NaN value.
-    :param gamma: Gamma value for power normalization
     :return: The generated image
     """
     cdef double normalized_vmin, normalized_vmax
-    cdef Norm norm
 
-    if normalization == 'gamma':
-        norm = PowerNorm(vmin, vmax, 2.)
-    else:
-        norm = _BASIC_NORMALIZATIONS[normalization]
-        if norm is None:
-            raise ValueError('Unsupported normalization %s' % normalization)
-
-    normalized_vmin = norm.apply(vmin)
-    normalized_vmax = norm.apply(vmax)
+    normalized_vmin = normalization.apply_double(vmin)
+    normalized_vmax = normalization.apply_double(vmax)
 
     if not isfinite(normalized_vmin) or not isfinite(normalized_vmax):
         raise ValueError('Colormap range is not valid')
@@ -372,12 +440,12 @@ def _cmap(data_types[:] data,
     if data_types in lut_types:  # Use LUT implementation
         output = compute_cmap_with_lut(
             data, colors, normalized_vmin, normalized_vmax,
-            nan_color, norm)
+            nan_color, normalization)
 
     elif data_types in default_types:  # Use default implementation
         output = compute_cmap(
             data, colors, normalized_vmin, normalized_vmax,
-            nan_color, norm)
+            nan_color, normalization)
 
     else:
         raise ValueError('Unsupported data type')
@@ -390,8 +458,7 @@ def cmap(data,
          double vmin,
          double vmax,
          normalization='linear',
-         nan_color=None,
-         double gamma=1.):
+         nan_color=None):
     """Convert data to colors with provided colors look-up table.
 
     :param numpy.ndarray data: The input data
@@ -399,7 +466,8 @@ def cmap(data,
        It MUST be of type uint8 or float32
     :param vmin: Data value to map to the beginning of colormap.
     :param vmax: Data value to map to the end of the colormap.
-    :param str normalization: The normalization to apply:
+    :param Union[str,Normalization] normalization:
+        Either a :class:`Normalization` instance or a str in:
 
         - 'linear' (default)
         - 'log'
@@ -409,14 +477,13 @@ def cmap(data,
 
     :param nan_color: Color to use for NaN value.
         Default: A color with all channels set to 0
-    :param gamma: Gamma value for power normalization.
-        It is only used for gamma normalization.
     :return: Array of colors. The shape of the
         returned array is that of data array + the last dimension of colors.
         The dtype of the returned array is that of the colors array.
     :rtype: numpy.ndarray
     """
     cdef int nb_channels
+    cdef Normalization norm
 
     # Make data a numpy array of native endian type (no need for contiguity)
     data = numpy.array(data, copy=False)
@@ -431,6 +498,14 @@ def cmap(data,
     colors = numpy.ascontiguousarray(colors,
                                      dtype=colors.dtype.newbyteorder('N'))
 
+    # Make normalization a Normalization object
+    if isinstance(normalization, str):
+        norm = _BASIC_NORMALIZATIONS.get(normalization, None)
+        if norm is None:
+            raise ValueError('Unsupported normalization %s' % normalization)
+    else:
+        norm = normalization
+
     # Check nan_color
     if nan_color is None:
         nan_color = numpy.zeros((nb_channels,), dtype=colors.dtype)
@@ -442,8 +517,10 @@ def cmap(data,
     image = _cmap(
         data.reshape(-1),
         colors.reshape(-1, nb_channels),
-        str(normalization),
-        vmin, vmax, nan_color, gamma)
+        norm,
+        vmin,
+        vmax,
+        nan_color)
     image.shape = data.shape + (nb_channels,)
 
     return image
