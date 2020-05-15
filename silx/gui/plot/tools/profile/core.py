@@ -113,8 +113,8 @@ class ProfileRoiMixIn:
         previousPlotItem = self.getPlotItem()
         if previousPlotItem is plotItem:
             return
-        self.sigPlotItemChanged.emit()
         self.__plotItem = weakref.ref(plotItem)
+        self.sigPlotItemChanged.emit()
 
     def getPlotItem(self):
         """Returns the plot item used by this profile
