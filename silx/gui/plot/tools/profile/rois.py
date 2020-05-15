@@ -45,6 +45,44 @@ from . import core
 from silx.gui import utils
 
 
+def _relabelAxes(plot, text):
+    """Relabel {xlabel} and {ylabel} from this text using the corresponding
+    plot axis label. If the axis label is empty, label it with "X" and "Y".
+
+    :rtype: str
+    """
+    xLabel = plot.getXAxis().getLabel()
+    if not xLabel:
+        xLabel = "X"
+    yLabel = plot.getYAxis().getLabel()
+    if not yLabel:
+        yLabel = "Y"
+    return text.format(xlabel=xLabel, ylabel=yLabel)
+
+
+def _lineProfileTitle(x0, y0, x1, y1):
+    """Compute corresponding plot title
+
+    This can be overridden to change title behavior.
+
+    :param float x0: Profile start point X coord
+    :param float y0: Profile start point Y coord
+    :param float x1: Profile end point X coord
+    :param float y1: Profile end point Y coord
+    :return: Title to use
+    :rtype: str
+    """
+    if x0 == x1:
+        title = '{xlabel} = %g; {ylabel} = [%g, %g]' % (x0, y0, y1)
+    elif y0 == y1:
+        title = '{ylabel} = %g; {xlabel} = [%g, %g]' % (y0, x0, x1)
+    else:
+        m = (y1 - y0) / (x1 - x0)
+        b = y0 - m * x0
+        title = '{ylabel} = %g * {xlabel} %+g' % (m, b)
+
+    return title
+
 
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default image profile ROI.
@@ -202,6 +240,11 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        profileName = _relabelAxes(plot, profileName)
+        xLabel = _relabelAxes(plot, xLabel)
+
         if isinstance(item, items.ImageRgba):
             rgba = item.getData(copy=False)
             _coords, r, _profileName, _xLabel = createProfile2(rgba[..., 0])
@@ -320,11 +363,19 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         coords = numpy.linspace(0, lineSize, len(profile),
                                 endpoint=True,
                                 dtype=numpy.float32)
+
+        title = _lineProfileTitle(*roiStart, *roiEnd)
+        xLabel = "|{xlabel}²+{ylabel}²|"
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        xLabel = _relabelAxes(plot, xLabel)
+        title = _relabelAxes(plot, title)
+
         data = core.CurveProfileData(
             coords=coords,
             profile=profile,
-            title="Line projection",
-            xLabel="Distance",
+            title=title,
+            xLabel=xLabel,
         )
         return data
 
@@ -589,29 +640,6 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
             self.invalidateProperties()
             self.invalidateProfile()
 
-    def _computeProfileTitle(self, x0, y0, x1, y1):
-        """Compute corresponding plot title
-
-        This can be overridden to change title behavior.
-
-        :param float x0: Profile start point X coord
-        :param float y0: Profile start point Y coord
-        :param float x1: Profile end point X coord
-        :param float y1: Profile end point Y coord
-        :return: Title to use
-        :rtype: str
-        """
-        if x0 == x1:
-            title = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
-        elif y0 == y1:
-            title = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
-        else:
-            m = (y1 - y0) / (x1 - x0)
-            b = y0 - m * x0
-            title = 'Y = %g * X %+g' % (m, b)
-
-        return title
-
     def _computeProfile(self, scatter, x0, y0, x1, y1):
         """Compute corresponding profile
 
@@ -669,18 +697,23 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         profile = self._computeProfile(item, x0, y0, x1, y1)
         if profile is None:
             return None
-        title = self._computeProfileTitle(x0, y0, x1, y1)
 
+        title = _lineProfileTitle(x0, y0, x1, y1)
         points = profile[0]
         values = profile[1]
 
         if (numpy.abs(points[-1, 0] - points[0, 0]) >
                 numpy.abs(points[-1, 1] - points[0, 1])):
             xProfile = points[:, 0]
-            xLabel = 'X'
+            xLabel = '{xlabel}'
         else:
             xProfile = points[:, 1]
-            xLabel = 'Y'
+            xLabel = '{ylabel}'
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        title = _relabelAxes(plot, title)
+        xLabel = _relabelAxes(plot, xLabel)
 
         data = core.CurveProfileData(
             coords=xProfile,
@@ -893,12 +926,16 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
         if isinstance(self, roi_items.HorizontalLineROI):
             title = "Horizontal slice"
-            xLabel = "Column index"
+            xLabel = "{xlabel} index"
         elif isinstance(self, roi_items.VerticalLineROI):
             title = "Vertical slice"
-            xLabel = "Row index"
+            xLabel = "{ylabel} index"
         else:
             assert False
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        xLabel = _relabelAxes(plot, xLabel)
 
         data = core.CurveProfileData(
             coords=numpy.arange(len(profile)),
