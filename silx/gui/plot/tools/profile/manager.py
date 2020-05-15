@@ -197,7 +197,7 @@ class ProfileWindow(qt.QMainWindow):
 
     def _getPlot2D(self, init=True):
         if not init:
-            return self._plot1D
+            return self._plot2D
         if self._plot2D is None:
             self._plot2D = self._createPlot2D(parent=self, backend=self._backend)
             self._layout.addWidget(self._plot2D)
