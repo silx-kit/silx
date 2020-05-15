@@ -319,8 +319,10 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
         self.mouseMove(self.plot)  # Move to center
         self.qapp.processEvents()
+        deprecation.FORCE = True
 
     def tearDown(self):
+        deprecation.FORCE = False
         self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
@@ -363,7 +365,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                             if not manager.hasPendingOperations():
                                 break
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.test_logging(deprecation.depreclog.name, warning=4)
     def testDiagonalProfile(self):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
