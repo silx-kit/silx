@@ -611,9 +611,10 @@ class _ColorScale(qt.QWidget):
 
         value = numpy.clip(value, 0., 1.)
         normalizer = colormap._getNormalizer()
+        normMin, normMax = normalizer.apply([self.vmin, self.vmax], self.vmin, self.vmax)
+
         return normalizer.revert(
-            normalizer.apply(self.vmin) +
-            (normalizer.apply(self.vmax) - normalizer.apply(self.vmin)) * value)
+            normMin + (normMax - normMin) * value, self.vmin, self.vmax)
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -794,12 +795,16 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        norm = colors.Colormap(normalization=self._norm)._getNormalizer()
-        range_ = norm.apply(self._vmax) - norm.apply(self._vmin)
-        if range_ == 0.:
+        normalizer = colors.Colormap(normalization=self._norm)._getNormalizer()
+        normMin, normMax, normVal = normalizer.apply(
+            [self._vmin, self._vmax, val],
+            self._vmin,
+            self._vmax)
+
+        if normMin == normMax:
             return 0.
         else:
-            return 1. - (norm.apply(val) - norm.apply(self._vmin)) / range_
+            return 1. - (normVal - normMin) / (normMax - normMin)
 
     def _paintTick(self, val, painter, majorTick=True):
         """
