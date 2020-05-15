@@ -184,6 +184,8 @@ class ProfileWindow(qt.QMainWindow):
         return Plot2D(parent=parent, backend=backend)
 
     def _getPlot1D(self, init=True):
+        """Return the current plot used to display curves and create it if it
+        does not yet exists and `init` is True. Else returns None."""
         if not init:
             return self._plot1D
         if self._plot1D is None:
@@ -196,6 +198,8 @@ class ProfileWindow(qt.QMainWindow):
         self._layout.setCurrentWidget(plot)
 
     def _getPlot2D(self, init=True):
+        """Return the current plot used to display image and create it if it
+        does not yet exists and `init` is True. Else returns None."""
         if not init:
             return self._plot2D
         if self._plot2D is None:
