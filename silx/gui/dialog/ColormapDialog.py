@@ -857,8 +857,8 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxNormalization = qt.QComboBox(parent=self)
         self._comboBoxNormalization.addItem('Linear', Colormap.LINEAR)
         self._comboBoxNormalization.addItem('Logarithmic', Colormap.LOGARITHM)
-        self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
         self._comboBoxNormalization.addItem('Gamma correction', Colormap.GAMMA)
+        self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
             self._normalizationUpdated)
 
