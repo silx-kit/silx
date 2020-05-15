@@ -36,6 +36,7 @@ __license__ = "MIT"
 __date__ = "03/04/2020"
 
 import numpy
+import weakref
 
 from silx.gui import colors
 
@@ -85,6 +86,137 @@ def _lineProfileTitle(x0, y0, x1, y1):
     return title
 
 
+class _ImageProfileArea(items.Shape):
+    """This shape displays the location of pixels used to compute the
+    profile."""
+
+    def __init__(self, parentRoi):
+        items.Shape.__init__(self, "polygon")
+        color = colors.rgba(parentRoi.getColor())
+        self.setColor(color)
+        self.setFill(True)
+        self.setOverlay(True)
+        self.setPoints([[0, 0], [0, 0]])  # Else it segfault
+
+        self.__parentRoi = weakref.ref(parentRoi)
+        parentRoi.sigItemChanged.connect(self._updateAreaProperty)
+        parentRoi.sigRegionChanged.connect(self._updateArea)
+        parentRoi.sigProfilePropertyChanged.connect(self._updateArea)
+        parentRoi.sigPlotItemChanged.connect(self._updateArea)
+
+    def getParentRoi(self):
+        if self.__parentRoi is None:
+            return None
+        parentRoi = self.__parentRoi()
+        if parentRoi is None:
+            self.__parentRoi = None
+        return parentRoi
+
+    def _updateAreaProperty(self, event=None, checkVisibility=True):
+        parentRoi = self.sender()
+        if event == items.ItemChangedType.COLOR:
+            parentRoi._updateItemProperty(event, parentRoi, self)
+        elif event == items.ItemChangedType.VISIBLE:
+            if self.getPlotItem() is not None:
+                parentRoi._updateItemProperty(event, parentRoi, self)
+
+    def _updateArea(self):
+        roi = self.getParentRoi()
+        item = roi.getPlotItem()
+        if item is None:
+            self.setVisible(False)
+            return
+        polygon = self._computePolygon(item)
+        self.setVisible(True)
+        polygon = numpy.array(polygon).T
+        self.setLineStyle("--")
+        self.setPoints(polygon, copy=False)
+
+    def _computePolygon(self, item):
+        if not isinstance(item, items.ImageBase):
+            raise TypeError("Unexpected class %s" % type(item))
+
+        if isinstance(item, items.ImageData):
+            currentData = item.getData(copy=False)
+        elif isinstance(item, items.ImageRgba):
+            rgba = item.getData(copy=False)
+            currentData = rgba[..., 0]
+
+        roi = self.getParentRoi()
+        origin = item.getOrigin()
+        scale = item.getScale()
+        _coords, _profile, area, _profileName, _xLabel = core.createProfile(
+            roiInfo=roi._getRoiInfo(),
+            currentData=currentData,
+            origin=origin,
+            scale=scale,
+            lineWidth=roi.getProfileLineWidth(),
+            method="none")
+        return area
+
+
+class _SliceProfileArea(items.Shape):
+    """This shape displays the location a profile in a scatter.
+
+    Each point used to compute the slice are linked together.
+    """
+
+    def __init__(self, parentRoi):
+        items.Shape.__init__(self, "polygon")
+        color = colors.rgba(parentRoi.getColor())
+        self.setColor(color)
+        self.setFill(True)
+        self.setOverlay(True)
+        self.setPoints([[0, 0], [0, 0]])  # Else it segfault
+
+        self.__parentRoi = weakref.ref(parentRoi)
+        parentRoi.sigItemChanged.connect(self._updateAreaProperty)
+        parentRoi.sigRegionChanged.connect(self._updateArea)
+        parentRoi.sigProfilePropertyChanged.connect(self._updateArea)
+        parentRoi.sigPlotItemChanged.connect(self._updateArea)
+
+    def getParentRoi(self):
+        if self.__parentRoi is None:
+            return None
+        parentRoi = self.__parentRoi()
+        if parentRoi is None:
+            self.__parentRoi = None
+        return parentRoi
+
+    def _updateAreaProperty(self, event=None, checkVisibility=True):
+        parentRoi = self.sender()
+        if event == items.ItemChangedType.COLOR:
+            parentRoi._updateItemProperty(event, parentRoi, self)
+        elif event == items.ItemChangedType.VISIBLE:
+            if self.getPlotItem() is not None:
+                parentRoi._updateItemProperty(event, parentRoi, self)
+
+    def _updateArea(self):
+        roi = self.getParentRoi()
+        item = roi.getPlotItem()
+        if item is None:
+            self.setVisible(False)
+            return
+        polylines = self._computePolylines(roi, item)
+        if polylines is None:
+            self.setVisible(False)
+            return
+        self.setVisible(True)
+        self.setLineStyle("--")
+        self.setPoints(polylines, copy=False)
+
+    def _computePolylines(self, roi, item):
+        slicing = roi._getSlice(item)
+        if slicing is None:
+            return None
+        xx, yy, _values, _xx_error, _yy_error = item.getData(copy=False)
+        xx, yy = xx[slicing], yy[slicing]
+        polylines = numpy.array((xx, yy)).T
+        if len(polylines) == 0:
+            return None
+        return polylines
+
+
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default image profile ROI.
     """
@@ -95,32 +227,14 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__method = "mean"
         self.__width = 1
-
-        area = items.Shape("polygon")
-        color = colors.rgba(self.getColor())
-        area.setColor(color)
-        area.setFill(True)
-        area.setOverlay(True)
-        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
-        self.__area = area
-        self.addItem(area)
-
         self.sigRegionChanged.connect(self.__regionChanged)
-        self.sigItemChanged.connect(self._updateAreaProperty)
-
-    def _updateAreaProperty(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.COLOR:
-            self._updateItemProperty(event, self, self.__area)
-        elif event == items.ItemChangedType.VISIBLE:
-            self._updateItemProperty(event, self, self.__area)
-
-    def setProfileWindow(self, profileWindow):
-        core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
-        self._updateArea()
+        self.sigPlotItemChanged.connect(self.__updateArea)
+        self.__area = _ImageProfileArea(self)
+        self.addItem(self.__area)
 
     def __regionChanged(self):
         self.invalidateProfile()
-        self._updateArea()
+        self.__updateArea()
 
     def setProfileMethod(self, method):
         """
@@ -139,54 +253,19 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         if self.__width == width:
             return
         self.__width = width
-        self._updateArea()
+        self.__updateArea()
         self.invalidateProperties()
         self.invalidateProfile()
 
     def getProfileLineWidth(self):
         return self.__width
 
-    def _updateArea(self):
-        area = self.__area
-        if area is None:
+    def __updateArea(self):
+        plotItem = self.getPlotItem()
+        if plotItem is None:
             self.setLineStyle("-")
-            return
-        profileManager = self.getProfileManager()
-        if profileManager is None:
-            area.setVisible(False)
-            self.setLineStyle("-")
-            return
-        item = profileManager.getPlotItem()
-        if item is None:
-            area.setVisible(False)
-            self.setLineStyle("-")
-            return
-        polygon = self._computePolygon(item)
-        area.setVisible(True)
-        polygon = numpy.array(polygon).T
-        self.setLineStyle("--")
-        area.setPoints(polygon, copy=False)
-
-    def _computePolygon(self, item):
-        if not isinstance(item, items.ImageBase):
-            raise TypeError("Unexpected class %s" % type(item))
-
-        if isinstance(item, items.ImageData):
-            currentData = item.getData(copy=False)
-        elif isinstance(item, items.ImageRgba):
-            rgba = item.getData(copy=False)
-            currentData = rgba[..., 0]
-
-        origin = item.getOrigin()
-        scale = item.getScale()
-        _coords, _profile, area, _profileName, _xLabel = core.createProfile(
-            roiInfo=self._getRoiInfo(),
-            currentData=currentData,
-            origin=origin,
-            scale=scale,
-            lineWidth=self.getProfileLineWidth(),
-            method="none")
-        return area
+        else:
+            self.setLineStyle("--")
 
     def _getRoiInfo(self):
         """Wrapper to allow to reuse the previous Profile code.
@@ -818,70 +897,23 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
+        self.__area = _SliceProfileArea(self)
+        self.addItem(self.__area)
+        self.sigRegionChanged.connect(self._regionChanged)
+        self.sigPlotItemChanged.connect(self._updateArea)
 
-        area = items.Shape("polylines")
-        color = colors.rgba(self.getColor())
-        area.setColor(color)
-        area.setFill(True)
-        area.setOverlay(True)
-        area.setPoints([[0, 0], [0, 0]])  # Else it segfault
-        self.__area = area
-        self.addItem(area)
-
-        self.sigRegionChanged.connect(self.__regionChanged)
-        self.sigItemChanged.connect(self._updateAreaProperty)
-
-    def _updateAreaProperty(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.COLOR:
-            self._updateItemProperty(event, self, self.__area)
-        elif event == items.ItemChangedType.VISIBLE:
-            self._updateItemProperty(event, self, self.__area)
-
-    def setProfileWindow(self, profileWindow):
-        core.ProfileRoiMixIn.setProfileWindow(self, profileWindow)
-        self._updateArea()
-
-    def __regionChanged(self):
+    def _regionChanged(self):
         self.invalidateProfile()
         self._updateArea()
 
     def _updateArea(self):
-        area = self.__area
-        if area is None:
+        plotItem = self.getPlotItem()
+        if plotItem is None:
             self.setLineStyle("-")
-            return
-        profileManager = self.getProfileManager()
-        if profileManager is None:
-            self.setLineStyle("-")
-            area.setVisible(False)
-            return
-        item = profileManager.getPlotItem()
-        if item is None:
-            area.setVisible(False)
-            self.setLineStyle("-")
-            return
-        polylines = self._computePolylines(item)
-        if polylines is None or len(polylines) == 0:
-            area.setVisible(False)
-            self.setLineStyle("-")
-            return
-        area.setVisible(True)
-        self.setLineStyle("--")
-        area.setPoints(polylines, copy=False)
+        else:
+            self.setLineStyle("--")
 
-    def _computePolylines(self, item):
-        if not isinstance(item, items.Scatter):
-            raise TypeError("Unexpected class %s" % type(item))
-
-        slicing = self.__getSlice(item)
-        if slicing is None:
-            return None
-
-        xx, yy, _values, _xx_error, _yy_error = item.getData(copy=False)
-        xx, yy = xx[slicing], yy[slicing]
-        return numpy.array((xx, yy)).T
-
-    def __getSlice(self, item):
+    def _getSlice(self, item):
         position = self.getPosition()
         bounds = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_BOUNDS)
         if isinstance(self, roi_items.HorizontalLineROI):
@@ -935,7 +967,7 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         if not isinstance(item, items.Scatter):
             raise TypeError("Unsupported %s item" % type(item))
 
-        slicing = self.__getSlice(item)
+        slicing = self._getSlice(item)
         if slicing is None:
             # ROI out of bounds
             return None

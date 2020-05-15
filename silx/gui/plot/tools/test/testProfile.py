@@ -55,7 +55,8 @@ class TestRois(TestCaseQt):
         """Check that the constructor is not called twice"""
         roi = rois.ProfileImageVerticalLineROI()
         if qt.BINDING not in ["PySide", "PySide2"]:
-            self.assertEqual(roi.receivers(roi.sigRegionChanged), 1)
+            # the profile ROI + the shape
+            self.assertEqual(roi.receivers(roi.sigRegionChanged), 2)
 
 
 class TestInteractions(TestCaseQt):
