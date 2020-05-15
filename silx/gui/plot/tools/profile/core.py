@@ -42,6 +42,7 @@ CurveProfileData = collections.namedtuple(
         "profile",
         "title",
         "xLabel",
+        "yLabel",
     ])
 
 RgbaProfileData = collections.namedtuple(
@@ -54,6 +55,7 @@ RgbaProfileData = collections.namedtuple(
         "profile_a",
         "title",
         "xLabel",
+        "yLabel",
     ])
 
 ImageProfileData = collections.namedtuple(
@@ -480,7 +482,7 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         else:
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
-            profileName = '{ylabel} = %g * {xlabel} %+g ; width=%d' % (m, b, roiWidth)
+            profileName = '{ylabel} = %g * {xlabel} %+g' % (m, b)
             if method == 'none':
                 coords = None
             else:

@@ -262,6 +262,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.clear()
         plot.setGraphTitle(data.title)
         plot.getXAxis().setLabel(data.xLabel)
+        plot.getYAxis().setLabel(data.yLabel)
 
         plot.addCurve(data.coords,
                       data.profile,
@@ -282,6 +283,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.clear()
         plot.setGraphTitle(data.title)
         plot.getXAxis().setLabel(data.xLabel)
+        plot.getYAxis().setLabel(data.yLabel)
 
         self._showPlot1D()
 

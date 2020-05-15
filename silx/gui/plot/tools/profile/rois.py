@@ -217,6 +217,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         origin = item.getOrigin()
         scale = item.getScale()
         method = self.getProfileMethod()
+        lineWidth = self.getProfileLineWidth()
 
         def createProfile2(currentData):
             coords, profile, _area, profileName, xLabel = core.createProfile(
@@ -224,7 +225,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 currentData=currentData,
                 origin=origin,
                 scale=scale,
-                lineWidth=self.getProfileLineWidth(),
+                lineWidth=lineWidth,
                 method=method)
             return coords, profile, profileName, xLabel
 
@@ -238,11 +239,13 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 rgba = rgba.astype(numpy.float)
             currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
 
-        coords, profile, profileName, xLabel = createProfile2(currentData)
+        yLabel = "%s" % str(method).capitalize()
+        coords, profile, title, xLabel = createProfile2(currentData)
+        title = title + "; width = %d" % lineWidth
 
         # Use the axis names from the original plot
         plot = item.getPlot()
-        profileName = _relabelAxes(plot, profileName)
+        title = _relabelAxes(plot, title)
         xLabel = _relabelAxes(plot, xLabel)
 
         if isinstance(item, items.ImageRgba):
@@ -261,15 +264,17 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 profile_g=g[0],
                 profile_b=b[0],
                 profile_a=a[0],
-                title=profileName,
+                title=title,
                 xLabel=xLabel,
+                yLabel=yLabel,
             )
         else:
             data = core.CurveProfileData(
                 coords=coords,
                 profile=profile[0],
-                title=profileName,
+                title=title,
                 xLabel=xLabel,
+                yLabel=yLabel,
             )
         return data
 
@@ -339,7 +344,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         origin = item.getOrigin()
         scale = item.getScale()
         method = self.getProfileMethod()
-        roiWidth = self.getProfileLineWidth()
+        lineWidth = self.getProfileLineWidth()
         currentData = item.getData(copy=False)
 
         roiInfo = self._getRoiInfo()
@@ -354,7 +359,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         profile = bilinear.profile_line(
             (startPt[0] - 0.5, startPt[1] - 0.5),
             (endPt[0] - 0.5, endPt[1] - 0.5),
-            roiWidth,
+            lineWidth,
             method=method)
 
         # Compute the line size
@@ -366,6 +371,9 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
 
         title = _lineProfileTitle(*roiStart, *roiEnd)
         xLabel = "|{xlabel}²+{ylabel}²|"
+        title = title + "; width = %d" % lineWidth
+        yLabel = str(method).capitalize()
+
         # Use the axis names from the original plot
         plot = item.getPlot()
         xLabel = _relabelAxes(plot, xLabel)
@@ -376,6 +384,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
             profile=profile,
             title=title,
             xLabel=xLabel,
+            yLabel=yLabel,
         )
         return data
 
@@ -718,8 +727,9 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         data = core.CurveProfileData(
             coords=xProfile,
             profile=values,
+            title=title,
             xLabel=xLabel,
-            title=title
+            yLabel='Profile',
         )
         return data
 
@@ -941,7 +951,8 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
             coords=numpy.arange(len(profile)),
             profile=profile,
             title=title,
-            xLabel=xLabel
+            xLabel=xLabel,
+            yLabel="Profile",
         )
         return data
 
@@ -1043,7 +1054,7 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
             profile=profile,
             title=profileName,
             xLabel=xLabel,
-            yLabel="Y",
+            yLabel="Profile",
             colormap=colormap,
         )
         return data
