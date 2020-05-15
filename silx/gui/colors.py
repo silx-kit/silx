@@ -978,12 +978,15 @@ class Colormap(qt.QObject):
 
         :rtype: silx.gui.colors.Colormap
         """
-        return Colormap(name=self._name,
+        colormap = Colormap(name=self._name,
                         colors=self.getColormapLUT(),
                         vmin=self._vmin,
                         vmax=self._vmax,
                         normalization=self.getNormalization(),
                         autoscaleMode=self.getAutoscaleMode())
+        colormap.setGammaNormalizationParameter(
+            self.getGammaNormalizationParameter())
+        return colormap
 
     def applyToData(self, data, reference=None):
         """Apply the colormap to the data
