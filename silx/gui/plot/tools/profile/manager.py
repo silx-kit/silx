@@ -840,9 +840,11 @@ class ProfileManager(qt.QObject):
         if window is None:
             plot = self.getPlotWidget()
             window = self.createProfileWindow(plot, roi)
+            # roi.profileWindow have to be set before initializing the window
+            # Cause the initialization is using QEventLoop
+            roi.setProfileWindow(window)
             self.initProfileWindow(window, roi)
             window.show()
-            roi.setProfileWindow(window)
         window.setProfile(profileData)
 
     def __plotDestroyed(self, ref):
@@ -979,9 +981,17 @@ class ProfileManager(qt.QObject):
         # To have the correct window size
         profileWindow.prepareWidget(roi)
         profileWindow.adjustSize()
-        profileWindow.show()
-        profileWindow.raise_()
 
+        # Trick to avoid blinking while retrieving the right window size
+        # Display the window, hide it and wait for some event loops
+        profileWindow.show()
+        profileWindow.hide()
+        eventLoop = qt.QEventLoop(self)
+        for _ in range(10):
+            if not eventLoop.processEvents():
+                break
+
+        profileWindow.show()
         if len(self._previousWindowGeometry) > 0:
             geometry = self._previousWindowGeometry.pop()
             profileWindow.setGeometry(geometry)
@@ -995,15 +1005,27 @@ class ProfileManager(qt.QObject):
         spaceOnLeftSide = winGeom.left()
         spaceOnRightSide = screenGeom.width() - winGeom.right()
 
-        frameGeometry = profileWindow.frameGeometry()
-        profileWindowWidth = frameGeometry.width()
-        if profileWindowWidth < spaceOnRightSide:
+        profileGeom = profileWindow.frameGeometry()
+        profileWidth = profileGeom.width()
+
+        # Align vertically to the center of the window
+        top = winGeom.top() + (winGeom.height() - profileGeom.height()) // 2
+
+        margin = 5
+        if profileWidth < spaceOnRightSide:
             # Place profile on the right
-            profileWindow.move(winGeom.right(), winGeom.top())
-        elif profileWindowWidth < spaceOnLeftSide:
+            left = winGeom.right() + margin
+        elif profileWidth < spaceOnLeftSide:
             # Place profile on the left
-            left = max(0, winGeom.left() - profileWindowWidth)
-            profileWindow.move(left, winGeom.top())
+            left = max(0, winGeom.left() - profileWidth - margin)
+        else:
+            # Move it as much as possible where there is more space
+            if spaceOnLeftSide > spaceOnRightSide:
+                left = 0
+            else:
+                left = screenGeom.width() - profileGeom.width()
+        profileWindow.move(left, top)
+
 
     def clearProfileWindow(self, profileWindow):
         """Called when a profile window is not anymore needed.
