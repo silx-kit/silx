@@ -163,6 +163,7 @@ class GLPlotColormap(_GLPlotData2D):
     uniform sampler2D data;
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
+    uniform float cmap_parameter;
     uniform float cmap_min;
     uniform float cmap_oneOverRange;
     uniform float alpha;
@@ -190,6 +191,10 @@ class GLPlotColormap(_GLPlotData2D):
             } else {
                 value = 0.;
             }
+        } else if (cmap_normalization == 3) { /*Gamma correction mapping*/
+            value = pow(
+                clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.),
+                cmap_parameter);
         } else { /*Linear mapping and fallback*/
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
         }
@@ -220,10 +225,10 @@ class GLPlotColormap(_GLPlotData2D):
                           _SHADERS['log']['fragTransform'],
                           attrib0='position')
 
-    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt'
+    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt', 'gamma'
 
     def __init__(self, data, origin, scale,
-                 colormap, normalization='linear', cmapRange=None,
+                 colormap, normalization='linear', gamma=0., cmapRange=None,
                  alpha=1.0):
         """Create a 2D colormap
 
@@ -237,7 +242,8 @@ class GLPlotColormap(_GLPlotData2D):
         :param str colormap: Name of the colormap to use
             TODO: Accept a 1D scalar array as the colormap
         :param str normalization: The colormap normalization.
-            One of: 'linear', 'log', 'sqrt'
+            One of: 'linear', 'log', 'sqrt', 'gamma'
+        ;param float gamma: The gamma parameter (for 'gamma' normalization)
         :param cmapRange: The range of colormap or None for autoscale colormap
             For logarithmic colormap, the range is in the untransformed data
             TODO: check consistency with matplotlib
@@ -250,6 +256,7 @@ class GLPlotColormap(_GLPlotData2D):
         super(GLPlotColormap, self).__init__(data, origin, scale)
         self.colormap = numpy.array(colormap, copy=False)
         self.normalization = normalization
+        self.gamma = gamma
         self._cmapRange = (1., 10.)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
@@ -338,17 +345,25 @@ class GLPlotColormap(_GLPlotData2D):
         if self.normalization == 'log':
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
+            param = 0.
             normID = 1
         elif self.normalization == 'sqrt':
             dataMin = math.sqrt(dataMin)
             dataMax = math.sqrt(dataMax)
+            param = 0.
             normID = 2
+        elif self.normalization == 'gamma':
+            # Keep dataMin, dataMax as is
+            param = self.gamma
+            normID = 3
         else:  # Linear and fallback
+            param = 0.
             normID = 0
 
         gl.glUniform1i(prog.uniforms['cmap_texture'],
                        self._cmap_texture.texUnit)
         gl.glUniform1i(prog.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(prog.uniforms['cmap_parameter'], param)
         gl.glUniform1f(prog.uniforms['cmap_min'], dataMin)
         if dataMax > dataMin:
             oneOverRange = 1. / (dataMax - dataMin)
