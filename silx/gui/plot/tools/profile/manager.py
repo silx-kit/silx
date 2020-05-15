@@ -479,6 +479,9 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self._profileWindowClass = ProfileWindow
+        """Class used to display the profile results"""
+
         self._computedProfiles = 0
         """Statistics for tests"""
 
@@ -677,6 +680,11 @@ class ProfileManager(qt.QObject):
             if item is None:
                 item = plot.getActiveScatter()
         self.setPlotItem(item)
+
+    def setProfileWindowClass(self, profileWindowClass):
+        """Set the class which will be instantiated to display profile result.
+        """
+        self._profileWindowClass = profileWindowClass
 
     def setActiveItemTracking(self, tracking):
         """Enable/disable the tracking of the active item of the plot.
@@ -956,7 +964,7 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn roi: A managed ROI
         :rtype: ~ProfileWindow
         """
-        return ProfileWindow(plot)
+        return self._profileWindowClass(plot)
 
     def initProfileWindow(self, profileWindow, roi):
         """This function is called just after the profile window creation in
