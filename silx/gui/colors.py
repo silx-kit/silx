@@ -382,9 +382,11 @@ class _NormalizationMixIn:
         :returns: (vmin, vmax)
         :rtype: Tuple[float,float]
         """
-        vmin, vmax = min_max(self.apply(data), min_positive=False, finite=True)
-        return (None if vmin is None else self.revert(vmin),
-                None if vmax is None else self.revert(vmax))
+        data = data[self.isValid(data)]
+        if data.size == 0:
+            return None, None
+        result = min_max(data, min_positive=False, finite=True)
+        return result.minimum, result.maximum
 
     def autoscaleMean3Std(self, data):
         """Autoscale using mean+/-3std
@@ -393,24 +395,31 @@ class _NormalizationMixIn:
         :returns: (vmin, vmax)
         :rtype: Tuple[float,float]
         """
-        normdata = self.apply(data)
+        # TODO
+        normdata = self.apply(data, 0., 1.)  # TODO
         if normdata.dtype.kind == 'f':  # Replaces inf by NaN
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
         mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
-        return self.revert(mean - 3 * std), self.revert(mean + 3 * std)
+        return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
 
 
 class _LinearNormalization(_colormap.LinearNormalization, _NormalizationMixIn):
     """Linear normalization"""
-    pass
+    def __init__(self):
+        _colormap.LinearNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
 
 
 class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
     """Logarithm normalization"""
 
     DEFAULT_RANGE = 1, 10
+
+    def __init__(self):
+        _colormap.LogarithmicNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
 
     def isValid(self, value):
         return value > 0.
@@ -425,15 +434,24 @@ class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
 
     DEFAULT_RANGE = 0, 1
 
+    def __init__(self):
+        _colormap.SqrtNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
+
     def isValid(self, value):
         return value >= 0.
 
-    def autoscaleMinMax(self, data):
-        data = data[data >= 0]
-        if data.size == 0:
-            return None, None
-        result = min_max(data, min_positive=False, finite=True)
-        return result.min_positive, result.maximum
+
+class _GammaNormalization(_colormap.PowerNormalization, _NormalizationMixIn):
+    """Gamma correction normalization:
+
+    Linear normalization to [0, 1] followed by power normalization.
+
+    :param gamma: Gamma correction factor
+    """
+    def __init__(self, gamma):
+        _colormap.PowerNormalization.__init__(self, gamma)
+        _NormalizationMixIn.__init__(self)
 
 
 class Colormap(qt.QObject):
@@ -462,14 +480,17 @@ class Colormap(qt.QObject):
     SQRT = 'sqrt'
     """constant for square root normalization"""
 
-    _NORMALIZATIONS = {
+    GAMMA = 'gamma'
+    """Constant for gamma correction normalization"""
+
+    _BASIC_NORMALIZATIONS = {
         LINEAR: _LinearNormalization(),
         LOGARITHM: _LogarithmicNormalization(),
         SQRT: _SqrtNormalization(),
         }
-    """Descriptions of all normalizations"""
+    """Normalizations without parameters"""
 
-    NORMALIZATIONS = tuple(_NORMALIZATIONS.keys())
+    NORMALIZATIONS = LINEAR, LOGARITHM, SQRT, GAMMA
     """Tuple of managed normalizations"""
 
     MINMAX = 'minmax'
@@ -747,7 +768,11 @@ class Colormap(qt.QObject):
 
     def _getNormalizer(self):
         """Returns normalizer object"""
-        return self._NORMALIZATIONS[self.getNormalization()]
+        normalization = self.getNormalization()
+        if normalization == self.GAMMA:
+            return _GammaNormalization(2)
+        else:
+            return self._BASIC_NORMALIZATIONS[normalization]
 
     def _computeAutoscaleRange(self, data):
         """Compute the data range which will be used in autoscale mode.
