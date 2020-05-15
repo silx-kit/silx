@@ -31,6 +31,7 @@ __date__ = "17/04/2020"
 
 import collections
 import numpy
+import weakref
 
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
@@ -80,11 +81,15 @@ class ProfileRoiMixIn:
     """Define the plot item which can be used with this profile ROI"""
 
     sigProfilePropertyChanged = qt.Signal()
-    """Emitted when a property of the profile have changed"""
+    """Emitted when a property of this profile have changed"""
+
+    sigPlotItemChanged = qt.Signal()
+    """Emitted when the plot item linked to this profile have changed"""
 
     def __init__(self, parent=None):
         self.__profileWindow = None
         self.__profileManager = None
+        self.__plotItem = None
         self.setName("Profile")
         self.setEditable(True)
         self.setSelectable(True)
@@ -99,6 +104,29 @@ class ProfileRoiMixIn:
     def invalidateProperties(self):
         """Must be called when a property of the profile have changed."""
         self.sigProfilePropertyChanged.emit()
+
+    def _setPlotItem(self, plotItem):
+        """Specify the plot item to use with this profile
+
+        :param `~silx.gui.plot.items.item.Item` plotItem: A plot item
+        """
+        previousPlotItem = self.getPlotItem()
+        if previousPlotItem is plotItem:
+            return
+        self.sigPlotItemChanged.emit()
+        self.__plotItem = weakref.ref(plotItem)
+
+    def getPlotItem(self):
+        """Returns the plot item used by this profile
+
+        :rtype: `~silx.gui.plot.items.item.Item`
+        """
+        if self.__plotItem is None:
+            return None
+        plotItem = self.__plotItem()
+        if plotItem is None:
+            self.__plotItem = None
+        return plotItem
 
     def _setProfileManager(self, profileManager):
         self.__profileManager = profileManager
