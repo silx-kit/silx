@@ -508,6 +508,7 @@ class Colormap(qt.QObject):
     def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
+        self.__gamma = 2.0
 
         assert normalization in Colormap.NORMALIZATIONS
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
@@ -674,6 +675,27 @@ class Colormap(qt.QObject):
         self._normalization = str(norm)
         self.sigChanged.emit()
 
+    def setGammaNormalizationParameter(self, gamma: float) -> None:
+        """Set the gamma correction parameter.
+
+        Only used for gamma correction normalization.
+
+        :param float gamma:
+        :raise ValueError: If gamma is not valid
+        """
+        if gamma < 0. or not numpy.isfinite(gamma):
+            raise ValueError("Gamma value not supported")
+        if gamma != self.__gamma:
+            self.__gamma = gamma
+            self.sigChanged.emit()
+
+    def getGammaNormalizationParameter(self) -> float:
+        """Returns the gamma correction parameter value.
+
+        :rtype: float
+        """
+        return self.__gamma
+
     def getAutoscaleMode(self):
         """Return the autoscale mode of the colormap ('minmax' or 'stddev3')
 
@@ -770,7 +792,7 @@ class Colormap(qt.QObject):
         """Returns normalizer object"""
         normalization = self.getNormalization()
         if normalization == self.GAMMA:
-            return _GammaNormalization(2)
+            return _GammaNormalization(self.getGammaNormalizationParameter())
         else:
             return self._BASIC_NORMALIZATIONS[normalization]
 
