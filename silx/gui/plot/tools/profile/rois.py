@@ -792,7 +792,7 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
         self.invalidateProperties()
 
 
-class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
+class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
     """Default ROI to allow to slice in the scatter data."""
 
     ITEM_KIND = items.Scatter
@@ -947,7 +947,7 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
 
 class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
-                                       _DefaulScatterProfileSliceRoiMixIn):
+                                       _DefaultScatterProfileSliceRoiMixIn):
     """ROI for an horizontal profile at a location of a scatter
     using data slicing.
     """
@@ -957,11 +957,11 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
-        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+        _DefaultScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
 
 class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
-                                       _DefaulScatterProfileSliceRoiMixIn):
+                                       _DefaultScatterProfileSliceRoiMixIn):
     """ROI for a vertical profile at a location of a scatter
     using data slicing.
     """
@@ -971,7 +971,7 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
-        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+        _DefaultScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
