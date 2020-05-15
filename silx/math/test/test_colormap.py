@@ -58,8 +58,8 @@ class TestNormalization(ParametricTestCase):
         for index in range(len(test_data)):
             with self.subTest(normalization=normalization, data_index=index):
                 data = test_data[index]
-                normalized = normalization.apply(data)
-                result = normalization.revert(normalized)
+                normalized = normalization.apply(data, 1., 100.)
+                result = normalization.revert(normalized, 1., 100.)
 
                 self.assertTrue(numpy.array_equal(
                     numpy.isnan(normalized), numpy.isnan(result)))
@@ -82,10 +82,10 @@ class TestNormalization(ParametricTestCase):
         self._testCodec(normalization, rtol=1e-3)
 
         # Specific extra tests
-        self.assertTrue(numpy.isnan(normalization.apply(-1.)))
-        self.assertTrue(numpy.isnan(normalization.apply(numpy.nan)))
-        self.assertEqual(normalization.apply(numpy.inf), numpy.inf)
-        self.assertEqual(normalization.apply(0), - numpy.inf)
+        self.assertTrue(numpy.isnan(normalization.apply(-1., 1., 100.)))
+        self.assertTrue(numpy.isnan(normalization.apply(numpy.nan, 1., 100.)))
+        self.assertEqual(normalization.apply(numpy.inf, 1., 100.), numpy.inf)
+        self.assertEqual(normalization.apply(0, 1., 100.), - numpy.inf)
 
     def testArcsinhNormalization(self):
         """Test for ArcsinhNormalization"""
@@ -97,10 +97,10 @@ class TestNormalization(ParametricTestCase):
         self._testCodec(normalization)
 
         # Specific extra tests
-        self.assertTrue(numpy.isnan(normalization.apply(-1.)))
-        self.assertTrue(numpy.isnan(normalization.apply(numpy.nan)))
-        self.assertEqual(normalization.apply(numpy.inf), numpy.inf)
-        self.assertEqual(normalization.apply(0), 0.)
+        self.assertTrue(numpy.isnan(normalization.apply(-1., 0., 100.)))
+        self.assertTrue(numpy.isnan(normalization.apply(numpy.nan, 0., 100.)))
+        self.assertEqual(normalization.apply(numpy.inf, 0., 100.), numpy.inf)
+        self.assertEqual(normalization.apply(0, 0., 100.), 0.)
 
 
 class TestColormap(ParametricTestCase):
@@ -113,9 +113,8 @@ class TestColormap(ParametricTestCase):
         'sqrt',
         colormap.LinearNormalization(),
         colormap.LogarithmicNormalization(),
-        # Range is set to match that provided to ref_colormap
-        colormap.PowerNormalization(1., 10., 2.),
-        colormap.PowerNormalization(1., 10., 0.5))
+        colormap.PowerNormalization(2.),
+        colormap.PowerNormalization(0.5))
 
     @staticmethod
     def ref_colormap(data, colors, vmin, vmax, normalization, nan_color):
@@ -136,7 +135,8 @@ class TestColormap(ParametricTestCase):
         if isinstance(normalization, str):
             norm_function = norm_functions[normalization]
         else:
-            norm_function = normalization.apply
+            def norm_function(value):
+                return normalization.apply(value, vmin, vmax)
 
         with numpy.errstate(divide='ignore', invalid='ignore'):
             # Ignore divide by zero and invalid value encountered in log10, sqrt
