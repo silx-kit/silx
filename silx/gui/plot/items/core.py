@@ -795,6 +795,8 @@ class ColorMixIn(ItemMixInBase):
         """
         if isinstance(color, six.string_types):
             color = colors.rgba(color)
+        elif isinstance(color, qt.QColor):
+            color = colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)
             # TODO more checks + improve color array support
