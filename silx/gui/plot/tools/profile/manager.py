@@ -564,6 +564,13 @@ class ProfileManager(qt.QObject):
         if hasattr(profileRoiClass, "ICON"):
             action.setIcon(icons.getQIcon(profileRoiClass.ICON))
         if hasattr(profileRoiClass, "NAME"):
+            def articulify(word):
+                """Add an an/a article in the front of the word"""
+                first = word[1] if word[0] == 'h' else word[0]
+                if first in "aeiou":
+                    return "an " + word
+                return "a " + word
+            action.setText('Define %s' % articulify(profileRoiClass.NAME))
             action.setToolTip('Enables %s selection mode' % profileRoiClass.NAME)
         action.setSingleShot(True)
         return action

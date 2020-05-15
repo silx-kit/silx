@@ -280,7 +280,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
     """
 
     ICON = 'shape-diagonal-directed'
-    NAME = 'line projection'
+    NAME = 'directed line profile'
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
