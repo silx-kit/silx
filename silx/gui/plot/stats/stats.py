@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides the :class:`Scatter` item of the :class:`Plot`.
+"""This module provides mechanism relative to stats calculation within a
+:class:`PlotWidget`.
+It also include the implementation of the statistics themselves.
 """
 
 __authors__ = ["H. Payno"]
@@ -35,10 +37,15 @@ from functools import lru_cache
 import logging
 
 import numpy
+import numpy.ma
 
 from .. import items
-from ....math.combo import min_max
+from ..CurvesROIWidget import ROI
+from ..items.roi import RegionOfInterest
 
+from ....math.combo import min_max
+from silx.utils.proxy import docstring
+from ....utils.deprecation import deprecated
 
 logger = logging.getLogger(__name__)
 
@@ -154,8 +161,11 @@ class _StatsContext(object):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlimits` calculation
+    :type roi: Union[None,:class:`_RegionOfInterestBase`]
     """
-    def __init__(self, item, kind, plot, onlimits):
+    def __init__(self, item, kind, plot, onlimits, roi):
         assert item
         assert plot
         assert type(onlimits) is bool
@@ -163,9 +173,12 @@ class _StatsContext(object):
         self.min = None
         self.max = None
         self.data = None
+        self.roi = None
+        self.onlimits = onlimits
 
         self.values = None
-        """The array of data"""
+        """The array of data with limit filtering if any. Is a numpy.ma.array,
+        meaning that it embed the mask applied by the roi if any"""
 
         self.axes = None
         """A list of array of position on each axis.
@@ -178,10 +191,68 @@ class _StatsContext(object):
         and the order is (x, y, z).
         """
 
-        self.createContext(item, plot, onlimits)
+        self.clipData(item, plot, onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def clipData(self, item, plot, onlimits, roi):
+        """
+        Clip the data to the current mask to have accurate statistics
+
+        :param item: item for whiwh we want to clip data
+        :param plot: plot containing the item
+        :param onlimits: do we want to apply statistic only on
+                         visible data.
+        :param roi: Region of interest for computing the statistics.
+        :type roi: Union[None,:class:`_RegionOfInterestBase`]
+        """
+        raise NotImplementedError()
+
+    def clear_mask(self):
+        """
+        Remove the mask to force recomputation of it on next iteration
+        :return:
+        """
+        raise NotImplementedError()
+
+    @property
+    def mask(self):
+        if self.values is not None:
+            assert isinstance(self.values, numpy.ma.MaskedArray)
+            return self.values.mask
+        else:
+            return None
+
+    @property
+    def is_mask_valid(self, **kwargs):
+        """Return if the mask is valid for the data or need to be recomputed"""
         raise NotImplementedError("Base class")
+
+    def _set_mask_validity(self, **kwargs):
+        """User to set some values that allows to define the mask properties
+        and boundaries"""
+        raise NotImplementedError("Base class")
+
+    def clipData(self, item, plot, onlimits, roi):
+        """
+        Function called before computing each statistics associated to this
+        context. It will insure the context for the (item, plot, onlimits, roi)
+        is created.
+
+        :param item: item for which we want statistics
+        :param plot: plot containing the statistics
+        :param bool onlimits: True if we want to apply statistic only on
+                         visible data.
+        :param roi: Region of interest for computing the statistics.
+                    For now, incompatible with `onlimits` calculation
+        :type roi: Union[None,:class:`_RegionOfInterestBase`]
+        """
+        raise NotImplementedError("Base class")
+
+    @deprecated(reason="context are now stored and keep during stats life."
+                       "So this function will be called only once",
+                replacement="clipData", since_version="0.13.0")
+    def createContext(self, item, plot, onlimits, roi):
+        return self.clipData(item=item, plot=plot, onlimits=onlimits,
+                             roi=roi)
 
     def isStructuredData(self):
         """Returns True if data as an array-like structure.
@@ -211,8 +282,34 @@ class _StatsContext(object):
         else:
             return self.values.ndim == 1
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        if roi is not None and onlimits is True:
+            raise ValueError('Stats context is unable to manage both a ROI'
+                             'and the `onlimits` option')
 
-class _CurveContext(_StatsContext):
+
+class _ScatterCurveHistoMixInContext(_StatsContext):
+    def __init__(self, kind, item, plot, onlimits, roi):
+        self.clear_mask()
+        _StatsContext.__init__(self, item=item, kind=kind,
+                               plot=plot, onlimits=onlimits, roi=roi)
+
+    def _set_mask_validity(self, onlimits, from_, to_):
+        self._onlimits = onlimits
+        self._from_ = from_
+        self._to_ = to_
+
+    def clear_mask(self):
+        self._onlimits = None
+        self._from_ = None
+        self._to_ = None
+
+    def is_mask_valid(self, onlimits, from_, to_):
+        return (onlimits == self.onlimits and from_ == self._from_ and
+                to_ == self._to_)
+
+
+class _CurveContext(_ScatterCurveHistoMixInContext):
     """
     StatsContext for :class:`Curve`
 
@@ -220,32 +317,63 @@ class _CurveContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
-        _StatsContext.__init__(self, kind='curve', item=item,
-                               plot=plot, onlimits=onlimits)
+    def __init__(self, item, plot, onlimits, roi):
+        _ScatterCurveHistoMixInContext.__init__(self, kind='curve', item=item,
+                                                plot=plot, onlimits=onlimits,
+                                                roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    @docstring(_StatsContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
+        self.roi = roi
+        self.onlimits = onlimits
         xData, yData = item.getData(copy=True)[0:2]
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            mask = (minX <= xData) & (xData <= maxX)
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
             yData = yData[mask]
             xData = xData[mask]
+            mask = numpy.zeros_like(yData)
+        elif roi:
+            minX, maxX = roi.getFrom(), roi.getTo()
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
+                mask = mask == 0
+                mask = mask.astype(numpy.int)
+        else:
+            mask = numpy.zeros_like(yData)
 
         self.xData = xData
         self.yData = yData
-        if len(yData) > 0:
-            self.min, self.max = min_max(yData)
+        self.values = numpy.ma.array(yData, mask=mask)
+        unmasked_data = self.values.compressed()
+        if len(unmasked_data) > 0:
+            self.min, self.max = min_max(unmasked_data)
         else:
             self.min, self.max = None, None
         self.data = (xData, yData)
-        self.values = yData
+
         self.axes = (xData,)
 
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                          onlimits=onlimits, roi=roi)
+        if roi is not None and not isinstance(roi, ROI):
+            raise TypeError('curve `context` can ony manage 1D roi')
 
-class _HistogramContext(_StatsContext):
+
+class _HistogramContext(_ScatterCurveHistoMixInContext):
     """
     StatsContext for :class:`Histogram`
 
@@ -253,32 +381,66 @@ class _HistogramContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
-        _StatsContext.__init__(self, kind='histogram', item=item,
-                               plot=plot, onlimits=onlimits)
+    def __init__(self, item, plot, onlimits, roi):
+        _ScatterCurveHistoMixInContext.__init__(self, kind='histogram',
+                                                item=item, plot=plot,
+                                                onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    @docstring(_StatsContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
+
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            mask = (minX <= xData) & (xData <= maxX)
+            if self.is_mask_valid(onlimits, from_=minX, to_=maxX):
+                mask = self.mask
+            else:
+                mask = (minX <= xData) & (xData <= maxX)
+                self._set_mask_validity(onlimits=True, from_=minX, to_=maxX)
+        elif roi:
+            if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
+                mask = self.mask
+            else:
+                mask = (roi._fromdata <= xData) & (xData <= roi._todata)
+                mask = mask == 0
+                self._set_mask_validity(onlimits=True, from_=roi._fromdata,
+                                        to_=roi._todata)
+        else:
+            mask = numpy.zeros_like(self.data)
+
+        if onlimits:
             yData = yData[mask]
             xData = xData[mask]
 
-        self.xData = xData
-        self.yData = yData
-        if len(yData) > 0:
-            self.min, self.max = min_max(yData)
-        else:
-            self.min, self.max = None, None
         self.data = (xData, yData)
-        self.values = yData
+        self.values = numpy.ma.array(yData, mask=mask)
         self.axes = (xData,)
 
+        self.xData = xData
+        self.yData = yData
 
-class _ScatterContext(_StatsContext):
+        unmasked_data = self.values.compressed()
+        if len(unmasked_data) > 0:
+            self.min, self.max = min_max(unmasked_data)
+        else:
+            self.min, self.max = None, None
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                      onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, ROI):
+            raise TypeError('curve `context` can ony manage 1D roi')
+
+
+class _ScatterContext(_ScatterCurveHistoMixInContext):
     """StatsContext scatter plots.
 
     It supports :class:`~silx.gui.plot.items.Scatter`.
@@ -287,12 +449,19 @@ class _ScatterContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
-        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits)
+    def __init__(self, item, plot, onlimits, roi):
+        _ScatterCurveHistoMixInContext.__init__(self, kind='scatter',
+                                                item=item, plot=plot,
+                                                onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    @docstring(_ScatterCurveHistoMixInContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         valueData = item.getValueData(copy=True)
         xData = item.getXData(copy=True)
         yData = item.getYData(copy=True)
@@ -310,13 +479,31 @@ class _ScatterContext(_StatsContext):
             xData = xData[(minY <= yData) & (yData <= maxY)]
             yData = yData[(minY <= yData) & (yData <= maxY)]
 
-        if len(valueData) > 0:
-            self.min, self.max = min_max(valueData)
+        if roi:
+            if self.is_mask_valid(onlimits=onlimits, from_=roi.getFrom(),
+                                  to_=roi.getTo()):
+                mask = self.mask
+            else:
+                mask = (xData < roi.getFrom()) | (xData > roi.getTo())
+        else:
+            mask = numpy.zeros_like(xData)
+
+        self.data = (xData, yData, valueData)
+        self.values = numpy.ma.array(valueData, mask=mask)
+        self.axes = (xData, yData)
+
+        unmasked_values = self.values.compressed()
+        if len(unmasked_values) > 0:
+            self.min, self.max = min_max(unmasked_values)
         else:
             self.min, self.max = None, None
-        self.data = (xData, yData, valueData)
-        self.values = valueData
-        self.axes = (xData, yData)
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                          onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, ROI):
+            raise TypeError('curve `context` can ony manage 1D roi')
 
 
 class _ImageContext(_StatsContext):
@@ -324,20 +511,57 @@ class _ImageContext(_StatsContext):
 
     It supports :class:`~silx.gui.plot.items.ImageData`.
 
+    :warning: behaviour of scale images: now the statistics are computed on
+              the entire data array (there is no sampling in the array or
+              interpolation regarding the scale).
+              This also mean that the result can differ from what is displayed.
+              But I guess there is no perfect behaviour.
+
+    :warning: `isIn` functions for image context: for now have basically a
+              binary approach, the pixel is in a roi or not. To have a fully
+              'correct behaviour' we should add a weight on stats calculation
+              to moderate the pixel value.
+
     :param item: the item for which we want to compute the context
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
+        self.clear_mask()
         _StatsContext.__init__(self, kind='image', item=item,
-                               plot=plot, onlimits=onlimits)
+                               plot=plot, onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    def _set_mask_validity(self, xmin: float, xmax: float, ymin: float, ymax
+                           : float):
+        self._mask_x_min = xmin
+        self._mask_x_max = xmax
+        self._mask_y_min = ymin
+        self._mask_y_max = ymax
+
+    def clear_mask(self):
+        self._mask_x_min = None
+        self._mask_x_max = None
+        self._mask_y_min = None
+        self._mask_y_max = None
+
+    def is_mask_valid(self, xmin, xmax, ymin, ymax):
+        return (xmin == self._mask_x_min and xmax == self._mask_x_max and
+                ymin == self._mask_y_min and ymax == self._mask_y_max)
+
+    @docstring(_StatsContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         self.origin = item.getOrigin()
         self.scale = item.getScale()
 
         self.data = item.getData(copy=True)
+        mask = numpy.zeros_like(self.data)
+        """mask use to know of the stat should be count in or not"""
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
@@ -351,20 +575,49 @@ class _ImageContext(_StatsContext):
             XMinBound = max(XMinBound, 0)
             YMinBound = max(YMinBound, 0)
 
+        if onlimits:
             if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
                 self.data = None
             else:
                 self.data = self.data[YMinBound:YMaxBound + 1,
                                       XMinBound:XMaxBound + 1]
-        if self.data.size > 0:
-            self.min, self.max = min_max(self.data)
+            mask = numpy.zeros_like(self.data)
+        elif roi:
+            minX, maxX = 0, self.data.shape[1]
+            minY, maxY = 0, self.data.shape[0]
+
+            XMinBound = max(minX, 0)
+            YMinBound = max(minY, 0)
+            XMaxBound = min(maxX, self.data.shape[1])
+            YMaxBound = min(maxY, self.data.shape[0])
+
+            if self.is_mask_valid(xmin=XMinBound, xmax=XMaxBound,
+                                  ymin=YMinBound, ymax=YMaxBound):
+                mask = self.mask
+            else:
+                for x in range(XMinBound, XMaxBound):
+                    for y in range(YMinBound, YMaxBound):
+                        _x = (x * self.scale[0]) + self.origin[0]
+                        _y = (y * self.scale[1]) + self.origin[1]
+                        mask[y, x] = not roi.isIn((_x, _y))
+                self._set_mask_validity(xmin=XMinBound, xmax=XMaxBound,
+                                        ymin=YMinBound, ymax=YMaxBound)
+        self.values = numpy.ma.array(self.data, mask=mask)
+        if self.values.compressed().size > 0:
+            self.min, self.max = min_max(self.values.compressed())
         else:
             self.min, self.max = None, None
-        self.values = self.data
 
         if self.values is not None:
             self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
                          self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                              onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 class _plot3DScatterContext(_StatsContext):
@@ -377,16 +630,26 @@ class _plot3DScatterContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits)
+                               onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    @docstring(_StatsContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
-
         values = item.getValueData(copy=False)
+        if roi:
+            logger.warning("Roi are unsupported on volume for now")
+            mask = numpy.zeros_like(values)
+        else:
+            mask = numpy.zeros_like(values)
 
         if values is not None and len(values) > 0:
             self.values = values
@@ -394,12 +657,19 @@ class _plot3DScatterContext(_StatsContext):
             if self.values.ndim == 3:
                 axes.append(item.getZData(copy=False))
             self.axes = tuple(axes)
-
             self.min, self.max = min_max(self.values)
+            self.values = numpy.ma.array(self.values, mask=mask)
         else:
             self.values = None
             self.axes = None
             self.min, self.max = None, None
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                          onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 class _plot3DArrayContext(_StatsContext):
@@ -412,25 +682,44 @@ class _plot3DArrayContext(_StatsContext):
     :param plot: the plot containing the item
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
+    :param roi: Region of interest for computing the statistics.
+                For now, incompatible with `onlinits` calculation
+    :type roi: Union[None, :class:`ROI`]
     """
-    def __init__(self, item, plot, onlimits):
+    def __init__(self, item, plot, onlimits, roi):
         _StatsContext.__init__(self, kind='image', item=item, plot=plot,
-                               onlimits=onlimits)
+                               onlimits=onlimits, roi=roi)
 
-    def createContext(self, item, plot, onlimits):
+    @docstring(_StatsContext)
+    def clipData(self, item, plot, onlimits, roi):
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
+                                 roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
         values = item.getData(copy=False)
+        if roi:
+            logger.warning("Roi are unsuported on volume for now")
+            mask = numpy.zeros_like(values)
+        else:
+            mask = numpy.zeros_like(values)
 
         if values is not None and len(values) > 0:
             self.values = values
             self.axes = tuple([numpy.arange(size) for size in self.values.shape])
             self.min, self.max = min_max(self.values)
+            self.values = numpy.ma.array(self.values, mask=mask)
         else:
             self.values = None
             self.axes = None
             self.min, self.max = None, None
+
+    def _checkContextInputs(self, item, plot, onlimits, roi):
+        _StatsContext._checkContextInputs(self, item=item, plot=plot,
+                                      onlimits=onlimits, roi=roi)
+
+        if roi is not None and not isinstance(roi, RegionOfInterest):
+            raise TypeError('curve `context` can ony manage 2D roi')
 
 
 BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
@@ -483,6 +772,7 @@ class Stat(StatBase):
         StatBase.__init__(self, name, kinds)
         self._fct = fct
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is not None:
             if context.kind in self.compatibleKinds:
@@ -499,6 +789,7 @@ class StatMin(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='min')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.min
 
@@ -508,6 +799,7 @@ class StatMax(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='max')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.max
 
@@ -517,6 +809,7 @@ class StatDelta(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='delta')
 
+    @docstring(StatBase)
     def calculate(self, context):
         return context.max - context.min
 
@@ -533,14 +826,17 @@ class _StatCoord(StatBase):
         :param int index: Index in the flattened data array
         :rtype: List[int]
         """
-        if context.isStructuredData():
+
+        axes = context.axes
+
+        if context.isStructuredData() or context.roi:
             coordinates = []
-            for axis in reversed(context.axes):
+            for axis in reversed(axes):
                 coordinates.append(axis[index % len(axis)])
                 index = index // len(axis)
             return tuple(coordinates)
         else:
-            return tuple(axis[index] for axis in context.axes)
+            return tuple(axis[index] for axis in axes)
 
 
 class StatCoordMin(_StatCoord):
@@ -548,13 +844,15 @@ class StatCoordMin(_StatCoord):
     def __init__(self):
         _StatCoord.__init__(self, name='coords min')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None
 
-        index = numpy.argmin(context.values)
+        index = context.values.argmin()
         return self._indexToCoordinates(context, index)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Coordinates of the first minimum value of the data"
 
@@ -564,13 +862,17 @@ class StatCoordMax(_StatCoord):
     def __init__(self):
         _StatCoord.__init__(self, name='coords max')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None
 
-        index = numpy.argmax(context.values)
+        # TODO: the values should be a mask array by default, will be simpler
+        # if possible
+        index = context.values.argmax()
         return self._indexToCoordinates(context, index)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Coordinates of the first maximum value of the data"
 
@@ -580,11 +882,12 @@ class StatCOM(StatBase):
     def __init__(self):
         StatBase.__init__(self, name='COM', description='Center of mass')
 
+    @docstring(StatBase)
     def calculate(self, context):
         if context.values is None or not context.isScalarData():
             return None
 
-        values = numpy.array(context.values, dtype=numpy.float64)
+        values = numpy.ma.array(context.values, mask=context.mask, dtype=numpy.float64)
         sum_ = numpy.sum(values)
         if sum_ == 0.:
             return (numpy.nan,) * len(context.axes)
@@ -600,5 +903,6 @@ class StatCOM(StatBase):
             return tuple(
                 numpy.sum(axis * values) / sum_ for axis in context.axes)
 
+    @docstring(StatBase)
     def getToolTip(self, kind):
         return "Compute the center of mass of the dataset"
