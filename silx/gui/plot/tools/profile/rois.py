@@ -355,6 +355,9 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         endPt = ((roiEnd[1] - origin[1]) / scale[1],
                  (roiEnd[0] - origin[0]) / scale[0])
 
+        if numpy.array_equal(startPt, endPt):
+            return None
+
         bilinear = BilinearImage(currentData)
         profile = bilinear.profile_line(
             (startPt[0] - 0.5, startPt[1] - 0.5),
@@ -370,8 +373,8 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
                                 dtype=numpy.float32)
 
         title = _lineProfileTitle(*roiStart, *roiEnd)
-        xLabel = "|{xlabel}²+{ylabel}²|"
         title = title + "; width = %d" % lineWidth
+        xLabel = "√({xlabel}²+{ylabel}²)"
         yLabel = str(method).capitalize()
 
         # Use the axis names from the original plot
