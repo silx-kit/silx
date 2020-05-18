@@ -245,11 +245,11 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
             return
         layout = widget.layout()
         if previousEditor is not None:
-            previousEditor.sigDataCommited.disconnect(self.__editorDataCommited)
+            previousEditor.sigDataCommited.disconnect(self._editorDataCommited)
             layout.removeWidget(previousEditor)
             previousEditor.deleteLater()
         if editor is not None:
-            editor.sigDataCommited.connect(self.__editorDataCommited)
+            editor.sigDataCommited.connect(self._editorDataCommited)
             layout.addWidget(editor)
 
     def getEditorClass(self, roi):
@@ -291,7 +291,7 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
                 continue
             editor.setEditorData(self.__roi)
 
-    def __editorDataCommited(self):
+    def _editorDataCommited(self):
         """Handle changes from the editor."""
         editor = self.sender()
         if self.__roi is not None:
