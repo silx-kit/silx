@@ -95,10 +95,10 @@ class _RegionOfInterestBase(qt.QObject):
         """
         self.sigItemChanged.emit(event)
 
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param Union[float,tuple] value: position to check
+        :param tuple[float,float] position: position to check
         :return: True if the value / point is consider to be in the region of
                  interest.
         :rtype: bool
@@ -392,10 +392,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param tuple value: point position
+        :param tuple position: point position
         :return: True if the position is consider inside
         :rtype: bool
         """
@@ -814,7 +814,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
-    def contains(self, value):
+    def contains(self, position):
         raise NotImplementedError('Base class')
 
     def _pointPositionChanged(self, event):
@@ -928,25 +928,25 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
-    def contains(self, value):
+    def contains(self, position):
         """
         Check if the position is crossed by the line
 
-        :param tuple value:
+        :param tuple position:
         :return:
         :rtype: bool
         """
 
-        bottom_left = value[0], value[1]
-        bottom_right = value[0] + 1, value[1]
-        top_left = value[0], value[1] + 1
-        top_right = value[0] + 1, value[1] + 1
+        bottom_left = position[0], position[1]
+        bottom_right = position[0] + 1, position[1]
+        top_left = position[0], position[1] + 1
+        top_right = position[0] + 1, position[1] + 1
 
         line_pt1 = self._points[0]
         line_pt2 = self._points[1]
 
         bb1 = BoundingBox.from_points(self._points)
-        if bb1.contains(value) is False:
+        if bb1.contains(position) is False:
             return False
 
         def lines_intersection(line1_pt1, line1_pt2, line2_pt1, line2_pt2):
@@ -1098,13 +1098,13 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param value:
+        :param position:
         :return:
         """
-        return value[1] == self.getPosition()[1]
+        return position[1] == self.getPosition()[1]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1185,13 +1185,13 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param value:
+        :param position:
         :return:
         """
-        return value[0] == self.getPosition()[0]
+        return position[0] == self.getPosition()[0]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1351,18 +1351,18 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
 
-    def contains(self, value):
+    def contains(self, position):
         """
         check if the given position is in the ROI.
         If the pixel is inclusive within a border he is consider as in the roi.
 
-        :param value: should be given as x, y
+        :param position: should be given as x, y
         :return:
         """
-        assert isinstance(value, (tuple, list, numpy.array))
+        assert isinstance(position, (tuple, list, numpy.array))
         points = self.__shape.getPoints()
         bb1 = BoundingBox.from_points(points)
-        return bb1.contains(value)
+        return bb1.contains(position)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -1947,21 +1947,21 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param value:
+        :param position:
         :return:
         """
         bb1 = BoundingBox.from_points(self.getPoints())
-        if bb1.contains(value) is False:
+        if bb1.contains(position) is False:
             return False
 
         if self._polygon_shape is None:
             self._polygon_shape = Polygon(vertices=self.getPoints())
 
         # warning: both the polygon and the value are inverted
-        return self._polygon_shape.is_inside(row=value[0], col=value[1])
+        return self._polygon_shape.is_inside(row=position[0], col=position[1])
 
     def _setControlPoints(self, points):
         RegionOfInterest._setControlPoints(self, points=points)
@@ -2572,19 +2572,19 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         self._geometry = geometry
         self._updateHandles()
 
-    def contains(self, value):
+    def contains(self, position):
         """
 
-        :param value:
+        :param position:
         :return:
         """
         # first check distance, fastest
         center = self.getCenter()
-        distance = numpy.sqrt((value[1] - center[1])**2 + ((value[0] - center[0]))**2)
+        distance = numpy.sqrt((position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2)
         is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
         if not is_in_distance:
             return False
-        rel_pos = value[1] - center[1], value[0] - center[0]
+        rel_pos = position[1] - center[1], position[0] - center[0]
         angle = numpy.arctan2(*rel_pos)
         start_angle = self.getStartAngle()
         end_angle = self.getEndAngle()

@@ -141,9 +141,9 @@ class TestRoiItems(TestCaseQt):
         size = numpy.array([10, 20])
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin, size=size)
-        self.assertTrue(item.contains(value=(0, 0)))
-        self.assertTrue(item.contains(value=(2, 14)))
-        self.assertFalse(item.contains(value=(14, 12)))
+        self.assertTrue(item.contains(position=(0, 0)))
+        self.assertTrue(item.contains(position=(2, 14)))
+        self.assertFalse(item.contains(position=(14, 12)))
 
     def testPolygon_emptyGeometry(self):
         points = numpy.empty((0, 2))
