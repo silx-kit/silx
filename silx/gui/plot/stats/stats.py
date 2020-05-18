@@ -60,7 +60,8 @@ class Stats(OrderedDict):
             for stat in _statslist:
                 self.add(stat)
 
-    def calculate(self, item, plot, onlimits):
+    def calculate(self, item, plot, onlimits, roi, data_changed=False,
+                  roi_changed=False):
         """
         Call all :class:`Stat` object registered and return the result of the
         computation.
@@ -69,38 +70,31 @@ class Stats(OrderedDict):
         :param plot: plot containing the item
         :param bool onlimits: True if we want to apply statistic only on
                               visible data.
+        :param roi: region of interest for statistic calculation. Incompatible
+                    with the `onlimits` option.
+        :type roi: Union[None, :class:`~_RegionOfInterestBase`]
+        :param bool data_changed: did the data changed since last calculation.
+        :param bool roi_changed: did the associated roi (if any) has changed
+                                 since last calculation.
         :return dict: dictionary with :class:`Stat` name as ket and result
                       of the calculation as value
         """
-        context = None
-        # Check for PlotWidget items
-        if isinstance(item, items.Curve):
-            context = _CurveContext(item, plot, onlimits)
-        elif isinstance(item, items.ImageData):
-            context = _ImageContext(item, plot, onlimits)
-        elif isinstance(item, items.Scatter):
-            context = _ScatterContext(item, plot, onlimits)
-        elif isinstance(item, items.Histogram):
-            context = _HistogramContext(item, plot, onlimits)
-        else:
-            # Check for SceneWidget items
-            from ...plot3d import items as items3d  # Lazy import
-
-            if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
-                context = _plot3DScatterContext(item, plot, onlimits)
-            elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
-                context = _plot3DArrayContext(item, plot, onlimits)
-
-        if context is None:
-                raise ValueError('Item type not managed')
-
         res = {}
+        context = self._getContext(item=item, plot=plot, onlimits=onlimits,
+                                   roi=roi)
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
                 logger.debug('kind %s not managed by statistic %s'
                              % (context.kind, stat.name))
                 res[statName] = None
             else:
+                if roi_changed is True:
+                    context.clear_mask()
+                if data_changed is True or roi_changed is True:
+                    # if data changed or mask changed
+                    context.clipData(item=item, plot=plot, onlimits=onlimits,
+                                     roi=roi)
+                # init roi and data
                 res[statName] = stat.calculate(context)
         return res
 
@@ -110,6 +104,33 @@ class Stats(OrderedDict):
 
     def add(self, stat):
         self.__setitem__(key=stat.name, value=stat)
+
+    @staticmethod
+    def _getContext(item, plot, onlimits, roi):
+        context = None
+        # Check for PlotWidget items
+        if isinstance(item, items.Curve):
+            context = _CurveContext(item, plot, onlimits, roi=roi)
+        elif isinstance(item, items.ImageData):
+            context = _ImageContext(item, plot, onlimits, roi=roi)
+        elif isinstance(item, items.Scatter):
+            context = _ScatterContext(item, plot, onlimits, roi=roi)
+        elif isinstance(item, items.Histogram):
+            context = _HistogramContext(item, plot, onlimits, roi=roi)
+        else:
+            # Check for SceneWidget items
+            from ...plot3d import items as items3d  # Lazy import
+
+            if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
+                context = _plot3DScatterContext(item, plot, onlimits,
+                                                roi=roi)
+            elif isinstance(item,
+                            (items3d.ImageData, items3d.ScalarField3D)):
+                context = _plot3DArrayContext(item, plot, onlimits,
+                                              roi=roi)
+        if context is None:
+            raise ValueError('Item type not managed')
+        return context
 
 
 class _StatsContext(object):
