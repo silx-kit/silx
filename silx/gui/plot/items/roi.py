@@ -95,7 +95,7 @@ class _RegionOfInterestBase(qt.QObject):
         """
         self.sigItemChanged.emit(event)
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param Union[float,tuple] value: position to check
@@ -392,7 +392,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param tuple value: pixel position
@@ -814,7 +814,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
-    def isIn(self, value):
+    def contains(self, value):
         raise NotImplementedError('Base class')
 
     def _pointPositionChanged(self, event):
@@ -928,7 +928,7 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
-    def isIn(self, value):
+    def contains(self, value):
         """
         We simply check if the pixel is crossed by the line
 
@@ -1098,7 +1098,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param value:
@@ -1185,7 +1185,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param value:
@@ -1351,7 +1351,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
 
-    def isIn(self, value):
+    def contains(self, value):
         """
         check if the given value (pixel) is in the ROI.
         If the pixel is inclusive within a border he is consider as in the roi.
@@ -1947,7 +1947,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param value:
@@ -2572,7 +2572,7 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         self._geometry = geometry
         self._updateHandles()
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param value:

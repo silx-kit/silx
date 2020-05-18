@@ -1269,7 +1269,7 @@ class ROI(_RegionOfInterestBase):
         netArea = rawArea - background
         return rawArea, netArea
 
-    def isIn(self, value):
+    def contains(self, value):
         """
 
         :param float value: position

@@ -141,9 +141,9 @@ class TestRoiItems(TestCaseQt):
         size = numpy.array([10, 20])
         item = roi_items.RectangleROI()
         item.setGeometry(origin=origin, size=size)
-        self.assertTrue(item.isIn(value=(0, 0)))
-        self.assertTrue(item.isIn(value=(2, 14)))
-        self.assertFalse(item.isIn(value=(14, 12)))
+        self.assertTrue(item.contains(value=(0, 0)))
+        self.assertTrue(item.contains(value=(2, 14)))
+        self.assertFalse(item.contains(value=(14, 12)))
 
     def testPolygon_emptyGeometry(self):
         points = numpy.empty((0, 2))
@@ -161,12 +161,12 @@ class TestRoiItems(TestCaseQt):
         points = numpy.array([[0, 0], [0, 10], [5, 10]])
         item = roi_items.PolygonROI()
         item.setPoints(points)
-        self.assertTrue(item.isIn((0, 0)))
-        self.assertFalse(item.isIn((6, 2)))
-        self.assertFalse(item.isIn((-2, 5)))
-        self.assertFalse(item.isIn((2, -1)))
-        self.assertFalse(item.isIn((8, 1)))
-        self.assertTrue(item.isIn((1, 8)))
+        self.assertTrue(item.contains((0, 0)))
+        self.assertFalse(item.contains((6, 2)))
+        self.assertFalse(item.contains((-2, 5)))
+        self.assertFalse(item.contains((2, -1)))
+        self.assertFalse(item.contains((8, 1)))
+        self.assertTrue(item.contains((1, 8)))
 
     def testArc_getToSetGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
