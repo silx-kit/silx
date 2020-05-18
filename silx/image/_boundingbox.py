@@ -33,7 +33,7 @@ from silx.math.combo import min_max
 import numpy
 
 
-class BoundingBox:
+class _BoundingBox:
     """
     Simple 2D bounding box
 
@@ -57,7 +57,7 @@ class BoundingBox:
         :type: Union[BoundingBox, tuple]
         :return:
         """
-        if isinstance(item, BoundingBox):
+        if isinstance(item, _BoundingBox):
             return self.contains(item.bottom_left) and self.contains(item.top_right)
         else:
             return (
@@ -74,7 +74,7 @@ class BoundingBox:
         :return: True if the two boxes collides
         :rtype: bool
         """
-        assert isinstance(bb, BoundingBox)
+        assert isinstance(bb, _BoundingBox)
         return (
             (self.min_x < bb.max_x and self.max_x > bb.min_x) and
             (self.min_y < bb.max_y and self.max_y > bb.min_y)
@@ -87,7 +87,7 @@ class BoundingBox:
         :param numpy.array tuple points: list of points. Should be 2D:
                                          [(y1, x1), (y2, x2), (y3, x3), ...]
         :return: bounding box from two points
-        :rtype: BoundingBox
+        :rtype: _BoundingBox
         """
         if not isinstance(points, numpy.ndarray):
             points_ = numpy.ndarray(points)
@@ -97,4 +97,4 @@ class BoundingBox:
         y = points_[:, 0]
         x_min, x_max = min_max(x)
         y_min, y_max = min_max(y)
-        return BoundingBox(bottom_left=(y_min, x_min), top_right=(y_max, x_max))
+        return _BoundingBox(bottom_left=(y_min, x_min), top_right=(y_max, x_max))

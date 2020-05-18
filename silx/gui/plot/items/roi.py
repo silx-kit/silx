@@ -42,7 +42,7 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
-from silx.image.boundingbox import BoundingBox
+from silx.image._boundingbox import _BoundingBox
 from ....utils.proxy import docstring
 
 
@@ -935,7 +935,7 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
         line_pt1 = self._points[0]
         line_pt2 = self._points[1]
 
-        bb1 = BoundingBox.from_points(self._points)
+        bb1 = _BoundingBox.from_points(self._points)
         if bb1.contains(position) is False:
             return False
 
@@ -1337,7 +1337,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
     def contains(self, position):
         assert isinstance(position, (tuple, list, numpy.array))
         points = self.__shape.getPoints()
-        bb1 = BoundingBox.from_points(points)
+        bb1 = _BoundingBox.from_points(points)
         return bb1.contains(position)
 
     def handleDragUpdated(self, handle, origin, previous, current):
@@ -1925,7 +1925,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
 
     @docstring(_HandleBasedROI)
     def contains(self, position):
-        bb1 = BoundingBox.from_points(self.getPoints())
+        bb1 = _BoundingBox.from_points(self.getPoints())
         if bb1.contains(position) is False:
             return False
 

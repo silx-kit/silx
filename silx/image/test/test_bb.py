@@ -31,7 +31,7 @@ __date__ = "27/09/2019"
 
 import unittest
 import numpy
-from silx.image.boundingbox import BoundingBox
+from silx.image._boundingbox import _BoundingBox
 
 
 class TestBB(unittest.TestCase):
@@ -39,18 +39,18 @@ class TestBB(unittest.TestCase):
     def test_creation(self):
         """test some constructors"""
         pts = numpy.array([(0, 0), (10, 20), (20, 0)])
-        bb = BoundingBox.from_points(pts)
+        bb = _BoundingBox.from_points(pts)
         self.assertTrue(bb.bottom_left == (0, 0))
         self.assertTrue(bb.top_right == (20, 20))
         pts = numpy.array([(0, 10), (10, 20), (45, 30), (35, 0)])
-        bb = BoundingBox.from_points(pts)
+        bb = _BoundingBox.from_points(pts)
         self.assertTrue(bb.bottom_left == (0, 0))
         print(bb.top_right)
         self.assertTrue(bb.top_right == (45, 30))
 
     def test_isIn_pt(self):
         """test the isIn function with points"""
-        bb = BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
+        bb = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
         self.assertTrue(bb.contains((10, 4)))
         self.assertTrue(bb.contains((6, 2)))
         self.assertTrue(bb.contains((12, 2)))
@@ -60,18 +60,18 @@ class TestBB(unittest.TestCase):
 
     def test_collide(self):
         """test the collide function"""
-        bb1 = BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.collide(BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
-        bb1 = BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertFalse(bb1.collide(BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
+        bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
+        self.assertTrue(bb1.collide(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
+        bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
+        self.assertFalse(bb1.collide(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
 
     def test_isIn_bb(self):
         """test the isIn function with other bounding box"""
-        bb1 = BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.contains(BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
-        bb1 = BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.contains(BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
-        self.assertFalse(BoundingBox(bottom_left=(12, 2), top_right=(12, 2)).contains(bb1))
+        bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
+        self.assertTrue(bb1.contains(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
+        bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
+        self.assertTrue(bb1.contains(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
+        self.assertFalse(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2)).contains(bb1))
 
 
 def suite():
