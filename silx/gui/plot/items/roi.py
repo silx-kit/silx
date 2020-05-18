@@ -31,7 +31,6 @@ __date__ = "28/06/2018"
 
 
 import logging
-import collections
 import numpy
 import weakref
 from silx.image.shapes import Polygon
@@ -44,6 +43,7 @@ from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
 from ..utils.boundingbox import BoundingBox
+from ....utils.proxy import docstring
 
 
 logger = logging.getLogger(__name__)
@@ -392,13 +392,9 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
-    def contains(self, position):
-        """
 
-        :param tuple position: point position
-        :return: True if the position is consider inside
-        :rtype: bool
-        """
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
         raise NotImplementedError("Base class")
 
     def creationFinalized(self):
@@ -814,6 +810,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
+    @docstring(_RegionOfInterestBase)
     def contains(self, position):
         raise NotImplementedError('Base class')
 
@@ -928,15 +925,8 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
+    @docstring(_RegionOfInterestBase)
     def contains(self, position):
-        """
-        Check if the position is crossed by the line
-
-        :param tuple position:
-        :return:
-        :rtype: bool
-        """
-
         bottom_left = position[0], position[1]
         bottom_right = position[0] + 1, position[1]
         top_left = position[0], position[1] + 1
@@ -1098,12 +1088,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
+    @docstring(_RegionOfInterestBase)
     def contains(self, position):
-        """
-
-        :param position:
-        :return:
-        """
         return position[1] == self.getPosition()[1]
 
     def _linePositionChanged(self, event):
@@ -1185,12 +1171,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
+    @docstring(RegionOfInterest)
     def contains(self, position):
-        """
-
-        :param position:
-        :return:
-        """
         return position[0] == self.getPosition()[0]
 
     def _linePositionChanged(self, event):
@@ -1351,14 +1333,8 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
 
+    @docstring(_HandleBasedROI)
     def contains(self, position):
-        """
-        check if the given position is in the ROI.
-        If the pixel is inclusive within a border he is consider as in the roi.
-
-        :param position: should be given as x, y
-        :return:
-        """
         assert isinstance(position, (tuple, list, numpy.array))
         points = self.__shape.getPoints()
         bb1 = BoundingBox.from_points(points)
@@ -1947,12 +1923,8 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
+    @docstring(_HandleBasedROI)
     def contains(self, position):
-        """
-
-        :param position:
-        :return:
-        """
         bb1 = BoundingBox.from_points(self.getPoints())
         if bb1.contains(position) is False:
             return False
@@ -2572,12 +2544,8 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
         self._geometry = geometry
         self._updateHandles()
 
+    @docstring(_HandleBasedROI)
     def contains(self, position):
-        """
-
-        :param position:
-        :return:
-        """
         # first check distance, fastest
         center = self.getCenter()
         distance = numpy.sqrt((position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2)

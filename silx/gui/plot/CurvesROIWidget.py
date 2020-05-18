@@ -1269,14 +1269,9 @@ class ROI(_RegionOfInterestBase):
         netArea = rawArea - background
         return rawArea, netArea
 
+    @docstring(_RegionOfInterestBase)
     def contains(self, position):
-        """
-
-        :param float position: position
-        :return: True if the value is in between fromdata and todata
-        :rtype: bool
-        """
-        return self._fromdata <= position <= self._todata
+        return self._fromdata <= position[0] <= self._todata
 
 
 class _RoiMarkerManager(object):
