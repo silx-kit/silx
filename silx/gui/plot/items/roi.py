@@ -42,7 +42,7 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
-from ..utils.boundingbox import BoundingBox
+from silx.image.boundingbox import BoundingBox
 from ....utils.proxy import docstring
 
 

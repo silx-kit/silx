@@ -31,7 +31,7 @@ __date__ = "27/09/2019"
 
 import unittest
 import numpy
-from silx.gui.plot.utils.boundingbox import BoundingBox
+from silx.image.boundingbox import BoundingBox
 
 
 class TestBB(unittest.TestCase):
