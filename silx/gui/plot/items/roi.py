@@ -99,7 +99,7 @@ class _RegionOfInterestBase(qt.QObject):
         """
 
         :param Union[float,tuple] value: position to check
-        :return: True if the value / pixel is consider to be in the region of
+        :return: True if the value / point is consider to be in the region of
                  interest.
         :rtype: bool
         """
@@ -395,8 +395,8 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     def contains(self, value):
         """
 
-        :param tuple value: pixel position
-        :return: True if the pixel is consider inside the pixel
+        :param tuple value: point position
+        :return: True if the position is consider inside
         :rtype: bool
         """
         raise NotImplementedError("Base class")
@@ -930,7 +930,7 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
 
     def contains(self, value):
         """
-        We simply check if the pixel is crossed by the line
+        Check if the position is crossed by the line
 
         :param tuple value:
         :return:
@@ -1353,7 +1353,7 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
     def contains(self, value):
         """
-        check if the given value (pixel) is in the ROI.
+        check if the given position is in the ROI.
         If the pixel is inclusive within a border he is consider as in the roi.
 
         :param value: should be given as x, y
