@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.colors import Colormap
+from silx.gui import colors
 from silx.gui.plot import Plot2D
 from silx.gui import qt
 import numpy
@@ -94,10 +95,10 @@ class TestColorScale(TestCaseQt):
         self.colorScaleWidget.setColormap(self.colorMapLog1)
 
         val = self.colorScaleWidget.getValueFromRelativePosition(1.0)
-        self.assertTrue(val == 100.0)
+        self.assertAlmostEqual(val, 100.0)
 
         val = self.colorScaleWidget.getValueFromRelativePosition(0.5)
-        self.assertTrue(val == 10.0)
+        self.assertAlmostEqual(val, 10.0)
 
         val = self.colorScaleWidget.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
@@ -149,7 +150,7 @@ class TestNoAutoscale(TestCaseQt):
 
         # test ColorScale
         val = self.colorScale.getValueFromRelativePosition(1.0)
-        self.assertTrue(val == 100.0)
+        self.assertAlmostEqual(val, 100.0)
 
         val = self.colorScale.getValueFromRelativePosition(0.0)
         self.assertTrue(val == 1.0)
@@ -315,8 +316,9 @@ class TestColorBarUpdate(TestCaseQt):
             self.colorBar.getColorScaleBar().getTickBar()._vmin == 0)
         self.assertTrue(
             self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._norm == "linear")
+        self.assertIsInstance(
+            self.colorBar.getColorScaleBar().getTickBar()._normalizer,
+            colors._LinearNormalization)
 
         # update colormap
         colormap.setVMin(0.5)
@@ -330,8 +332,9 @@ class TestColorBarUpdate(TestCaseQt):
             self.colorBar.getColorScaleBar().getTickBar()._vmax == 0.8)
 
         colormap.setNormalization('log')
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._norm == 'log')
+        self.assertIsInstance(
+            self.colorBar.getColorScaleBar().getTickBar()._normalizer,
+            colors._LogarithmicNormalization)
 
     # TODO : should also check that if the colormap is changing then values (especially in log scale)
     # should be coherent if in autoscale
