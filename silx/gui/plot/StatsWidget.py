@@ -1438,7 +1438,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     def _removeItem(self, item):
         raise NotImplementedError('Display only the active item')
 
-    def _plotCurrentChanged(selfself, current):
+    def _plotCurrentChanged(self, current):
         raise NotImplementedError('Display only the active item')
 
     def _updateModeHasChanged(self):
