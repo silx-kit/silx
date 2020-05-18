@@ -1269,6 +1269,15 @@ class ROI(_RegionOfInterestBase):
         netArea = rawArea - background
         return rawArea, netArea
 
+    def isIn(self, value):
+        """
+
+        :param float value: position
+        :return: True if the value is in between fromdata and todata
+        :rtype: bool
+        """
+        return self._fromdata <= value <= self._todata
+
 
 class _RoiMarkerManager(object):
     """

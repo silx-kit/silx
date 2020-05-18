@@ -34,6 +34,7 @@ import logging
 import collections
 import numpy
 import weakref
+from silx.image.shapes import Polygon
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -42,6 +43,7 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
+from ..utils.boundingbox import BoundingBox
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +94,16 @@ class _RegionOfInterestBase(qt.QObject):
         See :class:`~silx.gui.plot.items.Item._updated`
         """
         self.sigItemChanged.emit(event)
+
+    def isIn(self, value):
+        """
+
+        :param Union[float,tuple] value: position to check
+        :return: True if the value / pixel is consider to be in the region of
+                 interest.
+        :rtype: bool
+        """
+        raise NotImplementedError("Base class")
 
 
 class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
@@ -380,6 +392,14 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
+    def isIn(self, value):
+        """
+
+        :param tuple value: pixel position
+        :return: True if the pixel is consider inside the pixel
+        :rtype: bool
+        """
+        raise NotImplementedError("Base class")
 
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
@@ -794,6 +814,9 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
+    def isIn(self, value):
+        raise NotImplementedError('Base class')
+
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
@@ -905,6 +928,103 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
+    def isIn(self, value):
+        """
+        We simply check if the pixel is crossed by the line
+
+        :param tuple value:
+        :return:
+        :rtype: bool
+        """
+
+        bottom_left = value[0], value[1]
+        bottom_right = value[0] + 1, value[1]
+        top_left = value[0], value[1] + 1
+        top_right = value[0] + 1, value[1] + 1
+
+        line_pt1 = self._points[0]
+        line_pt2 = self._points[1]
+
+        bb1 = BoundingBox.from_points(self._points)
+        if bb1.contains(value) is False:
+            return False
+
+        def lines_intersection(line1_pt1, line1_pt2, line2_pt1, line2_pt2):
+            """
+            line segment intersection using vectors (Computer Graphics by F.S. Hill)
+
+            :param tuple line1_pt1:
+            :param tuple line1_pt2:
+            :param tuple line2_pt1:
+            :param tuple line2_pt2:
+            :return: Union[None,numpy.array]
+            """
+            dir_line1 = line1_pt2[0] - line1_pt1[0], line1_pt2[1] - line1_pt1[1]
+            dir_line2 = line2_pt2[0] - line2_pt1[0], line2_pt2[1] - line2_pt1[1]
+            dp = line1_pt1 - line2_pt1
+            def perp(a):
+                b = numpy.empty_like(a)
+                b[0] = -a[1]
+                b[1] = a[0]
+                return b
+
+            dap = perp(dir_line1)
+            denom = numpy.dot(dap, dir_line2)
+            num = numpy.dot(dap, dp)
+            if denom == 0:
+                return None
+            return (
+                (num / denom.astype(float)) * dir_line2[0] + line2_pt1[0],
+                (num / denom.astype(float)) * dir_line2[1] + line2_pt1[1])
+
+        def segments_intersection(seg1_start_pt, seg1_end_pt, seg2_start_pt,
+                                  seg2_end_pt):
+            """
+            Compute intersection between two segments
+
+            :param seg1_start_pt:
+            :param seg1_end_pt:
+            :param seg2_start_pt:
+            :param seg2_end_pt:
+            :return: numpy.array if an intersection exists, else None
+            :rtype: Union[None,numpy.array]
+            """
+            intersection = lines_intersection(line1_pt1=seg1_start_pt,
+                                              line1_pt2=seg1_end_pt,
+                                              line2_pt1=seg2_start_pt,
+                                              line2_pt2=seg2_end_pt)
+            if intersection is not None:
+                max_x_seg1 = max(seg1_start_pt[0], seg1_end_pt[0])
+                max_x_seg2 = max(seg2_start_pt[0], seg2_end_pt[0])
+                max_y_seg1 = max(seg1_start_pt[1], seg1_end_pt[1])
+                max_y_seg2 = max(seg2_start_pt[1], seg2_end_pt[1])
+
+                min_x_seg1 = min(seg1_start_pt[0], seg1_end_pt[0])
+                min_x_seg2 = min(seg2_start_pt[0], seg2_end_pt[0])
+                min_y_seg1 = min(seg1_start_pt[1], seg1_end_pt[1])
+                min_y_seg2 = min(seg2_start_pt[1], seg2_end_pt[1])
+
+                min_tmp_x = max(min_x_seg1, min_x_seg2)
+                max_tmp_x = min(max_x_seg1, max_x_seg2)
+                min_tmp_y = max(min_y_seg1, min_y_seg2)
+                max_tmp_y = min(max_y_seg1, max_y_seg2)
+                if (min_tmp_x <= intersection[0] <= max_tmp_x and
+                        min_tmp_y <= intersection[1] <= max_tmp_y):
+                    return intersection
+                else:
+                    return None
+
+        return (
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=top_right, seg2_end_pt=top_left) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=top_left, seg2_end_pt=bottom_left)
+        )
+
     def __str__(self):
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
@@ -977,6 +1097,14 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        return value[1] == self.getPosition()[1]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1056,6 +1184,14 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        return value[0] == self.getPosition()[0]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1214,6 +1350,19 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
+
+    def isIn(self, value):
+        """
+        check if the given value (pixel) is in the ROI.
+        If the pixel is inclusive within a border he is consider as in the roi.
+
+        :param value: should be given as x, y
+        :return:
+        """
+        assert isinstance(value, (tuple, list, numpy.array))
+        points = self.__shape.getPoints()
+        bb1 = BoundingBox.from_points(points)
+        return bb1.contains(value)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -1654,6 +1803,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         self._points = numpy.empty((0, 2))
         self._handleClose = None
 
+        self._polygon_shape = None
         shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
@@ -1729,6 +1879,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        self._polygon_shape = None
         assert(len(points.shape) == 2 and points.shape[1] == 2)
 
         # Update the needed handles
@@ -1795,6 +1946,26 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         points = self._points
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        bb1 = BoundingBox.from_points(self.getPoints())
+        if bb1.contains(value) is False:
+            return False
+
+        if self._polygon_shape is None:
+            self._polygon_shape = Polygon(vertices=self.getPoints())
+
+        # warning: both the polygon and the value are inverted
+        return self._polygon_shape.is_inside(row=value[0], col=value[1])
+
+    def _setControlPoints(self, points):
+        RegionOfInterest._setControlPoints(self, points=points)
+        self._polygon_shape = None
 
 
 class ArcROI(_HandleBasedROI, items.LineMixIn):
@@ -2400,6 +2571,33 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                                          startAngle, endAngle, closed=None)
         self._geometry = geometry
         self._updateHandles()
+
+    def isIn(self, value):
+        """
+
+        :param value:
+        :return:
+        """
+        # first check distance, fastest
+        center = self.getCenter()
+        distance = numpy.sqrt((value[1] - center[1])**2 + ((value[0] - center[0]))**2)
+        is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
+        if not is_in_distance:
+            return False
+        rel_pos = value[1] - center[1], value[0] - center[0]
+        angle = numpy.arctan2(*rel_pos)
+        start_angle = self.getStartAngle()
+        end_angle = self.getEndAngle()
+
+        if start_angle < end_angle:
+            # I never succeed to find a condition where start_angle < end_angle
+            # so this is untested
+            is_in_angle = start_angle <= angle <= end_angle
+        else:
+            if end_angle < -numpy.pi and angle > 0:
+                angle = angle - (numpy.pi *2.0)
+            is_in_angle = end_angle <= angle <= start_angle
+        return is_in_angle
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)
