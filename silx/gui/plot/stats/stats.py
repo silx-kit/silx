@@ -104,6 +104,10 @@ class Stats(OrderedDict):
         OrderedDict.__setitem__(self, key, value)
 
     def add(self, stat):
+        """Add a :class:`Stat` to the set
+
+        :param Stat stat: stat to add to the set
+        """
         self.__setitem__(key=stat.name, value=stat)
 
     @staticmethod
