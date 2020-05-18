@@ -31,6 +31,7 @@ __date__ = "06/06/2018"
 
 
 from collections import OrderedDict
+from functools import lru_cache
 import logging
 
 import numpy
@@ -106,6 +107,7 @@ class Stats(OrderedDict):
         self.__setitem__(key=stat.name, value=stat)
 
     @staticmethod
+    @lru_cache(maxsize=50)
     def _getContext(item, plot, onlimits, roi):
         context = None
         # Check for PlotWidget items
