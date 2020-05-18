@@ -136,6 +136,15 @@ class TestRoiItems(TestCaseQt):
         numpy.testing.assert_allclose(item.getCenter(), center)
         numpy.testing.assert_allclose(item.getRadius(), newRadius)
 
+    def testRectangle_isIn(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin, size=size)
+        self.assertTrue(item.contains(position=(0, 0)))
+        self.assertTrue(item.contains(position=(2, 14)))
+        self.assertFalse(item.contains(position=(14, 12)))
+
     def testPolygon_emptyGeometry(self):
         points = numpy.empty((0, 2))
         item = roi_items.PolygonROI()
@@ -147,6 +156,17 @@ class TestRoiItems(TestCaseQt):
         item = roi_items.PolygonROI()
         item.setPoints(points)
         numpy.testing.assert_allclose(item.getPoints(), points)
+
+    def testPolygon_isIn(self):
+        points = numpy.array([[0, 0], [0, 10], [5, 10]])
+        item = roi_items.PolygonROI()
+        item.setPoints(points)
+        self.assertTrue(item.contains((0, 0)))
+        self.assertFalse(item.contains((6, 2)))
+        self.assertFalse(item.contains((-2, 5)))
+        self.assertFalse(item.contains((2, -1)))
+        self.assertFalse(item.contains((8, 1)))
+        self.assertTrue(item.contains((1, 8)))
 
     def testArc_getToSetGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""

@@ -1269,6 +1269,10 @@ class ROI(_RegionOfInterestBase):
         netArea = rawArea - background
         return rawArea, netArea
 
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        return self._fromdata <= position[0] <= self._todata
+
 
 class _RoiMarkerManager(object):
     """

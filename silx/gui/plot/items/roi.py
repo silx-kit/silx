@@ -31,9 +31,9 @@ __date__ = "28/06/2018"
 
 
 import logging
-import collections
 import numpy
 import weakref
+from silx.image.shapes import Polygon
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -42,6 +42,9 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
+from silx.image._boundingbox import _BoundingBox
+from ....utils.proxy import docstring
+from ..utils.intersections import segments_intersection
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +95,16 @@ class _RegionOfInterestBase(qt.QObject):
         See :class:`~silx.gui.plot.items.Item._updated`
         """
         self.sigItemChanged.emit(event)
+
+    def contains(self, position):
+        """
+
+        :param tuple[float,float] position: position to check
+        :return: True if the value / point is consider to be in the region of
+                 interest.
+        :rtype: bool
+        """
+        raise NotImplementedError("Base class")
 
 
 class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
@@ -380,6 +393,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
+
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        raise NotImplementedError("Base class")
 
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
@@ -794,6 +811,10 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        raise NotImplementedError('Base class')
+
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if self.__filterReentrant.locked():
@@ -905,6 +926,31 @@ class LineROI(_HandleBasedROI, items.LineMixIn):
             end += delta
             self.setEndPoints(start, end)
 
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        bottom_left = position[0], position[1]
+        bottom_right = position[0] + 1, position[1]
+        top_left = position[0], position[1] + 1
+        top_right = position[0] + 1, position[1] + 1
+
+        line_pt1 = self._points[0]
+        line_pt2 = self._points[1]
+
+        bb1 = _BoundingBox.from_points(self._points)
+        if bb1.contains(position) is False:
+            return False
+
+        return (
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=top_right, seg2_end_pt=top_left) or
+                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                      seg2_start_pt=top_left, seg2_end_pt=bottom_left)
+        )
+
     def __str__(self):
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
@@ -977,6 +1023,10 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
+
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        return position[1] == self.getPosition()[1]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1056,6 +1106,10 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         with self.__filterReentrant:
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
+
+    @docstring(RegionOfInterest)
+    def contains(self, position):
+        return position[0] == self.getPosition()[0]
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -1214,6 +1268,13 @@ class RectangleROI(_HandleBasedROI, items.LineMixIn):
 
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
+
+    @docstring(_HandleBasedROI)
+    def contains(self, position):
+        assert isinstance(position, (tuple, list, numpy.array))
+        points = self.__shape.getPoints()
+        bb1 = _BoundingBox.from_points(points)
+        return bb1.contains(position)
 
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleCenter:
@@ -1654,6 +1715,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         self._points = numpy.empty((0, 2))
         self._handleClose = None
 
+        self._polygon_shape = None
         shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
@@ -1729,6 +1791,7 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        self._polygon_shape = None
         assert(len(points.shape) == 2 and points.shape[1] == 2)
 
         # Update the needed handles
@@ -1795,6 +1858,22 @@ class PolygonROI(_HandleBasedROI, items.LineMixIn):
         points = self._points
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
+
+    @docstring(_HandleBasedROI)
+    def contains(self, position):
+        bb1 = _BoundingBox.from_points(self.getPoints())
+        if bb1.contains(position) is False:
+            return False
+
+        if self._polygon_shape is None:
+            self._polygon_shape = Polygon(vertices=self.getPoints())
+
+        # warning: both the polygon and the value are inverted
+        return self._polygon_shape.is_inside(row=position[0], col=position[1])
+
+    def _setControlPoints(self, points):
+        RegionOfInterest._setControlPoints(self, points=points)
+        self._polygon_shape = None
 
 
 class ArcROI(_HandleBasedROI, items.LineMixIn):
@@ -2400,6 +2479,29 @@ class ArcROI(_HandleBasedROI, items.LineMixIn):
                                          startAngle, endAngle, closed=None)
         self._geometry = geometry
         self._updateHandles()
+
+    @docstring(_HandleBasedROI)
+    def contains(self, position):
+        # first check distance, fastest
+        center = self.getCenter()
+        distance = numpy.sqrt((position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2)
+        is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
+        if not is_in_distance:
+            return False
+        rel_pos = position[1] - center[1], position[0] - center[0]
+        angle = numpy.arctan2(*rel_pos)
+        start_angle = self.getStartAngle()
+        end_angle = self.getEndAngle()
+
+        if start_angle < end_angle:
+            # I never succeed to find a condition where start_angle < end_angle
+            # so this is untested
+            is_in_angle = start_angle <= angle <= end_angle
+        else:
+            if end_angle < -numpy.pi and angle > 0:
+                angle = angle - (numpy.pi *2.0)
+            is_in_angle = end_angle <= angle <= start_angle
+        return is_in_angle
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)

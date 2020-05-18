@@ -32,6 +32,7 @@ from . import test_bilinear
 from . import test_shapes
 from . import test_medianfilter
 from . import test_tomography
+from . import test_bb
 from ..marchingsquares.test import suite as marchingsquares_suite
 
 
@@ -43,4 +44,5 @@ def suite():
     test_suite.addTest(test_shapes.suite())
     test_suite.addTest(test_tomography.suite())
     test_suite.addTest(marchingsquares_suite())
+    test_suite.addTest(test_bb.suite())
     return test_suite

@@ -85,6 +85,6 @@ def suite():
          testSaveAction.suite(),
          testScatterView.suite(),
          testPixelIntensityHistoAction.suite(),
-         testCompareImages.suite()
-        ])
+         testCompareImages.suite(),
+         ])
     return test_suite
