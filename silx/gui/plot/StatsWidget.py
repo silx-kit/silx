@@ -550,7 +550,7 @@ class _StatsWidgetBase(object):
 
 class StatsTable(_StatsWidgetBase, TableWidget):
     """
-    TableWidget displaying for each curves contained by the Plot some
+    TableWidget displaying for each items contained by the Plot some
     information:
 
     * legend
