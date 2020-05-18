@@ -869,7 +869,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
             stats = statsHandler.calculate(
-                item, plot, self._statsOnVisibleData)
+                item, plot, self._statsOnVisibleData,
+                data_changed=data_changed, roi_changed=roi_changed)
         else:
             stats = {}
 
@@ -1406,7 +1407,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             if plot is not None:
                 statsValDict = self._statsHandler.calculate(item,
                                                             plot,
-                                                            self._statsOnVisibleData)
+                                                            self._statsOnVisibleData,
+                                                            data_changed=data_changed)
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
 
