@@ -449,10 +449,12 @@ class _StatsWidgetBase(object):
         _displayOnlyActItem option."""
         raise NotImplementedError('Base class')
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         raise NotImplementedError('Base class')
 
@@ -750,7 +752,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             return
         else:
             item = self.sender()
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
             # deal with stat items visibility
             if event is ItemChangedType.VISIBLE:
                 if len(self._itemToTableItems(item).items()) > 0:
@@ -812,7 +814,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                 self.setItem(row, column, tableItem)
 
             # Update table items content
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
 
         # Listen for item changes
         # Using queued connection to avoid issue with sender
@@ -845,10 +847,12 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.clearContents()
         self.setRowCount(0)
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         if item is None:
             return
@@ -895,7 +899,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item)
+                self._updateStats(item, data_changed=is_request)
 
     def _currentItemChanged(self, current, previous):
         """Handle change of selection in table and sync plot selection
