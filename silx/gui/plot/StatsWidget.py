@@ -584,10 +584,10 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.setColumnCount(2)
 
         # Init headers
-        headerItem = qt.QTableWidgetItem('Legend')
+        headerItem = qt.QTableWidgetItem(self._LEGEND_HEADER_DATA.title())
         headerItem.setData(qt.Qt.UserRole, self._LEGEND_HEADER_DATA)
         self.setHorizontalHeaderItem(0, headerItem)
-        headerItem = qt.QTableWidgetItem('Kind')
+        headerItem = qt.QTableWidgetItem(self._KIND_HEADER_DATA.title())
         headerItem.setData(qt.Qt.UserRole, self._KIND_HEADER_DATA)
         self.setHorizontalHeaderItem(1, headerItem)
 
