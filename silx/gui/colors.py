@@ -391,12 +391,16 @@ class _NormalizationMixIn:
     def autoscaleMean3Std(self, data):
         """Autoscale using mean+/-3std
 
+        This implementation only works for normalization that do NOT
+        use the data range.
+        Override this method for normalization using the range.
+
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
         :rtype: Tuple[float,float]
         """
-        # TODO
-        normdata = self.apply(data, 0., 1.)  # TODO
+        # Use [0, 1] as data range for normalization not using range
+        normdata = self.apply(data, 0., 1.)
         if normdata.dtype.kind == 'f':  # Replaces inf by NaN
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
@@ -452,6 +456,23 @@ class _GammaNormalization(_colormap.PowerNormalization, _NormalizationMixIn):
     def __init__(self, gamma):
         _colormap.PowerNormalization.__init__(self, gamma)
         _NormalizationMixIn.__init__(self)
+
+    def autoscaleMean3Std(self, data):
+        """Autoscale using mean+/-3std
+
+        Do the autoscale on the data itself, not the normalized data.
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        if data.dtype.kind == 'f':  # Replaces inf by NaN
+            data = numpy.array(data, copy=True)  # Work on a copy
+            data[numpy.isfinite(data) == False] = numpy.nan
+        if data.size == 0:  # Fallback
+            return None, None
+        mean, std = numpy.nanmean(data), numpy.nanstd(data)
+        return mean - 3 * std, mean + 3 * std
 
 
 class Colormap(qt.QObject):
