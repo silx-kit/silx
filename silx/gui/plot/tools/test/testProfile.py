@@ -475,14 +475,17 @@ class TestProfile3DToolBar(TestCaseQt):
             [[6, 7, 8], [9, 10, 11]],
             [[12, 13, 14], [15, 16, 17]]
         ]))
+        deprecation.FORCE = True
 
     def tearDown(self):
+        deprecation.FORCE = False
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         self.plot = None
 
         super(TestProfile3DToolBar, self).tearDown()
 
+    @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testMethodProfile2D(self):
         """Test that the profile can have a different method if we want to
         compute then in 1D or in 2D"""
@@ -507,10 +510,12 @@ class TestProfile3DToolBar(TestCaseQt):
 
         # check 2D 'mean' profile
         profilePlot = toolBar.getProfilePlot()
-        data = profilePlot.getActiveImage().getData()
+        data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[1, 4], [7, 10], [13, 16]])
         numpy.testing.assert_almost_equal(data, expected)
+        manager.clearProfile()
 
+    @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testMethodSumLine(self):
         """Simple interaction test to make sure the sum is correctly computed
         """
@@ -539,9 +544,10 @@ class TestProfile3DToolBar(TestCaseQt):
 
         # check 2D 'sum' profile
         profilePlot = toolBar.getProfilePlot()
-        data = profilePlot.getActiveImage().getData()
+        data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[3, 12], [21, 30], [39, 48]])
         numpy.testing.assert_almost_equal(data, expected)
+        manager.clearProfile()
 
 
 class TestGetProfilePlot(TestCaseQt):
