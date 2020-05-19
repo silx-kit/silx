@@ -49,13 +49,14 @@ class MultiModeAction(qt.QWidgetAction):
         button = qt.QToolButton(parent)
         button.setPopupMode(qt.QToolButton.MenuButtonPopup)
         self.setDefaultWidget(button)
+        self.__button = button
 
     def getMenu(self):
         """Returns the menu.
 
         :rtype: qt.QMenu
         """
-        button = self.defaultWidget()
+        button = self.__button
         menu = button.menu()
         if menu is None:
             menu = qt.QMenu(button)
@@ -68,15 +69,15 @@ class MultiModeAction(qt.QWidgetAction):
         :param qt.QAction action: New action
         """
         menu = self.getMenu()
-        button = self.defaultWidget()
+        button = self.__button
         menu.addAction(action)
         if button.defaultAction() is None:
             button.setDefaultAction(action)
         if action.isCheckable():
-            action.toggled.connect(self.__toggled)
+            action.toggled.connect(self._toggled)
 
-    def __toggled(self, checked):
+    def _toggled(self, checked):
         if checked:
             action = self.sender()
-            button = self.defaultWidget()
+            button = self.__button
             button.setDefaultAction(action)
