@@ -329,7 +329,7 @@ def _getColormap(name):
 # Normalizations
 
 class _NormalizationMixIn:
-    """Base class for describing a colormap normalization"""
+    """Colormap normalization mix-in class"""
 
     DEFAULT_RANGE = 0, 1
     """Fallback for (vmin, vmax)"""
@@ -409,11 +409,32 @@ class _NormalizationMixIn:
         return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
 
 
-class _LinearNormalization(_colormap.LinearNormalization, _NormalizationMixIn):
+class _LinearNormalizationMixIn(_NormalizationMixIn):
+    """Colormap normalization mix-in class specific to autoscale taken from initial range"""
+
+    def autoscaleMean3Std(self, data):
+        """Autoscale using mean+/-3std
+
+        Do the autoscale on the data itself, not the normalized data.
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        if data.dtype.kind == 'f':  # Replaces inf by NaN
+            data = numpy.array(data, copy=True)  # Work on a copy
+            data[numpy.isfinite(data) == False] = numpy.nan
+        if data.size == 0:  # Fallback
+            return None, None
+        mean, std = numpy.nanmean(data), numpy.nanstd(data)
+        return mean - 3 * std, mean + 3 * std
+
+
+class _LinearNormalization(_colormap.LinearNormalization, _LinearNormalizationMixIn):
     """Linear normalization"""
     def __init__(self):
         _colormap.LinearNormalization.__init__(self)
-        _NormalizationMixIn.__init__(self)
+        _LinearNormalizationMixIn.__init__(self)
 
 
 class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
@@ -446,7 +467,7 @@ class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
         return value >= 0.
 
 
-class _GammaNormalization(_colormap.PowerNormalization, _NormalizationMixIn):
+class _GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn):
     """Gamma correction normalization:
 
     Linear normalization to [0, 1] followed by power normalization.
@@ -455,24 +476,7 @@ class _GammaNormalization(_colormap.PowerNormalization, _NormalizationMixIn):
     """
     def __init__(self, gamma):
         _colormap.PowerNormalization.__init__(self, gamma)
-        _NormalizationMixIn.__init__(self)
-
-    def autoscaleMean3Std(self, data):
-        """Autoscale using mean+/-3std
-
-        Do the autoscale on the data itself, not the normalized data.
-
-        :param numpy.ndarray data:
-        :returns: (vmin, vmax)
-        :rtype: Tuple[float,float]
-        """
-        if data.dtype.kind == 'f':  # Replaces inf by NaN
-            data = numpy.array(data, copy=True)  # Work on a copy
-            data[numpy.isfinite(data) == False] = numpy.nan
-        if data.size == 0:  # Fallback
-            return None, None
-        mean, std = numpy.nanmean(data), numpy.nanstd(data)
-        return mean - 3 * std, mean + 3 * std
+        _LinearNormalizationMixIn.__init__(self)
 
 
 class Colormap(qt.QObject):
