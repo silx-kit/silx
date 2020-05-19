@@ -273,11 +273,20 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
         rgb = numpy.array(
             (((0, 0, 0), (128, 0, 0), (255, 0, 0)),
-             ((0, 128, 0), (0, 128, 128), (0, 128, 256))),
+             ((0, 128, 0), (0, 128, 128), (0, 128, 255))),
             dtype=numpy.uint8)
 
-        self.plot.addImage(rgb, legend="rgb",
-                           origin=(0, 0), scale=(10, 10),
+        self.plot.addImage(rgb, legend="rgb_uint8",
+                           origin=(0, 0), scale=(1, 1),
+                           resetzoom=False)
+
+        rgb = numpy.array(
+            (((0, 0, 0), (32768, 0, 0), (65535, 0, 0)),
+             ((0, 32768, 0), (0, 32768, 32768), (0, 32768, 65535))),
+            dtype=numpy.uint16)
+
+        self.plot.addImage(rgb, legend="rgb_uint16",
+                           origin=(3, 2), scale=(2, 2),
                            resetzoom=False)
 
         rgba = numpy.array(
@@ -285,8 +294,8 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
              ((0, .5, 0, 1), (0, .5, .5, 1), (0, 1, 1, .5))),
             dtype=numpy.float32)
 
-        self.plot.addImage(rgba, legend="rgba",
-                           origin=(5, 5), scale=(10, 10),
+        self.plot.addImage(rgba, legend="rgba_float32",
+                           origin=(9, 6), scale=(1, 1),
                            resetzoom=False)
 
         self.plot.resetZoom()

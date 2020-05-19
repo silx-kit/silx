@@ -544,7 +544,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
     _DATA_TEX_UNIT = 0
 
     _SUPPORTED_DTYPES = (numpy.dtype(numpy.float32),
-                         numpy.dtype(numpy.uint8))
+                         numpy.dtype(numpy.uint8),
+                         numpy.dtype(numpy.uint16))
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
                              _SHADERS['linear']['fragment'],
@@ -596,9 +597,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if self._texture is None:
-            format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
+            formatName = 'GL_RGBA' if self.data.shape[2] == 4 else 'GL_RGB'
+            format_ = getattr(gl, formatName)
 
-            self._texture = Image(format_,
+            if self.data.dtype == numpy.uint16:
+                formatName += '16'  # Use sized internal format for uint16
+            internalFormat = getattr(gl, formatName)
+
+            self._texture = Image(internalFormat,
                                   self.data,
                                   format_=format_,
                                   texUnit=self._DATA_TEX_UNIT)
