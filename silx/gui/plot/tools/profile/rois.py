@@ -43,6 +43,7 @@ from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from . import core
 from silx.gui import utils
+from .....utils.proxy import docstring
 
 
 def _relabelAxes(plot, text):
@@ -424,6 +425,11 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         self.__handle.setZValue(1)
         # Create the vline and the hline
         self._createSubRois()
+
+    @docstring(roi_items.HandleBasedROI)
+    def contains(self, position):
+        roiPos = self.getPosition()
+        return position[0] == roiPos[0] or position[1] == roiPos[1]
 
     def setFirstShapePoints(self, points):
         pos = points[0]

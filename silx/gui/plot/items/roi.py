@@ -101,7 +101,7 @@ class _RegionOfInterestBase(qt.QObject):
         self.sigItemChanged.emit(event)
 
     def contains(self, position):
-        """
+        """Returns True if the `position` is in this ROI.
 
         :param tuple[float,float] position: position to check
         :return: True if the value / point is consider to be in the region of
@@ -898,6 +898,11 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handle:
             self.setPosition(current)
+
+    @docstring(HandleBasedROI)
+    def contains(self, position):
+        roiPos = self.getPosition()
+        return position[0] == roiPos[0] or position[1] == roiPos[1]
 
 
 class LineROI(HandleBasedROI, items.LineMixIn):
