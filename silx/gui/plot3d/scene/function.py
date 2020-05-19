@@ -414,7 +414,7 @@ class Colormap(event.Notifier, ProgramFunction):
                 cmap_parameter);
         } else if (cmap_normalization == 4) { /* arcsinh mapping */
             /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
-            value = clamp(cmap_oneOverRange * (log(value + sqrt(value*value + 1)) - cmap_min), 0.0, 1.0);
+            value = clamp(cmap_oneOverRange * (log(value + sqrt(value*value + 1.0)) - cmap_min), 0.0, 1.0);
         } else { /* Linear mapping */
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0);
         }
