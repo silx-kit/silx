@@ -485,6 +485,8 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self.__displayingResult = False
+
         self._profileWindowClass = ProfileWindow
         """Class used to display the profile results"""
 
@@ -784,11 +786,11 @@ class ProfileManager(qt.QObject):
             roiManager.stop()
 
     def hasPendingOperations(self):
-        """Returns true if a thread is still computing a profile.
+        """Returns true if a thread is still computing or displaying a profile.
 
         :rtype: bool
         """
-        return len(self._pendingRunners) > 0
+        return self.__displayingResult or len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
         """Request to update the profile of all the managed ROIs.
@@ -839,17 +841,21 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
         :param ~core.CurveProfileData profileData: Computed data profile
         """
-        self._computedProfiles = self._computedProfiles + 1
-        window = roi.getProfileWindow()
-        if window is None:
-            plot = self.getPlotWidget()
-            window = self.createProfileWindow(plot, roi)
-            # roi.profileWindow have to be set before initializing the window
-            # Cause the initialization is using QEventLoop
-            roi.setProfileWindow(window)
-            self.initProfileWindow(window, roi)
-            window.show()
-        window.setProfile(profileData)
+        self.__displayingResult = True
+        try:
+            self._computedProfiles = self._computedProfiles + 1
+            window = roi.getProfileWindow()
+            if window is None:
+                plot = self.getPlotWidget()
+                window = self.createProfileWindow(plot, roi)
+                # roi.profileWindow have to be set before initializing the window
+                # Cause the initialization is using QEventLoop
+                roi.setProfileWindow(window)
+                self.initProfileWindow(window, roi)
+                window.show()
+            window.setProfile(profileData)
+        finally:
+            self.__displayingResult = False
 
     def __plotDestroyed(self, ref):
         """Handle finalization of PlotWidget
