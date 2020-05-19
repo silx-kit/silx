@@ -519,7 +519,7 @@ class Colormap(qt.QObject):
     ARCSINH = 'arcsinh'
     """constant for inverse hyperbolic sine normalization"""
 
-    _NORMALIZATIONS = {
+    _BASIC_NORMALIZATIONS = {
         LINEAR: _LinearNormalization(),
         LOGARITHM: _LogarithmicNormalization(),
         SQRT: _SqrtNormalization(),
