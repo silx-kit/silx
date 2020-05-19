@@ -857,12 +857,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 # Fast path applying colormap on the GPU
                 cmapRange = colormap.getColormapRange(data=data)
                 colormapLut = colormap.getNColors(nbColors=256)
+                gamma = colormap.getGammaNormalizationParameter()
 
                 image = GLPlotColormap(data,
                                        origin,
                                        scale,
                                        colormapLut,
                                        normalization,
+                                       gamma,
                                        cmapRange,
                                        alpha)
 

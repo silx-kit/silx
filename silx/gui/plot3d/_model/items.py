@@ -829,6 +829,55 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
         return super(_ColormapBoundRow, self).setData(column, value, role)
 
 
+class _ColormapGammaRow(_ColormapBaseProxyRow):
+    """ProxyRow for colormap gamma normalization parameter
+
+    :param ColormapMixIn item: The item to handle
+    :param str name: Name of the raw
+    """
+
+    def __init__(self, item):
+        _ColormapBaseProxyRow.__init__(
+            self,
+            item,
+            name="Gamma",
+            fget=self._getGammaNormalizationParameter,
+            fset=self._setGammaNormalizationParameter)
+
+        self.setToolTip('Colormap gamma correction parameter:\n'
+                        'Only meaningful for gamma normalization.')
+
+    def _getGammaNormalizationParameter(self):
+        """Proxy for :meth:`Colormap.getGammaNormalizationParameter`"""
+        if self._colormap is not None:
+            return self._colormap.getGammaNormalizationParameter()
+        else:
+            return 0.0
+
+    def _setGammaNormalizationParameter(self, gamma):
+        """Proxy for :meth:`Colormap.setGammaNormalizationParameter`"""
+        if self._colormap is not None:
+            return self._colormap.setGammaNormalizationParameter(gamma)
+
+    def _getNormalization(self):
+        """Proxy for :meth:`Colormap.getNormalization`"""
+        if self._colormap is not None:
+            return self._colormap.getNormalization()
+        else:
+            return ''
+
+    def flags(self, column):
+        if column in (0, 1):
+            if self._getNormalization() == 'gamma':
+                flags = qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled
+            else:
+                flags = qt.Qt.NoItemFlags  # Disabled if not gamma correction
+            return flags
+
+        else:  # Never event
+            return super(_ColormapGammaRow, self).flags(column)
+
+
 class ColormapRow(_ColormapBaseProxyRow):
     """Represents :class:`ColormapMixIn` property.
 
@@ -861,6 +910,8 @@ class ColormapRow(_ColormapBaseProxyRow):
             fset=self._setNormalization,
             notify=self._sigColormapChanged,
             editorHint=norms))
+
+        self.addRow(_ColormapGammaRow(item))
 
         modes = [mode.title() for mode in self._colormap.AUTOSCALE_MODES]
         self.addRow(ProxyRow(

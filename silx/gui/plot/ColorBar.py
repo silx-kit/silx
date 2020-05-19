@@ -351,13 +351,14 @@ class ColorScaleBar(qt.QWidget):
                                       margin=ColorScaleBar._TEXT_MARGIN)
         if colormap:
             vmin, vmax = colormap.getColormapRange(data)
+            normalizer = colormap._getNormalizer()
         else:
             vmin, vmax = colors.DEFAULT_MIN_LIN, colors.DEFAULT_MAX_LIN
+            normalizer = None
 
-        norm = colormap.getNormalization() if colormap else colors.Colormap.LINEAR
         self.tickbar = _TickBar(vmin=vmin,
                                 vmax=vmax,
-                                norm=norm,
+                                normalizer=normalizer,
                                 parent=self,
                                 displayValues=displayTicksValues,
                                 margin=ColorScaleBar._TEXT_MARGIN)
@@ -415,14 +416,14 @@ class ColorScaleBar(qt.QWidget):
 
         if colormap is not None:
             vmin, vmax = colormap.getColormapRange(data)
-            norm = colormap.getNormalization()
+            normalizer = colormap._getNormalizer()
         else:
             vmin, vmax = None, None
-            norm = None
+            normalizer = None
 
         self.tickbar.update(vmin=vmin,
                             vmax=vmax,
-                            norm=norm)
+                            normalizer=normalizer)
         self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
@@ -611,9 +612,10 @@ class _ColorScale(qt.QWidget):
 
         value = numpy.clip(value, 0., 1.)
         normalizer = colormap._getNormalizer()
+        normMin, normMax = normalizer.apply([self.vmin, self.vmax], self.vmin, self.vmax)
+
         return normalizer.revert(
-            normalizer.apply(self.vmin) +
-            (normalizer.apply(self.vmax) - normalizer.apply(self.vmin)) * value)
+            normMin + (normMax - normMin) * value, self.vmin, self.vmax)
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -640,8 +642,7 @@ class _TickBar(qt.QWidget):
 
     :param int vmin: smaller value of the range of values
     :param int vmax: higher value of the range of values
-    :param str norm: normalization type to be displayed. Valid values are
-        'linear' and 'log'
+    :param normalizer: Normalization object.
     :param parent: the Qt parent if any
     :param bool displayValues: if True display the values close to the tick,
         Otherwise only signal it by '-'
@@ -661,7 +662,7 @@ class _TickBar(qt.QWidget):
 
     DEFAULT_TICK_DENSITY = 0.015
 
-    def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
+    def __init__(self, vmin, vmax, normalizer, parent=None, displayValues=True,
                  nticks=None, margin=5):
         super(_TickBar, self).__init__(parent)
         self.margin = margin
@@ -673,7 +674,7 @@ class _TickBar(qt.QWidget):
 
         self._vmin = vmin
         self._vmax = vmax
-        self._norm = norm
+        self._normalizer = normalizer
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
 
@@ -690,10 +691,10 @@ class _TickBar(qt.QWidget):
         width = self._WIDTH_DISP_VAL if self.displayValues else self._WIDTH_NO_DISP_VAL
         self.setFixedWidth(width)
 
-    def update(self, vmin, vmax, norm):
+    def update(self, vmin, vmax, normalizer):
         self._vmin = vmin
         self._vmax = vmax
-        self._norm = norm
+        self._normalizer = normalizer
         self.computeTicks()
         qt.QWidget.update(self)
 
@@ -737,7 +738,7 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif self._norm == colors.Colormap.LOGARITHM:
+        elif isinstance(self._normalizer, colors._LogarithmicNormalization):
             self._computeTicksLog(nticks)
         else:  # Fallback: use linear
             self._computeTicksLin(nticks)
@@ -794,12 +795,17 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        norm = colors.Colormap(normalization=self._norm)._getNormalizer()
-        range_ = norm.apply(self._vmax) - norm.apply(self._vmin)
-        if range_ == 0.:
+        if self._normalizer is None:
+            return 0.
+        normMin, normMax, normVal = self._normalizer.apply(
+            [self._vmin, self._vmax, val],
+            self._vmin,
+            self._vmax)
+
+        if normMin == normMax:
             return 0.
         else:
-            return 1. - (norm.apply(val) - norm.apply(self._vmin)) / range_
+            return 1. - (normVal - normMin) / (normMax - normMin)
 
     def _paintTick(self, val, painter, majorTick=True):
         """

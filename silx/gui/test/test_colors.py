@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -431,6 +431,21 @@ class TestObjectAPI(ParametricTestCase):
         colormap.setAutoscaleMode(Colormap.MINMAX)
         self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
 
+    def testStoreRestore(self):
+        colormaps = [
+            Colormap(name="viridis"),
+            Colormap(normalization=Colormap.SQRT)
+        ]
+        gamma = Colormap(normalization=Colormap.GAMMA)
+        gamma.setGammaNormalizationParameter(1.2)
+        colormaps.append(gamma)
+        for expected in colormaps:
+            with self.subTest(colormap=expected):
+                state = expected.saveState()
+                result = Colormap()
+                result.restoreState(state)
+                self.assertEqual(expected, result)
+
     def testStorageV1(self):
         state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00\x00'\
                 b'\x00\x01\x00\x00\x00\x0E\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00'\
@@ -549,8 +564,8 @@ class TestAutoscaleRange(ParametricTestCase):
                 if vRange is None:
                     self.assertIsNone(expectedRange)
                 else:
-                    self.assertEqual(vRange[0], expectedRange[0])
-                    self.assertEqual(vRange[1], expectedRange[1])
+                    self.assertAlmostEqual(vRange[0], expectedRange[0])
+                    self.assertAlmostEqual(vRange[1], expectedRange[1])
 
 def suite():
     test_suite = unittest.TestSuite()

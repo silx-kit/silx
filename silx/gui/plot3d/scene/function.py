@@ -386,6 +386,7 @@ class Colormap(event.Notifier, ProgramFunction):
     _declTemplate = string.Template("""
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
+    uniform float cmap_parameter;
     uniform float cmap_min;
     uniform float cmap_oneOverRange;
 
@@ -407,6 +408,10 @@ class Colormap(event.Notifier, ProgramFunction):
             } else {
                 value = 0.0;
             }
+        } else if (cmap_normalization == 3) { /*Gamma correction mapping*/
+            value = pow(
+                clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0),
+                cmap_parameter);
         } else { /* Linear mapping */
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0);
         }
@@ -426,18 +431,19 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    NORMS = 'linear', 'log', 'sqrt'
+    NORMS = 'linear', 'log', 'sqrt', 'gamma'
     """Tuple of supported normalizations."""
 
     _COLORMAP_TEXTURE_UNIT = 1
     """Texture unit to use for storing the colormap"""
 
-    def __init__(self, colormap=None, norm='linear', range_=(1., 10.)):
+    def __init__(self, colormap=None, norm='linear', gamma=0., range_=(1., 10.)):
         """Shader function to apply a colormap to a value.
 
         :param colormap: RGB(A) color look-up table (default: gray)
         :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
         :param str norm: Normalization to apply: see :attr:`NORMS`.
+        :param float gamma: Gamma normalization parameter
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
         """
@@ -446,6 +452,7 @@ class Colormap(event.Notifier, ProgramFunction):
         # Init privates to default
         self._colormap = None
         self._norm = 'linear'
+        self._gamma = -1.
         self._range = 1., 10.
         self._displayValuesBelowMin = True
 
@@ -461,6 +468,7 @@ class Colormap(event.Notifier, ProgramFunction):
         # Set to param values through properties to go through asserts
         self.colormap = colormap
         self.norm = norm
+        self.gamma = gamma
         self.range_ = range_
 
     @property
@@ -499,6 +507,18 @@ class Colormap(event.Notifier, ProgramFunction):
             self._norm = norm
             if norm in ('log', 'sqrt'):
                 self.range_ = self.range_  # To test for positive range_
+            self.notify()
+
+    @property
+    def gamma(self):
+        """Gamma correction normalization parameter (float >= 0.)"""
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, gamma):
+        if gamma != self._gamma:
+            assert gamma >= 0.
+            self._gamma = gamma
             self.notify()
 
     @property
@@ -562,16 +582,22 @@ class Colormap(event.Notifier, ProgramFunction):
                        self._texture.texUnit)
 
         min_, max_ = self.range_
+        param = 0.
         if self._norm == 'log':
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
             normID = 1
         elif self._norm == 'sqrt':
             min_, max_ = numpy.sqrt(min_), numpy.sqrt(max_)
             normID = 2
+        elif self._norm == 'gamma':
+            # Keep min_, max_ as is
+            param = self._gamma
+            normID = 3
         else:  # Linear
             normID = 0
 
         gl.glUniform1i(program.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(program.uniforms['cmap_parameter'], param)
         gl.glUniform1f(program.uniforms['cmap_min'], min_)
         gl.glUniform1f(program.uniforms['cmap_oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)

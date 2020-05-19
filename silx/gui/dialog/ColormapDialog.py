@@ -471,7 +471,7 @@ class _ColormapHistogram(qt.QWidget):
         # Try to use the one defined in the dialog
         dataRange = self.parent()._getDataRange()
         if dataRange is not None:
-            if norm == Colormap.LINEAR:
+            if norm in (Colormap.LINEAR, Colormap.GAMMA):
                 return dataRange[0], dataRange[2]
             elif norm == Colormap.LOGARITHM:
                 return dataRange[1], dataRange[2]
@@ -857,9 +857,17 @@ class ColormapDialog(qt.QDialog):
         self._comboBoxNormalization = qt.QComboBox(parent=self)
         self._comboBoxNormalization.addItem('Linear', Colormap.LINEAR)
         self._comboBoxNormalization.addItem('Logarithmic', Colormap.LOGARITHM)
+        self._comboBoxNormalization.addItem('Gamma correction', Colormap.GAMMA)
         self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
             self._normalizationUpdated)
+
+        self._gammaSpinBox = qt.QDoubleSpinBox(parent=self)
+        self._gammaSpinBox.setEnabled(False)
+        self._gammaSpinBox.setRange(0., 1000.)
+        self._gammaSpinBox.setStepType(qt.QDoubleSpinBox.AdaptiveDecimalStepType)
+        self._gammaSpinBox.valueChanged.connect(self._gammaUpdated)
+        self._gammaSpinBox.setValue(2.)
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
@@ -927,6 +935,7 @@ class ColormapDialog(qt.QDialog):
         formLayout.setContentsMargins(10, 10, 10, 10)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
         formLayout.addRow('Normalization:', self._comboBoxNormalization)
+        formLayout.addRow('Gamma:', self._gammaSpinBox)
         formLayout.addRow(self._histoWidget)
         formLayout.addRow(rangeLayout)
         label = qt.QLabel('Mode:', self)
@@ -939,7 +948,8 @@ class ColormapDialog(qt.QDialog):
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
 
         self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
-        self.setTabOrder(self._comboBoxNormalization, self._minValue)
+        self.setTabOrder(self._comboBoxNormalization, self._gammaSpinBox)
+        self.setTabOrder(self._gammaSpinBox, self._minValue)
         self.setTabOrder(self._minValue, self._maxValue)
         self.setTabOrder(self._maxValue, self._autoButtons)
         self.setTabOrder(self._autoButtons, self._autoScaleCombo)
@@ -1369,6 +1379,7 @@ class ColormapDialog(qt.QDialog):
         if colormap is None:
             self._comboBoxColormap.setEnabled(False)
             self._comboBoxNormalization.setEnabled(False)
+            self._gammaSpinBox.setEnabled(False)
             self._autoScaleCombo.setEnabled(False)
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
@@ -1390,6 +1401,12 @@ class ColormapDialog(qt.QDialog):
                 else:
                     self._comboBoxNormalization.setCurrentIndex(index)
                 self._comboBoxNormalization.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._gammaSpinBox):
+                self._gammaSpinBox.setValue(
+                    colormap.getGammaNormalizationParameter())
+                self._gammaSpinBox.setEnabled(
+                    colormap.getNormalization() == 'gamma' and
+                    colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
@@ -1459,12 +1476,20 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if colormap is not None:
+            normalization = self._comboBoxNormalization.itemData(index)
+            self._gammaSpinBox.setEnabled(normalization == 'gamma')
+
             with self._colormapChange:
-                colormap.setNormalization(
-                    self._comboBoxNormalization.itemData(index))
+                colormap.setNormalization(normalization)
                 self._histoWidget.updateNormalization()
 
         self._updateWidgetRange()
+
+    def _gammaUpdated(self, value):
+        """Callback used to update the gamma normalization parameter"""
+        colormap = self.getColormap()
+        if colormap is not None:
+            colormap.setGammaNormalizationParameter(value)
 
     def _autoscaleModeUpdated(self):
         """Callback executed when the autoscale mode widget
