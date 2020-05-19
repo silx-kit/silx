@@ -388,9 +388,13 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                     # draw profile line
                     widget.setFocus(qt.Qt.OtherFocusReason)
                     self.mouseMove(widget, pos=pos1)
+                    self.qWait(100)
                     self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+                    self.qWait(100)
                     self.mouseMove(widget, pos=pos2)
+                    self.qWait(100)
                     self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+                    self.qWait(100)
 
                     manager = self.toolBar.getProfileManager()
 
