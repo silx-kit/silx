@@ -73,9 +73,6 @@ class ProfileMainWindow(ProfileWindow):
         # by default, profile is assumed to be a 1D curve
         self._profileType = None
 
-        self.setProfileType("1D")
-        self.setProfileMethod('sum')
-
     def setProfileType(self, profileType):
         """Set which profile plot widget (1D or 2D) is to be used
 
@@ -99,10 +96,7 @@ class ProfileMainWindow(ProfileWindow):
 
         Note: This method should be removed.
         """
-        if self._profileType == "2D":
-            return self._plot2D
-        else:
-            return self._plot1D
+        return self.getCurrentPlotWidget()
 
     def setProfileMethod(self, method):
         """
