@@ -327,7 +327,7 @@ class RegionOfInterestManager(qt.QObject):
         """Returns a ROI from a marker, else None"""
         # This should be speed up
         for roi in self._rois:
-            if isinstance(roi, roi_items._HandleBasedROI):
+            if isinstance(roi, roi_items.HandleBasedROI):
                 for m in roi.iterHandles():
                     if m is marker:
                         return roi
