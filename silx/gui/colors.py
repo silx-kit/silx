@@ -1057,8 +1057,13 @@ class Colormap(qt.QObject):
             return False
         if not isinstance(other, Colormap):
             return False
+        if self.getNormalization() != other.getNormalization():
+            return False
+        if self.getNormalization() == self.GAMMA:
+            delta = self.getGammaNormalizationParameter() - other.getGammaNormalizationParameter()
+            if abs(delta) > 0.001:
+                return False
         return (self.getName() == other.getName() and
-                self.getNormalization() == other.getNormalization() and
                 self.getAutoscaleMode() == other.getAutoscaleMode() and
                 self.getVMin() == other.getVMin() and
                 self.getVMax() == other.getVMax() and
