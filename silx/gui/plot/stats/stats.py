@@ -599,7 +599,7 @@ class _ImageContext(_StatsContext):
                     for y in range(YMinBound, YMaxBound):
                         _x = (x * self.scale[0]) + self.origin[0]
                         _y = (y * self.scale[1]) + self.origin[1]
-                        mask[y, x] = not roi.isIn((_x, _y))
+                        mask[y, x] = not roi.contains((_x, _y))
                 self._set_mask_validity(xmin=XMinBound, xmax=XMaxBound,
                                         ymin=YMinBound, ymax=YMaxBound)
         self.values = numpy.ma.array(self.data, mask=mask)
