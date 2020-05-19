@@ -485,7 +485,9 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
-        self.__displayingResult = False
+        self.__reentrantResults = {}
+        """Store reentrant result to avoid to skip some of them
+        cause the implementation uses a QEventLoop."""
 
         self._profileWindowClass = ProfileWindow
         """Class used to display the profile results"""
@@ -790,7 +792,7 @@ class ProfileManager(qt.QObject):
 
         :rtype: bool
         """
-        return self.__displayingResult or len(self._pendingRunners) > 0
+        return len(self.__reentrantResults) > 0 or len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
         """Request to update the profile of all the managed ROIs.
@@ -841,21 +843,27 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
         :param ~core.CurveProfileData profileData: Computed data profile
         """
-        self.__displayingResult = True
-        try:
-            self._computedProfiles = self._computedProfiles + 1
-            window = roi.getProfileWindow()
-            if window is None:
-                plot = self.getPlotWidget()
-                window = self.createProfileWindow(plot, roi)
-                # roi.profileWindow have to be set before initializing the window
-                # Cause the initialization is using QEventLoop
-                roi.setProfileWindow(window)
-                self.initProfileWindow(window, roi)
-                window.show()
-            window.setProfile(profileData)
-        finally:
-            self.__displayingResult = False
+        if roi in self.__reentrantResults:
+            # Store the data to process it in the main loop
+            # And not a sub loop created by initProfileWindow
+            # This also remove the duplicated requested
+            self.__reentrantResults[roi] = profileData
+            return
+
+        self.__reentrantResults[roi] = profileData
+        self._computedProfiles = self._computedProfiles + 1
+        window = roi.getProfileWindow()
+        if window is None:
+            plot = self.getPlotWidget()
+            window = self.createProfileWindow(plot, roi)
+            # roi.profileWindow have to be set before initializing the window
+            # Cause the initialization is using QEventLoop
+            roi.setProfileWindow(window)
+            self.initProfileWindow(window, roi)
+            window.show()
+
+        lastData = self.__reentrantResults.pop(roi)
+        window.setProfile(lastData)
 
     def __plotDestroyed(self, ref):
         """Handle finalization of PlotWidget
