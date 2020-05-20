@@ -289,7 +289,7 @@ class TestInteractions(TestCaseQt):
                     roi._setProfileManager(profileManager)
                     try:
                         # Force widget creation
-                        menu = qt.QMenu()
+                        menu = qt.QMenu(plot)
                         menu.addAction(editorAction)
                         widgets = editorAction.createdWidgets()
                         self.assertGreater(len(widgets), 0)
@@ -324,6 +324,9 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
     def tearDown(self):
         deprecation.FORCE = False
         self.qapp.processEvents()
+        profileManager = self.toolBar.getProfileManager()
+        profileManager.clearProfile()
+        profileManager = None
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
@@ -429,22 +432,34 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 class TestDeprecatedProfileToolBar(TestCaseQt):
     """Tests old features of the ProfileToolBar widget."""
 
+    def setUp(self):
+        self.plot = None
+        super(TestDeprecatedProfileToolBar, self).setUp()
+
+    def tearDown(self):
+        if self.plot is not None:
+            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+            self.plot.close()
+            self.plot = None
+
+        super(TestDeprecatedProfileToolBar, self).tearDown()
+
     @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testCustomProfileWindow(self):
         from silx.gui.plot import ProfileMainWindow
         profileWindow = ProfileMainWindow.ProfileMainWindow()
 
-        plot = PlotWindow()
-        toolBar = Profile.ProfileToolBar(plot=plot,
+        self.plot = PlotWindow()
+        toolBar = Profile.ProfileToolBar(plot=self.plot,
                                          profileWindow=profileWindow)
 
-        plot.show()
-        self.qWaitForWindowExposed(plot)
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
         profileWindow.show()
         self.qWaitForWindowExposed(profileWindow)
         self.qapp.processEvents()
 
-        plot.addImage(numpy.arange(10 * 10).reshape(10, -1))
+        self.plot.addImage(numpy.arange(10 * 10).reshape(10, -1))
         profile = rois.ProfileImageHorizontalLineROI()
         profile.setPosition(5)
         toolBar.getProfileManager().getRoiManager().addRoi(profile)
@@ -483,6 +498,9 @@ class TestProfile3DToolBar(TestCaseQt):
 
     def tearDown(self):
         deprecation.FORCE = False
+        profileManager = self.plot.getProfileToolbar().getProfileManager()
+        profileManager.clearProfile()
+        profileManager = None
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         self.plot = None
@@ -517,7 +535,6 @@ class TestProfile3DToolBar(TestCaseQt):
         data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[1, 4], [7, 10], [13, 16]])
         numpy.testing.assert_almost_equal(data, expected)
-        manager.clearProfile()
 
     @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testMethodSumLine(self):
@@ -551,18 +568,32 @@ class TestProfile3DToolBar(TestCaseQt):
         data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[3, 12], [21, 30], [39, 48]])
         numpy.testing.assert_almost_equal(data, expected)
-        manager.clearProfile()
 
 
 class TestGetProfilePlot(TestCaseQt):
 
-    def testProfile1D(self):
-        plot = Plot2D()
-        plot.show()
-        self.qWaitForWindowExposed(plot)
-        plot.addImage([[0, 1], [2, 3]])
+    def setUp(self):
+        self.plot = None
+        super(TestGetProfilePlot, self).setUp()
 
-        toolBar = plot.getProfileToolbar()
+    def tearDown(self):
+        if self.plot is not None:
+            manager = self.plot.getProfileToolbar().getProfileManager()
+            manager.clearProfile()
+            manager = None
+            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+            self.plot.close()
+            self.plot = None
+
+        super(TestGetProfilePlot, self).tearDown()
+
+    def testProfile1D(self):
+        self.plot = Plot2D()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+        self.plot.addImage([[0, 1], [2, 3]])
+
+        toolBar = self.plot.getProfileToolbar()
         self.assertIsNone(toolBar.getProfileMainWindow())
 
 
@@ -580,22 +611,19 @@ class TestGetProfilePlot(TestCaseQt):
                 break
 
         self.assertIsInstance(toolBar.getProfileMainWindow(), qt.QMainWindow)
-        self.assertIsInstance(plot.getProfilePlot(), Plot1D)
-        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        plot.close()
-        del plot
+        self.assertIsInstance(self.plot.getProfilePlot(), Plot1D)
 
     def testProfile2D(self):
         """Test that the profile plot associated to a stack view is either a
         Plot1D or a plot 2D instance."""
-        plot = StackView()
-        plot.show()
-        self.qWaitForWindowExposed(plot)
+        self.plot = StackView()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
 
-        plot.setStack(numpy.array([[[0, 1], [2, 3]],
-                                   [[4, 5], [6, 7]]]))
+        self.plot.setStack(numpy.array([[[0, 1], [2, 3]],
+                                       [[4, 5], [6, 7]]]))
 
-        toolBar = plot.getProfileToolbar()
+        toolBar = self.plot.getProfileToolbar()
         self.assertIsNone(toolBar.getProfileMainWindow())
 
         manager = toolBar.getProfileManager()
@@ -623,10 +651,6 @@ class TestGetProfilePlot(TestCaseQt):
                 break
 
         self.assertIsInstance(toolBar.getProfilePlot(), Plot1D)
-
-        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        plot.close()
-        del plot
 
 
 def suite():
