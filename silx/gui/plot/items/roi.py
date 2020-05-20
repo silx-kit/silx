@@ -1273,7 +1273,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(points)
         self.sigRegionChanged.emit()
 
-    @docstring(_HandleBasedROI)
+    @docstring(HandleBasedROI)
     def contains(self, position):
         assert isinstance(position, (tuple, list, numpy.array))
         points = self.__shape.getPoints()
@@ -1863,7 +1863,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
-    @docstring(_HandleBasedROI)
+    @docstring(HandleBasedROI)
     def contains(self, position):
         bb1 = _BoundingBox.from_points(self.getPoints())
         if bb1.contains(position) is False:
@@ -2484,7 +2484,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self._geometry = geometry
         self._updateHandles()
 
-    @docstring(_HandleBasedROI)
+    @docstring(HandleBasedROI)
     def contains(self, position):
         # first check distance, fastest
         center = self.getCenter()
