@@ -359,9 +359,12 @@ class LegendListItemWidget(qt.QItemDelegate):
         self.iconDict = {}
 
         # Keep checkbox and legend to get sizeHint
-        self.checkbox = qt.QCheckBox()
-        self.legend = qt.QLabel()
-        self.icon = LegendIcon()
+        self.checkbox = qt.QCheckBox(parent)
+        self.checkbox.setVisible(False)
+        self.legend = qt.QLabel(parent)
+        self.legend.setVisible(False)
+        self.icon = LegendIcon(parent)
+        self.icon.setVisible(False)
 
         # Context Menu and Editors
         self.contextMenu = None
@@ -502,7 +505,7 @@ class LegendListView(qt.QListView):
         self.__lastClickPos = None
         self.__lastModelIdx = None
         # Set default delegate
-        self.setItemDelegate(LegendListItemWidget())
+        self.setItemDelegate(LegendListItemWidget(self))
         # Set default editors
         # self.setSizePolicy(qt.QSizePolicy.MinimumExpanding,
         #                    qt.QSizePolicy.MinimumExpanding)
