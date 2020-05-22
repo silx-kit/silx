@@ -39,7 +39,7 @@ __license__ = "MIT"
 __date__ = "12/02/2018"
 
 
-sftext = """#F /tmp/sf.dat
+sfdata = b"""#F /tmp/sf.dat
 #E 1455180875
 #D Thu Feb 11 09:54:35 2016
 #C imaging  User = opid17
@@ -86,14 +86,11 @@ sftext = """#F /tmp/sf.dat
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fd, cls.spec_fname = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd, sftext)
-        else:
-            os.write(fd, bytes(sftext, 'ascii'))
+        fd, cls.spec_fname = tempfile.mkstemp(prefix="TestConvertSpecHDF5")
+        os.write(fd, sfdata)
         os.close(fd)
 
-        fd, cls.h5_fname = tempfile.mkstemp(text=False)
+        fd, cls.h5_fname = tempfile.mkstemp(prefix="TestConvertSpecHDF5")
         # Close and delete (we just need the name)
         os.close(fd)
         os.unlink(cls.h5_fname)
