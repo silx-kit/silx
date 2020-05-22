@@ -55,7 +55,8 @@ class TestRois(TestCaseQt):
         """Check that the constructor is not called twice"""
         roi = rois.ProfileImageVerticalLineROI()
         if qt.BINDING not in ["PySide", "PySide2"]:
-            self.assertEqual(roi.receivers(roi.sigRegionChanged), 1)
+            # the profile ROI + the shape
+            self.assertEqual(roi.receivers(roi.sigRegionChanged), 2)
 
 
 class TestInteractions(TestCaseQt):
@@ -441,16 +442,18 @@ class TestDeprecatedProfileToolBar(TestCaseQt):
             self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
             self.plot.close()
             self.plot = None
+            self.qWait()
 
         super(TestDeprecatedProfileToolBar, self).tearDown()
 
     @testutils.test_logging(deprecation.depreclog.name, warning=2)
     def testCustomProfileWindow(self):
         from silx.gui.plot import ProfileMainWindow
-        profileWindow = ProfileMainWindow.ProfileMainWindow()
 
         self.plot = PlotWindow()
-        toolBar = Profile.ProfileToolBar(plot=self.plot,
+        profileWindow = ProfileMainWindow.ProfileMainWindow(self.plot)
+        toolBar = Profile.ProfileToolBar(parent=self.plot,
+                                         plot=self.plot,
                                          profileWindow=profileWindow)
 
         self.plot.show()

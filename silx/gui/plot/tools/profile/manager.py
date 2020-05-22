@@ -819,10 +819,15 @@ class ProfileManager(qt.QObject):
                     self._pendingRunners.remove(runner)
 
         item = self.getPlotItem()
-        if item is None:
-            # FIXME: It means the result is None profile window have to be updated
+        if item is None or not isinstance(item, profileRoi.ITEM_KIND):
+            # This item is not compatible with this profile
+            profileRoi._setPlotItem(None)
+            profileWindow = profileRoi.getProfileWindow()
+            if profileWindow is not None:
+                profileWindow.setProfile(None)
             return
 
+        profileRoi._setPlotItem(item)
         runner = _RunnableComputeProfile(threadPool, item, profileRoi)
         runner.runnerFinished.connect(self.__cleanUpRunner)
         runner.resultReady.connect(self.__displayResult)
