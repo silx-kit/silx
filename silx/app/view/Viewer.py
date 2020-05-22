@@ -605,7 +605,7 @@ class Viewer(qt.QMainWindow):
         action.setStatusTip("Select plot rendering backend")
         self._plotBackendSelection = action
 
-        menu = qt.QMenu()
+        menu = qt.QMenu(self)
         action.setMenu(menu)
         group = qt.QActionGroup(self)
         group.setExclusive(True)
@@ -632,7 +632,7 @@ class Viewer(qt.QMainWindow):
         action.setStatusTip("Select the default y-axis orientation used by plot displaying images")
         self._plotImageOrientation = action
 
-        menu = qt.QMenu()
+        menu = qt.QMenu(self)
         action.setMenu(menu)
         group = qt.QActionGroup(self)
         group.setExclusive(True)
