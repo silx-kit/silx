@@ -442,7 +442,7 @@ class TestDeprecatedProfileToolBar(TestCaseQt):
             self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
             self.plot.close()
             self.plot = None
-            self.qWait()
+            self.qapp.processEvents()
 
         super(TestDeprecatedProfileToolBar, self).tearDown()
 
