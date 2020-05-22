@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,9 +44,8 @@ class TestCompareImages(TestCaseQt):
         self.widget = CompareImages()
 
     def tearDown(self):
-        ref = weakref.ref(self.widget)
-        self.widget = None
-        self.qWaitForDestroy(ref)
+        self.widget.close()
+        del self.widget
         super(TestCompareImages, self).tearDown()
 
     def testIntensityImage(self):

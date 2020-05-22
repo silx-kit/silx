@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -114,9 +114,8 @@ class _UtilsMixin(object):
         if not hasattr(self, "_dialog"):
             return
         if self._dialog is not None:
-            ref = weakref.ref(self._dialog)
-            self._dialog = None
-            self.qWaitForDestroy(ref)
+            self._dialog.close()
+            del self._dialog
 
     def qWaitForPendingActions(self, dialog):
         for _ in range(20):
