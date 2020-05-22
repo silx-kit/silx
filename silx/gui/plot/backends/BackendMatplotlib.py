@@ -875,7 +875,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                              color=color,
                                              horizontalalignment='left',
                                              verticalalignment='top')
-                textArtist.x_pixel_offset = 5, 3
+                textArtist.pixel_offset = 5, 3
         elif y is not None:
             line = ax.axhline(y,
                               color=color,
@@ -888,7 +888,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                              color=color,
                                              horizontalalignment='right',
                                              verticalalignment='top')
-                textArtist.x_pixel_offset = 5, 3
+                textArtist.pixel_offset = 5, 3
         else:
             raise RuntimeError('A marker must at least have one coordinate')
 
