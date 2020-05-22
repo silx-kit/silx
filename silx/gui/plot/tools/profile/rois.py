@@ -43,12 +43,54 @@ from silx.gui.plot import items
 from silx.gui.plot.items import roi as roi_items
 from . import core
 from silx.gui import utils
+from .....utils.proxy import docstring
 
+
+def _relabelAxes(plot, text):
+    """Relabel {xlabel} and {ylabel} from this text using the corresponding
+    plot axis label. If the axis label is empty, label it with "X" and "Y".
+
+    :rtype: str
+    """
+    xLabel = plot.getXAxis().getLabel()
+    if not xLabel:
+        xLabel = "X"
+    yLabel = plot.getYAxis().getLabel()
+    if not yLabel:
+        yLabel = "Y"
+    return text.format(xlabel=xLabel, ylabel=yLabel)
+
+
+def _lineProfileTitle(x0, y0, x1, y1):
+    """Compute corresponding plot title
+
+    This can be overridden to change title behavior.
+
+    :param float x0: Profile start point X coord
+    :param float y0: Profile start point Y coord
+    :param float x1: Profile end point X coord
+    :param float y1: Profile end point Y coord
+    :return: Title to use
+    :rtype: str
+    """
+    if x0 == x1:
+        title = '{xlabel} = %g; {ylabel} = [%g, %g]' % (x0, y0, y1)
+    elif y0 == y1:
+        title = '{ylabel} = %g; {xlabel} = [%g, %g]' % (y0, x0, x1)
+    else:
+        m = (y1 - y0) / (x1 - x0)
+        b = y0 - m * x0
+        title = '{ylabel} = %g * {xlabel} %+g' % (m, b)
+
+    return title
 
 
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default image profile ROI.
     """
+
+    ITEM_KIND = items.ImageBase
+
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__method = "mean"
@@ -176,6 +218,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         origin = item.getOrigin()
         scale = item.getScale()
         method = self.getProfileMethod()
+        lineWidth = self.getProfileLineWidth()
 
         def createProfile2(currentData):
             coords, profile, _area, profileName, xLabel = core.createProfile(
@@ -183,7 +226,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 currentData=currentData,
                 origin=origin,
                 scale=scale,
-                lineWidth=self.getProfileLineWidth(),
+                lineWidth=lineWidth,
                 method=method)
             return coords, profile, profileName, xLabel
 
@@ -197,7 +240,14 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 rgba = rgba.astype(numpy.float)
             currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
 
-        coords, profile, profileName, xLabel = createProfile2(currentData)
+        yLabel = "%s" % str(method).capitalize()
+        coords, profile, title, xLabel = createProfile2(currentData)
+        title = title + "; width = %d" % lineWidth
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        title = _relabelAxes(plot, title)
+        xLabel = _relabelAxes(plot, xLabel)
 
         if isinstance(item, items.ImageRgba):
             rgba = item.getData(copy=False)
@@ -215,15 +265,17 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 profile_g=g[0],
                 profile_b=b[0],
                 profile_a=a[0],
-                title=profileName,
+                title=title,
                 xLabel=xLabel,
+                yLabel=yLabel,
             )
         else:
             data = core.CurveProfileData(
                 coords=coords,
                 profile=profile[0],
-                title=profileName,
+                title=title,
                 xLabel=xLabel,
+                yLabel=yLabel,
             )
         return data
 
@@ -277,7 +329,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
     """
 
     ICON = 'shape-diagonal-directed'
-    NAME = 'line projection'
+    NAME = 'directed line profile'
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
@@ -285,7 +337,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         self._handleStart.setSymbol('o')
 
     def computeProfile(self, item):
-        if not isinstance(item, items.ImageData):
+        if not isinstance(item, items.ImageBase):
             raise TypeError("Unexpected class %s" % type(item))
 
         from silx.image.bilinear import BilinearImage
@@ -293,7 +345,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         origin = item.getOrigin()
         scale = item.getScale()
         method = self.getProfileMethod()
-        roiWidth = self.getProfileLineWidth()
+        lineWidth = self.getProfileLineWidth()
         currentData = item.getData(copy=False)
 
         roiInfo = self._getRoiInfo()
@@ -304,11 +356,14 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         endPt = ((roiEnd[1] - origin[1]) / scale[1],
                  (roiEnd[0] - origin[0]) / scale[0])
 
+        if numpy.array_equal(startPt, endPt):
+            return None
+
         bilinear = BilinearImage(currentData)
         profile = bilinear.profile_line(
             (startPt[0] - 0.5, startPt[1] - 0.5),
             (endPt[0] - 0.5, endPt[1] - 0.5),
-            roiWidth,
+            lineWidth,
             method=method)
 
         # Compute the line size
@@ -317,11 +372,23 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         coords = numpy.linspace(0, lineSize, len(profile),
                                 endpoint=True,
                                 dtype=numpy.float32)
+
+        title = _lineProfileTitle(*roiStart, *roiEnd)
+        title = title + "; width = %d" % lineWidth
+        xLabel = "√({xlabel}²+{ylabel}²)"
+        yLabel = str(method).capitalize()
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        xLabel = _relabelAxes(plot, xLabel)
+        title = _relabelAxes(plot, title)
+
         data = core.CurveProfileData(
             coords=coords,
             profile=profile,
-            title="Line projection",
-            xLabel="Distance",
+            title=title,
+            xLabel=xLabel,
+            yLabel=yLabel,
         )
         return data
 
@@ -344,13 +411,25 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.sigRegionChanged.connect(self.__regionChanged)
         self.sigAboutToBeRemoved.connect(self.__aboutToBeRemoved)
+        self.__position = 0, 0
+        self.__vline = None
+        self.__hline = None
         self.__handle = self.addHandle()
         self.__handleLabel = self.addLabelHandle()
         self.__handleLabel.setText(self.getName())
-        self.__vline = None
-        self.__hline = None
+        self.__inhibitReentance = utils.LockReentrant()
         self.computeProfile = None
         self.sigItemChanged.connect(self.__updateLineProperty)
+
+        # Make sure the marker is over the ROIs
+        self.__handle.setZValue(1)
+        # Create the vline and the hline
+        self._createSubRois()
+
+    @docstring(roi_items.HandleBasedROI)
+    def contains(self, position):
+        roiPos = self.getPosition()
+        return position[0] == roiPos[0] or position[1] == roiPos[1]
 
     def setFirstShapePoints(self, points):
         pos = points[0]
@@ -361,13 +440,14 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
         :rtype: numpy.ndarray
         """
-        return self.__handle.getPosition()
+        return self.__position
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
+        self.__position = pos
         with utils.blockSignals(self.__handle):
             self.__handle.setPosition(*pos)
         with utils.blockSignals(self.__handleLabel):
@@ -397,38 +477,57 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
     def _setProfileManager(self, profileManager):
         core.ProfileRoiMixIn._setProfileManager(self, profileManager)
-        self._createSubRois()
-
-    def _createSubRois(self):
-        hline, vline = self._createLines(parent=None)
-        self.__vlineName = vline.getName()
-        self.__hlineName = hline.getName()
-        vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
-        vline.setEditable(False)
-        vline.setFocusProxy(self)
-        vline.setName("")
-        hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
-        hline.setEditable(False)
-        hline.setFocusProxy(self)
-        hline.setName("")
-        self.__vline = vline
-        self.__hline = hline
-        self.__regionChanged()
-        profileManager = self.getProfileManager()
+        # Connecting the vline and the hline
         roiManager = profileManager.getRoiManager()
         roiManager.addRoi(self.__vline)
         roiManager.addRoi(self.__hline)
+
+    def _createSubRois(self):
+        hline, vline = self._createLines(parent=None)
+        for i, line in enumerate([vline, hline]):
+            line.setPosition(self.__position[i])
+            line.setEditable(True)
+            line.setSelectable(True)
+            line.setFocusProxy(self)
+            line.setName("")
+        self.__vline = vline
+        self.__hline = hline
+        vline.sigAboutToBeRemoved.connect(self.__vlineRemoved)
+        vline.sigRegionChanged.connect(self.__vlineRegionChanged)
+        hline.sigAboutToBeRemoved.connect(self.__hlineRemoved)
+        hline.sigRegionChanged.connect(self.__hlineRegionChanged)
 
     def _getLines(self):
         return self.__hline, self.__vline
 
     def __regionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
         x, y = self.getPosition()
         hline, vline = self._getLines()
         if hline is None:
             return
-        hline.setPosition(y)
-        vline.setPosition(x)
+        with self.__inhibitReentance:
+            hline.setPosition(y)
+            vline.setPosition(x)
+
+    def __vlineRegionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
+        pos = self.getPosition()
+        vline = self.__vline
+        pos = vline.getPosition(), pos[1]
+        with self.__inhibitReentance:
+            self.setPosition(pos)
+
+    def __hlineRegionChanged(self):
+        if self.__inhibitReentance.locked():
+            return
+        pos = self.getPosition()
+        hline = self.__hline
+        pos = pos[0], hline.getPosition()
+        with self.__inhibitReentance:
+            self.setPosition(pos)
 
     def __aboutToBeRemoved(self):
         vline = self.__vline
@@ -436,8 +535,10 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
         # Avoid side remove signals
         if hline is not None:
             hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
+            hline.sigRegionChanged.disconnect(self.__hlineRegionChanged)
         if vline is not None:
             vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+            vline.sigRegionChanged.disconnect(self.__vlineRegionChanged)
         # Clean up the child
         profileManager = self.getProfileManager()
         roiManager = profileManager.getRoiManager()
@@ -461,20 +562,25 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
 
         hline.sigAboutToBeRemoved.disconnect(self.__hlineRemoved)
         vline.sigAboutToBeRemoved.disconnect(self.__vlineRemoved)
+        hline.sigRegionChanged.disconnect(self.__hlineRegionChanged)
+        vline.sigRegionChanged.disconnect(self.__vlineRegionChanged)
 
         self.__hline = None
         self.__vline = None
         profileManager = self.getProfileManager()
         roiManager = profileManager.getRoiManager()
         if isHline:
-            vline.setFocusProxy(None)
-            vline.setName(self.__vlineName)
-            vline.setEditable(True)
+            self.__releaseLine(vline)
         else:
-            hline.setFocusProxy(None)
-            hline.setName(self.__hlineName)
-            hline.setEditable(True)
+            self.__releaseLine(hline)
         roiManager.removeRoi(self)
+
+    def __releaseLine(self, line):
+        """Release the line in order to make it independent"""
+        line.setFocusProxy(None)
+        line.setName(self.getName())
+        line.setEditable(self.isEditable())
+        line.setSelectable(self.isSelectable())
 
 
 class ProfileImageCrossROI(_ProfileCrossROI):
@@ -485,6 +591,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.ImageBase
 
     def _createLines(self, parent):
         vline = ProfileImageVerticalLineROI(parent=parent)
@@ -518,6 +625,9 @@ class ProfileImageCrossROI(_ProfileCrossROI):
 class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
     """Provide common behavior for silx default scatter profile ROI.
     """
+
+    ITEM_KIND = items.Scatter
+
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
         self.__nPoints = 1024
@@ -547,29 +657,6 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
             self.__nPoints = npoints
             self.invalidateProperties()
             self.invalidateProfile()
-
-    def _computeProfileTitle(self, x0, y0, x1, y1):
-        """Compute corresponding plot title
-
-        This can be overridden to change title behavior.
-
-        :param float x0: Profile start point X coord
-        :param float y0: Profile start point Y coord
-        :param float x1: Profile end point X coord
-        :param float y1: Profile end point Y coord
-        :return: Title to use
-        :rtype: str
-        """
-        if x0 == x1:
-            title = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
-        elif y0 == y1:
-            title = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
-        else:
-            m = (y1 - y0) / (x1 - x0)
-            b = y0 - m * x0
-            title = 'Y = %g * X %+g' % (m, b)
-
-        return title
 
     def _computeProfile(self, scatter, x0, y0, x1, y1):
         """Compute corresponding profile
@@ -628,24 +715,30 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         profile = self._computeProfile(item, x0, y0, x1, y1)
         if profile is None:
             return None
-        title = self._computeProfileTitle(x0, y0, x1, y1)
 
+        title = _lineProfileTitle(x0, y0, x1, y1)
         points = profile[0]
         values = profile[1]
 
         if (numpy.abs(points[-1, 0] - points[0, 0]) >
                 numpy.abs(points[-1, 1] - points[0, 1])):
             xProfile = points[:, 0]
-            xLabel = 'X'
+            xLabel = '{xlabel}'
         else:
             xProfile = points[:, 1]
-            xLabel = 'Y'
+            xLabel = '{ylabel}'
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        title = _relabelAxes(plot, title)
+        xLabel = _relabelAxes(plot, xLabel)
 
         data = core.CurveProfileData(
             coords=xProfile,
             profile=values,
+            title=title,
             xLabel=xLabel,
-            title=title
+            yLabel='Profile',
         )
         return data
 
@@ -692,6 +785,7 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
         vline = ProfileScatterVerticalLineROI(parent=parent)
@@ -717,8 +811,10 @@ class ProfileScatterCrossROI(_ProfileCrossROI):
         self.invalidateProperties()
 
 
-class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
+class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
     """Default ROI to allow to slice in the scatter data."""
+
+    ITEM_KIND = items.Scatter
 
     def __init__(self, parent=None):
         core.ProfileRoiMixIn.__init__(self, parent=parent)
@@ -849,24 +945,29 @@ class _DefaulScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
         if isinstance(self, roi_items.HorizontalLineROI):
             title = "Horizontal slice"
-            xLabel = "Column index"
+            xLabel = "{xlabel} index"
         elif isinstance(self, roi_items.VerticalLineROI):
             title = "Vertical slice"
-            xLabel = "Row index"
+            xLabel = "{ylabel} index"
         else:
             assert False
+
+        # Use the axis names from the original plot
+        plot = item.getPlot()
+        xLabel = _relabelAxes(plot, xLabel)
 
         data = core.CurveProfileData(
             coords=numpy.arange(len(profile)),
             profile=profile,
             title=title,
-            xLabel=xLabel
+            xLabel=xLabel,
+            yLabel="Profile",
         )
         return data
 
 
 class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
-                                       _DefaulScatterProfileSliceRoiMixIn):
+                                       _DefaultScatterProfileSliceRoiMixIn):
     """ROI for an horizontal profile at a location of a scatter
     using data slicing.
     """
@@ -876,11 +977,11 @@ class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
-        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+        _DefaultScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
 
 class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
-                                       _DefaulScatterProfileSliceRoiMixIn):
+                                       _DefaultScatterProfileSliceRoiMixIn):
     """ROI for a vertical profile at a location of a scatter
     using data slicing.
     """
@@ -890,7 +991,7 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
-        _DefaulScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
+        _DefaultScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
@@ -899,6 +1000,7 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
 
     ICON = 'slice-cross'
     NAME = 'cross data slice profile'
+    ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
         vline = ProfileScatterVerticalSliceROI(parent=parent)
@@ -907,6 +1009,9 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
 
 
 class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
+
+    ITEM_KIND = items.ImageStack
+
     def __init__(self, parent=None):
         super(_DefaultImageStackProfileRoiMixIn, self).__init__(parent=parent)
         self.__profileType = "1D"
@@ -958,7 +1063,7 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
             profile=profile,
             title=profileName,
             xLabel=xLabel,
-            yLabel="Y",
+            yLabel="Profile",
             colormap=colormap,
         )
         return data
@@ -1005,6 +1110,7 @@ class ProfileImageStackCrossROI(ProfileImageCrossROI):
 
     ICON = 'shape-cross'
     NAME = 'cross profile'
+    ITEM_KIND = items.ImageStack
 
     def _createLines(self, parent):
         vline = ProfileImageStackVerticalLineROI(parent=parent)

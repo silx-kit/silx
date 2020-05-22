@@ -42,6 +42,7 @@ CurveProfileData = collections.namedtuple(
         "profile",
         "title",
         "xLabel",
+        "yLabel",
     ])
 
 RgbaProfileData = collections.namedtuple(
@@ -54,6 +55,7 @@ RgbaProfileData = collections.namedtuple(
         "profile_a",
         "title",
         "xLabel",
+        "yLabel",
     ])
 
 ImageProfileData = collections.namedtuple(
@@ -73,6 +75,9 @@ class ProfileRoiMixIn:
     This mix-in have to be applied to a :class:`~silx.gui.plot.items.roi.RegionOfInterest`
     in order to be usable by a :class:`~silx.gui.plot.tools.profile.manager.ProfileManager`.
     """
+
+    ITEM_KIND = None
+    """Define the plot item which can be used with this profile ROI"""
 
     sigProfilePropertyChanged = qt.Signal()
     """Emitted when a property of the profile have changed"""
@@ -326,10 +331,10 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
 
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
-            profileName = 'Y = %g' % yMin
+            profileName = '{ylabel} = %g' % yMin
         else:
-            profileName = 'Y = [%g, %g]' % (yMin, yMax)
-        xLabel = 'X'
+            profileName = '{ylabel} = [%g, %g]' % (yMin, yMax)
+        xLabel = '{xlabel}'
 
     elif lineProjectionMode == 'Y':  # Vertical profile on the whole image
         profile, area = _alignedFullProfile(currentData3D,
@@ -346,10 +351,10 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
 
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
-            profileName = 'X = %g' % xMin
+            profileName = '{xlabel} = %g' % xMin
         else:
-            profileName = 'X = [%g, %g]' % (xMin, xMax)
-        xLabel = 'Y'
+            profileName = '{xlabel} = [%g, %g]' % (xMin, xMax)
+        xLabel = '{ylabel}'
 
     else:  # Free line profile
 
@@ -457,33 +462,33 @@ def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
         x1 = endPt[1] * scale[0] + origin[0]
 
         if startPt[1] == endPt[1]:
-            profileName = 'X = %g; Y = [%g, %g]' % (x0, y0, y1)
+            profileName = '{xlabel} = %g; {ylabel} = [%g, %g]' % (x0, y0, y1)
             if method == 'none':
                 coords = None
             else:
                 coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
                 coords = coords * scale[1] + y0
-            xLabel = 'Y'
+            xLabel = '{ylabel}'
 
         elif startPt[0] == endPt[0]:
-            profileName = 'Y = %g; X = [%g, %g]' % (y0, x0, x1)
+            profileName = '{ylabel} = %g; {xlabel} = [%g, %g]' % (y0, x0, x1)
             if method == 'none':
                 coords = None
             else:
                 coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
                 coords = coords * scale[0] + x0
-            xLabel = 'X'
+            xLabel = '{xlabel}'
 
         else:
             m = (y1 - y0) / (x1 - x0)
             b = y0 - m * x0
-            profileName = 'y = %g * x %+g ; width=%d' % (m, b, roiWidth)
+            profileName = '{ylabel} = %g * {xlabel} %+g' % (m, b)
             if method == 'none':
                 coords = None
             else:
                 coords = numpy.linspace(x0, x1, len(profile[0]),
                                         endpoint=True,
                                         dtype=numpy.float32)
-            xLabel = 'X'
+            xLabel = '{xlabel}'
 
     return coords, profile, area, profileName, xLabel

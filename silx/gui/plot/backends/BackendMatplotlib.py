@@ -52,6 +52,7 @@ from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
+from matplotlib.text import Text
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 from matplotlib.tri import Triangulation
@@ -252,6 +253,60 @@ class _PickableContainer(Container):
         return False, {}
 
 
+class _TextWithOffset(Text):
+    """Text object which can be displayed at a specific position
+    of the plot, but with a pixel offset"""
+
+    def __init__(self, *args, **kwargs):
+        Text.__init__(self, *args, **kwargs)
+        self.pixel_offset = (0, 0)
+        self.__cache = None
+
+    def draw(self, renderer):
+        self.__cache = None
+        return Text.draw(self, renderer)
+
+    def __get_xy(self):
+        if self.__cache is not None:
+            return self.__cache
+
+        align = self.get_horizontalalignment()
+        if align == "left":
+            xoffset = self.pixel_offset[0]
+        elif align == "right":
+            xoffset = -self.pixel_offset[0]
+        else:
+            xoffset = 0
+
+        align = self.get_verticalalignment()
+        if align == "top":
+            yoffset = -self.pixel_offset[1]
+        elif align == "bottom":
+            yoffset = self.pixel_offset[1]
+        else:
+            yoffset = 0
+
+        trans = self.get_transform()
+        invtrans = self.get_transform().inverted()
+
+        x = super(_TextWithOffset, self).convert_xunits(self._x)
+        y = super(_TextWithOffset, self).convert_xunits(self._y)
+        pos = x, y
+        proj = trans.transform_point(pos)
+        proj = proj + numpy.array((xoffset, yoffset))
+        pos = invtrans.transform_point(proj)
+        self.__cache = pos
+        return pos
+
+    def convert_xunits(self, x):
+        """Return the pixel position of the annotated point."""
+        return self.__get_xy()[0]
+
+    def convert_yunits(self, y):
+        """Return the pixel position of the annotated point."""
+        return self.__get_xy()[1]
+
+
 class _MarkerContainer(_PickableContainer):
     """Marker artists container supporting draw/remove and text position update
 
@@ -263,9 +318,10 @@ class _MarkerContainer(_PickableContainer):
     :param y: Y coordinate of the marker (None for vertical lines)
     """
 
-    def __init__(self, artists, x, y, yAxis):
+    def __init__(self, artists, symbol, x, y, yAxis):
         self.line = artists[0]
         self.text = artists[1] if len(artists) > 1 else None
+        self.symbol = symbol
         self.x = x
         self.y = y
         self.yAxis = yAxis
@@ -278,27 +334,39 @@ class _MarkerContainer(_PickableContainer):
         if self.text is not None:
             self.text.draw(*args, **kwargs)
 
-    def updateMarkerText(self, xmin, xmax, ymin, ymax):
+    def updateMarkerText(self, xmin, xmax, ymin, ymax, yinverted):
         """Update marker text position and visibility according to plot limits
 
         :param xmin: X axis lower limit
         :param xmax: X axis upper limit
         :param ymin: Y axis lower limit
-        :param ymax: Y axis upprt limit
+        :param ymax: Y axis upper limit
+        :param yinverted: True if the y axis is inverted
         """
         if self.text is not None:
             visible = ((self.x is None or xmin <= self.x <= xmax) and
                        (self.y is None or ymin <= self.y <= ymax))
             self.text.set_visible(visible)
 
-            if self.x is not None and self.y is None:  # vertical line
-                delta = abs(ymax - ymin)
-                if ymin > ymax:
-                    ymax = ymin
-                ymax -= 0.005 * delta
-                self.text.set_y(ymax)
+            if self.x is not None and self.y is not None:
+                if self.symbol is None:
+                    valign = 'baseline'
+                else:
+                    if yinverted:
+                        valign = 'bottom'
+                    else:
+                        valign = 'top'
+                self.text.set_verticalalignment(valign)
 
-            if self.x is None and self.y is not None:  # Horizontal line
+            elif self.y is None:  # vertical line
+                # Always display it on top
+                center = (ymax + ymin) * 0.5
+                pos = (ymax - ymin) * 0.5 * 0.99
+                if yinverted:
+                    pos = -pos
+                self.text.set_y(center + pos)
+
+            elif self.x is None:  # Horizontal line
                 delta = abs(xmax - xmin)
                 if xmin > xmax:
                     xmax = xmin
@@ -791,17 +859,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                            markersize=10.)[-1]
 
             if text is not None:
-                if symbol is None:
-                    valign = 'baseline'
-                else:
-                    valign = 'top'
-                    text = "  " + text
-
-                textArtist = ax.text(x, y, text,
-                                     color=color,
-                                     horizontalalignment='left',
-                                     verticalalignment=valign)
-
+                textArtist = _TextWithOffset(x, y, text,
+                                             color=color,
+                                             horizontalalignment='left')
+                if symbol is not None:
+                    textArtist.pixel_offset = 10, 3
         elif x is not None:
             line = ax.axvline(x,
                               color=color,
@@ -809,11 +871,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                               linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
-                textArtist = ax.text(x, 1., " " + text,
-                                     color=color,
-                                     horizontalalignment='left',
-                                     verticalalignment='top')
-
+                textArtist = _TextWithOffset(x, 1., text,
+                                             color=color,
+                                             horizontalalignment='left',
+                                             verticalalignment='top')
+                textArtist.x_pixel_offset = 5, 3
         elif y is not None:
             line = ax.axhline(y,
                               color=color,
@@ -822,11 +884,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
-                textArtist = ax.text(1., y, " " + text,
-                                     color=color,
-                                     horizontalalignment='right',
-                                     verticalalignment='top')
-
+                textArtist = _TextWithOffset(1., y, text,
+                                             color=color,
+                                             horizontalalignment='right',
+                                             verticalalignment='top')
+                textArtist.x_pixel_offset = 5, 3
         else:
             raise RuntimeError('A marker must at least have one coordinate')
 
@@ -835,11 +897,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # All markers are overlays
         line.set_animated(True)
         if textArtist is not None:
+            ax.add_artist(textArtist)
             textArtist.set_animated(True)
 
         artists = [line] if textArtist is None else [line, textArtist]
-        container = _MarkerContainer(artists, x, y, yaxis)
-        container.updateMarkerText(xmin, xmax, ymin, ymax)
+        container = _MarkerContainer(artists, symbol, x, y, yaxis)
+        container.updateMarkerText(xmin, xmax, ymin, ymax, self.isYAxisInverted())
 
         return container
 
@@ -847,12 +910,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xmin, xmax = self.ax.get_xbound()
         ymin1, ymax1 = self.ax.get_ybound()
         ymin2, ymax2 = self.ax2.get_ybound()
+        yinverted = self.isYAxisInverted()
         for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
                 if item.yAxis == 'left':
-                    item.updateMarkerText(xmin, xmax, ymin1, ymax1)
+                    item.updateMarkerText(xmin, xmax, ymin1, ymax1, yinverted)
                 else:
-                    item.updateMarkerText(xmin, xmax, ymin2, ymax2)
+                    item.updateMarkerText(xmin, xmax, ymin2, ymax2, yinverted)
 
     # Remove methods
 
@@ -1112,6 +1176,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
+            self._updateMarkers()
 
     def isYAxisInverted(self):
         return self.ax.yaxis_inverted()

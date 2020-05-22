@@ -34,6 +34,7 @@ import weakref
 
 from silx.gui import qt
 from silx.gui import colors
+from silx.gui import utils
 
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui import icons
@@ -152,16 +153,43 @@ class ProfileWindow(qt.QMainWindow):
         elif profileType == "2D":
             self._getPlot2D()
 
+    def _createPlot1D(self, parent, backend):
+        """Inherit this function to create your own plot to render 1D
+        profiles. The default value is a `Plot1D`.
+
+        :param parent: The parent of this widget or None.
+        :param backend: The backend to use for the plot.
+                        See :class:`PlotWidget` for the list of supported backend.
+        :rtype: PlotWidget
+        """
+        # import here to avoid circular import
+        from ...PlotWindow import Plot1D
+        plot = Plot1D(parent=parent, backend=backend)
+        plot.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
+        plot.setGraphYLabel('Profile')
+        plot.setGraphXLabel('')
+        return plot
+
+    def _createPlot2D(self, parent, backend):
+        """Inherit this function to create your own plot to render 2D
+        profiles. The default value is a `Plot2D`.
+
+        :param parent: The parent of this widget or None.
+        :param backend: The backend to use for the plot.
+                        See :class:`PlotWidget` for the list of supported backend.
+        :rtype: PlotWidget
+        """
+        # import here to avoid circular import
+        from ...PlotWindow import Plot2D
+        return Plot2D(parent=parent, backend=backend)
+
     def _getPlot1D(self, init=True):
+        """Return the current plot used to display curves and create it if it
+        does not yet exists and `init` is True. Else returns None."""
         if not init:
             return self._plot1D
         if self._plot1D is None:
-            # import here to avoid circular import
-            from ...PlotWindow import Plot1D
-            self._plot1D = Plot1D(parent=self, backend=self._backend)
-            self._plot1D.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
-            self._plot1D.setGraphYLabel('Profile')
-            self._plot1D.setGraphXLabel('')
+            self._plot1D = self._createPlot1D(self, self._backend)
             self._layout.addWidget(self._plot1D)
         return self._plot1D
 
@@ -170,12 +198,12 @@ class ProfileWindow(qt.QMainWindow):
         self._layout.setCurrentWidget(plot)
 
     def _getPlot2D(self, init=True):
+        """Return the current plot used to display image and create it if it
+        does not yet exists and `init` is True. Else returns None."""
         if not init:
-            return self._plot1D
+            return self._plot2D
         if self._plot2D is None:
-            # import here to avoid circular import
-            from ...PlotWindow import Plot2D
-            self._plot2D = Plot2D(parent=self, backend=self._backend)
+            self._plot2D = self._createPlot2D(parent=self, backend=self._backend)
             self._layout.addWidget(self._plot2D)
         return self._plot2D
 
@@ -238,6 +266,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.clear()
         plot.setGraphTitle(data.title)
         plot.getXAxis().setLabel(data.xLabel)
+        plot.getYAxis().setLabel(data.yLabel)
 
         plot.addCurve(data.coords,
                       data.profile,
@@ -258,6 +287,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.clear()
         plot.setGraphTitle(data.title)
         plot.getXAxis().setLabel(data.xLabel)
+        plot.getYAxis().setLabel(data.yLabel)
 
         self._showPlot1D()
 
@@ -348,6 +378,90 @@ class _ClearAction(qt.QAction):
         self.setEnabled(enabled)
 
 
+class _StoreLastParamBehavior(qt.QObject):
+    """This object allow to store and restore the properties of the ROI
+    profiles"""
+
+    def __init__(self, parent):
+        assert isinstance(parent, ProfileManager)
+        super(_StoreLastParamBehavior, self).__init__(parent=parent)
+        self.__properties = {}
+        self.__profileRoi = None
+        self.__filter = utils.LockReentrant()
+
+    def _roi(self):
+        """Return the spied ROI"""
+        if self.__profileRoi is None:
+            return None
+        roi = self.__profileRoi()
+        if roi is None:
+            self.__profileRoi = None
+        return roi
+
+    def setProfileRoi(self, roi):
+        """Set a profile ROI to spy.
+
+        :param ProfileRoiMixIn roi: A profile ROI
+        """
+        previousRoi = self._roi()
+        if previousRoi is roi:
+            return
+        if previousRoi is not None:
+            previousRoi.sigProfilePropertyChanged.disconnect(self._profilePropertyChanged)
+        self.__profileRoi = None if roi is None else weakref.ref(roi)
+        if roi is not None:
+            roi.sigProfilePropertyChanged.connect(self._profilePropertyChanged)
+
+    def _profilePropertyChanged(self):
+        """Handle changes on the properties defining the profile ROI.
+        """
+        if self.__filter.locked():
+            return
+        roi = self.sender()
+        self.storeProperties(roi)
+
+    def storeProperties(self, roi):
+        if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
+                              rois.ProfileImageStackCrossROI)):
+            self.__properties["method"] = roi.getProfileMethod()
+            self.__properties["line-width"] = roi.getProfileLineWidth()
+            self.__properties["type"] = roi.getProfileType()
+        elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
+                            rois.ProfileImageCrossROI)):
+            self.__properties["method"] = roi.getProfileMethod()
+            self.__properties["line-width"] = roi.getProfileLineWidth()
+        elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
+                              rois.ProfileScatterCrossROI)):
+            self.__properties["npoints"] = roi.getNPoints()
+
+    def restoreProperties(self, roi):
+        with self.__filter:
+            if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
+                                  rois.ProfileImageStackCrossROI)):
+                value = self.__properties.get("method", None)
+                if value is not None:
+                    roi.setProfileMethod(value)
+                value = self.__properties.get("line-width", None)
+                if value is not None:
+                    roi.setProfileLineWidth(value)
+                value = self.__properties.get("type", None)
+                if value is not None:
+                    roi.setProfileType(value)
+            elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
+                                rois.ProfileImageCrossROI)):
+                value = self.__properties.get("method", None)
+                if value is not None:
+                    roi.setProfileMethod(value)
+                value = self.__properties.get("line-width", None)
+                if value is not None:
+                    roi.setProfileLineWidth(value)
+            elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
+                                  rois.ProfileScatterCrossROI)):
+                value = self.__properties.get("npoints", None)
+                if value is not None:
+                    roi.setNPoints(value)
+
+
 class ProfileManager(qt.QObject):
     """Base class for profile management tools
 
@@ -371,6 +485,13 @@ class ProfileManager(qt.QObject):
         self._pendingRunners = []
         """List of ROIs which have to be updated"""
 
+        self.__reentrantResults = {}
+        """Store reentrant result to avoid to skip some of them
+        cause the implementation uses a QEventLoop."""
+
+        self._profileWindowClass = ProfileWindow
+        """Class used to display the profile results"""
+
         self._computedProfiles = 0
         """Statistics for tests"""
 
@@ -391,11 +512,16 @@ class ProfileManager(qt.QObject):
 
         self._previousWindowGeometry = []
 
+        self._storeProperties = _StoreLastParamBehavior(self)
+        """If defined the profile properties of the last ROI are reused to the
+        new created ones"""
+
         # Listen to plot limits changed
         plot.getXAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
         plot.getYAxis().sigLimitsChanged.connect(self.requestUpdateAllProfile)
 
         roiManager.sigInteractiveModeFinished.connect(self.__interactionFinished)
+        roiManager.sigInteractiveRoiCreated.connect(self.__roiCreated)
         roiManager.sigRoiAdded.connect(self.__roiAdded)
         roiManager.sigRoiAboutToBeRemoved.connect(self.__roiRemoved)
 
@@ -451,6 +577,13 @@ class ProfileManager(qt.QObject):
         if hasattr(profileRoiClass, "ICON"):
             action.setIcon(icons.getQIcon(profileRoiClass.ICON))
         if hasattr(profileRoiClass, "NAME"):
+            def articulify(word):
+                """Add an an/a article in the front of the word"""
+                first = word[1] if word[0] == 'h' else word[0]
+                if first in "aeiou":
+                    return "an " + word
+                return "a " + word
+            action.setText('Define %s' % articulify(profileRoiClass.NAME))
             action.setToolTip('Enables %s selection mode' % profileRoiClass.NAME)
         action.setSingleShot(True)
         return action
@@ -558,6 +691,11 @@ class ProfileManager(qt.QObject):
                 item = plot.getActiveScatter()
         self.setPlotItem(item)
 
+    def setProfileWindowClass(self, profileWindowClass):
+        """Set the class which will be instantiated to display profile result.
+        """
+        self._profileWindowClass = profileWindowClass
+
     def setActiveItemTracking(self, tracking):
         """Enable/disable the tracking of the active item of the plot.
 
@@ -597,9 +735,20 @@ class ProfileManager(qt.QObject):
             item = plot.getScatter(legend)
             self.setPlotItem(item)
 
+    def __roiCreated(self, roi):
+        """Handle ROI creation"""
+        # Filter out non profile ROIs
+        if isinstance(roi, core.ProfileRoiMixIn):
+            if self._storeProperties is not None:
+                # Initialize the properties with the previous ones
+                self._storeProperties.restoreProperties(roi)
+
     def __addProfile(self, profileRoi):
         """Add a new ROI to the manager."""
         if profileRoi.getFocusProxy() is None:
+            if self._storeProperties is not None:
+                # Follow changes on properties
+                self._storeProperties.setProfileRoi(profileRoi)
             if self.__singleProfileAtATime:
                 # FIXME: It would be good to reuse the windows to avoid blinking
                 self.clearProfile()
@@ -639,11 +788,11 @@ class ProfileManager(qt.QObject):
             roiManager.stop()
 
     def hasPendingOperations(self):
-        """Returns true if a thread is still computing a profile.
+        """Returns true if a thread is still computing or displaying a profile.
 
         :rtype: bool
         """
-        return len(self._pendingRunners) > 0
+        return len(self.__reentrantResults) > 0 or len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
         """Request to update the profile of all the managed ROIs.
@@ -694,15 +843,27 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn profileRoi: A managed ROI
         :param ~core.CurveProfileData profileData: Computed data profile
         """
+        if roi in self.__reentrantResults:
+            # Store the data to process it in the main loop
+            # And not a sub loop created by initProfileWindow
+            # This also remove the duplicated requested
+            self.__reentrantResults[roi] = profileData
+            return
+
+        self.__reentrantResults[roi] = profileData
         self._computedProfiles = self._computedProfiles + 1
         window = roi.getProfileWindow()
         if window is None:
             plot = self.getPlotWidget()
             window = self.createProfileWindow(plot, roi)
+            # roi.profileWindow have to be set before initializing the window
+            # Cause the initialization is using QEventLoop
+            roi.setProfileWindow(window)
             self.initProfileWindow(window, roi)
             window.show()
-            roi.setProfileWindow(window)
-        window.setProfile(profileData)
+
+        lastData = self.__reentrantResults.pop(roi)
+        window.setProfile(lastData)
 
     def __plotDestroyed(self, ref):
         """Handle finalization of PlotWidget
@@ -825,7 +986,7 @@ class ProfileManager(qt.QObject):
         :param ~core.ProfileRoiMixIn roi: A managed ROI
         :rtype: ~ProfileWindow
         """
-        return ProfileWindow(plot)
+        return self._profileWindowClass(plot)
 
     def initProfileWindow(self, profileWindow, roi):
         """This function is called just after the profile window creation in
@@ -838,9 +999,17 @@ class ProfileManager(qt.QObject):
         # To have the correct window size
         profileWindow.prepareWidget(roi)
         profileWindow.adjustSize()
-        profileWindow.show()
-        profileWindow.raise_()
 
+        # Trick to avoid blinking while retrieving the right window size
+        # Display the window, hide it and wait for some event loops
+        profileWindow.show()
+        profileWindow.hide()
+        eventLoop = qt.QEventLoop(self)
+        for _ in range(10):
+            if not eventLoop.processEvents():
+                break
+
+        profileWindow.show()
         if len(self._previousWindowGeometry) > 0:
             geometry = self._previousWindowGeometry.pop()
             profileWindow.setGeometry(geometry)
@@ -854,15 +1023,27 @@ class ProfileManager(qt.QObject):
         spaceOnLeftSide = winGeom.left()
         spaceOnRightSide = screenGeom.width() - winGeom.right()
 
-        frameGeometry = profileWindow.frameGeometry()
-        profileWindowWidth = frameGeometry.width()
-        if profileWindowWidth < spaceOnRightSide:
+        profileGeom = profileWindow.frameGeometry()
+        profileWidth = profileGeom.width()
+
+        # Align vertically to the center of the window
+        top = winGeom.top() + (winGeom.height() - profileGeom.height()) // 2
+
+        margin = 5
+        if profileWidth < spaceOnRightSide:
             # Place profile on the right
-            profileWindow.move(winGeom.right(), winGeom.top())
-        elif profileWindowWidth < spaceOnLeftSide:
+            left = winGeom.right() + margin
+        elif profileWidth < spaceOnLeftSide:
             # Place profile on the left
-            left = max(0, winGeom.left() - profileWindowWidth)
-            profileWindow.move(left, winGeom.top())
+            left = max(0, winGeom.left() - profileWidth - margin)
+        else:
+            # Move it as much as possible where there is more space
+            if spaceOnLeftSide > spaceOnRightSide:
+                left = 0
+            else:
+                left = screenGeom.width() - profileGeom.width()
+        profileWindow.move(left, top)
+
 
     def clearProfileWindow(self, profileWindow):
         """Called when a profile window is not anymore needed.

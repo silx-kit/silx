@@ -75,19 +75,27 @@ class CreateRoiModeAction(qt.QAction):
     def _initAction(self):
         """Default initialization of the action"""
         roiClass = self._roiClass
-        info = RegionOfInterestManager._MODE_ACTIONS_PARAMS.get(roiClass, None)
-        if info is not None:
-            iconName, text = info
-        else:
+
+        name = None
+        iconName = None
+        if hasattr(roiClass, "NAME"):
+            name = roiClass.NAME
+        if hasattr(roiClass, "ICON"):
+            iconName = roiClass.ICON
+
+        if iconName is None:
             iconName = "add-shape-unknown"
-            name = roiClass._getKind()
-            if name is None:
-                name = roiClass.__name__
-            text = 'Add %s' % name
+        if name is None:
+            name = roiClass.__name__
+        text = 'Add %s' % name
         self.setIcon(icons.getQIcon(iconName))
         self.setText(text)
         self.setCheckable(True)
         self.setToolTip(text)
+
+    def getRoiClass(self):
+        """Return the ROI class used by this action to create ROIs"""
+        return self._roiClass
 
     def getRoiManager(self):
         return self._roiManager()
@@ -211,18 +219,19 @@ class RegionOfInterestManager(qt.QObject):
     """Signal emitted when leaving interactive ROI drawing mode.
     """
 
-    _MODE_ACTIONS_PARAMS = collections.OrderedDict()
-    # Interactive mode: (icon name, text)
-    _MODE_ACTIONS_PARAMS[roi_items.PointROI] = 'add-shape-point', 'Add point markers'
-    _MODE_ACTIONS_PARAMS[roi_items.RectangleROI] = 'add-shape-rectangle', 'Add rectangle ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.PolygonROI] = 'add-shape-polygon', 'Add polygon ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.CircleROI] = 'add-shape-circle', 'Add circle ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.EllipseROI] = 'add-shape-ellipse', 'Add ellipse ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.LineROI] = 'add-shape-diagonal', 'Add line ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.HorizontalLineROI] = 'add-shape-horizontal', 'Add horizontal line ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.VerticalLineROI] = 'add-shape-vertical', 'Add vertical line ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.ArcROI] = 'add-shape-arc', 'Add arc ROI'
-    _MODE_ACTIONS_PARAMS[roi_items.HorizontalRangeROI] = 'add-range-horizontal', 'Add horizontal range ROI'
+    ROI_CLASSES = (
+        roi_items.PointROI,
+        roi_items.CrossROI,
+        roi_items.RectangleROI,
+        roi_items.CircleROI,
+        roi_items.EllipseROI,
+        roi_items.PolygonROI,
+        roi_items.LineROI,
+        roi_items.HorizontalLineROI,
+        roi_items.VerticalLineROI,
+        roi_items.ArcROI,
+        roi_items.HorizontalRangeROI,
+    )
 
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
@@ -254,7 +263,7 @@ class RegionOfInterestManager(qt.QObject):
 
         :rtype: List[class]
         """
-        return tuple(cls._MODE_ACTIONS_PARAMS.keys())
+        return tuple(cls.ROI_CLASSES)
 
     # Associated QActions
 
@@ -891,16 +900,16 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             if nbrois is None:
                 nbrois = len(self.getRois())
 
-            kind = self.__execClass._getKind()
-            max_ = self.getMaxRois()
+            name = self.__execClass._getShortName()
 
+            max_ = self.getMaxRois()
             if max_ is None:
-                message = 'Select %ss (%d selected)' % (kind, nbrois)
+                message = 'Select %ss (%d selected)' % (name, nbrois)
 
             elif max_ <= 1:
-                message = 'Select a %s' % kind
+                message = 'Select a %s' % name
             else:
-                message = 'Select %d/%d %ss' % (nbrois, max_, kind)
+                message = 'Select %d/%d %ss' % (nbrois, max_, name)
 
             if (self.getValidationMode() == self.ValidationMode.ENTER and
                     self.isMaxRois()):
@@ -1131,7 +1140,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             item.setText(None)
 
             # Kind
-            label = roi._getKind()
+            label = roi._getShortName()
             if label is None:
                 # Default value if kind is not overrided
                 label = roi.__class__.__name__

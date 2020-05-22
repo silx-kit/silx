@@ -101,7 +101,7 @@ class _RegionOfInterestBase(qt.QObject):
         self.sigItemChanged.emit(event)
 
     def contains(self, position):
-        """
+        """Returns True if the `position` is in this ROI.
 
         :param tuple[float,float] position: position to check
         :return: True if the value / point is consider to be in the region of
@@ -127,8 +127,8 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     _DEFAULT_HIGHLIGHT_STYLE = items.CurveStyle(linewidth=2)
     """Default highlight style of the item"""
 
-    _kind = None
-    """Label for this kind of ROI.
+    ICON, NAME, SHORT_NAME = None, None, None
+    """Metadata to describe the ROI in labels, tooltips and widgets
 
     Should be set by inherited classes to custom the ROI manager widget.
     """
@@ -235,12 +235,16 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             yield i
 
     @classmethod
-    def _getKind(cls):
+    def _getShortName(cls):
         """Return an human readable kind of ROI
 
         :rtype: str
         """
-        return cls._kind
+        if hasattr(cls, "SHORT_NAME"):
+            name = cls.SHORT_NAME
+        if name is None:
+            name = cls.__name__
+        return name
 
     def getColor(self):
         """Returns the color of this ROI
@@ -372,7 +376,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
         :rtype: bool
         """
-        return True
+        return False
 
     @classmethod
     def getFirstInteractionShape(cls):
@@ -533,17 +537,11 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         self.sigEditingFinished.emit()
 
 
-class _Foo:
-    """This inheritance is needed to avoid wrong __init__ order in Qt"""
-    pass
-
-
-class HandleBasedROI(RegionOfInterest, _Foo):
+class HandleBasedROI(RegionOfInterest):
     """Manage a ROI based on a set of handles"""
 
     def __init__(self, parent=None):
         RegionOfInterest.__init__(self, parent=parent)
-        _Foo.__init__(self)
         self._handles = []
         self._posOrigin = None
         self._posPrevious = None
@@ -651,8 +649,12 @@ class HandleBasedROI(RegionOfInterest, _Foo):
             self._updateText(self.getName())
         elif event == items.ItemChangedType.VISIBLE:
             for item, role in self._handles:
-                visible = self.isVisible() and self.isEditable()
-                item.setVisible(visible)
+                visible = self.isVisible()
+                editionVisible = visible and self.isEditable()
+                if role not in ["user", "label"]:
+                    item.setVisible(editionVisible)
+                else:
+                    item.setVisible(visible)
         elif event == items.ItemChangedType.EDITABLE:
             for item, role in self._handles:
                 editable = self.isEditable()
@@ -750,8 +752,10 @@ class HandleBasedROI(RegionOfInterest, _Foo):
 class PointROI(RegionOfInterest, items.SymbolMixIn):
     """A ROI identifying a point in a 2D plot."""
 
-    _kind = "Point"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-point'
+    NAME = 'point markers'
+    SHORT_NAME = "point"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
@@ -770,11 +774,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def setFirstShapePoints(self, points):
         pos = points[0]
@@ -811,7 +810,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(pos[0], pos[1])
         self.sigRegionChanged.emit()
 
@@ -821,8 +820,6 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getPosition())
@@ -832,6 +829,82 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
+class CrossROI(HandleBasedROI, items.LineMixIn):
+    """A ROI identifying a point in a 2D plot and displayed as a cross
+    """
+
+    ICON = 'add-shape-cross'
+    NAME = 'cross marker'
+    SHORT_NAME = "cross"
+    """Metadata for this kind of ROI"""
+
+    _plotShape = "point"
+    """Plot shape which is used for the first interaction"""
+
+    def __init__(self, parent=None):
+        HandleBasedROI.__init__(self, parent=parent)
+        items.LineMixIn.__init__(self)
+        self._handle = self.addHandle()
+        self._handleLabel = self.addLabelHandle()
+        self._vmarker = self.addUserHandle(items.YMarker())
+        self._vmarker._setSelectable(False)
+        self._vmarker._setDraggable(False)
+        self._hmarker = self.addUserHandle(items.XMarker())
+        self._hmarker._setSelectable(False)
+        self._hmarker._setDraggable(False)
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in [items.ItemChangedType.VISIBLE]:
+            markers = (self._vmarker, self._hmarker)
+            self._updateItemProperty(event, self, markers)
+        super(CrossROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self, text):
+        self._handleLabel.setText(text)
+
+    def _updatedStyle(self, event, style):
+        super(CrossROI, self)._updatedStyle(event, style)
+        for marker in [self._vmarker, self._hmarker]:
+            marker.setColor(style.getColor())
+            marker.setLineStyle(style.getLineStyle())
+            marker.setLineWidth(style.getLineWidth())
+
+    def setFirstShapePoints(self, points):
+        pos = points[0]
+        self.setPosition(pos)
+
+    def getPosition(self):
+        """Returns the position of this ROI
+
+        :rtype: numpy.ndarray
+        """
+        return self._handle.getPosition()
+
+    def setPosition(self, pos):
+        """Set the position of this ROI
+
+        :param numpy.ndarray pos: 2d-coordinate of this point
+        """
+        with utils.blockSignals(self._handle):
+            self._handle.setPosition(*pos)
+        with utils.blockSignals(self._handleLabel):
+            self._handleLabel.setPosition(*pos)
+        with utils.blockSignals(self._vmarker):
+            self._vmarker.setPosition(*pos)
+        with utils.blockSignals(self._hmarker):
+            self._hmarker.setPosition(*pos)
+        self.sigRegionChanged.emit()
+
+    def handleDragUpdated(self, handle, origin, previous, current):
+        if handle is self._handle:
+            self.setPosition(current)
+
+    @docstring(HandleBasedROI)
+    def contains(self, position):
+        roiPos = self.getPosition()
+        return position[0] == roiPos[0] or position[1] == roiPos[1]
+
+
 class LineROI(HandleBasedROI, items.LineMixIn):
     """A ROI identifying a line in a 2D plot.
 
@@ -839,8 +912,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     in the center to translate the full ROI.
     """
 
-    _kind = "Line"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-diagonal'
+    NAME = 'line ROI'
+    SHORT_NAME = "line"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -863,16 +938,13 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
-
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__shape)
         super(LineROI, self)._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
+        super(LineROI, self)._updatedStyle(event, style)
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
@@ -965,8 +1037,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
 class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal line in a 2D plot."""
 
-    _kind = "HLine"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-horizontal'
+    NAME = 'horizontal line ROI'
+    SHORT_NAME = "hline"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "hline"
     """Plot shape which is used for the first interaction"""
@@ -978,11 +1052,6 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1024,7 +1093,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(0, pos)
         self.sigRegionChanged.emit()
 
@@ -1034,8 +1103,6 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getYPosition())
@@ -1048,8 +1115,10 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a vertical line in a 2D plot."""
 
-    _kind = "VLine"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-vertical'
+    NAME = 'vertical line ROI'
+    SHORT_NAME = "vline"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "vline"
     """Plot shape which is used for the first interaction"""
@@ -1061,11 +1130,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
-        self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
@@ -1107,7 +1171,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with self.__filterReentrant:
+        with utils.blockSignals(self._marker):
             self._marker.setPosition(pos, 0)
         self.sigRegionChanged.emit()
 
@@ -1117,8 +1181,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setPosition(marker.getXPosition())
@@ -1135,8 +1197,10 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     center to translate the full ROI.
     """
 
-    _kind = "Rectangle"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-rectangle'
+    NAME = 'rectangle ROI'
+    SHORT_NAME = "rectangle"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "rectangle"
     """Plot shape which is used for the first interaction"""
@@ -1160,10 +1224,6 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         shape.setColor(rgba(self.getColor()))
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -1312,6 +1372,11 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
     and one anchor on the perimeter to change the radius.
     """
 
+    ICON = 'add-shape-circle'
+    NAME = 'circle ROI'
+    SHORT_NAME = "circle"
+    """Metadata for this kind of ROI"""
+
     _kind = "Circle"
     """Label for this kind of ROI"""
 
@@ -1336,10 +1401,6 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         self.addItem(shape)
 
         self.__radius = 0
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -1443,8 +1504,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     minor-radius. These two anchors also allow to change the orientation.
     """
 
-    _kind = "Ellipse"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-ellipse'
+    NAME = 'ellipse ROI'
+    SHORT_NAME = "ellipse"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -1470,10 +1533,6 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self._majorRadius = 0
         self._minorRadius = 0
         self._orientation = 0   # angle in radians between the X-axis and the major axis
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -1704,8 +1763,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
     This ROI provides 1 anchor for each point of the polygon.
     """
 
-    _kind = "Polygon"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-polygon'
+    NAME = 'polygon ROI'
+    SHORT_NAME = "polygon"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "polygon"
     """Plot shape which is used for the first interaction"""
@@ -1723,10 +1784,6 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         shape = self.__createShape()
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -1889,8 +1946,10 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     - 1 anchor to translate the shape.
     """
 
-    _kind = "Arc"
-    """Label for this kind of ROI"""
+    ICON = 'add-shape-arc'
+    NAME = 'arc ROI'
+    SHORT_NAME = "arc"
+    """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -2022,10 +2081,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         shape.setLineWidth(self.getLineWidth())
         self.__shape = shape
         self.addItem(shape)
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -2561,8 +2616,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal range in a 1D plot."""
 
-    _kind = "HRange"
-    """Label for this kind of ROI"""
+    ICON = 'add-range-horizontal'
+    NAME = 'horizontal range ROI'
+    SHORT_NAME = "hrange"
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
@@ -2586,10 +2642,6 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._markerMax)
         self.addItem(self._markerCen)
         self.__filterReentrant = utils.LockReentrant()
-
-    @classmethod
-    def showFirstInteractionShape(cls):
-        return False
 
     def setFirstShapePoints(self, points):
         vmin = min(points[:, 0])
@@ -2645,9 +2697,12 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     def _updatePos(self, vmin, vmax):
         center = (vmin + vmax) * 0.5
         with self.__filterReentrant:
-            self._markerMin.setPosition(vmin, 0)
-            self._markerCen.setPosition(center, 0)
-            self._markerMax.setPosition(vmax, 0)
+            with utils.blockSignals(self._markerMin):
+                self._markerMin.setPosition(vmin, 0)
+            with utils.blockSignals(self._markerCen):
+                self._markerCen.setPosition(center, 0)
+            with utils.blockSignals(self._markerMax):
+                self._markerMax.setPosition(vmax, 0)
         self.sigRegionChanged.emit()
 
     def setRange(self, vmin, vmax):
@@ -2744,24 +2799,18 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
 
     def _minPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setMin(marker.getXPosition())
 
     def _maxPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setMax(marker.getXPosition())
 
     def _cenPositionChanged(self, event):
         """Handle position changed events of the marker"""
-        if self.__filterReentrant.locked():
-            return
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setCenter(marker.getXPosition())

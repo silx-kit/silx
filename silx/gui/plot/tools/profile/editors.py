@@ -163,19 +163,37 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
     """
     def __init__(self, parent=None):
         super(ProfileRoiEditorAction, self).__init__(parent)
-        self.__widget = qt.QWidget(parent)
-        layout = qt.QHBoxLayout(self.__widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.__editor = None
-        self.__setEditor(_NoProfileRoiEditor(parent))
-        self.setDefaultWidget(self.__widget)
         self.__roiManager = None
         self.__roi = None
-        self.__inhibiteReentance = False
+        self.__inhibiteReentance = None
 
-    def _getEditor(self):
-        """Returns the current set editor"""
-        return self.__editor
+    def createWidget(self, parent):
+        """Inherit the method to create a new editor"""
+        widget = qt.QWidget(parent)
+        layout = qt.QHBoxLayout(widget)
+        if isinstance(parent, qt.QMenu):
+            margins = layout.contentsMargins()
+            layout.setContentsMargins(margins.left(), 0, margins.right(), 0)
+        else:
+            layout.setContentsMargins(0, 0, 0, 0)
+
+        editorClass = self.getEditorClass(self.__roi)
+        editor = editorClass(parent)
+        editor.setEditorData(self.__roi)
+        self.__setEditor(widget, editor)
+        return widget
+
+    def deleteWidget(self, widget):
+        """Inherit the method to delete an editor"""
+        self.__setEditor(widget, None)
+        return qt.QWidgetAction.deleteWidget(self, widget)
+
+    def _getEditor(self, widget):
+        """Returns the editor contained in the widget holder"""
+        layout = widget.layout()
+        if layout.count() == 0:
+            return None
+        return layout.itemAt(0).widget()
 
     def setRoiManager(self, roiManager):
         """
@@ -210,63 +228,73 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
         self.__roi = roi
         if self.__roi is not None:
             self.__roi.sigProfilePropertyChanged.connect(self.__roiPropertyChanged)
-        self._updateWidget()
+        self._updateWidgets()
 
     def __roiPropertyChanged(self):
         """Handle changes on the property defining the ROI.
         """
-        if self.__inhibiteReentance:
-            return
         self._updateWidgetValues()
 
-    def __setEditor(self, editor):
+    def __setEditor(self, widget, editor):
         """Set the editor to display.
 
         :param qt.QWidget editor: The editor to display
         """
-        layout = self.__widget.layout()
-        if self.__editor is editor:
+        previousEditor = self._getEditor(widget)
+        if previousEditor is editor:
             return
-        if self.__editor is not None:
-            self.__editor.sigDataCommited.disconnect(self.__editorDataCommited)
-            layout.removeWidget(self.__editor)
-            self.__editor.deleteLater()
-        self.__editor = editor
-        if self.__editor is not None:
-            self.__editor.sigDataCommited.connect(self.__editorDataCommited)
-            layout.addWidget(self.__editor)
+        layout = widget.layout()
+        if previousEditor is not None:
+            previousEditor.sigDataCommited.disconnect(self._editorDataCommited)
+            layout.removeWidget(previousEditor)
+            previousEditor.deleteLater()
+        if editor is not None:
+            editor.sigDataCommited.connect(self._editorDataCommited)
+            layout.addWidget(editor)
 
-    def _updateWidget(self):
+    def getEditorClass(self, roi):
+        """Returns the editor class to use according to the ROI."""
+        if roi is None:
+            editorClass = _NoProfileRoiEditor
+        elif isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
+                              rois.ProfileImageStackCrossROI)):
+            # Must be done before the default image ROI
+            # Cause ImageStack ROIs inherit from Image ROIs
+            editorClass = _DefaultImageStackProfileRoiEditor
+        elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
+                              rois.ProfileImageCrossROI)):
+            editorClass = _DefaultImageProfileRoiEditor
+        elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
+                              rois.ProfileScatterCrossROI)):
+            editorClass = _DefaultScatterProfileRoiEditor
+        else:
+            # Unsupported
+            editorClass = _NoProfileRoiEditor
+        return editorClass
+
+    def _updateWidgets(self):
         """Update the kind of editor to display, according to the selected
         profile ROI."""
         parent = self.parent()
-        if self.__roi is None:
-            editor = _NoProfileRoiEditor(parent)
-        elif isinstance(self.__roi, (rois._DefaultImageStackProfileRoiMixIn,
-                                     rois.ProfileImageStackCrossROI)):
-            # Must be done before the default image ROI
-            # Cause ImageStack ROIs inherit from Image ROIs
-            editor = _DefaultImageStackProfileRoiEditor(parent)
-        elif isinstance(self.__roi, (rois._DefaultImageProfileRoiMixIn,
-                                     rois.ProfileImageCrossROI)):
-            editor = _DefaultImageProfileRoiEditor(parent)
-        elif isinstance(self.__roi, (rois._DefaultScatterProfileRoiMixIn,
-                                     rois.ProfileScatterCrossROI)):
-            editor = _DefaultScatterProfileRoiEditor(parent)
-        else:
-            # Unsupported
-            editor = _NoProfileRoiEditor(parent)
-        editor.setEditorData(self.__roi)
-        self.__setEditor(editor)
+        editorClass = self.getEditorClass(self.__roi)
+        for widget in self.createdWidgets():
+            editor = editorClass(parent)
+            editor.setEditorData(self.__roi)
+            self.__setEditor(widget, editor)
 
     def _updateWidgetValues(self):
         """Update the content of the displayed editor, according to the
         selected profile ROI."""
-        self.__editor.setEditorData(self.__roi)
+        for widget in self.createdWidgets():
+            editor = self._getEditor(widget)
+            if self.__inhibiteReentance is editor:
+                continue
+            editor.setEditorData(self.__roi)
 
-    def __editorDataCommited(self):
+    def _editorDataCommited(self):
         """Handle changes from the editor."""
+        editor = self.sender()
         if self.__roi is not None:
-            self.__inhibiteReentance = True
-            self.__editor.setRoiData(self.__roi)
-            self.__inhibiteReentance = False
+            self.__inhibiteReentance = editor
+            editor.setRoiData(self.__roi)
+            self.__inhibiteReentance = None
