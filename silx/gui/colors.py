@@ -479,6 +479,14 @@ class _GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixI
         _LinearNormalizationMixIn.__init__(self)
 
 
+class _ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
+    """Inverse hyperbolic sine normalization"""
+
+    def __init__(self):
+        _colormap.ArcsinhNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
+
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -508,14 +516,18 @@ class Colormap(qt.QObject):
     GAMMA = 'gamma'
     """Constant for gamma correction normalization"""
 
+    ARCSINH = 'arcsinh'
+    """constant for inverse hyperbolic sine normalization"""
+
     _BASIC_NORMALIZATIONS = {
         LINEAR: _LinearNormalization(),
         LOGARITHM: _LogarithmicNormalization(),
         SQRT: _SqrtNormalization(),
+        ARCSINH: _ArcsinhNormalization(),
         }
     """Normalizations without parameters"""
 
-    NORMALIZATIONS = LINEAR, LOGARITHM, SQRT, GAMMA
+    NORMALIZATIONS = LINEAR, LOGARITHM, SQRT, GAMMA, ARCSINH
     """Tuple of managed normalizations"""
 
     MINMAX = 'minmax'
