@@ -179,7 +179,7 @@ cdef class LogarithmicNormalization(Normalization):
         readonly int lutsize
         readonly double[::1] lut # LUT used for fast log approximation
 
-    def __cinit__(self, lutsize=4096):
+    def __cinit__(self, int lutsize=4096):
         # Initialize log approximation LUT
         self.lutsize = lutsize
         self.lut = numpy.log2(
