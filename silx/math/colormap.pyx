@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "16/05/2018"
 
 
+import os
 cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
@@ -44,6 +45,16 @@ import numpy
 __all__ = ['cmap']
 
 _logger = logging.getLogger(__name__)
+
+
+cdef int DEFAULT_NUM_THREADS
+if hasattr(os, 'sched_getaffinity'):
+    DEFAULT_NUM_THREADS = min(4, len(os.sched_getaffinity(0)))
+elif os.cpu_count() is not None:
+    DEFAULT_NUM_THREADS = min(4, os.cpu_count())
+else:  # Fallback
+    DEFAULT_NUM_THREADS = 1
+# Number of threads to use for the computation (initialized to up to 4)
 
 
 # Supported data types
@@ -322,7 +333,7 @@ cdef image_types[:, ::1] compute_cmap(
         scale = nb_colors / (normalized_vmax - normalized_vmin)
 
     with nogil:
-        for index in prange(length):
+        for index in prange(length, num_threads=DEFAULT_NUM_THREADS):
             value = normalization.apply_double(
                 <double> data[index], vmin, vmax)
 
@@ -403,7 +414,7 @@ cdef image_types[:, ::1] compute_cmap_with_lut(
 
     with nogil:
         # Apply LUT
-        for index in prange(length):
+        for index in prange(length, num_threads=DEFAULT_NUM_THREADS):
             lut_index = data[index] - type_min
             for channel in range(nb_channels):
                 output[index, channel] = lut[lut_index, channel]
