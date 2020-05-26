@@ -163,7 +163,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             plot.addItem(item)
 
     def _disconnectFromPlot(self, plot):
-        """Called before deconnection from a plot"""
+        """Called before disconnection from a plot"""
         for item in self.iterChild():
             plot.removeItem(item)
 
