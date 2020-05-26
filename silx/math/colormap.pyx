@@ -47,7 +47,13 @@ __all__ = ['cmap']
 _logger = logging.getLogger(__name__)
 
 
-cdef int DEFAULT_NUM_THREADS = min(4, len(os.sched_getaffinity(0)))
+cdef int DEFAULT_NUM_THREADS
+if hasattr(os, 'sched_getaffinity'):
+    DEFAULT_NUM_THREADS = min(4, len(os.sched_getaffinity(0)))
+elif os.cpu_count() is not None:
+    DEFAULT_NUM_THREADS = min(4, os.cpu_count())
+else:  # Fallback
+    DEFAULT_NUM_THREADS = 1
 # Number of threads to use for the computation (initialized to up to 4)
 
 
