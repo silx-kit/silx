@@ -160,12 +160,18 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     def _connectToPlot(self, plot):
         """Called after connection to a plot"""
         for item in self.iterChild():
+            # This hack is needed to avoid reentrant call from _disconnectFromPlot
+            # to the ROI manager. It also speed up the item tests in _itemRemoved
+            item._roiGroup = True
             plot.addItem(item)
 
     def _disconnectFromPlot(self, plot):
         """Called before disconnection from a plot"""
         for item in self.iterChild():
-            plot.removeItem(item)
+            # The item could be already be removed by the plot
+            if item.getPlot() is not None:
+                del item._roiGroup
+                plot.removeItem(item)
 
     def _setItemName(self, item):
         """Helper to generate a unique id to a plot item"""
@@ -214,6 +220,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         if manager is not None:
             plot = manager.parent()
             if plot is not None:
+                item._roiGroup = True
                 plot.addItem(item)
 
     def removeItem(self, item):
@@ -227,6 +234,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         self._child.remove(item)
         plot = item.getPlot()
         if plot is not None:
+            del item._roiGroup
             plot.removeItem(item)
 
     def iterChild(self):

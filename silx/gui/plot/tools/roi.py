@@ -257,6 +257,8 @@ class RegionOfInterestManager(qt.QObject):
         parent.sigInteractiveModeChanged.connect(
             self._plotInteractiveModeChanged)
 
+        parent.sigItemRemoved.connect(self._itemRemoved)
+
     @classmethod
     def getSupportedRoiClasses(cls):
         """Returns the default available ROI classes
@@ -292,6 +294,26 @@ class RegionOfInterestManager(qt.QObject):
         """Handle change of interactive mode in the plot"""
         if source is not self:
             self.__roiInteractiveModeEnded()
+
+    def _getRoiFromItem(self, item):
+        """Returns the ROI which own this item, else None
+        if this manager do not have knowledge of this ROI."""
+        for roi in self._rois:
+            if isinstance(roi, roi_items.RegionOfInterest):
+                for child in roi.iterChild():
+                    if child is item:
+                        return roi
+        return None
+
+    def _itemRemoved(self, item):
+        """Called after an item was removed from the plot."""
+        if not hasattr(item, "_roiGroup"):
+            # Early break to avoid to use _getRoiFromItem
+            # And to avoid reentrant signal when the ROI remove the item itself
+            return
+        roi = self._getRoiFromItem(item)
+        if roi is not None:
+            self.removeRoi(roi)
 
     # Handle ROI interaction
 
