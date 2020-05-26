@@ -56,12 +56,16 @@ def silxGlobalThreadPool():
     """"Manage an own QThreadPool to avoid issue on Qt5 Windows with the
     default Qt global thread pool.
 
+    A thread pool is create in lazy loading. With a maximum of 4 threads.
+    Else `qt.Thread.idealThreadCount()` is used.
+
     :rtype: qt.QThreadPool
     """
     global __globalThreadPoolInstance
     if __globalThreadPoolInstance is  None:
         tp = _qt.QThreadPool()
-        # This pointless command fixes a segfault with PyQt 5.9.1 on Windows
-        tp.setMaxThreadCount(tp.maxThreadCount())
+        # Setting maxThreadCount fixes a segfault with PyQt 5.9.1 on Windows
+        maxThreadCount = min(4, tp.maxThreadCount())
+        tp.setMaxThreadCount(maxThreadCount)
         __globalThreadPoolInstance = tp
     return __globalThreadPoolInstance
