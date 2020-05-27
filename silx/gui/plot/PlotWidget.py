@@ -192,6 +192,12 @@ class PlotWidget(qt.QMainWindow):
     It provides the item that will be removed.
     """
 
+    sigItemRemoved = qt.Signal(items.Item)
+    """Signal emitted right after an item was removed from the plot.
+
+    It provides the item that was removed.
+    """
+
     sigVisibilityChanged = qt.Signal(bool)
     """Signal emitted when the widget becomes visible (or invisible).
     This happens when the widget is hidden or shown.
@@ -718,6 +724,8 @@ class PlotWidget(qt.QMainWindow):
         if (kind == 'curve' and not self.getAllCurves(just_legend=True,
                                                       withhidden=True)):
             self._resetColorAndStyle()
+
+        self.sigItemRemoved.emit(item)
 
         self.notify('contentChanged', action='remove',
                     kind=kind, legend=item.getName())

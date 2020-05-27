@@ -563,6 +563,49 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager.clear()
         self.qapp.processEvents()
 
+    def testPlotWhenCleared(self):
+        """PlotWidget.clear should clean up the available ROIs"""
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints((0, 0), (1, 1))
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qWait()
+        try:
+            # Make sure the test setup is fine
+            self.assertNotEqual(len(manager.getRois()), 0)
+            self.assertNotEqual(len(self.plot.getItems()), 0)
+
+            # Call clear and test the expected state
+            self.plot.clear()
+            self.assertEqual(len(manager.getRois()), 0)
+            self.assertEqual(len(self.plot.getItems()), 0)
+        finally:
+            # Clean up
+            manager.clear()
+
+    def testPlotWhenRoiRemoved(self):
+        """Make sure there is no remaining items in the plot when a ROI is removed"""
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints((0, 0), (1, 1))
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qWait()
+        try:
+            # Make sure the test setup is fine
+            self.assertNotEqual(len(manager.getRois()), 0)
+            self.assertNotEqual(len(self.plot.getItems()), 0)
+
+            # Call clear and test the expected state
+            manager.removeRoi(item)
+            self.assertEqual(len(manager.getRois()), 0)
+            self.assertEqual(len(self.plot.getItems()), 0)
+        finally:
+            # Clean up
+            manager.clear()
+
+
 
 def suite():
     test_suite = unittest.TestSuite()
