@@ -1229,7 +1229,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         left = min(points[:, 0])
         right = max(points[:, 0])
         size = right - left, top - bottom
-        self.setGeometry(origin=(left, bottom), size=size)
+        self._updateGeometry(origin=(left, bottom), size=size)
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
@@ -1287,6 +1287,15 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     def setGeometry(self, origin=None, size=None, center=None):
         """Set the geometry of the ROI
         """
+        if ((origin is None or numpy.array_equal(origin, self.getOrigin())) and
+                (center is None or numpy.array_equal(center, self.getCenter())) and
+                numpy.array_equal(size, self.getSize())):
+            return  # Nothing has changed
+
+        self._updateGeometry(origin, size, center)
+
+    def _updateGeometry(self, origin=None, size=None, center=None):
+        """Forced update of the geometry of the ROI"""
         if origin is not None:
             origin = numpy.array(origin)
             size = numpy.array(size)
@@ -1326,7 +1335,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         if handle is self._handleCenter:
             # It is the center anchor
             size = self.getSize()
-            self.setGeometry(center=current, size=size)
+            self._updateGeometry(center=current, size=size)
         else:
             opposed = {
                 self._handleBottomLeft: self._handleTopRight,
