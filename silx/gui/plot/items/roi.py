@@ -953,6 +953,15 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         :param numpy.ndarray startPoint: Staring bounding point of the line
         :param numpy.ndarray endPoint: Ending bounding point of the line
         """
+        if not numpy.array_equal((startPoint, endPoint), self.getEndPoints()):
+            self.__updateEndPoints(startPoint, endPoint)
+
+    def __updateEndPoints(self, startPoint, endPoint):
+        """Update marker and shape to match given end points
+
+        :param numpy.ndarray startPoint: Staring bounding point of the line
+        :param numpy.ndarray endPoint: Ending bounding point of the line
+        """
         startPoint = numpy.array(startPoint)
         endPoint = numpy.array(endPoint)
         center = (startPoint + endPoint) * 0.5
@@ -982,10 +991,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleStart:
             _start, end = self.getEndPoints()
-            self.setEndPoints(current, end)
+            self.__updateEndPoints(current, end)
         elif handle is self._handleEnd:
             start, _end = self.getEndPoints()
-            self.setEndPoints(start, current)
+            self.__updateEndPoints(start, current)
         elif handle is self._handleCenter:
             start, end = self.getEndPoints()
             delta = current - previous
