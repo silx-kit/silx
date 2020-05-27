@@ -770,27 +770,21 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.SymbolMixIn.__init__(self)
         self._marker = items.Marker()
+        self._marker.sigItemChanged.connect(self._pointPositionChanged)
         self._marker.setSymbol(self._DEFAULT_SYMBOL)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
 
     def setFirstShapePoints(self, points):
-        pos = points[0]
-        self._marker.setPosition(pos[0], pos[1])
+        self.setPosition(points[0])
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._pointPositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._pointPositionChanged)
-            self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.EDITABLE,
+                       items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(PointROI, self)._updated(event, checkVisibility)
@@ -810,9 +804,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(pos[0], pos[1])
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(*pos)
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
@@ -821,8 +813,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = '%f %f' % self.getPosition()
