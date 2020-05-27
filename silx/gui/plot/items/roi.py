@@ -1379,6 +1379,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         HandleBasedROI.__init__(self, parent=parent)
         self._handlePerimeter = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
+        self._handleCenter.sigItemChanged.connect(self._centerPositionChanged)
         self._handleLabel = self.addLabelHandle()
 
         shape = items.Shape("polygon")
@@ -1438,44 +1439,50 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray position: Location of the center of the circle
         """
-        radius = self.getRadius()
-        self.setGeometry(center=position, radius=radius)
+        self._handleCenter.setPosition(*position)
 
     def setRadius(self, radius):
         """Set the size of this ROI
 
         :param float size: Radius of the circle
         """
-        center = self.getCenter()
-        self.setGeometry(center=center, radius=radius)
+        radius = float(radius)
+        if radius != self.__radius:
+            self.__radius = radius
+            self._updateGeometry()
 
     def setGeometry(self, center, radius):
         """Set the geometry of the ROI
         """
-        radius = float(radius)
-        self.__radius = radius
-        center = numpy.array(center)
-        perimeter_point = numpy.array([center[0] + radius, center[1]])
+        if numpy.array_equal(center, self.getCenter()):
+            self.setRadius(radius)
+        else:
+            self.__radius = float(radius)  # Update radius directly
+            self.setCenter(center)  # Calls _updateGeometry
 
-        with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(center[0], center[1])
-        with utils.blockSignals(self._handlePerimeter):
-            self._handlePerimeter.setPosition(perimeter_point[0], perimeter_point[1])
-        with utils.blockSignals(self._handleLabel):
-            self._handleLabel.setPosition(center[0], center[1])
+    def _updateGeometry(self):
+        """Update the handles and shape according to given parameters"""
+        center = self.getCenter()
+        perimeter_point = numpy.array([center[0] + self.__radius, center[1]])
+
+        self._handlePerimeter.setPosition(perimeter_point[0], perimeter_point[1])
+        self._handleLabel.setPosition(center[0], center[1])
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        circleShape = numpy.array((numpy.cos(angles) * radius,
-                                   numpy.sin(angles) * radius)).T
+        circleShape = numpy.array((numpy.cos(angles) * self.__radius,
+                                   numpy.sin(angles) * self.__radius)).T
         circleShape += center
         self.__shape.setPoints(circleShape)
         self.sigRegionChanged.emit()
 
+    def _centerPositionChanged(self, event):
+        """Handle position changed events of the center marker"""
+        if event is items.ItemChangedType.POSITION:
+            self._updateGeometry()
+
     def handleDragUpdated(self, handle, origin, previous, current):
-        if handle is self._handleCenter:
-            self.setCenter(current)
-        elif handle is self._handlePerimeter:
+        if handle is self._handlePerimeter:
             center = self.getCenter()
             self.setRadius(numpy.linalg.norm(center - current))
 
