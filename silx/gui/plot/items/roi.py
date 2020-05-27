@@ -1017,14 +1017,14 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             return False
 
         return (
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=top_right, seg2_end_pt=top_left) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=top_left, seg2_end_pt=bottom_left)
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=top_right, seg2_end_pt=top_left) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=top_left, seg2_end_pt=bottom_left)
         )
 
     def __str__(self):
