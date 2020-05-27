@@ -836,13 +836,16 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._handle = self.addHandle()
+        self._handle.sigItemChanged.connect(self._handlePositionChanged)
         self._handleLabel = self.addLabelHandle()
         self._vmarker = self.addUserHandle(items.YMarker())
         self._vmarker._setSelectable(False)
         self._vmarker._setDraggable(False)
+        self._vmarker.setPosition(*self.getPosition())
         self._hmarker = self.addUserHandle(items.XMarker())
         self._hmarker._setSelectable(False)
         self._hmarker._setDraggable(False)
+        self._hmarker.setPosition(*self.getPosition())
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -876,19 +879,16 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with utils.blockSignals(self._handle):
-            self._handle.setPosition(*pos)
-        with utils.blockSignals(self._handleLabel):
-            self._handleLabel.setPosition(*pos)
-        with utils.blockSignals(self._vmarker):
-            self._vmarker.setPosition(*pos)
-        with utils.blockSignals(self._hmarker):
-            self._hmarker.setPosition(*pos)
-        self.sigRegionChanged.emit()
+        self._handle.setPosition(*pos)
 
-    def handleDragUpdated(self, handle, origin, previous, current):
-        if handle is self._handle:
-            self.setPosition(current)
+    def _handlePositionChanged(self, event):
+        """Handle center marker position updates"""
+        if event is items.ItemChangedType.POSITION:
+            position = self.getPosition()
+            self._handleLabel.setPosition(*position)
+            self._vmarker.setPosition(*position)
+            self._hmarker.setPosition(*position)
+            self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
     def contains(self, position):
