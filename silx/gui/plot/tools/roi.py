@@ -30,9 +30,7 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-import collections
 import enum
-import functools
 import logging
 import time
 import weakref
