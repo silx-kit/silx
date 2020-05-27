@@ -1119,6 +1119,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._marker = items.XMarker()
+        self._marker.sigItemChanged.connect(self._linePositionChanged)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
@@ -1127,14 +1128,8 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._linePositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
-            self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.EDITABLE,
+                       items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(VerticalLineROI, self)._updated(event, checkVisibility)
@@ -1146,8 +1141,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     def setFirstShapePoints(self, points):
         pos = points[0, 0]
-        if pos == self.getPosition():
-            return
         self.setPosition(pos)
 
     def getPosition(self):
@@ -1163,9 +1156,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(pos, 0)
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(pos, 0)
 
     @docstring(RegionOfInterest)
     def contains(self, position):
@@ -1174,8 +1165,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getXPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = 'x: %f' % self.getPosition()
