@@ -1049,6 +1049,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._marker = items.YMarker()
+        self._marker.sigItemChanged.connect(self._linePositionChanged)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
@@ -1057,14 +1058,8 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._linePositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
-            self._marker._setDraggable(editable)
-        elif event in [items.ItemChangedType.VISIBLE,
+        elif event in [items.ItemChangedType.EDITABLE,
+                       items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(HorizontalLineROI, self)._updated(event, checkVisibility)
@@ -1093,9 +1088,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(0, pos)
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(0, pos)
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
@@ -1104,8 +1097,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getYPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = 'y: %f' % self.getPosition()
