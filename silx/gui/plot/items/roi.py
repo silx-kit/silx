@@ -1852,8 +1852,12 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        self._polygon_shape = None
         assert(len(points.shape) == 2 and points.shape[1] == 2)
+
+        if numpy.array_equal(points, self._points):
+            return  # Nothing has changed
+
+        self._polygon_shape = None
 
         # Update the needed handles
         while len(self._handlePoints) != len(points):
