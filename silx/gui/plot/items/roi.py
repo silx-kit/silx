@@ -240,7 +240,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     def getItems(self):
         """Returns the list of PlotWidget items of this RegionOfInterest.
 
-        :rtype: List[~silx.gui.plot.items.Item`]
+        :rtype: List[~silx.gui.plot.items.Item]
         """
         return tuple(self._child)
 
