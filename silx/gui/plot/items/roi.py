@@ -2645,9 +2645,9 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMax.sigDragFinished.connect(self._editingFinished)
         self._markerCen.sigDragStarted.connect(self._editingStarted)
         self._markerCen.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._markerCen)
         self.addItem(self._markerMin)
         self.addItem(self._markerMax)
-        self.addItem(self._markerCen)
         self.__filterReentrant = utils.LockReentrant()
 
     def setFirstShapePoints(self, points):
