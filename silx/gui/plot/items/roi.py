@@ -2701,7 +2701,17 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             self._markerCen.sigItemChanged.disconnect(self._cenPositionChanged)
             self._markerCen.setLineStyle(" ")
 
-    def _updatePos(self, vmin, vmax):
+    def _updatePos(self, vmin, vmax, force=False):
+        """Update marker position and emit signal.
+
+        :param float vmin:
+        :param float vmax:
+        :param bool force:
+            True to update even if already at the right position.
+        """
+        if not force and numpy.array_equal((vmin, vmax), self.getRange()):
+            return  # Nothing has changed
+
         center = (vmin + vmax) * 0.5
         with self.__filterReentrant:
             with utils.blockSignals(self._markerMin):
@@ -2808,13 +2818,13 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            self.setMin(marker.getXPosition())
+            self._updatePos(marker.getXPosition(), self.getMax(), force=True)
 
     def _maxPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            self.setMax(marker.getXPosition())
+            self._updatePos(self.getMin(), marker.getXPosition(), force=True)
 
     def _cenPositionChanged(self, event):
         """Handle position changed events of the marker"""
