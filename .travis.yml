@@ -99,10 +99,10 @@ before_script:
     # This installs PyQt and scipy if wheels are available
     - pip install ${PIP_OPTIONS} -r requirements.txt
     # Install PySide2 if needed
-    # Pin-pointing for now to avoid issues with versions [5.11.2 - 5.12.1]
+    # Pin-pointing for now to avoid issues with versions [5.15.0]
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install ${PIP_OPTIONS} pyside2;
+          pip install ${PIP_OPTIONS} pyside2==5.14.2.1;
       fi
 
     # Install built package
