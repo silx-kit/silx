@@ -159,7 +159,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
     def _connectToPlot(self, plot):
         """Called after connection to a plot"""
-        for item in self.iterChild():
+        for item in self.getItems():
             # This hack is needed to avoid reentrant call from _disconnectFromPlot
             # to the ROI manager. It also speed up the item tests in _itemRemoved
             item._roiGroup = True
@@ -167,7 +167,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
     def _disconnectFromPlot(self, plot):
         """Called before disconnection from a plot"""
-        for item in self.iterChild():
+        for item in self.getItems():
             # The item could be already be removed by the plot
             if item.getPlot() is not None:
                 del item._roiGroup
@@ -237,10 +237,12 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             del item._roiGroup
             plot.removeItem(item)
 
-    def iterChild(self):
-        """Iterate through the all ROI child"""
-        for i in self._child:
-            yield i
+    def getItems(self):
+        """Returns the list of PlotWidget items of this RegionOfInterest.
+
+        :rtype: List[~silx.gui.plot.items.Item]
+        """
+        return tuple(self._child)
 
     @classmethod
     def _getShortName(cls):
@@ -643,10 +645,12 @@ class HandleBasedROI(RegionOfInterest):
                 self.__updateEditable(handle, False)
         self.removeItem(handle)
 
-    def iterHandles(self):
-        """Iterate though all the handles"""
-        for data in self._handles:
-            yield data[0]
+    def getHandles(self):
+        """Returns the list of handles of this HandleBasedROI.
+
+        :rtype: List[~silx.gui.plot.items.Marker]
+        """
+        return tuple(data[0] for data in self._handles)
 
     def _updated(self, event=None, checkVisibility=True):
         """Implement Item mix-in update method by updating the plot items

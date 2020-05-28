@@ -298,7 +298,7 @@ class RegionOfInterestManager(qt.QObject):
         if this manager do not have knowledge of this ROI."""
         for roi in self._rois:
             if isinstance(roi, roi_items.RegionOfInterest):
-                for child in roi.iterChild():
+                for child in roi.getItems():
                     if child is item:
                         return roi
         return None
@@ -357,11 +357,11 @@ class RegionOfInterestManager(qt.QObject):
         # This should be speed up
         for roi in self._rois:
             if isinstance(roi, roi_items.HandleBasedROI):
-                for m in roi.iterHandles():
+                for m in roi.getHandles():
                     if m is marker:
                         return roi
             else:
-                for m in roi.iterChild():
+                for m in roi.getItems():
                     if m is marker:
                         return roi
         return None
