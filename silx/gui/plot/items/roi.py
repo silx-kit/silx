@@ -1513,9 +1513,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         HandleBasedROI.__init__(self, parent=parent)
-        self._handleMinorAxis = self.addHandle()
-        self._handleMajorAxis = self.addHandle()
+        self._handleAxis0 = self.addHandle()
+        self._handleAxis1 = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
+        self._handleCenter.sigItemChanged.connect(self._centerPositionChanged)
         self._handleLabel = self.addLabelHandle()
 
         shape = items.Shape("polygon")
@@ -1528,9 +1529,8 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-        self._majorRadius = 0
-        self._minorRadius = 0
-        self._orientation = 0   # angle in radians between the X-axis and the major axis
+        self._radius = 0., 0.
+        self._orientation = 0.  # angle in radians between the X-axis and the _handleAxis0
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -1568,19 +1568,14 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             theta = 2 * numpy.pi - theta
         return theta
 
-    @staticmethod
-    def _rotateLeft(angle):
-        """return an angle in range [0, 2*pi[
-        after rotating 90 degrees counter-clockwise"""
-        return numpy.arccos(numpy.cos(angle + numpy.pi / 2))
-
     def _setRay(self, points):
         """Initialize the circle from the center point and a
         perimeter point."""
         center = points[0]
         radius = numpy.linalg.norm(points[0] - points[1])
         orientation = self._calculateOrientation(points[0], points[1])
-        self.setGeometry(center=center, majorRadius=radius, minorRadius=radius,
+        self.setGeometry(center=center,
+                         radius=(radius, radius),
                          orientation=orientation)
 
     def _updateText(self, text):
@@ -1599,26 +1594,21 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        # during interaction, the values can be incorrectly sorted
-        return max(self._majorRadius, self._minorRadius)
+        return max(self._radius)
 
     def getMinorRadius(self):
         """Returns the half-diameter of the minor axis.
 
         :rtype: float
         """
-        # during interaction, the values can be incorrectly sorted
-        return min(self._majorRadius, self._minorRadius)
+        return min(self._radius)
 
     def getOrientation(self):
         """Return angle in radians between the horizontal (X) axis
-        and the major axis of the ellipse
+        and the major axis of the ellipse in [0, 2*pi[
 
         :rtype: float:
         """
-        if self._minorRadius > self._majorRadius:
-            # This can happen while interaction is ongoing.
-            return self._rotateLeft(self._orientation)
         return self._orientation
 
     def setCenter(self, center):
@@ -1627,44 +1617,31 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         :param numpy.ndarray position: Coordinates (X, Y) of the center
             of the ellipse
         """
-        self.setGeometry(center=center, majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
-
-    def _swapAxes(self):
-        """swap minor and major axes without changing the shape"""
-        self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
-        self._orientation = self._rotateLeft(self._orientation)
+        self._handleCenter.setPosition(*center)
 
     def setMajorRadius(self, radius):
         """Set the half-diameter of the major axis of the ellipse.
 
-        .. note:: If you provide a value smaller than the minor radius,
-            the major axis will become the minor axis and the value
-            of the orientation angle will be increased by 90 degrees.
-
-        :param float size: Radius of the circle. Must be a positive value.
+        :param float radius:
+            Major radius of the ellipsis. Must be a positive value.
         """
-        self._majorRadius = radius
-        if radius < self._minorRadius:
-            self._swapAxes()
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
+        if self._radius[0] > self._radius[1]:
+            newRadius = radius, self._radius[1]
+        else:
+            newRadius = self._radius[0], radius
+        self.setGeometry(radius=newRadius)
 
     def setMinorRadius(self, radius):
         """Set the half-diameter of the minor axis of the ellipse.
 
-        .. note:: If you provide a value larger than the major radius,
-            the minor axis will become the major axis and the value
-            of the orientation angle will be increased by 90 degrees.
-
-        :param float size: Radius of the circle. Must be a positive value.
+        :param float radius:
+            Minor radius of the ellipsis. Must be a positive value.
         """
-        self._minorRadius = radius
-        if radius > self._majorRadius:
-            self._swapAxes()
-
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
+        if self._radius[0] > self._radius[1]:
+            newRadius = self._radius[0], radius
+        else:
+            newRadius = radius, self._radius[1]
+        self.setGeometry(radius=newRadius)
 
     def setOrientation(self, orientation):
         """Rotate the ellipse
@@ -1673,13 +1650,9 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             the major axis.
         :return:
         """
-        # ensure that we store the orientation in range [0, 2*pi[
-        self._orientation = numpy.arccos(numpy.cos(orientation))
+        self.setGeometry(orientation=orientation)
 
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
-
-    def setGeometry(self, center, majorRadius, minorRadius, orientation):
+    def setGeometry(self, center=None, radius=None, orientation=None):
         """
 
         :param center: (X, Y) coordinates
@@ -1689,30 +1662,60 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             horizontal
         :return:
         """
-        self._majorRadius = majorRadius
-        self._minorRadius = minorRadius
-        self._orientation = orientation
-        center = numpy.array(center)
+        if center is None:
+            center = self.getCenter()
 
-        majorPoint = numpy.array([center[0] + majorRadius * numpy.cos(orientation),
-                                  center[1] + majorRadius * numpy.sin(orientation)])
-        minorPoint = numpy.array([center[0] - minorRadius * numpy.sin(orientation),
-                                  center[1] + minorRadius * numpy.cos(orientation)])
-        with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(*center)
-        with utils.blockSignals(self._handleMajorAxis):
-            self._handleMajorAxis.setPosition(*majorPoint)
-        with utils.blockSignals(self._handleMinorAxis):
-            self._handleMinorAxis.setPosition(*minorPoint)
+        if radius is None:
+            radius = self._radius
+        else:
+            radius = float(radius[0]), float(radius[1])
+
+        if orientation is None:
+            orientation = self._orientation
+        else:
+            # ensure that we store the orientation in range [0, 2*pi
+            orientation = numpy.mod(orientation, 2 * numpy.pi)
+
+        if (numpy.array_equal(center, self.getCenter()) or
+                radius != self._radius or
+                orientation != self._orientation):
+
+            # Update parameters directly
+            self._radius = radius
+            self._orientation = orientation
+
+            if numpy.array_equal(center, self.getCenter()):
+                self._updateGeometry()
+            else:
+                # This will call _updateGeometry
+                self.setCenter(center)
+
+    def _updateGeometry(self):
+        """Update shape and markers"""
+        center = self.getCenter()
+
+        orientation = self.getOrientation()
+        if self._radius[1] > self._radius[0]:
+            # _handleAxis1 is the major axis
+            orientation -= numpy.pi/2
+
+        point0 = numpy.array([center[0] + self._radius[0] * numpy.cos(orientation),
+                              center[1] + self._radius[0] * numpy.sin(orientation)])
+        point1 = numpy.array([center[0] - self._radius[1] * numpy.sin(orientation),
+                              center[1] + self._radius[1] * numpy.cos(orientation)])
+        with utils.blockSignals(self._handleAxis0):
+            self._handleAxis0.setPosition(*point0)
+        with utils.blockSignals(self._handleAxis1):
+            self._handleAxis1.setPosition(*point1)
         with utils.blockSignals(self._handleLabel):
             self._handleLabel.setPosition(*center)
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        X = (majorRadius * numpy.cos(angles) * numpy.cos(orientation)
-             - minorRadius * numpy.sin(angles) * numpy.sin(orientation))
-        Y = (majorRadius * numpy.cos(angles) * numpy.sin(orientation)
-             + minorRadius * numpy.sin(angles) * numpy.cos(orientation))
+        X = (self._radius[0] * numpy.cos(angles) * numpy.cos(orientation)
+             - self._radius[1] * numpy.sin(angles) * numpy.sin(orientation))
+        Y = (self._radius[0] * numpy.cos(angles) * numpy.sin(orientation)
+             + self._radius[1] * numpy.sin(angles) * numpy.cos(orientation))
 
         ellipseShape = numpy.array((X, Y)).T
         ellipseShape += center
@@ -1720,30 +1723,29 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        center = self.getCenter()
-        if handle is self._handleCenter:
-            self.setCenter(current)
-        elif handle is self._handleMinorAxis:
-            orientation = self._calculateOrientation(center, current) - numpy.pi / 2
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=self._majorRadius,
-                             minorRadius=numpy.linalg.norm(center - current),
-                             orientation=orientation)
-        elif handle is self._handleMajorAxis:
+        if handle in (self._handleAxis0, self._handleAxis1):
+            center = self.getCenter()
             orientation = self._calculateOrientation(center, current)
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=numpy.linalg.norm(center - current),
-                             minorRadius=self._minorRadius,
-                             orientation=orientation)
+            distance = numpy.linalg.norm(center - current)
 
-    def handleDragFinished(self, handle, origin, current):
-        """At the end of the interaction, we want the major radius
-        to be larger than the minor radius."""
-        if self._majorRadius < self._minorRadius:
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=self._minorRadius,
-                             minorRadius=self._majorRadius,
-                             orientation=self._rotateLeft(self._orientation))
+            if handle is self._handleAxis1:
+                if self._radius[0] > distance:
+                    # _handleAxis1 is not the major axis, rotate -90 degrees
+                    orientation -= numpy.pi/2
+                radius = self._radius[0], distance
+
+            else:  # _handleAxis0
+                if self._radius[1] > distance:
+                    # _handleAxis0 is not the major axis, rotate +90 degrees
+                    orientation += numpy.pi/2
+                radius = distance, self._radius[1]
+
+            self.setGeometry(radius=radius, orientation=orientation)
+
+    def _centerPositionChanged(self, event):
+        """Handle position changed events of the center marker"""
+        if event is items.ItemChangedType.POSITION:
+            self._updateGeometry()
 
     def __str__(self):
         center = self.getCenter()
