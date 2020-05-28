@@ -298,7 +298,7 @@ class RegionOfInterestManager(qt.QObject):
         if this manager do not have knowledge of this ROI."""
         for roi in self._rois:
             if isinstance(roi, roi_items.RegionOfInterest):
-                for child in roi.iterChild():
+                for child in roi.getItems():
                     if child is item:
                         return roi
         return None
