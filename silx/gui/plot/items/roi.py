@@ -783,8 +783,9 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event in [items.ItemChangedType.EDITABLE,
-                       items.ItemChangedType.VISIBLE,
+        elif event == items.ItemChangedType.EDITABLE:
+            self._marker._setDraggable(self.isEditable())
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(PointROI, self)._updated(event, checkVisibility)
@@ -1058,8 +1059,9 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event in [items.ItemChangedType.EDITABLE,
-                       items.ItemChangedType.VISIBLE,
+        elif event == items.ItemChangedType.EDITABLE:
+            self._marker._setDraggable(self.isEditable())
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(HorizontalLineROI, self)._updated(event, checkVisibility)
@@ -1128,8 +1130,9 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
-        elif event in [items.ItemChangedType.EDITABLE,
-                       items.ItemChangedType.VISIBLE,
+        elif event == items.ItemChangedType.EDITABLE:
+            self._marker._setDraggable(self.isEditable())
+        elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(VerticalLineROI, self)._updated(event, checkVisibility)
