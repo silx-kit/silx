@@ -361,7 +361,7 @@ class RegionOfInterestManager(qt.QObject):
                     if m is marker:
                         return roi
             else:
-                for m in roi.iterChild():
+                for m in roi.getItems():
                     if m is marker:
                         return roi
         return None
