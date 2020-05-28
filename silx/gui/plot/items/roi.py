@@ -645,10 +645,12 @@ class HandleBasedROI(RegionOfInterest):
                 self.__updateEditable(handle, False)
         self.removeItem(handle)
 
-    def iterHandles(self):
-        """Iterate though all the handles"""
-        for data in self._handles:
-            yield data[0]
+    def getHandles(self):
+        """Returns the list of handles of this HandleBasedROI.
+
+        :rtype: List[~silx.gui.plot.items.Marker]
+        """
+        return tuple(data[0] for data in self._handles)
 
     def _updated(self, event=None, checkVisibility=True):
         """Implement Item mix-in update method by updating the plot items
