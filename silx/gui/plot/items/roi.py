@@ -1810,6 +1810,9 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        if self._handleClose is not None:
+            color = self._computeHandleColor(style.getColor())
+            self._handleClose.setColor(color)
 
     def __createShape(self, interaction=False):
         kind = "polygon" if not interaction else "polylines"
@@ -1817,9 +1820,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         shape.setPoints([[0, 0], [0, 0]])
         shape.setFill(False)
         shape.setOverlay(True)
-        shape.setLineStyle(self.getLineStyle())
-        shape.setLineWidth(self.getLineWidth())
-        shape.setColor(rgba(self.getColor()))
+        style = self.getCurrentStyle()
+        shape.setLineStyle(style.getLineStyle())
+        shape.setLineWidth(style.getLineWidth())
+        shape.setColor(rgba(style.getColor()))
         return shape
 
     def setFirstShapePoints(self, points):
@@ -1836,11 +1840,18 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         color = self._computeHandleColor(rgba(self.getColor()))
         self._handleClose.setColor(color)
 
+        # Hide the center while creating the first shape
+        self._handleCenter.setSymbol("")
+
         # In interaction replace the polygon by a line, to display something unclosed
         self.removeItem(self.__shape)
         self.__shape = self.__createShape(interaction=True)
         self.__shape.setPoints(self._points)
         self.addItem(self.__shape)
+
+    def isBeingCreated(self):
+        """Returns true if the ROI is in creation step"""
+        return self._handleClose is not None
 
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
@@ -1851,6 +1862,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape = self.__createShape()
         self.__shape.setPoints(self._points)
         self.addItem(self.__shape)
+        # Hide the center while creating the first shape
+        self._handleCenter.setSymbol("+")
+        for handle in self._handlePoints:
+            handle.setSymbol("s")
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
@@ -1879,6 +1894,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
             if len(self._handlePoints) < len(points):
                 handle = self.addHandle()
                 self._handlePoints.append(handle)
+                if self.isBeingCreated():
+                    handle.setSymbol("")
             else:
                 handle = self._handlePoints.pop(-1)
                 self.removeHandle(handle)

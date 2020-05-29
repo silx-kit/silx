@@ -306,7 +306,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 manager.sigRoiChanged.connect(changedListener)
 
                 # Add a point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 1)
                 self.assertEqual(changedListener.callCount(), 1)
@@ -317,9 +319,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
-                manager.createRoi(roiClass, points[1])
+                r = roiClass()
+                r.setFirstShapePoints(points[1])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 4)
@@ -333,9 +339,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 changedListener.clear()
 
                 # Add two point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
-                manager.createRoi(roiClass, points[1])
+                r = roiClass()
+                r.setFirstShapePoints(points[1])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 2)

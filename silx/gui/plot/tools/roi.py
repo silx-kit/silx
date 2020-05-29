@@ -326,7 +326,9 @@ class RegionOfInterestManager(qt.QObject):
             if event['event'] == 'mouseClicked' and event['button'] == 'left':
                 points = numpy.array([(event['x'], event['y'])],
                                      dtype=numpy.float64)
-                roi = self.createRoi(roiClass, points=points)
+                # Not an interactive creation
+                roi = self._createInteractiveRoi(roiClass, points=points)
+                roi.creationFinalized()
                 self.sigInteractiveRoiFinalized.emit(roi)
         else:  # other shapes
             if (event['event'] in ('drawingProgress', 'drawingFinished') and
@@ -337,8 +339,7 @@ class RegionOfInterestManager(qt.QObject):
                 if self._drawnROI is None:  # Create new ROI
                     # NOTE: Set something before createRoi, so isDrawing is True
                     self._drawnROI = object()
-                    self._drawnROI = self.createRoi(roiClass, points=points)
-                    self._drawnROI.creationStarted()
+                    self._drawnROI = self._createInteractiveRoi(roiClass, points=points)
                 else:
                     self._drawnROI.setFirstShapePoints(points)
 
@@ -453,8 +454,8 @@ class RegionOfInterestManager(qt.QObject):
         """Handle ROI object changed"""
         self.sigRoiChanged.emit()
 
-    def createRoi(self, roiClass, points, label=None, index=None):
-        """Create a new ROI and add it to list of ROIs.
+    def _createInteractiveRoi(self, roiClass, points, label=None, index=None):
+        """Create a new ROI with interactive creation.
 
         :param class roiClass: The class of the ROI to create
         :param numpy.ndarray points: The first shape used to create the ROI
@@ -469,6 +470,7 @@ class RegionOfInterestManager(qt.QObject):
         roi = roiClass(parent=None)
         if label is not None:
             roi.setName(str(label))
+        roi.creationStarted()
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
