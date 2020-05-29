@@ -1836,6 +1836,9 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         color = self._computeHandleColor(rgba(self.getColor()))
         self._handleClose.setColor(color)
 
+        # Hide the center while creating the first shape
+        self._handleCenter.setSymbol("")
+
         # In interaction replace the polygon by a line, to display something unclosed
         self.removeItem(self.__shape)
         self.__shape = self.__createShape(interaction=True)
@@ -1851,6 +1854,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape = self.__createShape()
         self.__shape.setPoints(self._points)
         self.addItem(self.__shape)
+        # Hide the center while creating the first shape
+        self._handleCenter.setSymbol("+")
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
