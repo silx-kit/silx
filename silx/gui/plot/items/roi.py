@@ -1845,6 +1845,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(self._points)
         self.addItem(self.__shape)
 
+    def isBeingCreated(self):
+        """Returns true if the ROI is in creation step"""
+        return self._handleClose is not None
+
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
         """
@@ -1856,6 +1860,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.addItem(self.__shape)
         # Hide the center while creating the first shape
         self._handleCenter.setSymbol("+")
+        for handle in self._handlePoints:
+            handle.setSymbol("s")
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
@@ -1884,6 +1890,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
             if len(self._handlePoints) < len(points):
                 handle = self.addHandle()
                 self._handlePoints.append(handle)
+                if self.isBeingCreated():
+                    handle.setSymbol("")
             else:
                 handle = self._handlePoints.pop(-1)
                 self.removeHandle(handle)
