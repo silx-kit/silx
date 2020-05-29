@@ -1249,7 +1249,7 @@ class _StackView(DataView):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
         widget.setColormap(self.defaultColormap())
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
         widget.setKeepDataAspectRatio(True)
         widget.setLabels(self.axesNames(None, None))
         # hide default option panel
