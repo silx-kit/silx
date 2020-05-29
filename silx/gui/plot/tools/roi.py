@@ -338,7 +338,6 @@ class RegionOfInterestManager(qt.QObject):
                     # NOTE: Set something before createRoi, so isDrawing is True
                     self._drawnROI = object()
                     self._drawnROI = self.createRoi(roiClass, points=points)
-                    self._drawnROI.creationStarted()
                 else:
                     self._drawnROI.setFirstShapePoints(points)
 
@@ -469,6 +468,7 @@ class RegionOfInterestManager(qt.QObject):
         roi = roiClass(parent=None)
         if label is not None:
             roi.setName(str(label))
+        roi.creationStarted()
         roi.setFirstShapePoints(points)
 
         self.addRoi(roi, index)
