@@ -1810,6 +1810,9 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        if self._handleClose is not None:
+            color = self._computeHandleColor(style.getColor())
+            self._handleClose.setColor(color)
 
     def __createShape(self, interaction=False):
         kind = "polygon" if not interaction else "polylines"
