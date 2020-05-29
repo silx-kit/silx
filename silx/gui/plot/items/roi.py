@@ -1820,9 +1820,10 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         shape.setPoints([[0, 0], [0, 0]])
         shape.setFill(False)
         shape.setOverlay(True)
-        shape.setLineStyle(self.getLineStyle())
-        shape.setLineWidth(self.getLineWidth())
-        shape.setColor(rgba(self.getColor()))
+        style = self.getCurrentStyle()
+        shape.setLineStyle(style.getLineStyle())
+        shape.setLineWidth(style.getLineWidth())
+        shape.setColor(rgba(style.getColor()))
         return shape
 
     def setFirstShapePoints(self, points):
