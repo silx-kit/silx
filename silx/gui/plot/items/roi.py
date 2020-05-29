@@ -782,26 +782,21 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.SymbolMixIn.__init__(self)
         self._marker = items.Marker()
+        self._marker.sigItemChanged.connect(self._pointPositionChanged)
         self._marker.setSymbol(self._DEFAULT_SYMBOL)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
 
     def setFirstShapePoints(self, points):
-        pos = points[0]
-        self._marker.setPosition(pos[0], pos[1])
+        self.setPosition(points[0])
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
             label = self.getName()
             self._marker.setText(label)
         elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._pointPositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._pointPositionChanged)
-            self._marker._setDraggable(editable)
+            self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
@@ -822,9 +817,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(pos[0], pos[1])
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(*pos)
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
@@ -833,8 +826,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = '%f %f' % self.getPosition()
@@ -857,13 +849,16 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._handle = self.addHandle()
+        self._handle.sigItemChanged.connect(self._handlePositionChanged)
         self._handleLabel = self.addLabelHandle()
         self._vmarker = self.addUserHandle(items.YMarker())
         self._vmarker._setSelectable(False)
         self._vmarker._setDraggable(False)
+        self._vmarker.setPosition(*self.getPosition())
         self._hmarker = self.addUserHandle(items.XMarker())
         self._hmarker._setSelectable(False)
         self._hmarker._setDraggable(False)
+        self._hmarker.setPosition(*self.getPosition())
 
     def _updated(self, event=None, checkVisibility=True):
         if event in [items.ItemChangedType.VISIBLE]:
@@ -897,19 +892,16 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        with utils.blockSignals(self._handle):
-            self._handle.setPosition(*pos)
-        with utils.blockSignals(self._handleLabel):
-            self._handleLabel.setPosition(*pos)
-        with utils.blockSignals(self._vmarker):
-            self._vmarker.setPosition(*pos)
-        with utils.blockSignals(self._hmarker):
-            self._hmarker.setPosition(*pos)
-        self.sigRegionChanged.emit()
+        self._handle.setPosition(*pos)
 
-    def handleDragUpdated(self, handle, origin, previous, current):
-        if handle is self._handle:
-            self.setPosition(current)
+    def _handlePositionChanged(self, event):
+        """Handle center marker position updates"""
+        if event is items.ItemChangedType.POSITION:
+            position = self.getPosition()
+            self._handleLabel.setPosition(*position)
+            self._vmarker.setPosition(*position)
+            self._hmarker.setPosition(*position)
+            self.sigRegionChanged.emit()
 
     @docstring(HandleBasedROI)
     def contains(self, position):
@@ -974,6 +966,15 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         :param numpy.ndarray startPoint: Staring bounding point of the line
         :param numpy.ndarray endPoint: Ending bounding point of the line
         """
+        if not numpy.array_equal((startPoint, endPoint), self.getEndPoints()):
+            self.__updateEndPoints(startPoint, endPoint)
+
+    def __updateEndPoints(self, startPoint, endPoint):
+        """Update marker and shape to match given end points
+
+        :param numpy.ndarray startPoint: Staring bounding point of the line
+        :param numpy.ndarray endPoint: Ending bounding point of the line
+        """
         startPoint = numpy.array(startPoint)
         endPoint = numpy.array(endPoint)
         center = (startPoint + endPoint) * 0.5
@@ -1003,10 +1004,10 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     def handleDragUpdated(self, handle, origin, previous, current):
         if handle is self._handleStart:
             _start, end = self.getEndPoints()
-            self.setEndPoints(current, end)
+            self.__updateEndPoints(current, end)
         elif handle is self._handleEnd:
             start, _end = self.getEndPoints()
-            self.setEndPoints(start, current)
+            self.__updateEndPoints(start, current)
         elif handle is self._handleCenter:
             start, end = self.getEndPoints()
             delta = current - previous
@@ -1029,14 +1030,14 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             return False
 
         return (
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=top_right, seg2_end_pt=top_left) or
-                segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                      seg2_start_pt=top_left, seg2_end_pt=bottom_left)
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=top_right, seg2_end_pt=top_left) or
+            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
+                                  seg2_start_pt=top_left, seg2_end_pt=bottom_left)
         )
 
     def __str__(self):
@@ -1061,6 +1062,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._marker = items.YMarker()
+        self._marker.sigItemChanged.connect(self._linePositionChanged)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
@@ -1070,12 +1072,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             label = self.getName()
             self._marker.setText(label)
         elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._linePositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
-            self._marker._setDraggable(editable)
+            self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
@@ -1105,9 +1102,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(0, pos)
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(0, pos)
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
@@ -1116,8 +1111,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getYPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = 'y: %f' % self.getPosition()
@@ -1139,6 +1133,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         RegionOfInterest.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         self._marker = items.XMarker()
+        self._marker.sigItemChanged.connect(self._linePositionChanged)
         self._marker.sigDragStarted.connect(self._editingStarted)
         self._marker.sigDragFinished.connect(self._editingFinished)
         self.addItem(self._marker)
@@ -1148,12 +1143,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             label = self.getName()
             self._marker.setText(label)
         elif event == items.ItemChangedType.EDITABLE:
-            editable = self.isEditable()
-            if editable:
-                self._marker.sigItemChanged.connect(self._linePositionChanged)
-            else:
-                self._marker.sigItemChanged.disconnect(self._linePositionChanged)
-            self._marker._setDraggable(editable)
+            self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
@@ -1166,8 +1156,6 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     def setFirstShapePoints(self, points):
         pos = points[0, 0]
-        if pos == self.getPosition():
-            return
         self.setPosition(pos)
 
     def getPosition(self):
@@ -1183,9 +1171,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
         :param float pos: Horizontal position of this line
         """
-        with utils.blockSignals(self._marker):
-            self._marker.setPosition(pos, 0)
-        self.sigRegionChanged.emit()
+        self._marker.setPosition(pos, 0)
 
     @docstring(RegionOfInterest)
     def contains(self, position):
@@ -1194,8 +1180,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
-            marker = self.sender()
-            self.setPosition(marker.getXPosition())
+            self.sigRegionChanged.emit()
 
     def __str__(self):
         params = 'x: %f' % self.getPosition()
@@ -1259,7 +1244,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         left = min(points[:, 0])
         right = max(points[:, 0])
         size = right - left, top - bottom
-        self.setGeometry(origin=(left, bottom), size=size)
+        self._updateGeometry(origin=(left, bottom), size=size)
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
@@ -1317,6 +1302,15 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     def setGeometry(self, origin=None, size=None, center=None):
         """Set the geometry of the ROI
         """
+        if ((origin is None or numpy.array_equal(origin, self.getOrigin())) and
+                (center is None or numpy.array_equal(center, self.getCenter())) and
+                numpy.array_equal(size, self.getSize())):
+            return  # Nothing has changed
+
+        self._updateGeometry(origin, size, center)
+
+    def _updateGeometry(self, origin=None, size=None, center=None):
+        """Forced update of the geometry of the ROI"""
         if origin is not None:
             origin = numpy.array(origin)
             size = numpy.array(size)
@@ -1356,7 +1350,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         if handle is self._handleCenter:
             # It is the center anchor
             size = self.getSize()
-            self.setGeometry(center=current, size=size)
+            self._updateGeometry(center=current, size=size)
         else:
             opposed = {
                 self._handleBottomLeft: self._handleTopRight,
@@ -1400,6 +1394,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         HandleBasedROI.__init__(self, parent=parent)
         self._handlePerimeter = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
+        self._handleCenter.sigItemChanged.connect(self._centerPositionChanged)
         self._handleLabel = self.addLabelHandle()
 
         shape = items.Shape("polygon")
@@ -1459,44 +1454,50 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray position: Location of the center of the circle
         """
-        radius = self.getRadius()
-        self.setGeometry(center=position, radius=radius)
+        self._handleCenter.setPosition(*position)
 
     def setRadius(self, radius):
         """Set the size of this ROI
 
         :param float size: Radius of the circle
         """
-        center = self.getCenter()
-        self.setGeometry(center=center, radius=radius)
+        radius = float(radius)
+        if radius != self.__radius:
+            self.__radius = radius
+            self._updateGeometry()
 
     def setGeometry(self, center, radius):
         """Set the geometry of the ROI
         """
-        radius = float(radius)
-        self.__radius = radius
-        center = numpy.array(center)
-        perimeter_point = numpy.array([center[0] + radius, center[1]])
+        if numpy.array_equal(center, self.getCenter()):
+            self.setRadius(radius)
+        else:
+            self.__radius = float(radius)  # Update radius directly
+            self.setCenter(center)  # Calls _updateGeometry
 
-        with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(center[0], center[1])
-        with utils.blockSignals(self._handlePerimeter):
-            self._handlePerimeter.setPosition(perimeter_point[0], perimeter_point[1])
-        with utils.blockSignals(self._handleLabel):
-            self._handleLabel.setPosition(center[0], center[1])
+    def _updateGeometry(self):
+        """Update the handles and shape according to given parameters"""
+        center = self.getCenter()
+        perimeter_point = numpy.array([center[0] + self.__radius, center[1]])
+
+        self._handlePerimeter.setPosition(perimeter_point[0], perimeter_point[1])
+        self._handleLabel.setPosition(center[0], center[1])
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        circleShape = numpy.array((numpy.cos(angles) * radius,
-                                   numpy.sin(angles) * radius)).T
+        circleShape = numpy.array((numpy.cos(angles) * self.__radius,
+                                   numpy.sin(angles) * self.__radius)).T
         circleShape += center
         self.__shape.setPoints(circleShape)
         self.sigRegionChanged.emit()
 
+    def _centerPositionChanged(self, event):
+        """Handle position changed events of the center marker"""
+        if event is items.ItemChangedType.POSITION:
+            self._updateGeometry()
+
     def handleDragUpdated(self, handle, origin, previous, current):
-        if handle is self._handleCenter:
-            self.setCenter(current)
-        elif handle is self._handlePerimeter:
+        if handle is self._handlePerimeter:
             center = self.getCenter()
             self.setRadius(numpy.linalg.norm(center - current))
 
@@ -1527,9 +1528,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     def __init__(self, parent=None):
         items.LineMixIn.__init__(self)
         HandleBasedROI.__init__(self, parent=parent)
-        self._handleMinorAxis = self.addHandle()
-        self._handleMajorAxis = self.addHandle()
+        self._handleAxis0 = self.addHandle()
+        self._handleAxis1 = self.addHandle()
         self._handleCenter = self.addTranslateHandle()
+        self._handleCenter.sigItemChanged.connect(self._centerPositionChanged)
         self._handleLabel = self.addLabelHandle()
 
         shape = items.Shape("polygon")
@@ -1542,9 +1544,8 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-        self._majorRadius = 0
-        self._minorRadius = 0
-        self._orientation = 0   # angle in radians between the X-axis and the major axis
+        self._radius = 0., 0.
+        self._orientation = 0.  # angle in radians between the X-axis and the _handleAxis0
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -1582,19 +1583,14 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             theta = 2 * numpy.pi - theta
         return theta
 
-    @staticmethod
-    def _rotateLeft(angle):
-        """return an angle in range [0, 2*pi[
-        after rotating 90 degrees counter-clockwise"""
-        return numpy.arccos(numpy.cos(angle + numpy.pi / 2))
-
     def _setRay(self, points):
         """Initialize the circle from the center point and a
         perimeter point."""
         center = points[0]
         radius = numpy.linalg.norm(points[0] - points[1])
         orientation = self._calculateOrientation(points[0], points[1])
-        self.setGeometry(center=center, majorRadius=radius, minorRadius=radius,
+        self.setGeometry(center=center,
+                         radius=(radius, radius),
                          orientation=orientation)
 
     def _updateText(self, text):
@@ -1613,26 +1609,21 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
 
         :rtype: float
         """
-        # during interaction, the values can be incorrectly sorted
-        return max(self._majorRadius, self._minorRadius)
+        return max(self._radius)
 
     def getMinorRadius(self):
         """Returns the half-diameter of the minor axis.
 
         :rtype: float
         """
-        # during interaction, the values can be incorrectly sorted
-        return min(self._majorRadius, self._minorRadius)
+        return min(self._radius)
 
     def getOrientation(self):
         """Return angle in radians between the horizontal (X) axis
-        and the major axis of the ellipse
+        and the major axis of the ellipse in [0, 2*pi[
 
         :rtype: float:
         """
-        if self._minorRadius > self._majorRadius:
-            # This can happen while interaction is ongoing.
-            return self._rotateLeft(self._orientation)
         return self._orientation
 
     def setCenter(self, center):
@@ -1641,44 +1632,31 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         :param numpy.ndarray position: Coordinates (X, Y) of the center
             of the ellipse
         """
-        self.setGeometry(center=center, majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
-
-    def _swapAxes(self):
-        """swap minor and major axes without changing the shape"""
-        self._minorRadius, self._majorRadius = self._majorRadius, self._minorRadius
-        self._orientation = self._rotateLeft(self._orientation)
+        self._handleCenter.setPosition(*center)
 
     def setMajorRadius(self, radius):
         """Set the half-diameter of the major axis of the ellipse.
 
-        .. note:: If you provide a value smaller than the minor radius,
-            the major axis will become the minor axis and the value
-            of the orientation angle will be increased by 90 degrees.
-
-        :param float size: Radius of the circle. Must be a positive value.
+        :param float radius:
+            Major radius of the ellipsis. Must be a positive value.
         """
-        self._majorRadius = radius
-        if radius < self._minorRadius:
-            self._swapAxes()
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
+        if self._radius[0] > self._radius[1]:
+            newRadius = radius, self._radius[1]
+        else:
+            newRadius = self._radius[0], radius
+        self.setGeometry(radius=newRadius)
 
     def setMinorRadius(self, radius):
         """Set the half-diameter of the minor axis of the ellipse.
 
-        .. note:: If you provide a value larger than the major radius,
-            the minor axis will become the major axis and the value
-            of the orientation angle will be increased by 90 degrees.
-
-        :param float size: Radius of the circle. Must be a positive value.
+        :param float radius:
+            Minor radius of the ellipsis. Must be a positive value.
         """
-        self._minorRadius = radius
-        if radius > self._majorRadius:
-            self._swapAxes()
-
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
+        if self._radius[0] > self._radius[1]:
+            newRadius = self._radius[0], radius
+        else:
+            newRadius = radius, self._radius[1]
+        self.setGeometry(radius=newRadius)
 
     def setOrientation(self, orientation):
         """Rotate the ellipse
@@ -1687,13 +1665,9 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             the major axis.
         :return:
         """
-        # ensure that we store the orientation in range [0, 2*pi[
-        self._orientation = numpy.arccos(numpy.cos(orientation))
+        self.setGeometry(orientation=orientation)
 
-        self.setGeometry(center=self.getCenter(), majorRadius=self._majorRadius,
-                         minorRadius=self._minorRadius, orientation=self._orientation)
-
-    def setGeometry(self, center, majorRadius, minorRadius, orientation):
+    def setGeometry(self, center=None, radius=None, orientation=None):
         """
 
         :param center: (X, Y) coordinates
@@ -1703,30 +1677,60 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             horizontal
         :return:
         """
-        self._majorRadius = majorRadius
-        self._minorRadius = minorRadius
-        self._orientation = orientation
-        center = numpy.array(center)
+        if center is None:
+            center = self.getCenter()
 
-        majorPoint = numpy.array([center[0] + majorRadius * numpy.cos(orientation),
-                                  center[1] + majorRadius * numpy.sin(orientation)])
-        minorPoint = numpy.array([center[0] - minorRadius * numpy.sin(orientation),
-                                  center[1] + minorRadius * numpy.cos(orientation)])
-        with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(*center)
-        with utils.blockSignals(self._handleMajorAxis):
-            self._handleMajorAxis.setPosition(*majorPoint)
-        with utils.blockSignals(self._handleMinorAxis):
-            self._handleMinorAxis.setPosition(*minorPoint)
+        if radius is None:
+            radius = self._radius
+        else:
+            radius = float(radius[0]), float(radius[1])
+
+        if orientation is None:
+            orientation = self._orientation
+        else:
+            # ensure that we store the orientation in range [0, 2*pi
+            orientation = numpy.mod(orientation, 2 * numpy.pi)
+
+        if (numpy.array_equal(center, self.getCenter()) or
+                radius != self._radius or
+                orientation != self._orientation):
+
+            # Update parameters directly
+            self._radius = radius
+            self._orientation = orientation
+
+            if numpy.array_equal(center, self.getCenter()):
+                self._updateGeometry()
+            else:
+                # This will call _updateGeometry
+                self.setCenter(center)
+
+    def _updateGeometry(self):
+        """Update shape and markers"""
+        center = self.getCenter()
+
+        orientation = self.getOrientation()
+        if self._radius[1] > self._radius[0]:
+            # _handleAxis1 is the major axis
+            orientation -= numpy.pi/2
+
+        point0 = numpy.array([center[0] + self._radius[0] * numpy.cos(orientation),
+                              center[1] + self._radius[0] * numpy.sin(orientation)])
+        point1 = numpy.array([center[0] - self._radius[1] * numpy.sin(orientation),
+                              center[1] + self._radius[1] * numpy.cos(orientation)])
+        with utils.blockSignals(self._handleAxis0):
+            self._handleAxis0.setPosition(*point0)
+        with utils.blockSignals(self._handleAxis1):
+            self._handleAxis1.setPosition(*point1)
         with utils.blockSignals(self._handleLabel):
             self._handleLabel.setPosition(*center)
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        X = (majorRadius * numpy.cos(angles) * numpy.cos(orientation)
-             - minorRadius * numpy.sin(angles) * numpy.sin(orientation))
-        Y = (majorRadius * numpy.cos(angles) * numpy.sin(orientation)
-             + minorRadius * numpy.sin(angles) * numpy.cos(orientation))
+        X = (self._radius[0] * numpy.cos(angles) * numpy.cos(orientation)
+             - self._radius[1] * numpy.sin(angles) * numpy.sin(orientation))
+        Y = (self._radius[0] * numpy.cos(angles) * numpy.sin(orientation)
+             + self._radius[1] * numpy.sin(angles) * numpy.cos(orientation))
 
         ellipseShape = numpy.array((X, Y)).T
         ellipseShape += center
@@ -1734,30 +1738,29 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        center = self.getCenter()
-        if handle is self._handleCenter:
-            self.setCenter(current)
-        elif handle is self._handleMinorAxis:
-            orientation = self._calculateOrientation(center, current) - numpy.pi / 2
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=self._majorRadius,
-                             minorRadius=numpy.linalg.norm(center - current),
-                             orientation=orientation)
-        elif handle is self._handleMajorAxis:
+        if handle in (self._handleAxis0, self._handleAxis1):
+            center = self.getCenter()
             orientation = self._calculateOrientation(center, current)
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=numpy.linalg.norm(center - current),
-                             minorRadius=self._minorRadius,
-                             orientation=orientation)
+            distance = numpy.linalg.norm(center - current)
 
-    def handleDragFinished(self, handle, origin, current):
-        """At the end of the interaction, we want the major radius
-        to be larger than the minor radius."""
-        if self._majorRadius < self._minorRadius:
-            self.setGeometry(center=self.getCenter(),
-                             majorRadius=self._minorRadius,
-                             minorRadius=self._majorRadius,
-                             orientation=self._rotateLeft(self._orientation))
+            if handle is self._handleAxis1:
+                if self._radius[0] > distance:
+                    # _handleAxis1 is not the major axis, rotate -90 degrees
+                    orientation -= numpy.pi/2
+                radius = self._radius[0], distance
+
+            else:  # _handleAxis0
+                if self._radius[1] > distance:
+                    # _handleAxis0 is not the major axis, rotate +90 degrees
+                    orientation += numpy.pi/2
+                radius = distance, self._radius[1]
+
+            self.setGeometry(radius=radius, orientation=orientation)
+
+    def _centerPositionChanged(self, event):
+        """Handle position changed events of the center marker"""
+        if event is items.ItemChangedType.POSITION:
+            self._updateGeometry()
 
     def __str__(self):
         center = self.getCenter()
@@ -1864,8 +1867,12 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        self._polygon_shape = None
         assert(len(points.shape) == 2 and points.shape[1] == 2)
+
+        if numpy.array_equal(points, self._points):
+            return  # Nothing has changed
+
+        self._polygon_shape = None
 
         # Update the needed handles
         while len(self._handlePoints) != len(points):
@@ -2650,9 +2657,9 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._markerMax.sigDragFinished.connect(self._editingFinished)
         self._markerCen.sigDragStarted.connect(self._editingStarted)
         self._markerCen.sigDragFinished.connect(self._editingFinished)
+        self.addItem(self._markerCen)
         self.addItem(self._markerMin)
         self.addItem(self._markerMax)
-        self.addItem(self._markerCen)
         self.__filterReentrant = utils.LockReentrant()
 
     def setFirstShapePoints(self, points):
@@ -2706,7 +2713,17 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             self._markerCen.sigItemChanged.disconnect(self._cenPositionChanged)
             self._markerCen.setLineStyle(" ")
 
-    def _updatePos(self, vmin, vmax):
+    def _updatePos(self, vmin, vmax, force=False):
+        """Update marker position and emit signal.
+
+        :param float vmin:
+        :param float vmax:
+        :param bool force:
+            True to update even if already at the right position.
+        """
+        if not force and numpy.array_equal((vmin, vmax), self.getRange()):
+            return  # Nothing has changed
+
         center = (vmin + vmax) * 0.5
         with self.__filterReentrant:
             with utils.blockSignals(self._markerMin):
@@ -2813,13 +2830,13 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            self.setMin(marker.getXPosition())
+            self._updatePos(marker.getXPosition(), self.getMax(), force=True)
 
     def _maxPositionChanged(self, event):
         """Handle position changed events of the marker"""
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
-            self.setMax(marker.getXPosition())
+            self._updatePos(self.getMin(), marker.getXPosition(), force=True)
 
     def _cenPositionChanged(self, event):
         """Handle position changed events of the marker"""
