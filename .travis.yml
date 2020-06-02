@@ -16,6 +16,7 @@ matrix:
               - QT_BINDING=PyQt5
               - SILX_OPENCL=1
               - PIP_OPTIONS="-q --pre"
+              - QT_DEBUG_PLUGINS=1
 
         - python: 3.6
           os: linux
@@ -25,6 +26,7 @@ matrix:
               - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - SILX_OPENCL=1
               - PIP_OPTIONS="-q"
+              - QT_DEBUG_PLUGINS=1
 
         - language: generic
           os: osx
