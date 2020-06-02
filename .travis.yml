@@ -51,6 +51,7 @@ addons:
             - libxkbcommon-x11-0 # needed for Qt plugins
             - libxkbcommon0
             - libxkbcommon-dev
+            - libxcb-icccm4
 
 before_install:
     # On Linux: install OpenCL
