@@ -1,5 +1,5 @@
 
-dist: xenial
+dist: bionic
 sudo: required
 
 language: python
@@ -17,7 +17,7 @@ matrix:
               - SILX_OPENCL=1
               - PIP_OPTIONS="-q --pre"
 
-        - python: 3.5
+        - python: 3.6
           os: linux
           env:
               - BUILD_COMMAND=sdist
@@ -102,7 +102,7 @@ before_script:
     # Pin-pointing for now to avoid issues with versions [5.15.0]
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install ${PIP_OPTIONS} pyside2==5.14.2.1;
+          pip install ${PIP_OPTIONS} pyside2;
       fi
 
     # Install built package
