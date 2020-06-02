@@ -1,5 +1,5 @@
 
-dist: xenial
+dist: bionic
 sudo: required
 
 language: python
@@ -17,7 +17,7 @@ matrix:
               - SILX_OPENCL=1
               - PIP_OPTIONS="-q --pre"
 
-        - python: 3.5
+        - python: 3.6
           os: linux
           env:
               - BUILD_COMMAND=sdist
