@@ -597,8 +597,6 @@ class TestGetProfilePlot(TestCaseQt):
         self.plot.addImage([[0, 1], [2, 3]])
 
         toolBar = self.plot.getProfileToolbar()
-        self.assertIsNone(toolBar.getProfileMainWindow())
-
 
         manager = toolBar.getProfileManager()
         roiManager = manager.getRoiManager()
@@ -613,8 +611,9 @@ class TestGetProfilePlot(TestCaseQt):
             if not manager.hasPendingOperations():
                 break
 
-        self.assertIsInstance(toolBar.getProfileMainWindow(), qt.QMainWindow)
-        self.assertIsInstance(self.plot.getProfilePlot(), Plot1D)
+        profileWindow = roi.getProfileWindow()
+        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
+        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
 
     def testProfile2D(self):
         """Test that the profile plot associated to a stack view is either a
@@ -627,7 +626,6 @@ class TestGetProfilePlot(TestCaseQt):
                                        [[4, 5], [6, 7]]]))
 
         toolBar = self.plot.getProfileToolbar()
-        self.assertIsNone(toolBar.getProfileMainWindow())
 
         manager = toolBar.getProfileManager()
         roiManager = manager.getRoiManager()
@@ -643,8 +641,9 @@ class TestGetProfilePlot(TestCaseQt):
             if not manager.hasPendingOperations():
                 break
 
-        self.assertIsInstance(toolBar.getProfileMainWindow(), qt.QMainWindow)
-        self.assertIsInstance(toolBar.getProfilePlot(), Plot2D)
+        profileWindow = roi.getProfileWindow()
+        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
+        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot2D)
 
         roi.setProfileType("1D")
 
@@ -653,7 +652,9 @@ class TestGetProfilePlot(TestCaseQt):
             if not manager.hasPendingOperations():
                 break
 
-        self.assertIsInstance(toolBar.getProfilePlot(), Plot1D)
+        profileWindow = roi.getProfileWindow()
+        self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
+        self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
 
 
 def suite():
