@@ -149,11 +149,11 @@ class ProfileWindow(qt.QMainWindow):
         else:
             profileType = "1D"
         if profileType == "1D":
-            self._getPlot1D()
+            self.getPlot1D()
         elif profileType == "2D":
-            self._getPlot2D()
+            self.getPlot2D()
 
-    def _createPlot1D(self, parent, backend):
+    def createPlot1D(self, parent, backend):
         """Inherit this function to create your own plot to render 1D
         profiles. The default value is a `Plot1D`.
 
@@ -170,7 +170,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.setGraphXLabel('')
         return plot
 
-    def _createPlot2D(self, parent, backend):
+    def createPlot2D(self, parent, backend):
         """Inherit this function to create your own plot to render 2D
         profiles. The default value is a `Plot2D`.
 
@@ -183,32 +183,32 @@ class ProfileWindow(qt.QMainWindow):
         from ...PlotWindow import Plot2D
         return Plot2D(parent=parent, backend=backend)
 
-    def _getPlot1D(self, init=True):
+    def getPlot1D(self, init=True):
         """Return the current plot used to display curves and create it if it
         does not yet exists and `init` is True. Else returns None."""
         if not init:
             return self._plot1D
         if self._plot1D is None:
-            self._plot1D = self._createPlot1D(self, self._backend)
+            self._plot1D = self.createPlot1D(self, self._backend)
             self._layout.addWidget(self._plot1D)
         return self._plot1D
 
     def _showPlot1D(self):
-        plot = self._getPlot1D()
+        plot = self.getPlot1D()
         self._layout.setCurrentWidget(plot)
 
-    def _getPlot2D(self, init=True):
+    def getPlot2D(self, init=True):
         """Return the current plot used to display image and create it if it
         does not yet exists and `init` is True. Else returns None."""
         if not init:
             return self._plot2D
         if self._plot2D is None:
-            self._plot2D = self._createPlot2D(parent=self, backend=self._backend)
+            self._plot2D = self.createPlot2D(parent=self, backend=self._backend)
             self._layout.addWidget(self._plot2D)
         return self._plot2D
 
     def _showPlot2D(self):
-        plot = self._getPlot2D()
+        plot = self.getPlot2D()
         self._layout.setCurrentWidget(plot)
 
     def getCurrentPlotWidget(self):
@@ -235,7 +235,7 @@ class ProfileWindow(qt.QMainWindow):
 
         :param core.ImageProfileData data: Computed data profile
         """
-        plot = self._getPlot2D()
+        plot = self.getPlot2D()
 
         plot.clear()
         plot.setGraphTitle(data.title)
@@ -261,7 +261,7 @@ class ProfileWindow(qt.QMainWindow):
 
         :param core.CurveProfileData data: Computed data profile
         """
-        plot = self._getPlot1D()
+        plot = self.getPlot1D()
 
         plot.clear()
         plot.setGraphTitle(data.title)
@@ -282,7 +282,7 @@ class ProfileWindow(qt.QMainWindow):
 
         :param core.RgbaProfileData data: Computed data profile
         """
-        plot = self._getPlot1D()
+        plot = self.getPlot1D()
 
         plot.clear()
         plot.setGraphTitle(data.title)
@@ -304,10 +304,10 @@ class ProfileWindow(qt.QMainWindow):
 
     def clear(self):
         """Clear the window profile"""
-        plot = self._getPlot1D(init=False)
+        plot = self.getPlot1D(init=False)
         if plot is not None:
             plot.clear()
-        plot = self._getPlot2D(init=False)
+        plot = self.getPlot2D(init=False)
         if plot is not None:
             plot.clear()
 
