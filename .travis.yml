@@ -102,7 +102,7 @@ before_script:
     # Pin-pointing for now to avoid issues with versions [5.15.0]
     - if [ "$QT_BINDING" == "PySide2" ];
       then
-          pip install ${PIP_OPTIONS} pyside2==5.14.2.1;
+          pip install ${PIP_OPTIONS} pyside2;
       fi
 
     # Install built package
