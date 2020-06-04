@@ -1628,10 +1628,19 @@ class _NXdataCurveView(DataView):
                                           title=nxd.title or nxd.signal_name)
             return
 
+        xscale, yscale = None, None
+        axisTypes = nxd.plot_style.axis_scale_types
+        if axisTypes is not None:
+            if len(axisTypes) >= 1:
+                yscale = axisTypes[-1]
+            if len(axisTypes) >= 2:
+                xscale = axisTypes[-2]
+
         self.getWidget().setCurvesData([nxd.signal] + nxd.auxiliary_signals, nxd.axes[-1],
                                        yerror=nxd.errors, xerror=x_errors,
                                        ylabels=signals_names, xlabel=nxd.axes_names[-1],
-                                       title=nxd.title or signals_names[0])
+                                       title=nxd.title or signals_names[0],
+                                       xscale=xscale, yscale=yscale)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)

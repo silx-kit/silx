@@ -99,7 +99,8 @@ class ArrayCurvePlot(qt.QWidget):
 
     def setCurvesData(self, ys, x=None,
                       yerror=None, xerror=None,
-                      ylabels=None, xlabel=None, title=None):
+                      ylabels=None, xlabel=None, title=None,
+                      xscale=None, yscale=None):
         """
 
         :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
@@ -115,6 +116,8 @@ class ArrayCurvePlot(qt.QWidget):
         :param str ylabels: Labels for each curve's Y axis
         :param str xlabel: Label for X axis
         :param str title: Graph title
+        :param str xscale: Scale of X axis in (None, 'linear', 'log')
+        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         """
         self.__signals = ys
         self.__signals_names = ylabels or (["Y"] * len(ys))
@@ -135,6 +138,12 @@ class ArrayCurvePlot(qt.QWidget):
             self._selector.show()
 
         self._plot.setGraphTitle(title or "")
+        if xscale is not None:
+            self._plot.getXAxis().setScale(
+                'log' if xscale == 'log' else 'linear')
+        if yscale is not None:
+            self._plot.getYAxis().setScale(
+                'log' if yscale == 'log' else 'linear')
         self._updateCurve()
 
         if not self.__selector_is_connected:
