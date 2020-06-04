@@ -254,7 +254,8 @@ class XYVScatterPlot(qt.QWidget):
     def setScattersData(self, y, x, values,
                         yerror=None, xerror=None,
                         ylabel=None, xlabel=None,
-                        title="", scatter_titles=None):
+                        title="", scatter_titles=None,
+                        xscale=None, yscale=None):
         """
 
         :param ndarray y: 1D array  for y (vertical) coordinates.
@@ -269,6 +270,8 @@ class XYVScatterPlot(qt.QWidget):
         :param str xlabel: Label for X axis
         :param str title: Main graph title
         :param List[str] scatter_titles:  Subtitles (one per scatter)
+        :param str xscale: Scale of X axis in (None, 'linear', 'log')
+        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         """
         self.__y_axis = y
         self.__x_axis = x
@@ -289,6 +292,13 @@ class XYVScatterPlot(qt.QWidget):
             self._slider.hide()
         self._slider.setValue(0)
         self._slider.valueChanged[int].connect(self._sliderIdxChanged)
+
+        if xscale is not None:
+            self._plot.getXAxis().setScale(
+                'log' if xscale == 'log' else 'linear')
+        if yscale is not None:
+            self._plot.getYAxis().setScale(
+                'log' if yscale == 'log' else 'linear')
 
         self._updateScatter()
 
