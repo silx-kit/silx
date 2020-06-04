@@ -214,6 +214,10 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
+        if isinstance(treedict, dict) and h5path != "/":
+            if h5path not in h5f:
+                h5f.create_group(h5path)
+
         for key in filter(lambda k: not isinstance(k, tuple), treedict):
             if isinstance(treedict[key], dict) and len(treedict[key]):
                 # non-empty group: recurse
