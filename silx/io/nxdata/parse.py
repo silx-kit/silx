@@ -70,6 +70,7 @@ class _SilxStyle(object):
 
     def __init__(self, nxdata):
         self._axis_scale_types = None
+        self._colormap_normalization = None
 
         stylestr = get_attr_as_unicode(nxdata.group, "SILX_style")
         if stylestr is None:
@@ -101,9 +102,21 @@ class _SilxStyle(object):
                 else:  # All values are valid
                     self._axis_scale_types = tuple(axis_scale_types)
 
+        if 'colormap_normalization' in style:
+            normalization = style['colormap_normalization']
+            if normalization not in ('linear', 'log'):
+                nxdata_logger.error(
+                    "Ignoring SILX_style:colormap_normalization, invalid value: %s", str(normalization))
+            else:
+                self._colormap_normalization = normalization
+
     axis_scale_types = property(
         lambda self: self._axis_scale_types,
         doc="Tuple of plot axis scale types (either 'linear' or 'log').")
+
+    colormap_normalization = property(
+        lambda self: self._colormap_normalization,
+        doc="Normalization to use to apply the colormap (either 'linear' or 'log').")
 
 
 class NXdata(object):
