@@ -128,6 +128,16 @@ class TestDictToH5(unittest.TestCase):
             self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
             self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
 
+    def testPathAttributes(self):
+        """A group is requested at a path"""
+        ddict = {
+            ("", "NX_class"): 'NXcollection',
+        }
+        with h5py.File(self.h5_fname, "w") as h5file:
+            # This should not warn
+            with TestLogging(dictdump_logger, warning=0):
+                dictdump.dicttoh5(ddict, h5file, h5path="foo/bar")
+
     def testKeyOrder(self):
         ddict1 = {
             "d": "plow",
