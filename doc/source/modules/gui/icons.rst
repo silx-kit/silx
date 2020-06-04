@@ -29,10 +29,18 @@ Available icons
      - 3d-plane-pan
    * - |3d-plane|
      - 3d-plane
+   * - |add-range-horizontal|
+     - add-range-horizontal
    * - |add-shape-arc|
      - add-shape-arc
+   * - |add-shape-circle|
+     - add-shape-circle
+   * - |add-shape-cross|
+     - add-shape-cross
    * - |add-shape-diagonal|
      - add-shape-diagonal
+   * - |add-shape-ellipse|
+     - add-shape-ellipse
    * - |add-shape-horizontal|
      - add-shape-horizontal
    * - |add-shape-point|
@@ -173,6 +181,12 @@ Available icons
      - last
    * - |layer-nx|
      - layer-nx
+   * - |mask-clear-all|
+     - mask-clear-all
+   * - |mask-clear|
+     - mask-clear
+   * - |mask-invert|
+     - mask-invert
    * - |math-amplitude|
      - math-amplitude
    * - |math-average|
@@ -289,6 +303,10 @@ Available icons
      - shape-circle-solid
    * - |shape-circle|
      - shape-circle
+   * - |shape-cross|
+     - shape-cross
+   * - |shape-diagonal-directed|
+     - shape-diagonal-directed
    * - |shape-diagonal|
      - shape-diagonal
    * - |shape-ellipse-solid|
@@ -307,6 +325,12 @@ Available icons
      - shape-vertical
    * - |silx|
      - silx
+   * - |slice-cross|
+     - slice-cross
+   * - |slice-horizontal|
+     - slice-horizontal
+   * - |slice-vertical|
+     - slice-vertical
    * - |sliders-off|
      - sliders-off
    * - |sliders-on|
@@ -365,8 +389,12 @@ Available icons
 .. |3d-plane-normal-z| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-z.png
 .. |3d-plane-pan| image:: ../../../../silx/resources/gui/icons/3d-plane-pan.png
 .. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
+.. |add-range-horizontal| image:: ../../../../silx/resources/gui/icons/add-range-horizontal.png
 .. |add-shape-arc| image:: ../../../../silx/resources/gui/icons/add-shape-arc.png
+.. |add-shape-circle| image:: ../../../../silx/resources/gui/icons/add-shape-circle.png
+.. |add-shape-cross| image:: ../../../../silx/resources/gui/icons/add-shape-cross.png
 .. |add-shape-diagonal| image:: ../../../../silx/resources/gui/icons/add-shape-diagonal.png
+.. |add-shape-ellipse| image:: ../../../../silx/resources/gui/icons/add-shape-ellipse.png
 .. |add-shape-horizontal| image:: ../../../../silx/resources/gui/icons/add-shape-horizontal.png
 .. |add-shape-point| image:: ../../../../silx/resources/gui/icons/add-shape-point.png
 .. |add-shape-polygon| image:: ../../../../silx/resources/gui/icons/add-shape-polygon.png
@@ -437,6 +465,9 @@ Available icons
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |last| image:: ../../../../silx/resources/gui/icons/last.png
 .. |layer-nx| image:: ../../../../silx/resources/gui/icons/layer-nx.png
+.. |mask-clear-all| image:: ../../../../silx/resources/gui/icons/mask-clear-all.png
+.. |mask-clear| image:: ../../../../silx/resources/gui/icons/mask-clear.png
+.. |mask-invert| image:: ../../../../silx/resources/gui/icons/mask-invert.png
 .. |math-amplitude| image:: ../../../../silx/resources/gui/icons/math-amplitude.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
@@ -495,6 +526,8 @@ Available icons
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
 .. |shape-circle-solid| image:: ../../../../silx/resources/gui/icons/shape-circle-solid.png
 .. |shape-circle| image:: ../../../../silx/resources/gui/icons/shape-circle.png
+.. |shape-cross| image:: ../../../../silx/resources/gui/icons/shape-cross.png
+.. |shape-diagonal-directed| image:: ../../../../silx/resources/gui/icons/shape-diagonal-directed.png
 .. |shape-diagonal| image:: ../../../../silx/resources/gui/icons/shape-diagonal.png
 .. |shape-ellipse-solid| image:: ../../../../silx/resources/gui/icons/shape-ellipse-solid.png
 .. |shape-ellipse| image:: ../../../../silx/resources/gui/icons/shape-ellipse.png
@@ -504,6 +537,9 @@ Available icons
 .. |shape-square| image:: ../../../../silx/resources/gui/icons/shape-square.png
 .. |shape-vertical| image:: ../../../../silx/resources/gui/icons/shape-vertical.png
 .. |silx| image:: ../../../../silx/resources/gui/icons/silx.png
+.. |slice-cross| image:: ../../../../silx/resources/gui/icons/slice-cross.png
+.. |slice-horizontal| image:: ../../../../silx/resources/gui/icons/slice-horizontal.png
+.. |slice-vertical| image:: ../../../../silx/resources/gui/icons/slice-vertical.png
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
