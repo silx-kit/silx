@@ -41,6 +41,7 @@ Other public functions:
 
 """
 
+import json
 import numpy
 import six
 
@@ -58,6 +59,51 @@ __date__ = "24/03/2020"
 
 class InvalidNXdataError(Exception):
     pass
+
+
+class _SilxStyle(object):
+    """NXdata@SILX_style parser.
+
+    :param NXdata nxdata:
+        NXdata description for which to extract silx_style information.
+    """
+
+    def __init__(self, nxdata):
+        self._axis_scale_types = None
+
+        stylestr = get_attr_as_unicode(nxdata.group, "SILX_style")
+        if stylestr is None:
+            return
+
+        try:
+            style = json.loads(stylestr)
+        except json.JSONDecodeError:
+            nxdata_logger.error(
+                "Ignoring SILX_style, cannot parse: %s", stylestr)
+            return
+
+        if not isinstance(style, dict):
+            nxdata_logger.error(
+                "Ignoring SILX_style, cannot parse: %s", stylestr)
+
+        if 'axis_scale_types' in style:
+            axis_scale_types = style['axis_scale_types']
+
+            if not isinstance(axis_scale_types, list):
+                nxdata_logger.error(
+                    "Ignoring SILX_style:axis_scale_types, not a list")
+            else:
+                for scale_type in axis_scale_types:
+                    if scale_type not in ('linear', 'log'):
+                        nxdata_logger.error(
+                            "Ignoring SILX_style:axis_scale_types, invalid value: %s", str(scale_type))
+                        break
+                else:  # All values are valid
+                    self._axis_scale_types = tuple(axis_scale_types)
+
+    axis_scale_types = property(
+        lambda self: self._axis_scale_types,
+        doc="Tuple of plot axis scale types (either 'linear' or 'log').")
 
 
 class NXdata(object):
@@ -146,6 +192,8 @@ class NXdata(object):
 
             # excludes scatters
             self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+        self._plot_style = _SilxStyle(self)
 
     def _validate(self):
         """Fill :attr:`issues` with error messages for each error found."""
@@ -648,6 +696,11 @@ class NXdata(object):
         else:
             return None
         return self.group[errors]
+
+    @property
+    def plot_style(self):
+        """Information extracted from the optional SILX_style attribute"""
+        return self._plot_style
 
     @property
     def is_scatter(self):
