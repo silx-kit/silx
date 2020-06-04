@@ -173,7 +173,7 @@ class TestDictToH5(unittest.TestCase):
             "group": {"dataset": "hmmm", ("", "attr"): 10},
             ("group", "attr"): 10,
         }
-        with h5py.File(self.h5_fname) as h5file:
+        with h5py.File(self.h5_fname, "w") as h5file:
             with TestLogging(dictdump_logger, warning=1):
                 dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['attr'], 10)
