@@ -151,6 +151,15 @@ Widgets
          --debug            Set logging system in debug mode
          --testdata         Use synthetic images to test the application
          --use-opengl-plot  Use OpenGL for plots (instead of matplotlib)
+   * - :download:`imageStack.py <../../../examples/imageStack.py>`
+     - .. image:: img/imageStack.png
+         :width: 150px
+     - Simple example for using the ImageStack.
+
+       In this example we want to display images from different source: .h5, .edf
+       and .npy files.
+
+       To do so we simple reimplement the thread managing the loading of data.
 
 
 :class:`silx.gui.plot.actions.PlotAction`
@@ -274,6 +283,11 @@ Sample code that adds specific tools or functions to :class:`~silx.gui.plot.Plot
 
        .. note:: for now the possible types manged by the Stats are ('curve', 'image',
                  'scatter' and 'histogram')
+   * - :download:`plotProfile.py <../../../examples/plotProfile.py>`
+     - .. image:: img/plotProfile.png
+         :width: 150px
+     - Example illustrating the different profile tools.
+
 
 :class:`~silx.gui.plot.PlotWidget` features
 ...........................................
@@ -453,3 +467,18 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
 
        .. note:: This module has an optional dependency with sci-kit image library.
           You might need to install it if you don't already have it.
+
+:mod:`silx.app` sample code
++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`customSilxView.py <../../../examples/customSilxView.py>`
+     - .. image:: img/customSilxView.png
+         :width: 150px
+     - Sample code illustrating how to custom silx view into another application.
