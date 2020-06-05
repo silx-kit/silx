@@ -1752,6 +1752,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         img_slicing = slice(-2, None) if not isRgba else slice(-3, -1)
         y_axis, x_axis = nxd.axes[img_slicing]
         y_label, x_label = nxd.axes_names[img_slicing]
+        y_scale, x_scale = nxd.plot_style.axes_scale_types[img_slicing]
 
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
@@ -1759,8 +1760,7 @@ class _NXdataImageView(_NXdataBaseDataView):
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
             title=nxd.title, isRgba=isRgba,
-            xscale=nxd.plot_style.axes_scale_types[-1],
-            yscale=nxd.plot_style.axes_scale_types[-2])
+            xscale=x_scale, yscale=y_scale)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
