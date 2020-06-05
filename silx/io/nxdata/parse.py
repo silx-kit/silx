@@ -90,6 +90,10 @@ class _SilxStyle(object):
         if 'axis_scale_types' in style:
             axis_scale_types = style['axis_scale_types']
 
+            if isinstance(axis_scale_types, str):
+                # Convert single argument to list
+                axis_scale_types = [axis_scale_types]
+
             if not isinstance(axis_scale_types, list):
                 nxdata_logger.error(
                     "Ignoring SILX_style:axis_scale_types, not a list")
