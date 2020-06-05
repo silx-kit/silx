@@ -178,8 +178,8 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _cleanUp(self):
         plot = self.getHistogramPlotWidget()
         try:
-            plot.removeItem('pixel intensity')
-        except:
+            plot.remove('pixel intensity', kind='item')
+        except Exception:
             pass
 
     def computeIntensityDistribution(self):

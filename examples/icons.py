@@ -146,7 +146,7 @@ class IconPreview(qt.QMainWindow):
 
         for i, icon_info in enumerate(icons):
             icon_name, icon_kind = icon_info
-            col, line = i / 10, i % 10
+            col, line = i // 10, i % 10
             if icon_kind == "anim":
                 tool = AnimatedToolButton(panel)
                 try:
