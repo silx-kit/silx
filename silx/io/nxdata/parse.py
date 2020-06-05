@@ -120,14 +120,14 @@ class _SilxStyle(object):
                 nxdata_logger.error(
                     "Ignoring SILX_style:signal_scale_type, invalid value: %s", str(scale_type))
             else:
-                self._signal_scale_types = scale_type
+                self._signal_scale_type = scale_type
 
     axes_scale_types = property(
         lambda self: self._axes_scale_types,
         doc="Tuple of NXdata axes scale types (None, 'linear' or 'log'). List[str]")
 
     signal_scale_type = property(
-        lambda self: self._signal_scale_types,
+        lambda self: self._signal_scale_type,
         doc="NXdata signal scale type (None, 'linear' or 'log'). str")
 
 
