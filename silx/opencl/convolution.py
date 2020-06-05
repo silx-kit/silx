@@ -100,6 +100,7 @@ class Convolution(OpenclProcessing):
             self.use_textures *= (cc >= 3)
         except cl.LogicError: # probably not a Nvidia GPU
             pass
+
     def _get_dimensions(self, shape, kernel):
         self.shape = shape
         self.data_ndim = self._check_dimensions(shape=shape, name="Data")
