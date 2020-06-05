@@ -453,3 +453,18 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
 
        .. note:: This module has an optional dependency with sci-kit image library.
           You might need to install it if you don't already have it.
+
+:mod:`silx.app` sample code
++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`customSilxView.py <../../../examples/customSilxView.py>`
+     - .. image:: img/customSilxView.png
+         :width: 150px
+     - Sample code illustrating how to custom silx view into another application.
