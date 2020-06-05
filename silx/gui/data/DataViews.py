@@ -1667,7 +1667,7 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import XYVScatterPlot
         widget = XYVScatterPlot(parent)
-        widget.getPlot().setDefaultColormap(self.defaultColormap())
+        widget.getScatterView().setColormap(self.defaultColormap())
         widget.getScatterView().getScatterToolBar().getColormapAction().setColorDialog(
             self.defaultColorDialog())
         return widget
