@@ -69,8 +69,9 @@ class _SilxStyle(object):
     """
 
     def __init__(self, nxdata):
-        self._axis_scale_types = None
-        self._colormap_normalization = None
+        naxes = len(nxdata.axes_dataset_names)
+        self._axes_scale_types = [None] * naxes
+        self._signal_scale_type = None
 
         stylestr = get_attr_as_unicode(nxdata.group, "SILX_style")
         if stylestr is None:
@@ -87,40 +88,47 @@ class _SilxStyle(object):
             nxdata_logger.error(
                 "Ignoring SILX_style, cannot parse: %s", stylestr)
 
-        if 'axis_scale_types' in style:
-            axis_scale_types = style['axis_scale_types']
+        if 'axes_scale_types' in style:
+            axes_scale_types = style['axes_scale_types']
 
-            if isinstance(axis_scale_types, str):
+            if isinstance(axes_scale_types, str):
                 # Convert single argument to list
-                axis_scale_types = [axis_scale_types]
+                axes_scale_types = [axes_scale_types]
 
-            if not isinstance(axis_scale_types, list):
+            if not isinstance(axes_scale_types, list):
                 nxdata_logger.error(
-                    "Ignoring SILX_style:axis_scale_types, not a list")
+                    "Ignoring SILX_style:axes_scale_types, not a list")
             else:
-                for scale_type in axis_scale_types:
+                for scale_type in axes_scale_types:
                     if scale_type not in ('linear', 'log'):
                         nxdata_logger.error(
-                            "Ignoring SILX_style:axis_scale_types, invalid value: %s", str(scale_type))
+                            "Ignoring SILX_style:axes_scale_types, invalid value: %s", str(scale_type))
                         break
                 else:  # All values are valid
-                    self._axis_scale_types = tuple(axis_scale_types)
+                    if len(axes_scale_types) > naxes:
+                        nxdata_logger.error(
+                            "Clipping SILX_style:axes_scale_types, too many values")
+                        axes_scale_types = axes_scale_types[:naxes]
+                    elif len(axes_scale_types) < naxes:
+                        # Extend axes_scale_types with None to match number of axes
+                        axes_scale_types.extend([None] * (naxes - len(axes_scale_types)))
+                    self._axes_scale_types = tuple(axes_scale_types)
 
-        if 'colormap_normalization' in style:
-            normalization = style['colormap_normalization']
-            if normalization not in ('linear', 'log'):
+        if 'signal_scale_type' in style:
+            scale_type = style['signal_scale_type']
+            if scale_type not in ('linear', 'log'):
                 nxdata_logger.error(
-                    "Ignoring SILX_style:colormap_normalization, invalid value: %s", str(normalization))
+                    "Ignoring SILX_style:signal_scale_type, invalid value: %s", str(scale_type))
             else:
-                self._colormap_normalization = normalization
+                self._signal_scale_types = scale_type
 
-    axis_scale_types = property(
-        lambda self: self._axis_scale_types,
-        doc="Tuple of plot axis scale types (either 'linear' or 'log').")
+    axes_scale_types = property(
+        lambda self: self._axes_scale_types,
+        doc="Tuple of NXdata axes scale types (None, 'linear' or 'log'). List[str]")
 
-    colormap_normalization = property(
-        lambda self: self._colormap_normalization,
-        doc="Normalization to use to apply the colormap (either 'linear' or 'log').")
+    signal_scale_type = property(
+        lambda self: self._signal_scale_types,
+        doc="NXdata signal scale type (None, 'linear' or 'log'). str")
 
 
 class NXdata(object):
