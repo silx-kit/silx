@@ -549,9 +549,10 @@ class FindContours(qt.QMainWindow):
         self.__customValue = value
         div = 12
         delta = (self.__image.max() - self.__image.min()) / div
-        self.__value.setValue(value)
-        self.__value.setRange(self.__image.min() + delta,
-                              self.__image.min() + delta * (div - 1))
+        self.__value.setValue(int(numpy.round(value)))
+        minv = self.__image.min() + delta
+        maxv = self.__image.min() + delta * (div - 1)
+        self.__value.setRange(int(numpy.floor(minv)), int(numpy.ceil(maxv)))
         self.updateCustomContours()
 
     def generate(self):
