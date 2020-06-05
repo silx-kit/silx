@@ -69,7 +69,7 @@ class _SilxStyle(object):
     """
 
     def __init__(self, nxdata):
-        naxes = len(nxdata.axes_dataset_names)
+        naxes = len(nxdata.axes)
         self._axes_scale_types = [None] * naxes
         self._signal_scale_type = None
 
@@ -111,7 +111,7 @@ class _SilxStyle(object):
                         axes_scale_types = axes_scale_types[:naxes]
                     elif len(axes_scale_types) < naxes:
                         # Extend axes_scale_types with None to match number of axes
-                        axes_scale_types.extend([None] * (naxes - len(axes_scale_types)))
+                        axes_scale_types = [None] * (naxes - len(axes_scale_types)) + axes_scale_types
                     self._axes_scale_types = tuple(axes_scale_types)
 
         if 'signal_scale_type' in style:
