@@ -139,6 +139,7 @@ class NXdata(object):
     """
     def __init__(self, group, validate=True):
         super(NXdata, self).__init__()
+        self._plot_style = None
 
         self.group = group
         """h5py-like group object with @NX_class=NXdata.
@@ -210,7 +211,7 @@ class NXdata(object):
             # excludes scatters
             self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
 
-        self._plot_style = _SilxStyle(self)
+            self._plot_style = _SilxStyle(self)
 
     def _validate(self):
         """Fill :attr:`issues` with error messages for each error found."""
@@ -716,7 +717,13 @@ class NXdata(object):
 
     @property
     def plot_style(self):
-        """Information extracted from the optional SILX_style attribute"""
+        """Information extracted from the optional SILX_style attribute
+
+        :raises: InvalidNXdataError
+        """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
         return self._plot_style
 
     @property
