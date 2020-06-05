@@ -230,6 +230,13 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
             self.__roi.sigProfilePropertyChanged.connect(self.__roiPropertyChanged)
         self._updateWidgets()
 
+    def getRoiProfile(self):
+        """Returns the edited profile ROI.
+
+        :rtype: ProfileRoiMixIn
+        """
+        return self.__roi
+
     def __roiPropertyChanged(self):
         """Handle changes on the property defining the ROI.
         """
