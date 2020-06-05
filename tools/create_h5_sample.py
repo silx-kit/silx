@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __license__ = "MIT"
 __date__ = "26/03/2019"
 
 
+import json
 import logging
 import sys
 
@@ -263,6 +264,24 @@ def create_hdf5_types(group):
     group.create_dataset("unicode_1d", data=numpy.array([text], dtype=unicode_vlen_dt))
 
 
+def set_silx_style(group, axes_scales=None, signal_scale=None):
+    """Set SILX_style attribute
+
+    :param group: NXdata group to set SILX_style for.
+    :param axes_scales: Scale to use for the axes.
+        Used for plot axis scales.
+    :param signal_scale: Scale to use for the signal.
+        Used either for plot axis scale or colormap normalization.
+    """
+    style = {}
+    if axes_scales is not None:
+        style['axes_scale_types'] = axes_scales
+    if signal_scale is not None:
+        style['signal_scale_type'] = signal_scale
+    if style:
+        group.attrs["SILX_style"] = json.dumps(style)
+
+
 def create_nxdata_group(group):
     print("- Creating NXdata types...")
 
@@ -299,12 +318,14 @@ def create_nxdata_group(group):
     g1d0.create_dataset("count", data=numpy.arange(10))
     g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
     g1d0.create_dataset("energy_errors", data=3.14 * numpy.random.rand(10))
+    set_silx_style(g1d0, axes_scales=['linear'], signal_scale='log')
 
     g1d1 = g1d.create_group("2D_spectra")
     g1d1.attrs["NX_class"] = "NXdata"
     g1d1.attrs["signal"] = "counts"
     ds = g1d1.create_dataset("counts", data=numpy.arange(3 * 10).reshape((3, 10)))
     ds.attrs["interpretation"] = "spectrum"
+    set_silx_style(g1d1, axes_scales=['linear'], signal_scale='log')
 
     g1d2 = g1d.create_group("4D_spectra")
     g1d2.attrs["NX_class"] = "NXdata"
@@ -319,6 +340,7 @@ def create_nxdata_group(group):
     ds.attrs["first_good"] = 3
     ds.attrs["last_good"] = 12
     g1d2.create_dataset("energy_errors", data=10 * numpy.random.rand(15))
+    set_silx_style(g1d2, axes_scales=['linear'], signal_scale='log')
 
     # IMAGES
     g2d = main_group.create_group("images")
@@ -331,6 +353,7 @@ def create_nxdata_group(group):
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
     ds.attrs["long_name"] = "Calibrated Y"
     g2d0.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
+    set_silx_style(g1d2, axes_scales=['linear'], signal_scale='log')
 
     g2d1 = g2d.create_group("2D_irregular_data")
     g2d1.attrs["NX_class"] = "NXdata"
@@ -339,12 +362,14 @@ def create_nxdata_group(group):
     g2d1.create_dataset("data", data=numpy.arange(64 * 128).reshape((64, 128)))
     g2d1.create_dataset("rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64))
     g2d1.create_dataset("columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
+    set_silx_style(g2d1, axes_scales=['linear', 'log'], signal_scale='log')
 
     g2d2 = g2d.create_group("3D_images")
     g2d2.attrs["NX_class"] = "NXdata"
     g2d2.attrs["signal"] = "images"
     ds = g2d2.create_dataset("images", data=numpy.arange(2 * 4 * 6).reshape((2, 4, 6)))
     ds.attrs["interpretation"] = "image"
+    set_silx_style(g2d2, signal_scale='log')
 
     g2d3 = g2d.create_group("5D_images")
     g2d3.attrs["NX_class"] = "NXdata"
@@ -354,6 +379,7 @@ def create_nxdata_group(group):
     ds.attrs["interpretation"] = "image"
     g2d3.create_dataset("rows_coordinates", data=5 + 10 * numpy.arange(4))
     g2d3.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
+    set_silx_style(g2d3, signal_scale='log')
 
     y = numpy.arange(-5, 10).reshape(-1, 1)
     x = numpy.arange(-5, 10).reshape(1, -1)
@@ -367,6 +393,7 @@ def create_nxdata_group(group):
     g2d3.create_dataset("image", data=data)
     g2d3.create_dataset("rows", data=0.5 + 0.02 * numpy.arange(data.shape[0]))
     g2d3.create_dataset("columns", data=0.5 + 0.02 * numpy.arange(data.shape[1]))
+    set_silx_style(g2d3, signal_scale='log')
 
     # SCATTER
     g = main_group.create_group("scatters")
@@ -379,6 +406,7 @@ def create_nxdata_group(group):
     gd0.create_dataset("x", data=2 * numpy.random.rand(128))
     gd0.create_dataset("x_errors", data=0.05 * numpy.random.rand(128))
     gd0.create_dataset("errors", data=0.05 * numpy.random.rand(128))
+    set_silx_style(gd0, axes_scales=['linear'], signal_scale='log')
 
     gd1 = g.create_group("x_y_value_scatter")
     gd1.attrs["NX_class"] = "NXdata"
@@ -389,6 +417,7 @@ def create_nxdata_group(group):
     gd1.create_dataset("y_errors", data=0.02 * numpy.random.rand(128))
     gd1.create_dataset("x", data=numpy.random.rand(128))
     gd1.create_dataset("x_errors", data=0.02 * numpy.random.rand(128))
+    set_silx_style(gd1, axes_scales=['linear', 'log'], signal_scale='log')
 
     # NDIM > 3
     g = main_group.create_group("cubes")
@@ -401,12 +430,14 @@ def create_nxdata_group(group):
     gd0.create_dataset("img_idx", data=numpy.arange(4))
     gd0.create_dataset("rows_coordinates", data=0.1 * numpy.arange(5))
     gd0.create_dataset("cols_coordinates", data=[0.2, 0.3])  # linear calibration
+    set_silx_style(gd0, axes_scales=['log', 'linear'], signal_scale='log')
 
     gd1 = g.create_group("5D")
     gd1.attrs["NX_class"] = "NXdata"
     gd1.attrs["signal"] = "hypercube"
     data = numpy.arange(2 * 3 * 4 * 5 * 6).reshape((2, 3, 4, 5, 6))
     gd1.create_dataset("hypercube", data=data)
+    set_silx_style(gd1, axes_scales=['log', 'linear'], signal_scale='log')
 
 
 FILTER_LZF = 32000
