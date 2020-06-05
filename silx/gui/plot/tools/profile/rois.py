@@ -37,6 +37,7 @@ __date__ = "03/04/2020"
 
 import numpy
 import weakref
+from concurrent.futures import CancelledError
 
 from silx.gui import colors
 
@@ -747,7 +748,10 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         :return: (points, values) profile data or None
         """
         future = scatter._getInterpolator()
-        interpolator = future.result()
+        try:
+            interpolator = future.result()
+        except CancelledError:
+            return None
         if interpolator is None:
             return None  # Cannot init an interpolator
 
