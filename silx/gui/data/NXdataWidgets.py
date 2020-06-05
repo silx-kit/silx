@@ -244,6 +244,13 @@ class XYVScatterPlot(qt.QWidget):
     def _sliderIdxChanged(self, value):
         self._updateScatter()
 
+    def getScatterView(self):
+        """Returns the :class:`ScatterView` used for the display
+
+        :rtype: ScatterView
+        """
+        return self._plot
+
     def getPlot(self):
         """Returns the plot used for the display
 
