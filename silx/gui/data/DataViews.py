@@ -1554,7 +1554,7 @@ class _NXdataBaseDataView(DataView):
 
     def _updateColormap(self, nxdata):
         """Update used colormap according to nxdata's SILX_style"""
-        cmap_norm = nxdata.plot_style.colormap_normalization
+        cmap_norm = nxdata.plot_style.signal_scale_type
         if cmap_norm is not None:
             self.defaultColormap().setNormalization(
                 'log' if cmap_norm == 'log' else 'linear')
@@ -1642,19 +1642,12 @@ class _NXdataCurveView(_NXdataBaseDataView):
                                           title=nxd.title or nxd.signal_name)
             return
 
-        xscale, yscale = None, None
-        axisTypes = nxd.plot_style.axis_scale_types
-        if axisTypes is not None:
-            if len(axisTypes) >= 1:
-                yscale = axisTypes[-1]
-            if len(axisTypes) >= 2:
-                xscale = axisTypes[-2]
-
         self.getWidget().setCurvesData([nxd.signal] + nxd.auxiliary_signals, nxd.axes[-1],
                                        yerror=nxd.errors, xerror=x_errors,
                                        ylabels=signals_names, xlabel=nxd.axes_names[-1],
                                        title=nxd.title or signals_names[0],
-                                       xscale=xscale, yscale=yscale)
+                                       xscale=nxd.plot_style.axes_scale_types[-1],
+                                       yscale=nxd.plot_style.signal_scale_type)
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1709,20 +1702,13 @@ class _NXdataXYVScatterView(_NXdataBaseDataView):
 
         self._updateColormap(nxd)
 
-        xscale, yscale = None, None
-        axisTypes = nxd.plot_style.axis_scale_types
-        if axisTypes is not None:
-            if len(axisTypes) >= 1:
-                yscale = axisTypes[-1]
-            if len(axisTypes) >= 2:
-                xscale = axisTypes[-2]
-
         self.getWidget().setScattersData(y_axis, x_axis, values=[nxd.signal] + nxd.auxiliary_signals,
                                          yerror=y_errors, xerror=x_errors,
                                          ylabel=y_label, xlabel=x_label,
                                          title=nxd.title,
                                          scatter_titles=[nxd.signal_name] + nxd.auxiliary_signals_names,
-                                         xscale=xscale, yscale=yscale)
+                                         xscale=nxd.plot_style.axes_scale_types[-2],
+                                         yscale=nxd.plot_style.axes_scale_types[-1])
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
