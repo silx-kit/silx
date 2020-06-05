@@ -37,6 +37,7 @@ __date__ = "03/04/2020"
 
 import numpy
 import weakref
+from concurrent.futures import CancelledError
 
 from silx.gui import colors
 
@@ -324,7 +325,8 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         title = title + "; width = %d" % lineWidth
 
         # Use the axis names from the original plot
-        plot = item.getPlot()
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
         title = _relabelAxes(plot, title)
         xLabel = _relabelAxes(plot, xLabel)
 
@@ -458,7 +460,8 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         yLabel = str(method).capitalize()
 
         # Use the axis names from the original plot
-        plot = item.getPlot()
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
         xLabel = _relabelAxes(plot, xLabel)
         title = _relabelAxes(plot, title)
 
@@ -747,7 +750,10 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         :return: (points, values) profile data or None
         """
         future = scatter._getInterpolator()
-        interpolator = future.result()
+        try:
+            interpolator = future.result()
+        except CancelledError:
+            return None
         if interpolator is None:
             return None  # Cannot init an interpolator
 
@@ -807,8 +813,9 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
             xProfile = points[:, 1]
             xLabel = '{ylabel}'
 
-        # Use the axis names from the original plot
-        plot = item.getPlot()
+        # Use the axis names from the original
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
         title = _relabelAxes(plot, title)
         xLabel = _relabelAxes(plot, xLabel)
 
@@ -985,7 +992,8 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
             assert False
 
         # Use the axis names from the original plot
-        plot = item.getPlot()
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
         xLabel = _relabelAxes(plot, xLabel)
 
         data = core.CurveProfileData(
