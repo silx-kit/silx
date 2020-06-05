@@ -94,7 +94,12 @@ class Convolution(OpenclProcessing):
         self.is_cpu = (self.device.type == "CPU")
         self.use_textures = not(self.extra_options["dont_use_textures"])
         self.use_textures *= not(self.is_cpu)
-
+        # Nvidia Fermi GPUs (compute capability 2.X) do not support opencl read_imagef
+        try:
+            cc = self.ctx.devices[0].compute_capability_major_nv
+            self.use_textures *= (cc < 3)
+        except cl.LogicError: # probably not a Nvidia GPU
+            pass
     def _get_dimensions(self, shape, kernel):
         self.shape = shape
         self.data_ndim = self._check_dimensions(shape=shape, name="Data")
