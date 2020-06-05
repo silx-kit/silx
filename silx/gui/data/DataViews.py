@@ -1758,7 +1758,9 @@ class _NXdataImageView(_NXdataBaseDataView):
             x_axis=x_axis, y_axis=y_axis,
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
-            title=nxd.title, isRgba=isRgba)
+            title=nxd.title, isRgba=isRgba,
+            xscale=nxd.plot_style.axes_scale_types[-1],
+            yscale=nxd.plot_style.axes_scale_types[-2])
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
