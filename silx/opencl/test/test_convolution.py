@@ -118,6 +118,8 @@ class TestConvolution(unittest.TestCase):
                 res = (dev.compute_capability_major_nv < 3)
             except cl.LogicError:
                 res = False
+            except AttributeError:
+                res = False
             return res
         if (self.mode == "constant") and (
             not(self.param["use_textures"])
