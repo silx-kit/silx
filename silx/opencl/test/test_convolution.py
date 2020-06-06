@@ -113,9 +113,16 @@ class TestConvolution(unittest.TestCase):
         )
 
     def instantiate_convol(self, shape, kernel, axes=None):
+        def is_fermi_device(dev):
+            try:
+                res = (dev.compute_capability_major_nv < 3)
+            except cl.LogicError:
+                res = False
+            return res
         if (self.mode == "constant") and (
             not(self.param["use_textures"])
                 or (self.ctx.devices[0].type == cl._cl.device_type.CPU)
+                or (is_fermi_device(self.ctx.devices[0]))
             ):
                 self.skipTest("mode=constant not implemented without textures")
         C = Convolution(
