@@ -52,7 +52,7 @@ _logger = logging.getLogger(__name__)
 
 class _LastActiveItem(qt.QObject):
 
-    sigActiveItemChanged = qt.Signal(object)
+    sigActiveItemChanged = qt.Signal(object, object)
     """Emitted when the active plot item have changed"""
 
     def __init__(self, parent, plot):
@@ -93,7 +93,7 @@ class _LastActiveItem(qt.QObject):
             self.__item = None
         else:
             self.__item = weakref.ref(item)
-        self.sigActiveItemChanged.emit(item)
+        self.sigActiveItemChanged.emit(previous, item)
 
     def _activeImageChanged(self, previous, current):
         """Handle active image change"""
