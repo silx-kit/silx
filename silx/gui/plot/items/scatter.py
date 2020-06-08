@@ -616,30 +616,29 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
 
                 if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
-                    points = numpy.empty((numpy.prod(shape) * 2, 2), dtype=xFiltered.dtype)
+                    points = numpy.ones((2, nbpoints, 2), dtype=numpy.float64)
                     # Use row/column major depending on shape, not on info value
                     gridOrder = 'row' if shape[0] == 1 else 'column'
 
                     if gridOrder == 'row':
-                        points[:nbpoints, 0] = xFiltered
-                        points[:nbpoints, 1] = yFiltered
+                        points[0, :, 0] = xFiltered
+                        points[0, :, 1] = yFiltered
                     else:  # column-major order
-                        points[:nbpoints, 0] = yFiltered
-                        points[:nbpoints, 1] = xFiltered
-                        shape = shape[1], shape[0]  # Invert shape
+                        points[0, :, 0] = yFiltered
+                        points[0, :, 1] = xFiltered
 
                     # Add a second line that will be clipped in the end
-                    points[nbpoints:-1] = points[:nbpoints-1] + numpy.cross(
-                        points[1:nbpoints] - points[:nbpoints-1], (0., 0., 1.))[:, :2]
-                    points[-1] = points[nbpoints-1] + numpy.cross(
-                        points[nbpoints-1] - points[nbpoints-2], (0., 0., 1.))[:2]
+                    points[1, :-1] = points[0, :-1] + numpy.cross(
+                        points[0, 1:] - points[0, :-1], (0., 0., 1.))[:, :2]
+                    points[1, -1] = points[0, -1] + numpy.cross(
+                        points[0, -1] - points[0, -2], (0., 0., 1.))[:2]
 
-                    points.shape = max(2, shape[0]), max(2, shape[1]), 2
+                    points.shape = 2, nbpoints, 2  # Use same shape for both orders
                     coords, indices = _quadrilateral_grid_as_triangles(points)
 
                 elif gridOrder == 'row':  # row-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.empty((numpy.prod(shape), 2), dtype=xFiltered.dtype)
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
                         points[:nbpoints, 0] = xFiltered
                         points[:nbpoints, 1] = yFiltered
                         # Index of last element of last fully filled row
@@ -652,7 +651,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
                 else:   # column-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.empty((numpy.prod(shape), 2), dtype=xFiltered.dtype)
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
                         points[:nbpoints, 0] = yFiltered
                         points[:nbpoints, 1] = xFiltered
                         # Index of last element of last fully filled column
