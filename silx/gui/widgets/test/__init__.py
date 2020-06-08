@@ -33,6 +33,7 @@ from . import test_framebrowser
 from . import test_boxlayoutdockwidget
 from . import test_rangeslider
 from . import test_flowlayout
+from . import test_elidedlabel
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -51,5 +52,6 @@ def suite():
          test_boxlayoutdockwidget.suite(),
          test_rangeslider.suite(),
          test_flowlayout.suite(),
+         test_elidedlabel.suite(),
          ])
     return test_suite

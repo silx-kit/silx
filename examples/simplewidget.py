@@ -45,6 +45,7 @@ from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 from silx.gui.widgets.RangeSlider import RangeSlider
 from silx.gui.widgets.LegendIconWidget import LegendIconWidget
+from silx.gui.widgets.ElidedLabel import ElidedLabel
 
 
 class SimpleWidgetExample(qt.QMainWindow):
@@ -72,6 +73,10 @@ class SimpleWidgetExample(qt.QMainWindow):
 
         panel = self.createLegendIconPanel(self)
         layout.addWidget(qt.QLabel("LegendIconWidget"))
+        layout.addWidget(panel)
+
+        panel = self.createElidedLabelPanel(self)
+        layout.addWidget(qt.QLabel("ElidedLabel"))
         layout.addWidget(panel)
 
         self.setCentralWidget(main_panel)
@@ -183,6 +188,25 @@ class SimpleWidgetExample(qt.QMainWindow):
         legend.setSymbol(".")
         legend.setSymbolColormap("red")
         layout.addWidget(legend)
+
+        return panel
+
+    def createElidedLabelPanel(self, parent):
+        panel = qt.QWidget(parent)
+        layout = qt.QVBoxLayout(panel)
+
+        label = ElidedLabel(parent)
+        label.setText("A very long text which is far too long.")
+        layout.addWidget(label)
+
+        label = ElidedLabel(parent)
+        label.setText("A very long text which is far too long.")
+        label.setElideMode(qt.Qt.ElideMiddle)
+        layout.addWidget(label)
+
+        label = ElidedLabel(parent)
+        label.setText("Basically nothing.")
+        layout.addWidget(label)
 
         return panel
 
