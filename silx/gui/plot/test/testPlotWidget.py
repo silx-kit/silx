@@ -635,13 +635,9 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                     for index, position in enumerate(zip(x, y)):
                         xpixel, ypixel = self.plot.dataToPixel(*position)
                         result = scatter.pick(xpixel, ypixel)
-                        if (visualization is scatter.Visualization.IRREGULAR_GRID and
-                                (shape[0] < 2 or shape[1] < 2)):
-                            self.assertIsNone(result)
-                        else:
-                            self.assertIsNotNone(result)
-                            self.assertIs(result.getItem(), scatter)
-                            self.assertEqual(result.getIndices(), (index,))
+                        self.assertIsNotNone(result)
+                        self.assertIs(result.getItem(), scatter)
+                        self.assertEqual(result.getIndices(), (index,))
 
     def testBinnedStatisticVisualization(self):
         """Test binned display"""
