@@ -172,6 +172,7 @@ def _guess_grid(x, y):
     else:
         # Cannot guess a regular grid
         # Let's assume it's a single line
+        order = 'row'  # or 'column' doesn't matter for a single line
         y_monotonic = is_monotonic(y)
         if is_monotonic(x) or y_monotonic:  # we can guess a line
             x_min, x_max = min_max(x)
@@ -181,12 +182,10 @@ def _guess_grid(x, y):
                 # x only is monotonic or both are and X varies more
                 # line along X
                 shape = 1, len(x)
-                order = 'row'
             else:
                 # y only is monotonic or both are and Y varies more
                 # line along Y
                 shape = len(y), 1
-                order = 'column'
 
         else:  # Cannot guess a line from the points
             return None
@@ -609,15 +608,19 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                                             baseline=None)
 
                 # Make shape include all points
+                gridOrder = gridInfo.order
                 if nbpoints != numpy.prod(shape):
-                    if gridInfo.order == 'row':
+                    if gridOrder == 'row':
                         shape = int(numpy.ceil(nbpoints / shape[1])), shape[1]
                     else:   # column-major order
                         shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
 
                 if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
                     points = numpy.empty((numpy.prod(shape) * 2, 2), dtype=xFiltered.dtype)
-                    if gridInfo.order == 'row':
+                    # Use row/column major depending on shape, not on info value
+                    gridOrder = 'row' if shape[0] == 1 else 'column'
+
+                    if gridOrder == 'row':
                         points[:nbpoints, 0] = xFiltered
                         points[:nbpoints, 1] = yFiltered
                     else:  # column-major order
@@ -634,7 +637,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     points.shape = max(2, shape[0]), max(2, shape[1]), 2
                     coords, indices = _quadrilateral_grid_as_triangles(points)
 
-                elif gridInfo.order == 'row':  # row-major order
+                elif gridOrder == 'row':  # row-major order
                     if nbpoints != numpy.prod(shape):
                         points = numpy.empty((numpy.prod(shape), 2), dtype=xFiltered.dtype)
                         points[:nbpoints, 0] = xFiltered
@@ -666,7 +669,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 coords = coords[:4*nbpoints]
                 indices = indices[:2*nbpoints]
 
-                if gridInfo.order == 'row':
+                if gridOrder == 'row':
                     x, y = coords[:, 0], coords[:, 1]
                 else:  # column-major order
                     y, x = coords[:, 0], coords[:, 1]
