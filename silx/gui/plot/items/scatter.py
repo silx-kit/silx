@@ -172,7 +172,6 @@ def _guess_grid(x, y):
     else:
         # Cannot guess a regular grid
         # Let's assume it's a single line
-        order = 'row'  # or 'column' doesn't matter for a single line
         y_monotonic = is_monotonic(y)
         if is_monotonic(x) or y_monotonic:  # we can guess a line
             x_min, x_max = min_max(x)
@@ -182,10 +181,12 @@ def _guess_grid(x, y):
                 # x only is monotonic or both are and X varies more
                 # line along X
                 shape = 1, len(x)
+                order = 'row'
             else:
                 # y only is monotonic or both are and Y varies more
                 # line along Y
                 shape = len(y), 1
+                order = 'column'
 
         else:  # Cannot guess a line from the points
             return None
@@ -613,12 +614,29 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         shape = int(numpy.ceil(nbpoints / shape[1])), shape[1]
                     else:   # column-major order
                         shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
-                if shape[0] < 2 or shape[1] < 2:  # Not enough points
-                    return None
 
-                if gridInfo.order == 'row':
+                if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
+                    points = numpy.empty((numpy.prod(shape) * 2, 2), dtype=xFiltered.dtype)
+                    if gridInfo.order == 'row':
+                        points[:nbpoints, 0] = xFiltered
+                        points[:nbpoints, 1] = yFiltered
+                    else:  # column-major order
+                        points[:nbpoints, 0] = yFiltered
+                        points[:nbpoints, 1] = xFiltered
+                        shape = shape[1], shape[0]  # Invert shape
+
+                    # Add a second line that will be clipped in the end
+                    points[nbpoints:-1] = points[:nbpoints-1] + numpy.cross(
+                        points[1:nbpoints] - points[:nbpoints-1], (0., 0., 1.))[:, :2]
+                    points[-1] = points[nbpoints-1] + numpy.cross(
+                        points[nbpoints-1] - points[nbpoints-2], (0., 0., 1.))[:2]
+
+                    points.shape = max(2, shape[0]), max(2, shape[1]), 2
+                    coords, indices = _quadrilateral_grid_as_triangles(points)
+
+                elif gridInfo.order == 'row':  # row-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.zeros((numpy.prod(shape), 2), dtype=xFiltered.dtype)
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=xFiltered.dtype)
                         points[:nbpoints, 0] = xFiltered
                         points[:nbpoints, 1] = yFiltered
                         # Index of last element of last fully filled row
@@ -631,7 +649,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
                 else:   # column-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.zeros((numpy.prod(shape), 2), dtype=xFiltered.dtype)
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=xFiltered.dtype)
                         points[:nbpoints, 0] = yFiltered
                         points[:nbpoints, 1] = xFiltered
                         # Index of last element of last fully filled column
