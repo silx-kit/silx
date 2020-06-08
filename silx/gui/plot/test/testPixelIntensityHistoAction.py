@@ -43,7 +43,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
 
     def setUp(self):
         super(TestPixelIntensitiesHisto, self).setUp()
-        self.image = numpy.random.rand(100, 100)
+        self.image = numpy.random.rand(10, 10)
         self.plotImage = Plot2D()
         self.plotImage.getIntensityHistogramAction().setVisible(True)
 
@@ -90,6 +90,59 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
             with self.subTest(typeToTest=typeToTest):
                 self.plotImage.addImage(self.image.astype(typeToTest),
                                         origin=(0, 0), legend='sino')
+
+    def testScatter(self):
+        """Test that an histogram from a scatter is displayed"""
+        xx = numpy.arange(10)
+        yy = numpy.arange(10)
+        value = numpy.sin(xx)
+        self.plotImage.addScatter(xx, yy, value)
+        self.plotImage.show()
+
+        histoAction = self.plotImage.getIntensityHistogramAction()
+
+        # test the pixel intensity diagram is showing
+        button = getQToolButtonFromAction(histoAction)
+        self.assertIsNot(button, None)
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+
+        plot = histoAction.getHistogramPlotWidget()
+        self.assertTrue(plot.isVisible())
+        items = plot.getItems()
+        self.assertEqual(len(items), 1)
+
+    def testChangeItem(self):
+        """Test that histogram changes it the item changes"""
+        xx = numpy.arange(10)
+        yy = numpy.arange(10)
+        value = numpy.sin(xx)
+        self.plotImage.addScatter(xx, yy, value)
+        self.plotImage.show()
+
+        histoAction = self.plotImage.getIntensityHistogramAction()
+
+        # test the pixel intensity diagram is showing
+        button = getQToolButtonFromAction(histoAction)
+        self.assertIsNot(button, None)
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+
+        # Reach histogram from the first item
+        plot = histoAction.getHistogramPlotWidget()
+        self.assertTrue(plot.isVisible())
+        items = plot.getItems()
+        data1 = items[0].getValueData(copy=False)
+
+        # Set another item to the plot
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.qapp.processEvents()
+        data2 = items[0].getValueData(copy=False)
+
+        # Histogram is not the same
+        self.assertFalse(numpy.array_equal(data1, data2))
 
 
 def suite():
