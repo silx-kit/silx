@@ -43,7 +43,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
 
     def setUp(self):
         super(TestPixelIntensitiesHisto, self).setUp()
-        self.image = numpy.random.rand(100, 100)
+        self.image = numpy.random.rand(10, 10)
         self.plotImage = Plot2D()
         self.plotImage.getIntensityHistogramAction().setVisible(True)
 
