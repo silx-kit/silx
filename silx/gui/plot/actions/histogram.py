@@ -113,6 +113,7 @@ class _LastActiveItem(qt.QObject):
         item = plot.getScatter(current)
         self.setActiveItem(item)
 
+
 class PixelIntensitiesHistoAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
