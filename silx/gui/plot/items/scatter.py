@@ -591,8 +591,23 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if shape is None:  # No shape, no display
                     return None
 
-                # Make shape include all points
                 nbpoints = len(xFiltered)
+                if nbpoints == 1:
+                    # single point, render as a square points
+                    return backend.addCurve(xFiltered, yFiltered,
+                                            color=rgbacolors[mask],
+                                            symbol='s',
+                                            linewidth=0,
+                                            linestyle="",
+                                            yaxis='left',
+                                            xerror=None,
+                                            yerror=None,
+                                            fill=False,
+                                            alpha=self.getAlpha(),
+                                            symbolsize=7,
+                                            baseline=None)
+
+                # Make shape include all points
                 if nbpoints != numpy.prod(shape):
                     if gridInfo.order == 'row':
                         shape = int(numpy.ceil(nbpoints / shape[1])), shape[1]
