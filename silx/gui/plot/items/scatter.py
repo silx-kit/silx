@@ -591,27 +591,84 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if shape is None:  # No shape, no display
                     return None
 
-                # clip shape to fully filled lines
-                if len(xFiltered) != numpy.prod(shape):
-                    if gridInfo.order == 'row':
-                        shape = len(xFiltered) // shape[1], shape[1]
-                    else:   # column-major order
-                        shape = shape[0], len(xFiltered) // shape[0]
-                if shape[0] < 2 or shape[1] < 2:  # Not enough points
-                    return None
+                nbpoints = len(xFiltered)
+                if nbpoints == 1:
+                    # single point, render as a square points
+                    return backend.addCurve(xFiltered, yFiltered,
+                                            color=rgbacolors[mask],
+                                            symbol='s',
+                                            linewidth=0,
+                                            linestyle="",
+                                            yaxis='left',
+                                            xerror=None,
+                                            yerror=None,
+                                            fill=False,
+                                            alpha=self.getAlpha(),
+                                            symbolsize=7,
+                                            baseline=None)
 
-                nbpoints = numpy.prod(shape)
-                if gridInfo.order == 'row':
-                    points = numpy.transpose((xFiltered[:nbpoints], yFiltered[:nbpoints]))
-                    points = points.reshape(shape[0], shape[1], 2)
+                # Make shape include all points
+                gridOrder = gridInfo.order
+                if nbpoints != numpy.prod(shape):
+                    if gridOrder == 'row':
+                        shape = int(numpy.ceil(nbpoints / shape[1])), shape[1]
+                    else:   # column-major order
+                        shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
+
+                if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
+                    points = numpy.ones((2, nbpoints, 2), dtype=numpy.float64)
+                    # Use row/column major depending on shape, not on info value
+                    gridOrder = 'row' if shape[0] == 1 else 'column'
+
+                    if gridOrder == 'row':
+                        points[0, :, 0] = xFiltered
+                        points[0, :, 1] = yFiltered
+                    else:  # column-major order
+                        points[0, :, 0] = yFiltered
+                        points[0, :, 1] = xFiltered
+
+                    # Add a second line that will be clipped in the end
+                    points[1, :-1] = points[0, :-1] + numpy.cross(
+                        points[0, 1:] - points[0, :-1], (0., 0., 1.))[:, :2]
+                    points[1, -1] = points[0, -1] + numpy.cross(
+                        points[0, -1] - points[0, -2], (0., 0., 1.))[:2]
+
+                    points.shape = 2, nbpoints, 2  # Use same shape for both orders
+                    coords, indices = _quadrilateral_grid_as_triangles(points)
+
+                elif gridOrder == 'row':  # row-major order
+                    if nbpoints != numpy.prod(shape):
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
+                        points[:nbpoints, 0] = xFiltered
+                        points[:nbpoints, 1] = yFiltered
+                        # Index of last element of last fully filled row
+                        index = (nbpoints // shape[1]) * shape[1]
+                        points[nbpoints:, 0] = xFiltered[index - (numpy.prod(shape) - nbpoints):index]
+                        points[nbpoints:, 1] = yFiltered[-1]
+                    else:
+                        points = numpy.transpose((xFiltered, yFiltered))
+                    points.shape = shape[0], shape[1], 2
 
                 else:   # column-major order
-                    points = numpy.transpose((yFiltered[:nbpoints], xFiltered[:nbpoints]))
-                    points = points.reshape(shape[1], shape[0], 2)
+                    if nbpoints != numpy.prod(shape):
+                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
+                        points[:nbpoints, 0] = yFiltered
+                        points[:nbpoints, 1] = xFiltered
+                        # Index of last element of last fully filled column
+                        index = (nbpoints // shape[0]) * shape[0]
+                        points[nbpoints:, 0] = yFiltered[index - (numpy.prod(shape) - nbpoints):index]
+                        points[nbpoints:, 1] = xFiltered[-1]
+                    else:
+                        points = numpy.transpose((yFiltered, xFiltered))
+                    points.shape = shape[1], shape[0], 2
 
                 coords, indices = _quadrilateral_grid_as_triangles(points)
 
-                if gridInfo.order == 'row':
+                # Remove unused extra triangles
+                coords = coords[:4*nbpoints]
+                indices = indices[:2*nbpoints]
+
+                if gridOrder == 'row':
                     x, y = coords[:, 0], coords[:, 1]
                 else:  # column-major order
                     y, x = coords[:, 0], coords[:, 1]
