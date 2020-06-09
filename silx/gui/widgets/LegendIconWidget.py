@@ -336,10 +336,11 @@ class LegendIconWidget(qt.QWidget):
                 pixmapRect = qt.QRect(0, 0, _COLORMAP_PIXMAP_SIZE, 1)
                 widthMargin = 0
                 halfHeight = 4
+                widgetRect = self.rect()
                 dest = qt.QRect(
-                    rect.left() + widthMargin,
-                    rect.center().y() - halfHeight + 1,
-                    rect.width() - widthMargin * 2,
+                    widgetRect.left() + widthMargin,
+                    widgetRect.center().y() - halfHeight + 1,
+                    widgetRect.width() - widthMargin * 2,
                     halfHeight * 2,
                 )
                 painter.drawImage(dest, image, pixmapRect)
