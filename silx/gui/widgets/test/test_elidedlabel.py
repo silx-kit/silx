@@ -66,6 +66,39 @@ class TestElidedLabel(testutils.TestCaseQt):
         self.assertNotIn("…", displayedText)
         self.assertEqual(raw, displayedText)
 
+    def testUpdateFromElidedToNotElided(self):
+        """Test tooltip when not elided"""
+        raw1 = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+        raw2 = "nn"
+        self.label.setText(raw1)
+        self.label.setFixedWidth(30)
+        self.label.setText(raw2)
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        self.assertNotIn(raw1, displayedTooltip)
+        self.assertNotIn(raw2, displayedTooltip)
+
+    def testUpdateFromNotElidedToElided(self):
+        """Test tooltip when elided"""
+        raw1 = "nn"
+        raw2 = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+        self.label.setText(raw1)
+        self.label.setFixedWidth(30)
+        self.label.setText(raw2)
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        self.assertNotIn(raw1, displayedTooltip)
+        self.assertIn(raw2, displayedTooltip)
+
+    def testUpdateFromElidedToElided(self):
+        """Test tooltip when elided"""
+        raw1 = "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+        raw2 = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+        self.label.setText(raw1)
+        self.label.setFixedWidth(30)
+        self.label.setText(raw2)
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        self.assertNotIn(raw1, displayedTooltip)
+        self.assertIn(raw2, displayedTooltip)
+
 
 def suite():
     loader = unittest.defaultTestLoader.loadTestsFromTestCase
