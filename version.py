@@ -62,15 +62,13 @@ __all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion
 RELEASE_LEVEL_VALUE = {"dev": 0,
                        "alpha": 10,
                        "beta": 11,
-                       "gamma": 12,
-                       "rc": 13,
+                       "candidate": 12,
                        "final": 15}
 
 PRERELEASE_NORMALIZED_NAME = {"dev": "a",
                               "alpha": "a",
                               "beta": "b",
-                              "gamma": "b",
-                              "rc": "rc"}
+                              "candidate": "rc"}
 
 MAJOR = 0
 MINOR = 13
