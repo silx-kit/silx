@@ -69,19 +69,16 @@ class ElidedLabel(qt.QLabel):
         metrics = qt.QFontMetrics(self.font())
         elidedText = metrics.elidedText(self.__text, self.__elideMode, self.width())
         qt.QLabel.setText(self, elidedText)
-        self.__setTextIsElided(elidedText != self.__text)
+        wasElided = self.__textIsElided
+        self.__textIsElided = elidedText != self.__text
+        if self.__textIsElided or wasElided != self.__textIsElided:
+            self.__updateToolTip()
 
     def __updateToolTip(self):
         if self.__textIsElided and self.__textAsToolTip:
             qt.QLabel.setToolTip(self, self.__text + "<br/>" + self.__toolTip)
         else:
             qt.QLabel.setToolTip(self, self.__toolTip)
-
-    def __setTextIsElided(self, enable):
-        if self.__textIsElided == enable:
-            return
-        self.__textIsElided = enable
-        self.__updateToolTip()
 
     # Properties
 
