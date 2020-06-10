@@ -652,7 +652,7 @@ class PlotWidget(qt.QMainWindow):
         self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
-    def addItem(self, item, *args, **kwargs):
+    def addItem(self, item=None, *args, **kwargs):
         """Add an item to the plot content.
 
         :param ~silx.gui.plot.items.Item item: The item to add.
@@ -664,8 +664,10 @@ class PlotWidget(qt.QMainWindow):
                 'addItem',
                 replacement='addShape',
                 since_version='0.13')
-            self.addShape(item, *args, **kwargs)
-            return
+            if item is None and not args:  # Only kwargs
+                return self.addShape(**kwargs)
+            else:
+                return self.addShape(item, *args, **kwargs)
 
         assert not args and not kwargs
         if item in self.getItems():
