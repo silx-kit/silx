@@ -1352,6 +1352,19 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
             size = self.getSize()
             self._updateGeometry(center=current, size=size)
         else:
+            # Switch handles if they were crossed
+            cx, cy = self.getCenter()
+            if ((handle in (self._handleBottomLeft, self._handleTopLeft) and current[0] > cx) or
+                    (handle in (self._handleBottomRight, self._handleTopRight) and current[0] < cx)):
+                # Switch handles vertically
+                self._handleBottomLeft, self._handleBottomRight = self._handleBottomRight, self._handleBottomLeft
+                self._handleTopLeft, self._handleTopRight = self._handleTopRight, self._handleTopLeft
+            if ((handle in (self._handleBottomLeft, self._handleBottomRight) and current[1] > cy) or
+                    (handle in (self._handleTopLeft, self._handleTopRight) and current[1] < cy)):
+                # Switch handles horizontally
+                self._handleBottomLeft, self._handleTopLeft = self._handleTopLeft, self._handleBottomLeft
+                self._handleBottomRight, self._handleTopRight = self._handleTopRight, self._handleBottomRight
+
             opposed = {
                 self._handleBottomLeft: self._handleTopRight,
                 self._handleTopRight: self._handleBottomLeft,
