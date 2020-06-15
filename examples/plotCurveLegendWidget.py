@@ -86,7 +86,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
         :param silx.gui.plot.items.Curve curve:
         """
         yaxis = curve.getYAxis()
-        curve.setYAxis('left' if yaxis is 'right' else 'right')
+        curve.setYAxis('left' if yaxis == 'right' else 'right')
 
     def _contextMenu(self, pos):
         """Create a show the context menu.
