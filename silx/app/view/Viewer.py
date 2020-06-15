@@ -500,6 +500,11 @@ class Viewer(qt.QMainWindow):
         settings.setValue("custom-nxdata-window-visible", isVisible)
         settings.endGroup()
 
+        settings.beginGroup("content")
+        isSorted = self._sortContentAction.isChecked()
+        settings.setValue("is-sorted", isSorted)
+        settings.endGroup()
+
         if isFullScreen:
             self.showFullScreen()
 
@@ -541,6 +546,16 @@ class Viewer(qt.QMainWindow):
         self.__customNxdataWindow.setVisible(isVisible)
         self._displayCustomNxdataWindow.setChecked(isVisible)
 
+        settings.endGroup()
+
+        settings.beginGroup("content")
+        isSorted = settings.value("is-sorted", True)
+        try:
+            if not isinstance(isSorted, bool):
+                isSorted = utils.stringToBool(isSorted)
+        except ValueError:
+            isSorted = True
+        self.setContentSorted(isSorted)
         settings.endGroup()
 
         if not pos.isNull():
