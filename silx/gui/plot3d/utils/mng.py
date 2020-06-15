@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ def convert(images, nb_images=0, fps=25):
 
         # Add filter 'None' before each scanline
         prepared_data = b'\x00' + b'\x00'.join(
-            line.tostring() for line in image)  # TODO optimize that
+            line.tobytes() for line in image)  # TODO optimize that
         compressed_data = zlib.compress(prepared_data, 8)
 
         # IDAT chunk: Payload

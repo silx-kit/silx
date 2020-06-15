@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ def convertRGBDataToPNG(data):
                            0, 0, interlace)
 
     # Add filter 'None' before each scanline
-    preparedData = b'\x00' + b'\x00'.join(line.tostring() for line in data)
+    preparedData = b'\x00' + b'\x00'.join(line.tobytes() for line in data)
     compressedData = zlib.compress(preparedData, 8)
 
     IDATdata = struct.pack("cccc", b'I', b'D', b'A', b'T')
@@ -134,7 +134,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
         fileObj.write(b'P6\n')
         fileObj.write(b'%d %d\n' % (width, height))
         fileObj.write(b'255\n')
-        fileObj.write(data.tostring())
+        fileObj.write(data.tobytes())
 
     elif fileFormat == 'png':
         fileObj.write(convertRGBDataToPNG(data))
