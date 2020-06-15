@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -846,9 +846,9 @@ class EdfFile(object):
 
         # if self.Images[Index].StaticHeader["ByteOrder"] != self.SysByteOrder:
         if self.Images[Index].ByteOrder.upper() != self.SysByteOrder.upper():
-            self.File.write((Data.byteswap()).tostring())
+            self.File.write((Data.byteswap()).tobytes())
         else:
-            self.File.write(Data.tostring())
+            self.File.write(Data.tobytes())
 
     def __makeSureFileIsOpen(self):
         if DEBUG:
