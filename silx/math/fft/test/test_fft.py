@@ -60,10 +60,10 @@ class TransformInfos(object):
             "C2C_double": np.complex128,
         }
         self.sizes = {
-            "1D": [(512,), (511,)],
-            "2D": [(512, 512), (512, 511), (511, 512), (511, 511)],
-            "3D": [(128, 128, 128), (128, 128, 127), (128, 127, 128), (127, 128, 128),
-                 (128, 127, 127), (127, 128, 127), (127, 127, 128), (127, 127, 127)]
+            "1D": [(128,), (127,)],
+            "2D": [(128, 128), (128, 127), (127, 128), (127, 127)],
+            "3D": [(64, 64, 64), (64, 64, 63), (64, 63, 64), (63, 64, 64),
+                 (64, 63, 63), (63, 64, 63), (63, 63, 64), (63, 63, 63)]
         }
         self.axes = {
             "1D": None,
@@ -80,7 +80,7 @@ class TestData(object):
     def __init__(self):
         self.data = ascent().astype("float32")
         self.data1d = self.data[:, 0]  # non-contiguous data
-        self.data3d = np.tile(self.data[:128, :128], (128, 1, 1))
+        self.data3d = np.tile(self.data[:64, :64], (64, 1, 1))
         self.data_refs = {
             1: self.data1d,
             2: self.data,
