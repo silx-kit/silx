@@ -815,9 +815,26 @@ class Viewer(qt.QMainWindow):
         """
         sort = bool(sort)
         if sort != self.isContentSorted():
+
+            # save expanded nodes
+            pathss = []
+            root = qt.QModelIndex()
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = self.__getPathFromExpandedNodes(self.__treeview, index)
+                pathss.append(paths)
+
             self.__treeview.setModel(
                 self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
             self._sortContentAction.setChecked(self.isContentSorted())
+
+            # restore expanded nodes
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = pathss.pop(0)
+                self.__expandNodesFromPaths(self.__treeview, index, paths)
 
     def isContentSorted(self):
         """Returns whether the file content is sorted or not.
