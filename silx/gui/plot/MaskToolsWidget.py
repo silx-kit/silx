@@ -187,6 +187,8 @@ class ImageMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         assert 0 < level < 256
+        if row + height <= 0 or col + width <= 0:
+            return  # Rectangle outside image, avoid negative indices
         selection = self._mask[max(0, row):row + height + 1,
                                max(0, col):col + width + 1]
         if mask:
