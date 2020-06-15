@@ -206,7 +206,7 @@ class Viewer(qt.QMainWindow):
         action.setToolTip("Toggle sorting of file content")
         action.setCheckable(True)
         action.setChecked(True)
-        action.triggered.connect(self.setFileContentSorted)
+        action.triggered.connect(self.setContentSorted)
         toolbar.addAction(action)
         treeView.addAction(action)
         self._sortContentAction = action
@@ -808,18 +808,18 @@ class Viewer(qt.QMainWindow):
         url = projecturl.getDocumentationUrl(subpath)
         qt.QDesktopServices.openUrl(qt.QUrl(url))
 
-    def setFileContentSorted(self, sort):
+    def setContentSorted(self, sort):
         """Set whether file content should be sorted or not.
 
         :param bool sort:
         """
         sort = bool(sort)
-        if sort != self.isFileContentSorted():
+        if sort != self.isContentSorted():
             self.__treeview.setModel(
                 self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
-            self._sortContentAction.setChecked(self.isFileContentSorted())
+            self._sortContentAction.setChecked(self.isContentSorted())
 
-    def isFileContentSorted(self):
+    def isContentSorted(self):
         """Returns whether the file content is sorted or not.
 
         :rtype: bool
