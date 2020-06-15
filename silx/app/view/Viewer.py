@@ -87,12 +87,12 @@ class Viewer(qt.QMainWindow):
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
         treeModel.setDatasetDragEnabled(True)
-        treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
-        treeModel2.setSourceModel(treeModel)
-        treeModel2.sort(0, qt.Qt.AscendingOrder)
-        treeModel2.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
+        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
+        self.__treeModelSorted.setSourceModel(treeModel)
+        self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
+        self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
 
-        self.__treeview.setModel(treeModel2)
+        self.__treeview.setModel(self.__treeModelSorted)
         rightPanel.addWidget(self.__treeWindow)
 
         self.__customNxdata = CustomNxdataWidget(self)
@@ -201,6 +201,15 @@ class Viewer(qt.QMainWindow):
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__collapseAllAction = action
+
+        action = qt.QAction("&Sort file content", self)
+        action.setToolTip("Toggle sorting of file content")
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.triggered.connect(self.setFileContentSorted)
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self._sortContentAction = action
 
         widget = qt.QWidget(self)
         layout = qt.QVBoxLayout(widget)
@@ -798,6 +807,24 @@ class Viewer(qt.QMainWindow):
         subpath = "index.html"
         url = projecturl.getDocumentationUrl(subpath)
         qt.QDesktopServices.openUrl(qt.QUrl(url))
+
+    def setFileContentSorted(self, sort):
+        """Set whether file content should be sorted or not.
+
+        :param bool sort:
+        """
+        sort = bool(sort)
+        if sort != self.isFileContentSorted():
+            self.__treeview.setModel(
+                self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
+            self._sortContentAction.setChecked(self.isFileContentSorted())
+
+    def isFileContentSorted(self):
+        """Returns whether the file content is sorted or not.
+
+        :rtype: bool
+        """
+        return self.__treeview.model() is self.__treeModelSorted
 
     def __forcePlotImageDownward(self):
         silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"
