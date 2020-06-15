@@ -78,7 +78,7 @@ def medfilt2d(image, kernel_size=3, engine='cpp'):
         err += '%s' % engine
         raise ValueError(err)
 
-    if len(image.shape) is not 2:
+    if len(image.shape) != 2:
         raise ValueError('medfilt2d deals with arrays of dimension 2 only')
 
     if engine == 'cpp':

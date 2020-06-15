@@ -981,7 +981,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
-        if linestyle is not '-':
+        if linestyle != '-':
             _logger.warning(
                 "BackendOpenGL.setGraphCursor linestyle parameter ignored")
 
