@@ -866,7 +866,12 @@ class ColormapDialog(qt.QDialog):
         self._gammaSpinBox = qt.QDoubleSpinBox(parent=self)
         self._gammaSpinBox.setEnabled(False)
         self._gammaSpinBox.setRange(0., 1000.)
-        self._gammaSpinBox.setSingleStep(0.1)
+        self._gammaSpinBox.setDecimals(4)
+        if hasattr(qt.QDoubleSpinBox, "setStepType"):
+            # Introduced in Qt 5.12
+            self._gammaSpinBox.setStepType(qt.QDoubleSpinBox.AdaptiveDecimalStepType)
+        else:
+            self._gammaSpinBox.setSingleStep(0.1)
         self._gammaSpinBox.valueChanged.connect(self._gammaUpdated)
         self._gammaSpinBox.setValue(2.)
 
