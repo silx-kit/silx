@@ -77,6 +77,8 @@ except ImportError:
     sphinx = None
 
 PROJECT = "silx"
+if sys.version_info.major < 3:
+    logger.error(PROJECT + " no longer supports Python2")
 
 if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
     print("""WARNING: the LANG environment variable is not defined,
@@ -117,11 +119,7 @@ classifiers = ["Development Status :: 4 - Beta",
                "Operating System :: Microsoft :: Windows",
                "Operating System :: POSIX",
                "Programming Language :: Cython",
-               "Programming Language :: Python :: 2.7",
-               "Programming Language :: Python :: 3.5",
-               "Programming Language :: Python :: 3.6",
-               "Programming Language :: Python :: 3.7",
-               "Programming Language :: Python :: 3.8",
+               "Programming Language :: Python :: 3",
                "Programming Language :: Python :: Implementation :: CPython",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
@@ -948,6 +946,7 @@ def get_project_configuration(dry_run):
                         package_data=package_data,
                         zip_safe=False,
                         entry_points=entry_points,
+                        python_requires='>=3.5',
                         )
     return setup_kwargs
 
