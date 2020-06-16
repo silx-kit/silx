@@ -862,7 +862,11 @@ class ColormapDialog(qt.QDialog):
             ('Square root', Colormap.SQRT),
             ('Arcsinh', Colormap.ARCSINH)]
         for name, userData in normalizations:
-            self._comboBoxNormalization.addItem(name, userData)
+            try:
+                icon = icons.getQIcon("colormap-norm-%s" % userData)
+            except:
+                icon = qt.QIcon()
+            self._comboBoxNormalization.addItem(icon, name, userData)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
             self._normalizationUpdated)
 
