@@ -87,12 +87,12 @@ class Viewer(qt.QMainWindow):
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
         treeModel.setDatasetDragEnabled(True)
-        treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
-        treeModel2.setSourceModel(treeModel)
-        treeModel2.sort(0, qt.Qt.AscendingOrder)
-        treeModel2.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
+        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
+        self.__treeModelSorted.setSourceModel(treeModel)
+        self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
+        self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
 
-        self.__treeview.setModel(treeModel2)
+        self.__treeview.setModel(self.__treeModelSorted)
         rightPanel.addWidget(self.__treeWindow)
 
         self.__customNxdata = CustomNxdataWidget(self)
@@ -201,6 +201,16 @@ class Viewer(qt.QMainWindow):
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__collapseAllAction = action
+
+        action = qt.QAction("&Sort file content", toolbar)
+        action.setIcon(icons.getQIcon("tree-sort"))
+        action.setToolTip("Toggle sorting of file content")
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.triggered.connect(self.setContentSorted)
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self._sortContentAction = action
 
         widget = qt.QWidget(self)
         layout = qt.QVBoxLayout(widget)
@@ -490,6 +500,11 @@ class Viewer(qt.QMainWindow):
         settings.setValue("custom-nxdata-window-visible", isVisible)
         settings.endGroup()
 
+        settings.beginGroup("content")
+        isSorted = self._sortContentAction.isChecked()
+        settings.setValue("is-sorted", isSorted)
+        settings.endGroup()
+
         if isFullScreen:
             self.showFullScreen()
 
@@ -531,6 +546,16 @@ class Viewer(qt.QMainWindow):
         self.__customNxdataWindow.setVisible(isVisible)
         self._displayCustomNxdataWindow.setChecked(isVisible)
 
+        settings.endGroup()
+
+        settings.beginGroup("content")
+        isSorted = settings.value("is-sorted", True)
+        try:
+            if not isinstance(isSorted, bool):
+                isSorted = utils.stringToBool(isSorted)
+        except ValueError:
+            isSorted = True
+        self.setContentSorted(isSorted)
         settings.endGroup()
 
         if not pos.isNull():
@@ -798,6 +823,41 @@ class Viewer(qt.QMainWindow):
         subpath = "index.html"
         url = projecturl.getDocumentationUrl(subpath)
         qt.QDesktopServices.openUrl(qt.QUrl(url))
+
+    def setContentSorted(self, sort):
+        """Set whether file content should be sorted or not.
+
+        :param bool sort:
+        """
+        sort = bool(sort)
+        if sort != self.isContentSorted():
+
+            # save expanded nodes
+            pathss = []
+            root = qt.QModelIndex()
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = self.__getPathFromExpandedNodes(self.__treeview, index)
+                pathss.append(paths)
+
+            self.__treeview.setModel(
+                self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
+            self._sortContentAction.setChecked(self.isContentSorted())
+
+            # restore expanded nodes
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = pathss.pop(0)
+                self.__expandNodesFromPaths(self.__treeview, index, paths)
+
+    def isContentSorted(self):
+        """Returns whether the file content is sorted or not.
+
+        :rtype: bool
+        """
+        return self.__treeview.model() is self.__treeModelSorted
 
     def __forcePlotImageDownward(self):
         silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"
