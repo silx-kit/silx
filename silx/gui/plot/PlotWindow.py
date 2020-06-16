@@ -930,18 +930,27 @@ class Plot2D(PlotWindow):
         :param float y: Y position in plot coordinates
         :return: The value at that point or '-'
         """
+        pickedMask = None
         for picked in self.pickItems(
                 *self.dataToPixel(x, y, check=False),
                 lambda item: isinstance(item, items.ImageBase)):
-            image = picked.getItem()
+            if isinstance(picked.getItem(), items.MaskImageData):
+                if pickedMask is None:  # Use top-most if many masks
+                    pickedMask = picked
+            else:
+                image = picked.getItem()
 
-            indices = picked.getIndices(copy=False)
-            if indices is not None:
-                row, col = indices[0][0], indices[1][0]
-                value = image.getData(copy=False)[row, col]
-                if isinstance(image, items.MaskImageData):
-                    return value, "Masked"
-                else:
+                indices = picked.getIndices(copy=False)
+                if indices is not None:
+                    row, col = indices[0][0], indices[1][0]
+                    value = image.getData(copy=False)[row, col]
+
+                    if pickedMask is not None:  # Check if masked
+                        maskItem = pickedMask.getItem()
+                        indices = pickedMask.getIndices()
+                        row, col = indices[0][0], indices[1][0]
+                        if maskItem.getData(copy=False)[row, col] != 0:
+                            return value, "Masked"
                     return value
 
         return '-'  # No image picked
