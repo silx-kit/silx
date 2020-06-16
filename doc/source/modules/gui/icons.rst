@@ -349,6 +349,8 @@ Available icons
      - tree-collapse-all
    * - |tree-expand-all|
      - tree-expand-all
+   * - |tree-sort|
+     - tree-sort
    * - |view-1d|
      - view-1d
    * - |view-2d-stack|
@@ -549,6 +551,7 @@ Available icons
 .. |stats-whole-items| image:: ../../../../silx/resources/gui/icons/stats-whole-items.png
 .. |tree-collapse-all| image:: ../../../../silx/resources/gui/icons/tree-collapse-all.png
 .. |tree-expand-all| image:: ../../../../silx/resources/gui/icons/tree-expand-all.png
+.. |tree-sort| image:: ../../../../silx/resources/gui/icons/tree-sort.png
 .. |view-1d| image:: ../../../../silx/resources/gui/icons/view-1d.png
 .. |view-2d-stack| image:: ../../../../silx/resources/gui/icons/view-2d-stack.png
 .. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png
