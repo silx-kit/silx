@@ -2,7 +2,7 @@
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -850,9 +850,9 @@ class TiffIO(object):
 
         #write the image
         if self._swap:
-            fd.write(image.byteswap().tostring())
+            fd.write(image.byteswap().tobytes())
         else:
-            fd.write(image.tostring())
+            fd.write(image.tobytes())
 
         fd.flush()
         self.fd=fd

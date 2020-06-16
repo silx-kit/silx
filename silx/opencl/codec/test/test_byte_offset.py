@@ -4,7 +4,7 @@
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility,
+#    Copyright (C) 2013-2020  European Synchrotron Radiation Facility,
 #                             Grenoble, France
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -170,7 +170,7 @@ class TestByteOffset(unittest.TestCase):
         compressed_array = bo.encode(ref)
         t1 = time.time()
 
-        compressed_stream = compressed_array.get().tostring()
+        compressed_stream = compressed_array.get().tobytes()
         self.assertEqual(raw, compressed_stream)
 
         logger.debug("Global execution time: OpenCL: %.3fms.",
@@ -203,7 +203,7 @@ class TestByteOffset(unittest.TestCase):
 
         # Get data from out array, read it from bo object queue
         out_bo_queue = out.with_queue(bo.queue)
-        compressed_stream = out_bo_queue.get().tostring()[:compressed_size]
+        compressed_stream = out_bo_queue.get().tobytes()[:compressed_size]
         self.assertEqual(raw, compressed_stream)
 
     def test_encode_to_bytes(self):
