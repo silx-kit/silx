@@ -90,16 +90,16 @@ _LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor
 _AVAILABLE_LUTS = collections.OrderedDict([
     ('gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('reversed gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
-    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('red', _LUT_DESCRIPTION('builtin', 'green', True)),
     ('green', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True)),
-    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('viridis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('cividis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('magma', _LUT_DESCRIPTION('resource', 'green', True)),
     ('inferno', _LUT_DESCRIPTION('resource', 'green', True)),
     ('plasma', _LUT_DESCRIPTION('resource', 'green', True)),
+    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('hsv', _LUT_DESCRIPTION('matplotlib', 'black', True)),
 ])
 """Description for internal porpose of all the default LUT provided by the library."""
