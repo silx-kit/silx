@@ -855,11 +855,18 @@ class ColormapDialog(qt.QDialog):
 
         # Normalization row
         self._comboBoxNormalization = qt.QComboBox(parent=self)
-        self._comboBoxNormalization.addItem('Linear', Colormap.LINEAR)
-        self._comboBoxNormalization.addItem('Logarithmic', Colormap.LOGARITHM)
-        self._comboBoxNormalization.addItem('Gamma correction', Colormap.GAMMA)
-        self._comboBoxNormalization.addItem('Square root', Colormap.SQRT)
-        self._comboBoxNormalization.addItem('Arcsinh', Colormap.ARCSINH)
+        normalizations = [
+            ('Linear', Colormap.LINEAR),
+            ('Gamma correction', Colormap.GAMMA),
+            ('Arcsinh', Colormap.ARCSINH),
+            ('Logarithmic', Colormap.LOGARITHM),
+            ('Square root', Colormap.SQRT)]
+        for name, userData in normalizations:
+            try:
+                icon = icons.getQIcon("colormap-norm-%s" % userData)
+            except:
+                icon = qt.QIcon()
+            self._comboBoxNormalization.addItem(icon, name, userData)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
             self._normalizationUpdated)
 
