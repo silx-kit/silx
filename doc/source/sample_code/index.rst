@@ -360,7 +360,11 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
    * - :download:`dropZones.py <../../../examples/dropZones.py>`
      - .. image:: img/dropZones.png
          :width: 150px
-     - Example of drop zone supporting application/x-silx-uri
+     - Example of drop zone supporting application/x-silx-uri.
+
+       This example illustrates the support of drag&drop of silx URLs.
+       It provides 2 URLs (corresponding to 2 datasets) that can be dragged to
+       either a :class:`PlotWidget` or a QLable displaying the URL information.
    * - :download:`exampleBaseline.py <../../../examples/exampleBaseline.py>`
      - .. image:: img/exampleBaseline.png
          :width: 150px
