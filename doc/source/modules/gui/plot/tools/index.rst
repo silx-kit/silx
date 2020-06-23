@@ -104,13 +104,6 @@ Other tools API
 .. autoclass:: RegionOfInterestTableWidget
    :members:
 
-:mod:`~silx.gui.plot.tools.profile`: Profile Tools
---------------------------------------------------
-
-.. automodule:: silx.gui.plot.tools.profile
-
-.. currentmodule:: silx.gui.plot.tools.profile
-
 :mod:`ColorBar`: ColorBar Widget
 ================================
 

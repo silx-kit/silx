@@ -450,6 +450,7 @@ class Image(AxesImage):
         return inside, info
 
     def set_data(self, A):
+        """Overridden to add a fast path for RGBA unit8 images"""
         A = numpy.array(A, copy=False)
         if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
             super(Image, self).set_data(A)
