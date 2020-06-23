@@ -211,8 +211,8 @@ prompt.
 MacOS
 -----
 
-While Apple ships Python 2.7 by default on their operating systems, we recommend
-using Python 3.5 or newer to ease the installation of the Qt library.
+Apple ships Python 2.7 by default on their operating systems.
+You must install Python 3.5 or newer to install silx.
 
 Then, install *silx* with ``pip``, see `Installing with pip`_::
 
