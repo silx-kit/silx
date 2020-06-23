@@ -8,6 +8,7 @@ Priority: optional
 Build-Depends: cython3 (>= 0.23.2),
                debhelper (>= 10),
                dh-python,
+               graphviz,
                help2man,
                ipython3,
                ipython3-qtconsole,
