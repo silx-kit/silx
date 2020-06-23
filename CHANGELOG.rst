@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Unreleased: 2020/06/17
-----------------------
+0.13.0: 2020/06/23
+------------------
 
 This version drops the support of Python 2.7 and Python <= 3.4.
 
@@ -74,6 +74,7 @@ This version drops the support of Python 2.7 and Python <= 3.4.
 * `silx.opencl`:
 
   * Fixed issue with Python 3.8 (PR #3036)
+  * Disable textures for Nvidia Fermi GPUs for `convolution` (PR #3101)
 
 * Miscellaneous:
 
