@@ -60,10 +60,10 @@ This version drops the support of Python 2.7 and Python <= 3.4.
     * Limit `silxGlobalThreadPool` function to use 4 threads maximum (PR #3072)
 
   * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
-  * `silx.gui.widgets:
+  * `silx.gui.widgets`:
 
     * Added `ElidedLabel` widget (PR #3110, #3111)
-    * Fixed `LegendIconWidget (PR #3112)
+    * Fixed `LegendIconWidget` (PR #3112)
 
 * `silx.io`:
 
