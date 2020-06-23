@@ -60,10 +60,10 @@ This version drops the support of Python 2.7 and Python <= 3.4.
     * Limit `silxGlobalThreadPool` function to use 4 threads maximum (PR #3072)
 
   * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
-  * `silx.gui.widgets:
+  * `silx.gui.widgets`:
 
     * Added `ElidedLabel` widget (PR #3110, #3111)
-    * Fixed `LegendIconWidget (PR #3112)
+    * Fixed `LegendIconWidget` (PR #3112)
 
 * `silx.io`:
 
@@ -85,7 +85,7 @@ This version drops the support of Python 2.7 and Python <= 3.4.
 
 * Build, documentation and tests:
 
-  * Dropped Python2 support (PR #3119) and removed Python 2 tests and packaging (PR #2838, #2917)
+  * Dropped Python2 support (PR #3119, #3140) and removed Python 2 tests and packaging (PR #2838, #2917)
   * Added debian 11/Ubuntu 20.04 packaging (PR #2875)
   * Improved test environment (PR #2870, #2949, #2995, #3009, #3061, #3086, #3087, #3122), documentation (PR #2872, #2894, #2937, #2987, #3042, #3053, #3068, #3091, #3103, #3115) and sample code (PR #2978, #3130, #3138)
   * Fixed Windows "fat binary" build (PR #2971)

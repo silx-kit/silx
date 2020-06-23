@@ -20,7 +20,7 @@ For a complete description of the API, see :mod:`silx.gui.plot`.
 Use :mod:`silx.gui.plot` from (I)Python console
 -----------------------------------------------
 
-We recommend to use (I)Python 3.x and PyQt5.
+We recommend to use (I)Python >=3.5 and PyQt5.
 
 From a Python or IPython interpreter, the simplest way is to import the :mod:`silx.sx` module:
 
@@ -48,10 +48,6 @@ the way silx loads Qt and the way IPython is doing it through the ``--gui`` opti
 `%pylab <http://ipython.org/ipython-doc/stable/interactive/magics.html#magic-pylab>`_ magics.
 In this case, IPython magics that initialize Qt might not work after importing modules from silx.gui.
 
-When using Python2.7 and PyQt4, there is another incompatibility to deal with as
-silx requires PyQt4 API version 2 (See note below for explanation).
-In this case, start IPython with the ``QT_API`` environment variable set to ``pyqt``.
-
 On Linux and MacOS X, run from the command line::
 
   QT_API=pyqt ipython
@@ -59,16 +55,6 @@ On Linux and MacOS X, run from the command line::
 On Windows, run from the command line::
 
   set QT_API=pyqt&&ipython
-
-
-.. note:: PyQt4 used from Python 2.x provides 2 incompatible versions of QString and QVariant:
-
-   - version 1, the legacy version which is also the default, and
-   - version 2, a more pythonic one, which is the only one supported by *silx*.
-
-   All other configurations (i.e., PyQt4 on Python 3.x, PySide2, PyQt5, IPython QtConsole widget) uses version 2.
-
-   For more information, see `IPython, PyQt and PySide <http://ipython.org/ipython-doc/stable/interactive/reference.html#pyqt-and-pyside>`_.
 
 
 Plot functions
