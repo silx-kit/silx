@@ -868,7 +868,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 gamma = colormap.getGammaNormalizationParameter()
                 nanColor = colors.rgba(colormap.getNaNColor())
 
-
                 image = GLPlotColormap(data,
                                        origin,
                                        scale,
