@@ -35,6 +35,7 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
+from silx.gui.utils import blockSignals
 from silx.math.combo import min_max
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
@@ -595,15 +596,19 @@ class Colormap(qt.QObject):
             raise NotEditableError('Colormap is not editable')
         if self == other:
             return
-        old = self.blockSignals(True)
-        name = other.getName()
-        if name is not None:
-            self.setName(name)
-        else:
-            self.setColormapLUT(other.getColormapLUT())
-        self.setNormalization(other.getNormalization())
-        self.setVRange(other.getVMin(), other.getVMax())
-        self.blockSignals(old)
+        with blockSignals(self):
+            name = other.getName()
+            if name is not None:
+                self.setName(name)
+            else:
+                self.setColormapLUT(other.getColormapLUT())
+            self.setNaNColor(other.getNaNColor())
+            self.setNormalization(other.getNormalization())
+            self.setGammaNormalizationParameter(
+                other.getGammaNormalizationParameter())
+            self.setAutoscaleMode(other.getAutoscaleMode())
+            self.setVRange(*other.getVRange())
+            self.setEditable(other.isEditable())
         self.sigChanged.emit()
 
     def getNColors(self, nbColors=None):
@@ -1041,8 +1046,10 @@ class Colormap(qt.QObject):
                         vmax=self._vmax,
                         normalization=self.getNormalization(),
                         autoscaleMode=self.getAutoscaleMode())
+        colormap.setNaNColor(self.getNaNColor())
         colormap.setGammaNormalizationParameter(
             self.getGammaNormalizationParameter())
+        colormap.setEditable(self.isEditable())
         return colormap
 
     def applyToData(self, data, reference=None):
