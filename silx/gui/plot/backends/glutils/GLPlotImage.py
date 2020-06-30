@@ -160,7 +160,7 @@ class GLPlotColormap(_GLPlotData2D):
         'fragment': """
     #version 120
 
-    /* isnan declaration for compatibily with GLSL 1.20 */
+    /* isnan declaration for compatibility with GLSL 1.20 */
     bool isnan(float value) {
         return (value != value);
     }
