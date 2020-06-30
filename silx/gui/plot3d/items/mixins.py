@@ -141,6 +141,7 @@ class ColormapMixIn(_ColormapMixIn):
             self.__sceneColormap.norm = colormap.getNormalization()
             self.__sceneColormap.gamma = colormap.getGammaNormalizationParameter()
             self.__sceneColormap.range_ = colormap.getColormapRange(self)
+            self.__sceneColormap.nancolor = rgba(colormap.getNaNColor())
 
 
 class ComplexMixIn(_ComplexMixIn):
