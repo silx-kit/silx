@@ -326,6 +326,23 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                            resetzoom=False)
         self.plot.resetZoom()
 
+    def testPlotColormapNaNColor(self):
+        self.plot.setKeepDataAspectRatio(False)
+        self.plot.setGraphTitle('Colormap with NaN color')
+
+        colormap = Colormap()
+        colormap.setNaNColor('red')
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
+        data = DATA_2D.astype(numpy.float32)
+        data[len(data)//2:] = numpy.nan
+        self.plot.addImage(data, legend="image 1", colormap=colormap,
+                           resetzoom=False)
+        self.plot.resetZoom()
+
+        colormap.setNaNColor((0., 1., 0., 1.))
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(0, 255, 0))
+        self.qapp.processEvents()
+
     def testImageOriginScale(self):
         """Test of image with different origin and scale"""
         self.plot.setGraphTitle('origin and scale')

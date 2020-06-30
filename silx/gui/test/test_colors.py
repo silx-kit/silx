@@ -113,6 +113,20 @@ class TestApplyColormapToData(ParametricTestCase):
         self.assertEqual(len(value), 1)
         self.assertEqual(value[0, 0], 128)
 
+    def testNaNColor(self):
+        """Test Colormap.applyToData with NaN values"""
+        colormap = Colormap(name='gray', normalization='linear')
+        colormap.setNaNColor('red')
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
+
+        data = numpy.array([50., numpy.nan])
+        image = items.ImageData()
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
+        self.assertEqual(len(value), 2)
+        self.assertTrue(numpy.array_equal(value[0], (128, 128, 128, 255)))
+        self.assertTrue(numpy.array_equal(value[1], (255, 0, 0, 255)))
+
 
 class TestDictAPI(unittest.TestCase):
     """Make sure the old dictionary API is working
