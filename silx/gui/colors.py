@@ -546,6 +546,8 @@ class Colormap(qt.QObject):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0
+        # Default NaN color: fully transparent white
+        self.__nanColor = numpy.array((255, 255, 255, 0), dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
@@ -688,6 +690,24 @@ class Colormap(qt.QObject):
         self._colors = _arrayToRgba8888(colors)
         self._name = None
         self.sigChanged.emit()
+
+    def getNaNColor(self):
+        """Returns the color to use for Not-A-Number floating point value.
+
+        :rtype: QColor
+        """
+        return qt.QColor(*self.__nanColor)
+
+    def setNaNColor(self, color):
+        """Set the color to use for Not-A-Number floating point value.
+
+        :param color: RGB(A) color to use for NaN values
+        :type color: QColor, str, tuple of uint8 or float in [0., 1.]
+        """
+        color = (numpy.array(rgba(color)) * 255).astype(numpy.uint8)
+        if not numpy.array_equal(self.__nanColor, color):
+            self.__nanColor = color
+            self.sigChanged.emit()
 
     def getNormalization(self):
         """Return the normalization of the colormap.
@@ -1041,7 +1061,12 @@ class Colormap(qt.QObject):
             data = data.getColormappedData()
 
         return _colormap.cmap(
-            data, self._colors, vmin, vmax, self._getNormalizer())
+            data,
+            self._colors,
+            vmin,
+            vmax,
+            self._getNormalizer(),
+            self.__nanColor)
 
     @staticmethod
     def getSupportedColormaps():
