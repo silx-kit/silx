@@ -160,6 +160,11 @@ class GLPlotColormap(_GLPlotData2D):
         'fragment': """
     #version 120
 
+    /* isnan declaration for compatibily with GLSL 1.20 */
+    bool isnan(float value) {
+        return (value != value);
+    }
+
     uniform sampler2D data;
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
@@ -167,6 +172,7 @@ class GLPlotColormap(_GLPlotData2D):
     uniform float cmap_min;
     uniform float cmap_oneOverRange;
     uniform float alpha;
+    uniform vec4 nancolor;
 
     varying vec2 coords;
 
@@ -175,7 +181,8 @@ class GLPlotColormap(_GLPlotData2D):
     const float oneOverLog10 = 0.43429448190325176;
 
     void main(void) {
-        float value = texture2D(data, textureCoords()).r;
+        float data = texture2D(data, textureCoords()).r;
+        float value = data;
         if (cmap_normalization == 1) { /*Logarithm mapping*/
             if (value > 0.) {
                 value = clamp(cmap_oneOverRange *
@@ -202,7 +209,11 @@ class GLPlotColormap(_GLPlotData2D):
             value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
         }
 
-        gl_FragColor = texture2D(cmap_texture, vec2(value, 0.5));
+        if (isnan(data)) {
+            gl_FragColor = nancolor;
+        } else {
+            gl_FragColor = texture2D(cmap_texture, vec2(value, 0.5));
+        }
         gl_FragColor.a *= alpha;
     }
     """
@@ -232,7 +243,7 @@ class GLPlotColormap(_GLPlotData2D):
 
     def __init__(self, data, origin, scale,
                  colormap, normalization='linear', gamma=0., cmapRange=None,
-                 alpha=1.0):
+                 alpha=1.0, nancolor=(1., 1., 1., 0.)):
         """Create a 2D colormap
 
         :param data: The 2D scalar data array to display
@@ -252,6 +263,8 @@ class GLPlotColormap(_GLPlotData2D):
             TODO: check consistency with matplotlib
         :type cmapRange: (float, float) or None
         :param float alpha: Opacity from 0 (transparent) to 1 (opaque)
+        :param nancolor: RGBA color for Not-A-Number values
+        :type nancolor: 4-tuple of float in [0., 1.]
         """
         assert data.dtype in self._INTERNAL_FORMATS
         assert normalization in self.SUPPORTED_NORMALIZATIONS
@@ -263,6 +276,7 @@ class GLPlotColormap(_GLPlotData2D):
         self._cmapRange = (1., 10.)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
+        self._nancolor = numpy.clip(nancolor, 0., 1.)
 
         self._cmap_texture = None
         self._texture = None
@@ -375,6 +389,8 @@ class GLPlotColormap(_GLPlotData2D):
         else:
             oneOverRange = 0.  # Fall-back
         gl.glUniform1f(prog.uniforms['cmap_oneOverRange'], oneOverRange)
+
+        gl.glUniform4f(prog.uniforms['nancolor'], *self._nancolor)
 
         self._cmap_texture.bind()
 
