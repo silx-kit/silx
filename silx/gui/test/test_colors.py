@@ -113,6 +113,20 @@ class TestApplyColormapToData(ParametricTestCase):
         self.assertEqual(len(value), 1)
         self.assertEqual(value[0, 0], 128)
 
+    def testNaNColor(self):
+        """Test Colormap.applyToData with NaN values"""
+        colormap = Colormap(name='gray', normalization='linear')
+        colormap.setNaNColor('red')
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
+
+        data = numpy.array([50., numpy.nan])
+        image = items.ImageData()
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
+        self.assertEqual(len(value), 2)
+        self.assertTrue(numpy.array_equal(value[0], (128, 128, 128, 255)))
+        self.assertTrue(numpy.array_equal(value[1], (255, 0, 0, 255)))
+
 
 class TestDictAPI(unittest.TestCase):
     """Make sure the old dictionary API is working
@@ -436,9 +450,10 @@ class TestObjectAPI(ParametricTestCase):
             Colormap(name="viridis"),
             Colormap(normalization=Colormap.SQRT)
         ]
-        gamma = Colormap(normalization=Colormap.GAMMA)
-        gamma.setGammaNormalizationParameter(1.2)
-        colormaps.append(gamma)
+        cmap = Colormap(normalization=Colormap.GAMMA)
+        cmap.setGammaNormalizationParameter(1.2)
+        cmap.setNaNColor('red')
+        colormaps.append(cmap)
         for expected in colormaps:
             with self.subTest(colormap=expected):
                 state = expected.saveState()
@@ -458,6 +473,21 @@ class TestObjectAPI(ParametricTestCase):
 
         expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
         self.assertEqual(colormap, expected)
+
+    def testStorageV2(self):
+        state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00'\
+                b'\x00\x00\x02\x00\x00\x00\x0e\x00v\x00i\x00r\x00i\x00d\x00i\x00'\
+                b's\x00\x00\x00\x00\x06\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x00'\
+                b'\x00\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06'\
+                b'\x00l\x00o\x00g\x00\x00\x00\x0c\x00m\x00i\x00n\x00m\x00a\x00x'
+        state = qt.QByteArray(state)
+        colormap = Colormap()
+        colormap.restoreState(state)
+
+        expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        expected.setGammaNormalizationParameter(1.5)
+        self.assertEqual(colormap, expected)
+
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""

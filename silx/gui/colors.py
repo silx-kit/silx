@@ -35,6 +35,7 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
+from silx.gui.utils import blockSignals
 from silx.math.combo import min_max
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
@@ -542,10 +543,14 @@ class Colormap(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
+    _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
     def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0
+        # Default NaN color: fully transparent white
+        self.__nanColor = numpy.array(self._DEFAULT_NAN_COLOR, dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
@@ -593,15 +598,19 @@ class Colormap(qt.QObject):
             raise NotEditableError('Colormap is not editable')
         if self == other:
             return
-        old = self.blockSignals(True)
-        name = other.getName()
-        if name is not None:
-            self.setName(name)
-        else:
-            self.setColormapLUT(other.getColormapLUT())
-        self.setNormalization(other.getNormalization())
-        self.setVRange(other.getVMin(), other.getVMax())
-        self.blockSignals(old)
+        with blockSignals(self):
+            name = other.getName()
+            if name is not None:
+                self.setName(name)
+            else:
+                self.setColormapLUT(other.getColormapLUT())
+            self.setNaNColor(other.getNaNColor())
+            self.setNormalization(other.getNormalization())
+            self.setGammaNormalizationParameter(
+                other.getGammaNormalizationParameter())
+            self.setAutoscaleMode(other.getAutoscaleMode())
+            self.setVRange(*other.getVRange())
+            self.setEditable(other.isEditable())
         self.sigChanged.emit()
 
     def getNColors(self, nbColors=None):
@@ -688,6 +697,24 @@ class Colormap(qt.QObject):
         self._colors = _arrayToRgba8888(colors)
         self._name = None
         self.sigChanged.emit()
+
+    def getNaNColor(self):
+        """Returns the color to use for Not-A-Number floating point value.
+
+        :rtype: QColor
+        """
+        return qt.QColor(*self.__nanColor)
+
+    def setNaNColor(self, color):
+        """Set the color to use for Not-A-Number floating point value.
+
+        :param color: RGB(A) color to use for NaN values
+        :type color: QColor, str, tuple of uint8 or float in [0., 1.]
+        """
+        color = (numpy.array(rgba(color)) * 255).astype(numpy.uint8)
+        if not numpy.array_equal(self.__nanColor, color):
+            self.__nanColor = color
+            self.sigChanged.emit()
 
     def getNormalization(self):
         """Return the normalization of the colormap.
@@ -1021,8 +1048,10 @@ class Colormap(qt.QObject):
                         vmax=self._vmax,
                         normalization=self.getNormalization(),
                         autoscaleMode=self.getAutoscaleMode())
+        colormap.setNaNColor(self.getNaNColor())
         colormap.setGammaNormalizationParameter(
             self.getGammaNormalizationParameter())
+        colormap.setEditable(self.isEditable())
         return colormap
 
     def applyToData(self, data, reference=None):
@@ -1041,7 +1070,12 @@ class Colormap(qt.QObject):
             data = data.getColormappedData()
 
         return _colormap.cmap(
-            data, self._colors, vmin, vmax, self._getNormalizer())
+            data,
+            self._colors,
+            vmin,
+            vmax,
+            self._getNormalizer(),
+            self.__nanColor)
 
     @staticmethod
     def getSupportedColormaps():
@@ -1086,7 +1120,7 @@ class Colormap(qt.QObject):
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
-    _SERIAL_VERSION = 2
+    _SERIAL_VERSION = 3
 
     def restoreState(self, byteArray):
         """
@@ -1106,7 +1140,7 @@ class Colormap(qt.QObject):
             return False
 
         version = stream.readUInt32()
-        if version not in (1, self._SERIAL_VERSION):
+        if version not in numpy.arange(1, self._SERIAL_VERSION+1):
             _logger.warning("Serial version mismatch. Found %d." % version)
             return False
 
@@ -1133,6 +1167,11 @@ class Colormap(qt.QObject):
         else:
             autoscaleMode = stream.readQString()
 
+        if version <= 2:
+            nanColor = self._DEFAULT_NAN_COLOR
+        else:
+            nanColor = stream.readInt32(), stream.readInt32(), stream.readInt32(), stream.readInt32()
+
         # emit change event only once
         old = self.blockSignals(True)
         try:
@@ -1142,6 +1181,7 @@ class Colormap(qt.QObject):
             self.setVRange(vmin, vmax)
             if gamma is not None:
                 self.setGammaNormalizationParameter(gamma)
+            self.setNaNColor(nanColor)
         finally:
             self.blockSignals(old)
         self.sigChanged.emit()
@@ -1169,6 +1209,12 @@ class Colormap(qt.QObject):
         if self.getNormalization() == Colormap.GAMMA:
             stream.writeFloat(self.getGammaNormalizationParameter())
         stream.writeQString(self.getAutoscaleMode())
+        nanColor = self.getNaNColor()
+        stream.writeInt32(nanColor.red())
+        stream.writeInt32(nanColor.green())
+        stream.writeInt32(nanColor.blue())
+        stream.writeInt32(nanColor.alpha())
+
         return data
 
 

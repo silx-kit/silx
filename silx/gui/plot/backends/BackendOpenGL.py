@@ -866,6 +866,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 cmapRange = colormap.getColormapRange(data=data)
                 colormapLut = colormap.getNColors(nbColors=256)
                 gamma = colormap.getGammaNormalizationParameter()
+                nanColor = colors.rgba(colormap.getNaNColor())
 
                 image = GLPlotColormap(data,
                                        origin,
@@ -874,7 +875,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                        normalization,
                                        gamma,
                                        cmapRange,
-                                       alpha)
+                                       alpha,
+                                       nanColor)
 
             else:  # Fallback applying colormap on CPU
                 rgba = colormap.applyToData(data)

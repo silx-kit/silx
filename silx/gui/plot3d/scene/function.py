@@ -389,10 +389,13 @@ class Colormap(event.Notifier, ProgramFunction):
     uniform float cmap_parameter;
     uniform float cmap_min;
     uniform float cmap_oneOverRange;
+    uniform vec4 nancolor;
 
     const float oneOverLog10 = 0.43429448190325176;
 
     vec4 colormap(float value) {
+        float data = value; /* Keep original input value for isnan test */
+
         if (cmap_normalization == 1) { /* Log10 mapping */
             if (value > 0.0) {
                 value = clamp(cmap_oneOverRange *
@@ -421,7 +424,12 @@ class Colormap(event.Notifier, ProgramFunction):
 
         $discard
 
-        vec4 color = texture2D(cmap_texture, vec2(value, 0.5));
+        vec4 color;
+        if (data != data) { /* isnan alternative for compatibility with GLSL 1.20 */
+            color = nancolor;
+        } else {
+            color = texture2D(cmap_texture, vec2(value, 0.5));
+        }
         return color;
     }
     """)
@@ -458,6 +466,7 @@ class Colormap(event.Notifier, ProgramFunction):
         self._gamma = -1.
         self._range = 1., 10.
         self._displayValuesBelowMin = True
+        self._nancolor = numpy.array((1., 1., 1., 0.), dtype=numpy.float32)
 
         self._texture = None
         self._update_texture = True
@@ -493,6 +502,20 @@ class Colormap(event.Notifier, ProgramFunction):
         self._colormap = colormap
         self._update_texture = True
         self.notify()
+
+    @property
+    def nancolor(self):
+        """RGBA color to use for Not-A-Number values as 4 float in [0., 1.]"""
+        return self._nancolor
+
+    @nancolor.setter
+    def nancolor(self, color):
+        color = numpy.clip(numpy.array(color, dtype=numpy.float32), 0., 1.)
+        assert color.ndim == 1
+        assert len(color) == 4
+        if not numpy.array_equal(self._nancolor, color):
+            self._nancolor = color
+            self.notify()
 
     @property
     def norm(self):
@@ -607,6 +630,7 @@ class Colormap(event.Notifier, ProgramFunction):
         gl.glUniform1f(program.uniforms['cmap_min'], min_)
         gl.glUniform1f(program.uniforms['cmap_oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
+        gl.glUniform4f(program.uniforms['nancolor'], *self._nancolor)
 
     def prepareGL2(self, context):
         if self._texture is None or self._update_texture:
