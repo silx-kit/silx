@@ -543,12 +543,14 @@ class Colormap(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
+    _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
     def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0
         # Default NaN color: fully transparent white
-        self.__nanColor = numpy.array((255, 255, 255, 0), dtype=numpy.uint8)
+        self.__nanColor = numpy.array(self._DEFAULT_NAN_COLOR, dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
         assert autoscaleMode in Colormap.AUTOSCALE_MODES
@@ -1118,7 +1120,7 @@ class Colormap(qt.QObject):
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
-    _SERIAL_VERSION = 2
+    _SERIAL_VERSION = 3
 
     def restoreState(self, byteArray):
         """
@@ -1138,7 +1140,7 @@ class Colormap(qt.QObject):
             return False
 
         version = stream.readUInt32()
-        if version not in (1, self._SERIAL_VERSION):
+        if version not in numpy.arange(1, self._SERIAL_VERSION+1):
             _logger.warning("Serial version mismatch. Found %d." % version)
             return False
 
@@ -1165,6 +1167,11 @@ class Colormap(qt.QObject):
         else:
             autoscaleMode = stream.readQString()
 
+        if version <= 2:
+            nanColor = self._DEFAULT_NAN_COLOR
+        else:
+            nanColor = stream.readInt32(), stream.readInt32(), stream.readInt32(), stream.readInt32()
+
         # emit change event only once
         old = self.blockSignals(True)
         try:
@@ -1174,6 +1181,7 @@ class Colormap(qt.QObject):
             self.setVRange(vmin, vmax)
             if gamma is not None:
                 self.setGammaNormalizationParameter(gamma)
+            self.setNaNColor(nanColor)
         finally:
             self.blockSignals(old)
         self.sigChanged.emit()
@@ -1201,6 +1209,12 @@ class Colormap(qt.QObject):
         if self.getNormalization() == Colormap.GAMMA:
             stream.writeFloat(self.getGammaNormalizationParameter())
         stream.writeQString(self.getAutoscaleMode())
+        nanColor = self.getNaNColor()
+        stream.writeInt32(nanColor.red())
+        stream.writeInt32(nanColor.green())
+        stream.writeInt32(nanColor.blue())
+        stream.writeInt32(nanColor.alpha())
+
         return data
 
 
