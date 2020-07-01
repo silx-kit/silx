@@ -46,9 +46,11 @@ _logger = logging.getLogger(__file__)
 
 try:
     from matplotlib import cm as _matplotlib_cm
+    from matplotlib.pyplot import colormaps as _matplotlib_colormaps
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
     _matplotlib_cm = None
+    _matplotlib_colormaps = None
 
 
 _COLORDICT = {}
@@ -1055,8 +1057,8 @@ class Colormap(qt.QObject):
         :rtype: tuple
         """
         colormaps = set()
-        if _matplotlib_cm is not None:
-            colormaps.update(_matplotlib_cm.cmap_d.keys())
+        if _matplotlib_colormaps is not None:
+            colormaps.update(_matplotlib_colormaps())
         colormaps.update(_AVAILABLE_LUTS.keys())
 
         colormaps = tuple(cmap for cmap in sorted(colormaps)
