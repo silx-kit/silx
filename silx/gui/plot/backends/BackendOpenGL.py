@@ -43,12 +43,7 @@ from ... import qt
 
 from ..._glutils import gl
 from ... import _glutils as glu
-from .glutils import (
-    GLLines2D, GLPlotTriangles,
-    GLPlotCurve2D, GLPlotColormap, GLPlotRGBAImage, GLPlotFrame2D,
-    mat4Ortho, mat4Identity,
-    LEFT, RIGHT, BOTTOM, TOP,
-    Text2D, FilledShape2D)
+from . import glutils
 from .glutils.PlotImageFile import saveImageToFile
 
 _logger = logging.getLogger(__name__)
@@ -216,7 +211,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._backgroundColor = 1., 1., 1., 1.
         self._dataBackgroundColor = 1., 1., 1., 1.
 
-        self.matScreenProj = mat4Identity()
+        self.matScreenProj = glutils.mat4Identity()
 
         self._progBase = glu.Program(
             _baseVertShd, _baseFragShd, attrib0='position')
@@ -231,7 +226,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         self._glGarbageCollector = []
 
-        self._plotFrame = GLPlotFrame2D(
+        self._plotFrame = glutils.GLPlotFrame2D(
             foregroundColor=(0., 0., 0., 1.),
             gridColor=(.7, .7, .7, 1.),
             margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
@@ -371,7 +366,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glUniform1i(self._progTex.uniforms['tex'], texUnit)
         gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat4Identity().astype(numpy.float32))
+                              glutils.mat4Identity().astype(numpy.float32))
 
         gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
         gl.glVertexAttribPointer(self._progTex.attributes['position'],
@@ -438,15 +433,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             item = plotItem._backendRenderer
 
-            if isinstance(item, (GLPlotCurve2D,
-                                 GLPlotColormap,
-                                 GLPlotRGBAImage,
-                                 GLPlotTriangles)):  # Render data items
+            if isinstance(item, (glutils.GLPlotCurve2D,
+                                 glutils.GLPlotColormap,
+                                 glutils.GLPlotRGBAImage,
+                                 glutils.GLPlotTriangles)):  # Render data items
                 gl.glViewport(self._plotFrame.margins.left,
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
 
-                if isinstance(item, GLPlotCurve2D) and item.info.get('yAxis') == 'right':
+                if (isinstance(item, glutils.GLPlotCurve2D) and
+                        item.info.get('yAxis') == 'right'):
                     item.render(self._plotFrame.transformedDataY2ProjMat,
                                 isXLog, isYLog)
                 else:
@@ -490,7 +486,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
                     gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
 
-                    shape2D = FilledShape2D(
+                    shape2D = glutils.FilledShape2D(
                         points, style=item['fill'], color=item['color'])
                     shape2D.render(
                         posAttrib=self._progBase.attributes['position'],
@@ -504,11 +500,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         points = numpy.append(points,
                                               numpy.atleast_2d(points[0]), axis=0)
 
-                    lines = GLLines2D(points[:, 0], points[:, 1],
-                                      style=item['linestyle'],
-                                      color=item['color'],
-                                      dash2ndColor=item['linebgcolor'],
-                                      width=item['linewidth'])
+                    lines = glutils.GLLines2D(
+                        points[:, 0], points[:, 1],
+                        style=item['linestyle'],
+                        color=item['color'],
+                        dash2ndColor=item['linebgcolor'],
+                        width=item['linewidth'])
                     lines.render(self.matScreenProj)
 
             elif isinstance(item, _MarkerItem):
@@ -530,34 +527,38 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             x = self._plotFrame.size[0] - \
                                 self._plotFrame.margins.right - pixelOffset
                             y = pixelPos[1] - pixelOffset
-                            label = Text2D(item['text'], x, y,
-                                           color=item['color'],
-                                           bgColor=(1., 1., 1., 0.5),
-                                           align=RIGHT, valign=BOTTOM)
+                            label = glutils.Text2D(
+                                item['text'], x, y,
+                                color=item['color'],
+                                bgColor=(1., 1., 1., 0.5),
+                                align=glutils.RIGHT, valign=glutils.BOTTOM)
                             labels.append(label)
 
                         width = self._plotFrame.size[0]
-                        lines = GLLines2D((0, width), (pixelPos[1], pixelPos[1]),
-                                          style=item['linestyle'],
-                                          color=item['color'],
-                                          width=item['linewidth'])
+                        lines = glutils.GLLines2D(
+                            (0, width), (pixelPos[1], pixelPos[1]),
+                            style=item['linestyle'],
+                            color=item['color'],
+                            width=item['linewidth'])
                         lines.render(self.matScreenProj)
 
                     else:  # yCoord is None: vertical line in data space
                         if item['text'] is not None:
                             x = pixelPos[0] + pixelOffset
                             y = self._plotFrame.margins.top + pixelOffset
-                            label = Text2D(item['text'], x, y,
-                                           color=item['color'],
-                                           bgColor=(1., 1., 1., 0.5),
-                                           align=LEFT, valign=TOP)
+                            label = glutils.Text2D(
+                                item['text'], x, y,
+                                color=item['color'],
+                                bgColor=(1., 1., 1., 0.5),
+                                align=glutils.LEFT, valign=glutils.TOP)
                             labels.append(label)
 
                         height = self._plotFrame.size[1]
-                        lines = GLLines2D((pixelPos[0], pixelPos[0]), (0, height),
-                                          style=item['linestyle'],
-                                          color=item['color'],
-                                          width=item['linewidth'])
+                        lines = glutils.GLLines2D(
+                            (pixelPos[0], pixelPos[0]), (0, height),
+                            style=item['linestyle'],
+                            color=item['color'],
+                            width=item['linewidth'])
                         lines.render(self.matScreenProj)
 
                 else:
@@ -568,24 +569,25 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         continue
 
                     if isYInverted:
-                        valign = BOTTOM
+                        valign = glutils.BOTTOM
                         vPixelOffset = -pixelOffset
                     else:
-                        valign = TOP
+                        valign = glutils.TOP
                         vPixelOffset = pixelOffset
 
                     if item['text'] is not None:
                         x = pixelPos[0] + pixelOffset
                         y = pixelPos[1] + vPixelOffset
-                        label = Text2D(item['text'], x, y,
-                                       color=item['color'],
-                                       bgColor=(1., 1., 1., 0.5),
-                                       align=LEFT, valign=valign)
+                        label = glutils.Text2D(
+                            item['text'], x, y,
+                            color=item['color'],
+                            bgColor=(1., 1., 1., 0.5),
+                            align=glutils.LEFT, valign=valign)
                         labels.append(label)
 
                     # For now simple implementation: using a curve for each marker
                     # Should pack all markers to a single set of points
-                    markerCurve = GLPlotCurve2D(
+                    markerCurve = glutils.GLPlotCurve2D(
                         numpy.array((pixelPos[0],), dtype=numpy.float64),
                         numpy.array((pixelPos[1],), dtype=numpy.float64),
                         marker=item['symbol'],
@@ -687,9 +689,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             int(self.getDevicePixelRatio() * width),
             int(self.getDevicePixelRatio() * height))
 
-        self.matScreenProj = mat4Ortho(0, self._plotFrame.size[0],
-                                       self._plotFrame.size[1], 0,
-                                       1, -1)
+        self.matScreenProj = glutils.mat4Ortho(
+            0, self._plotFrame.size[0],
+            self._plotFrame.size[1], 0,
+            1, -1)
 
         # Store current ranges
         previousXRange = self.getGraphXLimits()
@@ -824,18 +827,19 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         fillColor = None
         if fill is True:
             fillColor = color
-        curve = GLPlotCurve2D(x, y, colorArray,
-                              xError=xerror,
-                              yError=yerror,
-                              lineStyle=linestyle,
-                              lineColor=color,
-                              lineWidth=linewidth,
-                              marker=symbol,
-                              markerColor=color,
-                              markerSize=symbolsize,
-                              fillColor=fillColor,
-                              baseline=baseline,
-                              isYLog=isYLog)
+        curve = glutils.GLPlotCurve2D(
+            x, y, colorArray,
+            xError=xerror,
+            yError=yerror,
+            lineStyle=linestyle,
+            lineColor=color,
+            lineWidth=linewidth,
+            marker=symbol,
+            markerColor=color,
+            markerSize=symbolsize,
+            fillColor=fillColor,
+            baseline=baseline,
+            isYLog=isYLog)
         curve.info = {
             'yAxis': 'left' if yaxis is None else yaxis,
         }
@@ -861,26 +865,27 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 data = numpy.array(data, dtype=numpy.float32, order='C')
 
             normalization = colormap.getNormalization()
-            if normalization in GLPlotColormap.SUPPORTED_NORMALIZATIONS:
+            if normalization in glutils.GLPlotColormap.SUPPORTED_NORMALIZATIONS:
                 # Fast path applying colormap on the GPU
                 cmapRange = colormap.getColormapRange(data=data)
                 colormapLut = colormap.getNColors(nbColors=256)
                 gamma = colormap.getGammaNormalizationParameter()
                 nanColor = colors.rgba(colormap.getNaNColor())
 
-                image = GLPlotColormap(data,
-                                       origin,
-                                       scale,
-                                       colormapLut,
-                                       normalization,
-                                       gamma,
-                                       cmapRange,
-                                       alpha,
-                                       nanColor)
+                image = glutils.GLPlotColormap(
+                    data,
+                    origin,
+                    scale,
+                    colormapLut,
+                    normalization,
+                    gamma,
+                    cmapRange,
+                    alpha,
+                    nanColor)
 
             else:  # Fallback applying colormap on CPU
                 rgba = colormap.applyToData(data)
-                image = GLPlotRGBAImage(rgba, origin, scale, alpha)
+                image = glutils.GLPlotRGBAImage(rgba, origin, scale, alpha)
 
         elif len(data.shape) == 3:
             # For RGB, RGBA data
@@ -895,7 +900,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             else:
                 raise ValueError('Unsupported data type')
 
-            image = GLPlotRGBAImage(data, origin, scale, alpha)
+            image = glutils.GLPlotRGBAImage(data, origin, scale, alpha)
 
         else:
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
@@ -918,7 +923,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if self._plotFrame.yAxis.isLog:
             y = numpy.log10(y)
 
-        triangles = GLPlotTriangles(x, y, color, triangles, alpha)
+        triangles = glutils.GLPlotTriangles(x, y, color, triangles, alpha)
 
         return triangles
 
@@ -946,11 +951,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Remove methods
 
     def remove(self, item):
-        if isinstance(item, (GLPlotCurve2D,
-                             GLPlotColormap,
-                             GLPlotRGBAImage,
-                             GLPlotTriangles)):
-            if isinstance(item, GLPlotCurve2D):
+        if isinstance(item, (glutils.GLPlotCurve2D,
+                             glutils.GLPlotColormap,
+                             glutils.GLPlotRGBAImage,
+                             glutils.GLPlotTriangles)):
+            if isinstance(item, glutils.GLPlotCurve2D):
                 # Check if some curves remains on the right Y axis
                 y2AxisItems = (item for item in self._plot.getItems()
                                if isinstance(item, items.YAxisMixIn) and
@@ -1102,14 +1107,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return (0,) if isPicked else None
 
         # Pick image, curve, triangles
-        elif isinstance(item, (GLPlotCurve2D,
-                               GLPlotColormap,
-                               GLPlotRGBAImage,
-                               GLPlotTriangles)):
-            if isinstance(item, (GLPlotColormap, GLPlotRGBAImage, GLPlotTriangles)):
+        elif isinstance(item, (glutils.GLPlotCurve2D,
+                               glutils.GLPlotColormap,
+                               glutils.GLPlotRGBAImage,
+                               glutils.GLPlotTriangles)):
+            if isinstance(item, (glutils.GLPlotColormap, glutils.GLPlotRGBAImage, glutils.GLPlotTriangles)):
                 return item.pick(*dataPos)  # Might be None
 
-            elif isinstance(item, GLPlotCurve2D):
+            elif isinstance(item, glutils.GLPlotCurve2D):
                 return self.__pickCurves(item, x, y)
             else:
                 return None
