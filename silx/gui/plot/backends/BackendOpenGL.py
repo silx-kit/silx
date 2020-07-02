@@ -438,13 +438,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
 
-                if (isinstance(item, glutils.GLPlotCurve2D) and
-                        item.info.get('yAxis') == 'right'):
-                    item.render(self._plotFrame.transformedDataY2ProjMat,
-                                isXLog, isYLog)
+                if item.yaxis == 'right':
+                    matrix = self._plotFrame.transformedDataY2ProjMat
                 else:
-                    item.render(self._plotFrame.transformedDataProjMat,
-                                isXLog, isYLog)
+                    matrix = self._plotFrame.transformedDataProjMat
+                item.render(matrix, isXLog, isYLog)
 
             elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
@@ -837,9 +835,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             fillColor=fillColor,
             baseline=baseline,
             isYLog=isYLog)
-        curve.info = {
-            'yAxis': 'left' if yaxis is None else yaxis,
-        }
+        curve.yaxis = 'left' if yaxis is None else yaxis
 
         if yaxis == "right":
             self._plotFrame.isY2Axis = True
@@ -949,7 +945,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def remove(self, item):
         if isinstance(item, glutils.GLPlotItem):
-            if isinstance(item, glutils.GLPlotCurve2D):
+            if item.yaxis == 'right':
                 # Check if some curves remains on the right Y axis
                 y2AxisItems = (item for item in self._plot.getItems()
                                if isinstance(item, items.YAxisMixIn) and
@@ -1021,18 +1017,16 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if item.lineStyle is not None:
             offset = max(item.lineWidth / 2., offset)
 
-        yAxis = item.info['yAxis']
-
         inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
         dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                         axis=yAxis, check=True)
+                                         axis=item.yaxis, check=True)
         if dataPos is None:
             return None
         xPick0, yPick0 = dataPos
 
         inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
         dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                         axis=yAxis, check=True)
+                                         axis=item.yaxis, check=True)
         if dataPos is None:
             return None
         xPick1, yPick1 = dataPos
@@ -1052,8 +1046,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             xPickMin = numpy.log10(xPickMin)
             xPickMax = numpy.log10(xPickMax)
 
-        if (yAxis == 'left' and self._plotFrame.yAxis.isLog) or (
-                yAxis == 'right' and self._plotFrame.y2Axis.isLog):
+        if (item.yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
+                item.yaxis == 'right' and self._plotFrame.y2Axis.isLog):
             yPickMin = numpy.log10(yPickMin)
             yPickMax = numpy.log10(yPickMax)
 

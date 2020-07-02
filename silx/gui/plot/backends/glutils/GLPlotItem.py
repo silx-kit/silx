@@ -33,8 +33,10 @@ __date__ = "02/07/2020"
 
 class GLPlotItem:
     """Base class for primitives used in the PlotWidget OpenGL backend"""
+
     def __init__(self):
-        pass
+        self.yaxis = 'left'
+        "YAxis this item is attached to (either 'left' or 'right')"
 
     def pick(self, x, y):
         """Perform picking at given position.
