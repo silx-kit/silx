@@ -43,6 +43,7 @@ from silx.math.combo import min_max
 from ...._glutils import gl
 from ...._glutils import Program, vertexBuffer, VertexBufferAttrib
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
+from .GLPlotImage import GLPlotItem
 
 
 _logger = logging.getLogger(__name__)
@@ -1067,7 +1068,7 @@ def _proxyProperty(*componentsAttributes):
     return property(getter, setter)
 
 
-class GLPlotCurve2D(object):
+class GLPlotCurve2D(GLPlotItem):
     def __init__(self, xData, yData, colorData=None,
                  xError=None, yError=None,
                  lineStyle=SOLID,
@@ -1080,7 +1081,7 @@ class GLPlotCurve2D(object):
                  fillColor=None,
                  baseline=None,
                  isYLog=False):
-
+        super().__init__()
         self.colorData = colorData
 
         # Compute x bounds
