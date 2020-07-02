@@ -433,10 +433,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             item = plotItem._backendRenderer
 
-            if isinstance(item, (glutils.GLPlotCurve2D,
-                                 glutils.GLPlotColormap,
-                                 glutils.GLPlotRGBAImage,
-                                 glutils.GLPlotTriangles)):  # Render data items
+            if isinstance(item, glutils.GLPlotItem):  # Render data items
                 gl.glViewport(self._plotFrame.margins.left,
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
@@ -951,10 +948,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Remove methods
 
     def remove(self, item):
-        if isinstance(item, (glutils.GLPlotCurve2D,
-                             glutils.GLPlotColormap,
-                             glutils.GLPlotRGBAImage,
-                             glutils.GLPlotTriangles)):
+        if isinstance(item, glutils.GLPlotItem):
             if isinstance(item, glutils.GLPlotCurve2D):
                 # Check if some curves remains on the right Y axis
                 y2AxisItems = (item for item in self._plot.getItems()
@@ -1107,17 +1101,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return (0,) if isPicked else None
 
         # Pick image, curve, triangles
-        elif isinstance(item, (glutils.GLPlotCurve2D,
-                               glutils.GLPlotColormap,
-                               glutils.GLPlotRGBAImage,
-                               glutils.GLPlotTriangles)):
-            if isinstance(item, (glutils.GLPlotColormap, glutils.GLPlotRGBAImage, glutils.GLPlotTriangles)):
-                return item.pick(*dataPos)  # Might be None
-
-            elif isinstance(item, glutils.GLPlotCurve2D):
+        elif isinstance(item, glutils.GLPlotItem):
+            if isinstance(item, glutils.GLPlotCurve2D):
                 return self.__pickCurves(item, x, y)
             else:
-                return None
+                return item.pick(*dataPos)  # Might be None
 
     # Update curve
 
