@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -2077,7 +2077,7 @@ class _Image(Geometry):
         self._update_texture = True
         # By updating the position rather than always using a unit square
         # we benefit from Geometry bounds handling
-        self.setAttribute('position', self._UNIT_SQUARE * self._data.shape[:2])
+        self.setAttribute('position', self._UNIT_SQUARE * (self._data.shape[1], self._data.shape[0]))
         self.notify()
 
     def getData(self, copy=True):
@@ -2188,7 +2188,7 @@ class _Image(Geometry):
         gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
         shape = self._data.shape
-        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[0], 1./shape[1])
+        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[1], 1./shape[0])
 
         gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
 
