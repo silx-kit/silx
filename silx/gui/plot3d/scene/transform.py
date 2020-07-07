@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -855,13 +855,13 @@ class _Projection(Transform):
 
 
 class Orthographic(_Projection):
-    """Orthographic (i.e., parallel) projection which keeps aspect ratio.
+    """Orthographic (i.e., parallel) projection which can keep aspect ratio.
 
     Clipping planes are adjusted to match the aspect ratio of
-    the :attr:`size` attribute.
+    the :attr:`size` attribute if :attr:`keepaspect` is True.
 
-    The left, right, bottom and top parameters defines the area which must
-    always remain visible.
+    In this case, the left, right, bottom and top parameters defines the area
+    which must always remain visible.
     Effective clipping planes are adjusted to keep the aspect ratio.
 
     :param float left: Coord of the left clipping plane.
@@ -873,12 +873,15 @@ class Orthographic(_Projection):
     :param size:
         Viewport's size used to compute the aspect ratio (width, height).
     :type size: 2-tuple of float
+    :param bool keepaspect:
+        True (default) to keep aspect ratio, False otherwise.
     """
 
     def __init__(self, left=0., right=1., bottom=1., top=0., near=-1., far=1.,
-                 size=(1., 1.)):
+                 size=(1., 1.), keepaspect=True):
         self._left, self._right = left, right
         self._bottom, self._top = bottom, top
+        self._keepaspect = bool(keepaspect)
         super(Orthographic, self).__init__(near, far, checkDepthExtent=False,
                                            size=size)
         # _update called when setting size
@@ -888,22 +891,23 @@ class Orthographic(_Projection):
             self.left, self.right, self.bottom, self.top, self.near, self.far)
 
     def _update(self, left, right, bottom, top):
-        width, height = self.size
-        aspect = width / height
+        if self.keepaspect:
+            width, height = self.size
+            aspect = width / height
 
-        orthoaspect = abs(left - right) / abs(bottom - top)
+            orthoaspect = abs(left - right) / abs(bottom - top)
 
-        if orthoaspect >= aspect:  # Keep width, enlarge height
-            newheight = \
-                numpy.sign(top - bottom) * abs(left - right) / aspect
-            bottom = 0.5 * (bottom + top) - 0.5 * newheight
-            top = bottom + newheight
+            if orthoaspect >= aspect:  # Keep width, enlarge height
+                newheight = \
+                    numpy.sign(top - bottom) * abs(left - right) / aspect
+                bottom = 0.5 * (bottom + top) - 0.5 * newheight
+                top = bottom + newheight
 
-        else:  # Keep height, enlarge width
-            newwidth = \
-                numpy.sign(right - left) * abs(bottom - top) * aspect
-            left = 0.5 * (left + right) - 0.5 * newwidth
-            right = left + newwidth
+            else:  # Keep height, enlarge width
+                newwidth = \
+                    numpy.sign(right - left) * abs(bottom - top) * aspect
+                left = 0.5 * (left + right) - 0.5 * newwidth
+                right = left + newwidth
 
         # Store values
         self._left, self._right = left, right
@@ -942,15 +946,30 @@ class Orthographic(_Projection):
 
     @property
     def size(self):
-        """Viewport size as a 2-tuple of float (width, height) or None."""
+        """Viewport size as a 2-tuple of float (width, height)"""
         return self._size
 
     @size.setter
     def size(self, size):
         assert len(size) == 2
-        self._size = float(size[0]), float(size[1])
-        self._update(self.left, self.right, self.bottom, self.top)
-        self.notify()
+        size = float(size[0]), float(size[1])
+        if size != self._size:
+            self._size = size
+            self._update(self.left, self.right, self.bottom, self.top)
+            self.notify()
+
+    @property
+    def keepaspect(self):
+        """True to keep aspect ratio, False otherwise."""
+        return self._keepaspect
+
+    @keepaspect.setter
+    def keepaspect(self, aspect):
+        aspect = bool(aspect)
+        if aspect != self._keepaspect:
+            self._keepaspect = aspect
+            self._update(self.left, self.right, self.bottom, self.top)
+            self.notify()
 
 
 class Ortho2DWidget(_Projection):
