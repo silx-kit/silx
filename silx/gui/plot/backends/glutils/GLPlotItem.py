@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,42 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This module provides convenient classes for the OpenGL rendering backend.
+"""
+This module provides a base class for PlotWidget OpenGL backend primitives
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/04/2017"
+__date__ = "02/07/2020"
 
 
-import logging
+class GLPlotItem:
+    """Base class for primitives used in the PlotWidget OpenGL backend"""
 
+    def __init__(self):
+        self.yaxis = 'left'
+        "YAxis this item is attached to (either 'left' or 'right')"
 
-_logger = logging.getLogger(__name__)
+    def pick(self, x, y):
+        """Perform picking at given position.
 
+        :param float x: X coordinate in plot data frame of reference
+        :param float y: Y coordinate in plot data frame of reference
+        :returns:
+           Result of picking as a list of indices or None if nothing picked
+        :rtype: Union[List[int],None]
+        """
+        return None
 
-from .GLPlotCurve import *  # noqa
-from .GLPlotFrame import *  # noqa
-from .GLPlotImage import *  # noqa
-from .GLPlotItem import GLPlotItem  # noqa
-from .GLPlotTriangles import GLPlotTriangles  # noqa
-from .GLSupport import *  # noqa
-from .GLText import *  # noqa
-from .GLTexture import *  # noqa
+    def render(self, matrix, isXLog, isYLog):
+        """Performs OpenGL rendering of the item.
+
+        :param numpy.ndarray matrix: 4x4 transform matrix to use for rendering
+        :param bool isXLog: Whether X axis is log scale or not
+        :param bool isYLog: Whether Y axis is log scale or not
+        """
+        pass
+
+    def discard(self):
+        """Discards OpenGL resources this item has created."""
+        pass

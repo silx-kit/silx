@@ -40,10 +40,12 @@ from ...._glutils import gl, Program, Texture
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
+from .GLPlotItem import GLPlotItem
 
 
-class _GLPlotData2D(object):
+class _GLPlotData2D(GLPlotItem):
     def __init__(self, data, origin, scale):
+        super().__init__()
         self.data = data
         assert len(origin) == 2
         self.origin = tuple(origin)
@@ -79,15 +81,6 @@ class _GLPlotData2D(object):
     def yMax(self):
         oy, sy = self.origin[1], self.scale[1]
         return oy + sy * self.data.shape[0] if sy >= 0. else oy
-
-    def discard(self):
-        pass
-
-    def prepare(self):
-        pass
-
-    def render(self, matrix, isXLog, isYLog):
-        pass
 
 
 class GLPlotColormap(_GLPlotData2D):
