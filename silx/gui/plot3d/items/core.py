@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -400,32 +400,32 @@ class DataItem3D(Item3D):
             self._updated(Item3DChangedType.TRANSFORM)
 
     def setRotationCenter(self, x=0., y=0., z=0.):
-         """Set the center of rotation of the item.
+        """Set the center of rotation of the item.
 
-         Position of the rotation center is either a float
-         for an absolute position or one of the following
-         string to define a position relative to the item's bounding box:
-         'lower', 'center', 'upper'
+        Position of the rotation center is either a float
+        for an absolute position or one of the following
+        string to define a position relative to the item's bounding box:
+        'lower', 'center', 'upper'
 
-         :param x: rotation center position on the X axis
-         :rtype: float or str
-         :param y: rotation center position on the Y axis
-         :rtype: float or str
-         :param z: rotation center position on the Z axis
-         :rtype: float or str
-         """
-         center = []
-         for position in (x, y, z):
-             if isinstance(position, six.string_types):
-                 assert position in self._ROTATION_CENTER_TAGS
-             else:
-                 position = float(position)
-             center.append(position)
-         center = tuple(center)
+        :param x: rotation center position on the X axis
+        :rtype: float or str
+        :param y: rotation center position on the Y axis
+        :rtype: float or str
+        :param z: rotation center position on the Z axis
+        :rtype: float or str
+        """
+        center = []
+        for position in (x, y, z):
+            if isinstance(position, six.string_types):
+                assert position in self._ROTATION_CENTER_TAGS
+            else:
+                position = float(position)
+            center.append(position)
+        center = tuple(center)
 
-         if center != self._rotationCenter:
-             self._rotationCenter = center
-             self._updateRotationCenter()
+        if center != self._rotationCenter:
+            self._rotationCenter = center
+            self._updateRotationCenter()
 
     def getRotationCenter(self):
         """Returns the rotation center set by :meth:`setRotationCenter`.
