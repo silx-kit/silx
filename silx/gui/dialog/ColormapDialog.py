@@ -376,6 +376,9 @@ class _ColormapHistogram(qt.QWidget):
         self._histogramData = {}
         """Histogram displayed in the plot"""
 
+        self._dragging = False, False
+        """True, if the min or the max handle is dragging"""
+
         self._dataRange = {}
         """Histogram displayed in the plot"""
 
@@ -399,8 +402,15 @@ class _ColormapHistogram(qt.QWidget):
         not be None, except if there is no range or marker
         to display.
         """
+        # Do not reset the limit for handle about to be dragged
+        if self._dragging[0]:
+            vRange = self._finiteRange[0], vRange[1]
+        if self._dragging[1]:
+            vRange = vRange[0], self._finiteRange[1]
+
         if vRange == self._finiteRange:
             return
+
         self._finiteRange = vRange
         self.update()
 
@@ -604,10 +614,12 @@ class _ColormapHistogram(qt.QWidget):
         if kind == 'markerMoving':
             value = event['xdata']
             if event['label'] == 'Min':
+                self._dragging = True, False
                 self._finiteRange = value, self._finiteRange[1]
                 self._last = value, None
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Max':
+                self._dragging = False, True
                 self._finiteRange = self._finiteRange[0], value
                 self._last = None, value
                 self.sigRangeMoving.emit(*self._last)
@@ -615,6 +627,7 @@ class _ColormapHistogram(qt.QWidget):
         elif kind == 'markerMoved':
             self.sigRangeMoved.emit(*self._last)
             self._plot.resetZoom()
+            self._dragging = False, False
         else:
             pass
 
@@ -628,7 +641,7 @@ class _ColormapHistogram(qt.QWidget):
             isDraggable = colormap.isEditable()
 
         with utils.blockSignals(self):
-            if posMin is not None:
+            if posMin is not None and not self._dragging[0]:
                 self._plot.addXMarker(
                     posMin,
                     legend='Min',
@@ -636,7 +649,7 @@ class _ColormapHistogram(qt.QWidget):
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMinMarkerConstraint)
-            if posMax is not  None:
+            if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
