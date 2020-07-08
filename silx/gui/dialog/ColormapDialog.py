@@ -1588,7 +1588,11 @@ class ColormapDialog(qt.QDialog):
         """
         xmin = self._minValue.getValue()
         xmax = self._maxValue.getValue()
-        self._setColormapRange(xmin, xmax)
+        if vmin is None:
+            vmin = xmin
+        if vmax is None:
+            vmax = xmax
+        self._setColormapRange(vmin, vmax)
 
     def keyPressEvent(self, event):
         """Override key handling.
