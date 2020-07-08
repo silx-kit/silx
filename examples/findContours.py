@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 # ###########################################################################*/
 """Find contours examples
 
-.. note:: This module has an optional dependancy with sci-kit image library.
+.. note:: This module has an optional dependency with sci-kit image library.
     You might need to install it if you don't already have it.
 """
 
@@ -549,9 +549,10 @@ class FindContours(qt.QMainWindow):
         self.__customValue = value
         div = 12
         delta = (self.__image.max() - self.__image.min()) / div
-        self.__value.setValue(value)
-        self.__value.setRange(self.__image.min() + delta,
-                              self.__image.min() + delta * (div - 1))
+        self.__value.setValue(int(numpy.round(value)))
+        minv = self.__image.min() + delta
+        maxv = self.__image.min() + delta * (div - 1)
+        self.__value.setRange(int(numpy.floor(minv)), int(numpy.ceil(maxv)))
         self.updateCustomContours()
 
     def generate(self):

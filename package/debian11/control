@@ -1,0 +1,170 @@
+Source: silx
+Maintainer: Debian Science Maintainers <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Jerome Kieffer <jerome.kieffer@esrf.fr>,
+           Picca Frédéric-Emmanuel <picca@debian.org>,
+           Alexandre Marie <alexandre.marie@synchrotron-soleil.fr>
+Section: science
+Priority: optional
+Build-Depends: cython3 (>= 0.23.2),
+               cython3-dbg (>= 0.23.2),
+               debhelper-compat (= 12),
+               dh-python,
+               graphviz,
+               help2man,
+               ipython3,
+               pandoc <!nodoc>,
+               python3-all-dbg,
+               python3-all-dev,
+               python3-fabio,
+               python3-fabio-dbg,
+               python3-h5py,
+               python3-h5py-dbg,
+               python3-mako,
+               python3-matplotlib,
+               python3-matplotlib-dbg,
+               python3-nbsphinx <!nodoc>,
+               python3-numpy,
+               python3-numpy-dbg,
+               python3-opengl,
+               python3-pil,
+               python3-pil-dbg,
+               python3-pyopencl,
+               python3-pyopencl-dbg,
+               python3-pyqt5-dbg,
+               python3-pyqt5.qtopengl,
+               python3-pyqt5.qtopengl-dbg,
+               python3-pyqt5.qtsvg,
+               python3-pyqt5.qtsvg-dbg,
+               python3-qtconsole,
+               python3-scipy,
+               python3-scipy-dbg,
+               python3-setuptools,
+               python3-six,
+               python3-sphinx,
+               python3-sphinxcontrib.programoutput,
+               xauth,
+               xvfb
+Standards-Version: 4.1.3
+Vcs-Browser: https://salsa.debian.org/science-team/silx
+Vcs-Git: https://salsa.debian.org/science-team/silx.git
+Homepage: https://github.com/silx-kit/silx
+
+Package: silx
+Architecture: all
+Depends: python3-silx (>= ${source:Version}),
+         ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends}
+Description: Toolbox for X-Ray data analysis - Executables
+ The silx project aims at providing a collection of Python packages to
+ support the development of data assessment, reduction and analysis
+ applications at synchrotron radiation facilities. It aims at
+ providing reading/writing different file formats, data reduction
+ routines and a set of Qt widgets to browse and visualize data.
+ .
+ The current version provides :
+ .
+  * reading HDF5 file format (with support of SPEC file format)
+  * histogramming
+  * fitting
+  * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
+  * image plot widget with a set of associated tools (See changelog file).
+  * Unified browser for HDF5, SPEC and image file formats supporting inspection
+    and visualization of n-dimensional datasets.
+  * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
+  * OpenGL-based widget to display 3D scalar field with
+    isosurface and cutting plane.
+ .
+ This uses the Python 3 version of the package.
+
+Package: python3-silx
+Architecture: any
+Section: python
+Depends: ${misc:Depends}, ${python3:Depends}, ${shlibs:Depends}
+Description: Toolbox for X-Ray data analysis - Python3
+ The silx project aims at providing a collection of Python packages to
+ support the development of data assessment, reduction and analysis
+ applications at synchrotron radiation facilities. It aims at
+ providing reading/writing different file formats, data reduction
+ routines and a set of Qt widgets to browse and visualize data.
+ .
+ The current version provides :
+ .
+  * reading HDF5 file format (with support of SPEC file format)
+  * histogramming
+  * fitting
+  * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
+  * image plot widget with a set of associated tools (See changelog file).
+  * Unified browser for HDF5, SPEC and image file formats supporting inspection
+    and visualization of n-dimensional datasets.
+  * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
+  * OpenGL-based widget to display 3D scalar field with
+    isosurface and cutting plane.
+ .
+ This is the Python 3 version of the package.
+
+Package: python3-silx-dbg
+Architecture: any
+Section: debug
+Depends: python3-fabio-dbg,
+         python3-h5py-dbg,
+         python3-lxml-dbg,
+         python3-matplotlib-dbg,
+         python3-numpy-dbg,
+         python3-pil-dbg,
+         python3-pyopencl-dbg,
+         python3-pyqt5-dbg,
+         python3-pyqt5.qtopengl-dbg,
+         python3-pyqt5.qtsvg-dbg,
+         python3-scipy-dbg,
+         python3-silx (= ${binary:Version}),
+         ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends}
+Description: Toolbox for X-Ray data analysis - Python3 debug
+ The silx project aims at providing a collection of Python packages to
+ support the development of data assessment, reduction and analysis
+ applications at synchrotron radiation facilities. It aims at
+ providing reading/writing different file formats, data reduction
+ routines and a set of Qt widgets to browse and visualize data.
+ .
+ The current version provides :
+ .
+  * reading HDF5 file format (with support of SPEC file format)
+  * histogramming
+  * fitting
+  * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
+  * image plot widget with a set of associated tools (See changelog file).
+  * Unified browser for HDF5, SPEC and image file formats supporting inspection
+    and visualization of n-dimensional datasets.
+  * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
+  * OpenGL-based widget to display 3D scalar field with
+    isosurface and cutting plane.
+ .
+ This is the Python 3 debug version of the package.
+
+Package: python-silx-doc
+Architecture: all
+Section: doc
+Depends: libjs-mathjax, ${misc:Depends}, ${sphinxdoc:Depends}
+Description: Toolbox for X-Ray data analysis - Documentation
+ The silx project aims at providing a collection of Python packages to
+ support the development of data assessment, reduction and analysis
+ applications at synchrotron radiation facilities. It aims at
+ providing reading/writing different file formats, data reduction
+ routines and a set of Qt widgets to browse and visualize data.
+ .
+ The current version provides :
+ .
+  * reading HDF5 file format (with support of SPEC file format)
+  * histogramming
+  * fitting
+  * 1D and 2D visualization using multiple backends (matplotlib or OpenGL)
+  * image plot widget with a set of associated tools (See changelog file).
+  * Unified browser for HDF5, SPEC and image file formats supporting inspection
+    and visualization of n-dimensional datasets.
+  * Unified viewer (silx view filename) for HDF5, SPEC and image file formats
+  * OpenGL-based widget to display 3D scalar field with
+    isosurface and cutting plane.
+ .
+ This is the common documentation package.

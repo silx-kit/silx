@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt Hdf5 widget examples
-
-.. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
-    library, which is not a mandatory dependency for `silx`. You might need
-    to install it if you don't already have it.
-"""
+"""Qt Hdf5 widget examples"""
 
 import logging
 import sys
@@ -493,7 +488,7 @@ def get_edf_with_100000_frames():
         else:
             header = fabio.fabioimage.OrderedDict()
             header["frame_nb"] = framre_id
-            fabiofile.appendFrame(fabio.edfimage.Frame(data, header, framre_id))
+            fabiofile.append_frame(fabio.edfimage.Frame(data, header, framre_id))
     fabiofile.write(tmp.name)
 
     _file_cache[ID] = tmp

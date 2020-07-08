@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,13 +39,13 @@ from ....utils.deprecation import deprecated
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
-                   BaselineMixIn)
+                   BaselineMixIn, HighlightedMixIn, _Style)
 
 
 _logger = logging.getLogger(__name__)
 
 
-class CurveStyle(object):
+class CurveStyle(_Style):
     """Object storing the style of a curve.
 
     Set a value to None to use the default
@@ -153,7 +153,7 @@ class CurveStyle(object):
 
 
 class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
-            LineMixIn, BaselineMixIn):
+            LineMixIn, BaselineMixIn, HighlightedMixIn):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -181,9 +181,8 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
         BaselineMixIn.__init__(self)
+        HighlightedMixIn.__init__(self)
 
-        self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
-        self._highlighted = False
         self._setBaseline(Curve._DEFAULT_BASELINE)
 
         self.sigItemChanged.connect(self.__itemChanged)
@@ -214,8 +213,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
                                 yaxis=self.getYAxis(),
                                 xerror=xerror,
                                 yerror=yerror,
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
                                 symbolsize=style.getSymbolSize(),
@@ -230,7 +227,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         elif item == 1:
             return self.getYData(copy=False)
         elif item == 2:
-            return self.getLegend()
+            return self.getName()
         elif item == 3:
             info = self.getInfo(copy=False)
             return {} if info is None else info
@@ -267,46 +264,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
                 plot._invalidateDataRange()
 
         super(Curve, self).setVisible(visible)
-
-    def isHighlighted(self):
-        """Returns True if curve is highlighted.
-
-        :rtype: bool
-        """
-        return self._highlighted
-
-    def setHighlighted(self, highlighted):
-        """Set the highlight state of the curve
-
-        :param bool highlighted:
-        """
-        highlighted = bool(highlighted)
-        if highlighted != self._highlighted:
-            self._highlighted = highlighted
-            # TODO inefficient: better to use backend's setCurveColor
-            self._updated(ItemChangedType.HIGHLIGHTED)
-
-    def getHighlightedStyle(self):
-        """Returns the highlighted style in use
-
-        :rtype: CurveStyle
-        """
-        return self._highlightStyle
-
-    def setHighlightedStyle(self, style):
-        """Set the style to use for highlighting
-
-        :param CurveStyle style: New style to use
-        """
-        previous = self.getHighlightedStyle()
-        if style != previous:
-            assert isinstance(style, CurveStyle)
-            self._highlightStyle = style
-            self._updated(ItemChangedType.HIGHLIGHTED_STYLE)
-
-            # Backward compatibility event
-            if previous.getColor() != style.getColor():
-                self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
 
     @deprecated(replacement='Curve.getHighlightedStyle().getColor()',
                 since_version='0.9.0')
@@ -351,11 +308,11 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
                 symbolsize=self.getSymbolSize() if symbolsize is None else symbolsize)
 
         else:
-             return CurveStyle(color=self.getColor(),
-                               linestyle=self.getLineStyle(),
-                               linewidth=self.getLineWidth(),
-                               symbol=self.getSymbol(),
-                               symbolsize=self.getSymbolSize())
+            return CurveStyle(color=self.getColor(),
+                              linestyle=self.getLineStyle(),
+                              linewidth=self.getLineWidth(),
+                              symbol=self.getSymbol(),
+                              symbolsize=self.getSymbolSize())
 
     @deprecated(replacement='Curve.getCurrentStyle()',
                 since_version='0.9.0')

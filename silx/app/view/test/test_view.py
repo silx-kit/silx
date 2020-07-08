@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -164,7 +164,7 @@ class TestDataPanel(TestCaseQt):
         self.assertIs(widget.getCustomNxdataItem(), data)
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
+        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -175,8 +175,8 @@ class TestDataPanel(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
-        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"))
+        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
+        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"), mode='r')
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -243,7 +243,7 @@ class TestCustomNxdataWidget(TestCaseQt):
         self.assertFalse(item.isValid())
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
+        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
         try:
             widget = CustomNxdataWidget()
             model = widget.model()
@@ -255,8 +255,8 @@ class TestCustomNxdataWidget(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"))
-        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"))
+        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
+        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"), mode='r')
         try:
             widget = CustomNxdataWidget()
             model = widget.model()

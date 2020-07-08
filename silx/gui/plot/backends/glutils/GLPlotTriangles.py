@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,9 +38,10 @@ import numpy
 from .....math.combo import min_max
 from .... import _glutils as glutils
 from ...._glutils import gl
+from .GLPlotItem import GLPlotItem
 
 
-class GLPlotTriangles(object):
+class GLPlotTriangles(GLPlotItem):
     """Handle rendering of a set of colored triangles"""
 
     _PROGRAM = glutils.Program(
@@ -81,6 +82,7 @@ class GLPlotTriangles(object):
         :param numpy.ndarray triangles: (N, 3) array of indices of triangles
         :param float alpha: Opacity in [0, 1]
         """
+        super().__init__()
         # Check and convert input data
         x = numpy.ravel(numpy.array(x, dtype=numpy.float32))
         y = numpy.ravel(numpy.array(y, dtype=numpy.float32))
@@ -136,7 +138,7 @@ class GLPlotTriangles(object):
 
         # Sorted from furthest to closest point
         dists = (xPts[indices] - x) ** 2 + (yPts[indices] - y) ** 2
-        indices = indices[numpy.flip(numpy.argsort(dists))]
+        indices = indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         return tuple(indices) if len(indices) > 0 else None
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -99,7 +99,8 @@ class ArrayCurvePlot(qt.QWidget):
 
     def setCurvesData(self, ys, x=None,
                       yerror=None, xerror=None,
-                      ylabels=None, xlabel=None, title=None):
+                      ylabels=None, xlabel=None, title=None,
+                      xscale=None, yscale=None):
         """
 
         :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
@@ -115,6 +116,8 @@ class ArrayCurvePlot(qt.QWidget):
         :param str ylabels: Labels for each curve's Y axis
         :param str xlabel: Label for X axis
         :param str title: Graph title
+        :param str xscale: Scale of X axis in (None, 'linear', 'log')
+        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         """
         self.__signals = ys
         self.__signals_names = ylabels or (["Y"] * len(ys))
@@ -135,6 +138,12 @@ class ArrayCurvePlot(qt.QWidget):
             self._selector.show()
 
         self._plot.setGraphTitle(title or "")
+        if xscale is not None:
+            self._plot.getXAxis().setScale(
+                'log' if xscale == 'log' else 'linear')
+        if yscale is not None:
+            self._plot.getYAxis().setScale(
+                'log' if yscale == 'log' else 'linear')
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -235,6 +244,13 @@ class XYVScatterPlot(qt.QWidget):
     def _sliderIdxChanged(self, value):
         self._updateScatter()
 
+    def getScatterView(self):
+        """Returns the :class:`ScatterView` used for the display
+
+        :rtype: ScatterView
+        """
+        return self._plot
+
     def getPlot(self):
         """Returns the plot used for the display
 
@@ -245,7 +261,8 @@ class XYVScatterPlot(qt.QWidget):
     def setScattersData(self, y, x, values,
                         yerror=None, xerror=None,
                         ylabel=None, xlabel=None,
-                        title="", scatter_titles=None):
+                        title="", scatter_titles=None,
+                        xscale=None, yscale=None):
         """
 
         :param ndarray y: 1D array  for y (vertical) coordinates.
@@ -260,6 +277,8 @@ class XYVScatterPlot(qt.QWidget):
         :param str xlabel: Label for X axis
         :param str title: Main graph title
         :param List[str] scatter_titles:  Subtitles (one per scatter)
+        :param str xscale: Scale of X axis in (None, 'linear', 'log')
+        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         """
         self.__y_axis = y
         self.__x_axis = x
@@ -281,6 +300,13 @@ class XYVScatterPlot(qt.QWidget):
         self._slider.setValue(0)
         self._slider.valueChanged[int].connect(self._sliderIdxChanged)
 
+        if xscale is not None:
+            self._plot.getXAxis().setScale(
+                'log' if xscale == 'log' else 'linear')
+        if yscale is not None:
+            self._plot.getYAxis().setScale(
+                'log' if yscale == 'log' else 'linear')
+
         self._updateScatter()
 
     def _updateScatter(self):
@@ -289,10 +315,13 @@ class XYVScatterPlot(qt.QWidget):
 
         idx = self._slider.value()
 
-        title = ""
         if self.__graph_title:
-            title += self.__graph_title + "\n"  # main NXdata @title
-        title += self.__scatter_titles[idx]     # scatter dataset name
+            title = self.__graph_title  # main NXdata @title
+            if len(self.__scatter_titles) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__scatter_titles[idx]
+        else:
+            title = self.__scatter_titles[idx]  # scatter dataset name
 
         self._plot.setGraphTitle(title)
         self._plot.setData(x, y, self.__values[idx],
@@ -374,7 +403,8 @@ class ArrayImagePlot(qt.QWidget):
                      x_axis=None, y_axis=None,
                      signals_names=None,
                      xlabel=None, ylabel=None,
-                     title=None, isRgba=False):
+                     title=None, isRgba=False,
+                     xscale=None, yscale=None):
         """
 
         :param signals: list of n-D datasets, whose last 2 dimensions are used as the
@@ -390,6 +420,8 @@ class ArrayImagePlot(qt.QWidget):
         :param ylabel: Label for Y axis
         :param title: Graph title
         :param isRgba: True if data is a 3D RGBA image
+        :param str xscale: Scale of X axis in (None, 'linear', 'log')
+        :param str yscale: Scale of Y axis in (None, 'linear', 'log')
         """
         self._selector.selectionChanged.disconnect(self._updateImage)
         self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
@@ -423,6 +455,7 @@ class ArrayImagePlot(qt.QWidget):
             self._auxSigSlider.hide()
         self._auxSigSlider.setValue(0)
 
+        self._axis_scales = xscale, yscale
         self._updateImage()
         self._plot.resetZoom()
 
@@ -473,10 +506,21 @@ class ArrayImagePlot(qt.QWidget):
             origin = (xorigin, yorigin)
             scale = (xscale, yscale)
 
+            self._plot.getXAxis().setScale('linear')
+            self._plot.getYAxis().setScale('linear')
             self._plot.addImage(image, legend=legend,
                                 origin=origin, scale=scale,
                                 replace=True)
         else:
+            xaxisscale, yaxisscale = self._axis_scales
+
+            if xaxisscale is not None:
+                self._plot.getXAxis().setScale(
+                    'log' if xaxisscale == 'log' else 'linear')
+            if yaxisscale is not None:
+                self._plot.getYAxis().setScale(
+                    'log' if yaxisscale == 'log' else 'linear')
+
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
             # fixme: i don't think this can handle "irregular" RGBA images
             self._plot.addScatter(numpy.ravel(scatterx),
@@ -484,11 +528,13 @@ class ArrayImagePlot(qt.QWidget):
                                   numpy.ravel(image),
                                   legend=legend)
 
-        title = ""
         if self.__title:
-            title += self.__title
-        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
-            title += "\n" + self.__signals_names[auxSigIdx]
+            title = self.__title
+            if len(self.__signals_names) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__signals_names[auxSigIdx]
+        else:
+            title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
@@ -672,11 +718,13 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._plot.setOrigin((xorigin, yorigin))
         self._plot.setScale((xscale, yscale))
 
-        title = ""
         if self.__title:
-            title += self.__title
-        if not title.strip().endswith(self.__signals_names[auxSigIdx]):
-            title += "\n" + self.__signals_names[auxSigIdx]
+            title = self.__title
+            if len(self.__signals_names) > 1:
+                # Append dataset name only when there is many datasets
+                title += '\n' + self.__signals_names[auxSigIdx]
+        else:
+            title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
@@ -785,8 +833,8 @@ class ArrayStackPlot(qt.QWidget):
 
         self._stack_view.setGraphTitle(title or "")
         # by default, the z axis is the image position (dimension not plotted)
-        self._stack_view.getPlot().getXAxis().setLabel(self.__x_axis_name or "X")
-        self._stack_view.getPlot().getYAxis().setLabel(self.__y_axis_name or "Y")
+        self._stack_view.getPlotWidget().getXAxis().setLabel(self.__x_axis_name or "X")
+        self._stack_view.getPlotWidget().getYAxis().setLabel(self.__y_axis_name or "Y")
 
         self._updateStack()
 

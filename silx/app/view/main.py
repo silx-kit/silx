@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,11 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "17/01/2019"
 
-import sys
 import argparse
 import logging
+import os
 import signal
+import sys
 
 
 _logger = logging.getLogger(__name__)
@@ -61,7 +62,19 @@ def createParser():
         action="store_true",
         default=False,
         help='Start the application using new fresh user preferences')
+    parser.add_argument(
+        '--hdf5-file-locking',
+        dest="hdf5_file_locking",
+        action="store_true",
+        default=False,
+        help='Start the application with HDF5 file locking enabled (it is disabled by default)')
     return parser
+
+
+def createWindow(parent, settings):
+    from .Viewer import Viewer
+    window = Viewer(parent=None, settings=settings)
+    return window
 
 
 def mainQt(options):
@@ -72,6 +85,11 @@ def mainQt(options):
     #
     # Import most of the things here to be sure to use the right logging level
     #
+
+    # This needs to be done prior to load HDF5
+    hdf5_file_locking = 'TRUE' if options.hdf5_file_locking else 'FALSE'
+    _logger.info('Set HDF5_USE_FILE_LOCKING=%s', hdf5_file_locking)
+    os.environ['HDF5_USE_FILE_LOCKING'] = hdf5_file_locking
 
     try:
         # it should be loaded before h5py
@@ -112,8 +130,7 @@ def mainQt(options):
     if options.fresh_preferences:
         settings.clear()
 
-    from .Viewer import Viewer
-    window = Viewer(parent=None, settings=settings)
+    window = createWindow(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
 
     if options.use_opengl_plot:

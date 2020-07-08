@@ -104,7 +104,7 @@ class TestFabioH5(unittest.TestCase):
         data = numpy.arange(2 * 3)
         data.shape = 2, 3
         fabio_image = fabio.edfimage.edfimage(data=data)
-        fabio_image.appendFrame(data=data)
+        fabio_image.append_frame(data=data)
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
@@ -124,8 +124,8 @@ class TestFabioH5(unittest.TestCase):
         data3 = numpy.arange(2 * 5 * 1)
         data3.shape = 2, 5, 1
         fabio_image = fabio.edfimage.edfimage(data=data1)
-        fabio_image.appendFrame(data=data2)
-        fabio_image.appendFrame(data=data3)
+        fabio_image.append_frame(data=data2)
+        fabio_image.append_frame(data=data3)
         h5_image = fabioh5.File(fabio_image=fabio_image)
 
         dataset = h5_image["/scan_0/instrument/detector_0/data"]
@@ -207,7 +207,7 @@ class TestFabioH5(unittest.TestCase):
             if fabio_image is None:
                 fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_image.appendFrame(data=data, header=header)
+                fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # There is no equality between items
@@ -229,7 +229,7 @@ class TestFabioH5(unittest.TestCase):
             if fabio_image is None:
                 fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_image.appendFrame(data=data, header=header)
+                fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/time_of_day"]
         # There is no equality between items
@@ -249,7 +249,7 @@ class TestFabioH5(unittest.TestCase):
             if fabio_image is None:
                 fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_image.appendFrame(data=data, header=header)
+                fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
@@ -269,7 +269,7 @@ class TestFabioH5(unittest.TestCase):
             if fabio_image is None:
                 fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_image.appendFrame(data=data, header=header)
+                fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
@@ -289,7 +289,7 @@ class TestFabioH5(unittest.TestCase):
             if fabio_image is None:
                 fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_image.appendFrame(data=data, header=header)
+                fabio_image.append_frame(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
@@ -390,7 +390,7 @@ class TestFabioH5(unittest.TestCase):
             fabio_image = fabio.edfimage.edfimage(data=data, header=header)
             header = {}
             header["foo"] = b'a\x90bc\xFE'
-            fabio_image.appendFrame(data=data, header=header)
+            fabio_image.append_frame(data=data, header=header)
         except Exception as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
@@ -411,7 +411,7 @@ class TestFabioH5(unittest.TestCase):
             fabio_image = fabio.edfimage.edfimage(data=data, header=header)
             header = {}
             header["foo"] = u'abc\u2764'
-            fabio_image.appendFrame(data=data, header=header)
+            fabio_image.append_frame(data=data, header=header)
         except Exception as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
@@ -456,7 +456,7 @@ class TestFabioH5MultiFrames(unittest.TestCase):
             if fabio_file is None:
                 fabio_file = fabio.edfimage.EdfImage(data=data, header=header)
             else:
-                fabio_file.appendFrame(data=data, header=header)
+                fabio_file.append_frame(data=data, header=header)
 
         cls.fabio_file = fabio_file
         cls.fabioh5 = fabioh5.File(fabio_image=fabio_file)

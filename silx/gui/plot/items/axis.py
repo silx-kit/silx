@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -239,7 +239,7 @@ class Axis(qt.QObject):
 
         # TODO hackish way of forcing update of curves and images
         plot = self._getPlot()
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             item._updated()
         plot._invalidateDataRange()
 

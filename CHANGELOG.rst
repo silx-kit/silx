@@ -1,6 +1,168 @@
 Change Log
 ==========
 
+0.13.0: 2020/06/23
+------------------
+
+This version drops the support of Python 2.7 and Python <= 3.4.
+
+* silx view application:
+
+  * Added support of compound data (PR #2948)
+  * Added `Close All` menu (PR #2963)
+  * Added default title to plots (PR #2979, #2999)
+  * Added a button to enable/disable file content sorting (PR #3132)
+  * Added support of a `SILX_style` HDF5 attribute to provide axes and colormap scale (PR #3092)
+  * Improved `HDF5TableView` information table to make text selectable and ease copy (PR #2903)
+  * Fixes (PR #2881, #2902, #3083)
+
+* `silx.gui`:
+
+  * `silx.gui.colors.Colormap`:
+
+    * Added mean+/-3std autoscale mode (PR #2877, #2900)
+    * Added sqrt, arcsinh and gamma correction colormap normalizations (PR #3010, #3054, #3057, #3066, #3070, #3133)
+    * Limit number of threads used for computing the colormap (PR #3073)
+    * Reordered colormaps (PR #3137)
+
+  * `silx.gui.dialog.ColormapDialog`: Improved widget (PR #2874, #2915, #2924, #2954, #3136)
+  * `silx.gui.plot`:
+
+    * Major rework/extension of the regions of interest (ROI) (PR #3007, #3008, #3018, #3020, #3022, #3026, #3029, #3044, #3045, #3055, #3059, #3074, #3076, #3078, #3079, #3081, #3131)
+    * Major rework/extension of the profile tools (PR #2933, #2980, #2988, #3004, #3011, #3037, #3048, #3058, #3084, #3088, #3095, #3097)
+    * Added `silx.gui.plot.ImageStack` widget (PR #2480)
+    * Added support of scatter in `PixelIntensitiesHistoAction` (PR #3089, #3107)
+    * Added auto update of `FitAction` fitted data and range (PR #2960, #2961, #2969, #2981)
+    * Improved mask tools (PR #2986)
+    * Fixed `PlotWindow` (PR #2965) and `MaskToolsWidget` (PR #3125)
+
+    * `silx.gui.plot.PlotWidget`:
+
+      * Changed behaviour of `PlotWidget.addItem` and `PlotWidget.removeItem` to handle object items (previous behavior deprecated, not removed) and added `PlotWidget.addShape` method to add `Shape` items (PR #2873, #2904, #2919, #2925, #3120)
+      * Added support of uint16 RGBA images (PR #2889)
+      * Improved interaction (PR #2909, #3014, #3033)
+      * Fixed `PlotWidget` (PR #2884, #2901, #2970, #3002)
+      * Fixed and cleaned-up backends (PR #2887, #2910, #2913, #2957, #2964, #2984, #2991, #3023, #3064, #3135)
+
+    * `silx.gui.plot.items`:
+
+      * Added `sigDragStarted` and `sigDragFinished` signals to marker items and `sigEditingStarted` and `sigEditingFinished` signals to region of interest items (PR #2754)
+      * Added `XAxisExtent` and `YAxisExtent` items in `silx.gui.plot.items` to control the plot data extent (PR #2932)
+      * Added `ImageStack` item (PR #2994)
+      * Added `Scatter` item histogram visualization mode (PR #2912, #2923)
+      * Added `isDragged` method to marker items (PR #3000)
+      * Improved performance of colormapped items by caching data min/max (PR #2876, #2886)
+      * Improved `Scatter` item regular grid (PR #2918) and irregular grid (PR #3108) visualizations
+
+  * `silx.gui.qt`:
+
+    * Changed behavior of `QObject` multiple-inheritance (PR #3052)
+    * Limit `silxGlobalThreadPool` function to use 4 threads maximum (PR #3072)
+
+  * `silx.gui.utils.glutils`: Added `isOpenGLAvailable` to check the availability of OpenGL (PR #2878)
+  * `silx.gui.widgets`:
+
+    * Added `ElidedLabel` widget (PR #3110, #3111)
+    * Fixed `LegendIconWidget` (PR #3112)
+
+* `silx.io`:
+
+  * Added support of signal dataset name-based errors to NXdata (PR #2976)
+  * Added `dicttonx` function and support of HDF5 attibutes in `dicttoh5` function (PR #3013, #3017, #3031, #3093)
+  * Fixed `url.DataUrl.path` (PR #2973)
+
+* `silx.opencl`:
+
+  * Fixed issue with Python 3.8 (PR #3036)
+  * Disable textures for Nvidia Fermi GPUs for `convolution` (PR #3101)
+
+* Miscellaneous:
+
+  * Requires fabio >= 0.9 (PR #2937)
+  * Fixed compatibility with h5py<v2.9 (PR #3024), cython 3 (PR #3034)
+  * Avoid deprecation warnings (PR #3104) from Python 3.7 (PR #3012), Python 3.8 (PR #2891, #2934, #2989, #2993, #3127), h5py (PR #2854, #2893), matplotlib (PR #2890), fabio (PR #2930) and numpy (PR #3129)
+  * Use `numpy.errstate` to ignore warnings rather than the `warnings` module (PR #2920)
+
+* Build, documentation and tests:
+
+  * Dropped Python2 support (PR #3119, #3140) and removed Python 2 tests and packaging (PR #2838, #2917)
+  * Added debian 11/Ubuntu 20.04 packaging (PR #2875)
+  * Improved test environment (PR #2870, #2949, #2995, #3009, #3061, #3086, #3087, #3122), documentation (PR #2872, #2894, #2937, #2987, #3042, #3053, #3068, #3091, #3103, #3115) and sample code (PR #2978, #3130, #3138)
+  * Fixed Windows "fat binary" build (PR #2971)
+
+
+0.12.0: 2020/01/09
+------------------
+
+Python 2.7 is no longer officially supported (even if tests pass and most of the library should work).
+
+* silx view application:
+
+  * Added: keep the same axes selection when changing dataset except for the stack view (PR #2701, #2780)
+  * Added a Description column in the browsing tree to display NeXus title or name (PR #2804)
+  * Added support of URL as filename (PR #2750)
+  * Behavior changed: no longer lock HDF5 files by default, can be changed with `--hdf5-file-locking` option (PR #2861)
+
+* `silx.gui`:
+
+  * `silx.gui.plot`:
+
+    * Added scatter plot regular and irregular grid visualization mode (PR #2810, #2815, #2820, #2824, #2831)
+    * Added `baseline` argument to `PlotWidget` `addCurve` and `addHistogram` methods (PR #2715)
+    * Added right axis support to `PlotWidget` marker items (PR #2744)
+    * Added `BoundingRect` `PlotWidget` item (PR #2823)
+    * Added more markers to `PlotWidget` items using symbols (PR #2792)
+    * Improved and fixed `PlotWidget` and backends rendering and picking to guarantee rendering order of items (PR #2602, #2694, #2726, #2728, #2730, #2731, #2732, #2734, #2746, #2800, #2822, #2829, #2851, #2853)
+    * Improved `RegionOfInterest`: Added `sigItemChanged` signal, renamed `get|setLabel` to `get|setName` (PR #2684, #2729, #2794, #2803, #2860)
+    * Improved `StackView`: Allow to save dataset to HDF5 (PR #2813)
+
+  * `silx.gui.plot3d`:
+
+    * Added colormapped isosurface display to `ComplexField3D` (PR #2675)
+
+  * Miscellaneous:
+
+    * Added `cividis` colormap (PR #2763)
+    * Added `silx.gui.widgets.ColormapNameComboBox` widget (PR #2814)
+    * Added `silx.gui.widgets.LegendIconWidget` widget (PR #2783)
+    * Added `silx.gui.utils.blockSignals` context manager (PR #2697, #2702)
+    * Added `silx.gui.utils.qtutils.getQEventName` function (PR #2725)
+    * Added `silx.gui.colors.asQColor` function (PR #2753)
+    * Minor fixes (PR #2662, #2667, #2674, #2719, #2724, #2747, #2757, #2760, #2766, #2789, #2798, #2799, #2805, #2811, #2832, #2834, #2839, #2849, #2852, #2857, #2864, #2867)
+
+* `silx.opencl`:
+
+  * Added `silx.opencl.sparse.CSR` with support of different data types (PR #2671)
+  * Improved support of different platforms like PoCL (PR #2669, #2698, #2806)
+  * Moved non-OpenCL related utilities to `silx.opencl.utils` module (PR #2782)
+  * Fixed `silx.opencl.sinofilter.SinoFilter` to avoid importing scikit-cuda (PR #2721)
+  * Fixed kernel garbage collection (PR #2708)
+  * Fixed `silx.opencl.convolution.Convolution` (PR #2781)
+
+* `silx.math`/`silx.image`:
+
+  * Added trilinear interpolator: `silx.math.interpolate.interp3d` (PR #2678)
+  * Added `silx.image.utils.gaussian_kernel` function (PR #2782)
+  * Improved `silx.image.shapes.Polygon` argument check (PR #2761)
+  * Fixed and improved `silx.math.fft` with FFTW backend (PR #2751)
+  * Fixed support of not finite data in fit manager (PR #2868)
+
+* `silx.io`:
+
+  * Added `asarray=True` argument to `silx.io.dictdump.h5todict` function (PR #2692, #2767)
+  * Improved `silx.io.utils.DataUrl` (PR #2790)
+  * Increased max number of motors in `specfile` (PR #2817)
+  * Fixed data conversion when reading images with `fabio` (PR #2735)
+
+* Build, documentation and tests:
+
+  * Added `Cython` as a build dependency (PR #2795, #2807, #2808)
+  * Added Debian 10 packaging (PR #2670, #2672, #2666, #2686, #2706)
+  * Improved documentation (PR #2673, #2680, #2679, #2772, #2759, #2779, #2801, #2802, #2833, #2857, #2869)
+  * Improved testing tools (PR #2704, #2796, #2818)
+  * Improved `bootstrap.py` script (PR #2727, #2733)
+
+
 0.11.0: 2019/07/03
 ------------------
 

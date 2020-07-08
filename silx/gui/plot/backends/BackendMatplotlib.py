@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -52,10 +52,12 @@ from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
+from matplotlib.text import Text
 from matplotlib.collections import PathCollection, LineCollection
 from matplotlib.ticker import Formatter, ScalarFormatter, Locator
 from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
+from matplotlib import path as mpath
 
 from . import BackendBase
 from .. import items
@@ -72,11 +74,54 @@ _PATCH_LINESTYLE = {
 }
 """Patches do not uses the same matplotlib syntax"""
 
+_MARKER_PATHS = {}
+"""Store cached extra marker paths"""
+
+_SPECIAL_MARKERS = {
+    'tickleft': 0,
+    'tickright': 1,
+    'tickup': 2,
+    'tickdown': 3,
+    'caretleft': 4,
+    'caretright': 5,
+    'caretup': 6,
+    'caretdown': 7,
+}
+
 
 def normalize_linestyle(linestyle):
     """Normalize known old-style linestyle, else return the provided value."""
     return _PATCH_LINESTYLE.get(linestyle, linestyle)
 
+def get_path_from_symbol(symbol):
+    """Get the path representation of a symbol, else None if
+    it is not provided.
+
+    :param str symbol: Symbol description used by silx
+    :rtype: Union[None,matplotlib.path.Path]
+    """
+    if symbol == u'\u2665':
+        path = _MARKER_PATHS.get(symbol, None)
+        if path is not None:
+            return path
+        vertices = numpy.array([
+            [0,-99],
+            [31,-73], [47,-55], [55,-46],
+            [63,-37], [94,-2], [94,33],
+            [94,69], [71,89], [47,89],
+            [24,89], [8,74], [0,58],
+            [-8,74], [-24,89], [-47,89],
+            [-71,89], [-94,69], [-94,33],
+            [-94,-2], [-63,-37], [-55,-46],
+            [-47,-55], [-31,-73], [0,-99],
+            [0,-99]])
+        codes = [mpath.Path.CURVE4] * len(vertices)
+        codes[0] = mpath.Path.MOVETO
+        codes[-1] = mpath.Path.CLOSEPOLY
+        path = mpath.Path(vertices, codes)
+        _MARKER_PATHS[symbol] = path
+        return path
+    return None
 
 class NiceDateLocator(Locator):
     """
@@ -165,10 +210,33 @@ class NiceAutoDateFormatter(Formatter):
 class _PickableContainer(Container):
     """Artists container with a :meth:`contains` method"""
 
+    def __init__(self, *args, **kwargs):
+        Container.__init__(self, *args, **kwargs)
+        self.__zorder = None
+
+    @property
+    def axes(self):
+        """Mimin Artist.axes"""
+        for child in self.get_children():
+            if hasattr(child, 'axes'):
+                return child.axes
+        return None
+
     def draw(self, *args, **kwargs):
         """artist-like draw to broadcast draw to children"""
         for child in self.get_children():
             child.draw(*args, **kwargs)
+
+    def get_zorder(self):
+        """Mimic Artist.get_zorder"""
+        return self.__zorder
+
+    def set_zorder(self, z):
+        """Mimic Artist.set_zorder to broadcast to children"""
+        if z != self.__zorder:
+            self.__zorder = z
+            for child in self.get_children():
+                child.set_zorder(z)
 
     def contains(self, mouseevent):
         """Mimic Artist.contains, and call it on all children.
@@ -185,6 +253,60 @@ class _PickableContainer(Container):
         return False, {}
 
 
+class _TextWithOffset(Text):
+    """Text object which can be displayed at a specific position
+    of the plot, but with a pixel offset"""
+
+    def __init__(self, *args, **kwargs):
+        Text.__init__(self, *args, **kwargs)
+        self.pixel_offset = (0, 0)
+        self.__cache = None
+
+    def draw(self, renderer):
+        self.__cache = None
+        return Text.draw(self, renderer)
+
+    def __get_xy(self):
+        if self.__cache is not None:
+            return self.__cache
+
+        align = self.get_horizontalalignment()
+        if align == "left":
+            xoffset = self.pixel_offset[0]
+        elif align == "right":
+            xoffset = -self.pixel_offset[0]
+        else:
+            xoffset = 0
+
+        align = self.get_verticalalignment()
+        if align == "top":
+            yoffset = -self.pixel_offset[1]
+        elif align == "bottom":
+            yoffset = self.pixel_offset[1]
+        else:
+            yoffset = 0
+
+        trans = self.get_transform()
+        invtrans = self.get_transform().inverted()
+
+        x = super(_TextWithOffset, self).convert_xunits(self._x)
+        y = super(_TextWithOffset, self).convert_xunits(self._y)
+        pos = x, y
+        proj = trans.transform_point(pos)
+        proj = proj + numpy.array((xoffset, yoffset))
+        pos = invtrans.transform_point(proj)
+        self.__cache = pos
+        return pos
+
+    def convert_xunits(self, x):
+        """Return the pixel position of the annotated point."""
+        return self.__get_xy()[0]
+
+    def convert_yunits(self, y):
+        """Return the pixel position of the annotated point."""
+        return self.__get_xy()[1]
+
+
 class _MarkerContainer(_PickableContainer):
     """Marker artists container supporting draw/remove and text position update
 
@@ -196,9 +318,10 @@ class _MarkerContainer(_PickableContainer):
     :param y: Y coordinate of the marker (None for vertical lines)
     """
 
-    def __init__(self, artists, x, y, yAxis):
+    def __init__(self, artists, symbol, x, y, yAxis):
         self.line = artists[0]
         self.text = artists[1] if len(artists) > 1 else None
+        self.symbol = symbol
         self.x = x
         self.y = y
         self.yAxis = yAxis
@@ -211,27 +334,39 @@ class _MarkerContainer(_PickableContainer):
         if self.text is not None:
             self.text.draw(*args, **kwargs)
 
-    def updateMarkerText(self, xmin, xmax, ymin, ymax):
+    def updateMarkerText(self, xmin, xmax, ymin, ymax, yinverted):
         """Update marker text position and visibility according to plot limits
 
         :param xmin: X axis lower limit
         :param xmax: X axis upper limit
         :param ymin: Y axis lower limit
-        :param ymax: Y axis upprt limit
+        :param ymax: Y axis upper limit
+        :param yinverted: True if the y axis is inverted
         """
         if self.text is not None:
             visible = ((self.x is None or xmin <= self.x <= xmax) and
                        (self.y is None or ymin <= self.y <= ymax))
             self.text.set_visible(visible)
 
-            if self.x is not None and self.y is None:  # vertical line
-                delta = abs(ymax - ymin)
-                if ymin > ymax:
-                    ymax = ymin
-                ymax -= 0.005 * delta
-                self.text.set_y(ymax)
+            if self.x is not None and self.y is not None:
+                if self.symbol is None:
+                    valign = 'baseline'
+                else:
+                    if yinverted:
+                        valign = 'bottom'
+                    else:
+                        valign = 'top'
+                self.text.set_verticalalignment(valign)
 
-            if self.x is None and self.y is not None:  # Horizontal line
+            elif self.y is None:  # vertical line
+                # Always display it on top
+                center = (ymax + ymin) * 0.5
+                pos = (ymax - ymin) * 0.5 * 0.99
+                if yinverted:
+                    pos = -pos
+                self.text.set_y(center + pos)
+
+            elif self.x is None:  # Horizontal line
                 delta = abs(xmax - xmin)
                 if xmin > xmax:
                     xmax = xmin
@@ -287,9 +422,35 @@ class _DoubleColoredLinePatch(matplotlib.patches.Patch):
 
 
 class Image(AxesImage):
-    """An AxesImage with a fast path for uint8 RGBA images"""
+    """An AxesImage with a fast path for uint8 RGBA images.
+
+    :param List[float] silx_origin: (ox, oy) Offset of the image.
+    :param List[float] silx_scale: (sx, sy) Scale of the image.
+    """
+
+    def __init__(self, *args,
+                 silx_origin=(0., 0.),
+                 silx_scale=(1., 1.),
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__silx_origin = silx_origin
+        self.__silx_scale = silx_scale
+
+    def contains(self, mouseevent):
+        """Overridden to fill 'ind' with row and column"""
+        inside, info = super().contains(mouseevent)
+        if inside:
+            x, y = mouseevent.xdata, mouseevent.ydata
+            ox, oy = self.__silx_origin
+            sx, sy = self.__silx_scale
+            height, width = self.get_size()
+            column = numpy.clip(int((x - ox) / sx), 0, width - 1)
+            row = numpy.clip(int((y - oy) / sy), 0, height - 1)
+            info['ind'] = (row,), (column,)
+        return inside, info
 
     def set_data(self, A):
+        """Overridden to add a fast path for RGBA unit8 images"""
         A = numpy.array(A, copy=False)
         if A.ndim != 3 or A.shape[2] != 4 or A.dtype != numpy.uint8:
             super(Image, self).set_data(A)
@@ -327,25 +488,29 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
         # Make sure background of Axes is displayed
-        self.ax2.patch.set_visible(True)
+        self.ax2.patch.set_visible(False)
+        self.ax.patch.set_visible(True)
 
         # Set axis zorder=0.5 so grid is displayed at 0.5
         self.ax.set_axisbelow(True)
 
         # disable the use of offsets
         try:
-            self.ax.get_yaxis().get_major_formatter().set_useOffset(False)
-            self.ax.get_xaxis().get_major_formatter().set_useOffset(False)
-            self.ax2.get_yaxis().get_major_formatter().set_useOffset(False)
-            self.ax2.get_xaxis().get_major_formatter().set_useOffset(False)
+            axes = [
+                self.ax.get_yaxis().get_major_formatter(),
+                self.ax.get_xaxis().get_major_formatter(),
+                self.ax2.get_yaxis().get_major_formatter(),
+                self.ax2.get_xaxis().get_major_formatter(),
+            ]
+            for axis in axes:
+                axis.set_useOffset(False)
+                axis.set_scientific(False)
         except:
             _logger.warning('Cannot disabled axes offsets in %s '
                             % matplotlib.__version__)
 
-        # critical for picking!!!!
-        self.ax2.set_zorder(0)
         self.ax2.set_autoscaley_on(True)
-        self.ax.set_zorder(1)
+
         # this works but the figure color is left
         if self._matplotlibVersion < _parse_version('2'):
             self.ax.set_axis_bgcolor('none')
@@ -361,6 +526,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._enableAxis('right', False)
         self._isXAxisTimeSeries = False
+
+    def getItemsFromBackToFront(self, condition=None):
+        """Order as BackendBase + take into account matplotlib Axes structure"""
+        def axesOrder(item):
+            if item.isOverlay():
+                return 2
+            elif isinstance(item, items.YAxisMixIn) and item.getYAxis() == 'right':
+                return 1
+            else:
+                return 0
+
+        return sorted(
+            BackendBase.BackendBase.getItemsFromBackToFront(
+                self, condition=condition),
+            key=axesOrder)
 
     def _overlayItems(self):
         """Generator of backend renderer for overlay items"""
@@ -386,13 +566,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Add methods
 
+    def _getMarkerFromSymbol(self, symbol):
+        """Returns a marker that can be displayed by matplotlib.
+
+        :param str symbol: A symbol description used by silx
+        :rtype: Union[str,int,matplotlib.path.Path]
+        """
+        path = get_path_from_symbol(symbol)
+        if path is not None:
+            return path
+        num = _SPECIAL_MARKERS.get(symbol, None)
+        if num is not None:
+            return num
+        # This symbol must be supported by matplotlib
+        return symbol
+
     def addCurve(self, x, y,
                  color, symbol, linewidth, linestyle,
                  yaxis,
-                 xerror, yerror, z, selectable,
+                 xerror, yerror,
                  fill, alpha, symbolsize, baseline):
         for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, z, selectable, fill, alpha, symbolsize):
+                          yaxis, fill, alpha, symbolsize):
             assert parameter is not None
         assert yaxis in ('left', 'right')
 
@@ -406,7 +601,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             axes = self.ax
 
-        picker = 3 if selectable else None
+        pickradius = 3
 
         artists = []  # All the artists composing the curve
 
@@ -444,14 +639,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                       linestyle=linestyle,
                                       color=actualColor[0],
                                       linewidth=linewidth,
-                                      picker=picker,
+                                      picker=True,
+                                      pickradius=pickradius,
                                       marker=None)
                 artists += list(curveList)
 
+            marker = self._getMarkerFromSymbol(symbol)
             scatter = axes.scatter(x, y,
                                    color=actualColor,
-                                   marker=symbol,
-                                   picker=picker,
+                                   marker=marker,
+                                   picker=True,
+                                   pickradius=pickradius,
                                    s=symbolsize**2)
             artists.append(scatter)
 
@@ -469,7 +667,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   color=color,
                                   linewidth=linewidth,
                                   marker=symbol,
-                                  picker=picker,
+                                  picker=True,
+                                  pickradius=pickradius,
                                   markersize=symbolsize)
             artists += list(curveList)
 
@@ -482,33 +681,30 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, _baseline, y, facecolor=color))
 
         for artist in artists:
-            artist.set_animated(True)
-            artist.set_zorder(z + 1)
             if alpha < 1:
                 artist.set_alpha(alpha)
 
         return _PickableContainer(artists)
 
-    def addImage(self, data, origin, scale, z, selectable, draggable, colormap, alpha):
+    def addImage(self, data, origin, scale, colormap, alpha):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, origin, scale, z, selectable, draggable):
+        for parameter in (data, origin, scale):
             assert parameter is not None
 
         origin = float(origin[0]), float(origin[1])
         scale = float(scale[0]), float(scale[1])
         height, width = data.shape[0:2]
 
-        picker = (selectable or draggable)
-
         # All image are shown as RGBA image
         image = Image(self.ax,
                       interpolation='nearest',
-                      picker=picker,
-                      zorder=z + 1,
-                      origin='lower')
+                      picker=True,
+                      origin='lower',
+                      silx_origin=origin,
+                      silx_scale=scale)
 
         if alpha < 1:
             image.set_alpha(alpha)
@@ -535,18 +731,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if data.ndim == 2:  # Data image, convert to RGBA image
             data = colormap.applyToData(data)
-
+        elif data.dtype == numpy.uint16:
+            # Normalize uint16 data to have a similar behavior as opengl backend
+            data = data.astype(numpy.float32)
+            data /= 65535
+        
         image.set_data(data)
-        image.set_animated(True)
         self.ax.add_artist(image)
         return image
 
-    def addTriangles(self, x, y, triangles, color, z, selectable, alpha):
-        for parameter in (x, y, triangles, color, z, selectable, alpha):
+    def addTriangles(self, x, y, triangles, color, alpha):
+        for parameter in (x, y, triangles, color, alpha):
             assert parameter is not None
-
-        # 0 enables picking on filled triangle
-        picker = 0 if selectable else None
 
         color = numpy.array(color, copy=False)
         assert color.ndim == 2 and len(color) == len(x)
@@ -557,16 +753,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         collection = TriMesh(
             Triangulation(x, y, triangles),
             alpha=alpha,
-            picker=picker,
-            zorder=z + 1)
+            pickradius=0)  # 0 enables picking on filled triangle
         collection.set_color(color)
-        collection.set_animated(True)
         self.ax.add_collection(collection)
 
         return collection
 
-    def addItem(self, x, y, shape, color, fill, overlay, z,
-                linestyle, linewidth, linebgcolor):
+    def addShape(self, x, y, shape, color, fill, overlay,
+                 linestyle, linewidth, linebgcolor):
         if (linebgcolor is not None and
                 shape not in ('rectangle', 'polygon', 'polylines')):
             _logger.warning(
@@ -641,13 +835,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
 
-        item.set_zorder(z + 1)
-        item.set_animated(True)
+        if overlay:
+            item.set_animated(True)
 
         return item
 
     def addMarker(self, x, y, text, color,
-                  selectable, draggable,
                   symbol, linestyle, linewidth, constraint, yaxis):
         textArtist = None
 
@@ -661,25 +854,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             assert(False)
 
+        marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
             line = ax.plot(x, y,
                            linestyle=" ",
                            color=color,
-                           marker=symbol,
+                           marker=marker,
                            markersize=10.)[-1]
 
             if text is not None:
-                if symbol is None:
-                    valign = 'baseline'
-                else:
-                    valign = 'top'
-                    text = "  " + text
-
-                textArtist = ax.text(x, y, text,
-                                     color=color,
-                                     horizontalalignment='left',
-                                     verticalalignment=valign)
-
+                textArtist = _TextWithOffset(x, y, text,
+                                             color=color,
+                                             horizontalalignment='left')
+                if symbol is not None:
+                    textArtist.pixel_offset = 10, 3
         elif x is not None:
             line = ax.axvline(x,
                               color=color,
@@ -687,11 +875,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                               linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
-                textArtist = ax.text(x, 1., " " + text,
-                                     color=color,
-                                     horizontalalignment='left',
-                                     verticalalignment='top')
-
+                textArtist = _TextWithOffset(x, 1., text,
+                                             color=color,
+                                             horizontalalignment='left',
+                                             verticalalignment='top')
+                textArtist.pixel_offset = 5, 3
         elif y is not None:
             line = ax.axhline(y,
                               color=color,
@@ -700,25 +888,26 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
-                textArtist = ax.text(1., y, " " + text,
-                                     color=color,
-                                     horizontalalignment='right',
-                                     verticalalignment='top')
-
+                textArtist = _TextWithOffset(1., y, text,
+                                             color=color,
+                                             horizontalalignment='right',
+                                             verticalalignment='top')
+                textArtist.pixel_offset = 5, 3
         else:
             raise RuntimeError('A marker must at least have one coordinate')
 
-        if selectable or draggable:
-            line.set_picker(5)
+        line.set_picker(True)
+        line.set_pickradius(5)
 
         # All markers are overlays
         line.set_animated(True)
         if textArtist is not None:
+            ax.add_artist(textArtist)
             textArtist.set_animated(True)
 
         artists = [line] if textArtist is None else [line, textArtist]
-        container = _MarkerContainer(artists, x, y, yaxis)
-        container.updateMarkerText(xmin, xmax, ymin, ymax)
+        container = _MarkerContainer(artists, symbol, x, y, yaxis)
+        container.updateMarkerText(xmin, xmax, ymin, ymax, self.isYAxisInverted())
 
         return container
 
@@ -726,12 +915,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xmin, xmax = self.ax.get_xbound()
         ymin1, ymax1 = self.ax.get_ybound()
         ymin2, ymax2 = self.ax2.get_ybound()
+        yinverted = self.isYAxisInverted()
         for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
                 if item.yAxis == 'left':
-                    item.updateMarkerText(xmin, xmax, ymin1, ymax1)
+                    item.updateMarkerText(xmin, xmax, ymin1, ymax1, yinverted)
                 else:
-                    item.updateMarkerText(xmin, xmax, ymin2, ymax2)
+                    item.updateMarkerText(xmin, xmax, ymin2, ymax2, yinverted)
 
     # Remove methods
 
@@ -804,7 +994,37 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not self.ax2.lines:
             self._enableAxis('right', False)
 
+    def _drawOverlays(self):
+        """Draw overlays if any."""
+        def condition(item):
+            return (item.isVisible() and
+                    item._backendRenderer is not None and
+                    item.isOverlay())
+
+        for item in self.getItemsFromBackToFront(condition=condition):
+            if (isinstance(item, items.YAxisMixIn) and
+                    item.getYAxis() == 'right'):
+                axes = self.ax2
+            else:
+                axes = self.ax
+            axes.draw_artist(item._backendRenderer)
+
+        for item in self._graphCursor:
+            self.ax.draw_artist(item)
+
+    def updateZOrder(self):
+        """Reorder all items with z order from 0 to 1"""
+        items = self.getItemsFromBackToFront(
+            lambda item: item.isVisible() and item._backendRenderer is not None)
+        count = len(items)
+        for index, item in enumerate(items):
+            zorder = 1. + index / count
+            if zorder != item._backendRenderer.get_zorder():
+                item._backendRenderer.set_zorder(zorder)
+
     def saveGraph(self, fileName, fileFormat, dpi):
+        self.updateZOrder()
+
         # fileName can be also a StringIO or file instance
         if dpi is not None:
             self.fig.savefig(fileName, format=fileFormat, dpi=dpi)
@@ -961,6 +1181,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
+            self._updateMarkers()
 
     def isYAxisInverted(self):
         return self.ax.yaxis_inverted()
@@ -979,13 +1200,16 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
-    def _mplQtYAxisCoordConversion(self, y):
+    def _mplQtYAxisCoordConversion(self, y, asint=True):
         """Qt origin (top) to/from matplotlib origin (bottom) conversion.
+
+        :param y:
+        :param bool asint: True to cast to int, False to keep as float
 
         :rtype: float
         """
-        height = self.fig.get_window_extent().height
-        return height - y
+        value = self.fig.get_window_extent().height - y
+        return int(value) if asint else value
 
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
@@ -994,7 +1218,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xPixel, yPixel = pixels.T
 
         # Convert from matplotlib origin (bottom) to Qt origin (top)
-        yPixel = self._mplQtYAxisCoordConversion(yPixel)
+        yPixel = self._mplQtYAxisCoordConversion(yPixel, asint=False)
 
         return xPixel, yPixel
 
@@ -1002,7 +1226,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         ax = self.ax2 if axis == "right" else self.ax
 
         # Convert from Qt origin (top) to matplotlib origin (bottom)
-        y = self._mplQtYAxisCoordConversion(y)
+        y = self._mplQtYAxisCoordConversion(y, asint=False)
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
@@ -1011,10 +1235,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def getPlotBoundsInPixels(self):
         bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
-        return (bbox.xmin,
-                self._mplQtYAxisCoordConversion(bbox.ymax),
-                bbox.width,
-                bbox.height)
+        return (int(bbox.xmin),
+                self._mplQtYAxisCoordConversion(bbox.ymax, asint=True),
+                int(bbox.width),
+                int(bbox.height))
 
     def setAxesDisplayed(self, displayed):
         """Display or not the axes.
@@ -1025,15 +1249,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         BackendBase.BackendBase.setAxesDisplayed(self, displayed)
         if displayed:
             # show axes and viewbox rect
-            self.ax.set_axis_on()
-            self.ax2.set_axis_on()
+            self.ax.set_frame_on(True)
+            self.ax2.set_frame_on(True)
             # set the default margins
             self.ax.set_position([.15, .15, .75, .75])
             self.ax2.set_position([.15, .15, .75, .75])
         else:
             # hide axes and viewbox rect
-            self.ax.set_axis_off()
-            self.ax2.set_axis_off()
+            self.ax.set_frame_on(False)
+            self.ax2.set_frame_on(False)
             # remove external margins
             self.ax.set_position([0, 0, 1, 1])
             self.ax2.set_position([0, 0, 1, 1])
@@ -1050,12 +1274,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             dataBackgroundColor = backgroundColor
 
-        if self.ax2.axison:
+        if self.ax.get_frame_on():
             self.fig.patch.set_facecolor(backgroundColor)
             if self._matplotlibVersion < _parse_version('2'):
-                self.ax2.set_axis_bgcolor(dataBackgroundColor)
+                self.ax.set_axis_bgcolor(dataBackgroundColor)
             else:
-                self.ax2.set_facecolor(dataBackgroundColor)
+                self.ax.set_facecolor(dataBackgroundColor)
         else:
             self.fig.patch.set_facecolor(dataBackgroundColor)
 
@@ -1069,7 +1293,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             gridColor = foregroundColor
 
         for axes in (self.ax, self.ax2):
-            if axes.axison:
+            if axes.get_frame_on():
                 axes.spines['bottom'].set_color(foregroundColor)
                 axes.spines['top'].set_color(foregroundColor)
                 axes.spines['right'].set_color(foregroundColor)
@@ -1086,6 +1310,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 for line in axes.get_ygridlines():
                     line.set_color(gridColor)
                 # axes.grid().set_markeredgecolor(gridColor)
+
+    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
+        self._synchronizeBackgroundColors()
+
+    def setForegroundColors(self, foregroundColor, gridColor):
+        self._synchronizeForegroundColors()
 
 
 class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
@@ -1120,11 +1350,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
 
-    def contextMenuEvent(self, event):
-        """Override QWidget.contextMenuEvent to implement the context menu"""
-        # Makes sure it is overridden (issue with PySide)
-        BackendBase.BackendBase.contextMenuEvent(self, event)
-
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
 
@@ -1141,17 +1366,22 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMouseMove(self, event):
         if self._graphCursor:
+            position = self._plot.pixelToData(
+                event.x,
+                self._mplQtYAxisCoordConversion(event.y),
+                axis='left',
+                check=True)
             lineh, linev = self._graphCursor
-            if event.inaxes != self.ax and lineh.get_visible():
-                lineh.set_visible(False)
-                linev.set_visible(False)
-                self._plot._setDirtyPlot(overlayOnly=True)
-            else:
+            if position is not None:
                 linev.set_visible(True)
-                linev.set_xdata((event.xdata, event.xdata))
+                linev.set_xdata((position[0], position[0]))
                 lineh.set_visible(True)
-                lineh.set_ydata((event.ydata, event.ydata))
+                lineh.set_ydata((position[1], position[1]))
                 self._plot._setDirtyPlot(overlayOnly=True)
+            elif lineh.get_visible():
+                    lineh.set_visible(False)
+                    linev.set_visible(False)
+                    self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
         self._plot.onMouseMove(
@@ -1170,13 +1400,22 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def leaveEvent(self, event):
         """QWidget event handler"""
-        self._plot.onMouseLeaveWidget()
+        try:
+            plot = self._plot
+        except RuntimeError:
+            pass
+        else:
+            plot.onMouseLeaveWidget()
 
     # picking
 
     def pickItem(self, x, y, item):
-        y = self._mplQtYAxisCoordConversion(y)
-        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        mouseEvent = MouseEvent(
+            'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
+        # Override axes and data position with the axes
+        mouseEvent.inaxes = item.axes
+        mouseEvent.xdata, mouseEvent.ydata = self.pixelToData(
+            x, y, axis='left' if item.axes is self.ax else 'right')
         picked, info = item.contains(mouseEvent)
 
         if not picked:
@@ -1191,9 +1430,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            dists = ((triangulation.x[indices] - x) ** 2 +
-                     (triangulation.y[indices] - y) ** 2)
-            return indices[numpy.flip(numpy.argsort(dists))]
+            xdata, ydata = self.pixelToData(x, y, axis='left')
+            dists = ((triangulation.x[indices] - xdata) ** 2 +
+                     (triangulation.y[indices] - ydata) ** 2)
+            return indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         else:  # Returns indices if any
             return info.get('ind', ())
@@ -1210,33 +1450,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # This is needed with matplotlib 1.5.x and 2.0.x
             self._plot._setDirtyPlot()
 
-    def __drawItems(self, overlay=False):
-        """Draw plot items in the figure.
-
-        :param bool overlay:
-            False (default) to draw all items but overlays,
-            True to draw only overlay items.
-        """
-        def condition(item):
-            return (item.isVisible() and
-                    item._backendRenderer is not None and
-                    item.isOverlay() == overlay)
-
-        for item in self._plot._itemsFromBackToFront(condition=condition):
-            if (isinstance(item, items.YAxisMixIn) and
-                    item.getYAxis() == 'right'):
-                axes = self.ax2
-            else:
-                axes = self.ax
-            axes.draw_artist(item._backendRenderer)
-
-    def _drawOverlays(self):
-        """Draw overlays if any."""
-        self.__drawItems(overlay=True)
-
-        for item in self._graphCursor:
-            self.ax.draw_artist(item)
-
     def draw(self):
         """Overload draw
 
@@ -1245,10 +1458,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         This is directly called by matplotlib for widget resize.
         """
-        # Hide axes borders to defer rendering
-        if self.ax.axison:
-            for spine in self.ax.spines.values():
-                spine.set_visible(False)
+        self.updateZOrder()
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
@@ -1261,8 +1471,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                     "'%s'", err)
         else:
             FigureCanvasQTAgg.draw(self)
-
-        self.__drawItems(overlay=False)
 
         if self._hasOverlays():
             # Save background
@@ -1287,15 +1495,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 self._plot.getYAxis(axis='right')._emitLimitsChanged()
 
         self._drawOverlays()
-
-        # Draw axes borders at last
-        if self.ax.axison:
-            for spine in self.ax.spines.values():
-                spine.set_visible(True)
-                self.ax.draw_artist(spine)
-            # Alternative: redraw what's inside the frame
-            # which ends-up to redraw the border as everything is "animated"
-            #self.ax.redraw_in_frame()
 
     def replot(self):
         BackendMatplotlib.replot(self)
@@ -1336,9 +1535,3 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         else:
             cursor = self._QT_CURSORS[cursor]
             FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))
-
-    def setBackgroundColors(self, backgroundColor, dataBackgroundColor):
-        self._synchronizeBackgroundColors()
-
-    def setForegroundColors(self, foregroundColor, gridColor):
-        self._synchronizeForegroundColors()

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,8 +62,9 @@ class TestPlot(unittest.TestCase):
         plot = PlotWidget(backend='none')
         plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))
         plot.addImage(numpy.arange(100.).reshape(10, -1))
-        plot.addItem(
-            numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
+        plot.addShape(numpy.array((1., 10.)),
+                      numpy.array((10., 10.)),
+                      shape="rectangle")
         plot.addXMarker(10.)
 
 
@@ -400,21 +401,21 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # Active curve
         active = plot.getActiveCurve()
-        self.assertEqual(active.getLegend(), 'curve 0')
+        self.assertEqual(active.getName(), 'curve 0')
         curve = plot.getCurve()
-        self.assertEqual(curve.getLegend(), 'curve 0')
+        self.assertEqual(curve.getName(), 'curve 0')
 
         # No active curve and curves
         plot.setActiveCurveHandling(False)
         active = plot.getActiveCurve()
         self.assertIsNone(active)  # No active curve
         curve = plot.getCurve()
-        self.assertEqual(curve.getLegend(), 'curve 2')  # Last added curve
+        self.assertEqual(curve.getName(), 'curve 2')  # Last added curve
 
         # Last curve hidden
         plot.hideCurve('curve 2', True)
         curve = plot.getCurve()
-        self.assertEqual(curve.getLegend(), 'curve 1')  # Last added curve
+        self.assertEqual(curve.getName(), 'curve 1')  # Last added curve
 
         # All curves hidden
         plot.hideCurve('curve 1', True)
@@ -465,9 +466,9 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # Active image
         active = plot.getActiveImage()
-        self.assertEqual(active.getLegend(), 'image 0')
+        self.assertEqual(active.getName(), 'image 0')
         image = plot.getImage()
-        self.assertEqual(image.getLegend(), 'image 0')
+        self.assertEqual(image.getName(), 'image 0')
 
         # No active image
         plot.addImage(((0, 1), (2, 3)), legend='image 2')
@@ -475,14 +476,14 @@ class TestPlotGetCurveImage(unittest.TestCase):
         active = plot.getActiveImage()
         self.assertIsNone(active)
         image = plot.getImage()
-        self.assertEqual(image.getLegend(), 'image 2')
+        self.assertEqual(image.getName(), 'image 2')
 
         # Active image
         plot.setActiveImage('image 1')
         active = plot.getActiveImage()
-        self.assertEqual(active.getLegend(), 'image 1')
+        self.assertEqual(active.getName(), 'image 1')
         image = plot.getImage()
-        self.assertEqual(image.getLegend(), 'image 1')
+        self.assertEqual(image.getName(), 'image 1')
 
     def testGetImageOldApi(self):
         """PlotWidget.getImage and PlotWidget.getActiveImage old API tests"""
@@ -521,8 +522,8 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(list(images), ['1', '2'])
         images = plot.getAllImages(just_legend=False)
         self.assertEqual(len(images), 2)
-        self.assertEqual(images[0].getLegend(), '1')
-        self.assertEqual(images[1].getLegend(), '2')
+        self.assertEqual(images[0].getName(), '1')
+        self.assertEqual(images[1].getName(), '2')
 
 
 class TestPlotAddScatter(unittest.TestCase):
@@ -543,7 +544,7 @@ class TestPlotAddScatter(unittest.TestCase):
 
         # Active scatter
         active = plot._getActiveItem(kind='scatter')
-        self.assertEqual(active.getLegend(), 'scatter 0')
+        self.assertEqual(active.getName(), 'scatter 0')
 
         # check default values
         self.assertAlmostEqual(active.getSymbolSize(), active._DEFAULT_SYMBOL_SIZE)
@@ -562,28 +563,25 @@ class TestPlotAddScatter(unittest.TestCase):
         self.assertAlmostEqual(s0.getAlpha(), 0.777)
 
         scatter1 = plot._getItem(kind='scatter', legend='scatter 1')
-        self.assertEqual(scatter1.getLegend(), 'scatter 1')
+        self.assertEqual(scatter1.getName(), 'scatter 1')
 
     def testGetAllScatters(self):
         """PlotWidget.getAllImages test"""
 
         plot = PlotWidget(backend='none')
 
-        scatters = plot._getItems(kind='scatter')
-        self.assertEqual(len(scatters), 0)
+        items = plot.getItems()
+        self.assertEqual(len(items), 0)
 
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
 
-        scatters = plot._getItems(kind='scatter')
-        self.assertEqual(len(scatters), 3)
-        self.assertEqual(scatters[0].getLegend(), 'scatter 0')
-        self.assertEqual(scatters[2].getLegend(), 'scatter 2')
-
-        scatters = plot._getItems(kind='scatter', just_legend=True)
-        self.assertEqual(len(scatters), 3)
-        self.assertEqual(list(scatters), ['scatter 0', 'scatter 1', 'scatter 2'])
+        items = plot.getItems()
+        self.assertEqual(len(items), 3)
+        self.assertEqual(items[0].getName(), 'scatter 0')
+        self.assertEqual(items[1].getName(), 'scatter 1')
+        self.assertEqual(items[2].getName(), 'scatter 2')
 
 
 class TestPlotHistogram(unittest.TestCase):

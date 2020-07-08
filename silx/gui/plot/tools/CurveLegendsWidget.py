@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ class _LegendWidget(qt.QWidget):
         icon = _LegendIcon(curve=curve)
         layout.addWidget(icon)
 
-        label = qt.QLabel(curve.getLegend())
+        label = qt.QLabel(curve.getName())
         label.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         layout.addWidget(label)
 
@@ -184,12 +184,12 @@ class CurveLegendsWidget(qt.QWidget):
     def _itemAdded(self, item):
         """Handle item added to the plot content"""
         if isinstance(item, items.Curve):
-            self._addLegend(item.getLegend())
+            self._addLegend(item.getName())
 
     def _itemRemoved(self, item):
         """Handle item removed from the plot content"""
         if isinstance(item, items.Curve):
-            self._removeLegend(item.getLegend())
+            self._removeLegend(item.getName())
 
     def _addLegend(self, legend):
         """Add a curve to the legends

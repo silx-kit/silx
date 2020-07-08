@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -56,10 +56,14 @@ class TestStats(TestCaseQt):
     def tearDown(self):
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
+        del self.plot1d
         self.plot2d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot2d.close()
+        del self.plot2d
         self.scatterPlot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.scatterPlot.close()
+        del self.scatterPlot
+        TestCaseQt.tearDown(self)
 
     def createCurveContext(self):
         self.plot1d = Plot1D()
@@ -242,6 +246,7 @@ class TestStats(TestCaseQt):
 class TestStatsFormatter(TestCaseQt):
     """Simple test to check usage of the :class:`StatsFormatter`"""
     def setUp(self):
+        TestCaseQt.setUp(self)
         self.plot1d = Plot1D()
         x = range(20)
         y = range(20)
@@ -257,6 +262,8 @@ class TestStatsFormatter(TestCaseQt):
     def tearDown(self):
         self.plot1d.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot1d.close()
+        del self.plot1d
+        TestCaseQt.tearDown(self)
 
     def testEmptyFormatter(self):
         """Make sure a formatter with no formatter definition will return a
@@ -402,10 +409,10 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
 
         def check_display_only_active_item(only_active):
             # check internal value
-            self.assertTrue(widget._statsTable._displayOnlyActItem is only_active)
+            self.assertIs(widget._statsTable._displayOnlyActItem, only_active)
             # self.assertTrue(table._displayOnlyActItem is only_active)
             # check gui display
-            self.assertTrue(widget._options.isActiveItemMode() is only_active)
+            self.assertEqual(widget._options.isActiveItemMode(), only_active)
 
         for displayOnlyActiveItems in (True, False):
             with self.subTest(displayOnlyActiveItems=displayOnlyActiveItems):
@@ -479,7 +486,7 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
                 self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
                 update_stats_action = self.widget._options.getUpdateStatsAction()
                 # test from api
-                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
+                self.assertEqual(self.widget.getUpdateMode(), StatsWidget.UpdateMode.AUTO)
                 self.widget.show()
                 # check stats change in auto mode
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(-1, 3))
@@ -497,7 +504,7 @@ class TestStatsWidgetWithCurves(TestCaseQt, ParametricTestCase):
 
                 # check stats change in manual mode only if requested
                 self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
-                self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
+                self.assertEqual(self.widget.getUpdateMode(), StatsWidget.UpdateMode.MANUAL)
 
                 self.plot.getCurve('curve0').setData(x=range(4), y=range(2, 6))
                 self.qapp.processEvents()
@@ -710,7 +717,7 @@ class TestLineWidget(TestCaseQt):
         self.qapp.processEvents()
         self.assertTrue(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '14.000')
         self.plot.setActiveCurve(None)
-        self.assertTrue(self.plot.getActiveCurve() is None)
+        self.assertIsNone(self.plot.getActiveCurve())
         self.widget.setStatsOnVisibleData(False)
         self.qapp.processEvents()
         self.assertFalse(self.widget._lineStatsWidget._statQlineEdit['min'].text() == '14.000')
@@ -780,23 +787,23 @@ class TestUpdateModeWidget(TestCaseQt):
         self.widget.sigUpdateModeChanged.connect(modeChangedListener)
         self.widget.sigUpdateRequested.connect(manualUpdateListener)
         self.widget.setUpdateMode(StatsWidget.UpdateMode.AUTO)
-        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.AUTO)
-        self.assertTrue(modeChangedListener.callCount() is 0)
+        self.assertEqual(self.widget.getUpdateMode(), StatsWidget.UpdateMode.AUTO)
+        self.assertEqual(modeChangedListener.callCount(), 0)
         self.qapp.processEvents()
 
         self.widget.setUpdateMode(StatsWidget.UpdateMode.MANUAL)
-        self.assertTrue(self.widget.getUpdateMode() is StatsWidget.UpdateMode.MANUAL)
+        self.assertEqual(self.widget.getUpdateMode(), StatsWidget.UpdateMode.MANUAL)
         self.qapp.processEvents()
-        self.assertTrue(modeChangedListener.callCount() is 1)
-        self.assertTrue(manualUpdateListener.callCount() is 0)
+        self.assertEqual(modeChangedListener.callCount(), 1)
+        self.assertEqual(manualUpdateListener.callCount(), 0)
         self.widget._updatePB.click()
         self.widget._updatePB.click()
-        self.assertTrue(manualUpdateListener.callCount() is 2)
+        self.assertEqual(manualUpdateListener.callCount(), 2)
 
         self.widget._autoRB.setChecked(True)
-        self.assertTrue(modeChangedListener.callCount() is 2)
+        self.assertEqual(modeChangedListener.callCount(), 2)
         self.widget._updatePB.click()
-        self.assertTrue(manualUpdateListener.callCount() is 2)
+        self.assertEqual(manualUpdateListener.callCount(), 2)
 
 
 def suite():

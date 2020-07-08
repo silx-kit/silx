@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,8 @@ def suite():
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_colors.suite())
     test_suite.addTest(test_data.suite())
-    test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_plot3d_suite())
     test_suite.addTest(test_dialog.suite())
+    # Run test_utils last: it interferes with OpenGLWidget through isOpenGLAvailable
+    test_suite.addTest(test_utils.suite())
     return test_suite

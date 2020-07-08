@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ import numpy
 import six
 
 from ... import colors
-from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn
+from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn
 
 
 _logger = logging.getLogger(__name__)
@@ -68,16 +68,15 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         """Update backend renderer"""
         points = self.getPoints(copy=False)
         x, y = points.T[0], points.T[1]
-        return backend.addItem(x,
-                               y,
-                               shape=self.getType(),
-                               color=self.getColor(),
-                               fill=self.isFill(),
-                               overlay=self.isOverlay(),
-                               z=self.getZValue(),
-                               linestyle=self.getLineStyle(),
-                               linewidth=self.getLineWidth(),
-                               linebgcolor=self.getLineBgColor())
+        return backend.addShape(x,
+                                y,
+                                shape=self.getType(),
+                                color=self.getColor(),
+                                fill=self.isFill(),
+                                overlay=self.isOverlay(),
+                                linestyle=self.getLineStyle(),
+                                linewidth=self.getLineWidth(),
+                                linebgcolor=self.getLineBgColor())
 
     def isOverlay(self):
         """Return true if shape is drawn as an overlay
@@ -153,3 +152,154 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
 
         self._lineBgColor = color
         self._updated(ItemChangedType.LINE_BG_COLOR)
+
+
+class BoundingRect(Item, YAxisMixIn):
+    """An invisible shape which enforce the plot view to display the defined
+    space on autoscale.
+
+    This item do not display anything. But if the visible property is true,
+    this bounding box is used by the plot, if not, the bounding box is
+    ignored. That's the default behaviour for plot items.
+
+    It can be applied on the "left" or "right" axes. Not both at the same time.
+    """
+
+    def __init__(self):
+        Item.__init__(self)
+        YAxisMixIn.__init__(self)
+        self.__bounds = None
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in (ItemChangedType.YAXIS,
+                     ItemChangedType.VISIBLE,
+                     ItemChangedType.DATA):
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+        super(BoundingRect, self)._updated(event, checkVisibility)
+
+    def setBounds(self, rect):
+        """Set the bounding box of this item in data coordinates
+
+        :param Union[None,List[float]] rect: (xmin, xmax, ymin, ymax) or None
+        """
+        if rect is not None:
+            rect = float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])
+            assert rect[0] <= rect[1]
+            assert rect[2] <= rect[3]
+
+        if rect != self.__bounds:
+            self.__bounds = rect
+            self._updated(ItemChangedType.DATA)
+
+    def _getBounds(self):
+        if self.__bounds is None:
+            return None
+        plot = self.getPlot()
+        if plot is not None:
+            xPositive = plot.getXAxis()._isLogarithmic()
+            yPositive = plot.getYAxis()._isLogarithmic()
+            if xPositive or yPositive:
+                bounds = list(self.__bounds)
+                if xPositive and bounds[1] <= 0:
+                    return None
+                if xPositive and bounds[0] <= 0:
+                    bounds[0] = bounds[1]
+                if yPositive and bounds[3] <= 0:
+                    return None
+                if yPositive and bounds[2] <= 0:
+                    bounds[2] = bounds[3]
+                return tuple(bounds)
+
+        return self.__bounds
+
+
+class _BaseExtent(Item):
+    """Base class for :class:`XAxisExtent` and :class:`YAxisExtent`.
+
+    :param str axis: Either 'x' or 'y'.
+    """
+
+    def __init__(self, axis='x'):
+        assert axis in ('x', 'y')
+        Item.__init__(self)
+        self.__axis = axis
+        self.__range = 1., 100.
+
+    def _updated(self, event=None, checkVisibility=True):
+        if event in (ItemChangedType.VISIBLE,
+                     ItemChangedType.DATA):
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+        super(_BaseExtent, self)._updated(event, checkVisibility)
+
+    def setRange(self, min_, max_):
+        """Set the range of the extent of this item in data coordinates.
+
+        :param float min_: Lower bound of the extent
+        :param float max_: Upper bound of the extent
+        :raises ValueError: If min > max or not finite bounds
+        """
+        range_ = float(min_), float(max_)
+        if not numpy.all(numpy.isfinite(range_)):
+            raise ValueError("min_ and max_ must be finite numbers.")
+        if range_[0] > range_[1]:
+            raise ValueError("min_ must be lesser or equal to max_")
+
+        if range_ != self.__range:
+            self.__range = range_
+            self._updated(ItemChangedType.DATA)
+
+    def getRange(self):
+        """Returns the range (min, max) of the extent in data coordinates.
+
+        :rtype: List[float]
+        """
+        return self.__range
+
+    def _getBounds(self):
+        min_, max_ = self.getRange()
+
+        plot = self.getPlot()
+        if plot is not None:
+            axis = plot.getXAxis() if self.__axis == 'x' else plot.getYAxis()
+            if axis._isLogarithmic():
+                if max_ <= 0:
+                    return None
+                if min_ <= 0:
+                    min_ = max_
+
+        if self.__axis == 'x':
+            return min_, max_, float('nan'), float('nan')
+        else:
+            return float('nan'), float('nan'), min_, max_
+
+
+class XAxisExtent(_BaseExtent):
+    """Invisible item with a settable horizontal data extent.
+
+    This item do not display anything, but it behaves as a data
+    item with a horizontal extent regarding plot data bounds, i.e.,
+    :meth:`PlotWidget.resetZoom` will take this horizontal extent into account.
+    """
+    def __init__(self):
+        _BaseExtent.__init__(self, axis='x')
+
+
+class YAxisExtent(_BaseExtent, YAxisMixIn):
+    """Invisible item with a settable vertical data extent.
+
+    This item do not display anything, but it behaves as a data
+    item with a vertical extent regarding plot data bounds, i.e.,
+    :meth:`PlotWidget.resetZoom` will take this vertical extent into account.
+    """
+
+    def __init__(self):
+        _BaseExtent.__init__(self, axis='y')
+        YAxisMixIn.__init__(self)

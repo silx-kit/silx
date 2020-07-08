@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ from ...utils.image import convertArrayToQImage
 from ...colors import preferredColormaps
 from ... import qt, icons
 from .. import items
-from ..items.volume import Isosurface, CutPlane
+from ..items.volume import Isosurface, CutPlane, ComplexIsosurface
 from ..Plot3DWidget import Plot3DWidget
 
 
@@ -693,7 +693,7 @@ class _ColormapBaseProxyRow(ProxyRow):
         """
         item = self.item()
         if item is not None and self._colormap is not None:
-            return self._colormap.getColormapRange(item._getDataRange())
+            return self._colormap.getColormapRange(item)
         else:
             return 1, 100  # Fallback
 
@@ -829,6 +829,55 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
         return super(_ColormapBoundRow, self).setData(column, value, role)
 
 
+class _ColormapGammaRow(_ColormapBaseProxyRow):
+    """ProxyRow for colormap gamma normalization parameter
+
+    :param ColormapMixIn item: The item to handle
+    :param str name: Name of the raw
+    """
+
+    def __init__(self, item):
+        _ColormapBaseProxyRow.__init__(
+            self,
+            item,
+            name="Gamma",
+            fget=self._getGammaNormalizationParameter,
+            fset=self._setGammaNormalizationParameter)
+
+        self.setToolTip('Colormap gamma correction parameter:\n'
+                        'Only meaningful for gamma normalization.')
+
+    def _getGammaNormalizationParameter(self):
+        """Proxy for :meth:`Colormap.getGammaNormalizationParameter`"""
+        if self._colormap is not None:
+            return self._colormap.getGammaNormalizationParameter()
+        else:
+            return 0.0
+
+    def _setGammaNormalizationParameter(self, gamma):
+        """Proxy for :meth:`Colormap.setGammaNormalizationParameter`"""
+        if self._colormap is not None:
+            return self._colormap.setGammaNormalizationParameter(gamma)
+
+    def _getNormalization(self):
+        """Proxy for :meth:`Colormap.getNormalization`"""
+        if self._colormap is not None:
+            return self._colormap.getNormalization()
+        else:
+            return ''
+
+    def flags(self, column):
+        if column in (0, 1):
+            if self._getNormalization() == 'gamma':
+                flags = qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled
+            else:
+                flags = qt.Qt.NoItemFlags  # Disabled if not gamma correction
+            return flags
+
+        else:  # Never event
+            return super(_ColormapGammaRow, self).flags(column)
+
+
 class ColormapRow(_ColormapBaseProxyRow):
     """Represents :class:`ColormapMixIn` property.
 
@@ -862,10 +911,31 @@ class ColormapRow(_ColormapBaseProxyRow):
             notify=self._sigColormapChanged,
             editorHint=norms))
 
+        self.addRow(_ColormapGammaRow(item))
+
+        modes = [mode.title() for mode in self._colormap.AUTOSCALE_MODES]
+        self.addRow(ProxyRow(
+            name='Autoscale Mode',
+            fget=self._getAutoscaleMode,
+            fset=self._setAutoscaleMode,
+            notify=self._sigColormapChanged,
+            editorHint=modes))
+
         self.addRow(_ColormapBoundRow(item, name='Min.', index=0))
         self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
+
+    def getColormapImage(self):
+        """Returns image representing the colormap or None
+
+        :rtype: Union[QImage,None]
+        """
+        if self._colormapImage is None and self._colormap is not None:
+            image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
+            image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
+            self._colormapImage = convertArrayToQImage(image)
+        return self._colormapImage
 
     def _get(self):
         """Getter for ProxyRow subclass"""
@@ -897,6 +967,18 @@ class ColormapRow(_ColormapBaseProxyRow):
         if self._colormap is not None:
             return self._colormap.setNormalization(normalization.lower())
 
+    def _getAutoscaleMode(self):
+        """Proxy for :meth:`Colormap.getAutoscaleMode`"""
+        if self._colormap is not None:
+            return self._colormap.getAutoscaleMode().title()
+        else:
+            return ''
+
+    def _setAutoscaleMode(self, mode):
+        """Proxy for :meth:`Colormap.setAutoscaleMode`"""
+        if self._colormap is not None:
+            return self._colormap.setAutoscaleMode(mode.lower())
+
     def _updateColormapImage(self, *args, **kwargs):
         """Notify colormap update to update the image in the tree"""
         if self._colormapImage is not None:
@@ -908,13 +990,9 @@ class ColormapRow(_ColormapBaseProxyRow):
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DecorationRole:
-            if self._colormapImage is None:
-                image = numpy.zeros((16, 130, 3), dtype=numpy.uint8)
-                image[1:-1, 1:-1] = self._colormap.getNColors(image.shape[1] - 2)[:, :3]
-                self._colormapImage = convertArrayToQImage(image)
-            return self._colormapImage
-
-        return super(ColormapRow, self).data(column, role)
+            return self.getColormapImage()
+        else:
+            return super(ColormapRow, self).data(column, role)
 
 
 class SymbolRow(ItemProxyRow):
@@ -1055,12 +1133,12 @@ class ComplexModeRow(ItemProxyRow):
     :param Item3D item: Scene item with symbol property
     """
 
-    def __init__(self, item):
+    def __init__(self, item, name='Mode'):
         names = [m.value.replace('_', ' ').title()
                  for m in item.supportedComplexModes()]
         super(ComplexModeRow, self).__init__(
             item=item,
-            name='Mode',
+            name=name,
             fget=item.getComplexMode,
             fset=item.setComplexMode,
             events=items.ItemChangedType.COMPLEX_MODE,
@@ -1283,6 +1361,71 @@ class IsosurfaceRow(Item3DRow):
         return super(IsosurfaceRow, self).setData(column, value, role)
 
 
+class ComplexIsosurfaceRow(IsosurfaceRow):
+    """Represents an :class:`ComplexIsosurface` item.
+
+    :param ComplexIsosurface item:
+    """
+
+    _EVENTS = (items.ItemChangedType.VISIBLE,
+               items.ItemChangedType.COLOR,
+               items.ItemChangedType.COMPLEX_MODE)
+    """Events for which to update the first column in the tree"""
+
+    def __init__(self, item):
+        super(ComplexIsosurfaceRow, self).__init__(item)
+
+        self.addRow(ComplexModeRow(item, "Color Complex Mode"), index=1)
+        for row in self.children():
+            if isinstance(row, ColorProxyRow):
+                self._colorRow = row
+                break
+        else:
+            raise RuntimeError("Cannot retrieve Color tree row")
+        self._colormapRow = ColormapRow(item)
+
+        self.__updateRowsForItem(item)
+        item.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Update enabled/disabled rows"""
+        if event == items.ItemChangedType.COMPLEX_MODE:
+            item = self.sender()
+            self.__updateRowsForItem(item)
+
+    def __updateRowsForItem(self, item):
+        """Update rows for item
+
+        :param item:
+        """
+        if not isinstance(item, ComplexIsosurface):
+            return
+
+        if item.getComplexMode() == items.ComplexMixIn.ComplexMode.NONE:
+            removed = self._colormapRow
+            added = self._colorRow
+        else:
+            removed = self._colorRow
+            added = self._colormapRow
+
+        # Remove unwanted rows
+        if removed in self.children():
+            self.removeRow(removed)
+
+        # Add required rows
+        if added not in self.children():
+            self.addRow(added, index=2)
+
+    def data(self, column, role):
+        if column == 0 and role == qt.Qt.DecorationRole:
+            item = self.item()
+            if (item is not None and
+                    item.getComplexMode() != items.ComplexMixIn.ComplexMode.NONE):
+                return self._colormapRow.getColormapImage()
+
+        return super(ComplexIsosurfaceRow, self).data(column, role)
+
+
 class AddIsosurfaceRow(BaseRow):
     """Class for Isosurface create button
 
@@ -1358,7 +1501,7 @@ class VolumeIsoSurfacesRow(StaticRow):
         volume.sigIsosurfaceRemoved.connect(self._isosurfaceRemoved)
 
         if isinstance(volume, items.ComplexMixIn):
-            self.addRow(ComplexModeRow(volume))
+            self.addRow(ComplexModeRow(volume, "Complex Mode"))
 
         for item in volume.getIsosurfaces():
             self.addRow(nodeFromItem(item))
@@ -1581,6 +1724,8 @@ def nodeFromItem(item):
     # Item with specific model row class
     if isinstance(item, (items.GroupItem, items.GroupWithAxesItem)):
         return GroupItemRow(item)
+    elif isinstance(item, ComplexIsosurface):
+        return ComplexIsosurfaceRow(item)
     elif isinstance(item, Isosurface):
         return IsosurfaceRow(item)
 

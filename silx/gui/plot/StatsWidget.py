@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -180,7 +180,10 @@ class _PlotWidgetWrapper(_Wrapper):
 
     def getItems(self):
         plot = self.getPlot()
-        return () if plot is None else plot._getItems()
+        if plot is None:
+            return ()
+        else:
+            return [item for item in plot.getItems() if item.isVisible()]
 
     def getSelectedItems(self):
         plot = self.getPlot()
@@ -198,10 +201,10 @@ class _PlotWidgetWrapper(_Wrapper):
             kind = self.getKind(item)
             if kind in plot._ACTIVE_ITEM_KINDS:
                 if plot._getActiveItem(kind) != item:
-                    plot._setActiveItem(kind, item.getLegend())
+                    plot._setActiveItem(kind, item.getName())
 
     def getLabel(self, item):
-        return item.getLegend()
+        return item.getName()
 
     def getKind(self, item):
         if isinstance(item, plotitems.Curve):
@@ -424,7 +427,7 @@ class _StatsWidgetBase(object):
 
         if self._displayOnlyActItem:
             connections.append(
-                (self._plotWrapper.sigCurrentChanged, self._updateItemObserve))
+                (self._plotWrapper.sigCurrentChanged, self._updateCurrentItem))
         else:
             connections += [
                 (self._plotWrapper.sigItemAdded, self._addItem),
@@ -439,6 +442,11 @@ class _StatsWidgetBase(object):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
+        raise NotImplementedError('Base class')
+
+    def _updateCurrentItem(self, *args):
+        """specific callback for the sigCurrentChanged and with the
+        _displayOnlyActItem option."""
         raise NotImplementedError('Base class')
 
     def _updateStats(self, item):
@@ -643,8 +651,6 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
-        if self.getUpdateMode() is UpdateMode.MANUAL:
-            return
         self._removeAllItems()
 
         # Get selected or all items from the plot
@@ -656,6 +662,27 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         # Add items to the plot
         for item in items:
             self._addItem(item)
+
+    def _updateCurrentItem(self, *args):
+        """specific callback for the sigCurrentChanged and with the
+        _displayOnlyActItem option.
+
+        Behavior: create the tableItems if does not exists.
+         If exists, update it only when we are in 'auto' mode"""
+        if self.getUpdateMode() is UpdateMode.MANUAL:
+            # when sigCurrentChanged is giving the current item
+            if len(args) > 0 and isinstance(args[0], (plotitems.Curve, plotitems.Histogram, plotitems.ImageData, plotitems.Scatter)):
+                item = args[0]
+                tableItems = self._itemToTableItems(item)
+                # if the table does not exists yet
+                if len(tableItems) == 0:
+                    self._updateItemObserve()
+            else:
+                # in this case no current item
+                self._updateItemObserve(args)
+        else:
+            # auto mode
+            self._updateItemObserve(args)
 
     def _plotCurrentChanged(self, current):
         """Handle change of current item and update selection in table
@@ -1323,6 +1350,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
+
         :param StatsHandler statsHandler:
             Set the statistics to be displayed and how to format them using
         """
@@ -1346,7 +1374,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
                 return self._plotWrapper.getKind(_item) == self.getKind()
             items = list(filter(kind_filter, _items))
             assert len(items) in (0, 1)
-            if len(items) is 1:
+            if len(items) == 1:
                 self._setItem(items[0])
 
     def setKind(self, kind):
@@ -1388,8 +1416,11 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             return self._plotWrapper.getKind(_item) == self.getKind()
         items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
-        _item = items[0] if len(items) is 1 else None
+        _item = items[0] if len(items) == 1 else None
         self._setItem(_item)
+
+    def _updateCurrentItem(self):
+        self._updateItemObserve()
 
     def _createLayout(self):
         """create an instance of the main QLayout"""
@@ -1541,12 +1572,12 @@ class BasicGridStatsWidget(qt.QWidget):
                                     only visible ones.
     :param int statsPerLine: number of statistic to be displayed per line
 
-    .. snapshotqt:: img/_BasicGridStatsWidget.png
+    .. snapshotqt:: img/BasicGridStatsWidget.png
      :width: 600px
      :align: center
 
      from silx.gui.plot import Plot1D
-     from silx.gui.plot.StatsWidget import _BasicGridStatsWidget
+     from silx.gui.plot.StatsWidget import BasicGridStatsWidget
 
      plot = Plot1D()
      x = range(100)
@@ -1554,7 +1585,7 @@ class BasicGridStatsWidget(qt.QWidget):
      plot.addCurve(x, y, legend='curve_0')
      plot.setActiveCurve('curve_0')
 
-     widget = _BasicGridStatsWidget(plot=plot, kind='curve')
+     widget = BasicGridStatsWidget(plot=plot, kind='curve')
      widget.show()
     """
 

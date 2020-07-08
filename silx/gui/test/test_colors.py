@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,10 @@ __date__ = "09/11/2018"
 import unittest
 import numpy
 from silx.utils.testutils import ParametricTestCase
+from silx.gui import qt
 from silx.gui import colors
 from silx.gui.colors import Colormap
+from silx.gui.plot import items
 from silx.utils.exceptions import NotEditableError
 
 
@@ -93,6 +95,37 @@ class TestApplyColormapToData(ParametricTestCase):
                 array = numpy.arange(size, dtype=dtype)
                 result = colormap.applyToData(data=array)
                 self.assertTrue(numpy.all(numpy.equal(result, expected)))
+
+    def testAutoscaleFromDataReference(self):
+        colormap = Colormap(name='gray', normalization='linear')
+        data = numpy.array([50])
+        reference = numpy.array([0, 100])
+        value = colormap.applyToData(data, reference)
+        self.assertEqual(len(value), 1)
+        self.assertEqual(value[0, 0], 128)
+
+    def testAutoscaleFromItemReference(self):
+        colormap = Colormap(name='gray', normalization='linear')
+        data = numpy.array([50])
+        image = items.ImageData()
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
+        self.assertEqual(len(value), 1)
+        self.assertEqual(value[0, 0], 128)
+
+    def testNaNColor(self):
+        """Test Colormap.applyToData with NaN values"""
+        colormap = Colormap(name='gray', normalization='linear')
+        colormap.setNaNColor('red')
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
+
+        data = numpy.array([50., numpy.nan])
+        image = items.ImageData()
+        image.setData(numpy.array([[0, 100]]))
+        value = colormap.applyToData(data, reference=image)
+        self.assertEqual(len(value), 2)
+        self.assertTrue(numpy.array_equal(value[0], (128, 128, 128, 255)))
+        self.assertTrue(numpy.array_equal(value[1], (255, 0, 0, 255)))
 
 
 class TestDictAPI(unittest.TestCase):
@@ -406,6 +439,55 @@ class TestObjectAPI(ParametricTestCase):
         self.assertIsNot(colormap, other)
         self.assertEqual(colormap, other)
 
+    def testAutoscaleMode(self):
+        colormap = Colormap(autoscaleMode=Colormap.STDDEV3)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.STDDEV3)
+        colormap.setAutoscaleMode(Colormap.MINMAX)
+        self.assertEqual(colormap.getAutoscaleMode(), Colormap.MINMAX)
+
+    def testStoreRestore(self):
+        colormaps = [
+            Colormap(name="viridis"),
+            Colormap(normalization=Colormap.SQRT)
+        ]
+        cmap = Colormap(normalization=Colormap.GAMMA)
+        cmap.setGammaNormalizationParameter(1.2)
+        cmap.setNaNColor('red')
+        colormaps.append(cmap)
+        for expected in colormaps:
+            with self.subTest(colormap=expected):
+                state = expected.saveState()
+                result = Colormap()
+                result.restoreState(state)
+                self.assertEqual(expected, result)
+
+    def testStorageV1(self):
+        state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00\x00'\
+                b'\x00\x01\x00\x00\x00\x0E\x00v\x00i\x00r\x00i\x00d\x00i\x00s\x00'\
+                b'\x00\x00\x00\x06\x00?\xF0\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
+                b'\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00'\
+                b'l\x00o\x00g'
+        state = qt.QByteArray(state)
+        colormap = Colormap()
+        colormap.restoreState(state)
+
+        expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        self.assertEqual(colormap, expected)
+
+    def testStorageV2(self):
+        state = b'\x00\x00\x00\x10\x00C\x00o\x00l\x00o\x00r\x00m\x00a\x00p\x00'\
+                b'\x00\x00\x02\x00\x00\x00\x0e\x00v\x00i\x00r\x00i\x00d\x00i\x00'\
+                b's\x00\x00\x00\x00\x06\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x00'\
+                b'\x00\x00\x06\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06'\
+                b'\x00l\x00o\x00g\x00\x00\x00\x0c\x00m\x00i\x00n\x00m\x00a\x00x'
+        state = qt.QByteArray(state)
+        colormap = Colormap()
+        colormap.restoreState(state)
+
+        expected = Colormap(name="viridis", vmin=1, vmax=2, normalization=Colormap.LOGARITHM)
+        expected.setGammaNormalizationParameter(1.5)
+        self.assertEqual(colormap, expected)
+
 
 class TestPreferredColormaps(unittest.TestCase):
     """Test get|setPreferredColormaps functions"""
@@ -484,6 +566,37 @@ class TestRegisteredLut(unittest.TestCase):
         self.assertEqual(lut[0, 3], 128)
 
 
+class TestAutoscaleRange(ParametricTestCase):
+
+    def testAutoscaleRange(self):
+        nan = numpy.nan
+        data = [
+            # Positive values
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100]), (1, 1000)),
+            # With nan
+            (Colormap.LINEAR, Colormap.MINMAX, numpy.array([10, 20, 50, nan]), (10, 50)),
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, nan]), (10, 100)),
+            (Colormap.LINEAR, Colormap.STDDEV3, numpy.array([10, 100, nan]), (-80, 190)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, nan]), (1, 1000)),
+            # With negative
+            (Colormap.LOGARITHM, Colormap.MINMAX, numpy.array([10, 50, 100, -50]), (10, 100)),
+            (Colormap.LOGARITHM, Colormap.STDDEV3, numpy.array([10, 100, -10]), (1, 1000)),
+        ]
+        for norm, mode, array, expectedRange in data:
+            with self.subTest(norm=norm, mode=mode, array=array):
+                colormap = Colormap()
+                colormap.setNormalization(norm)
+                colormap.setAutoscaleMode(mode)
+                vRange = colormap._computeAutoscaleRange(array)
+                if vRange is None:
+                    self.assertIsNone(expectedRange)
+                else:
+                    self.assertAlmostEqual(vRange[0], expectedRange[0])
+                    self.assertAlmostEqual(vRange[1], expectedRange[1])
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
@@ -493,6 +606,7 @@ def suite():
     test_suite.addTest(loadTests(TestObjectAPI))
     test_suite.addTest(loadTests(TestPreferredColormaps))
     test_suite.addTest(loadTests(TestRegisteredLut))
+    test_suite.addTest(loadTests(TestAutoscaleRange))
     return test_suite
 
 

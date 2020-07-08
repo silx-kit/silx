@@ -5,6 +5,6 @@
 -------------------------------
 
 .. automodule:: silx.opencl.convolution
-    :members: Convolution, gaussian_kernel
+    :members: Convolution
     :show-inheritance:
     :undoc-members:

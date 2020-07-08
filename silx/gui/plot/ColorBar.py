@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -166,8 +166,8 @@ class ColorBarWidget(qt.QWidget):
 
         :param ~silx.gui.colors.Colormap colormap:
             The colormap to apply on the ColorBarWidget
-        :param numpy.ndarray data: the data to display, needed if the colormap
-            require an autoscale
+        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+            The data to display or item, needed if the colormap require an autoscale
         """
         self._data = data
         self.getColorScaleBar().setColormap(colormap=colormap,
@@ -220,10 +220,10 @@ class ColorBarWidget(qt.QWidget):
             return
 
         # Sync with active scatter
-        activeScatter = plot._getActiveItem(kind='scatter')
+        scatter = plot._getActiveItem(kind='scatter')
 
-        self.setColormap(colormap=activeScatter.getColormap(),
-                         data=activeScatter.getValueData(copy=False))
+        self.setColormap(colormap=scatter.getColormap(),
+                         data=scatter)
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active image changed"""
@@ -236,18 +236,18 @@ class ColorBarWidget(qt.QWidget):
             self._activeScatterChanged(None, activeScatterLegend)
         else:
             # Sync with active image
-            image = plot.getActiveImage().getData(copy=False)
+            image = plot.getActiveImage()
 
             # RGB(A) image, display default colormap
-            if image.ndim != 2:
+            array = image.getData(copy=False)
+            if array.ndim != 2:
                 self.setColormap(colormap=None)
                 return
 
             # data image, sync with image colormap
             # do we need the copy here : used in the case we are changing
             # vmin and vmax but should have already be done by the plot
-            self.setColormap(colormap=plot.getActiveImage().getColormap(),
-                             data=image)
+            self.setColormap(colormap=image.getColormap(), data=image)
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
@@ -259,9 +259,9 @@ class ColorBarWidget(qt.QWidget):
                 # No active item, take default colormap update into account
                 self._syncWithDefaultColormap()
 
-    def _syncWithDefaultColormap(self, data=None):
+    def _syncWithDefaultColormap(self):
         """Update colorbar according to plot default colormap"""
-        self.setColormap(self.getPlot().getDefaultColormap(), data)
+        self.setColormap(self.getPlot().getDefaultColormap())
 
     def getColorScaleBar(self):
         """
@@ -351,13 +351,14 @@ class ColorScaleBar(qt.QWidget):
                                       margin=ColorScaleBar._TEXT_MARGIN)
         if colormap:
             vmin, vmax = colormap.getColormapRange(data)
+            normalizer = colormap._getNormalizer()
         else:
             vmin, vmax = colors.DEFAULT_MIN_LIN, colors.DEFAULT_MAX_LIN
+            normalizer = None
 
-        norm = colormap.getNormalization() if colormap else colors.Colormap.LINEAR
         self.tickbar = _TickBar(vmin=vmin,
                                 vmax=vmax,
-                                norm=norm,
+                                normalizer=normalizer,
                                 parent=self,
                                 displayValues=displayTicksValues,
                                 margin=ColorScaleBar._TEXT_MARGIN)
@@ -408,21 +409,21 @@ class ColorScaleBar(qt.QWidget):
         """Set the new colormap to be displayed
 
         :param Colormap colormap: the colormap to set
-        :param numpy.ndarray data: the data to display, needed if the colormap
-            require an autoscale
+        :param Union[numpy.ndarray,~silx.gui.plot.items.Item] data:
+            The data or item to display, needed if the colormap requires an autoscale
         """
         self.colorScale.setColormap(colormap, data)
 
         if colormap is not None:
             vmin, vmax = colormap.getColormapRange(data)
-            norm = colormap.getNormalization()
+            normalizer = colormap._getNormalizer()
         else:
             vmin, vmax = None, None
-            norm = None
+            normalizer = None
 
         self.tickbar.update(vmin=vmin,
                             vmax=vmax,
-                            norm=norm)
+                            normalizer=normalizer)
         self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
@@ -503,6 +504,8 @@ class _ColorScale(qt.QWidget):
     :param colormap: the colormap to be displayed
     :param parent: the Qt parent if any
     :param int margin: the top and left margin to apply.
+    :param Union[None,numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+        The data or item to use for getting the range for autoscale colormap.
 
     .. warning:: Value drawing will be
         done at the center of ticks. So if no margin is done your values
@@ -531,7 +534,8 @@ class _ColorScale(qt.QWidget):
         """Set the new colormap to be displayed
 
         :param dict colormap: the colormap to set
-        :param data: Optional data for which to compute colormap range.
+        :param Union[None,numpy.ndarray,~silx.gui.plot.items.ColormapMixin] data:
+            Optional data for which to compute colormap range.
         """
         self._colormap = colormap
         self.setEnabled(colormap is not None)
@@ -580,8 +584,8 @@ class _ColorScale(qt.QWidget):
         painter.drawRect(qt.QRect(
             0,
             self.margin,
-            self.width() - 1.,
-            self.height() - 2. * self.margin - 1.))
+            self.width() - 1,
+            self.height() - 2 * self.margin - 1))
 
     def mouseMoveEvent(self, event):
         tooltip = str(self.getValueFromRelativePosition(
@@ -606,19 +610,12 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        value = max(0.0, value)
-        value = min(value, 1.0)
+        value = numpy.clip(value, 0., 1.)
+        normalizer = colormap._getNormalizer()
+        normMin, normMax = normalizer.apply([self.vmin, self.vmax], self.vmin, self.vmax)
 
-        vmin = self.vmin
-        vmax = self.vmax
-        if colormap.getNormalization() == colors.Colormap.LINEAR:
-            return vmin + (vmax - vmin) * value
-        elif colormap.getNormalization() == colors.Colormap.LOGARITHM:
-            rpos = (numpy.log10(vmax) - numpy.log10(vmin)) * value + numpy.log10(vmin)
-            return numpy.power(10., rpos)
-        else:
-            err = "normalization type (%s) is not managed by the _ColorScale Widget" % colormap['normalization']
-            raise ValueError(err)
+        return normalizer.revert(
+            normMin + (normMax - normMin) * value, self.vmin, self.vmax)
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -627,7 +624,7 @@ class _ColorScale(qt.QWidget):
 
         :param int margin: the margin to apply on the top and bottom.
         """
-        self.margin = margin
+        self.margin = int(margin)
         self.update()
 
 
@@ -645,8 +642,7 @@ class _TickBar(qt.QWidget):
 
     :param int vmin: smaller value of the range of values
     :param int vmax: higher value of the range of values
-    :param str norm: normalization type to be displayed. Valid values are
-        'linear' and 'log'
+    :param normalizer: Normalization object.
     :param parent: the Qt parent if any
     :param bool displayValues: if True display the values close to the tick,
         Otherwise only signal it by '-'
@@ -666,7 +662,7 @@ class _TickBar(qt.QWidget):
 
     DEFAULT_TICK_DENSITY = 0.015
 
-    def __init__(self, vmin, vmax, norm, parent=None, displayValues=True,
+    def __init__(self, vmin, vmax, normalizer, parent=None, displayValues=True,
                  nticks=None, margin=5):
         super(_TickBar, self).__init__(parent)
         self.margin = margin
@@ -678,7 +674,7 @@ class _TickBar(qt.QWidget):
 
         self._vmin = vmin
         self._vmax = vmax
-        self._norm = norm
+        self._normalizer = normalizer
         self.displayValues = displayValues
         self.setTicksNumber(nticks)
 
@@ -695,10 +691,10 @@ class _TickBar(qt.QWidget):
         width = self._WIDTH_DISP_VAL if self.displayValues else self._WIDTH_NO_DISP_VAL
         self.setFixedWidth(width)
 
-    def update(self, vmin, vmax, norm):
+    def update(self, vmin, vmax, normalizer):
         self._vmin = vmin
         self._vmax = vmax
-        self._norm = norm
+        self._normalizer = normalizer
         self.computeTicks()
         qt.QWidget.update(self)
 
@@ -742,13 +738,11 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif self._norm == colors.Colormap.LOGARITHM:
+        elif isinstance(self._normalizer, colors._LogarithmicNormalization):
             self._computeTicksLog(nticks)
-        elif self._norm == colors.Colormap.LINEAR:
+        else:  # Fallback: use linear
             self._computeTicksLin(nticks)
-        else:
-            err = 'TickBar - Wrong normalization %s' % self._norm
-            raise ValueError(err)
+
         # update the form
         font = qt.QFont()
         font.setPixelSize(_TickBar._FONT_SIZE)
@@ -801,12 +795,17 @@ class _TickBar(qt.QWidget):
     def _getRelativePosition(self, val):
         """Return the relative position of val according to min and max value
         """
-        if self._norm == colors.Colormap.LINEAR:
-            return 1 - (val - self._vmin) / (self._vmax - self._vmin)
-        elif self._norm == colors.Colormap.LOGARITHM:
-            return 1 - (numpy.log10(val) - numpy.log10(self._vmin)) / (numpy.log10(self._vmax) - numpy.log10(self._vmin))
+        if self._normalizer is None:
+            return 0.
+        normMin, normMax, normVal = self._normalizer.apply(
+            [self._vmin, self._vmax, val],
+            self._vmin,
+            self._vmax)
+
+        if normMin == normMax:
+            return 0.
         else:
-            raise ValueError('Norm is not recognized')
+            return 1. - (normVal - normMin) / (normMax - normMin)
 
     def _paintTick(self, val, painter, majorTick=True):
         """
@@ -817,19 +816,18 @@ class _TickBar(qt.QWidget):
         fm = qt.QFontMetrics(painter.font())
         viewportHeight = self.rect().height() - self.margin * 2 - 1
         relativePos = self._getRelativePosition(val)
-        height = viewportHeight * relativePos
-        height += self.margin
+        height = int(viewportHeight * relativePos + self.margin)
         lineWidth = _TickBar._LINE_WIDTH
         if majorTick is False:
             lineWidth /= 2
 
-        painter.drawLine(qt.QLine(self.width() - lineWidth,
+        painter.drawLine(qt.QLine(int(self.width() - lineWidth),
                                   height,
                                   self.width(),
                                   height))
 
         if self.displayValues and majorTick is True:
-            painter.drawText(qt.QPoint(0.0, height + (fm.height() / 2)),
+            painter.drawText(qt.QPoint(0, int(height + fm.height() / 2)),
                              self.form.format(val))
 
     def setDisplayType(self, disType):
@@ -853,9 +851,9 @@ class _TickBar(qt.QWidget):
     def _getFormat(self, font):
         if self._forcedDisplayType is None:
             return self._guessType(font)
-        elif self._forcedDisplayType is 'std':
+        elif self._forcedDisplayType == 'std':
             return self._getStandardFormat()
-        elif self._forcedDisplayType is 'e':
+        elif self._forcedDisplayType == 'e':
             return self._getScientificForm()
         else:
             err = 'Forced type for display %s is not recognized' % self._forcedDisplayType

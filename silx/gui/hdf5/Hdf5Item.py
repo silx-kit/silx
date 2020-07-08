@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ __date__ = "17/01/2019"
 
 import logging
 import collections
+import enum
 
 from .. import qt
 from .. import icons
@@ -42,6 +43,17 @@ _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 # FIXME: The formatter should be an attribute of the Hdf5Model
+
+
+class DescriptionType(enum.Enum):
+    """List of available kind of description.
+    """
+    ERROR = "error"
+    DESCRIPTION = "description"
+    TITLE = "title"
+    PROGRAM = "program"
+    NAME = "name"
+    VALUE = "value"
 
 
 class Hdf5Item(Hdf5Node):
@@ -62,6 +74,7 @@ class Hdf5Item(Hdf5Node):
         self.__error = None
         self.__text = text
         self.__linkClass = linkClass
+        self.__description = None
         self.__nx_class = None
         Hdf5Node.__init__(self, parent, populateAll=populateAll)
 
@@ -367,7 +380,20 @@ class Hdf5Item(Hdf5Node):
                 text = ""
             else:
                 text = self._getFormatter().textFormatter().toString(obj)
-            self.__nx_class = text.strip('"')
+                text = text.strip('"')
+                # Check NX_class formatting
+                lower = text.lower()
+                if lower.startswith('nx'):
+                    formatedNX_class = 'NX' + lower[2:]
+                if lower == 'nxcansas':
+                    formatedNX_class = 'NXcanSAS'  # That's the only class with capital letters...
+                if text != formatedNX_class:
+                    _logger.error("NX_class: %s is malformed (should be %s)",
+                                  text,
+                                  formatedNX_class)
+                text = formatedNX_class
+
+            self.__nx_class = text
         return self.__nx_class
 
     def dataName(self, role):
@@ -430,31 +456,131 @@ class Hdf5Item(Hdf5Node):
             return self._getFormatter().humanReadableValue(self.obj)
         return None
 
+    _NEXUS_CLASS_TO_VALUE_CHILDREN = {
+        'NXaperture': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
+        'NXbeam_stop': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
+        'NXdetector': (
+            (DescriptionType.NAME, 'local_name'),
+            (DescriptionType.DESCRIPTION, 'description')
+        ),
+        'NXentry': (
+            (DescriptionType.TITLE, 'title'),
+        ),
+        'NXenvironment': (
+            (DescriptionType.NAME, 'short_name'),
+            (DescriptionType.NAME, 'name'),
+            (DescriptionType.DESCRIPTION, 'description')
+        ),
+        'NXinstrument': (
+            (DescriptionType.NAME, 'name'),
+        ),
+        'NXlog': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
+        'NXmirror': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
+        'NXpositioner': (
+            (DescriptionType.NAME, 'name'),
+        ),
+        'NXprocess': (
+            (DescriptionType.PROGRAM, 'program'),
+        ),
+        'NXsample': (
+            (DescriptionType.TITLE, 'short_title'),
+            (DescriptionType.NAME, 'name'),
+            (DescriptionType.DESCRIPTION, 'description')
+        ),
+        'NXsample_component': (
+            (DescriptionType.NAME, 'name'),
+            (DescriptionType.DESCRIPTION, 'description')
+        ),
+        'NXsensor': (
+            (DescriptionType.NAME, 'short_name'),
+            (DescriptionType.NAME, 'name')
+        ),
+        'NXsource': (
+            (DescriptionType.NAME, 'name'),
+        ),  # or its 'short_name' attribute... This is not supported
+        'NXsubentry': (
+            (DescriptionType.DESCRIPTION, 'definition'),
+            (DescriptionType.PROGRAM, 'program_name'),
+            (DescriptionType.TITLE, 'title'),
+        ),
+    }
+    """Mapping from NeXus class to child names containing data to use as value"""
+
+    def __computeDataDescription(self):
+        """Compute the data description of this item
+
+        :rtype: Tuple[kind, str]
+        """
+        if self.__isBroken or self.__error is not None:
+            self.obj  # lazy loading of the object
+            return DescriptionType.ERROR, self.__error
+
+        if self.h5Class == silx.io.utils.H5Type.DATASET:
+            return DescriptionType.VALUE, self._getFormatter().humanReadableValue(self.obj)
+
+        elif self.isGroupObj() and self.nexusClassName:
+            # For NeXus groups, try to find a title or name
+            # By default, look for a title (most application definitions should have one)
+            defaultSequence = ((DescriptionType.TITLE, 'title'),)
+            sequence = self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(self.nexusClassName, defaultSequence)
+            for kind, child_name in sequence:
+                for index in range(self.childCount()):
+                    child = self.child(index)
+                    if (isinstance(child, Hdf5Item) and
+                            child.h5Class == silx.io.utils.H5Type.DATASET and
+                            child.basename == child_name):
+                        return kind, self._getFormatter().humanReadableValue(child.obj)
+
+        description = self.obj.attrs.get("desc", None)
+        if description is not None:
+            return DescriptionType.DESCRIPTION, description
+        else:
+            return None, None
+
+    def __getDataDescription(self):
+        """Returns a cached version of the data description
+
+        As the data description have to reach inside the HDF5 tree, the result
+        is cached. A better implementation could be to use a MRU cache, to avoid
+        to allocate too much data.
+
+        :rtype: Tuple[kind, str]
+        """
+        if self.__description is None:
+            self.__description = self.__computeDataDescription()
+        return self.__description
+
     def dataDescription(self, role):
         """Data for the description column"""
         if role == qt.Qt.DecorationRole:
+            kind, _label = self.__getDataDescription()
+            if kind is not None:
+                icon = icons.getQIcon("description-%s" % kind.value)
+                return icon
             return None
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            if self.__isBroken:
-                self.obj  # lazy loading of the object
-                return self.__error
-            if "desc" in self.obj.attrs:
-                text = self.obj.attrs["desc"]
-            else:
-                return ""
-            return text
+            _kind, label = self.__getDataDescription()
+            return label
         if role == qt.Qt.ToolTipRole:
             if self.__error is not None:
                 self.obj  # lazy loading of the object
                 self.__initH5Object()
                 return self.__error
-            if "desc" in self.obj.attrs:
-                text = self.obj.attrs["desc"]
+            kind, label = self.__getDataDescription()
+            if label is not None:
+                return "<b>%s</b><br/>%s" % (kind.value.capitalize(), label)
             else:
                 return ""
-            return "Description: %s" % text
         return None
 
     def dataNode(self, role):

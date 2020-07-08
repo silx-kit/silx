@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -141,20 +141,22 @@ class PlotItemsSelector(qt.QTableWidget):
     def updatePlotItems(self):
         self._clear()
 
-        nrows = len(self.plot._getItems(kind=self.plot_item_kinds,
-                                        just_legend=True))
-        self.setRowCount(nrows)
-
         # respect order of kinds as set in method setKindsFilter
-        i = 0
+        itemsAndKind = []
         for kind in self.plot_item_kinds:
-            for plot_item in self.plot._getItems(kind=kind):
-                legend_twitem = qt.QTableWidgetItem(plot_item.getLegend())
-                self.setItem(i, 0, legend_twitem)
+            itemClasses = self.plot._KIND_TO_CLASSES[kind]
+            for item in self.plot.getItems():
+                if isinstance(item, itemClasses) and item.isVisible():
+                    itemsAndKind.append((item, kind))
 
-                kind_twitem = qt.QTableWidgetItem(kind)
-                self.setItem(i, 1, kind_twitem)
-                i += 1
+        self.setRowCount(len(itemsAndKind))
+
+        for index, (item, kind) in enumerate(itemsAndKind):
+            legend_twitem = qt.QTableWidgetItem(item.getName())
+            self.setItem(index, 0, legend_twitem)
+
+            kind_twitem = qt.QTableWidgetItem(kind)
+            self.setItem(index, 1, kind_twitem)
 
     @property
     def selectedPlotItems(self):
@@ -167,7 +169,9 @@ class PlotItemsSelector(qt.QTableWidget):
         for row in selected_rows:
             legend = self.item(row, 0).text()
             kind = self.item(row, 1).text()
-            items.append(self.plot._getItem(kind, legend))
+            item = self.plot._getItem(kind, legend)
+            if item is not None:
+                items.append(item)
 
         return items
 
@@ -192,7 +196,7 @@ class ItemsSelectionDialog(qt.QDialog):
         result = isd.exec_()
         if result:
             for item in isd.getSelectedItems():
-                print(item.getLegend(), type(item))
+                print(item.getName(), type(item))
         else:
             print("Selection cancelled")
     """

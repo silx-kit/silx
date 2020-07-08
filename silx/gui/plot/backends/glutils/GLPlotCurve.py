@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ __date__ = "03/04/2017"
 
 import math
 import logging
-import warnings
 
 import numpy
 
@@ -44,6 +43,7 @@ from silx.math.combo import min_max
 from ...._glutils import gl
 from ...._glutils import Program, vertexBuffer, VertexBufferAttrib
 from .GLSupport import buildFillMaskIndices, mat4Identity, mat4Translate
+from .GLPlotImage import GLPlotItem
 
 
 _logger = logging.getLogger(__name__)
@@ -528,7 +528,16 @@ def distancesFromArrays(xData, yData):
 DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK = \
     'd', 'o', 's', '+', 'x', '.', ',', '*'
 
-H_LINE, V_LINE = '_', '|'
+H_LINE, V_LINE, HEART = '_', '|', u'\u2665'
+
+TICK_LEFT = "tickleft"
+TICK_RIGHT = "tickright"
+TICK_UP = "tickup"
+TICK_DOWN = "tickdown"
+CARET_LEFT = "caretleft"
+CARET_RIGHT = "caretright"
+CARET_UP = "caretup"
+CARET_DOWN = "caretdown"
 
 
 class _Points2D(object):
@@ -544,7 +553,8 @@ class _Points2D(object):
     """
 
     MARKERS = (DIAMOND, CIRCLE, SQUARE, PLUS, X_MARKER, POINT, PIXEL, ASTERISK,
-               H_LINE, V_LINE)
+               H_LINE, V_LINE, HEART, TICK_LEFT, TICK_RIGHT, TICK_UP, TICK_DOWN,
+               CARET_LEFT, CARET_RIGHT, CARET_UP, CARET_DOWN)
     """List of supported markers"""
 
     _VERTEX_SHADER = """
@@ -642,7 +652,110 @@ class _Points2D(object):
                 return 0.0;
             }
         }
-        """
+        """,
+            HEART: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord = (coord - 0.5) * 2.;
+            coord *= 0.75;
+            coord.y += 0.25;
+            float a = atan(coord.x,-coord.y)/3.141593;
+            float r = length(coord);
+            float h = abs(a);
+            float d = (13.0*h - 22.0*h*h + 10.0*h*h*h)/(6.0-5.0*h);
+            float res = clamp(r-d, 0., 1.);
+            // antialiasing
+            res = smoothstep(0.1, 0.001, res);
+            return res;
+        }
+        """,
+            TICK_LEFT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dy = abs(coord.y);
+            if (dy < 0.5 && coord.x < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_RIGHT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dy = abs(coord.y);
+            if (dy < 0.5 && coord.x > -0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_UP: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dx = abs(coord.x);
+            if (dx < 0.5 && coord.y < 0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            TICK_DOWN: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float dx = abs(coord.x);
+            if (dx < 0.5 && coord.y > -0.5) {
+                return 1.0;
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_LEFT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.x) - abs(coord.y);
+            if (d >= -0.1 && coord.x > 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_RIGHT: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.x) - abs(coord.y);
+            if (d >= -0.1 && coord.x < 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_UP: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.y) - abs(coord.x);
+            if (d >= -0.1 && coord.y > 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
+            CARET_DOWN: """
+        float alphaSymbol(vec2 coord, float size) {
+            coord  = size * (coord - 0.5);
+            float d = abs(coord.y) - abs(coord.x);
+            if (d >= -0.1 && coord.y < 0.5) {
+                return smoothstep(-0.1, 0.1, d);
+            } else {
+                return 0.0;
+            }
+        }
+        """,
     }
 
     _FRAGMENT_SHADER_TEMPLATE = """
@@ -955,7 +1068,7 @@ def _proxyProperty(*componentsAttributes):
     return property(getter, setter)
 
 
-class GLPlotCurve2D(object):
+class GLPlotCurve2D(GLPlotItem):
     def __init__(self, xData, yData, colorData=None,
                  xError=None, yError=None,
                  lineStyle=SOLID,
@@ -968,7 +1081,7 @@ class GLPlotCurve2D(object):
                  fillColor=None,
                  baseline=None,
                  isYLog=False):
-
+        super().__init__()
         self.colorData = colorData
 
         # Compute x bounds
@@ -1016,11 +1129,9 @@ class GLPlotCurve2D(object):
                     _baseline = numpy.repeat(_baseline,
                                              len(self.xData))
                 if isYLog is True:
-                    with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                        warnings.simplefilter('ignore',
-                                              category=RuntimeWarning)
+                    with numpy.errstate(divide='ignore', invalid='ignore'):
                         log_val = numpy.log10(_baseline)
-                    _baseline = numpy.where(_baseline>0.0, log_val, -38)
+                        _baseline = numpy.where(_baseline>0.0, log_val, -38)
                 return _baseline
 
             _baseline = deduce_baseline(baseline)
@@ -1164,8 +1275,7 @@ class GLPlotCurve2D(object):
 
         if self.lineStyle is not None:
             # Using Cohen-Sutherland algorithm for line clipping
-            with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                warnings.simplefilter('ignore', category=RuntimeWarning)
+            with numpy.errstate(invalid='ignore'):  # Ignore NaN comparison warnings
                 codes = ((self.yData > yPickMax) << 3) | \
                     ((self.yData < yPickMin) << 2) | \
                     ((self.xData > xPickMax) << 1) | \
@@ -1222,8 +1332,7 @@ class GLPlotCurve2D(object):
             indices.sort()
 
         else:
-            with warnings.catch_warnings():  # Ignore NaN comparison warnings
-                warnings.simplefilter('ignore', category=RuntimeWarning)
+            with numpy.errstate(invalid='ignore'):  # Ignore NaN comparison warnings
                 indices = numpy.nonzero((self.xData >= xPickMin) &
                                         (self.xData <= xPickMax) &
                                         (self.yData >= yPickMin) &

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -384,31 +384,52 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 class Colormap(event.Notifier, ProgramFunction):
 
     _declTemplate = string.Template("""
-    uniform struct {
-        sampler2D texture;
-        bool isLog;
-        float min;
-        float oneOverRange;
-    } cmap;
+    uniform sampler2D cmap_texture;
+    uniform int cmap_normalization;
+    uniform float cmap_parameter;
+    uniform float cmap_min;
+    uniform float cmap_oneOverRange;
+    uniform vec4 nancolor;
 
     const float oneOverLog10 = 0.43429448190325176;
 
     vec4 colormap(float value) {
-        if (cmap.isLog) { /* Log10 mapping */
+        float data = value; /* Keep original input value for isnan test */
+
+        if (cmap_normalization == 1) { /* Log10 mapping */
             if (value > 0.0) {
-                value = clamp(cmap.oneOverRange *
-                              (oneOverLog10 * log(value) - cmap.min),
+                value = clamp(cmap_oneOverRange *
+                              (oneOverLog10 * log(value) - cmap_min),
                               0.0, 1.0);
             } else {
                 value = 0.0;
             }
+        } else if (cmap_normalization == 2) { /* Sqrt mapping */
+            if (value > 0.0) {
+                value = clamp(cmap_oneOverRange * (sqrt(value) - cmap_min),
+                              0.0, 1.0);
+            } else {
+                value = 0.0;
+            }
+        } else if (cmap_normalization == 3) { /*Gamma correction mapping*/
+            value = pow(
+                clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0),
+                cmap_parameter);
+        } else if (cmap_normalization == 4) { /* arcsinh mapping */
+            /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+            value = clamp(cmap_oneOverRange * (log(value + sqrt(value*value + 1.0)) - cmap_min), 0.0, 1.0);
         } else { /* Linear mapping */
-            value = clamp(cmap.oneOverRange * (value - cmap.min), 0.0, 1.0);
+            value = clamp(cmap_oneOverRange * (value - cmap_min), 0.0, 1.0);
         }
 
         $discard
 
-        vec4 color = texture2D(cmap.texture, vec2(value, 0.5));
+        vec4 color;
+        if (data != data) { /* isnan alternative for compatibility with GLSL 1.20 */
+            color = nancolor;
+        } else {
+            color = texture2D(cmap_texture, vec2(value, 0.5));
+        }
         return color;
     }
     """)
@@ -421,18 +442,19 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    NORMS = 'linear', 'log'
+    NORMS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
     """Tuple of supported normalizations."""
 
     _COLORMAP_TEXTURE_UNIT = 1
     """Texture unit to use for storing the colormap"""
 
-    def __init__(self, colormap=None, norm='linear', range_=(1., 10.)):
+    def __init__(self, colormap=None, norm='linear', gamma=0., range_=(1., 10.)):
         """Shader function to apply a colormap to a value.
 
         :param colormap: RGB(A) color look-up table (default: gray)
         :param colormap: numpy.ndarray of numpy.uint8 of dimension Nx3 or Nx4
-        :param str norm: Normalization to apply: 'linear' (default) or 'log'.
+        :param str norm: Normalization to apply: see :attr:`NORMS`.
+        :param float gamma: Gamma normalization parameter
         :param range_: Range of value to map to the colormap.
         :type range_: 2-tuple of float (begin, end).
         """
@@ -441,8 +463,10 @@ class Colormap(event.Notifier, ProgramFunction):
         # Init privates to default
         self._colormap = None
         self._norm = 'linear'
+        self._gamma = -1.
         self._range = 1., 10.
         self._displayValuesBelowMin = True
+        self._nancolor = numpy.array((1., 1., 1., 0.), dtype=numpy.float32)
 
         self._texture = None
         self._update_texture = True
@@ -456,6 +480,7 @@ class Colormap(event.Notifier, ProgramFunction):
         # Set to param values through properties to go through asserts
         self.colormap = colormap
         self.norm = norm
+        self.gamma = gamma
         self.range_ = range_
 
     @property
@@ -479,11 +504,25 @@ class Colormap(event.Notifier, ProgramFunction):
         self.notify()
 
     @property
+    def nancolor(self):
+        """RGBA color to use for Not-A-Number values as 4 float in [0., 1.]"""
+        return self._nancolor
+
+    @nancolor.setter
+    def nancolor(self, color):
+        color = numpy.clip(numpy.array(color, dtype=numpy.float32), 0., 1.)
+        assert color.ndim == 1
+        assert len(color) == 4
+        if not numpy.array_equal(self._nancolor, color):
+            self._nancolor = color
+            self.notify()
+
+    @property
     def norm(self):
         """Normalization to use for colormap mapping.
 
-        Either 'linear' (the default) or 'log' for log10 mapping.
-        With 'log' normalization, values <= 0. are set to 1. (i.e. log == 0)
+        One of 'linear' (the default), 'log' for log10 mapping or 'sqrt'.
+        Invalid values (e.g., negative values with 'log' or 'sqrt') are mapped to 0.
         """
         return self._norm
 
@@ -492,8 +531,20 @@ class Colormap(event.Notifier, ProgramFunction):
         if norm != self._norm:
             assert norm in self.NORMS
             self._norm = norm
-            if norm == 'log':
+            if norm in ('log', 'sqrt'):
                 self.range_ = self.range_  # To test for positive range_
+            self.notify()
+
+    @property
+    def gamma(self):
+        """Gamma correction normalization parameter (float >= 0.)"""
+        return self._gamma
+
+    @gamma.setter
+    def gamma(self, gamma):
+        if gamma != self._gamma:
+            assert gamma >= 0.
+            self._gamma = gamma
             self.notify()
 
     @property
@@ -517,6 +568,10 @@ class Colormap(event.Notifier, ProgramFunction):
                 "Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
             range_ = max(range_[0], minPos), max(range_[1], minPos)
+        elif self.norm == 'sqrt' and (range_[0] < 0. or range_[1] < 0.):
+            _logger.warning(
+                "Sqrt normalization and negative range: updating range.")
+            range_ = max(range_[0], 0.), max(range_[1], 0.)
 
         if range_ != self._range:
             self._range = range_
@@ -549,17 +604,33 @@ class Colormap(event.Notifier, ProgramFunction):
 
         self._texture.bind()
 
-        gl.glUniform1i(program.uniforms['cmap.texture'],
+        gl.glUniform1i(program.uniforms['cmap_texture'],
                        self._texture.texUnit)
-        gl.glUniform1i(program.uniforms['cmap.isLog'], self._norm == 'log')
 
         min_, max_ = self.range_
+        param = 0.
         if self._norm == 'log':
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
+            normID = 1
+        elif self._norm == 'sqrt':
+            min_, max_ = numpy.sqrt(min_), numpy.sqrt(max_)
+            normID = 2
+        elif self._norm == 'gamma':
+            # Keep min_, max_ as is
+            param = self._gamma
+            normID = 3
+        elif self._norm == 'arcsinh':
+            min_, max_ = numpy.arcsinh(min_), numpy.arcsinh(max_)
+            normID = 4
+        else:  # Linear
+            normID = 0
 
-        gl.glUniform1f(program.uniforms['cmap.min'], min_)
-        gl.glUniform1f(program.uniforms['cmap.oneOverRange'],
+        gl.glUniform1i(program.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(program.uniforms['cmap_parameter'], param)
+        gl.glUniform1f(program.uniforms['cmap_min'], min_)
+        gl.glUniform1f(program.uniforms['cmap_oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
+        gl.glUniform4f(program.uniforms['nancolor'], *self._nancolor)
 
     def prepareGL2(self, context):
         if self._texture is None or self._update_texture:

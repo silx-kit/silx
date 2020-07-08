@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ Other public functions:
 
 """
 
+import json
 import numpy
 import six
 
@@ -53,11 +54,81 @@ from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2019"
+__date__ = "24/03/2020"
 
 
 class InvalidNXdataError(Exception):
     pass
+
+
+class _SilxStyle(object):
+    """NXdata@SILX_style parser.
+
+    :param NXdata nxdata:
+        NXdata description for which to extract silx_style information.
+    """
+
+    def __init__(self, nxdata):
+        naxes = len(nxdata.axes)
+        self._axes_scale_types = [None] * naxes
+        self._signal_scale_type = None
+
+        stylestr = get_attr_as_unicode(nxdata.group, "SILX_style")
+        if stylestr is None:
+            return
+
+        try:
+            style = json.loads(stylestr)
+        except json.JSONDecodeError:
+            nxdata_logger.error(
+                "Ignoring SILX_style, cannot parse: %s", stylestr)
+            return
+
+        if not isinstance(style, dict):
+            nxdata_logger.error(
+                "Ignoring SILX_style, cannot parse: %s", stylestr)
+
+        if 'axes_scale_types' in style:
+            axes_scale_types = style['axes_scale_types']
+
+            if isinstance(axes_scale_types, str):
+                # Convert single argument to list
+                axes_scale_types = [axes_scale_types]
+
+            if not isinstance(axes_scale_types, list):
+                nxdata_logger.error(
+                    "Ignoring SILX_style:axes_scale_types, not a list")
+            else:
+                for scale_type in axes_scale_types:
+                    if scale_type not in ('linear', 'log'):
+                        nxdata_logger.error(
+                            "Ignoring SILX_style:axes_scale_types, invalid value: %s", str(scale_type))
+                        break
+                else:  # All values are valid
+                    if len(axes_scale_types) > naxes:
+                        nxdata_logger.error(
+                            "Clipping SILX_style:axes_scale_types, too many values")
+                        axes_scale_types = axes_scale_types[:naxes]
+                    elif len(axes_scale_types) < naxes:
+                        # Extend axes_scale_types with None to match number of axes
+                        axes_scale_types = [None] * (naxes - len(axes_scale_types)) + axes_scale_types
+                    self._axes_scale_types = tuple(axes_scale_types)
+
+        if 'signal_scale_type' in style:
+            scale_type = style['signal_scale_type']
+            if scale_type not in ('linear', 'log'):
+                nxdata_logger.error(
+                    "Ignoring SILX_style:signal_scale_type, invalid value: %s", str(scale_type))
+            else:
+                self._signal_scale_type = scale_type
+
+    axes_scale_types = property(
+        lambda self: self._axes_scale_types,
+        doc="Tuple of NXdata axes scale types (None, 'linear' or 'log'). List[str]")
+
+    signal_scale_type = property(
+        lambda self: self._signal_scale_type,
+        doc="NXdata signal scale type (None, 'linear' or 'log'). str")
 
 
 class NXdata(object):
@@ -76,6 +147,7 @@ class NXdata(object):
     """
     def __init__(self, group, validate=True):
         super(NXdata, self).__init__()
+        self._plot_style = None
 
         self.group = group
         """h5py-like group object with @NX_class=NXdata.
@@ -146,6 +218,8 @@ class NXdata(object):
 
             # excludes scatters
             self.signal_is_1d = self.signal_is_1d and len(self.axes) <= 1  # excludes n-D scatters
+
+            self._plot_style = _SilxStyle(self)
 
     def _validate(self):
         """Fill :attr:`issues` with error messages for each error found."""
@@ -250,8 +324,18 @@ class NXdata(object):
                                     "dimensions as axis '%s'." % axis_name)
 
         # test dimensions of errors associated with signal
+
+        signal_errors = signal_name + "_errors"
         if "errors" in self.group and is_dataset(self.group["errors"]):
-            if self.group["errors"].shape != self.group[signal_name].shape:
+            errors = "errors"
+        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
+            errors = signal_errors
+        else:
+            errors = None
+        if errors:
+            if self.group[errors].shape != self.group[signal_name].shape:
+                # In principle just the same size should be enough but
+                # NeXus documentation imposes to have the same shape
                 self.issues.append(
                         "Dataset containing standard deviations must " +
                         "have the same dimensions as the signal.")
@@ -629,9 +713,26 @@ class NXdata(object):
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        if "errors" not in self.group:
+        # case of signal
+        signal_errors = self.signal_dataset_name + "_errors"
+        if "errors" in self.group and is_dataset(self.group["errors"]):
+            errors = "errors"
+        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
+            errors = signal_errors
+        else:
             return None
-        return self.group["errors"]
+        return self.group[errors]
+
+    @property
+    def plot_style(self):
+        """Information extracted from the optional SILX_style attribute
+
+        :raises: InvalidNXdataError
+        """
+        if not self.is_valid:
+            raise InvalidNXdataError("Unable to parse invalid NXdata")
+
+        return self._plot_style
 
     @property
     def is_scatter(self):

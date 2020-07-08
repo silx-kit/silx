@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ from silx.test.utils import test_options
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
+from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -185,7 +186,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.plot.addMarker(*marker_pos)
         marker_x = 6
         self.plot.addXMarker(marker_x)
-        self.plot.addItem((0, 5), (2, 10), shape='rectangle')
+        self.plot.addShape((0, 5), (2, 10), shape='rectangle')
 
         items = self.plot.getItems()
         self.assertEqual(len(items), 6)
@@ -272,11 +273,20 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
         rgb = numpy.array(
             (((0, 0, 0), (128, 0, 0), (255, 0, 0)),
-             ((0, 128, 0), (0, 128, 128), (0, 128, 256))),
+             ((0, 128, 0), (0, 128, 128), (0, 128, 255))),
             dtype=numpy.uint8)
 
-        self.plot.addImage(rgb, legend="rgb",
-                           origin=(0, 0), scale=(10, 10),
+        self.plot.addImage(rgb, legend="rgb_uint8",
+                           origin=(0, 0), scale=(1, 1),
+                           resetzoom=False)
+
+        rgb = numpy.array(
+            (((0, 0, 0), (32768, 0, 0), (65535, 0, 0)),
+             ((0, 32768, 0), (0, 32768, 32768), (0, 32768, 65535))),
+            dtype=numpy.uint16)
+
+        self.plot.addImage(rgb, legend="rgb_uint16",
+                           origin=(3, 2), scale=(2, 2),
                            resetzoom=False)
 
         rgba = numpy.array(
@@ -284,8 +294,8 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
              ((0, .5, 0, 1), (0, .5, .5, 1), (0, 1, 1, .5))),
             dtype=numpy.float32)
 
-        self.plot.addImage(rgba, legend="rgba",
-                           origin=(5, 5), scale=(10, 10),
+        self.plot.addImage(rgba, legend="rgba_float32",
+                           origin=(9, 6), scale=(1, 1),
                            resetzoom=False)
 
         self.plot.resetZoom()
@@ -315,6 +325,23 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
                            origin=(DATA_2D.shape[0], 0),
                            resetzoom=False)
         self.plot.resetZoom()
+
+    def testPlotColormapNaNColor(self):
+        self.plot.setKeepDataAspectRatio(False)
+        self.plot.setGraphTitle('Colormap with NaN color')
+
+        colormap = Colormap()
+        colormap.setNaNColor('red')
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
+        data = DATA_2D.astype(numpy.float32)
+        data[len(data)//2:] = numpy.nan
+        self.plot.addImage(data, legend="image 1", colormap=colormap,
+                           resetzoom=False)
+        self.plot.resetZoom()
+
+        colormap.setNaNColor((0., 1., 0., 1.))
+        self.assertEqual(colormap.getNaNColor(), qt.QColor(0, 255, 0))
+        self.qapp.processEvents()
 
     def testImageOriginScale(self):
         """Test of image with different origin and scale"""
@@ -551,7 +578,7 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         self.plot.resetZoom()
 
     def testScatterVisualization(self):
-        self.plot.addScatter((0, 1, 2, 3), (2, 0, 2, 1), (0, 1, 2, 3))
+        self.plot.addScatter((0, 1, 0, 1), (0, 0, 2, 2), (0, 1, 2, 3))
         self.plot.resetZoom()
         self.qapp.processEvents()
 
@@ -559,10 +586,102 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         for visualization in ('solid',
                               'points',
+                              'regular_grid',
+                              'irregular_grid',
+                              'binned_statistic',
                               scatter.Visualization.SOLID,
-                              scatter.Visualization.POINTS):
+                              scatter.Visualization.POINTS,
+                              scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID,
+                              scatter.Visualization.BINNED_STATISTIC):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
+                self.qapp.processEvents()
+
+    def testGridVisualization(self):
+        """Test regular and irregular grid mode with different points"""
+        points = {  # name: (x, y, order)
+            'single point': ((1.,), (1.,), 'row'),
+            'horizontal line': ((0, 1, 2), (0, 0, 0), 'row'),
+            'horizontal line backward': ((2, 1, 0), (0, 0, 0), 'row'),
+            'vertical line': ((0, 0, 0), (0, 1, 2), 'row'),
+            'vertical line backward': ((0, 0, 0), (2, 1, 0), 'row'),
+            'grid fast x, +x +y': ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1), 'row'),
+            'grid fast x, +x -y': ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0), 'row'),
+            'grid fast x, -x -y': ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0), 'row'),
+            'grid fast x, -x +y': ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1), 'row'),
+            'grid fast y, +x +y': ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2), 'column'),
+            'grid fast y, +x -y': ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0), 'column'),
+            'grid fast y, -x -y': ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0), 'column'),
+            'grid fast y, -x +y': ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2), 'column'),
+            }
+
+        self.plot.addScatter((), (), ())
+        scatter = self.plot.getItems()[0]
+
+        self.qapp.processEvents()
+
+        for visualization in (scatter.Visualization.REGULAR_GRID,
+                              scatter.Visualization.IRREGULAR_GRID):
+            scatter.setVisualization(visualization)
+            self.assertIs(scatter.getVisualization(), visualization)
+
+            for name, (x, y, ref_order) in points.items():
+                with self.subTest(name=name, visualization=visualization.name):
+                    scatter.setData(x, y, numpy.arange(len(x)))
+                    self.plot.setGraphTitle(name)
+                    self.plot.resetZoom()
+                    self.qapp.processEvents()
+
+                    order = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_MAJOR_ORDER)
+                    self.assertEqual(ref_order, order)
+
+                    ref_bounds = (x[0], y[0]), (x[-1], y[-1])
+                    bounds = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_BOUNDS)
+                    self.assertEqual(ref_bounds, bounds)
+
+                    shape = scatter.getCurrentVisualizationParameter(
+                        scatter.VisualizationParameter.GRID_SHAPE)
+
+                    self.plot.getXAxis().setLimits(numpy.min(x) - 1, numpy.max(x) + 1)
+                    self.plot.getYAxis().setLimits(numpy.min(y) - 1, numpy.max(y) + 1)
+                    self.qapp.processEvents()
+
+                    for index, position in enumerate(zip(x, y)):
+                        xpixel, ypixel = self.plot.dataToPixel(*position)
+                        result = scatter.pick(xpixel, ypixel)
+                        self.assertIsNotNone(result)
+                        self.assertIs(result.getItem(), scatter)
+                        self.assertEqual(result.getIndices(), (index,))
+
+    def testBinnedStatisticVisualization(self):
+        """Test binned display"""
+        self.plot.addScatter((), (), ())
+        scatter = self.plot.getItems()[0]
+        scatter.setVisualization(scatter.Visualization.BINNED_STATISTIC)
+        self.assertIs(scatter.getVisualization(),
+                      scatter.Visualization.BINNED_STATISTIC)
+        self.assertEqual(
+            scatter.getVisualizationParameter(
+                scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
+            'mean')
+
+        self.qapp.processEvents()
+
+        scatter.setData(*numpy.random.random(3000).reshape(3, -1))
+
+        for reduction in ('count', 'sum', 'mean'):
+            with self.subTest(reduction=reduction):
+                scatter.setVisualizationParameter(
+                    scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
+                    reduction)
+                self.assertEqual(
+                    scatter.getVisualizationParameter(
+                        scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
+                    reduction)
+
                 self.qapp.processEvents()
 
 
@@ -734,36 +853,36 @@ class TestPlotItem(PlotWidgetTestCase):
         self.plot.setGraphTitle('Item Fill')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemPolygonNoFill(self):
         self.plot.setGraphTitle('Item No Fill')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleFill(self):
         self.plot.setGraphTitle('Rectangle Fill')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
 
 
@@ -1282,6 +1401,75 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         """Test coverage on setAxesDisplayed(True)"""
         self.plot.setAxesDisplayed(True)
 
+    def testBoundingRectItem(self):
+        item = BoundingRect()
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.addItem(item)
+        self.plot.resetZoom()
+        limits = numpy.array(self.plot.getXAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
+        limits = numpy.array(self.plot.getYAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-2000, 2000]))
+
+    def testBoundingRectRightItem(self):
+        item = BoundingRect()
+        item.setYAxis("right")
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.addItem(item)
+        self.plot.resetZoom()
+        limits = numpy.array(self.plot.getXAxis().getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-1000, 1000]))
+        limits = numpy.array(self.plot.getYAxis("right").getLimits())
+        numpy.testing.assert_almost_equal(limits, numpy.array([-2000, 2000]))
+
+    def testBoundingRectArguments(self):
+        item = BoundingRect()
+        with self.assertRaises(Exception):
+            item.setBounds((1000, -1000, -2000, 2000))
+        with self.assertRaises(Exception):
+            item.setBounds((-1000, 1000, 2000, -2000))
+
+    def testBoundingRectWithLog(self):
+        item = BoundingRect()
+        self.plot.addItem(item)
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertEqual(item.getBounds(), (1000, 1000, -2000, 2000))
+
+        item.setBounds((-1000, 1000, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(False)
+        self.plot.getYAxis()._setLogarithmic(True)
+        self.assertEqual(item.getBounds(), (-1000, 1000, 2000, 2000))
+
+        item.setBounds((-1000, 0, -2000, 2000))
+        self.plot.getXAxis()._setLogarithmic(True)
+        self.plot.getYAxis()._setLogarithmic(False)
+        self.assertIsNone(item.getBounds())
+
+    def testAxisExtent(self):
+        """Test XAxisExtent and yAxisExtent"""
+        for cls, axis in ((XAxisExtent, self.plot.getXAxis()),
+                          (YAxisExtent, self.plot.getYAxis())):
+            for range_, logRange in (((2, 3), (2, 3)),
+                                     ((-2, -1), (1, 100)),
+                                     ((-1, 3), (3. * 0.9, 3. * 1.1))):
+                extent = cls()
+                extent.setRange(*range_)
+                self.plot.addItem(extent)
+
+                for isLog, plotRange in ((False, range_), (True, logRange)):
+                    with self.subTest(
+                            cls=cls.__name__, range=range_, isLog=isLog):
+                        axis._setLogarithmic(isLog)
+                        self.plot.resetZoom()
+                        self.qapp.processEvents()
+                        self.assertEqual(axis.getLimits(), plotRange)
+
+                axis._setLogarithmic(False)
+                self.plot.clear()
+
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
@@ -1624,36 +1812,36 @@ class TestPlotItemLog(PlotWidgetTestCase):
         self.plot.setGraphTitle('Item Fill Log')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemPolygonLogNoFill(self):
         self.plot.setGraphTitle('Item No Fill Log')
 
         for legend, xList, yList, color in self.polygons:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="polygon", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleLogFill(self):
         self.plot.setGraphTitle('Rectangle Fill Log')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=True, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
 
     def testPlotItemRectangleLogNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill Log')
 
         for legend, xList, yList, color in self.rectangles:
-            self.plot.addItem(xList, yList, legend=legend,
-                              replace=False,
-                              shape="rectangle", fill=False, color=color)
+            self.plot.addShape(xList, yList, legend=legend,
+                               replace=False,
+                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
 
 

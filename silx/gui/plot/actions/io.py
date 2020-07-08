@@ -131,6 +131,7 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+
     DEFAULT_IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                              IMAGE_FILTER_TIFF,
                              IMAGE_FILTER_NUMPY,
@@ -155,6 +156,8 @@ class SaveAction(PlotAction):
             'curves': OrderedDict(),
             'image': OrderedDict(),
             'scatter': OrderedDict()}
+
+        self._appendFilters = list(self.DEFAULT_APPEND_FILTERS)
 
         # Initialize filters
         for nameFilter in self.DEFAULT_ALL_FILTERS:
@@ -185,10 +188,11 @@ class SaveAction(PlotAction):
         self.setShortcut(qt.QKeySequence.Save)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
-    def _errorMessage(self, informativeText=''):
+    @staticmethod
+    def _errorMessage(informativeText='', parent=None):
         """Display an error message."""
         # TODO issue with QMessageBox size fixed and too small
-        msg = qt.QMessageBox(self.plot)
+        msg = qt.QMessageBox(parent)
         msg.setIcon(qt.QMessageBox.Critical)
         msg.setInformativeText(informativeText + ' ' + str(sys.exc_info()[1]))
         msg.setDetailedText(traceback.format_exc())
@@ -220,7 +224,8 @@ class SaveAction(PlotAction):
         ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
         return xlabel, ylabel
 
-    def _selectWriteableOutputGroup(self, filename):
+    @staticmethod
+    def _selectWriteableOutputGroup(filename, parent):
         if os.path.exists(filename) and os.path.isfile(filename) \
                 and os.access(filename, os.W_OK):
             entryPath = selectOutputGroup(filename)
@@ -232,11 +237,11 @@ class SaveAction(PlotAction):
             # create new entry in new file
             return "/entry"
         else:
-            self._errorMessage('Save failed (file access issue)\n')
+            SaveAction._errorMessage('Save failed (file access issue)\n', parent=parent)
             return None
 
     def _saveCurveAsNXdata(self, curve, filename):
-        entryPath = self._selectWriteableOutputGroup(filename)
+        entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
         if entryPath is None:
             return False
 
@@ -273,7 +278,7 @@ class SaveAction(PlotAction):
         if curve is None:
             curves = plot.getAllCurves()
             if not curves:
-                self._errorMessage("No curve to be saved")
+                self._errorMessage("No curve to be saved", parent=self.plot)
                 return False
             curve = curves[0]
 
@@ -299,7 +304,7 @@ class SaveAction(PlotAction):
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
-            self._errorMessage('Save failed\n')
+            self._errorMessage('Save failed\n', parent=self.plot)
             return False
 
         return True
@@ -317,7 +322,7 @@ class SaveAction(PlotAction):
 
         curves = plot.getAllCurves()
         if not curves:
-            self._errorMessage("No curves to be saved")
+            self._errorMessage("No curves to be saved", parent=self.plot)
             return False
 
         curve = curves[0]
@@ -334,7 +339,7 @@ class SaveAction(PlotAction):
                                 write_file_header=True,
                                 close_file=False)
         except IOError:
-            self._errorMessage('Save failed\n')
+            self._errorMessage('Save failed\n', parent=self.plot)
             return False
 
         for curve in curves[1:]:
@@ -351,7 +356,7 @@ class SaveAction(PlotAction):
                                     write_file_header=False,
                                     close_file=False)
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
         specfile.close()
 
@@ -391,12 +396,12 @@ class SaveAction(PlotAction):
             try:
                 numpy.save(filename, data)
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
             return True
 
         elif nameFilter == self.IMAGE_FILTER_NXDATA:
-            entryPath = self._selectWriteableOutputGroup(filename)
+            entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
             if entryPath is None:
                 return False
             xorigin, yorigin = image.getOrigin()
@@ -438,7 +443,7 @@ class SaveAction(PlotAction):
                        autoheader=True)
 
             except IOError:
-                self._errorMessage('Save failed\n')
+                self._errorMessage('Save failed\n', parent=self.plot)
                 return False
             return True
 
@@ -471,7 +476,7 @@ class SaveAction(PlotAction):
             return False
 
         if nameFilter == self.SCATTER_FILTER_NXDATA:
-            entryPath = self._selectWriteableOutputGroup(filename)
+            entryPath = self._selectWriteableOutputGroup(filename, parent=self.plot)
             if entryPath is None:
                 return False
             scatter = plot.getScatter()
@@ -502,7 +507,7 @@ class SaveAction(PlotAction):
                 axes_errors=[xerror, yerror],
                 title=plot.getGraphTitle())
 
-    def setFileFilter(self, dataKind, nameFilter, func, index=None):
+    def setFileFilter(self, dataKind, nameFilter, func, index=None, appendToFile=False):
         """Set a name filter to add/replace a file format support
 
         :param str dataKind:
@@ -513,9 +518,14 @@ class SaveAction(PlotAction):
         :param callable func: The function to call to perform saving.
             Expected signature is:
             bool func(PlotWidget plot, str filename, str nameFilter)
+        :param bool appendToFile: True to append the data into the selected
+            file.
         :param integer index: Index of the filter in the final list (or None)
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+
+        if appendToFile:
+            self._appendFilters.append(nameFilter)
 
         # first append or replace the new filter to prevent colissions
         self._filters[dataKind][nameFilter] = func
@@ -601,7 +611,7 @@ class SaveAction(PlotAction):
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
-            if filt_ in self.DEFAULT_APPEND_FILTERS:
+            if filt_ in self._appendFilters:
                 dialog.setOption(dialog.DontConfirmOverwrite)
             else:
                 dialog.setOption(dialog.DontConfirmOverwrite, False)

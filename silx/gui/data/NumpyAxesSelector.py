@@ -438,7 +438,7 @@ class NumpyAxesSelector(qt.QWidget):
 
         This is equivalent to::
 
-        numpy.transpose(self.data()[self.selection()], self.permutation())
+          numpy.transpose(self.data()[self.selection()], self.permutation())
 
         :rtype: Union[numpy.ndarray,None]
         """

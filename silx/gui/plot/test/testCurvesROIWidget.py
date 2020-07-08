@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ from collections import OrderedDict
 import numpy
 
 from silx.gui import qt
+from silx.gui.plot import items
 from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
@@ -110,21 +111,20 @@ class TestCurvesROIWidget(TestCaseQt):
             # Save ROIs
             self.widget.roiWidget.save(self.tmpFile)
             self.assertTrue(os.path.isfile(self.tmpFile))
-            self.assertTrue(len(self.widget.getRois()) is 2)
+            self.assertEqual(len(self.widget.getRois()), 2)
 
             # Reset ROIs
             self.mouseClick(self.widget.roiWidget.resetButton,
                             qt.Qt.LeftButton)
             self.qWait(200)
             rois = self.widget.getRois()
-            self.assertTrue(len(rois) is 1)
-            print(rois)
+            self.assertEqual(len(rois), 1)
             roiID = list(rois.keys())[0]
-            self.assertTrue(rois[roiID].getName() == 'ICR')
+            self.assertEqual(rois[roiID].getName(), 'ICR')
 
             # Load ROIs
             self.widget.roiWidget.load(self.tmpFile)
-            self.assertTrue(len(self.widget.getRois()) is 2)
+            self.assertEqual(len(self.widget.getRois()), 2)
 
             del self.tmpFile
 
@@ -223,16 +223,16 @@ class TestCurvesROIWidget(TestCaseQt):
 
         roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
         self.plot.getCurvesRoiDockWidget().setRois(roisDefs)
-        self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
+        self.assertEqual(len(roiWidget.getRois()), len(roisDefs))
         self.plot.getCurvesRoiDockWidget().setVisible(True)
-        self.assertTrue(len(roiWidget.getRois()) is len(roisDefs))
+        self.assertEqual(len(roiWidget.getRois()), len(roisDefs))
 
     def testDictCompatibility(self):
         """Test that ROI api is valid with dict and not information is lost"""
         roiDict = {'from': 20, 'to': 200, 'type': 'energy', 'comment': 'no',
                    'name': 'myROI', 'calibration': [1, 2, 3]}
         roi = CurvesROIWidget.ROI._fromDict(roiDict)
-        self.assertTrue(roi.toDict() == roiDict)
+        self.assertEqual(roi.toDict(), roiDict)
 
     def testShowAllROI(self):
         """Test the show allROI action"""
@@ -254,29 +254,33 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.roiWidget.showAllMarkers(True)
         roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget
         roiWidget.setRois(roisDefsDict)
-        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+        markers = [item for item in self.plot.getItems()
+                   if isinstance(item, items.MarkerBase)]
+        self.assertEqual(len(markers), 2*3)
 
         markersHandler = self.widget.roiWidget.roiTable._markersHandler
         roiWidget.showAllMarkers(True)
         ICRROI = markersHandler.getVisibleRois()
-        self.assertTrue(len(ICRROI) is 2)
+        self.assertEqual(len(ICRROI), 2)
 
         roiWidget.showAllMarkers(False)
         ICRROI = markersHandler.getVisibleRois()
-        self.assertTrue(len(ICRROI) is 1)
+        self.assertEqual(len(ICRROI), 1)
 
         roiWidget.setRois(roisDefsObj)
         self.qapp.processEvents()
-        self.assertTrue(len(self.plot._getAllMarkers()) is 2*3)
+        markers = [item for item in self.plot.getItems()
+                   if isinstance(item, items.MarkerBase)]
+        self.assertEqual(len(markers), 2*3)
 
         markersHandler = self.widget.roiWidget.roiTable._markersHandler
         roiWidget.showAllMarkers(True)
         ICRROI = markersHandler.getVisibleRois()
-        self.assertTrue(len(ICRROI) is 2)
+        self.assertEqual(len(ICRROI), 2)
 
         roiWidget.showAllMarkers(False)
         ICRROI = markersHandler.getVisibleRois()
-        self.assertTrue(len(ICRROI) is 1)
+        self.assertEqual(len(ICRROI), 1)
 
     def testRoiEdition(self):
         """Make sure if the ROI object is edited the ROITable will be updated
@@ -331,7 +335,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.widget.show()
         self.qapp.processEvents()
         self.assertEqual(signalListener.callCount(), 0)
-        self.assertTrue(self.widget.roiWidget.roiTable.activeRoi is roi)
+        self.assertIs(self.widget.roiWidget.roiTable.activeRoi, roi)
         roi.setFrom(0.0)
         self.qapp.processEvents()
         self.assertEqual(signalListener.callCount(), 0)
@@ -367,7 +371,6 @@ class TestRoiWidgetSignals(TestCaseQt):
 
     def testSigROISignalAddRmRois(self):
         """Test SigROISignal when adding and removing ROIS"""
-        print(self.listener.callCount())
         self.assertEqual(self.listener.callCount(), 1)
         self.listener.clear()
 

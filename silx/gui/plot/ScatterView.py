@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import numpy
 from . import items
 from . import PlotWidget
 from . import tools
+from .actions import histogram as actions_histogram
 from .tools.profile import ScatterProfileToolBar
 from .ColorBar import ColorBarWidget
 from .ScatterMaskToolsWidget import ScatterMaskToolsWidget
@@ -79,7 +80,7 @@ class ScatterView(qt.QMainWindow):
         self._plot = weakref.ref(plot)
 
         # Add an empty scatter
-        plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
+        self.__createEmptyScatter()
 
         # Create colorbar widget with white background
         self._colorbar = ColorBarWidget(parent=self, plot=plot)
@@ -124,6 +125,8 @@ class ScatterView(qt.QMainWindow):
         self._maskAction.setIcon(icons.getQIcon('image-mask'))
         self._maskAction.setToolTip("Display/hide mask tools")
 
+        self._intensityHistoAction = actions_histogram.PixelIntensitiesHistoAction(plot=plot, parent=self)
+
         # Create toolbars
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
             parent=self, plot=plot)
@@ -131,6 +134,7 @@ class ScatterView(qt.QMainWindow):
         self._scatterToolBar = tools.ScatterToolBar(
             parent=self, plot=plot)
         self._scatterToolBar.addAction(self._maskAction)
+        self._scatterToolBar.addAction(self._intensityHistoAction)
 
         self._profileToolBar = ScatterProfileToolBar(parent=self, plot=plot)
 
@@ -144,6 +148,21 @@ class ScatterView(qt.QMainWindow):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
                 self.addAction(action)
+
+
+    def __createEmptyScatter(self):
+        """Create an empty scatter item that is used to display the data
+
+        :rtype: ~silx.gui.plot.items.Scatter
+        """
+        plot = self.getPlotWidget()
+        plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
+        scatter = plot._getItem(
+            kind='scatter', legend=self._SCATTER_LEGEND)
+        # Profile is not selectable,
+        # so it does not interfere with profile interaction
+        scatter._setSelectable(False)
+        return scatter
 
     def _pickScatterData(self, x, y):
         """Get data and index and value of top most scatter plot at position (x, y)
@@ -166,10 +185,17 @@ class ScatterView(qt.QMainWindow):
                         pixelPos[0], pixelPos[1],
                         lambda item: isinstance(item, items.Scatter))
                     if result is not None:
-                        # Get last index
-                        # with matplotlib it should be the top-most point
-                        dataIndex = result.getIndices(copy=False)[-1]
                         item = result.getItem()
+                        if item.getVisualization() is items.Scatter.Visualization.BINNED_STATISTIC:
+                            # Get highest index of closest points
+                            selected = result.getIndices(copy=False)[::-1]
+                            dataIndex = selected[numpy.argmin(
+                                (item.getXData(copy=False)[selected] - x)**2 +
+                                (item.getYData(copy=False)[selected] - y)**2)]
+                        else:
+                            # Get last index
+                            # with matplotlib it should be the top-most point
+                            dataIndex = result.getIndices(copy=False)[-1]
                         self.__pickingCache = (
                             dataIndex,
                             item.getXData(copy=False)[dataIndex],
@@ -345,9 +371,7 @@ class ScatterView(qt.QMainWindow):
         plot = self.getPlotWidget()
         scatter = plot._getItem(kind='scatter', legend=self._SCATTER_LEGEND)
         if scatter is None:  # Resilient to call to PlotWidget API (e.g., clear)
-            plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
-            scatter = plot._getItem(
-                kind='scatter', legend=self._SCATTER_LEGEND)
+            scatter = self.__createEmptyScatter()
         return scatter
 
     # Convenient proxies

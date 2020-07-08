@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ import weakref
 import numpy
 import six
 
+from ....utils.deprecation import deprecated
 from ....utils.enum import Enum as _Enum
 from ... import qt
 from ... import colors
@@ -137,15 +138,21 @@ class ItemChangedType(enum.Enum):
     COMPLEX_MODE = 'complexModeChanged'
     """Item's complex data visualization mode changed flag."""
 
+    NAME = 'nameChanged'
+    """Item's name changed flag."""
+
+    EDITABLE = 'editableChanged'
+    """Item's editable state changed flags."""
+
+    SELECTABLE = 'selectableChanged'
+    """Item's selectable state changed flags."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""
 
     _DEFAULT_Z_LAYER = 0
     """Default layer for overlay rendering"""
-
-    _DEFAULT_LEGEND = ''
-    """Default legend of items"""
 
     _DEFAULT_SELECTABLE = False
     """Default selectable state of items"""
@@ -162,19 +169,19 @@ class Item(qt.QObject):
         self._dirty = True
         self._plotRef = None
         self._visible = True
-        self._legend = self._DEFAULT_LEGEND
         self._selectable = self._DEFAULT_SELECTABLE
         self._z = self._DEFAULT_Z_LAYER
         self._info = None
         self._xlabel = None
         self._ylabel = None
+        self.__name = ''
 
         self._backendRenderer = None
 
     def getPlot(self):
-        """Returns Plot this item belongs to.
+        """Returns the ~silx.gui.plot.PlotWidget this item belongs to.
 
-        :rtype: Plot or None
+        :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return None if self._plotRef is None else self._plotRef()
 
@@ -183,7 +190,7 @@ class Item(qt.QObject):
 
         WARNING: This should only be called from the Plot.
 
-        :param Plot plot: The Plot instance.
+        :param Union[~silx.gui.plot.PlotWidget,None] plot: The Plot instance.
         """
         if plot is not None and self._plotRef is not None:
             raise RuntimeError('Trying to add a node at two places.')
@@ -228,19 +235,35 @@ class Item(qt.QObject):
         """
         return False
 
-    def getLegend(self):
-        """Returns the legend of this item (str)"""
-        return self._legend
+    def getName(self):
+        """Returns the name of the item which is used as legend.
 
-    def _setLegend(self, legend):
-        """Set the legend.
-
-        This is private as it is used by the plot as an identifier
-
-        :param str legend: Item legend
+        :rtype: str
         """
-        legend = str(legend) if legend is not None else self._DEFAULT_LEGEND
-        self._legend = legend
+        return self.__name
+
+    def setName(self, name):
+        """Set the name of the item which is used as legend.
+
+        :param str name: New name of the item
+        :raises RuntimeError: If item belongs to a PlotWidget.
+        """
+        name = str(name)
+        if self.__name != name:
+            if self.getPlot() is not None:
+                raise RuntimeError(
+                    "Cannot change name while item is in a PlotWidget")
+
+            self.__name = name
+            self._updated(ItemChangedType.NAME)
+
+    def getLegend(self):  # Replaced by getName for API consistency
+        return self.getName()
+
+    @deprecated(replacement='setName', since_version='0.13')
+    def _setLegend(self, legend):
+        legend = str(legend) if legend is not None else ''
+        self.setName(legend)
 
     def isSelectable(self):
         """Returns true if item is selectable (bool)"""
@@ -349,12 +372,12 @@ class Item(qt.QObject):
         if indices is None:
             return None
         else:
-            return PickingResult(self, indices if len(indices) != 0 else None)
+            return PickingResult(self, indices)
 
 
 # Mix-in classes ##############################################################
 
-class ItemMixInBase(qt.QObject):
+class ItemMixInBase(object):
     """Base class for Item mix-in"""
 
     def _updated(self, event=None, checkVisibility=True):
@@ -448,6 +471,8 @@ class ColormapMixIn(ItemMixInBase):
     def __init__(self):
         self._colormap = Colormap()
         self._colormap.sigChanged.connect(self._colormapChanged)
+        self.__data = None
+        self.__cacheColormapRange = {}  # Store {normalization: range}
 
     def getColormap(self):
         """Return the used colormap"""
@@ -474,6 +499,70 @@ class ColormapMixIn(ItemMixInBase):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
 
+    def _setColormappedData(self, data, copy=True,
+                            min_=None, minPositive=None, max_=None):
+        """Set the data used to compute the colormapped display.
+
+        It also resets the cache of data ranges.
+
+        This method MUST be called by inheriting classes when data is updated.
+
+        :param Union[None,numpy.ndarray] data:
+        :param Union[None,float] min_: Minimum value of the data
+        :param Union[None,float] minPositive:
+            Minimum of strictly positive values of the data
+        :param Union[None,float] max_: Maximum value of the data
+        """
+        self.__data = None if data is None else numpy.array(data, copy=copy)
+        self.__cacheColormapRange = {}  # Reset cache
+
+        # Fill-up colormap range cache if values are provided
+        if max_ is not None and numpy.isfinite(max_):
+            if min_ is not None and numpy.isfinite(min_):
+                self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX] = min_, max_
+            if minPositive is not None and numpy.isfinite(minPositive):
+                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX] = minPositive, max_
+
+        colormap = self.getColormap()
+        if None in (colormap.getVMin(), colormap.getVMax()):
+            self._colormapChanged()
+
+    def getColormappedData(self, copy=True):
+        """Returns the data used to compute the displayed colors
+
+        :param bool copy: True to get a copy,
+            False to get internal data (do not modify!).
+        :rtype: Union[None,numpy.ndarray]
+        """
+        if self.__data is None:
+            return None
+        else:
+            return numpy.array(self.__data, copy=copy)
+
+    def _getColormapAutoscaleRange(self, colormap=None):
+        """Returns the autoscale range for current data and colormap.
+
+        :param Union[None,~silx.gui.colors.Colormap] colormap:
+           The colormap for which to compute the autoscale range.
+           If None, the default, the colormap of the item is used
+        :return: (vmin, vmax) range (vmin and /or vmax might be `None`)
+        """
+        if colormap is None:
+            colormap = self.getColormap()
+
+        data = self.getColormappedData(copy=False)
+        if colormap is None or data is None:
+            return None, None
+
+        normalization = colormap.getNormalization()
+        autoscaleMode = colormap.getAutoscaleMode()
+        key = normalization, autoscaleMode
+        vRange = self.__cacheColormapRange.get(key, None)
+        if vRange is None:
+            vRange = colormap._computeAutoscaleRange(data)
+            self.__cacheColormapRange[key] = vRange
+        return vRange
+
 
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""
@@ -492,6 +581,17 @@ class SymbolMixIn(ItemMixInBase):
         ('x', 'Cross'),
         ('.', 'Point'),
         (',', 'Pixel'),
+        ('|', 'Vertical line'),
+        ('_', 'Horizontal line'),
+        ('tickleft', 'Tick left'),
+        ('tickright', 'Tick right'),
+        ('tickup', 'Tick up'),
+        ('tickdown', 'Tick down'),
+        ('caretleft', 'Caret left'),
+        ('caretright', 'Caret right'),
+        ('caretup', 'Caret up'),
+        ('caretdown', 'Caret down'),
+        (u'\u2665', 'Heart'),
         ('', 'None')))
     """Dict of supported symbols"""
 
@@ -695,6 +795,8 @@ class ColorMixIn(ItemMixInBase):
         """
         if isinstance(color, six.string_types):
             color = colors.rgba(color)
+        elif isinstance(color, qt.QColor):
+            color = colors.rgba(color)
         else:
             color = numpy.array(color, copy=copy)
             # TODO more checks + improve color array support
@@ -802,6 +904,7 @@ class ComplexMixIn(ItemMixInBase):
 
     class ComplexMode(_Enum):
         """Identify available display mode for complex"""
+        NONE = 'none'
         ABSOLUTE = 'amplitude'
         PHASE = 'phase'
         REAL = 'real'
@@ -905,8 +1008,78 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         This is based on Delaunay triangulation
         """
 
+        REGULAR_GRID = 'regular_grid'
+        """Display scatter plot as an image.
+
+        It expects the points to be the intersection of a regular grid,
+        and the order of points following that of an image.
+        First line, then second one, and always in the same direction
+        (either all lines from left to right or all from right to left).
+        """
+
+        IRREGULAR_GRID = 'irregular_grid'
+        """Display scatter plot as contiguous quadrilaterals.
+
+        It expects the points to be the intersection of an irregular grid,
+        and the order of points following that of an image.
+        First line, then second one, and always in the same direction
+        (either all lines from left to right or all from right to left).
+        """
+
+        BINNED_STATISTIC = 'binned_statistic'
+        """Display scatter plot as 2D binned statistic (i.e., generalized histogram).
+        """
+
+    @enum.unique
+    class VisualizationParameter(_Enum):
+        """Different parameter names for scatter plot visualizations"""
+
+        GRID_MAJOR_ORDER = 'grid_major_order'
+        """The major order of points in the regular grid.
+
+        Either 'row' (row-major, fast X) or 'column' (column-major, fast Y).
+        """
+
+        GRID_BOUNDS = 'grid_bounds'
+        """The expected range in data coordinates of the regular grid.
+
+        A 2-tuple of 2-tuple: (begin (x, y), end (x, y)).
+        This provides the data coordinates of the first point and the expected
+        last on.
+        As for `GRID_SHAPE`, this can be wider than the current data.
+        """
+
+        GRID_SHAPE = 'grid_shape'
+        """The expected size of the regular grid (height, width).
+
+        The given shape can be wider than the number of points,
+        in which case the grid is not fully filled.
+        """
+
+        BINNED_STATISTIC_SHAPE = 'binned_statistic_shape'
+        """The number of bins in each dimension (height, width).
+        """
+
+        BINNED_STATISTIC_FUNCTION = 'binned_statistic_function'
+        """The reduction function to apply to each bin (str).
+
+        Available reduction functions are: 'mean' (default), 'count', 'sum'.
+        """
+
+    _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
+        VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
+        VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
+    }
+    """Supported visualization parameter values.
+
+    Defined for parameters with a set of acceptable values.
+    """
+
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
+        self.__parameters = dict(  # Init parameters to None
+            (parameter, None) for parameter in self.VisualizationParameter)
+        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = 'mean'
 
     @classmethod
     def supportedVisualizations(cls):
@@ -920,6 +1093,20 @@ class ScatterVisualizationMixIn(ItemMixInBase):
             return cls.Visualization.members()
         else:
             return cls._SUPPORTED_SCATTER_VISUALIZATION
+
+    @classmethod
+    def supportedVisualizationParameterValues(cls, parameter):
+        """Returns the list of supported scatter visualization modes.
+
+        See :meth:`VisualizationParameters`
+
+        :param VisualizationParameter parameter:
+            This parameter for which to retrieve the supported values.
+        :returns: tuple of supported of values or None if not defined.
+        """
+        parameter = cls.VisualizationParameter(parameter)
+        return cls._SUPPORTED_VISUALIZATION_PARAMETER_VALUES.get(
+            parameter, None)
 
     def setVisualization(self, mode):
         """Set the scatter plot visualization mode to use.
@@ -949,6 +1136,59 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :rtype: Visualization
         """
         return self.__visualization
+
+    def setVisualizationParameter(self, parameter, value=None):
+        """Set the given visualization parameter.
+
+        :param Union[str,VisualizationParameter] parameter:
+            The name of the parameter to set
+        :param value: The value to use for this parameter
+            Set to None to automatically set the parameter
+        :raises ValueError: If parameter is not supported
+        :return: True if parameter was set, False if is was already set
+        :rtype: bool
+        :raise ValueError: If value is not supported
+        """
+        parameter = self.VisualizationParameter.from_value(parameter)
+
+        if self.__parameters[parameter] != value:
+            validValues = self.supportedVisualizationParameterValues(parameter)
+            if validValues is not None and value not in validValues:
+                raise ValueError("Unsupported parameter value: %s" % str(value))
+
+            self.__parameters[parameter] = value
+            self._updated(ItemChangedType.VISUALIZATION_MODE)
+            return True
+        return False
+
+    def getVisualizationParameter(self, parameter):
+        """Returns the value of the given visualization parameter.
+
+        This method returns the parameter as set by
+        :meth:`setVisualizationParameter`.
+
+        :param parameter: The name of the parameter to retrieve
+        :returns: The value previously set or None if automatically set
+        :raises ValueError: If parameter is not supported
+        """
+        if parameter not in self.VisualizationParameter:
+            raise ValueError("parameter not supported: %s", parameter)
+
+        return self.__parameters[parameter]
+
+    def getCurrentVisualizationParameter(self, parameter):
+        """Returns the current value of the given visualization parameter.
+
+        If the parameter was set by :meth:`setVisualizationParameter` to
+        a value that is not None, this value is returned;
+        else the current value that is automatically computed is returned.
+
+        :param parameter: The name of the parameter to retrieve
+        :returns: The current value (either set or automatically computed)
+        :raises ValueError: If parameter is not supported
+        """
+        # Override in subclass to provide automatically computed parameters
+        return self.getVisualizationParameter(parameter)
 
 
 class PointsBase(Item, SymbolMixIn, AlphaMixIn):
@@ -1039,14 +1279,12 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
 
             if xPositive:
                 x = self.getXData(copy=False)
-                with warnings.catch_warnings():  # Ignore NaN warnings
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
                     xclipped = x <= 0
 
             if yPositive:
                 y = self.getYData(copy=False)
-                with warnings.catch_warnings():  # Ignore NaN warnings
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
                     yclipped = y <= 0
 
             self._clippedCache[(xPositive, yPositive)] = \
@@ -1274,3 +1512,54 @@ class BaselineMixIn(object):
             return numpy.array(self._baseline, copy=True)
         else:
             return self._baseline
+
+
+class _Style:
+    """Object which store styles"""
+
+
+class HighlightedMixIn(ItemMixInBase):
+
+    def __init__(self):
+        self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
+        self._highlighted = False
+
+    def isHighlighted(self):
+        """Returns True if curve is highlighted.
+
+        :rtype: bool
+        """
+        return self._highlighted
+
+    def setHighlighted(self, highlighted):
+        """Set the highlight state of the curve
+
+        :param bool highlighted:
+        """
+        highlighted = bool(highlighted)
+        if highlighted != self._highlighted:
+            self._highlighted = highlighted
+            # TODO inefficient: better to use backend's setCurveColor
+            self._updated(ItemChangedType.HIGHLIGHTED)
+
+    def getHighlightedStyle(self):
+        """Returns the highlighted style in use
+
+        :rtype: CurveStyle
+        """
+        return self._highlightStyle
+
+    def setHighlightedStyle(self, style):
+        """Set the style to use for highlighting
+
+        :param CurveStyle style: New style to use
+        """
+        previous = self.getHighlightedStyle()
+        if style != previous:
+            assert isinstance(style, _Style)
+            self._highlightStyle = style
+            self._updated(ItemChangedType.HIGHLIGHTED_STYLE)
+
+            # Backward compatibility event
+            if previous.getColor() != style.getColor():
+                self._updated(ItemChangedType.HIGHLIGHTED_COLOR)

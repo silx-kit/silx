@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -464,7 +464,7 @@ class PlotWindow(PlotWidget):
         """Add a dock widget as a new tab if there are already dock widgets
         in the plot. When the first tab is added, the area is chosen
         depending on the plot geometry:
-        it the window is much wider than it is high, the right dock area
+        if the window is much wider than it is high, the right dock area
         is used, else the bottom dock area is used.
 
         :param dock_widget: Instance of :class:`QDockWidget` to be added.
@@ -484,6 +484,17 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def removeDockWidget(self, dockwidget):
+        """Removes the *dockwidget* from the main window layout and hides it.
+
+        Note that the *dockwidget* is *not* deleted.
+
+        :param QDockWidget dockwidget:
+        """
+        if dockwidget in self._dockWidgets:
+            self._dockWidgets.remove(dockwidget)
+        super(PlotWindow, self).removeDockWidget(dockwidget)
 
     def __handleFirstDockWidgetShow(self, visible):
         """Handle QDockWidget.visibilityChanged
@@ -828,6 +839,9 @@ class Plot1D(PlotWindow):
             self.setWindowTitle('Plot1D')
         self.getXAxis().setLabel('X')
         self.getYAxis().setLabel('Y')
+        action = self.getFitAction()
+        action.setXRangeUpdatedOnZoom(True)
+        action.setFittedItemUpdatedFromActiveCurve(True)
 
 
 class Plot2D(PlotWindow):
@@ -916,37 +930,30 @@ class Plot2D(PlotWindow):
         :param float y: Y position in plot coordinates
         :return: The value at that point or '-'
         """
-        value = '-'
-        valueZ = -float('inf')
-        mask = 0
-        maskZ = -float('inf')
-
-        for image in self.getAllImages():
-            data = image.getData(copy=False)
-            isMask = isinstance(image, items.MaskImageData)
-            if isMask:
-                zIndex = maskZ
+        pickedMask = None
+        for picked in self.pickItems(
+                *self.dataToPixel(x, y, check=False),
+                lambda item: isinstance(item, items.ImageBase)):
+            if isinstance(picked.getItem(), items.MaskImageData):
+                if pickedMask is None:  # Use top-most if many masks
+                    pickedMask = picked
             else:
-                zIndex = valueZ
-            if image.getZValue() >= zIndex:
-                # This image is over the previous one
-                ox, oy = image.getOrigin()
-                sx, sy = image.getScale()
-                row, col = (y - oy) / sy, (x - ox) / sx
-                if row >= 0 and col >= 0:
-                    # Test positive before cast otherwise issue with int(-0.5) = 0
-                    row, col = int(row), int(col)
-                    if (row < data.shape[0] and col < data.shape[1]):
-                        v, z = data[row, col], image.getZValue()
-                        if not isMask:
-                            value = v
-                            valueZ = z
-                        else:
-                            mask = v
-                            maskZ = z
-        if maskZ > valueZ and mask > 0:
-            return value, "Masked"
-        return value
+                image = picked.getItem()
+
+                indices = picked.getIndices(copy=False)
+                if indices is not None:
+                    row, col = indices[0][0], indices[1][0]
+                    value = image.getData(copy=False)[row, col]
+
+                    if pickedMask is not None:  # Check if masked
+                        maskItem = pickedMask.getItem()
+                        indices = pickedMask.getIndices()
+                        row, col = indices[0][0], indices[1][0]
+                        if maskItem.getData(copy=False)[row, col] != 0:
+                            return value, "Masked"
+                    return value
+
+        return '-'  # No image picked
 
     def _getImageDims(self, *args):
         activeImage = self.getActiveImage()

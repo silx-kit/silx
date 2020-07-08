@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,17 +60,17 @@ def _computeEdges(x, histogramType):
     """
     # for now we consider that the spaces between xs are constant
     edges = x.copy()
-    if histogramType is 'left':
+    if histogramType == 'left':
         width = 1
         if len(x) > 1:
             width = x[1] - x[0]
         edges = numpy.append(x[0] - width, edges)
-    if histogramType is 'center':
+    if histogramType == 'center':
         edges = _computeEdges(edges, 'right')
         widths = (edges[1:] - edges[0:-1]) / 2.0
         widths = numpy.append(widths, widths[-1])
         edges = edges - widths
-    if histogramType is 'right':
+    if histogramType == 'right':
         width = 1
         if len(x) > 1:
             width = x[-1] - x[-2]
@@ -170,8 +170,6 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                                 yaxis=self.getYAxis(),
                                 xerror=None,
                                 yerror=None,
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
                                 fill=self.isFill(),
                                 alpha=self.getAlpha(),
                                 baseline=baseline,
@@ -214,6 +212,8 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                     numpy.nanmax(values))
 
         else:  # No log scale on y axis, include 0 in bounds
+            if numpy.all(numpy.isnan(values)):
+                return None
             return (numpy.nanmin(edges),
                     numpy.nanmax(edges),
                     min(0, numpy.nanmin(values)),
@@ -237,7 +237,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
         :param copy: True (Default) to get a copy,
                      False to use internal representation (do not modify!)
-        :returns: The bin edges of the histogram
+        :returns: The values of the histogram
         :rtype: numpy.ndarray
         """
         return numpy.array(self._histogram, copy=copy)
@@ -299,6 +299,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
 
             # Check that bin edges are monotonic
             edgesDiff = numpy.diff(edges)
+            edgesDiff = edgesDiff[numpy.logical_not(numpy.isnan(edgesDiff))]
             assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
             # manage baseline
             if (isinstance(baseline, abc.Iterable)):
@@ -343,11 +344,11 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
         """
         # for now we consider that the spaces between xs are constant
         edges = x.copy()
-        if histogramType is 'left':
+        if histogramType == 'left':
             return edges[1:]
-        if histogramType is 'center':
+        if histogramType == 'center':
             edges = (edges[1:] + edges[:-1]) / 2.0
-        if histogramType is 'right':
+        if histogramType == 'right':
             width = 1
             if len(x) > 1:
                 width = x[-1] + x[-2]

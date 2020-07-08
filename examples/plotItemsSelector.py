@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ isd.setItemsSelectionMode(qt.QTableWidget.ExtendedSelection)
 result = isd.exec_()
 if result:
     for item in isd.getSelectedItems():
-        print(item.getLegend(), type(item))
+        print(item.getName(), type(item))
 else:
     print("Selection cancelled")
 

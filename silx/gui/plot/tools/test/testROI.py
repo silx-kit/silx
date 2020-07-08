@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ class TestRoiItems(TestCaseQt):
 
     def testPoint_geometry(self):
         point = numpy.array([1, 2])
-        item = roi_items.VerticalLineROI()
+        item = roi_items.PointROI()
         item.setPosition(point)
         numpy.testing.assert_allclose(item.getPosition(), point)
 
@@ -108,6 +108,43 @@ class TestRoiItems(TestCaseQt):
         numpy.testing.assert_allclose(item.getCenter(), expectedCenter)
         numpy.testing.assert_allclose(item.getSize(), size)
 
+    def testCircle_geometry(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        numpy.testing.assert_allclose(item.getRadius(), radius)
+
+    def testCircle_setCenter(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        newCenter = numpy.array([-10, 0])
+        item.setCenter(newCenter)
+        numpy.testing.assert_allclose(item.getCenter(), newCenter)
+        numpy.testing.assert_allclose(item.getRadius(), radius)
+
+    def testCircle_setRadius(self):
+        center = numpy.array([0, 0])
+        radius = 10.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        newRadius = 5.1
+        item.setRadius(newRadius)
+        numpy.testing.assert_allclose(item.getCenter(), center)
+        numpy.testing.assert_allclose(item.getRadius(), newRadius)
+
+    def testRectangle_isIn(self):
+        origin = numpy.array([0, 0])
+        size = numpy.array([10, 20])
+        item = roi_items.RectangleROI()
+        item.setGeometry(origin=origin, size=size)
+        self.assertTrue(item.contains(position=(0, 0)))
+        self.assertTrue(item.contains(position=(2, 14)))
+        self.assertFalse(item.contains(position=(14, 12)))
+
     def testPolygon_emptyGeometry(self):
         points = numpy.empty((0, 2))
         item = roi_items.PolygonROI()
@@ -119,6 +156,17 @@ class TestRoiItems(TestCaseQt):
         item = roi_items.PolygonROI()
         item.setPoints(points)
         numpy.testing.assert_allclose(item.getPoints(), points)
+
+    def testPolygon_isIn(self):
+        points = numpy.array([[0, 0], [0, 10], [5, 10]])
+        item = roi_items.PolygonROI()
+        item.setPoints(points)
+        self.assertTrue(item.contains((0, 0)))
+        self.assertFalse(item.contains((6, 2)))
+        self.assertFalse(item.contains((-2, 5)))
+        self.assertFalse(item.contains((2, -1)))
+        self.assertFalse(item.contains((8, 1)))
+        self.assertTrue(item.contains((1, 8)))
 
     def testArc_getToSetGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
@@ -147,7 +195,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_special_donut(self):
         item = roi_items.ArcROI()
@@ -158,7 +206,7 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getInnerRadius(), innerRadius)
         self.assertAlmostEqual(item.getOuterRadius(), outerRadius)
         self.assertAlmostEqual(item.getStartAngle(), item.getEndAngle() - numpy.pi * 2.0)
-        self.assertAlmostEqual(item.isClosed(), True)
+        self.assertTrue(item.isClosed())
 
     def testArc_clockwiseGeometry(self):
         """Test that we can use getGeometry as input to setGeometry"""
@@ -185,6 +233,15 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getStartAngle(), startAngle)
         self.assertAlmostEqual(item.getEndAngle(), endAngle)
         self.assertAlmostEqual(item.isClosed(), False)
+
+    def testHRange_geometry(self):
+        item = roi_items.HorizontalRangeROI()
+        vmin = 1
+        vmax = 3
+        item.setRange(vmin, vmax)
+        self.assertAlmostEqual(item.getMin(), vmin)
+        self.assertAlmostEqual(item.getMax(), vmax)
+        self.assertAlmostEqual(item.getCenter(), 2)
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
@@ -229,6 +286,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
             (roi_items.VerticalLineROI,
                 numpy.array((((10., 20.), (10., 30.)),
                             ((30., 40.), (30., 50.))))),
+            (roi_items.HorizontalLineROI,
+                numpy.array((((10., 20.), (10., 30.)),
+                            ((30., 40.), (30., 50.))))),
         )
 
         for roiClass, points in tests:
@@ -246,7 +306,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 manager.sigRoiChanged.connect(changedListener)
 
                 # Add a point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 1)
                 self.assertEqual(changedListener.callCount(), 1)
@@ -257,9 +319,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(changedListener.callCount(), 2)
 
                 # Add two point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
-                manager.createRoi(roiClass, points[1])
+                r = roiClass()
+                r.setFirstShapePoints(points[1])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 4)
@@ -273,9 +339,13 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 changedListener.clear()
 
                 # Add two point
-                manager.createRoi(roiClass, points[0])
+                r = roiClass()
+                r.setFirstShapePoints(points[0])
+                manager.addRoi(r)
                 self.qapp.processEvents()
-                manager.createRoi(roiClass, points[1])
+                r = roiClass()
+                r.setFirstShapePoints(points[1])
+                manager.addRoi(r)
                 self.qapp.processEvents()
                 self.assertTrue(len(manager.getRois()), 2)
                 self.assertEqual(changedListener.callCount(), 2)
@@ -356,6 +426,10 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
         item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
         rois.append(item)
+        # Horizontal Range
+        item = roi_items.HorizontalRangeROI()
+        item.setRange(-1, 3)
+        rois.append(item)
 
         manager = roi.RegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
@@ -369,6 +443,25 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.qapp.processEvents()
                 manager.removeRoi(item)
                 self.qapp.processEvents()
+
+    def testSelectionProxy(self):
+        item1 = roi_items.PointROI()
+        item1.setSelectable(True)
+        item2 = roi_items.PointROI()
+        item2.setSelectable(True)
+        item1.setFocusProxy(item2)
+        manager = roi.RegionOfInterestManager(self.plot)
+        manager.setCurrentRoi(item1)
+        self.assertIs(manager.getCurrentRoi(), item2)
+
+    def testRemovedSelection(self):
+        item1 = roi_items.PointROI()
+        item1.setSelectable(True)
+        manager = roi.RegionOfInterestManager(self.plot)
+        manager.addRoi(item1)
+        manager.setCurrentRoi(item1)
+        manager.removeRoi(item1)
+        self.assertIs(manager.getCurrentRoi(), None)
 
     def testMaxROI(self):
         """Test Max ROI"""
@@ -442,6 +535,86 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
                 self.assertEqual(roiClass, manager.getCurrentInteractionModeRoiClass())
 
         manager.clear()
+
+    def testLineInteraction(self):
+        """This test make sure that a ROI based on handles can be edited with
+        the mouse."""
+        xlimit = self.plot.getXAxis().getLimits()
+        ylimit = self.plot.getYAxis().getLimits()
+        points = numpy.array([xlimit, ylimit]).T
+        center = numpy.mean(points, axis=0)
+
+        # Create the line
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints(points[0], points[1])
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qapp.processEvents()
+
+        # Drag the center
+        widget = self.plot.getWidgetHandle()
+        mx, my = self.plot.dataToPixel(*center)
+        self.mouseMove(widget, pos=(mx, my))
+        self.mousePress(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseMove(widget, pos=(mx, my+50))
+        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my))
+
+        result = numpy.array(item.getEndPoints())
+        # x location is still the same
+        numpy.testing.assert_allclose(points[:, 0], result[:, 0], atol=0.5)
+        # size is still the same
+        numpy.testing.assert_allclose(points[1] - points[0],
+                                      result[1] - result[0], atol=0.5)
+        # But Y is not the same
+        self.assertNotEqual(points[0, 1], result[0, 1])
+        self.assertNotEqual(points[1, 1], result[1, 1])
+        item = None
+        manager.clear()
+        self.qapp.processEvents()
+
+    def testPlotWhenCleared(self):
+        """PlotWidget.clear should clean up the available ROIs"""
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints((0, 0), (1, 1))
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qWait()
+        try:
+            # Make sure the test setup is fine
+            self.assertNotEqual(len(manager.getRois()), 0)
+            self.assertNotEqual(len(self.plot.getItems()), 0)
+
+            # Call clear and test the expected state
+            self.plot.clear()
+            self.assertEqual(len(manager.getRois()), 0)
+            self.assertEqual(len(self.plot.getItems()), 0)
+        finally:
+            # Clean up
+            manager.clear()
+
+    def testPlotWhenRoiRemoved(self):
+        """Make sure there is no remaining items in the plot when a ROI is removed"""
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.LineROI()
+        item.setEndPoints((0, 0), (1, 1))
+        item.setEditable(True)
+        manager.addRoi(item)
+        self.qWait()
+        try:
+            # Make sure the test setup is fine
+            self.assertNotEqual(len(manager.getRois()), 0)
+            self.assertNotEqual(len(self.plot.getItems()), 0)
+
+            # Call clear and test the expected state
+            manager.removeRoi(item)
+            self.assertEqual(len(manager.getRois()), 0)
+            self.assertEqual(len(self.plot.getItems()), 0)
+        finally:
+            # Clean up
+            manager.clear()
+
 
 
 def suite():

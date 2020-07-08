@@ -1,8 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,8 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "12/02/2019"
+__date__ = "06/05/2020"
 __license__ = "MIT"
-
 
 import sys
 import os
@@ -40,30 +39,35 @@ import glob
 # The silx.io module seems to be loaded instead.
 import io
 
-
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
-
 
 from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
 try:
     from setuptools import Command
     from setuptools.command.build_py import build_py as _build_py
-    from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
-    logger.info("Use setuptools")
+    try:
+        from Cython.Build import build_ext
+        logger.info("Use setuptools with cython")
+    except ImportError:
+        from setuptools.command.build_ext import build_ext
+        logger.info("Use setuptools, cython is missing")
 except ImportError:
     try:
         from numpy.distutils.core import Command
     except ImportError:
         from distutils.core import Command
     from distutils.command.build_py import build_py as _build_py
-    from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
-    logger.info("Use distutils")
-
+    try:
+        from Cython.Build import build_ext
+        logger.info("Use distutils with cython")
+    except ImportError:
+        from distutils.command.build_ext import build_ext
+        logger.info("Use distutils, cython is missing")
 try:
     import sphinx
     import sphinx.util.console
@@ -72,8 +76,9 @@ try:
 except ImportError:
     sphinx = None
 
-
 PROJECT = "silx"
+if sys.version_info.major < 3:
+    logger.error(PROJECT + " no longer supports Python2")
 
 if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
     print("""WARNING: the LANG environment variable is not defined,
@@ -114,34 +119,32 @@ classifiers = ["Development Status :: 4 - Beta",
                "Operating System :: Microsoft :: Windows",
                "Operating System :: POSIX",
                "Programming Language :: Cython",
-               "Programming Language :: Python :: 2.7",
-               "Programming Language :: Python :: 3.5",
-               "Programming Language :: Python :: 3.6",
-               "Programming Language :: Python :: 3.7",
+               "Programming Language :: Python :: 3",
                "Programming Language :: Python :: Implementation :: CPython",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
 
-
 # ########## #
 # version.py #
 # ########## #
+
 
 class build_py(_build_py):
     """
     Enhanced build_py which copies version.py to <PROJECT>._version.py
     """
+
     def find_package_modules(self, package, package_dir):
         modules = _build_py.find_package_modules(self, package, package_dir)
         if package == PROJECT:
             modules.append((PROJECT, '_version', 'version.py'))
         return modules
 
-
 ########
 # Test #
 ########
+
 
 class PyTest(Command):
     """Command to start tests running the script: run_tests.py"""
@@ -161,12 +164,13 @@ class PyTest(Command):
         if errno != 0:
             raise SystemExit(errno)
 
-
 # ################### #
 # build_doc command   #
 # ################### #
 
+
 if sphinx is None:
+
     class SphinxExpectedCommand(Command):
         """Command to inform that sphinx is missing"""
         user_options = []
@@ -254,6 +258,55 @@ class BuildMan(Command):
         succeeded = succeeded and status == 0
         return succeeded
 
+    @staticmethod
+    def _write_script(target_name, lst_lines=None):
+        """Write a script to a temporary file and return its name
+        :paran target_name: base of the script name
+        :param lst_lines: list of lines to be written in the script
+        :return: the actual filename of the script (for execution or removal)
+        """
+        import tempfile
+        import stat
+        script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
+        with os.fdopen(script_fid, 'wt') as script:
+            for line in lst_lines:
+                if not line.endswith("\n"):
+                    line += "\n"
+                script.write(line)
+        # make it executable
+        mode = os.stat(script_name).st_mode
+        os.chmod(script_name, mode + stat.S_IEXEC)
+        return script_name
+
+    def get_synopsis(self, module_name, env, log_output=False):
+        """Execute a script to retrieve the synopsis for help2man
+        :return: synopsis
+        :rtype: single line string
+        """
+        import subprocess
+        script_name = None
+        synopsis = None
+        script = ["#!%s\n" % sys.executable,
+                  "import logging",
+                  "logging.basicConfig(level=logging.ERROR)",
+                  "import %s as app" % module_name,
+                  "print(app.__doc__)"]
+        try:
+            script_name = self._write_script(module_name, script)
+            command_line = [sys.executable, script_name]
+            p = subprocess.Popen(command_line, env=env, stdout=subprocess.PIPE)
+            status = p.wait()
+            if status != 0:
+                logger.warning("Error while getting synopsis for module '%s'.", module_name)
+            synopsis = p.stdout.read().decode("utf-8").strip()
+            if synopsis == 'None':
+                synopsis = None
+        finally:
+            # clean up the script
+            if script_name is not None:
+                os.remove(script_name)
+        return synopsis
+
     def run(self):
         build = self.get_finalized_command('build')
         path = sys.path
@@ -267,6 +320,7 @@ class BuildMan(Command):
         import tempfile
         import stat
         script_name = None
+        workdir = tempfile.mkdtemp()
 
         entry_points = self.entry_points_iterator()
         for target_name, module_name, function_name in entry_points:
@@ -277,19 +331,22 @@ class BuildMan(Command):
             py3 = sys.version_info >= (3, 0)
             try:
                 # create a launcher using the right python interpreter
-                script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
-                script = os.fdopen(script_fid, 'wt')
-                script.write("#!%s\n" % sys.executable)
-                script.write("import %s as app\n" % module_name)
-                script.write("app.%s()\n" % function_name)
-                script.close()
+                script_name = os.path.join(workdir, target_name)
+                with open(script_name, "wt") as script:
+                    script.write("#!%s\n" % sys.executable)
+                    script.write("import %s as app\n" % module_name)
+                    script.write("app.%s()\n" % function_name)
                 # make it executable
                 mode = os.stat(script_name).st_mode
                 os.chmod(script_name, mode + stat.S_IEXEC)
 
                 # execute help2man
                 man_file = "build/man/%s.1" % target_name
-                command_line = ["help2man", script_name, "-o", man_file]
+                command_line = ["help2man", "-N", script_name, "-o", man_file]
+
+                synopsis = self.get_synopsis(module_name, env)
+                if synopsis:
+                    command_line += ["-n", synopsis]
                 if not py3:
                     # Before Python 3.4, ArgParser --version was using
                     # stderr to print the version
@@ -312,9 +369,11 @@ class BuildMan(Command):
                 # clean up the script
                 if script_name is not None:
                     os.remove(script_name)
+        os.rmdir(workdir)
 
 
 if sphinx is not None:
+
     class BuildDocCommand(BuildDoc):
         """Command to build documentation using sphinx.
 
@@ -350,6 +409,7 @@ if sphinx is not None:
             sys.path.pop(0)
 
     class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
+
         def run(self):
             old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
             os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
@@ -363,17 +423,18 @@ else:
     BuildDocCommand = SphinxExpectedCommand
     BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
 
-
 # ################### #
 # test_doc command    #
 # ################### #
 
 if sphinx is not None:
+
     class TestDocCommand(BuildDoc):
         """Command to test the documentation using sphynx doctest.
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
         """
+
         def run(self):
             # make sure the python path is pointing to the newly built
             # code so that the documentation is built on this and not a
@@ -393,10 +454,10 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-
 # ############################# #
 # numpy.distutils Configuration #
 # ############################# #
+
 
 def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
@@ -431,26 +492,24 @@ class Build(_build):
          "do not use OpenMP for compiled extension modules"),
         ('openmp', None,
          "use OpenMP for the compiled extension modules"),
-        ('no-cython', None,
-         "do not compile Cython extension modules (use default compiled c-files)"),
         ('force-cython', None,
          "recompile all Cython extension modules"),
     ]
     user_options.extend(_build.user_options)
 
-    boolean_options = ['no-openmp', 'openmp', 'no-cython', 'force-cython']
+    boolean_options = ['no-openmp', 'openmp', 'force-cython']
     boolean_options.extend(_build.boolean_options)
 
     def initialize_options(self):
         _build.initialize_options(self)
         self.no_openmp = None
         self.openmp = None
-        self.no_cython = None
         self.force_cython = None
 
     def finalize_options(self):
         _build.finalize_options(self)
-        self.finalize_cython_options(min_version='0.21.1')
+        if not self.force_cython:
+            self.force_cython = self._parse_env_as_bool("FORCE_CYTHON") is True
         self.finalize_openmp_options()
 
     def _parse_env_as_bool(self, key):
@@ -477,9 +536,9 @@ class Build(_build):
         elif self.no_openmp:
             use_openmp = False
         else:
-            env_force_cython = self._parse_env_as_bool("WITH_OPENMP")
-            if env_force_cython is not None:
-                use_openmp = env_force_cython
+            env_with_openmp = self._parse_env_as_bool("WITH_OPENMP")
+            if env_with_openmp is not None:
+                use_openmp = env_with_openmp
             else:
                 # Use it by default
                 use_openmp = True
@@ -497,49 +556,6 @@ class Build(_build):
         del self.no_openmp
         del self.openmp
         self.use_openmp = use_openmp
-
-    def finalize_cython_options(self, min_version=None):
-        """
-        Check if cythonization must be used for the extensions.
-
-        The result is stored into the object.
-        """
-
-        if self.force_cython:
-            use_cython = "force"
-        elif self.no_cython:
-            use_cython = "no"
-        else:
-            env_force_cython = self._parse_env_as_bool("FORCE_CYTHON")
-            env_with_cython = self._parse_env_as_bool("WITH_CYTHON")
-            if env_force_cython is True:
-                use_cython = "force"
-            elif env_with_cython is True:
-                use_cython = "yes"
-            elif env_with_cython is False:
-                use_cython = "no"
-            else:
-                # Use it by default
-                use_cython = "yes"
-
-        if use_cython in ["force", "yes"]:
-            try:
-                import Cython.Compiler.Version
-                if min_version and Cython.Compiler.Version.version < min_version:
-                    msg = "Cython version is too old. At least version is %s \
-                        expected. Cythonization is skipped."
-                    logger.warning(msg, str(min_version))
-                    use_cython = "no"
-            except ImportError:
-                msg = "Cython is not available. Cythonization is skipped."
-                logger.warning(msg)
-                use_cython = "no"
-
-        # Remove attribute used by distutils parsing
-        # use 'use_cython' and 'force_cython' instead
-        del self.no_cython
-        self.force_cython = use_cython == "force"
-        self.use_cython = use_cython in ["force", "yes"]
 
 
 class BuildExt(build_ext):
@@ -562,33 +578,7 @@ class BuildExt(build_ext):
         build_ext.finalize_options(self)
         build_obj = self.distribution.get_command_obj("build")
         self.use_openmp = build_obj.use_openmp
-        self.use_cython = build_obj.use_cython
         self.force_cython = build_obj.force_cython
-
-    def patch_with_default_cythonized_files(self, ext):
-        """Replace cython files by .c or .cpp files in extension's sources.
-
-        It replaces the *.pyx and *.py source files of the extensions
-        to either *.cpp or *.c source files.
-        No compilation is performed.
-
-        :param Extension ext: An extension to patch.
-        """
-        new_sources = []
-        for source in ext.sources:
-            base, file_ext = os.path.splitext(source)
-            if file_ext in ('.pyx', '.py'):
-                if ext.language == 'c++':
-                    cythonized = base + '.cpp'
-                else:
-                    cythonized = base + '.c'
-                if not os.path.isfile(cythonized):
-                    raise RuntimeError("Source file not found: %s. Cython is needed" % cythonized)
-                print("Use default cythonized file for %s" % source)
-                new_sources.append(cythonized)
-            else:
-                new_sources.append(source)
-        ext.sources = new_sources
 
     def patch_extension(self, ext):
         """
@@ -597,17 +587,14 @@ class BuildExt(build_ext):
         :param Extension ext: An extension
         """
         # Cytonize
-        if not self.use_cython:
-            self.patch_with_default_cythonized_files(ext)
-        else:
-            from Cython.Build import cythonize
-            patched_exts = cythonize(
-                [ext],
-                compiler_directives={'embedsignature': True,
-                                     'language_level': 3},
-                force=self.force_cython
-            )
-            ext.sources = patched_exts[0].sources
+        from Cython.Build import cythonize
+        patched_exts = cythonize(
+                                 [ext],
+                                 compiler_directives={'embedsignature': True,
+                                 'language_level': 3},
+                                 force=self.force_cython
+        )
+        ext.sources = patched_exts[0].sources
 
         # Remove OpenMP flags if OpenMP is disabled
         if not self.use_openmp:
@@ -707,7 +694,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-
 ################################################################################
 # Clean command
 ################################################################################
@@ -774,38 +760,6 @@ class CleanCommand(Clean):
                     pass
 
 ################################################################################
-# Source tree
-################################################################################
-
-class SourceDistWithCython(sdist):
-    """
-    Force cythonization of the extensions before generating the source
-    distribution.
-
-    To provide the widest compatibility the cythonized files are provided
-    without suppport of OpenMP.
-    """
-
-    description = "Create a source distribution including cythonized files (tarball, zip file, etc.)"
-
-    def finalize_options(self):
-        sdist.finalize_options(self)
-        self.extensions = self.distribution.ext_modules
-
-    def run(self):
-        self.cythonize_extensions()
-        sdist.run(self)
-
-    def cythonize_extensions(self):
-        from Cython.Build import cythonize
-        cythonize(
-            self.extensions,
-            compiler_directives={'embedsignature': True,
-                                 'language_level': 3},
-            force=True
-        )
-
-################################################################################
 # Debian source tree
 ################################################################################
 
@@ -868,10 +822,10 @@ class sdist_debian(sdist):
         self.archive_files = [debian_arch]
         print("Building debian .orig.tar.gz in %s" % self.archive_files[0])
 
-
 # ##### #
 # setup #
 # ##### #
+
 
 def get_project_configuration(dry_run):
     """Returns project arguments for setup"""
@@ -891,7 +845,7 @@ def get_project_configuration(dry_run):
         "setuptools",
         # for io support
         "h5py",
-        "fabio>=0.7",
+        "fabio>=0.9",
         # Python 2/3 compatibility
         "six",
         ]
@@ -904,7 +858,7 @@ def get_project_configuration(dry_run):
         install_requires.append("enum34")
         install_requires.append("futures")
 
-    setup_requires = ["setuptools", "numpy>=1.12"]
+    setup_requires = ["setuptools", "numpy>=1.12", "Cython>=0.21.1"]
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
@@ -964,7 +918,6 @@ def get_project_configuration(dry_run):
         build_ext=BuildExt,
         build_man=BuildMan,
         clean=CleanCommand,
-        sdist=SourceDistWithCython,
         debian_src=sdist_debian)
 
     if dry_run:
@@ -993,6 +946,7 @@ def get_project_configuration(dry_run):
                         package_data=package_data,
                         zip_safe=False,
                         entry_points=entry_points,
+                        python_requires='>=3.5',
                         )
     return setup_kwargs
 

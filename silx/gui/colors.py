@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,9 +35,9 @@ import numpy
 import logging
 import collections
 from silx.gui import qt
-from silx import config
+from silx.gui.utils import blockSignals
 from silx.math.combo import min_max
-from silx.math.colormap import cmap as _cmap
+from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
 from silx.utils import deprecation
 from silx.resources import resource_filename as _resource_filename
@@ -47,9 +47,11 @@ _logger = logging.getLogger(__file__)
 
 try:
     from matplotlib import cm as _matplotlib_cm
+    from matplotlib.pyplot import colormaps as _matplotlib_colormaps
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
     _matplotlib_cm = None
+    _matplotlib_colormaps = None
 
 
 _COLORDICT = {}
@@ -91,16 +93,16 @@ _LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor
 _AVAILABLE_LUTS = collections.OrderedDict([
     ('gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('reversed gray', _LUT_DESCRIPTION('builtin', 'pink', True)),
-    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('red', _LUT_DESCRIPTION('builtin', 'green', True)),
     ('green', _LUT_DESCRIPTION('builtin', 'pink', True)),
     ('blue', _LUT_DESCRIPTION('builtin', 'yellow', True)),
-    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('viridis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('cividis', _LUT_DESCRIPTION('resource', 'pink', True)),
     ('magma', _LUT_DESCRIPTION('resource', 'green', True)),
     ('inferno', _LUT_DESCRIPTION('resource', 'green', True)),
     ('plasma', _LUT_DESCRIPTION('resource', 'green', True)),
+    ('temperature', _LUT_DESCRIPTION('builtin', 'pink', True)),
+    ('jet', _LUT_DESCRIPTION('matplotlib', 'pink', True)),
     ('hsv', _LUT_DESCRIPTION('matplotlib', 'black', True)),
 ])
 """Description for internal porpose of all the default LUT provided by the library."""
@@ -110,10 +112,6 @@ DEFAULT_MIN_LIN = 0
 """Default min value if in linear normalization"""
 DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
-DEFAULT_MIN_LOG = 1
-"""Default min value if in log normalization"""
-DEFAULT_MAX_LOG = 10
-"""Default max value if in log normalization"""
 
 
 def rgba(color, colorDict=None):
@@ -331,6 +329,167 @@ def _getColormap(name):
     return _COLORMAP_CACHE[name]
 
 
+# Normalizations
+
+class _NormalizationMixIn:
+    """Colormap normalization mix-in class"""
+
+    DEFAULT_RANGE = 0, 1
+    """Fallback for (vmin, vmax)"""
+
+    def isValid(self, value):
+        """Check if a value is in the valid range for this normalization.
+
+        Override in subclass.
+
+        :param Union[float,numpy.ndarray] value:
+        :rtype: Union[bool,numpy.ndarray]
+        """
+        if isinstance(value, collections.abc.Iterable):
+            return numpy.ones_like(value, dtype=numpy.bool_)
+        else:
+            return True
+
+    def autoscale(self, data, mode):
+        """Returns range for given data and autoscale mode.
+
+        :param Union[None,numpy.ndarray] data:
+        :param str mode: Autoscale mode, see :class:`Colormap`
+        :returns: Range as (min, max)
+        :rtype: Tuple[float,float]
+        """
+        data = None if data is None else numpy.array(data, copy=False)
+        if data is None or data.size == 0:
+            return self.DEFAULT_RANGE
+
+        if mode == Colormap.MINMAX:
+            vmin, vmax = self.autoscaleMinMax(data)
+        elif mode == Colormap.STDDEV3:
+            vmin, vmax = self.autoscaleMean3Std(data)
+        else:
+            raise ValueError('Unsupported mode: %s' % mode)
+
+        # Check returned range and handle fallbacks
+        if vmin is None or not numpy.isfinite(vmin):
+            vmin = self.DEFAULT_RANGE[0]
+        if vmax is None or not numpy.isfinite(vmax):
+            vmax = self.DEFAULT_RANGE[1]
+        if vmax < vmin:
+            vmax = vmin
+        return float(vmin), float(vmax)
+
+    def autoscaleMinMax(self, data):
+        """Autoscale using min/max
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        data = data[self.isValid(data)]
+        if data.size == 0:
+            return None, None
+        result = min_max(data, min_positive=False, finite=True)
+        return result.minimum, result.maximum
+
+    def autoscaleMean3Std(self, data):
+        """Autoscale using mean+/-3std
+
+        This implementation only works for normalization that do NOT
+        use the data range.
+        Override this method for normalization using the range.
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        # Use [0, 1] as data range for normalization not using range
+        normdata = self.apply(data, 0., 1.)
+        if normdata.dtype.kind == 'f':  # Replaces inf by NaN
+            normdata[numpy.isfinite(normdata) == False] = numpy.nan
+        if normdata.size == 0:  # Fallback
+            return None, None
+        mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+        return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
+
+
+class _LinearNormalizationMixIn(_NormalizationMixIn):
+    """Colormap normalization mix-in class specific to autoscale taken from initial range"""
+
+    def autoscaleMean3Std(self, data):
+        """Autoscale using mean+/-3std
+
+        Do the autoscale on the data itself, not the normalized data.
+
+        :param numpy.ndarray data:
+        :returns: (vmin, vmax)
+        :rtype: Tuple[float,float]
+        """
+        if data.dtype.kind == 'f':  # Replaces inf by NaN
+            data = numpy.array(data, copy=True)  # Work on a copy
+            data[numpy.isfinite(data) == False] = numpy.nan
+        if data.size == 0:  # Fallback
+            return None, None
+        mean, std = numpy.nanmean(data), numpy.nanstd(data)
+        return mean - 3 * std, mean + 3 * std
+
+
+class _LinearNormalization(_colormap.LinearNormalization, _LinearNormalizationMixIn):
+    """Linear normalization"""
+    def __init__(self):
+        _colormap.LinearNormalization.__init__(self)
+        _LinearNormalizationMixIn.__init__(self)
+
+
+class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
+    """Logarithm normalization"""
+
+    DEFAULT_RANGE = 1, 10
+
+    def __init__(self):
+        _colormap.LogarithmicNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
+
+    def isValid(self, value):
+        return value > 0.
+
+    def autoscaleMinMax(self, data):
+        result = min_max(data, min_positive=True, finite=True)
+        return result.min_positive, result.maximum
+
+
+class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
+    """Square root normalization"""
+
+    DEFAULT_RANGE = 0, 1
+
+    def __init__(self):
+        _colormap.SqrtNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
+
+    def isValid(self, value):
+        return value >= 0.
+
+
+class _GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn):
+    """Gamma correction normalization:
+
+    Linear normalization to [0, 1] followed by power normalization.
+
+    :param gamma: Gamma correction factor
+    """
+    def __init__(self, gamma):
+        _colormap.PowerNormalization.__init__(self, gamma)
+        _LinearNormalizationMixIn.__init__(self)
+
+
+class _ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
+    """Inverse hyperbolic sine normalization"""
+
+    def __init__(self):
+        _colormap.ArcsinhNormalization.__init__(self)
+        _NormalizationMixIn.__init__(self)
+
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -342,10 +501,10 @@ class Colormap(qt.QObject):
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
     :param str normalization: Normalization: 'linear' (default) or 'log'
-    :param float vmin:
-        Lower bound of the colormap or None for autoscale (default)
-    :param float vmax:
-        Upper bounds of the colormap or None for autoscale (default)
+    :param vmin: Lower bound of the colormap or None for autoscale (default)
+    :type vmin: Union[None, float]
+    :param vmax: Upper bounds of the colormap or None for autoscale (default)
+    :type vmax: Union[None, float]
     """
 
     LINEAR = 'linear'
@@ -354,17 +513,50 @@ class Colormap(qt.QObject):
     LOGARITHM = 'log'
     """constant for logarithmic normalization"""
 
-    NORMALIZATIONS = (LINEAR, LOGARITHM)
+    SQRT = 'sqrt'
+    """constant for square root normalization"""
+
+    GAMMA = 'gamma'
+    """Constant for gamma correction normalization"""
+
+    ARCSINH = 'arcsinh'
+    """constant for inverse hyperbolic sine normalization"""
+
+    _BASIC_NORMALIZATIONS = {
+        LINEAR: _LinearNormalization(),
+        LOGARITHM: _LogarithmicNormalization(),
+        SQRT: _SqrtNormalization(),
+        ARCSINH: _ArcsinhNormalization(),
+        }
+    """Normalizations without parameters"""
+
+    NORMALIZATIONS = LINEAR, LOGARITHM, SQRT, GAMMA, ARCSINH
     """Tuple of managed normalizations"""
+
+    MINMAX = 'minmax'
+    """constant for autoscale using min/max data range"""
+
+    STDDEV3 = 'stddev3'
+    """constant for autoscale using mean +/- 3*std(data)"""
+
+    AUTOSCALE_MODES = (MINMAX, STDDEV3)
+    """Tuple of managed auto scale algorithms"""
 
     sigChanged = qt.Signal()
     """Signal emitted when the colormap has changed."""
 
-    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None):
+    _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
+    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
+        self.__gamma = 2.0
+        # Default NaN color: fully transparent white
+        self.__nanColor = numpy.array(self._DEFAULT_NAN_COLOR, dtype=numpy.uint8)
 
         assert normalization in Colormap.NORMALIZATIONS
+        assert autoscaleMode in Colormap.AUTOSCALE_MODES
+
         if normalization is Colormap.LOGARITHM:
             if (vmin is not None and vmin < 0) or (vmax is not None and vmax < 0):
                 m = "Unsuported vmin (%s) and/or vmax (%s) given for a log scale."
@@ -395,27 +587,32 @@ class Colormap(qt.QObject):
             self.setName("gray")
 
         self._normalization = str(normalization)
+        self._autoscaleMode = str(autoscaleMode)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
 
     def setFromColormap(self, other):
         """Set this colormap using information from the `other` colormap.
 
-        :param Colormap other: Colormap to use as reference.
+        :param ~silx.gui.colors.Colormap other: Colormap to use as reference.
         """
         if not self.isEditable():
             raise NotEditableError('Colormap is not editable')
         if self == other:
             return
-        old = self.blockSignals(True)
-        name = other.getName()
-        if name is not None:
-            self.setName(name)
-        else:
-            self.setColormapLUT(other.getColormapLUT())
-        self.setNormalization(other.getNormalization())
-        self.setVRange(other.getVMin(), other.getVMax())
-        self.blockSignals(old)
+        with blockSignals(self):
+            name = other.getName()
+            if name is not None:
+                self.setName(name)
+            else:
+                self.setColormapLUT(other.getColormapLUT())
+            self.setNaNColor(other.getNaNColor())
+            self.setNormalization(other.getNormalization())
+            self.setGammaNormalizationParameter(
+                other.getGammaNormalizationParameter())
+            self.setAutoscaleMode(other.getAutoscaleMode())
+            self.setVRange(*other.getVRange())
+            self.setEditable(other.isEditable())
         self.sigChanged.emit()
 
     def getNColors(self, nbColors=None):
@@ -432,11 +629,12 @@ class Colormap(qt.QObject):
         if nbColors is None:
             return numpy.array(self._colors, copy=True)
         else:
+            nbColors = int(nbColors)
             colormap = self.copy()
             colormap.setNormalization(Colormap.LINEAR)
-            colormap.setVRange(vmin=None, vmax=None)
+            colormap.setVRange(vmin=0, vmax=nbColors - 1)
             colors = colormap.applyToData(
-                numpy.arange(int(nbColors), dtype=numpy.int))
+                numpy.arange(nbColors, dtype=numpy.int))
             return colors
 
     def getName(self):
@@ -502,8 +700,28 @@ class Colormap(qt.QObject):
         self._name = None
         self.sigChanged.emit()
 
+    def getNaNColor(self):
+        """Returns the color to use for Not-A-Number floating point value.
+
+        :rtype: QColor
+        """
+        return qt.QColor(*self.__nanColor)
+
+    def setNaNColor(self, color):
+        """Set the color to use for Not-A-Number floating point value.
+
+        :param color: RGB(A) color to use for NaN values
+        :type color: QColor, str, tuple of uint8 or float in [0., 1.]
+        """
+        color = (numpy.array(rgba(color)) * 255).astype(numpy.uint8)
+        if not numpy.array_equal(self.__nanColor, color):
+            self.__nanColor = color
+            self.sigChanged.emit()
+
     def getNormalization(self):
-        """Return the normalization of the colormap ('log' or 'linear')
+        """Return the normalization of the colormap.
+
+        See :meth:`setNormalization` for returned values.
 
         :return: the normalization of the colormap
         :rtype: str
@@ -511,14 +729,57 @@ class Colormap(qt.QObject):
         return self._normalization
 
     def setNormalization(self, norm):
-        """Set the norm ('log', 'linear')
+        """Set the colormap normalization.
+
+        Accepted normalizations: 'log', 'linear', 'sqrt'
 
         :param str norm: the norm to set
         """
+        assert norm in self.NORMALIZATIONS
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
         self._normalization = str(norm)
         self.sigChanged.emit()
+
+    def setGammaNormalizationParameter(self, gamma: float) -> None:
+        """Set the gamma correction parameter.
+
+        Only used for gamma correction normalization.
+
+        :param float gamma:
+        :raise ValueError: If gamma is not valid
+        """
+        if gamma < 0. or not numpy.isfinite(gamma):
+            raise ValueError("Gamma value not supported")
+        if gamma != self.__gamma:
+            self.__gamma = gamma
+            self.sigChanged.emit()
+
+    def getGammaNormalizationParameter(self) -> float:
+        """Returns the gamma correction parameter value.
+
+        :rtype: float
+        """
+        return self.__gamma
+
+    def getAutoscaleMode(self):
+        """Return the autoscale mode of the colormap ('minmax' or 'stddev3')
+
+        :rtype: str
+        """
+        return self._autoscaleMode
+
+    def setAutoscaleMode(self, mode):
+        """Set the autoscale mode: either 'minmax' or 'stddev3'
+
+        :param str mode: the mode to set
+        """
+        if self.isEditable() is False:
+            raise NotEditableError('Colormap is not editable')
+        assert mode in self.AUTOSCALE_MODES
+        if mode != self._autoscaleMode:
+            self._autoscaleMode = mode
+            self.sigChanged.emit()
 
     def isAutoscale(self):
         """Return True if both min and max are in autoscale mode"""
@@ -593,49 +854,57 @@ class Colormap(qt.QObject):
         self._editable = editable
         self.sigChanged.emit()
 
-    def getColormapRange(self, data=None):
-        """Return (vmin, vmax)
+    def _getNormalizer(self):
+        """Returns normalizer object"""
+        normalization = self.getNormalization()
+        if normalization == self.GAMMA:
+            return _GammaNormalization(self.getGammaNormalizationParameter())
+        else:
+            return self._BASIC_NORMALIZATIONS[normalization]
 
-        :return: the tuple vmin, vmax fitting vmin, vmax, normalization and
-            data if any given
+    def _computeAutoscaleRange(self, data):
+        """Compute the data range which will be used in autoscale mode.
+
+        :param numpy.ndarray data: The data for which to compute the range
+        :return: (vmin, vmax) range
+        """
+        return self._getNormalizer().autoscale(
+            data, mode=self.getAutoscaleMode())
+
+    def getColormapRange(self, data=None):
+        """Return (vmin, vmax) the range of the colormap for the given data or item.
+
+        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixIn] data:
+            The data or item to use for autoscale bounds.
+        :return: (vmin, vmax) corresponding to the colormap applied to data if provided.
         :rtype: tuple
         """
         vmin = self._vmin
         vmax = self._vmax
         assert vmin is None or vmax is None or vmin <= vmax  # TODO handle this in setters
 
-        if self.getNormalization() == self.LOGARITHM:
-            # Handle negative bounds as autoscale
-            if vmin is not None and (vmin is not None and vmin <= 0.):
-                mess = 'negative vmin, moving to autoscale for lower bound'
-                _logger.warning(mess)
-                vmin = None
-            if vmax is not None and (vmax is not None and vmax <= 0.):
-                mess = 'negative vmax, moving to autoscale for upper bound'
-                _logger.warning(mess)
-                vmax = None
+        normalizer = self._getNormalizer()
+
+        # Handle invalid bounds as autoscale
+        if vmin is not None and not normalizer.isValid(vmin):
+            _logger.info(
+                'Invalid vmin, switching to autoscale for lower bound')
+            vmin = None
+        if vmax is not None and not normalizer.isValid(vmax):
+            _logger.info(
+                'Invalid vmax, switching to autoscale for upper bound')
+            vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
-            # Get min/max from data
-            if data is not None:
-                data = numpy.array(data, copy=False)
-                if data.size == 0:  # Fallback an array but no data
-                    min_, max_ = self._getDefaultMin(), self._getDefaultMax()
-                else:
-                    if self.getNormalization() == self.LOGARITHM:
-                        result = min_max(data, min_positive=True, finite=True)
-                        min_ = result.min_positive  # >0 or None
-                        max_ = result.maximum  # can be <= 0
-                    else:
-                        min_, max_ = min_max(data, min_positive=False, finite=True)
-
-                    # Handle fallback
-                    if min_ is None or not numpy.isfinite(min_):
-                        min_ = self._getDefaultMin()
-                    if max_ is None or not numpy.isfinite(max_):
-                        max_ = self._getDefaultMax()
-            else:  # Fallback if no data is provided
-                min_, max_ = self._getDefaultMin(), self._getDefaultMax()
+            from .plot.items.core import ColormapMixIn  # avoid cyclic import
+            if isinstance(data, ColormapMixIn):
+                min_, max_ = data._getColormapAutoscaleRange(self)
+                # Make sure min_, max_ are not None
+                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+            else:
+                min_, max_ = normalizer.autoscale(
+                    data, mode=self.getAutoscaleMode())
 
             if vmin is None:  # Set vmin respecting provided vmax
                 vmin = min_ if vmax is None else min(min_, vmax)
@@ -644,6 +913,15 @@ class Colormap(qt.QObject):
                 vmax = max(max_, vmin)  # Handle max_ <= 0 for log scale
 
         return vmin, vmax
+
+    def getVRange(self):
+        """Get the bounds of the colormap
+
+        :rtype: Tuple(Union[float,None],Union[float,None])
+        :returns: A tuple of 2 values for min and max. Or None instead of float
+            for autoscale
+        """
+        return self.getVMin(), self.getVMax()
 
     def setVRange(self, vmin, vmax):
         """Set the bounds of the colormap
@@ -681,6 +959,8 @@ class Colormap(qt.QObject):
             return self.getVMax()
         elif item == 'colors':
             return self.getColormapLUT()
+        elif item == 'autoscaleMode':
+            return self.getAutoscaleMode()
         else:
             raise KeyError(item)
 
@@ -697,8 +977,9 @@ class Colormap(qt.QObject):
             'vmin': self._vmin,
             'vmax': self._vmax,
             'autoscale': self.isAutoscale(),
-            'normalization': self._normalization
-        }
+            'normalization': self.getNormalization(),
+            'autoscaleMode': self.getAutoscaleMode(),
+            }
 
     def _setFromDict(self, dic):
         """Set values to the colormap from a dictionary
@@ -728,7 +1009,12 @@ class Colormap(qt.QObject):
             err = 'The colormap should have a name defined or a tuple of colors'
             raise ValueError(err)
         if normalization not in Colormap.NORMALIZATIONS:
-            err = 'Given normalization is not recoginized (%s)' % normalization
+            err = 'Given normalization is not recognized (%s)' % normalization
+            raise ValueError(err)
+
+        autoscaleMode = dic.get('autoscaleMode', Colormap.MINMAX)
+        if autoscaleMode not in Colormap.AUTOSCALE_MODES:
+            err = 'Given autoscale mode is not recognized (%s)' % autoscaleMode
             raise ValueError(err)
 
         # If autoscale, then set boundaries to None
@@ -743,6 +1029,7 @@ class Colormap(qt.QObject):
         self._vmax = vmax
         self._autoscale = True if (vmin is None and vmax is None) else False
         self._normalization = normalization
+        self._autoscaleMode = autoscaleMode
 
         self.sigChanged.emit()
 
@@ -757,20 +1044,40 @@ class Colormap(qt.QObject):
 
         :rtype: silx.gui.colors.Colormap
         """
-        return Colormap(name=self._name,
+        colormap = Colormap(name=self._name,
                         colors=self.getColormapLUT(),
                         vmin=self._vmin,
                         vmax=self._vmax,
-                        normalization=self._normalization)
+                        normalization=self.getNormalization(),
+                        autoscaleMode=self.getAutoscaleMode())
+        colormap.setNaNColor(self.getNaNColor())
+        colormap.setGammaNormalizationParameter(
+            self.getGammaNormalizationParameter())
+        colormap.setEditable(self.isEditable())
+        return colormap
 
-    def applyToData(self, data):
+    def applyToData(self, data, reference=None):
         """Apply the colormap to the data
 
-        :param numpy.ndarray data: The data to convert.
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn] data:
+            The data to convert or the item for which to apply the colormap.
+        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn,None] reference:
+            The data or item to use as reference to compute autoscale
         """
-        vmin, vmax = self.getColormapRange(data)
-        normalization = self.getNormalization()
-        return _cmap(data, self._colors, vmin, vmax, normalization)
+        if reference is None:
+            reference = data
+        vmin, vmax = self.getColormapRange(reference)
+
+        if hasattr(data, "getColormappedData"):  # Use item's data
+            data = data.getColormappedData()
+
+        return _colormap.cmap(
+            data,
+            self._colors,
+            vmin,
+            vmax,
+            self._getNormalizer(),
+            self.__nanColor)
 
     @staticmethod
     def getSupportedColormaps():
@@ -784,8 +1091,8 @@ class Colormap(qt.QObject):
         :rtype: tuple
         """
         colormaps = set()
-        if _matplotlib_cm is not None:
-            colormaps.update(_matplotlib_cm.cmap_d.keys())
+        if _matplotlib_colormaps is not None:
+            colormaps.update(_matplotlib_colormaps())
         colormaps.update(_AVAILABLE_LUTS.keys())
 
         colormaps = tuple(cmap for cmap in sorted(colormaps)
@@ -796,26 +1103,26 @@ class Colormap(qt.QObject):
     def __str__(self):
         return str(self._toDict())
 
-    def _getDefaultMin(self):
-        return DEFAULT_MIN_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MIN_LOG
-
-    def _getDefaultMax(self):
-        return DEFAULT_MAX_LIN if self._normalization == Colormap.LINEAR else DEFAULT_MAX_LOG
-
     def __eq__(self, other):
         """Compare colormap values and not pointers"""
         if other is None:
             return False
         if not isinstance(other, Colormap):
             return False
+        if self.getNormalization() != other.getNormalization():
+            return False
+        if self.getNormalization() == self.GAMMA:
+            delta = self.getGammaNormalizationParameter() - other.getGammaNormalizationParameter()
+            if abs(delta) > 0.001:
+                return False
         return (self.getName() == other.getName() and
-                self.getNormalization() == other.getNormalization() and
+                self.getAutoscaleMode() == other.getAutoscaleMode() and
                 self.getVMin() == other.getVMin() and
                 self.getVMax() == other.getVMax() and
                 numpy.array_equal(self.getColormapLUT(), other.getColormapLUT())
                 )
 
-    _SERIAL_VERSION = 1
+    _SERIAL_VERSION = 3
 
     def restoreState(self, byteArray):
         """
@@ -835,7 +1142,7 @@ class Colormap(qt.QObject):
             return False
 
         version = stream.readUInt32()
-        if version != self._SERIAL_VERSION:
+        if version not in numpy.arange(1, self._SERIAL_VERSION+1):
             _logger.warning("Serial version mismatch. Found %d." % version)
             return False
 
@@ -850,14 +1157,33 @@ class Colormap(qt.QObject):
             vmax = stream.readQVariant()
         else:
             vmax = None
+
         normalization = stream.readQString()
+        if normalization == Colormap.GAMMA:
+            gamma = stream.readFloat()
+        else:
+            gamma = None
+
+        if version == 1:
+            autoscaleMode = Colormap.MINMAX
+        else:
+            autoscaleMode = stream.readQString()
+
+        if version <= 2:
+            nanColor = self._DEFAULT_NAN_COLOR
+        else:
+            nanColor = stream.readInt32(), stream.readInt32(), stream.readInt32(), stream.readInt32()
 
         # emit change event only once
         old = self.blockSignals(True)
         try:
             self.setName(name)
             self.setNormalization(normalization)
+            self.setAutoscaleMode(autoscaleMode)
             self.setVRange(vmin, vmax)
+            if gamma is not None:
+                self.setGammaNormalizationParameter(gamma)
+            self.setNaNColor(nanColor)
         finally:
             self.blockSignals(old)
         self.sigChanged.emit()
@@ -882,6 +1208,15 @@ class Colormap(qt.QObject):
         if self.getVMax() is not None:
             stream.writeQVariant(self.getVMax())
         stream.writeQString(self.getNormalization())
+        if self.getNormalization() == Colormap.GAMMA:
+            stream.writeFloat(self.getGammaNormalizationParameter())
+        stream.writeQString(self.getAutoscaleMode())
+        nanColor = self.getNaNColor()
+        stream.writeInt32(nanColor.red())
+        stream.writeInt32(nanColor.green())
+        stream.writeInt32(nanColor.blue())
+        stream.writeInt32(nanColor.alpha())
+
         return data
 
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -380,7 +380,7 @@ class _LightDirectionAngleBaseItem(SubjectItem):
         editor.setOrientation(qt.Qt.Horizontal)
         editor.setMinimum(-90)
         editor.setMaximum(90)
-        editor.setValue(self._pullData())
+        editor.setValue(int(self._pullData()))
 
         # Wrapping call in lambda is a workaround for PySide with Python 3
         editor.valueChanged.connect(
@@ -389,7 +389,7 @@ class _LightDirectionAngleBaseItem(SubjectItem):
         return editor
 
     def setEditorData(self, editor):
-        editor.setValue(self._pullData())
+        editor.setValue(int(self._pullData()))
         return True
 
     def _setModelData(self, editor):
@@ -826,7 +826,7 @@ class _IsoLevelSlider(qt.QSlider):
             if width > 0:
                 sliderWidth = self.maximum() - self.minimum()
                 sliderPosition = sliderWidth * (self.__norm(level) - min_) / width
-                self.setValue(sliderPosition)
+                self.setValue(int(sliderPosition))
 
     def __dataChanged(self):
         """Handles data update to refresh slider range if needed"""

@@ -832,6 +832,7 @@ class ImageViewMainWindow(ImageView):
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self.profile.hLineAction)
         menu.addAction(self.profile.vLineAction)
+        menu.addAction(self.profile.crossAction)
         menu.addAction(self.profile.lineAction)
         menu.addAction(self.profile.clearAction)
 

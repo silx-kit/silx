@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,7 @@ if "--opengl" in sys.argv:
 # Create the plot widget and add an image
 plot = Plot2D(backend=backend)
 plot.getDefaultColormap().setName('viridis')
+plot.setKeepDataAspectRatio(True)
 plot.addImage(dummy_image())
 
 # Create the object controlling the ROIs and set it up
@@ -71,21 +72,24 @@ roiManager.setColor('pink')  # Set the color of ROI
 # Set the name of each created region of interest
 def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
-    if roi.getLabel() == '':
-        roi.setLabel('ROI %d' % len(roiManager.getRois()))
+    if roi.getName() == '':
+        roi.setName('ROI %d' % len(roiManager.getRois()))
     if isinstance(roi, LineMixIn):
-        roi.setLineWidth(2)
+        roi.setLineWidth(1)
         roi.setLineStyle('--')
     if isinstance(roi, SymbolMixIn):
         roi.setSymbolSize(5)
+    roi.setSelectable(True)
+    roi.setEditable(True)
 
 
 roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
 
+
 # Add a rectangular region of interest
 roi = RectangleROI()
 roi.setGeometry(origin=(50, 50), size=(200, 200))
-roi.setLabel('Initial ROI')
+roi.setName('Initial ROI')
 roiManager.addRoi(roi)
 
 # Create the table widget displaying

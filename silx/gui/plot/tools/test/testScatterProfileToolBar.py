@@ -34,8 +34,9 @@ from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot import PlotWindow
-from silx.gui.plot.tools import profile
-import silx.gui.plot.items.roi as roi_items
+from silx.gui.plot.tools.profile import manager
+from silx.gui.plot.tools.profile import core
+from silx.gui.plot.tools.profile import rois
 
 
 class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
@@ -45,87 +46,65 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         super(TestScatterProfileToolBar, self).setUp()
         self.plot = PlotWindow()
 
-        self.profile = profile.ScatterProfileToolBar(plot=self.plot)
-
-        self.plot.addToolBar(self.profile)
+        self.manager = manager.ProfileManager(plot=self.plot)
+        self.manager.setItemType(scatter=True)
+        self.manager.setActiveItemTracking(True)
 
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
-        del self.profile
+        del self.manager
         self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
         super(TestScatterProfileToolBar, self).tearDown()
 
-    def testNoProfile(self):
-        """Test ScatterProfileToolBar without profile"""
-        self.assertEqual(self.profile.getPlotWidget(), self.plot)
-
-        # Add a scatter plot
-        self.plot.addScatter(
-            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
-        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
-        self.qapp.processEvents()
-
-        # Check that there is no profile
-        self.assertIsNone(self.profile.getProfileValues())
-        self.assertIsNone(self.profile.getProfilePoints())
-
     def testHorizontalProfile(self):
         """Test ScatterProfileToolBar horizontal profile"""
-        nPoints = 8
-        self.profile.setNPoints(nPoints)
-        self.assertEqual(self.profile.getNPoints(), nPoints)
+
+        roiManager = self.manager.getRoiManager()
 
         # Add a scatter plot
         self.plot.addScatter(
             x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
         self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
-        self.qapp.processEvents()
-
-        # Activate Horizontal profile
-        hlineAction = self.profile.actions()[0]
-        hlineAction.trigger()
         self.qapp.processEvents()
 
         # Set a ROI profile
-        roi = roi_items.HorizontalLineROI()
+        roi = rois.ProfileScatterHorizontalLineROI()
         roi.setPosition(0.5)
-        self.profile._getRoiManager().addRoi(roi)
+        roi.setNPoints(8)
+        roiManager.addRoi(roi)
 
         # Wait for async interpolator init
         for _ in range(20):
             self.qWait(200)
-            if not self.profile.hasPendingOperations():
+            if not self.manager.hasPendingOperations():
                 break
         self.qapp.processEvents()
 
-        self.assertIsNotNone(self.profile.getProfileValues())
-        points = self.profile.getProfilePoints()
-        self.assertEqual(len(points), nPoints)
+        window = roi.getProfileWindow()
+        self.assertIsNotNone(window)
+        data = window.getProfile()
+        self.assertIsInstance(data, core.CurveProfileData)
+        self.assertEqual(len(data.coords), 8)
 
         # Check that profile has same limits than Plot
         xLimits = self.plot.getXAxis().getLimits()
-        self.assertEqual(points[0, 0], xLimits[0])
-        self.assertEqual(points[-1, 0], xLimits[1])
+        self.assertEqual(data.coords[0], xLimits[0])
+        self.assertEqual(data.coords[-1], xLimits[1])
 
         # Clear the profile
-        clearAction = self.profile.actions()[-1]
-        clearAction.trigger()
+        self.manager.clearProfile()
         self.qapp.processEvents()
-
-        self.assertIsNone(self.profile.getProfileValues())
-        self.assertIsNone(self.profile.getProfilePoints())
-        self.assertEqual(self.profile.getProfileTitle(), '')
+        self.assertIsNone(roi.getProfileWindow())
 
     def testVerticalProfile(self):
         """Test ScatterProfileToolBar vertical profile"""
-        nPoints = 8
-        self.profile.setNPoints(nPoints)
-        self.assertEqual(self.profile.getNPoints(), nPoints)
+
+        roiManager = self.manager.getRoiManager()
 
         # Add a scatter plot
         self.plot.addScatter(
@@ -133,55 +112,52 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
         self.qapp.processEvents()
 
-        # Activate vertical profile
-        vlineAction = self.profile.actions()[1]
-        vlineAction.trigger()
-        self.qapp.processEvents()
-
         # Set a ROI profile
-        roi = roi_items.VerticalLineROI()
+        roi = rois.ProfileScatterVerticalLineROI()
         roi.setPosition(0.5)
-        self.profile._getRoiManager().addRoi(roi)
+        roi.setNPoints(8)
+        roiManager.addRoi(roi)
 
         # Wait for async interpolator init
         for _ in range(10):
             self.qWait(200)
-            if not self.profile.hasPendingOperations():
+            if not self.manager.hasPendingOperations():
                 break
 
-        self.assertIsNotNone(self.profile.getProfileValues())
-        points = self.profile.getProfilePoints()
-        self.assertEqual(len(points), nPoints)
+        window = roi.getProfileWindow()
+        self.assertIsNotNone(window)
+        data = window.getProfile()
+        self.assertIsInstance(data, core.CurveProfileData)
+        self.assertEqual(len(data.coords), 8)
 
         # Check that profile has same limits than Plot
         yLimits = self.plot.getYAxis().getLimits()
-        self.assertEqual(points[0, 1], yLimits[0])
-        self.assertEqual(points[-1, 1], yLimits[1])
+        self.assertEqual(data.coords[0], yLimits[0])
+        self.assertEqual(data.coords[-1], yLimits[1])
 
         # Check that profile limits are updated when changing limits
         self.plot.getYAxis().setLimits(yLimits[0] + 1, yLimits[1] + 10)
-        self.qapp.processEvents()
-        yLimits = self.plot.getYAxis().getLimits()
-        points = self.profile.getProfilePoints()
-        self.assertEqual(points[0, 1], yLimits[0])
-        self.assertEqual(points[-1, 1], yLimits[1])
 
-        # Clear the plot
-        self.plot.clear()
+        # Wait for async interpolator init
+        for _ in range(10):
+            self.qWait(200)
+            if not self.manager.hasPendingOperations():
+                break
+
+        yLimits = self.plot.getYAxis().getLimits()
+        data = window.getProfile()
+        self.assertEqual(data.coords[0], yLimits[0])
+        self.assertEqual(data.coords[-1], yLimits[1])
+
+        # Clear the profile
+        self.manager.clearProfile()
         self.qapp.processEvents()
-        self.assertIsNone(self.profile.getProfileValues())
-        self.assertIsNone(self.profile.getProfilePoints())
+        self.assertIsNone(roi.getProfileWindow())
 
     def testLineProfile(self):
         """Test ScatterProfileToolBar line profile"""
-        nPoints = 8
-        self.profile.setNPoints(nPoints)
-        self.assertEqual(self.profile.getNPoints(), nPoints)
 
-        # Activate line profile
-        lineAction = self.profile.actions()[2]
-        lineAction.trigger()
-        self.qapp.processEvents()
+        roiManager = self.manager.getRoiManager()
 
         # Add a scatter plot
         self.plot.addScatter(
@@ -190,19 +166,22 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Set a ROI profile
-        roi = roi_items.LineROI()
+        roi = rois.ProfileScatterLineROI()
         roi.setEndPoints(numpy.array([0., 0.]), numpy.array([1., 1.]))
-        self.profile._getRoiManager().addRoi(roi)
+        roi.setNPoints(8)
+        roiManager.addRoi(roi)
 
         # Wait for async interpolator init
         for _ in range(10):
             self.qWait(200)
-            if not self.profile.hasPendingOperations():
+            if not self.manager.hasPendingOperations():
                 break
 
-        self.assertIsNotNone(self.profile.getProfileValues())
-        points = self.profile.getProfilePoints()
-        self.assertEqual(len(points), nPoints)
+        window = roi.getProfileWindow()
+        self.assertIsNotNone(window)
+        data = window.getProfile()
+        self.assertIsInstance(data, core.CurveProfileData)
+        self.assertEqual(len(data.coords), 8)
 
 
 def suite():

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -155,7 +155,8 @@ class TestCaseQt(unittest.TestCase):
         if hasattr(self, '_outcome'):
             # For Python >= 3.4
             result = self.defaultTestResult()  # these 2 methods have no side effects
-            self._feedErrorsToResult(result, self._outcome.errors)
+            if hasattr(self._outcome, 'errors'):
+                self._feedErrorsToResult(result, self._outcome.errors)
         else:
             # For Python < 3.4
             result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
@@ -264,7 +265,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if modifier is None:
             modifier = qt.Qt.KeyboardModifiers()
-        pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
+        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
         self.qWait(20)
 
@@ -275,7 +276,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if modifier is None:
             modifier = qt.Qt.KeyboardModifiers()
-        pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
+        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
         self.qWait(20)
 
@@ -284,7 +285,7 @@ class TestCaseQt(unittest.TestCase):
 
         See QTest.mouseMove for details.
         """
-        pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
+        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseMove(widget, pos, delay)
         self.qWait(20)
 
@@ -295,7 +296,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if modifier is None:
             modifier = qt.Qt.KeyboardModifiers()
-        pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
+        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
         self.qWait(20)
 
@@ -306,7 +307,7 @@ class TestCaseQt(unittest.TestCase):
         """
         if modifier is None:
             modifier = qt.Qt.KeyboardModifiers()
-        pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
+        pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
         self.qWait(20)
 
@@ -315,7 +316,7 @@ class TestCaseQt(unittest.TestCase):
 
         See QTest.qSleep for details.
         """
-        QTest.qSleep(ms + self.TIMEOUT_WAIT)
+        QTest.qSleep(int(ms) + self.TIMEOUT_WAIT)
 
     @classmethod
     def qWait(cls, ms=None):
@@ -336,7 +337,7 @@ class TestCaseQt(unittest.TestCase):
                                    maxtime=timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
-            QTest.qWait(ms + cls.TIMEOUT_WAIT)
+            QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.

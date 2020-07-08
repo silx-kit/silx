@@ -39,6 +39,10 @@ depreclog = logging.getLogger("silx.DEPRECATION")
 
 deprecache = set([])
 
+FORCE = False
+"""If true, deprecation using only_once are also generated.
+It is needed for reproducible tests.
+"""
 
 def deprecated(func=None, reason=None, replacement=None, since_version=None, only_once=True, skip_backtrace_count=1):
     """
@@ -110,7 +114,7 @@ def deprecated_warning(type_, name, reason=None, replacement=None,
     limit = 2 + skip_backtrace_count
     backtrace = "".join(traceback.format_stack(limit=limit)[0])
     backtrace = backtrace.rstrip()
-    if only_once:
+    if not FORCE and only_once:
         data = (msg, type_, name, backtrace)
         if data in deprecache:
             return

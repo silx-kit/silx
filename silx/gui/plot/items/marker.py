@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,18 @@ import logging
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType, YAxisMixIn)
-
+from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
 
 
 class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     """Base class for markers"""
+
+    sigDragStarted = qt.Signal()
+    """Signal emitted when the marker is pressed"""
+    sigDragFinished = qt.Signal()
+    """Signal emitted when the marker is released"""
 
     _DEFAULT_COLOR = (0., 0., 0., 1.)
     """Default color of the markers"""
@@ -56,6 +61,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
+        self.__isBeingDragged = False
 
     def _addRendererCall(self, backend,
                          symbol=None, linestyle='-', linewidth=1):
@@ -65,8 +71,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             y=self.getYPosition(),
             text=self.getText(),
             color=self.getColor(),
-            selectable=self.isSelectable(),
-            draggable=self.isDraggable(),
             symbol=symbol,
             linestyle=linestyle,
             linewidth=linewidth,
@@ -168,6 +172,18 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     def _defaultConstraint(*args):
         """Default constraint not doing anything"""
         return args
+
+    def _startDrag(self):
+        self.__isBeingDragged = True
+        self.sigDragStarted.emit()
+
+    def _endDrag(self):
+        self.__isBeingDragged = False
+        self.sigDragFinished.emit()
+
+    def isBeingDragged(self) -> bool:
+        """Returns whether the marker is currently dragged by the user."""
+        return self.__isBeingDragged
 
 
 class Marker(MarkerBase, SymbolMixIn):

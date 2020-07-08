@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1874,6 +1874,8 @@ class ColormapMesh3D(Geometry):
     }
     """,
                 string.Template("""
+    uniform float alpha;
+
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -1889,6 +1891,7 @@ class ColormapMesh3D(Geometry):
 
         vec4 color = $colormapCall(vValue);
         gl_FragColor = $lightingCall(color, vPosition, vNormal);
+        gl_FragColor.a *= alpha;
 
         $scenePostCall(vCameraPosition);
     }
@@ -1908,6 +1911,7 @@ class ColormapMesh3D(Geometry):
                                              value=value,
                                              copy=copy)
 
+        self._alpha = 1.0
         self._lineWidth = 1.0
         self._lineSmooth = True
         self._culling = None
@@ -1921,6 +1925,10 @@ class ColormapMesh3D(Geometry):
         '_lineSmooth',
         converter=bool,
         doc="Smooth line rendering enabled (bool, default: True)")
+
+    alpha = event.notifyProperty(
+        '_alpha', converter=float,
+        doc="Transparency of the mesh, float in [0, 1]")
 
     @property
     def culling(self):
@@ -1978,6 +1986,7 @@ class ColormapMesh3D(Geometry):
         program.setUniformMatrix('transformMat',
                                  ctx.objectToCamera.matrix,
                                  safe=True)
+        gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
         if self.drawMode in self._LINE_MODES:
             gl.glLineWidth(self.lineWidth)
@@ -2068,7 +2077,7 @@ class _Image(Geometry):
         self._update_texture = True
         # By updating the position rather than always using a unit square
         # we benefit from Geometry bounds handling
-        self.setAttribute('position', self._UNIT_SQUARE * self._data.shape[:2])
+        self.setAttribute('position', self._UNIT_SQUARE * (self._data.shape[1], self._data.shape[0]))
         self.notify()
 
     def getData(self, copy=True):
@@ -2179,7 +2188,7 @@ class _Image(Geometry):
         gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
         shape = self._data.shape
-        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[0], 1./shape[1])
+        gl.glUniform2f(program.uniforms['dataScale'], 1./shape[1], 1./shape[0])
 
         gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
 

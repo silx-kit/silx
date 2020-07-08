@@ -38,6 +38,7 @@ from . import test_debug
 from . import test_number
 from . import test_external_resources
 from . import test_enum
+from . import test_testutils
 
 
 def suite():
@@ -52,4 +53,5 @@ def suite():
     test_suite.addTest(test_number.suite())
     test_suite.addTest(test_external_resources.suite())
     test_suite.addTest(test_enum.suite())
+    test_suite.addTest(test_testutils.suite())
     return test_suite

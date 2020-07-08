@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -466,7 +466,7 @@ class RangeSlider(qt.QWidget):
 
         :param Union[numpy.ndarray,None] profile:
             1D array of values to display
-        :param Union[Colormap,str] colormap:
+        :param Union[~silx.gui.colors.Colormap,str] colormap:
             The colormap name or object to convert profile values to colors
         """
         if profile is None:
@@ -606,9 +606,9 @@ class RangeSlider(qt.QWidget):
                                     -self._SLIDER_WIDTH, 0)
 
     def __sliderAreaRect(self):
-        return self.__drawArea().adjusted(self._SLIDER_WIDTH / 2.,
+        return self.__drawArea().adjusted(self._SLIDER_WIDTH // 2,
                                           0,
-                                          -self._SLIDER_WIDTH / 2. + 1,
+                                          -self._SLIDER_WIDTH // 2 + 1,
                                           0)
 
     def __pixMapRect(self):
@@ -722,7 +722,7 @@ class RangeSlider(qt.QWidget):
         buttonColor = option.palette.button().color()
         val = qt.qGray(buttonColor.rgb())
         buttonColor = buttonColor.lighter(100 + max(1, (180 - val) // 6))
-        buttonColor.setHsv(buttonColor.hue(), buttonColor.saturation() * 0.75, buttonColor.value())
+        buttonColor.setHsv(buttonColor.hue(), (buttonColor.saturation() * 3) // 4, buttonColor.value())
 
         grooveColor = qt.QColor()
         grooveColor.setHsv(buttonColor.hue(),

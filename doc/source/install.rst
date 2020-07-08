@@ -10,11 +10,11 @@ This table summarizes the support matrix of silx:
 +------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
 +------------+--------------+---------------------+
-| `Windows`_ | 3.5, 3.6-3.7 | PyQt5.6+, PySide2   |
+| `Windows`_ | 3.5-3.8      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `MacOS`_   | 2.7, 3.5-3.7 | PyQt5.6+, PySide2   |
+| `MacOS`_   | 3.5-3.8      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `Linux`_   | 2.7, 3.4-3.7 | PyQt5.3+, PySide2   |
+| `Linux`_   | 3.5-3.8      | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
@@ -211,8 +211,8 @@ prompt.
 MacOS
 -----
 
-While Apple ships Python 2.7 by default on their operating systems, we recommend
-using Python 3.5 or newer to ease the installation of the Qt library.
+Apple ships Python 2.7 by default on their operating systems.
+You must install Python 3.5 or newer to install silx.
 
 Then, install *silx* with ``pip``, see `Installing with pip`_::
 

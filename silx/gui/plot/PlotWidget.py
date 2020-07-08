@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ import numpy
 import silx
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.property import classproperty
-from silx.utils.deprecation import deprecated
+from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
     from . import matplotlib
@@ -192,6 +192,12 @@ class PlotWidget(qt.QMainWindow):
     It provides the item that will be removed.
     """
 
+    sigItemRemoved = qt.Signal(items.Item)
+    """Signal emitted right after an item was removed from the plot.
+
+    It provides the item that was removed.
+    """
+
     sigVisibilityChanged = qt.Signal(bool)
     """Signal emitted when the widget becomes visible (or invisible).
     This happens when the widget is hidden or shown.
@@ -215,8 +221,10 @@ class PlotWidget(qt.QMainWindow):
         else:
             self.setWindowTitle('PlotWidget')
 
-        self._backend = None
-        self._setBackend(backend)
+        # Init the backend
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+        self._backend = self.__getBackendClass(backend)(self, self)
 
         self.setCallback()  # set _callback
 
@@ -266,6 +274,7 @@ class PlotWidget(qt.QMainWindow):
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
         self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._previousDefaultMode = "zoom", True
 
         self._pressedButtons = []  # Currently pressed mouse buttons
 
@@ -299,7 +308,7 @@ class PlotWidget(qt.QMainWindow):
 
         If multiple backends are provided, the first available one is used.
 
-        :param Union[str,BackendBase,Iterable] backend:
+        :param Union[str,BackendBase,List[Union[str,BackendBase]]] backend:
             The name of the backend or its class or an iterable of those.
         :rtype: BackendBase
         :raise ValueError: In case the backend is not supported
@@ -316,15 +325,22 @@ class PlotWidget(qt.QMainWindow):
                         BackendMatplotlibQt as backendClass
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
-                    raise ImportError("matplotlib backend is not available")
+                    raise RuntimeError("matplotlib backend is not available")
 
             elif backend in ('gl', 'opengl'):
+                from ..utils.glutils import isOpenGLAvailable
+                checkOpenGL = isOpenGLAvailable(version=(2, 1), runtimeCheck=False)
+                if not checkOpenGL:
+                    _logger.debug("OpenGL check failed")
+                    raise RuntimeError(
+                        "OpenGL backend is not available: %s" % checkOpenGL.error)
+
                 try:
                     from .backends.BackendOpenGL import \
                         BackendOpenGL as backendClass
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
-                    raise ImportError("OpenGL backend is not available")
+                    raise RuntimeError("OpenGL backend is not available")
 
             elif backend == 'none':
                 from .backends.BackendBase import BackendBase as backendClass
@@ -338,24 +354,12 @@ class PlotWidget(qt.QMainWindow):
             for b in backend:
                 try:
                     return self.__getBackendClass(b)
-                except ImportError:
+                except RuntimeError:
                     pass
             else:  # No backend was found
-                raise ValueError("No supported backend was found")
+                raise RuntimeError("None of the request backends are available")
 
         raise ValueError("Backend not supported %s" % str(backend))
-
-    def _setBackend(self, backend):
-        """Setup a new backend
-
-        :param backend: Either a str defining the backend to use
-        """
-        assert(self._backend is None)
-
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
-
-        self._backend = self.__getBackendClass(backend)(self, self)
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
@@ -383,6 +387,27 @@ class PlotWidget(qt.QMainWindow):
         :return: False, True, 'overlay'
         """
         return self._dirty
+
+    # Default Qt context menu
+
+    def contextMenuEvent(self, event):
+        """Override QWidget.contextMenuEvent to implement the context menu"""
+        menu = qt.QMenu(self)
+        from .actions.control import ZoomBackAction  # Avoid cyclic import
+        zoomBackAction = ZoomBackAction(plot=self, parent=menu)
+        menu.addAction(zoomBackAction)
+
+        mode = self.getInteractiveMode()
+        if "shape" in mode and mode["shape"] == "polygon":
+            from .actions.control import ClosePolygonInteractionAction  # Avoid cyclic import
+            action = ClosePolygonInteractionAction(plot=self, parent=menu)
+            menu.addAction(action)
+
+        # Make sure the plot is updated, especially when the plot is in
+        # draw interaction mode
+        menu.aboutToHide.connect(self.__simulateMouseMove)
+
+        menu.exec_(event.globalPos())
 
     def _setDirtyPlot(self, overlayOnly=False):
         """Mark the plot as needing redraw
@@ -537,7 +562,7 @@ class PlotWidget(qt.QMainWindow):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for item in self._content.values():
+        for item in self.getItems():
             if item.isVisible():
                 bounds = item.getBounds()
                 if bounds is not None:
@@ -586,68 +611,101 @@ class PlotWidget(qt.QMainWindow):
 
     # Content management
 
-    @staticmethod
-    def _itemKey(item):
-        """Build the key of given :class:`Item` in the plot
+    _KIND_TO_CLASSES = {
+        'curve': (items.Curve,),
+        'image': (items.ImageBase,),
+        'scatter': (items.Scatter,),
+        'marker': (items.MarkerBase,),
+        'item': (items.Shape,
+                 items.BoundingRect,
+                 items.XAxisExtent,
+                 items.YAxisExtent),
+        'histogram': (items.Histogram,),
+        }
+    """Mapping kind to item classes of this kind"""
 
-        :param Item item: The item to make the key from
-        :return: (legend, kind)
-        :rtype: (str, str)
+    @classmethod
+    def _itemKind(cls, item):
+        """Returns the "kind" of a given item
+
+        :param Item item: The item get the kind
+        :rtype: str
         """
-        if isinstance(item, items.Curve):
-            kind = 'curve'
-        elif isinstance(item, items.ImageBase):
-            kind = 'image'
-        elif isinstance(item, items.Scatter):
-            kind = 'scatter'
-        elif isinstance(item, (items.Marker,
-                               items.XMarker, items.YMarker)):
-            kind = 'marker'
-        elif isinstance(item, items.Shape):
-            kind = 'item'
-        elif isinstance(item, items.Histogram):
-            kind = 'histogram'
-        else:
-            raise ValueError('Unsupported item type %s' % type(item))
+        for kind, itemClasses in cls._KIND_TO_CLASSES.items():
+            if isinstance(item, itemClasses):
+                return kind
+        raise ValueError('Unsupported item type %s' % type(item))
 
-        return item.getLegend(), kind
+    def _notifyContentChanged(self, item):
+        self.notify('contentChanged', action='add',
+                    kind=self._itemKind(item), legend=item.getName())
 
-    def _add(self, item):
-        """Add the given :class:`Item` to the plot.
+    def _itemRequiresUpdate(self, item):
+        """Called by items in the plot for asynchronous update
 
-        :param Item item: The item to append to the plot content
+        :param Item item: The item that required update
         """
-        key = self._itemKey(item)
-        if key in self._content:
-            raise RuntimeError('Item already in the plot')
+        assert item.getPlot() == self
+        # Put item at the end of the list
+        if item in self._contentToUpdate:
+            self._contentToUpdate.remove(item)
+        self._contentToUpdate.append(item)
+        self._setDirtyPlot(overlayOnly=item.isOverlay())
+
+    def addItem(self, item=None, *args, **kwargs):
+        """Add an item to the plot content.
+
+        :param ~silx.gui.plot.items.Item item: The item to add.
+        :raises ValueError: If item is already in the plot.
+        """
+        if not isinstance(item, items.Item):
+            deprecated_warning(
+                'Function',
+                'addItem',
+                replacement='addShape',
+                since_version='0.13')
+            if item is None and not args:  # Only kwargs
+                return self.addShape(**kwargs)
+            else:
+                return self.addShape(item, *args, **kwargs)
+
+        assert not args and not kwargs
+        if item in self.getItems():
+            raise ValueError('Item already in the plot')
 
         # Add item to plot
-        self._content[key] = item
+        self._content[(item.getName(), self._itemKind(item))] = item
         item._setPlot(self)
-        if item.isVisible():
-            self._itemRequiresUpdate(item)
+        self._itemRequiresUpdate(item)
         if isinstance(item, items.DATA_ITEMS):
             self._invalidateDataRange()  # TODO handle this automatically
 
         self._notifyContentChanged(item)
         self.sigItemAdded.emit(item)
 
-    def _notifyContentChanged(self, item):
-        legend, kind = self._itemKey(item)
-        self.notify('contentChanged', action='add', kind=kind, legend=legend)
+    def removeItem(self, item):
+        """Remove the item from the plot.
 
-    def _remove(self, item):
-        """Remove the given :class:`Item` from the plot.
-
-        :param Item item: The item to remove from the plot content
+        :param ~silx.gui.plot.items.Item item: Item to remove from the plot.
+        :raises ValueError: If item is not in the plot.
         """
-        key = self._itemKey(item)
-        if key not in self._content:
-            raise RuntimeError('Item not in the plot')
+        if not isinstance(item, items.Item):  # Previous method usage
+            deprecated_warning(
+                'Function',
+                'removeItem',
+                replacement='remove(legend, kind="item")',
+                since_version='0.13')
+            if item is None:
+                return
+            self.remove(item, kind='item')
+            return
+
+        if item not in self.getItems():
+            raise ValueError('Item not in the plot')
 
         self.sigItemAboutToBeRemoved.emit(item)
 
-        legend, kind = key
+        kind = self._itemKind(item)
 
         if kind in self._ACTIVE_ITEM_KINDS:
             if self._getActiveItem(kind) == item:
@@ -655,7 +713,7 @@ class PlotWidget(qt.QMainWindow):
                 self._setActiveItem(kind, None)
 
         # Remove item from plot
-        self._content.pop(key)
+        self._content.pop((item.getName(), kind))
         if item in self._contentToUpdate:
             self._contentToUpdate.remove(item)
         if item.isVisible():
@@ -669,20 +727,25 @@ class PlotWidget(qt.QMainWindow):
                                                       withhidden=True)):
             self._resetColorAndStyle()
 
+        self.sigItemRemoved.emit(item)
+
         self.notify('contentChanged', action='remove',
-                    kind=kind, legend=legend)
+                    kind=kind, legend=item.getName())
 
-    def _itemRequiresUpdate(self, item):
-        """Called by items in the plot for asynchronous update
+    @deprecated(replacement='addItem', since_version='0.13')
+    def _add(self, item):
+        return self.addItem(item)
 
-        :param Item item: The item that required update
+    @deprecated(replacement='removeItem', since_version='0.13')
+    def _remove(self, item):
+        return self.removeItem(item)
+
+    def getItems(self):
+        """Returns the list of items in the plot
+
+        :rtype: List[silx.gui.plot.items.Item]
         """
-        assert item.getPlot() == self
-        # Pu item at the end of the list
-        if item in self._contentToUpdate:
-            self._contentToUpdate.remove(item)
-        self._contentToUpdate.append(item)
-        self._setDirtyPlot(overlayOnly=item.isOverlay())
+        return tuple(self._content.values())
 
     @contextmanager
     def _muteActiveItemChangedSignal(self):
@@ -839,7 +902,7 @@ class PlotWidget(qt.QMainWindow):
         if curve is None:
             # No previous curve, create a default one and add it to the plot
             curve = items.Curve() if histogram is None else items.Histogram()
-            curve._setLegend(legend)
+            curve.setName(legend)
             # Set default color, linestyle and symbol
             default_color, default_linestyle = self._getColorAndStyle()
             curve.setColor(default_color)
@@ -893,21 +956,21 @@ class PlotWidget(qt.QMainWindow):
         if replace:  # Then remove all other curves
             for c in self.getAllCurves(withhidden=True):
                 if c is not curve:
-                    self._remove(c)
+                    self.removeItem(c)
 
         if mustBeAdded:
-            self._add(curve)
+            self.addItem(curve)
         else:
             self._notifyContentChanged(curve)
 
         if wasActive:
-            self.setActiveCurve(curve.getLegend())
+            self.setActiveCurve(curve.getName())
         elif self.getActiveCurveSelectionMode() == "legacy":
             if self.getActiveCurve(just_legend=True) is None:
                 if len(self.getAllCurves(just_legend=True,
                                      withhidden=False)) == 1:
                     if curve.isVisible():
-                        self.setActiveCurve(curve.getLegend())
+                        self.setActiveCurve(curve.getName())
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -972,7 +1035,7 @@ class PlotWidget(qt.QMainWindow):
             # No previous histogram, create a default one and
             # add it to the plot
             histo = items.Histogram()
-            histo._setLegend(legend)
+            histo.setName(legend)
             histo.setColor(self._getColorAndStyle()[0])
 
         # Override previous/default values with provided ones
@@ -988,7 +1051,7 @@ class PlotWidget(qt.QMainWindow):
                       align=align, copy=copy)
 
         if mustBeAdded:
-            self._add(histo)
+            self.addItem(histo)
         else:
             self._notifyContentChanged(histo)
 
@@ -1072,7 +1135,7 @@ class PlotWidget(qt.QMainWindow):
             # Update a data image with RGBA image or the other way around:
             # Remove previous image
             # In this case, we don't retrieve defaults from the previous image
-            self._remove(image)
+            self.removeItem(image)
             image = None
 
         mustBeAdded = image is None
@@ -1083,7 +1146,7 @@ class PlotWidget(qt.QMainWindow):
                 image.setColormap(self.getDefaultColormap())
             else:
                 image = items.ImageRgba()
-            image._setLegend(legend)
+            image.setName(legend)
 
         # Do not emit sigActiveImageChanged,
         # it will be sent once with _setActiveItem
@@ -1122,10 +1185,10 @@ class PlotWidget(qt.QMainWindow):
         if replace:
             for img in self.getAllImages():
                 if img is not image:
-                    self._remove(img)
+                    self.removeItem(img)
 
         if mustBeAdded:
-            self._add(image)
+            self.addItem(image)
         else:
             self._notifyContentChanged(image)
 
@@ -1199,7 +1262,7 @@ class PlotWidget(qt.QMainWindow):
         if scatter is None:
             # No previous scatter, create a default one and add it to the plot
             scatter = items.Scatter()
-            scatter._setLegend(legend)
+            scatter.setName(legend)
             scatter.setColormap(self.getDefaultColormap())
 
         # Do not emit sigActiveScatterChanged,
@@ -1232,16 +1295,18 @@ class PlotWidget(qt.QMainWindow):
             scatter.setData(x, y, value, xerror, yerror, copy=copy)
 
         if mustBeAdded:
-            self._add(scatter)
+            self.addItem(scatter)
         else:
             self._notifyContentChanged(scatter)
 
-        if len(self._getItems(kind="scatter")) == 1 or wasActive:
-            self._setActiveItem('scatter', scatter.getLegend())
+        scatters = [item for item in self.getItems()
+                    if isinstance(item, items.Scatter) and item.isVisible()]
+        if len(scatters) == 1 or wasActive:
+            self._setActiveItem('scatter', scatter.getName())
 
         return legend
 
-    def addItem(self, xdata, ydata, legend=None, info=None,
+    def addShape(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
                 overlay=False, z=None, linestyle="-", linewidth=1.0,
@@ -1296,7 +1361,7 @@ class PlotWidget(qt.QMainWindow):
             self.remove(legend, kind='item')
 
         item = items.Shape(shape)
-        item._setLegend(legend)
+        item.setName(legend)
         item.setInfo(info)
         item.setColor(color)
         item.setFill(fill)
@@ -1307,7 +1372,7 @@ class PlotWidget(qt.QMainWindow):
         item.setLineWidth(linewidth)
         item.setLineBgColor(linebgcolor)
 
-        self._add(item)
+        self.addItem(item)
 
         return legend
 
@@ -1325,8 +1390,8 @@ class PlotWidget(qt.QMainWindow):
         :meth:`addXMarker` without legend argument adds two markers with
         different identifying legends.
 
-        :param float x: Position of the marker on the X axis in data
-                        coordinates
+        :param x: Position of the marker on the X axis in data coordinates
+        :type x: Union[None, float]
         :param str legend: Legend associated to the marker to identify it
         :param str text: Text to display on the marker.
         :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'
@@ -1468,7 +1533,8 @@ class PlotWidget(qt.QMainWindow):
         assert (x, y) != (None, None)
 
         if legend is None:  # Find an unused legend
-            markerLegends = self._getAllMarkers(just_legend=True)
+            markerLegends = [item.getName() for item in self.getItems()
+                             if isinstance(item, items.MarkerBase)]
             for index in itertools.count():
                 legend = "Unnamed Marker %d" % index
                 if legend not in markerLegends:
@@ -1487,14 +1553,14 @@ class PlotWidget(qt.QMainWindow):
         if marker is not None and not isinstance(marker, markerClass):
             _logger.warning('Adding marker with same legend'
                             ' but different type replaces it')
-            self._remove(marker)
+            self.removeItem(marker)
             marker = None
 
         mustBeAdded = marker is None
         if marker is None:
             # No previous marker, create one
             marker = markerClass()
-            marker._setLegend(legend)
+            marker.setName(legend)
 
         if text is not None:
             marker.setText(text)
@@ -1515,7 +1581,7 @@ class PlotWidget(qt.QMainWindow):
         marker.setPosition(x, y)
 
         if mustBeAdded:
-            self._add(marker)
+            self.addItem(marker)
         else:
             self._notifyContentChanged(marker)
 
@@ -1578,7 +1644,7 @@ class PlotWidget(qt.QMainWindow):
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         """
-        if kind is 'all':  # Replace all by tuple of all kinds
+        if kind == 'all':  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
@@ -1590,16 +1656,17 @@ class PlotWidget(qt.QMainWindow):
         if legend is None:  # This is a clear
             # Clear each given kind
             for aKind in kind:
-                for legend in self._getItems(
-                        kind=aKind, just_legend=True, withhidden=True):
-                    self.remove(legend=legend, kind=aKind)
+                for item in self.getItems():
+                    if (isinstance(item, self._KIND_TO_CLASSES[aKind]) and
+                            item.getPlot() is self):  # Make sure item is still in the plot
+                        self.removeItem(item)
 
         else:  # This is removing a single element
             # Remove each given kind
             for aKind in kind:
                 item = self._getItem(aKind, legend)
                 if item is not None:
-                    self._remove(item)
+                    self.removeItem(item)
 
     def removeCurve(self, legend):
         """Remove the curve associated to legend from the graph.
@@ -1619,15 +1686,6 @@ class PlotWidget(qt.QMainWindow):
             return
         self.remove(legend, kind='image')
 
-    def removeItem(self, legend):
-        """Remove the item associated to legend from the graph.
-
-        :param str legend: The legend associated to the item to be deleted
-        """
-        if legend is None:
-            return
-        self.remove(legend, kind='item')
-
     def removeMarker(self, legend):
         """Remove the marker associated to legend from the graph.
 
@@ -1641,7 +1699,9 @@ class PlotWidget(qt.QMainWindow):
 
     def clear(self):
         """Remove everything from the plot."""
-        self.remove()
+        for item in self.getItems():
+            if item.getPlot() is self:  # Make sure item is still in the plot
+                self.removeItem(item)
 
     def clearCurves(self):
         """Remove all the curves from the plot."""
@@ -1856,7 +1916,7 @@ class PlotWidget(qt.QMainWindow):
                                            withhidden=False)
                 if len(curves) == 1:
                     if curves[0].isVisible():
-                        self.setActiveCurve(curves[0].getLegend())
+                        self.setActiveCurve(curves[0].getName())
 
     def getActiveCurveSelectionMode(self):
         """Returns the current selection mode.
@@ -1889,6 +1949,27 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._setActiveItem(kind='image', legend=legend)
 
+    def getActiveScatter(self, just_legend=False):
+        """Returns the currently active scatter.
+
+        It returns None in case of not having an active scatter.
+
+        :param bool just_legend: True to get the legend of the scatter,
+                                 False (the default) to get the scatter data
+                                 and info.
+        :return: Active scatter's legend or corresponding scatter object
+        :rtype: str, :class:`.items.Scatter` or None
+        """
+        return self._getActiveItem(kind='scatter', just_legend=just_legend)
+
+    def setActiveScatter(self, legend):
+        """Make the scatter associated to legend the active scatter.
+
+        :param str legend: The legend associated to the scatter
+                           or None to have no active scatter.
+        """
+        return self._setActiveItem(kind='scatter', legend=legend)
+
     def _getActiveItem(self, kind, just_legend=False):
         """Return the currently active item of that kind if any
 
@@ -1902,14 +1983,11 @@ class PlotWidget(qt.QMainWindow):
         if self._activeLegend[kind] is None:
             return None
 
-        if (self._activeLegend[kind], kind) not in self._content:
-            self._activeLegend[kind] = None
+        item = self._getItem(kind, self._activeLegend[kind])
+        if item is None:
             return None
 
-        if just_legend:
-            return self._activeLegend[kind]
-        else:
-            return self._getItem(kind, self._activeLegend[kind])
+        return item.getName() if just_legend else item
 
     def _setActiveItem(self, kind, legend):
         """Make the curve associated to legend the active curve.
@@ -1975,7 +2053,7 @@ class PlotWidget(qt.QMainWindow):
             if oldActiveItem is None:
                 oldActiveLegend = None
             else:
-                oldActiveLegend = oldActiveItem.getLegend()
+                oldActiveLegend = oldActiveItem.getName()
             self.notify(
                 'active' + kind[0].upper() + kind[1:] + 'Changed',
                 updated=oldActiveLegend != activeLegend,
@@ -1992,21 +2070,14 @@ class PlotWidget(qt.QMainWindow):
         if not self.__muteActiveItemChanged:
             item = self.sender()
             if item is not None:
-                legend, kind = self._itemKey(item)
+                kind = self._itemKind(item)
                 self.notify(
                     'active' + kind[0].upper() + kind[1:] + 'Changed',
                     updated=False,
-                    previous=legend,
-                    legend=legend)
+                    previous=item.getName(),
+                    legend=item.getName())
 
     # Getters
-
-    def getItems(self):
-        """Returns the list of items in the plot
-
-        :rtype: List[silx.gui.plot.items.Item]
-        """
-        return tuple(self._content.values())
 
     def getAllCurves(self, just_legend=False, withhidden=False):
         """Returns all curves legend or info and data.
@@ -2024,9 +2095,10 @@ class PlotWidget(qt.QMainWindow):
         :return: list of curves' legend or :class:`.items.Curve`
         :rtype: list of str or list of :class:`.items.Curve`
         """
-        return self._getItems(kind='curve',
-                              just_legend=just_legend,
-                              withhidden=withhidden)
+        curves = [item for item in self.getItems() if
+                  isinstance(item, items.Curve) and
+                  (withhidden or item.isVisible())]
+        return [curve.getName() for curve in curves] if just_legend else curves
 
     def getCurve(self, legend=None):
         """Get the object describing a specific curve.
@@ -2057,9 +2129,9 @@ class PlotWidget(qt.QMainWindow):
         :return: list of images' legend or :class:`.items.ImageBase`
         :rtype: list of str or list of :class:`.items.ImageBase`
         """
-        return self._getItems(kind='image',
-                              just_legend=just_legend,
-                              withhidden=True)
+        images = [item for item in self.getItems()
+                  if isinstance(item, items.ImageBase)]
+        return [image.getName() for image in images] if just_legend else images
 
     def getImage(self, legend=None):
         """Get the object describing a specific image.
@@ -2102,6 +2174,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='histogram', legend=legend)
 
+    @deprecated(replacement='getItems', since_version='0.13')
     def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
         """Retrieve all items of a kind in the plot
 
@@ -2116,7 +2189,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or item objects
         """
-        if kind is 'all':  # Replace all by tuple of all kinds
+        if kind == 'all':  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
@@ -2126,9 +2199,10 @@ class PlotWidget(qt.QMainWindow):
             assert aKind in self.ITEM_KINDS
 
         output = []
-        for (legend, type_), item in self._content.items():
+        for item in self.getItems():
+            type_ = self._itemKind(item)
             if type_ in kind and (withhidden or item.isVisible()):
-                output.append(legend if just_legend else item)
+                output.append(item.getName() if just_legend else item)
         return output
 
     def _getItem(self, kind, legend=None):
@@ -2152,8 +2226,9 @@ class PlotWidget(qt.QMainWindow):
                 if item is not None:  # Return active item if available
                     return item
             # Return last visible item if any
-            allItems = self._getItems(
-                kind=kind, just_legend=False, withhidden=False)
+            itemClasses = self._KIND_TO_CLASSES[kind]
+            allItems = [item for item in self.getItems()
+                        if isinstance(item, itemClasses) and item.isVisible()]
             return allItems[-1] if allItems else None
 
     # Limits
@@ -2912,16 +2987,35 @@ class PlotWidget(qt.QMainWindow):
         """
         self._backend.setGraphCursorShape(cursor)
 
+    @deprecated(replacement='getItems', since_version='0.13')
     def _getAllMarkers(self, just_legend=False):
-        """Returns all markers' legend or objects
+        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
+        if just_legend:
+            return [marker.getName() for marker in markers]
+        else:
+            return markers
 
-        :param bool just_legend: True to get the legend of the markers,
-                                 False (the default) to get marker objects.
-        :return: list of legend of list of marker objects
-        :rtype: list of str or list of marker objects
+    def _getMarkerAt(self, x, y):
+        """Return the most interactive marker at a location, else None
+
+        :param float x: X position in pixels
+        :param float y: Y position in pixels
+        :rtype: None of marker object
         """
-        return self._getItems(
-            kind='marker', just_legend=just_legend, withhidden=True)
+        def checkDraggable(item):
+            return isinstance(item, items.MarkerBase) and item.isDraggable()
+        def checkSelectable(item):
+            return isinstance(item, items.MarkerBase) and item.isSelectable()
+        def check(item):
+            return isinstance(item, items.MarkerBase)
+
+        result = self._pickTopMost(x, y, checkDraggable)
+        if not result:
+            result = self._pickTopMost(x, y, checkSelectable)
+        if not result:
+            result = self._pickTopMost(x, y, check)
+        marker = result.getItem() if result is not None else None
+        return marker
 
     def _getMarker(self, legend=None):
         """Get the object describing a specific marker.
@@ -2932,28 +3026,6 @@ class PlotWidget(qt.QMainWindow):
         :rtype: None of marker object
         """
         return self._getItem(kind='marker', legend=legend)
-
-    def _itemsFromBackToFront(self, condition=None):
-        """Iterator of plot items ordered from back to front.
-
-        This is the order used for rendering.
-        It takes into account overlays, z value and order of addition of items
-
-        :param callable condition:
-           Callable taking an item as input and returning False for items to skip.
-           If None (default), no item is skipped.
-        :rtpye: List[Item]
-        """
-        # Sort items: Overlays first, then others
-        # and in each category ordered by z and then by order of addition
-        # as _content keeps this order.
-        content = self._content.values()
-        if condition is not None:
-            content = (item for item in content if condition(item))
-
-        return sorted(
-            content,
-            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
 
     def pickItems(self, x, y, condition=None):
         """Generator of picked items in the plot at given position.
@@ -2968,7 +3040,7 @@ class PlotWidget(qt.QMainWindow):
         :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
-        for item in reversed(self._itemsFromBackToFront(condition=condition)):
+        for item in reversed(self._backend.getItemsFromBackToFront(condition=condition)):
             result = item.pick(x, y)
             if result is not None:
                 yield result
@@ -3084,11 +3156,20 @@ class PlotWidget(qt.QMainWindow):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
-        Mode can be: 'draw', 'pan', 'select', 'zoom'.
+        Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
         return self._eventHandler.getInteractiveMode()
+
+    def resetInteractiveMode(self):
+        """Reset the interactive mode to use the previous basic interactive
+        mode used.
+
+        It can be one of "zoom" or "pan".
+        """
+        mode, zoomOnWheel = self._previousDefaultMode
+        self.setInteractiveMode(mode=mode, zoomOnWheel=zoomOnWheel)
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
@@ -3115,6 +3196,8 @@ class PlotWidget(qt.QMainWindow):
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
+        if mode in ["pan", "zoom"]:
+            self._previousDefaultMode = mode, zoomOnWheel
 
         self.notify(
             'interactiveModeChanged', source=source)
@@ -3156,6 +3239,16 @@ class PlotWidget(qt.QMainWindow):
         qt.Qt.Key_Down: 'down'
     }
 
+    def __simulateMouseMove(self):
+        qapp = qt.QApplication.instance()
+        event = qt.QMouseEvent(
+            qt.QEvent.MouseMove,
+            self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+            qt.Qt.NoButton,
+            qapp.mouseButtons(),
+            qapp.keyboardModifiers())
+        qapp.sendEvent(self.getWidgetHandle(), event)
+
     def keyPressEvent(self, event):
         """Key event handler handling panning on arrow keys.
 
@@ -3168,15 +3261,7 @@ class PlotWidget(qt.QMainWindow):
             # Send a mouse move event to the plot widget to take into account
             # that even if mouse didn't move on the screen, it moved relative
             # to the plotted data.
-            qapp = qt.QApplication.instance()
-            event = qt.QMouseEvent(
-                qt.QEvent.MouseMove,
-                self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
-                qt.Qt.NoButton,
-                qapp.mouseButtons(),
-                qapp.keyboardModifiers())
-            qapp.sendEvent(self.getWidgetHandle(), event)
-
+            self.__simulateMouseMove()
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.

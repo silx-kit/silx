@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,10 +40,12 @@ from ...._glutils import gl, Program, Texture
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale
 from .GLTexture import Image
+from .GLPlotItem import GLPlotItem
 
 
-class _GLPlotData2D(object):
+class _GLPlotData2D(GLPlotItem):
     def __init__(self, data, origin, scale):
+        super().__init__()
         self.data = data
         assert len(origin) == 2
         self.origin = tuple(origin)
@@ -56,7 +58,7 @@ class _GLPlotData2D(object):
             sx, sy = self.scale
             col = int((x - ox) / sx)
             row = int((y - oy) / sy)
-            return ((row, col),)
+            return (row,), (col,)
         else:
             return None
 
@@ -79,15 +81,6 @@ class _GLPlotData2D(object):
     def yMax(self):
         oy, sy = self.origin[1], self.scale[1]
         return oy + sy * self.data.shape[0] if sy >= 0. else oy
-
-    def discard(self):
-        pass
-
-    def prepare(self):
-        pass
-
-    def render(self, matrix, isXLog, isYLog):
-        pass
 
 
 class GLPlotColormap(_GLPlotData2D):
@@ -141,10 +134,8 @@ class GLPlotColormap(_GLPlotData2D):
     """,
             'fragTransform': """
     uniform bvec2 isLog;
-    uniform struct {
-        vec2 oneOverRange;
-        vec2 originOverRange;
-    } bounds;
+    uniform vec2 bounds_oneOverRange;
+    uniform vec2 bounds_originOverRange;
 
     vec2 textureCoords(void) {
         vec2 pos = coords;
@@ -154,7 +145,7 @@ class GLPlotColormap(_GLPlotData2D):
         if (isLog.y) {
             pos.y = pow(10., coords.y);
         }
-        return pos * bounds.oneOverRange - bounds.originOverRange;
+        return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
     }
     """},
@@ -162,14 +153,19 @@ class GLPlotColormap(_GLPlotData2D):
         'fragment': """
     #version 120
 
+    /* isnan declaration for compatibility with GLSL 1.20 */
+    bool isnan(float value) {
+        return (value != value);
+    }
+
     uniform sampler2D data;
-    uniform struct {
-        sampler2D texture;
-        bool isLog;
-        float min;
-        float oneOverRange;
-    } cmap;
+    uniform sampler2D cmap_texture;
+    uniform int cmap_normalization;
+    uniform float cmap_parameter;
+    uniform float cmap_min;
+    uniform float cmap_oneOverRange;
     uniform float alpha;
+    uniform vec4 nancolor;
 
     varying vec2 coords;
 
@@ -178,20 +174,39 @@ class GLPlotColormap(_GLPlotData2D):
     const float oneOverLog10 = 0.43429448190325176;
 
     void main(void) {
-        float value = texture2D(data, textureCoords()).r;
-        if (cmap.isLog) {
+        float data = texture2D(data, textureCoords()).r;
+        float value = data;
+        if (cmap_normalization == 1) { /*Logarithm mapping*/
             if (value > 0.) {
-                value = clamp(cmap.oneOverRange *
-                              (oneOverLog10 * log(value) - cmap.min),
+                value = clamp(cmap_oneOverRange *
+                              (oneOverLog10 * log(value) - cmap_min),
                               0., 1.);
             } else {
                 value = 0.;
             }
-        } else { /*Linear mapping*/
-            value = clamp(cmap.oneOverRange * (value - cmap.min), 0., 1.);
+        } else if (cmap_normalization == 2) { /*Square root mapping*/
+            if (value >= 0.) {
+                value = clamp(cmap_oneOverRange * (sqrt(value) - cmap_min),
+                              0., 1.);
+            } else {
+                value = 0.;
+            }
+        } else if (cmap_normalization == 3) { /*Gamma correction mapping*/
+            value = pow(
+                clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.),
+                cmap_parameter);
+        } else if (cmap_normalization == 4) { /* arcsinh mapping */
+            /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
+             value = clamp(cmap_oneOverRange * (log(value + sqrt(value*value + 1.0)) - cmap_min), 0., 1.);
+        } else { /*Linear mapping and fallback*/
+            value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
         }
 
-        gl_FragColor = texture2D(cmap.texture, vec2(value, 0.5));
+        if (isnan(data)) {
+            gl_FragColor = nancolor;
+        } else {
+            gl_FragColor = texture2D(cmap_texture, vec2(value, 0.5));
+        }
         gl_FragColor.a *= alpha;
     }
     """
@@ -217,9 +232,11 @@ class GLPlotColormap(_GLPlotData2D):
                           _SHADERS['log']['fragTransform'],
                           attrib0='position')
 
+    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
+
     def __init__(self, data, origin, scale,
-                 colormap, cmapIsLog=False, cmapRange=None,
-                 alpha=1.0):
+                 colormap, normalization='linear', gamma=0., cmapRange=None,
+                 alpha=1.0, nancolor=(1., 1., 1., 0.)):
         """Create a 2D colormap
 
         :param data: The 2D scalar data array to display
@@ -231,21 +248,28 @@ class GLPlotColormap(_GLPlotData2D):
         :type scale: 2-tuple of floats.
         :param str colormap: Name of the colormap to use
             TODO: Accept a 1D scalar array as the colormap
-        :param bool cmapIsLog: If True, uses log10 of the data value
+        :param str normalization: The colormap normalization.
+            One of: 'linear', 'log', 'sqrt', 'gamma'
+        ;param float gamma: The gamma parameter (for 'gamma' normalization)
         :param cmapRange: The range of colormap or None for autoscale colormap
             For logarithmic colormap, the range is in the untransformed data
             TODO: check consistency with matplotlib
         :type cmapRange: (float, float) or None
         :param float alpha: Opacity from 0 (transparent) to 1 (opaque)
+        :param nancolor: RGBA color for Not-A-Number values
+        :type nancolor: 4-tuple of float in [0., 1.]
         """
         assert data.dtype in self._INTERNAL_FORMATS
+        assert normalization in self.SUPPORTED_NORMALIZATIONS
 
         super(GLPlotColormap, self).__init__(data, origin, scale)
         self.colormap = numpy.array(colormap, copy=False)
-        self.cmapIsLog = cmapIsLog
+        self.normalization = normalization
+        self.gamma = gamma
         self._cmapRange = (1., 10.)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
         self._alpha = numpy.clip(alpha, 0., 1.)
+        self._nancolor = numpy.clip(nancolor, 0., 1.)
 
         self._cmap_texture = None
         self._texture = None
@@ -263,8 +287,10 @@ class GLPlotColormap(_GLPlotData2D):
 
     @property
     def cmapRange(self):
-        if self.cmapIsLog:
+        if self.normalization == 'log':
             assert self._cmapRange[0] > 0. and self._cmapRange[1] > 0.
+        elif self.normalization == 'sqrt':
+            assert self._cmapRange[0] >= 0. and self._cmapRange[1] > 0.
         return self._cmapRange
 
     @cmapRange.setter
@@ -319,6 +345,7 @@ class GLPlotColormap(_GLPlotData2D):
 
     def _setCMap(self, prog):
         dataMin, dataMax = self.cmapRange  # If log, it is stricly positive
+        param = 0.
 
         if self.data.dtype in (numpy.uint16, numpy.uint8):
             # Using unsigned int as normalized integer in OpenGL
@@ -326,19 +353,37 @@ class GLPlotColormap(_GLPlotData2D):
             maxInt = float(numpy.iinfo(self.data.dtype).max)
             dataMin, dataMax = dataMin / maxInt, dataMax / maxInt
 
-        if self.cmapIsLog:
+        if self.normalization == 'log':
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
+            normID = 1
+        elif self.normalization == 'sqrt':
+            dataMin = math.sqrt(dataMin)
+            dataMax = math.sqrt(dataMax)
+            normID = 2
+        elif self.normalization == 'gamma':
+            # Keep dataMin, dataMax as is
+            param = self.gamma
+            normID = 3
+        elif self.normalization == 'arcsinh':
+            dataMin = numpy.arcsinh(dataMin)
+            dataMax = numpy.arcsinh(dataMax)
+            normID = 4
+        else:  # Linear and fallback
+            normID = 0
 
-        gl.glUniform1i(prog.uniforms['cmap.texture'],
+        gl.glUniform1i(prog.uniforms['cmap_texture'],
                        self._cmap_texture.texUnit)
-        gl.glUniform1i(prog.uniforms['cmap.isLog'], self.cmapIsLog)
-        gl.glUniform1f(prog.uniforms['cmap.min'], dataMin)
+        gl.glUniform1i(prog.uniforms['cmap_normalization'], normID)
+        gl.glUniform1f(prog.uniforms['cmap_parameter'], param)
+        gl.glUniform1f(prog.uniforms['cmap_min'], dataMin)
         if dataMax > dataMin:
             oneOverRange = 1. / (dataMax - dataMin)
         else:
             oneOverRange = 0.  # Fall-back
-        gl.glUniform1f(prog.uniforms['cmap.oneOverRange'], oneOverRange)
+        gl.glUniform1f(prog.uniforms['cmap_oneOverRange'], oneOverRange)
+
+        gl.glUniform4f(prog.uniforms['nancolor'], *self._nancolor)
 
         self._cmap_texture.bind()
 
@@ -393,9 +438,9 @@ class GLPlotColormap(_GLPlotData2D):
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
                        ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
                        xOneOverRange, yOneOverRange)
 
         gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
@@ -500,10 +545,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     uniform sampler2D tex;
     uniform bvec2 isLog;
-    uniform struct {
-        vec2 oneOverRange;
-        vec2 originOverRange;
-    } bounds;
+    uniform vec2 bounds_oneOverRange;
+    uniform vec2 bounds_originOverRange;
     uniform float alpha;
 
     varying vec2 coords;
@@ -516,7 +559,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         if (isLog.y) {
             pos.y = pow(10., coords.y);
         }
-        return pos * bounds.oneOverRange - bounds.originOverRange;
+        return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
     }
 
@@ -530,7 +573,8 @@ class GLPlotRGBAImage(_GLPlotData2D):
     _DATA_TEX_UNIT = 0
 
     _SUPPORTED_DTYPES = (numpy.dtype(numpy.float32),
-                         numpy.dtype(numpy.uint8))
+                         numpy.dtype(numpy.uint8),
+                         numpy.dtype(numpy.uint16))
 
     _linearProgram = Program(_SHADERS['linear']['vertex'],
                              _SHADERS['linear']['fragment'],
@@ -582,9 +626,14 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if self._texture is None:
-            format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
+            formatName = 'GL_RGBA' if self.data.shape[2] == 4 else 'GL_RGB'
+            format_ = getattr(gl, formatName)
 
-            self._texture = Image(format_,
+            if self.data.dtype == numpy.uint16:
+                formatName += '16'  # Use sized internal format for uint16
+            internalFormat = getattr(gl, formatName)
+
+            self._texture = Image(internalFormat,
                                   self.data,
                                   format_=format_,
                                   texUnit=self._DATA_TEX_UNIT)
@@ -639,9 +688,9 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         xOneOverRange = 1. / (ex - ox)
         yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds.originOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
                        ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds.oneOverRange'],
+        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
                        xOneOverRange, yOneOverRange)
 
         try:

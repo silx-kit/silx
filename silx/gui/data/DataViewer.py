@@ -27,10 +27,12 @@ view from the ones provided by silx.
 """
 from __future__ import division
 
+import logging
+import os.path
+import collections
+from silx.gui import qt
 from silx.gui.data import DataViews
 from silx.gui.data.DataViews import _normalizeData
-import logging
-from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
@@ -41,6 +43,11 @@ __date__ = "12/02/2019"
 
 
 _logger = logging.getLogger(__name__)
+
+
+DataSelection = collections.namedtuple("DataSelection",
+                                       ["filename", "datapath",
+                                        "slice", "permutation"])
 
 
 class DataViewer(qt.QFrame):
@@ -150,6 +157,7 @@ class DataViewer(qt.QFrame):
             DataViews._Plot3dView,
             DataViews._RawView,
             DataViews._StackView,
+            DataViews._Plot2dRecordView,
         ]
         views = []
         for viewClass in viewClasses:
@@ -221,7 +229,7 @@ class DataViewer(qt.QFrame):
                     self.__numpySelection.setSelection(
                         previousSelection, previousPermutation)
                 except ValueError as e:
-                    _logger.error("Not restoring selection because: %s", e)
+                    _logger.info("Not restoring selection because: %s", e)
 
                 if hasattr(data, "shape"):
                     isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
@@ -238,14 +246,39 @@ class DataViewer(qt.QFrame):
         """
         if self.__useAxisSelection:
             self.__displayedData = self.__numpySelection.selectedData()
+
+            permutation = self.__numpySelection.permutation()
+            normal = tuple(range(len(permutation)))
+            if permutation == normal:
+                permutation = None
+            slicing = self.__numpySelection.selection()
+            normal = tuple([slice(None)] * len(slicing))
+            if slicing == normal:
+                slicing = None
         else:
             self.__displayedData = self.__data
+            permutation = None
+            slicing = None
+
+        try:
+            filename = os.path.abspath(self.__data.file.filename)
+        except:
+            filename = None
+
+        try:
+            datapath = self.__data.name
+        except:
+            datapath = None
+
+        # FIXME: maybe use DataUrl, with added support of permutation
+        self.__displayedSelection = DataSelection(filename, datapath, slicing, permutation)
 
         # TODO: would be good to avoid that, it should be synchonous
         qt.QTimer.singleShot(10, self.__setDataInView)
 
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
+        self.__currentView.setDataSelection(self.__displayedSelection)
 
     def setDisplayedView(self, view):
         """Set the displayed view.
@@ -468,6 +501,7 @@ class DataViewer(qt.QFrame):
         self.__data = data
         self._invalidateInfo()
         self.__displayedData = None
+        self.__displayedSelection = None
         self.__updateView()
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()

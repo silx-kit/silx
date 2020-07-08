@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,7 @@ class Viewer(qt.QMainWindow):
         silxIcon = icons.getQIcon("silx")
         self.setWindowIcon(silxIcon)
 
-        self.__context = ApplicationContext(self, settings)
+        self.__context = self.createApplicationContext(settings)
         self.__context.restoreLibrarySettings()
 
         self.__dialogState = None
@@ -87,12 +87,12 @@ class Viewer(qt.QMainWindow):
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
         treeModel.setDatasetDragEnabled(True)
-        treeModel2 = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
-        treeModel2.setSourceModel(treeModel)
-        treeModel2.sort(0, qt.Qt.AscendingOrder)
-        treeModel2.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
+        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
+        self.__treeModelSorted.setSourceModel(treeModel)
+        self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
+        self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
 
-        self.__treeview.setModel(treeModel2)
+        self.__treeview.setModel(self.__treeModelSorted)
         rightPanel.addWidget(self.__treeWindow)
 
         self.__customNxdata = CustomNxdataWidget(self)
@@ -134,8 +134,10 @@ class Viewer(qt.QMainWindow):
 
         treeModel = self.__treeview.findHdf5TreeModel()
         columns = list(treeModel.COLUMN_IDS)
-        columns.remove(treeModel.DESCRIPTION_COLUMN)
+        columns.remove(treeModel.VALUE_COLUMN)
         columns.remove(treeModel.NODE_COLUMN)
+        columns.remove(treeModel.DESCRIPTION_COLUMN)
+        columns.insert(1, treeModel.DESCRIPTION_COLUMN)
         self.__treeview.header().setSections(columns)
 
         self._iconUpward = icons.getQIcon('plot-yup')
@@ -144,6 +146,9 @@ class Viewer(qt.QMainWindow):
         self.createActions()
         self.createMenus()
         self.__context.restoreSettings()
+
+    def createApplicationContext(self, settings):
+        return ApplicationContext(self, settings)
 
     def __createTreeWindow(self, treeView):
         toolbar = qt.QToolBar(self)
@@ -196,6 +201,16 @@ class Viewer(qt.QMainWindow):
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__collapseAllAction = action
+
+        action = qt.QAction("&Sort file content", toolbar)
+        action.setIcon(icons.getQIcon("tree-sort"))
+        action.setToolTip("Toggle sorting of file content")
+        action.setCheckable(True)
+        action.setChecked(True)
+        action.triggered.connect(self.setContentSorted)
+        toolbar.addAction(action)
+        treeView.addAction(action)
+        self._sortContentAction = action
 
         widget = qt.QWidget(self)
         layout = qt.QVBoxLayout(widget)
@@ -377,12 +392,12 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
-            if index.column() != 0:
-                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
                 depth = 0
+            if index.column() != 0:
+                continue
 
             if depth > 10:
                 # Avoid infinite loop with recursive links
@@ -405,12 +420,12 @@ class Viewer(qt.QMainWindow):
         model = self.__treeview.model()
         while len(indexes) > 0:
             index = indexes.pop(0)
-            if index.column() != 0:
-                continue
             if isinstance(index, tuple):
                 index, depth = index
             else:
                 depth = 0
+            if index.column() != 0:
+                continue
 
             if depth > 10:
                 # Avoid infinite loop with recursive links
@@ -485,6 +500,11 @@ class Viewer(qt.QMainWindow):
         settings.setValue("custom-nxdata-window-visible", isVisible)
         settings.endGroup()
 
+        settings.beginGroup("content")
+        isSorted = self._sortContentAction.isChecked()
+        settings.setValue("is-sorted", isSorted)
+        settings.endGroup()
+
         if isFullScreen:
             self.showFullScreen()
 
@@ -528,6 +548,16 @@ class Viewer(qt.QMainWindow):
 
         settings.endGroup()
 
+        settings.beginGroup("content")
+        isSorted = settings.value("is-sorted", True)
+        try:
+            if not isinstance(isSorted, bool):
+                isSorted = utils.stringToBool(isSorted)
+        except ValueError:
+            isSorted = True
+        self.setContentSorted(isSorted)
+        settings.endGroup()
+
         if not pos.isNull():
             self.move(pos)
         if not size.isNull():
@@ -551,6 +581,11 @@ class Viewer(qt.QMainWindow):
         action.setStatusTip("Open a recently openned file")
         action.triggered.connect(self.open)
         self._openRecentAction = action
+
+        action = qt.QAction("Close All", self)
+        action.setStatusTip("Close all opened files")
+        action.triggered.connect(self.closeAll)
+        self._closeAllAction = action
 
         action = qt.QAction("&About", self)
         action.setStatusTip("Show the application's About box")
@@ -708,6 +743,7 @@ class Viewer(qt.QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
         fileMenu.addAction(self._openRecentAction)
+        fileMenu.addAction(self._closeAllAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
         fileMenu.aboutToShow.connect(self.__updateFileMenu)
@@ -741,6 +777,11 @@ class Viewer(qt.QMainWindow):
         filenames = dialog.selectedFiles()
         for filename in filenames:
             self.appendFile(filename)
+
+    def closeAll(self):
+        """Close all currently opened files"""
+        model = self.__treeview.findHdf5TreeModel()
+        model.clear()
 
     def createFileDialog(self):
         dialog = qt.QFileDialog(self)
@@ -782,6 +823,41 @@ class Viewer(qt.QMainWindow):
         subpath = "index.html"
         url = projecturl.getDocumentationUrl(subpath)
         qt.QDesktopServices.openUrl(qt.QUrl(url))
+
+    def setContentSorted(self, sort):
+        """Set whether file content should be sorted or not.
+
+        :param bool sort:
+        """
+        sort = bool(sort)
+        if sort != self.isContentSorted():
+
+            # save expanded nodes
+            pathss = []
+            root = qt.QModelIndex()
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = self.__getPathFromExpandedNodes(self.__treeview, index)
+                pathss.append(paths)
+
+            self.__treeview.setModel(
+                self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
+            self._sortContentAction.setChecked(self.isContentSorted())
+
+            # restore expanded nodes
+            model = self.__treeview.model()
+            for i in range(model.rowCount(root)):
+                index = model.index(i, 0, root)
+                paths = pathss.pop(0)
+                self.__expandNodesFromPaths(self.__treeview, index, paths)
+
+    def isContentSorted(self):
+        """Returns whether the file content is sorted or not.
+
+        :rtype: bool
+        """
+        return self.__treeview.model() is self.__treeModelSorted
 
     def __forcePlotImageDownward(self):
         silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "downward"

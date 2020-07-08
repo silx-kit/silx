@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ from .. import qt
 from ...math.combo import min_max
 from ...image import shapes
 
+from .items import ItemChangedType, Scatter
 from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDockWidget
 from ..colors import cursorColorForColormap, rgba
 
@@ -260,9 +261,16 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                                                     legend=self._maskName)
             self._mask_scatter.setSymbolSize(
                 self._data_scatter.getSymbolSize() + 2.0)
+            self._mask_scatter.sigItemChanged.connect(self.__maskScatterChanged)
         elif self.plot._getItem(kind="scatter",
                                 legend=self._maskName) is not None:
             self.plot.remove(self._maskName, kind='scatter')
+
+    def __maskScatterChanged(self, event):
+        """Handles update of mask scatter"""
+        if (event is ItemChangedType.VISUALIZATION_MODE and
+                self._mask_scatter is not None):
+            self._mask_scatter.setVisualization(Scatter.Visualization.POINTS)
 
     # track widget visibility and plot active image changes
 
@@ -318,7 +326,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         # check that content changed was the active scatter
         activeScatter = self.plot._getActiveItem(kind="scatter")
 
-        if activeScatter is None or activeScatter.getLegend() == self._maskName:
+        if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
             self.plot.sigActiveScatterChanged.disconnect(
                 self._activeScatterChangedAfterCare)
@@ -347,7 +355,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         """Update widget and mask according to active scatter changes"""
         activeScatter = self.plot._getActiveItem(kind="scatter")
 
-        if activeScatter is None or activeScatter.getLegend() == self._maskName:
+        if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
             self.setEnabled(False)
 

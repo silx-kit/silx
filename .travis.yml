@@ -1,5 +1,5 @@
 
-dist: xenial
+dist: bionic
 sudo: required
 
 language: python
@@ -9,38 +9,22 @@ git:
 
 matrix:
     include:
-        - python: 2.7
+        - python: 3.8
           os: linux
           env:
-              - BUILD_COMMAND=sdist
-              - QT_BINDING=
-              - SILX_OPENCL=1
-              - PIP_OPTIONS="-q"
-
-        - python: 3.4
-          os: linux
-          env:
-              - BUILD_COMMAND=sdist
-              - QT_BINDING=
-              - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
-              - SILX_OPENCL=1
-              - PIP_OPTIONS="-q"
-
-        - python: 3.5
-          os: linux
-          env:
-              - BUILD_COMMAND=sdist
+              - BUILD_COMMAND=bdist_wheel
               - QT_BINDING=PyQt5
               - SILX_OPENCL=1
               - PIP_OPTIONS="-q --pre"
 
-        - python: 3.7
+        - python: 3.6
           os: linux
           env:
               - BUILD_COMMAND=sdist
               - QT_BINDING=PySide2
+              - PIP_INSTALL_EXTRA_ARGS="--global-option build --global-option --debug"
               - SILX_OPENCL=1
-              - PIP_OPTIONS="-q --pre"
+              - PIP_OPTIONS="-q"
 
         - language: generic
           os: osx
@@ -48,6 +32,11 @@ matrix:
               - BUILD_COMMAND=bdist_wheel
               - QT_BINDING=PyQt5
               - PIP_OPTIONS="-q --pre"
+
+branches:
+    only:
+        - master
+        - /\d*\.\d*/
 
 cache:
     apt: true
@@ -62,6 +51,19 @@ addons:
             - libxkbcommon-x11-0 # needed for Qt plugins
             - libxkbcommon0
             - libxkbcommon-dev
+            - libxcb-icccm4
+            - libxcb-image0
+            - libxcb-shm0
+            - libxcb-keysyms1
+            - libxcb-randr0
+            - libxcb-render-util0
+            - libxcb-render0
+            - libxcb-shape0
+            - libxcb-sync1
+            - libxcb-xfixes0
+            - libxcb-xinerama0
+            - libxcb-xkb1
+            - libxcb1
 
 before_install:
     # On Linux: install OpenCL
@@ -110,7 +112,7 @@ before_script:
     # This installs PyQt and scipy if wheels are available
     - pip install ${PIP_OPTIONS} -r requirements.txt
     # Install PySide2 if needed
-    # Pin-pointing for now to avoid issues with versions [5.11.2 - 5.12.1]
+    # Pin-pointing for now to avoid issues with versions [5.15.0]
     - if [ "$QT_BINDING" == "PySide2" ];
       then
           pip install ${PIP_OPTIONS} pyside2;

@@ -2,9 +2,7 @@
 # Those ARE NOT required for installation, at runtime or to build from source (except for the doc)
 
 -r requirements.txt
-setuptools        # Advanced packaging tools
 wheel             # To build wheels
-Cython >= 0.21.1  # To regenerate .c/.cpp files from .pyx
 Sphinx            # To build the documentation in doc/
 lxml              # For test coverage in run_test.py
 coverage          # For test coverage in run_test.py

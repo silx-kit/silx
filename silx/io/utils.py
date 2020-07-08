@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ def supported_extensions(flat_formats=True):
     :param bool flat_formats: If true, also include flat formats like npy or
         edf (while the expected module is available)
     :returns: A dictionary indexed by file description and containing a set of
-        extensions (an extension is a string like "\*.ext").
+        extensions (an extension is a string like "\\*.ext").
     :rtype: Dict[str, Set[str]]
     """
     formats = collections.OrderedDict()
@@ -849,7 +849,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
         raise Exception('h5py >= 2.9 should be installed to access the '
                         'external feature.')
 
-    with h5py.File(output_url.file_path()) as _h5_file:
+    with h5py.File(output_url.file_path(), mode="a") as _h5_file:
         if output_url.data_path() in _h5_file:
             if overwrite is False:
                 raise ValueError('data_path already exists')

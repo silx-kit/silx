@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,12 +62,16 @@ __all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion
 RELEASE_LEVEL_VALUE = {"dev": 0,
                        "alpha": 10,
                        "beta": 11,
-                       "gamma": 12,
-                       "rc": 13,
+                       "candidate": 12,
                        "final": 15}
 
+PRERELEASE_NORMALIZED_NAME = {"dev": "a",
+                              "alpha": "a",
+                              "beta": "b",
+                              "candidate": "rc"}
+
 MAJOR = 0
-MINOR = 12
+MINOR = 14
 MICRO = 0
 RELEV = "dev"  # <16
 SERIAL = 0  # <16
@@ -83,10 +87,7 @@ strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":
     version += "-%s%s" % version_info[-2:]
     debianversion += "~adev%i" % version_info[-1] if RELEV == "dev" else "~%s%i" % version_info[-2:]
-    prerel = "a" if RELEASE_LEVEL_VALUE.get(version_info[3], 0) < 10 else "b"
-    if prerel not in "ab":
-        prerel = "a"
-    strictversion += prerel + str(version_info[-1])
+    strictversion += PRERELEASE_NORMALIZED_NAME[version_info[3]] + str(version_info[-1])
 
 
 def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):

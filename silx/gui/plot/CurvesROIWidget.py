@@ -42,11 +42,13 @@ import numpy
 from silx.io import dictdump
 from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
+from silx.utils.proxy import docstring
 from .. import icons, qt
-from silx.gui.plot.items.curve import Curve
 from silx.math.combo import min_max
 import weakref
 from silx.gui.widgets.TableWidget import TableWidget
+from . import items
+from .items.roi import _RegionOfInterestBase
 
 
 _logger = logging.getLogger(__name__)
@@ -66,12 +68,15 @@ class CurvesROIWidget(qt.QWidget):
 
     sigROIWidgetSignal = qt.Signal(object)
     """Signal of ROIs modifications.
-       Modification information if given as a dict with an 'event' key
-       providing the type of events.
-       Type of events:
-        - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
-        - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
-          'rowheader'
+
+    Modification information if given as a dict with an 'event' key
+    providing the type of events.
+
+    Type of events:
+
+    - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
+    - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
+      'rowheader'
     """
 
     sigROISignal = qt.Signal(object)
@@ -405,7 +410,7 @@ class CurvesROIWidget(qt.QWidget):
         """
         if visible:
             # if no ROI existing yet, add the default one
-            if self.roiTable.rowCount() is 0:
+            if self.roiTable.rowCount() == 0:
                 old = self.blockSignals(True)  # avoid several sigROISignal emission
                 self._add()
                 self.blockSignals(old)
@@ -698,7 +703,7 @@ class ROITable(TableWidget):
         remove the current active roi
         """
         activeItems = self.selectedItems()
-        if len(activeItems) is 0:
+        if len(activeItems) == 0:
             return
         old = self.blockSignals(True)  # avoid several emission of sigROISignal
         roiToRm = set()
@@ -1045,12 +1050,12 @@ class ROITable(TableWidget):
 _indexNextROI = 0
 
 
-class ROI(qt.QObject):
+class ROI(_RegionOfInterestBase):
     """The Region Of Interest is defined by:
 
     - A name
     - A type. The type is the label of the x axis. This can be used to apply or
-    not some ROI to a curve and do some post processing.
+      not some ROI to a curve and do some post processing.
     - The x coordinate of the left limit (fromdata)
     - The x coordinate of the right limit (todata)
 
@@ -1064,16 +1069,22 @@ class ROI(qt.QObject):
     """Signal emitted when the ROI is edited"""
 
     def __init__(self, name, fromdata=None, todata=None, type_=None):
-        qt.QObject.__init__(self)
-        assert type(name) is str
+        _RegionOfInterestBase.__init__(self)
+        self.setName(name)
         global _indexNextROI
         self._id = _indexNextROI
         _indexNextROI += 1
 
-        self._name = name
         self._fromdata = fromdata
         self._todata = todata
         self._type = type_ or 'Default'
+
+        self.sigItemChanged.connect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        """Handle name change"""
+        if event == items.ItemChangedType.NAME:
+            self.sigChanged.emit()
 
     def getID(self):
         """
@@ -1097,23 +1108,6 @@ class ROI(qt.QObject):
         :return str: the type of the ROI.
         """
         return self._type
-
-    def setName(self, name):
-        """
-        Set the name of the :class:`ROI`
-
-        :param str name:
-        """
-        if self._name != name:
-            self._name = name
-            self.sigChanged.emit()
-
-    def getName(self):
-        """
-
-        :return str: name of the :class:`ROI`
-        """
-        return self._name
 
     def setFrom(self, frm):
         """
@@ -1161,7 +1155,7 @@ class ROI(qt.QObject):
         """
         ddict = {
             'type': self._type,
-            'name': self._name,
+            'name': self.getName(),
             'from': self._fromdata,
             'to': self._todata,
         }
@@ -1191,7 +1185,7 @@ class ROI(qt.QObject):
 
         :return: True if the ROI is the `ICR`
         """
-        return self._name == 'ICR'
+        return self.getName() == 'ICR'
 
     def computeRawAndNetCounts(self, curve):
         """Compute the Raw and net counts in the ROI for the given curve.
@@ -1208,7 +1202,7 @@ class ROI(qt.QObject):
         :param CurveItem curve:
         :return tuple: rawCount, netCount
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None
@@ -1251,7 +1245,7 @@ class ROI(qt.QObject):
         :param CurveItem curve:
         :return tuple: rawArea, netArea
         """
-        assert isinstance(curve, Curve) or curve is None
+        assert isinstance(curve, items.Curve) or curve is None
 
         if curve is None:
             return None, None
@@ -1262,7 +1256,7 @@ class ROI(qt.QObject):
         y = y[(x >= self._fromdata) & (x <= self._todata)]
         x = x[(x >= self._fromdata) & (x <= self._todata)]
 
-        if x.size is 0:
+        if x.size == 0:
             return 0.0, 0.0
 
         rawArea = numpy.trapz(y, x=x)
@@ -1274,6 +1268,10 @@ class ROI(qt.QObject):
         background = numpy.trapz(yBackground, x=x)
         netArea = rawArea - background
         return rawArea, netArea
+
+    @docstring(_RegionOfInterestBase)
+    def contains(self, position):
+        return self._fromdata <= position[0] <= self._todata
 
 
 class _RoiMarkerManager(object):

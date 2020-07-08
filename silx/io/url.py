@@ -30,6 +30,7 @@ __date__ = "29/01/2018"
 
 import logging
 import six
+from collections.abc import Iterable
 
 parse = six.moves.urllib.parse
 
@@ -211,7 +212,7 @@ class DataUrl(object):
             pos = self.__path.index(url.path)
             file_path = self.__path[0:pos] + url.path
         else:
-            scheme = url.scheme if url.scheme is not "" else None
+            scheme = url.scheme if url.scheme != "" else None
             file_path = url.path
 
             # Check absolute windows path
@@ -297,7 +298,10 @@ class DataUrl(object):
             if self.__data_path is not None:
                 queries.append("path=" + self.__data_path)
             if self.__data_slice is not None:
-                data_slice = ",".join([slice_to_string(s) for s in self.__data_slice])
+                if isinstance(self.__data_slice, Iterable):
+                    data_slice = ",".join([slice_to_string(s) for s in self.__data_slice])
+                else:
+                    data_slice = slice_to_string(self.__data_slice)
                 queries.append("slice=" + data_slice)
             query = "&".join(queries)
 

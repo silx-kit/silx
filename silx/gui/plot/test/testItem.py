@@ -131,6 +131,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
                           ItemChangedType.COLORMAP,
                           ItemChangedType.POSITION,
                           ItemChangedType.SCALE,
+                          ItemChangedType.COLORMAP,
                           ItemChangedType.DATA])
 
     def testImageRgbaChanged(self):
@@ -203,13 +204,14 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
         self.assertEqual(listener.arguments(),
                          [(ItemChangedType.COLORMAP,),
+                          (ItemChangedType.COLORMAP,),
                           (ItemChangedType.DATA,),
                           (ItemChangedType.VISUALIZATION_MODE,)])
 
     def testShapeChanged(self):
         """Test sigItemChanged for shape"""
         data = numpy.array((1., 10.))
-        self.plot.addItem(data, data, legend='test', shape='rectangle')
+        self.plot.addShape(data, data, legend='test', shape='rectangle')
         shape = self.plot._getItem(kind='item', legend='test')
 
         listener = SignalListener()

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,9 @@ class PickingResult(object):
         if indices is None or len(indices) == 0:
             self._indices = None
         else:
-            self._indices = numpy.array(indices, copy=False, dtype=numpy.int)
+            # Indices is set to None if indices array is empty
+            indices = numpy.array(indices, copy=False, dtype=numpy.int)
+            self._indices = None if indices.size == 0 else indices
 
     def getItem(self):
         """Returns the item this results corresponds to."""

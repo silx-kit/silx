@@ -1,0 +1,7 @@
+version=4
+opts=repacksuffix=+dfsg,\
+pgpsigurlmangle=s/$/.asc/,\
+dversionmangle=s/\+dfsg//,\
+uversionmangle=s/(rc|a|b|c)/~$1/ \
+https://pypi.python.org/packages/source/s/@PACKAGE@/ \
+ @PACKAGE@-@ANY_VERSION@@ARCHIVE_EXT@ debian uupdate

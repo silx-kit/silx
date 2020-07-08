@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,14 +43,14 @@ class TestInteraction(unittest.TestCase):
             def click(self, x, y, btn):
                 events.append(('click', x, y, btn))
 
-            def beginDrag(self, x, y):
-                events.append(('beginDrag', x, y))
+            def beginDrag(self, x, y, btn):
+                events.append(('beginDrag', x, y, btn))
 
-            def drag(self, x, y):
-                events.append(('drag', x, y))
+            def drag(self, x, y, btn):
+                events.append(('drag', x, y, btn))
 
-            def endDrag(self, x, y):
-                events.append(('endDrag', x, y))
+            def endDrag(self, start, end, btn):
+                events.append(('endDrag', start, end, btn))
 
         clickOrDrag = TestClickOrDrag()
 
@@ -68,14 +68,14 @@ class TestInteraction(unittest.TestCase):
         self.assertEqual(len(events), 0)
         clickOrDrag.handleEvent('move', 15, 10)
         self.assertEqual(len(events), 2)  # Received beginDrag and drag
-        self.assertEqual(events[0], ('beginDrag', 10, 10))
-        self.assertEqual(events[1], ('drag', 15, 10))
+        self.assertEqual(events[0], ('beginDrag', 10, 10, Interaction.LEFT_BTN))
+        self.assertEqual(events[1], ('drag', 15, 10, Interaction.LEFT_BTN))
         clickOrDrag.handleEvent('move', 20, 10)
         self.assertEqual(len(events), 3)
-        self.assertEqual(events[-1], ('drag', 20, 10))
+        self.assertEqual(events[-1], ('drag', 20, 10, Interaction.LEFT_BTN))
         clickOrDrag.handleEvent('release', 20, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 4)
-        self.assertEqual(events[-1], ('endDrag', (10, 10), (20, 10)))
+        self.assertEqual(events[-1], ('endDrag', (10, 10), (20, 10), Interaction.LEFT_BTN))
 
 
 def suite():

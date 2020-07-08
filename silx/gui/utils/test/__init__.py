@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +33,10 @@ __date__ = "24/04/2018"
 import unittest
 
 from . import test_async
+from . import test_glutils
 from . import test_image
 from . import test_qtutils
+from . import test_testutils
 from . import test
 
 
@@ -43,8 +45,10 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test.suite())
     test_suite.addTest(test_async.suite())
+    test_suite.addTest(test_glutils.suite())
     test_suite.addTest(test_image.suite())
     test_suite.addTest(test_qtutils.suite())
+    test_suite.addTest(test_testutils.suite())
     return test_suite
 
 

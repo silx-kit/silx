@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,13 +37,14 @@ import numpy
 
 from silx.math.combo import min_max
 from silx.math.marchingcubes import MarchingCubes
+from silx.math.interpolate import interp3d
 
 from ....utils.proxy import docstring
 from ... import _glutils as glu
 from ... import qt
 from ...colors import rgba
 
-from ..scene import cutplane, primitives, transform, utils
+from ..scene import cutplane, function, primitives, transform, utils
 
 from .core import BaseNodeItem, Item3D, ItemChangedType, Item3DChangedType
 from .mixins import ColormapMixIn, ComplexMixIn, InterpolationMixIn, PlaneMixIn
@@ -92,8 +93,12 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
         # Store data range info as 3-tuple of values
         self._dataRange = range_
-        self._setRangeFromData(
-            None if self._dataRange is None else numpy.array(self._dataRange))
+        if range_ is None:
+            range_ = None, None, None
+        self._setColormappedData(self._data, copy=False,
+                                 min_=range_[0],
+                                 minPositive=range_[1],
+                                 max_=range_[2])
 
         self._updated(ItemChangedType.DATA)
 
@@ -301,6 +306,15 @@ class Isosurface(Item3D):
         """Return the color of this iso-surface (QColor)"""
         return qt.QColor.fromRgbF(*self._color)
 
+    def _updateColor(self, color):
+        """Handle update of color
+
+        :param List[float] color: RGBA channels in [0, 1]
+        """
+        primitive = self._getScenePrimitive()
+        if len(primitive.children) != 0:
+            primitive.children[0].setAttribute('color', color)
+
     def setColor(self, color):
         """Set the color of the iso-surface
 
@@ -310,15 +324,15 @@ class Isosurface(Item3D):
         color = rgba(color)
         if color != self._color:
             self._color = color
-            primitive = self._getScenePrimitive()
-            if len(primitive.children) != 0:
-                primitive.children[0].setAttribute('color', self._color)
+            self._updateColor(self._color)
             self._updated(ItemChangedType.COLOR)
 
-    def _updateScenePrimitive(self):
-        """Update underlying mesh"""
-        self._getScenePrimitive().children = []
+    def _computeIsosurface(self):
+        """Compute isosurface for current state.
 
+        :return: (vertices, normals, indices) arrays
+        :rtype: List[Union[None,numpy.ndarray]]
+        """
         data = self.getData(copy=False)
 
         if data is None:
@@ -349,24 +363,31 @@ class Isosurface(Item3D):
                     self._level = level
                     self._updated(Item3DChangedType.ISO_LEVEL)
 
-            if not numpy.isfinite(self._level):
-                return
+            if numpy.isfinite(self._level):
+                st = time.time()
+                vertices, normals, indices = MarchingCubes(
+                    data,
+                    isolevel=self._level)
+                _logger.info('Computed iso-surface in %f s.', time.time() - st)
 
-            st = time.time()
-            vertices, normals, indices = MarchingCubes(
-                data,
-                isolevel=self._level)
-            _logger.info('Computed iso-surface in %f s.', time.time() - st)
+                if len(vertices) != 0:
+                    return vertices, normals, indices
 
-            if len(vertices) == 0:
-                return
-            else:
-                mesh = primitives.Mesh3D(vertices,
-                                         colors=self._color,
-                                         normals=normals,
-                                         mode='triangles',
-                                         indices=indices)
-                self._getScenePrimitive().children = [mesh]
+        return None, None, None
+
+    def _updateScenePrimitive(self):
+        """Update underlying mesh"""
+        self._getScenePrimitive().children = []
+
+        vertices, normals, indices = self._computeIsosurface()
+        if vertices is not None:
+            mesh = primitives.Mesh3D(vertices,
+                                     colors=self._color,
+                                     normals=normals,
+                                     mode='triangles',
+                                     indices=indices,
+                                     copy=False)
+            self._getScenePrimitive().children = [mesh]
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
@@ -677,14 +698,33 @@ class ComplexCutPlane(CutPlane, ComplexMixIn):
         super(ComplexCutPlane, self)._updated(event)
 
 
-class ComplexIsosurface(Isosurface):
+class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
     """Class representing an iso-surface in a :class:`ComplexField3D` item.
 
     :param parent: The DataItem3D this iso-surface belongs to
     """
 
+    _SUPPORTED_COMPLEX_MODES = \
+        (ComplexMixIn.ComplexMode.NONE,) + ComplexMixIn._SUPPORTED_COMPLEX_MODES
+    """Overrides supported ComplexMode"""
+
     def __init__(self, parent):
-        super(ComplexIsosurface, self).__init__(parent)
+        ComplexMixIn.__init__(self)
+        ColormapMixIn.__init__(self, function.Colormap())
+        Isosurface.__init__(self, parent=parent)
+        self.setComplexMode(self.ComplexMode.NONE)
+
+    def _updateColor(self, color):
+        """Handle update of color
+
+        :param List[float] color: RGBA channels in [0, 1]
+        """
+        primitive = self._getScenePrimitive()
+        if (len(primitive.children) != 0 and
+                isinstance(primitive.children[0], primitives.ColormapMesh3D)):
+            primitive.children[0].alpha = self._color[3]
+        else:
+            super(ComplexIsosurface, self)._updateColor(color)
 
     def _syncDataWithParent(self):
         """Synchronize this instance data with that of its parent"""
@@ -694,6 +734,14 @@ class ComplexIsosurface(Isosurface):
         else:
             self._data = parent.getData(
                 mode=parent.getComplexMode(), copy=False)
+
+        if parent is None or self.getComplexMode() == self.ComplexMode.NONE:
+            self._setColormappedData(None, copy=False)
+        else:
+            self._setColormappedData(
+                parent.getData(mode=self.getComplexMode(), copy=False),
+                copy=False)
+
         self._updateScenePrimitive()
 
     def _parentChanged(self, event):
@@ -701,6 +749,45 @@ class ComplexIsosurface(Isosurface):
         if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
         super(ComplexIsosurface, self)._parentChanged(event)
+
+    def _updated(self, event=None):
+        """Handle update of the isosurface (and take care of mode change)
+
+        :param ItemChangedType event: The kind of update
+        """
+        if event == ItemChangedType.COMPLEX_MODE:
+            self._syncDataWithParent()
+
+        elif event in (ItemChangedType.COLORMAP,
+                       Item3DChangedType.INTERPOLATION):
+            self._updateScenePrimitive()
+        super(ComplexIsosurface, self)._updated(event)
+
+    def _updateScenePrimitive(self):
+        """Update underlying mesh"""
+        if self.getComplexMode() == self.ComplexMode.NONE:
+            super(ComplexIsosurface, self)._updateScenePrimitive()
+
+        else:  # Specific display for colormapped isosurface
+            self._getScenePrimitive().children = []
+
+            values = self.getColormappedData(copy=False)
+            if values is not None:
+                vertices, normals, indices = self._computeIsosurface()
+                if vertices is not None:
+                    values = interp3d(values, vertices, method='linear_omp')
+                    # TODO reuse isosurface when only color changes...
+
+                    mesh = primitives.ColormapMesh3D(
+                        vertices,
+                        value=values.reshape(-1, 1),
+                        colormap=self._getSceneColormap(),
+                        normal=normals,
+                        mode='triangles',
+                        indices=indices,
+                        copy=False)
+                    mesh.alpha = self._color[3]
+                    self._getScenePrimitive().children = [mesh]
 
 
 class ComplexField3D(ScalarField3D, ComplexMixIn):
@@ -720,6 +807,7 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
 
     @docstring(ComplexMixIn)
     def setComplexMode(self, mode):
+        mode = ComplexMixIn.ComplexMode.from_value(mode)
         if mode != self.getComplexMode():
             self.clearIsosurfaces()  # Reset isosurfaces
         ComplexMixIn.setComplexMode(self, mode)

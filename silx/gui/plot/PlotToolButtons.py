@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -261,17 +261,21 @@ class ProfileOptionToolButton(PlotToolButton):
         self.sumAction = self._createAction('sum')
         self.sumAction.triggered.connect(self.setSum)
         self.sumAction.setIconVisibleInMenu(True)
+        self.sumAction.setCheckable(True)
+        self.sumAction.setChecked(True)
 
         self.meanAction = self._createAction('mean')
         self.meanAction.triggered.connect(self.setMean)
         self.meanAction.setIconVisibleInMenu(True)
+        self.meanAction.setCheckable(True)
 
         menu = qt.QMenu(self)
         menu.addAction(self.sumAction)
         menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        self.setMean()
+        self._method = 'mean'
+        self._update()
 
     def _createAction(self, method):
         icon = self.STATE[method, "icon"]
@@ -279,22 +283,39 @@ class ProfileOptionToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def setSum(self):
-        """Configure the plot to use y-axis upward"""
-        self._method = 'sum'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('sum')
 
     def _update(self):
         icon = self.STATE[self._method, "icon"]
         toolTip = self.STATE[self._method, "state"]
         self.setIcon(icon)
         self.setToolTip(toolTip)
+        self.sumAction.setChecked(self._method == "sum")
+        self.meanAction.setChecked(self._method == "mean")
 
     def setMean(self):
-        """Configure the plot to use y-axis downward"""
-        self._method = 'mean'
-        self.sigMethodChanged.emit(self._method)
-        self._update()
+        self.setMethod('mean')
+
+    def setMethod(self, method):
+        """Set the method to use.
+
+        :param str method: Either 'sum' or 'mean'
+        """
+        if method != self._method:
+            if method in ('sum', 'mean'):
+                self._method = method
+                self.sigMethodChanged.emit(self._method)
+                self._update()
+            else:
+                _logger.warning(
+                    "Unsupported method '%s'. Setting ignored.", method)
+
+    def getMethod(self):
+        """Returns the current method in use (See :meth:`setMethod`).
+
+        :rtype: str
+        """
+        return self._method
 
 
 class ProfileToolButton(PlotToolButton):
@@ -319,13 +340,20 @@ class ProfileToolButton(PlotToolButton):
 
         super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
 
+        self._dimension = 1
+
         profile1DAction = self._createAction(1)
         profile1DAction.triggered.connect(self.computeProfileIn1D)
         profile1DAction.setIconVisibleInMenu(True)
+        profile1DAction.setCheckable(True)
+        profile1DAction.setChecked(True)
+        self._profile1DAction = profile1DAction
 
         profile2DAction = self._createAction(2)
         profile2DAction.triggered.connect(self.computeProfileIn2D)
         profile2DAction.setIconVisibleInMenu(True)
+        profile2DAction.setCheckable(True)
+        self._profile2DAction = profile2DAction
 
         menu = qt.QMenu(self)
         menu.addAction(profile1DAction)
@@ -333,6 +361,7 @@ class ProfileToolButton(PlotToolButton):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
         menu.setTitle('Select profile dimension')
+        self.computeProfileIn1D()
 
     def _createAction(self, profileDimension):
         icon = self.STATE[profileDimension, "icon"]
@@ -343,7 +372,10 @@ class ProfileToolButton(PlotToolButton):
         """Update icon in toolbar, emit number of dimensions for profile"""
         self.setIcon(self.STATE[profileDimension, "icon"])
         self.setToolTip(self.STATE[profileDimension, "state"])
+        self._dimension = profileDimension
         self.sigDimensionChanged.emit(profileDimension)
+        self._profile1DAction.setChecked(profileDimension == 1)
+        self._profile2DAction.setChecked(profileDimension == 2)
 
     def computeProfileIn1D(self):
         self._profileDimensionChanged(1)
@@ -351,6 +383,24 @@ class ProfileToolButton(PlotToolButton):
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
 
+    def setDimension(self, dimension):
+        """Set the selected dimension"""
+        assert dimension in [1, 2]
+        if self._dimension == dimension:
+            return
+        if dimension == 1:
+            self.computeProfileIn1D()
+        elif dimension == 2:
+            self.computeProfileIn2D()
+        else:
+            _logger.warning("Unsupported dimension '%s'. Setting ignored.", dimension)
+
+    def getDimension(self):
+        """Get the selected dimension.
+
+        :rtype: int (1 or 2)
+        """
+        return self._dimension
 
 
 class _SymbolToolButtonBase(PlotToolButton):
@@ -370,7 +420,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         """
         slider = qt.QSlider(qt.Qt.Horizontal)
         slider.setRange(1, 20)
-        slider.setValue(config.DEFAULT_PLOT_SYMBOL_SIZE)
+        slider.setValue(int(config.DEFAULT_PLOT_SYMBOL_SIZE))
         slider.setTracking(False)
         slider.valueChanged.connect(self._sizeChanged)
         widgetAction = qt.QWidgetAction(menu)
@@ -399,7 +449,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, SymbolMixIn):
                 item.setSymbolSize(value)
 
@@ -412,7 +462,7 @@ class _SymbolToolButtonBase(PlotToolButton):
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, SymbolMixIn):
                 item.setSymbol(marker)
 
@@ -459,12 +509,40 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         # Add visualization modes
 
         for mode in Scatter.supportedVisualizations():
-            name = mode.value.capitalize()
-            action = qt.QAction(name, menu)
-            action.setCheckable(False)
-            action.triggered.connect(
-                functools.partial(self._visualizationChanged, mode))
-            menu.addAction(action)
+            if mode is not Scatter.Visualization.BINNED_STATISTIC:
+                name = mode.value.capitalize()
+                action = qt.QAction(name, menu)
+                action.setCheckable(False)
+                action.triggered.connect(
+                    functools.partial(self._visualizationChanged, mode, None))
+                menu.addAction(action)
+
+        if Scatter.Visualization.BINNED_STATISTIC in Scatter.supportedVisualizations():
+            reductions = Scatter.supportedVisualizationParameterValues(
+                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION)
+            if reductions:
+                submenu = menu.addMenu('Binned Statistic')
+                for reduction in reductions:
+                    name = reduction.capitalize()
+                    action = qt.QAction(name, menu)
+                    action.setCheckable(False)
+                    action.triggered.connect(functools.partial(
+                        self._visualizationChanged,
+                        Scatter.Visualization.BINNED_STATISTIC,
+                        {Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction}))
+                    submenu.addAction(action)
+
+                submenu.addSeparator()
+                binsmenu = submenu.addMenu('N Bins')
+
+                slider = qt.QSlider(qt.Qt.Horizontal)
+                slider.setRange(10, 1000)
+                slider.setValue(100)
+                slider.setTracking(False)
+                slider.valueChanged.connect(self._binningChanged)
+                widgetAction = qt.QWidgetAction(binsmenu)
+                widgetAction.setDefaultWidget(slider)
+                binsmenu.addAction(widgetAction)
 
         menu.addSeparator()
 
@@ -477,16 +555,38 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
-    def _visualizationChanged(self, mode):
+    def _visualizationChanged(self, mode, parameters=None):
         """Handle change of visualization mode.
 
         :param ScatterVisualizationMixIn.Visualization mode:
             The visualization mode to use for scatter
+        :param Union[dict,None] parameters:
+            Dict of VisualizationParameter: parameter_value to set
+            with the visualization.
         """
         plot = self.plot()
         if plot is None:
             return
 
-        for item in plot._getItems(withhidden=True):
+        for item in plot.getItems():
             if isinstance(item, Scatter):
+                if parameters:
+                    for parameter, value in parameters.items():
+                        item.setVisualizationParameter(parameter, value)
                 item.setVisualization(mode)
+
+    def _binningChanged(self, value):
+        """Handle change of binning.
+
+        :param int value: The number of bin on each dimension.
+        """
+        plot = self.plot()
+        if plot is None:
+            return
+
+        for item in plot.getItems():
+            if isinstance(item, Scatter):
+                item.setVisualizationParameter(
+                    Scatter.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                    (value, value))
+                item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)

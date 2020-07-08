@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,6 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-from ._pick import PickingResult
 
 
 _logger = logging.getLogger(__name__)
@@ -108,7 +107,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         elif item == 0:
             return self.getData(copy=False)
         elif item == 1:
-            return self.getLegend()
+            return self.getName()
         elif item == 2:
             info = self.getInfo(copy=False)
             return {} if info is None else info
@@ -142,25 +141,6 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             if plot is not None:
                 plot._invalidateDataRange()
         super(ImageBase, self).setVisible(visible)
-
-    @docstring(Item)
-    def pick(self, x, y):
-        if super(ImageBase, self).pick(x, y) is not None:
-            plot = self.getPlot()
-            if plot is None:
-                return None
-
-            dataPos = plot.pixelToData(x, y)
-            if dataPos is None:
-                return None
-
-            origin = self.getOrigin()
-            scale = self.getScale()
-            column = int((dataPos[0] - origin[0]) / float(scale[0]))
-            row = int((dataPos[1] - origin[1]) / float(scale[1]))
-            return PickingResult(self, ([row], [column]))
-
-        return None
 
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
@@ -301,13 +281,16 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
+        colormap = self.getColormap()
+        if colormap.isAutoscale():
+            # Avoid backend to compute autoscale: use item cache
+            colormap = colormap.copy()
+            colormap.setVRange(*colormap.getColormapRange(self))
+
         return backend.addImage(dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
-                                colormap=self.getColormap(),
+                                colormap=colormap,
                                 alpha=self.getAlpha())
 
     def __getitem__(self, item):
@@ -333,7 +316,7 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             # Apply colormap, in this case an new array is always returned
             colormap = self.getColormap()
-            image = colormap.applyToData(self.getData(copy=False))
+            image = colormap.applyToData(self)
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
@@ -388,6 +371,7 @@ class ImageData(ImageBase, ColormapMixIn):
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
         self._data = data
+        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -436,9 +420,6 @@ class ImageRgba(ImageBase):
         return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
                                 colormap=None,
                                 alpha=self.getAlpha())
 
@@ -477,3 +458,82 @@ class MaskImageData(ImageData):
     internal silx widgets.
     """
     pass
+
+
+class ImageStack(ImageData):
+    """Item to store a stack of images and to show it in the plot as one
+    of the images of the stack.
+
+    The stack is a 3D array ordered this way: `frame id, y, x`.
+    So the first image of the stack can be reached this way: `stack[0, :, :]`
+    """
+
+    def __init__(self):
+        ImageData.__init__(self)
+        self.__stack = None
+        """A 3D numpy array (or a mimic one, see ListOfImages)"""
+        self.__stackPosition = None
+        """Displayed position in the cube"""
+
+    def setStackData(self, stack, position=None, copy=True):
+        """Set the stack data
+
+        :param stack: A 3D numpy array like
+        :param int position: The position of the displayed image in the stack
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        """
+        if self.__stack is stack:
+            return
+        if copy:
+            stack = numpy.array(stack)
+        assert stack.ndim == 3
+        self.__stack = stack
+        if position is not None:
+            self.__stackPosition = position
+        if self.__stackPosition is None:
+            self.__stackPosition = 0
+        self.__updateDisplayedData()
+
+    def getStackData(self, copy=True):
+        """Get the stored stack array.
+
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        :rtype: A 3D numpy array, or numpy array like
+        """
+        if copy:
+            return numpy.array(self.__stack)
+        else:
+            return self.__stack
+
+    def setStackPosition(self, pos):
+        """Set the displayed position on the stack.
+
+        This function will clamp the stack position according to
+        the real size of the first axis of the stack.
+
+        :param int pos: A position on the first axis of the stack.
+        """
+        if self.__stackPosition == pos:
+            return
+        self.__stackPosition = pos
+        self.__updateDisplayedData()
+
+    def getStackPosition(self):
+        """Get the displayed position of the stack.
+
+        :rtype: int
+        """
+        return self.__stackPosition
+
+    def __updateDisplayedData(self):
+        """Update the displayed frame whenever the stack or the stack
+        position are updated."""
+        if self.__stack is None or self.__stackPosition is None:
+            empty = numpy.array([]).reshape(0, 0)
+            self.setData(empty, copy=False)
+            return
+        size = len(self.__stack)
+        self.__stackPosition = numpy.clip(self.__stackPosition, 0, size)
+        self.setData(self.__stack[self.__stackPosition], copy=False)

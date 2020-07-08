@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -113,6 +113,16 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     colored phase + amplitude.
     """
 
+    _SUPPORTED_COMPLEX_MODES = (
+        ComplexMixIn.ComplexMode.ABSOLUTE,
+        ComplexMixIn.ComplexMode.PHASE,
+        ComplexMixIn.ComplexMode.REAL,
+        ComplexMixIn.ComplexMode.IMAGINARY,
+        ComplexMixIn.ComplexMode.AMPLITUDE_PHASE,
+        ComplexMixIn.ComplexMode.LOG10_AMPLITUDE_PHASE,
+        ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+    """Overrides supported ComplexMode"""
+
     def __init__(self):
         ImageBase.__init__(self)
         ColormapMixIn.__init__(self)
@@ -155,6 +165,11 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             data = self.getRgbaImageData(copy=False)
         else:
             colormap = self.getColormap()
+            if colormap.isAutoscale():
+                # Avoid backend to compute autoscale: use item cache
+                colormap = colormap.copy()
+                colormap.setVRange(*colormap.getColormapRange(self))
+
             data = self.getData(copy=False)
 
         if data.size == 0:
@@ -163,9 +178,6 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         return backend.addImage(data,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                z=self.getZValue(),
-                                selectable=self.isSelectable(),
-                                draggable=self.isDraggable(),
                                 colormap=colormap,
                                 alpha=self.getAlpha())
 
@@ -183,6 +195,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
+
+            self._setColormappedData(self.getData(copy=False), copy=False)
         return changed
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
@@ -252,6 +266,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
 
         self._data = data
         self._dataByModesCache = {}
+        self._setColormappedData(self.getData(copy=False), copy=False)
 
         # TODO hackish data range implementation
         if self.isVisible():
