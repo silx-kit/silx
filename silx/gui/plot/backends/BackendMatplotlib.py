@@ -601,7 +601,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             axes = self.ax
 
-        picker = 3
+        pickradius = 3
 
         artists = []  # All the artists composing the curve
 
@@ -639,7 +639,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                       linestyle=linestyle,
                                       color=actualColor[0],
                                       linewidth=linewidth,
-                                      picker=picker,
+                                      picker=True,
+                                      pickradius=pickradius,
                                       marker=None)
                 artists += list(curveList)
 
@@ -647,7 +648,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             scatter = axes.scatter(x, y,
                                    color=actualColor,
                                    marker=marker,
-                                   picker=picker,
+                                   picker=True,
+                                   pickradius=pickradius,
                                    s=symbolsize**2)
             artists.append(scatter)
 
@@ -665,7 +667,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   color=color,
                                   linewidth=linewidth,
                                   marker=symbol,
-                                  picker=picker,
+                                  picker=True,
+                                  pickradius=pickradius,
                                   markersize=symbolsize)
             artists += list(curveList)
 
@@ -750,7 +753,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         collection = TriMesh(
             Triangulation(x, y, triangles),
             alpha=alpha,
-            picker=0)  # 0 enables picking on filled triangle
+            pickradius=0)  # 0 enables picking on filled triangle
         collection.set_color(color)
         self.ax.add_collection(collection)
 
@@ -893,7 +896,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             raise RuntimeError('A marker must at least have one coordinate')
 
-        line.set_picker(5)
+        line.set_picker(True)
+        line.set_pickradius(5)
 
         # All markers are overlays
         line.set_animated(True)
