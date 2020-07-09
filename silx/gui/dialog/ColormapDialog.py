@@ -155,6 +155,9 @@ class _BoundaryWidget(qt.QWidget):
         if self.__textWasEdited:
             value = self._numVal.value()
             self.__realValue = value
+            with utils.blockSignals(self._numVal):
+                # Fix the formatting
+                self._numVal.setValue(self.__realValue)
             self.sigValueChanged.emit(value)
             self.__textWasEdited = False
 
