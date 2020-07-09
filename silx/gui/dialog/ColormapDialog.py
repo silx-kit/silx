@@ -194,10 +194,12 @@ class _BoundaryWidget(qt.QWidget):
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
-        if value is not None:
-            self._numVal.setValue(value)
+        with utils.blockSignals(self._numVal):
+            if isAuto or self.__realValue != value:
+                if not self.__textWasEdited:
+                    self._numVal.setValue(value)
             self.__realValue = value
-        self._updateDisplayedText()
+            self._numVal.setEnabled(not isAuto)
 
 
 class _AutoscaleModeComboBox(qt.QComboBox):
