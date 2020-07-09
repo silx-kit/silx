@@ -140,14 +140,12 @@ class _BoundaryWidget(qt.QWidget):
         self._numVal.editingFinished.connect(self.__editingFinished)
         self.setFocusProxy(self._numVal)
 
-        self._dataValue = None
-
         self.__textWasEdited = False
         """True if the text was edited, in order to send an event
         at the end of the user interaction"""
 
         self.__realValue = None
-        """Store the real value set by setValue/setFiniteValue, to avoid
+        """Store the real value set by setValue, to avoid
         rounding of the widget"""
 
     def __textEdited(self):
@@ -178,12 +176,10 @@ class _BoundaryWidget(qt.QWidget):
             if self.__realValue is not None:
                 return self.__realValue
             return self._numVal.value()
-        elif self._dataValue is None:
+        else:
             if self.__realValue is not None:
                 return self.__realValue
             return self._numVal.value()
-        else:
-            return self._dataValue
 
     def _autoToggled(self, enabled):
         self._numVal.setEnabled(not enabled)
@@ -191,22 +187,10 @@ class _BoundaryWidget(qt.QWidget):
         self.sigAutoScaleChanged.emit(enabled)
 
     def _updateDisplayedText(self):
-        # if dataValue is finite
         self.__textWasEdited = False
-        if self._autoCB.isChecked() and self._dataValue is not None:
+        if self._autoCB.isChecked() and self.__realValue is not None:
             with utils.blockSignals(self._numVal):
-                self._numVal.setValue(self._dataValue)
-
-    def setDataValue(self, dataValue):
-        self._dataValue = dataValue
-        self._updateDisplayedText()
-
-    def setFiniteValue(self, value):
-        assert(value is not None)
-        old = self._numVal.blockSignals(True)
-        self._numVal.setValue(value)
-        self.__realValue = value
-        self._numVal.blockSignals(old)
+                self._numVal.setValue(self.__realValue)
 
     def setValue(self, value, isAuto=False):
         self._autoCB.setChecked(isAuto or value is None)
