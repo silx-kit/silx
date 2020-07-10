@@ -196,7 +196,14 @@ class _BoundaryWidget(qt.QWidget):
                 self._numVal.setValue(self.__realValue)
 
     def setValue(self, value, isAuto=False):
-        self._autoCB.setChecked(isAuto or value is None)
+        """Set the value of the boundary.
+
+        :param float value: A finite value for the boundary
+        :param bool isAuto: If true, the finite value was automatically computed
+            from the data, else it is a fixed custom value.
+        """
+        assert value is not None
+        self._autoCB.setChecked(isAuto)
         with utils.blockSignals(self._numVal):
             if isAuto or self.__realValue != value:
                 if not self.__textWasEdited:
