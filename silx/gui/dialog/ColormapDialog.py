@@ -174,16 +174,6 @@ class _BoundaryWidget(qt.QWidget):
             return self.__realValue
         return self._numVal.value()
 
-    def getFiniteValue(self):
-        if not self._autoCB.isChecked():
-            if self.__realValue is not None:
-                return self.__realValue
-            return self._numVal.value()
-        else:
-            if self.__realValue is not None:
-                return self.__realValue
-            return self._numVal.value()
-
     def _autoToggled(self, enabled):
         self._numVal.setEnabled(not enabled)
         self._updateDisplayedText()
