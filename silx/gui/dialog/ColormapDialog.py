@@ -1581,14 +1581,12 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if vmin is not None:
-            if colormap.getVMin() is None:
-                with self._colormapChange:
-                    colormap.setVMin(vmin)
+            with self._colormapChange:
+                colormap.setVMin(vmin)
             self._minValue.setValue(vmin)
         if vmax is not None:
-            if colormap.getVMax() is None:
-                with self._colormapChange:
-                    colormap.setVMax(vmax)
+            with self._colormapChange:
+                colormap.setVMax(vmax)
             self._maxValue.setValue(vmax)
 
     def _histogramRangeMoved(self, vmin, vmax):
