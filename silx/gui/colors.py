@@ -46,6 +46,7 @@ from silx.resources import resource_filename as _resource_filename
 _logger = logging.getLogger(__file__)
 
 try:
+    import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
     from matplotlib import cm as _matplotlib_cm
     from matplotlib.pyplot import colormaps as _matplotlib_colormaps
 except ImportError:

@@ -44,7 +44,7 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ..matplotlib import FigureCanvasQTAgg
+from ...utils.matplotlib import FigureCanvasQTAgg
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
