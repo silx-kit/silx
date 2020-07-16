@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,7 @@ class FramebufferTexture(object):
                  **kwargs):
 
         self._texture = Texture(internalFormat, shape=shape, **kwargs)
+        self._texture.prepare()
 
         self._previousFramebuffer = 0  # Used by with statement
 
