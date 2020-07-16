@@ -332,6 +332,7 @@ class GLPlotColormap(_GLPlotData2D):
                                          magFilter=gl.GL_NEAREST,
                                          wrap=(gl.GL_CLAMP_TO_EDGE,
                                                gl.GL_CLAMP_TO_EDGE))
+            self._cmap_texture.prepare()
 
         if self._texture is None:
             internalFormat = self._INTERNAL_FORMATS[self.data.dtype]
