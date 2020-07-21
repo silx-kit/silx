@@ -420,12 +420,25 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
     """
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
+        if path not in h5f:
+            logger.error('Path "%s" does not exist in file.', path)
+            return ddict
+
+        try:
+            root = h5f[path]
+        except KeyError as e:
+            if not isinstance(h5f.get(path, getlink=True), h5py.HardLink):
+                logger.error('Cannot retrieve path "%s" (broken link)', path)
+                return ddict
+            else:
+                raise e
+
         # Read the attributes of the group
         if include_attributes:
-            for aname, avalue in h5f[path].attrs.items():
+            for aname, avalue in root.attrs.items():
                 ddict[("", aname)] = avalue
         # Read the children of the group
-        for key in h5f[path]:
+        for key in root:
             if _name_contains_string_in_list(key, exclude_names):
                 continue
             h5name = path + "/" + key
@@ -436,7 +449,15 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                     ddict[key] = lnk
                     continue
 
-            h5obj = h5f[h5name]
+            try:
+                h5obj = h5f[h5name]
+            except KeyError as e:
+                if not isinstance(h5f.get(h5name, getlink=True), h5py.HardLink):
+                    logger.error('Cannot retrieve path "%s" (broken link)', h5name)
+                    continue
+                else:
+                    raise e
+
             if is_group(h5obj):
                 # Child is an HDF5 group
                 ddict[key] = h5todict(h5f,
@@ -447,14 +468,18 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                                       include_attributes=include_attributes)
             else:
                 # Child is an HDF5 dataset
-                data = h5obj[()]
-                if asarray:
-                    data = numpy.array(data, copy=False)
-                ddict[key] = data
-                # Read the attributes of the child
-                if include_attributes:
-                    for aname, avalue in h5obj.attrs.items():
-                        ddict[(key, aname)] = avalue
+                try:
+                    data = h5obj[()]
+                except OSError:
+                    logger.error('Cannot retrieve dataset "%s"', subpath)
+                else:
+                    if asarray:
+                        data = numpy.array(data, copy=False)
+                    ddict[key] = data
+                    # Read the attributes of the child
+                    if include_attributes:
+                        for aname, avalue in h5obj.attrs.items():
+                            ddict[(key, aname)] = avalue
     return ddict
 
 
