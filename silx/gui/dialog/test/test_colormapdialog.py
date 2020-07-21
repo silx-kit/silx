@@ -99,9 +99,9 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag._minValue.setValue(None)
+        self.colormapDiag._minValue.sigAutoScaleChanged.emit(True)
         self.assertTrue(self.colormap.getVMin() is None)
-        self.colormapDiag._maxValue.setValue(None)
+        self.colormapDiag._maxValue.sigAutoScaleChanged.emit(True)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Ok),
             button=qt.Qt.LeftButton
@@ -118,7 +118,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag._minValue.setValue(None)
+        self.colormapDiag._minValue.sigAutoScaleChanged.emit(True)
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Cancel),
@@ -133,7 +133,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag._minValue.setValue(None)
+        self.colormapDiag._minValue.sigAutoScaleChanged.emit(True)
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Close),
@@ -148,7 +148,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag._minValue.setValue(None)
+        self.colormapDiag._minValue.sigAutoScaleChanged.emit(True)
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset),
@@ -164,7 +164,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
         self.colormapDiag.setColormap(self.colormap)
         self.assertTrue(self.colormap.getVMin() is not None)
-        self.colormapDiag._minValue.setValue(None)
+        self.colormapDiag._minValue.sigAutoScaleChanged.emit(True)
         self.assertTrue(self.colormap.getVMin() is None)
         self.colormapDiag.close()
         self.qapp.processEvents()
