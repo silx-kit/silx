@@ -150,7 +150,10 @@ class UrlList(qt.QWidget):
         self._listWidget.addItems(url_names)
 
     def _notifyCurrentUrlChanged(self, current, previous):
-        self.sigCurrentUrlChanged.emit(current.text())
+        if current is None:
+            pass
+        else:
+            self.sigCurrentUrlChanged.emit(current.text())
 
     def setUrl(self, url: DataUrl) -> None:
         assert isinstance(url, DataUrl)
