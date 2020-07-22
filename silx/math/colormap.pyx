@@ -453,6 +453,8 @@ def _cmap(data_types[:] data,
     :param nan_color: Color to use for NaN value.
     :return: The generated image
     """
+    cdef image_types[:, ::1] output
+
     # Proxy for calling the right implementation depending on data type
     if data_types in lut_types:  # Use LUT implementation
         output = compute_cmap_with_lut(
