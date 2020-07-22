@@ -1,6 +1,31 @@
-# -*- coding: utf-8 -*-
-# code from pyqtgraph.
+#!/usr/bin/env python
+# coding: utf-8
+# /*##########################################################################
 #
+# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""This module contains utils relative to qt Signal
+"""
+
 from silx.gui import qt
 import weakref
 from time import time
@@ -12,7 +37,9 @@ __license__ = "MIT"
 
 
 class SignalProxy(qt.QObject):
-    """Object which collects rapid-fire signals and condenses them
+    """
+    This peace of code come from pyqtgraph
+    Object which collects rapid-fire signals and condenses them
     into a single signal or a rate-limited stream of signals.
     Used, for example, to prevent a SpinBox from generating multiple
     signals when the mouse wheel is rolled over it.
