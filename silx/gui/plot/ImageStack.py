@@ -163,6 +163,9 @@ class UrlList(qt.QWidget):
             self._listWidget.setCurrentItem(item)
             self.sigCurrentUrlChanged.emit(item.text())
 
+    def clear(self):
+        self._listWidget.clear()
+
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
 
@@ -213,6 +216,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     def _propagateSignal(self, url):
         self.sigCurrentUrlChanged.emit(url)
+
+    def clear(self):
+        self._urlsTable.clear()
 
 
 class UrlLoader(qt.QThread):
@@ -326,6 +332,7 @@ class ImageStack(qt.QMainWindow):
         self._urlData = OrderedDict({})
         self._current_url = None
         self._plot.clear()
+        self._urlsTable.clear()
 
     def _preFetch(self, urls: list) -> None:
         """Pre-fetch the given urls if necessary
