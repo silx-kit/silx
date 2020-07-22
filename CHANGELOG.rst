@@ -1,13 +1,13 @@
 Change Log
 ==========
 
-0.13.1: 2020/07/21
+0.13.1: 2020/07/22
 ------------------
 
 Bug fix release:
 
 * `silx.gui.plot.dialog`: Fixed `ColormapDialog` custom range input (PR #3155)
-
+* Build: Fixed cython 3 compatibility (PR #3163).
 * Documentation: Update version number and changelog (PR #3156)
 
 
