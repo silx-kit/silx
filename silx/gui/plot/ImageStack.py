@@ -336,6 +336,7 @@ class ImageStack(qt.QMainWindow):
         self._current_url = None
         self._plot.clear()
         self._urlsTable.clear()
+        self._slider.setMaximum(-1)
 
     def _preFetch(self, urls: list) -> None:
         """Pre-fetch the given urls if necessary
@@ -424,6 +425,7 @@ class ImageStack(qt.QMainWindow):
         self._urlsTable.blockSignals(old_url_table)
 
         old_slider = self._slider.blockSignals(True)
+        self._slider.setMinimum(0)
         self._slider.setMaximum(len(self._urls) - 1)
         self._slider.blockSignals(old_slider)
 
@@ -526,7 +528,11 @@ class ImageStack(qt.QMainWindow):
         :param index: url to be displayed
         :type: int
         """
-        if index >= len(self._urls):
+        if index < 0:
+            return
+        if self._urls is None:
+            return
+        elif index >= len(self._urls):
             raise ValueError('requested index out of bounds')
         else:
             return self.setCurrentUrl(self._urls[index])
