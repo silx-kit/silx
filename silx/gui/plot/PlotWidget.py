@@ -52,7 +52,7 @@ from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
-    from . import matplotlib
+    import silx.gui.utils.matplotlib  # noqa
 except ImportError:
     _logger.debug("matplotlib not available")
 
