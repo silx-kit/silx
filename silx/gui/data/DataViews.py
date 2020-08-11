@@ -406,7 +406,7 @@ class DataView(object):
         :param NamedTuple selection: Data selected
         :rtype: str
         """
-        if selection is None:
+        if selection is None or selection.filename is None:
             return None
         else:
             directory, filename = os.path.split(selection.filename)
