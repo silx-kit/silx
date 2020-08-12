@@ -415,6 +415,10 @@ class ImageStack(qt.QMainWindow):
 
         old_slider = self._slider.blockSignals(True)
         self._slider.setMaximum(len(self._urls) - 1)
+        if len(self._urls) > 0:
+            self._slider.setMinimum(0)
+        else:
+            self._slider.setMinimum(-1)
         self._slider.blockSignals(old_slider)
 
         if self.getCurrentUrl() in self._urls:
