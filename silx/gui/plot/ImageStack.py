@@ -150,7 +150,10 @@ class UrlList(qt.QWidget):
         self._listWidget.addItems(url_names)
 
     def _notifyCurrentUrlChanged(self, current, previous):
-        self.sigCurrentUrlChanged.emit(current.text())
+        if current is None:
+            pass
+        else:
+            self.sigCurrentUrlChanged.emit(current.text())
 
     def setUrl(self, url: DataUrl) -> None:
         assert isinstance(url, DataUrl)
@@ -162,6 +165,9 @@ class UrlList(qt.QWidget):
             item = sel_items[0]
             self._listWidget.setCurrentItem(item)
             self.sigCurrentUrlChanged.emit(item.text())
+
+    def clear(self):
+        self._listWidget.clear()
 
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
@@ -213,6 +219,9 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     def _propagateSignal(self, url):
         self.sigCurrentUrlChanged.emit(url)
+
+    def clear(self):
+        self._urlsTable.clear()
 
 
 class UrlLoader(qt.QThread):
@@ -326,6 +335,8 @@ class ImageStack(qt.QMainWindow):
         self._urlData = OrderedDict({})
         self._current_url = None
         self._plot.clear()
+        self._urlsTable.clear()
+        self._slider.setMaximum(-1)
 
     def _preFetch(self, urls: list) -> None:
         """Pre-fetch the given urls if necessary
@@ -414,6 +425,7 @@ class ImageStack(qt.QMainWindow):
         self._urlsTable.blockSignals(old_url_table)
 
         old_slider = self._slider.blockSignals(True)
+        self._slider.setMinimum(0)
         self._slider.setMaximum(len(self._urls) - 1)
         self._slider.blockSignals(old_slider)
 
@@ -516,7 +528,11 @@ class ImageStack(qt.QMainWindow):
         :param index: url to be displayed
         :type: int
         """
-        if index >= len(self._urls):
+        if index < 0:
+            return
+        if self._urls is None:
+            return
+        elif index >= len(self._urls):
             raise ValueError('requested index out of bounds')
         else:
             return self.setCurrentUrl(self._urls[index])
