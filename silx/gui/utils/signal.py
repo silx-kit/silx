@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2012 University of North Carolina at Chapel Hill, Luke Campagnola
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
