@@ -116,6 +116,8 @@ class Viewer(qt.QMainWindow):
         spliter.addWidget(rightPanel)
         spliter.addWidget(self.__dataPanel)
         spliter.setStretchFactor(1, 1)
+        spliter.setCollapsible(0, False)
+        spliter.setCollapsible(1, False)
         self.__splitter = spliter
 
         main_panel = qt.QWidget(self)
