@@ -89,10 +89,13 @@ def suite():
     return test_suite
 
 
-def run_tests():
-    """Run test complete test_suite"""
+def run_tests(*args, **kwargs):
+    """Run test complete test_suite
+
+    Provided arguments are passed to :class:`unittest.TextTestRunner`.
+    """
     test_options.configure()
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(*args, **kwargs)
     if not runner.run(suite()).wasSuccessful():
         print("Test suite failed")
         return 1
