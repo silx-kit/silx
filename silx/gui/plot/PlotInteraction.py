@@ -1350,12 +1350,11 @@ class FocusManager(StateMachine):
     """
     class Idle(State):
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                for eventHandler in self.machine.eventHandlers:
-                    requestFocus = eventHandler.handleEvent('press', x, y, btn)
-                    if requestFocus:
-                        self.goto('focus', eventHandler, btn)
-                        break
+            for eventHandler in self.machine.eventHandlers:
+                requestFocus = eventHandler.handleEvent('press', x, y, btn)
+                if requestFocus:
+                    self.goto('focus', eventHandler, btn)
+                    break
 
         def _processEvent(self, *args):
             for eventHandler in self.machine.eventHandlers:
@@ -1367,8 +1366,7 @@ class FocusManager(StateMachine):
             self._processEvent('move', x, y)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self._processEvent('release', x, y, btn)
+            self._processEvent('release', x, y, btn)
 
         def onWheel(self, x, y, angle):
             self._processEvent('wheel', x, y, angle)
@@ -1383,19 +1381,17 @@ class FocusManager(StateMachine):
             self.goto('idle')
 
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.focusBtns.add(btn)
-                self.eventHandler.handleEvent('press', x, y, btn)
+            self.focusBtns.add(btn)
+            self.eventHandler.handleEvent('press', x, y, btn)
 
         def onMove(self, x, y):
             self.eventHandler.handleEvent('move', x, y)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.focusBtns.discard(btn)
-                requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
-                if len(self.focusBtns) == 0 and not requestFocus:
-                    self.goto('idle')
+            self.focusBtns.discard(btn)
+            requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
+            if len(self.focusBtns) == 0 and not requestFocus:
+                self.goto('idle')
 
         def onWheel(self, x, y, angleInDegrees):
             self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
