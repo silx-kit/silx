@@ -1066,6 +1066,15 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         Available reduction functions are: 'mean' (default), 'count', 'sum'.
         """
 
+        DATA_BOUNDS = 'data_bounds'
+        """The expected bounds of the data in data coordinates.
+
+        A 2-tuple of 2-tuple: ((ymin, ymax), (xmin, xmax)).
+        This provides the expected data ranges in both dimensions.
+
+        WARNING: dimension 0 i.e., Y first.
+        """
+
     _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
         VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
         VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),

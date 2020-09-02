@@ -267,7 +267,8 @@ _RegularGridInfo = namedtuple(
 
 
 _HistogramInfo = namedtuple(
-    '_HistogramInfo', ['mean', 'count', 'sum', 'origin', 'scale', 'shape'])
+    '_HistogramInfo',
+    ['mean', 'count', 'sum', 'origin', 'scale', 'shape', 'ranges'])
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -332,6 +333,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     @docstring(ScatterVisualizationMixIn)
     def setVisualizationParameter(self, parameter, value):
+        parameter = self.VisualizationParameter.from_value(parameter)
+
         if super(Scatter, self).setVisualizationParameter(parameter, value):
             if parameter in (self.VisualizationParameter.GRID_BOUNDS,
                              self.VisualizationParameter.GRID_MAJOR_ORDER,
@@ -339,8 +342,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 self.__cacheRegularGridInfo = None
 
             if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
-                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION):
-                if parameter == self.VisualizationParameter.BINNED_STATISTIC_SHAPE:
+                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
+                             self.VisualizationParameter.DATA_BOUNDS):
+                if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                                 self.VisualizationParameter.DATA_BOUNDS):
                     self.__cacheHistogramInfo = None  # Clean-up cache
                 if self.getVisualization() is self.Visualization.BINNED_STATISTIC:
                     self._updateColormappedData()
@@ -369,6 +374,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         elif parameter is self.VisualizationParameter.BINNED_STATISTIC_SHAPE:
             info = self.__getHistogramInfo()
             return None if info is None else info.shape
+
+        elif parameter is self.VisualizationParameter.DATA_BOUNDS:
+            info = self.__getHistogramInfo()
+            return None if info is None else info.ranges
 
         else:
             raise NotImplementedError()
@@ -450,8 +459,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if not numpy.issubdtype(values.dtype, numpy.floating):
                 values = values.astype(numpy.float64)
 
-            ranges = (tuple(min_max(y, finite=True)),
-                      tuple(min_max(x, finite=True)))
+            ranges = self.getVisualizationParameter(
+                self.VisualizationParameter.DATA_BOUNDS)
+            if ranges is None:
+                ranges = (tuple(min_max(y, finite=True)),
+                          tuple(min_max(x, finite=True)))
             points = numpy.transpose(numpy.array((y, x)))
             counts, sums, bin_edges = Histogramnd(
                 points,
@@ -468,7 +480,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             self.__cacheHistogramInfo = _HistogramInfo(
                 mean=histo, count=counts, sum=sums,
-                origin=origin, scale=scale, shape=shape)
+                origin=origin, scale=scale, shape=shape, ranges=ranges)
 
         return self.__cacheHistogramInfo
 
