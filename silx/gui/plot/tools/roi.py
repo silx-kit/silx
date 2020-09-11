@@ -666,8 +666,9 @@ class RegionOfInterestManager(qt.QObject):
 
             if self._drawnROI is not None:
                 # Cancel ROI create
-                self.removeRoi(self._drawnROI)
+                roi = self._drawnROI
                 self._drawnROI = None
+                self.removeRoi(roi)
 
             plot = self.parent()
             if plot is not None:
