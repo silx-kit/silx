@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2018 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ cimport libc.string
 
 cimport cython
 
-include "../../utils/_have_openmp.pxi"
+from ...utils._have_openmp cimport COMPILED_WITH_OPENMP
 """Store in the module if it was compiled with OpenMP"""
 
 cdef double EPSILON = numpy.finfo(numpy.float64).eps
