@@ -1,6 +1,25 @@
 Change Log
 ==========
 
+0.13.2: 2020/09/16
+------------------
+
+Minor release:
+
+* silx view application: Prevent collapsing browsing panel, Added `-f` command line option (PR #3176)
+
+* `silx.gui`:
+
+  * `silx.gui.data`: Fixed `DataViews.titleForSelection` method (PR #3171).
+  * `silx.gui.plot.items`: Added `DATA_BOUNDS` visualization parameter for `Scatter` item histogram bounds (PR #3180)
+  * `silx.gui.plot.PlotWidget`: Fixed support of curves with infinite data (PR #3175)
+  * `silx.gui.utils.glutils`: Fixed `isOpenGLAvailable` function (PR #3184)
+
+* Documentation:
+
+  * Update silx view command line options documentation (PR #3173)
+  * Update version number and changelog (PR #3190)
+
 0.13.1: 2020/07/22
 ------------------
 
