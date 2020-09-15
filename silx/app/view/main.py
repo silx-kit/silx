@@ -57,7 +57,7 @@ def createParser():
         default=False,
         help='Use OpenGL for plots (instead of matplotlib)')
     parser.add_argument(
-        '--fresh',
+        '-f', '--fresh',
         dest="fresh_preferences",
         action="store_true",
         default=False,

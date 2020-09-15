@@ -45,6 +45,7 @@ import six
 
 from ....utils.deprecation import deprecated
 from ....utils.enum import Enum as _Enum
+from ....math.combo import min_max
 from ... import qt
 from ... import colors
 from ...colors import Colormap
@@ -1066,6 +1067,16 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         Available reduction functions are: 'mean' (default), 'count', 'sum'.
         """
 
+        DATA_BOUNDS_HINT = 'data_bounds_hint'
+        """The expected bounds of the data in data coordinates.
+
+        A 2-tuple of 2-tuple: ((ymin, ymax), (xmin, xmax)).
+        This provides a hint for the data ranges in both dimensions.
+        It is eventually enlarged with actually data ranges.
+
+        WARNING: dimension 0 i.e., Y first.
+        """
+
     _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
         VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
         VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
@@ -1347,15 +1358,11 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
             else:
                 x, y, _xerror, _yerror = data
 
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore', category=RuntimeWarning)
-                # Ignore All-NaN slice encountered
-                self._boundsCache[(xPositive, yPositive)] = (
-                    numpy.nanmin(x),
-                    numpy.nanmax(x),
-                    numpy.nanmin(y),
-                    numpy.nanmax(y)
-                )
+            xmin, xmax = min_max(x, finite=True)
+            ymin, ymax = min_max(y, finite=True)
+            self._boundsCache[(xPositive, yPositive)] = tuple([
+                (bound if bound is not None else numpy.nan)
+                for bound in (xmin, xmax, ymin, ymax)])
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):

@@ -438,6 +438,21 @@ class TestPlotCurve(PlotWidgetTestCase):
 
         self.plot.setActiveCurveHandling(False)
 
+    def testPlotCurveInfinite(self):
+        """Test plot curves with not finite data"""
+        tests = {
+            'y all not finite': ([0, 1, 2], [numpy.inf, numpy.nan, -numpy.inf]),
+            'x all not finite': ([numpy.inf, numpy.nan, -numpy.inf], [0, 1, 2]),
+            'x some inf': ([0, numpy.inf, 2], [0, 1, 2]),
+            'y some inf': ([0, 1, 2], [0, numpy.inf, 2])
+        }
+        for name, args in tests.items():
+            with self.subTest(name):
+                self.plot.addCurve(*args)
+                self.plot.resetZoom()
+                self.qapp.processEvents()
+                self.plot.clear()
+
     def testPlotCurveColorFloat(self):
         color = numpy.array(numpy.random.random(3 * 1000),
                             dtype=numpy.float32).reshape(1000, 3)
