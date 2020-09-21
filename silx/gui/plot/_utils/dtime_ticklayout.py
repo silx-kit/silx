@@ -330,8 +330,12 @@ def niceDateTimeElement(value, unit, isRound=False):
 def findStartDate(dMin, dMax, nTicks):
     """ Rounds a date down to the nearest nice number of ticks
     """
-    assert dMax > dMin, \
+    assert dMax >= dMin, \
         "dMin ({}) should come before dMax ({})".format(dMin, dMax)
+
+    if dMin == dMax:
+        # Fallback when range is smaller than microsecond resolution
+        return dMin, 1, DtUnit.MICRO_SECONDS
 
     delta = dMax - dMin
     lengthSec = delta.total_seconds()
