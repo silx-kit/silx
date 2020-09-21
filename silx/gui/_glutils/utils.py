@@ -35,6 +35,7 @@ import numpy
 
 _GL_TYPE_SIZES = {
     gl.GL_FLOAT: 4,
+    gl.GL_HALF_FLOAT: 2,
     gl.GL_BYTE: 1,
     gl.GL_SHORT: 2,
     gl.GL_INT: 4,
@@ -51,6 +52,7 @@ def sizeofGLType(type_):
 
 _TYPE_CONVERTER = {
     numpy.dtype(numpy.float32): gl.GL_FLOAT,
+    numpy.dtype(numpy.float16): gl.GL_HALF_FLOAT,
     numpy.dtype(numpy.int8): gl.GL_BYTE,
     numpy.dtype(numpy.int16): gl.GL_SHORT,
     numpy.dtype(numpy.int32): gl.GL_INT,

@@ -217,6 +217,7 @@ class GLPlotColormap(_GLPlotData2D):
 
     _INTERNAL_FORMATS = {
         numpy.dtype(numpy.float32): gl.GL_R32F,
+        numpy.dtype(numpy.float16): gl.GL_R16F,
         # Use normalized integer for unsigned int formats
         numpy.dtype(numpy.uint16): gl.GL_R16,
         numpy.dtype(numpy.uint8): gl.GL_R8,
