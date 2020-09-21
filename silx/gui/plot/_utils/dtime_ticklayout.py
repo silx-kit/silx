@@ -381,9 +381,9 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
     """
     if (unit == DtUnit.YEARS or unit == DtUnit.MONTHS or
         unit == DtUnit.MICRO_SECONDS):
-
-        # Month and years will be converted to integers
-        assert int(step) > 0, "Integer value or tickstep is 0"
+        # No support for fractional month or year and resolution is microsecond
+        # In those cases, make sure the step is at least 1
+        step = max(1, step)
     else:
         assert step > 0, "tickstep is 0"
 
