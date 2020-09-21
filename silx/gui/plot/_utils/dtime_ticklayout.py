@@ -166,7 +166,7 @@ def setDateElement(dateTime, value, unit):
 
 
 def roundToElement(dateTime, unit):
-    """ Returns a copy of dateTime with the
+    """ Returns a copy of dateTime rounded to given unit
 
     :param datetime.datetime: date time object
     :param DtUnit unit: unit
