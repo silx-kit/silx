@@ -338,7 +338,7 @@ def findStartDate(dMin, dMax, nTicks):
     _logger.debug("findStartDate: {}, {} (duration = {} sec, {} days)"
                   .format(dMin, dMax, lengthSec, lengthSec / SECONDS_PER_DAY))
 
-    length, unit = bestUnit(delta.total_seconds())
+    length, unit = bestUnit(lengthSec)
     niceLength = niceDateTimeElement(length, unit)
 
     _logger.debug("Length: {:8.3f} {} (nice = {})"
