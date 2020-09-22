@@ -1416,6 +1416,20 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         """Test coverage on setAxesDisplayed(True)"""
         self.plot.setAxesDisplayed(True)
 
+    def testPlotMargins(self):
+        """Test PlotWidget's getPlotMargins and setPlotMargins"""
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+        margins = self.plot.getPlotMargins()
+        self.assertEqual(margins, (.15, .1, .1, .15))
+
+        for margins in ((0., 0., 0., 0.), (.15, .1, .1, .15)):
+            with self.subTest(margins=margins):
+                self.plot.setPlotMargins(*margins)
+                self.qapp.processEvents()
+                self.assertEqual(self.plot.getPlotMargins(), margins)
+
     def testBoundingRectItem(self):
         item = BoundingRect()
         item.setBounds((-1000, 1000, -2000, 2000))
