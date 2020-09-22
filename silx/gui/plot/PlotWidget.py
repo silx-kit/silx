@@ -260,6 +260,10 @@ class PlotWidget(qt.QMainWindow):
         self._grid = None
         self._graphTitle = ''
 
+        # Set plot margins
+        self.__plotMargins = self._NO_AXES_PLOT_MARGINS
+        self.setPlotMargins(*self._DEFAULT_PLOT_MARGINS)
+
         self.setGraphTitle()
         self.setGraphXLabel()
         self.setGraphYLabel()
@@ -2406,17 +2410,56 @@ class PlotWidget(qt.QMainWindow):
         return self._yAxis if axis == "left" else self._yRightAxis
 
     def setAxesDisplayed(self, displayed):
-        """Display or not the axes.
+        # TODO this can be deprecated in favor of setPlotMargins
+        if displayed:
+            self.setPlotMargins(*self._DEFAULT_PLOT_MARGINS)
+        else:
+            self.setPlotMargins(*self._NO_AXES_PLOT_MARGINS)
 
-        :param bool displayed: If `True` axes are displayed. If `False` axes
-            are not anymore visible and the margin used for them is removed.
-        """
-        self._backend.setAxesDisplayed(displayed)
-        self._setDirtyPlot()
-        self._sigAxesVisibilityChanged.emit(displayed)
-
+    @deprecated(replacement='getPlotMargins', since_version='0.14')
     def _isAxesDisplayed(self):
-        return self._backend.isAxesDisplayed()
+        return self._backend.getPlotMargins() != self._NO_AXES_PLOT_MARGINS
+
+    _DEFAULT_PLOT_MARGINS = .15, .1, .1, .15
+    """Default values of plot margins ratios"""
+
+    _NO_AXES_PLOT_MARGINS = 0., 0., 0., 0.
+    """Values of plot margins when there is no axes displayed"""
+
+    def setPlotMargins(
+            self, left: float, top: float, right: float, bottom: float):
+        """Set ratios of margins surrounding data plot area.
+
+        All ratios must be within [0., 1.].
+        Sums of ratios of opposed side must be < 1.
+
+        :param float left: Left-side margin ratio.
+        :param float top: Top margin ratio
+        :param float right: Right-side margin ratio
+        :param float bottom: Bottom margin ratio
+        :raises ValueError:
+        """
+        for value in (left, top, right, bottom):
+            if value < 0. or value > 1.:
+                raise ValueError("Margin ratios must be within [0., 1.]")
+        if left + right >= 1. or top + bottom >= 1.:
+            raise ValueError("Sum of ratios of opposed sides >= 1")
+        margins = left, top, right, bottom
+
+        if margins != self.__plotMargins:
+            self.__plotMargins = margins
+            self._backend.setPlotMargins(*margins)
+            self._setDirtyPlot()
+            self._sigAxesVisibilityChanged.emit(
+                self.getPlotMargins() != self._NO_AXES_PLOT_MARGINS)
+
+    def getPlotMargins(self):
+        """Returns ratio of margins surrounding data plot area.
+
+        :return: (left, top, right, bottom)
+        :rtype: List[float]
+        """
+        return self.__plotMargins
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
