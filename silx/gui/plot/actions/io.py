@@ -37,7 +37,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/07/2018"
+__date__ = "23/09/2020"
 
 from . import PlotAction
 from silx.io.utils import save1D, savespec, NEXUS_HDF5_EXT
@@ -296,11 +296,44 @@ class SaveAction(PlotAction):
         if nameFilter == self.CURVE_FILTER_NXDATA:
             return self._saveCurveAsNXdata(curve, filename)
 
+        x_data = curve.getXData(copy=False)
+        y_data = curve.getYData(copy=False)
+        x_err = curve.getXErrorData(copy=False)
+        y_err = curve.getYErrorData(copy=False)
+        labels = []
+        data = []
+        if x_err is not None:
+            if numpy.isscalar(x_err):
+                data.append(numpy.zeros_like(y_data) + x_err)
+                labels.append(xlabel + "_err")
+            elif x_err.ndim == 1:
+                data.append(x_err)
+                labels.append(xlabel + "_err")
+            elif x_err.ndim == 2:
+                data.append(x_err[0])
+                labels.append(xlabel + "_err_sup")
+                data.append(x_err[1])
+                labels.append(xlabel + "_err_inf")
+        data.append(y_data)
+        labels.append(ylabel)
+        if y_err is not None:
+            if numpy.isscalar(y_err):
+                data.append(numpy.zeros_like(y_data) + y_err)
+                labels.append(ylabel + "_err")
+            elif y_err.ndim == 1:
+                data.append(y_err)
+                labels.append(ylabel + "_err")
+            elif y_err.ndim == 2:
+                data.append(y_err[0])
+                labels.append(ylabel + "_err_sup")
+                data.append(y_err[1])
+                labels.append(ylabel + "_err_inf")
+
         try:
             save1D(filename,
-                   curve.getXData(copy=False),
-                   curve.getYData(copy=False),
-                   xlabel, [ylabel],
+                   x_data,
+                   data,
+                   xlabel, labels,
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -629,7 +662,7 @@ class SaveAction(PlotAction):
             # Check for correct file extension
             # Extract file extensions as .something
             extensions = [ext[ext.find('.'):] for ext in
-                          nameFilter[nameFilter.find('(')+1:-1].split()]
+                          nameFilter[nameFilter.find('(') + 1:-1].split()]
             for ext in extensions:
                 if (len(filename) > len(ext) and
                         filename[-len(ext):].lower() == ext.lower()):
