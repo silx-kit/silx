@@ -474,19 +474,18 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             style = self.getCurrentStyle()
             self._updatedStyle(event, style)
         else:
-            hilighted = self.isHighlighted()
-            if hilighted:
-                if event == items.ItemChangedType.HIGHLIGHTED_STYLE:
-                    style = self.getCurrentStyle()
-                    self._updatedStyle(event, style)
-            else:
-                if event in [items.ItemChangedType.COLOR,
-                             items.ItemChangedType.LINE_STYLE,
-                             items.ItemChangedType.LINE_WIDTH,
-                             items.ItemChangedType.SYMBOL,
-                             items.ItemChangedType.SYMBOL_SIZE]:
-                    style = self.getCurrentStyle()
-                    self._updatedStyle(event, style)
+            styleEvents = [items.ItemChangedType.COLOR,
+                           items.ItemChangedType.LINE_STYLE,
+                           items.ItemChangedType.LINE_WIDTH,
+                           items.ItemChangedType.SYMBOL,
+                           items.ItemChangedType.SYMBOL_SIZE]
+            if self.isHighlighted():
+                styleEvents.append(items.ItemChangedType.HIGHLIGHTED_STYLE)
+
+            if event in styleEvents:
+                style = self.getCurrentStyle()
+                self._updatedStyle(event, style)
+
         super(RegionOfInterest, self)._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
