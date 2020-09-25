@@ -501,7 +501,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         color=item['color'],
                         dash2ndColor=item['linebgcolor'],
                         width=item['linewidth'])
-                    lines.render(self.matScreenProj)
+                    context.matrix = self.matScreenProj
+                    lines.render(context)
 
             elif isinstance(item, _MarkerItem):
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
@@ -539,7 +540,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             style=item['linestyle'],
                             color=item['color'],
                             width=item['linewidth'])
-                        lines.render(self.matScreenProj)
+                        context.matrix = self.matScreenProj
+                        lines.render(context)
 
                     else:  # yCoord is None: vertical line in data space
                         yRange = self._plotFrame.dataRanges[1 if yAxis == 'left' else 2]
@@ -564,7 +566,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             style=item['linestyle'],
                             color=item['color'],
                             width=item['linewidth'])
-                        lines.render(self.matScreenProj)
+                        context.matrix = self.matScreenProj
+                        lines.render(context)
 
                 else:
                     xmin, xmax = self._plot.getXAxis().getLimits()

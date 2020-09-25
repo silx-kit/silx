@@ -173,10 +173,10 @@ class _Fill2D(object):
 
             self._xFillVboData, self._yFillVboData = vertexBuffer(points.T)
 
-    def render(self, matrix):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param RenderContext context:
         """
         self.prepare()
 
@@ -187,7 +187,7 @@ class _Fill2D(object):
 
         gl.glUniformMatrix4fv(
             self._PROGRAM.uniforms['matrix'], 1, gl.GL_TRUE,
-            numpy.dot(matrix,
+            numpy.dot(context.matrix,
                       mat4Translate(*self.offset)).astype(numpy.float32))
 
         gl.glUniform4f(self._PROGRAM.uniforms['color'], *self.color)
@@ -405,10 +405,10 @@ class GLLines2D(object):
         """OpenGL context initialization"""
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
 
-    def render(self, matrix):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param RenderContext context:
         """
         style = self.style
         if style is None:
@@ -467,7 +467,7 @@ class GLLines2D(object):
         if self.width != 1:
             gl.glEnable(gl.GL_LINE_SMOOTH)
 
-        matrix = numpy.dot(matrix,
+        matrix = numpy.dot(context.matrix,
                            mat4Translate(*self.offset)).astype(numpy.float32)
         gl.glUniformMatrix4fv(program.uniforms['matrix'],
                               1, gl.GL_TRUE, matrix)
@@ -834,10 +834,10 @@ class _Points2D(object):
         if majorVersion >= 3:  # OpenGL 3
             gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
-    def render(self, matrix):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param RenderContext context:
         """
         if self.marker is None:
             return
@@ -845,7 +845,7 @@ class _Points2D(object):
         program = self._getProgram(self.marker)
         program.use()
 
-        matrix = numpy.dot(matrix,
+        matrix = numpy.dot(context.matrix,
                            mat4Translate(*self.offset)).astype(numpy.float32)
         gl.glUniformMatrix4fv(program.uniforms['matrix'], 1, gl.GL_TRUE, matrix)
 
@@ -1022,17 +1022,17 @@ class _ErrorBars(object):
             self._yErrPoints.yVboData.offset += (yAttrib.itemsize *
                                                  yAttrib.size // 2)
 
-    def render(self, matrix):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
+        :param RenderContext context:
         """
         self.prepare()
 
         if self._attribs is not None:
-            self._lines.render(matrix)
-            self._xErrPoints.render(matrix)
-            self._yErrPoints.render(matrix)
+            self._lines.render(context)
+            self._xErrPoints.render(context)
+            self._yErrPoints.render(context)
 
     def discard(self):
         """Release VBOs"""
@@ -1228,10 +1228,10 @@ class GLPlotCurve2D(GLPlotItem):
         """
         self.prepare()
         if self.fill is not None:
-            self.fill.render(context.matrix)
-        self._errorBars.render(context.matrix)
-        self.lines.render(context.matrix)
-        self.points.render(context.matrix)
+            self.fill.render(context)
+        self._errorBars.render(context)
+        self.lines.render(context)
+        self.points.render(context)
 
     def discard(self):
         """Release VBOs"""
