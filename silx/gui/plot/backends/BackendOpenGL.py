@@ -404,6 +404,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if plotWidth <= 2 or plotHeight <= 2:
                 return
 
+            # Sync plot frame with window
+            self._plotFrame.devicePixelRatio = self.getDevicePixelRatio()
             # self._paintDirectGL()
             self._paintFBOGL()
 
@@ -526,7 +528,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                 item['text'], x, y,
                                 color=item['color'],
                                 bgColor=(1., 1., 1., 0.5),
-                                align=glutils.RIGHT, valign=glutils.BOTTOM)
+                                align=glutils.RIGHT,
+                                valign=glutils.BOTTOM,
+                                devicePixelRatio=self.getDevicePixelRatio())
                             labels.append(label)
 
                         width = self._plotFrame.size[0]
@@ -545,7 +549,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                 item['text'], x, y,
                                 color=item['color'],
                                 bgColor=(1., 1., 1., 0.5),
-                                align=glutils.LEFT, valign=glutils.TOP)
+                                align=glutils.LEFT,
+                                valign=glutils.TOP,
+                                devicePixelRatio=self.getDevicePixelRatio())
                             labels.append(label)
 
                         height = self._plotFrame.size[1]
@@ -577,7 +583,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             item['text'], x, y,
                             color=item['color'],
                             bgColor=(1., 1., 1., 0.5),
-                            align=glutils.LEFT, valign=valign)
+                            align=glutils.LEFT,
+                            valign=valign,
+                            devicePixelRatio=self.getDevicePixelRatio())
                         labels.append(label)
 
                     # For now simple implementation: using a curve for each marker
