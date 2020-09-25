@@ -249,50 +249,43 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def mousePressEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mousePressEvent(event)
-        xPixel = event.x() * self.getDevicePixelRatio()
-        yPixel = event.y() * self.getDevicePixelRatio()
-        btn = self._MOUSE_BTNS[event.button()]
-        self._plot.onMousePress(xPixel, yPixel, btn)
+        self._plot.onMousePress(
+            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def mouseMoveEvent(self, event):
-        xPixel = event.x() * self.getDevicePixelRatio()
-        yPixel = event.y() * self.getDevicePixelRatio()
-
-        # Handle crosshair
-        inXPixel, inYPixel = self._mouseInPlotArea(xPixel, yPixel)
-        isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
+        qtPos = event.x(), event.y()
 
         previousMousePosInPixels = self._mousePosInPixels
-        self._mousePosInPixels = (xPixel, yPixel) if isCursorInPlot else None
+        if qtPos == self._mouseInPlotArea(*qtPos):
+            devicePixelRatio = self.getDevicePixelRatio()
+            devicePos = qtPos[0] * devicePixelRatio, qtPos[1] * devicePixelRatio
+            self._mousePosInPixels = devicePos  # Mouse in plot area
+        else:
+            self._mousePosInPixels = None  # Mouse outside plot area
+
         if (self._crosshairCursor is not None and
                 previousMousePosInPixels != self._mousePosInPixels):
             # Avoid replot when cursor remains outside plot area
             self._plot._setDirtyPlot(overlayOnly=True)
 
-        self._plot.onMouseMove(xPixel, yPixel)
+        self._plot.onMouseMove(*qtPos)
         event.accept()
 
     def mouseReleaseEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mouseReleaseEvent(event)
-        xPixel = event.x() * self.getDevicePixelRatio()
-        yPixel = event.y() * self.getDevicePixelRatio()
-
-        btn = self._MOUSE_BTNS[event.button()]
-        self._plot.onMouseRelease(xPixel, yPixel, btn)
+        self._plot.onMouseRelease(
+            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def wheelEvent(self, event):
-        xPixel = event.x() * self.getDevicePixelRatio()
-        yPixel = event.y() * self.getDevicePixelRatio()
-
         if hasattr(event, 'angleDelta'):  # Qt 5
             delta = event.angleDelta().y()
         else:  # Qt 4 support
             delta = event.delta()
         angleInDegrees = delta / 8.
-        self._plot.onMouseWheel(xPixel, yPixel, angleInDegrees)
+        self._plot.onMouseWheel(event.x(), event.y(), angleInDegrees)
         event.accept()
 
     def leaveEvent(self, _):
@@ -455,21 +448,25 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 if item['shape'] == 'hline':
                     width = self._plotFrame.size[0]
-                    _, yPixel = self._plot.dataToPixel(
-                        None, item['y'], axis='left', check=False)
+                    _, yPixel = self._plotFrame.dataToPixel(
+                        0.5 * sum(self._plotFrame.dataRanges[0]),
+                        item['y'],
+                        axis='left')
                     points = numpy.array(((0., yPixel), (width, yPixel)),
                                          dtype=numpy.float32)
 
                 elif item['shape'] == 'vline':
-                    xPixel, _ = self._plot.dataToPixel(
-                        item['x'], None, axis='left', check=False)
+                    xPixel, _ = self._plotFrame.dataToPixel(
+                        item['x'],
+                        0.5 * sum(self._plotFrame.dataRanges[1]),
+                        axis='left')
                     height = self._plotFrame.size[1]
                     points = numpy.array(((xPixel, 0), (xPixel, height)),
                                          dtype=numpy.float32)
 
                 else:
                     points = numpy.array([
-                        self._plot.dataToPixel(x, y, axis='left', check=False)
+                        self._plotFrame.dataToPixel(x, y, axis='left')
                         for (x, y) in zip(item['x'], item['y'])])
 
                 # Draw the fill
@@ -515,10 +512,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     continue
 
                 if xCoord is None or yCoord is None:
-                    pixelPos = self._plot.dataToPixel(
-                        xCoord, yCoord, axis=yAxis, check=False)
-
                     if xCoord is None:  # Horizontal line in data space
+                        pixelPos = self._plotFrame.dataToPixel(
+                            0.5 * sum(self._plotFrame.dataRanges[0]),
+                            yCoord,
+                            axis=yAxis)
+
                         if item['text'] is not None:
                             x = self._plotFrame.size[0] - \
                                 self._plotFrame.margins.right - pixelOffset
@@ -541,6 +540,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines.render(self.matScreenProj)
 
                     else:  # yCoord is None: vertical line in data space
+                        yRange = self._plotFrame.dataRanges[1 if yAxis == 'left' else 2]
+                        pixelPos = self._plotFrame.dataToPixel(
+                            xCoord, 0.5 * sum(yRange), axis=yAxis)
+
                         if item['text'] is not None:
                             x = pixelPos[0] + pixelOffset
                             y = self._plotFrame.margins.top + pixelOffset
@@ -562,11 +565,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines.render(self.matScreenProj)
 
                 else:
-                    pixelPos = self._plot.dataToPixel(
-                        xCoord, yCoord, axis=yAxis, check=True)
-                    if pixelPos is None:
+                    xmin, xmax = self._plot.getXAxis().getLimits()
+                    ymin, ymax = self._plot.getYAxis(axis=yAxis).getLimits()
+                    if not xmin < xCoord < xmax or not ymin < yCoord < ymax:
                         # Do not render markers outside visible plot area
                         continue
+                    pixelPos = self._plotFrame.dataToPixel(
+                        xCoord, yCoord, axis=yAxis)
 
                     if isYInverted:
                         valign = glutils.BOTTOM
@@ -1004,13 +1009,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     _PICK_OFFSET = 3  # Offset in pixel used for picking
 
     def _mouseInPlotArea(self, x, y):
-        xPlot = numpy.clip(
-            x, self._plotFrame.margins.left,
-            self._plotFrame.size[0] - self._plotFrame.margins.right - 1)
-        yPlot = numpy.clip(
-            y, self._plotFrame.margins.top,
-            self._plotFrame.size[1] - self._plotFrame.margins.bottom - 1)
-        return xPlot, yPlot
+        """Returns closest visible position in the plot.
+
+        This is performed in Qt widget pixel, not device pixel.
+
+        :param float x: X coordinate in Qt widget pixel
+        :param float y: Y coordinate in Qt widget pixel
+        :return: (x, y) closest point in the plot.
+        :rtype: List[float]
+        """
+        left, top, width, height = self.getPlotBoundsInPixels()
+        return (numpy.clip(x, left, left + width - 1),  # TODO -1?
+                numpy.clip(y, top, top + height - 1))
 
     def __pickCurves(self, item, x, y):
         """Perform picking on a curve item.
@@ -1065,6 +1075,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                          xPickMax, yPickMax)
 
     def pickItem(self, x, y, item):
+        # Picking is performed in Qt widget pixels not device pixels
         dataPos = self._plot.pixelToData(x, y, axis='left', check=True)
         if dataPos is None:
             return None  # Outside plot area
@@ -1350,10 +1361,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):
-        return self._plotFrame.dataToPixel(x, y, axis)
+        result = self._plotFrame.dataToPixel(x, y, axis)
+        if result is None:
+            return None
+        else:
+            devicePixelRatio = self.getDevicePixelRatio()
+            return tuple(value/devicePixelRatio for value in result)
 
     def pixelToData(self, x, y, axis):
-        return self._plotFrame.pixelToData(x, y, axis)
+        devicePixelRatio = self.getDevicePixelRatio()
+        return self._plotFrame.pixelToData(
+            x * devicePixelRatio, y * devicePixelRatio, axis)
 
     def getPlotBoundsInPixels(self):
         devicePixelRatio = self.getDevicePixelRatio()
