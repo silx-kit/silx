@@ -1221,19 +1221,17 @@ class GLPlotCurve2D(GLPlotItem):
             self.colorVboData = cAttrib
             self.useColorVboData = cAttrib is not None
 
-    def render(self, matrix, isXLog, isYLog):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
-        :param bool isXLog:
-        :param bool isYLog:
+        :param RenderContext context: Rendering information
         """
         self.prepare()
         if self.fill is not None:
-            self.fill.render(matrix)
-        self._errorBars.render(matrix)
-        self.lines.render(matrix)
-        self.points.render(matrix)
+            self.fill.render(context.matrix)
+        self._errorBars.render(context.matrix)
+        self.lines.render(context.matrix)
+        self.points.render(context.matrix)
 
     def discard(self):
         """Release VBOs"""

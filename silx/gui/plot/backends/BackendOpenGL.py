@@ -420,6 +420,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         labels = []
         pixelOffset = 3
 
+        context = glutils.RenderContext(isXLog=isXLog, isYLog=isYLog)
+
         for plotItem in self.getItemsFromBackToFront(
                 condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
             if plotItem._backendRenderer is None:
@@ -431,12 +433,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 gl.glViewport(self._plotFrame.margins.left,
                               self._plotFrame.margins.bottom,
                               plotWidth, plotHeight)
-
+                # Set matrix
                 if item.yaxis == 'right':
-                    matrix = self._plotFrame.transformedDataY2ProjMat
+                    context.matrix = self._plotFrame.transformedDataY2ProjMat
                 else:
-                    matrix = self._plotFrame.transformedDataProjMat
-                item.render(matrix, isXLog, isYLog)
+                    context.matrix = self._plotFrame.transformedDataProjMat
+                item.render(context)
 
             elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
