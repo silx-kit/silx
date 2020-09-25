@@ -261,8 +261,9 @@ class PlotWidget(qt.QMainWindow):
         self._graphTitle = ''
 
         # Set axes margins
-        self.__axesMargins = self._NO_AXES_MARGINS
-        self.setAxesMargins(*self._DEFAULT_AXES_MARGINS)
+        self.__axesDisplayed = True
+        self.__axesMargins = 0., 0., 0., 0.
+        self.setAxesMargins(.15, .1, .1, .15)
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -2415,19 +2416,17 @@ class PlotWidget(qt.QMainWindow):
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
-        if displayed:
-            self.setAxesMargins(*self._DEFAULT_AXES_MARGINS)
-        else:
-            self.setAxesMargins(*self._NO_AXES_MARGINS)
+        if displayed != self.__axesDisplayed:
+            self.__axesDisplayed = displayed
+            if displayed:
+                self._backend.setAxesMargins(*self.__axesMargins)
+            else:
+                self._backend.setAxesMargins(0., 0., 0., 0.)
+            self._setDirtyPlot()
+            self._sigAxesVisibilityChanged.emit(displayed)
 
     def _isAxesDisplayed(self):
-        return self._backend.getAxesMargins() != self._NO_AXES_MARGINS
-
-    _DEFAULT_AXES_MARGINS = .15, .1, .1, .15
-    """Default values of plot margins ratios"""
-
-    _NO_AXES_MARGINS = 0., 0., 0., 0.
-    """Values of plot margins when there is no axes displayed"""
+        return self.__axesDisplayed
 
     def setAxesMargins(
             self, left: float, top: float, right: float, bottom: float):
@@ -2451,10 +2450,9 @@ class PlotWidget(qt.QMainWindow):
 
         if margins != self.__axesMargins:
             self.__axesMargins = margins
-            self._backend.setAxesMargins(*margins)
-            self._setDirtyPlot()
-            self._sigAxesVisibilityChanged.emit(
-                self.getAxesMargins() != self._NO_AXES_MARGINS)
+            if self._isAxesDisplayed():  # Only apply if axes are displayed
+                self._backend.setAxesMargins(*margins)
+                self._setDirtyPlot()
 
     def getAxesMargins(self):
         """Returns ratio of margins surrounding data plot area.
