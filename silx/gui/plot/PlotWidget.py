@@ -260,9 +260,9 @@ class PlotWidget(qt.QMainWindow):
         self._grid = None
         self._graphTitle = ''
 
-        # Set plot margins
-        self.__plotMargins = self._NO_AXES_PLOT_MARGINS
-        self.setAxesMargins(*self._DEFAULT_PLOT_MARGINS)
+        # Set axes margins
+        self.__axesMargins = self._NO_AXES_MARGINS
+        self.setAxesMargins(*self._DEFAULT_AXES_MARGINS)
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -2416,17 +2416,17 @@ class PlotWidget(qt.QMainWindow):
             are not anymore visible and the margin used for them is removed.
         """
         if displayed:
-            self.setAxesMargins(*self._DEFAULT_PLOT_MARGINS)
+            self.setAxesMargins(*self._DEFAULT_AXES_MARGINS)
         else:
-            self.setAxesMargins(*self._NO_AXES_PLOT_MARGINS)
+            self.setAxesMargins(*self._NO_AXES_MARGINS)
 
     def _isAxesDisplayed(self):
-        return self._backend.getAxesMargins() != self._NO_AXES_PLOT_MARGINS
+        return self._backend.getAxesMargins() != self._NO_AXES_MARGINS
 
-    _DEFAULT_PLOT_MARGINS = .15, .1, .1, .15
+    _DEFAULT_AXES_MARGINS = .15, .1, .1, .15
     """Default values of plot margins ratios"""
 
-    _NO_AXES_PLOT_MARGINS = 0., 0., 0., 0.
+    _NO_AXES_MARGINS = 0., 0., 0., 0.
     """Values of plot margins when there is no axes displayed"""
 
     def setAxesMargins(
@@ -2449,12 +2449,12 @@ class PlotWidget(qt.QMainWindow):
             raise ValueError("Sum of ratios of opposed sides >= 1")
         margins = left, top, right, bottom
 
-        if margins != self.__plotMargins:
-            self.__plotMargins = margins
+        if margins != self.__axesMargins:
+            self.__axesMargins = margins
             self._backend.setAxesMargins(*margins)
             self._setDirtyPlot()
             self._sigAxesVisibilityChanged.emit(
-                self.getAxesMargins() != self._NO_AXES_PLOT_MARGINS)
+                self.getAxesMargins() != self._NO_AXES_MARGINS)
 
     def getAxesMargins(self):
         """Returns ratio of margins surrounding data plot area.
@@ -2462,7 +2462,7 @@ class PlotWidget(qt.QMainWindow):
         :return: (left, top, right, bottom)
         :rtype: List[float]
         """
-        return self.__plotMargins
+        return self.__axesMargins
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
