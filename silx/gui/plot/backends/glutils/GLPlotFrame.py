@@ -157,6 +157,12 @@ class PlotAxis(object):
             self._dirtyTicks()
 
     @property
+    def devicePixelRatio(self):
+        """Returns the ratio between qt pixels and device pixels."""
+        plotFrame = self._plotFrameRef()
+        return plotFrame.devicePixelRatio if plotFrame is not None else 1.
+
+    @property
     def title(self):
         """The text label associated with this axis as a str in latin-1."""
         return self._title
@@ -208,10 +214,9 @@ class PlotAxis(object):
         labels = []
         tickLabelsSize = [0., 0.]
 
-        plotFrame = self._plotFrameRef()
-        devicePixelRatio = plotFrame.devicePixelRatio if plotFrame is not None else 1.
-
         xTickLength, yTickLength = self._tickLength
+        xTickLength *= self.devicePixelRatio
+        yTickLength *= self.devicePixelRatio
         for (xPixel, yPixel), dataPos, text in self.ticks:
             if text is None:
                 tickScale = 0.5
@@ -224,7 +229,7 @@ class PlotAxis(object):
                                y=yPixel - yTickLength,
                                align=self._labelAlign,
                                valign=self._labelVAlign,
-                               devicePixelRatio=devicePixelRatio)
+                               devicePixelRatio=self.devicePixelRatio)
 
                 width, height = label.size
                 if width > tickLabelsSize[0]:
@@ -258,7 +263,7 @@ class PlotAxis(object):
                            align=self._titleAlign,
                            valign=self._titleVAlign,
                            rotate=self._titleRotate,
-                           devicePixelRatio=devicePixelRatio)
+                           devicePixelRatio=self.devicePixelRatio)
         labels.append(axisTitle)
 
         return vertices, labels
@@ -331,7 +336,7 @@ class PlotAxis(object):
                 xScale = (x1 - x0) / (dataMax - dataMin)
                 yScale = (y1 - y0) / (dataMax - dataMin)
 
-                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2))
+                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2)) / self.devicePixelRatio
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
