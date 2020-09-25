@@ -2410,13 +2410,16 @@ class PlotWidget(qt.QMainWindow):
         return self._yAxis if axis == "left" else self._yRightAxis
 
     def setAxesDisplayed(self, displayed):
-        # TODO this can be deprecated in favor of setAxesMargins
+        """Display or not the axes.
+
+        :param bool displayed: If `True` axes are displayed. If `False` axes
+            are not anymore visible and the margin used for them is removed.
+        """
         if displayed:
             self.setAxesMargins(*self._DEFAULT_PLOT_MARGINS)
         else:
             self.setAxesMargins(*self._NO_AXES_PLOT_MARGINS)
 
-    @deprecated(replacement='getAxesMargins', since_version='0.14')
     def _isAxesDisplayed(self):
         return self._backend.getAxesMargins() != self._NO_AXES_PLOT_MARGINS
 
