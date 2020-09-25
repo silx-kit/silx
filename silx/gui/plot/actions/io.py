@@ -259,7 +259,6 @@ class SaveAction(PlotAction):
                 labels.append(ylabel + "_errors_below")
                 data.append(y_err[1])
                 labels.append(ylabel + "_errors_above")
-        print(x_data, data, xlabel, labels)
         return x_data, data, xlabel, labels
 
     @staticmethod

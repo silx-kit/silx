@@ -187,34 +187,46 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     if xlabel is None:
         xlabel = "x"
     if ylabels is None:
-        if len(numpy.array(y).shape) > 1:
+        if numpy.array(y).ndim > 1:
             ylabels = ["y%d" % i for i in range(len(y))]
         else:
             ylabels = ["y"]
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabels[i] if ylabels[i] is not None else "y%d" % i
-                   for i in range(len(ylabels))]
+        ylabels = [ylabel if isinstance(ylabel, string_types) else "y%d" % i
+                   for ylabel in ylabels]
 
     if filetype.lower() == "spec":
-        y_array = numpy.asarray(y)
+        # Check if we have regular data:
+        ref = len(x)
+        regular = True
+        for one_y in y:
+            regular &= len(one_y) == ref
+        if regular:
+            if isinstance(fmt, (list, tuple)) and len(fmt) < (len(ylabels) + 1):
+                fmt = fmt + [fmt[-1] * (1 + len(ylabels) - len(fmt))]
+            specf = savespec(fname, x, y, xlabel, ylabels, fmt=fmt,
+                     scan_number=1, mode="w", write_file_header=True,
+                     close_file=False)
+        else:
+            y_array = numpy.asarray(y)
+            # make sure y_array is a 2D array even for a single curve
+            if y_array.ndim == 1:
+                y_array.shape = 1, -1
+            elif y_array.ndim not in [1, 2]:
+                raise IndexError("y must be a 1D or 2D array")
 
-        # make sure y_array is a 2D array even for a single curve
-        if len(y_array.shape) == 1:
-            y_array = y_array.reshape(1, y_array.shape[0])
-        elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
-            raise IndexError("y must be a 1D or 2D array")
+            # First curve
+            specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
+                             scan_number=1, mode="w", write_file_header=True,
+                             close_file=False)
+            # Other curves
+            for i in range(1, y_array.shape[0]):
+                specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
+                                 fmt=fmt, scan_number=i + 1, mode="w",
+                                 write_file_header=False, close_file=False)
 
-        # First curve
-        specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
-                         scan_number=1, mode="w", write_file_header=True,
-                         close_file=False)
-        # Other curves
-        for i in range(1, y_array.shape[0]):
-            specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                             fmt=fmt, scan_number=i + 1, mode="w",
-                             write_file_header=False, close_file=False)
         # close file if we created it
         if not hasattr(fname, "write"):
             specf.close()
@@ -332,8 +344,6 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
 
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
-    data = numpy.vstack((x_array, y_array))
-    print(data.shape, xlabel, ylabel)
     if y_array.ndim > 2:
         raise IndexError("Y columns must have be packed as 1D")
 
@@ -346,11 +356,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
         labels = (xlabel, *ylabel)
     else:
         labels = (xlabel, ylabel)
-
-    ncol = data.shape[0]
     data = numpy.vstack((x_array, y_array))
+    ncol = data.shape[0]
     assert len(labels) == ncol
 
+    print(xlabel, ylabel, fmt, ncol, x_array, y_array)
     if isinstance(fmt, string_types) and fmt.count("%") == 1:
         full_fmt_string = "  ".join([fmt] * ncol)
     elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
@@ -364,10 +374,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     else:
         f = specfile
 
-    lines = []
-    current_date = "#D %s\n" % (time.ctime(time.time()))
+    current_date = "#D %s" % (time.ctime(time.time()))
     if write_file_header:
-        lines += [ "#F %s" % f.name, current_date, "" ]
+        lines = [ "#F %s" % f.name, current_date, ""]
+    else:
+        lines = [""]
 
     lines += [  "#S %d %s" % (scan_number, labels[1]),
                 current_date,
