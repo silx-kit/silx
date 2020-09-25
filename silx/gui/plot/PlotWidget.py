@@ -2410,7 +2410,7 @@ class PlotWidget(qt.QMainWindow):
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis
 
-    def setAxesDisplayed(self, displayed):
+    def setAxesDisplayed(self, displayed: bool):
         """Display or not the axes.
 
         :param bool displayed: If `True` axes are displayed. If `False` axes
@@ -2425,7 +2425,11 @@ class PlotWidget(qt.QMainWindow):
             self._setDirtyPlot()
             self._sigAxesVisibilityChanged.emit(displayed)
 
-    def _isAxesDisplayed(self):
+    def isAxesDisplayed(self) -> bool:
+        """Returns whether or not axes are currently displayed
+
+        :rtype: bool
+        """
         return self.__axesDisplayed
 
     def setAxesMargins(
@@ -2450,7 +2454,7 @@ class PlotWidget(qt.QMainWindow):
 
         if margins != self.__axesMargins:
             self.__axesMargins = margins
-            if self._isAxesDisplayed():  # Only apply if axes are displayed
+            if self.isAxesDisplayed():  # Only apply if axes are displayed
                 self._backend.setAxesMargins(*margins)
                 self._setDirtyPlot()
 
