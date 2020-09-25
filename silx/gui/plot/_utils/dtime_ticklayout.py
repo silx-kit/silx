@@ -166,7 +166,7 @@ def setDateElement(dateTime, value, unit):
 
 
 def roundToElement(dateTime, unit):
-    """ Returns a copy of dateTime with the
+    """ Returns a copy of dateTime rounded to given unit
 
     :param datetime.datetime: date time object
     :param DtUnit unit: unit
@@ -330,15 +330,19 @@ def niceDateTimeElement(value, unit, isRound=False):
 def findStartDate(dMin, dMax, nTicks):
     """ Rounds a date down to the nearest nice number of ticks
     """
-    assert dMax > dMin, \
+    assert dMax >= dMin, \
         "dMin ({}) should come before dMax ({})".format(dMin, dMax)
+
+    if dMin == dMax:
+        # Fallback when range is smaller than microsecond resolution
+        return dMin, 1, DtUnit.MICRO_SECONDS
 
     delta = dMax - dMin
     lengthSec = delta.total_seconds()
     _logger.debug("findStartDate: {}, {} (duration = {} sec, {} days)"
                   .format(dMin, dMax, lengthSec, lengthSec / SECONDS_PER_DAY))
 
-    length, unit = bestUnit(delta.total_seconds())
+    length, unit = bestUnit(lengthSec)
     niceLength = niceDateTimeElement(length, unit)
 
     _logger.debug("Length: {:8.3f} {} (nice = {})"
@@ -381,9 +385,9 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
     """
     if (unit == DtUnit.YEARS or unit == DtUnit.MONTHS or
         unit == DtUnit.MICRO_SECONDS):
-
-        # Month and years will be converted to integers
-        assert int(step) > 0, "Integer value or tickstep is 0"
+        # No support for fractional month or year and resolution is microsecond
+        # In those cases, make sure the step is at least 1
+        step = max(1, step)
     else:
         assert step > 0, "tickstep is 0"
 
