@@ -262,7 +262,7 @@ class PlotWidget(qt.QMainWindow):
 
         # Set plot margins
         self.__plotMargins = self._NO_AXES_PLOT_MARGINS
-        self.setPlotMargins(*self._DEFAULT_PLOT_MARGINS)
+        self.setAxesMargins(*self._DEFAULT_PLOT_MARGINS)
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -2410,15 +2410,15 @@ class PlotWidget(qt.QMainWindow):
         return self._yAxis if axis == "left" else self._yRightAxis
 
     def setAxesDisplayed(self, displayed):
-        # TODO this can be deprecated in favor of setPlotMargins
+        # TODO this can be deprecated in favor of setAxesMargins
         if displayed:
-            self.setPlotMargins(*self._DEFAULT_PLOT_MARGINS)
+            self.setAxesMargins(*self._DEFAULT_PLOT_MARGINS)
         else:
-            self.setPlotMargins(*self._NO_AXES_PLOT_MARGINS)
+            self.setAxesMargins(*self._NO_AXES_PLOT_MARGINS)
 
-    @deprecated(replacement='getPlotMargins', since_version='0.14')
+    @deprecated(replacement='getAxesMargins', since_version='0.14')
     def _isAxesDisplayed(self):
-        return self._backend.getPlotMargins() != self._NO_AXES_PLOT_MARGINS
+        return self._backend.getAxesMargins() != self._NO_AXES_PLOT_MARGINS
 
     _DEFAULT_PLOT_MARGINS = .15, .1, .1, .15
     """Default values of plot margins ratios"""
@@ -2426,7 +2426,7 @@ class PlotWidget(qt.QMainWindow):
     _NO_AXES_PLOT_MARGINS = 0., 0., 0., 0.
     """Values of plot margins when there is no axes displayed"""
 
-    def setPlotMargins(
+    def setAxesMargins(
             self, left: float, top: float, right: float, bottom: float):
         """Set ratios of margins surrounding data plot area.
 
@@ -2448,12 +2448,12 @@ class PlotWidget(qt.QMainWindow):
 
         if margins != self.__plotMargins:
             self.__plotMargins = margins
-            self._backend.setPlotMargins(*margins)
+            self._backend.setAxesMargins(*margins)
             self._setDirtyPlot()
             self._sigAxesVisibilityChanged.emit(
-                self.getPlotMargins() != self._NO_AXES_PLOT_MARGINS)
+                self.getAxesMargins() != self._NO_AXES_PLOT_MARGINS)
 
-    def getPlotMargins(self):
+    def getAxesMargins(self):
         """Returns ratio of margins surrounding data plot area.
 
         :return: (left, top, right, bottom)

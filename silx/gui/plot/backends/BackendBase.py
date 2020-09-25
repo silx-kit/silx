@@ -547,7 +547,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def setPlotMargins(self, left: float, top: float, right: float, bottom: float):
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         """Set the size of plot margins as ratios.
 
         Values are expected in [0., 1.]

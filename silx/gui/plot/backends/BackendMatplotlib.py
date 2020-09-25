@@ -1240,7 +1240,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 int(bbox.width),
                 int(bbox.height))
 
-    def setPlotMargins(self, left: float, top: float, right: float, bottom: float):
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         width, height = 1. - left - right, 1. - top - bottom
         position = left, bottom, width, height
 

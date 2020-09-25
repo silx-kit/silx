@@ -1349,7 +1349,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def getPlotBoundsInPixels(self):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
 
-    def setPlotMargins(self, left: float, top: float, right: float, bottom: float):
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         self._plotFrame.marginRatios = left, top, right, bottom
 
     def setForegroundColors(self, foregroundColor, gridColor):

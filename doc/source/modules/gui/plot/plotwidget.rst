@@ -83,8 +83,8 @@ The following methods handle plot limits, aspect ratio, grid and axes display:
 .. automethod:: PlotWidget.getGraphGrid
 .. automethod:: PlotWidget.setGraphGrid
 .. automethod:: PlotWidget.setAxesDisplayed
-.. automethod:: PlotWidget.getPlotMargins
-.. automethod:: PlotWidget.setPlotMargins
+.. automethod:: PlotWidget.getAxesMargins
+.. automethod:: PlotWidget.setAxesMargins
 
 Reset zoom
 ..........
