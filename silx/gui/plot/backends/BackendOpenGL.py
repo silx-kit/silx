@@ -850,7 +850,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         if data.ndim == 2:
             # Ensure array is contiguous and eventually convert its type
-            if data.dtype in (numpy.float32, numpy.uint8, numpy.uint16):
+            dtypes = [dtype for dtype in (
+                numpy.float32, numpy.float16, numpy.uint8, numpy.uint16)
+                if glu.isSupportedGLType(dtype)]
+            if data.dtype in dtypes:
                 data = numpy.array(data, copy=False, order='C')
             else:
                 _logger.info(
