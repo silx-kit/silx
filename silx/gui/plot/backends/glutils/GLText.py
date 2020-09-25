@@ -140,7 +140,9 @@ class Text2D(object):
                  color=(0., 0., 0., 1.),
                  bgColor=None,
                  align=LEFT, valign=BASELINE,
-                 rotate=0):
+                 rotate=0,
+                 devicePixelRatio= 1.):
+        self.devicePixelRatio = devicePixelRatio
         self._vertices = None
         self._text = text
         self.x = x
@@ -160,21 +162,25 @@ class Text2D(object):
 
         self._rotate = numpy.radians(rotate)
 
-    def _getTexture(self, text):
+    def _getTexture(self, text, devicePixelRatio):
         # Retrieve/initialize texture cache for current context
+        textureKey = text, devicePixelRatio
+
         context = Context.getCurrent()
         if context not in self._textures:
             self._textures[context] = _Cache(
                 callback=lambda key, value: value[0].discard())
         textures = self._textures[context]
 
-        if text not in textures:
-            image, offset = font.rasterText(text,
-                                            font.getDefaultFontFamily())
-            if text not in self._sizes:
-                self._sizes[text] = image.shape[1], image.shape[0]
+        if textureKey not in textures:
+            image, offset = font.rasterText(
+                text,
+                font.getDefaultFontFamily(),
+                devicePixelRatio=self.devicePixelRatio)
+            if textureKey not in self._sizes:
+                self._sizes[textureKey] = image.shape[1], image.shape[0]
 
-            textures[text] = (
+            textures[textureKey] = (
                 Texture(gl.GL_RED,
                         data=image,
                         minFilter=gl.GL_NEAREST,
@@ -183,7 +189,7 @@ class Text2D(object):
                               gl.GL_CLAMP_TO_EDGE)),
                 offset)
 
-        return textures[text]
+        return textures[textureKey]
 
     @property
     def text(self):
@@ -191,11 +197,14 @@ class Text2D(object):
 
     @property
     def size(self):
-        if self.text not in self._sizes:
-            image, offset = font.rasterText(self.text,
-                                            font.getDefaultFontFamily())
-            self._sizes[self.text] = image.shape[1], image.shape[0]
-        return self._sizes[self.text]
+        textureKey = self.text, self.devicePixelRatio
+        if textureKey not in self._sizes:
+            image, offset = font.rasterText(
+                self.text,
+                font.getDefaultFontFamily(),
+                devicePixelRatio=self.devicePixelRatio)
+            self._sizes[textureKey] = image.shape[1], image.shape[0]
+        return self._sizes[textureKey]
 
     def getVertices(self, offset, shape):
         height, width = shape
@@ -238,7 +247,7 @@ class Text2D(object):
         prog.use()
 
         texUnit = 0
-        texture, offset = self._getTexture(self.text)
+        texture, offset = self._getTexture(self.text, self.devicePixelRatio)
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 
