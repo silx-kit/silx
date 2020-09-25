@@ -260,6 +260,11 @@ class PlotWidget(qt.QMainWindow):
         self._grid = None
         self._graphTitle = ''
 
+        # Set axes margins
+        self.__axesDisplayed = True
+        self.__axesMargins = 0., 0., 0., 0.
+        self.setAxesMargins(.15, .1, .1, .15)
+
         self.setGraphTitle()
         self.setGraphXLabel()
         self.setGraphYLabel()
@@ -2405,18 +2410,61 @@ class PlotWidget(qt.QMainWindow):
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis
 
-    def setAxesDisplayed(self, displayed):
+    def setAxesDisplayed(self, displayed: bool):
         """Display or not the axes.
 
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
-        self._backend.setAxesDisplayed(displayed)
-        self._setDirtyPlot()
-        self._sigAxesVisibilityChanged.emit(displayed)
+        if displayed != self.__axesDisplayed:
+            self.__axesDisplayed = displayed
+            if displayed:
+                self._backend.setAxesMargins(*self.__axesMargins)
+            else:
+                self._backend.setAxesMargins(0., 0., 0., 0.)
+            self._setDirtyPlot()
+            self._sigAxesVisibilityChanged.emit(displayed)
 
-    def _isAxesDisplayed(self):
-        return self._backend.isAxesDisplayed()
+    def isAxesDisplayed(self) -> bool:
+        """Returns whether or not axes are currently displayed
+
+        :rtype: bool
+        """
+        return self.__axesDisplayed
+
+    def setAxesMargins(
+            self, left: float, top: float, right: float, bottom: float):
+        """Set ratios of margins surrounding data plot area.
+
+        All ratios must be within [0., 1.].
+        Sums of ratios of opposed side must be < 1.
+
+        :param float left: Left-side margin ratio.
+        :param float top: Top margin ratio
+        :param float right: Right-side margin ratio
+        :param float bottom: Bottom margin ratio
+        :raises ValueError:
+        """
+        for value in (left, top, right, bottom):
+            if value < 0. or value > 1.:
+                raise ValueError("Margin ratios must be within [0., 1.]")
+        if left + right >= 1. or top + bottom >= 1.:
+            raise ValueError("Sum of ratios of opposed sides >= 1")
+        margins = left, top, right, bottom
+
+        if margins != self.__axesMargins:
+            self.__axesMargins = margins
+            if self.isAxesDisplayed():  # Only apply if axes are displayed
+                self._backend.setAxesMargins(*margins)
+                self._setDirtyPlot()
+
+    def getAxesMargins(self):
+        """Returns ratio of margins surrounding data plot area.
+
+        :return: (left, top, right, bottom)
+        :rtype: List[float]
+        """
+        return self.__axesMargins
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.

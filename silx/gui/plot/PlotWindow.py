@@ -313,7 +313,7 @@ class PlotWindow(PlotWidget):
 
     def _updateColorBarBackground(self):
         """Update the colorbar background according to the state of the plot"""
-        if self._isAxesDisplayed():
+        if self.isAxesDisplayed():
             color = self.getBackgroundColor()
         else:
             color = self.getDataBackgroundColor()

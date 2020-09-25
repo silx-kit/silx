@@ -59,7 +59,6 @@ class BackendBase(object):
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
         self._xAxisTimeZone = None
-        self._axesDisplayed = True
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
 
@@ -548,20 +547,17 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def setAxesDisplayed(self, displayed):
-        """Display or not the axes.
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
+        """Set the size of plot margins as ratios.
 
-        :param bool displayed: If `True` axes are displayed. If `False` axes
-            are not anymore visible and the margin used for them is removed.
-        """
-        self._axesDisplayed = displayed
+        Values are expected in [0., 1.]
 
-    def isAxesDisplayed(self):
-        """private because in some case it is possible that one of the two axes
-        are displayed and not the other.
-        This only check status set to axes from the public API
+        :param float left:
+        :param float top:
+        :param float right:
+        :param float bottom:
         """
-        return self._axesDisplayed
+        pass
 
     def setForegroundColors(self, foregroundColor, gridColor):
         """Set foreground and grid colors used to display this widget.

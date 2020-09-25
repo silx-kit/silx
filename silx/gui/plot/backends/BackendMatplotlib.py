@@ -1240,27 +1240,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 int(bbox.width),
                 int(bbox.height))
 
-    def setAxesDisplayed(self, displayed):
-        """Display or not the axes.
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
+        width, height = 1. - left - right, 1. - top - bottom
+        position = left, bottom, width, height
 
-        :param bool displayed: If `True` axes are displayed. If `False` axes
-            are not anymore visible and the margin used for them is removed.
-        """
-        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
-        if displayed:
-            # show axes and viewbox rect
-            self.ax.set_frame_on(True)
-            self.ax2.set_frame_on(True)
-            # set the default margins
-            self.ax.set_position([.15, .15, .75, .75])
-            self.ax2.set_position([.15, .15, .75, .75])
-        else:
-            # hide axes and viewbox rect
-            self.ax.set_frame_on(False)
-            self.ax2.set_frame_on(False)
-            # remove external margins
-            self.ax.set_position([0, 0, 1, 1])
-            self.ax2.set_position([0, 0, 1, 1])
+        # Toggle display of axes and viewbox rect
+        isFrameOn = position != (0., 0., 1., 1.)
+        self.ax.set_frame_on(isFrameOn)
+        self.ax2.set_frame_on(isFrameOn)
+
+        self.ax.set_position(position)
+        self.ax2.set_position(position)
+
         self._synchronizeBackgroundColors()
         self._synchronizeForegroundColors()
         self._plot._setDirtyPlot()

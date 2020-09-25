@@ -229,7 +229,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame = glutils.GLPlotFrame2D(
             foregroundColor=(0., 0., 0., 1.),
             gridColor=(.7, .7, .7, 1.),
-            margins={'left': 100, 'right': 50, 'top': 50, 'bottom': 50})
+            marginRatios=(.15, .1, .1, .15))
 
         # Make postRedisplay asynchronous using Qt signal
         self._sigPostRedisplay.connect(
@@ -1352,9 +1352,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def getPlotBoundsInPixels(self):
         return self._plotFrame.plotOrigin + self._plotFrame.plotSize
 
-    def setAxesDisplayed(self, displayed):
-        BackendBase.BackendBase.setAxesDisplayed(self, displayed)
-        self._plotFrame.displayed = displayed
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
+        self._plotFrame.marginRatios = left, top, right, bottom
 
     def setForegroundColors(self, foregroundColor, gridColor):
         self._plotFrame.foregroundColor = foregroundColor
