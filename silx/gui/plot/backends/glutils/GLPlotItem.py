@@ -37,14 +37,16 @@ class RenderContext:
     :param numpy.ndarray matrix: 4x4 transform matrix to use for rendering
     :param bool isXLog: Whether X axis is log scale or not
     :param bool isYLog: Whether Y axis is log scale or not
+    :param float dpi: Number of device pixels per inch
     """
 
-    def __init__(self, matrix=None, isXLog=False, isYLog=False):
+    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=90.):
         self.matrix = matrix
         """Current transformation matrix"""
 
         self.__isXLog = isXLog
         self.__isYLog = isYLog
+        self.__dpi = dpi
 
     @property
     def isXLog(self):
@@ -55,6 +57,11 @@ class RenderContext:
     def isYLog(self):
         """True if Y axis is using log scale"""
         return self.__isYLog
+
+    @property
+    def dpi(self):
+        """Number of device pixels per inch"""
+        return self.__dpi
 
 
 class GLPlotItem:

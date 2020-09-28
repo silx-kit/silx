@@ -855,6 +855,7 @@ class _Points2D(object):
             size = math.ceil(0.5 * self.size) + 1  # Mimic Matplotlib point
         else:
             size = self.size
+        size = size / 72. * context.dpi
         gl.glUniform1f(program.uniforms['size'], size)
         # gl.glPointSize(self.size)
 
