@@ -858,6 +858,12 @@ class _Points2D(object):
         else:
             size = self.size
         size = size / 72. * context.dpi
+
+        if self.marker in (PLUS, H_LINE, V_LINE,
+                           TICK_LEFT, TICK_RIGHT, TICK_UP, TICK_DOWN):
+            # Convert to nearest odd number
+            size = size // 2 * 2 + 1.
+
         gl.glUniform1f(program.uniforms['size'], size)
         # gl.glPointSize(self.size)
 
