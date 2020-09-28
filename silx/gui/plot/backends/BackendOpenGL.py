@@ -420,7 +420,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         labels = []
         pixelOffset = 3
 
-        context = glutils.RenderContext(isXLog=isXLog, isYLog=isYLog)
+        context = glutils.RenderContext(
+            isXLog=isXLog, isYLog=isYLog, dpi=self.getDotsPerInch())
 
         for plotItem in self.getItemsFromBackToFront(
                 condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
@@ -1038,7 +1039,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         """
         offset = self._PICK_OFFSET
         if item.marker is not None:
-            offset = max(item.markerSize / 2., offset)
+            # Convert markerSize from points to qt pixels
+            qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
+            size = item.markerSize / 72. * qtDpi
+            offset = max(size / 2., offset)
         if item.lineStyle is not None:
             offset = max(item.lineWidth / 2., offset)
 
