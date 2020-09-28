@@ -1044,7 +1044,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             size = item.markerSize / 72. * qtDpi
             offset = max(size / 2., offset)
         if item.lineStyle is not None:
-            offset = max(item.lineWidth / 2., offset)
+            # Convert line width from points to qt pixels
+            qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
+            lineWidth = item.lineWidth / 72. * qtDpi
+            offset = max(lineWidth / 2., offset)
 
         inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
         dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],

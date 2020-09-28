@@ -410,6 +410,8 @@ class GLLines2D(object):
 
         :param RenderContext context:
         """
+        width = self.width / 72. * context.dpi
+
         style = self.style
         if style is None:
             return
@@ -426,7 +428,7 @@ class GLLines2D(object):
             gl.glUniform2f(program.uniforms['halfViewportSize'],
                            0.5 * viewWidth, 0.5 * viewHeight)
 
-            dashPeriod = self.dashPeriod * self.width
+            dashPeriod = self.dashPeriod * width
             if self.style == DOTTED:
                 dash = (0.2 * dashPeriod,
                         0.5 * dashPeriod,
@@ -464,7 +466,7 @@ class GLLines2D(object):
                                          0,
                                          self.distVboData)
 
-        if self.width != 1:
+        if width != 1:
             gl.glEnable(gl.GL_LINE_SMOOTH)
 
         matrix = numpy.dot(context.matrix,
@@ -504,7 +506,7 @@ class GLLines2D(object):
                                      0,
                                      self.yVboData)
 
-        gl.glLineWidth(self.width)
+        gl.glLineWidth(width)
         gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
 
         gl.glDisable(gl.GL_LINE_SMOOTH)
