@@ -40,7 +40,7 @@ class RenderContext:
     :param float dpi: Number of device pixels per inch
     """
 
-    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=90.):
+    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=96.):
         self.matrix = matrix
         """Current transformation matrix"""
 
