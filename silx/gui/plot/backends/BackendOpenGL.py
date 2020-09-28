@@ -1237,7 +1237,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         :param str keepDim: The dimension to maintain: 'x', 'y' or None.
             If None (the default), the dimension with the largest range.
         """
-        if self._plotFrame.plotSize <= (2, 2):
+        plotWidth, plotHeight = self._plotFrame.plotSize
+        if plotWidth <= 2 or plotHeight <= 2:
             return
 
         if keepDim is None:
