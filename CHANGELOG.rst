@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+0.13.3b0: 2020/09/28
+--------------------
+
+Bug fix version:
+
+* `silx.gui.plot.PlotWidget`: Fixed time serie axis for range < 2.5 microseconds (PR #3195)
+* Documentation: Updated changelog and version number (PR #3202)
+
 0.13.2: 2020/09/15
 ------------------
 
