@@ -606,7 +606,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         marker=item['symbol'],
                         markerColor=item['color'],
                         markerSize=11)
-                    markerCurve.render(self.matScreenProj, False, False)
+
+                    context = glutils.RenderContext(
+                        matrix=self.matScreenProj,
+                        isXLog=False,
+                        isYLog=False,
+                        dpi=self.getDotsPerInch())
+                    markerCurve.render(context)
                     markerCurve.discard()
 
             else:
