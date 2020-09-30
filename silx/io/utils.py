@@ -25,8 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "18/04/2018"
-
+__date__ = "25/09/2020"
 
 import enum
 import os.path
@@ -48,9 +47,7 @@ try:
 except ImportError as e:
     h5pyd = None
 
-
 logger = logging.getLogger(__name__)
-
 
 NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
 """List of possible extensions for HDF5 file formats."""
@@ -190,34 +187,46 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     if xlabel is None:
         xlabel = "x"
     if ylabels is None:
-        if len(numpy.array(y).shape) > 1:
+        if numpy.array(y).ndim > 1:
             ylabels = ["y%d" % i for i in range(len(y))]
         else:
             ylabels = ["y"]
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabels[i] if ylabels[i] is not None else "y%d" % i
-                   for i in range(len(ylabels))]
+        ylabels = [ylabel if isinstance(ylabel, string_types) else "y%d" % i
+                   for ylabel in ylabels]
 
     if filetype.lower() == "spec":
-        y_array = numpy.asarray(y)
+        # Check if we have regular data:
+        ref = len(x)
+        regular = True
+        for one_y in y:
+            regular &= len(one_y) == ref
+        if regular:
+            if isinstance(fmt, (list, tuple)) and len(fmt) < (len(ylabels) + 1):
+                fmt = fmt + [fmt[-1] * (1 + len(ylabels) - len(fmt))]
+            specf = savespec(fname, x, y, xlabel, ylabels, fmt=fmt,
+                     scan_number=1, mode="w", write_file_header=True,
+                     close_file=False)
+        else:
+            y_array = numpy.asarray(y)
+            # make sure y_array is a 2D array even for a single curve
+            if y_array.ndim == 1:
+                y_array.shape = 1, -1
+            elif y_array.ndim not in [1, 2]:
+                raise IndexError("y must be a 1D or 2D array")
 
-        # make sure y_array is a 2D array even for a single curve
-        if len(y_array.shape) == 1:
-            y_array = y_array.reshape(1, y_array.shape[0])
-        elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
-            raise IndexError("y must be a 1D or 2D array")
+            # First curve
+            specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
+                             scan_number=1, mode="w", write_file_header=True,
+                             close_file=False)
+            # Other curves
+            for i in range(1, y_array.shape[0]):
+                specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
+                                 fmt=fmt, scan_number=i + 1, mode="w",
+                                 write_file_header=False, close_file=False)
 
-        # First curve
-        specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
-                         scan_number=1, mode="w", write_file_header=True,
-                         close_file=False)
-        # Other curves
-        for i in range(1, y_array.shape[0]):
-            specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                             fmt=fmt, scan_number=i + 1, mode="w",
-                             write_file_header=False, close_file=False)
         # close file if we created it
         if not hasattr(fname, "write"):
             specf.close()
@@ -307,9 +316,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
         or append mode. If a file name is provided, a new file is open in
         write mode (existing file with the same name will be lost)
     :param x: 1D-Array (or list) of abscissa values
-    :param y: 1D-array (or list) of ordinates values
+    :param y: 1D-array (or list), or list of them of ordinates values.
+        All dataset must have the same length as x
     :param xlabel: Abscissa label (default ``"X"``)
-    :param ylabel: Ordinate label
+    :param ylabel: Ordinate label, may be a list of labels when multiple curves 
+        are to be saved together.
     :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
@@ -333,40 +344,51 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
 
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
+    if y_array.ndim > 2:
+        raise IndexError("Y columns must have be packed as 1D")
 
-    if y_array.shape[0] != x_array.shape[0]:
+    if y_array.shape[-1] != x_array.shape[0]:
         raise IndexError("X and Y columns must have the same length")
 
-    if isinstance(fmt, string_types) and fmt.count("%") == 1:
-        full_fmt_string = fmt + "  " + fmt + "\n"
-    elif isinstance(fmt, (list, tuple)) and len(fmt) == 2:
-        full_fmt_string = "  ".join(fmt) + "\n"
+    if y_array.ndim == 2:
+        assert isinstance(ylabel, (list, tuple))
+        assert y_array.shape[0] == len(ylabel)
+        labels = (xlabel, *ylabel)
     else:
-        raise ValueError("fmt must be a single format string or a list of " +
-                         "two format strings")
+        labels = (xlabel, ylabel)
+    data = numpy.vstack((x_array, y_array))
+    ncol = data.shape[0]
+    assert len(labels) == ncol
+
+    print(xlabel, ylabel, fmt, ncol, x_array, y_array)
+    if isinstance(fmt, string_types) and fmt.count("%") == 1:
+        full_fmt_string = "  ".join([fmt] * ncol)
+    elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
+        full_fmt_string = "  ".join(fmt)
+    else:
+        raise ValueError("`fmt` must be a single format string or a list of " +
+                         "format strings with as many format as ncolumns")
 
     if not hasattr(specfile, "write"):
         f = builtin_open(specfile, mode)
     else:
         f = specfile
 
-    output = ""
-
-    current_date = "#D %s\n" % (time.ctime(time.time()))
-
+    current_date = "#D %s" % (time.ctime(time.time()))
     if write_file_header:
-        output += "#F %s\n" % f.name
-        output += current_date
-        output += "\n"
+        lines = [ "#F %s" % f.name, current_date, ""]
+    else:
+        lines = [""]
 
-    output += "#S %d %s\n" % (scan_number, ylabel)
-    output += current_date
-    output += "#N 2\n"
-    output += "#L %s  %s\n" % (xlabel, ylabel)
-    for i in range(y_array.shape[0]):
-        output += full_fmt_string % (x_array[i], y_array[i])
-    output += "\n"
+    lines += [  "#S %d %s" % (scan_number, labels[1]),
+                current_date,
+                "#N %d" % ncol,
+                "#L " + "  ".join(labels)]
 
+    for i in data.T:
+        lines.append(full_fmt_string % tuple(i))
+    lines.append("")
+    output = "\n".join(lines)
     f.write(output.encode())
 
     if close_file:
@@ -406,7 +428,7 @@ def h5ls(h5group, lvl=0):
     if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, string_types):
-        h5f = open(h5group)      # silx.io.open
+        h5f = open(h5group)  # silx.io.open
     else:
         raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
@@ -800,7 +822,7 @@ def get_data(url):
         import fabio
         data_slice = url.data_slice()
         if data_slice is None:
-            data_slice = (0, )
+            data_slice = (0,)
         if data_slice is None or len(data_slice) != 1:
             raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
         index = data_slice[0]

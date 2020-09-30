@@ -10,8 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "26/07/2018"
-
+__date__ = "30/09/2020"
 
 import argparse
 import distutils.util
@@ -20,7 +19,6 @@ import os
 import subprocess
 import sys
 import tempfile
-
 
 logging.basicConfig()
 logger = logging.getLogger("bootstrap")
@@ -69,6 +67,7 @@ def _get_available_scripts(path):
 
 
 if sys.version_info[0] >= 3:  # Python3
+
     def execfile(fullpath, globals=None, locals=None):
         "Python3 implementation for execfile"
         with open(fullpath) as f:
