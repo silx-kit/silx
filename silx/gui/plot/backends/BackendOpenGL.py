@@ -230,6 +230,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             foregroundColor=(0., 0., 0., 1.),
             gridColor=(.7, .7, .7, 1.),
             marginRatios=(.15, .1, .1, .15))
+        self._plotFrame.size = (  # Init size with size int
+            int(self.getDevicePixelRatio() * 640),
+            int(self.getDevicePixelRatio() * 480))
 
         # Make postRedisplay asynchronous using Qt signal
         self._sigPostRedisplay.connect(
