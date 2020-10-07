@@ -124,10 +124,9 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     """Overrides supported ComplexMode"""
 
     def __init__(self):
-        ImageBase.__init__(self)
+        ImageBase.__init__(self, numpy.zeros((0, 0), dtype=numpy.complex64))
         ColormapMixIn.__init__(self)
         ComplexMixIn.__init__(self)
-        self._data = numpy.zeros((0, 0), dtype=numpy.complex64)
         self._dataByModesCache = {}
         self._amplitudeRangeInfo = None, 2
 
@@ -264,17 +263,9 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
                 'Image is not complex, converting it to complex to plot it.')
             data = numpy.array(data, dtype=numpy.complex64)
 
-        self._data = data
         self._dataByModesCache = {}
         self._setColormappedData(self.getData(copy=False), copy=False)
-
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        self._updated(ItemChangedType.DATA)
+        super().setData(data)
 
     def getComplexData(self, copy=True):
         """Returns the image complex data
@@ -283,7 +274,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
                           False to use internal representation (do not modify!)
         :rtype: numpy.ndarray of complex
         """
-        return numpy.array(self._data, copy=copy)
+        return super().getData(copy=copy)
 
     def getData(self, copy=True, mode=None):
         """Returns the image data corresponding to (current) mode.
