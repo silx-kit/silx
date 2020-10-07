@@ -185,15 +185,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
 
         self._setBaseline(Curve._DEFAULT_BASELINE)
 
-        self.sigItemChanged.connect(self.__itemChanged)
-
-    def __itemChanged(self, event):
-        if event == ItemChangedType.YAXIS:
-            # TODO hackish data range implementation
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
@@ -250,20 +241,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
             return params
         else:
             raise IndexError("Index out of range: %s", str(item))
-
-    def setVisible(self, visible):
-        """Set visibility of item.
-
-        :param bool visible: True to display it, False otherwise
-        """
-        visible = bool(visible)
-        # TODO hackish data range implementation
-        if self.isVisible() != visible:
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        super(Curve, self).setVisible(visible)
 
     @deprecated(replacement='Curve.getHighlightedStyle().getColor()',
                 since_version='0.9.0')

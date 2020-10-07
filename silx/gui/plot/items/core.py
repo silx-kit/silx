@@ -1226,7 +1226,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.getVisualizationParameter(parameter)
 
 
-class PointsBase(Item, SymbolMixIn, AlphaMixIn):
+class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -1236,7 +1236,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
     on top of images."""
 
     def __init__(self):
-        Item.__init__(self)
+        DataItem.__init__(self)
         SymbolMixIn.__init__(self)
         AlphaMixIn.__init__(self)
         self._x = ()
@@ -1508,11 +1508,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
         self._filteredCache = {}  # Reset cached filtered data
         self._clippedCache = {}  # Reset cached clipped bool array
 
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
+        self._dataExtentChanged()
         self._updated(ItemChangedType.DATA)
 
 
