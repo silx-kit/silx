@@ -37,6 +37,7 @@ except ImportError:  # Python2 support
 from copy import deepcopy
 import logging
 import enum
+from typing import Optional, Tuple
 import warnings
 import weakref
 
@@ -301,6 +302,28 @@ class Item(qt.QObject):
         if copy:
             info = deepcopy(info)
         self._info = info
+
+    def getVisibleExtent(self) -> Optional[Tuple[float]]:
+        """Returns visible extent of the item bounding box in the plot area.
+
+        :returns:
+            (xmin, xmax, ymin, ymax) in data coordinates of the visible area or
+            None if item is not visible in the plot area.
+        :rtype: Union[List[float],None]
+        """
+        plot = self.getPlot()
+        bounds = self.getBounds()
+        if plot is None or bounds is None or not self.isVisible():
+            return None
+
+        xmin, xmax = numpy.clip(bounds[:2], *plot.getXAxis().getLimits())
+        ymin, ymax = numpy.clip(
+            bounds[2:], *plot.getYAxis(self.__getYAxis()).getLimits())
+
+        if xmin == xmax or ymin == ymax:  # Outside the plot area
+            return None
+        else:
+            return xmin, xmax, ymin, ymax
 
     def _updated(self, event=None, checkVisibility=True):
         """Mark the item as dirty (i.e., needing update).
