@@ -167,6 +167,13 @@ class Item(qt.QObject):
     See :class:`ItemChangedType` for flags description.
     """
 
+    _sigVisibleExtentChanged = qt.Signal()
+    """Signal emitted when the visible extent of the item in the plot has changed.
+
+    This signal is emitted only if visible extent tracking is enabled
+    (see :meth:`_setVisibleExtentTracking`).
+    """
+
     def __init__(self):
         qt.QObject.__init__(self)
         self._dirty = True
@@ -178,6 +185,9 @@ class Item(qt.QObject):
         self._xlabel = None
         self._ylabel = None
         self.__name = ''
+
+        self.__visibleExtentTracking = False
+        self.__previousVisibleExtent = None
 
         self._backendRenderer = None
 
@@ -197,7 +207,9 @@ class Item(qt.QObject):
         """
         if plot is not None and self._plotRef is not None:
             raise RuntimeError('Trying to add a node at two places.')
+        self.__disconnectFromPlotWidget()
         self._plotRef = None if plot is None else weakref.ref(plot)
+        self.__connectToPlotWidget()
         self._updated()
 
     def getBounds(self):  # TODO return a Bounds object rather than a tuple
@@ -325,6 +337,77 @@ class Item(qt.QObject):
         else:
             return xmin, xmax, ymin, ymax
 
+    def _isVisibleExtentTracking(self) -> bool:
+        """Returns True if visible extent changes are tracked.
+
+        When enabled, :attr:`_sigVisibleExtentChanged` is emitted upon changes.
+        :rtype: bool
+        """
+        return self.__visibleExtentTracking
+
+    def _setVisibleExtentTracking(self, enable: bool) -> None:
+        """Set whether or not to track visible extent changes.
+
+        :param bool enable:
+        """
+        if enable != self.__visibleExtentTracking:
+            self.__disconnectFromPlotWidget()
+            self.__previousVisibleExtent = None
+            self.__visibleExtentTracking = enable
+            self.__connectToPlotWidget()
+
+    def __getYAxis(self) -> str:
+        """Returns current Y axis ('left' or 'right')"""
+        return self.getYAxis() if isinstance(self, YAxisMixIn) else 'left'
+
+    def __connectToPlotWidget(self) -> None:
+        """Connect to PlotWidget signals and install event filter"""
+        if not self._isVisibleExtentTracking():
+            return
+
+        plot = self.getPlot()
+        if plot is not None:
+            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+                axis.sigLimitsChanged.connect(self._visibleExtentChanged)
+
+            plot.installEventFilter(self)
+
+            if plot.isVisible():
+                self._visibleExtentChanged()
+
+    def __disconnectFromPlotWidget(self) -> None:
+        """Disconnect from PlotWidget signals and remove event filter"""
+        if not self._isVisibleExtentTracking():
+            return
+
+        plot = self.getPlot()
+        if plot is not None:
+            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+                axis.sigLimitsChanged.disconnect(self._visibleExtentChanged)
+
+            plot.removeEventFilter(self)
+
+    def _visibleExtentChanged(self, *args) -> None:
+        """Check if visible extent actually changed and emit signal"""
+        if not self._isVisibleExtentTracking():
+            return  # No visible extent tracking
+
+        plot = self.getPlot()
+        if plot is None or not plot.isVisible():
+            return  # No plot or plot not visible
+
+        extent = self.getVisibleExtent()
+        if extent != self.__previousVisibleExtent:
+            self.__previousVisibleExtent = extent
+            self._sigVisibleExtentChanged.emit()
+
+    def eventFilter(self, watched, event):
+        """Event filter to handle PlotWidget show/hide events"""
+        if (watched is self.getPlot() and
+                event.type() in (qt.QEvent.Hide, qt.QEvent.Show)):
+            self._visibleExtentChanged()
+        return super().eventFilter(watched, event)
+
     def _updated(self, event=None, checkVisibility=True):
         """Mark the item as dirty (i.e., needing update).
 
@@ -409,6 +492,8 @@ class DataItem(Item):
         :param bool checkVisibility:
         """
         if not checkVisibility or self.isVisible():
+            self._visibleExtentChanged()
+
             # TODO hackish data range implementation
             plot = self.getPlot()
             if plot is not None:
@@ -882,8 +967,22 @@ class YAxisMixIn(ItemMixInBase):
         assert yaxis in ('left', 'right')
         if yaxis != self._yaxis:
             self._yaxis = yaxis
+            # Handle data extent changed for DataItem
             if isinstance(self, DataItem):
                 self._boundsChanged()
+
+            # Handle visible extent changed
+            if self._isVisibleExtentTracking():
+                # Switch Y axis signal connection
+                plot = self.getPlot()
+                if plot is not None:
+                    previousYAxis = 'left' if self.getXAxis() == 'right' else 'right'
+                    plot.getYAxis(previousYAxis).sigLimitsChanged.disconnect(
+                        self._visibleExtentChanged)
+                    plot.getYAxis(self.getYAxis()).sigLimitsChanged.connect(
+                        self._visibleExtentChanged)
+                self._visibleExtentChanged()
+
             self._updated(ItemChangedType.YAXIS)
 
 
