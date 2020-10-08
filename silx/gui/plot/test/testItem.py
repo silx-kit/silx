@@ -285,6 +285,49 @@ class TestVisibleExtent(PlotWidgetTestCase):
 
                 self.plot.clear()
 
+    def testVisibleExtentTracking(self):
+        """Test Item's visible extent tracking"""
+        image = items.ImageData()
+        image.setData(numpy.arange(6).reshape(2, 3))
+
+        listener = SignalListener()
+        image._sigVisibleExtentChanged.connect(listener)
+        image._setVisibleExtentTracking(True)
+        self.assertTrue(image._isVisibleExtentTracking())
+
+        self.plot.addItem(image)
+        self.assertEqual(listener.callCount(), 1)
+
+        self.plot.getXAxis().setLimits(0, 1)
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.hide()
+        self.qapp.processEvents()
+        # No event here
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.getXAxis().setLimits(1, 2)
+        # No event since PlotWidget is hidden, delayed to PlotWidget show
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.show()
+        self.qapp.processEvents()
+        # Receives delayed event now
+        self.assertEqual(listener.callCount(), 3)
+
+        image.setOrigin((-1, -1))
+        self.assertEqual(listener.callCount(), 4)
+
+        image.setVisible(False)
+        image.setOrigin((0, 0))
+        # No event since item is not visible
+        self.assertEqual(listener.callCount(), 4)
+
+        image.setVisible(True)
+        # Receives delayed event now
+        self.assertEqual(listener.callCount(), 5)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
