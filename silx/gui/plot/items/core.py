@@ -372,8 +372,7 @@ class Item(qt.QObject):
 
             plot.installEventFilter(self)
 
-            if plot.isVisible():
-                self._visibleExtentChanged()
+            self._visibleExtentChanged()
 
     def __disconnectFromPlotWidget(self) -> None:
         """Disconnect from PlotWidget signals and remove event filter"""
@@ -402,9 +401,8 @@ class Item(qt.QObject):
             self._sigVisibleExtentChanged.emit()
 
     def eventFilter(self, watched, event):
-        """Event filter to handle PlotWidget show/hide events"""
-        if (watched is self.getPlot() and
-                event.type() in (qt.QEvent.Hide, qt.QEvent.Show)):
+        """Event filter to handle PlotWidget show events"""
+        if watched is self.getPlot() and event.type() == qt.QEvent.Show:
             self._visibleExtentChanged()
         return super().eventFilter(watched, event)
 
