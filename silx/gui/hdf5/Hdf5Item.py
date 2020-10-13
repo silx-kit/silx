@@ -100,7 +100,7 @@ class Hdf5Item(Hdf5Node):
         """Returns the class of the stored object.
 
         When the object is in lazy loading, this method should be able to
-        return the type of the futrue loaded object. It allows to delay the
+        return the type of the future loaded object. It allows to delay the
         real load of the object.
 
         :rtype: silx.io.utils.H5Type
@@ -114,7 +114,7 @@ class Hdf5Item(Hdf5Node):
         """Returns the class of the stored object.
 
         When the object is in lazy loading, this method should be able to
-        return the type of the futrue loaded object. It allows to delay the
+        return the type of the future loaded object. It allows to delay the
         real load of the object.
 
         :rtype: h5py.File or h5py.Dataset or h5py.Group
