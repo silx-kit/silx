@@ -380,37 +380,87 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         SEPARATOR = "::"
 
         self.__data.addHeaderRow(headerLabel="Path info")
+        showPhysicalLocation = True
         if isinstance(obj, silx.gui.hdf5.H5Node):
             # helpful informations if the object come from an HDF5 tree
             self.__data.addHeaderValueRow("Basename", lambda x: x.local_basename)
             self.__data.addHeaderValueRow("Name", lambda x: x.local_name)
             local = lambda x: x.local_filename + SEPARATOR + x.local_name
             self.__data.addHeaderValueRow("Local", local)
-            physical = lambda x: x.physical_filename + SEPARATOR + x.physical_name
-            self.__data.addHeaderValueRow("Physical", physical)
         else:
             # it's a real H5py object
             self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
             self.__data.addHeaderValueRow("Name", lambda x: x.name)
             if obj.file is not None:
                 self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
-
             if hasattr(obj, "path"):
                 # That's a link
                 if hasattr(obj, "filename"):
+                    # External link
                     link = lambda x: x.filename + SEPARATOR + x.path
                 else:
+                    # Soft link
                     link = lambda x: x.path
                 self.__data.addHeaderValueRow("Link", link)
-            else:
-                if silx.io.is_file(obj):
-                    physical = lambda x: x.filename + SEPARATOR + x.name
+                showPhysicalLocation = False
+
+        # External data (nothing to do with external links)
+        nExtSources = 0
+        firstExtSource = None
+        extType = None
+        if silx.io.is_dataset(hdf5obj):
+            if hasattr(hdf5obj, "is_virtual"):
+                if hdf5obj.is_virtual:
+                    extSources = hdf5obj.virtual_sources()
+                    if extSources:
+                        firstExtSource = extSources[0].file_name + SEPARATOR + extSources[0].dset_name
+                        extType = "Virtual"
+                        nExtSources = len(extSources)
+            if hasattr(hdf5obj, "external"):
+                extSources = hdf5obj.external
+                if extSources:
+                    firstExtSource = extSources[0][0]
+                    extType = "Raw"
+                    nExtSources = len(extSources)
+
+        if showPhysicalLocation:
+            def _physical_location(x):
+                if isinstance(obj, silx.gui.hdf5.H5Node):
+                    return x.physical_filename + SEPARATOR + x.physical_name
+                elif silx.io.is_file(obj):
+                    return x.filename + SEPARATOR + x.name
                 elif obj.file is not None:
-                        physical = lambda x: x.file.filename + SEPARATOR + x.name
+                    return x.file.filename + SEPARATOR + x.name
                 else:
                     # Guess it is a virtual node
-                    physical = "No physical location"
-                self.__data.addHeaderValueRow("Physical", physical)
+                    return "No physical location"
+
+            self.__data.addHeaderValueRow("Physical", _physical_location)
+
+        if extType:
+            def _first_source(x):
+                # Absolute path
+                if os.path.isabs(firstExtSource):
+                    return firstExtSource
+
+                # Relative path with respect to the file directory
+                if isinstance(obj, silx.gui.hdf5.H5Node):
+                    filename = x.physical_filename
+                elif silx.io.is_file(obj):
+                    filename = x.filename
+                elif obj.file is not None:
+                    filename = x.file.filename
+                else:
+                    return firstExtSource
+
+                if firstExtSource[0] == ".":
+                    firstExtSource.pop(0)
+                return os.path.join(os.path.dirname(filename), firstExtSource)
+
+            self.__data.addHeaderRow(headerLabel="External sources")
+            self.__data.addHeaderValueRow("Type", extType)
+            self.__data.addHeaderValueRow("Count", str(nExtSources))
+            self.__data.addHeaderValueRow("First", _first_source)
 
         if hasattr(obj, "dtype"):
 
