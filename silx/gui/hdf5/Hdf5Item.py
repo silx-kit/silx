@@ -614,17 +614,28 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
+            # Mark as link
             link = self.linkClass
             if link is None:
-                return ""
+                pass
+            elif link == silx.io.utils.H5Type.HARD_LINK:
+                pass
             elif link == silx.io.utils.H5Type.EXTERNAL_LINK:
                 return "External"
             elif link == silx.io.utils.H5Type.SOFT_LINK:
                 return "Soft"
-            elif link == silx.io.utils.H5Type.HARD_LINK:
-                return ""
             else:
                 return link.__name__
+            # Mark as external data
+            if self.h5Class == silx.io.utils.H5Type.DATASET:
+                obj = self.obj
+                if hasattr(obj, "is_virtual"):
+                    if obj.is_virtual:
+                        return "Virtual"
+                if hasattr(obj, "external"):
+                    if obj.external:
+                        return "ExtRaw"
+            return ""
         if role == qt.Qt.ToolTipRole:
             return None
         return None
