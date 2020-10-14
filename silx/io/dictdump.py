@@ -219,66 +219,58 @@ def dicttoh5(treedict, h5file, h5path='/',
                 h5f.create_group(h5path)
 
         for key in filter(lambda k: not isinstance(k, tuple), treedict):
-            if isinstance(treedict[key], dict) and len(treedict[key]):
+            key_is_group = isinstance(treedict[key], dict)
+            h5name = h5path + key
+
+            if key_is_group and treedict[key]:
                 # non-empty group: recurse
-                dicttoh5(treedict[key], h5f, h5path + key,
+                dicttoh5(treedict[key], h5f, h5name,
                          overwrite_data=overwrite_data,
                          create_dataset_args=create_dataset_args)
+                continue
 
-            elif treedict[key] is None or (isinstance(treedict[key], dict) and
-                                           not len(treedict[key])):
-                if (h5path + key) in h5f:
-                    if overwrite_data is True:
-                        del h5f[h5path + key]
-                    else:
-                        logger.warning('key (%s) already exists. '
-                                       'Not overwriting.' % (h5path + key))
-                        continue
+            if h5name in h5f:
+                # key already exists: delete or skip
+                if overwrite_data is True:
+                    del h5f[h5name]
+                else:
+                    logger.warning('key (%s) already exists. '
+                                    'Not overwriting.' % (h5name))
+                    continue
+
+            if treedict[key] is None or key_is_group:
                 # Create empty group
-                h5f.create_group(h5path + key)
-
+                h5f.create_group(h5name)
             else:
                 ds = _prepare_hdf5_dataset(treedict[key])
                 # can't apply filters on scalars (datasets with shape == () )
                 if ds.shape == () or create_dataset_args is None:
-                    if h5path + key in h5f:
-                        if overwrite_data is True:
-                            del h5f[h5path + key]
-                        else:
-                            logger.warning('key (%s) already exists. '
-                                           'Not overwriting.' % (h5path + key))
-                            continue
-
-                    h5f.create_dataset(h5path + key,
+                    h5f.create_dataset(h5name,
                                        data=ds)
                 else:
-                    if h5path + key in h5f:
-                        if overwrite_data is True:
-                            del h5f[h5path + key]
-                        else:
-                            logger.warning('key (%s) already exists. '
-                                           'Not overwriting.' % (h5path + key))
-                            continue
-
-                    h5f.create_dataset(h5path + key,
+                    h5f.create_dataset(h5name,
                                        data=ds,
                                        **create_dataset_args)
 
         # deal with h5 attributes which have tuples as keys in treedict
         for key in filter(lambda k: isinstance(k, tuple), treedict):
-            if (h5path + key[0]) not in h5f:
+            assert len(key)==2, "attribute must be defined by 2 values"
+            h5name = h5path + key[0]
+            attr_name = key[1]
+
+            if h5name not in h5f:
                 # Create empty group if key for attr does not exist
-                h5f.create_group(h5path + key[0])
+                h5f.create_group(h5name)
                 logger.warning(
                     "key (%s) does not exist. attr %s "
-                    "will be written to ." % (h5path + key[0], key[1])
+                    "will be written to ." % (h5name, attr_name)
                 )
 
-            if key[1] in h5f[h5path + key[0]].attrs:
+            if attr_name in h5f[h5name].attrs:
                 if not overwrite_data:
                     logger.warning(
                         "attribute %s@%s already exists. Not overwriting."
-                        "" % (h5path + key[0], key[1])
+                        "" % (h5name, attr_name)
                     )
                     continue
 
@@ -291,7 +283,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                     numpy.asarray(value).dtype.type == numpy.unicode_):
                 value = numpy.array(value, dtype=h5py.special_dtype(vlen=str))
 
-            h5f[h5path + key[0]].attrs[key[1]] = value
+            h5f[h5name].attrs[attr_name] = value
 
 
 def dicttonx(
