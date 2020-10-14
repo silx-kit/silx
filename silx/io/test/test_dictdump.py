@@ -376,6 +376,13 @@ class TestDictToNx(unittest.TestCase):
             self.assertEqual(h5file["links/absolute_softlink"][()], 10)
             self.assertEqual(h5file["links/external_link"][()], 10)
 
+    def testUpLinks(self):
+        ddict = {"data": {"group": {"dataset": 10, ">relative_softlink": "dataset"}},
+                 "links": {"group": {"subgroup": {">relative_softlink": "../../../data/group/dataset"}}}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            self.assertEqual(h5file["/links/group/subgroup/relative_softlink"][()], 10)
+
 
 class TestNxToDict(unittest.TestCase):
     def setUp(self):

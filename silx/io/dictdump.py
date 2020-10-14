@@ -290,7 +290,7 @@ def dicttoh5(treedict, h5file, h5path='/',
             h5f[h5name].attrs[attr_name] = value
 
 
-def nexus_to_h5_dict(treedict):
+def nexus_to_h5_dict(treedict, parents=tuple()):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
         * key with ">{url}" notation: strip ">" and convert value to
@@ -300,6 +300,7 @@ def nexus_to_h5_dict(treedict):
          and array-like objects as leafs. The ``"/"`` character can be used
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
+    :param parents: Needed to resolve up-links (tuple of HDF5 group names)
 
     :rtype dict:
     """
@@ -314,11 +315,22 @@ def nexus_to_h5_dict(treedict):
                 if sep:
                     value = h5py.ExternalLink(first, second)
                 else:
+                    if ".." in first:
+                        # Up-links not supported: make absolute
+                        parts = []
+                        for p in list(parents) + first.split("/"):
+                            if not p or p == ".":
+                                continue
+                            elif p == "..":
+                                parts.pop(-1)
+                            else:
+                                parts.append(p)
+                        first = "/" + "/".join(parts)
                     value = h5py.SoftLink(first)
             elif is_link(value):
                 key = key[1:]
         if isinstance(value, dict):
-            copy[key] = nexus_to_h5_dict(value)
+            copy[key] = nexus_to_h5_dict(value, parents=parents+(key,))
         else:
             copy[key] = value
     return copy
@@ -417,7 +429,15 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
             if _name_contains_string_in_list(key, exclude_names):
                 continue
             h5name = path + "/" + key
-            if is_group(h5f[h5name]):
+            # Preserve HDF5 link when requested
+            if not dereference_links:
+                lnk = h5f.get(h5name, getlink=True)
+                if is_link(lnk):
+                    ddict[key] = lnk
+                    continue
+
+            h5obj = h5f[h5name]
+            if is_group(h5obj):
                 # Child is an HDF5 group
                 ddict[key] = h5todict(h5f,
                                       h5name,
@@ -426,25 +446,19 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                                       dereference_links=dereference_links,
                                       include_attributes=include_attributes)
             else:
-                # Preserve HDF5 link when requested
-                if not dereference_links:
-                    lnk = h5f.get(h5name, getlink=True)
-                    if is_link(lnk):
-                        ddict[key] = lnk
-                        continue
                 # Child is an HDF5 dataset
-                data = h5f[h5name][()]
+                data = h5obj[()]
                 if asarray:
                     data = numpy.array(data, copy=False)
                 ddict[key] = data
                 # Read the attributes of the child
                 if include_attributes:
-                    for aname, avalue in h5f[h5name].attrs.items():
+                    for aname, avalue in h5obj.attrs.items():
                         ddict[(key, aname)] = avalue
     return ddict
 
 
-def dicttonx(treedict, h5file, **kw):
+def dicttonx(treedict, h5file, h5path="/", **kw):
     """
     Write a nested dictionary to a HDF5 file, using string keys as member names.
     The NeXus convention is used to identify attributes with ``"@"`` character,
@@ -493,8 +507,9 @@ def dicttonx(treedict, h5file, **kw):
 
         dicttonx(gauss,"test.h5")
     """
-    nxtreedict = nexus_to_h5_dict(treedict)
-    dicttoh5(nxtreedict, h5file, **kw)
+    parents = tuple(p for p in h5path.split("/") if p)
+    nxtreedict = nexus_to_h5_dict(treedict, parents=parents)
+    dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 
 def nxtodict(h5file, **kw):
