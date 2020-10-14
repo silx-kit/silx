@@ -296,17 +296,17 @@ class TestDictToNx(unittest.TestCase):
     def testAttributes(self):
         """Any kind of attribute can be described"""
         ddict = {
-            "group": {"datatset": "hmmm", "@group_attr": 10},
-            "dataset": "aaaaaaaaaaaaaaa",
+            "group": {"dataset": 100, "@group_attr1": 10},
+            "dataset": 200,
             "@root_attr": 11,
-            "dataset@dataset_attr": 12,
+            "dataset@dataset_attr": "12",
             "group@group_attr2": 13,
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
-            self.assertEqual(h5file["group"].attrs['group_attr'], 10)
+            self.assertEqual(h5file["group"].attrs['group_attr1'], 10)
             self.assertEqual(h5file.attrs['root_attr'], 11)
-            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
+            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], "12")
             self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
 
     def testKeyOrder(self):
@@ -361,6 +361,21 @@ class TestDictToNx(unittest.TestCase):
             self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
             self.assertEqual(h5file["group/group"].attrs['attr'], 12)
 
+    def testLinks(self):
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            self.assertEqual(h5file["links/group/dataset"][()], 10)
+            self.assertEqual(h5file["links/group/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/absolute_softlink"][()], 10)
+            self.assertEqual(h5file["links/external_link"][()], 10)
+
 
 class TestNxToDict(unittest.TestCase):
     def setUp(self):
@@ -374,6 +389,54 @@ class TestNxToDict(unittest.TestCase):
         if os.path.exists(self.h5_ext_fname):
             os.unlink(self.h5_ext_fname)
         os.rmdir(self.tempdir)
+
+    def testAttributes(self):
+        """Any kind of attribute can be described"""
+        ddict = {
+            "group": {"dataset": 100, "@group_attr1": 10},
+            "dataset": 200,
+            "@root_attr": 11,
+            "dataset@dataset_attr": "12",
+            "group@group_attr2": 13,
+        }
+        dictdump.dicttonx(ddict, self.h5_fname)
+        ddict = dictdump.nxtodict(self.h5_fname, include_attributes=True)
+        self.assertEqual(ddict["group"]["@group_attr1"], 10)
+        self.assertEqual(ddict["@root_attr"], 11)
+        self.assertEqual(ddict["dataset@dataset_attr"], "12")
+        self.assertEqual(ddict["group"]["@group_attr2"], 13)
+
+    def testDereferenceLinks(self):
+        """Write links and dereference on read"""
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+
+        ddict = dictdump.h5todict(self.h5_fname, dereference_links=True)
+        self.assertTrue(ddict["links"]["absolute_softlink"], 10)
+        self.assertTrue(ddict["links"]["relative_softlink"], 10)
+        self.assertTrue(ddict["links"]["external_link"], 10)
+        self.assertTrue(ddict["links"]["group"]["relative_softlink"], 10)
+
+    def testPreserveLinks(self):
+        """Write/read links"""
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+
+        ddict = dictdump.nxtodict(self.h5_fname, dereference_links=False)
+        self.assertTrue(ddict["links"][">absolute_softlink"], "dataset")
+        self.assertTrue(ddict["links"][">relative_softlink"], "group/dataset")
+        self.assertTrue(ddict["links"][">external_link"], "/links/group/dataset")
+        self.assertTrue(ddict["links"]["group"][">relative_softlink"], "nx_ext.h5::/ext_group/datase")
 
 
 class TestDictToJson(unittest.TestCase):
