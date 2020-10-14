@@ -370,7 +370,7 @@ def _name_contains_string_in_list(name, strlist):
     return False
 
 
-def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_links=True):
+def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_links=True, include_attributes=False):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -410,33 +410,44 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
         read them as scalar
     :param bool dereference_links: True (default) to dereference links, False
         to preserve the link itself
+    :param bool include_attributes: False (default)
     :return: Nested dictionary
     """
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
+        # Read the attributes of the group
+        if include_attributes:
+            for aname, avalue in h5f[path].attrs.items():
+                ddict[("", aname)] = avalue
+        # Read the children of the group
         for key in h5f[path]:
             if _name_contains_string_in_list(key, exclude_names):
                 continue
             h5name = path + "/" + key
             if is_group(h5f[h5name]):
+                # Child is an HDF5 group
                 ddict[key] = h5todict(h5f,
                                       h5name,
                                       exclude_names=exclude_names,
                                       asarray=asarray,
-                                      dereference_links=dereference_links)
+                                      dereference_links=dereference_links,
+                                      include_attributes=include_attributes)
             else:
+                # Preserve HDF5 link when requested
                 if not dereference_links:
                     lnk = h5f.get(h5name, getlink=True)
-                if dereference_links or not is_link(lnk):
-                    # Read HDF5 dataset
-                    data = h5f[h5name][()]
-                    if asarray:  # Convert HDF5 dataset to numpy array
-                        data = numpy.array(data, copy=False)
-                else:
-                    # Preserve the link object
-                    data = lnk
+                    if is_link(lnk):
+                        ddict[key] = lnk
+                        continue
+                # Child is an HDF5 dataset
+                data = h5f[h5name][()]
+                if asarray:
+                    data = numpy.array(data, copy=False)
                 ddict[key] = data
-
+                # Read the attributes of the child
+                if include_attributes:
+                    for aname, avalue in h5f[h5name].attrs.items():
+                        ddict[(key, aname)] = avalue
     return ddict
 
 
