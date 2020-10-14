@@ -34,7 +34,7 @@ import sys
 import h5py
 
 from .configdict import ConfigDict
-from .utils import is_group, is_link
+from .utils import is_group, is_link, is_softlink, is_externallink
 from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 
@@ -290,75 +290,68 @@ def dicttoh5(treedict, h5file, h5path='/',
             h5f[h5name].attrs[attr_name] = value
 
 
-def dicttonx(
-    treedict,
-    h5file,
-    h5path="/",
-    mode="w",
-    overwrite_data=False,
-    create_dataset_args=None,
-):
-    """
-    Write a nested dictionary to a HDF5 file, using string keys as member names.
-    The NeXus convention is used to identify attributes with ``"@"`` character,
-    therefor the dataset_names should not contain ``"@"``.
+def nexus_to_h5_dict(treedict):
+    """The following conversions are applied:
+        * key with "{name}@{attr_name}" notation: key converted to 2-tuple
+        * key with ">{url}" notation: strip ">" and convert value to
+                                      h5py.SoftLink or h5py.ExternalLink 
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
          to define sub tree. The ``"@"`` character is used to write attributes.
+         The ``">"`` prefix is used to define links.
 
-    Detais on all other params can be found in doc of dicttoh5.
-
-    Example::
-
-        import numpy
-        from silx.io.dictdump import dicttonx
-
-        gauss = {
-            "entry":{
-                "title":u"A plot of a gaussian",
-                "plot": {
-                    "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
-                                  0.9, 0.66, 0.39, 0.19, 0.08]),
-                    "x": numpy.arange(0,1.1,.1),
-                    "@signal": "y",
-                    "@axes": "x",
-                    "@NX_class":u"NXdata",
-                    "title:u"Gauss Plot",
-                 },
-                 "@NX_class":u"NXentry",
-                 "default":"plot", 
-            }
-            "@NX_class": u"NXroot",
-            "@default": "entry",
-        }
-
-        dicttonx(gauss,"test.h5")
+    :rtype dict:
     """
+    copy = dict()
+    for key, value in treedict.items():
+        if "@" in key:
+            key = tuple(key.rsplit("@", 1))
+        elif key.startswith(">"):
+            if isinstance(value, str):
+                key = key[1:]
+                first, sep, second = value.partition("::")
+                if sep:
+                    value = h5py.ExternalLink(first, second)
+                else:
+                    value = h5py.SoftLink(first)
+            elif is_link(value):
+                key = key[1:]
+        if isinstance(value, dict):
+            copy[key] = nexus_to_h5_dict(value)
+        else:
+            copy[key] = value
+    return copy
 
-    def copy_keys_keep_values(original):
-        # create a new treedict with with modified keys but keep values
-        copy = dict()
-        for key, value in original.items():
-            if "@" in key:
-                newkey = tuple(key.rsplit("@", 1))
-            else:
-                newkey = key
-            if isinstance(value, dict):
-                copy[newkey] = copy_keys_keep_values(value)
-            else:
-                copy[newkey] = value
-        return copy
 
-    nxtreedict = copy_keys_keep_values(treedict)
-    dicttoh5(
-        nxtreedict,
-        h5file,
-        h5path=h5path,
-        mode=mode,
-        overwrite_data=overwrite_data,
-        create_dataset_args=create_dataset_args,
-    )
+def h5_to_nexus_dict(treedict):
+    """The following conversions are applied:
+        * 2-tuple key: converted to string ("@" notation)
+        * h5py.Softlink value: converted to string (">" key prefix)
+        * h5py.ExternalLink value: converted to string (">" key prefix)
+
+    :param treedict: Nested dictionary/tree structure with strings as keys
+         and array-like objects as leafs. The ``"/"`` character can be used
+         to define sub tree.
+
+    :rtype dict:
+    """
+    copy = dict()
+    for key, value in treedict.items():
+        if isinstance(key, tuple):
+            assert len(key)==2, "attribute must be defined by 2 values"
+            key = "%s@%s" % (key[0], key[1])
+        elif is_softlink(value):
+            key = ">" + key
+            value = value.path
+        elif is_externallink(value):
+            key = ">" + key
+            value = value.filename + "::" + value.path
+        if isinstance(value, dict):
+            copy[key] = h5_to_nexus_dict(value)
+        else:
+            copy[key] = value
+    return copy
 
 
 def _name_contains_string_in_list(name, strlist):
@@ -449,6 +442,72 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                     for aname, avalue in h5f[h5name].attrs.items():
                         ddict[(key, aname)] = avalue
     return ddict
+
+
+def dicttonx(treedict, h5file, **kw):
+    """
+    Write a nested dictionary to a HDF5 file, using string keys as member names.
+    The NeXus convention is used to identify attributes with ``"@"`` character,
+    therefore the dataset_names should not contain ``"@"``.
+
+    Similarly, links are identified by keys starting with the ``">"`` character.
+    The corresponding value can be a soft or external link.
+
+    :param treedict: Nested dictionary/tree structure with strings as keys
+         and array-like objects as leafs. The ``"/"`` character can be used
+         to define sub tree. The ``"@"`` character is used to write attributes.
+         The ``">"`` prefix is used to define links.
+
+    The named parameters are passed to dicttoh5.
+
+    Example::
+
+        import numpy
+        from silx.io.dictdump import dicttonx
+
+        gauss = {
+            "entry":{
+                "title":u"A plot of a gaussian",
+                "instrument": {
+                    "@NX_class": u"NXinstrument",
+                    "positioners": {
+                        "@NX_class": u"NXCollection",
+                        "x": numpy.arange(0,1.1,.1)
+                    }
+                }
+                "plot": {
+                    "y": numpy.array([0.08, 0.19, 0.39, 0.66, 0.9, 1.,
+                                  0.9, 0.66, 0.39, 0.19, 0.08]),
+                    ">x": "../instrument/positioners/x",
+                    "@signal": "y",
+                    "@axes": "x",
+                    "@NX_class":u"NXdata",
+                    "title:u"Gauss Plot",
+                 },
+                 "@NX_class": u"NXentry",
+                 "default":"plot",
+            }
+            "@NX_class": u"NXroot",
+            "@default": "entry",
+        }
+
+        dicttonx(gauss,"test.h5")
+    """
+    nxtreedict = nexus_to_h5_dict(treedict)
+    dicttoh5(nxtreedict, h5file, **kw)
+
+
+def nxtodict(h5file, **kw):
+    """Read a HDF5 file and return a nested dictionary with the complete file
+    structure and all data.
+
+    As opposed to h5todict, all keys will be strings and no h5py objects are
+    present in the tree.
+
+    The named parameters are passed to h5todict.
+    """
+    nxtreedict = h5todict(h5file, **kw)
+    return h5_to_nexus_dict(nxtreedict)
 
 
 def dicttojson(ddict, jsonfile, indent=None, mode="w"):
