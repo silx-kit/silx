@@ -34,7 +34,7 @@ import sys
 import h5py
 
 from .configdict import ConfigDict
-from .utils import is_group
+from .utils import is_group, is_link
 from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 
@@ -238,11 +238,15 @@ def dicttoh5(treedict, h5file, h5path='/',
                                     'Not overwriting.' % (h5name))
                     continue
 
-            if treedict[key] is None or key_is_group:
+            value = treedict[key]
+
+            if value is None or key_is_group:
                 # Create empty group
                 h5f.create_group(h5name)
+            elif is_link(value):
+                h5f[h5name] = value
             else:
-                ds = _prepare_hdf5_dataset(treedict[key])
+                ds = _prepare_hdf5_dataset(value)
                 # can't apply filters on scalars (datasets with shape == () )
                 if ds.shape == () or create_dataset_args is None:
                     h5f.create_dataset(h5name,
@@ -366,7 +370,7 @@ def _name_contains_string_in_list(name, strlist):
     return False
 
 
-def h5todict(h5file, path="/", exclude_names=None, asarray=True):
+def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_links=True):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -404,6 +408,8 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True):
         a string in this list will be ignored. Default is None (ignore nothing)
     :param bool asarray: True (default) to read scalar as arrays, False to
         read them as scalar
+    :param bool dereference_links: True (default) to dereference links, False
+        to preserve the link itself
     :return: Nested dictionary
     """
     with _SafeH5FileRead(h5file) as h5f:
@@ -411,16 +417,24 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True):
         for key in h5f[path]:
             if _name_contains_string_in_list(key, exclude_names):
                 continue
-            if is_group(h5f[path + "/" + key]):
+            h5name = path + "/" + key
+            if is_group(h5f[h5name]):
                 ddict[key] = h5todict(h5f,
-                                      path + "/" + key,
+                                      h5name,
                                       exclude_names=exclude_names,
-                                      asarray=asarray)
+                                      asarray=asarray,
+                                      dereference_links=dereference_links)
             else:
-                # Read HDF5 datset
-                data = h5f[path + "/" + key][()]
-                if asarray:  # Convert HDF5 dataset to numpy array
-                    data = numpy.array(data, copy=False)
+                if not dereference_links:
+                    lnk = h5f.get(h5name, getlink=True)
+                if dereference_links or not is_link(lnk):
+                    # Read HDF5 dataset
+                    data = h5f[h5name][()]
+                    if asarray:  # Convert HDF5 dataset to numpy array
+                        data = numpy.array(data, copy=False)
+                else:
+                    # Preserve the link object
+                    data = lnk
                 ddict[key] = data
 
     return ddict
