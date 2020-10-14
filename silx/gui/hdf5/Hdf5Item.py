@@ -100,7 +100,7 @@ class Hdf5Item(Hdf5Node):
         """Returns the class of the stored object.
 
         When the object is in lazy loading, this method should be able to
-        return the type of the futrue loaded object. It allows to delay the
+        return the type of the future loaded object. It allows to delay the
         real load of the object.
 
         :rtype: silx.io.utils.H5Type
@@ -114,7 +114,7 @@ class Hdf5Item(Hdf5Node):
         """Returns the class of the stored object.
 
         When the object is in lazy loading, this method should be able to
-        return the type of the futrue loaded object. It allows to delay the
+        return the type of the future loaded object. It allows to delay the
         real load of the object.
 
         :rtype: h5py.File or h5py.Dataset or h5py.Group
@@ -614,17 +614,28 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
+            # Mark as link
             link = self.linkClass
             if link is None:
-                return ""
+                pass
+            elif link == silx.io.utils.H5Type.HARD_LINK:
+                pass
             elif link == silx.io.utils.H5Type.EXTERNAL_LINK:
                 return "External"
             elif link == silx.io.utils.H5Type.SOFT_LINK:
                 return "Soft"
-            elif link == silx.io.utils.H5Type.HARD_LINK:
-                return ""
             else:
                 return link.__name__
+            # Mark as external data
+            if self.h5Class == silx.io.utils.H5Type.DATASET:
+                obj = self.obj
+                if hasattr(obj, "is_virtual"):
+                    if obj.is_virtual:
+                        return "Virtual"
+                if hasattr(obj, "external"):
+                    if obj.external:
+                        return "ExtRaw"
+            return ""
         if role == qt.Qt.ToolTipRole:
             return None
         return None

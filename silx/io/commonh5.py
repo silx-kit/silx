@@ -376,6 +376,24 @@ class Dataset(Node):
         There is no chunks."""
         return None
 
+    @property
+    def is_virtual(self):
+        """Checks virtual data as provided by `h5py.Dataset`"""
+        return False
+
+    def virtual_sources(self):
+        """Returns virtual dataset sources as provided by `h5py.Dataset`.
+
+        :rtype: list"""
+        raise RuntimeError("Not a virtual dataset")
+
+    @property
+    def external(self):
+        """Returns external sources as provided by `h5py.Dataset`.
+
+        :rtype: list or None"""
+        return None
+
     def __array__(self, dtype=None):
         # Special case for (0,)*-shape datasets
         if numpy.product(self.shape) == 0:
