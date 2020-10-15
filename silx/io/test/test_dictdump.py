@@ -447,6 +447,9 @@ class TestNxToDict(unittest.TestCase):
 
     def testNotExistingPath(self):
         """Test converting not existing path"""
+        with h5py.File(self.h5_fname, 'a') as f:
+            f['data'] = 1
+
         ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='ignore')
         self.assertFalse(ddict)
 
