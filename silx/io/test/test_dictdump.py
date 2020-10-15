@@ -43,6 +43,7 @@ from .. import dictdump
 from ..dictdump import dicttoh5, dicttojson, dump
 from ..dictdump import h5todict, load
 from ..dictdump import logger as dictdump_logger
+from ..utils import is_link
 
 
 def tree():
@@ -58,15 +59,29 @@ city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = inhabitants
 city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
 city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 
+ext_attrs = tree()
+ext_attrs["ext_group"]["dataset"] = 10
+ext_filename = "ext.h5"
+
+link_attrs = tree()
+link_attrs["links"]["group"]["dataset"] = 10
+link_attrs["links"]["group"]["relative_softlink"] = h5py.SoftLink("dataset")
+link_attrs["links"]["relative_softlink"] = h5py.SoftLink("group/dataset")
+link_attrs["links"]["absolute_softlink"] = h5py.SoftLink("/links/group/dataset")
+link_attrs["links"]["external_link"] = h5py.ExternalLink(ext_filename, "/ext_group/dataset")
+
 
 class TestDictToH5(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
+        self.h5_ext_fname = os.path.join(self.tempdir, ext_filename)
 
     def tearDown(self):
         if os.path.exists(self.h5_fname):
             os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_ext_fname):
+            os.unlink(self.h5_ext_fname)
         os.rmdir(self.tempdir)
 
     def testH5CityAttrs(self):
@@ -201,31 +216,97 @@ class TestDictToH5(unittest.TestCase):
             self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
             self.assertEqual(h5file["group/group"].attrs['attr'], 12)
 
+    def testLinks(self):
+        with h5py.File(self.h5_ext_fname, "w") as h5file:
+            dictdump.dicttoh5(ext_attrs, h5file)
+        with h5py.File(self.h5_fname, "w") as h5file:
+            dictdump.dicttoh5(link_attrs, h5file)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            self.assertEqual(h5file["links/group/dataset"][()], 10)
+            self.assertEqual(h5file["links/group/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/absolute_softlink"][()], 10)
+            self.assertEqual(h5file["links/external_link"][()], 10)
+
+
+class TestH5ToDict(unittest.TestCase):
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
+        self.h5_ext_fname = os.path.join(self.tempdir, ext_filename)
+        dicttoh5(city_attrs, self.h5_fname)
+        dicttoh5(link_attrs, self.h5_fname, mode="a")
+        dicttoh5(ext_attrs, self.h5_ext_fname)
+
+    def tearDown(self):
+        if os.path.exists(self.h5_fname):
+            os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_ext_fname):
+            os.unlink(self.h5_ext_fname)
+        os.rmdir(self.tempdir)
+
+    def testExcludeNames(self):
+        ddict = h5todict(self.h5_fname, path="/Europe/France",
+                         exclude_names=["ourcoing", "inhab", "toto"])
+        self.assertNotIn("Tourcoing", ddict)
+        self.assertIn("Grenoble", ddict)
+
+        self.assertNotIn("inhabitants", ddict["Grenoble"])
+        self.assertIn("coordinates", ddict["Grenoble"])
+        self.assertIn("area", ddict["Grenoble"])
+
+    def testAsArrayTrue(self):
+        """Test with asarray=True, the default"""
+        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble")
+        self.assertTrue(numpy.array_equal(ddict["inhabitants"], numpy.array(inhabitants)))
+
+    def testAsArrayFalse(self):
+        """Test with asarray=False"""
+        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble", asarray=False)
+        self.assertEqual(ddict["inhabitants"], inhabitants)
+
+    def testDereferenceLinks(self):
+        ddict = h5todict(self.h5_fname, path="links", dereference_links=True)
+        self.assertTrue(ddict["absolute_softlink"], 10)
+        self.assertTrue(ddict["relative_softlink"], 10)
+        self.assertTrue(ddict["external_link"], 10)
+        self.assertTrue(ddict["group"]["relative_softlink"], 10)
+
+    def testPreserveLinks(self):
+        ddict = h5todict(self.h5_fname, path="links", dereference_links=False)
+        self.assertTrue(is_link(ddict["absolute_softlink"]))
+        self.assertTrue(is_link(ddict["relative_softlink"]))
+        self.assertTrue(is_link(ddict["external_link"]))
+        self.assertTrue(is_link(ddict["group"]["relative_softlink"]))
+
 
 class TestDictToNx(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "nx.h5")
+        self.h5_ext_fname = os.path.join(self.tempdir, "nx_ext.h5")
 
     def tearDown(self):
         if os.path.exists(self.h5_fname):
             os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_ext_fname):
+            os.unlink(self.h5_ext_fname)
         os.rmdir(self.tempdir)
 
     def testAttributes(self):
         """Any kind of attribute can be described"""
         ddict = {
-            "group": {"datatset": "hmmm", "@group_attr": 10},
-            "dataset": "aaaaaaaaaaaaaaa",
+            "group": {"dataset": 100, "@group_attr1": 10},
+            "dataset": 200,
             "@root_attr": 11,
-            "dataset@dataset_attr": 12,
+            "dataset@dataset_attr": "12",
             "group@group_attr2": 13,
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
-            self.assertEqual(h5file["group"].attrs['group_attr'], 10)
+            self.assertEqual(h5file["group"].attrs['group_attr1'], 10)
             self.assertEqual(h5file.attrs['root_attr'], 11)
-            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
+            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], "12")
             self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
 
     def testKeyOrder(self):
@@ -280,36 +361,89 @@ class TestDictToNx(unittest.TestCase):
             self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
             self.assertEqual(h5file["group/group"].attrs['attr'], 12)
 
+    def testLinks(self):
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            self.assertEqual(h5file["links/group/dataset"][()], 10)
+            self.assertEqual(h5file["links/group/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/relative_softlink"][()], 10)
+            self.assertEqual(h5file["links/absolute_softlink"][()], 10)
+            self.assertEqual(h5file["links/external_link"][()], 10)
 
-class TestH5ToDict(unittest.TestCase):
+    def testUpLinks(self):
+        ddict = {"data": {"group": {"dataset": 10, ">relative_softlink": "dataset"}},
+                 "links": {"group": {"subgroup": {">relative_softlink": "../../../data/group/dataset"}}}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            self.assertEqual(h5file["/links/group/subgroup/relative_softlink"][()], 10)
+
+
+class TestNxToDict(unittest.TestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
-        self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
-        dicttoh5(city_attrs, self.h5_fname)
+        self.h5_fname = os.path.join(self.tempdir, "nx.h5")
+        self.h5_ext_fname = os.path.join(self.tempdir, "nx_ext.h5")
 
     def tearDown(self):
-        os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_fname):
+            os.unlink(self.h5_fname)
+        if os.path.exists(self.h5_ext_fname):
+            os.unlink(self.h5_ext_fname)
         os.rmdir(self.tempdir)
 
-    def testExcludeNames(self):
-        ddict = h5todict(self.h5_fname, path="/Europe/France",
-                         exclude_names=["ourcoing", "inhab", "toto"])
-        self.assertNotIn("Tourcoing", ddict)
-        self.assertIn("Grenoble", ddict)
+    def testAttributes(self):
+        """Any kind of attribute can be described"""
+        ddict = {
+            "group": {"dataset": 100, "@group_attr1": 10},
+            "dataset": 200,
+            "@root_attr": 11,
+            "dataset@dataset_attr": "12",
+            "group@group_attr2": 13,
+        }
+        dictdump.dicttonx(ddict, self.h5_fname)
+        ddict = dictdump.nxtodict(self.h5_fname, include_attributes=True)
+        self.assertEqual(ddict["group"]["@group_attr1"], 10)
+        self.assertEqual(ddict["@root_attr"], 11)
+        self.assertEqual(ddict["dataset@dataset_attr"], "12")
+        self.assertEqual(ddict["group"]["@group_attr2"], 13)
 
-        self.assertNotIn("inhabitants", ddict["Grenoble"])
-        self.assertIn("coordinates", ddict["Grenoble"])
-        self.assertIn("area", ddict["Grenoble"])
+    def testDereferenceLinks(self):
+        """Write links and dereference on read"""
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
 
-    def testAsArrayTrue(self):
-        """Test with asarray=True, the default"""
-        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble")
-        self.assertTrue(numpy.array_equal(ddict["inhabitants"], numpy.array(inhabitants)))
+        ddict = dictdump.h5todict(self.h5_fname, dereference_links=True)
+        self.assertTrue(ddict["links"]["absolute_softlink"], 10)
+        self.assertTrue(ddict["links"]["relative_softlink"], 10)
+        self.assertTrue(ddict["links"]["external_link"], 10)
+        self.assertTrue(ddict["links"]["group"]["relative_softlink"], 10)
 
-    def testAsArrayFalse(self):
-        """Test with asarray=False"""
-        ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble", asarray=False)
-        self.assertEqual(ddict["inhabitants"], inhabitants)
+    def testPreserveLinks(self):
+        """Write/read links"""
+        ddict = {"ext_group": {"dataset": 10}}
+        dictdump.dicttonx(ddict, self.h5_ext_fname)
+        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
+                           ">relative_softlink": "group/dataset",
+                           ">absolute_softlink": "/links/group/dataset",
+                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        dictdump.dicttonx(ddict, self.h5_fname)
+
+        ddict = dictdump.nxtodict(self.h5_fname, dereference_links=False)
+        self.assertTrue(ddict["links"][">absolute_softlink"], "dataset")
+        self.assertTrue(ddict["links"][">relative_softlink"], "group/dataset")
+        self.assertTrue(ddict["links"][">external_link"], "/links/group/dataset")
+        self.assertTrue(ddict["links"]["group"][">relative_softlink"], "nx_ext.h5::/ext_group/datase")
 
 
 class TestDictToJson(unittest.TestCase):
@@ -436,6 +570,7 @@ def suite():
     test_suite.addTest(loadTests(TestDictToNx))
     test_suite.addTest(loadTests(TestDictToJson))
     test_suite.addTest(loadTests(TestH5ToDict))
+    test_suite.addTest(loadTests(TestNxToDict))
     return test_suite
 
 

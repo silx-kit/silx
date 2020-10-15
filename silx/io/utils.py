@@ -757,6 +757,26 @@ def is_softlink(obj):
     return t == H5Type.SOFT_LINK
 
 
+def is_externallink(obj):
+    """
+    True if the object is a h5py.ExternalLink-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t == H5Type.EXTERNAL_LINK
+
+
+def is_link(obj):
+    """
+    True if the object is a h5py link-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t in {H5Type.SOFT_LINK, H5Type.EXTERNAL_LINK}
+
+
 def get_data(url):
     """Returns a numpy data from an URL.
 
