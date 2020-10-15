@@ -1132,6 +1132,7 @@ def suite():
     test_suite.addTest(loadTests(TestNexusSortFilterProxyModel))
     test_suite.addTest(loadTests(TestHdf5TreeView))
     test_suite.addTest(loadTests(TestH5Node))
+    test_suite.addTest(loadTests(TestH5Item))
     return test_suite
 
 
