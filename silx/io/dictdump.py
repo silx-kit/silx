@@ -375,7 +375,31 @@ def _name_contains_string_in_list(name, strlist):
     return False
 
 
-def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_links=True, include_attributes=False):
+def _handle_error(mode: str, exception, msg: str, *args) -> None:
+    """Handle errors.
+
+    :param str mode: 'raise', 'log', 'ignore'
+    :param type exception: Exception class to use in 'raise' mode
+    :param str msg: Error message template
+    :param List[str] args: Arguments for error message template
+    """
+    if mode == 'ignore':
+        return  # no-op
+    elif mode == 'log':
+        logger.error(msg, *args)
+    elif mode == 'raise':
+        raise exception(msg % args)
+    else:
+        raise ValueError("Unsupported error handling: %s" % mode)
+
+
+def h5todict(h5file,
+             path="/",
+             exclude_names=None,
+             asarray=True,
+             dereference_links=True,
+             include_attributes=False,
+             errors='raise'):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -398,7 +422,7 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
 
-    .. note:: If you write a dictionary to a HDF5 file with
+    .. note:: If you write a dictionary to a HDF5 file with
         :func:`dicttoh5` and then read it back with :func:`h5todict`, data
         types are not preserved. All values are cast to numpy arrays before
         being written to file, and they are read back as numpy arrays (or
@@ -416,22 +440,30 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
     :param bool dereference_links: True (default) to dereference links, False
         to preserve the link itself
     :param bool include_attributes: False (default)
+    :param str errors: Handling of errors (HDF5 access issue, broken link,...):
+        - 'raise' (default): Raise an exception
+        - 'log': Log as errors
+        - 'ignore': Ignore errors
     :return: Nested dictionary
     """
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
         if path not in h5f:
-            logger.error('Path "%s" does not exist in file.', path)
+            _handle_error(
+                errors, KeyError, 'Path "%s" does not exist in file.', path)
             return ddict
 
         try:
             root = h5f[path]
         except KeyError as e:
             if not isinstance(h5f.get(path, getlink=True), h5py.HardLink):
-                logger.error('Cannot retrieve path "%s" (broken link)', path)
-                return ddict
+                _handle_error(errors,
+                              KeyError,
+                              'Cannot retrieve path "%s" (broken link)',
+                              path)
             else:
-                raise e
+                _handle_error(errors, KeyError, ', '.join(e.args))
+            return ddict
 
         # Read the attributes of the group
         if include_attributes:
@@ -453,10 +485,13 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                 h5obj = h5f[h5name]
             except KeyError as e:
                 if not isinstance(h5f.get(h5name, getlink=True), h5py.HardLink):
-                    logger.error('Cannot retrieve path "%s" (broken link)', h5name)
-                    continue
+                    _handle_error(errors,
+                                  KeyError,
+                                  'Cannot retrieve path "%s" (broken link)',
+                                  h5name)
                 else:
-                    raise e
+                    _handle_error(errors, KeyError, ', '.join(e.args))
+                continue
 
             if is_group(h5obj):
                 # Child is an HDF5 group
@@ -471,9 +506,12 @@ def h5todict(h5file, path="/", exclude_names=None, asarray=True, dereference_lin
                 try:
                     data = h5obj[()]
                 except OSError:
-                    logger.error('Cannot retrieve dataset "%s"', subpath)
+                    _handle_error(errors,
+                                  OSError,
+                                  'Cannot retrieve dataset "%s"',
+                                  subpath)
                 else:
-                    if asarray:
+                    if asarray:  # Convert HDF5 dataset to numpy array
                         data = numpy.array(data, copy=False)
                     ddict[key] = data
                     # Read the attributes of the child
