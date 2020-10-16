@@ -388,7 +388,11 @@ class GLPlotColormap(_GLPlotData2D):
 
         self._cmap_texture.bind()
 
-    def _renderLinear(self, matrix):
+    def _renderLinear(self, context):
+        """Perform rendering when both axes have linear scales
+
+        :param RenderContext context: Rendering information
+        """
         self.prepare()
 
         prog = self._linearProgram
@@ -396,7 +400,7 @@ class GLPlotColormap(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
-        mat = numpy.dot(numpy.dot(matrix,
+        mat = numpy.dot(numpy.dot(context.matrix,
                                   mat4Translate(*self.origin)),
                         mat4Scale(*self.scale))
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
@@ -410,10 +414,14 @@ class GLPlotColormap(_GLPlotData2D):
                              prog.attributes['texCoords'],
                              self._DATA_TEX_UNIT)
 
-    def _renderLog10(self, matrix, isXLog, isYLog):
+    def _renderLog10(self, context):
+        """Perform rendering when one axis has log scale
+
+        :param RenderContext context: Rendering information
+        """
         xMin, yMin = self.xMin, self.yMin
-        if ((isXLog and xMin < FLOAT32_MINPOS) or
-                (isYLog and yMin < FLOAT32_MINPOS)):
+        if ((context.isXLog and xMin < FLOAT32_MINPOS) or
+                (context.isYLog and yMin < FLOAT32_MINPOS)):
             # Do not render images that are partly or totally <= 0
             return
 
@@ -427,12 +435,12 @@ class GLPlotColormap(_GLPlotData2D):
         gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
 
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              matrix.astype(numpy.float32))
+                              context.matrix.astype(numpy.float32))
         mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
         gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
                               mat.astype(numpy.float32))
 
-        gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniform2i(prog.uniforms['isLog'], context.isXLog, context.isYLog)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
@@ -471,11 +479,15 @@ class GLPlotColormap(_GLPlotData2D):
 
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 
-    def render(self, matrix, isXLog, isYLog):
-        if any((isXLog, isYLog)):
-            self._renderLog10(matrix, isXLog, isYLog)
+    def render(self, context):
+        """Perform rendering
+
+        :param RenderContext context: Rendering information
+        """
+        if any((context.isXLog, context.isYLog)):
+            self._renderLog10(context)
         else:
-            self._renderLinear(matrix)
+            self._renderLinear(context)
 
         # Unbind colormap texture
         gl.glActiveTexture(gl.GL_TEXTURE0 + self._cmap_texture.texUnit)
@@ -645,7 +657,11 @@ class GLPlotRGBAImage(_GLPlotData2D):
             format_ = gl.GL_RGBA if self.data.shape[2] == 4 else gl.GL_RGB
             self._texture.updateAll(format_=format_, data=self.data)
 
-    def _renderLinear(self, matrix):
+    def _renderLinear(self, context):
+        """Perform rendering with both axes having linear scales
+
+        :param RenderContext context: Rendering information
+        """
         self.prepare()
 
         prog = self._linearProgram
@@ -653,7 +669,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
-        mat = numpy.dot(numpy.dot(matrix, mat4Translate(*self.origin)),
+        mat = numpy.dot(numpy.dot(context.matrix, mat4Translate(*self.origin)),
                         mat4Scale(*self.scale))
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
                               mat.astype(numpy.float32))
@@ -664,7 +680,11 @@ class GLPlotRGBAImage(_GLPlotData2D):
                              prog.attributes['texCoords'],
                              self._DATA_TEX_UNIT)
 
-    def _renderLog(self, matrix, isXLog, isYLog):
+    def _renderLog(self, context):
+        """Perform rendering with axes having log scale
+
+        :param RenderContext context: Rendering information
+        """
         self.prepare()
 
         prog = self._logProgram
@@ -675,12 +695,12 @@ class GLPlotRGBAImage(_GLPlotData2D):
         gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
 
         gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              matrix.astype(numpy.float32))
+                              context.matrix.astype(numpy.float32))
         mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
         gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
                               mat.astype(numpy.float32))
 
-        gl.glUniform2i(prog.uniforms['isLog'], isXLog, isYLog)
+        gl.glUniform2i(prog.uniforms['isLog'], context.isXLog, context.isYLog)
 
         gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
 
@@ -717,8 +737,12 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 
-    def render(self, matrix, isXLog, isYLog):
-        if any((isXLog, isYLog)):
-            self._renderLog(matrix, isXLog, isYLog)
+    def render(self, context):
+        """Perform rendering
+
+        :param RenderContext context: Rendering information
+        """
+        if any((context.isXLog, context.isYLog)):
+            self._renderLog(context)
         else:
-            self._renderLinear(matrix)
+            self._renderLinear(context)

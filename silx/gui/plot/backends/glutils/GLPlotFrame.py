@@ -61,7 +61,7 @@ class PlotAxis(object):
     This class is intended to be used with :class:`GLPlotFrame`.
     """
 
-    def __init__(self, plot,
+    def __init__(self, plotFrame,
                  tickLength=(0., 0.),
                  foregroundColor=(0., 0., 0., 1.0),
                  labelAlign=CENTER, labelVAlign=CENTER,
@@ -69,7 +69,7 @@ class PlotAxis(object):
                  titleRotate=0, titleOffset=(0., 0.)):
         self._ticks = None
 
-        self._plot = weakref.ref(plot)
+        self._plotFrameRef = weakref.ref(plotFrame)
 
         self._isDateTime = False
         self._timeZone = None
@@ -157,6 +157,12 @@ class PlotAxis(object):
             self._dirtyTicks()
 
     @property
+    def devicePixelRatio(self):
+        """Returns the ratio between qt pixels and device pixels."""
+        plotFrame = self._plotFrameRef()
+        return plotFrame.devicePixelRatio if plotFrame is not None else 1.
+
+    @property
     def title(self):
         """The text label associated with this axis as a str in latin-1."""
         return self._title
@@ -165,10 +171,7 @@ class PlotAxis(object):
     def title(self, title):
         if title != self._title:
             self._title = title
-
-            plot = self._plot()
-            if plot is not None:
-                plot._dirty()
+            self._dirtyPlotFrame()
 
     @property
     def titleOffset(self):
@@ -212,6 +215,8 @@ class PlotAxis(object):
         tickLabelsSize = [0., 0.]
 
         xTickLength, yTickLength = self._tickLength
+        xTickLength *= self.devicePixelRatio
+        yTickLength *= self.devicePixelRatio
         for (xPixel, yPixel), dataPos, text in self.ticks:
             if text is None:
                 tickScale = 0.5
@@ -223,7 +228,8 @@ class PlotAxis(object):
                                x=xPixel - xTickLength,
                                y=yPixel - yTickLength,
                                align=self._labelAlign,
-                               valign=self._labelVAlign)
+                               valign=self._labelVAlign,
+                               devicePixelRatio=self.devicePixelRatio)
 
                 width, height = label.size
                 if width > tickLabelsSize[0]:
@@ -256,17 +262,22 @@ class PlotAxis(object):
                            y=yAxisCenter + yOffset,
                            align=self._titleAlign,
                            valign=self._titleVAlign,
-                           rotate=self._titleRotate)
+                           rotate=self._titleRotate,
+                           devicePixelRatio=self.devicePixelRatio)
         labels.append(axisTitle)
 
         return vertices, labels
 
+    def _dirtyPlotFrame(self):
+        """Dirty parent GLPlotFrame"""
+        plotFrame = self._plotFrameRef()
+        if plotFrame is not None:
+            plotFrame._dirty()
+
     def _dirtyTicks(self):
         """Mark ticks as dirty and notify listener (i.e., background)."""
         self._ticks = None
-        plot = self._plot()
-        if plot is not None:
-            plot._dirty()
+        self._dirtyPlotFrame()
 
     @staticmethod
     def _frange(start, stop, step):
@@ -325,7 +336,7 @@ class PlotAxis(object):
                 xScale = (x1 - x0) / (dataMax - dataMin)
                 yScale = (y1 - y0) / (dataMax - dataMin)
 
-                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2))
+                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2)) / self.devicePixelRatio
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
@@ -426,6 +437,8 @@ class GLPlotFrame(object):
         self._size = 0., 0.
         self._title = ''
 
+        self._devicePixelRatio = 1.
+
     @property
     def isDirty(self):
         """True if it need to refresh graphic rendering, False otherwise."""
@@ -500,6 +513,16 @@ class GLPlotFrame(object):
         return self.__marginsCache
 
     @property
+    def devicePixelRatio(self):
+        return self._devicePixelRatio
+
+    @devicePixelRatio.setter
+    def devicePixelRatio(self, ratio):
+        if ratio != self._devicePixelRatio:
+            self._devicePixelRatio = ratio
+            self._dirty()
+
+    @property
     def grid(self):
         """Grid display mode:
         - 0: No grid.
@@ -518,7 +541,7 @@ class GLPlotFrame(object):
 
     @property
     def size(self):
-        """Size in pixels of the plot area including margins."""
+        """Size in device pixels of the plot area including margins."""
         return self._size
 
     @size.setter
@@ -606,7 +629,8 @@ class GLPlotFrame(object):
                              x=xTitle,
                              y=yTitle,
                              align=CENTER,
-                             valign=BOTTOM))
+                             valign=BOTTOM,
+                             devicePixelRatio=self.devicePixelRatio))
 
         # grid
         gridVertices = numpy.array(self._buildGridVertices(),

@@ -31,6 +31,39 @@ __license__ = "MIT"
 __date__ = "02/07/2020"
 
 
+class RenderContext:
+    """Context with which to perform OpenGL rendering.
+
+    :param numpy.ndarray matrix: 4x4 transform matrix to use for rendering
+    :param bool isXLog: Whether X axis is log scale or not
+    :param bool isYLog: Whether Y axis is log scale or not
+    :param float dpi: Number of device pixels per inch
+    """
+
+    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=96.):
+        self.matrix = matrix
+        """Current transformation matrix"""
+
+        self.__isXLog = isXLog
+        self.__isYLog = isYLog
+        self.__dpi = dpi
+
+    @property
+    def isXLog(self):
+        """True if X axis is using log scale"""
+        return self.__isXLog
+
+    @property
+    def isYLog(self):
+        """True if Y axis is using log scale"""
+        return self.__isYLog
+
+    @property
+    def dpi(self):
+        """Number of device pixels per inch"""
+        return self.__dpi
+
+
 class GLPlotItem:
     """Base class for primitives used in the PlotWidget OpenGL backend"""
 
@@ -49,12 +82,10 @@ class GLPlotItem:
         """
         return None
 
-    def render(self, matrix, isXLog, isYLog):
+    def render(self, context):
         """Performs OpenGL rendering of the item.
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use for rendering
-        :param bool isXLog: Whether X axis is log scale or not
-        :param bool isYLog: Whether Y axis is log scale or not
+        :param RenderContext context: Rendering context information
         """
         pass
 
