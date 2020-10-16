@@ -38,7 +38,7 @@ try:
 except ImportError:  # Python2 support
     import collections as abc
 
-from .core import (Item, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
+from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
                    LineMixIn, YAxisMixIn, ItemChangedType)
 
 _logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ def _getHistogramCurve(histogram, edges):
 
 
 # TODO: Yerror, test log scale
-class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
+class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
                 LineMixIn, YAxisMixIn, BaselineMixIn):
     """Description of an histogram"""
 
@@ -119,7 +119,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
     _DEFAULT_BASELINE = None
 
     def __init__(self):
-        Item.__init__(self)
+        DataItem.__init__(self)
         AlphaMixIn.__init__(self)
         BaselineMixIn.__init__(self)
         ColorMixIn.__init__(self)
@@ -219,19 +219,6 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
                     min(0, numpy.nanmin(values)),
                     max(0, numpy.nanmax(values)))
 
-    def setVisible(self, visible):
-        """Set visibility of item.
-
-        :param bool visible: True to display it, False otherwise
-        """
-        visible = bool(visible)
-        # TODO hackish data range implementation
-        if self.isVisible() != visible:
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-        super(Histogram, self).setVisible(visible)
-
     def getValueData(self, copy=True):
         """The values of the histogram
 
@@ -314,11 +301,7 @@ class Histogram(Item, AlphaMixIn, ColorMixIn, FillMixIn,
             self._alignement = align
             self._setBaseline(baseline)
 
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
     def getAlignment(self):

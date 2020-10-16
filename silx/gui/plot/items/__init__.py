@@ -32,7 +32,8 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "22/06/2017"
 
-from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
+from .core import (Item, DataItem,  # noqa
+                   LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn, ScatterVisualizationMixIn,  # noqa
                    ComplexMixIn, ItemChangedType, PointsBase)  # noqa

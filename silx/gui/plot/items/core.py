@@ -44,6 +44,7 @@ import numpy
 import six
 
 from ....utils.deprecation import deprecated
+from ....utils.proxy import docstring
 from ....utils.enum import Enum as _Enum
 from ....math.combo import min_max
 from ... import qt
@@ -374,6 +375,27 @@ class Item(qt.QObject):
             return None
         else:
             return PickingResult(self, indices)
+
+
+class DataItem(Item):
+    """Item with a data extent in the plot"""
+
+    def _boundsChanged(self, checkVisibility: bool=True) -> None:
+        """Call this method in subclass when data bounds has changed.
+
+        :param bool checkVisibility:
+        """
+        if not checkVisibility or self.isVisible():
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+    @docstring(Item)
+    def setVisible(self, visible: bool):
+        if visible != self.isVisible():
+            self._boundsChanged(checkVisibility=False)
+        super().setVisible(visible)
 
 
 # Mix-in classes ##############################################################
@@ -837,6 +859,8 @@ class YAxisMixIn(ItemMixInBase):
         assert yaxis in ('left', 'right')
         if yaxis != self._yaxis:
             self._yaxis = yaxis
+            if isinstance(self, DataItem):
+                self._boundsChanged()
             self._updated(ItemChangedType.YAXIS)
 
 
@@ -1202,7 +1226,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.getVisualizationParameter(parameter)
 
 
-class PointsBase(Item, SymbolMixIn, AlphaMixIn):
+class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -1212,7 +1236,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
     on top of images."""
 
     def __init__(self):
-        Item.__init__(self)
+        DataItem.__init__(self)
         SymbolMixIn.__init__(self)
         AlphaMixIn.__init__(self)
         self._x = ()
@@ -1484,11 +1508,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
         self._filteredCache = {}  # Reset cached filtered data
         self._clippedCache = {}  # Reset cached clipped bool array
 
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
 

@@ -40,7 +40,7 @@ import logging
 import numpy
 
 from ....utils.proxy import docstring
-from .core import (Item, LabelsMixIn, DraggableMixIn, ColormapMixIn,
+from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
 
 
@@ -87,15 +87,20 @@ def _convertImageToRgba32(image, copy=True):
         return numpy.array(image, copy=copy)
 
 
-class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
-    """Description of an image"""
+class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
+    """Description of an image
 
-    def __init__(self):
-        Item.__init__(self)
+    :param numpy.ndarray data: Initial image data
+    """
+
+    def __init__(self, data=None):
+        DataItem.__init__(self)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
         AlphaMixIn.__init__(self)
-        self._data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
+        if data is None:
+            data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
+        self._data = data
 
         self._origin = (0., 0.)
         self._scale = (1., 1.)
@@ -128,19 +133,6 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             return params
         else:
             raise IndexError("Index out of range: %s" % str(item))
-
-    def setVisible(self, visible):
-        """Set visibility of item.
-
-        :param bool visible: True to display it, False otherwise
-        """
-        visible = bool(visible)
-        # TODO hackish data range implementation
-        if self.isVisible() != visible:
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-        super(ImageBase, self).setVisible(visible)
 
     def _isPlotLinear(self, plot):
         """Return True if plot only uses linear scale for both of x and y
@@ -189,6 +181,15 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         """
         return numpy.array(self._data, copy=copy)
 
+    def setData(self, data):
+        """Set the image data
+
+        :param Union[numpy.ndarray,None] data:
+        """
+        self._data = data
+        self._boundsChanged()
+        self._updated(ItemChangedType.DATA)
+
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
 
@@ -215,13 +216,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             origin = float(origin), float(origin)
         if origin != self._origin:
             self._origin = origin
-
-            # TODO hackish data range implementation
-            if self.isVisible():
-                plot = self.getPlot()
-                if plot is not None:
-                    plot._invalidateDataRange()
-
+            self._boundsChanged()
             self._updated(ItemChangedType.POSITION)
 
     def getScale(self):
@@ -244,13 +239,7 @@ class ImageBase(Item, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         if scale != self._scale:
             self._scale = scale
-
-            # TODO hackish data range implementation
-            if self.isVisible():
-                plot = self.getPlot()
-                if plot is not None:
-                    plot._invalidateDataRange()
-
+            self._boundsChanged()
             self._updated(ItemChangedType.SCALE)
 
 
@@ -258,9 +247,8 @@ class ImageData(ImageBase, ColormapMixIn):
     """Description of a data image with a colormap"""
 
     def __init__(self):
-        ImageBase.__init__(self)
+        ImageBase.__init__(self, numpy.zeros((0, 0), dtype=numpy.float32))
         ColormapMixIn.__init__(self)
-        self._data = numpy.zeros((0, 0), dtype=numpy.float32)
         self._alternativeImage = None
         self.__alpha = None
 
@@ -370,7 +358,6 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        self._data = data
         self._setColormappedData(data, copy=False)
 
         if alternative is not None:
@@ -389,20 +376,14 @@ class ImageData(ImageBase, ColormapMixIn):
                 alpha = numpy.clip(alpha, 0., 1.)
         self.__alpha = alpha
 
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        self._updated(ItemChangedType.DATA)
+        super().setData(data)
 
 
 class ImageRgba(ImageBase):
     """Description of an RGB(A) image"""
 
     def __init__(self):
-        ImageBase.__init__(self)
+        ImageBase.__init__(self, numpy.zeros((0, 0, 4), dtype=numpy.uint8))
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -440,15 +421,7 @@ class ImageRgba(ImageBase):
         data = numpy.array(data, copy=copy)
         assert data.ndim == 3
         assert data.shape[-1] in (3, 4)
-        self._data = data
-
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        self._updated(ItemChangedType.DATA)
+        super().setData(data)
 
 
 class MaskImageData(ImageData):
