@@ -122,7 +122,7 @@ before_script:
     # For wheel: Make sure silx does not come from cache or pypi
     # At this point all install_requires dependencies MUST be installed
     # as this is installing only from dist
-    - if [ "BUILD_COMMAND" == "sdist" ];
+    - if [ "$BUILD_COMMAND" == "sdist" ];
       then
           pip install --pre --find-links dist/ silx $PIP_INSTALL_EXTRA_ARGS;
       else
