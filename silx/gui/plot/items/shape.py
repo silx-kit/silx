@@ -184,7 +184,7 @@ class BoundingRect(DataItem, YAxisMixIn):
 
         if rect != self.__bounds:
             self.__bounds = rect
-            self._dataExtentChanged()
+            self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
     def _getBounds(self):
@@ -236,7 +236,7 @@ class _BaseExtent(DataItem):
 
         if range_ != self.__range:
             self.__range = range_
-            self._dataExtentChanged()
+            self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
     def getRange(self):

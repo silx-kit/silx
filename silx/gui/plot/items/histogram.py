@@ -301,7 +301,7 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
             self._alignement = align
             self._setBaseline(baseline)
 
-        self._dataExtentChanged()
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
     def getAlignment(self):

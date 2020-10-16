@@ -187,7 +187,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param Union[numpy.ndarray,None] data:
         """
         self._data = data
-        self._dataExtentChanged()
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
     def getRgbaImageData(self, copy=True):
@@ -216,7 +216,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             origin = float(origin), float(origin)
         if origin != self._origin:
             self._origin = origin
-            self._dataExtentChanged()
+            self._boundsChanged()
             self._updated(ItemChangedType.POSITION)
 
     def getScale(self):
@@ -239,7 +239,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         if scale != self._scale:
             self._scale = scale
-            self._dataExtentChanged()
+            self._boundsChanged()
             self._updated(ItemChangedType.SCALE)
 
 

@@ -380,8 +380,8 @@ class Item(qt.QObject):
 class DataItem(Item):
     """Item with a data extent in the plot"""
 
-    def _dataExtentChanged(self, checkVisibility: bool=True) -> None:
-        """Call this method in subclass when data extent has changed.
+    def _boundsChanged(self, checkVisibility: bool=True) -> None:
+        """Call this method in subclass when data bounds has changed.
 
         :param bool checkVisibility:
         """
@@ -394,7 +394,7 @@ class DataItem(Item):
     @docstring(Item)
     def setVisible(self, visible: bool):
         if visible != self.isVisible():
-            self._dataExtentChanged(checkVisibility=False)
+            self._boundsChanged(checkVisibility=False)
         super().setVisible(visible)
 
 
@@ -860,7 +860,7 @@ class YAxisMixIn(ItemMixInBase):
         if yaxis != self._yaxis:
             self._yaxis = yaxis
             if isinstance(self, DataItem):
-                self._dataExtentChanged()
+                self._boundsChanged()
             self._updated(ItemChangedType.YAXIS)
 
 
@@ -1508,7 +1508,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         self._filteredCache = {}  # Reset cached filtered data
         self._clippedCache = {}  # Reset cached clipped bool array
 
-        self._dataExtentChanged()
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
 
