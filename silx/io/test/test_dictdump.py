@@ -445,6 +445,37 @@ class TestNxToDict(unittest.TestCase):
         self.assertTrue(ddict["links"][">external_link"], "/links/group/dataset")
         self.assertTrue(ddict["links"]["group"][">relative_softlink"], "nx_ext.h5::/ext_group/datase")
 
+    def testNotExistingPath(self):
+        """Test converting not existing path"""
+        with h5py.File(self.h5_fname, 'a') as f:
+            f['data'] = 1
+
+        ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='ignore')
+        self.assertFalse(ddict)
+
+        with TestLogging(dictdump_logger, error=1):
+            ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='log')
+            self.assertFalse(ddict)
+
+        with self.assertRaises(KeyError):
+            h5todict(self.h5_fname, path="/I/am/not/a/path", errors='raise')
+
+    def testBrokenLinks(self):
+        """Test with broken links"""
+        with h5py.File(self.h5_fname, 'a') as f:
+            f["/Mars/BrokenSoftLink"] = h5py.SoftLink("/Idontexists")
+            f["/Mars/BrokenExternalLink"] = h5py.ExternalLink("notexistingfile.h5", "/Idontexists")
+
+        ddict = h5todict(self.h5_fname, path="/Mars", errors='ignore')
+        self.assertFalse(ddict)
+
+        with TestLogging(dictdump_logger, error=2):
+            ddict = h5todict(self.h5_fname, path="/Mars", errors='log')
+            self.assertFalse(ddict)
+
+        with self.assertRaises(KeyError):
+            h5todict(self.h5_fname, path="/Mars", errors='raise')
+
 
 class TestDictToJson(unittest.TestCase):
     def setUp(self):
