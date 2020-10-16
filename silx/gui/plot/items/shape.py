@@ -36,7 +36,9 @@ import numpy
 import six
 
 from ... import colors
-from .core import Item, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn
+from .core import (
+    Item, DataItem,
+    ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)
@@ -154,7 +156,7 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         self._updated(ItemChangedType.LINE_BG_COLOR)
 
 
-class BoundingRect(Item, YAxisMixIn):
+class BoundingRect(DataItem, YAxisMixIn):
     """An invisible shape which enforce the plot view to display the defined
     space on autoscale.
 
@@ -166,20 +168,9 @@ class BoundingRect(Item, YAxisMixIn):
     """
 
     def __init__(self):
-        Item.__init__(self)
+        DataItem.__init__(self)
         YAxisMixIn.__init__(self)
         self.__bounds = None
-
-    def _updated(self, event=None, checkVisibility=True):
-        if event in (ItemChangedType.YAXIS,
-                     ItemChangedType.VISIBLE,
-                     ItemChangedType.DATA):
-            # TODO hackish data range implementation
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        super(BoundingRect, self)._updated(event, checkVisibility)
 
     def setBounds(self, rect):
         """Set the bounding box of this item in data coordinates
@@ -193,6 +184,7 @@ class BoundingRect(Item, YAxisMixIn):
 
         if rect != self.__bounds:
             self.__bounds = rect
+            self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
     def _getBounds(self):
@@ -217,7 +209,7 @@ class BoundingRect(Item, YAxisMixIn):
         return self.__bounds
 
 
-class _BaseExtent(Item):
+class _BaseExtent(DataItem):
     """Base class for :class:`XAxisExtent` and :class:`YAxisExtent`.
 
     :param str axis: Either 'x' or 'y'.
@@ -225,19 +217,9 @@ class _BaseExtent(Item):
 
     def __init__(self, axis='x'):
         assert axis in ('x', 'y')
-        Item.__init__(self)
+        DataItem.__init__(self)
         self.__axis = axis
         self.__range = 1., 100.
-
-    def _updated(self, event=None, checkVisibility=True):
-        if event in (ItemChangedType.VISIBLE,
-                     ItemChangedType.DATA):
-            # TODO hackish data range implementation
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
-
-        super(_BaseExtent, self)._updated(event, checkVisibility)
 
     def setRange(self, min_, max_):
         """Set the range of the extent of this item in data coordinates.
@@ -254,6 +236,7 @@ class _BaseExtent(Item):
 
         if range_ != self.__range:
             self.__range = range_
+            self._boundsChanged()
             self._updated(ItemChangedType.DATA)
 
     def getRange(self):

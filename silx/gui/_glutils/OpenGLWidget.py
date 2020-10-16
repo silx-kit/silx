@@ -329,6 +329,20 @@ class OpenGLWidget(qt.QWidget):
         else:
             return self.__openGLWidget.getDevicePixelRatio()
 
+    def getDotsPerInch(self):
+        """Returns current screen resolution as device pixels per inch.
+
+        :rtype: float
+        """
+        screen = self.window().windowHandle().screen()
+        if screen is not None:
+            # TODO check if this is correct on different OS/screen
+            # OK on macOS10.12/qt5.13.2
+            dpi = screen.physicalDotsPerInch() * self.getDevicePixelRatio()
+        else:  # Fallback
+            dpi = 96. * self.getDevicePixelRatio()
+        return dpi
+
     def getOpenGLVersion(self):
         """Returns the available OpenGL version.
 

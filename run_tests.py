@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python3
+# coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "02/03/2018"
+__date__ = "30/09/2020"
 __license__ = "MIT"
 
 import distutils.util
@@ -87,7 +87,6 @@ logger.setLevel(logging.WARNING)
 
 logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
 
-
 try:
     import resource
 except ImportError:
@@ -98,6 +97,7 @@ try:
     import importlib
     importer = importlib.import_module
 except ImportError:
+
     def importer(name):
         module = __import__(name)
         # returns the leaf module, instead of the root module
@@ -106,7 +106,6 @@ except ImportError:
         for subname in subnames:
             module = getattr(module, subname)
             return module
-
 
 try:
     import numpy
@@ -350,10 +349,8 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     PROJECT_VERSION = getattr(project_module, 'version', '')
     PROJECT_PATH = project_module.__path__[0]
 
-
     test_options = get_test_options(project_module)
     """Contains extra configuration for the tests."""
-
 
     epilog = """Environment variables:
     WITH_QT_TEST=False to disable graphical tests
@@ -392,7 +389,6 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
                         help="Test names to run (Default: %s)" % default_test_name)
     options = parser.parse_args()
     sys.argv = [sys.argv[0]]
-
 
     test_verbosity = 1
     use_buffer = True
@@ -467,7 +463,6 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     else:
         logger.warning("No test options available.")
 
-
     if not options.test_name:
         # Do not use test loader to avoid cryptic exception
         # when an error occur during import
@@ -486,7 +481,6 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
         exit_status = 0
     else:
         exit_status = 1
-
 
     if options.coverage:
         cov.stop()

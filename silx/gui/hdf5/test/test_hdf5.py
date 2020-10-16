@@ -589,11 +589,11 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
-class TestH5Node(TestCaseQt):
+class _TestModelBase(TestCaseQt):
 
     @classmethod
     def setUpClass(cls):
-        super(TestH5Node, cls).setUpClass()
+        super(_TestModelBase, cls).setUpClass()
 
         cls.tmpDirectory = tempfile.mkdtemp()
         cls.h5Filename = cls.createResource(cls.tmpDirectory)
@@ -603,12 +603,17 @@ class TestH5Node(TestCaseQt):
     @classmethod
     def createResource(cls, directory):
         filename = os.path.join(directory, "base.h5")
-        externalFilename = os.path.join(directory, "base__external.h5")
+        extH5FileName = os.path.join(directory, "base__external.h5")
+        extDatFileName = os.path.join(directory, "base__external.dat")
 
-        externalh5 = h5py.File(externalFilename, mode="w")
+        externalh5 = h5py.File(extH5FileName, mode="w")
         externalh5["target/dataset"] = 50
         externalh5["target/link"] = h5py.SoftLink("/target/dataset")
+        externalh5["/ext/vds0"] = [0, 1]
+        externalh5["/ext/vds1"] = [2, 3]
         externalh5.close()
+
+        numpy.array([0,1,10,10,2,3]).tofile(extDatFileName)
 
         h5 = h5py.File(filename, mode="w")
         h5["group/dataset"] = 50
@@ -617,12 +622,19 @@ class TestH5Node(TestCaseQt):
         h5["link/soft_link_to_link"] = h5py.SoftLink("/link/soft_link")
         h5["link/soft_link_to_file"] = h5py.SoftLink("/")
         h5["group/soft_link_relative"] = h5py.SoftLink("dataset")
-        h5["link/external_link"] = h5py.ExternalLink(externalFilename, "/target/dataset")
-        h5["link/external_link_to_link"] = h5py.ExternalLink(externalFilename, "/target/link")
-        h5["broken_link/external_broken_file"] = h5py.ExternalLink(externalFilename + "_not_exists", "/target/link")
-        h5["broken_link/external_broken_link"] = h5py.ExternalLink(externalFilename, "/target/not_exists")
+        h5["link/external_link"] = h5py.ExternalLink(extH5FileName, "/target/dataset")
+        h5["link/external_link_to_link"] = h5py.ExternalLink(extH5FileName, "/target/link")
+        h5["broken_link/external_broken_file"] = h5py.ExternalLink(extH5FileName + "_not_exists", "/target/link")
+        h5["broken_link/external_broken_link"] = h5py.ExternalLink(extH5FileName, "/target/not_exists")
         h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
         h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
+        layout = h5py.VirtualLayout((2,2), dtype=int)
+        layout[0] = h5py.VirtualSource("base__external.h5", name="/ext/vds0", shape=(2,), dtype=int)
+        layout[1] = h5py.VirtualSource("base__external.h5", name="/ext/vds1", shape=(2,), dtype=int)
+        h5.create_group("/ext")
+        h5["/ext"].create_virtual_dataset("virtual", layout)
+        external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
+        h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
         h5.close()
 
         return filename
@@ -640,7 +652,7 @@ class TestH5Node(TestCaseQt):
         cls.qWaitForDestroy(ref)
         cls.h5File.close()
         shutil.rmtree(cls.tmpDirectory)
-        super(TestH5Node, cls).tearDownClass()
+        super(_TestModelBase, cls).tearDownClass()
 
     def getIndexFromPath(self, model, path):
         """
@@ -658,9 +670,114 @@ class TestH5Node(TestCaseQt):
                 raise RuntimeError("Path not found")
         return index
 
-    def getH5NodeFromPath(self, model, path):
+    def getH5ItemFromPath(self, model, path):
         index = self.getIndexFromPath(model, path)
-        item = model.data(index, hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+        return model.data(index, hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+
+
+class TestH5Item(_TestModelBase):
+
+    def testFile(self):
+        path = ["base.h5"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
+
+    def testGroup(self):
+        path = ["base.h5", "group"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
+
+    def testDataset(self):
+        path = ["base.h5", "group", "dataset"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
+
+    def testSoftLink(self):
+        path = ["base.h5", "link", "soft_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Soft")
+
+    def testSoftLinkToLink(self):
+        path = ["base.h5", "link", "soft_link_to_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Soft")
+
+    def testSoftLinkRelative(self):
+        path = ["base.h5", "group", "soft_link_relative"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Soft")
+
+    def testExternalLink(self):
+        path = ["base.h5", "link", "external_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "External")
+
+    def testExternalLinkToLink(self):
+        path = ["base.h5", "link", "external_link_to_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "External")
+
+    def testExternalBrokenFile(self):
+        path = ["base.h5", "broken_link", "external_broken_file"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "External")
+
+    def testExternalBrokenLink(self):
+        path = ["base.h5", "broken_link", "external_broken_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "External")
+
+    def testSoftBrokenLink(self):
+        path = ["base.h5", "broken_link", "soft_broken_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Soft")
+
+    def testSoftLinkToBrokenLink(self):
+        path = ["base.h5", "broken_link", "soft_link_to_broken_link"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Soft")
+
+    def testDatasetFromSoftLinkToGroup(self):
+        path = ["base.h5", "link", "soft_link_to_group", "dataset"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
+
+    def testDatasetFromSoftLinkToFile(self):
+        path = ["base.h5", "link", "soft_link_to_file", "link", "soft_link_to_group", "dataset"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
+
+    def testExternalVirtual(self):
+        path = ["base.h5", "ext", "virtual"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Virtual")
+
+    def testExternalRaw(self):
+        path = ["base.h5", "ext", "raw"]
+        h5item = self.getH5ItemFromPath(self.model, path)
+
+        self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "ExtRaw")
+
+
+class TestH5Node(_TestModelBase):
+
+    def getH5NodeFromPath(self, model, path):
+        item = self.getH5ItemFromPath(model, path)
         h5node = hdf5.H5Node(item)
         return h5node
 
@@ -823,6 +940,28 @@ class TestH5Node(TestCaseQt):
         self.assertEqual(h5node.physical_name, "/group/dataset")
         self.assertEqual(h5node.local_basename, "dataset")
         self.assertEqual(h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset")
+
+    def testExternalVirtual(self):
+        path = ["base.h5", "ext", "virtual"]
+        h5node = self.getH5NodeFromPath(self.model, path)
+
+        self.assertEqual(h5node.physical_filename, h5node.local_filename)
+        self.assertIn("base.h5", h5node.physical_filename)
+        self.assertEqual(h5node.physical_basename, "virtual")
+        self.assertEqual(h5node.physical_name, "/ext/virtual")
+        self.assertEqual(h5node.local_basename, "virtual")
+        self.assertEqual(h5node.local_name, "/ext/virtual")
+
+    def testExternalRaw(self):
+        path = ["base.h5", "ext", "raw"]
+        h5node = self.getH5NodeFromPath(self.model, path)
+
+        self.assertEqual(h5node.physical_filename, h5node.local_filename)
+        self.assertIn("base.h5", h5node.physical_filename)
+        self.assertEqual(h5node.physical_basename, "raw")
+        self.assertEqual(h5node.physical_name, "/ext/raw")
+        self.assertEqual(h5node.local_basename, "raw")
+        self.assertEqual(h5node.local_name, "/ext/raw")
 
 
 class TestHdf5TreeView(TestCaseQt):
@@ -993,6 +1132,7 @@ def suite():
     test_suite.addTest(loadTests(TestNexusSortFilterProxyModel))
     test_suite.addTest(loadTests(TestHdf5TreeView))
     test_suite.addTest(loadTests(TestH5Node))
+    test_suite.addTest(loadTests(TestH5Item))
     return test_suite
 
 

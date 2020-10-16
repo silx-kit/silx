@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/07/2018"
+__date__ = "25/09/2020"
 
 from . import PlotAction
 from silx.io.utils import save1D, savespec, NEXUS_HDF5_EXT
@@ -224,6 +224,43 @@ class SaveAction(PlotAction):
         ylabel = item.getYLabel() or self.plot.getYAxis().getLabel()
         return xlabel, ylabel
 
+    def _get1dData(self, item):
+        "provide xdata, [ydata], xlabel, [ylabel] and manages error bars"
+        xlabel, ylabel = self._getAxesLabels(item)
+        x_data = item.getXData(copy=False)
+        y_data = item.getYData(copy=False)
+        x_err = item.getXErrorData(copy=False)
+        y_err = item.getYErrorData(copy=False)
+        labels = [ylabel]
+        data = [y_data]
+
+        if x_err is not None:
+            if numpy.isscalar(x_err):
+                data.append(numpy.zeros_like(y_data) + x_err)
+                labels.append(xlabel + "_errors")
+            elif x_err.ndim == 1:
+                data.append(x_err)
+                labels.append(xlabel + "_errors")
+            elif x_err.ndim == 2:
+                data.append(x_err[0])
+                labels.append(xlabel + "_errors_below")
+                data.append(x_err[1])
+                labels.append(xlabel + "_errors_above")
+
+        if y_err is not None:
+            if numpy.isscalar(y_err):
+                data.append(numpy.zeros_like(y_data) + y_err)
+                labels.append(ylabel + "_errors")
+            elif y_err.ndim == 1:
+                data.append(y_err)
+                labels.append(ylabel + "_errors")
+            elif y_err.ndim == 2:
+                data.append(y_err[0])
+                labels.append(ylabel + "_errors_below")
+                data.append(y_err[1])
+                labels.append(ylabel + "_errors_above")
+        return x_data, data, xlabel, labels
+
     @staticmethod
     def _selectWriteableOutputGroup(filename, parent):
         if os.path.exists(filename) and os.path.isfile(filename) \
@@ -291,16 +328,15 @@ class SaveAction(PlotAction):
             # .npy or nxdata
             fmt, csvdelim, autoheader = ("", "", False)
 
-        xlabel, ylabel = self._getAxesLabels(curve)
-
         if nameFilter == self.CURVE_FILTER_NXDATA:
             return self._saveCurveAsNXdata(curve, filename)
 
+        xdata, data, xlabel, labels = self._get1dData(curve)
+
         try:
             save1D(filename,
-                   curve.getXData(copy=False),
-                   curve.getYData(copy=False),
-                   xlabel, [ylabel],
+                   xdata, data,
+                   xlabel, labels,
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -328,13 +364,11 @@ class SaveAction(PlotAction):
         curve = curves[0]
         scanno = 1
         try:
-            xlabel = curve.getXLabel() or plot.getGraphXLabel()
-            ylabel = curve.getYLabel() or plot.getGraphYLabel(curve.getYAxis())
+            xdata, data, xlabel, labels = self._get1dData(curve)
+
             specfile = savespec(filename,
-                                curve.getXData(copy=False),
-                                curve.getYData(copy=False),
-                                xlabel,
-                                ylabel,
+                                xdata, data,
+                                xlabel, labels,
                                 fmt="%.7g", scan_number=1, mode="w",
                                 write_file_header=True,
                                 close_file=False)
@@ -345,13 +379,10 @@ class SaveAction(PlotAction):
         for curve in curves[1:]:
             try:
                 scanno += 1
-                xlabel = curve.getXLabel() or plot.getGraphXLabel()
-                ylabel = curve.getYLabel() or plot.getGraphYLabel(curve.getYAxis())
+                xdata, data, xlabel, labels = self._get1dData(curve)
                 specfile = savespec(specfile,
-                                    curve.getXData(copy=False),
-                                    curve.getYData(copy=False),
-                                    xlabel,
-                                    ylabel,
+                                    xdata, data,
+                                    xlabel, labels,
                                     fmt="%.7g", scan_number=scanno,
                                     write_file_header=False,
                                     close_file=False)
@@ -629,7 +660,7 @@ class SaveAction(PlotAction):
             # Check for correct file extension
             # Extract file extensions as .something
             extensions = [ext[ext.find('.'):] for ext in
-                          nameFilter[nameFilter.find('(')+1:-1].split()]
+                          nameFilter[nameFilter.find('(') + 1:-1].split()]
             for ext in extensions:
                 if (len(filename) > len(ext) and
                         filename[-len(ext):].lower() == ext.lower()):
