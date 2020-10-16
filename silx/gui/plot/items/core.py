@@ -315,7 +315,7 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> Optional[Tuple[float]]:
+    def getVisibleBounds(self) -> Optional[Tuple[float,float,float,float]]:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
