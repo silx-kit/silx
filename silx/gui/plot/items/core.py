@@ -167,11 +167,11 @@ class Item(qt.QObject):
     See :class:`ItemChangedType` for flags description.
     """
 
-    _sigVisibleExtentChanged = qt.Signal()
+    _sigVisibleBoundsChanged = qt.Signal()
     """Signal emitted when the visible extent of the item in the plot has changed.
 
     This signal is emitted only if visible extent tracking is enabled
-    (see :meth:`_setVisibleExtentTracking`).
+    (see :meth:`_setVisibleBoundsTracking`).
     """
 
     def __init__(self):
@@ -186,8 +186,8 @@ class Item(qt.QObject):
         self._ylabel = None
         self.__name = ''
 
-        self.__visibleExtentTracking = False
-        self.__previousVisibleExtent = None
+        self.__visibleBoundsTracking = False
+        self.__previousVisibleBounds = None
 
         self._backendRenderer = None
 
@@ -315,8 +315,8 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleExtent(self) -> Optional[Tuple[float]]:
-        """Returns visible extent of the item bounding box in the plot area.
+    def getVisibleBounds(self) -> Optional[Tuple[float]]:
+        """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
             (xmin, xmax, ymin, ymax) in data coordinates of the visible area or
@@ -337,23 +337,23 @@ class Item(qt.QObject):
         else:
             return xmin, xmax, ymin, ymax
 
-    def _isVisibleExtentTracking(self) -> bool:
-        """Returns True if visible extent changes are tracked.
+    def _isVisibleBoundsTracking(self) -> bool:
+        """Returns True if visible bounds changes are tracked.
 
-        When enabled, :attr:`_sigVisibleExtentChanged` is emitted upon changes.
+        When enabled, :attr:`_sigVisibleBoundsChanged` is emitted upon changes.
         :rtype: bool
         """
-        return self.__visibleExtentTracking
+        return self.__visibleBoundsTracking
 
-    def _setVisibleExtentTracking(self, enable: bool) -> None:
-        """Set whether or not to track visible extent changes.
+    def _setVisibleBoundsTracking(self, enable: bool) -> None:
+        """Set whether or not to track visible bounds changes.
 
         :param bool enable:
         """
-        if enable != self.__visibleExtentTracking:
+        if enable != self.__visibleBoundsTracking:
             self.__disconnectFromPlotWidget()
-            self.__previousVisibleExtent = None
-            self.__visibleExtentTracking = enable
+            self.__previousVisibleBounds = None
+            self.__visibleBoundsTracking = enable
             self.__connectToPlotWidget()
 
     def __getYAxis(self) -> str:
@@ -362,48 +362,48 @@ class Item(qt.QObject):
 
     def __connectToPlotWidget(self) -> None:
         """Connect to PlotWidget signals and install event filter"""
-        if not self._isVisibleExtentTracking():
+        if not self._isVisibleBoundsTracking():
             return
 
         plot = self.getPlot()
         if plot is not None:
             for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
-                axis.sigLimitsChanged.connect(self._visibleExtentChanged)
+                axis.sigLimitsChanged.connect(self._visibleBoundsChanged)
 
             plot.installEventFilter(self)
 
-            self._visibleExtentChanged()
+            self._visibleBoundsChanged()
 
     def __disconnectFromPlotWidget(self) -> None:
         """Disconnect from PlotWidget signals and remove event filter"""
-        if not self._isVisibleExtentTracking():
+        if not self._isVisibleBoundsTracking():
             return
 
         plot = self.getPlot()
         if plot is not None:
             for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
-                axis.sigLimitsChanged.disconnect(self._visibleExtentChanged)
+                axis.sigLimitsChanged.disconnect(self._visibleBoundsChanged)
 
             plot.removeEventFilter(self)
 
-    def _visibleExtentChanged(self, *args) -> None:
+    def _visibleBoundsChanged(self, *args) -> None:
         """Check if visible extent actually changed and emit signal"""
-        if not self._isVisibleExtentTracking():
+        if not self._isVisibleBoundsTracking():
             return  # No visible extent tracking
 
         plot = self.getPlot()
         if plot is None or not plot.isVisible():
             return  # No plot or plot not visible
 
-        extent = self.getVisibleExtent()
-        if extent != self.__previousVisibleExtent:
-            self.__previousVisibleExtent = extent
-            self._sigVisibleExtentChanged.emit()
+        extent = self.getVisibleBounds()
+        if extent != self.__previousVisibleBounds:
+            self.__previousVisibleBounds = extent
+            self._sigVisibleBoundsChanged.emit()
 
     def eventFilter(self, watched, event):
         """Event filter to handle PlotWidget show events"""
         if watched is self.getPlot() and event.type() == qt.QEvent.Show:
-            self._visibleExtentChanged()
+            self._visibleBoundsChanged()
         return super().eventFilter(watched, event)
 
     def _updated(self, event=None, checkVisibility=True):
@@ -490,7 +490,7 @@ class DataItem(Item):
         :param bool checkVisibility:
         """
         if not checkVisibility or self.isVisible():
-            self._visibleExtentChanged()
+            self._visibleBoundsChanged()
 
             # TODO hackish data range implementation
             plot = self.getPlot()
@@ -970,16 +970,16 @@ class YAxisMixIn(ItemMixInBase):
                 self._boundsChanged()
 
             # Handle visible extent changed
-            if self._isVisibleExtentTracking():
+            if self._isVisibleBoundsTracking():
                 # Switch Y axis signal connection
                 plot = self.getPlot()
                 if plot is not None:
                     previousYAxis = 'left' if self.getXAxis() == 'right' else 'right'
                     plot.getYAxis(previousYAxis).sigLimitsChanged.disconnect(
-                        self._visibleExtentChanged)
+                        self._visibleBoundsChanged)
                     plot.getYAxis(self.getYAxis()).sigLimitsChanged.connect(
-                        self._visibleExtentChanged)
-                self._visibleExtentChanged()
+                        self._visibleBoundsChanged)
+                self._visibleBoundsChanged()
 
             self._updated(ItemChangedType.YAXIS)
 

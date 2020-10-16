@@ -246,8 +246,8 @@ class TestSymbol(PlotWidgetTestCase):
 class TestVisibleExtent(PlotWidgetTestCase):
     """Test item's visible extent feature"""
 
-    def testGetVisibleExtent(self):
-        """Test Item.getVisibleExtent"""
+    def testGetVisibleBounds(self):
+        """Test Item.getVisibleBounds"""
 
         # Create test items (with a bounding box of x: [1,3], y: [0,2])
         curve = items.Curve()
@@ -272,16 +272,16 @@ class TestVisibleExtent(PlotWidgetTestCase):
                 xaxis.setLimits(0, 100)
                 yaxis.setLimits(0, 100)
                 self.plot.addItem(item)
-                self.assertEqual(item.getVisibleExtent(), (1., 3., 0., 2.))
+                self.assertEqual(item.getVisibleBounds(), (1., 3., 0., 2.))
 
                 xaxis.setLimits(0.5, 2.5)
-                self.assertEqual(item.getVisibleExtent(), (1, 2.5, 0., 2.))
+                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0., 2.))
 
                 yaxis.setLimits(0.5, 1.5)
-                self.assertEqual(item.getVisibleExtent(), (1, 2.5, 0.5, 1.5))
+                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0.5, 1.5))
 
                 item.setVisible(False)
-                self.assertIsNone(item.getVisibleExtent())
+                self.assertIsNone(item.getVisibleBounds())
 
                 self.plot.clear()
 
@@ -291,9 +291,9 @@ class TestVisibleExtent(PlotWidgetTestCase):
         image.setData(numpy.arange(6).reshape(2, 3))
 
         listener = SignalListener()
-        image._sigVisibleExtentChanged.connect(listener)
-        image._setVisibleExtentTracking(True)
-        self.assertTrue(image._isVisibleExtentTracking())
+        image._sigVisibleBoundsChanged.connect(listener)
+        image._setVisibleBoundsTracking(True)
+        self.assertTrue(image._isVisibleBoundsTracking())
 
         self.plot.addItem(image)
         self.assertEqual(listener.callCount(), 1)
