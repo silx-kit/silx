@@ -12,6 +12,7 @@ Cython >= 0.21.1
 h5py
 fabio >= 0.9
 six
+wheel
 
 # Extra dependencies (from setup.py extra_requires 'full' target)
 pyopencl; platform_machine in "i386, x86_64, AMD64"  # For silx.opencl
