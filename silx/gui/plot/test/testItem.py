@@ -35,6 +35,7 @@ import numpy
 
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items import ItemChangedType
+from silx.gui.plot import items
 from .utils import PlotWidgetTestCase
 
 
@@ -242,11 +243,96 @@ class TestSymbol(PlotWidgetTestCase):
         self.assertEqual('Diamond', name)
 
 
+class TestVisibleExtent(PlotWidgetTestCase):
+    """Test item's visible extent feature"""
+
+    def testGetVisibleBounds(self):
+        """Test Item.getVisibleBounds"""
+
+        # Create test items (with a bounding box of x: [1,3], y: [0,2])
+        curve = items.Curve()
+        curve.setData((1, 2, 3), (0, 1, 2))
+
+        histogram = items.Histogram()
+        histogram.setData((0, 1, 2), (1, 5/3, 7/3, 3))
+
+        image = items.ImageData()
+        image.setOrigin((1, 0))
+        image.setData(numpy.arange(4).reshape(2, 2))
+
+        scatter = items.Scatter()
+        scatter.setData((1, 2, 3), (0, 1, 2), (1, 2, 3))
+
+        bbox = items.BoundingRect()
+        bbox.setBounds((1, 3, 0, 2))
+
+        xaxis, yaxis = self.plot.getXAxis(), self.plot.getYAxis()
+        for item in (curve, histogram, image, scatter, bbox):
+            with self.subTest(item=item):
+                xaxis.setLimits(0, 100)
+                yaxis.setLimits(0, 100)
+                self.plot.addItem(item)
+                self.assertEqual(item.getVisibleBounds(), (1., 3., 0., 2.))
+
+                xaxis.setLimits(0.5, 2.5)
+                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0., 2.))
+
+                yaxis.setLimits(0.5, 1.5)
+                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0.5, 1.5))
+
+                item.setVisible(False)
+                self.assertIsNone(item.getVisibleBounds())
+
+                self.plot.clear()
+
+    def testVisibleExtentTracking(self):
+        """Test Item's visible extent tracking"""
+        image = items.ImageData()
+        image.setData(numpy.arange(6).reshape(2, 3))
+
+        listener = SignalListener()
+        image._sigVisibleBoundsChanged.connect(listener)
+        image._setVisibleBoundsTracking(True)
+        self.assertTrue(image._isVisibleBoundsTracking())
+
+        self.plot.addItem(image)
+        self.assertEqual(listener.callCount(), 1)
+
+        self.plot.getXAxis().setLimits(0, 1)
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.hide()
+        self.qapp.processEvents()
+        # No event here
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.getXAxis().setLimits(1, 2)
+        # No event since PlotWidget is hidden, delayed to PlotWidget show
+        self.assertEqual(listener.callCount(), 2)
+
+        self.plot.show()
+        self.qapp.processEvents()
+        # Receives delayed event now
+        self.assertEqual(listener.callCount(), 3)
+
+        image.setOrigin((-1, -1))
+        self.assertEqual(listener.callCount(), 4)
+
+        image.setVisible(False)
+        image.setOrigin((0, 0))
+        # No event since item is not visible
+        self.assertEqual(listener.callCount(), 4)
+
+        image.setVisible(True)
+        # Receives delayed event now
+        self.assertEqual(listener.callCount(), 5)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestSigItemChangedSignal))
-    test_suite.addTest(loadTests(TestSymbol))
+    for klass in (TestSigItemChangedSignal, TestSymbol, TestVisibleExtent):
+        test_suite.addTest(loadTests(klass))
     return test_suite
 
 

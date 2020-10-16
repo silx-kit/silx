@@ -184,7 +184,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     def setData(self, data):
         """Set the image data
 
-        :param Union[numpy.ndarray,None] data:
+        :param numpy.ndarray data:
         """
         self._data = data
         self._boundsChanged()
