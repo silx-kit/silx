@@ -86,6 +86,8 @@ from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
+from silx.gui.colors import _AutoscaleMethod
+from silx.gui.plot.items.image import ImageData
 
 _logger = logging.getLogger(__name__)
 
@@ -848,6 +850,9 @@ class ColormapDialog(qt.QDialog):
 
         self._colormapStoredState = None
 
+        self._roiForColormapRange = None
+        self._roiForColormapManager = None
+
         # Colormap row
         self._comboBoxColormap = ColormapNameComboBox(parent=self)
         self._comboBoxColormap.currentIndexChanged[int].connect(self._comboBoxColormapUpdated)
@@ -895,6 +900,19 @@ class ColormapDialog(qt.QDialog):
         self._maxValue.sigAutoScaleChanged.connect(self._maxAutoscaleUpdated)
         self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
 
+        # autoscale mode
+        self._autoscaleMethodCB = qt.QComboBox(self)
+        for mode in _AutoscaleMethod:
+            self._autoscaleMethodCB.addItem(mode.value)
+        idx = self._autoscaleMethodCB.findText(
+            _AutoscaleMethod.ALL_DATA.value)
+        self._autoscaleMethodCB.setCurrentIndex(idx)
+
+        # roi group box
+        self._roiGroupBox = _ROIGroupBox(self)
+        self._roiGroupBox.setVisible(False)
+
+        # autoscale buttons
         self._autoButtons = _AutoScaleButtons(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
@@ -955,6 +973,8 @@ class ColormapDialog(qt.QDialog):
         label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(label, autoScaleCombo)
+        formLayout.addRow('Autoscale method', self._autoscaleMethodCB)
+        formLayout.addRow(self._roiGroupBox)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
@@ -968,8 +988,86 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._autoScaleCombo, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
+        # signal / slot connection
+        self._roiGroupBox.sigROIChanged.connect(
+            self._roiChanged
+        )
+        self._autoscaleMethodCB.currentIndexChanged.connect(
+            self._methodChanged
+        )
+
+        # tune
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
+
+    def getAutoscaleMethod(self):
+        """
+        Get the method to compute the min and max value from the plot
+
+        :return: _AutoscaleMethod
+        """
+        return _AutoscaleMethod.from_value(
+            self._autoscaleMethodCB.currentText())
+
+    def setAutoscaleMethod(self, value):
+        """
+        Define the method to compute the min and max value from the plot
+
+        :param Union[_AutoscaleMethod, str] value:
+        """
+        value = _AutoscaleMethod.from_value(value)
+        idx = self._autoscaleMethodCB.findText(value.value)
+        self._autoscaleMethodCB.setCurrentIndex(idx)
+
+    def _roiChanged(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def _methodChanged(self):
+        self._roiGroupBox.setVisible(
+            self.getAutoscaleMethod() is _AutoscaleMethod.ROI)
+
+        if self.getAutoscaleMethod() is _AutoscaleMethod.ALL_DATA:
+            self._getItem()._setROIForAutoscale(None)
+        else:
+            self._getItem()._setROIForAutoscale(self._getRoiForColormapRange())
+            self._updateROI()
+
+        self._getItem().clearColormapRangeCache()
+        # self._invalidateData()
+        self._invalidateColormap()
+
+    def _updateROI(self):
+        # update from the visible area
+        if self.getAutoscaleMethod() is _AutoscaleMethod.VISIBLE_DATA:
+            minX, maxX = self._getItem().getPlot().getXAxis().getLimits()
+            minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
+            self._roiForColormapRange.setGeometry(origin=(minX, minY),
+                                                  size=(maxX-minX, maxY-minY))
+            self._roiForColormapRange.setVisible(False)
+        else:
+            self._roiForColormapRange.setVisible(True)
+            pass
+            # update from the interface
+            # raise NotImplementedError('not implemented')
+
+    def _getRoiForColormapRange(self):
+        if self._roiForColormapRange is None:
+            from silx.gui.plot.items.roi import RectangleROI
+            from silx.gui.plot.tools.roi import RegionOfInterestManager
+            # TODO: management when itenm change should be done
+            self._roiForColormapManager = RegionOfInterestManager(parent=self._getItem().getPlot())
+            self._roiForColormapRange = RectangleROI(parent=self._roiForColormapManager)
+            self._roiForColormapRange.setName('colormapROI')
+            self._roiForColormapRange.setGeometry(origin=(0, 0), size=(10, 10))
+            self._getItem().getPlot().sigPlotSignal.connect(self._managePlotUpdate)
+        return self._roiForColormapRange
+
+    def _managePlotUpdate(self, obj):
+        if obj['event'] == 'limitsChanged':
+            self._updateROI()
+            self._getItem().clearColormapRangeCache()
+            self._invalidateColormap()
+            # self._invalidateData()
 
     def _invalidateColormap(self):
         if self.isVisible():
@@ -1041,6 +1139,7 @@ class ColormapDialog(qt.QDialog):
             return 1, 10
 
         item = self._getItem()
+        method = self.getAutoscaleMethod()
         if item is not None:
             return colormap.getColormapRange(item)
         # If there is not item, there is no data
@@ -1615,3 +1714,52 @@ class ColormapDialog(qt.QDialog):
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
             super(ColormapDialog, self).keyPressEvent(event)
+
+
+class _ROIGroupBox(qt.QGroupBox):
+    """GroupBox used to """
+
+    sigROIChanged = qt.Signal()
+    """Signal emitted when the ROI change"""
+
+    def __init__(self, parent=None):
+        qt.QGroupBox.__init__(self, 'ROI', parent)
+        self.setLayout(qt.QFormLayout())
+        self._displayCB = qt.QCheckBox('display', self)
+        self.layout().addRow(self._displayCB)
+        self._nameQLE = qt.QLineEdit('colormap roi', self)
+        self.layout().addRow('name', self._nameQLE)
+
+        # origin
+        self._xOriginQSB = qt.QDoubleSpinBox(self)
+        self._xOriginQSB.setPrefix('x: ')
+        self._xOriginQSB.setContentsMargins(0, 0, 0, 0)
+        self._yOriginQSB = qt.QDoubleSpinBox(self)
+        self._xOriginQSB.setPrefix('y: ')
+        self._yOriginQSB.setContentsMargins(0, 0, 0, 0)
+        self._originWidget = qt.QWidget(parent=self)
+        self._originWidget.setLayout(qt.QHBoxLayout())
+        self._originWidget.setContentsMargins(0, 0, 0, 0)
+        self._originWidget.layout().addWidget(self._xOriginQSB)
+        self._originWidget.layout().addWidget(self._yOriginQSB)
+        self.layout().addRow('origin', self._originWidget)
+
+        # width
+        self._widthDSB = qt.QDoubleSpinBox(self)
+        self.layout().addRow('width', self._widthDSB)
+
+        # height
+        self._heightDSB = qt.QDoubleSpinBox(self)
+        self.layout().addRow('height', self._heightDSB)
+
+        # default configuration
+        self._displayCB.setChecked(True)
+
+        # connect signal / slot
+        self._widthDSB.valueChanged.connect(self._ROIModificationRequested)
+        self._heightDSB.valueChanged.connect(self._ROIModificationRequested)
+        self._xOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+        self._yOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+
+    def _ROIModificationRequested(self, *args, **kwargs):
+        self.sigROIChanged.emit()
