@@ -42,7 +42,7 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-
+from silx.gui.colors import _AutoscaleMethod
 
 _logger = logging.getLogger(__name__)
 
@@ -377,6 +377,33 @@ class ImageData(ImageBase, ColormapMixIn):
         self.__alpha = alpha
 
         super().setData(data)
+
+    def _filter_data(self, raw_data):
+        if self._roiForAutoscale is None:
+            return raw_data
+        roi = self._roiForAutoscale
+
+        roi_origin = roi.getOrigin()
+        roi_size = roi.getSize()
+        minX, maxX = roi_origin[0] - roi_size[0], roi_origin[0] + roi_size[0]
+        minY, maxY = roi_origin[1] - roi_size[1], roi_origin[1] + roi_size[1]
+
+        origin = self.getOrigin()
+        scale = self.getScale()
+        XMinBound = int((minX - origin[0]) / scale[0])
+        YMinBound = int((minY - origin[1]) / scale[1])
+        XMaxBound = int((maxX - origin[0]) / scale[0])
+        YMaxBound = int((maxY - origin[1]) / scale[1])
+
+        XMinBound = max(XMinBound, 0)
+        YMinBound = max(YMinBound, 0)
+
+        if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+            data = None
+        else:
+            data = raw_data[YMinBound:YMaxBound + 1,
+                            XMinBound:XMaxBound + 1]
+        return data
 
 
 class ImageRgba(ImageBase):

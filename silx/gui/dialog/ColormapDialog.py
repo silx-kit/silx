@@ -973,7 +973,7 @@ class ColormapDialog(qt.QDialog):
         label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(label, autoScaleCombo)
-        formLayout.addRow('Autoscale method', self._autoscaleMethodCB)
+        formLayout.addRow('Autoscale from', self._autoscaleMethodCB)
         formLayout.addRow(self._roiGroupBox)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
@@ -1033,8 +1033,7 @@ class ColormapDialog(qt.QDialog):
             self._updateROI()
 
         self._getItem().clearColormapRangeCache()
-        # self._invalidateData()
-        self._invalidateColormap()
+        self.getColormap().sigChanged.emit()
 
     def _updateROI(self):
         # update from the visible area

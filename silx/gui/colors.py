@@ -555,7 +555,9 @@ class Colormap(qt.QObject):
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
-    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
+    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None,
+                 vmax=None, autoscaleMode=MINMAX,
+                 autoscalMethod=_AutoscaleMethod.ALL_DATA):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0

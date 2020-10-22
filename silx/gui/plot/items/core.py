@@ -52,6 +52,7 @@ from ... import qt
 from ... import colors
 from ...colors import Colormap
 from ._pick import PickingResult
+from silx.gui.colors import _AutoscaleMethod
 
 from silx import config
 
@@ -602,6 +603,10 @@ class ColormapMixIn(ItemMixInBase):
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
         self.__cacheColormapRange = {}  # Store {normalization: range}
+        self._roiForAutoscale = None
+
+    def clearColormapRangeCache(self):
+        self.__cacheColormapRange = {}  # Reset cache
 
     def getColormap(self):
         """Return the used colormap"""
@@ -624,6 +629,13 @@ class ColormapMixIn(ItemMixInBase):
             self._colormap.sigChanged.connect(self._colormapChanged)
         self._colormapChanged()
 
+    def _setROIForAutoscale(self, roi):
+        from silx.gui.plot.items.roi import RectangleROI
+        if not isinstance(roi, (RectangleROI, type(None))):
+            raise TypeError('only manage rectangle ROI and not {}'
+                            ''.format(type(roi)))
+        self._roiForAutoscale = roi
+
     def _colormapChanged(self):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
@@ -643,7 +655,7 @@ class ColormapMixIn(ItemMixInBase):
         :param Union[None,float] max_: Maximum value of the data
         """
         self.__data = None if data is None else numpy.array(data, copy=copy)
-        self.__cacheColormapRange = {}  # Reset cache
+        self.clearColormapRangeCache()
 
         # Fill-up colormap range cache if values are provided
         if max_ is not None and numpy.isfinite(max_):
@@ -666,7 +678,11 @@ class ColormapMixIn(ItemMixInBase):
         if self.__data is None:
             return None
         else:
-            return numpy.array(self.__data, copy=copy)
+            return numpy.array(self._filter_data(self.__data),
+                               copy=copy)
+
+    def _filter_data(self, raw_data):
+        return self.raw_data
 
     def _getColormapAutoscaleRange(self, colormap=None):
         """Returns the autoscale range for current data and colormap.
@@ -680,6 +696,7 @@ class ColormapMixIn(ItemMixInBase):
             colormap = self.getColormap()
 
         data = self.getColormappedData(copy=False)
+
         if colormap is None or data is None:
             return None, None
 
