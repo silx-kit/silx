@@ -677,8 +677,11 @@ class ColormapMixIn(ItemMixInBase):
         if self.__data is None:
             return None
         else:
-            return numpy.array(self._filter_data(self.__data),
-                               copy=copy)
+            filtered_data = self._filter_data(self.__data)
+            if filtered_data is None:
+                return None
+            else:
+                return numpy.array(filtered_data, copy=copy)
 
     def _filter_data(self, raw_data):
         return raw_data
