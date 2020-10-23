@@ -1018,7 +1018,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             lambda item: item.isVisible() and item._backendRenderer is not None)
         count = len(items)
         for index, item in enumerate(items):
-            zorder = 1. + index / count
+            if item.getZValue() < 0.5:
+                # Make sure matplotlib z order is below the grid (with z=0.5)
+                zorder = 0.5 * index / count
+            else:  # Make sure matplotlib z order is above the grid (> 0.5)
+                zorder = 1. + index / count
             if zorder != item._backendRenderer.get_zorder():
                 item._backendRenderer.set_zorder(zorder)
 
