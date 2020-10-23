@@ -384,15 +384,13 @@ class ImageData(ImageBase, ColormapMixIn):
         roi = self._roiForAutoscale
         roi_origin = roi.origin
         roi_size = roi.size
-        minX, maxX = roi_origin[0] - roi_size[0], roi_origin[0] + roi_size[0]
-        minY, maxY = roi_origin[1] - roi_size[1], roi_origin[1] + roi_size[1]
+        minX, maxX = roi_origin[0], roi_origin[0] + roi_size[0]
+        minY, maxY = roi_origin[1], roi_origin[1] + roi_size[1]
 
-        origin = self.getOrigin()
-        scale = self.getScale()
-        XMinBound = int((minX - origin[0]) / scale[0])
-        YMinBound = int((minY - origin[1]) / scale[1])
-        XMaxBound = int((maxX - origin[0]) / scale[0])
-        YMaxBound = int((maxY - origin[1]) / scale[1])
+        XMinBound = int(minX)
+        YMinBound = int(minY)
+        XMaxBound = int(maxX)
+        YMaxBound = int(maxY)
 
         XMinBound = max(XMinBound, 0)
         YMinBound = max(YMinBound, 0)

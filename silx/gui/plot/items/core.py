@@ -629,7 +629,7 @@ class ColormapMixIn(ItemMixInBase):
             self._colormap.sigChanged.connect(self._colormapChanged)
         self._colormapChanged()
 
-    def _setROIForAutoscale(self, roi):
+    def _setROIForAutoscale(self, roi, scale):
         if not isinstance(roi, (Rectangle, type(None))):
             raise TypeError('only manage instance of {} and not {}'
                             ''.format(Rectangle, type(roi)))
