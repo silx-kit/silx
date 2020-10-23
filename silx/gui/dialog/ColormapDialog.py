@@ -1860,15 +1860,34 @@ class _ROIGroupBox(qt.QGroupBox):
         """
         return self._widthDSB.value(), self._heightDSB.value()
 
-    def displayROI(self) -> bool:
+    def getDisplay(self) -> bool:
         """
 
         :return: True if the ROi display is requested
         """
         return self._displayCB.isChecked()
 
+    def setDisplay(self, display: bool) -> None:
+        """
+
+        :param bool display: if True the ROi will be displayed
+        """
+        self._displayCB.setChecked(display)
+
+    def getName(self) -> str:
+        """
+
+        :return: ROi name
+        :rtype: str
+        """
+        return self._nameQLE.text()
+
+    def setName(self, name: str) -> None:
+        """
+
+        :param str name: ROI name
+        """
+        self._nameQLE.setText(name)
+
     def _ROIModificationRequested(self, *args, **kwargs):
         self.sigROIChanged.emit()
-
-    def getROIName(self) -> str:
-        return self._nameQLE.text()
