@@ -1039,18 +1039,43 @@ class ColormapDialog(qt.QDialog):
         old = self._roiGroupBox.blockSignals(True)
         self._roiGroupBox.setOrigin(self._roiForColormapRange.getOrigin())
         self._roiGroupBox.setSize(self._roiForColormapRange.getSize())
+        self._roiGroupBox.setDisplay(self._roiForColormapRange.isVisible())
+        self._roiGroupBox.setName(self._roiForColormapRange.getName())
         self._roiGroupBox.blockSignals(old)
 
     def _methodChanged(self):
+        if self._getItem() is None:
+            return
         self._roiGroupBox.setVisible(
-            self.getAutoscaleMethod() is _AutoscaleMethod.ROI)
+            self.getAutoscaleMethod() is AutoscaleMethod.ROI)
 
-        if self.getAutoscaleMethod() is _AutoscaleMethod.ALL_DATA:
+        self._updateRoiFromItem()
+        # if self.getAutoscaleMethod() is AutoscaleMethod.ALL_DATA:
+        #     self._getItem()._setROIForAutoscale(None)
+        # else:
+        #     self._getItem()._setROIForAutoscale(self._getRoiForColormapRange())
+        #     self._updateROI()
+        #
+        # self._updateROI()
+
+    def _updateRoiFromItem(self):
+        if self._getItem() is None:
+            return
+        method = self.getAutoscaleMethod()
+        if self.getAutoscaleMethod() is AutoscaleMethod.ALL_DATA:
             self._getItem()._setROIForAutoscale(None)
+        elif self.getAutoscaleMethod() in (AutoscaleMethod.VISIBLE_DATA,
+                                           AutoscaleMethod.ROI):
+            # TODO: Rectangle should also be relative to the item
+            # origin & scale
+            self._getItem()._setROIForAutoscale(
+                Rectangle(
+                    origin=self._getRoiForColormapRange().getOrigin(),
+                    size=self._getRoiForColormapRange().getSize(),
+                )
+            )
         else:
-            self._getItem()._setROIForAutoscale(self._getRoiForColormapRange())
-            self._updateROI()
-
+            raise ValueError('Method {} is not managed'.format(method))
         self._getItem().clearColormapRangeCache()
         self.getColormap().sigChanged.emit()
 
@@ -1067,17 +1092,12 @@ class ColormapDialog(qt.QDialog):
         elif method is _AutoscaleMethod.ROI:
             self._roiForColormapRange.setGeometry(origin=self._roiGroupBox.getOrigin(),
                                                   size=self._roiGroupBox.getSize())
-            self._roiForColormapRange.setVisible(self._roiGroupBox.displayROI())
+            self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
             self._roiForColormapRange.setEditable(True)
-            # update from the interface
-            # raise NotImplementedError('not implemented')
-        self._getItem().clearColormapRangeCache()
-        self.getColormap().sigChanged.emit()
+        self._updateRoiFromItem()
 
     def _getRoiForColormapRange(self):
         if self._roiForColormapRange is None:
-            from silx.gui.plot.items.roi import RectangleROI
-            from silx.gui.plot.tools.roi import RegionOfInterestManager
             self._roiForColormapManager = RegionOfInterestManager(parent=self._getItem().getPlot())
             self._roiForColormapRange = RectangleROI(parent=self._roiForColormapManager)
             self._roiForColormapRange.setName(ColormapDialog.DEFAULT_AUTOSCALE_ROI_NAME)
@@ -1087,7 +1107,14 @@ class ColormapDialog(qt.QDialog):
                                                   size=(maxX-minX, maxY-minY))
             self._getItem().getPlot().sigPlotSignal.connect(self._managePlotUpdate)
             self._roiForColormapRange.sigRegionChanged.connect(self._roiItemChanged)
+            if self.getAutoscaleMethod() is AutoscaleMethod.ALL_DATA:
+                self._roiForColormapRange.setVisible(False)
+            else:
+                self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
+
             self._updateROIInfo()
+            self._updateRoiFromItem()
+
         return self._roiForColormapRange
 
     def _managePlotUpdate(self, obj):

@@ -52,7 +52,7 @@ from ... import qt
 from ... import colors
 from ...colors import Colormap
 from ._pick import PickingResult
-from silx.gui.colors import _AutoscaleMethod
+from silx.math.geometry import Rectangle
 
 from silx import config
 
@@ -603,7 +603,7 @@ class ColormapMixIn(ItemMixInBase):
         self._colormap.sigChanged.connect(self._colormapChanged)
         self.__data = None
         self.__cacheColormapRange = {}  # Store {normalization: range}
-        self._roiForAutoscale = None
+        self._roiForAutoscale = None    # store as None or as a Rectangle
 
     def clearColormapRangeCache(self):
         self.__cacheColormapRange = {}  # Reset cache
@@ -630,10 +630,9 @@ class ColormapMixIn(ItemMixInBase):
         self._colormapChanged()
 
     def _setROIForAutoscale(self, roi):
-        from silx.gui.plot.items.roi import RectangleROI
-        if not isinstance(roi, (RectangleROI, type(None))):
-            raise TypeError('only manage rectangle ROI and not {}'
-                            ''.format(type(roi)))
+        if not isinstance(roi, (Rectangle, type(None))):
+            raise TypeError('only manage instance of {} and not {}'
+                            ''.format(Rectangle, type(roi)))
         self._roiForAutoscale = roi
 
     def _colormapChanged(self):
@@ -682,7 +681,7 @@ class ColormapMixIn(ItemMixInBase):
                                copy=copy)
 
     def _filter_data(self, raw_data):
-        return self.raw_data
+        return raw_data
 
     def _getColormapAutoscaleRange(self, colormap=None):
         """Returns the autoscale range for current data and colormap.

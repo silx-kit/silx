@@ -42,7 +42,6 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-from silx.gui.colors import _AutoscaleMethod
 
 _logger = logging.getLogger(__name__)
 
@@ -383,8 +382,8 @@ class ImageData(ImageBase, ColormapMixIn):
             return raw_data
 
         roi = self._roiForAutoscale
-        roi_origin = roi.getOrigin()
-        roi_size = roi.getSize()
+        roi_origin = roi.origin
+        roi_size = roi.size
         minX, maxX = roi_origin[0] - roi_size[0], roi_origin[0] + roi_size[0]
         minY, maxY = roi_origin[1] - roi_size[1], roi_origin[1] + roi_size[1]
 
