@@ -909,10 +909,10 @@ class ColormapDialog(qt.QDialog):
 
         # autoscale mode
         self._autoscaleMethodCB = qt.QComboBox(self)
-        for mode in _AutoscaleMethod:
+        for mode in AutoscaleMethod:
             self._autoscaleMethodCB.addItem(mode.value)
         idx = self._autoscaleMethodCB.findText(
-            _AutoscaleMethod.ALL_DATA.value)
+            AutoscaleMethod.ALL_DATA.value)
         self._autoscaleMethodCB.setCurrentIndex(idx)
 
         # roi group box
@@ -1013,7 +1013,7 @@ class ColormapDialog(qt.QDialog):
 
         :return: _AutoscaleMethod
         """
-        return _AutoscaleMethod.from_value(
+        return AutoscaleMethod.from_value(
             self._autoscaleMethodCB.currentText())
 
     def setAutoscaleMethod(self, value):
@@ -1022,7 +1022,7 @@ class ColormapDialog(qt.QDialog):
 
         :param Union[_AutoscaleMethod, str] value:
         """
-        value = _AutoscaleMethod.from_value(value)
+        value = AutoscaleMethod.from_value(value)
         idx = self._autoscaleMethodCB.findText(value.value)
         self._autoscaleMethodCB.setCurrentIndex(idx)
 
@@ -1080,16 +1080,15 @@ class ColormapDialog(qt.QDialog):
         self.getColormap().sigChanged.emit()
 
     def _updateROI(self):
-        # update from the visible area
         method = self.getAutoscaleMethod()
-        if method is _AutoscaleMethod.VISIBLE_DATA:
+        if method is AutoscaleMethod.VISIBLE_DATA:
             minX, maxX = self._getItem().getPlot().getXAxis().getLimits()
             minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
             self._roiForColormapRange.setGeometry(origin=(minX, minY),
                                                   size=(maxX-minX, maxY-minY))
             self._roiForColormapRange.setVisible(False)
             self._roiForColormapRange.setEditable(False)
-        elif method is _AutoscaleMethod.ROI:
+        elif method is AutoscaleMethod.ROI:
             self._roiForColormapRange.setGeometry(origin=self._roiGroupBox.getOrigin(),
                                                   size=self._roiGroupBox.getSize())
             self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
