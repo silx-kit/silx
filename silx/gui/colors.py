@@ -41,7 +41,6 @@ from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
 from silx.utils import deprecation
 from silx.resources import resource_filename as _resource_filename
-from silx.utils.enum import Enum as _Enum
 
 
 _logger = logging.getLogger(__file__)
@@ -492,12 +491,6 @@ class _ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn)
         _NormalizationMixIn.__init__(self)
 
 
-class _AutoscaleMethod(_Enum):
-    ALL_DATA = "all data"
-    VISIBLE_DATA = "visible data"
-    ROI = "roi"
-
-
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -556,8 +549,7 @@ class Colormap(qt.QObject):
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
     def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None,
-                 vmax=None, autoscaleMode=MINMAX,
-                 autoscalMethod=_AutoscaleMethod.ALL_DATA):
+                 vmax=None, autoscaleMode=MINMAX):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0

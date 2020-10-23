@@ -86,12 +86,18 @@ from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
-from silx.gui.colors import _AutoscaleMethod
+from silx.utils.enum import Enum as _Enum
 
 _logger = logging.getLogger(__name__)
 
 
 _colormapIconPreview = {}
+
+
+class AutoscaleMethod(_Enum):
+    ALL_DATA = "all data"
+    VISIBLE_DATA = "visible data"
+    ROI = "roi"
 
 
 class _DataRefHolder(items.Item, items.ColormapMixIn):
