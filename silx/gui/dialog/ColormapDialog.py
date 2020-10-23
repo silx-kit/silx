@@ -1020,7 +1020,13 @@ class ColormapDialog(qt.QDialog):
         self._autoscaleMethodCB.setCurrentIndex(idx)
 
     def _roiChanged(self, *args, **kwargs):
-        raise NotImplementedError()
+        old = self.blockSignals(True)
+        self._roiGroupBox.setOrigin(self._roiForColormapRange.getOrigin())
+        self._roiGroupBox.setSize(self._roiForColormapRange.getSize())
+        self.blockSignals(old)
+
+        self._getItem().clearColormapRangeCache()
+        self.getColormap().sigChanged.emit()
 
     def _methodChanged(self):
         self._roiGroupBox.setVisible(
@@ -1053,12 +1059,12 @@ class ColormapDialog(qt.QDialog):
         if self._roiForColormapRange is None:
             from silx.gui.plot.items.roi import RectangleROI
             from silx.gui.plot.tools.roi import RegionOfInterestManager
-            # TODO: management when itenm change should be done
             self._roiForColormapManager = RegionOfInterestManager(parent=self._getItem().getPlot())
             self._roiForColormapRange = RectangleROI(parent=self._roiForColormapManager)
             self._roiForColormapRange.setName('colormapROI')
             self._roiForColormapRange.setGeometry(origin=(0, 0), size=(10, 10))
             self._getItem().getPlot().sigPlotSignal.connect(self._managePlotUpdate)
+            self._roiForColormapRange.sigRegionChanged.connect(self._roiChanged)
         return self._roiForColormapRange
 
     def _managePlotUpdate(self, obj):
@@ -1066,7 +1072,6 @@ class ColormapDialog(qt.QDialog):
             self._updateROI()
             self._getItem().clearColormapRangeCache()
             self._invalidateColormap()
-            # self._invalidateData()
 
     def _invalidateColormap(self):
         if self.isVisible():
@@ -1759,6 +1764,16 @@ class _ROIGroupBox(qt.QGroupBox):
         self._heightDSB.valueChanged.connect(self._ROIModificationRequested)
         self._xOriginQSB.valueChanged.connect(self._ROIModificationRequested)
         self._yOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+
+    def setOrigin(self, origin: tuple):
+        assert len(origin) is 2, 'expected tuple with (x, y)'
+        self._xOriginQSB.setValue(origin[0])
+        self._yOriginQSB.setValue(origin[1])
+
+    def setSize(self, size_: tuple):
+        assert len(size_) is 2, 'expected tuple with (width, height)'
+        self._widthDSB.setValue(size_[0])
+        self._heightDSB.setValue(size_[1])
 
     def _ROIModificationRequested(self, *args, **kwargs):
         self.sigROIChanged.emit()
