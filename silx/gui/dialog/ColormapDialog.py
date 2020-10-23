@@ -1042,7 +1042,8 @@ class ColormapDialog(qt.QDialog):
         old = self._roiGroupBox.blockSignals(True)
         self._roiGroupBox.setOrigin(self._roiForColormapRange.getOrigin())
         self._roiGroupBox.setSize(self._roiForColormapRange.getSize())
-        self._roiGroupBox.setDisplay(self._roiForColormapRange.isVisible())
+        if self.getAutoscaleMethod() is AutoscaleMethod.ROI:
+            self._roiGroupBox.setDisplay(self._roiForColormapRange.isVisible())
         self._roiGroupBox.setName(self._roiForColormapRange.getName())
         self._roiGroupBox.blockSignals(old)
 
@@ -1051,15 +1052,11 @@ class ColormapDialog(qt.QDialog):
             return
         self._roiGroupBox.setVisible(
             self.getAutoscaleMethod() is AutoscaleMethod.ROI)
-
+        # for the ROI we have to reset as soon as possible the visibility to
+        # avoid overwritting it
+        if self.getAutoscaleMethod() is AutoscaleMethod.ROI:
+            self._getRoiForColormapRange().setVisible(self._roiGroupBox.getDisplay())
         self._updateRoiFromItem()
-        # if self.getAutoscaleMethod() is AutoscaleMethod.ALL_DATA:
-        #     self._getItem()._setROIForAutoscale(None)
-        # else:
-        #     self._getItem()._setROIForAutoscale(self._getRoiForColormapRange())
-        #     self._updateROI()
-        #
-        # self._updateROI()
 
     def _updateRoiFromItem(self):
         if self._getItem() is None:
@@ -1089,16 +1086,21 @@ class ColormapDialog(qt.QDialog):
             minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
             self._roiForColormapRange.setGeometry(origin=(minX, minY),
                                                   size=(maxX-minX, maxY-minY))
+            old = self._roiGroupBox.blockSignals(True)
             self._roiForColormapRange.setVisible(False)
+            self._roiGroupBox.blockSignals(old)
             self._roiForColormapRange.setEditable(False)
         elif method is AutoscaleMethod.ROI:
             self._roiForColormapRange.setGeometry(origin=self._roiGroupBox.getOrigin(),
                                                   size=self._roiGroupBox.getSize())
             self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
             self._roiForColormapRange.setEditable(True)
+            self._roiForColormapRange.setName(self._roiGroupBox.getName())
+            # self._roiForColormapRange.sigROIChanged.emit()
         self._updateRoiFromItem()
 
     def _getRoiForColormapRange(self):
+        method = self.getAutoscaleMethod()
         if self._roiForColormapRange is None:
             self._roiForColormapManager = RegionOfInterestManager(parent=self._getItem().getPlot())
             self._roiForColormapRange = RectangleROI(parent=self._roiForColormapManager)
@@ -1109,9 +1111,11 @@ class ColormapDialog(qt.QDialog):
                                                   size=(maxX-minX, maxY-minY))
             self._getItem().getPlot().sigPlotSignal.connect(self._managePlotUpdate)
             self._roiForColormapRange.sigRegionChanged.connect(self._roiItemChanged)
-            if self.getAutoscaleMethod() is AutoscaleMethod.ALL_DATA:
+            if method is AutoscaleMethod.VISIBLE_DATA:
+                old = self._roiGroupBox.blockSignals(True)
                 self._roiForColormapRange.setVisible(False)
-            else:
+                self._roiGroupBox.blockSignals(old)
+            elif method is AutoscaleMethod.ROI:
                 self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
 
             self._updateROIInfo()
@@ -1825,6 +1829,7 @@ class _ROIGroupBox(qt.QGroupBox):
         self._heightDSB.valueChanged.connect(self._ROIModificationRequested)
         self._xOriginQSB.valueChanged.connect(self._ROIModificationRequested)
         self._yOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+        self._displayCB.toggled.connect(self._ROIModificationRequested)
 
     def setOrigin(self, origin: tuple) -> None:
         """
