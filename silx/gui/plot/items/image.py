@@ -381,8 +381,8 @@ class ImageData(ImageBase, ColormapMixIn):
     def _filter_data(self, raw_data):
         if self._roiForAutoscale is None:
             return raw_data
-        roi = self._roiForAutoscale
 
+        roi = self._roiForAutoscale
         roi_origin = roi.getOrigin()
         roi_size = roi.getSize()
         minX, maxX = roi_origin[0] - roi_size[0], roi_origin[0] + roi_size[0]
