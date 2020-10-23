@@ -87,6 +87,9 @@ from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
 from silx.utils.enum import Enum as _Enum
+from silx.math.geometry import Rectangle
+from silx.gui.plot.items.roi import RectangleROI
+from silx.gui.plot.tools.roi import RegionOfInterestManager
 
 _logger = logging.getLogger(__name__)
 
