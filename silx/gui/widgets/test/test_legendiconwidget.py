@@ -22,38 +22,53 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Tests for LegendIconWidget"""
+
+__authors__ = ["V. Valls"]
+__license__ = "MIT"
+__date__ = "23/10/2020"
+
 import unittest
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-from . import test_framebrowser
-from . import test_boxlayoutdockwidget
-from . import test_rangeslider
-from . import test_flowlayout
-from . import test_elidedlabel
-from . import test_legendiconwidget
+from silx.gui import qt
+from silx.gui.widgets.LegendIconWidget import LegendIconWidget
+from silx.gui.utils.testutils import TestCaseQt
+from silx.utils.testutils import ParametricTestCase
 
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
+
+class TestLegendIconWidget(TestCaseQt, ParametricTestCase):
+    """Tests for TestRangeSlider"""
+
+    def setUp(self):
+        self.widget = LegendIconWidget()
+        self.widget.show()
+        self.qWaitForWindowExposed(self.widget)
+
+    def tearDown(self):
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
+        del self.widget
+        self.qapp.processEvents()
+
+    def testCreate(self):
+        self.qapp.processEvents()
+
+    def testColormap(self):
+        self.widget.setColormap("viridis")
+        self.qapp.processEvents()
+
+    def testSymbol(self):
+        self.widget.setSymbol("o")
+        self.widget.setSymbolColormap("viridis")
+        self.qapp.processEvents()
 
 
 def suite():
+    loader = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         test_framebrowser.suite(),
-         test_boxlayoutdockwidget.suite(),
-         test_rangeslider.suite(),
-         test_flowlayout.suite(),
-         test_elidedlabel.suite(),
-         test_legendiconwidget.suite(),
-         ])
+    test_suite.addTest(loader(TestLegendIconWidget))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
