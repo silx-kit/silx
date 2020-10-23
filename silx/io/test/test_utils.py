@@ -567,7 +567,9 @@ class TestGetData(unittest.TestCase):
 
     def test_hdf5_array_slice_out_of_range(self):
         url = "silx:%s?path=/group/group/array2d&slice=5" % self.h5_filename
-        self.assertRaises(ValueError, utils.get_data, url)
+        # ValueError: h5py 2.x
+        # IndexError: h5py 3.x
+        self.assertRaises((ValueError, IndexError), utils.get_data, url)
 
     def test_edf_using_silx(self):
         url = "silx:%s?/scan_0/instrument/detector_0/data" % self.edf_filename

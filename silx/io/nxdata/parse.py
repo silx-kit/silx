@@ -45,7 +45,7 @@ import json
 import numpy
 import six
 
-from silx.io.utils import is_group, is_file, is_dataset
+from silx.io.utils import is_group, is_file, is_dataset, h5py_read_dataset
 
 from ._utils import get_attr_as_unicode, INTERPDIM, nxdata_logger, \
     get_uncertainties_names, get_signal_name, \
@@ -628,7 +628,7 @@ class NXdata(object):
         data_dataset_names = [self.signal_name] + self.axes_dataset_names
         if (title is not None and is_dataset(title) and
                 "title" not in data_dataset_names):
-            return str(title[()])
+            return str(h5py_read_dataset(title))
 
         title = self.group.attrs.get("title")
         if title is None:

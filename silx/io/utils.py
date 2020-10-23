@@ -835,10 +835,10 @@ def get_data(url):
                 raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
 
             if data_slice is not None:
-                data = data[data_slice]
+                data = h5py_read_dataset(data, index=data_slice)
             else:
                 # works for scalar and array
-                data = data[()]
+                data = h5py_read_dataset(data)
 
     elif url.scheme() == "fabio":
         import fabio
