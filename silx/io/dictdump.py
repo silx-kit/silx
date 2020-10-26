@@ -37,6 +37,8 @@ from .configdict import ConfigDict
 from .utils import is_group, is_link, is_softlink, is_externallink
 from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
+from .utils import h5py_read_dataset
+from .utils import H5pyAttributesReadWrapper
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -44,34 +46,30 @@ __date__ = "17/07/2018"
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)    # noqa
+try:
+    vlen_utf8 = h5py.special_dtype(vlen=unicode if sys.version_info[0] == 2 else str)
+    vlen_bytes = h5py.special_dtype(vlen=bytes)
+except AttributeError:
+    # h5py does not support variable-length types
+    vlen_utf8 = vlen_bytes = None
 
 
-def _prepare_hdf5_dataset(array_like):
+def _prepare_hdf5_write_value(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
 
     :param array_like: Input dataset in a type that can be digested by
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
-    # simple strings
-    if isinstance(array_like, string_types):
-        array_like = numpy.string_(array_like)
-
-    # Ensure our data is a numpy.ndarray
-    if not isinstance(array_like, (numpy.ndarray, numpy.string_)):
-        array = numpy.array(array_like)
-    else:
-        array = array_like
-
-    # handle list of strings or numpy array of strings
-    if not isinstance(array, numpy.string_):
-        data_kind = array.dtype.kind
-        # unicode: convert to byte strings
-        # (http://docs.h5py.org/en/latest/strings.html)
-        if data_kind.lower() in ["s", "u"]:
-            array = numpy.asarray(array, dtype=numpy.string_)
-
+    array = numpy.asarray(array_like)
+    if vlen_bytes:
+        # Fix-length string type to variable-length type
+        kind = array.dtype.kind.lower()
+        if kind in ["s", "u"]:
+            if kind == "s":
+                return numpy.array(array_like, dtype=vlen_bytes)
+            else:
+                return numpy.array(array_like, dtype=vlen_utf8)
     return array
 
 
@@ -246,14 +244,14 @@ def dicttoh5(treedict, h5file, h5path='/',
             elif is_link(value):
                 h5f[h5name] = value
             else:
-                ds = _prepare_hdf5_dataset(value)
+                data = _prepare_hdf5_write_value(value)
                 # can't apply filters on scalars (datasets with shape == () )
-                if ds.shape == () or create_dataset_args is None:
+                if data.shape == () or create_dataset_args is None:
                     h5f.create_dataset(h5name,
-                                       data=ds)
+                                       data=data)
                 else:
                     h5f.create_dataset(h5name,
-                                       data=ds,
+                                       data=data,
                                        **create_dataset_args)
 
         # deal with h5 attributes which have tuples as keys in treedict
@@ -280,14 +278,8 @@ def dicttoh5(treedict, h5file, h5path='/',
 
             # Write attribute
             value = treedict[key]
-
-            # Makes list/tuple of str being encoded as vlen unicode array
-            # Workaround for h5py<2.9.0 (e.g. debian 10).
-            if (isinstance(value, (list, tuple)) and
-                    numpy.asarray(value).dtype.type == numpy.unicode_):
-                value = numpy.array(value, dtype=h5py.special_dtype(vlen=str))
-
-            h5f[h5name].attrs[attr_name] = value
+            data = _prepare_hdf5_write_value(value)
+            h5f[h5name].attrs[attr_name] = data
 
 
 def nexus_to_h5_dict(treedict, parents=tuple()):
@@ -467,7 +459,8 @@ def h5todict(h5file,
 
         # Read the attributes of the group
         if include_attributes:
-            for aname, avalue in root.attrs.items():
+            attrs = H5pyAttributesReadWrapper(root.attrs)
+            for aname, avalue in attrs.items():
                 ddict[("", aname)] = avalue
         # Read the children of the group
         for key in root:
@@ -504,19 +497,20 @@ def h5todict(h5file,
             else:
                 # Child is an HDF5 dataset
                 try:
-                    data = h5obj[()]
+                    data = h5py_read_dataset(h5obj)
                 except OSError:
                     _handle_error(errors,
                                   OSError,
                                   'Cannot retrieve dataset "%s"',
-                                  subpath)
+                                  h5name)
                 else:
                     if asarray:  # Convert HDF5 dataset to numpy array
                         data = numpy.array(data, copy=False)
                     ddict[key] = data
                     # Read the attributes of the child
                     if include_attributes:
-                        for aname, avalue in h5obj.attrs.items():
+                        attrs = H5pyAttributesReadWrapper(h5obj.attrs)
+                        for aname, avalue in attrs.items():
                             ddict[(key, aname)] = avalue
     return ddict
 
