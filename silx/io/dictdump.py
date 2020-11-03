@@ -46,12 +46,8 @@ __date__ = "17/07/2018"
 
 logger = logging.getLogger(__name__)
 
-try:
-    vlen_utf8 = h5py.special_dtype(vlen=unicode if sys.version_info[0] == 2 else str)
-    vlen_bytes = h5py.special_dtype(vlen=bytes)
-except AttributeError:
-    # h5py does not support variable-length types
-    vlen_utf8 = vlen_bytes = None
+vlen_utf8 = h5py.special_dtype(vlen=str)
+vlen_bytes = h5py.special_dtype(vlen=bytes)
 
 
 def _prepare_hdf5_write_value(array_like):
