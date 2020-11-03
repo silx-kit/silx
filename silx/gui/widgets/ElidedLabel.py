@@ -61,12 +61,12 @@ class ElidedLabel(qt.QLabel):
         self.__updateText()
 
     def __updateMinimumSize(self):
-        metrics = qt.QFontMetrics(self.font())
+        metrics = self.fontMetrics()
         width = metrics.width("...")
         self.setMinimumWidth(width)
 
     def __updateText(self):
-        metrics = qt.QFontMetrics(self.font())
+        metrics = self.fontMetrics()
         elidedText = metrics.elidedText(self.__text, self.__elideMode, self.width())
         qt.QLabel.setText(self, elidedText)
         wasElided = self.__textIsElided
