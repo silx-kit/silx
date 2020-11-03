@@ -1094,17 +1094,13 @@ class H5pyAttributesReadWrapper:
             if encoding == "ascii" and not self._decode_ascii:
                 # Undo decoding by the h5py library
                 return h5py_encode_value(value, encoding="utf-8")
-            return value
         else:
-            if encoding != "ascii":
-                # Decoding is already done by the h5py library
-                return value
-            if encoding == "ascii" and not self._decode_ascii:
-                return value
-            if encoding == "ascii":
-                # ASCII can be decoded as UTF-8
-                encoding = "utf-8"
-            return h5py_decode_value(value, encoding=encoding)
+            if encoding == "ascii" and self._decode_ascii:
+                # Decode ASCII as UTF-8 for consistency
+                return h5py_decode_value(value, encoding="utf-8")
+
+        # Decoding is already done by the h5py library
+        return value
 
     def items(self):
         for k in self._attrs.keys():
