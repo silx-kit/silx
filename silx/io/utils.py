@@ -1129,3 +1129,14 @@ def h5py_read_attribute(attrs, name, decode_ascii=False):
     :param bool decode_ascii:
     """
     return H5pyAttributesReadWrapper(attrs, decode_ascii=decode_ascii)[name]
+
+
+def h5py_read_attributes(attrs, decode_ascii=False):
+    """Read data from attributes. UTF-8 strings will be
+    decoded while ASCII strings will only be decoded when
+    `decode_ascii=True`.
+
+    :param h5py.AttributeManager attrs:
+    :param bool decode_ascii:
+    """
+    return dict(H5pyAttributesReadWrapper(attrs, decode_ascii=decode_ascii).items())

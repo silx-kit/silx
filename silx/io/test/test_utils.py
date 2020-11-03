@@ -802,6 +802,11 @@ class TestH5Strings(unittest.TestCase):
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result]*2)
 
+        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["vlen_data"]
+        assert type(data[0]) == type(result), data[0]
+        assert data[0] == result, data[0]
+        numpy.testing.assert_array_equal(data, [result]*2)
+
     def test_dataset_ascii_bytes(self):
         self._check_dataset(b"abc")
 
