@@ -1124,12 +1124,12 @@ def h5py_read_dataset(dset, index=tuple(), decode_ascii=False):
 
 
 def h5py_read_attribute(attrs, name, decode_ascii=False):
-    """Read data from dataset object. UTF-8 strings will be
+    """Read data from attributes. UTF-8 strings will be
     decoded while ASCII strings will only be decoded when
     `decode_ascii=True`.
 
     :param h5py.AttributeManager attrs:
-    :param index: slicing (all by default)
+    :param str name: attribute name
     :param bool decode_ascii:
     """
     return H5pyAttributesReadWrapper(attrs, decode_ascii=decode_ascii)[name]
