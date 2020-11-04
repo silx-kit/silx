@@ -567,7 +567,9 @@ class TestGetData(unittest.TestCase):
 
     def test_hdf5_array_slice_out_of_range(self):
         url = "silx:%s?path=/group/group/array2d&slice=5" % self.h5_filename
-        self.assertRaises(ValueError, utils.get_data, url)
+        # ValueError: h5py 2.x
+        # IndexError: h5py 3.x
+        self.assertRaises((ValueError, IndexError), utils.get_data, url)
 
     def test_edf_using_silx(self):
         url = "silx:%s?/scan_0/instrument/detector_0/data" % self.edf_filename
@@ -716,6 +718,158 @@ class TestRawFileToH5(unittest.TestCase):
                                            shape=self._dataset_shape))
 
 
+class TestH5Strings(unittest.TestCase):
+    """Test HDF5 str and bytes writing and reading"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tempdir = tempfile.mkdtemp()
+        cls.vlenstr = h5py.special_dtype(vlen=str)
+        cls.vlenbytes = h5py.special_dtype(vlen=bytes)
+        try:
+            cls.unicode = unicode
+        except NameError:
+            cls.unicode = str
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tempdir)
+
+    def setUp(self):
+        self.file = h5py.File(os.path.join(self.tempdir, 'file.h5'), mode="w")
+
+    def tearDown(self):
+        self.file.close()
+
+    @classmethod
+    def _make_array(cls, value, n):
+        if isinstance(value, bytes):
+            dtype = cls.vlenbytes
+        elif isinstance(value, cls.unicode):
+            dtype = cls.vlenstr
+        else:
+            return numpy.array([value]*n)
+        return numpy.array([value]*n, dtype=dtype)
+
+    @classmethod
+    def _get_charset(cls, value):
+        if isinstance(value, bytes):
+            return h5py.h5t.CSET_ASCII
+        elif isinstance(value, cls.unicode):
+            return h5py.h5t.CSET_UTF8
+        else:
+            return None
+
+    def _check_dataset(self, value, result=None):
+        # Write+read scalar
+        if result:
+            decode_ascii = True
+        else:
+            decode_ascii = False
+            result = value
+        charset = self._get_charset(value)
+        self.file["data"] = value
+        data = utils.h5py_read_dataset(self.file["data"], decode_ascii=decode_ascii)
+        assert type(data) == type(result), data
+        assert data == result, data
+        if charset:
+            assert self.file["data"].id.get_type().get_cset() == charset
+
+        # Write+read variable length
+        self.file["vlen_data"] = self._make_array(value, 2)
+        data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii, index=0)
+        assert type(data) == type(result), data
+        assert data == result, data
+        data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii)
+        numpy.testing.assert_array_equal(data, [result]*2)
+        if charset:
+            assert self.file["vlen_data"].id.get_type().get_cset() == charset
+
+    def _check_attribute(self, value, result=None):
+        if result:
+            decode_ascii = True
+        else:
+            decode_ascii = False
+            result = value
+        self.file.attrs["data"] = value
+        data = utils.h5py_read_attribute(self.file.attrs, "data", decode_ascii=decode_ascii)
+        assert type(data) == type(result), data
+        assert data == result, data
+
+        self.file.attrs["vlen_data"] = self._make_array(value, 2)
+        data = utils.h5py_read_attribute(self.file.attrs, "vlen_data", decode_ascii=decode_ascii)
+        assert type(data[0]) == type(result), data[0]
+        assert data[0] == result, data[0]
+        numpy.testing.assert_array_equal(data, [result]*2)
+
+        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["vlen_data"]
+        assert type(data[0]) == type(result), data[0]
+        assert data[0] == result, data[0]
+        numpy.testing.assert_array_equal(data, [result]*2)
+
+    def test_dataset_ascii_bytes(self):
+        self._check_dataset(b"abc")
+
+    def test_attribute_ascii_bytes(self):
+        self._check_attribute(b"abc")
+
+    def test_dataset_ascii_bytes_decode(self):
+        self._check_dataset(b"abc", result="abc")
+
+    def test_attribute_ascii_bytes_decode(self):
+        self._check_attribute(b"abc", result="abc")
+
+    def test_dataset_ascii_str(self):
+        self._check_dataset("abc")
+
+    def test_attribute_ascii_str(self):
+        self._check_attribute("abc")
+
+    def test_dataset_utf8_str(self):
+        self._check_dataset("\u0101bc")
+
+    def test_attribute_utf8_str(self):
+        self._check_attribute("\u0101bc")
+
+    def test_dataset_utf8_bytes(self):
+        # 0xC481 is the byte representation of U+0101
+        self._check_dataset(b"\xc4\x81bc")
+
+    def test_attribute_utf8_bytes(self):
+        # 0xC481 is the byte representation of U+0101
+        self._check_attribute(b"\xc4\x81bc")
+
+    def test_dataset_utf8_bytes_decode(self):
+        # 0xC481 is the byte representation of U+0101
+        self._check_dataset(b"\xc4\x81bc", result="\u0101bc")
+
+    def test_attribute_utf8_bytes_decode(self):
+        # 0xC481 is the byte representation of U+0101
+        self._check_attribute(b"\xc4\x81bc", result="\u0101bc")
+
+    def test_dataset_latin1_bytes(self):
+        # extended ascii character 0xE4
+        self._check_dataset(b"\xe423")
+
+    def test_attribute_latin1_bytes(self):
+        # extended ascii character 0xE4
+        self._check_attribute(b"\xe423")
+
+    def test_dataset_latin1_bytes_decode(self):
+        # U+DCE4: surrogate for extended ascii character 0xE4
+        self._check_dataset(b"\xe423", result="\udce423")
+
+    def test_attribute_latin1_bytes_decode(self):
+        # U+DCE4: surrogate for extended ascii character 0xE4
+        self._check_attribute(b"\xe423", result="\udce423")
+
+    def test_dataset_no_string(self):
+        self._check_dataset(numpy.int64(10))
+
+    def test_attribute_no_string(self):
+        self._check_attribute(numpy.int64(10))
+
+
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite = unittest.TestSuite()
@@ -725,6 +879,7 @@ def suite():
     test_suite.addTest(loadTests(TestNodes))
     test_suite.addTest(loadTests(TestGetData))
     test_suite.addTest(loadTests(TestRawFileToH5))
+    test_suite.addTest(loadTests(TestH5Strings))
     return test_suite
 
 

@@ -279,6 +279,26 @@ class TestH5ToDict(unittest.TestCase):
         self.assertTrue(is_link(ddict["external_link"]))
         self.assertTrue(is_link(ddict["group"]["relative_softlink"]))
 
+    def testStrings(self):
+        ddict = {"dset_bytes": b"bytes",
+                 "dset_utf8": "utf8",
+                 "dset_2bytes": [b"bytes", b"bytes"],
+                 "dset_2utf8": ["utf8", "utf8"],
+                 ("", "attr_bytes"): b"bytes",
+                 ("", "attr_utf8"): "utf8",
+                 ("", "attr_2bytes"): [b"bytes", b"bytes"],
+                 ("", "attr_2utf8"): ["utf8", "utf8"]}
+        dicttoh5(ddict, self.h5_fname, mode="w")
+        adict = h5todict(self.h5_fname, include_attributes=True, asarray=False)
+        self.assertEqual(ddict["dset_bytes"], adict["dset_bytes"])
+        self.assertEqual(ddict["dset_utf8"], adict["dset_utf8"])
+        self.assertEqual(ddict[("", "attr_bytes")], adict[("", "attr_bytes")])
+        self.assertEqual(ddict[("", "attr_utf8")], adict[("", "attr_utf8")])
+        numpy.testing.assert_array_equal(ddict["dset_2bytes"], adict["dset_2bytes"])
+        numpy.testing.assert_array_equal(ddict["dset_2utf8"], adict["dset_2utf8"])
+        numpy.testing.assert_array_equal(ddict[("", "attr_2bytes")], adict[("", "attr_2bytes")])
+        numpy.testing.assert_array_equal(ddict[("", "attr_2utf8")], adict[("", "attr_2utf8")])
+
 
 class TestDictToNx(unittest.TestCase):
     def setUp(self):

@@ -33,6 +33,7 @@ import h5py
 
 from ..spech5 import SpecH5, SpecH5Group
 from ..convert import convert, write_to_h5
+from ..utils import h5py_read_dataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -129,7 +130,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def testTitle(self):
         """Test the value of a dataset"""
-        title12 = self.h5f["/1.2/title"][()]
+        title12 = h5py_read_dataset(self.h5f["/1.2/title"])
         self.assertEqual(title12,
                          u"aaaaaa")
 
