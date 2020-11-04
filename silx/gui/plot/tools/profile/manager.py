@@ -76,6 +76,15 @@ class _RunnableComputeProfile(qt.QRunnable):
         self._signals.moveToThread(threadPool.thread())
         self._item = item
         self._roi = roi
+        self._cancelled = False
+
+    def _lazyCancel(self):
+        """Cancel the runner if it is not yet started.
+
+        The threadpool will still execute the runner, but this will process
+        nothing.
+        """
+        self._cancelled = True
 
     def autoDelete(self):
         return False
@@ -106,12 +115,13 @@ class _RunnableComputeProfile(qt.QRunnable):
     def run(self):
         """Process the profile computation.
         """
-        try:
-            profileData = self._roi.computeProfile(self._item)
-        except Exception:
-            _logger.error("Error while computing profile", exc_info=True)
-        else:
-            self.resultReady.emit(self._roi, profileData)
+        if not self._cancelled:
+            try:
+                profileData = self._roi.computeProfile(self._item)
+            except Exception:
+                _logger.error("Error while computing profile", exc_info=True)
+            else:
+                self.resultReady.emit(self._roi, profileData)
         self.runnerFinished.emit(self)
 
 
@@ -815,8 +825,11 @@ class ProfileManager(qt.QObject):
                 self._pendingRunners.remove(runner)
                 continue
             if runner.getRoi() is profileRoi:
-                if threadPool.tryTake(runner):
-                    self._pendingRunners.remove(runner)
+                if hasattr(threadPool, "tryTake"):
+                    if threadPool.tryTake(runner):
+                        self._pendingRunners.remove(runner)
+                else:
+                    runner._lazyCancel()
 
         item = self.getPlotItem()
         if item is None or not isinstance(item, profileRoi.ITEM_KIND):
