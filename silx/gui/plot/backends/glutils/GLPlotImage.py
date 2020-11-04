@@ -291,7 +291,7 @@ class GLPlotColormap(_GLPlotData2D):
         if self.normalization == 'log':
             assert self._cmapRange[0] > 0. and self._cmapRange[1] > 0.
         elif self.normalization == 'sqrt':
-            assert self._cmapRange[0] >= 0. and self._cmapRange[1] > 0.
+            assert self._cmapRange[0] >= 0. and self._cmapRange[1] >= 0.
         return self._cmapRange
 
     @cmapRange.setter
