@@ -83,6 +83,8 @@ class _RunnableComputeProfile(qt.QRunnable):
 
         The threadpool will still execute the runner, but this will process
         nothing.
+
+        This is only used with Qt<5.9 where QThreadPool.tryTake is not available.
         """
         self._cancelled = True
 
@@ -828,7 +830,7 @@ class ProfileManager(qt.QObject):
                 if hasattr(threadPool, "tryTake"):
                     if threadPool.tryTake(runner):
                         self._pendingRunners.remove(runner)
-                else:
+                else:  # Support Qt<5.9
                     runner._lazyCancel()
 
         item = self.getPlotItem()
