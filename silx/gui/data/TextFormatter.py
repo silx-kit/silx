@@ -267,6 +267,9 @@ class TextFormatter(qt.QObject):
         if vlen is not None:
             if vlen == six.text_type:
                 # HDF5 UTF8
+                # With h5py>=3 reading dataset returns bytes
+                if isinstance(data, (bytes, numpy.bytes_)):
+                    data = data.decode("utf-8")
                 return self.__formatText(data)
             elif vlen == six.binary_type:
                 # HDF5 ASCII
@@ -289,7 +292,7 @@ class TextFormatter(qt.QObject):
         elif isinstance(data, list):
             text = [self.toString(d) for d in data]
             return "[" + " ".join(text) + "]"
-        elif isinstance(data, (numpy.ndarray)):
+        elif isinstance(data, numpy.ndarray):
             if dtype is None:
                 dtype = data.dtype
             if data.shape == ():
