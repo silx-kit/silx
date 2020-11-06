@@ -159,9 +159,36 @@ def create_hdf5_types(group):
 
     # H5T_STRING
 
-    main_group["text/ascii"] = b"abcd"
-    main_group["text/bad_ascii"] = b"ab\xEFcd\xFF"
-    main_group["text/utf8"] = u"me \u2661 tu"
+    group = main_group.create_group("text")
+    group.create_dataset(
+        "ascii_vlen", data=b"abcd", dtype=h5py.string_dtype('ascii'))
+    group.create_dataset(
+        "bad_ascii_vlen", data=b"ab\xEFcd\xFF", dtype=h5py.string_dtype('ascii'))
+    group.create_dataset(
+        "ascii_fixed", data=b"Fixed ascii", dtype=h5py.string_dtype('ascii', 20))
+    group.create_dataset(
+        "array_ascii_vlen",
+        data=['a', 'bc', 'def', 'ghij', 'klmn'],
+        dtype=h5py.string_dtype('ascii'))
+    group.create_dataset(
+        "array_ascii_fixed",
+        data=['abcde', 'fghij'],
+        dtype=h5py.string_dtype('ascii', 5))
+
+    group.create_dataset(
+        "utf8_vlen", data=u"me \u2661 tu", dtype=h5py.string_dtype('utf-8'))
+    group.create_dataset(
+        "utf8_fixed",
+        data=u"me \u2661 tu".encode('utf-8'),
+        dtype=h5py.string_dtype('utf-8', 20))
+    group.create_dataset(
+        "array_utf8_vlen",
+        data=['a', 'bc', 'def', 'ghij', 'klmn'],
+        dtype=h5py.string_dtype('utf-8'))
+    group.create_dataset(
+        "array_utf8_fixed",
+        data=['abcde', 'fghij'],
+        dtype=h5py.string_dtype('utf-8', 5))
 
     # H5T_BITFIELD
 
