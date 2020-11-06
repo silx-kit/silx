@@ -58,17 +58,16 @@ def _prepare_hdf5_write_value(array_like):
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
     array = numpy.asarray(array_like)
-    if vlen_bytes:
+    if numpy.issubdtype(array.dtype, numpy.number):
+        return array
+    else:
         # Fix-length string type to variable-length type
-        if numpy.issubdtype(array.dtype, numpy.number):
-            return array
-        else:
-            kind = array.dtype.kind.lower()
-            if kind in ["s", "u"]:
-                if kind == "s":
-                    return numpy.array(array_like, dtype=vlen_bytes)
-                else:
-                    return numpy.array(array_like, dtype=vlen_utf8)
+        kind = array.dtype.kind.lower()
+        if kind in ["s", "u"]:
+            if kind == "s":
+                return numpy.array(array_like, dtype=vlen_bytes)
+            else:
+                return numpy.array(array_like, dtype=vlen_utf8)
     return array
 
 
