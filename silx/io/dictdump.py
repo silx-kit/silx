@@ -58,15 +58,12 @@ def _prepare_hdf5_write_value(array_like):
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
     array = numpy.asarray(array_like)
-    if vlen_bytes:
-        # Fix-length string type to variable-length type
-        kind = array.dtype.kind.lower()
-        if kind in ["s", "u"]:
-            if kind == "s":
-                return numpy.array(array_like, dtype=vlen_bytes)
-            else:
-                return numpy.array(array_like, dtype=vlen_utf8)
-    return array
+    if numpy.issubdtype(array.dtype, numpy.bytes_):
+        return numpy.array(array_like, dtype=vlen_bytes)
+    elif numpy.issubdtype(array.dtype, numpy.unicode):
+        return numpy.array(array_like, dtype=vlen_utf8)
+    else:
+        return array
 
 
 class _SafeH5FileWrite(object):
@@ -252,7 +249,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
         # deal with h5 attributes which have tuples as keys in treedict
         for key in filter(lambda k: isinstance(k, tuple), treedict):
-            assert len(key)==2, "attribute must be defined by 2 values"
+            assert len(key) == 2, "attribute must be defined by 2 values"
             h5name = h5path + key[0]
             attr_name = key[1]
 
