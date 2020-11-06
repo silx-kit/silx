@@ -8,6 +8,3 @@ pybind11  # Required to build pyopencl
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2019.1.2; sys_platform == 'win32'
-
-# Pinpoint h5py until issue #3218 is fixed
-h5py < 3
