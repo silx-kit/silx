@@ -44,6 +44,7 @@ from ..dictdump import dicttoh5, dicttojson, dump
 from ..dictdump import h5todict, load
 from ..dictdump import logger as dictdump_logger
 from ..utils import is_link
+from ..utils import h5py_read_dataset
 
 
 def tree():
@@ -227,6 +228,18 @@ class TestDictToH5(unittest.TestCase):
             self.assertEqual(h5file["links/relative_softlink"][()], 10)
             self.assertEqual(h5file["links/absolute_softlink"][()], 10)
             self.assertEqual(h5file["links/external_link"][()], 10)
+
+    def testDumpNumpyArray(self):
+        ddict = {
+            'darks': {
+                '0': numpy.array([[0, 0, 0], [0, 0, 0]], dtype=numpy.uint16)
+            }
+        }
+        with h5py.File(self.h5_fname, "w") as h5file:
+            dictdump.dicttoh5(ddict, h5file)
+        with h5py.File(self.h5_fname, "r") as h5file:
+            numpy.testing.assert_array_equal(h5py_read_dataset(h5file["darks"]["0"]),
+                                             ddict['darks']['0'])
 
 
 class TestH5ToDict(unittest.TestCase):
