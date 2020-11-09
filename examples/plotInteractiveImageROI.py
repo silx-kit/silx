@@ -40,6 +40,7 @@ from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.items import LineMixIn, SymbolMixIn
+from silx.gui.plot.actions import control as control_actions
 
 
 def dummy_image():
@@ -54,15 +55,15 @@ def dummy_image():
 
 app = qt.QApplication([])  # Start QApplication
 
-backend = "matplotlib"
-if "--opengl" in sys.argv:
-    backend = "opengl"
-
 # Create the plot widget and add an image
-plot = Plot2D(backend=backend)
+plot = Plot2D()
 plot.getDefaultColormap().setName('viridis')
 plot.setKeepDataAspectRatio(True)
 plot.addImage(dummy_image())
+
+toolbar = qt.QToolBar()
+toolbar.addAction(control_actions.OpenGLAction(parent=toolbar, plot=plot))
+plot.addToolBar(toolbar)
 
 # Create the object controlling the ROIs and set it up
 roiManager = RegionOfInterestManager(plot)
