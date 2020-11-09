@@ -56,7 +56,7 @@ from ..colors import Colormap
 from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
-
+from ...utils.proxy import docstring
 
 _logger = logging.getLogger(__name__)
 
@@ -341,6 +341,10 @@ class ImageView(PlotWindow):
         self._radarView = RadarView(parent=self)
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
+        self.__setCentralWidget()
+
+    def __setCentralWidget(self):
+        """Set central widget with all its content"""
         layout = qt.QGridLayout()
         layout.addWidget(self.getWidgetHandle(), 0, 0)
         layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
@@ -364,6 +368,12 @@ class ImageView(PlotWindow):
         centralWidget = qt.QWidget(self)
         centralWidget.setLayout(layout)
         self.setCentralWidget(centralWidget)
+
+    @docstring(PlotWidget)
+    def setBackend(self, backend):
+        # Use PlotWidget here since we override PlotWindow behavior
+        PlotWidget.setBackend(self, backend)
+        self.__setCentralWidget()
 
     def _dirtyCache(self):
         self._cache = None
