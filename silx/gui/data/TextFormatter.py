@@ -269,7 +269,10 @@ class TextFormatter(qt.QObject):
                 # HDF5 UTF8
                 # With h5py>=3 reading dataset returns bytes
                 if isinstance(data, (bytes, numpy.bytes_)):
-                    data = data.decode("utf-8")
+                    try:
+                        data = data.decode("utf-8")
+                    except UnicodeDecodeError:
+                        self.__formatSafeAscii(data)
                 return self.__formatText(data)
             elif vlen == six.binary_type:
                 # HDF5 ASCII
