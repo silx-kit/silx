@@ -410,10 +410,8 @@ class PlotWidget(qt.QMainWindow):
         isYAxisInverted = xaxis.isInverted()
 
         # Remove all items from previous backend
-        # Mark them for update with new backend
         for item in self.getItems():
             item._removeBackendRenderer(self._backend)
-            item._updated()
 
         # Switch backend
         self._backend = self.__getBackendClass(backend)(self, self)
@@ -461,6 +459,10 @@ class PlotWidget(qt.QMainWindow):
         # Finally restore aspect ratio and limits
         self._backend.setKeepDataAspectRatio(isKeepDataAspectRatio)
         self.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+
+        # Mark all items for update with new backend
+        for item in self.getItems():
+            item._updated()
 
     def getBackend(self):
         """Returns the backend currently used by :class:`PlotWidget`.
