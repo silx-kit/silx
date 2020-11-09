@@ -222,8 +222,6 @@ class PlotWidget(qt.QMainWindow):
             self.setWindowTitle('PlotWidget')
 
         # Init the backend
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
         self._backend = self.__getBackendClass(backend)(self, self)
 
         self.setCallback()  # set _callback
@@ -320,6 +318,9 @@ class PlotWidget(qt.QMainWindow):
         :raise ValueError: In case the backend is not supported
         :raise RuntimeError: If a backend is not available
         """
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
         if callable(backend):
             return backend
 
