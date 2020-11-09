@@ -259,6 +259,7 @@ class PlotWidget(qt.QMainWindow):
 
         self._grid = None
         self._graphTitle = ''
+        self.__graphCursorShape = 'default'
 
         # Set axes margins
         self.__axesDisplayed = True
@@ -3028,11 +3029,19 @@ class PlotWidget(qt.QMainWindow):
 
     # Interaction support
 
+    def getGraphCursorShape(self):
+        """Returns the current cursor shape.
+
+        :rtype: str
+        """
+        return self.__graphCursorShape
+
     def setGraphCursorShape(self, cursor=None):
         """Set the cursor shape.
 
         :param str cursor: Name of the cursor shape
         """
+        self.__graphCursorShape = cursor
         self._backend.setGraphCursorShape(cursor)
 
     @deprecated(replacement='getItems', since_version='0.13')
