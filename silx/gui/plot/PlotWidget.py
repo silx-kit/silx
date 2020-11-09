@@ -400,12 +400,14 @@ class PlotWidget(qt.QMainWindow):
         :raises RuntimeError: Error while loading a backend
         """
         # First save state that is stored in the backend
-        xmin, xmax = self.getXAxis().getLimits()
+        xaxis = self.getXAxis()
+        xmin, xmax = xaxis.getLimits()
         ymin, ymax = self.getYAxis(axis='left').getLimits()
         y2min, y2max = self.getYAxis(axis='right').getLimits()
         isKeepDataAspectRatio = self.isKeepDataAspectRatio()
-        xtimezone = self.getXAxis().getTimeZone()
-        isYAxisInverted = self.getYAxis().isInverted()
+        xTimeZone = xaxis.getTimeZone()
+        isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
+        isYAxisInverted = xaxis.isInverted()
 
         # Remove all items from previous backend
         # Mark them for update with new backend
@@ -445,9 +447,8 @@ class PlotWidget(qt.QMainWindow):
         # Set axes
         xaxis = self.getXAxis()
         self._backend.setGraphXLabel(xaxis.getLabel())
-        self._backend.setXAxisTimeZone(xtimezone)
-        self._backend.setXAxisTimeSeries(
-            xaxis.getTickMode() == TickMode.TIME_SERIES)
+        self._backend.setXAxisTimeZone(xTimeZone)
+        self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
         self._backend.setXAxisLogarithmic(
             xaxis.getScale() == items.Axis.LOGARITHMIC)
 
