@@ -2391,7 +2391,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             points = numpy.array([geometry.startPoint, geometry.startPoint])
         elif kind == "circle":
             outerRadius = geometry.radius + geometry.weight * 0.5
-            angles = numpy.arange(0, 2 * numpy.pi, 0.1)
+            angles = numpy.linspace(0, 2 * numpy.pi, num=50)
             # It's a circle
             points = []
             numpy.append(angles, angles[-1])
@@ -2402,7 +2402,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         elif kind == "donut":
             innerRadius = geometry.radius - geometry.weight * 0.5
             outerRadius = geometry.radius + geometry.weight * 0.5
-            angles = numpy.arange(0, 2 * numpy.pi, 0.1)
+            angles = numpy.linspace(0, 2 * numpy.pi, num=50)
             # It's a donut
             points = []
             # NOTE: NaN value allow to create 2 separated circle shapes
