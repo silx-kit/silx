@@ -222,8 +222,6 @@ class PlotWidget(qt.QMainWindow):
             self.setWindowTitle('PlotWidget')
 
         # Init the backend
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
         self._backend = self.__getBackendClass(backend)(self, self)
 
         self.setCallback()  # set _callback
@@ -259,6 +257,7 @@ class PlotWidget(qt.QMainWindow):
 
         self._grid = None
         self._graphTitle = ''
+        self.__graphCursorShape = 'default'
 
         # Set axes margins
         self.__axesDisplayed = True
@@ -319,6 +318,9 @@ class PlotWidget(qt.QMainWindow):
         :raise ValueError: In case the backend is not supported
         :raise RuntimeError: If a backend is not available
         """
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
         if callable(backend):
             return backend
 
@@ -379,6 +381,97 @@ class PlotWidget(qt.QMainWindow):
                         or a :class:`BackendBase.BackendBase` class
         """
         silx.config.DEFAULT_PLOT_BACKEND = backend
+
+    def setBackend(self, backend):
+        """Set the backend to use for rendering.
+
+        Supported backends:
+
+        - 'matplotlib' and 'mpl': Matplotlib with Qt.
+        - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
+        - 'none': No backend, to run headless for testing purpose.
+
+        :param Union[str,BackendBase,List[Union[str,BackendBase]]] backend:
+            The backend to use, in:
+            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none',
+            a :class:`BackendBase.BackendBase` class.
+            If multiple backends are provided, the first available one is used.
+        :raises ValueError: Unsupported backend descriptor
+        :raises RuntimeError: Error while loading a backend
+        """
+        backend = self.__getBackendClass(backend)(self, self)
+
+        # First save state that is stored in the backend
+        xaxis = self.getXAxis()
+        xmin, xmax = xaxis.getLimits()
+        ymin, ymax = self.getYAxis(axis='left').getLimits()
+        y2min, y2max = self.getYAxis(axis='right').getLimits()
+        isKeepDataAspectRatio = self.isKeepDataAspectRatio()
+        xTimeZone = xaxis.getTimeZone()
+        isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
+        isYAxisInverted = xaxis.isInverted()
+
+        # Remove all items from previous backend
+        for item in self.getItems():
+            item._removeBackendRenderer(self._backend)
+
+        # Switch backend
+        self._backend = backend
+        widget = self._backend.getWidgetHandle()
+        self.setCentralWidget(widget)
+        if widget is None:
+            _logger.info("PlotWidget backend does not support widget")
+
+        # Mark as newly dirty
+        self._dirty = False
+        self._setDirtyPlot()
+
+        # Synchronize/restore state
+        self._foregroundColorsUpdated()
+        self._backgroundColorsUpdated()
+
+        self._backend.setGraphCursorShape(self.getGraphCursorShape())
+        crosshairConfig = self.getGraphCursor()
+        if crosshairConfig is None:
+            self._backend.setGraphCursor(False, 'black', 1, '-')
+        else:
+            self._backend.setGraphCursor(True, *crosshairConfig)
+
+        self._backend.setGraphTitle(self.getGraphTitle())
+        self._backend.setGraphGrid(self.getGraphGrid())
+        if self.isAxesDisplayed():
+            self._backend.setAxesMargins(*self.getAxesMargins())
+        else:
+            self._backend.setAxesMargins(0., 0., 0., 0.)
+
+        # Set axes
+        xaxis = self.getXAxis()
+        self._backend.setGraphXLabel(xaxis.getLabel())
+        self._backend.setXAxisTimeZone(xTimeZone)
+        self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
+        self._backend.setXAxisLogarithmic(
+            xaxis.getScale() == items.Axis.LOGARITHMIC)
+
+        for axis in ('left', 'right'):
+            self._backend.setGraphYLabel(self.getYAxis(axis).getLabel(), axis)
+        self._backend.setYAxisInverted(isYAxisInverted)
+        self._backend.setYAxisLogarithmic(
+            self.getYAxis().getScale() == items.Axis.LOGARITHMIC)
+
+        # Finally restore aspect ratio and limits
+        self._backend.setKeepDataAspectRatio(isKeepDataAspectRatio)
+        self.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+
+        # Mark all items for update with new backend
+        for item in self.getItems():
+            item._updated()
+
+    def getBackend(self):
+        """Returns the backend currently used by :class:`PlotWidget`.
+
+        :rtype: ~silx.gui.plot.backend.BackendBase.BackendBase
+        """
+        return self._backend
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
@@ -3028,11 +3121,19 @@ class PlotWidget(qt.QMainWindow):
 
     # Interaction support
 
+    def getGraphCursorShape(self):
+        """Returns the current cursor shape.
+
+        :rtype: str
+        """
+        return self.__graphCursorShape
+
     def setGraphCursorShape(self, cursor=None):
         """Set the cursor shape.
 
         :param str cursor: Name of the cursor shape
         """
+        self.__graphCursorShape = cursor
         self._backend.setGraphCursorShape(cursor)
 
     @deprecated(replacement='getItems', since_version='0.13')

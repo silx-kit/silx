@@ -33,11 +33,11 @@ import unittest
 import numpy
 
 from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
+from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.colors import Colormap
-
 
 class TestPlotWindow(TestCaseQt):
     """Base class for tests of PlotWindow."""
@@ -154,6 +154,25 @@ class TestPlotWindow(TestCaseQt):
             Colormap._computeAutoscaleRange = old
         self.assertEqual(self._count, 1)
         del self._count
+
+    @unittest.skipUnless(test_options.WITH_GL_TEST,
+                         test_options.WITH_QT_TEST_REASON)
+    def testSwitchBackend(self):
+        """Test switching an empty plot"""
+        self.plot.resetZoom()
+        xlimits = self.plot.getXAxis().getLimits()
+        ylimits = self.plot.getYAxis().getLimits()
+        isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
+
+        for backend in ('gl', 'mpl'):
+            with self.subTest():
+                self.plot.setBackend(backend)
+                self.plot.replot()
+                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
+                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
+                self.assertEqual(
+                    self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
+
 
 def suite():
     test_suite = unittest.TestSuite()

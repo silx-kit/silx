@@ -58,6 +58,7 @@ class BackendBase(object):
         self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
+        self.__xAxisTimeSeries = False
         self._xAxisTimeZone = None
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
@@ -456,14 +457,14 @@ class BackendBase(object):
 
         :rtype: bool
         """
-        raise NotImplementedError()
+        return self.__xAxisTimeSeries
 
     def setXAxisTimeSeries(self, isTimeSeries):
         """Set whether the X-axis is a time series
 
         :param bool flag: True to switch to time series, False for regular axis.
         """
-        raise NotImplementedError()
+        self.__xAxisTimeSeries = bool(isTimeSeries)
 
     def setXAxisLogarithmic(self, flag):
         """Set the X axis scale between linear and log.
