@@ -1874,6 +1874,55 @@ class TestPlotItemLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
 
+class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
+    """Test [get|set]Backend to switch backend"""
+
+    def testSwitchEmptyPlot(self):
+        """Test switching an empty plot"""
+        backends = ['none', 'mpl']
+        if test_options.WITH_GL_TEST:
+            backends.insert(0, 'gl')
+
+        self.plot.resetZoom()
+        xlimits = self.plot.getXAxis().getLimits()
+        ylimits = self.plot.getYAxis().getLimits()
+        isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
+
+        for backend in backends:
+            with self.subTest():
+                self.plot.setBackend(backend)
+                self.plot.replot()
+                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
+                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
+                self.assertEqual(
+                    self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
+
+    def testSwitchBackend(self):
+        """Test switching a plot with a few items"""
+        backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
+        if test_options.WITH_GL_TEST:
+            backends['gl'] = 'BackendOpenGL'
+
+        self.plot.addImage(numpy.arange(100).reshape(10, 10))
+        self.plot.addCurve((-3, -2, -1), (1, 2, 3))
+        self.plot.resetZoom()
+        xlimits = self.plot.getXAxis().getLimits()
+        ylimits = self.plot.getYAxis().getLimits()
+        items = self.plot.getItems()
+        self.assertEqual(len(items), 2)
+
+        for backend, className in backends.items():
+            with self.subTest(backend=backend):
+                self.plot.setBackend(backend)
+                self.plot.replot()
+
+                retrievedBackend = self.plot.getBackend()
+                self.assertEqual(type(retrievedBackend).__name__, className)
+                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
+                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
+                self.assertEqual(self.plot.getItems(), items)
+
+
 def suite():
     testClasses = (TestPlotWidget,
                    TestPlotImage,
@@ -1904,6 +1953,8 @@ def suite():
         # Tests with OpenGL backend
         for testClass in testClasses:
             test_suite.addTest(parameterize(testClass, backend='gl'))
+
+    test_suite.addTest(TestPlotWidgetSwitchBackend)
 
     return test_suite
 
