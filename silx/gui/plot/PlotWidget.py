@@ -399,6 +399,8 @@ class PlotWidget(qt.QMainWindow):
         :raises ValueError: Unsupported backend descriptor
         :raises RuntimeError: Error while loading a backend
         """
+        backend = self.__getBackendClass(backend)(self, self)
+
         # First save state that is stored in the backend
         xaxis = self.getXAxis()
         xmin, xmax = xaxis.getLimits()
@@ -414,7 +416,7 @@ class PlotWidget(qt.QMainWindow):
             item._removeBackendRenderer(self._backend)
 
         # Switch backend
-        self._backend = self.__getBackendClass(backend)(self, self)
+        self._backend = backend
         widget = self._backend.getWidgetHandle()
         self.setCentralWidget(widget)
         if widget is None:
