@@ -273,7 +273,7 @@ class PlotWindow(PlotWidget):
                 self.addAction(action)
 
     def __setCentralWidget(self):
-        """Set central widget to host plot backend and colorbar"""
+        """Set central widget to host plot backend, colorbar, and bottom bar"""
         gridLayout = qt.QGridLayout()
         gridLayout.setSpacing(0)
         gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -304,10 +304,8 @@ class PlotWindow(PlotWidget):
 
     @docstring(PlotWidget)
     def setBackend(self, backend):
-        from silx.gui.utils import blockSignals
-        with blockSignals(self._colorbar):
-            super(PlotWindow, self).setBackend(backend)
-            self.__setCentralWidget()  # Recreate PlotWindow's central widget
+        super(PlotWindow, self).setBackend(backend)
+        self.__setCentralWidget()  # Recreate PlotWindow's central widget
 
     @docstring(PlotWidget)
     def setBackgroundColor(self, color):
