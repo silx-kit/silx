@@ -125,8 +125,7 @@ class TestTextFormatterWithH5py(TestCaseQt):
         return dataset
 
     def read_dataset(self, d):
-        data = h5py_read_dataset(d)
-        return self.formatter.toString(data, dtype=d.dtype)
+        return self.formatter.toString(d[()], dtype=d.dtype)
 
     def testAscii(self):
         d = self.create_dataset(data=b"abc")
