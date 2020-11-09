@@ -224,58 +224,34 @@ class PlotWindow(PlotWidget):
         self._sigAxesVisibilityChanged.connect(self._updateColorBarBackground)
         self._updateColorBarBackground()
 
-        gridLayout = qt.QGridLayout()
-        gridLayout.setSpacing(0)
-        gridLayout.setContentsMargins(0, 0, 0, 0)
-        gridLayout.addWidget(self.getWidgetHandle(), 0, 0)
-        gridLayout.addWidget(self._colorbar, 0, 1)
-        gridLayout.setRowStretch(0, 1)
-        gridLayout.setColumnStretch(0, 1)
-        centralWidget = qt.QWidget(self)
-        centralWidget.setLayout(gridLayout)
-        self.setCentralWidget(centralWidget)
+        if control:  # Create control button only if requested
+            self.controlButton = qt.QToolButton()
+            self.controlButton.setText("Options")
+            self.controlButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
+            self.controlButton.setAutoRaise(True)
+            self.controlButton.setPopupMode(qt.QToolButton.InstantPopup)
+            menu = qt.QMenu(self)
+            menu.aboutToShow.connect(self._customControlButtonMenu)
+            self.controlButton.setMenu(menu)
 
         self._positionWidget = None
+        if position:  # Add PositionInfo widget to the bottom of the plot
+            if isinstance(position, abc.Iterable):
+                # Use position as a set of converters
+                converters = position
+            else:
+                converters = None
+            self._positionWidget = tools.PositionInfo(
+                plot=self, converters=converters)
+            # Set a snapping mode that is consistent with legacy one
+            self._positionWidget.setSnappingMode(
+                tools.PositionInfo.SNAPPING_CROSSHAIR |
+                tools.PositionInfo.SNAPPING_ACTIVE_ONLY |
+                tools.PositionInfo.SNAPPING_SYMBOLS_ONLY |
+                tools.PositionInfo.SNAPPING_CURVE |
+                tools.PositionInfo.SNAPPING_SCATTER)
 
-        if control or position:
-            hbox = qt.QHBoxLayout()
-            hbox.setContentsMargins(0, 0, 0, 0)
-
-            if control:
-                self.controlButton = qt.QToolButton()
-                self.controlButton.setText("Options")
-                self.controlButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
-                self.controlButton.setAutoRaise(True)
-                self.controlButton.setPopupMode(qt.QToolButton.InstantPopup)
-                menu = qt.QMenu(self)
-                menu.aboutToShow.connect(self._customControlButtonMenu)
-                self.controlButton.setMenu(menu)
-
-                hbox.addWidget(self.controlButton)
-
-            if position:  # Add PositionInfo widget to the bottom of the plot
-                if isinstance(position, abc.Iterable):
-                    # Use position as a set of converters
-                    converters = position
-                else:
-                    converters = None
-                self._positionWidget = tools.PositionInfo(
-                    plot=self, converters=converters)
-                # Set a snapping mode that is consistent with legacy one
-                self._positionWidget.setSnappingMode(
-                    tools.PositionInfo.SNAPPING_CROSSHAIR |
-                    tools.PositionInfo.SNAPPING_ACTIVE_ONLY |
-                    tools.PositionInfo.SNAPPING_SYMBOLS_ONLY |
-                    tools.PositionInfo.SNAPPING_CURVE |
-                    tools.PositionInfo.SNAPPING_SCATTER)
-
-                hbox.addWidget(self._positionWidget)
-
-            hbox.addStretch(1)
-            bottomBar = qt.QWidget(centralWidget)
-            bottomBar.setLayout(hbox)
-
-            gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
+        self.__setCentralWidget()
 
         # Creating the toolbar also create actions for toolbuttons
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
@@ -295,6 +271,43 @@ class PlotWindow(PlotWidget):
         for toolbar in (self._interactiveModeToolBar, self._outputToolBar):
             for action in toolbar.actions():
                 self.addAction(action)
+
+    def __setCentralWidget(self):
+        """Set central widget to host plot backend and colorbar"""
+        gridLayout = qt.QGridLayout()
+        gridLayout.setSpacing(0)
+        gridLayout.setContentsMargins(0, 0, 0, 0)
+        gridLayout.addWidget(self.getWidgetHandle(), 0, 0)
+        gridLayout.addWidget(self._colorbar, 0, 1)
+        gridLayout.setRowStretch(0, 1)
+        gridLayout.setColumnStretch(0, 1)
+        centralWidget = qt.QWidget(self)
+        centralWidget.setLayout(gridLayout)
+
+        if hasattr(self, "controlButton") or self._positionWidget is not None:
+            hbox = qt.QHBoxLayout()
+            hbox.setContentsMargins(0, 0, 0, 0)
+
+            if hasattr(self, "controlButton"):
+                hbox.addWidget(self.controlButton)
+
+            if self._positionWidget is not None:
+                hbox.addWidget(self._positionWidget)
+
+            hbox.addStretch(1)
+            bottomBar = qt.QWidget(centralWidget)
+            bottomBar.setLayout(hbox)
+
+            gridLayout.addWidget(bottomBar, 1, 0, 1, -1)
+
+        self.setCentralWidget(centralWidget)
+
+    @docstring(PlotWidget)
+    def setBackend(self, backend):
+        from silx.gui.utils import blockSignals
+        with blockSignals(self._colorbar):
+            super(PlotWindow, self).setBackend(backend)
+            self.__setCentralWidget()  # Recreate PlotWindow's central widget
 
     @docstring(PlotWidget)
     def setBackgroundColor(self, color):
