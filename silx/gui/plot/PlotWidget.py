@@ -400,9 +400,9 @@ class PlotWidget(qt.QMainWindow):
         :raises RuntimeError: Error while loading a backend
         """
         # First save state that is stored in the backend
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis='left')
-        y2min, y2max = self.getGraphYLimits(axis='right')
+        xmin, xmax = self.getXAxis().getLimits()
+        ymin, ymax = self.getYAxis(axis='left').getLimits()
+        y2min, y2max = self.getYAxis(axis='right').getLimits()
         isKeepDataAspectRatio = self.isKeepDataAspectRatio()
         xtimezone = self.getXAxis().getTimeZone()
         isYAxisInverted = self.getYAxis().isInverted()
