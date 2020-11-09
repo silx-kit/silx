@@ -1934,7 +1934,8 @@ def suite():
         for testClass in testClasses:
             test_suite.addTest(parameterize(testClass, backend='gl'))
 
-    test_suite.addTest(TestPlotWidgetSwitchBackend)
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestPlotWidgetSwitchBackend))
 
     return test_suite
 
