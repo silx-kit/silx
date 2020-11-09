@@ -1877,26 +1877,6 @@ class TestPlotItemLog(PlotWidgetTestCase):
 class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
     """Test [get|set]Backend to switch backend"""
 
-    def testSwitchEmptyPlot(self):
-        """Test switching an empty plot"""
-        backends = ['none', 'mpl']
-        if test_options.WITH_GL_TEST:
-            backends.insert(0, 'gl')
-
-        self.plot.resetZoom()
-        xlimits = self.plot.getXAxis().getLimits()
-        ylimits = self.plot.getYAxis().getLimits()
-        isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
-
-        for backend in backends:
-            with self.subTest():
-                self.plot.setBackend(backend)
-                self.plot.replot()
-                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
-                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
-                self.assertEqual(
-                    self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
-
     def testSwitchBackend(self):
         """Test switching a plot with a few items"""
         backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
