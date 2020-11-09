@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -180,14 +180,15 @@ class Text2D(object):
             if textureKey not in self._sizes:
                 self._sizes[textureKey] = image.shape[1], image.shape[0]
 
-            textures[textureKey] = (
-                Texture(gl.GL_RED,
-                        data=image,
-                        minFilter=gl.GL_NEAREST,
-                        magFilter=gl.GL_NEAREST,
-                        wrap=(gl.GL_CLAMP_TO_EDGE,
-                              gl.GL_CLAMP_TO_EDGE)),
-                offset)
+            texture = Texture(
+                gl.GL_RED,
+                data=image,
+                minFilter=gl.GL_NEAREST,
+                magFilter=gl.GL_NEAREST,
+                wrap=(gl.GL_CLAMP_TO_EDGE,
+                      gl.GL_CLAMP_TO_EDGE))
+            texture.prepare()
+            textures[textureKey] = texture, offset
 
         return textures[textureKey]
 

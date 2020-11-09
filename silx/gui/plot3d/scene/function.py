@@ -469,7 +469,7 @@ class Colormap(event.Notifier, ProgramFunction):
         self._nancolor = numpy.array((1., 1., 1., 0.), dtype=numpy.float32)
 
         self._texture = None
-        self._update_texture = True
+        self._textureToDiscard = None
 
         if colormap is None:
             # default colormap
@@ -477,7 +477,7 @@ class Colormap(event.Notifier, ProgramFunction):
             colormap[:] = numpy.arange(256,
                                        dtype=numpy.uint8)[:, numpy.newaxis]
 
-        # Set to param values through properties to go through asserts
+        # Set to values through properties to perform asserts and updates
         self.colormap = colormap
         self.norm = norm
         self.gamma = gamma
@@ -500,7 +500,24 @@ class Colormap(event.Notifier, ProgramFunction):
         assert colormap.ndim == 2
         assert colormap.shape[1] in (3, 4)
         self._colormap = colormap
-        self._update_texture = True
+
+        if self._texture is not None and self._texture.name is not None:
+            self._textureToDiscard = self._texture
+
+        data = numpy.empty(
+            (16, self._colormap.shape[0], self._colormap.shape[1]),
+            dtype=self._colormap.dtype)
+        data[:] = self._colormap
+
+        format_ = gl.GL_RGBA if data.shape[-1] == 4 else gl.GL_RGB
+
+        self._texture = _glutils.Texture(
+            format_, data, format_,
+            texUnit=self._COLORMAP_TEXTURE_UNIT,
+            minFilter=gl.GL_NEAREST,
+            magFilter=gl.GL_NEAREST,
+            wrap=gl.GL_CLAMP_TO_EDGE)
+
         self.notify()
 
     @property
@@ -599,9 +616,6 @@ class Colormap(event.Notifier, ProgramFunction):
         """
         self.prepareGL2(context)  # TODO see how to handle
 
-        if self._texture is None:  # No colormap
-            return
-
         self._texture.bind()
 
         gl.glUniform1i(program.uniforms['cmap_texture'],
@@ -633,21 +647,8 @@ class Colormap(event.Notifier, ProgramFunction):
         gl.glUniform4f(program.uniforms['nancolor'], *self._nancolor)
 
     def prepareGL2(self, context):
-        if self._texture is None or self._update_texture:
-            if self._texture is not None:
-                self._texture.discard()
+        if self._textureToDiscard is not None:
+            self._textureToDiscard.discard()
+            self._textureToDiscard = None
 
-            colormap = numpy.empty(
-                (16, self._colormap.shape[0], self._colormap.shape[1]),
-                dtype=self._colormap.dtype)
-            colormap[:] = self._colormap
-
-            format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
-
-            self._texture = _glutils.Texture(
-                format_, colormap, format_,
-                texUnit=self._COLORMAP_TEXTURE_UNIT,
-                minFilter=gl.GL_NEAREST,
-                magFilter=gl.GL_NEAREST,
-                wrap=gl.GL_CLAMP_TO_EDGE)
-            self._update_texture = False
+        self._texture.prepare()

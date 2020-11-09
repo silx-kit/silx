@@ -49,7 +49,7 @@ from . import event
 from . import core
 from . import transform
 from . import utils
-from .function import Colormap, Fog
+from .function import Colormap
 
 _logger = logging.getLogger(__name__)
 
@@ -367,7 +367,7 @@ class Geometry(core.Elem):
                     min_ = numpy.nanmin(attribute, axis=0)
                     max_ = numpy.nanmax(attribute, axis=0)
                 else:
-                     min_, max_ = numpy.zeros((2, attribute.shape[1]), dtype=numpy.float32)
+                    min_, max_ = numpy.zeros((2, attribute.shape[1]), dtype=numpy.float32)
 
                 toCopy = min(len(min_), 3-index)
                 if toCopy != len(min_):
