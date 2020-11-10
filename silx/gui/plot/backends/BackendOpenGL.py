@@ -473,6 +473,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                 else:
                     points = numpy.array([
                         self._plotFrame.dataToPixel(x, y, axis='left')
+                        if numpy.all(numpy.isfinite((x, y))) else (numpy.nan, numpy.nan)
                         for (x, y) in zip(item['x'], item['y'])])
 
                 # Draw the fill
