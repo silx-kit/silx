@@ -519,10 +519,26 @@ def distancesFromArrays(xData, yData):
     :param numpy.ndarray yData: Y coordinate of points
     :rtype: numpy.ndarray
     """
-    deltas = numpy.dstack((
-        numpy.ediff1d(xData, to_begin=numpy.float32(0.)),
-        numpy.ediff1d(yData, to_begin=numpy.float32(0.))))[0]
-    return numpy.cumsum(numpy.sqrt(numpy.sum(deltas ** 2, axis=1)))
+    # Split array into sub-shapes at not finite points
+    splits = numpy.nonzero(numpy.logical_not(numpy.logical_and(
+        numpy.isfinite(xData), numpy.isfinite(yData))))[0]
+    splits = numpy.concatenate(([-1], splits, [len(xData) - 1]))
+
+    # Compute distance independently for each sub-shapes,
+    # putting not finite points as last points of sub-shapes
+    distances = []
+    for begin, end in zip(splits[:-1] + 1, splits[1:] + 1):
+        if begin == end:  # Empty shape
+            continue
+        elif end - begin == 1: # Single element
+            distances.append([0])
+        else:
+            deltas = numpy.dstack((
+                numpy.ediff1d(xData[begin:end], to_begin=numpy.float32(0.)),
+                numpy.ediff1d(yData[begin:end], to_begin=numpy.float32(0.))))[0]
+            distances.append(
+                numpy.cumsum(numpy.sqrt(numpy.sum(deltas ** 2, axis=1))))
+    return numpy.concatenate(distances)
 
 
 # points ######################################################################
