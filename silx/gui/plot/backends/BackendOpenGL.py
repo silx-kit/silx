@@ -458,8 +458,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         0.5 * sum(self._plotFrame.dataRanges[0]),
                         item['y'],
                         axis='left')
-                    points = numpy.array(((0., yPixel), (width, yPixel)),
-                                         dtype=numpy.float32)
+                    subShapes = [numpy.array(((0., yPixel), (width, yPixel)),
+                                             dtype=numpy.float32)]
 
                 elif item['shape'] == 'vline':
                     xPixel, _ = self._plotFrame.dataToPixel(
@@ -467,46 +467,54 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         0.5 * sum(self._plotFrame.dataRanges[1]),
                         axis='left')
                     height = self._plotFrame.size[1]
-                    points = numpy.array(((xPixel, 0), (xPixel, height)),
-                                         dtype=numpy.float32)
+                    subShapes = [numpy.array(((xPixel, 0), (xPixel, height)),
+                                             dtype=numpy.float32)]
 
                 else:
-                    points = numpy.array([
-                        self._plotFrame.dataToPixel(x, y, axis='left')
-                        for (x, y) in zip(item['x'], item['y'])])
+                    # Split sub-shapes at not finite values
+                    splits = numpy.nonzero(numpy.logical_not(numpy.logical_and(
+                        numpy.isfinite(item['x']), numpy.isfinite(item['y']))))[0]
+                    splits = numpy.concatenate(([-1], splits, [len(item['x'])]))
+                    subShapes = []
+                    for begin, end in zip(splits[:-1] + 1, splits[1:]):
+                        if end > begin:
+                            subShapes.append(numpy.array([
+                                self._plotFrame.dataToPixel(x, y, axis='left')
+                                for (x, y) in zip(item['x'][begin:end], item['y'][begin:end])]))
 
-                # Draw the fill
-                if (item['fill'] is not None and
-                        item['shape'] not in ('hline', 'vline')):
-                    self._progBase.use()
-                    gl.glUniformMatrix4fv(
-                        self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                        self.matScreenProj.astype(numpy.float32))
-                    gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-                    gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
+                for points in subShapes:  # Draw each sub-shape
+                    # Draw the fill
+                    if (item['fill'] is not None and
+                            item['shape'] not in ('hline', 'vline')):
+                        self._progBase.use()
+                        gl.glUniformMatrix4fv(
+                            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
+                            self.matScreenProj.astype(numpy.float32))
+                        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
+                        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
 
-                    shape2D = glutils.FilledShape2D(
-                        points, style=item['fill'], color=item['color'])
-                    shape2D.render(
-                        posAttrib=self._progBase.attributes['position'],
-                        colorUnif=self._progBase.uniforms['color'],
-                        hatchStepUnif=self._progBase.uniforms['hatchStep'])
+                        shape2D = glutils.FilledShape2D(
+                            points, style=item['fill'], color=item['color'])
+                        shape2D.render(
+                            posAttrib=self._progBase.attributes['position'],
+                            colorUnif=self._progBase.uniforms['color'],
+                            hatchStepUnif=self._progBase.uniforms['hatchStep'])
 
-                # Draw the stroke
-                if item['linestyle'] not in ('', ' ', None):
-                    if item['shape'] != 'polylines':
-                        # close the polyline
-                        points = numpy.append(points,
-                                              numpy.atleast_2d(points[0]), axis=0)
+                    # Draw the stroke
+                    if item['linestyle'] not in ('', ' ', None):
+                        if item['shape'] != 'polylines':
+                            # close the polyline
+                            points = numpy.append(points,
+                                                  numpy.atleast_2d(points[0]), axis=0)
 
-                    lines = glutils.GLLines2D(
-                        points[:, 0], points[:, 1],
-                        style=item['linestyle'],
-                        color=item['color'],
-                        dash2ndColor=item['linebgcolor'],
-                        width=item['linewidth'])
-                    context.matrix = self.matScreenProj
-                    lines.render(context)
+                        lines = glutils.GLLines2D(
+                            points[:, 0], points[:, 1],
+                            style=item['linestyle'],
+                            color=item['color'],
+                            dash2ndColor=item['linebgcolor'],
+                            width=item['linewidth'])
+                        context.matrix = self.matScreenProj
+                        lines.render(context)
 
             elif isinstance(item, _MarkerItem):
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
