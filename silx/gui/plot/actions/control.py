@@ -647,14 +647,15 @@ class OpenGLAction(PlotAction):
         # Uses two images for checked/unchecked states
         self._states = {
             "opengl": (icons.getQIcon('backend-opengl'),
-                       "OpenGL rendering (fast)"),
+                       "OpenGL rendering (fast)\nClick to disable OpenGL"),
             "matplotlib": (icons.getQIcon('backend-opengl'),
-                           "Matplotlib rendering (safe)"),
+                           "Matplotlib rendering (safe)\nClick to enable OpenGL"),
             "unknown": (icons.getQIcon('backend-opengl'),
                         "Custom rendering")
         }
 
         name = self._getBackendName(plot)
+        self.__state = name
         icon, tooltip = self._states[name]
         super(OpenGLAction, self).__init__(
             plot,
@@ -667,6 +668,7 @@ class OpenGLAction(PlotAction):
 
     def _backendUpdated(self):
         name = self._getBackendName(self.plot)
+        self.__state = name
         icon, tooltip = self._states[name]
         self.setIcon(icon)
         self.setToolTip(tooltip)
@@ -685,6 +687,12 @@ class OpenGLAction(PlotAction):
     def _actionTriggered(self, checked=False):
         plot = self.plot
         name = self._getBackendName(self.plot)
+        if self.__state != name:
+            # THere is no event to know the backend was updated
+            # So here we check if there is a mismatch between the displayed state
+            # and the real state of the widget
+            self._backendUpdated()
+            return
         if name is not "opengl":
             from silx.gui.utils import glutils
             result = glutils.isOpenGLAvailable()
