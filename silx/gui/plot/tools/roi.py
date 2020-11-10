@@ -400,25 +400,36 @@ class RegionOfInterestManager(qt.QObject):
 
     def _plotSignals(self, event):
         """Handle mouse interaction for ROI addition"""
-        if event['event'] in ('markerClicked', 'markerMoving'):
+        clicked = False
+        roi = None
+        if event["event"] in ("markerClicked", "markerMoving"):
             plot = self.parent()
-            legend = event['label']
+            legend = event["label"]
             marker = plot._getMarker(legend=legend)
             roi = self.__getRoiFromMarker(marker)
-            if roi is not None and roi.isSelectable():
-                self.setCurrentRoi(roi)
-            else:
-                self.setCurrentRoi(None)
-        elif event['event'] == 'mouseClicked' and event['button'] == 'left':
+        elif event["event"] == "mouseClicked" and event["button"] == "left":
             # Marker click is only for dnd
             # This also can click on a marker
+            clicked = event["event"] == "mouseClicked"
             plot = self.parent()
-            marker = plot._getMarkerAt(event['xpixel'], event['ypixel'])
+            marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
-            if roi is not None and roi.isSelectable():
-                self.setCurrentRoi(roi)
+        else:
+            return
+
+        if roi not in self._rois:
+            # The ROI is not own by this manager
+            return
+
+        if roi is not None and roi.isSelectable():
+            currentRoi = self.getCurrentRoi()
+            if currentRoi is roi:
+                if clicked:
+                    self.__updateMode(roi)
             else:
-                self.setCurrentRoi(None)
+                self.setCurrentRoi(roi)
+        else:
+            self.setCurrentRoi(None)
 
     def __updateMode(self, roi):
         if hasattr(roi, "availableModes"):
