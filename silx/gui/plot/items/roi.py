@@ -2061,6 +2061,52 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
                                radius, self.weight,
                                self.startAngle, self.endAngle, self._closed)
 
+        def withStartAngle(self, startAngle):
+            vector = numpy.array([numpy.cos(startAngle), numpy.sin(startAngle)])
+            startPoint = self.center + vector * self.radius
+
+            # Never add more than 180 to maintain coherency
+            deltaAngle = startAngle - self.startAngle
+            if deltaAngle > numpy.pi:
+                deltaAngle -= numpy.pi * 2
+            elif deltaAngle < -numpy.pi:
+                deltaAngle += numpy.pi * 2
+
+            startAngle = self.startAngle + deltaAngle
+            return self.create(
+                self.center,
+                startPoint,
+                self.endPoint,
+                self.radius,
+                self.weight,
+                startAngle,
+                self.endAngle,
+                self._closed,
+            )
+
+        def withEndAngle(self, endAngle):
+            vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
+            endPoint = self.center + vector * self.radius
+
+            # Never add more than 180 to maintain coherency
+            deltaAngle = endAngle - self.endAngle
+            if deltaAngle > numpy.pi:
+                deltaAngle -= numpy.pi * 2
+            elif deltaAngle < -numpy.pi:
+                deltaAngle += numpy.pi * 2
+
+            endAngle = self.endAngle + deltaAngle
+            return self.create(
+                self.center,
+                self.startPoint,
+                endPoint,
+                self.radius,
+                self.weight,
+                self.startAngle,
+                endAngle,
+                self._closed,
+            )
+
         def translated(self, x, y):
             delta = numpy.array([x, y])
             center = None if self.center is None else self.center + delta
