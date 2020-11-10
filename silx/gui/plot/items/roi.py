@@ -1725,7 +1725,7 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         orientation = self.getOrientation()
         if self._radius[1] > self._radius[0]:
             # _handleAxis1 is the major axis
-            orientation -= numpy.pi/2
+            orientation -= numpy.pi / 2
 
         point0 = numpy.array([center[0] + self._radius[0] * numpy.cos(orientation),
                               center[1] + self._radius[0] * numpy.sin(orientation)])
@@ -1759,13 +1759,13 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             if handle is self._handleAxis1:
                 if self._radius[0] > distance:
                     # _handleAxis1 is not the major axis, rotate -90 degrees
-                    orientation -= numpy.pi/2
+                    orientation -= numpy.pi / 2
                 radius = self._radius[0], distance
 
             else:  # _handleAxis0
                 if self._radius[1] > distance:
                     # _handleAxis0 is not the major axis, rotate +90 degrees
-                    orientation += numpy.pi/2
+                    orientation += numpy.pi / 2
                 radius = distance, self._radius[1]
 
             self.setGeometry(radius=radius, orientation=orientation)
@@ -2108,7 +2108,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
-        self._geometry  = self._Geometry.createEmpty()
+        self._geometry = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
 
         self._handleStart = self.addHandle()
@@ -2130,6 +2130,38 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         shape.setLineWidth(self.getLineWidth())
         self.__shape = shape
         self.addItem(shape)
+
+        self.__modeId = "curvature"
+
+    def availableModes(self):
+        return ["curvature", "polar", "move"]
+
+    def setMode(self, modeId):
+        self.__modeId = modeId
+        if modeId == "curvature":
+            self._handleStart.setSymbol("o")
+            self._handleMid.setSymbol("o")
+            self._handleEnd.setSymbol("o")
+            self._handleWeight.setSymbol("s")
+            self._handleMove.setSymbol("+")
+        elif modeId == "polar":
+            self._handleStart.setSymbol("d")
+            self._handleMid.setSymbol("d")
+            self._handleEnd.setSymbol("d")
+            self._handleWeight.setSymbol("s")
+            self._handleMove.setSymbol("+")
+        elif modeId == "move":
+            self._handleStart.setSymbol("")
+            self._handleMid.setSymbol("+")
+            self._handleEnd.setSymbol("")
+            self._handleWeight.setSymbol("")
+            self._handleMove.setSymbol("+")
+        else:
+            assert False
+        self._updateHandles()
+
+    def getMode(self):
+        return self.__modeId
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -2160,7 +2192,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         weightCoef = 0.20
         mid = center - normal * defaultCurvature
         distance = numpy.linalg.norm(point0 - point1)
-        weight =  distance * weightCoef
+        weight = distance * weightCoef
 
         geometry = self._createGeometryFromControlPoints(point0, mid, point1, weight)
         self._geometry = geometry
@@ -2185,9 +2217,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             midPos = geometry.center + geometry.center - start
         else:
             if geometry.center is None:
-                midPos = geometry.startPoint * 0.66 + geometry.endPoint * 0.34
+                midPos = geometry.startPoint * 0.5 + geometry.endPoint * 0.5
             else:
-                midAngle = geometry.startAngle * 0.66 + geometry.endAngle * 0.34
+                midAngle = geometry.startAngle * 0.5 + geometry.endAngle * 0.5
                 vector = numpy.array([numpy.cos(midAngle), numpy.sin(midAngle)])
                 midPos = geometry.center + geometry.radius * vector
 
@@ -2265,25 +2297,54 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self._updateShape()
 
     def handleDragUpdated(self, handle, origin, previous, current):
+        modeId = self.__modeId
         if handle is self._handleStart:
-            mid = numpy.array(self._handleMid.getPosition())
-            end = numpy.array(self._handleEnd.getPosition())
-            self._updateCurvature(current, mid, end,
-                                  checkClosed=True, updateCurveHandles=False)
+            if modeId == "curvature":
+                mid = numpy.array(self._handleMid.getPosition())
+                end = numpy.array(self._handleEnd.getPosition())
+                self._updateCurvature(
+                    current, mid, end, checkClosed=True, updateCurveHandles=False
+                )
+            elif modeId == "polar":
+                v = current - self._geometry.center
+                startAngle = numpy.angle(complex(v[0], v[1]))
+                geometry = self._geometry.withStartAngle(startAngle)
+                closed = self._isCloseInPixel(geometry.startPoint, geometry.endPoint)
+                geometry._closed = closed
+                self._geometry = geometry
+                self._updateHandles()
         elif handle is self._handleMid:
-            if self._geometry.isClosed():
+            if modeId == "curvature":
+                if self._geometry.isClosed():
+                    radius = numpy.linalg.norm(self._geometry.center - current)
+                    self._geometry = self._geometry.withRadius(radius)
+                    self._updateHandles()
+                else:
+                    start = numpy.array(self._handleStart.getPosition())
+                    end = numpy.array(self._handleEnd.getPosition())
+                    self._updateCurvature(start, current, end, updateCurveHandles=False)
+            elif modeId == "polar":
                 radius = numpy.linalg.norm(self._geometry.center - current)
                 self._geometry = self._geometry.withRadius(radius)
                 self._updateHandles()
-            else:
-                start = numpy.array(self._handleStart.getPosition())
-                end = numpy.array(self._handleEnd.getPosition())
-                self._updateCurvature(start, current, end, updateCurveHandles=False)
+            elif modeId == "move":
+                delta = current - previous
+                self.translate(*delta)
         elif handle is self._handleEnd:
-            start = numpy.array(self._handleStart.getPosition())
-            mid = numpy.array(self._handleMid.getPosition())
-            self._updateCurvature(start, mid, current,
-                                  checkClosed=True, updateCurveHandles=False)
+            if modeId == "curvature":
+                start = numpy.array(self._handleStart.getPosition())
+                mid = numpy.array(self._handleMid.getPosition())
+                self._updateCurvature(
+                    start, mid, current, checkClosed=True, updateCurveHandles=False
+                )
+            elif modeId == "polar":
+                v = current - self._geometry.center
+                endAngle = numpy.angle(complex(v[0], v[1]))
+                geometry = self._geometry.withEndAngle(endAngle)
+                closed = self._isCloseInPixel(geometry.startPoint, geometry.endPoint)
+                geometry._closed = closed
+                self._geometry = geometry
+                self._updateHandles()
         elif handle is self._handleWeight:
             weight = self._getWeightFromHandle(current)
             self._geometry = self._geometry.withWeight(weight)
@@ -2321,16 +2382,29 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 
     def handleDragFinished(self, handle, origin, current):
         if handle in [self._handleStart, self._handleMid, self._handleEnd]:
-            if self._normalizeGeometry():
-                self._updateHandles()
-            else:
-                self._updateMidHandle()
+            if self.__modeId == "curvature":
+                if self._normalizeGeometry():
+                    self._updateHandles()
+                else:
+                    self._updateMidHandle()
+
         if self._geometry.isClosed():
-            self._handleStart.setSymbol("x")
-            self._handleEnd.setSymbol("x")
+            if self.__modeId == "move":
+                self._handleStart.setSymbol("")
+                self._handleEnd.setSymbol("")
+            else:
+                self._handleStart.setSymbol("x")
+                self._handleEnd.setSymbol("x")
         else:
-            self._handleStart.setSymbol("o")
-            self._handleEnd.setSymbol("o")
+            if self.__modeId == "curvature":
+                self._handleStart.setSymbol("o")
+                self._handleEnd.setSymbol("o")
+            elif self.__modeId == "polar":
+                self._handleStart.setSymbol("d")
+                self._handleEnd.setSymbol("d")
+            if self.__modeId == "move":
+                self._handleStart.setSymbol("")
+                self._handleEnd.setSymbol("")
 
     def _createGeometryFromControlPoints(self, start, mid, end, weight, closed=None):
         """Returns the geometry of the object"""
@@ -2341,8 +2415,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             v = start - center
             startAngle = numpy.angle(complex(v[0], v[1]))
             endAngle = startAngle + numpy.pi * 2.0
-            return self._Geometry.createCircle(center, start, end, radius,
-                                               weight, startAngle, endAngle)
+            return self._Geometry.createCircle(
+                center, start, end, radius, weight, startAngle, endAngle
+            )
 
         elif numpy.linalg.norm(numpy.cross(mid - start, end - start)) < 1e-5:
             # Degenerated arc, it's a rectangle
@@ -2374,7 +2449,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         if kind == "rect":
             # It is not an arc
             # but we can display it as an intermediate shape
-            normal = (geometry.endPoint - geometry.startPoint)
+            normal = geometry.endPoint - geometry.startPoint
             normal = numpy.array((normal[1], -normal[0]))
             distance = numpy.linalg.norm(normal)
             if distance != 0:
@@ -2432,7 +2507,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             if angles[-1] != geometry.endAngle:
                 angles = numpy.append(angles, geometry.endAngle)
 
-            if kind ==  "camembert":
+            if kind == "camembert":
                 # It's a part of camembert
                 points = []
                 points.append(geometry.center)
@@ -2472,13 +2547,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 
         if geometry.center is None:
             movePos = geometry.startPoint * 0.34 + geometry.endPoint * 0.66
-        elif (geometry.isClosed()
-              or abs(geometry.endAngle - geometry.startAngle) > numpy.pi * 0.7):
-            movePos = geometry.center
         else:
-            moveAngle = geometry.startAngle * 0.34 + geometry.endAngle * 0.66
-            vector = numpy.array([numpy.cos(moveAngle), numpy.sin(moveAngle)])
-            movePos = geometry.center + geometry.radius * vector
+            movePos = geometry.center
 
         with utils.blockSignals(self._handleMove):
             self._handleMove.setPosition(*movePos)
@@ -2571,8 +2641,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             If `startAngle` is smaller than `endAngle` the rotation is clockwise,
             else the rotation is anticlockwise.
         """
-        assert(innerRadius <= outerRadius)
-        assert(numpy.abs(startAngle - endAngle) <= 2 * numpy.pi)
+        assert innerRadius <= outerRadius
+        assert numpy.abs(startAngle - endAngle) <= 2 * numpy.pi
         center = numpy.array(center)
         radius = (innerRadius + outerRadius) * 0.5
         weight = outerRadius - innerRadius
@@ -2607,7 +2677,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
             is_in_angle = start_angle <= angle <= end_angle
         else:
             if end_angle < -numpy.pi and angle > 0:
-                angle = angle - (numpy.pi *2.0)
+                angle = angle - (numpy.pi * 2.0)
             is_in_angle = end_angle <= angle <= start_angle
         return is_in_angle
 
