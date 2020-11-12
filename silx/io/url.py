@@ -178,8 +178,15 @@ class DataUrl(object):
         def str_to_slice(string):
             if string == "...":
                 return Ellipsis
-            elif string == ":":
-                return slice(None)
+            elif ':' in string:
+                if string == ":":
+                    return slice(None)
+                else:
+                    sss = string.split(':')
+                    start = int(sss[0])
+                    stop = int(sss[1]) if len(sss) > 1 else None
+                    step = int(sss[2]) if len(sss) > 2 else None
+                    return slice(start, stop, step)
             else:
                 return int(string)
 
