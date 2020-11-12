@@ -157,6 +157,11 @@ class TestDataUrl(unittest.TestCase):
         expected = [True, True, None, "/a.h5", "/b", (slice(2, 5),)]
         self.assertUrl(url, expected)
 
+    def test_slice3(self):
+        url = DataUrl("/a.h5?path=/b&slice=::2")
+        expected = [True, True, None, "/a.h5", "/b", (slice(None, None, 2),)]
+        self.assertUrl(url, expected)
+
     def test_slice_ellipsis(self):
         url = DataUrl("/a.h5?path=/b&slice=...")
         expected = [True, True, None, "/a.h5", "/b", (Ellipsis, )]
