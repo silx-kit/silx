@@ -632,3 +632,76 @@ class ClosePolygonInteractionAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot._eventHandler.validate()
+
+
+class OpenGLAction(PlotAction):
+    """QAction controlling rendering of a :class:`.PlotWidget`.
+
+    For now it can enable or not the OpenGL backend.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        # Uses two images for checked/unchecked states
+        self._states = {
+            "opengl": (icons.getQIcon('backend-opengl'),
+                       "OpenGL rendering (fast)\nClick to disable OpenGL"),
+            "matplotlib": (icons.getQIcon('backend-opengl'),
+                           "Matplotlib rendering (safe)\nClick to enable OpenGL"),
+            "unknown": (icons.getQIcon('backend-opengl'),
+                        "Custom rendering")
+        }
+
+        name = self._getBackendName(plot)
+        self.__state = name
+        icon, tooltip = self._states[name]
+        super(OpenGLAction, self).__init__(
+            plot,
+            icon=icon,
+            text='Enable/disable OpenGL rendering',
+            tooltip=tooltip,
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent)
+
+    def _backendUpdated(self):
+        name = self._getBackendName(self.plot)
+        self.__state = name
+        icon, tooltip = self._states[name]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
+        self.setChecked(name == "opengl")
+
+    def _getBackendName(self, plot):
+        backend = plot.getBackend()
+        name = type(backend).__name__.lower()
+        if "opengl" in name:
+            return "opengl"
+        elif "matplotlib" in name:
+            return "matplotlib"
+        else:
+            return "unknown"
+
+    def _actionTriggered(self, checked=False):
+        plot = self.plot
+        name = self._getBackendName(self.plot)
+        if self.__state != name:
+            # THere is no event to know the backend was updated
+            # So here we check if there is a mismatch between the displayed state
+            # and the real state of the widget
+            self._backendUpdated()
+            return
+        if name is not "opengl":
+            from silx.gui.utils import glutils
+            result = glutils.isOpenGLAvailable()
+            if not result:
+                qt.QMessageBox.critical(plot, "OpenGL rendering not available", result.error)
+                # Uncheck if needed
+                self._backendUpdated()
+                return
+            plot.setBackend("opengl")
+        else:
+            plot.setBackend("matplotlib")
+        self._backendUpdated()
