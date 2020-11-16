@@ -1070,7 +1070,7 @@ class Colormap(qt.QObject):
         vmin, vmax = self.getColormapRange(reference)
 
         if hasattr(data, "getColormappedData"):  # Use item's data
-            data = data.getColormappedData()
+            data = data.getColormappedData(copy=False)
 
         return _colormap.cmap(
             data,
