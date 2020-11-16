@@ -636,6 +636,16 @@ class PlotWidget(qt.QMainWindow):
             self._dataBackgroundColor = color
             self._backgroundColorsUpdated()
 
+    dataBackgroundColor = qt.Property(
+        qt.QColor, getDataBackgroundColor, setDataBackgroundColor
+    )
+
+    backgroundColor = qt.Property(qt.QColor, getBackgroundColor, setBackgroundColor)
+
+    foregroundColor = qt.Property(qt.QColor, getForegroundColor, setForegroundColor)
+
+    gridColor = qt.Property(qt.QColor, getGridColor, setGridColor)
+
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
             self._backend.postRedisplay()
