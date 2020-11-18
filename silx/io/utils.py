@@ -1010,24 +1010,12 @@ class H5pyDatasetReadWrapper:
         :param h5py.Dataset dset:
         :param bool decode_ascii:
         """
+        string_info = h5py.h5t.check_string_dtype(dset.dtype)
         try:
-            string_info = h5py.h5t.check_string_dtype(dset.dtype)
+            encoding = string_info.encoding
         except AttributeError:
-            # h5py < 2.10
-            try:
-                idx = dset.id.get_type().get_cset()
-            except AttributeError:
-                # Not an H5T_STRING
-                encoding = None
-            else:
-                encoding = ["ascii", "utf-8"][idx]
-        else:
-            # h5py >= 2.10
-            try:
-                encoding = string_info.encoding
-            except AttributeError:
-                # Not an H5T_STRING
-                encoding = None
+            # Not an H5T_STRING
+            encoding = None
         if encoding == "ascii" and not decode_ascii:
             encoding = None
         if encoding != "ascii" and self.H5PY_AUTODECODE_NONASCII:
@@ -1070,25 +1058,12 @@ class H5pyAttributesReadWrapper:
         value = self._attrs[args]
 
         # Get the string encoding (if a string)
+        dtype = self._attrs.get_id(args).dtype
         try:
-            dtype = self._attrs.get_id(args).dtype
+            encoding = h5py.h5t.check_string_dtype(dtype).encoding
         except AttributeError:
-            # h5py < 2.10
-            attr_id = h5py.h5a.open(self._attrs._id, self._attrs._e(args))
-            try:
-                idx = attr_id.get_type().get_cset()
-            except AttributeError:
-                # Not an H5T_STRING
-                return value
-            else:
-                encoding = ["ascii", "utf-8"][idx]
-        else:
-            # h5py >= 2.10
-            try:
-                encoding = h5py.h5t.check_string_dtype(dtype).encoding
-            except AttributeError:
-                # Not an H5T_STRING
-                return value
+            # Not an H5T_STRING
+            return value
 
         if self.H5PY_AUTODECODE:
             if encoding == "ascii" and not self._decode_ascii:
