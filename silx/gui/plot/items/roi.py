@@ -2180,9 +2180,20 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self.__modeId = "curvature"
 
     def availableModes(self):
+        """Returns the list of available interaction modes
+
+        :rtype: List[str]
+        """
         return ["curvature", "polar", "move"]
 
     def setMode(self, modeId):
+        """Set the interaction mode.
+
+        :param str modeId:
+            - `curvature` mode: 3-points to define a circle
+            - `polar` mode, which can move start and stop angles + the radius
+            - `move` mode, which only provides handle to move the shape (in case the center is not visible)
+        """
         self.__modeId = modeId
         if modeId == "curvature":
             self._handleStart.setSymbol("o")
@@ -2207,6 +2218,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self._updateHandles()
 
     def getMode(self):
+        """Returns the interaction mode.
+
+        See :meth:`availableModes`.
+
+        :rtype: str
+        """
         return self.__modeId
 
     def _updated(self, event=None, checkVisibility=True):
