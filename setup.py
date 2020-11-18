@@ -844,7 +844,7 @@ def get_project_configuration(dry_run):
         # for the script launcher and pkg_resources
         "setuptools",
         # for io support
-        "h5py",
+        "h5py>=2.10",
         "fabio>=0.9",
         # Python 2/3 compatibility
         "six",
