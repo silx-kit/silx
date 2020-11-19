@@ -154,7 +154,7 @@ class OpenclProcessing(object):
             dummy_texture = self.allocate_texture((16, 16))
             textures_available = True
             del dummy_texture
-        except pyopencl.RuntimeError, pyopencl.LogicError:
+        except (pyopencl.RuntimeError, pyopencl.LogicError):
             textures_available = False
         return textures_available
 
