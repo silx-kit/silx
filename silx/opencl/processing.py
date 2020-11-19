@@ -152,7 +152,7 @@ class OpenclProcessing(object):
     def check_textures_availability(self):
         try:
             dummy_texture = self.allocate_texture((16, 16))
-            # Need to further access some attributes (pocl + Nvidia Fermi hardware)
+            # Need to further access some attributes (pocl)
             dummy_height = dummy_texture.height
             textures_available = True
             del dummy_texture, dummy_height
