@@ -242,15 +242,7 @@ class Backprojection(OpenclProcessing):
         """
         Allocate the texture for the sinogram.
         """
-        self.d_sino_tex = pyopencl.Image(
-            self.ctx,
-            mf.READ_ONLY | mf.USE_HOST_PTR,
-            pyopencl.ImageFormat(
-                pyopencl.channel_order.INTENSITY,
-                pyopencl.channel_type.FLOAT
-            ),
-            hostbuf=np.zeros(self.shape[::-1], dtype=np.float32)
-        )
+        self.d_sino_tex = self.allocate_texture(self.shape)
 
     def _init_filter(self, filter_name):
         """Filter initialization
