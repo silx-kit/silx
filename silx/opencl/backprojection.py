@@ -164,9 +164,7 @@ class Backprojection(OpenclProcessing):
     def _allocate_memory(self):
         # Host memory
         self.slice = np.zeros(self.dimrec_shape, dtype=np.float32)
-        self.is_cpu = False
-        if self.device.type == "CPU":
-            self.is_cpu = True
+        self._use_textures = self.check_textures_availability()
 
         # Device memory
         self.buffers = [
@@ -180,7 +178,7 @@ class Backprojection(OpenclProcessing):
         self.d_sino = self.cl_mem["d_sino"]  # shorthand
 
         # Texture memory (if relevant)
-        if not(self.is_cpu):
+        if not(self._use_textures):
             self._allocate_textures()
 
         # Local memory
@@ -209,7 +207,7 @@ class Backprojection(OpenclProcessing):
             _idivup(int(self.dimrec_shape[0]), 32) * self.wg[1]
         )
         # Prepare arguments for the kernel call
-        if self.is_cpu:
+        if self._use_textures:
             d_sino_ref = self.d_sino.data
         else:
             d_sino_ref = self.d_sino_tex
@@ -281,7 +279,7 @@ class Backprojection(OpenclProcessing):
         sino2 = sino
         if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
-        if self.is_cpu:
+        if self._use_textures:
             ev = pyopencl.enqueue_copy(
                                         self.queue,
                                         self.d_sino.data,
@@ -301,7 +299,7 @@ class Backprojection(OpenclProcessing):
         return EventDescription(what, ev)
 
     def _transfer_device_to_texture(self, d_sino):
-        if self.is_cpu:
+        if self._use_textures:
             if id(self.d_sino) == id(d_sino):
                 return
             ev = pyopencl.enqueue_copy(
@@ -335,7 +333,7 @@ class Backprojection(OpenclProcessing):
         with self.sem:
             events.append(self._transfer_to_texture(sino))
             # Call the backprojection kernel
-            if self.is_cpu:
+            if self._use_textures:
                 kernel_to_call = self.kernels.backproj_cpu_kernel
             else:
                 kernel_to_call = self.kernels.backproj_kernel
