@@ -158,6 +158,14 @@ class OpenclProcessing(object):
             del dummy_texture, dummy_height
         except (pyopencl.RuntimeError, pyopencl.LogicError):
             textures_available = False
+        # Nvidia Fermi GPUs (compute capability 2.X) do not support opencl read_imagef
+        # There is no way to detect this until a kernel is compiled
+        try:
+            cc = self.ctx.devices[0].compute_capability_major_nv
+            textures_available &= (cc >= 3)
+        except (pyopencl.LogicError, AttributeError): # probably not a Nvidia GPU
+            pass
+        #
         return textures_available
 
     def __del__(self):
