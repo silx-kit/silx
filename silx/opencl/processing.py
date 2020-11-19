@@ -149,6 +149,15 @@ class OpenclProcessing(object):
         self.program = None
         self.kernels = None
 
+    def check_textures_availability(self):
+        try:
+            dummy_texture = self.allocate_texture((16, 16))
+            textures_available = True
+            del dummy_texture
+        except pyopencl._cl.RuntimeError:
+            textures_available = False
+        return textures_available
+
     def __del__(self):
         """Destructor: release all buffers and programs
         """
