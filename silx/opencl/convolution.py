@@ -91,9 +91,8 @@ class Convolution(OpenclProcessing):
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
-        self.is_cpu = (self.device.type == "CPU")
         self.use_textures = not(self.extra_options["dont_use_textures"])
-        self.use_textures *= not(self.is_cpu)
+        self.use_textures &= self.check_textures_availability()
         # Nvidia Fermi GPUs (compute capability 2.X) do not support opencl read_imagef
         try:
             cc = self.ctx.devices[0].compute_capability_major_nv
