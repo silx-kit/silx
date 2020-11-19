@@ -96,7 +96,7 @@ class TestFBP(unittest.TestCase):
         # Therefore, we cannot expect results to be the "same" (up to float32
         # numerical error)
         self.tol = 5e-2
-        if self.fbp.is_cpu:
+        if not(self.fbp._use_textures):
             # Precision is less when using CPU
             self.tol *= 2
 
