@@ -180,7 +180,14 @@ class Projection(OpenclProcessing):
         # Shorthands
         self._d_sino = self.cl_mem["_d_sino"]
 
-        OpenclProcessing.compile_kernels(self, self.kernel_files)
+        compile_options = None
+        if not(self._use_textures):
+            compile_options = "-DDONT_USE_TEXTURES"
+        OpenclProcessing.compile_kernels(
+            self,
+            self.kernel_files,
+            compile_options=compile_options
+        )
         # check that workgroup can actually be (16, 16)
         self.compiletime_workgroup_size = self.kernels.max_workgroup_size("forward_kernel_cpu")
 
@@ -192,7 +199,7 @@ class Projection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
     def allocate_slice(self):
-        ary = parray.zeros(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)
+        ary = parray.empty(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)
         ary.fill(0)
         self.add_to_cl_mem({"d_slice": ary})
 

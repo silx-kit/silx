@@ -197,7 +197,14 @@ class Backprojection(OpenclProcessing):
             self.cl_mem["d_axes"][:] = np.ones(self.num_projs, dtype="f") * self.axis_pos
 
     def _init_kernels(self):
-        OpenclProcessing.compile_kernels(self, self.kernel_files)
+        compile_options = None
+        if not(self._use_textures):
+            compile_options = "-DDONT_USE_TEXTURES"
+        OpenclProcessing.compile_kernels(
+            self,
+            self.kernel_files,
+            compile_options=compile_options
+        )
         # check that workgroup can actually be (16, 16)
         self.compiletime_workgroup_size = self.kernels.max_workgroup_size("backproj_cpu_kernel")
         # Workgroup and ndrange sizes are always the same

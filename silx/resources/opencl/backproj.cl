@@ -35,7 +35,7 @@
 /************************ GPU VERSION (with textures) **************************/
 /*******************************************************************************/
 
-
+#ifndef DONT_USE_TEXTURES
 kernel void backproj_kernel(
     int num_proj,
     int num_bins,
@@ -102,7 +102,7 @@ kernel void backproj_kernel(
     d_SLICE[ 32*get_num_groups(0)*(bidy*32+tidy*2+0) + bidx*32 + tidx*2 + 1] = res2;
     d_SLICE[ 32*get_num_groups(0)*(bidy*32+tidy*2+1) + bidx*32 + tidx*2 + 1] = res3;
 }
-
+#endif
 
 
 
