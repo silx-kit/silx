@@ -96,8 +96,9 @@ class TestFBP(unittest.TestCase):
         # Therefore, we cannot expect results to be the "same" (up to float32
         # numerical error)
         self.tol = 5e-2
-        if not(self.fbp._use_textures):
+        if not(self.fbp._use_textures) or self.device.type == "CPU":
             # Precision is less when using CPU
+            # (either CPU textures or "manual" linear interpolation)
             self.tol *= 2
 
     def tearDown(self):
