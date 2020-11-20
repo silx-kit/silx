@@ -113,8 +113,12 @@ class TestConvolution(unittest.TestCase):
         )
 
     def instantiate_convol(self, shape, kernel, axes=None):
-        if (self.mode == "constant") and not(check_textures_availability(self.ctx)):
-            self.skipTest("mode=constant not implemented without textures")
+        if self.mode == "constant":
+            if not (self.param["use_textures"]) or (
+                self.param["use_textures"]
+                and not (check_textures_availability(self.ctx))
+            ):
+                self.skipTest("mode=constant not implemented without textures")
         C = Convolution(
             shape, kernel,
             mode=self.mode,
