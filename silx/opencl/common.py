@@ -602,7 +602,7 @@ def check_textures_availability(ctx):
     :param ctx: OpenCL context
     """
     try:
-        dummy_texture = allocate_texture((16, 16))
+        dummy_texture = allocate_texture(ctx, (16, 16))
         # Need to further access some attributes (pocl)
         dummy_height = dummy_texture.height
         textures_available = True
