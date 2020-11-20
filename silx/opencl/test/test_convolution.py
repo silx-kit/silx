@@ -41,15 +41,18 @@ from itertools import product
 import numpy as np
 from silx.utils.testutils import parameterize
 from silx.image.utils import gaussian_kernel
+
 try:
     from scipy.ndimage import convolve, convolve1d
     from scipy.misc import ascent
+
     scipy_convolve = convolve
     scipy_convolve1d = convolve1d
 except ImportError:
     scipy_convolve = None
 import unittest
 from ..common import ocl, check_textures_availability
+
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
@@ -59,7 +62,6 @@ logger = logging.getLogger(__name__)
 
 @unittest.skipUnless(ocl and scipy_convolve, "PyOpenCl/scipy is missing")
 class TestConvolution(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestConvolution, cls).setUpClass()
@@ -67,7 +69,7 @@ class TestConvolution(unittest.TestCase):
         cls.data1d = cls.image[0]
         cls.data2d = cls.image
         cls.data3d = np.tile(cls.image[224:-224, 224:-224], (62, 1, 1))
-        cls.kernel1d = gaussian_kernel(1.)
+        cls.kernel1d = gaussian_kernel(1.0)
         cls.kernel2d = np.outer(cls.kernel1d, cls.kernel1d)
         cls.kernel3d = np.multiply.outer(cls.kernel2d, cls.kernel1d)
         cls.ctx = ocl.create_context()
@@ -97,7 +99,7 @@ class TestConvolution(unittest.TestCase):
         )
         return errmsg
 
-    def __init__(self, methodName='runTest', param=None):
+    def __init__(self, methodName="runTest", param=None):
         unittest.TestCase.__init__(self, methodName)
         self.param = param
         self.mode = param["boundary_handling"]
@@ -107,8 +109,10 @@ class TestConvolution(unittest.TestCase):
             use_textures=%s, input_device=%s, output_device=%s
             """
             % (
-                self.mode, param["use_textures"],
-                param["input_on_device"], param["output_on_device"]
+                self.mode,
+                param["use_textures"],
+                param["input_on_device"],
+                param["output_on_device"],
             )
         )
 
@@ -120,11 +124,12 @@ class TestConvolution(unittest.TestCase):
             ):
                 self.skipTest("mode=constant not implemented without textures")
         C = Convolution(
-            shape, kernel,
+            shape,
+            kernel,
             mode=self.mode,
             ctx=self.ctx,
             axes=axes,
-            extra_options={"dont_use_textures": not(self.param["use_textures"])}
+            extra_options={"dont_use_textures": not (self.param["use_textures"])},
         )
         return C
 
@@ -134,13 +139,9 @@ class TestConvolution(unittest.TestCase):
             "test_separable_2D": (2, 1),
             "test_separable_3D": (3, 1),
             "test_nonseparable_2D": (2, 2),
-            "test_nonseparable_3D":  (3, 3),
+            "test_nonseparable_3D": (3, 3),
         }
-        dim_data = {
-            1: self.data1d,
-            2: self.data2d,
-            3: self.data3d
-        }
+        dim_data = {1: self.data1d, 2: self.data2d, 3: self.data3d}
         dim_kernel = {
             1: self.kernel1d,
             2: self.kernel2d,
@@ -151,24 +152,26 @@ class TestConvolution(unittest.TestCase):
 
     def get_reference_function(self, test_name):
         ref_func = {
-            "test_1D":
-                lambda x, y : scipy_convolve1d(x, y, mode=self.mode),
-            "test_separable_2D":
-                lambda x, y : scipy_convolve1d(
-                    scipy_convolve1d(x, y, mode=self.mode, axis=1),
-                    y, mode=self.mode, axis=0
+            "test_1D": lambda x, y: scipy_convolve1d(x, y, mode=self.mode),
+            "test_separable_2D": lambda x, y: scipy_convolve1d(
+                scipy_convolve1d(x, y, mode=self.mode, axis=1),
+                y,
+                mode=self.mode,
+                axis=0,
+            ),
+            "test_separable_3D": lambda x, y: scipy_convolve1d(
+                scipy_convolve1d(
+                    scipy_convolve1d(x, y, mode=self.mode, axis=2),
+                    y,
+                    mode=self.mode,
+                    axis=1,
                 ),
-            "test_separable_3D":
-                lambda x, y: scipy_convolve1d(
-                    scipy_convolve1d(
-                        scipy_convolve1d(x, y, mode=self.mode, axis=2),
-                        y, mode=self.mode, axis=1),
-                    y, mode=self.mode, axis=0
-                ),
-            "test_nonseparable_2D":
-                lambda x, y: scipy_convolve(x, y, mode=self.mode),
-            "test_nonseparable_3D":
-                lambda x, y : scipy_convolve(x, y, mode=self.mode),
+                y,
+                mode=self.mode,
+                axis=0,
+            ),
+            "test_nonseparable_2D": lambda x, y: scipy_convolve(x, y, mode=self.mode),
+            "test_nonseparable_3D": lambda x, y: scipy_convolve(x, y, mode=self.mode),
         }
         return ref_func[test_name]
 
@@ -218,8 +221,8 @@ class TestConvolution(unittest.TestCase):
         data = self.data3d
         kernel = self.kernel2d
         conv = self.instantiate_convol(data.shape, kernel, axes=(0,))
-        res = conv(data) # 3D
-        ref = scipy_convolve(data[0], kernel, mode=self.mode) # 2D
+        res = conv(data)  # 3D
+        ref = scipy_convolve(data[0], kernel, mode=self.mode)  # 2D
 
         std = np.std(res, axis=0)
         std_max = np.max(np.abs(std))
@@ -236,12 +239,9 @@ def test_convolution():
     output_on_device_ = [True, False]
     testSuite = unittest.TestSuite()
 
-    param_vals = list(product(
-        boundary_handling_,
-        use_textures_,
-        input_on_device_,
-        output_on_device_
-    ))
+    param_vals = list(
+        product(boundary_handling_, use_textures_, input_on_device_, output_on_device_)
+    )
     for boundary_handling, use_textures, input_dev, output_dev in param_vals:
         testcase = parameterize(
             TestConvolution,
@@ -250,11 +250,10 @@ def test_convolution():
                 "input_on_device": input_dev,
                 "output_on_device": output_dev,
                 "use_textures": use_textures,
-            }
+            },
         )
         testSuite.addTest(testcase)
     return testSuite
-
 
 
 def suite():
@@ -262,5 +261,5 @@ def suite():
     return testSuite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main(defaultTest="suite")
