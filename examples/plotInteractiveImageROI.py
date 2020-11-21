@@ -38,6 +38,7 @@ from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
+from silx.gui.plot.tools.roi import RoiModeSelectorAction
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.items import LineMixIn, SymbolMixIn
 from silx.gui.plot.actions import control as control_actions
@@ -106,11 +107,33 @@ for roiClass in roiManager.getSupportedRoiClasses():
     action = roiManager.getInteractionModeAction(roiClass)
     roiToolbar.addAction(action)
 
+class AutoHideToolBar(qt.QToolBar):
+    """A toolbar which hide itself if no actions are visible"""
+
+    def actionEvent(self, event):
+        if event.type() == qt.QEvent.ActionChanged:
+            self._updateVisibility()
+        return qt.QToolBar.actionEvent(self, event)
+
+    def _updateVisibility(self):
+        visible = False
+        for action in self.actions():
+            if action.isVisible():
+                visible = True
+                break
+        self.setVisible(visible)
+
+roiToolbarEdit = AutoHideToolBar()
+modeSelectorAction = RoiModeSelectorAction()
+modeSelectorAction.setRoiManager(roiManager)
+roiToolbarEdit.addAction(modeSelectorAction)
+
 # Add the region of interest table and the buttons to a dock widget
 widget = qt.QWidget()
 layout = qt.QVBoxLayout()
 widget.setLayout(layout)
 layout.addWidget(roiToolbar)
+layout.addWidget(roiToolbarEdit)
 layout.addWidget(roiTable)
 
 
