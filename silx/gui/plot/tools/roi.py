@@ -213,6 +213,9 @@ class RoiModeSelector(qt.QWidget):
             self.__roi.sigInteractionModeChanged.connect(self._modeChanged)
         self._updateAvailableModes()
 
+    def isEmpty(self):
+        return not self._label.isVisibleTo(self)
+
     def _updateAvailableModes(self):
         roi = self.getRoi()
         if isinstance(roi, roi_items.InteractionModeMixIn):
@@ -272,6 +275,7 @@ class RoiModeSelectorAction(qt.QWidgetAction):
         if manager is not None:
             roi = manager.getCurrentRoi()
             widget.setRoi(roi)
+            self.setVisible(not widget.isEmpty())
         return widget
 
     def deleteWidget(self, widget):
@@ -303,8 +307,11 @@ class RoiModeSelectorAction(qt.QWidgetAction):
 
         :param ProfileRoiMixIn roi: A profile ROI
         """
+        widget = None
         for widget in self.createdWidgets():
             widget.setRoi(roi)
+        if widget is not None:
+            self.setVisible(not widget.isEmpty())
 
 
 class RegionOfInterestManager(qt.QObject):
