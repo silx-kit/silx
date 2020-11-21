@@ -432,12 +432,12 @@ class RegionOfInterestManager(qt.QObject):
             self.setCurrentRoi(None)
 
     def __updateMode(self, roi):
-        if hasattr(roi, "availableModes"):
-            available = roi.availableModes()
-            mode = roi.getMode()
+        if isinstance(roi, roi_items.InteractionModeMixIn):
+            available = roi.availableInteractionModes()
+            mode = roi.getInteractionMode()
             imode = available.index(mode)
             mode = available[(imode + 1) % len(available)]
-            roi.setMode(mode)
+            roi.setInteractionMode(mode)
 
     # RegionOfInterest API
 

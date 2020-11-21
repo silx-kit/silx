@@ -131,6 +131,67 @@ class RoiInteractionMode(object):
         return self._description
 
 
+class InteractionModeMixIn(object):
+    """Mix in feature which can be implemented by a ROI object.
+
+    This provides user interaction to switch between different
+    interaction mode to edit the ROI.
+
+    This ROI modes have to be described using `RoiInteractionMode`,
+    and taken into account during interation with handles.
+    """
+
+    sigInteractionModeChanged = qt.Signal(object)
+
+    def __init__(self):
+        self.__modeId = None
+
+    def _initInteractionMode(self, modeId):
+        """Set the mode without updating anything.
+
+        Must be one of the returned :meth:`availableInteractionModes`.
+
+        :param RoiInteractionMode modeId: Mode to use
+        """
+        self.__modeId = modeId
+
+    def availableInteractionModes(self):
+        """Returns the list of available interaction modes
+
+        Must be implemented when inherited to provide all available modes.
+
+        :rtype: List[RoiInteractionMode]
+        """
+        raise NotImplementedError()
+
+    def setInteractionMode(self, modeId):
+        """Set the interaction mode.
+
+        :param RoiInteractionMode modeId: Mode to use
+        """
+        self.__modeId = modeId
+        self._interactiveModeUpdated(modeId)
+        self.sigInteractionModeChanged.emit(modeId)
+
+    def _interactiveModeUpdated(self, modeId):
+        """Called directly after an update of the mode.
+
+        The signal `sigInteractionModeChanged` is triggered after this
+        call.
+
+        Must be implemented when inherited to take care of the change.
+        """
+        raise NotImplementedError()
+
+    def getInteractionMode(self):
+        """Returns the interaction mode.
+
+        Must be one of the returned :meth:`availableInteractionModes`.
+
+        :rtype: RoiInteractionMode
+        """
+        return self.__modeId
+
 
 class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     """Object describing a region of interest in a plot.
@@ -2007,7 +2068,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self._polygon_shape = None
 
 
-class ArcROI(HandleBasedROI, items.LineMixIn):
+class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     """A ROI identifying an arc of a circle with a width.
 
     This ROI provides
@@ -2175,6 +2236,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
+        InteractionModeMixIn.__init__(self)
+
         self._geometry = self._Geometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
 
@@ -2198,7 +2261,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-        self.__modeId = self.ThreePointMode
+        self._initInteractionMode(self.ThreePointMode)
 
     ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
     PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
@@ -2206,22 +2269,18 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     # FIXME: It would be good replace it by a dnd on the shape
     MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
 
-    def availableModes(self):
+    def availableInteractionModes(self):
         """Returns the list of available interaction modes
 
         :rtype: List[RoiInteractionMode]
         """
         return [self.ThreePointMode, self.PolarMode, self.MoveMode]
 
-    def setMode(self, modeId):
+    def _interactiveModeUpdated(self, modeId):
         """Set the interaction mode.
 
         :param RoiInteractionMode modeId:
-            - `curvature` mode: 3-points to define a circle
-            - `polar` mode, which can move start and stop angles + the radius
-            - `move` mode, which only provides handle to move the shape (in case the center is not visible)
         """
-        self.__modeId = modeId
         if modeId is self.ThreePointMode:
             self._handleStart.setSymbol("o")
             self._handleMid.setSymbol("o")
@@ -2243,15 +2302,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         else:
             assert False
         self._updateHandles()
-
-    def getMode(self):
-        """Returns the interaction mode.
-
-        See :meth:`availableModes`.
-
-        :rtype: RoiInteractionMode
-        """
-        return self.__modeId
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -2387,7 +2437,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self._updateShape()
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        modeId = self.__modeId
+        modeId = self.getInteractionMode()
         if handle is self._handleStart:
             if modeId is self.ThreePointMode:
                 mid = numpy.array(self._handleMid.getPosition())
@@ -2471,28 +2521,29 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         return False
 
     def handleDragFinished(self, handle, origin, current):
+        modeId = self.getInteractionMode()
         if handle in [self._handleStart, self._handleMid, self._handleEnd]:
-            if self.__modeId is self.ThreePointMode:
+            if modeId is self.ThreePointMode:
                 if self._normalizeGeometry():
                     self._updateHandles()
                 else:
                     self._updateMidHandle()
 
         if self._geometry.isClosed():
-            if self.__modeId is self.MoveMode:
+            if modeId is self.MoveMode:
                 self._handleStart.setSymbol("")
                 self._handleEnd.setSymbol("")
             else:
                 self._handleStart.setSymbol("x")
                 self._handleEnd.setSymbol("x")
         else:
-            if self.__modeId is self.ThreePointMode:
+            if modeId is self.ThreePointMode:
                 self._handleStart.setSymbol("o")
                 self._handleEnd.setSymbol("o")
-            elif self.__modeId is self.PolarMode:
+            elif modeId is self.PolarMode:
                 self._handleStart.setSymbol("d")
                 self._handleEnd.setSymbol("d")
-            if self.__modeId is self.MoveMode:
+            if modeId is self.MoveMode:
                 self._handleStart.setSymbol("")
                 self._handleEnd.setSymbol("")
 
