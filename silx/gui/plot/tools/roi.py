@@ -607,6 +607,12 @@ class RegionOfInterestManager(qt.QObject):
                     if isinstance(roi, roi_items.InteractionModeMixIn):
                         self._contextMenuForInteractionMode(menu, roi)
 
+                removeAction = qt.QAction(menu)
+                removeAction.setText("Remove %s" % roi.getName())
+                callback = functools.partial(self.removeRoi, roi)
+                removeAction.triggered.connect(callback)
+                menu.addAction(removeAction)
+
     def _contextMenuForInteractionMode(self, menu, roi):
         availableModes = roi.availableInteractionModes()
         currentMode = roi.getInteractionMode()
