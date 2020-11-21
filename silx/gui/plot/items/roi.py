@@ -111,6 +111,27 @@ class _RegionOfInterestBase(qt.QObject):
         raise NotImplementedError("Base class")
 
 
+class RoiInteractionMode(object):
+    """Description of an interaction mode.
+
+    An interaction mode provide a specific kind of interaction for a ROI.
+    A ROI can implement many interaction.
+    """
+
+    def __init__(self, label, description=None):
+        self._label = label
+        self._description = description
+
+    @property
+    def label(self):
+        return self._label
+
+    @property
+    def description(self):
+        return self._description
+
+
+
 class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     """Object describing a region of interest in a plot.
 
@@ -2177,37 +2198,43 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-        self.__modeId = "curvature"
+        self.__modeId = self.ThreePointMode
+
+    ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
+    PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
+    # FIXME: MoveMode was designed cause there is too much anchors
+    # FIXME: It would be good replace it by a dnd on the shape
+    MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
 
     def availableModes(self):
         """Returns the list of available interaction modes
 
-        :rtype: List[str]
+        :rtype: List[RoiInteractionMode]
         """
-        return ["curvature", "polar", "move"]
+        return [self.ThreePointMode, self.PolarMode, self.MoveMode]
 
     def setMode(self, modeId):
         """Set the interaction mode.
 
-        :param str modeId:
+        :param RoiInteractionMode modeId:
             - `curvature` mode: 3-points to define a circle
             - `polar` mode, which can move start and stop angles + the radius
             - `move` mode, which only provides handle to move the shape (in case the center is not visible)
         """
         self.__modeId = modeId
-        if modeId == "curvature":
+        if modeId is self.ThreePointMode:
             self._handleStart.setSymbol("o")
             self._handleMid.setSymbol("o")
             self._handleEnd.setSymbol("o")
             self._handleWeight.setSymbol("s")
             self._handleMove.setSymbol("+")
-        elif modeId == "polar":
+        elif modeId is self.PolarMode:
             self._handleStart.setSymbol("d")
             self._handleMid.setSymbol("d")
             self._handleEnd.setSymbol("d")
             self._handleWeight.setSymbol("s")
             self._handleMove.setSymbol("+")
-        elif modeId == "move":
+        elif modeId is self.MoveMode:
             self._handleStart.setSymbol("")
             self._handleMid.setSymbol("+")
             self._handleEnd.setSymbol("")
@@ -2222,7 +2249,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 
         See :meth:`availableModes`.
 
-        :rtype: str
+        :rtype: RoiInteractionMode
         """
         return self.__modeId
 
@@ -2362,13 +2389,13 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
     def handleDragUpdated(self, handle, origin, previous, current):
         modeId = self.__modeId
         if handle is self._handleStart:
-            if modeId == "curvature":
+            if modeId is self.ThreePointMode:
                 mid = numpy.array(self._handleMid.getPosition())
                 end = numpy.array(self._handleEnd.getPosition())
                 self._updateCurvature(
                     current, mid, end, checkClosed=True, updateCurveHandles=False
                 )
-            elif modeId == "polar":
+            elif modeId is self.PolarMode:
                 v = current - self._geometry.center
                 startAngle = numpy.angle(complex(v[0], v[1]))
                 geometry = self._geometry.withStartAngle(startAngle)
@@ -2377,7 +2404,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
                 self._geometry = geometry
                 self._updateHandles()
         elif handle is self._handleMid:
-            if modeId == "curvature":
+            if modeId is self.ThreePointMode:
                 if self._geometry.isClosed():
                     radius = numpy.linalg.norm(self._geometry.center - current)
                     self._geometry = self._geometry.withRadius(radius)
@@ -2386,21 +2413,21 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
                     start = numpy.array(self._handleStart.getPosition())
                     end = numpy.array(self._handleEnd.getPosition())
                     self._updateCurvature(start, current, end, updateCurveHandles=False)
-            elif modeId == "polar":
+            elif modeId is self.PolarMode:
                 radius = numpy.linalg.norm(self._geometry.center - current)
                 self._geometry = self._geometry.withRadius(radius)
                 self._updateHandles()
-            elif modeId == "move":
+            elif modeId is self.MoveMode:
                 delta = current - previous
                 self.translate(*delta)
         elif handle is self._handleEnd:
-            if modeId == "curvature":
+            if modeId is self.ThreePointMode:
                 start = numpy.array(self._handleStart.getPosition())
                 mid = numpy.array(self._handleMid.getPosition())
                 self._updateCurvature(
                     start, mid, current, checkClosed=True, updateCurveHandles=False
                 )
-            elif modeId == "polar":
+            elif modeId is self.PolarMode:
                 v = current - self._geometry.center
                 endAngle = numpy.angle(complex(v[0], v[1]))
                 geometry = self._geometry.withEndAngle(endAngle)
@@ -2445,27 +2472,27 @@ class ArcROI(HandleBasedROI, items.LineMixIn):
 
     def handleDragFinished(self, handle, origin, current):
         if handle in [self._handleStart, self._handleMid, self._handleEnd]:
-            if self.__modeId == "curvature":
+            if self.__modeId is self.ThreePointMode:
                 if self._normalizeGeometry():
                     self._updateHandles()
                 else:
                     self._updateMidHandle()
 
         if self._geometry.isClosed():
-            if self.__modeId == "move":
+            if self.__modeId is self.MoveMode:
                 self._handleStart.setSymbol("")
                 self._handleEnd.setSymbol("")
             else:
                 self._handleStart.setSymbol("x")
                 self._handleEnd.setSymbol("x")
         else:
-            if self.__modeId == "curvature":
+            if self.__modeId is self.ThreePointMode:
                 self._handleStart.setSymbol("o")
                 self._handleEnd.setSymbol("o")
-            elif self.__modeId == "polar":
+            elif self.__modeId is self.PolarMode:
                 self._handleStart.setSymbol("d")
                 self._handleEnd.setSymbol("d")
-            if self.__modeId == "move":
+            if self.__modeId is self.MoveMode:
                 self._handleStart.setSymbol("")
                 self._handleEnd.setSymbol("")
 
