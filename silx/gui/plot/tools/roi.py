@@ -34,6 +34,7 @@ import enum
 import logging
 import time
 import weakref
+import functools
 
 import numpy
 
@@ -408,6 +409,8 @@ class RegionOfInterestManager(qt.QObject):
 
         parent.sigItemRemoved.connect(self._itemRemoved)
 
+        parent.sigDefaultContextMenu.connect(self._feedContextMenu)
+
     @classmethod
     def getSupportedRoiClasses(cls):
         """Returns the default available ROI classes
@@ -589,6 +592,36 @@ class RegionOfInterestManager(qt.QObject):
             imode = available.index(mode)
             mode = available[(imode + 1) % len(available)]
             roi.setInteractionMode(mode)
+
+    def _feedContextMenu(self, menu):
+        """Called wen the default plot context menu is about to be displayed"""
+        roi = self.getCurrentRoi()
+        if roi is not None:
+            if isinstance(roi, roi_items.InteractionModeMixIn):
+                self._contextMenuForInteractionMode(menu, roi)
+
+    def _contextMenuForInteractionMode(self, menu, roi):
+        availableModes = roi.availableInteractionModes()
+        currentMode = roi.getInteractionMode()
+        submenu = qt.QMenu(menu)
+        modeGroup = qt.QActionGroup(menu)
+        modeGroup.setExclusive(True)
+        for mode in availableModes:
+            action = qt.QAction(menu)
+            action.setText(mode.label)
+            action.setToolTip(mode.description)
+            action.setCheckable(True)
+            if mode is currentMode:
+                action.setChecked(True)
+            else:
+                callback = functools.partial(roi.setInteractionMode, mode)
+                action.triggered.connect(callback)
+            modeGroup.addAction(action)
+            submenu.addAction(action)
+        action = qt.QAction(menu)
+        action.setMenu(submenu)
+        action.setText("%s interaction mode" % roi.getName())
+        menu.addAction(action)
 
     # RegionOfInterest API
 
