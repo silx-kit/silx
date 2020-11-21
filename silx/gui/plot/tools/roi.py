@@ -597,8 +597,15 @@ class RegionOfInterestManager(qt.QObject):
         """Called wen the default plot context menu is about to be displayed"""
         roi = self.getCurrentRoi()
         if roi is not None:
-            if isinstance(roi, roi_items.InteractionModeMixIn):
-                self._contextMenuForInteractionMode(menu, roi)
+            if roi.isEditable():
+                # Filter by data position
+                # FIXME: It would be better to use GUI coords for it
+                plot = self.parent()
+                pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+                data = plot.pixelToData(pos.x(), pos.y())
+                if roi.contains(data):
+                    if isinstance(roi, roi_items.InteractionModeMixIn):
+                        self._contextMenuForInteractionMode(menu, roi)
 
     def _contextMenuForInteractionMode(self, menu, roi):
         availableModes = roi.availableInteractionModes()
