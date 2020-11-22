@@ -2824,18 +2824,21 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             return False
         rel_pos = position[1] - center[1], position[0] - center[0]
         angle = numpy.arctan2(*rel_pos)
+        # angle is inside [-pi, pi]
+
+        # Normalize the start angle between [-pi, pi]
+        # with a positive angle range
         start_angle = self.getStartAngle()
         end_angle = self.getEndAngle()
+        azim_range = end_angle - start_angle
+        if azim_range < 0:
+            start_angle = end_angle
+            azim_range = -azim_range
+        start_angle = numpy.mod(start_angle + numpy.pi, 2 * numpy.pi) - numpy.pi
 
-        if start_angle < end_angle:
-            # I never succeed to find a condition where start_angle < end_angle
-            # so this is untested
-            is_in_angle = start_angle <= angle <= end_angle
-        else:
-            if end_angle < -numpy.pi and angle > 0:
-                angle = angle - (numpy.pi * 2.0)
-            is_in_angle = end_angle <= angle <= start_angle
-        return is_in_angle
+        if angle < start_angle:
+            angle += 2 * numpy.pi
+        return start_angle <= angle <= start_angle + azim_range
 
     def translate(self, x, y):
         self._geometry = self._geometry.translated(x, y)
