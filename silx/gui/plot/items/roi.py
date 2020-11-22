@@ -2242,11 +2242,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self._handleLabel = self.addLabelHandle()
 
         self._handleStart = self.addHandle()
-        self._handleStart.setSymbol("o")
         self._handleMid = self.addHandle()
-        self._handleMid.setSymbol("o")
         self._handleEnd = self.addHandle()
-        self._handleEnd.setSymbol("o")
         self._handleWeight = self.addHandle()
         self._handleWeight._setConstraint(self._arcCurvatureMarkerConstraint)
         self._handleMove = self.addTranslateHandle()
@@ -2262,6 +2259,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self.addItem(shape)
 
         self._initInteractionMode(self.ThreePointMode)
+        self._interactiveModeUpdated(self.ThreePointMode)
 
     ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
     PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
@@ -2282,16 +2280,16 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         :param RoiInteractionMode modeId:
         """
         if modeId is self.ThreePointMode:
+            self._handleStart.setSymbol("s")
+            self._handleMid.setSymbol("s")
+            self._handleEnd.setSymbol("s")
+            self._handleWeight.setSymbol("d")
+            self._handleMove.setSymbol("+")
+        elif modeId is self.PolarMode:
             self._handleStart.setSymbol("o")
             self._handleMid.setSymbol("o")
             self._handleEnd.setSymbol("o")
-            self._handleWeight.setSymbol("s")
-            self._handleMove.setSymbol("+")
-        elif modeId is self.PolarMode:
-            self._handleStart.setSymbol("d")
-            self._handleMid.setSymbol("d")
-            self._handleEnd.setSymbol("d")
-            self._handleWeight.setSymbol("s")
+            self._handleWeight.setSymbol("d")
             self._handleMove.setSymbol("+")
         elif modeId is self.MoveMode:
             self._handleStart.setSymbol("")
@@ -2538,11 +2536,11 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 self._handleEnd.setSymbol("x")
         else:
             if modeId is self.ThreePointMode:
+                self._handleStart.setSymbol("s")
+                self._handleEnd.setSymbol("s")
+            elif modeId is self.PolarMode:
                 self._handleStart.setSymbol("o")
                 self._handleEnd.setSymbol("o")
-            elif modeId is self.PolarMode:
-                self._handleStart.setSymbol("d")
-                self._handleEnd.setSymbol("d")
             if modeId is self.MoveMode:
                 self._handleStart.setSymbol("")
                 self._handleEnd.setSymbol("")
