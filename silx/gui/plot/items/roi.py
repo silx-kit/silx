@@ -2299,6 +2299,10 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             self._handleMove.setSymbol("+")
         else:
             assert False
+        if self._geometry.isClosed():
+            if modeId != self.MoveMode:
+                self._handleStart.setSymbol("x")
+                self._handleEnd.setSymbol("x")
         self._updateHandles()
 
     def _updated(self, event=None, checkVisibility=True):
@@ -2349,9 +2353,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
         if geometry.isClosed():
             start = numpy.array(self._handleStart.getPosition())
-            geometry.endPoint = start
-            with utils.blockSignals(self._handleEnd):
-                self._handleEnd.setPosition(*start)
             midPos = geometry.center + geometry.center - start
         else:
             if geometry.center is None:
@@ -2405,15 +2406,24 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
         self._updateMidHandle()
         self._updateWeightHandle()
-
         self._updateShape()
 
-    def _updateCurvature(self, start, mid, end, updateCurveHandles, checkClosed=False):
+    def _updateCurvature(self, start, mid, end, updateCurveHandles, checkClosed=False, updateStart=False):
         """Update the curvature using 3 control points in the curve
 
         :param bool updateCurveHandles: If False curve handles are already at
             the right location
         """
+        if checkClosed:
+            closed = self._isCloseInPixel(start, end)
+        else:
+            closed = self._geometry.isClosed()
+        if closed:
+            if updateStart:
+                start = end
+            else:
+                end = start
+
         if updateCurveHandles:
             with utils.blockSignals(self._handleStart):
                 self._handleStart.setPosition(*start)
@@ -2422,17 +2432,26 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             with utils.blockSignals(self._handleEnd):
                 self._handleEnd.setPosition(*end)
 
-        if checkClosed:
-            closed = self._isCloseInPixel(start, end)
-        else:
-            closed = self._geometry.isClosed()
-
         weight = self._geometry.weight
         geometry = self._createGeometryFromControlPoints(start, mid, end, weight, closed=closed)
         self._geometry = geometry
 
         self._updateWeightHandle()
         self._updateShape()
+
+    def _updateCloseInAngle(self, geometry, updateStart):
+        azim = numpy.abs(geometry.endAngle - geometry.startAngle)
+        if numpy.pi < azim < 3 * numpy.pi:
+            closed = self._isCloseInPixel(geometry.startPoint, geometry.endPoint)
+            geometry._closed = closed
+            if closed:
+                sign = 1 if geometry.startAngle < geometry.endAngle else -1
+                if updateStart:
+                    geometry.startPoint = geometry.endPoint
+                    geometry.startAngle = geometry.endAngle - sign * 2*numpy.pi
+                else:
+                    geometry.endPoint = geometry.startPoint
+                    geometry.endAngle = geometry.startAngle + sign * 2*numpy.pi
 
     def handleDragUpdated(self, handle, origin, previous, current):
         modeId = self.getInteractionMode()
@@ -2441,14 +2460,14 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 mid = numpy.array(self._handleMid.getPosition())
                 end = numpy.array(self._handleEnd.getPosition())
                 self._updateCurvature(
-                    current, mid, end, checkClosed=True, updateCurveHandles=False
+                    current, mid, end, checkClosed=True, updateStart=True,
+                    updateCurveHandles=False
                 )
             elif modeId is self.PolarMode:
                 v = current - self._geometry.center
                 startAngle = numpy.angle(complex(v[0], v[1]))
                 geometry = self._geometry.withStartAngle(startAngle)
-                closed = self._isCloseInPixel(geometry.startPoint, geometry.endPoint)
-                geometry._closed = closed
+                self._updateCloseInAngle(geometry, updateStart=True)
                 self._geometry = geometry
                 self._updateHandles()
         elif handle is self._handleMid:
@@ -2473,14 +2492,14 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 start = numpy.array(self._handleStart.getPosition())
                 mid = numpy.array(self._handleMid.getPosition())
                 self._updateCurvature(
-                    start, mid, current, checkClosed=True, updateCurveHandles=False
+                    start, mid, current, checkClosed=True, updateStart=False,
+                    updateCurveHandles=False
                 )
             elif modeId is self.PolarMode:
                 v = current - self._geometry.center
                 endAngle = numpy.angle(complex(v[0], v[1]))
                 geometry = self._geometry.withEndAngle(endAngle)
-                closed = self._isCloseInPixel(geometry.startPoint, geometry.endPoint)
-                geometry._closed = closed
+                self._updateCloseInAngle(geometry, updateStart=False)
                 self._geometry = geometry
                 self._updateHandles()
         elif handle is self._handleWeight:
@@ -2522,10 +2541,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         modeId = self.getInteractionMode()
         if handle in [self._handleStart, self._handleMid, self._handleEnd]:
             if modeId is self.ThreePointMode:
-                if self._normalizeGeometry():
-                    self._updateHandles()
-                else:
-                    self._updateMidHandle()
+                self._normalizeGeometry()
+                self._updateHandles()
 
         if self._geometry.isClosed():
             if modeId is self.MoveMode:
