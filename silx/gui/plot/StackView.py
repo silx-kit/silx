@@ -192,9 +192,6 @@ class StackView(qt.QMainWindow):
         imageLegend = '__StackView__image' + str(id(self))
         self._stackItem.setName(imageLegend)
 
-        self.__autoscaleCmap = False
-        """Flag to disable/enable colormap auto-scaling
-        based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
                                    "Dimension 2"]
         """These labels are displayed on the X and Y axes.
@@ -548,16 +545,6 @@ class StackView(qt.QMainWindow):
             perspective_changed = True
             self.setPerspective(perspective)
 
-        # This call to setColormap redefines the meaning of autoscale
-        # for 3D volume: take global min/max rather than frame min/max
-        if self.__autoscaleCmap:
-            # note: there is no real autoscale in the stack widget, it is more
-            # like a hack computing stack min and max
-            colormap = self.getColormap()
-            _vmin, _vmax = colormap.getColormapRange(data=self._stack)
-            colormap.setVRange(_vmin, _vmax)
-            self.setColormap(colormap=colormap)
-
         # init plot
         self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
         self._stackItem.setColormap(self.getColormap())
@@ -791,6 +778,22 @@ class StackView(qt.QMainWindow):
         # specifying a special colormap
         return self._plot.getDefaultColormap()
 
+    def scaleColormapRangeFromStack(self):
+        """Scale colormap range according to current stack data.
+
+        If no stack has been set through :meth:`setStack`, this has no effect.
+
+        The range scaling mode is given by current :class:`Colormap`'s
+        :meth:`Colormap.getAutoscaleMode`.
+        """
+        stack = self.getStack(copy=False, returnNumpyArray=True)
+        if stack is None:
+            return  # No-op
+
+        colormap = self.getColormap()
+        vmin, vmax = colormap.getColormapRange(data=stack)
+        colormap.setVRange(vmin=vmin, vmax=vmax)
+
     def setColormap(self, colormap=None, normalization=None,
                     autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the colormap and update active image.
@@ -860,31 +863,14 @@ class StackView(qt.QMainWindow):
                                  vmax=vmax,
                                  colors=colors)
 
-            # Patch: since we don't apply this colormap to a single 2D data but
-            # a 2D stack we have to deal manually with vmin, vmax
-            if autoscale is None:
-                # set default
-                autoscale = False
-            elif autoscale and is_dataset(self._stack):
-                # h5py dataset has no min()/max() methods
-                raise RuntimeError(
-                    "Cannot auto-scale colormap for a h5py dataset")
-            else:
-                autoscale = autoscale
-            self.__autoscaleCmap = autoscale
-
-            if autoscale and (self._stack is not None):
-                _vmin, _vmax = _colormap.getColormapRange(data=self._stack)
-                _colormap.setVRange(vmin=_vmin, vmax=_vmax)
-            else:
-                if vmin is None and self._stack is not None:
-                    _colormap.setVMin(self._stack.min())
-                else:
-                    _colormap.setVMin(vmin)
-                if vmax is None and self._stack is not None:
-                    _colormap.setVMax(self._stack.max())
-                else:
-                    _colormap.setVMax(vmax)
+            if autoscale:
+                deprecated_warning(
+                    type_='function',
+                    name='setColormap',
+                    reason='autoscale argument is replaced by a method',
+                    replacement='scaleColormapRangeFromStack',
+                    since_version='0.14')
+                self.scaleColormapRangeFromStack()
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
