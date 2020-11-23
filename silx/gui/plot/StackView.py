@@ -778,7 +778,7 @@ class StackView(qt.QMainWindow):
         # specifying a special colormap
         return self._plot.getDefaultColormap()
 
-    def scaleColormapRangeFromStack(self):
+    def scaleColormapRangeToStack(self):
         """Scale colormap range according to current stack data.
 
         If no stack has been set through :meth:`setStack`, this has no effect.
@@ -868,9 +868,9 @@ class StackView(qt.QMainWindow):
                     type_='function',
                     name='setColormap',
                     reason='autoscale argument is replaced by a method',
-                    replacement='scaleColormapRangeFromStack',
+                    replacement='scaleColormapRangeToStack',
                     since_version='0.14')
-                self.scaleColormapRangeFromStack()
+                self.scaleColormapRangeToStack()
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
