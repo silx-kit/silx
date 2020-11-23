@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -791,7 +791,7 @@ class StackView(qt.QMainWindow):
             return  # No-op
 
         colormap = self.getColormap()
-        vmin, vmax = colormap.getColormapRange(data=stack)
+        vmin, vmax = colormap.getColormapRange(data=stack[0])
         colormap.setVRange(vmin=vmin, vmax=vmax)
 
     def setColormap(self, colormap=None, normalization=None,
@@ -831,6 +831,8 @@ class StackView(qt.QMainWindow):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
+        deferredAutoscale = False
+
         # if is a colormap object or a dictionary
         if isinstance(colormap, Colormap) or isinstance(colormap, dict):
             # Support colormap parameter as a dict
@@ -870,7 +872,9 @@ class StackView(qt.QMainWindow):
                     reason='autoscale argument is replaced by a method',
                     replacement='scaleColormapRangeToStack',
                     since_version='0.14')
-                self.scaleColormapRangeToStack()
+                # scaleColormapRangeToStack needs to be called **after**
+                # setDefaultColormap so getColormap returns the right colormap
+                deferredAutoscale = True
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
@@ -881,6 +885,10 @@ class StackView(qt.QMainWindow):
         activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
+
+        if deferredAutoscale:
+            self.scaleColormapRangeToStack()
+
 
     @deprecated(replacement="getPlotWidget", since_version="0.13")
     def getPlot(self):
