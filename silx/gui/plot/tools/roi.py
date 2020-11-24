@@ -575,12 +575,12 @@ class RegionOfInterestManager(qt.QObject):
             # The ROI is not own by this manager
             return
 
-        if roi is not None and roi.isSelectable():
+        if roi is not None:
             currentRoi = self.getCurrentRoi()
             if currentRoi is roi:
                 if clicked:
                     self.__updateMode(roi)
-            else:
+            elif roi.isSelectable():
                 self.setCurrentRoi(roi)
         else:
             self.setCurrentRoi(None)
