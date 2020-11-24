@@ -869,14 +869,14 @@ class StackView(qt.QMainWindow):
                                  vmax=vmax,
                                  colors=colors)
 
-            if autoscale:
+            if autoscale is not None:
                 deprecated_warning(
                     type_='function',
                     name='setColormap',
                     reason='autoscale argument is replaced by a method',
                     replacement='scaleColormapRangeToStack',
                     since_version='0.14')
-                self.__autoscaleCmap = True
+            self.__autoscaleCmap = bool(autoscale)
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
