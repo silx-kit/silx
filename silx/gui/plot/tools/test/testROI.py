@@ -615,6 +615,45 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
             # Clean up
             manager.clear()
 
+    def testArcRoiSwitchMode(self):
+        """Make sure we can switch mode by clicking on the ROI"""
+        xlimit = self.plot.getXAxis().getLimits()
+        ylimit = self.plot.getYAxis().getLimits()
+        points = numpy.array([xlimit, ylimit]).T
+        center = numpy.mean(points, axis=0)
+        size = numpy.abs(points[1] - points[0])
+
+        # Create the line
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.ArcROI()
+        item.setGeometry(center, size[1] / 10, size[1] / 2, 0, 3)
+        item.setEditable(True)
+        item.setSelectable(True)
+        manager.addRoi(item)
+        self.qapp.processEvents()
+
+        # Initial state
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.ThreePointMode)
+        self.qWait(500)
+
+        # Click on the center
+        widget = self.plot.getWidgetHandle()
+        mx, my = self.plot.dataToPixel(*center)
+
+        # Select the ROI
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.ThreePointMode)
+
+        # Change the mode
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.PolarMode)
+
+        manager.clear()
+        self.qapp.processEvents()
 
 
 def suite():
