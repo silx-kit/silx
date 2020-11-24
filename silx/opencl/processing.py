@@ -36,14 +36,12 @@ Common OpenCL abstract base classe for different processing
 
 from __future__ import absolute_import, print_function, division
 
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/08/2019"
+__date__ = "24/11/2020"
 __status__ = "stable"
-
 
 import os
 import logging
@@ -54,7 +52,6 @@ import threading
 from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size, allocate_texture, check_textures_availability
 from .utils import concatenate_cl_kernel
 import platform
-
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 EventDescription = namedtuple("EventDescription", ["name", "event"])
@@ -159,8 +156,10 @@ class OpenclProcessing(object):
             self.reset_log()
             self.free_kernels()
             self.free_buffers()
-        except Exception:
-            pass
+            if self.queue is not None:
+                self.queue.finish()
+        except Exception as err:
+            logger.warning("%s: %s", type(err), err)
         self.queue = None
         self.device = None
         self.ctx = None
@@ -290,6 +289,8 @@ class OpenclProcessing(object):
         if bool(value) != self.profile:
             with self.sem:
                 self.profile = bool(value)
+                if self.queue is not None:
+                    self.queue.finish()
                 if self.profile:
                     self.queue = pyopencl.CommandQueue(self.ctx,
                         properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
@@ -322,10 +323,10 @@ class OpenclProcessing(object):
         if ndim == 1:
             # pyopencl and OpenCL < 1.2 do not support image1d_t
             # force 2D with one row in this case
-            #~ ndim = 2
+            # ~ ndim = 2
             shp = (1,) + shp
         copy_kwargs = {"origin":(0,) * ndim, "region": shp[::-1]}
-        if not(isinstance(arr, numpy.ndarray)): # assuming pyopencl.array.Array
+        if not(isinstance(arr, numpy.ndarray)):  # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0
