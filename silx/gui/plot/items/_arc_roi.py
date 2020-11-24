@@ -215,6 +215,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
+    ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
+    PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
+    # FIXME: MoveMode was designed cause there is too much anchors
+    # FIXME: It would be good replace it by a dnd on the shape
+    MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
+
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
@@ -242,12 +248,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
         self._initInteractionMode(self.ThreePointMode)
         self._interactiveModeUpdated(self.ThreePointMode)
-
-    ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
-    PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
-    # FIXME: MoveMode was designed cause there is too much anchors
-    # FIXME: It would be good replace it by a dnd on the shape
-    MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
 
     def availableInteractionModes(self):
         """Returns the list of available interaction modes
@@ -580,7 +580,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                     endAngle -= 2 * numpy.pi
 
             return _ArcGeometry(center, start, end,
-                                     radius, weight, startAngle, endAngle)
+                                radius, weight, startAngle, endAngle)
 
     def _createShapeFromGeometry(self, geometry):
         kind = geometry.getKind()
@@ -791,8 +791,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         endPoint = center + vector * radius
 
         geometry = _ArcGeometry(center, startPoint, endPoint,
-                                     radius, weight,
-                                     startAngle, endAngle, closed=None)
+                                radius, weight,
+                                startAngle, endAngle, closed=None)
         self._geometry = geometry
         self._updateHandles()
 
