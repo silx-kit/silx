@@ -29,12 +29,13 @@ for :class:`.PlotWidget`.
 The following QAction are available:
 
 - :class:`PixelIntensitiesHistoAction`
+- :class:`HistoMaskAction`
 """
 
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "10/10/2018"
+__date__ = "24/11/2020"
 __license__ = "MIT"
 
 import numpy
@@ -197,9 +198,9 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             if array.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
-                array = (array[:, :, 0] * 0.299 +
-                         array[:, :, 1] * 0.587 +
-                         array[:, :, 2] * 0.114)
+                array = (array[:,:, 0] * 0.299 +
+                         array[:,:, 1] * 0.587 +
+                         array[:,:, 2] * 0.114)
         elif isinstance(item, items.Scatter):
             array = item.getValueData(copy=False)
         else:
@@ -256,3 +257,91 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         :return: the histogram displayed in the HistogramPlotWiget
         """
         return self._histo
+
+
+class MaskedPixelIntensitiesAction(PixelIntensitiesHistoAction):
+    """Histogram action with support for a mask to compute the histogram"""
+
+    def __init__(self, *args, **kwargs):
+        self.__selectionMaskSource = None
+        super().__init__(*args, **kwargs)
+
+    def setSelectionMaskSource(self, source):
+        """Set the source of the selection mask.
+
+        :param source:
+            QObject with sigMaskChanged signal and getSelectionMask method.
+        """
+        if self.__selectionMaskSource is not None:
+            self.__selectionMaskSource.sigMaskChanged.disconnect(
+                self.computeIntensityDistribution)
+        self.__selectionMaskSource = source
+        if self.__selectionMaskSource is not None:
+            self.__selectionMaskSource.sigMaskChanged.connect(
+                self.computeIntensityDistribution)
+
+    def getSelectionMaskSource(self):
+        """Returns the source of selection mask.
+
+        :rtype: QObject with sigMaskChanged signal and getSelectionMask method.
+        """
+        return self.__selectionMaskSource
+
+    def computeIntensityDistribution(self):
+        """Get the active image and compute the image intensity distribution
+        """
+        print("computeIntensityDistribution")
+        item = self._getSelectedItem()
+
+        if item is None:
+            self._cleanUp()
+            return
+
+        if isinstance(item, items.ImageBase):
+            array = item.getData(copy=False)
+            if array.ndim == 3:  # RGB(A) images
+                _logger.info('Converting current image from RGB(A) to grayscale\
+                    in order to compute the intensity distribution')
+                array = (array[:,:, 0] * 0.299 +
+                         array[:,:, 1] * 0.587 +
+                         array[:,:, 2] * 0.114)
+        elif isinstance(item, items.Scatter):
+            array = item.getValueData(copy=False)
+        else:
+            assert(False)
+
+        if array.size == 0:
+            self._cleanUp()
+            return
+
+        source = self.getSelectionMaskSource()
+        if source is not None:
+            mask = source.getSelectionMask()
+            if mask is not None:
+                array = numpy.array(array, dtype=numpy.float64, copy=True)
+                array[mask != 0] = numpy.nan  # Replace masked values with NaN
+
+        xmin, xmax = min_max(array, min_positive=False, finite=True)
+        nbins = min(1024, int(numpy.sqrt(array.size)))
+        data_range = xmin, xmax
+
+        # bad hack: get 256 bins in the case we have a B&W
+        if numpy.issubdtype(array.dtype, numpy.integer):
+            if nbins > xmax - xmin:
+                nbins = xmax - xmin
+
+        nbins = max(2, nbins)
+
+        data = array.ravel().astype(numpy.float32)
+        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
+        assert len(histogram.edges) == 1
+        self._histo = histogram.histo
+        edges = histogram.edges[0]
+        plot = self.getHistogramPlotWidget()
+        plot.addHistogram(histogram=self._histo,
+                          edges=edges,
+                          legend='pixel intensity',
+                          fill=True,
+                          color='#66aad7')
+        plot.resetZoom()
+

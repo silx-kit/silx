@@ -29,7 +29,7 @@ The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/04/2019"
+__date__ = "24/11/2020"
 
 try:
     from collections import abc
@@ -64,7 +64,6 @@ except ImportError:
     IPythonDockWidget = None
 
 from .. import qt
-
 
 _logger = logging.getLogger(__name__)
 
@@ -197,8 +196,9 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self.getMaskAction())
         self.getMaskAction().setVisible(mask)
 
-        self._intensityHistoAction = self.group.addAction(
-            actions_histogram.PixelIntensitiesHistoAction(self, parent=self))
+        _action_masked_histogram = actions_histogram.MaskedPixelIntensitiesAction(self, parent=self)
+        _action_masked_histogram.setSelectionMaskSource(self.getMaskToolsDockWidget())
+        self._intensityHistoAction = self.group.addAction(_action_masked_histogram)
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
