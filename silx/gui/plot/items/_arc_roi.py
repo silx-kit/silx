@@ -47,63 +47,49 @@ class _ArcGeometry:
     The aim is is to switch between consistent state without dealing with
     intermediate values.
     """
-    def __init__(self):
-        """Private constructor to make the code a little more obvious.
+    def __init__(self, center, startPoint, endPoint, radius,
+                 weight, startAngle, endAngle, closed=False):
+        """Constructor for a consistent arc geometry.
 
-        There is specific class method to create different kind of arc geometry.
+        There is also specific class method to create different kind of arc
+        geometry.
         """
-        self.center = None
-        self.startPoint = None
-        self.endPoint = None
-        self.radius = None
-        self.weight = None
-        self.startAngle = None
-        self.endAngle = None
-        self._closed = None
+        self.center = center
+        self.startPoint = startPoint
+        self.endPoint = endPoint
+        self.radius = radius
+        self.weight = weight
+        self.startAngle = startAngle
+        self.endAngle = endAngle
+        self._closed = closed
 
     @classmethod
     def createEmpty(cls):
         """Create an arc geometry from an empty shape
         """
         zero = numpy.array([0, 0])
-        return cls.create(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
+        return cls(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
 
     @classmethod
     def createRect(cls, startPoint, endPoint, weight):
         """Create an arc geometry from a definition of a rectangle
         """
-        return cls.create(None, startPoint, endPoint, None, weight, None, None, False)
+        return cls(None, startPoint, endPoint, None, weight, None, None, False)
 
     @classmethod
     def createCircle(cls, center, startPoint, endPoint, radius,
                weight, startAngle, endAngle):
         """Create an arc geometry from a definition of a circle
         """
-        return cls.create(center, startPoint, endPoint, radius,
-                          weight, startAngle, endAngle, True)
-
-    @classmethod
-    def create(cls, center, startPoint, endPoint, radius,
-               weight, startAngle, endAngle, closed=False):
-        """Return a new geometry based on this object, with a specific weight
-        """
-        g = cls()
-        g.center = center
-        g.startPoint = startPoint
-        g.endPoint = endPoint
-        g.radius = radius
-        g.weight = weight
-        g.startAngle = startAngle
-        g.endAngle = endAngle
-        g._closed = closed
-        return g
+        return cls(center, startPoint, endPoint, radius,
+                   weight, startAngle, endAngle, True)
 
     def withWeight(self, weight):
         """Return a new geometry based on this object, with a specific weight
         """
-        return self.create(self.center, self.startPoint, self.endPoint,
-                           self.radius, weight,
-                           self.startAngle, self.endAngle, self._closed)
+        return _ArcGeometry(self.center, self.startPoint, self.endPoint,
+                            self.radius, weight,
+                            self.startAngle, self.endAngle, self._closed)
 
     def withRadius(self, radius):
         """Return a new geometry based on this object, with a specific radius.
@@ -112,9 +98,9 @@ class _ArcGeometry:
         """
         startPoint = self.center + (self.startPoint - self.center) / self.radius * radius
         endPoint = self.center + (self.endPoint - self.center) / self.radius * radius
-        return self.create(self.center, startPoint, endPoint,
-                           radius, self.weight,
-                           self.startAngle, self.endAngle, self._closed)
+        return _ArcGeometry(self.center, startPoint, endPoint,
+                            radius, self.weight,
+                            self.startAngle, self.endAngle, self._closed)
 
     def withStartAngle(self, startAngle):
         """Return a new geometry based on this object, with a specific start angle
@@ -130,7 +116,7 @@ class _ArcGeometry:
             deltaAngle += numpy.pi * 2
 
         startAngle = self.startAngle + deltaAngle
-        return self.create(
+        return _ArcGeometry(
             self.center,
             startPoint,
             self.endPoint,
@@ -155,7 +141,7 @@ class _ArcGeometry:
             deltaAngle += numpy.pi * 2
 
         endAngle = self.endAngle + deltaAngle
-        return self.create(
+        return _ArcGeometry(
             self.center,
             self.startPoint,
             endPoint,
@@ -172,9 +158,9 @@ class _ArcGeometry:
         center = None if self.center is None else self.center + delta
         startPoint = None if self.startPoint is None else self.startPoint + delta
         endPoint = None if self.endPoint is None else self.endPoint + delta
-        return self.create(center, startPoint, endPoint,
-                           self.radius, self.weight,
-                           self.startAngle, self.endAngle, self._closed)
+        return _ArcGeometry(center, startPoint, endPoint,
+                            self.radius, self.weight,
+                            self.startAngle, self.endAngle, self._closed)
 
     def getKind(self):
         """Returns the kind of shape defined"""
@@ -593,8 +579,8 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 if endAngle > startAngle:
                     endAngle -= 2 * numpy.pi
 
-            return _ArcGeometry.create(center, start, end,
-                                         radius, weight, startAngle, endAngle)
+            return _ArcGeometry(center, start, end,
+                                     radius, weight, startAngle, endAngle)
 
     def _createShapeFromGeometry(self, geometry):
         kind = geometry.getKind()
@@ -804,9 +790,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
         endPoint = center + vector * radius
 
-        geometry = _ArcGeometry.create(center, startPoint, endPoint,
-                                         radius, weight,
-                                         startAngle, endAngle, closed=None)
+        geometry = _ArcGeometry(center, startPoint, endPoint,
+                                     radius, weight,
+                                     startAngle, endAngle, closed=None)
         self._geometry = geometry
         self._updateHandles()
 
