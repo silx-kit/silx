@@ -51,7 +51,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size
+from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size, allocate_texture, check_textures_availability
 from .utils import concatenate_cl_kernel
 import platform
 
@@ -148,6 +148,9 @@ class OpenclProcessing(object):
         self.block_size = block_size
         self.program = None
         self.kernels = None
+
+    def check_textures_availability(self):
+        return check_textures_availability(self.ctx)
 
     def __del__(self):
         """Destructor: release all buffers and programs
@@ -304,24 +307,7 @@ class OpenclProcessing(object):
             self.events.append(EventDescription(desc, event))
 
     def allocate_texture(self, shape, hostbuf=None, support_1D=False):
-        """
-        Allocate an OpenCL image ("texture").
-
-        :param shape: Shape of the image. Note that pyopencl and OpenCL < 1.2
-            do not support 1D images, so 1D images are handled as 2D with one row
-        :param support_1D: force the image to be 1D if the shape has only one dim
-        """
-        if len(shape) == 1 and not(support_1D):
-            shape = (1,) + shape
-        return pyopencl.Image(
-            self.ctx,
-            pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
-            pyopencl.ImageFormat(
-                pyopencl.channel_order.INTENSITY,
-                pyopencl.channel_type.FLOAT
-            ),
-            hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
-        )
+        return allocate_texture(self.ctx, shape, hostbuf=hostbuf, support_1D=support_1D)
 
     def transfer_to_texture(self, arr, tex_ref):
         """

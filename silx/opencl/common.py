@@ -573,6 +573,53 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     return mem
 
 
+def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
+    """
+    Allocate an OpenCL image ("texture").
+
+    :param ctx: OpenCL context
+    :param shape: Shape of the image. Note that pyopencl and OpenCL < 1.2
+        do not support 1D images, so 1D images are handled as 2D with one row
+    :param support_1D: force the image to be 1D if the shape has only one dim
+    """
+    if len(shape) == 1 and not(support_1D):
+        shape = (1,) + shape
+    return pyopencl.Image(
+        ctx,
+        pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
+        pyopencl.ImageFormat(
+            pyopencl.channel_order.INTENSITY,
+            pyopencl.channel_type.FLOAT
+        ),
+        hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
+    )
+
+
+def check_textures_availability(ctx):
+    """
+    Check whether textures are supported on the current OpenCL context.
+
+    :param ctx: OpenCL context
+    """
+    try:
+        dummy_texture = allocate_texture(ctx, (16, 16))
+        # Need to further access some attributes (pocl)
+        dummy_height = dummy_texture.height
+        textures_available = True
+        del dummy_texture, dummy_height
+    except (pyopencl.RuntimeError, pyopencl.LogicError):
+        textures_available = False
+    # Nvidia Fermi GPUs (compute capability 2.X) do not support opencl read_imagef
+    # There is no way to detect this until a kernel is compiled
+    try:
+        cc = ctx.devices[0].compute_capability_major_nv
+        textures_available &= (cc >= 3)
+    except (pyopencl.LogicError, AttributeError): # probably not a Nvidia GPU
+        pass
+    #
+    return textures_available
+
+
 def measure_workgroup_size(device):
     """Measure the actual size of the workgroup
 

@@ -28,7 +28,7 @@
 /************************ GPU VERSION (with textures) **************************/
 /*******************************************************************************/
 
-
+#ifndef DONT_USE_TEXTURES
 kernel void  forward_kernel(
         global float *d_Sino,
         read_only image2d_t d_slice,
@@ -163,7 +163,7 @@ kernel void  forward_kernel(
         d_Sino[dimrecx*(bidy*16 + tidy) + (bidx*16 + tidx)] = res;
     }
 }
-
+#endif
 
 
 /*******************************************************************************/

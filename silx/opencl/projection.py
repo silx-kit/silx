@@ -129,9 +129,7 @@ class Projection(OpenclProcessing):
             int(self.dimgrid_y) * self.wg[1]  # int(): pyopencl <= 2015.1
         )
 
-        self.is_cpu = False
-        if self.device.type == "CPU":
-            self.is_cpu = True
+        self._use_textures = self.check_textures_availability()
 
         # Allocate memory
         self.buffers = [
@@ -150,14 +148,14 @@ class Projection(OpenclProcessing):
         )
         self._tmp_extended_img = np.zeros((self.shape[0] + 2, self.shape[1] + 2),
                                           dtype=np.float32)
-        if self.is_cpu:
+        if not(self._use_textures):
             self.allocate_slice()
         else:
             self.allocate_textures()
         self.allocate_buffers()
         self._ex_sino = np.zeros((self._dimrecy, self._dimrecx),
                                  dtype=np.float32)
-        if self.is_cpu:
+        if not(self._use_textures):
             self.cl_mem["d_slice"].fill(0.)
             # enqueue_fill_buffer has issues if opencl 1.2 is not present
             # ~ pyopencl.enqueue_fill_buffer(
@@ -182,7 +180,14 @@ class Projection(OpenclProcessing):
         # Shorthands
         self._d_sino = self.cl_mem["_d_sino"]
 
-        OpenclProcessing.compile_kernels(self, self.kernel_files)
+        compile_options = None
+        if not(self._use_textures):
+            compile_options = "-DDONT_USE_TEXTURES"
+        OpenclProcessing.compile_kernels(
+            self,
+            self.kernel_files,
+            compile_options=compile_options
+        )
         # check that workgroup can actually be (16, 16)
         self.compiletime_workgroup_size = self.kernels.max_workgroup_size("forward_kernel_cpu")
 
@@ -194,7 +199,7 @@ class Projection(OpenclProcessing):
         pyopencl.enqueue_copy(self.queue, self.cl_mem["d_angles"], angles2)
 
     def allocate_slice(self):
-        ary = parray.zeros(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)
+        ary = parray.empty(self.queue, (self.shape[1] + 2, self.shape[1] + 2), np.float32)
         ary.fill(0)
         self.add_to_cl_mem({"d_slice": ary})
 
@@ -212,7 +217,7 @@ class Projection(OpenclProcessing):
         image2 = image
         if not(image.flags["C_CONTIGUOUS"] and image.dtype == np.float32):
             image2 = np.ascontiguousarray(image)
-        if self.is_cpu:
+        if not(self._use_textures):
             # TODO: create NoneEvent
             return self.transfer_to_slice(image2)
             # ~ return pyopencl.enqueue_copy(
@@ -232,7 +237,7 @@ class Projection(OpenclProcessing):
                    )
 
     def transfer_device_to_texture(self, d_image):
-        if self.is_cpu:
+        if not(self._use_textures):
             # TODO this copy should not be necessary
             return self.cpy2d_to_slice(d_image)
         else:
@@ -355,14 +360,14 @@ class Projection(OpenclProcessing):
                 assert image.ndim == 2, "Treat only 2D images"
                 assert image.shape[0] == self.shape[0], "image shape is OK"
                 assert image.shape[1] == self.shape[1], "image shape is OK"
-                if not(self.is_cpu):
+                if self._use_textures:
                     self.transfer_to_texture(image)
                     slice_ref = self.d_image_tex
                 else:
                     self.transfer_to_slice(image)
                     slice_ref = self.cl_mem["d_slice"].data
             else:
-                if self.is_cpu:
+                if not(self._use_textures):
                     slice_ref = self.cl_mem["d_slice"].data
                 else:
                     slice_ref = self.d_image_tex
@@ -388,7 +393,7 @@ class Projection(OpenclProcessing):
             )
 
             # Call the kernel
-            if self.is_cpu:
+            if not(self._use_textures):
                 event_pj = self.kernels.forward_kernel_cpu(
                     self.queue,
                     self.ndrange,
