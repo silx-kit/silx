@@ -564,7 +564,7 @@ class RegionOfInterestManager(qt.QObject):
         elif event["event"] == "mouseClicked" and event["button"] == "left":
             # Marker click is only for dnd
             # This also can click on a marker
-            clicked = event["event"] == "mouseClicked"
+            clicked = True
             plot = self.parent()
             marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
