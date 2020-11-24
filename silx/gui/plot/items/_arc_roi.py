@@ -40,6 +40,178 @@ from ._roi_base import InteractionModeMixIn
 from ._roi_base import RoiInteractionMode
 
 
+class _ArcGeometry:
+    """
+    Non-mutable object to store the geometry of the arc ROI.
+
+    The aim is is to switch between consistent state without dealing with
+    intermediate values.
+    """
+    def __init__(self):
+        """Private constructor to make the code a little more obvious.
+
+        There is specific class method to create different kind of arc geometry.
+        """
+        self.center = None
+        self.startPoint = None
+        self.endPoint = None
+        self.radius = None
+        self.weight = None
+        self.startAngle = None
+        self.endAngle = None
+        self._closed = None
+
+    @classmethod
+    def createEmpty(cls):
+        """Create an arc geometry from an empty shape
+        """
+        zero = numpy.array([0, 0])
+        return cls.create(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
+
+    @classmethod
+    def createRect(cls, startPoint, endPoint, weight):
+        """Create an arc geometry from a definition of a rectangle
+        """
+        return cls.create(None, startPoint, endPoint, None, weight, None, None, False)
+
+    @classmethod
+    def createCircle(cls, center, startPoint, endPoint, radius,
+               weight, startAngle, endAngle):
+        """Create an arc geometry from a definition of a circle
+        """
+        return cls.create(center, startPoint, endPoint, radius,
+                          weight, startAngle, endAngle, True)
+
+    @classmethod
+    def create(cls, center, startPoint, endPoint, radius,
+               weight, startAngle, endAngle, closed=False):
+        """Return a new geometry based on this object, with a specific weight
+        """
+        g = cls()
+        g.center = center
+        g.startPoint = startPoint
+        g.endPoint = endPoint
+        g.radius = radius
+        g.weight = weight
+        g.startAngle = startAngle
+        g.endAngle = endAngle
+        g._closed = closed
+        return g
+
+    def withWeight(self, weight):
+        """Return a new geometry based on this object, with a specific weight
+        """
+        return self.create(self.center, self.startPoint, self.endPoint,
+                           self.radius, weight,
+                           self.startAngle, self.endAngle, self._closed)
+
+    def withRadius(self, radius):
+        """Return a new geometry based on this object, with a specific radius.
+
+        The weight and the center is conserved.
+        """
+        startPoint = self.center + (self.startPoint - self.center) / self.radius * radius
+        endPoint = self.center + (self.endPoint - self.center) / self.radius * radius
+        return self.create(self.center, startPoint, endPoint,
+                           radius, self.weight,
+                           self.startAngle, self.endAngle, self._closed)
+
+    def withStartAngle(self, startAngle):
+        """Return a new geometry based on this object, with a specific start angle
+        """
+        vector = numpy.array([numpy.cos(startAngle), numpy.sin(startAngle)])
+        startPoint = self.center + vector * self.radius
+
+        # Never add more than 180 to maintain coherency
+        deltaAngle = startAngle - self.startAngle
+        if deltaAngle > numpy.pi:
+            deltaAngle -= numpy.pi * 2
+        elif deltaAngle < -numpy.pi:
+            deltaAngle += numpy.pi * 2
+
+        startAngle = self.startAngle + deltaAngle
+        return self.create(
+            self.center,
+            startPoint,
+            self.endPoint,
+            self.radius,
+            self.weight,
+            startAngle,
+            self.endAngle,
+            self._closed,
+        )
+
+    def withEndAngle(self, endAngle):
+        """Return a new geometry based on this object, with a specific end angle
+        """
+        vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
+        endPoint = self.center + vector * self.radius
+
+        # Never add more than 180 to maintain coherency
+        deltaAngle = endAngle - self.endAngle
+        if deltaAngle > numpy.pi:
+            deltaAngle -= numpy.pi * 2
+        elif deltaAngle < -numpy.pi:
+            deltaAngle += numpy.pi * 2
+
+        endAngle = self.endAngle + deltaAngle
+        return self.create(
+            self.center,
+            self.startPoint,
+            endPoint,
+            self.radius,
+            self.weight,
+            self.startAngle,
+            endAngle,
+            self._closed,
+        )
+
+    def translated(self, dx, dy):
+        """Return the translated geometry by dx, dy"""
+        delta = numpy.array([dx, dy])
+        center = None if self.center is None else self.center + delta
+        startPoint = None if self.startPoint is None else self.startPoint + delta
+        endPoint = None if self.endPoint is None else self.endPoint + delta
+        return self.create(center, startPoint, endPoint,
+                           self.radius, self.weight,
+                           self.startAngle, self.endAngle, self._closed)
+
+    def getKind(self):
+        """Returns the kind of shape defined"""
+        if self.center is None:
+            return "rect"
+        elif numpy.isnan(self.startAngle):
+            return "point"
+        elif self.isClosed():
+            if self.weight <= 0 or self.weight * 0.5 >= self.radius:
+                return "circle"
+            else:
+                return "donut"
+        else:
+            if self.weight * 0.5 < self.radius:
+                return "arc"
+            else:
+                return "camembert"
+
+    def isClosed(self):
+        """Returns True if the geometry is a circle like"""
+        if self._closed is not None:
+            return self._closed
+        delta = numpy.abs(self.endAngle - self.startAngle)
+        self._closed = numpy.isclose(delta, numpy.pi * 2)
+        return self._closed
+
+    def __str__(self):
+        return str((self.center,
+                    self.startPoint,
+                    self.endPoint,
+                    self.radius,
+                    self.weight,
+                    self.startAngle,
+                    self.endAngle,
+                    self._closed))
+
+
 class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     """A ROI identifying an arc of a circle with a width.
 
@@ -57,160 +229,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
-    class _Geometry:
-        def __init__(self):
-            self.center = None
-            self.startPoint = None
-            self.endPoint = None
-            self.radius = None
-            self.weight = None
-            self.startAngle = None
-            self.endAngle = None
-            self._closed = None
-
-        @classmethod
-        def createEmpty(cls):
-            zero = numpy.array([0, 0])
-            return cls.create(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
-
-        @classmethod
-        def createRect(cls, startPoint, endPoint, weight):
-            return cls.create(None, startPoint, endPoint, None, weight, None, None, False)
-
-        @classmethod
-        def createCircle(cls, center, startPoint, endPoint, radius,
-                   weight, startAngle, endAngle):
-            return cls.create(center, startPoint, endPoint, radius,
-                              weight, startAngle, endAngle, True)
-
-        @classmethod
-        def create(cls, center, startPoint, endPoint, radius,
-                   weight, startAngle, endAngle, closed=False):
-            g = cls()
-            g.center = center
-            g.startPoint = startPoint
-            g.endPoint = endPoint
-            g.radius = radius
-            g.weight = weight
-            g.startAngle = startAngle
-            g.endAngle = endAngle
-            g._closed = closed
-            return g
-
-        def withWeight(self, weight):
-            """Create a new geometry with another weight
-            """
-            return self.create(self.center, self.startPoint, self.endPoint,
-                               self.radius, weight,
-                               self.startAngle, self.endAngle, self._closed)
-
-        def withRadius(self, radius):
-            """Create a new geometry with another radius.
-
-            The weight and the center is conserved.
-            """
-            startPoint = self.center + (self.startPoint - self.center) / self.radius * radius
-            endPoint = self.center + (self.endPoint - self.center) / self.radius * radius
-            return self.create(self.center, startPoint, endPoint,
-                               radius, self.weight,
-                               self.startAngle, self.endAngle, self._closed)
-
-        def withStartAngle(self, startAngle):
-            vector = numpy.array([numpy.cos(startAngle), numpy.sin(startAngle)])
-            startPoint = self.center + vector * self.radius
-
-            # Never add more than 180 to maintain coherency
-            deltaAngle = startAngle - self.startAngle
-            if deltaAngle > numpy.pi:
-                deltaAngle -= numpy.pi * 2
-            elif deltaAngle < -numpy.pi:
-                deltaAngle += numpy.pi * 2
-
-            startAngle = self.startAngle + deltaAngle
-            return self.create(
-                self.center,
-                startPoint,
-                self.endPoint,
-                self.radius,
-                self.weight,
-                startAngle,
-                self.endAngle,
-                self._closed,
-            )
-
-        def withEndAngle(self, endAngle):
-            vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
-            endPoint = self.center + vector * self.radius
-
-            # Never add more than 180 to maintain coherency
-            deltaAngle = endAngle - self.endAngle
-            if deltaAngle > numpy.pi:
-                deltaAngle -= numpy.pi * 2
-            elif deltaAngle < -numpy.pi:
-                deltaAngle += numpy.pi * 2
-
-            endAngle = self.endAngle + deltaAngle
-            return self.create(
-                self.center,
-                self.startPoint,
-                endPoint,
-                self.radius,
-                self.weight,
-                self.startAngle,
-                endAngle,
-                self._closed,
-            )
-
-        def translated(self, x, y):
-            delta = numpy.array([x, y])
-            center = None if self.center is None else self.center + delta
-            startPoint = None if self.startPoint is None else self.startPoint + delta
-            endPoint = None if self.endPoint is None else self.endPoint + delta
-            return self.create(center, startPoint, endPoint,
-                               self.radius, self.weight,
-                               self.startAngle, self.endAngle, self._closed)
-
-        def getKind(self):
-            """Returns the kind of shape defined"""
-            if self.center is None:
-                return "rect"
-            elif numpy.isnan(self.startAngle):
-                return "point"
-            elif self.isClosed():
-                if self.weight <= 0 or self.weight * 0.5 >= self.radius:
-                    return "circle"
-                else:
-                    return "donut"
-            else:
-                if self.weight * 0.5 < self.radius:
-                    return "arc"
-                else:
-                    return "camembert"
-
-        def isClosed(self):
-            """Returns True if the geometry is a circle like"""
-            if self._closed is not None:
-                return self._closed
-            delta = numpy.abs(self.endAngle - self.startAngle)
-            self._closed = numpy.isclose(delta, numpy.pi * 2)
-            return self._closed
-
-        def __str__(self):
-            return str((self.center,
-                        self.startPoint,
-                        self.endPoint,
-                        self.radius,
-                        self.weight,
-                        self.startAngle,
-                        self.endAngle,
-                        self._closed))
-
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
         InteractionModeMixIn.__init__(self)
 
-        self._geometry = self._Geometry.createEmpty()
+        self._geometry = _ArcGeometry.createEmpty()
         self._handleLabel = self.addLabelHandle()
 
         self._handleStart = self.addHandle()
@@ -543,13 +567,13 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             v = start - center
             startAngle = numpy.angle(complex(v[0], v[1]))
             endAngle = startAngle + numpy.pi * 2.0
-            return self._Geometry.createCircle(
+            return _ArcGeometry.createCircle(
                 center, start, end, radius, weight, startAngle, endAngle
             )
 
         elif numpy.linalg.norm(numpy.cross(mid - start, end - start)) < 1e-5:
             # Degenerated arc, it's a rectangle
-            return self._Geometry.createRect(start, end, weight)
+            return _ArcGeometry.createRect(start, end, weight)
         else:
             center, radius = self._circleEquation(start, mid, end)
             v = start - center
@@ -569,7 +593,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 if endAngle > startAngle:
                     endAngle -= 2 * numpy.pi
 
-            return self._Geometry.create(center, start, end,
+            return _ArcGeometry.create(center, start, end,
                                          radius, weight, startAngle, endAngle)
 
     def _createShapeFromGeometry(self, geometry):
@@ -780,7 +804,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
         endPoint = center + vector * radius
 
-        geometry = self._Geometry.create(center, startPoint, endPoint,
+        geometry = _ArcGeometry.create(center, startPoint, endPoint,
                                          radius, weight,
                                          startAngle, endAngle, closed=None)
         self._geometry = geometry
