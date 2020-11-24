@@ -366,7 +366,9 @@ class _NormalizationMixIn:
         if mode == Colormap.MINMAX:
             vmin, vmax = self.autoscaleMinMax(data)
         elif mode == Colormap.STDDEV3:
-            vmin, vmax = self.autoscaleMean3Std(data)
+            dmin, dmax = self.autoscaleMinMax(data)
+            stdmin, stdmax = self.autoscaleMean3Std(data)
+            vmin, vmax = max(dmin, stdmin), min(dmax, stdmax)
         else:
             raise ValueError('Unsupported mode: %s' % mode)
 
@@ -538,7 +540,8 @@ class Colormap(qt.QObject):
     """constant for autoscale using min/max data range"""
 
     STDDEV3 = 'stddev3'
-    """constant for autoscale using mean +/- 3*std(data)"""
+    """constant for autoscale using mean +/- 3*std(data)
+    with a clamp on min/max of the data"""
 
     AUTOSCALE_MODES = (MINMAX, STDDEV3)
     """Tuple of managed auto scale algorithms"""
