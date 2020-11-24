@@ -205,7 +205,7 @@ class PlotWidget(qt.QMainWindow):
     It provides the visible state.
     """
 
-    sigDefaultContextMenu = qt.Signal(qt.QMenu)
+    _sigDefaultContextMenu = qt.Signal(qt.QMenu)
     """Signal emitted when the default context menu of the plot is feed.
 
     It provides the menu which will be displayed.
@@ -507,7 +507,7 @@ class PlotWidget(qt.QMainWindow):
             action = ClosePolygonInteractionAction(plot=self, parent=menu)
             menu.addAction(action)
 
-        self.sigDefaultContextMenu.emit(menu)
+        self._sigDefaultContextMenu.emit(menu)
 
         # Make sure the plot is updated, especially when the plot is in
         # draw interaction mode
