@@ -192,6 +192,9 @@ class StackView(qt.QMainWindow):
         imageLegend = '__StackView__image' + str(id(self))
         self._stackItem.setName(imageLegend)
 
+        self.__autoscaleCmap = False
+        """Flag to disable/enable colormap auto-scaling
+        based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
                                    "Dimension 2"]
         """These labels are displayed on the X and Y axes.
@@ -545,6 +548,9 @@ class StackView(qt.QMainWindow):
             perspective_changed = True
             self.setPerspective(perspective)
 
+        if self.__autoscaleCmap:
+            self.scaleColormapRangeToStack()
+
         # init plot
         self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
         self._stackItem.setColormap(self.getColormap())
@@ -831,8 +837,6 @@ class StackView(qt.QMainWindow):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        deferredAutoscale = False
-
         # if is a colormap object or a dictionary
         if isinstance(colormap, Colormap) or isinstance(colormap, dict):
             # Support colormap parameter as a dict
@@ -872,9 +876,7 @@ class StackView(qt.QMainWindow):
                     reason='autoscale argument is replaced by a method',
                     replacement='scaleColormapRangeToStack',
                     since_version='0.14')
-                # scaleColormapRangeToStack needs to be called **after**
-                # setDefaultColormap so getColormap returns the right colormap
-                deferredAutoscale = True
+                self.__autoscaleCmap = True
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
@@ -886,7 +888,9 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
-        if deferredAutoscale:
+        if self.__autoscaleCmap:
+            # scaleColormapRangeToStack needs to be called **after**
+            # setDefaultColormap so getColormap returns the right colormap
             self.scaleColormapRangeToStack()
 
 
