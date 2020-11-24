@@ -409,7 +409,7 @@ class RegionOfInterestManager(qt.QObject):
 
         parent.sigItemRemoved.connect(self._itemRemoved)
 
-        parent.sigDefaultContextMenu.connect(self._feedContextMenu)
+        parent._sigDefaultContextMenu.connect(self._feedContextMenu)
 
     @classmethod
     def getSupportedRoiClasses(cls):
