@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
+#cython: embedsignature=True, language_level=3
+## This is for optimisation
+#cython: boundscheck=False, wraparound=False, cdivision=True, initializedcheck=False,
+## This is for developping:
+##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
+#
+#
 #
 #    Project: silx (originally pyFAI)
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2020  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,32 +30,49 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+"""Bilinear interpolator, peak finder, line-profile for images"""
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
-__doc__ = "Bilinear interpolator, peak finder, line-profile for images"
+__date__ = "25/11/2020"
+
+# C-level imports
+from libc.stdint cimport uint8_t
+from libc.math cimport floor, ceil, sqrt, NAN, isfinite
+from libc.float cimport FLT_MAX
 
 import cython
-from cython.view cimport array as cvarray
 import numpy
-from libc.math cimport floor, ceil, sin, cos, sqrt, atan2
 import logging
 logger = logging.getLogger(__name__)
+
+
+#Definition of some constants
+# How data are stored 
+ctypedef float data_t
+data_d = numpy.float32
+
+#How the mask is stored
+ctypedef uint8_t mask_t
+mask_d = numpy.uint8
 
 
 cdef class BilinearImage:
     """Bilinear interpolator for images ... or any data on a regular grid
     """
     cdef:
-        readonly float[:, ::1] data
-        readonly float maxi, mini
-        readonly size_t width, height
-
-    cpdef size_t coarse_local_maxi(self, size_t)
-    cdef size_t c_local_maxi(self, size_t) nogil
-    cdef float c_funct(self, float, float) nogil
-
-    def __cinit__(self, data not None):
+        readonly data_t[:, ::1] data
+        readonly mask_t[:, ::1] mask
+        readonly data_t maxi, mini
+        readonly Py_ssize_t width, height
+        readonly bint has_mask 
+    
+    # C-level declarations
+    cpdef Py_ssize_t coarse_local_maxi(self, Py_ssize_t)
+    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t) nogil
+    cdef data_t c_funct(self, data_t, data_t) nogil
+    cdef void _init_min_max(self) nogil
+    
+    def __cinit__(self, data not None, mask=None):
         """Constructor
 
         :param data: image as a 2D array
@@ -56,12 +80,18 @@ cdef class BilinearImage:
         assert data.ndim == 2
         self.height = data.shape[0]
         self.width = data.shape[1]
-        self.maxi = data.max()
-        self.mini = data.min()
-        self.data = numpy.ascontiguousarray(data, dtype=numpy.float32)
+        self.data = numpy.ascontiguousarray(data, dtype=data_d)
+        if mask is not None:
+            self.mask = numpy.ascontiguousarray(mask, dtype=mask_d)
+            self.has_mask=True
+        else:
+            self.mask = None
+            self.has_mask = False
+        self._init_min_max()
 
     def __dealloc__(self):
         self.data = None
+        self.mask = None
 
     def __call__(self, coord):
         """Function f((y, x)) where f is a continuous function
@@ -72,10 +102,24 @@ cdef class BilinearImage:
         :return: Interpolated signal from the image
         """
         return self.c_funct(coord[1], coord[0])
+    
+    cdef void _init_min_max(self) nogil:
+        "Calculate the min & max"
+        cdef:
+            Py_ssize_t i, j
+            data_t maxi, mini, value
+        mini = FLT_MAX
+        maxi = -FLT_MAX
+        for i in range(self.height):
+            for j in range(self.width):
+                if not (self.has_mask and self.mask[i,j]):
+                    value = self.data[i, j] 
+                    maxi = max(value, maxi)
+                    mini = min(value, mini)
+        self.maxi = maxi
+        self.mini = mini 
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cdef float c_funct(self, float x, float y) nogil:
+    cdef data_t c_funct(self, data_t x, data_t y) nogil:
         """Function f(x, y) where f is a continuous function
         made from the image.
 
@@ -86,10 +130,11 @@ cdef class BilinearImage:
         Cython only function due to NOGIL
         """
         cdef:
-            float d0 = min(max(y, 0.0), (self.height - 1.0))
-            float d1 = min(max(x, 0.0), (self.width - 1.0))
-            int i0, i1, j0, j1
-            float x0, x1, y0, y1, res
+            data_t d0 = min(max(y, 0.0), (self.height - 1.0))
+            data_t d1 = min(max(x, 0.0), (self.width - 1.0))
+            mask_t m0, m1, m2, m3
+            Py_ssize_t i0, i1, j0, j1
+            data_t x0, x1, y0, y1, res, scale
 
         x0 = floor(d0)
         x1 = ceil(d0)
@@ -100,20 +145,76 @@ cdef class BilinearImage:
         j0 = < int > y0
         j1 = < int > y1
         if (i0 == i1) and (j0 == j1):
-            res = self.data[i0, j0]
+            if not (self.has_mask and self.mask[i0,j0]):
+                res = self.data[i0, j0]
+            else:
+                res = NAN
         elif i0 == i1:
-            res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
+            if self.has_mask:
+                m0 = self.mask[i0, j0]
+                m1 = self.mask[i0, j1]
+                if m0 and m1:
+                    res = NAN
+                elif m0:
+                    res = self.data[i0, j1]
+                elif m1:
+                    res = self.data[i0, j0]
+                else:
+                    res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))                
+            else:
+                res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
         elif j0 == j1:
-            res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
+            if self.has_mask:
+                m0 = self.mask[i0, j0]
+                m1 = self.mask[i1, j0]
+                if m0 and m1:
+                    res = NAN
+                elif m0:
+                    res = self.data[i1, j0]
+                elif m1:
+                    res = self.data[i0, j0]
+                else:
+                    res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))                
+            else:
+                res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
         else:
-            res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
-                + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
-                + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
-                + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
+            if self.has_mask:
+                m0 = self.mask[i0, j0]
+                m1 = self.mask[i1, j0]
+                m2 = self.mask[i0, j1]
+                m3 = self.mask[i1, j1]
+                if m0 and m1 and m2 and m3:
+                    res = NAN
+                else:
+                    m0 = not m0
+                    m1 = not m1
+                    m2 = not m2
+                    m3 = not m3
+                    if m0 and m1 and m2 and m3:
+                        res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
+                            + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
+                            + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
+                            + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))                    
+                    else:
+                        res = (m0 * self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
+                            + (m1 * self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
+                            + (m2 * self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
+                            + (m3 * self.data[i1, j1] * (d0 - x0) * (d1 - y0))
+                        scale = ((m0 * (x1 - d0) * (y1 - d1)) 
+                               + (m1 * (d0 - x0) * (y1 - d1))
+                               + (m2 * (x1 - d0) * (d1 - y0))
+                               + (m3 * (d0 - x0) * (d1 - y0)))/ \
+                                ((x1 - d0) * (y1 - d1) + (d0 - x0) * (y1 - d1)+
+                                 (x1 - d0) * (d1 - y0) + (d0 - x0) * (d1 - y0))
+                        res /= scale
+            else:
+                res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
+                    + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
+                    + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
+                    + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))                    
+                
         return res
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
     def opp_f(self, coord):
         """Function -f((y,x)) for peak finding via minimizer.
 
@@ -123,7 +224,7 @@ cdef class BilinearImage:
         :return: Negative interpolated signal from the image
         """
         cdef:
-            float d0, d1, res
+            data_t d0, d1, res
         d0, d1 = coord
         if d0 < 0:
             res = self.mini + d0
@@ -137,9 +238,6 @@ cdef class BilinearImage:
             res = self.c_funct(d1, d0)
         return - res
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
     def local_maxi(self, coord):
         """Return the nearest local maximum ... with sub-pixel refinement
 
@@ -158,9 +256,9 @@ cdef class BilinearImage:
         cdef:
             int res, current0, current1
             int i0, i1
-            float tmp, sum0 = 0, sum1 = 0, sum = 0
-            float a00, a01, a02, a10, a11, a12, a20, a21, a22
-            float d00, d11, d01, denom, delta0, delta1
+            data_t tmp, sum0 = 0, sum1 = 0, sum = 0
+            data_t a00, a01, a02, a10, a11, a12, a20, a21, a22
+            data_t d00, d11, d01, denom, delta0, delta1
         res = self.c_local_maxi(round(coord[0]) * self.width + round(coord[1]))
 
         current0 = res // self.width
@@ -202,7 +300,7 @@ cdef class BilinearImage:
 
         return (float(current0), float(current1))
 
-    cpdef size_t coarse_local_maxi(self, size_t x):
+    cpdef Py_ssize_t coarse_local_maxi(self, Py_ssize_t x):
         """Return the nearest local maximum ... without sub-pixel refinement
 
         :param idx: start index (=row*width+column)
@@ -210,10 +308,7 @@ cdef class BilinearImage:
         """
         return self.c_local_maxi(x)
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    @cython.cdivision(True)
-    cdef size_t c_local_maxi(self, size_t idx) nogil:
+    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t idx) nogil:
         """Return the nearest local maximum without sub-pixel refinement
 
         :param idx: start index (=row*width+column)
@@ -222,13 +317,39 @@ cdef class BilinearImage:
         This method is Cython only due to the NOGIL
         """
         cdef:
-            int current0 = idx // self.width
-            int current1 = idx % self.width
-            int i0, i1, start0, stop0, start1, stop1, new0, new1
-            float tmp, value, old_value
+            Py_ssize_t current0 = idx // self.width
+            Py_ssize_t current1 = idx % self.width
+            Py_ssize_t i0, i1, start0, stop0, start1, stop1, new0, new1, rng, cnt
+            mask_t m
+            data_t tmp, value, old_value
 
-        value = self.data[current0, current1]
-        old_value = value - 1.0
+        if self.has_mask and self.mask[current0, current1]:
+            #Start searching for a non masked pixel.
+            rng = 0
+            cnt = 0
+            value = self.mini
+            new0, new1 = current0, current1
+            while cnt == 0:
+                rng += 1
+                cnt = 0
+                start0 = max(0, current0 - rng)
+                stop0 = min(self.height, current0 + rng + 1)
+                start1 = max(0, current1 - rng)
+                stop1 = min(self.width, current1 + rng + 1)
+                for i0 in range(start0, stop0):
+                    for i1 in range(start1, stop1):
+                        m = not self.mask[i0, i1] 
+                        cnt += m
+                        if m:
+                            tmp = self.data[i0, i1]
+                            if tmp > value:
+                                new0, new1 = i0, i1
+                                value = tmp
+            current0, current1 = new0, new1
+        else:
+            value = self.data[current0, current1]
+        
+        old_value = value -1
         new0, new1 = current0, current1
 
         while value > old_value:
@@ -239,6 +360,8 @@ cdef class BilinearImage:
             stop1 = min(self.width, current1 + 2)
             for i0 in range(start0, stop0):
                 for i1 in range(start1, stop1):
+                    if self.has_mask and self.mask[current0, current1]:
+                        continue
                     tmp = self.data[i0, i1]
                     if tmp > value:
                         new0, new1 = i0, i1
@@ -246,7 +369,6 @@ cdef class BilinearImage:
             current0, current1 = new0, new1
         return self.width * current0 + current1
 
-    @cython.boundscheck(False)
     def map_coordinates(self, coordinates):
         """Map coordinates of the array on the image
 
@@ -254,20 +376,19 @@ cdef class BilinearImage:
         :return: array of values at given coordinates
         """
         cdef:
-            float[:] d0, d1, res
-            size_t size, i
+            data_t[:] d0, d1, res
+            Py_ssize_t size, i
         shape = coordinates[0].shape
         size = coordinates[0].size
-        d0 = numpy.ascontiguousarray(coordinates[0].ravel(), dtype=numpy.float32)
-        d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
+        d0 = numpy.ascontiguousarray(coordinates[0].ravel(), dtype=data_d)
+        d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=data_d)
         assert size == d1.size
-        res = numpy.empty(size, dtype=numpy.float32)
+        res = numpy.empty(size, dtype=data_d)
         with nogil:
             for i in range(size):
                 res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)
 
-    @cython.boundscheck(False)
     def profile_line(self, src, dst, int linewidth=1, method='mean'):
         """Return the mean or sum of intensity profile of an image measured
         along a scan line.
@@ -289,10 +410,11 @@ cdef class BilinearImage:
         Inspired from skimage
         """
         cdef:
-            float src_row, src_col, dst_row, dst_col, d_row, d_col
-            float length, col_width, row_width, sum, row, col, new_row, new_col
-            int lengt, i, j, cnt
-            float[::1] result
+            data_t src_row, src_col, dst_row, dst_col, d_row, d_col
+            data_t length, col_width, row_width, sum, row, col, new_row, new_col, val
+            Py_ssize_t lengt, i, j, cnt
+            bint compute_mean
+            data_t[::1] result
         src_row, src_col = src
         dst_row, dst_col = dst
         if (src_row == dst_row) and (src_col == dst_col):
@@ -307,10 +429,10 @@ cdef class BilinearImage:
         col_width = - d_row / length
 
         lengt = <int> ceil(length + 1)
-        d_row /= <float> (lengt -1)
-        d_col /= <float> (lengt -1)
+        d_row /= <data_t> (lengt -1)
+        d_col /= <data_t> (lengt -1)
 
-        result = numpy.zeros(lengt, dtype=numpy.float32)
+        result = numpy.zeros(lengt, dtype=data_d)
 
         # Offset position to the center of the bottom pixels of the profile
         src_row -= row_width * (linewidth - 1) / 2.
@@ -330,10 +452,12 @@ cdef class BilinearImage:
                     new_col = col + j * col_width
                     if ((new_col >= 0) and (new_col < self.width) and
                             (new_row >= 0) and (new_row < self.height)):
-                        cnt = cnt + 1
-                        sum = sum + self.c_funct(new_col, new_row)
+                        val = self.c_funct(new_col, new_row)
+                        if isfinite(val):
+                            cnt += 1
+                            sum += val  
                 if cnt:
-                    if compute_mean is True:
+                    if compute_mean:
                         result[i] += sum / cnt
                     else:
                         result[i] += sum
