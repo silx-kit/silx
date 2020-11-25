@@ -33,13 +33,12 @@ On this example we will:
    - compute curve integrals (only for 'curve').
    - compute center of mass for all possible items
 
-.. note:: for now the possible types manged by the Stats are ('curve', 'image',
-          'scatter' and 'histogram')
+.. note:: stats are available for 1D and 2D at the time being
 """
 
 __authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "24/07/2018"
+__date__ = "23/07/2019"
 
 
 from silx.gui import qt

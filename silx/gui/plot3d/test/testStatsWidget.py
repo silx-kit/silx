@@ -34,6 +34,7 @@ import numpy
 
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.plot.stats.stats import Stats
 from silx.gui import qt
 
 from silx.gui.plot.StatsWidget import BasicStatsWidget
@@ -55,6 +56,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         # self.qWaitForWindowExposed(self.sceneWidget)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.qapp.processEvents()
         self.sceneWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.sceneWidget.close()
@@ -147,6 +149,7 @@ class TestScalarFieldView(TestCaseQt):
         # self.qWaitForWindowExposed(self.sceneWidget)
 
     def tearDown(self):
+        Stats._getContext.cache_clear()
         self.qapp.processEvents()
         self.scalarFieldView.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.scalarFieldView.close()

@@ -449,10 +449,12 @@ class _StatsWidgetBase(object):
         _displayOnlyActItem option."""
         raise NotImplementedError('Base class')
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         raise NotImplementedError('Base class')
 
@@ -548,7 +550,7 @@ class _StatsWidgetBase(object):
 
 class StatsTable(_StatsWidgetBase, TableWidget):
     """
-    TableWidget displaying for each curves contained by the Plot some
+    TableWidget displaying for each items contained by the Plot some
     information:
 
     * legend
@@ -582,10 +584,10 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.setColumnCount(2)
 
         # Init headers
-        headerItem = qt.QTableWidgetItem('Legend')
+        headerItem = qt.QTableWidgetItem(self._LEGEND_HEADER_DATA.title())
         headerItem.setData(qt.Qt.UserRole, self._LEGEND_HEADER_DATA)
         self.setHorizontalHeaderItem(0, headerItem)
-        headerItem = qt.QTableWidgetItem('Kind')
+        headerItem = qt.QTableWidgetItem(self._KIND_HEADER_DATA.title())
         headerItem.setData(qt.Qt.UserRole, self._KIND_HEADER_DATA)
         self.setHorizontalHeaderItem(1, headerItem)
 
@@ -750,7 +752,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             return
         else:
             item = self.sender()
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
             # deal with stat items visibility
             if event is ItemChangedType.VISIBLE:
                 if len(self._itemToTableItems(item).items()) > 0:
@@ -812,7 +814,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                 self.setItem(row, column, tableItem)
 
             # Update table items content
-            self._updateStats(item)
+            self._updateStats(item, data_changed=True)
 
         # Listen for item changes
         # Using queued connection to avoid issue with sender
@@ -845,10 +847,12 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         self.clearContents()
         self.setRowCount(0)
 
-    def _updateStats(self, item):
+    def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
 
         :param item: The plot item
+        :param bool data_changed: is the item data changed.
+        :param bool roi_changed: is the associated roi changed.
         """
         if item is None:
             return
@@ -865,7 +869,8 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
             stats = statsHandler.calculate(
-                item, plot, self._statsOnVisibleData)
+                item, plot, self._statsOnVisibleData,
+                data_changed=data_changed, roi_changed=roi_changed)
         else:
             stats = {}
 
@@ -895,7 +900,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item)
+                self._updateStats(item, data_changed=is_request)
 
     def _currentItemChanged(self, current, previous):
         """Handle change of selection in table and sync plot selection
@@ -1392,7 +1397,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         """
         return self._item_kind
 
-    def _setItem(self, item):
+    def _setItem(self, item, data_changed=True):
         if item is None:
             for stat_name, stat_widget in self._statQlineEdit.items():
                 stat_widget.setText('')
@@ -1402,7 +1407,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             if plot is not None:
                 statsValDict = self._statsHandler.calculate(item,
                                                             plot,
-                                                            self._statsOnVisibleData)
+                                                            self._statsOnVisibleData,
+                                                            data_changed=data_changed)
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
 
@@ -1417,7 +1423,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
         _item = items[0] if len(items) == 1 else None
-        self._setItem(_item)
+        self._setItem(_item, data_changed=True)
 
     def _updateCurrentItem(self):
         self._updateItemObserve()
@@ -1432,7 +1438,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     def _removeItem(self, item):
         raise NotImplementedError('Display only the active item')
 
-    def _plotCurrentChanged(selfself, current):
+    def _plotCurrentChanged(self, current):
         raise NotImplementedError('Display only the active item')
 
     def _updateModeHasChanged(self):
