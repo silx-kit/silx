@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "02/08/2016"
+__date__ = "25/11/2020"
 
 import unittest
 import numpy
@@ -45,6 +45,10 @@ class TestBilinear(unittest.TestCase):
         gb = numpy.exp(-b * b / 6000)
         gg = numpy.outer(ga, gb)
         b = BilinearImage(gg)
+
+        self.assertAlmostEqual(b.maxi, 1, 2, "maxi is almost 1")
+        self.assertLess(b.mini, 0.3, "mini should be around 0.23")
+
         ok = 0
         for s in range(self.N):
             i, j = numpy.random.randint(100), numpy.random.randint(100)
@@ -78,8 +82,8 @@ class TestBilinear(unittest.TestCase):
         self.assertEqual(ok, self.N, "Maximum is always found")
 
     def test_map(self):
-        N = 100
-        y, x = numpy.ogrid[:N, :N + 10]
+        N = 6
+        y, x = numpy.ogrid[:N,:N + 10]
         img = x + y
         b = BilinearImage(img)
         x2d = numpy.zeros_like(y) + x
@@ -87,15 +91,46 @@ class TestBilinear(unittest.TestCase):
         res1 = b.map_coordinates((y2d, x2d))
         self.assertEqual(abs(res1 - img).max(), 0, "images are the same (corners)")
 
-        x2d = numpy.zeros_like(y) + (x[:, :-1] + 0.5)
-        y2d = numpy.zeros_like(x[:, :-1]) + y
+        x2d = numpy.zeros_like(y) + (x[:,:-1] + 0.5)
+        y2d = numpy.zeros_like(x[:,:-1]) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEqual(abs(res1 - img[:, :-1] - 0.5).max(), 0, "images are the same (middle)")
+        self.assertEqual(abs(res1 - img[:,:-1] - 0.5).max(), 0, "images are the same (middle)")
 
-        x2d = numpy.zeros_like(y[:-1, :]) + (x[:, :-1] + 0.5)
-        y2d = numpy.zeros_like(x[:, :-1]) + (y[:-1, :] + 0.5)
+        x2d = numpy.zeros_like(y[:-1,:]) + (x[:,:-1] + 0.5)
+        y2d = numpy.zeros_like(x[:,:-1]) + (y[:-1,:] + 0.5)
         res1 = b.map_coordinates((y2d, x2d))
         self.assertEqual(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
+
+    def test_mask_grad(self):
+        N = 100
+        img = numpy.arange(N * N).reshape(N, N)
+        # No mask on the boundaries, makes the test complicated, pixel always separated
+        masked = 2 * numpy.random.randint(0, int((N - 1) / 2), size=(2, N)) + 1
+        mask = numpy.zeros((N, N), dtype=numpy.uint8)
+        mask[(masked[0], masked[1])] = 1
+        self.assertLessEqual(mask.sum(), N, "At most N pixels are masked")
+
+        b = BilinearImage(img, mask=mask)
+        self.assertEqual(b.has_mask, True, "interpolator has mask")
+        self.assertEqual(b.maxi, N * N - 1, "maxi is N²-1")
+        self.assertEqual(b.mini, 0, "mini is 0")
+
+        y, x = numpy.ogrid[:N,:N]
+        x2d = numpy.zeros_like(y) + x
+        y2d = numpy.zeros_like(x) + y
+        res1 = b.map_coordinates((y2d, x2d))
+        self.assertEqual(numpy.nanmax(abs(res1 - img)), 0, "images are the same (corners), or Nan ")
+
+        x2d = numpy.zeros_like(y) + (x[:,:-1] + 0.5)
+        y2d = numpy.zeros_like(x[:,:-1]) + y
+        res1 = b.map_coordinates((y2d, x2d))
+        self.assertLessEqual(numpy.max(abs(res1 - img[:, 1:] + 1 / 2.)), 0.5, "images are the same (middle) +/- 0.5")
+
+        x2d = numpy.zeros_like(y[:-1]) + (x[:,:-1] + 0.5)
+        y2d = numpy.zeros_like(x[:,:-1]) + (y[:-1] + 0.5)
+        res1 = b.map_coordinates((y2d, x2d))
+        exp = 0.25 * (img[:-1,:-1] + img[:-1, 1:] + img[1:,:-1] + img[1:, 1:])
+        self.assertLessEqual(abs(res1 - exp).max(), N / 4, "images are almost the same (center)")
 
     def test_profile_grad(self):
         N = 100
@@ -139,4 +174,5 @@ def suite():
     testsuite.addTest(TestBilinear("test_map"))
     testsuite.addTest(TestBilinear("test_profile_grad"))
     testsuite.addTest(TestBilinear("test_profile_gaus"))
+    testsuite.addTest(TestBilinear("test_mask_grad"))
     return testsuite
