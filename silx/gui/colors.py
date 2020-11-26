@@ -453,7 +453,11 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
             data[numpy.isfinite(data) == False] = numpy.nan
         if data.size == 0:  # Fallback
             return None, None
-        mean, std = numpy.nanmean(data), numpy.nanstd(data)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            # Ignore nanmean "Mean of empty slice" warning and
+            # nanstd "Degrees of freedom <= 0 for slice" warning
+            mean, std = numpy.nanmean(data), numpy.nanstd(data)
         return mean - 3 * std, mean + 3 * std
 
 
