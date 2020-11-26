@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/01/2019"
+__date__ = "26/11/2020"
 
 import collections
 try:
@@ -109,6 +109,9 @@ class ItemChangedType(enum.Enum):
 
     DATA = 'dataChanged'
     """Item's data changed flag"""
+
+    MASK = 'maskChanged'
+    """Item's mask changed flag"""
 
     HIGHLIGHTED = 'highlightedChanged'
     """Item's highlight state changed flag."""
@@ -315,7 +318,7 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
-    def getVisibleBounds(self) -> Optional[Tuple[float,float,float,float]]:
+    def getVisibleBounds(self) -> Optional[Tuple[float, float, float, float]]:
         """Returns visible bounds of the item bounding box in the plot area.
 
         :returns:
@@ -503,8 +506,8 @@ class DataItem(Item):
             self._boundsChanged(checkVisibility=False)
         super().setVisible(visible)
 
-
 # Mix-in classes ##############################################################
+
 
 class ItemMixInBase(object):
     """Base class for Item mix-in"""
@@ -1232,7 +1235,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
-        self.__parameters = dict(  # Init parameters to None
+        self.__parameters = dict(# Init parameters to None
             (parameter, None) for parameter in self.VisualizationParameter)
         self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = 'mean'
 
@@ -1404,8 +1407,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 elif error.ndim == 1:  # N array
                     newError = numpy.empty((2, len(value)),
                                            dtype=numpy.float)
-                    newError[0, :] = error
-                    newError[1, :] = error
+                    newError[0,:] = error
+                    newError[1,:] = error
                     error = newError
 
                 elif error.size == 2 * len(value):  # 2xN array
@@ -1634,6 +1637,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
 class BaselineMixIn(object):
     """Base class for Baseline mix-in"""
+
     def __init__(self, baseline=None):
         self._baseline = baseline
 
