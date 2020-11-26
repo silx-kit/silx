@@ -100,6 +100,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
         self._mask = mask
+        self._masked = None  # NaN masked float32 representation if the data
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
@@ -187,6 +188,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._data = data
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
+        self._masked = None
 
     def getMask(self, copy=True):
         """Returns the mask data
@@ -205,8 +207,21 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if mask is not None and self._data is not None:
             if  mask.shape == self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data")
+        self._masked = None
         self._mask = mask
         self._updated(ItemChangedType.MASK)
+
+    def getMasked(self):
+        """Retirieve the NaN-masked image
+        
+        :rtype: numpy.ndarray of dtype numpy.float32
+        """
+        if self._masked is None:
+            masked = numpy.array(self.data, dtype=numpy.float32, copy=True)
+            if self._mask is not None:
+                masked[numpy.where(self._mask)] = numpy.nan
+            self._masked = masked
+        return self._masked
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
