@@ -62,19 +62,19 @@ __all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion
 RELEASE_LEVEL_VALUE = {"dev": 0,
                        "alpha": 10,
                        "beta": 11,
-                       "candidate": 12,
+                       "rc": 12,
                        "final": 15}
 
 PRERELEASE_NORMALIZED_NAME = {"dev": "a",
                               "alpha": "a",
                               "beta": "b",
-                              "candidate": "rc"}
+                              "rc": "rc"}
 
 MAJOR = 0
 MINOR = 14
 MICRO = 0
-RELEV = "candidate"  # <16
 SERIAL = 0  # <16
+RELEV = "rc"  # <16
 
 date = __date__
 
