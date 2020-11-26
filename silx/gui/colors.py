@@ -370,7 +370,20 @@ class _NormalizationMixIn:
         elif mode == Colormap.STDDEV3:
             dmin, dmax = self.autoscaleMinMax(data)
             stdmin, stdmax = self.autoscaleMean3Std(data)
-            vmin, vmax = max(dmin, stdmin), min(dmax, stdmax)
+            if dmin is None:
+                vmin = stdmin
+            elif stdmin is None:
+                vmin = dmin
+            else:
+                vmin = max(dmin, stdmin)
+
+            if dmax is None:
+                vmax = stdmax
+            elif stdmax is None:
+                vmax = dmax
+            else:
+                vmax = min(dmax, stdmax)
+
         else:
             raise ValueError('Unsupported mode: %s' % mode)
 
