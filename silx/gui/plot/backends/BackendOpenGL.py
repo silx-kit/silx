@@ -1223,8 +1223,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if axis == 'left':
             self._plotFrame.yAxis.title = label
         else:  # right axis
-            if label:
-                _logger.warning('Right axis label not implemented')
+            self._plotFrame.y2Axis.title = label
 
     # Graph limits
 
