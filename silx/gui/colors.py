@@ -34,6 +34,8 @@ __date__ = "29/01/2019"
 import numpy
 import logging
 import collections
+import warnings
+
 from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math.combo import min_max
@@ -411,7 +413,13 @@ class _NormalizationMixIn:
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
-        mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            # Ignore nanmean "Mean of empty slice" warning and
+            # nanstd "Degrees of freedom <= 0 for slice" warning
+            mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+
         return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
 
 
