@@ -5,8 +5,7 @@
 ----------------------------------
 
 .. automodule:: silx.io.specfile
-    :members:
-    :undoc-members:
+
 
 .. autoclass:: silx.io.specfile.SpecFile
     :members:
