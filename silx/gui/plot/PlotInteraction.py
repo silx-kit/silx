@@ -1604,6 +1604,8 @@ class DrawSelectMode(FocusManager):
 
     def __init__(self, plot, shape, label, color, width):
         eventHandlerClass = _DRAW_MODES[shape]
+        self._pan = Pan(plot)
+        self._panStart = None
         parameters = {
             'shape': shape,
             'label': label,
@@ -1613,6 +1615,21 @@ class DrawSelectMode(FocusManager):
         super().__init__((
             ItemsInteractionForCombo(plot),
             eventHandlerClass(plot, parameters)))
+
+    def handleEvent(self, eventName, *args, **kwargs):
+        if eventName == 'press' and args[2] == MIDDLE_BTN:
+            self._panStart = args[:2]
+            self._pan.beginDrag(*args)
+            return  # Consume middle click events
+        elif eventName == 'release' and args[2] == MIDDLE_BTN:
+            self._panStart = None
+            self._pan.endDrag(self._panStart, args[:2], MIDDLE_BTN)
+            return  # Consume middle click events
+        elif self._panStart is not None and eventName == 'move':
+            x, y = args[:2]
+            self._pan.drag(x, y, MIDDLE_BTN)
+
+        super().handleEvent(eventName, *args, **kwargs)
 
     def getDescription(self):
         """Returns the dict describing this interactive mode"""
