@@ -33,7 +33,7 @@
 """Bilinear interpolator, peak finder, line-profile for images"""
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "25/11/2020"
+__date__ = "26/11/2020"
 
 # C-level imports
 from libc.stdint cimport uint8_t
@@ -457,10 +457,11 @@ cdef class BilinearImage:
                             cnt += 1
                             sum += val  
                 if cnt:
-                    if compute_mean:
-                        result[i] += sum / cnt
-                    else:
-                        result[i] += sum
-
+                        if compute_mean:
+                            result[i] += sum / cnt
+                        else:
+                            result[i] += sum
+                else:
+                    result[i] += NAN
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(result)
