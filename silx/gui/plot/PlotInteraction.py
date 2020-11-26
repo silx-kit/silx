@@ -1617,6 +1617,8 @@ class DrawSelectMode(FocusManager):
             eventHandlerClass(plot, parameters)))
 
     def handleEvent(self, eventName, *args, **kwargs):
+        # Hack to add pan interaction to select-draw
+        # See issue Refactor PlotWidget interaction #3292
         if eventName == 'press' and args[2] == MIDDLE_BTN:
             self._panStart = args[:2]
             self._pan.beginDrag(*args)
