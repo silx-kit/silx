@@ -53,10 +53,14 @@ Available icons
      - add-shape-unknown
    * - |add-shape-vertical|
      - add-shape-vertical
+   * - |add|
+     - add
    * - |arrow-keys|
      - arrow-keys
    * - |axis|
      - axis
+   * - |backend-opengl|
+     - backend-opengl
    * - |camera|
      - camera
    * - |clipboard|
@@ -303,6 +307,8 @@ Available icons
      - profile2D
    * - |remove|
      - remove
+   * - |rm|
+     - rm
    * - |rotate-3d|
      - rotate-3d
    * - |rudder|
@@ -413,8 +419,10 @@ Available icons
 .. |add-shape-rectangle| image:: ../../../../silx/resources/gui/icons/add-shape-rectangle.png
 .. |add-shape-unknown| image:: ../../../../silx/resources/gui/icons/add-shape-unknown.png
 .. |add-shape-vertical| image:: ../../../../silx/resources/gui/icons/add-shape-vertical.png
+.. |add| image:: ../../../../silx/resources/gui/icons/add.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
 .. |axis| image:: ../../../../silx/resources/gui/icons/axis.png
+.. |backend-opengl| image:: ../../../../silx/resources/gui/icons/backend-opengl.png
 .. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
@@ -538,6 +546,7 @@ Available icons
 .. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
 .. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
+.. |rm| image:: ../../../../silx/resources/gui/icons/rm.png
 .. |rotate-3d| image:: ../../../../silx/resources/gui/icons/rotate-3d.png
 .. |rudder| image:: ../../../../silx/resources/gui/icons/rudder.png
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
