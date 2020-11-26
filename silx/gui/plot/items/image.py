@@ -28,8 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
-
+__date__ = "26/11/2020"
 
 try:
     from collections import abc
@@ -42,7 +41,6 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-
 
 _logger = logging.getLogger(__name__)
 
@@ -80,8 +78,8 @@ def _convertImageToRgba32(image, copy=True):
     if image.shape[-1] == 3:
         new_image = numpy.empty((image.shape[0], image.shape[1], 4),
                                 dtype=numpy.uint8)
-        new_image[:, :, :3] = image
-        new_image[:, :, 3] = 255
+        new_image[:,:,:3] = image
+        new_image[:,:, 3] = 255
         return new_image  # This is a copy anyway
     else:
         return numpy.array(image, copy=copy)
@@ -93,7 +91,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     :param numpy.ndarray data: Initial image data
     """
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, mask=None):
         DataItem.__init__(self)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
@@ -101,7 +99,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if data is None:
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
-
+        self._mask = mask
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
@@ -189,6 +187,26 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._data = data
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
+
+    def getMask(self, copy=True):
+        """Returns the mask data
+
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        :rtype: numpy.ndarray
+        """
+        return numpy.array(self._mask, copy=copy)
+
+    def setMask(self, mask):
+        """Set the image data
+
+        :param numpy.ndarray data:
+        """
+        if mask is not None and self._data is not None:
+            if  mask.shape == self._data.shape[:2]:
+                _logger.warning("Unconsistent shape between mask and data")
+        self._mask = mask
+        self._updated(ItemChangedType.MASK)
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
@@ -308,7 +326,7 @@ class ImageData(ImageBase, ColormapMixIn):
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
-                image[:, :, 3] = image[:, :, 3] * alphaImage
+                image[:,:, 3] = image[:,:, 3] * alphaImage
             return image
 
     def getAlternativeImageData(self, copy=True):
