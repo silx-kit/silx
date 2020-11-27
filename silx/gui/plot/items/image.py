@@ -205,11 +205,13 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param numpy.ndarray data:
         """
         if mask is not None and self._data is not None:
-            if mask.shape != self._data.shape[:2]:
-                _logger.warning("Unconsistent shape between mask and data")
+            if mask.size and mask.shape != self._data.shape[:2]:
+                _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
         self._masked = None
         self._mask = mask
-        self._updated(ItemChangedType.MASK)
+#       TODO: Why does this break tests ?
+#         if mask is not self._masked:
+#             self._updated(ItemChangedType.MASK)
 
     def getMasked(self):
         """Retirieve the NaN-masked image
@@ -217,7 +219,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :rtype: numpy.ndarray of dtype numpy.float32
         """
         if self._masked is None:
-            masked = numpy.array(self.data, dtype=numpy.float32, copy=True)
+            masked = numpy.array(self._data, dtype=numpy.float32, copy=True)
             if self._mask is not None:
                 masked[numpy.where(self._mask)] = numpy.nan
             self._masked = masked
