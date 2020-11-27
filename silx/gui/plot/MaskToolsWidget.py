@@ -32,11 +32,9 @@ This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 """
 from __future__ import division
 
-
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/02/2019"
-
+__date__ = "27/11/2020"
 
 import os
 import sys
@@ -59,9 +57,7 @@ from silx.third_party.TiffIO import TiffIO
 
 import fabio
 
-
 _logger = logging.getLogger(__name__)
-
 
 _HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
 
@@ -91,6 +87,7 @@ class ImageMask(BaseMask):
 
     This is meant for internal use by :class:`MaskToolsWidget`.
     """
+
     def __init__(self, image=None):
         """
 
@@ -193,7 +190,7 @@ class ImageMask(BaseMask):
         selection = self._mask[max(0, row):row + height + 1,
                                max(0, col):col + width + 1]
         if mask:
-            selection[:, :] = level
+            selection[:,:] = level
         else:
             selection[selection == level] = 0
         self._notify()
@@ -339,7 +336,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                                       dtype=numpy.uint8)
             height = min(self._data.shape[0], mask.shape[0])
             width = min(self._data.shape[1], mask.shape[1])
-            resizedMask[:height, :width] = mask[:height, :width]
+            resizedMask[:height,:width] = mask[:height,:width]
             self._mask.setMask(resizedMask, copy=False)
             self._mask.commit()
             return resizedMask.shape
@@ -809,6 +806,7 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
     """
+
     def __init__(self, parent=None, plot=None, name='Mask'):
         widget = MaskToolsWidget(plot=plot)
         super(MaskToolsDockWidget, self).__init__(parent, name, widget)

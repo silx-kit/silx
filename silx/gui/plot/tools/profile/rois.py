@@ -33,7 +33,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2020"
+__date__ = "27/11/2020"
 
 import numpy
 import weakref
@@ -141,7 +141,7 @@ class _ImageProfileArea(items.Shape):
             rgba = item.getData(copy=False)
             currentData = rgba[..., 0]
         else:
-            currentData = item.getData(copy=False)
+            currentData = item.getMasked()
 
         roi = self.getParentRoi()
         origin = item.getOrigin()
@@ -288,7 +288,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             roiStart, roiEnd = self.getEndPoints()
         else:
             assert False
-    
+
         return roiStart, roiEnd, lineProjectionMode
 
     def computeProfile(self, item):
@@ -318,7 +318,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 rgba = rgba.astype(numpy.float64)
             currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
         else:
-            currentData = item.getData(copy=False)
+            currentData = item.getMasked()
 
         yLabel = "%s" % str(method).capitalize()
         coords, profile, title, xLabel = createProfile2(currentData)
@@ -448,8 +448,8 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
             method=method)
 
         # Compute the line size
-        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1])**2 +
-                              (roiEnd[0] - roiStart[0])**2)
+        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1]) ** 2 +
+                              (roiEnd[0] - roiStart[0]) ** 2)
         coords = numpy.linspace(0, lineSize, len(profile),
                                 endpoint=True,
                                 dtype=numpy.float32)

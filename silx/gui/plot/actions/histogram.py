@@ -202,7 +202,6 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                          array[:,:, 2] * 0.114)
             elif "getMask" in dir(item):
                 mask = item.getMask(copy=False)
-                print(mask)
                 if mask is not None:
                     array = array[numpy.logical_not(mask)]
 
