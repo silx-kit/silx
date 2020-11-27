@@ -204,10 +204,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                 mask = item.getMask(copy=False)
                 print(mask)
                 if mask is not None:
-                    print(mask.shape, array.shape)
-                    print(mask.size)
                     array = array[numpy.logical_not(mask)]
-                    print(mask.shape, array.shape)
 
         elif isinstance(item, items.Scatter):
             array = item.getValueData(copy=False)
