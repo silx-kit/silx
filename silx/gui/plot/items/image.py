@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/11/2020"
+__date__ = "27/11/2020"
 
 try:
     from collections import abc
@@ -197,7 +197,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                           False to use internal representation (do not modify!)
         :rtype: numpy.ndarray
         """
-        return numpy.array(self._mask, copy=copy)
+        return None if self._mask is None else numpy.array(self._mask, copy=copy)
 
     def setMask(self, mask):
         """Set the image data
@@ -205,7 +205,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param numpy.ndarray data:
         """
         if mask is not None and self._data is not None:
-            if  mask.shape == self._data.shape[:2]:
+            if mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data")
         self._masked = None
         self._mask = mask
