@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "10/10/2018"
+__date__ = "27/11/2020"
 __license__ = "MIT"
 
 import numpy
@@ -197,9 +197,18 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             if array.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
-                array = (array[:, :, 0] * 0.299 +
-                         array[:, :, 1] * 0.587 +
-                         array[:, :, 2] * 0.114)
+                array = (array[:,:, 0] * 0.299 +
+                         array[:,:, 1] * 0.587 +
+                         array[:,:, 2] * 0.114)
+            elif "getMask" in dir(item):
+                mask = item.getMask(copy=False)
+                print(mask)
+                if mask is not None:
+                    print(mask.shape, array.shape)
+                    print(mask.size)
+                    array = array[numpy.logical_not(mask)]
+                    print(mask.shape, array.shape)
+
         elif isinstance(item, items.Scatter):
             array = item.getValueData(copy=False)
         else:
