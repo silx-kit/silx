@@ -709,7 +709,7 @@ class SiftPlan(OpenclProcessing):
                                           self.cl_mem["cnt"].data,  # int* keypoints_end,
                                           *self.scales[octave])  # int grad_width, int grad_height)
                         evt2.wait()
-                    except pyopencl.RuntimeError as error:
+                    except (pyopencl.RuntimeError, pyopencl._cl.LogicError) as error:
                         self.LOW_END += 1
                         logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
                         continue
