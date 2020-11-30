@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/11/2020"
+__date__ = "30/11/2020"
 
 try:
     from collections import abc
@@ -190,7 +190,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._updated(ItemChangedType.DATA)
         self._masked = None
 
-    def getMask(self, copy=True):
+    def getMaskData(self, copy=True):
         """Returns the mask data
 
         :param bool copy: True (Default) to get a copy,
@@ -199,7 +199,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         """
         return None if self._mask is None else numpy.array(self._mask, copy=copy)
 
-    def setMask(self, mask):
+    def setMaskData(self, mask, copy=True):
         """Set the image data
 
         :param numpy.ndarray data:
@@ -208,10 +208,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             if mask.size and mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
         self._masked = None
-        self._mask = mask
-#       TODO: Why does this break tests ?
-#         if mask is not self._masked:
-#             self._updated(ItemChangedType.MASK)
+        self._mask = None if mask is None else numpy.array(mask, copy=copy)
+        if mask is not self._masked:
+            self._updated(ItemChangedType.MASK)
 
     def getMasked(self):
         """Retirieve the NaN-masked image
