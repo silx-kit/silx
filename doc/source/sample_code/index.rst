@@ -283,6 +283,14 @@ Sample code that adds specific tools or functions to :class:`~silx.gui.plot.Plot
 
        .. note:: for now the possible types manged by the Stats are ('curve', 'image',
                  'scatter' and 'histogram')
+   * - :download:`plotROIStats.py <../../../examples/plotROIStats.py>`
+     - .. image:: img/plotROIStats.png
+         :width: 150px
+     - This script is a simple example of how to display statistics on a specific
+       region of interest.
+
+       An example on how to define your own statistic is given in the 'plotStats.py'
+       script.
    * - :download:`plotProfile.py <../../../examples/plotProfile.py>`
      - .. image:: img/plotProfile.png
          :width: 150px
