@@ -29,19 +29,17 @@
 Simple test of an addition
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "30/11/2020"
 
 import logging
 import numpy
 
 import unittest
-from ..common import ocl, _measure_workgroup_size
+from ..common import ocl, _measure_workgroup_size, query_kernel_info
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -116,7 +114,7 @@ class TestAddition(unittest.TestCase):
     @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_measurement(self):
         """
-        tests that all devices are working properly ...
+        tests that all devices are working properly ... lengthy and error prone
         """
         for platform in ocl.platforms:
             for did, device in enumerate(platform.devices):
@@ -124,11 +122,30 @@ class TestAddition(unittest.TestCase):
                 self.assertEqual(meas, device.max_work_group_size,
                                  "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
 
+    @unittest.skipUnless(ocl, "pyopencl is missing")
+    def test_query(self):
+        """
+        tests that all devices are working properly ... lengthy and error prone
+        """
+        for what in ("COMPILE_WORK_GROUP_SIZE",
+                     "LOCAL_MEM_SIZE",
+                     "PREFERRED_WORK_GROUP_SIZE_MULTIPLE",
+                     "PRIVATE_MEM_SIZE",
+                     "WORK_GROUP_SIZE"):
+            logger.info("%s: %s", what, query_kernel_info(program=self.program, kernel="addition", what=what))
+
+        self.assertEqual(3, len(query_kernel_info(program=self.program, kernel="addition", what="COMPILE_WORK_GROUP_SIZE")), "3D kernel")
+
+        min_wg = query_kernel_info(program=self.program, kernel="addition", what="PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
+        max_wg = query_kernel_info(program=self.program, kernel="addition", what="WORK_GROUP_SIZE")
+        self.assertEqual(max_wg % min_wg, 0, msg="max_wg is a multiple of min_wg")
+
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestAddition("test_add"))
     # testSuite.addTest(TestAddition("test_measurement"))
+    testSuite.addTest(TestAddition("test_query"))
     return testSuite
 
 
