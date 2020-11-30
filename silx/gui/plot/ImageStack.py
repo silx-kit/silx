@@ -432,8 +432,9 @@ class ImageStack(qt.QMainWindow):
         if self.getCurrentUrl() in self._urls:
             self.setCurrentUrl(self.getCurrentUrl())
         else:
-            first_url = self._urls[list(self._urls.keys())[0]]
-            self.setCurrentUrl(first_url)
+            if len(self._urls.keys()) > 0:
+                first_url = self._urls[list(self._urls.keys())[0]]
+                self.setCurrentUrl(first_url)
 
     def getUrls(self) -> tuple:
         """
