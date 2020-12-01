@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "27/11/2020"
+__date__ = "01/12/2020"
 __license__ = "MIT"
 
 import numpy
@@ -200,8 +200,8 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                 array = (array[:,:, 0] * 0.299 +
                          array[:,:, 1] * 0.587 +
                          array[:,:, 2] * 0.114)
-            elif "getMask" in dir(item):
-                mask = item.getMask(copy=False)
+            elif "getMaskData" in dir(item):
+                mask = item.getMaskData(copy=False)
                 if mask is not None:
                     array = array[numpy.logical_not(mask)]
 

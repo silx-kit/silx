@@ -59,12 +59,9 @@ The updates of the colormap description are also available through the signal:
 :attr:`ColormapDialog.sigColormapChanged`.
 """  # noqa
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/11/2018"
-
+__date__ = "01/12/2020"
 
 import enum
 import logging
@@ -88,7 +85,6 @@ from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
-
 
 _colormapIconPreview = {}
 
@@ -510,6 +506,7 @@ class _ColormapHistogram(qt.QWidget):
         :returns: Tuple{float, float}
         """
         scale = self._plot.getXAxis().getScale()
+
         def isDisplayable(pos):
             if pos is None:
                 return False
@@ -1094,9 +1091,9 @@ class ColormapDialog(qt.QDialog):
         if data.ndim == 3:  # RGB(A) images
             _logger.info('Converting current image from RGB(A) to grayscale\
                 in order to compute the intensity distribution')
-            data = (data[:, :, 0] * 0.299 +
-                    data[:, :, 1] * 0.587 +
-                    data[:, :, 2] * 0.114)
+            data = (data[:,:, 0] * 0.299 +
+                    data[:,:, 1] * 0.587 +
+                    data[:,:, 2] * 0.114)
 
         # bad hack: get 256 continuous bins in the case we have a B&W
         normalizeData = True
@@ -1141,7 +1138,7 @@ class ColormapDialog(qt.QDialog):
         bins = histogram.edges[0]
         if normalizeData:
             if scale == Colormap.LOGARITHM:
-                bins = 10**bins
+                bins = 10 ** bins
         return histogram.histo, bins
 
     def _getItem(self):
