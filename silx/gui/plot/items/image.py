@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/11/2020"
+__date__ = "01/12/2020"
 
 try:
     from collections import abc
@@ -204,15 +204,16 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         :param numpy.ndarray data:
         """
+        print("in Image.setMaskData")
         if mask is not None and self._data is not None:
             if mask.size and mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
-        self._masked = None
-        self._mask = None if mask is None else numpy.array(mask, copy=copy)
-        if mask is not self._masked:
+        if id(mask) != id(self._mask):
+            self._masked = None
+            self._mask = None if mask is None else numpy.array(mask, copy=copy)
             self._updated(ItemChangedType.MASK)
 
-    def getMasked(self):
+    def getMaskedData(self):
         """Retirieve the NaN-masked image
         
         :rtype: numpy.ndarray of dtype numpy.float32
@@ -368,6 +369,24 @@ class ImageData(ImageBase, ColormapMixIn):
             return None
         else:
             return numpy.array(self.__alpha, copy=copy)
+
+    def getColormappedData(self, copy=True):
+        """Returns the data used to compute the displayed colors
+
+        :param bool copy: True to get a copy,
+            False to get internal data (do not modify!).
+        :rtype: Union[None,numpy.ndarray]
+        """
+        data = ColormapMixIn.getColormappedData(self, copy=copy)
+        if data is None:
+            return None
+        else:
+            masked = numpy.array(data, dtype=numpy.float32, copy=True)
+            mask = self.getMaskData(copy=False)
+            if mask is not None:
+                print("In getColormappedData, masked pixels are ", mask.sum())
+                masked[numpy.logical_not(mask)] = numpy.nan
+            return masked
 
     def setData(self, data, alternative=None, alpha=None, copy=True):
         """"Set the image data and optionally an alternative RGB(A) representation

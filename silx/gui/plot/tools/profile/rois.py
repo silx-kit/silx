@@ -33,7 +33,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/11/2020"
+__date__ = "01/12/2020"
 
 import numpy
 import weakref
@@ -141,7 +141,7 @@ class _ImageProfileArea(items.Shape):
             rgba = item.getData(copy=False)
             currentData = rgba[..., 0]
         else:
-            currentData = item.getMasked()
+            currentData = item.getMaskedData()
 
         roi = self.getParentRoi()
         origin = item.getOrigin()
@@ -318,7 +318,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 rgba = rgba.astype(numpy.float64)
             currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
         else:
-            currentData = item.getMasked()
+            currentData = item.getMaskedData()
 
         yLabel = "%s" % str(method).capitalize()
         coords, profile, title, xLabel = createProfile2(currentData)
