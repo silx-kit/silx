@@ -50,7 +50,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "27/11/2020"
 
 from . import PlotAction
 import logging
@@ -322,6 +322,7 @@ class ColormapAction(PlotAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColormapDialog
         super(ColormapAction, self).__init__(
@@ -418,6 +419,7 @@ class ColorBarAction(PlotAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColorBar
         super(ColorBarAction, self).__init__(
@@ -693,7 +695,7 @@ class OpenGLAction(PlotAction):
             # and the real state of the widget
             self._backendUpdated()
             return
-        if name is not "opengl":
+        if name != "opengl":
             from silx.gui.utils import glutils
             result = glutils.isOpenGLAvailable()
             if not result:
