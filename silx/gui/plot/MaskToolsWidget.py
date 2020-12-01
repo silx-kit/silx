@@ -677,7 +677,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         try:
             self.save(filename, extension[1:])
         except Exception as e:
-            raise
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
