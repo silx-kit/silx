@@ -477,11 +477,17 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if os.path.exists(filename):
             try:
                 os.remove(filename)
-            except IOError:
+            except IOError as e:
                 msg = qt.QMessageBox(self)
+                msg.setWindowTitle("Removing existing file")
                 msg.setIcon(qt.QMessageBox.Critical)
+
+                if hasattr(e, "strerror"):
+                    strerror = e.strerror
+                else:
+                    strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % (sys.exc_info()[1]))
+                            "Input Output Error: %s" % strerror)
                 msg.exec_()
                 return
 
@@ -492,8 +498,14 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.save(filename, extension[1:])
         except Exception as e:
             msg = qt.QMessageBox(self)
+            msg.setWindowTitle("Saving mask file")
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
+
+            if hasattr(e, "strerror"):
+                strerror = e.strerror
+            else:
+                strerror = sys.exc_info()[1]
+            msg.setText("Cannot save file %s\n%s" % (filename, strerror))
             msg.exec_()
 
     def resetSelectionMask(self):
