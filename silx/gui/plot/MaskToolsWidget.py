@@ -568,7 +568,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.load(filename)
         except RuntimeWarning as e:
@@ -668,7 +670,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 msg.exec_()
                 return
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.save(filename, extension[1:])
         except Exception as e:
