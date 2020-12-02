@@ -116,7 +116,7 @@ class ImageMask(BaseMask):
         """
         if kind == 'edf':
             edfFile = EdfFile(filename, access="w+")
-            header = {"program_name": "silx-mask"}
+            header = {"program_name": "silx-mask", "masked_value": "nonzero"}
             edfFile.WriteImage(header, self.getMask(copy=False), Append=0)
 
         elif kind == 'tif':
