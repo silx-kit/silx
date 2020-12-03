@@ -33,6 +33,7 @@ __date__ = "21/12/2018"
 
 import logging
 import datetime as dt
+from typing import Tuple
 import numpy
 
 from pkg_resources import parse_version as _parse_version
@@ -1204,45 +1205,45 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
-    def _mplQtYAxisCoordConversion(self, y, asint=True):
-        """Qt origin (top) to/from matplotlib origin (bottom) conversion.
+    def _getDevicePixelRatio(self) -> float:
+        """Compatibility wrapper for devicePixelRatioF"""
+        return 1.
 
-        :param y:
-        :param bool asint: True to cast to int, False to keep as float
-
-        :rtype: float
+    def _mplToQtPosition(self, x: float, y: float) -> Tuple[float, float]:
+        """Convert matplotlib "display" space coord to Qt widget logical pixel
         """
-        value = self.fig.get_window_extent().height - y
-        return int(value) if asint else value
+        ratio = self._getDevicePixelRatio()
+        # Convert from matplotlib origin (bottom) to Qt origin (top)
+        # and apply device pixel ratio
+        return x / ratio, (self.fig.get_window_extent().height - y) / ratio
+
+    def _qtToMplPosition(self, x: float, y: float) -> Tuple[float, float]:
+        """Convert Qt widget logical pixel to matplotlib "display" space coord
+        """
+        ratio = self._getDevicePixelRatio()
+        # Apply device pixel ration and
+        # convert from Qt origin (top) to matplotlib origin (bottom)
+        return x * ratio, self.fig.get_window_extent().height - (y * ratio)
 
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
-
-        pixels = ax.transData.transform_point((x, y))
-        xPixel, yPixel = pixels.T
-
-        # Convert from matplotlib origin (bottom) to Qt origin (top)
-        yPixel = self._mplQtYAxisCoordConversion(yPixel, asint=False)
-
-        return xPixel, yPixel
+        displayPos = ax.transData.transform_point((x, y)).transpose()
+        return self._mplToQtPosition(*displayPos)
 
     def pixelToData(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
-
-        # Convert from Qt origin (top) to matplotlib origin (bottom)
-        y = self._mplQtYAxisCoordConversion(y, asint=False)
-
-        inv = ax.transData.inverted()
-        x, y = inv.transform_point((x, y))
-        return x, y
+        displayPos = self._qtToMplPosition(x, y)
+        return tuple(ax.transData.inverted().transform_point(displayPos))
 
     def getPlotBoundsInPixels(self):
         bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
-        return (int(bbox.xmin),
-                self._mplQtYAxisCoordConversion(bbox.ymax, asint=True),
-                int(bbox.width),
-                int(bbox.height))
+        ratio = self._getDevicePixelRatio()
+        return tuple(int(value / ratio) for value in (
+            bbox.xmin,
+            self.fig.get_window_extent().height - bbox.ymax,
+            bbox.width,
+            bbox.height))
 
     def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         width, height = 1. - left - right, 1. - top - bottom
@@ -1348,6 +1349,15 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
 
+    def _getDevicePixelRatio(self) -> float:
+        """Compatibility wrapper for devicePixelRatioF"""
+        if hasattr(self, 'devicePixelRatioF'):
+            ratio = self.devicePixelRatioF()
+        else:  # Qt < 5.6 compatibility
+            ratio = float(self.devicePixelRatio())
+        # Safety net: avoid returning 0
+        return ratio if ratio != 0. else 1.
+
     # Mouse event forwarding
 
     _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
@@ -1355,17 +1365,14 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onMousePress(self, event):
         button = self._MPL_TO_PLOT_BUTTONS.get(event.button, None)
         if button is not None:
-            self._plot.onMousePress(
-                event.x, self._mplQtYAxisCoordConversion(event.y),
-                button)
+            x, y = self._mplToQtPosition(event.x, event.y)
+            self._plot.onMousePress(int(x), int(y), button)
 
     def _onMouseMove(self, event):
+        x, y = self._mplToQtPosition(event.x, event.y)
         if self._graphCursor:
             position = self._plot.pixelToData(
-                event.x,
-                self._mplQtYAxisCoordConversion(event.y),
-                axis='left',
-                check=True)
+                x, y, axis='left', check=True)
             lineh, linev = self._graphCursor
             if position is not None:
                 linev.set_visible(True)
@@ -1379,19 +1386,17 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                     self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
-        self._plot.onMouseMove(
-            event.x, self._mplQtYAxisCoordConversion(event.y))
+        self._plot.onMouseMove(int(x), int(y))
 
     def _onMouseRelease(self, event):
         button = self._MPL_TO_PLOT_BUTTONS.get(event.button, None)
         if button is not None:
-            self._plot.onMouseRelease(
-                event.x, self._mplQtYAxisCoordConversion(event.y),
-                button)
+            x, y = self._mplToQtPosition(event.x, event.y)
+            self._plot.onMouseRelease(int(x), int(y), button)
 
     def _onMouseWheel(self, event):
-        self._plot.onMouseWheel(
-            event.x, self._mplQtYAxisCoordConversion(event.y), event.step)
+        x, y = self._mplToQtPosition(event.x, event.y)
+        self._plot.onMouseWheel(int(x), int(y), event.step)
 
     def leaveEvent(self, event):
         """QWidget event handler"""
@@ -1405,8 +1410,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # picking
 
     def pickItem(self, x, y, item):
+        xDisplay, yDisplay = self._qtToMplPosition(x, y)
         mouseEvent = MouseEvent(
-            'button_press_event', self, x, self._mplQtYAxisCoordConversion(y))
+            'button_press_event', self, int(xDisplay), int(yDisplay))
         # Override axes and data position with the axes
         mouseEvent.inaxes = item.axes
         mouseEvent.xdata, mouseEvent.ydata = self.pixelToData(
