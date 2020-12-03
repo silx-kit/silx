@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "25/09/2020"
+__date__ = "03/12/2020"
 
 import enum
 import os.path
@@ -888,8 +888,8 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
     """
     assert isinstance(output_url, silx.io.url.DataUrl)
     assert isinstance(shape, (tuple, list))
-    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')
-    if v_majeur <= '2' and v_mineur < '9':
+    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
+    if v_majeur <= 2 and v_mineur < 9:
         raise Exception('h5py >= 2.9 should be installed to access the '
                         'external feature.')
 
@@ -959,7 +959,6 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
                                           shape=shape,
                                           dtype=vol_dtype,
                                           overwrite=overwrite)
-
 
 
 def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
