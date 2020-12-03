@@ -39,6 +39,7 @@ import six
 
 from silx.utils.proxy import Proxy
 import silx.io.url
+from .._version import calc_hexversion
 
 import h5py
 import h5py.h5t
@@ -889,7 +890,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
     assert isinstance(output_url, silx.io.url.DataUrl)
     assert isinstance(shape, (tuple, list))
     v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
-    if v_majeur <= 2 and v_mineur < 9:
+    if calc_hexversion(v_majeur, v_mineur, v_micro)< calc_hexversion(2,9,0):
         raise Exception('h5py >= 2.9 should be installed to access the '
                         'external feature.')
 
