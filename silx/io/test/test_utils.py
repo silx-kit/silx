@@ -42,7 +42,7 @@ import fabio
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/09/2020"
+__date__ = "03/12/2020"
 
 expected_spec1 = r"""#F .*
 #D .*
@@ -613,8 +613,8 @@ class TestGetData(unittest.TestCase):
 
 
 def _h5_py_version_older_than(version):
-    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')[:3]
-    r_majeur, r_mineur, r_micro = version.split('.')
+    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
+    r_majeur, r_mineur, r_micro = [int(i) for i in version.split('.')]
     return v_majeur >= r_majeur and v_mineur >= r_mineur
 
 
@@ -748,8 +748,8 @@ class TestH5Strings(unittest.TestCase):
         elif isinstance(value, cls.unicode):
             dtype = cls.vlenstr
         else:
-            return numpy.array([value]*n)
-        return numpy.array([value]*n, dtype=dtype)
+            return numpy.array([value] * n)
+        return numpy.array([value] * n, dtype=dtype)
 
     @classmethod
     def _get_charset(cls, value):
@@ -781,7 +781,7 @@ class TestH5Strings(unittest.TestCase):
         assert type(data) == type(result), data
         assert data == result, data
         data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii)
-        numpy.testing.assert_array_equal(data, [result]*2)
+        numpy.testing.assert_array_equal(data, [result] * 2)
         if charset:
             assert self.file["vlen_data"].id.get_type().get_cset() == charset
 
@@ -800,12 +800,12 @@ class TestH5Strings(unittest.TestCase):
         data = utils.h5py_read_attribute(self.file.attrs, "vlen_data", decode_ascii=decode_ascii)
         assert type(data[0]) == type(result), data[0]
         assert data[0] == result, data[0]
-        numpy.testing.assert_array_equal(data, [result]*2)
+        numpy.testing.assert_array_equal(data, [result] * 2)
 
         data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["vlen_data"]
         assert type(data[0]) == type(result), data[0]
         assert data[0] == result, data[0]
-        numpy.testing.assert_array_equal(data, [result]*2)
+        numpy.testing.assert_array_equal(data, [result] * 2)
 
     def test_dataset_ascii_bytes(self):
         self._check_dataset(b"abc")
