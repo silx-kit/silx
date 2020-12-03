@@ -415,7 +415,8 @@ class PlotWidget(qt.QMainWindow):
         isKeepDataAspectRatio = self.isKeepDataAspectRatio()
         xTimeZone = xaxis.getTimeZone()
         isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
-        isYAxisInverted = xaxis.isInverted()
+
+        isYAxisInverted = self.getYAxis().isInverted()
 
         # Remove all items from previous backend
         for item in self.getItems():
