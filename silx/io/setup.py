@@ -51,7 +51,7 @@ else:
     SPECFILE_USE_GNU_SOURCE = int(SPECFILE_USE_GNU_SOURCE)
 
 if sys.platform == "win32":
-    define_macros = [('WIN32', None)]
+    define_macros = [('WIN32', None), ('SPECFILE_POSIX', None)]
 elif os.name.lower().startswith('posix'):
     define_macros = [('SPECFILE_POSIX', None)]
     # the best choice is to have _GNU_SOURCE defined
