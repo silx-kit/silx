@@ -33,6 +33,7 @@ import unittest
 import sys
 
 from .. import utils
+from ..._version import calc_hexversion
 import silx.io.url
 
 import h5py
@@ -615,7 +616,7 @@ class TestGetData(unittest.TestCase):
 def _h5_py_version_older_than(version):
     v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
     r_majeur, r_mineur, r_micro = [int(i) for i in version.split('.')]
-    return v_majeur >= r_majeur and v_mineur >= r_mineur
+    return calc_hexversion(v_majeur, v_mineur, v_micro) >= calc_hexversion(r_majeur, r_mineur, r_micro) 
 
 
 @unittest.skipUnless(_h5_py_version_older_than('2.9.0'), 'h5py version < 2.9.0')
