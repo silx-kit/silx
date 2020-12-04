@@ -110,6 +110,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
             self.qapp.processEvents()
             self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
             self.qapp.processEvents()
+            self.mouseMove(plot, pos=pos)
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""

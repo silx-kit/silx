@@ -102,12 +102,14 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 (x + offset, y - offset),
                 (x, y + offset)]  # Close polygon
 
-        self.mouseMove(plot, pos=(0, 0))
+        self.mouseMove(plot, pos=(1, 1))
         for pos in star:
             self.mouseMove(plot, pos=pos)
             self.qapp.processEvents()
             self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
             self.qapp.processEvents()
+            self.mouseMove(plot, pos=pos)
+        self.mouseMove(plot, pos=(1, 1))
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""
@@ -121,10 +123,11 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 (x - offset, y),
                 (x + offset, y - offset)]
 
-        self.mouseMove(plot, pos=(0, 0))
+        self.mouseMove(plot, pos=(1, 1))
         self.mouseMove(plot, pos=star[0])
         self.mousePress(plot, qt.Qt.LeftButton, pos=star[0])
         for pos in star[1:]:
+            self.mouseMove(plot, pos=pos)
             self.mouseMove(plot, pos=pos)
         self.mouseRelease(
             plot, qt.Qt.LeftButton, pos=star[-1])
