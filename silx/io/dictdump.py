@@ -60,7 +60,7 @@ def _prepare_hdf5_write_value(array_like):
     array = numpy.asarray(array_like)
     if numpy.issubdtype(array.dtype, numpy.bytes_):
         return numpy.array(array_like, dtype=vlen_bytes)
-    elif numpy.issubdtype(array.dtype, numpy.unicode):
+    elif numpy.issubdtype(array.dtype, numpy.str_):
         return numpy.array(array_like, dtype=vlen_utf8)
     else:
         return array
