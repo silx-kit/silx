@@ -743,7 +743,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 # Convert from plot to array coords
                 center = (event['points'][0] - self._origin) / self._scale
                 size = event['points'][1] / self._scale
-                center = center.astype(numpy.int)  # (row, col)
+                center = center.astype(numpy.int64)  # (row, col)
                 self._mask.updateEllipse(level, center[1], center[0], size[1], size[0], doMask)
                 self._mask.commit()
 

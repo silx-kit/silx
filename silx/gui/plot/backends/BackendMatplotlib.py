@@ -594,7 +594,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if (len(color) == 4 and
                 type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
-            color = numpy.array(color, dtype=numpy.float) / 255.
+            color = numpy.array(color, dtype=numpy.float64) / 255.
 
         if yaxis == "right":
             axes = self.ax2
