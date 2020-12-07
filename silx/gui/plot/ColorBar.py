@@ -142,9 +142,8 @@ class ColorBarWidget(qt.QWidget):
             self._isConnected = True
 
     def setVisible(self, isVisible):
-        if isVisible != self.isVisible():
-            qt.QWidget.setVisible(self, isVisible)
-            self.sigVisibleChanged.emit(isVisible)
+        qt.QWidget.setVisible(self, isVisible)
+        self.sigVisibleChanged.emit(isVisible)
 
     def showEvent(self, event):
         self._connectPlot()
