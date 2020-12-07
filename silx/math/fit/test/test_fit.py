@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ class Test_leastsq(unittest.TestCase):
         self.my_exp = myexp
 
         def gauss(x, *params):
-            params = numpy.array(params, copy=False, dtype=numpy.float)
+            params = numpy.array(params, copy=False, dtype=numpy.float64)
             result = params[0] + params[1] * x
             for i in range(2, len(params), 3):
                 p = params[i:(i+3)]
@@ -69,7 +69,7 @@ class Test_leastsq(unittest.TestCase):
 
         def gauss_derivative(x, params, idx):
             if idx == 0:
-                return numpy.ones(len(x), numpy.float)
+                return numpy.ones(len(x), numpy.float64)
             if idx == 1:
                 return x
             gaussian_peak = (idx - 2) // 3
@@ -140,7 +140,7 @@ class Test_leastsq(unittest.TestCase):
         parameters_actual = [10.5, 2, 10000.0, 20., 150, 5000, 900., 300]
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
-        delta = numpy.sqrt(numpy.finfo(numpy.float).eps)
+        delta = numpy.sqrt(numpy.finfo(numpy.float64).eps)
         for i in range(len(parameters_actual)):
             p = parameters_actual * 1
             if p[i] == 0:
