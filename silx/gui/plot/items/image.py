@@ -209,8 +209,8 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
         self._masked = None
         self._mask = None if mask is None else numpy.array(mask, copy=copy)
-        if mask is not self._masked:
-            self._updated(ItemChangedType.MASK)
+        #if mask is not self._masked:
+        self._updated(ItemChangedType.MASK)
 
     def getMasked(self):
         """Retirieve the NaN-masked image

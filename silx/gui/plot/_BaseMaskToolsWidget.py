@@ -92,6 +92,13 @@ class BaseMask(qt.QObject):
         """
         self._dataItem = item
 
+    def getDataItem(self):
+        """Returns current plot item the mask is on.
+
+        :rtype: Union[~silx.gui.plot.items.Item,None]
+        """
+        return self._dataItem
+
     def getDataValues(self):
         """Return data values, as a numpy array with the same shape
         as the mask.
@@ -107,8 +114,8 @@ class BaseMask(qt.QObject):
     def setDataMask(self):
         """Update the mask stored inside the DataItem (if possible)
         """
-        if "setMask" in dir(self._dataItem):
-            self._dataItem.setMask(self.getMask())
+        if "setMaskData" in dir(self._dataItem):  # TODO avoid this
+            self._dataItem.setMaskData(self.getMask())
 
     def _notify(self):
         """Notify of mask change."""
@@ -420,6 +427,13 @@ class BaseMaskToolsWidget(qt.QWidget):
     def _emitSigMaskChanged(self):
         """Notify mask changes"""
         self.sigMaskChanged.emit()
+
+    def getMaskedItem(self):
+        """Returns the item that is currently being masked
+
+        :rtype: Union[~silx.gui.plot.items.Item,None]
+        """
+        return self._mask.getDataItem()
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a numpy array.
