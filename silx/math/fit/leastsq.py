@@ -132,7 +132,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-5 while default value
-        is now numpy.finfo(numpy.float).eps as in scipy
+        is now numpy.finfo(numpy.float64).eps as in scipy
     :type epsfcn: *optional*, float
 
     :param deltachi: float
@@ -289,7 +289,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     nparameters = len(parameters)
 
     if epsfcn is None:
-        epsfcn = numpy.finfo(numpy.float).eps
+        epsfcn = numpy.finfo(numpy.float64).eps
     else:
         epsfcn = max(epsfcn, numpy.finfo(numpy.float64).eps)
 
@@ -567,7 +567,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-10 while default value
-        is now numpy.finfo(numpy.float).eps as in scipy
+        is now numpy.finfo(numpy.float64).eps as in scipy
     :type epsfcn: *optional*, float
 
     :param left_derivative:
@@ -860,7 +860,7 @@ def main(argv=None):
         return numpy.exp(x * numpy.less(abs(x), 250)) -\
                1.0 * numpy.greater_equal(abs(x), 250)
 
-    xx = numpy.arange(npoints, dtype=numpy.float)
+    xx = numpy.arange(npoints, dtype=numpy.float64)
     yy = gauss(xx, *[10.5, 2, 1000.0, 20., 15])
     sy = numpy.sqrt(abs(yy))
     parameters = [0.0, 1.0, 900.0, 25., 10]

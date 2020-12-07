@@ -1036,7 +1036,7 @@ def test():
     from . import bgtheories
 
     # Create synthetic data with a sum of gaussian functions
-    x = numpy.arange(1000).astype(numpy.float)
+    x = numpy.arange(1000).astype(numpy.float64)
 
     p = [1000, 100., 250,
          255, 690., 45,
