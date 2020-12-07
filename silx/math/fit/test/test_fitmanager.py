@@ -125,7 +125,7 @@ class TestFitmanager(ParametricTestCase):
         """Test fit manager on synthetic data using a gaussian function
         and a linear background"""
         # Create synthetic data with a sum of gaussian functions
-        x = numpy.arange(1000).astype(numpy.float)
+        x = numpy.arange(1000).astype(numpy.float64)
 
         p = [1000, 100., 250,
              255, 650., 45,
@@ -186,7 +186,7 @@ class TestFitmanager(ParametricTestCase):
         """Test FitManager using a custom fit function defined in an external
         file and imported with FitManager.loadtheories"""
         # Create synthetic data with a sum of gaussian functions
-        x = numpy.arange(100).astype(numpy.float)
+        x = numpy.arange(100).astype(numpy.float64)
 
         # a, b, c are the fit parameters
         # d is a known scaling parameter that is set using configure()
@@ -233,7 +233,7 @@ class TestFitmanager(ParametricTestCase):
         """Test FitManager using a custom fit function defined in an external
         file and imported with FitManager.loadtheories (legacy PyMca format)"""
         # Create synthetic data with a sum of gaussian functions
-        x = numpy.arange(100).astype(numpy.float)
+        x = numpy.arange(100).astype(numpy.float64)
 
         # a, b, c are the fit parameters
         # d is a known scaling parameter that is set using configure()
@@ -279,7 +279,7 @@ class TestFitmanager(ParametricTestCase):
         """Test FitManager using a custom fit function imported with
         FitManager.addtheory"""
         # Create synthetic data with a sum of gaussian functions
-        x = numpy.arange(100).astype(numpy.float)
+        x = numpy.arange(100).astype(numpy.float64)
 
         # a, b, c are the fit parameters
         # d is a known scaling parameter that is set using configure()
@@ -369,7 +369,7 @@ class TestFitmanager(ParametricTestCase):
         for theory_name, theory_fun in (('Step Down', sum_stepdown),
                                         ('Step Up', sum_stepup)):
             # Create synthetic data with a sum of gaussian functions
-            x = numpy.arange(1000).astype(numpy.float)
+            x = numpy.arange(1000).astype(numpy.float64)
 
             # ('Height', 'Position', 'FWHM')
             p = [1000, 439, 250]
@@ -407,7 +407,7 @@ def cubic(x, a, b, c, d):
 class TestPolynomials(unittest.TestCase):
     """Test polynomial fit theories and fit background"""
     def setUp(self):
-        self.x = numpy.arange(100).astype(numpy.float)
+        self.x = numpy.arange(100).astype(numpy.float64)
 
     def testQuadraticBg(self):
         gaussian_params = [100, 45, 8]

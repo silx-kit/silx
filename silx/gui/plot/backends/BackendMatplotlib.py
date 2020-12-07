@@ -594,7 +594,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if (len(color) == 4 and
                 type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
-            color = numpy.array(color, dtype=numpy.float) / 255.
+            color = numpy.array(color, dtype=numpy.float64) / 255.
 
         if yaxis == "right":
             axes = self.ax2
@@ -628,7 +628,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if hasattr(color, 'dtype') and len(color) == len(x):
             # scatter plot
-            if color.dtype not in [numpy.float32, numpy.float]:
+            if color.dtype not in [numpy.float32, numpy.float64]:
                 actualColor = color / 255.
             else:
                 actualColor = color
@@ -748,7 +748,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         color = numpy.array(color, copy=False)
         assert color.ndim == 2 and len(color) == len(x)
 
-        if color.dtype not in [numpy.float32, numpy.float]:
+        if color.dtype not in [numpy.float32, numpy.float64]:
             color = color.astype(numpy.float32) / 255.
 
         collection = TriMesh(

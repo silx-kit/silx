@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -976,7 +976,7 @@ class Group(Node):
             raise TypeError("Path are not supported")
         if data is None:
             if dtype is None:
-                dtype = numpy.float
+                dtype = numpy.float64
             data = numpy.empty(shape=shape, dtype=dtype)
         elif dtype is not None:
             data = data.astype(dtype)

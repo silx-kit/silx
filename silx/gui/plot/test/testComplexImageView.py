@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,7 +50,7 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
 
     def testPlot2DComplex(self):
         """Test API of ComplexImageView widget"""
-        data = numpy.array(((0, 1j), (1, 1 + 1j)), dtype=numpy.complex)
+        data = numpy.array(((0, 1j), (1, 1 + 1j)), dtype=numpy.complex64)
         self.plot.setData(data)
         self.plot.setKeepDataAspectRatio(True)
         self.plot.getPlot().resetZoom()
@@ -76,11 +76,11 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
         self.qWait(100)
 
         # Test no data
-        self.plot.setData(numpy.zeros((0, 0), dtype=numpy.complex))
+        self.plot.setData(numpy.zeros((0, 0), dtype=numpy.complex64))
         self.qWait(100)
 
         # Test float data
-        self.plot.setData(numpy.arange(100, dtype=numpy.float).reshape(10, 10))
+        self.plot.setData(numpy.arange(100, dtype=numpy.float64).reshape(10, 10))
         self.qWait(100)
 
 

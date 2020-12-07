@@ -1399,18 +1399,18 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 # expand errorbars to 2xN
                 if error.size == 1:  # Scalar
                     error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float)
+                        (2, len(value)), error, dtype=numpy.float64)
 
                 elif error.ndim == 1:  # N array
                     newError = numpy.empty((2, len(value)),
-                                           dtype=numpy.float)
+                                           dtype=numpy.float64)
                     newError[0, :] = error
                     newError[1, :] = error
                     error = newError
 
                 elif error.size == 2 * len(value):  # 2xN array
                     error = numpy.array(
-                        error, copy=True, dtype=numpy.float)
+                        error, copy=True, dtype=numpy.float64)
 
                 else:
                     _logger.error("Unhandled error array")
@@ -1464,9 +1464,9 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
+                x = numpy.array(x, copy=True, dtype=numpy.float64)
                 x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
+                y = numpy.array(y, copy=True, dtype=numpy.float64)
                 y[clipped] = numpy.nan
 
                 if xPositive and xerror is not None:

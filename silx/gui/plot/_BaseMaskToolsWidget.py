@@ -378,7 +378,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         """
         super(BaseMaskToolsWidget, self).__init__(parent)
         # register if the user as force a color for the corresponding mask level
-        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
+        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=bool)
         # overlays colors set by the user
         self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -132,7 +132,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-5 while default value
-        is now numpy.finfo(numpy.float).eps as in scipy
+        is now numpy.finfo(numpy.float64).eps as in scipy
     :type epsfcn: *optional*, float
 
     :param deltachi: float
@@ -205,7 +205,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         if sigma is not None:
             sigma = numpy.asarray_chkfinite(sigma)
         else:
-            sigma = numpy.ones((ydata.shape), dtype=numpy.float)
+            sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
         ydata.shape = -1
         sigma.shape = -1
     else:
@@ -215,7 +215,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         if sigma is not None:
             sigma = numpy.asarray(sigma)
         else:
-            sigma = numpy.ones((ydata.shape), dtype=numpy.float)
+            sigma = numpy.ones((ydata.shape), dtype=numpy.float64)
         sigma.shape = -1
         # get rid of NaN in input data
         idx = numpy.isfinite(ydata)
@@ -289,9 +289,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     nparameters = len(parameters)
 
     if epsfcn is None:
-        epsfcn = numpy.finfo(numpy.float).eps
+        epsfcn = numpy.finfo(numpy.float64).eps
     else:
-        epsfcn = max(epsfcn, numpy.finfo(numpy.float).eps)
+        epsfcn = max(epsfcn, numpy.finfo(numpy.float64).eps)
 
     # check if constraints have been passed as text
     constrained_fit = False
@@ -383,7 +383,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 newpar = fitparam + deltapar [0]
             else:
                 newpar = parameters.__copy__()
-                pwork = numpy.zeros(deltapar.shape, numpy.float)
+                pwork = numpy.zeros(deltapar.shape, numpy.float64)
                 for i in range(n_free):
                     if constraints is None:
                         pwork [0] [i] = fitparam [i] + deltapar [0] [i]
@@ -567,7 +567,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-10 while default value
-        is now numpy.finfo(numpy.float).eps as in scipy
+        is now numpy.finfo(numpy.float64).eps as in scipy
     :type epsfcn: *optional*, float
 
     :param left_derivative:
@@ -595,9 +595,9 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             Sequence with the indices of the original parameters considered in the calculations.
     """
     if epsfcn is None:
-        epsfcn = numpy.finfo(numpy.float).eps
+        epsfcn = numpy.finfo(numpy.float64).eps
     else:
-        epsfcn = max(epsfcn, numpy.finfo(numpy.float).eps)
+        epsfcn = max(epsfcn, numpy.finfo(numpy.float64).eps)
     #nr0, nc = data.shape
     n_param = len(parameters)
     if constraints is None:
@@ -644,9 +644,9 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                     print("Initial value = %f" % parameters[i])
                     print("Limits are %f and %f" % (pmin, pmax))
                     print("Parameter will be kept at its starting value")
-    fitparam = numpy.array(fitparam, numpy.float)
-    alpha = numpy.zeros((n_free, n_free), numpy.float)
-    beta = numpy.zeros((1, n_free), numpy.float)
+    fitparam = numpy.array(fitparam, numpy.float64)
+    alpha = numpy.zeros((n_free, n_free), numpy.float64)
+    beta = numpy.zeros((1, n_free), numpy.float64)
     #delta = (fitparam + numpy.equal(fitparam, 0.0)) * 0.00001
     delta = (fitparam + numpy.equal(fitparam, 0.0)) * numpy.sqrt(epsfcn)
     nr  = y.size
@@ -803,7 +803,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
     if constraints is None:
         return sigma0
     n_free = 0
-    sigma_par = numpy.zeros(parameters.shape, numpy.float)
+    sigma_par = numpy.zeros(parameters.shape, numpy.float64)
     for i in range(len(constraints)):
         if constraints[i][0] == CFREE:
             sigma_par [i] = sigma0[n_free]
@@ -860,7 +860,7 @@ def main(argv=None):
         return numpy.exp(x * numpy.less(abs(x), 250)) -\
                1.0 * numpy.greater_equal(abs(x), 250)
 
-    xx = numpy.arange(npoints, dtype=numpy.float)
+    xx = numpy.arange(npoints, dtype=numpy.float64)
     yy = gauss(xx, *[10.5, 2, 1000.0, 20., 15])
     sy = numpy.sqrt(abs(yy))
     parameters = [0.0, 1.0, 900.0, 25., 10]
