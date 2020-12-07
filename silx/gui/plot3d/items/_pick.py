@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -197,7 +197,7 @@ class PickingResult(_PickingResult):
         super(PickingResult, self).__init__(item, indices)
 
         self._objectPositions = numpy.array(
-            positions, copy=False, dtype=numpy.float)
+            positions, copy=False, dtype=numpy.float64)
 
         # Store matrices to generate positions on demand
         primitive = item._getScenePrimitive()

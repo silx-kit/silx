@@ -444,7 +444,7 @@ class Isosurface(Item3D):
             return None  # No intersected triangles
 
         intersections = numpy.array(intersections)[numpy.argsort(depths)]
-        indices = numpy.transpose(numpy.round(intersections).astype(numpy.int))
+        indices = numpy.transpose(numpy.round(intersections).astype(numpy.int64))
         return PickingResult(self, positions=intersections, indices=indices)
 
 
