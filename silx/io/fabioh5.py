@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -656,13 +656,13 @@ class FabioReader(object):
             elif result_type.kind == "U":
                 none_value = u""
             elif result_type.kind == "f":
-                none_value = numpy.float("NaN")
+                none_value = numpy.float64("NaN")
             elif result_type.kind == "i":
-                none_value = numpy.int(0)
+                none_value = numpy.int64(0)
             elif result_type.kind == "u":
-                none_value = numpy.int(0)
+                none_value = numpy.int64(0)
             elif result_type.kind == "b":
-                none_value = numpy.bool(False)
+                none_value = numpy.bool_(False)
             else:
                 none_value = None
 
