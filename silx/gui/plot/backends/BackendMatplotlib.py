@@ -628,7 +628,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if hasattr(color, 'dtype') and len(color) == len(x):
             # scatter plot
-            if color.dtype not in [numpy.float32, numpy.float]:
+            if color.dtype not in [numpy.float32, numpy.float64]:
                 actualColor = color / 255.
             else:
                 actualColor = color
@@ -748,7 +748,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         color = numpy.array(color, copy=False)
         assert color.ndim == 2 and len(color) == len(x)
 
-        if color.dtype not in [numpy.float32, numpy.float]:
+        if color.dtype not in [numpy.float32, numpy.float64]:
             color = color.astype(numpy.float32) / 255.
 
         collection = TriMesh(

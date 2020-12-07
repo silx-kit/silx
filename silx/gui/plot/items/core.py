@@ -1464,9 +1464,9 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
+                x = numpy.array(x, copy=True, dtype=numpy.float64)
                 x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
+                y = numpy.array(y, copy=True, dtype=numpy.float64)
                 y[clipped] = numpy.nan
 
                 if xPositive and xerror is not None:

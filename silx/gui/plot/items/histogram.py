@@ -187,12 +187,12 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
             yPositive = False
 
         if xPositive or yPositive:
-            values = numpy.array(values, copy=True, dtype=numpy.float)
+            values = numpy.array(values, copy=True, dtype=numpy.float64)
 
             if xPositive:
                 # Replace edges <= 0 by NaN and corresponding values by NaN
                 clipped_edges = (edges <= 0)
-                edges = numpy.array(edges, copy=True, dtype=numpy.float)
+                edges = numpy.array(edges, copy=True, dtype=numpy.float64)
                 edges[clipped_edges] = numpy.nan
                 clipped_values = numpy.logical_or(clipped_edges[:-1],
                                                   clipped_edges[1:])

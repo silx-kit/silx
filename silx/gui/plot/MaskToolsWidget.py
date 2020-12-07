@@ -752,7 +752,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 doMask = self._isMasking()
                 # Convert from plot to array coords
                 vertices = (event['points'] - self._origin) / self._scale
-                vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
+                vertices = vertices.astype(numpy.int64)[:, (1, 0)]  # (row, col)
                 self._mask.updatePolygon(level, vertices, doMask)
                 self._mask.commit()
 
