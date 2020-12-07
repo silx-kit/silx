@@ -74,7 +74,7 @@ MAJOR = 0
 MINOR = 14
 MICRO = 0
 RELEV = "candidate"  # <16
-SERIAL = 2  # <16
+SERIAL = 3  # <16
 
 date = __date__
 
