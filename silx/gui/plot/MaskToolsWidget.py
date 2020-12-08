@@ -315,13 +315,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if numpy.array_equal(mask, self.getSelectionMask()):
             return mask.shape
 
-        # ensure all mask attributes are synchronized with the active image
-        # and connect listener
-        activeImage = self.plot.getActiveImage()
-        if activeImage is not None and activeImage.getName() != self._maskName:
-            self._activeImageChanged()
-            self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
-
         if self._data.shape[0:2] == (0, 0) or mask.shape == self._data.shape[0:2]:
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
@@ -365,20 +358,32 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self.plot.remove(self._maskName, kind='image')
 
     def showEvent(self, event):
+        print('show', self.isVisible())
         try:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
         except (RuntimeError, TypeError):
             pass
-        self._activeImageChanged()  # Init mask + enable/disable widget
+
+        # Sync with current active image
+        self._setMaskedImage(self.plot.getActiveImage())
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
+        print('hide', self.isVisible())
         try:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
         except (RuntimeError, TypeError):
             pass
+
+        image = self.getMaskedItem()
+        if image is not None:
+            try:
+                image.sigItemChanged.disconnect(self.__imageChanged)
+            except TypeError:
+                pass  # TODO should not happen
+
         if self.isMaskInteractionActivated():
             # Disable drawing tool
             self.browseAction.trigger()
@@ -386,6 +391,17 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChangedAfterCare)
+
+    def _activeImageChanged(self, previous, current):
+        """Reacts upon active image change.
+
+        Only handle change of active image items here.
+        """
+        if previous != current:
+            image = self.plot.getActiveImage()
+            if image is not None and image.getName() == self._maskName:
+                image = None  # Active image is the mask
+            self._setMaskedImage(image)
 
     def _setOverlayColorForImage(self, image):
         """Set the color of overlay adapted to image
@@ -399,7 +415,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         else:
             self._defaultOverlayColor = rgba('black')
 
-    def _activeImageChangedAfterCare(self, *args):
+    def _activeImageChangedAfterCare(self, *args):  # TODO
         """Check synchro of active image and mask when mask widget is hidden.
 
         If active image has no more the same size as the mask, the mask is
@@ -439,41 +455,83 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._mask.setDataItem(activeImage)
                 self._updatePlotMask()
 
-    def _activeImageChanged(self, *args):
-        """Update widget and mask according to active image changes"""
-        activeImage = self.plot.getActiveImage()
-        if (activeImage is None or activeImage.getName() == self._maskName or
-                activeImage.getData(copy=False).size == 0):
-            # No active image or active image is the mask or image has no data...
+    def _setMaskedImage(self, image, ignorePrevious=False):
+        """Change the image that is used a reference to author the mask"""
+        if not ignorePrevious:
+            previous = self.getMaskedItem()
+            if previous is not None and self.isVisible():
+                # Disconnect from previous image
+                try:
+                    previous.sigItemChanged.disconnect(self.__imageChanged)
+                except TypeError:
+                    pass  # TODO fixme should not happen
+
+        # Set the image
+        self._mask.setDataItem(image)
+
+        if image is None:  # No image, disable mask
             self.setEnabled(False)
 
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
             self._mask.reset()
             self._mask.commit()
 
-        else:  # There is an active image
-            self.setEnabled(True)
+            self._updateInteractiveMode()
 
-            self._setOverlayColorForImage(activeImage)
+        else:  # Update and connect to image's sigItemChanged
+            self.__imageUpdated()
+            if self.isVisible():
+                image.sigItemChanged.connect(self.__imageChanged)
 
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
+    def __imageChanged(self, event):
+        """Reacts upon image item changes"""
+        image = self._mask.getDataItem()
+        if image is None:
+            _logger.error("Mask is not attached to an image")
+            return
 
-            self._origin = activeImage.getOrigin()
-            self._scale = activeImage.getScale()
-            self._z = activeImage.getZValue() + 1
-            self._data = activeImage.getData(copy=False)
-            self._mask.setDataItem(activeImage)
-            if self._data.shape[:2] != self._mask.getMask(copy=False).shape:
-                self._mask.reset(self._data.shape[:2])
-                self._mask.commit()
-            else:
-                # Refresh in case origin, scale, z changed
-                self._updatePlotMask()
+        if event in (items.ItemChangedType.COLORMAP,
+                     items.ItemChangedType.DATA,
+                     items.ItemChangedType.POSITION,
+                     items.ItemChangedType.SCALE,
+                     items.ItemChangedType.VISIBLE,
+                     items.ItemChangedType.ZVALUE):
+            self.__imageUpdated()
 
-            # Threshold tools only available for data with colormap
-            self.thresholdGroup.setEnabled(self._data.ndim == 2)
+        elif event == items.ItemChangedType.MASK:
+            # Update mask from the image item
+            self.setSelectionMask(image.getMaskData(copy=False), copy=True)
+
+    def __imageUpdated(self):
+        """Synchronize mask with current state of the image"""
+        image = self._mask.getDataItem()
+        if image is None:
+            _logger.error("No active image while expecting one")
+            return
+
+        self._setOverlayColorForImage(image)
+
+        self._setMaskColors(self.levelSpinBox.value(),
+                            self.transparencySlider.value() /
+                            self.transparencySlider.maximum())
+
+        self._origin = image.getOrigin()
+        self._scale = image.getScale()
+        self._z = image.getZValue() + 1
+        self._data = image.getData(copy=False)
+        self._mask.setDataItem(image)
+        if self._data.shape[:2] != self._mask.getMask(copy=False).shape:
+            self._mask.reset(self._data.shape[:2])
+            self._mask.commit()
+        else:
+            # Refresh in case origin, scale, z changed
+            self._updatePlotMask()
+
+        # Visible and with data
+        self.setEnabled(image.isVisible() and self._data.size != 0)
+
+        # Threshold tools only available for data with colormap
+        self.thresholdGroup.setEnabled(self._data.ndim == 2)
 
         self._updateInteractiveMode()
 

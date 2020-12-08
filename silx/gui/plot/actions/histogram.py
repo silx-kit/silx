@@ -173,7 +173,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self.computeIntensityDistribution()
 
     def _itemUpdated(self, event):
-        if event == items.ItemChangedType.DATA:
+        if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
             self.computeIntensityDistribution()
 
     def _cleanUp(self):
@@ -200,10 +200,11 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                 array = (array[:,:, 0] * 0.299 +
                          array[:,:, 1] * 0.587 +
                          array[:,:, 2] * 0.114)
-            elif "getMaskData" in dir(item):
-                mask = item.getMaskData(copy=False)
-                if mask is not None:
-                    array = array[numpy.logical_not(mask)]
+
+            # Apply mask if any
+            mask = item.getMaskData(copy=False)
+            if mask is not None:
+                array = array[numpy.logical_not(mask)]
 
         elif isinstance(item, items.Scatter):
             array = item.getValueData(copy=False)

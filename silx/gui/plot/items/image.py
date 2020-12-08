@@ -372,24 +372,6 @@ class ImageData(ImageBase, ColormapMixIn):
         else:
             return numpy.array(self.__alpha, copy=copy)
 
-    def getColormappedData(self, copy=True):
-        """Returns the data used to compute the displayed colors
-
-        :param bool copy: True to get a copy,
-            False to get internal data (do not modify!).
-        :rtype: Union[None,numpy.ndarray]
-        """
-        data = ColormapMixIn.getColormappedData(self, copy=copy)
-        if data is None:
-            return None
-        else:
-            masked = numpy.array(data, dtype=numpy.float32, copy=True)
-            mask = self.getMaskData(copy=False)
-            if mask is not None:
-                print("In getColormappedData, masked pixels are ", mask.sum())
-                masked[numpy.where(mask)] = numpy.nan
-            return masked
-
     def setData(self, data, alternative=None, alpha=None, copy=True):
         """"Set the image data and optionally an alternative RGB(A) representation
 
@@ -403,7 +385,6 @@ class ImageData(ImageBase, ColormapMixIn):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
-        print("ImageData.setData update image")
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
         if data.dtype.kind == 'b':
@@ -414,13 +395,7 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        if self._mask is not None:
-            masked_data = numpy.array(data, dtype=numpy.float32, copy=True)
-            masked_data[numpy.where(self._mask)] = numpy.NaN
-            print("ImageData.setData Update with masked image")
-            self._setColormappedData(masked_data, copy=False)
-        else:
-            self._setColormappedData(data, copy=False)
+        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
