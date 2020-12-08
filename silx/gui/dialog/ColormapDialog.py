@@ -463,7 +463,7 @@ class _ColormapHistogram(qt.QWidget):
 
         # Try to use the one defined in the dialog
         dataRange = self.parent()._getDataRange()
-        print("parent()._getDataRange() is ", dataRange)
+        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getDataRange() is ", dataRange)
         if dataRange is not None:
             if norm in (Colormap.LINEAR, Colormap.GAMMA, Colormap.ARCSINH):
                 return dataRange[0], dataRange[2]
@@ -476,7 +476,7 @@ class _ColormapHistogram(qt.QWidget):
 
         # Try to use the histogram defined in the dialog
         histo = self.parent()._getHistogram()
-        print("parent()._getHistogram() is ", histo)
+        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getHistogram() is ", histo)
         if histo is not None:
             _histo, edges = histo
             normalizer = Colormap(normalization=norm)._getNormalizer()
@@ -488,14 +488,15 @@ class _ColormapHistogram(qt.QWidget):
                 return dataRange.minimum, dataRange.maximum
 
         item = self.parent()._getItem()
-        print("parent()._getItem() is ", item)
+        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getItem() is ", item)
         if item is not None:
             # Trick to reach data range using colormap cache
             cm = Colormap()
             cm.setVRange(None, None)
             cm.setNormalization(norm)
-            print("Colormap is ", cm,)
+            print("             colormap is ", cm)
             dataRange = item._getColormapAutoscaleRange(cm)
+            print("             datRange is ", dataRange)
             return dataRange
 
         # If there is no item, there is no data
