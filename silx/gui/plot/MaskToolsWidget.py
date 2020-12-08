@@ -379,7 +379,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         image = self.getMaskedItem()
         if image is not None:
-            image.sigItemChanged.disconnect(self.__imageChanged)
+            try:
+                image.sigItemChanged.disconnect(self.__imageChanged)
+            except TypeError:
+                pass  # TODO should not happen
 
         if self.isMaskInteractionActivated():
             # Disable drawing tool
