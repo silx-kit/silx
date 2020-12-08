@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/12/2020"
+__date__ = "07/12/2020"
 
 try:
     from collections import abc
@@ -208,10 +208,12 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if mask is not None and self._data is not None:
             if mask.size and mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
-        self._masked = None
-        self._mask = None if mask is None else numpy.array(mask, copy=copy)
-        #if mask is not self._masked:
-        self._updated(ItemChangedType.MASK)
+        if id(mask) != id(self._mask):
+            self._masked = None
+            if "_flushColormapCache" in self.__dict__:
+                self._flushColormapCache()
+            self._mask = None if mask is None else numpy.array(mask, copy=copy)
+            self._updated(ItemChangedType.MASK)
 
     def getMaskedData(self):
         """Retirieve the NaN-masked image
@@ -385,7 +387,7 @@ class ImageData(ImageBase, ColormapMixIn):
             mask = self.getMaskData(copy=False)
             if mask is not None:
                 print("In getColormappedData, masked pixels are ", mask.sum())
-                masked[numpy.logical_not(mask)] = numpy.nan
+                masked[numpy.where(mask)] = numpy.nan
             return masked
 
     def setData(self, data, alternative=None, alpha=None, copy=True):
@@ -401,6 +403,7 @@ class ImageData(ImageBase, ColormapMixIn):
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
         """
+        print("ImageData.setData update image")
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
         if data.dtype.kind == 'b':
@@ -411,7 +414,13 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        self._setColormappedData(data, copy=False)
+        if self._mask is not None:
+            masked_data = numpy.array(data, dtype=numpy.float32, copy=True)
+            masked_data[numpy.where(self._mask)] = numpy.NaN
+            print("ImageData.setData Update with masked image")
+            self._setColormappedData(masked_data, copy=False)
+        else:
+            self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
