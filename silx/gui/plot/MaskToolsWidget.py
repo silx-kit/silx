@@ -34,7 +34,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/11/2020"
+__date__ = "08/12/2020"
 
 import os
 import sys
@@ -358,7 +358,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self.plot.remove(self._maskName, kind='image')
 
     def showEvent(self, event):
-        print('show', self.isVisible())
         try:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
@@ -370,7 +369,6 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
-        print('hide', self.isVisible())
         try:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChanged)
