@@ -204,7 +204,6 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         :param numpy.ndarray data:
         """
-        print("in Image.setMaskData")
         if mask is not None and self._data is not None:
             if mask.size and mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
@@ -418,12 +417,10 @@ class ImageData(ImageBase, ColormapMixIn):
 
         :param numpy.ndarray data:
         """
-        print("in ImageData.setMaskData")
         super().setMaskData(mask, copy=copy)
         self._flushColormapCache()
 
     def getColormappedData(self, copy=True):
-        print("in ImageData.getColormappedData")
         data = super().getColormappedData(copy=copy)
         if data is not None:
             masked = numpy.array(data, dtype=numpy.float32, copy=not copy)  # one copy is enough!
