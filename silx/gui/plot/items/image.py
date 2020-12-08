@@ -284,7 +284,6 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
-#         self.sigItemChanged.connect(self._maskChanged)
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
