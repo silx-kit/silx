@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/12/2020"
+__date__ = "08/12/2020"
 
 import os
 import weakref
@@ -115,7 +115,7 @@ class BaseMask(qt.QObject):
         """Update the mask stored inside the DataItem (if possible)
         """
         if "setMaskData" in dir(self._dataItem):
-            self._dataItem.setMaskData(self.getMask())
+            self._dataItem.setMaskData(self.getMask(copy=True), copy=False)
 
     def _notify(self):
         """Notify of mask change."""

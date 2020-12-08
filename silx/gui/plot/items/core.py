@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/12/2020"
+__date__ = "08/12/2020"
 
 import collections
 try:
@@ -669,11 +669,6 @@ class ColormapMixIn(ItemMixInBase):
         if self.__data is None:
             return None
         else:
-#             if "_mask" in self.__dict__ and self._mask is not None:
-#                 masked = numpy.array(self.__data, dtype=numpy.float32, copy=True)
-#                 masked[numpy.where(self._mask)] = numpy.NaN
-#                 return masked
-#             else:
             return numpy.array(self.__data, copy=copy)
 
     def _getColormapAutoscaleRange(self, colormap=None):
@@ -688,6 +683,13 @@ class ColormapMixIn(ItemMixInBase):
             colormap = self.getColormap()
 
         data = self.getColormappedData(copy=False)
+        if data is None:
+            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is None")
+        elif data.size == 0:
+            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is", data)
+        else:
+            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is", data.size,
+                  numpy.nanmin(data), numpy.nanmax(data), numpy.logical_not(numpy.isfinite(data)).sum())
         if colormap is None or data is None:
             return None, None
 

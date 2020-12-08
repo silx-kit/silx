@@ -61,7 +61,7 @@ The updates of the colormap description are also available through the signal:
 
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "07/12/2020"
+__date__ = "08/12/2020"
 
 import enum
 import logging
@@ -494,6 +494,7 @@ class _ColormapHistogram(qt.QWidget):
             cm = Colormap()
             cm.setVRange(None, None)
             cm.setNormalization(norm)
+            print("Colormap is ", cm,)
             dataRange = item._getColormapAutoscaleRange(cm)
             return dataRange
 
