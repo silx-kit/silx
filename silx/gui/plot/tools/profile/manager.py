@@ -949,6 +949,7 @@ class ProfileManager(qt.QObject):
         """Handle item changes.
         """
         if changeType in (items.ItemChangedType.DATA,
+                          items.ItemChangedType.MASK,
                           items.ItemChangedType.POSITION,
                           items.ItemChangedType.SCALE):
             self.requestUpdateAllProfile()
