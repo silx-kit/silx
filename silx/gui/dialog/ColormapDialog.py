@@ -438,7 +438,6 @@ class _ColormapHistogram(qt.QWidget):
         if data is None:
             return None, None
         dataRange = self._getNormalizedDataRange()
-        print("dataRange is ", dataRange)
         if dataRange[0] is None or dataRange[1] is None:
             return None, None
         counts, edges = self.parent().computeHistogram(data, scale=norm, dataRange=dataRange)
@@ -466,7 +465,6 @@ class _ColormapHistogram(qt.QWidget):
 
         # Try to use the one defined in the dialog
         dataRange = self.parent()._getDataRange()
-        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getDataRange() is ", dataRange)
         if dataRange is not None:
             if norm in (Colormap.LINEAR, Colormap.GAMMA, Colormap.ARCSINH):
                 return dataRange[0], dataRange[2]
@@ -479,7 +477,6 @@ class _ColormapHistogram(qt.QWidget):
 
         # Try to use the histogram defined in the dialog
         histo = self.parent()._getHistogram()
-        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getHistogram() is ", histo)
         if histo is not None:
             _histo, edges = histo
             normalizer = Colormap(normalization=norm)._getNormalizer()
@@ -491,15 +488,12 @@ class _ColormapHistogram(qt.QWidget):
                 return dataRange.minimum, dataRange.maximum
 
         item = self.parent()._getItem()
-        print("_ColormapHistogram._computeNormalizedDataRange: parent()._getItem() is ", item)
         if item is not None:
             # Trick to reach data range using colormap cache
             cm = Colormap()
             cm.setVRange(None, None)
             cm.setNormalization(norm)
-            print("             colormap is ", cm)
             dataRange = item._getColormapAutoscaleRange(cm)
-            print("             datRange is ", dataRange)
             return dataRange
 
         # If there is no item, there is no data
@@ -777,8 +771,6 @@ class _ColormapHistogram(qt.QWidget):
                 histogram = numpy.array(histogram, copy=True)
                 bin_edges = numpy.array(bin_edges, copy=True)
                 norm_histogram = histogram / numpy.nanmax(histogram)
-#                 print(bin_edges)
-#                 print(histogram, numpy.nanmax(histogram))
                 self._plot.addHistogram(norm_histogram,
                                         bin_edges,
                                         legend="Data",
@@ -1251,11 +1243,9 @@ class ColormapDialog(qt.QDialog):
 
     def _getArray(self):
         data = self._getData()
-        print("in _getArray data is", data)
         if data is not None:
             return data
         item = self._getItem()
-        print("in _getArray item is", item)
         if item is not None:
             return item.getColormappedData(copy=False)
         return None
