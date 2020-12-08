@@ -557,8 +557,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         mx, my = self.plot.dataToPixel(*center)
         self.mouseMove(widget, pos=(mx, my))
         self.mousePress(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseMove(widget, pos=(mx, my+25))
         self.mouseMove(widget, pos=(mx, my+50))
-        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my+50))
 
         result = numpy.array(item.getEndPoints())
         # x location is still the same
