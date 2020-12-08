@@ -383,15 +383,12 @@ class Hdf5Item(Hdf5Node):
                 text = text.strip('"')
                 # Check NX_class formatting
                 lower = text.lower()
-                formatedNX_class = None
+                formatedNX_class = ""
                 if lower.startswith('nx'):
                     formatedNX_class = 'NX' + lower[2:]
                 if lower == 'nxcansas':
                     formatedNX_class = 'NXcanSAS'  # That's the only class with capital letters...
-                if formatedNX_class is None:
-                    _logger.error("NX_class: '%s' is malformed",
-                                  text)
-                elif text != formatedNX_class:
+                if text != formatedNX_class:
                     _logger.error("NX_class: '%s' is malformed (should be '%s')",
                                   text,
                                   formatedNX_class)
