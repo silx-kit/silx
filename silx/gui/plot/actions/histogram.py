@@ -173,7 +173,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self.computeIntensityDistribution()
 
     def _itemUpdated(self, event):
-        if event == items.ItemChangedType.DATA:
+        if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
             self.computeIntensityDistribution()
 
     def _cleanUp(self):
