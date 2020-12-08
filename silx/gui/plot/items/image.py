@@ -285,7 +285,7 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
-        self.sigItemChanged.connect(self._maskChanged)
+#         self.sigItemChanged.connect(self._maskChanged)
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -438,10 +438,14 @@ class ImageData(ImageBase, ColormapMixIn):
 
         super().setData(data)
 
-    def _maskChanged(self, event=None):
-        print("in ImageData._maskChanged")
-        if event == ItemChangedType.MASK:
-            self._flushColormapCache()
+    def setMaskData(self, mask, copy=True):
+        """Set the image data
+
+        :param numpy.ndarray data:
+        """
+        print("in ImageData.setMaskData")
+        super().setMaskData(mask, copy=copy)
+        self._flushColormapCache()
 
     def getColormappedData(self, copy=True):
         print("in ImageData.getColormappedData")
