@@ -696,6 +696,7 @@ class ColormapMixIn(ItemMixInBase):
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
         key = normalization, autoscaleMode
+        print("ColormapMixIn.__cacheColormapRange cache content:", self.__cacheColormapRange)
         vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
             if (data is not None) and data.size:
