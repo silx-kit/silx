@@ -683,31 +683,19 @@ class ColormapMixIn(ItemMixInBase):
             colormap = self.getColormap()
 
         data = self.getColormappedData(copy=False)
-        if data is None:
-            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is None")
-        elif data.size == 0:
-            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is", data)
-        else:
-            print(type(self), "in ColormapMixIn_getColormapAutoscaleRange, data is", data.size,
-                  numpy.nanmin(data), numpy.nanmax(data), numpy.logical_not(numpy.isfinite(data)).sum())
         if colormap is None or data is None:
             return None, None
 
         normalization = colormap.getNormalization()
         autoscaleMode = colormap.getAutoscaleMode()
         key = normalization, autoscaleMode
-        print("ColormapMixIn.__cacheColormapRange cache content:", self.__cacheColormapRange)
         vRange = self.__cacheColormapRange.get(key, None)
         if vRange is None:
-            if (data is not None) and data.size:
-                print("Data is now: ", numpy.nanmin(data), numpy.nanmax(data), numpy.sum(numpy.logical_not(numpy.isfinite(data))))
             vRange = colormap._computeAutoscaleRange(data)
-            print("calculated vRange:", vRange)
             self.__cacheColormapRange[key] = vRange
         return vRange
 
     def _flushColormapCache(self):
-        print("flush colormap cache")
         self.__cacheColormapRange = {}
 
 
