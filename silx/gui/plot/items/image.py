@@ -28,7 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/12/2020"
+__date__ = "08/12/2020"
 
 try:
     from collections import abc
@@ -208,12 +208,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if mask is not None and self._data is not None:
             if mask.size and mask.shape != self._data.shape[:2]:
                 _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
-        if id(mask) != id(self._mask):
-            self._masked = None
-            if "_flushColormapCache" in self.__dict__:
-                self._flushColormapCache()
-            self._mask = None if mask is None else numpy.array(mask, copy=copy)
-            self._updated(ItemChangedType.MASK)
+        self._masked = None
+        self._mask = None if mask is None else numpy.array(mask, copy=copy)
+        self._updated(ItemChangedType.MASK)
 
     def getMaskedData(self):
         """Retirieve the NaN-masked image
@@ -288,6 +285,7 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
+        self.sigItemChanged.connect(self._maskChanged)
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -439,6 +437,21 @@ class ImageData(ImageBase, ColormapMixIn):
         self.__alpha = alpha
 
         super().setData(data)
+
+    def _maskChanged(self, event=None):
+        print("in ImageData._maskChanged")
+        if event == ItemChangedType.MASK:
+            self._flushColormapCache()
+
+    def getColormappedData(self, copy=True):
+        print("in ImageData.getColormappedData")
+        data = super().getColormappedData(copy=copy)
+        if data is not None:
+            masked = numpy.array(data, dtype=numpy.float32, copy=not copy)  # one copy is enough!
+            masked[numpy.where(self._mask)] = numpy.NaN
+            return masked
+        else:
+            return data
 
 
 class ImageRgba(ImageBase):
