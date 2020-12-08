@@ -708,7 +708,7 @@ class ColormapMixIn(ItemMixInBase):
 
     def _flushColormapCache(self):
         print("flush colormap cache")
-        __cacheColormapRange = {}
+        self.__cacheColormapRange = {}
 
 
 class SymbolMixIn(ItemMixInBase):
