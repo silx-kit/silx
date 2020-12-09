@@ -117,7 +117,8 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
-        raise NotImplementedError('Base class')
+        roiPos = self.getPosition()
+        return position[0] == roiPos[0] and position[1] == roiPos[1]
 
     def _pointPositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -318,11 +319,12 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         top_left = position[0], position[1] + 1
         top_right = position[0] + 1, position[1] + 1
 
-        line_pt1 = self._points[0]
-        line_pt2 = self._points[1]
+        points = self.__shape.getPoints()
+        line_pt1 = points[0]
+        line_pt2 = points[1]
 
-        bb1 = _BoundingBox.from_points(self._points)
-        if bb1.contains(position) is False:
+        bb1 = _BoundingBox.from_points(points)
+        if not bb1.contains(position):
             return False
 
         return (
@@ -402,7 +404,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
-        return position[1] == self.getPosition()[1]
+        return position[1] == self.getPosition()
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -471,7 +473,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
 
     @docstring(RegionOfInterest)
     def contains(self, position):
-        return position[0] == self.getPosition()[0]
+        return position[0] == self.getPosition()
 
     def _linePositionChanged(self, event):
         """Handle position changed events of the marker"""
@@ -811,6 +813,10 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
             center = self.getCenter()
             self.setRadius(numpy.linalg.norm(center - current))
 
+    @docstring(HandleBasedROI)
+    def contains(self, position):
+        return numpy.linalg.norm(self.getCenter(), position) <= self.getRadius()
+
     def __str__(self):
         center = self.getCenter()
         radius = self.getRadius()
@@ -1071,6 +1077,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         """Handle position changed events of the center marker"""
         if event is items.ItemChangedType.POSITION:
             self._updateGeometry()
+
+    @docstring(HandleBasedROI)
+    def contains(self, position):
+        return False  # TODO
 
     def __str__(self):
         center = self.getCenter()
@@ -1494,6 +1504,10 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         if event is items.ItemChangedType.POSITION:
             marker = self.sender()
             self.setCenter(marker.getXPosition())
+
+    @docstring(HandleBasedROI)
+    def contains(self, position):
+        return self.getMin() <= position[0] <= self.getMax()
 
     def __str__(self):
         vrange = self.getRange()
