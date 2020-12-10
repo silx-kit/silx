@@ -336,7 +336,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
                                   seg2_start_pt=top_right, seg2_end_pt=top_left) or
             segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
                                   seg2_start_pt=top_left, seg2_end_pt=bottom_left)
-        )
+        ) is not None
 
     def __str__(self):
         start, end = self.getEndPoints()
