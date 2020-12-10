@@ -6,6 +6,8 @@ Change Log
 
 This is the first version of `silx` supporting `h5py` >= v3.0.
 
+This is the last version of `silx` officially supporting Python 3.5.
+
 * `silx view`:
 
   * Added `-f` command line option, Fixed collapsing browsing panel (PR #3176)
