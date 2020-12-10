@@ -40,6 +40,7 @@ Change Log
     * Added the feature to compute statistics inside a specific region of interest (PR #3056)
     * Fixed issue in Colormap `3 stdev` autoscale mode and avoided warnings (PR #3295)
     * Major improvements of `PlotWidget`:
+
       * Added support for float16 texture in OpenGL backend (PR #3194)
       * Fixed time serie axis for range < 2.5 microseconds (PR #3195)
       * Added `get|setAxesMargins` methods to control margin ratios around plot area (PR #3196)
