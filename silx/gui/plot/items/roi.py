@@ -815,7 +815,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
 
     @docstring(HandleBasedROI)
     def contains(self, position):
-        return numpy.linalg.norm(self.getCenter(), position) <= self.getRadius()
+        return numpy.linalg.norm(self.getCenter() - position) <= self.getRadius()
 
     def __str__(self):
         center = self.getCenter()
