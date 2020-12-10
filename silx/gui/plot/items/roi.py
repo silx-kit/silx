@@ -1080,7 +1080,11 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
 
     @docstring(HandleBasedROI)
     def contains(self, position):
-        return False  # TODO
+        major, minor = self.getMajorRadius(), self.getMinorRadius()
+        delta = self.getOrientation()
+        x, y = position - self.getCenter()
+        return ((x*numpy.cos(delta) + y*numpy.sin(delta))**2/major**2 +
+                (x*numpy.sin(delta) - y*numpy.cos(delta))**2/minor**2) <= 1
 
     def __str__(self):
         center = self.getCenter()
