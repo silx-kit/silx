@@ -61,6 +61,7 @@ Change Log
       * Added context menu to the selected ROI to remove it (PR #3260)
       * Added pan interaction to ROI authoring (`select-draw`) interaction mode (PR #3291)
       * Added support of right axis label with OpenGL backend (PR #3293)
+      * Fixed RegionOfInterest `contains` methods (PR #3336)
 
   * `silx.gui.colors.plot3d`:
 
