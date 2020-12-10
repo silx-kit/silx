@@ -1,6 +1,103 @@
 Change Log
 ==========
 
+0.14.0: 2020/12/11
+------------------
+
+* `silx.gui`:
+
+  * Fixed matplotlib 3.3.0rc1 deprecation warnings (PR #3145)
+  * Deprecated `silx.gui.plot.matplotlib` module (use `silx.gui.utils.matplotlib` instead) (PR #3158)
+  * Fixed collapsing browsing panel in silx view, Added `-f` command line option (PR #3176)
+  * Fixed `glutils.isOpenGLAvailable` issue (PR #3184)
+  * Added support for HDF5 external data (virtual and raw) (PR #3222)
+  * Improve memory allocation by using already defined `fontMetrics` instread of creating a new one (PR #3239)
+  * Make TextFormatter compatible with h5py>=3 (PR #3253)
+  * Added lazy update handling of OpenGL textures (PR #3205)
+
+  * `silx.gui.colors.Colormap`:
+
+    * Added `Colormap.get|setNaNColor` to change color used for NaN, fix different NaN displays for matplotlib/openGL backends (PR #3143)
+    * Refactored PlotWidget OpenGL backend to enable extensions (PR #3147)
+    * Fixed `DataViews` and `ImageStack` (PR #3171 and #3167)
+    * Fixed use of `QThreadPool.tryTake` to be Qt5.7 compliant (PR #3250)
+
+  * `silx.gui.plot`:
+
+    * Improved image profile tool to support PlotWidget item extension (PR #3150)
+    * Fixed ColormapDialog custom range input (PR #3153)
+    * Fixed support of curves with infinite data (PR #3175)
+    * Fixed issue when changing ROI mode while a ROI is being created (PR #3186)
+    * Added `DATA_BOUNDS` visualization parameter for `Scatter` item histogram bounds (PR #3180)
+    * Fixed `RegionOfInterest` refresh when highlighted (PR #3197)
+    * Fixed arc roi shape: make sure start and end points are part of the shape (PR #3257)
+    * Save error bars when saving a plot (PR #3199)
+    * Added an action to switch on/off OpenGL rendering on a plot (PR #3261)
+    * Split ROI module into 3: base/common/arc_roi (PR #3283)
+    * Add test for ROI interaction mode (PR #3283)
+    * Improved `Stackview`: replaced `setColormap` `autoscale` argument by `scaleColormapRangeToStack` method (PR #3279)
+    * Updated `3 stddev` autoscale algorithm, clamp it with the minmax data in order to improve the contrast (PR #3284)
+    * Added the feature to compute statistics inside a specific region of interest (PR #3056)
+    * Fixed issue in Colormap `3 stdev` autoscale mode and avoided warnings (PR #3295)
+    * Major improvements of `PlotWidget`:
+      * Added support for float16 texture in OpenGL backend (PR #3194)
+      * Fixed time serie axis for range < 2.5 microseconds (PR #3195)
+      * Added `get|setAxesMargins` methods to control margin ratios around plot area (PR #3196)
+      * Fixed initial size of OpenGL backend (PR #3209)
+      * Added a `DataItem` base class for items having a "data extent" in the plot (PR #3212)
+      * Added item visible bounds feature to PlotWidget items (PR #3223)
+      * Improved support of high-DPI screen in OpenGL backend (PR #3203)
+      * Use points rather than pixels for marker size and line width with OpenGL backend (PR #3203)
+      * Fixed PlotWidget image items displayed below the grid by default (PR #3235)
+      * Fixed OpenGL backend image display with sqrt colormap normalization (PR #3248)
+      * Added `PlotWidget.[get|set]Backend` enabling switching backend (PR #3255)
+      * Fixed support of shapes with multiple polygons in the OpenGL backend (PR #3259)
+      * Expose PlotWidget colors as Qt properties (PR #3269)
+      * Added multi interaction mode for ROIs (can be switched with a single click on an handle, or the context menu) (PR #3260)
+      * Added polar interaction mode for arc ROI (PR #3260)
+      * Fixes duplicated callback on ROIs (there was one for each ROI managed created on the plot) (PR #3260)
+      * Added `PlotWidget.sigDefaultContextMenu` to allow to feed the default context menu (PR #3260)
+      * Added context menu to the selected ROI to remove it (PR #3260)
+      * Added pan interaction to ROI authoring (`select-draw`) interaction mode (PR #3291)
+      * Added support of right axis label with OpenGL backend (PR #3293)
+      *
+
+  * `silx.gui.colors.plot3d`:
+
+    * Improved scene rendering (PR #3149)
+    * Fixed handling of transparency of cut plane (PR #3204)
+
+
+* `silx.image`:
+
+   * Fixed slow `image.tomography.get_next_power()` (PR #3168)
+
+* `silx.io`:
+
+  * Added support for HDF5 link preservation in `dictdump` (PR #3224)
+  * Make `h5todict` resilient to issues in the HDF5 file (PR #3162)
+  * Added support for numpy arrays of 'numbers' (PR #3251)
+
+
+* `silx.math`:
+
+  * Improved colormap performances for small datasets (PR #3282)
+
+* `silx.opencl`:
+
+  * Fixed Sift test on modern GPU (PR #3262)
+  * Added textures availability check (PR #3273)
+  * Added a warning when there is an issue in the Ocl destruction (PR #3280)
+
+
+* Miscellaneous:
+
+  * Fixed cython 3 compatibility and deprecation warning (PR #3164, #3189)
+  * HDF5 strings: handle h5py 2.x and 3.x (PR #3240)
+  * Add support for `h5py >= 3.0`
+
+
+
 0.13.0: 2020/06/23
 ------------------
 
