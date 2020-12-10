@@ -71,7 +71,7 @@ Change Log
 
 * `silx.image`:
 
-   * Fixed slow `image.tomography.get_next_power()` (PR #3168)
+  * Fixed slow `image.tomography.get_next_power()` (PR #3168)
 
 * `silx.io`:
 
