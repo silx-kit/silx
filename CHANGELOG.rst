@@ -61,13 +61,11 @@ Change Log
       * Added context menu to the selected ROI to remove it (PR #3260)
       * Added pan interaction to ROI authoring (`select-draw`) interaction mode (PR #3291)
       * Added support of right axis label with OpenGL backend (PR #3293)
-      *
 
   * `silx.gui.colors.plot3d`:
 
     * Improved scene rendering (PR #3149)
     * Fixed handling of transparency of cut plane (PR #3204)
-
 
 * `silx.image`:
 
@@ -79,7 +77,6 @@ Change Log
   * Make `h5todict` resilient to issues in the HDF5 file (PR #3162)
   * Added support for numpy arrays of 'numbers' (PR #3251)
 
-
 * `silx.math`:
 
   * Improved colormap performances for small datasets (PR #3282)
@@ -89,7 +86,6 @@ Change Log
   * Fixed Sift test on modern GPU (PR #3262)
   * Added textures availability check (PR #3273)
   * Added a warning when there is an issue in the Ocl destruction (PR #3280)
-
 
 * Miscellaneous:
 
