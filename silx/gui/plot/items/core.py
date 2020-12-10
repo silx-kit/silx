@@ -695,9 +695,6 @@ class ColormapMixIn(ItemMixInBase):
             self.__cacheColormapRange[key] = vRange
         return vRange
 
-    def _flushColormapCache(self):
-        self.__cacheColormapRange = {}
-
 
 class SymbolMixIn(ItemMixInBase):
     """Mix-in class for items with symbol type"""

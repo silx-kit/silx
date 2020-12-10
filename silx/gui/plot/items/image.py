@@ -100,7 +100,6 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
         self._mask = mask
-        self._masked = None  # NaN masked float32 representation if the data
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
@@ -185,47 +184,62 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         :param numpy.ndarray data:
         """
+        previousShape = self._data.shape
         self._data = data
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
-        self._masked = None
+
+        if (self.getMaskData(copy=False) is not None and
+                previousShape != self._data.shape):
+            # Data shape changed, so mask shape changes.
+            # Send event, mask is lazily updated in getMaskData
+            self._updated(ItemChangedType.MASK)
 
     def getMaskData(self, copy=True):
         """Returns the mask data
 
         :param bool copy: True (Default) to get a copy,
                           False to use internal representation (do not modify!)
-        :rtype: numpy.ndarray
+        :rtype: Union[None,numpy.ndarray]
         """
-        return None if self._mask is None else numpy.array(self._mask, copy=copy)
+        if self._mask is None:
+            return None
+
+        # Update mask if it does not match data shape
+        shape = self.getData(copy=False).shape[:2]
+        if self._mask.shape != shape:
+            # Clip/extend mask to match data
+            newMask = numpy.zeros(shape, dtype=self._mask.dtype)
+            newMask[:self._mask.shape[0], :self._mask.shape[1]] = self._mask[:shape[0], :shape[1]]
+            self._mask = newMask
+
+        return numpy.array(self._mask, copy=copy)
 
     def setMaskData(self, mask, copy=True):
         """Set the image data
 
         :param numpy.ndarray data:
+        :param bool copy: True (Default) to make a copy,
+                          False to use as is (do not modify!)
         """
-        if mask is not None and self._data is not None:
-            if mask.size and mask.shape != self._data.shape[:2]:
-                _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, self._data.shape)
-        self._masked = None
-        self._mask = None if mask is None else numpy.array(mask, copy=copy)
-        self._updated(ItemChangedType.MASK)
+        if mask is not None:
+            mask = numpy.array(mask, copy=copy)
 
-    def getMaskedData(self):
-        """Retirieve the NaN-masked image
-        
-        :rtype: numpy.ndarray of dtype numpy.float32
-        """
-        if self._masked is None:
-            masked = numpy.array(self._data, dtype=numpy.float32, copy=True)
-            if self._mask is not None:
-                masked[numpy.where(self._mask)] = numpy.nan
-            self._masked = masked
-        return self._masked
+            shape = self.getData(copy=False).shape[:2]
+            if mask.shape != shape:
+                _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, shape)
+                # Clip/extent is done lazily in getMaskData
+        elif self._mask is None:
+                return  # No update
+
+        self._mask = mask
+        self._updated(ItemChangedType.MASK)
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
 
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
         :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
         raise NotImplementedError('This MUST be implemented in sub-class')
@@ -284,6 +298,7 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
+        self.__maskedDataCache = None  # Store masked data
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -410,13 +425,8 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        if self._mask is not None:
-            masked_data = numpy.array(data, dtype=numpy.float32, copy=True)
-            masked_data[numpy.where(self._mask)] = numpy.NaN
-            print("ImageData.setData Update with masked image")
-            self._setColormappedData(masked_data, copy=False)
-        else:
-            self._setColormappedData(data, copy=False)
+        self.__maskedDataCache = None  # Clear masked data cache
+        self._setColormappedData(self.getMaskedData(copy=False), copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -441,17 +451,24 @@ class ImageData(ImageBase, ColormapMixIn):
 
         :param numpy.ndarray data:
         """
+        self.__maskedDataCache = None  # Clear masked data cache
         super().setMaskData(mask, copy=copy)
-        self._flushColormapCache()
+        self._setColormappedData(self.getMaskedData(copy=False), copy=False)
 
-    def getColormappedData(self, copy=True):
-        data = super().getColormappedData(copy=copy)
-        if data is not None:
-            masked = numpy.array(data, dtype=numpy.float32, copy=not copy)  # one copy is enough!
-            masked[numpy.where(self._mask)] = numpy.NaN
-            return masked
-        else:
-            return data
+    def getMaskedData(self, copy=True):
+        """Return masked data as an array of float32 if masked.
+
+        :param bool copy:
+        :rtype: numpy.ndarray
+        """
+        if self.__maskedDataCache is None:
+            data = self.getData(copy=False)
+            mask = self.getMaskData(copy=False)
+            if mask is not None:
+                data = numpy.array(data, dtype=numpy.float32, copy=True)
+                data[mask != 0] = numpy.NaN
+            self.__maskedDataCache = data
+        return numpy.array(self.__maskedDataCache, copy=copy)
 
 
 class ImageRgba(ImageBase):
