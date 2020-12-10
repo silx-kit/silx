@@ -4,6 +4,8 @@ Change Log
 0.14.0: 2020/12/11
 ------------------
 
+This is the first version of `silx` supporting `h5py` >= v3.0.
+
 * `silx.gui`:
 
   * Added support for HDF5 external data (virtual and raw) (PR #3222)
@@ -91,7 +93,6 @@ Change Log
 
 * Miscellaneous:
 
-  * Add support for `h5py >= 3.0`
   * HDF5 strings: handle h5py 2.x and 3.x (PR #3240)
   * Fixed cython 3 compatibility and deprecation warning (PR #3164, #3189)
 
