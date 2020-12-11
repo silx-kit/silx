@@ -8,10 +8,6 @@ This is the first version of `silx` supporting `h5py` >= v3.0.
 
 This is the last version of `silx` officially supporting Python 3.5.
 
-* `silx view`:
-
-  * Added `-f` command line option, Fixed collapsing browsing panel (PR #3176)
-
 * `silx.gui`:
 
   * Added support for HDF5 external data (virtual and raw) (PR #3222)
@@ -20,28 +16,25 @@ This is the last version of `silx` officially supporting Python 3.5.
   * Improved memory allocation by using already defined `fontMetrics` instread of creating a new one (PR #3239)
   * Make `TextFormatter` compatible with `h5py`>=3 (PR #3253)
   * Fixed `matplotlib` 3.3.0rc1 deprecation warnings (PR #3145)
-  * Fixed `glutils.isOpenGLAvailable` issue (PR #3184)
 
   * `silx.gui.colors.Colormap`:
 
     * Added `Colormap.get|setNaNColor` to change color used for NaN, fix different NaN displays for matplotlib/openGL backends (PR #3143)
     * Refactored PlotWidget OpenGL backend to enable extensions (PR #3147)
-    * Fixed `DataViews` and `ImageStack` (PR #3171 and #3167)
     * Fixed use of `QThreadPool.tryTake` to be Qt5.7 compliant (PR #3250)
 
   * `silx.gui.plot`:
 
     * Added the feature to compute statistics inside a specific region of interest (PR #3056)
-    * Added `DATA_BOUNDS` visualization parameter for `Scatter` item histogram bounds (PR #3180)
     * Added an action to switch on/off OpenGL rendering on a plot (PR #3261)
     * Added test for ROI interaction mode (PR #3283)
     * Added saving of error bars when saving a plot (PR #3199)
+    * Added `ImageStack.clear` (PR #3167)
     * Improved image profile tool to support `PlotWidget` item extension (PR #3150)
     * Improved `Stackview`: replaced `setColormap` `autoscale` argument by `scaleColormapRangeToStack` method (PR #3279)
     * Updated `3 stddev` autoscale algorithm, clamp it with the minmax data in order to improve the contrast (PR #3284)
     * Updated ROI module: splitted into 3 modules base/common/arc_roi (PR #3283)
     * Fixed `ColormapDialog` custom range input (PR #3153)
-    * Fixed support of curves with infinite data (PR #3175)
     * Fixed issue when changing ROI mode while a ROI is being created (PR #3186)
     * Fixed `RegionOfInterest` refresh when highlighted (PR #3197)
     * Fixed arc roi shape: make sure start and end points are part of the shape (PR #3257)
@@ -100,6 +93,36 @@ This is the last version of `silx` officially supporting Python 3.5.
 
   * Added HDF5 strings: handle `h5py` 2.x and 3.x (PR #3240)
   * Fixed `cython` 3 compatibility and deprecation warning (PR #3164, #3189)
+
+
+0.13.2: 2020/09/15
+------------------
+
+Minor release:
+
+* silx view application: Prevent collapsing browsing panel, Added `-f` command line option (PR #3176)
+
+* `silx.gui`:
+
+  * `silx.gui.data`: Fixed `DataViews.titleForSelection` method (PR #3171).
+  * `silx.gui.plot.items`: Added `DATA_BOUNDS` visualization parameter for `Scatter` item histogram bounds (PR #3180)
+  * `silx.gui.plot.PlotWidget`: Fixed support of curves with infinite data (PR #3175)
+  * `silx.gui.utils.glutils`: Fixed `isOpenGLAvailable` function (PR #3184)
+
+* Documentation:
+
+  * Update silx view command line options documentation (PR #3173)
+  * Update version number and changelog (PR #3190)
+
+
+0.13.1: 2020/07/22
+------------------
+
+Bug fix release:
+
+* `silx.gui.plot.dialog`: Fixed `ColormapDialog` custom range input (PR #3155)
+* Build: Fixed cython 3 compatibility (PR #3163).
+* Documentation: Update version number and changelog (PR #3156)
 
 
 0.13.0: 2020/06/23
