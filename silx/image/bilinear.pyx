@@ -461,7 +461,7 @@ cdef class BilinearImage:
                             result[i] += sum / cnt
                         else:
                             result[i] += sum
-                else:
+                elif compute_mean:
                     result[i] += NAN
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(result)
