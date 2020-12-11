@@ -203,9 +203,7 @@ cdef class BilinearImage:
                         scale = ((m0 * (x1 - d0) * (y1 - d1)) 
                                + (m1 * (d0 - x0) * (y1 - d1))
                                + (m2 * (x1 - d0) * (d1 - y0))
-                               + (m3 * (d0 - x0) * (d1 - y0)))/ \
-                                ((x1 - d0) * (y1 - d1) + (d0 - x0) * (y1 - d1)+
-                                 (x1 - d0) * (d1 - y0) + (d0 - x0) * (d1 - y0))
+                               + (m3 * (d0 - x0) * (d1 - y0)))
                         res /= scale
             else:
                 res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
