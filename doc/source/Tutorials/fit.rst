@@ -234,7 +234,7 @@ the previous tutorial (See `Weighted fit`_)
     from silx.math.fit.fitmanager import FitManager
 
     # Create synthetic data with a sum of gaussian functions
-    x = numpy.arange(1000).astype(numpy.float)
+    x = numpy.arange(1000).astype(numpy.float64)
     y = 2.4 * x**4 - 10. * x**3 + 15.2 * x**2 - 24.6 * x + 150.
 
     # define our fit function: a generic polynomial of degree 4
@@ -304,7 +304,7 @@ data, generated using another *silx* module: :mod:`silx.math.fit.functions`.
     from silx.math.fit.fitmanager import FitManager
 
     # Create synthetic data with a sum of gaussian functions
-    x = numpy.arange(1000).astype(numpy.float)
+    x = numpy.arange(1000).astype(numpy.float64)
 
     # height, center x, fwhm
     p = [1000, 100., 250,     # 1st peak
@@ -526,7 +526,7 @@ Simple usage
     from silx.gui.fit import FitWidget
     from silx.math.fit.functions import sum_gauss
 
-    x = numpy.arange(2000).astype(numpy.float)
+    x = numpy.arange(2000).astype(numpy.float64)
     constant_bg = 3.14
 
     # gaussian parameters: height, position, fwhm

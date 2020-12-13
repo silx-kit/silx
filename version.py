@@ -73,7 +73,7 @@ PRERELEASE_NORMALIZED_NAME = {"dev": "a",
 MAJOR = 0
 MINOR = 15
 MICRO = 0
-RELEV = "dev"  # <16
+RELEV = "final"  # <16
 SERIAL = 0  # <16
 
 date = __date__
@@ -85,9 +85,10 @@ version_info = _version_info(MAJOR, MINOR, MICRO, RELEV, SERIAL)
 
 strictversion = version = debianversion = "%d.%d.%d" % version_info[:3]
 if version_info.releaselevel != "final":
-    version += "-%s%s" % version_info[-2:]
-    debianversion += "~adev%i" % version_info[-1] if RELEV == "dev" else "~%s%i" % version_info[-2:]
-    strictversion += PRERELEASE_NORMALIZED_NAME[version_info[3]] + str(version_info[-1])
+    _prerelease = PRERELEASE_NORMALIZED_NAME[version_info[3]]
+    version += "-%s%s" % (_prerelease, version_info[-1])
+    debianversion += "~adev%i" % version_info[-1] if RELEV == "dev" else "~%s%i" % (_prerelease, version_info[-1])
+    strictversion += _prerelease + str(version_info[-1])
 
 
 def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -350,7 +350,7 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             else:
                 mask = (minX <= xData) & (xData <= maxX)
                 mask = mask == 0
-                mask = mask.astype(numpy.int)
+                mask = mask.astype(numpy.int32)
         else:
             mask = numpy.zeros_like(yData)
 

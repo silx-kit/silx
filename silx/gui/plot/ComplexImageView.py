@@ -318,7 +318,7 @@ class ComplexImageView(qt.QWidget):
                           False to use provided data (do not modify!).
         """
         if data is None:
-            data = numpy.zeros((0, 0), dtype=numpy.complex)
+            data = numpy.zeros((0, 0), dtype=numpy.complex64)
 
         previousData = self._plotImage.getComplexData(copy=False)
 

@@ -418,7 +418,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
     def testPlotBooleanImage(self):
         """Test that a boolean image is displayed and converted to int8."""
-        data = numpy.zeros((10, 10), dtype=numpy.bool)
+        data = numpy.zeros((10, 10), dtype=bool)
         data[::2, ::2] = True
         self.plot.addImage(data, legend='boolean')
 

@@ -370,6 +370,7 @@ class ArrayImagePlot(qt.QWidget):
                                                vmin=None, vmax=None,
                                                normalization=Colormap.LINEAR))
         self._plot.getIntensityHistogramAction().setVisible(True)
+        self._plot.setKeepDataAspectRatio(True)
 
         # not closable
         self._selector = NumpyAxesSelector(self)

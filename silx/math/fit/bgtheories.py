@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -281,7 +281,7 @@ def estimate_strip(x, y):
     """
     estimated_par = [CONFIG["StripWidth"],
                      CONFIG["StripIterations"]]
-    constraints = numpy.zeros((len(estimated_par), 3), numpy.float)
+    constraints = numpy.zeros((len(estimated_par), 3), numpy.float64)
     # code = 3: FIXED
     constraints[0][0] = 3
     constraints[1][0] = 3
@@ -295,7 +295,7 @@ def estimate_snip(x, y):
     set constraints to FIXED.
     """
     estimated_par = [CONFIG["SnipWidth"]]
-    constraints = numpy.zeros((len(estimated_par), 3), numpy.float)
+    constraints = numpy.zeros((len(estimated_par), 3), numpy.float64)
     # code = 3: FIXED
     constraints[0][0] = 3
     return estimated_par, constraints
@@ -321,7 +321,7 @@ def estimate_poly(x, y, deg=2):
                      CONFIG["StripWidth"],
                      CONFIG["StripIterations"])
     pcoeffs = numpy.polyfit(x, y, deg)
-    cons = numpy.zeros((deg + 1, 3), numpy.float)
+    cons = numpy.zeros((deg + 1, 3), numpy.float64)
     return pcoeffs, cons
 
 

@@ -727,12 +727,12 @@ class FitManager(object):
         :param xmax: Upper value of x values to use for fitting
         """
         if y is None:
-            self.xdata0 = numpy.array([], numpy.float)
-            self.ydata0 = numpy.array([], numpy.float)
-            # self.sigmay0 = numpy.array([], numpy.float)
-            self.xdata = numpy.array([], numpy.float)
-            self.ydata = numpy.array([], numpy.float)
-            # self.sigmay = numpy.array([], numpy.float)
+            self.xdata0 = numpy.array([], numpy.float64)
+            self.ydata0 = numpy.array([], numpy.float64)
+            # self.sigmay0 = numpy.array([], numpy.float64)
+            self.xdata = numpy.array([], numpy.float64)
+            self.ydata = numpy.array([], numpy.float64)
+            # self.sigmay = numpy.array([], numpy.float64)
 
         else:
             self.ydata0 = numpy.array(y)
@@ -886,7 +886,7 @@ class FitManager(object):
         :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
-        result = numpy.zeros(numpy.shape(x), numpy.float)
+        result = numpy.zeros(numpy.shape(x), numpy.float64)
 
         if self.selectedbg is not None:
             bg_pars_list = self.bgtheories[self.selectedbg].parameters
@@ -1036,7 +1036,7 @@ def test():
     from . import bgtheories
 
     # Create synthetic data with a sum of gaussian functions
-    x = numpy.arange(1000).astype(numpy.float)
+    x = numpy.arange(1000).astype(numpy.float64)
 
     p = [1000, 100., 250,
          255, 690., 45,

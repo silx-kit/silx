@@ -102,7 +102,7 @@ class ScatterMask(BaseMask):
             self._mask[indices] = level
         else:
             # unmask only where mask level is the specified value
-            indices_stencil = numpy.zeros_like(self._mask, dtype=numpy.bool)
+            indices_stencil = numpy.zeros_like(self._mask, dtype=bool)
             indices_stencil[indices] = True
             self._mask[numpy.logical_and(self._mask == level, indices_stencil)] = 0
         self._notify()
@@ -431,7 +431,9 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.load(filename)
         # except RuntimeWarning as e:
@@ -475,21 +477,35 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if os.path.exists(filename):
             try:
                 os.remove(filename)
-            except IOError:
+            except IOError as e:
                 msg = qt.QMessageBox(self)
+                msg.setWindowTitle("Removing existing file")
                 msg.setIcon(qt.QMessageBox.Critical)
+
+                if hasattr(e, "strerror"):
+                    strerror = e.strerror
+                else:
+                    strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % (sys.exc_info()[1]))
+                            "Input Output Error: %s" % strerror)
                 msg.exec_()
                 return
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.save(filename, extension[1:])
         except Exception as e:
             msg = qt.QMessageBox(self)
+            msg.setWindowTitle("Saving mask file")
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
+
+            if hasattr(e, "strerror"):
+                strerror = e.strerror
+            else:
+                strerror = sys.exc_info()[1]
+            msg.setText("Cannot save file %s\n%s" % (filename, strerror))
             msg.exec_()
 
     def resetSelectionMask(self):

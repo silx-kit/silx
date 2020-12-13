@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -115,7 +115,7 @@ class Projection(OpenclProcessing):
         self.offset_x = -np.float32((self.shape[1] - 1) / 2. - self.axis_pos)  # TODO: custom
         self.offset_y = -np.float32((self.shape[0] - 1) / 2. - self.axis_pos)  # TODO: custom
         # Reset axis_pos once offset are computed
-        self.axis_pos0 = np.float((self.shape[1] - 1) / 2.)
+        self.axis_pos0 = np.float64((self.shape[1] - 1) / 2.)
 
         # Workgroup, ndrange and shared size
         self.dimgrid_x = _idivup(self.dwidth, 16)

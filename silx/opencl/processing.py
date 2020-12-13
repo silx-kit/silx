@@ -40,7 +40,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/11/2020"
+__date__ = "04/12/2020"
 __status__ = "stable"
 
 import os
@@ -49,7 +49,7 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size, allocate_texture, check_textures_availability
+from .common import ocl, pyopencl, release_cl_buffers, query_kernel_info, allocate_texture, check_textures_availability
 from .utils import concatenate_cl_kernel
 import platform
 
@@ -82,13 +82,22 @@ class KernelContainer(object):
         return self.__dict__.get(name)
 
     def max_workgroup_size(self, kernel_name):
-        "Retrieve the compile time max_workgroup_size for a given kernel"
+        "Retrieve the compile time WORK_GROUP_SIZE for a given kernel"
         if isinstance(kernel_name, pyopencl.Kernel):
             kernel = kernel_name
         else:
             kernel = self.get_kernel(kernel_name)
 
-        return kernel_workgroup_size(self._program, kernel)
+        return query_kernel_info(self._program, kernel, "WORK_GROUP_SIZE")
+
+    def min_workgroup_size(self, kernel_name):
+        "Retrieve the compile time PREFERRED_WORK_GROUP_SIZE_MULTIPLE for a given kernel"
+        if isinstance(kernel_name, pyopencl.Kernel):
+            kernel = kernel_name
+        else:
+            kernel = self.get_kernel(kernel_name)
+
+        return query_kernel_info(self._program, kernel, "PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
 
 
 class OpenclProcessing(object):
