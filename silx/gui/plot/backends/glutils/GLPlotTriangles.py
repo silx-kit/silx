@@ -163,12 +163,10 @@ class GLPlotTriangles(GLPlotItem):
                 usage=gl.GL_STATIC_DRAW,
                 target=gl.GL_ELEMENT_ARRAY_BUFFER)
 
-    def render(self, matrix, isXLog, isYLog):
+    def render(self, context):
         """Perform rendering
 
-        :param numpy.ndarray matrix: 4x4 transform matrix to use
-        :param bool isXLog:
-        :param bool isYLog:
+        :param RenderContext context: Rendering information
         """
         self.prepare()
 
@@ -180,7 +178,7 @@ class GLPlotTriangles(GLPlotItem):
         gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'],
                               1,
                               gl.GL_TRUE,
-                              matrix.astype(numpy.float32))
+                              context.matrix.astype(numpy.float32))
 
         gl.glUniform1f(self._PROGRAM.uniforms['alpha'], self.__alpha)
 

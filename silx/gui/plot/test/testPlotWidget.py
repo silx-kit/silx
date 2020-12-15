@@ -43,7 +43,7 @@ from silx.test.utils import test_options
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
-from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent
+from silx.gui.plot.items import BoundingRect, XAxisExtent, YAxisExtent, Axis
 from silx.gui.colors import Colormap
 
 from .utils import PlotWidgetTestCase
@@ -418,7 +418,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
 
     def testPlotBooleanImage(self):
         """Test that a boolean image is displayed and converted to int8."""
-        data = numpy.zeros((10, 10), dtype=numpy.bool)
+        data = numpy.zeros((10, 10), dtype=bool)
         data[::2, ::2] = True
         self.plot.addImage(data, legend='boolean')
 
@@ -454,6 +454,21 @@ class TestPlotCurve(PlotWidgetTestCase):
         self.plot.getXAxis().setLabel('Columns')
 
         self.plot.setActiveCurveHandling(False)
+
+    def testPlotCurveInfinite(self):
+        """Test plot curves with not finite data"""
+        tests = {
+            'y all not finite': ([0, 1, 2], [numpy.inf, numpy.nan, -numpy.inf]),
+            'x all not finite': ([numpy.inf, numpy.nan, -numpy.inf], [0, 1, 2]),
+            'x some inf': ([0, numpy.inf, 2], [0, 1, 2]),
+            'y some inf': ([0, 1, 2], [0, numpy.inf, 2])
+        }
+        for name, args in tests.items():
+            with self.subTest(name):
+                self.plot.addCurve(*args)
+                self.plot.resetZoom()
+                self.qapp.processEvents()
+                self.plot.clear()
 
     def testPlotCurveColorFloat(self):
         color = numpy.array(numpy.random.random(3 * 1000),
@@ -816,17 +831,25 @@ class TestPlotItem(PlotWidgetTestCase):
     """Basic tests for addItem."""
 
     # Polygon coordinates and color
-    polygons = [  # legend, x coords, y coords, color
+    POLYGONS = [  # legend, x coords, y coords, color
         ('triangle', numpy.array((10, 30, 50)),
          numpy.array((55, 70, 55)), 'red'),
         ('square', numpy.array((10, 10, 50, 50)),
          numpy.array((10, 50, 50, 10)), 'green'),
         ('star', numpy.array((60, 70, 80, 60, 80)),
          numpy.array((25, 50, 25, 40, 40)), 'blue'),
+        ('2 triangles-simple',
+         numpy.array((90., 95., 100., numpy.nan, 90., 95., 100.)),
+         numpy.array((25., 5., 25., numpy.nan, 30., 50., 30.)),
+         'pink'),
+        ('2 triangles-extra NaN',
+         numpy.array((numpy.nan, 90., 95., 100., numpy.nan, 0., 90., 95., 100., numpy.nan)),
+         numpy.array((0., 55., 70., 55., numpy.nan, numpy.nan, 75., 90., 75., numpy.nan)),
+         'black'),
     ]
 
     # Rectangle coordinantes and color
-    rectangles = [  # legend, x coords, y coords, color
+    RECTANGLES = [  # legend, x coords, y coords, color
         ('square 1', numpy.array((1., 10.)),
          numpy.array((1., 10.)), 'red'),
         ('square 2', numpy.array((10., 20.)),
@@ -839,6 +862,8 @@ class TestPlotItem(PlotWidgetTestCase):
          numpy.array((45., 45.)), 'darkRed'),
     ]
 
+    SCALES = Axis.LINEAR, Axis.LOGARITHMIC
+
     def setUp(self):
         super(TestPlotItem, self).setUp()
 
@@ -850,40 +875,60 @@ class TestPlotItem(PlotWidgetTestCase):
         self.plot.setLimits(0., 100., -100., 100.)
 
     def testPlotItemPolygonFill(self):
-        self.plot.setGraphTitle('Item Fill')
+        for scale in self.SCALES:
+            with self.subTest(scale=scale):
+                self.plot.clear()
+                self.plot.getXAxis().setScale(scale)
+                self.plot.getYAxis().setScale(scale)
+                self.plot.setGraphTitle('Item Fill %s' % scale)
 
-        for legend, xList, yList, color in self.polygons:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="polygon", fill=True, color=color)
-        self.plot.resetZoom()
+                for legend, xList, yList, color in self.POLYGONS:
+                    self.plot.addShape(xList, yList, legend=legend,
+                                       replace=False, linestyle='--',
+                                       shape="polygon", fill=True, color=color)
+                self.plot.resetZoom()
 
     def testPlotItemPolygonNoFill(self):
-        self.plot.setGraphTitle('Item No Fill')
+        for scale in self.SCALES:
+            with self.subTest(scale=scale):
+                self.plot.clear()
+                self.plot.getXAxis().setScale(scale)
+                self.plot.getYAxis().setScale(scale)
+                self.plot.setGraphTitle('Item No Fill %s' % scale)
 
-        for legend, xList, yList, color in self.polygons:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="polygon", fill=False, color=color)
-        self.plot.resetZoom()
+                for legend, xList, yList, color in self.POLYGONS:
+                    self.plot.addShape(xList, yList, legend=legend,
+                                       replace=False, linestyle='--',
+                                       shape="polygon", fill=False, color=color)
+                self.plot.resetZoom()
 
     def testPlotItemRectangleFill(self):
-        self.plot.setGraphTitle('Rectangle Fill')
+        for scale in self.SCALES:
+            with self.subTest(scale=scale):
+                self.plot.clear()
+                self.plot.getXAxis().setScale(scale)
+                self.plot.getYAxis().setScale(scale)
+                self.plot.setGraphTitle('Rectangle Fill %s' % scale)
 
-        for legend, xList, yList, color in self.rectangles:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="rectangle", fill=True, color=color)
-        self.plot.resetZoom()
+                for legend, xList, yList, color in self.RECTANGLES:
+                    self.plot.addShape(xList, yList, legend=legend,
+                                       replace=False,
+                                       shape="rectangle", fill=True, color=color)
+                self.plot.resetZoom()
 
     def testPlotItemRectangleNoFill(self):
-        self.plot.setGraphTitle('Rectangle No Fill')
+        for scale in self.SCALES:
+            with self.subTest(scale=scale):
+                self.plot.clear()
+                self.plot.getXAxis().setScale(scale)
+                self.plot.getYAxis().setScale(scale)
+                self.plot.setGraphTitle('Rectangle No Fill %s' % scale)
 
-        for legend, xList, yList, color in self.rectangles:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="rectangle", fill=False, color=color)
-        self.plot.resetZoom()
+                for legend, xList, yList, color in self.RECTANGLES:
+                    self.plot.addShape(xList, yList, legend=legend,
+                                       replace=False,
+                                       shape="rectangle", fill=False, color=color)
+                self.plot.resetZoom()
 
 
 class TestPlotActiveCurveImage(PlotWidgetTestCase):
@@ -1401,6 +1446,20 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         """Test coverage on setAxesDisplayed(True)"""
         self.plot.setAxesDisplayed(True)
 
+    def testAxesMargins(self):
+        """Test PlotWidget's getAxesMargins and setAxesMargins"""
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+
+        margins = self.plot.getAxesMargins()
+        self.assertEqual(margins, (.15, .1, .1, .15))
+
+        for margins in ((0., 0., 0., 0.), (.15, .1, .1, .15)):
+            with self.subTest(margins=margins):
+                self.plot.setAxesMargins(*margins)
+                self.qapp.processEvents()
+                self.assertEqual(self.plot.getAxesMargins(), margins)
+
     def testBoundingRectItem(self):
         item = BoundingRect()
         item.setBounds((-1000, 1000, -2000, 2000))
@@ -1769,80 +1828,33 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
 
-class TestPlotItemLog(PlotWidgetTestCase):
-    """Basic tests for items with log scale axes"""
+class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
+    """Test [get|set]Backend to switch backend"""
 
-    # Polygon coordinates and color
-    polygons = [  # legend, x coords, y coords, color
-        ('triangle', numpy.array((10, 30, 50)),
-         numpy.array((55, 70, 55)), 'red'),
-        ('square', numpy.array((10, 10, 50, 50)),
-         numpy.array((10, 50, 50, 10)), 'green'),
-        ('star', numpy.array((60, 70, 80, 60, 80)),
-         numpy.array((25, 50, 25, 40, 40)), 'blue'),
-    ]
+    def testSwitchBackend(self):
+        """Test switching a plot with a few items"""
+        backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
+        if test_options.WITH_GL_TEST:
+            backends['gl'] = 'BackendOpenGL'
 
-    # Rectangle coordinantes and color
-    rectangles = [  # legend, x coords, y coords, color
-        ('square 1', numpy.array((1., 10.)),
-         numpy.array((1., 10.)), 'red'),
-        ('square 2', numpy.array((10., 20.)),
-         numpy.array((10., 20.)), 'green'),
-        ('square 3', numpy.array((20., 30.)),
-         numpy.array((20., 30.)), 'blue'),
-        ('rect 1', numpy.array((1., 30.)),
-         numpy.array((35., 40.)), 'black'),
-        ('line h', numpy.array((1., 30.)),
-         numpy.array((45., 45.)), 'darkRed'),
-    ]
-
-    def setUp(self):
-        super(TestPlotItemLog, self).setUp()
-
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
-        self.plot.getXAxis().setAutoScale(False)
-        self.plot.getYAxis().setAutoScale(False)
-        self.plot.setKeepDataAspectRatio(False)
-        self.plot.setLimits(1., 100., 1., 100.)
-        self.plot.getXAxis()._setLogarithmic(True)
-        self.plot.getYAxis()._setLogarithmic(True)
-
-    def testPlotItemPolygonLogFill(self):
-        self.plot.setGraphTitle('Item Fill Log')
-
-        for legend, xList, yList, color in self.polygons:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="polygon", fill=True, color=color)
+        self.plot.addImage(numpy.arange(100).reshape(10, 10))
+        self.plot.addCurve((-3, -2, -1), (1, 2, 3))
         self.plot.resetZoom()
+        xlimits = self.plot.getXAxis().getLimits()
+        ylimits = self.plot.getYAxis().getLimits()
+        items = self.plot.getItems()
+        self.assertEqual(len(items), 2)
 
-    def testPlotItemPolygonLogNoFill(self):
-        self.plot.setGraphTitle('Item No Fill Log')
+        for backend, className in backends.items():
+            with self.subTest(backend=backend):
+                self.plot.setBackend(backend)
+                self.plot.replot()
 
-        for legend, xList, yList, color in self.polygons:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="polygon", fill=False, color=color)
-        self.plot.resetZoom()
-
-    def testPlotItemRectangleLogFill(self):
-        self.plot.setGraphTitle('Rectangle Fill Log')
-
-        for legend, xList, yList, color in self.rectangles:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="rectangle", fill=True, color=color)
-        self.plot.resetZoom()
-
-    def testPlotItemRectangleLogNoFill(self):
-        self.plot.setGraphTitle('Rectangle No Fill Log')
-
-        for legend, xList, yList, color in self.rectangles:
-            self.plot.addShape(xList, yList, legend=legend,
-                               replace=False,
-                               shape="rectangle", fill=False, color=color)
-        self.plot.resetZoom()
+                retrievedBackend = self.plot.getBackend()
+                self.assertEqual(type(retrievedBackend).__name__, className)
+                self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
+                self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
+                self.assertEqual(self.plot.getItems(), items)
 
 
 def suite():
@@ -1858,8 +1870,7 @@ def suite():
                    TestPlotEmptyLog,
                    TestPlotCurveLog,
                    TestPlotImageLog,
-                   TestPlotMarkerLog,
-                   TestPlotItemLog)
+                   TestPlotMarkerLog)
 
     test_suite = unittest.TestSuite()
 
@@ -1875,6 +1886,9 @@ def suite():
         # Tests with OpenGL backend
         for testClass in testClasses:
             test_suite.addTest(parameterize(testClass, backend='gl'))
+
+    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestPlotWidgetSwitchBackend))
 
     return test_suite
 

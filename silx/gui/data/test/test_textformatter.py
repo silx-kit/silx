@@ -36,6 +36,7 @@ import six
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from ..TextFormatter import TextFormatter
+from silx.io.utils import h5py_read_dataset
 
 import h5py
 
@@ -123,76 +124,79 @@ class TestTextFormatterWithH5py(TestCaseQt):
         dataset = self.h5File.create_dataset(testName, data=data, dtype=dtype)
         return dataset
 
+    def read_dataset(self, d):
+        return self.formatter.toString(d[()], dtype=d.dtype)
+
     def testAscii(self):
         d = self.create_dataset(data=b"abc")
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '"abc"')
 
     def testUnicode(self):
         d = self.create_dataset(data=u"i\u2661cookies")
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(len(result), 11)
         self.assertEqual(result, u'"i\u2661cookies"')
 
     def testBadAscii(self):
         d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, 'b"\\xF0\\x9F\\x92\\x94"')
 
     def testVoid(self):
         d = self.create_dataset(data=numpy.void(b"abc\xF0"))
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, 'b"\\x61\\x62\\x63\\xF0"')
 
     def testEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array(42, dtype=dtype)
         d = self.create_dataset(data=d)
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, 'BLUE(42)')
 
     def testRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array(self.h5File.ref, dtype=dtype)
         d = self.create_dataset(data=d)
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, 'REF')
 
     def testArrayAscii(self):
         d = self.create_dataset(data=[b"abc"])
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '["abc"]')
 
     def testArrayUnicode(self):
         dtype = h5py.special_dtype(vlen=six.text_type)
         d = numpy.array([u"i\u2661cookies"], dtype=dtype)
         d = self.create_dataset(data=d)
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(len(result), 13)
         self.assertEqual(result, u'["i\u2661cookies"]')
 
     def testArrayBadAscii(self):
         d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '[b"\\xF0\\x9F\\x92\\x94"]')
 
     def testArrayVoid(self):
         d = self.create_dataset(data=numpy.void([b"abc\xF0"]))
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '[b"\\x61\\x62\\x63\\xF0"]')
 
     def testArrayEnum(self):
         dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array([42, 1, 100], dtype=dtype)
         d = self.create_dataset(data=d)
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '[BLUE(42) GREEN(1) 100]')
 
     def testArrayRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array([self.h5File.ref, None], dtype=dtype)
         d = self.create_dataset(data=d)
-        result = self.formatter.toString(d[()], dtype=d.dtype)
+        result = self.read_dataset(d)
         self.assertEqual(result, '[REF NULL_REF]')
 
 

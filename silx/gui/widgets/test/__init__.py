@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ from . import test_boxlayoutdockwidget
 from . import test_rangeslider
 from . import test_flowlayout
 from . import test_elidedlabel
+from . import test_legendiconwidget
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -53,5 +54,6 @@ def suite():
          test_rangeslider.suite(),
          test_flowlayout.suite(),
          test_elidedlabel.suite(),
+         test_legendiconwidget.suite(),
          ])
     return test_suite

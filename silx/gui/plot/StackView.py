@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -548,15 +548,8 @@ class StackView(qt.QMainWindow):
             perspective_changed = True
             self.setPerspective(perspective)
 
-        # This call to setColormap redefines the meaning of autoscale
-        # for 3D volume: take global min/max rather than frame min/max
         if self.__autoscaleCmap:
-            # note: there is no real autoscale in the stack widget, it is more
-            # like a hack computing stack min and max
-            colormap = self.getColormap()
-            _vmin, _vmax = colormap.getColormapRange(data=self._stack)
-            colormap.setVRange(_vmin, _vmax)
-            self.setColormap(colormap=colormap)
+            self.scaleColormapRangeToStack()
 
         # init plot
         self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
@@ -791,6 +784,22 @@ class StackView(qt.QMainWindow):
         # specifying a special colormap
         return self._plot.getDefaultColormap()
 
+    def scaleColormapRangeToStack(self):
+        """Scale colormap range according to current stack data.
+
+        If no stack has been set through :meth:`setStack`, this has no effect.
+
+        The range scaling mode is given by current :class:`Colormap`'s
+        :meth:`Colormap.getAutoscaleMode`.
+        """
+        stack = self.getStack(copy=False, returnNumpyArray=True)
+        if stack is None:
+            return  # No-op
+
+        colormap = self.getColormap()
+        vmin, vmax = colormap.getColormapRange(data=stack[0])
+        colormap.setVRange(vmin=vmin, vmax=vmax)
+
     def setColormap(self, colormap=None, normalization=None,
                     autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the colormap and update active image.
@@ -860,31 +869,14 @@ class StackView(qt.QMainWindow):
                                  vmax=vmax,
                                  colors=colors)
 
-            # Patch: since we don't apply this colormap to a single 2D data but
-            # a 2D stack we have to deal manually with vmin, vmax
-            if autoscale is None:
-                # set default
-                autoscale = False
-            elif autoscale and is_dataset(self._stack):
-                # h5py dataset has no min()/max() methods
-                raise RuntimeError(
-                    "Cannot auto-scale colormap for a h5py dataset")
-            else:
-                autoscale = autoscale
-            self.__autoscaleCmap = autoscale
-
-            if autoscale and (self._stack is not None):
-                _vmin, _vmax = _colormap.getColormapRange(data=self._stack)
-                _colormap.setVRange(vmin=_vmin, vmax=_vmax)
-            else:
-                if vmin is None and self._stack is not None:
-                    _colormap.setVMin(self._stack.min())
-                else:
-                    _colormap.setVMin(vmin)
-                if vmax is None and self._stack is not None:
-                    _colormap.setVMax(self._stack.max())
-                else:
-                    _colormap.setVMax(vmax)
+            if autoscale is not None:
+                deprecated_warning(
+                    type_='function',
+                    name='setColormap',
+                    reason='autoscale argument is replaced by a method',
+                    replacement='scaleColormapRangeToStack',
+                    since_version='0.14')
+            self.__autoscaleCmap = bool(autoscale)
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
@@ -895,6 +887,12 @@ class StackView(qt.QMainWindow):
         activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
+
+        if self.__autoscaleCmap:
+            # scaleColormapRangeToStack needs to be called **after**
+            # setDefaultColormap so getColormap returns the right colormap
+            self.scaleColormapRangeToStack()
+
 
     @deprecated(replacement="getPlotWidget", since_version="0.13")
     def getPlot(self):

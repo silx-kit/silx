@@ -142,8 +142,6 @@ class TestCaseQt(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         sys.excepthook = cls._oldExceptionHook
-        if cls._qapp is not None:
-            cls._qapp = None
 
     def setUp(self):
         """Get the list of existing widgets."""

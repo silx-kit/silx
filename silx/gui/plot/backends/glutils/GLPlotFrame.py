@@ -61,7 +61,7 @@ class PlotAxis(object):
     This class is intended to be used with :class:`GLPlotFrame`.
     """
 
-    def __init__(self, plot,
+    def __init__(self, plotFrame,
                  tickLength=(0., 0.),
                  foregroundColor=(0., 0., 0., 1.0),
                  labelAlign=CENTER, labelVAlign=CENTER,
@@ -69,7 +69,7 @@ class PlotAxis(object):
                  titleRotate=0, titleOffset=(0., 0.)):
         self._ticks = None
 
-        self._plot = weakref.ref(plot)
+        self._plotFrameRef = weakref.ref(plotFrame)
 
         self._isDateTime = False
         self._timeZone = None
@@ -157,6 +157,12 @@ class PlotAxis(object):
             self._dirtyTicks()
 
     @property
+    def devicePixelRatio(self):
+        """Returns the ratio between qt pixels and device pixels."""
+        plotFrame = self._plotFrameRef()
+        return plotFrame.devicePixelRatio if plotFrame is not None else 1.
+
+    @property
     def title(self):
         """The text label associated with this axis as a str in latin-1."""
         return self._title
@@ -165,10 +171,18 @@ class PlotAxis(object):
     def title(self, title):
         if title != self._title:
             self._title = title
+            self._dirtyPlotFrame()
 
-            plot = self._plot()
-            if plot is not None:
-                plot._dirty()
+    @property
+    def titleOffset(self):
+        """Title offset in pixels (x: int, y: int)"""
+        return self._titleOffset
+
+    @titleOffset.setter
+    def titleOffset(self, offset):
+        if offset != self._titleOffset:
+            self._titleOffset = offset
+            self._dirtyTicks()
 
     @property
     def foregroundColor(self):
@@ -201,6 +215,8 @@ class PlotAxis(object):
         tickLabelsSize = [0., 0.]
 
         xTickLength, yTickLength = self._tickLength
+        xTickLength *= self.devicePixelRatio
+        yTickLength *= self.devicePixelRatio
         for (xPixel, yPixel), dataPos, text in self.ticks:
             if text is None:
                 tickScale = 0.5
@@ -212,7 +228,8 @@ class PlotAxis(object):
                                x=xPixel - xTickLength,
                                y=yPixel - yTickLength,
                                align=self._labelAlign,
-                               valign=self._labelVAlign)
+                               valign=self._labelVAlign,
+                               devicePixelRatio=self.devicePixelRatio)
 
                 width, height = label.size
                 if width > tickLabelsSize[0]:
@@ -230,7 +247,7 @@ class PlotAxis(object):
         xAxisCenter = 0.5 * (x0 + x1)
         yAxisCenter = 0.5 * (y0 + y1)
 
-        xOffset, yOffset = self._titleOffset
+        xOffset, yOffset = self.titleOffset
 
         # Adaptative title positioning:
         # tickNorm = math.sqrt(xTickLength ** 2 + yTickLength ** 2)
@@ -245,17 +262,22 @@ class PlotAxis(object):
                            y=yAxisCenter + yOffset,
                            align=self._titleAlign,
                            valign=self._titleVAlign,
-                           rotate=self._titleRotate)
+                           rotate=self._titleRotate,
+                           devicePixelRatio=self.devicePixelRatio)
         labels.append(axisTitle)
 
         return vertices, labels
 
+    def _dirtyPlotFrame(self):
+        """Dirty parent GLPlotFrame"""
+        plotFrame = self._plotFrameRef()
+        if plotFrame is not None:
+            plotFrame._dirty()
+
     def _dirtyTicks(self):
         """Mark ticks as dirty and notify listener (i.e., background)."""
         self._ticks = None
-        plot = self._plot()
-        if plot is not None:
-            plot._dirty()
+        self._dirtyPlotFrame()
 
     @staticmethod
     def _frange(start, stop, step):
@@ -314,7 +336,7 @@ class PlotAxis(object):
                 xScale = (x1 - x0) / (dataMax - dataMin)
                 yScale = (y1 - y0) / (dataMax - dataMin)
 
-                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2))
+                nbPixels = math.sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2)) / self.devicePixelRatio
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
@@ -391,11 +413,11 @@ class GLPlotFrame(object):
     # Margins used when plot frame is not displayed
     _NoDisplayMargins = _Margins(0, 0, 0, 0)
 
-    def __init__(self, margins, foregroundColor, gridColor):
+    def __init__(self, marginRatios, foregroundColor, gridColor):
         """
-        :param margins: The margins around plot area for axis and labels.
-        :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
-                       values as ints.
+        :param List[float] marginRatios:
+            The ratios of margins around plot area for axis and labels.
+            (left, top, right, bottom) as float in [0., 1.]
         :param foregroundColor: color used for the frame and labels.
         :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
         :param gridColor: color used for grid lines.
@@ -403,7 +425,9 @@ class GLPlotFrame(object):
         """
         self._renderResources = None
 
-        self._margins = self._Margins(**margins)
+        self.__marginRatios = marginRatios
+        self.__marginsCache = None
+
         self._foregroundColor = foregroundColor
         self._gridColor = gridColor
 
@@ -412,7 +436,8 @@ class GLPlotFrame(object):
         self._grid = False
         self._size = 0., 0.
         self._title = ''
-        self._displayed = True
+
+        self._devicePixelRatio = 1.
 
     @property
     def isDirty(self):
@@ -453,26 +478,49 @@ class GLPlotFrame(object):
         if self._gridColor != color:
             self._gridColor = color
             self._dirty()
-        
-    @property
-    def displayed(self):
-        """Whether axes and their labels are displayed or not (bool)"""
-        return self._displayed
 
-    @displayed.setter
-    def displayed(self, displayed):
-        displayed = bool(displayed)
-        if displayed != self._displayed:
-            self._displayed = displayed
+    @property
+    def marginRatios(self):
+        """Plot margin ratios: (left, top, right, bottom) as 4 float in [0, 1].
+        """
+        return self.__marginRatios
+
+    @marginRatios.setter
+    def marginRatios(self, ratios):
+        ratios = tuple(float(v) for v in ratios)
+        assert len(ratios) == 4
+        for value in ratios:
+            assert 0. <= value <= 1.
+        assert ratios[0] + ratios[2] < 1.
+        assert ratios[1] + ratios[3] < 1.
+
+        if self.__marginRatios != ratios:
+            self.__marginRatios = ratios
+            self.__marginsCache = None  # Clear cached margins
             self._dirty()
 
     @property
     def margins(self):
         """Margins in pixels around the plot."""
-        if not self.displayed:
-            return self._NoDisplayMargins
-        else:
-            return self._margins
+        if self.__marginsCache is None:
+            width, height = self.size
+            left, top, right, bottom = self.marginRatios
+            self.__marginsCache = self._Margins(
+                left=int(left*width),
+                right=int(right*width),
+                top=int(top*height),
+                bottom=int(bottom*height))
+        return self.__marginsCache
+
+    @property
+    def devicePixelRatio(self):
+        return self._devicePixelRatio
+
+    @devicePixelRatio.setter
+    def devicePixelRatio(self, ratio):
+        if ratio != self._devicePixelRatio:
+            self._devicePixelRatio = ratio
+            self._dirty()
 
     @property
     def grid(self):
@@ -493,7 +541,7 @@ class GLPlotFrame(object):
 
     @property
     def size(self):
-        """Size in pixels of the plot area including margins."""
+        """Size in device pixels of the plot area including margins."""
         return self._size
 
     @size.setter
@@ -502,6 +550,7 @@ class GLPlotFrame(object):
         size = tuple(size)
         if size != self._size:
             self._size = size
+            self.__marginsCache = None  # Clear cached margins
             self._dirty()
 
     @property
@@ -580,7 +629,8 @@ class GLPlotFrame(object):
                              x=xTitle,
                              y=yTitle,
                              align=CENTER,
-                             valign=BOTTOM))
+                             valign=BOTTOM,
+                             devicePixelRatio=self.devicePixelRatio))
 
         # grid
         gridVertices = numpy.array(self._buildGridVertices(),
@@ -592,7 +642,7 @@ class GLPlotFrame(object):
         _SHADERS['vertex'], _SHADERS['fragment'], attrib0='position')
 
     def render(self):
-        if not self.displayed:
+        if self.margins == self._NoDisplayMargins:
             return
 
         if self._renderResources is None:
@@ -661,25 +711,24 @@ class GLPlotFrame(object):
 # GLPlotFrame2D ###############################################################
 
 class GLPlotFrame2D(GLPlotFrame):
-    def __init__(self, margins, foregroundColor, gridColor):
+    def __init__(self, marginRatios, foregroundColor, gridColor):
         """
-        :param margins: The margins around plot area for axis and labels.
-        :type margins: dict with 'left', 'right', 'top', 'bottom' keys and
-                       values as ints.
+        :param List[float] marginRatios:
+            The ratios of margins around plot area for axis and labels.
+            (left, top, right, bottom) as float in [0., 1.]
         :param foregroundColor: color used for the frame and labels.
         :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
         :param gridColor: color used for grid lines.
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
 
         """
-        super(GLPlotFrame2D, self).__init__(margins, foregroundColor, gridColor)
+        super(GLPlotFrame2D, self).__init__(marginRatios, foregroundColor, gridColor)
         self.axes.append(PlotAxis(self,
                                   tickLength=(0., -5.),
                                   foregroundColor=self._foregroundColor,
                                   labelAlign=CENTER, labelVAlign=TOP,
                                   titleAlign=CENTER, titleVAlign=TOP,
-                                  titleRotate=0,
-                                  titleOffset=(0, self.margins.bottom // 2)))
+                                  titleRotate=0))
 
         self._x2AxisCoords = ()
 
@@ -688,18 +737,14 @@ class GLPlotFrame2D(GLPlotFrame):
                                   foregroundColor=self._foregroundColor,
                                   labelAlign=RIGHT, labelVAlign=CENTER,
                                   titleAlign=CENTER, titleVAlign=BOTTOM,
-                                  titleRotate=ROTATE_270,
-                                  titleOffset=(-3 * self.margins.left // 4,
-                                               0)))
+                                  titleRotate=ROTATE_270))
 
         self._y2Axis = PlotAxis(self,
                                 tickLength=(-5., 0.),
                                 foregroundColor=self._foregroundColor,
                                 labelAlign=LEFT, labelVAlign=CENTER,
                                 titleAlign=CENTER, titleVAlign=TOP,
-                                titleRotate=ROTATE_270,
-                                titleOffset=(3 * self.margins.right // 4,
-                                             0))
+                                titleRotate=ROTATE_270)
 
         self._isYAxisInverted = False
 
@@ -793,6 +838,24 @@ class GLPlotFrame2D(GLPlotFrame):
         if vectors != self._baseVectors:
             self._baseVectors = vectors
             self._dirty()
+
+    def _updateTitleOffset(self):
+        """Update axes title offset according to margins"""
+        margins = self.margins
+        self.xAxis.titleOffset = 0, margins.bottom // 2
+        self.yAxis.titleOffset = -3 * margins.left // 4, 0
+        self.y2Axis.titleOffset = 3 * margins.right // 4, 0
+
+    # Override size and marginRatios setters to update titleOffsets
+    @GLPlotFrame.size.setter
+    def size(self, size):
+        GLPlotFrame.size.fset(self, size)
+        self._updateTitleOffset()
+
+    @GLPlotFrame.marginRatios.setter
+    def marginRatios(self, ratios):
+        GLPlotFrame.marginRatios.fset(self, ratios)
+        self._updateTitleOffset()
 
     @property
     def dataRanges(self):

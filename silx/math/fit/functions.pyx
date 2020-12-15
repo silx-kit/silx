@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -977,7 +977,7 @@ def periodic_gauss(x, *pars):
         raise IndexError("No parameters specified. " +
                          "At least 5 parameters are required.")
 
-    newpars = numpy.zeros((pars[0], 3), numpy.float)
+    newpars = numpy.zeros((pars[0], 3), numpy.float64)
     for i in range(int(pars[0])):
         newpars[i, 0] = pars[2]
         newpars[i, 1] = pars[3] + i * pars[1]

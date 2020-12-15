@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""
+"""This module containts the classes relative to the management of statistics
+display.
 """
 
 __authors__ = ["H. Payno"]
@@ -178,7 +179,8 @@ class StatsHandler(object):
                 else:
                     return self.formatters[name].format(val)
 
-    def calculate(self, item, plot, onlimits):
+    def calculate(self, item, plot, onlimits, roi=None, data_changed=False,
+                  roi_changed=False):
         """
         compute all statistic registered and return the list of formatted
         statistics result.
@@ -187,10 +189,14 @@ class StatsHandler(object):
         :param plot: plot containing the item
         :param onlimits: True if we want to compute statistics on visible data
                          only
+        :type: bool
+        :param roi: region of interest for statistic calculation
+        :type: Union[None,:class:`_RegionOfInterestBase`]
         :return: list of formatted statistics (as str)
         :rtype: dict
         """
-        res = self.stats.calculate(item, plot, onlimits)
+        res = self.stats.calculate(item, plot, onlimits, roi,
+                                   data_changed=data_changed, roi_changed=roi_changed)
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res

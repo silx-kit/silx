@@ -48,7 +48,8 @@ Options
   -h, --help           Show this help message and exit
   --debug              Set logging system in debug mode
   --use-opengl-plot    Use OpenGL for plots (instead of matplotlib)
-
+  -f, --fresh          Start the application using new fresh user preferences
+  --hdf5-file-locking  Start the application with HDF5 file locking enabled (it is disabled by default)
 
 Examples of usage
 -----------------

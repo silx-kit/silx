@@ -140,14 +140,12 @@ class _BoundaryWidget(qt.QWidget):
         self._numVal.editingFinished.connect(self.__editingFinished)
         self.setFocusProxy(self._numVal)
 
-        self._dataValue = None
-
         self.__textWasEdited = False
         """True if the text was edited, in order to send an event
         at the end of the user interaction"""
 
         self.__realValue = None
-        """Store the real value set by setValue/setFiniteValue, to avoid
+        """Store the real value set by setValue, to avoid
         rounding of the widget"""
 
     def __textEdited(self):
@@ -157,6 +155,9 @@ class _BoundaryWidget(qt.QWidget):
         if self.__textWasEdited:
             value = self._numVal.value()
             self.__realValue = value
+            with utils.blockSignals(self._numVal):
+                # Fix the formatting
+                self._numVal.setValue(self.__realValue)
             self.sigValueChanged.emit(value)
             self.__textWasEdited = False
 
@@ -173,47 +174,32 @@ class _BoundaryWidget(qt.QWidget):
             return self.__realValue
         return self._numVal.value()
 
-    def getFiniteValue(self):
-        if not self._autoCB.isChecked():
-            if self.__realValue is not None:
-                return self.__realValue
-            return self._numVal.value()
-        elif self._dataValue is None:
-            if self.__realValue is not None:
-                return self.__realValue
-            return self._numVal.value()
-        else:
-            return self._dataValue
-
     def _autoToggled(self, enabled):
         self._numVal.setEnabled(not enabled)
         self._updateDisplayedText()
         self.sigAutoScaleChanged.emit(enabled)
 
     def _updateDisplayedText(self):
-        # if dataValue is finite
         self.__textWasEdited = False
-        if self._autoCB.isChecked() and self._dataValue is not None:
+        if self._autoCB.isChecked() and self.__realValue is not None:
             with utils.blockSignals(self._numVal):
-                self._numVal.setValue(self._dataValue)
-
-    def setDataValue(self, dataValue):
-        self._dataValue = dataValue
-        self._updateDisplayedText()
-
-    def setFiniteValue(self, value):
-        assert(value is not None)
-        old = self._numVal.blockSignals(True)
-        self._numVal.setValue(value)
-        self.__realValue = value
-        self._numVal.blockSignals(old)
+                self._numVal.setValue(self.__realValue)
 
     def setValue(self, value, isAuto=False):
-        self._autoCB.setChecked(isAuto or value is None)
-        if value is not None:
-            self._numVal.setValue(value)
+        """Set the value of the boundary.
+
+        :param float value: A finite value for the boundary
+        :param bool isAuto: If true, the finite value was automatically computed
+            from the data, else it is a fixed custom value.
+        """
+        assert value is not None
+        self._autoCB.setChecked(isAuto)
+        with utils.blockSignals(self._numVal):
+            if isAuto or self.__realValue != value:
+                if not self.__textWasEdited:
+                    self._numVal.setValue(value)
             self.__realValue = value
-        self._updateDisplayedText()
+            self._numVal.setEnabled(not isAuto)
 
 
 class _AutoscaleModeComboBox(qt.QComboBox):
@@ -376,6 +362,9 @@ class _ColormapHistogram(qt.QWidget):
         self._histogramData = {}
         """Histogram displayed in the plot"""
 
+        self._dragging = False, False
+        """True, if the min or the max handle is dragging"""
+
         self._dataRange = {}
         """Histogram displayed in the plot"""
 
@@ -399,8 +388,15 @@ class _ColormapHistogram(qt.QWidget):
         not be None, except if there is no range or marker
         to display.
         """
+        # Do not reset the limit for handle about to be dragged
+        if self._dragging[0]:
+            vRange = self._finiteRange[0], vRange[1]
+        if self._dragging[1]:
+            vRange = vRange[0], self._finiteRange[1]
+
         if vRange == self._finiteRange:
             return
+
         self._finiteRange = vRange
         self.update()
 
@@ -604,10 +600,12 @@ class _ColormapHistogram(qt.QWidget):
         if kind == 'markerMoving':
             value = event['xdata']
             if event['label'] == 'Min':
+                self._dragging = True, False
                 self._finiteRange = value, self._finiteRange[1]
                 self._last = value, None
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Max':
+                self._dragging = False, True
                 self._finiteRange = self._finiteRange[0], value
                 self._last = None, value
                 self.sigRangeMoving.emit(*self._last)
@@ -615,6 +613,7 @@ class _ColormapHistogram(qt.QWidget):
         elif kind == 'markerMoved':
             self.sigRangeMoved.emit(*self._last)
             self._plot.resetZoom()
+            self._dragging = False, False
         else:
             pass
 
@@ -628,7 +627,7 @@ class _ColormapHistogram(qt.QWidget):
             isDraggable = colormap.isEditable()
 
         with utils.blockSignals(self):
-            if posMin is not None:
+            if posMin is not None and not self._dragging[0]:
                 self._plot.addXMarker(
                     posMin,
                     legend='Min',
@@ -636,7 +635,7 @@ class _ColormapHistogram(qt.QWidget):
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMinMarkerConstraint)
-            if posMax is not  None:
+            if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
@@ -1572,14 +1571,12 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         if vmin is not None:
-            if colormap.getVMin() is None:
-                with self._colormapChange:
-                    colormap.setVMin(vmin)
+            with self._colormapChange:
+                colormap.setVMin(vmin)
             self._minValue.setValue(vmin)
         if vmax is not None:
-            if colormap.getVMax() is None:
-                with self._colormapChange:
-                    colormap.setVMax(vmax)
+            with self._colormapChange:
+                colormap.setVMax(vmax)
             self._maxValue.setValue(vmax)
 
     def _histogramRangeMoved(self, vmin, vmax):
@@ -1588,7 +1585,11 @@ class ColormapDialog(qt.QDialog):
         """
         xmin = self._minValue.getValue()
         xmax = self._maxValue.getValue()
-        self._setColormapRange(xmin, xmax)
+        if vmin is None:
+            vmin = xmin
+        if vmax is None:
+            vmax = xmax
+        self._setColormapRange(vmin, vmax)
 
     def keyPressEvent(self, event):
         """Override key handling.

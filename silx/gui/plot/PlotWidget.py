@@ -52,7 +52,7 @@ from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
-    from . import matplotlib
+    import silx.gui.utils.matplotlib  # noqa
 except ImportError:
     _logger.debug("matplotlib not available")
 
@@ -205,6 +205,12 @@ class PlotWidget(qt.QMainWindow):
     It provides the visible state.
     """
 
+    _sigDefaultContextMenu = qt.Signal(qt.QMenu)
+    """Signal emitted when the default context menu of the plot is feed.
+
+    It provides the menu which will be displayed.
+    """
+
     def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
@@ -222,8 +228,6 @@ class PlotWidget(qt.QMainWindow):
             self.setWindowTitle('PlotWidget')
 
         # Init the backend
-        if backend is None:
-            backend = silx.config.DEFAULT_PLOT_BACKEND
         self._backend = self.__getBackendClass(backend)(self, self)
 
         self.setCallback()  # set _callback
@@ -259,6 +263,12 @@ class PlotWidget(qt.QMainWindow):
 
         self._grid = None
         self._graphTitle = ''
+        self.__graphCursorShape = 'default'
+
+        # Set axes margins
+        self.__axesDisplayed = True
+        self.__axesMargins = 0., 0., 0., 0.
+        self.setAxesMargins(.15, .1, .1, .15)
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -314,6 +324,9 @@ class PlotWidget(qt.QMainWindow):
         :raise ValueError: In case the backend is not supported
         :raise RuntimeError: If a backend is not available
         """
+        if backend is None:
+            backend = silx.config.DEFAULT_PLOT_BACKEND
+
         if callable(backend):
             return backend
 
@@ -375,6 +388,98 @@ class PlotWidget(qt.QMainWindow):
         """
         silx.config.DEFAULT_PLOT_BACKEND = backend
 
+    def setBackend(self, backend):
+        """Set the backend to use for rendering.
+
+        Supported backends:
+
+        - 'matplotlib' and 'mpl': Matplotlib with Qt.
+        - 'opengl' and 'gl': OpenGL backend (requires PyOpenGL and OpenGL >= 2.1)
+        - 'none': No backend, to run headless for testing purpose.
+
+        :param Union[str,BackendBase,List[Union[str,BackendBase]]] backend:
+            The backend to use, in:
+            'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none',
+            a :class:`BackendBase.BackendBase` class.
+            If multiple backends are provided, the first available one is used.
+        :raises ValueError: Unsupported backend descriptor
+        :raises RuntimeError: Error while loading a backend
+        """
+        backend = self.__getBackendClass(backend)(self, self)
+
+        # First save state that is stored in the backend
+        xaxis = self.getXAxis()
+        xmin, xmax = xaxis.getLimits()
+        ymin, ymax = self.getYAxis(axis='left').getLimits()
+        y2min, y2max = self.getYAxis(axis='right').getLimits()
+        isKeepDataAspectRatio = self.isKeepDataAspectRatio()
+        xTimeZone = xaxis.getTimeZone()
+        isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
+
+        isYAxisInverted = self.getYAxis().isInverted()
+
+        # Remove all items from previous backend
+        for item in self.getItems():
+            item._removeBackendRenderer(self._backend)
+
+        # Switch backend
+        self._backend = backend
+        widget = self._backend.getWidgetHandle()
+        self.setCentralWidget(widget)
+        if widget is None:
+            _logger.info("PlotWidget backend does not support widget")
+
+        # Mark as newly dirty
+        self._dirty = False
+        self._setDirtyPlot()
+
+        # Synchronize/restore state
+        self._foregroundColorsUpdated()
+        self._backgroundColorsUpdated()
+
+        self._backend.setGraphCursorShape(self.getGraphCursorShape())
+        crosshairConfig = self.getGraphCursor()
+        if crosshairConfig is None:
+            self._backend.setGraphCursor(False, 'black', 1, '-')
+        else:
+            self._backend.setGraphCursor(True, *crosshairConfig)
+
+        self._backend.setGraphTitle(self.getGraphTitle())
+        self._backend.setGraphGrid(self.getGraphGrid())
+        if self.isAxesDisplayed():
+            self._backend.setAxesMargins(*self.getAxesMargins())
+        else:
+            self._backend.setAxesMargins(0., 0., 0., 0.)
+
+        # Set axes
+        xaxis = self.getXAxis()
+        self._backend.setGraphXLabel(xaxis.getLabel())
+        self._backend.setXAxisTimeZone(xTimeZone)
+        self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
+        self._backend.setXAxisLogarithmic(
+            xaxis.getScale() == items.Axis.LOGARITHMIC)
+
+        for axis in ('left', 'right'):
+            self._backend.setGraphYLabel(self.getYAxis(axis).getLabel(), axis)
+        self._backend.setYAxisInverted(isYAxisInverted)
+        self._backend.setYAxisLogarithmic(
+            self.getYAxis().getScale() == items.Axis.LOGARITHMIC)
+
+        # Finally restore aspect ratio and limits
+        self._backend.setKeepDataAspectRatio(isKeepDataAspectRatio)
+        self.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+
+        # Mark all items for update with new backend
+        for item in self.getItems():
+            item._updated()
+
+    def getBackend(self):
+        """Returns the backend currently used by :class:`PlotWidget`.
+
+        :rtype: ~silx.gui.plot.backend.BackendBase.BackendBase
+        """
+        return self._backend
+
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
 
@@ -402,6 +507,8 @@ class PlotWidget(qt.QMainWindow):
             from .actions.control import ClosePolygonInteractionAction  # Avoid cyclic import
             action = ClosePolygonInteractionAction(plot=self, parent=menu)
             menu.addAction(action)
+
+        self._sigDefaultContextMenu.emit(menu)
 
         # Make sure the plot is updated, especially when the plot is in
         # draw interaction mode
@@ -537,6 +644,16 @@ class PlotWidget(qt.QMainWindow):
         if self._dataBackgroundColor != color:
             self._dataBackgroundColor = color
             self._backgroundColorsUpdated()
+
+    dataBackgroundColor = qt.Property(
+        qt.QColor, getDataBackgroundColor, setDataBackgroundColor
+    )
+
+    backgroundColor = qt.Property(qt.QColor, getBackgroundColor, setBackgroundColor)
+
+    foregroundColor = qt.Property(qt.QColor, getForegroundColor, setForegroundColor)
+
+    gridColor = qt.Property(qt.QColor, getGridColor, setGridColor)
 
     def showEvent(self, event):
         if self._autoreplot and self._dirty:
@@ -2405,18 +2522,61 @@ class PlotWidget(qt.QMainWindow):
         assert(axis in ["left", "right"])
         return self._yAxis if axis == "left" else self._yRightAxis
 
-    def setAxesDisplayed(self, displayed):
+    def setAxesDisplayed(self, displayed: bool):
         """Display or not the axes.
 
         :param bool displayed: If `True` axes are displayed. If `False` axes
             are not anymore visible and the margin used for them is removed.
         """
-        self._backend.setAxesDisplayed(displayed)
-        self._setDirtyPlot()
-        self._sigAxesVisibilityChanged.emit(displayed)
+        if displayed != self.__axesDisplayed:
+            self.__axesDisplayed = displayed
+            if displayed:
+                self._backend.setAxesMargins(*self.__axesMargins)
+            else:
+                self._backend.setAxesMargins(0., 0., 0., 0.)
+            self._setDirtyPlot()
+            self._sigAxesVisibilityChanged.emit(displayed)
 
-    def _isAxesDisplayed(self):
-        return self._backend.isAxesDisplayed()
+    def isAxesDisplayed(self) -> bool:
+        """Returns whether or not axes are currently displayed
+
+        :rtype: bool
+        """
+        return self.__axesDisplayed
+
+    def setAxesMargins(
+            self, left: float, top: float, right: float, bottom: float):
+        """Set ratios of margins surrounding data plot area.
+
+        All ratios must be within [0., 1.].
+        Sums of ratios of opposed side must be < 1.
+
+        :param float left: Left-side margin ratio.
+        :param float top: Top margin ratio
+        :param float right: Right-side margin ratio
+        :param float bottom: Bottom margin ratio
+        :raises ValueError:
+        """
+        for value in (left, top, right, bottom):
+            if value < 0. or value > 1.:
+                raise ValueError("Margin ratios must be within [0., 1.]")
+        if left + right >= 1. or top + bottom >= 1.:
+            raise ValueError("Sum of ratios of opposed sides >= 1")
+        margins = left, top, right, bottom
+
+        if margins != self.__axesMargins:
+            self.__axesMargins = margins
+            if self.isAxesDisplayed():  # Only apply if axes are displayed
+                self._backend.setAxesMargins(*margins)
+                self._setDirtyPlot()
+
+    def getAxesMargins(self):
+        """Returns ratio of margins surrounding data plot area.
+
+        :return: (left, top, right, bottom)
+        :rtype: List[float]
+        """
+        return self.__axesMargins
 
     def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
@@ -2980,11 +3140,19 @@ class PlotWidget(qt.QMainWindow):
 
     # Interaction support
 
+    def getGraphCursorShape(self):
+        """Returns the current cursor shape.
+
+        :rtype: str
+        """
+        return self.__graphCursorShape
+
     def setGraphCursorShape(self, cursor=None):
         """Set the cursor shape.
 
         :param str cursor: Name of the cursor shape
         """
+        self.__graphCursorShape = cursor
         self._backend.setGraphCursorShape(cursor)
 
     @deprecated(replacement='getItems', since_version='0.13')

@@ -178,8 +178,20 @@ class DataUrl(object):
         def str_to_slice(string):
             if string == "...":
                 return Ellipsis
-            elif string == ":":
-                return slice(None)
+            elif ':' in string:
+                if string == ":":
+                    return slice(None)
+                else:
+                    def get_value(my_str):
+                        if my_str in ('', None):
+                            return None
+                        else:
+                            return int(my_str)
+                    sss = string.split(':')
+                    start = get_value(sss[0])
+                    stop = get_value(sss[1] if len(sss) > 1 else None)
+                    step = get_value(sss[2] if len(sss) > 2 else None)
+                    return slice(start, stop, step)
             else:
                 return int(string)
 
@@ -201,7 +213,10 @@ class DataUrl(object):
         :param str path: Path representing the URL.
         """
         self.__path = path
-        path = path.replace("::", "?", 1)
+        # only replace if ? not here already. Otherwise can mess sith
+        # data_slice if == ::2 for example
+        if '?' not in path:
+            path = path.replace("::", "?", 1)
         url = parse.urlparse(path)
 
         is_valid = True

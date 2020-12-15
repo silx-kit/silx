@@ -100,8 +100,8 @@ Citation
 
 *silx* releases can be cited via their DOI on Zenodo: |zenodo DOI|
 
-.. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
-   :target: https://travis-ci.org/silx-kit/silx?branch=master
+.. |Travis Status| image:: https://travis-ci.com/silx-kit/silx.svg?branch=master
+   :target: https://travis-ci.com/silx-kit/silx
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx?branch=master
 .. |zenodo DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591709.svg

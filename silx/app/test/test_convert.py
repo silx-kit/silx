@@ -40,7 +40,7 @@ import h5py
 import silx
 from .. import convert
 from silx.utils import testutils
-
+from silx.io.utils import h5py_read_dataset
 
 
 # content of a spec file
@@ -137,7 +137,7 @@ class TestConvertCommand(unittest.TestCase):
         self.assertTrue(os.path.isfile(h5name))
 
         with h5py.File(h5name, "r") as h5f:
-            title12 = h5f["/1.2/title"][()]
+            title12 = h5py_read_dataset(h5f["/1.2/title"])
             if sys.version_info < (3, ):
                 title12 = title12.encode("utf-8")
             self.assertEqual(title12,

@@ -39,6 +39,9 @@
 #  else
 #    ifdef SPECFILE_POSIX
 #      include <locale.h>
+#      ifndef LOCALE_NAME_MAX_LENGTH
+#           define LOCALE_NAME_MAX_LENGTH 85
+#      endif
 #    endif
 #  endif
 #endif
@@ -60,7 +63,7 @@ double PyMcaAtof(const char * inputString)
 #else
 #ifdef SPECFILE_POSIX
 	char *currentLocaleBuffer;
-	char localeBuffer[21];
+	char localeBuffer[LOCALE_NAME_MAX_LENGTH + 1] = {'\0'};
 	double result;
 	currentLocaleBuffer = setlocale(LC_NUMERIC, NULL);
 	strcpy(localeBuffer, currentLocaleBuffer);

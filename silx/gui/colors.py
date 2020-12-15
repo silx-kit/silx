@@ -34,6 +34,8 @@ __date__ = "29/01/2019"
 import numpy
 import logging
 import collections
+import warnings
+
 from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math.combo import min_max
@@ -46,6 +48,7 @@ from silx.resources import resource_filename as _resource_filename
 _logger = logging.getLogger(__file__)
 
 try:
+    import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
     from matplotlib import cm as _matplotlib_cm
     from matplotlib.pyplot import colormaps as _matplotlib_colormaps
 except ImportError:
@@ -365,7 +368,22 @@ class _NormalizationMixIn:
         if mode == Colormap.MINMAX:
             vmin, vmax = self.autoscaleMinMax(data)
         elif mode == Colormap.STDDEV3:
-            vmin, vmax = self.autoscaleMean3Std(data)
+            dmin, dmax = self.autoscaleMinMax(data)
+            stdmin, stdmax = self.autoscaleMean3Std(data)
+            if dmin is None:
+                vmin = stdmin
+            elif stdmin is None:
+                vmin = dmin
+            else:
+                vmin = max(dmin, stdmin)
+
+            if dmax is None:
+                vmax = stdmax
+            elif stdmax is None:
+                vmax = dmax
+            else:
+                vmax = min(dmax, stdmax)
+
         else:
             raise ValueError('Unsupported mode: %s' % mode)
 
@@ -408,7 +426,13 @@ class _NormalizationMixIn:
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
-        mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            # Ignore nanmean "Mean of empty slice" warning and
+            # nanstd "Degrees of freedom <= 0 for slice" warning
+            mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
+
         return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
 
 
@@ -429,7 +453,11 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
             data[numpy.isfinite(data) == False] = numpy.nan
         if data.size == 0:  # Fallback
             return None, None
-        mean, std = numpy.nanmean(data), numpy.nanstd(data)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=RuntimeWarning)
+            # Ignore nanmean "Mean of empty slice" warning and
+            # nanstd "Degrees of freedom <= 0 for slice" warning
+            mean, std = numpy.nanmean(data), numpy.nanstd(data)
         return mean - 3 * std, mean + 3 * std
 
 
@@ -537,7 +565,8 @@ class Colormap(qt.QObject):
     """constant for autoscale using min/max data range"""
 
     STDDEV3 = 'stddev3'
-    """constant for autoscale using mean +/- 3*std(data)"""
+    """constant for autoscale using mean +/- 3*std(data)
+    with a clamp on min/max of the data"""
 
     AUTOSCALE_MODES = (MINMAX, STDDEV3)
     """Tuple of managed auto scale algorithms"""
@@ -634,7 +663,7 @@ class Colormap(qt.QObject):
             colormap.setNormalization(Colormap.LINEAR)
             colormap.setVRange(vmin=0, vmax=nbColors - 1)
             colors = colormap.applyToData(
-                numpy.arange(nbColors, dtype=numpy.int))
+                numpy.arange(nbColors, dtype=numpy.int32))
             return colors
 
     def getName(self):
@@ -1069,7 +1098,7 @@ class Colormap(qt.QObject):
         vmin, vmax = self.getColormapRange(reference)
 
         if hasattr(data, "getColormappedData"):  # Use item's data
-            data = data.getColormappedData()
+            data = data.getColormappedData(copy=False)
 
         return _colormap.cmap(
             data,

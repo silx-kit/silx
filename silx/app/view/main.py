@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ def createParser():
         default=False,
         help='Use OpenGL for plots (instead of matplotlib)')
     parser.add_argument(
-        '--fresh',
+        '-f', '--fresh',
         dest="fresh_preferences",
         action="store_true",
         default=False,
@@ -104,7 +104,7 @@ def mainQt(options):
     from silx.gui import qt
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
-    from silx.gui.plot import matplotlib
+    import silx.gui.utils.matplotlib  # noqa
 
     app = qt.QApplication([])
     qt.QLocale.setDefault(qt.QLocale.c())

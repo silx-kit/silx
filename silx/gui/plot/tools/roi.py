@@ -34,10 +34,13 @@ import enum
 import logging
 import time
 import weakref
+import functools
 
 import numpy
 
 from ... import qt, icons
+from ...utils import blockSignals
+from ...utils import LockReentrant
 from .. import PlotWidget
 from ..items import roi as roi_items
 
@@ -163,6 +166,155 @@ class CreateRoiModeAction(qt.QAction):
         pass
 
 
+class RoiModeSelector(qt.QWidget):
+    def __init__(self, parent=None):
+        super(RoiModeSelector, self).__init__(parent=parent)
+        self.__roi = None
+        self.__reentrant = LockReentrant()
+
+        layout = qt.QHBoxLayout(self)
+        if isinstance(parent, qt.QMenu):
+            margins = layout.contentsMargins()
+            layout.setContentsMargins(margins.left(), 0, margins.right(), 0)
+        else:
+            layout.setContentsMargins(0, 0, 0, 0)
+
+        self._label = qt.QLabel(self)
+        self._label.setText("Mode:")
+        self._label.setToolTip("Select a specific interaction to edit the ROI")
+        self._combo = qt.QComboBox(self)
+        self._combo.currentIndexChanged.connect(self._modeSelected)
+        layout.addWidget(self._label)
+        layout.addWidget(self._combo)
+        self._updateAvailableModes()
+
+    def getRoi(self):
+        """Returns the edited ROI.
+
+        :rtype: roi_items.RegionOfInterest
+        """
+        return self.__roi
+
+    def setRoi(self, roi):
+        """Returns the edited ROI.
+
+        :rtype: roi_items.RegionOfInterest
+        """
+        if self.__roi is roi:
+            return
+        if not isinstance(roi, roi_items.InteractionModeMixIn):
+            self.__roi = None
+            self._updateAvailableModes()
+            return
+
+        if self.__roi is not None:
+            self.__roi.sigInteractionModeChanged.disconnect(self._modeChanged)
+        self.__roi = roi
+        if self.__roi is not None:
+            self.__roi.sigInteractionModeChanged.connect(self._modeChanged)
+        self._updateAvailableModes()
+
+    def isEmpty(self):
+        return not self._label.isVisibleTo(self)
+
+    def _updateAvailableModes(self):
+        roi = self.getRoi()
+        if isinstance(roi, roi_items.InteractionModeMixIn):
+            modes = roi.availableInteractionModes()
+        else:
+            modes = []
+        if len(modes) <= 1:
+            self._label.setVisible(False)
+            self._combo.setVisible(False)
+        else:
+            self._label.setVisible(True)
+            self._combo.setVisible(True)
+            with blockSignals(self._combo):
+                self._combo.clear()
+                for im, m in enumerate(modes):
+                    self._combo.addItem(m.label, m)
+                    self._combo.setItemData(im, m.description, qt.Qt.ToolTipRole)
+                mode = roi.getInteractionMode()
+                self._modeChanged(mode)
+                index = modes.index(mode)
+                self._combo.setCurrentIndex(index)
+
+    def _modeChanged(self, mode):
+        """Triggered when the ROI interaction mode was changed externally"""
+        if self.__reentrant.locked():
+            # This event was initialised by the widget
+            return
+        roi = self.__roi
+        modes = roi.availableInteractionModes()
+        index = modes.index(mode)
+        with blockSignals(self._combo):
+            self._combo.setCurrentIndex(index)
+
+    def _modeSelected(self):
+        """Triggered when the ROI interaction mode was selected in the widget"""
+        index = self._combo.currentIndex()
+        if index == -1:
+            return
+        roi = self.getRoi()
+        if roi is not None:
+            mode = self._combo.itemData(index, qt.Qt.UserRole)
+            with self.__reentrant:
+                roi.setInteractionMode(mode)
+
+
+class RoiModeSelectorAction(qt.QWidgetAction):
+    """Display the selected mode of a ROI and allow to change it"""
+
+    def __init__(self, parent=None):
+        super(RoiModeSelectorAction, self).__init__(parent)
+        self.__roiManager = None
+
+    def createWidget(self, parent):
+        """Inherit the method to create a new widget"""
+        widget = RoiModeSelector(parent)
+        manager = self.__roiManager
+        if manager is not None:
+            roi = manager.getCurrentRoi()
+            widget.setRoi(roi)
+            self.setVisible(not widget.isEmpty())
+        return widget
+
+    def deleteWidget(self, widget):
+        """Inherit the method to delete a widget"""
+        widget.setRoi(None)
+        return qt.QWidgetAction.deleteWidget(self, widget)
+
+    def setRoiManager(self, roiManager):
+        """
+        Connect this action to a ROI manager.
+
+        :param RegionOfInterestManager roiManager: A ROI manager
+        """
+        if self.__roiManager is roiManager:
+            return
+        if self.__roiManager is not None:
+            self.__roiManager.sigCurrentRoiChanged.disconnect(self.__currentRoiChanged)
+        self.__roiManager = roiManager
+        if self.__roiManager is not None:
+            self.__roiManager.sigCurrentRoiChanged.connect(self.__currentRoiChanged)
+            self.__currentRoiChanged(roiManager.getCurrentRoi())
+
+    def __currentRoiChanged(self, roi):
+        """Handle changes of the selected ROI"""
+        self.setRoi(roi)
+
+    def setRoi(self, roi):
+        """Set a profile ROI to edit.
+
+        :param ProfileRoiMixIn roi: A profile ROI
+        """
+        widget = None
+        for widget in self.createdWidgets():
+            widget.setRoi(roi)
+        if widget is not None:
+            self.setVisible(not widget.isEmpty())
+
+
 class RegionOfInterestManager(qt.QObject):
     """Class handling ROI interaction on a PlotWidget.
 
@@ -256,6 +408,8 @@ class RegionOfInterestManager(qt.QObject):
             self._plotInteractiveModeChanged)
 
         parent.sigItemRemoved.connect(self._itemRemoved)
+
+        parent._sigDefaultContextMenu.connect(self._feedContextMenu)
 
     @classmethod
     def getSupportedRoiClasses(cls):
@@ -400,25 +554,87 @@ class RegionOfInterestManager(qt.QObject):
 
     def _plotSignals(self, event):
         """Handle mouse interaction for ROI addition"""
-        if event['event'] in ('markerClicked', 'markerMoving'):
+        clicked = False
+        roi = None
+        if event["event"] in ("markerClicked", "markerMoving"):
             plot = self.parent()
-            legend = event['label']
+            legend = event["label"]
             marker = plot._getMarker(legend=legend)
             roi = self.__getRoiFromMarker(marker)
-            if roi is not None and roi.isSelectable():
-                self.setCurrentRoi(roi)
-            else:
-                self.setCurrentRoi(None)
-        elif event['event'] == 'mouseClicked' and event['button'] == 'left':
+        elif event["event"] == "mouseClicked" and event["button"] == "left":
             # Marker click is only for dnd
             # This also can click on a marker
+            clicked = True
             plot = self.parent()
-            marker = plot._getMarkerAt(event['xpixel'], event['ypixel'])
+            marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
-            if roi is not None and roi.isSelectable():
+        else:
+            return
+
+        if roi not in self._rois:
+            # The ROI is not own by this manager
+            return
+
+        if roi is not None:
+            currentRoi = self.getCurrentRoi()
+            if currentRoi is roi:
+                if clicked:
+                    self.__updateMode(roi)
+            elif roi.isSelectable():
                 self.setCurrentRoi(roi)
+        else:
+            self.setCurrentRoi(None)
+
+    def __updateMode(self, roi):
+        if isinstance(roi, roi_items.InteractionModeMixIn):
+            available = roi.availableInteractionModes()
+            mode = roi.getInteractionMode()
+            imode = available.index(mode)
+            mode = available[(imode + 1) % len(available)]
+            roi.setInteractionMode(mode)
+
+    def _feedContextMenu(self, menu):
+        """Called wen the default plot context menu is about to be displayed"""
+        roi = self.getCurrentRoi()
+        if roi is not None:
+            if roi.isEditable():
+                # Filter by data position
+                # FIXME: It would be better to use GUI coords for it
+                plot = self.parent()
+                pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+                data = plot.pixelToData(pos.x(), pos.y())
+                if roi.contains(data):
+                    if isinstance(roi, roi_items.InteractionModeMixIn):
+                        self._contextMenuForInteractionMode(menu, roi)
+
+                removeAction = qt.QAction(menu)
+                removeAction.setText("Remove %s" % roi.getName())
+                callback = functools.partial(self.removeRoi, roi)
+                removeAction.triggered.connect(callback)
+                menu.addAction(removeAction)
+
+    def _contextMenuForInteractionMode(self, menu, roi):
+        availableModes = roi.availableInteractionModes()
+        currentMode = roi.getInteractionMode()
+        submenu = qt.QMenu(menu)
+        modeGroup = qt.QActionGroup(menu)
+        modeGroup.setExclusive(True)
+        for mode in availableModes:
+            action = qt.QAction(menu)
+            action.setText(mode.label)
+            action.setToolTip(mode.description)
+            action.setCheckable(True)
+            if mode is currentMode:
+                action.setChecked(True)
             else:
-                self.setCurrentRoi(None)
+                callback = functools.partial(roi.setInteractionMode, mode)
+                action.triggered.connect(callback)
+            modeGroup.addAction(action)
+            submenu.addAction(action)
+        action = qt.QAction(menu)
+        action.setMenu(submenu)
+        action.setText("%s interaction mode" % roi.getName())
+        menu.addAction(action)
 
     # RegionOfInterest API
 
@@ -666,8 +882,9 @@ class RegionOfInterestManager(qt.QObject):
 
             if self._drawnROI is not None:
                 # Cancel ROI create
-                self.removeRoi(self._drawnROI)
+                roi = self._drawnROI
                 self._drawnROI = None
+                self.removeRoi(roi)
 
             plot = self.parent()
             if plot is not None:

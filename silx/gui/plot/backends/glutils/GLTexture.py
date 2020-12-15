@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,6 +98,7 @@ class Image(object):
                               minFilter=self._MIN_FILTER,
                               magFilter=self._MAG_FILTER,
                               wrap=self._WRAP)
+            texture.prepare()
             vertices = numpy.array((
                 (0., 0., 0., 0.),
                 (self.width, 0., 1., 0.),
@@ -177,6 +178,7 @@ class Image(object):
                         (xOrig, yOrig + hData, 0., vMax),
                         (xOrig + wData, yOrig + hData, uMax, vMax)),
                         dtype=numpy.float32)
+                    texture.prepare()
                     tiles.append((texture, vertices,
                                   {'xOrigData': xOrig, 'yOrigData': yOrig,
                                    'wData': wData, 'hData': hData}))
@@ -203,6 +205,7 @@ class Image(object):
                 texture.update(format_,
                                data[yOrig:yOrig+height, xOrig:xOrig+width],
                                texUnit=texUnit)
+                texture.prepare()
                 # TODO check
                 # width=info['wData'], height=info['hData'],
                 # texUnit=texUnit, unpackAlign=unpackAlign,

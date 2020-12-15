@@ -332,6 +332,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
     @docstring(ScatterVisualizationMixIn)
     def setVisualizationParameter(self, parameter, value):
+        parameter = self.VisualizationParameter.from_value(parameter)
+
         if super(Scatter, self).setVisualizationParameter(parameter, value):
             if parameter in (self.VisualizationParameter.GRID_BOUNDS,
                              self.VisualizationParameter.GRID_MAJOR_ORDER,
@@ -339,8 +341,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 self.__cacheRegularGridInfo = None
 
             if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
-                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION):
-                if parameter == self.VisualizationParameter.BINNED_STATISTIC_SHAPE:
+                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
+                             self.VisualizationParameter.DATA_BOUNDS_HINT):
+                if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                                 self.VisualizationParameter.DATA_BOUNDS_HINT):
                     self.__cacheHistogramInfo = None  # Clean-up cache
                 if self.getVisualization() is self.Visualization.BINNED_STATISTIC:
                     self._updateColormappedData()
@@ -351,7 +355,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     @docstring(ScatterVisualizationMixIn)
     def getCurrentVisualizationParameter(self, parameter):
         value = self.getVisualizationParameter(parameter)
-        if value is not None:
+        if (parameter is self.VisualizationParameter.DATA_BOUNDS_HINT or
+                value is not None):
             return value  # Value has been set, return it
 
         elif parameter is self.VisualizationParameter.GRID_BOUNDS:
@@ -452,6 +457,12 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             ranges = (tuple(min_max(y, finite=True)),
                       tuple(min_max(x, finite=True)))
+            rangesHint = self.getVisualizationParameter(
+                self.VisualizationParameter.DATA_BOUNDS_HINT)
+            if rangesHint is not None:
+                ranges = tuple((min(dataMin, hintMin), max(dataMax, hintMax))
+                      for (dataMin, dataMax), (hintMin, hintMax) in zip(ranges, rangesHint))
+
             points = numpy.transpose(numpy.array((y, x)))
             counts, sums, bin_edges = Histogramnd(
                 points,
@@ -850,7 +861,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                value = numpy.array(value, copy=True, dtype=numpy.float)
+                value = numpy.array(value, copy=True, dtype=numpy.float64)
                 value[clipped] = numpy.nan
 
         x, y, xerror, yerror = PointsBase._logFilterData(self, xPositive, yPositive)

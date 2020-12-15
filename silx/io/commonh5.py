@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -374,6 +374,24 @@ class Dataset(Node):
         """Returns chunks as provided by `h5py.Dataset`.
 
         There is no chunks."""
+        return None
+
+    @property
+    def is_virtual(self):
+        """Checks virtual data as provided by `h5py.Dataset`"""
+        return False
+
+    def virtual_sources(self):
+        """Returns virtual dataset sources as provided by `h5py.Dataset`.
+
+        :rtype: list"""
+        raise RuntimeError("Not a virtual dataset")
+
+    @property
+    def external(self):
+        """Returns external sources as provided by `h5py.Dataset`.
+
+        :rtype: list or None"""
         return None
 
     def __array__(self, dtype=None):
@@ -958,7 +976,7 @@ class Group(Node):
             raise TypeError("Path are not supported")
         if data is None:
             if dtype is None:
-                dtype = numpy.float
+                dtype = numpy.float64
             data = numpy.empty(shape=shape, dtype=dtype)
         elif dtype is not None:
             data = data.astype(dtype)

@@ -25,8 +25,7 @@
 
 __authors__ = ["P. Knobel", "V. Valls"]
 __license__ = "MIT"
-__date__ = "18/04/2018"
-
+__date__ = "03/12/2020"
 
 import enum
 import os.path
@@ -40,17 +39,18 @@ import six
 
 from silx.utils.proxy import Proxy
 import silx.io.url
+from .._version import calc_hexversion
 
 import h5py
+import h5py.h5t
+import h5py.h5a
 
 try:
     import h5pyd
 except ImportError as e:
     h5pyd = None
 
-
 logger = logging.getLogger(__name__)
-
 
 NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
 """List of possible extensions for HDF5 file formats."""
@@ -190,34 +190,46 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     if xlabel is None:
         xlabel = "x"
     if ylabels is None:
-        if len(numpy.array(y).shape) > 1:
+        if numpy.array(y).ndim > 1:
             ylabels = ["y%d" % i for i in range(len(y))]
         else:
             ylabels = ["y"]
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabels[i] if ylabels[i] is not None else "y%d" % i
-                   for i in range(len(ylabels))]
+        ylabels = [ylabel if isinstance(ylabel, string_types) else "y%d" % i
+                   for ylabel in ylabels]
 
     if filetype.lower() == "spec":
-        y_array = numpy.asarray(y)
+        # Check if we have regular data:
+        ref = len(x)
+        regular = True
+        for one_y in y:
+            regular &= len(one_y) == ref
+        if regular:
+            if isinstance(fmt, (list, tuple)) and len(fmt) < (len(ylabels) + 1):
+                fmt = fmt + [fmt[-1] * (1 + len(ylabels) - len(fmt))]
+            specf = savespec(fname, x, y, xlabel, ylabels, fmt=fmt,
+                     scan_number=1, mode="w", write_file_header=True,
+                     close_file=False)
+        else:
+            y_array = numpy.asarray(y)
+            # make sure y_array is a 2D array even for a single curve
+            if y_array.ndim == 1:
+                y_array.shape = 1, -1
+            elif y_array.ndim not in [1, 2]:
+                raise IndexError("y must be a 1D or 2D array")
 
-        # make sure y_array is a 2D array even for a single curve
-        if len(y_array.shape) == 1:
-            y_array = y_array.reshape(1, y_array.shape[0])
-        elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
-            raise IndexError("y must be a 1D or 2D array")
+            # First curve
+            specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
+                             scan_number=1, mode="w", write_file_header=True,
+                             close_file=False)
+            # Other curves
+            for i in range(1, y_array.shape[0]):
+                specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
+                                 fmt=fmt, scan_number=i + 1, mode="w",
+                                 write_file_header=False, close_file=False)
 
-        # First curve
-        specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
-                         scan_number=1, mode="w", write_file_header=True,
-                         close_file=False)
-        # Other curves
-        for i in range(1, y_array.shape[0]):
-            specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                             fmt=fmt, scan_number=i + 1, mode="w",
-                             write_file_header=False, close_file=False)
         # close file if we created it
         if not hasattr(fname, "write"):
             specf.close()
@@ -307,9 +319,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
         or append mode. If a file name is provided, a new file is open in
         write mode (existing file with the same name will be lost)
     :param x: 1D-Array (or list) of abscissa values
-    :param y: 1D-array (or list) of ordinates values
+    :param y: 1D-array (or list), or list of them of ordinates values.
+        All dataset must have the same length as x
     :param xlabel: Abscissa label (default ``"X"``)
-    :param ylabel: Ordinate label
+    :param ylabel: Ordinate label, may be a list of labels when multiple curves 
+        are to be saved together.
     :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
@@ -333,40 +347,51 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
 
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
+    if y_array.ndim > 2:
+        raise IndexError("Y columns must have be packed as 1D")
 
-    if y_array.shape[0] != x_array.shape[0]:
+    if y_array.shape[-1] != x_array.shape[0]:
         raise IndexError("X and Y columns must have the same length")
 
-    if isinstance(fmt, string_types) and fmt.count("%") == 1:
-        full_fmt_string = fmt + "  " + fmt + "\n"
-    elif isinstance(fmt, (list, tuple)) and len(fmt) == 2:
-        full_fmt_string = "  ".join(fmt) + "\n"
+    if y_array.ndim == 2:
+        assert isinstance(ylabel, (list, tuple))
+        assert y_array.shape[0] == len(ylabel)
+        labels = (xlabel, *ylabel)
     else:
-        raise ValueError("fmt must be a single format string or a list of " +
-                         "two format strings")
+        labels = (xlabel, ylabel)
+    data = numpy.vstack((x_array, y_array))
+    ncol = data.shape[0]
+    assert len(labels) == ncol
+
+    print(xlabel, ylabel, fmt, ncol, x_array, y_array)
+    if isinstance(fmt, string_types) and fmt.count("%") == 1:
+        full_fmt_string = "  ".join([fmt] * ncol)
+    elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
+        full_fmt_string = "  ".join(fmt)
+    else:
+        raise ValueError("`fmt` must be a single format string or a list of " +
+                         "format strings with as many format as ncolumns")
 
     if not hasattr(specfile, "write"):
         f = builtin_open(specfile, mode)
     else:
         f = specfile
 
-    output = ""
-
-    current_date = "#D %s\n" % (time.ctime(time.time()))
-
+    current_date = "#D %s" % (time.ctime(time.time()))
     if write_file_header:
-        output += "#F %s\n" % f.name
-        output += current_date
-        output += "\n"
+        lines = [ "#F %s" % f.name, current_date, ""]
+    else:
+        lines = [""]
 
-    output += "#S %d %s\n" % (scan_number, ylabel)
-    output += current_date
-    output += "#N 2\n"
-    output += "#L %s  %s\n" % (xlabel, ylabel)
-    for i in range(y_array.shape[0]):
-        output += full_fmt_string % (x_array[i], y_array[i])
-    output += "\n"
+    lines += [  "#S %d %s" % (scan_number, labels[1]),
+                current_date,
+                "#N %d" % ncol,
+                "#L " + "  ".join(labels)]
 
+    for i in data.T:
+        lines.append(full_fmt_string % tuple(i))
+    lines.append("")
+    output = "\n".join(lines)
     f.write(output.encode())
 
     if close_file:
@@ -406,7 +431,7 @@ def h5ls(h5group, lvl=0):
     if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, string_types):
-        h5f = open(h5group)      # silx.io.open
+        h5f = open(h5group)  # silx.io.open
     else:
         raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
@@ -735,6 +760,26 @@ def is_softlink(obj):
     return t == H5Type.SOFT_LINK
 
 
+def is_externallink(obj):
+    """
+    True if the object is a h5py.ExternalLink-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t == H5Type.EXTERNAL_LINK
+
+
+def is_link(obj):
+    """
+    True if the object is a h5py link-like object.
+
+    :param obj: An object
+    """
+    t = get_h5_class(obj)
+    return t in {H5Type.SOFT_LINK, H5Type.EXTERNAL_LINK}
+
+
 def get_data(url):
     """Returns a numpy data from an URL.
 
@@ -791,16 +836,16 @@ def get_data(url):
                 raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
 
             if data_slice is not None:
-                data = data[data_slice]
+                data = h5py_read_dataset(data, index=data_slice)
             else:
                 # works for scalar and array
-                data = data[()]
+                data = h5py_read_dataset(data)
 
     elif url.scheme() == "fabio":
         import fabio
         data_slice = url.data_slice()
         if data_slice is None:
-            data_slice = (0, )
+            data_slice = (0,)
         if data_slice is None or len(data_slice) != 1:
             raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
         index = data_slice[0]
@@ -844,8 +889,8 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
     """
     assert isinstance(output_url, silx.io.url.DataUrl)
     assert isinstance(shape, (tuple, list))
-    v_majeur, v_mineur, v_micro = h5py.version.version.split('.')
-    if v_majeur <= '2' and v_mineur < '9':
+    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
+    if calc_hexversion(v_majeur, v_mineur, v_micro)< calc_hexversion(2,9,0):
         raise Exception('h5py >= 2.9 should be installed to access the '
                         'external feature.')
 
@@ -915,3 +960,183 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
                                           shape=shape,
                                           dtype=vol_dtype,
                                           overwrite=overwrite)
+
+
+def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
+    """Keep bytes when value cannot be decoded
+
+    :param value: bytes or array of bytes
+    :param encoding str:
+    :param errors str:
+    """
+    try:
+        if numpy.isscalar(value):
+            return value.decode(encoding, errors=errors)
+        str_item = [b.decode(encoding, errors=errors) for b in value.flat]
+        return numpy.array(str_item, dtype=object).reshape(value.shape)
+    except UnicodeDecodeError:
+        return value
+
+
+def h5py_encode_value(value, encoding="utf-8", errors="surrogateescape"):
+    """Keep string when value cannot be encoding
+
+    :param value: string or array of strings
+    :param encoding str:
+    :param errors str:
+    """
+    try:
+        if numpy.isscalar(value):
+            return value.encode(encoding, errors=errors)
+        bytes_item = [s.encode(encoding, errors=errors) for s in value.flat]
+        return numpy.array(bytes_item, dtype=object).reshape(value.shape)
+    except UnicodeEncodeError:
+        return value
+
+
+class H5pyDatasetReadWrapper:
+    """Wrapper to handle H5T_STRING decoding on-the-fly when reading
+    a dataset. Uniform behaviour for h5py 2.x and h5py 3.x
+
+    h5py abuses H5T_STRING with ASCII character set
+    to store `bytes`: dset[()] = b"..."
+    Therefore an H5T_STRING with ASCII encoding is not decoded by default.
+    """
+
+    H5PY_AUTODECODE_NONASCII = int(h5py.version.version.split(".")[0]) < 3
+
+    def __init__(self, dset, decode_ascii=False):
+        """
+        :param h5py.Dataset dset:
+        :param bool decode_ascii:
+        """
+        try:
+            string_info = h5py.h5t.check_string_dtype(dset.dtype)
+        except AttributeError:
+            # h5py < 2.10
+            try:
+                idx = dset.id.get_type().get_cset()
+            except AttributeError:
+                # Not an H5T_STRING
+                encoding = None
+            else:
+                encoding = ["ascii", "utf-8"][idx]
+        else:
+            # h5py >= 2.10
+            try:
+                encoding = string_info.encoding
+            except AttributeError:
+                # Not an H5T_STRING
+                encoding = None
+        if encoding == "ascii" and not decode_ascii:
+            encoding = None
+        if encoding != "ascii" and self.H5PY_AUTODECODE_NONASCII:
+            # Decoding is already done by the h5py library
+            encoding = None
+        if encoding == "ascii":
+            # ASCII can be decoded as UTF-8
+            encoding = "utf-8"
+        self._encoding = encoding
+        self._dset = dset
+
+    def __getitem__(self, args):
+        value = self._dset[args]
+        if self._encoding:
+            return h5py_decode_value(value, encoding=self._encoding)
+        else:
+            return value
+
+
+class H5pyAttributesReadWrapper:
+    """Wrapper to handle H5T_STRING decoding on-the-fly when reading
+    an attribute. Uniform behaviour for h5py 2.x and h5py 3.x
+
+    h5py abuses H5T_STRING with ASCII character set
+    to store `bytes`: dset[()] = b"..."
+    Therefore an H5T_STRING with ASCII encoding is not decoded by default.
+    """
+
+    H5PY_AUTODECODE = int(h5py.version.version.split(".")[0]) >= 3
+
+    def __init__(self, attrs, decode_ascii=False):
+        """
+        :param h5py.Dataset dset:
+        :param bool decode_ascii:
+        """
+        self._attrs = attrs
+        self._decode_ascii = decode_ascii
+
+    def __getitem__(self, args):
+        value = self._attrs[args]
+
+        # Get the string encoding (if a string)
+        try:
+            dtype = self._attrs.get_id(args).dtype
+        except AttributeError:
+            # h5py < 2.10
+            attr_id = h5py.h5a.open(self._attrs._id, self._attrs._e(args))
+            try:
+                idx = attr_id.get_type().get_cset()
+            except AttributeError:
+                # Not an H5T_STRING
+                return value
+            else:
+                encoding = ["ascii", "utf-8"][idx]
+        else:
+            # h5py >= 2.10
+            try:
+                encoding = h5py.h5t.check_string_dtype(dtype).encoding
+            except AttributeError:
+                # Not an H5T_STRING
+                return value
+
+        if self.H5PY_AUTODECODE:
+            if encoding == "ascii" and not self._decode_ascii:
+                # Undo decoding by the h5py library
+                return h5py_encode_value(value, encoding="utf-8")
+        else:
+            if encoding == "ascii" and self._decode_ascii:
+                # Decode ASCII as UTF-8 for consistency
+                return h5py_decode_value(value, encoding="utf-8")
+
+        # Decoding is already done by the h5py library
+        return value
+
+    def items(self):
+        for k in self._attrs.keys():
+            yield k, self[k]
+
+
+def h5py_read_dataset(dset, index=tuple(), decode_ascii=False):
+    """Read data from dataset object. UTF-8 strings will be
+    decoded while ASCII strings will only be decoded when
+    `decode_ascii=True`.
+
+    :param h5py.Dataset dset:
+    :param index: slicing (all by default)
+    :param bool decode_ascii:
+    """
+    return H5pyDatasetReadWrapper(dset, decode_ascii=decode_ascii)[index]
+
+
+def h5py_read_attribute(attrs, name, decode_ascii=False):
+    """Read data from attributes. UTF-8 strings will be
+    decoded while ASCII strings will only be decoded when
+    `decode_ascii=True`.
+
+    :param h5py.AttributeManager attrs:
+    :param str name: attribute name
+    :param bool decode_ascii:
+    """
+    return H5pyAttributesReadWrapper(attrs, decode_ascii=decode_ascii)[name]
+
+
+def h5py_read_attributes(attrs, decode_ascii=False):
+    """Read data from attributes. UTF-8 strings will be
+    decoded while ASCII strings will only be decoded when
+    `decode_ascii=True`.
+
+    :param h5py.AttributeManager attrs:
+    :param bool decode_ascii:
+    """
+    return dict(H5pyAttributesReadWrapper(attrs, decode_ascii=decode_ascii).items())

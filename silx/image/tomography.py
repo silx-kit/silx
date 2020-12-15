@@ -32,6 +32,7 @@ __date__ = "12/09/2017"
 
 import numpy as np
 from math import pi
+from functools import lru_cache
 from itertools import product
 from bisect import bisect
 from silx.math.fit import leastsq
@@ -128,6 +129,7 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
     return filt_f
 
 
+@lru_cache(maxsize=1)
 def generate_powers():
     """
     Generate a list of powers of [2, 3, 5, 7],

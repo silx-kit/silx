@@ -38,8 +38,10 @@ from silx.gui import qt
 from silx.gui.plot import Plot2D
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.tools.roi import RegionOfInterestTableWidget
+from silx.gui.plot.tools.roi import RoiModeSelectorAction
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.items import LineMixIn, SymbolMixIn
+from silx.gui.plot.actions import control as control_actions
 
 
 def dummy_image():
@@ -54,15 +56,15 @@ def dummy_image():
 
 app = qt.QApplication([])  # Start QApplication
 
-backend = "matplotlib"
-if "--opengl" in sys.argv:
-    backend = "opengl"
-
 # Create the plot widget and add an image
-plot = Plot2D(backend=backend)
+plot = Plot2D()
 plot.getDefaultColormap().setName('viridis')
 plot.setKeepDataAspectRatio(True)
 plot.addImage(dummy_image())
+
+toolbar = qt.QToolBar()
+toolbar.addAction(control_actions.OpenGLAction(parent=toolbar, plot=plot))
+plot.addToolBar(toolbar)
 
 # Create the object controlling the ROIs and set it up
 roiManager = RegionOfInterestManager(plot)
@@ -105,11 +107,33 @@ for roiClass in roiManager.getSupportedRoiClasses():
     action = roiManager.getInteractionModeAction(roiClass)
     roiToolbar.addAction(action)
 
+class AutoHideToolBar(qt.QToolBar):
+    """A toolbar which hide itself if no actions are visible"""
+
+    def actionEvent(self, event):
+        if event.type() == qt.QEvent.ActionChanged:
+            self._updateVisibility()
+        return qt.QToolBar.actionEvent(self, event)
+
+    def _updateVisibility(self):
+        visible = False
+        for action in self.actions():
+            if action.isVisible():
+                visible = True
+                break
+        self.setVisible(visible)
+
+roiToolbarEdit = AutoHideToolBar()
+modeSelectorAction = RoiModeSelectorAction()
+modeSelectorAction.setRoiManager(roiManager)
+roiToolbarEdit.addAction(modeSelectorAction)
+
 # Add the region of interest table and the buttons to a dock widget
 widget = qt.QWidget()
 layout = qt.QVBoxLayout()
 widget.setLayout(layout)
 layout.addWidget(roiToolbar)
+layout.addWidget(roiToolbarEdit)
 layout.addWidget(roiTable)
 
 

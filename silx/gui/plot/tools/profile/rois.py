@@ -315,7 +315,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             is_uint8 = rgba.dtype.type == numpy.uint8
             # luminosity
             if is_uint8:
-                rgba = rgba.astype(numpy.float)
+                rgba = rgba.astype(numpy.float64)
             currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
         else:
             currentData = item.getData(copy=False)

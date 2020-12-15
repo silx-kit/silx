@@ -68,7 +68,11 @@ class TestSelectPolygon(PlotWidgetTestCase):
 
         for pos in polygon:
             self.mouseMove(plot, pos=pos)
-            self.mouseClick(plot, qt.Qt.LeftButton, pos=pos)
+            self.qapp.processEvents()
+            self.mousePress(plot, qt.Qt.LeftButton, pos=pos)
+            self.qapp.processEvents()
+            self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos)
+            self.qapp.processEvents()
 
         self.plot.sigPlotSignal.disconnect(dump)
         return [args[0] for args in dump.received]

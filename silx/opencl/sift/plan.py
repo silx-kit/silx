@@ -54,7 +54,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__date__ = "10/11/2020"
 __status__ = "production"
 
 import os
@@ -684,19 +684,19 @@ class SiftPlan(OpenclProcessing):
                             descriptor_name = "descriptor_gpu1"
                             wgsize2 = self.kernels_max_wg_size[descriptor_name]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                            if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
-                                # will fail anyway:
-                                self.LOW_END += 1
-                                continue
+#                             if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
+#                                 # will fail anyway:
+#                                 self.LOW_END += 1
+#                                 continue
                         else:
                             logger.info("Computing descriptors with newer-GPU optimized kernels")
                             descriptor_name = "descriptor_gpu2"
                             wgsize2 = self.kernels_max_wg_size[descriptor_name]
                             procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                            if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
-                                # will fail anyway:
-                                self.LOW_END += 1
-                                continue
+#                             if self.kernels_wg[descriptor_name] < numpy.prod(wgsize2):
+#                                 # will fail anyway:
+#                                 self.LOW_END += 1
+#                                 continue
                     try:
                         descriptor = self.kernels.get_kernel(descriptor_name)
                         evt2 = descriptor(self.queue, procsize2, wgsize2,
@@ -709,7 +709,7 @@ class SiftPlan(OpenclProcessing):
                                           self.cl_mem["cnt"].data,  # int* keypoints_end,
                                           *self.scales[octave])  # int grad_width, int grad_height)
                         evt2.wait()
-                    except pyopencl.RuntimeError as error:
+                    except (pyopencl.RuntimeError, pyopencl._cl.LogicError) as error:
                         self.LOW_END += 1
                         logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
                         continue
@@ -753,7 +753,7 @@ class SiftPlan(OpenclProcessing):
         :param start: start compacting at this adress. Before just copy
         :type  start: numpy.int32
         """
-        wgsize = self.kernels_wg["compact"],  
+        wgsize = self.kernels_wg["compact"],
         cp0_evt = pyopencl.enqueue_copy(self.queue, self.cnt, self.cl_mem["cnt"].data)
         kp_counter = self.cnt[0]
         procsize = calc_size((self.kpsize,), wgsize)
@@ -827,6 +827,7 @@ def demo():
 
     s = SiftPlan(template=img)
     print(s.keypoints(img))
+
 
 if __name__ == "__main__":
     demo()

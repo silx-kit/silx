@@ -136,6 +136,31 @@ class TestRoiItems(TestCaseQt):
         numpy.testing.assert_allclose(item.getCenter(), center)
         numpy.testing.assert_allclose(item.getRadius(), newRadius)
 
+    def testCircle_contains(self):
+        center = numpy.array([2, -1])
+        radius = 1.
+        item = roi_items.CircleROI()
+        item.setGeometry(center=center, radius=radius)
+        self.assertTrue(item.contains([1, -1]))
+        self.assertFalse(item.contains([0, 0]))
+        self.assertTrue(item.contains([2, 0]))
+        self.assertFalse(item.contains([3.01, -1]))
+
+    def testEllipse_contains(self):
+        center = numpy.array([-2, 0])
+        item = roi_items.EllipseROI()
+        item.setCenter(center)
+        item.setOrientation(numpy.pi / 4.0)
+        item.setMajorRadius(2)
+        item.setMinorRadius(1)
+        print(item.getMinorRadius(), item.getMajorRadius())
+        self.assertFalse(item.contains([0, 0]))
+        self.assertTrue(item.contains([-1, 1]))
+        self.assertTrue(item.contains([-3, 0]))
+        self.assertTrue(item.contains([-2, 0]))
+        self.assertTrue(item.contains([-2, 1]))
+        self.assertFalse(item.contains([-4, 1]))
+
     def testRectangle_isIn(self):
         origin = numpy.array([0, 0])
         size = numpy.array([10, 20])
@@ -557,8 +582,9 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         mx, my = self.plot.dataToPixel(*center)
         self.mouseMove(widget, pos=(mx, my))
         self.mousePress(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseMove(widget, pos=(mx, my+25))
         self.mouseMove(widget, pos=(mx, my+50))
-        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my+50))
 
         result = numpy.array(item.getEndPoints())
         # x location is still the same
@@ -615,6 +641,45 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
             # Clean up
             manager.clear()
 
+    def testArcRoiSwitchMode(self):
+        """Make sure we can switch mode by clicking on the ROI"""
+        xlimit = self.plot.getXAxis().getLimits()
+        ylimit = self.plot.getYAxis().getLimits()
+        points = numpy.array([xlimit, ylimit]).T
+        center = numpy.mean(points, axis=0)
+        size = numpy.abs(points[1] - points[0])
+
+        # Create the line
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.ArcROI()
+        item.setGeometry(center, size[1] / 10, size[1] / 2, 0, 3)
+        item.setEditable(True)
+        item.setSelectable(True)
+        manager.addRoi(item)
+        self.qapp.processEvents()
+
+        # Initial state
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.ThreePointMode)
+        self.qWait(500)
+
+        # Click on the center
+        widget = self.plot.getWidgetHandle()
+        mx, my = self.plot.dataToPixel(*center)
+
+        # Select the ROI
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.ThreePointMode)
+
+        # Change the mode
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        self.assertIs(item.getInteractionMode(), roi_items.ArcROI.PolarMode)
+
+        manager.clear()
+        self.qapp.processEvents()
 
 
 def suite():

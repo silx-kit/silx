@@ -142,11 +142,8 @@ class ColorBarWidget(qt.QWidget):
             self._isConnected = True
 
     def setVisible(self, isVisible):
-        # isHidden looks to be always synchronized, while isVisible is not
-        wasHidden = self.isHidden()
         qt.QWidget.setVisible(self, isVisible)
-        if wasHidden != self.isHidden():
-            self.sigVisibleChanged.emit(not self.isHidden())
+        self.sigVisibleChanged.emit(isVisible)
 
     def showEvent(self, event):
         self._connectPlot()

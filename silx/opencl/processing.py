@@ -36,14 +36,12 @@ Common OpenCL abstract base classe for different processing
 
 from __future__ import absolute_import, print_function, division
 
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/08/2019"
+__date__ = "04/12/2020"
 __status__ = "stable"
-
 
 import os
 import logging
@@ -51,10 +49,9 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers, kernel_workgroup_size
+from .common import ocl, pyopencl, release_cl_buffers, query_kernel_info, allocate_texture, check_textures_availability
 from .utils import concatenate_cl_kernel
 import platform
-
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 EventDescription = namedtuple("EventDescription", ["name", "event"])
@@ -85,13 +82,22 @@ class KernelContainer(object):
         return self.__dict__.get(name)
 
     def max_workgroup_size(self, kernel_name):
-        "Retrieve the compile time max_workgroup_size for a given kernel"
+        "Retrieve the compile time WORK_GROUP_SIZE for a given kernel"
         if isinstance(kernel_name, pyopencl.Kernel):
             kernel = kernel_name
         else:
             kernel = self.get_kernel(kernel_name)
 
-        return kernel_workgroup_size(self._program, kernel)
+        return query_kernel_info(self._program, kernel, "WORK_GROUP_SIZE")
+
+    def min_workgroup_size(self, kernel_name):
+        "Retrieve the compile time PREFERRED_WORK_GROUP_SIZE_MULTIPLE for a given kernel"
+        if isinstance(kernel_name, pyopencl.Kernel):
+            kernel = kernel_name
+        else:
+            kernel = self.get_kernel(kernel_name)
+
+        return query_kernel_info(self._program, kernel, "PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
 
 
 class OpenclProcessing(object):
@@ -149,6 +155,9 @@ class OpenclProcessing(object):
         self.program = None
         self.kernels = None
 
+    def check_textures_availability(self):
+        return check_textures_availability(self.ctx)
+
     def __del__(self):
         """Destructor: release all buffers and programs
         """
@@ -156,8 +165,10 @@ class OpenclProcessing(object):
             self.reset_log()
             self.free_kernels()
             self.free_buffers()
-        except Exception:
-            pass
+            if self.queue is not None:
+                self.queue.finish()
+        except Exception as err:
+            logger.warning("%s: %s", type(err), err)
         self.queue = None
         self.device = None
         self.ctx = None
@@ -287,6 +298,8 @@ class OpenclProcessing(object):
         if bool(value) != self.profile:
             with self.sem:
                 self.profile = bool(value)
+                if self.queue is not None:
+                    self.queue.finish()
                 if self.profile:
                     self.queue = pyopencl.CommandQueue(self.ctx,
                         properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
@@ -304,24 +317,7 @@ class OpenclProcessing(object):
             self.events.append(EventDescription(desc, event))
 
     def allocate_texture(self, shape, hostbuf=None, support_1D=False):
-        """
-        Allocate an OpenCL image ("texture").
-
-        :param shape: Shape of the image. Note that pyopencl and OpenCL < 1.2
-            do not support 1D images, so 1D images are handled as 2D with one row
-        :param support_1D: force the image to be 1D if the shape has only one dim
-        """
-        if len(shape) == 1 and not(support_1D):
-            shape = (1,) + shape
-        return pyopencl.Image(
-            self.ctx,
-            pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
-            pyopencl.ImageFormat(
-                pyopencl.channel_order.INTENSITY,
-                pyopencl.channel_type.FLOAT
-            ),
-            hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
-        )
+        return allocate_texture(self.ctx, shape, hostbuf=hostbuf, support_1D=support_1D)
 
     def transfer_to_texture(self, arr, tex_ref):
         """
@@ -336,10 +332,10 @@ class OpenclProcessing(object):
         if ndim == 1:
             # pyopencl and OpenCL < 1.2 do not support image1d_t
             # force 2D with one row in this case
-            #~ ndim = 2
+            # ~ ndim = 2
             shp = (1,) + shp
         copy_kwargs = {"origin":(0,) * ndim, "region": shp[::-1]}
-        if not(isinstance(arr, numpy.ndarray)): # assuming pyopencl.array.Array
+        if not(isinstance(arr, numpy.ndarray)):  # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -371,7 +371,7 @@ def scatter(x=None, y=None, value=None, size=None,
             assert len(x) == len(value)
 
         else:
-            value = numpy.ones(len(x), dtype=numpy.float) * value
+            value = numpy.ones(len(x), dtype=numpy.float64) * value
 
         plt.setData(x, y, value)
         item = plt.getScatterItem()

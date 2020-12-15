@@ -29,45 +29,25 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "10/01/2017"
 
-from . import gl
 import numpy
 
-
-_GL_TYPE_SIZES = {
-    gl.GL_FLOAT: 4,
-    gl.GL_BYTE: 1,
-    gl.GL_SHORT: 2,
-    gl.GL_INT: 4,
-    gl.GL_UNSIGNED_BYTE: 1,
-    gl.GL_UNSIGNED_SHORT: 2,
-    gl.GL_UNSIGNED_INT: 4,
-}
+from OpenGL.constants import BYTE_SIZES as _BYTE_SIZES
+from OpenGL.constants import ARRAY_TO_GL_TYPE_MAPPING as _ARRAY_TO_GL_TYPE_MAPPING
 
 
 def sizeofGLType(type_):
     """Returns the size in bytes of an element of type `type_`"""
-    return _GL_TYPE_SIZES[type_]
-
-
-_TYPE_CONVERTER = {
-    numpy.dtype(numpy.float32): gl.GL_FLOAT,
-    numpy.dtype(numpy.int8): gl.GL_BYTE,
-    numpy.dtype(numpy.int16): gl.GL_SHORT,
-    numpy.dtype(numpy.int32): gl.GL_INT,
-    numpy.dtype(numpy.uint8): gl.GL_UNSIGNED_BYTE,
-    numpy.dtype(numpy.uint16): gl.GL_UNSIGNED_SHORT,
-    numpy.dtype(numpy.uint32): gl.GL_UNSIGNED_INT,
-}
+    return _BYTE_SIZES[type_]
 
 
 def isSupportedGLType(type_):
     """Test if a numpy type or dtype can be converted to a GL type."""
-    return numpy.dtype(type_) in _TYPE_CONVERTER
+    return numpy.dtype(type_).char in _ARRAY_TO_GL_TYPE_MAPPING
 
 
 def numpyToGLType(type_):
     """Returns the GL type corresponding the provided numpy type or dtype."""
-    return _TYPE_CONVERTER[numpy.dtype(type_)]
+    return _ARRAY_TO_GL_TYPE_MAPPING[numpy.dtype(type_).char]
 
 
 def segmentTrianglesIntersection(segment, triangles):

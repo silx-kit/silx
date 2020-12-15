@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
     def test_image_bool(self):
-        data = numpy.zeros((10, 10), dtype=numpy.bool)
+        data = numpy.zeros((10, 10), dtype=bool)
         data[::2, ::2] = True
         widget = self.create_widget()
         widget.setData(data)
@@ -117,7 +117,7 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
     def test_image_complex_data(self):
-        data = numpy.arange(3 ** 2, dtype=numpy.complex)
+        data = numpy.arange(3 ** 2, dtype=numpy.complex64)
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
@@ -262,7 +262,7 @@ class TestDataView(TestCaseQt):
         line = [1, 2j, 3 + 3j, 4]
         image = [line, line, line, line]
         cube = [image, image, image, image]
-        data = numpy.array(cube, dtype=numpy.complex)
+        data = numpy.array(cube, dtype=numpy.complex64)
         return data
 
     def createDataViewWithData(self, dataViewClass, data):

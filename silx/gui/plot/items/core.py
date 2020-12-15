@@ -37,6 +37,7 @@ except ImportError:  # Python2 support
 from copy import deepcopy
 import logging
 import enum
+from typing import Optional, Tuple
 import warnings
 import weakref
 
@@ -44,7 +45,9 @@ import numpy
 import six
 
 from ....utils.deprecation import deprecated
+from ....utils.proxy import docstring
 from ....utils.enum import Enum as _Enum
+from ....math.combo import min_max
 from ... import qt
 from ... import colors
 from ...colors import Colormap
@@ -164,6 +167,13 @@ class Item(qt.QObject):
     See :class:`ItemChangedType` for flags description.
     """
 
+    _sigVisibleBoundsChanged = qt.Signal()
+    """Signal emitted when the visible extent of the item in the plot has changed.
+
+    This signal is emitted only if visible extent tracking is enabled
+    (see :meth:`_setVisibleBoundsTracking`).
+    """
+
     def __init__(self):
         qt.QObject.__init__(self)
         self._dirty = True
@@ -175,6 +185,9 @@ class Item(qt.QObject):
         self._xlabel = None
         self._ylabel = None
         self.__name = ''
+
+        self.__visibleBoundsTracking = False
+        self.__previousVisibleBounds = None
 
         self._backendRenderer = None
 
@@ -194,7 +207,9 @@ class Item(qt.QObject):
         """
         if plot is not None and self._plotRef is not None:
             raise RuntimeError('Trying to add a node at two places.')
+        self.__disconnectFromPlotWidget()
         self._plotRef = None if plot is None else weakref.ref(plot)
+        self.__connectToPlotWidget()
         self._updated()
 
     def getBounds(self):  # TODO return a Bounds object rather than a tuple
@@ -300,6 +315,97 @@ class Item(qt.QObject):
             info = deepcopy(info)
         self._info = info
 
+    def getVisibleBounds(self) -> Optional[Tuple[float,float,float,float]]:
+        """Returns visible bounds of the item bounding box in the plot area.
+
+        :returns:
+            (xmin, xmax, ymin, ymax) in data coordinates of the visible area or
+            None if item is not visible in the plot area.
+        :rtype: Union[List[float],None]
+        """
+        plot = self.getPlot()
+        bounds = self.getBounds()
+        if plot is None or bounds is None or not self.isVisible():
+            return None
+
+        xmin, xmax = numpy.clip(bounds[:2], *plot.getXAxis().getLimits())
+        ymin, ymax = numpy.clip(
+            bounds[2:], *plot.getYAxis(self.__getYAxis()).getLimits())
+
+        if xmin == xmax or ymin == ymax:  # Outside the plot area
+            return None
+        else:
+            return xmin, xmax, ymin, ymax
+
+    def _isVisibleBoundsTracking(self) -> bool:
+        """Returns True if visible bounds changes are tracked.
+
+        When enabled, :attr:`_sigVisibleBoundsChanged` is emitted upon changes.
+        :rtype: bool
+        """
+        return self.__visibleBoundsTracking
+
+    def _setVisibleBoundsTracking(self, enable: bool) -> None:
+        """Set whether or not to track visible bounds changes.
+
+        :param bool enable:
+        """
+        if enable != self.__visibleBoundsTracking:
+            self.__disconnectFromPlotWidget()
+            self.__previousVisibleBounds = None
+            self.__visibleBoundsTracking = enable
+            self.__connectToPlotWidget()
+
+    def __getYAxis(self) -> str:
+        """Returns current Y axis ('left' or 'right')"""
+        return self.getYAxis() if isinstance(self, YAxisMixIn) else 'left'
+
+    def __connectToPlotWidget(self) -> None:
+        """Connect to PlotWidget signals and install event filter"""
+        if not self._isVisibleBoundsTracking():
+            return
+
+        plot = self.getPlot()
+        if plot is not None:
+            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+                axis.sigLimitsChanged.connect(self._visibleBoundsChanged)
+
+            plot.installEventFilter(self)
+
+            self._visibleBoundsChanged()
+
+    def __disconnectFromPlotWidget(self) -> None:
+        """Disconnect from PlotWidget signals and remove event filter"""
+        if not self._isVisibleBoundsTracking():
+            return
+
+        plot = self.getPlot()
+        if plot is not None:
+            for axis in (plot.getXAxis(), plot.getYAxis(self.__getYAxis())):
+                axis.sigLimitsChanged.disconnect(self._visibleBoundsChanged)
+
+            plot.removeEventFilter(self)
+
+    def _visibleBoundsChanged(self, *args) -> None:
+        """Check if visible extent actually changed and emit signal"""
+        if not self._isVisibleBoundsTracking():
+            return  # No visible extent tracking
+
+        plot = self.getPlot()
+        if plot is None or not plot.isVisible():
+            return  # No plot or plot not visible
+
+        extent = self.getVisibleBounds()
+        if extent != self.__previousVisibleBounds:
+            self.__previousVisibleBounds = extent
+            self._sigVisibleBoundsChanged.emit()
+
+    def eventFilter(self, watched, event):
+        """Event filter to handle PlotWidget show events"""
+        if watched is self.getPlot() and event.type() == qt.QEvent.Show:
+            self._visibleBoundsChanged()
+        return super().eventFilter(watched, event)
+
     def _updated(self, event=None, checkVisibility=True):
         """Mark the item as dirty (i.e., needing update).
 
@@ -373,6 +479,29 @@ class Item(qt.QObject):
             return None
         else:
             return PickingResult(self, indices)
+
+
+class DataItem(Item):
+    """Item with a data extent in the plot"""
+
+    def _boundsChanged(self, checkVisibility: bool=True) -> None:
+        """Call this method in subclass when data bounds has changed.
+
+        :param bool checkVisibility:
+        """
+        if not checkVisibility or self.isVisible():
+            self._visibleBoundsChanged()
+
+            # TODO hackish data range implementation
+            plot = self.getPlot()
+            if plot is not None:
+                plot._invalidateDataRange()
+
+    @docstring(Item)
+    def setVisible(self, visible: bool):
+        if visible != self.isVisible():
+            self._boundsChanged(checkVisibility=False)
+        super().setVisible(visible)
 
 
 # Mix-in classes ##############################################################
@@ -836,6 +965,22 @@ class YAxisMixIn(ItemMixInBase):
         assert yaxis in ('left', 'right')
         if yaxis != self._yaxis:
             self._yaxis = yaxis
+            # Handle data extent changed for DataItem
+            if isinstance(self, DataItem):
+                self._boundsChanged()
+
+            # Handle visible extent changed
+            if self._isVisibleBoundsTracking():
+                # Switch Y axis signal connection
+                plot = self.getPlot()
+                if plot is not None:
+                    previousYAxis = 'left' if self.getXAxis() == 'right' else 'right'
+                    plot.getYAxis(previousYAxis).sigLimitsChanged.disconnect(
+                        self._visibleBoundsChanged)
+                    plot.getYAxis(self.getYAxis()).sigLimitsChanged.connect(
+                        self._visibleBoundsChanged)
+                self._visibleBoundsChanged()
+
             self._updated(ItemChangedType.YAXIS)
 
 
@@ -1066,6 +1211,16 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         Available reduction functions are: 'mean' (default), 'count', 'sum'.
         """
 
+        DATA_BOUNDS_HINT = 'data_bounds_hint'
+        """The expected bounds of the data in data coordinates.
+
+        A 2-tuple of 2-tuple: ((ymin, ymax), (xmin, xmax)).
+        This provides a hint for the data ranges in both dimensions.
+        It is eventually enlarged with actually data ranges.
+
+        WARNING: dimension 0 i.e., Y first.
+        """
+
     _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
         VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
         VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
@@ -1191,7 +1346,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         return self.getVisualizationParameter(parameter)
 
 
-class PointsBase(Item, SymbolMixIn, AlphaMixIn):
+class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
@@ -1201,7 +1356,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
     on top of images."""
 
     def __init__(self):
-        Item.__init__(self)
+        DataItem.__init__(self)
         SymbolMixIn.__init__(self)
         AlphaMixIn.__init__(self)
         self._x = ()
@@ -1244,18 +1399,18 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
                 # expand errorbars to 2xN
                 if error.size == 1:  # Scalar
                     error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float)
+                        (2, len(value)), error, dtype=numpy.float64)
 
                 elif error.ndim == 1:  # N array
                     newError = numpy.empty((2, len(value)),
-                                           dtype=numpy.float)
+                                           dtype=numpy.float64)
                     newError[0, :] = error
                     newError[1, :] = error
                     error = newError
 
                 elif error.size == 2 * len(value):  # 2xN array
                     error = numpy.array(
-                        error, copy=True, dtype=numpy.float)
+                        error, copy=True, dtype=numpy.float64)
 
                 else:
                     _logger.error("Unhandled error array")
@@ -1309,9 +1464,9 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float)
+                x = numpy.array(x, copy=True, dtype=numpy.float64)
                 x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float)
+                y = numpy.array(y, copy=True, dtype=numpy.float64)
                 y[clipped] = numpy.nan
 
                 if xPositive and xerror is not None:
@@ -1347,15 +1502,11 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
             else:
                 x, y, _xerror, _yerror = data
 
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore', category=RuntimeWarning)
-                # Ignore All-NaN slice encountered
-                self._boundsCache[(xPositive, yPositive)] = (
-                    numpy.nanmin(x),
-                    numpy.nanmax(x),
-                    numpy.nanmin(y),
-                    numpy.nanmax(y)
-                )
+            xmin, xmax = min_max(x, finite=True)
+            ymin, ymax = min_max(y, finite=True)
+            self._boundsCache[(xPositive, yPositive)] = tuple([
+                (bound if bound is not None else numpy.nan)
+                for bound in (xmin, xmax, ymin, ymax)])
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
@@ -1477,11 +1628,7 @@ class PointsBase(Item, SymbolMixIn, AlphaMixIn):
         self._filteredCache = {}  # Reset cached filtered data
         self._clippedCache = {}  # Reset cached clipped bool array
 
-        # TODO hackish data range implementation
-        if self.isVisible():
-            plot = self.getPlot()
-            if plot is not None:
-                plot._invalidateDataRange()
+        self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
 

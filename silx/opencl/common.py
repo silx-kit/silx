@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "28/11/2019"
+__date__ = "30/11/2020"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -46,9 +46,7 @@ import numpy
 
 from .utils import get_opencl_code
 
-
 logger = logging.getLogger(__name__)
-
 
 if os.environ.get("SILX_OPENCL") in ["0", "False"]:
     logger.info("Use of OpenCL has been disabled from environment variable: SILX_OPENCL=0")
@@ -70,12 +68,12 @@ else:
             mf = pyopencl.mem_flags
 
 if pyopencl is None:
+
     # Define default mem flags
     class mf(object):
         WRITE_ONLY = 1
         READ_ONLY = 1
         READ_WRITE = 1
-
 
 FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
                  "CPU": 4,  # CPU, at least intel's have 4 operation per cycle
@@ -108,6 +106,7 @@ class Device(object):
     """
     Simple class that contains the structure of an OpenCL device
     """
+
     def __init__(self, name="None", dtype=None, version=None, driver_version=None,
                  extensions="", memory=None, available=None,
                  cores=None, frequency=None, flop_core=None, idx=0, workgroup=1):
@@ -174,6 +173,7 @@ class Platform(object):
     """
     Simple class that contains the structure of an OpenCL platform
     """
+
     def __init__(self, name="None", vendor="None", version=None, extensions=None, idx=0):
         """
         Class containing all descriptions of a platform and all devices description within that platform.
@@ -224,6 +224,8 @@ class Platform(object):
 
 def _measure_workgroup_size(device_or_context, fast=False):
     """Mesure the maximal work group size of the given device
+
+    DEPRECATED since not perfectly correct !
 
     :param device_or_context: instance of pyopencl.Device or pyopencl.Context
                     or 2-tuple (platformid,deviceid)
@@ -318,7 +320,7 @@ class OpenCL(object):
                 ####################################################
                 extensions = device.extensions
                 if (pypl.vendor == "NVIDIA Corporation") and ('cl_khr_fp64' in extensions):
-                                extensions += ' cl_khr_int64_base_atomics cl_khr_int64_extended_atomics'
+                    extensions += ' cl_khr_int64_base_atomics cl_khr_int64_extended_atomics'
                 try:
                     devtype = pyopencl.device_type.to_string(device.type).upper()
                 except ValueError:
@@ -573,6 +575,53 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     return mem
 
 
+def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
+    """
+    Allocate an OpenCL image ("texture").
+
+    :param ctx: OpenCL context
+    :param shape: Shape of the image. Note that pyopencl and OpenCL < 1.2
+        do not support 1D images, so 1D images are handled as 2D with one row
+    :param support_1D: force the image to be 1D if the shape has only one dim
+    """
+    if len(shape) == 1 and not(support_1D):
+        shape = (1,) + shape
+    return pyopencl.Image(
+        ctx,
+        pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
+        pyopencl.ImageFormat(
+            pyopencl.channel_order.INTENSITY,
+            pyopencl.channel_type.FLOAT
+        ),
+        hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
+    )
+
+
+def check_textures_availability(ctx):
+    """
+    Check whether textures are supported on the current OpenCL context.
+
+    :param ctx: OpenCL context
+    """
+    try:
+        dummy_texture = allocate_texture(ctx, (16, 16))
+        # Need to further access some attributes (pocl)
+        dummy_height = dummy_texture.height
+        textures_available = True
+        del dummy_texture, dummy_height
+    except (pyopencl.RuntimeError, pyopencl.LogicError):
+        textures_available = False
+    # Nvidia Fermi GPUs (compute capability 2.X) do not support opencl read_imagef
+    # There is no way to detect this until a kernel is compiled
+    try:
+        cc = ctx.devices[0].compute_capability_major_nv
+        textures_available &= (cc >= 3)
+    except (pyopencl.LogicError, AttributeError):  # probably not a Nvidia GPU
+        pass
+    #
+    return textures_available
+
+
 def measure_workgroup_size(device):
     """Measure the actual size of the workgroup
 
@@ -599,12 +648,25 @@ def measure_workgroup_size(device):
     return res
 
 
-def kernel_workgroup_size(program, kernel):
-    """Extract the compile time maximum workgroup size
+def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
+    """Extract the compile time information from a kernel
 
     :param program: OpenCL program
     :param kernel: kernel or name of the kernel
-    :return: the maximum acceptable workgroup size for the given kernel
+    :param what: what is the query about ?
+    :return: int or 3-int for the workgroup size.
+    
+    Possible information available are:
+    * 'COMPILE_WORK_GROUP_SIZE': Returns the work-group size specified inside the kernel (__attribute__((reqd_work_gr oup_size(X, Y, Z))))
+    * 'GLOBAL_WORK_SIZE': maximum global size that can be used to execute a kernel  #OCL2.1!
+    * 'LOCAL_MEM_SIZE': amount of local memory in bytes being used by the kernel
+    * 'PREFERRED_WORK_GROUP_SIZE_MULTIPLE': preferred multiple of workgroup size for launch. This is a performance hint.
+    * 'PRIVATE_MEM_SIZE' Returns the minimum amount of private memory, in bytes, used by each workitem in the kernel
+    * 'WORK_GROUP_SIZE': maximum work-group size that can be used to execute a kernel on a specific device given by device
+    
+    Further information on:
+    https://www.khronos.org/registry/OpenCL/sdk/1.1/docs/man/xhtml/clGetKernelWorkGroupInfo.html
+    
     """
     assert isinstance(program, pyopencl.Program)
     if not isinstance(kernel, pyopencl.Kernel):
@@ -613,5 +675,15 @@ def kernel_workgroup_size(program, kernel):
         kernel = program.__getattr__(kernel_name)
 
     device = program.devices[0]
-    query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
+    query_wg = getattr(pyopencl.kernel_work_group_info, what)
     return kernel.get_work_group_info(query_wg, device)
+
+
+def kernel_workgroup_size(program, kernel):
+    """Extract the compile time maximum workgroup size
+
+    :param program: OpenCL program
+    :param kernel: kernel or name of the kernel
+    :return: the maximum acceptable workgroup size for the given kernel
+    """
+    return query_kernel_info(program, kernel, what="WORK_GROUP_SIZE")
