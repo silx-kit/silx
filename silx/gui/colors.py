@@ -663,7 +663,7 @@ class Colormap(qt.QObject):
             colormap.setNormalization(Colormap.LINEAR)
             colormap.setVRange(vmin=0, vmax=nbColors - 1)
             colors = colormap.applyToData(
-                numpy.arange(nbColors, dtype=numpy.int))
+                numpy.arange(nbColors, dtype=numpy.int32))
             return colors
 
     def getName(self):

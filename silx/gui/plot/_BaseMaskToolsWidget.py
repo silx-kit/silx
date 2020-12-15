@@ -391,7 +391,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         """
         super(BaseMaskToolsWidget, self).__init__(parent)
         # register if the user as force a color for the corresponding mask level
-        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
+        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=bool)
         # overlays colors set by the user
         self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
 
@@ -478,6 +478,18 @@ class BaseMaskToolsWidget(qt.QWidget):
             self._multipleMasks = mode
             self._levelWidget.setVisible(self._multipleMasks != 'single')
             self._clearAllBtn.setVisible(self._multipleMasks != 'single')
+
+    def setMaskFileDirectory(self, path):
+        """Set the default directory to use by load/save GUI tools
+
+        The directory is also updated by the user, if he change the location
+        of the dialog.
+        """
+        self.maskFileDir = path
+
+    def getMaskFileDirectory(self):
+        """Get the default directory used by load/save GUI tools"""
+        return self.maskFileDir
 
     @property
     def maskFileDir(self):

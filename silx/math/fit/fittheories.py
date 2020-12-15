@@ -213,7 +213,7 @@ class FitTheories(object):
 
         """
         pcoeffs = numpy.polyfit(x, y, n)
-        constraints = numpy.zeros((n + 1, 3), numpy.float)
+        constraints = numpy.zeros((n + 1, 3), numpy.float64)
         return pcoeffs, constraints
 
     def estimate_quadratic(self, x, y):
@@ -298,7 +298,7 @@ class FitTheories(object):
         :return: List of peak indices
         """
         # add padding
-        ysearch = numpy.ones((len(y) + 2 * fwhm,), numpy.float)
+        ysearch = numpy.ones((len(y) + 2 * fwhm,), numpy.float64)
         ysearch[0:fwhm] = y[0]
         ysearch[-1:-fwhm - 1:-1] = y[len(y)-1]
         ysearch[fwhm:fwhm + len(y)] = y[:]
@@ -389,7 +389,7 @@ class FitTheories(object):
             xw = x
             yw = y - bg
 
-            cons = numpy.zeros((len(param), 3), numpy.float)
+            cons = numpy.zeros((len(param), 3), numpy.float64)
 
             # peak height must be positive
             cons[0:len(param):3, 0] = CPOSITIVE
@@ -405,10 +405,10 @@ class FitTheories(object):
                 shape = [max(1, int(x)) for x in (param[1:len(param):3])]
                 cons[1:len(param):3, 1] = min(xw) * numpy.ones(
                                                         shape,
-                                                        numpy.float)
+                                                        numpy.float64)
                 cons[1:len(param):3, 2] = max(xw) * numpy.ones(
                                                         shape,
-                                                        numpy.float)
+                                                        numpy.float64)
 
             # ensure fwhm is positive
             cons[2:len(param):3, 0] = CPOSITIVE
@@ -420,7 +420,7 @@ class FitTheories(object):
                                       full_output=True)
 
         # set final constraints based on config parameters
-        cons = numpy.zeros((len(fittedpar), 3), numpy.float)
+        cons = numpy.zeros((len(fittedpar), 3), numpy.float64)
         peak_index = 0
         for i in range(len(peaks)):
             # Setup height area constrains
@@ -524,7 +524,7 @@ class FitTheories(object):
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
         estimated_parameters = []
-        estimated_constraints = numpy.zeros((4 * npeaks, 3), numpy.float)
+        estimated_constraints = numpy.zeros((4 * npeaks, 3), numpy.float64)
         for i in range(npeaks):
             for j in range(3):
                 estimated_parameters.append(fittedpar[3 * i + j])
@@ -579,7 +579,7 @@ class FitTheories(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y)
         npeaks = len(fittedpar) // 3
         newpar = []
-        newcons = numpy.zeros((4 * npeaks, 3), numpy.float)
+        newcons = numpy.zeros((4 * npeaks, 3), numpy.float64)
         # find out related parameters proper index
         if not self.config['NoConstraintsFlag']:
             if self.config['SameFwhmFlag']:
@@ -640,7 +640,7 @@ class FitTheories(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y)
         npeaks = len(fittedpar) // 3
         newpar = []
-        newcons = numpy.zeros((5 * npeaks, 3), numpy.float)
+        newcons = numpy.zeros((5 * npeaks, 3), numpy.float64)
         # find out related parameters proper index
         if not self.config['NoConstraintsFlag']:
             if self.config['SameFwhmFlag']:
@@ -741,7 +741,7 @@ class FitTheories(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y)
         npeaks = len(fittedpar) // 3
         newpar = []
-        newcons = numpy.zeros((8 * npeaks, 3), numpy.float)
+        newcons = numpy.zeros((8 * npeaks, 3), numpy.float64)
         main_peak = 0
         # find out related parameters proper index
         if not self.config['NoConstraintsFlag']:
@@ -841,7 +841,7 @@ class FitTheories(object):
                 newcons[8 * i + 7, 1] = self.config['MinStepTailHeightRatio']
                 newcons[8 * i + 7, 2] = self.config['MaxStepTailHeightRatio']
             # if self.config['NoConstraintsFlag'] == 1:
-            #   newcons=numpy.zeros((8*npeaks, 3),numpy.float)
+            #   newcons=numpy.zeros((8*npeaks, 3),numpy.float64)
         if npeaks > 0:
             if g_term:
                 if self.config['PositiveHeightAreaFlag']:
@@ -931,7 +931,7 @@ class FitTheories(object):
                        self.config["FwhmPoints"] * (x[1] - x[0])]    # fwhm: default value
 
         # Setup constrains
-        newcons = numpy.zeros((3, 3), numpy.float)
+        newcons = numpy.zeros((3, 3), numpy.float64)
         if not self.config['NoConstraintsFlag']:
                 # Setup height constrains
             if self.config['PositiveHeightAreaFlag']:
@@ -983,7 +983,7 @@ class FitTheories(object):
         position = (xx[0] + xx[-1]) / 2.0
         fwhm = xx[-1] - xx[0]
         largest = [height, position, fwhm, beamfwhm]
-        cons = numpy.zeros((4, 3), numpy.float)
+        cons = numpy.zeros((4, 3), numpy.float64)
         # Setup constrains
         if not self.config['NoConstraintsFlag']:
             # Setup height constrains
@@ -1056,7 +1056,7 @@ class FitTheories(object):
                        x[len(x)//2],                                 # center: middle of x range
                        self.config["FwhmPoints"] * (x[1] - x[0])]    # fwhm: default value
 
-        newcons = numpy.zeros((3, 3), numpy.float)
+        newcons = numpy.zeros((3, 3), numpy.float64)
         # Setup constrains
         if not self.config['NoConstraintsFlag']:
                 # Setup height constraints
@@ -1123,7 +1123,7 @@ class FitTheories(object):
         npeaks = len(peaks)
         if not npeaks:
             fittedpar = []
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
+            cons = numpy.zeros((len(fittedpar), 3), numpy.float64)
             return fittedpar, cons
 
         fittedpar = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -1153,7 +1153,7 @@ class FitTheories(object):
         fittedpar[4] = search_fwhm
 
         # setup constraints
-        cons = numpy.zeros((5, 3), numpy.float)
+        cons = numpy.zeros((5, 3), numpy.float64)
         cons[0, 0] = CFIXED  # the number of gaussians
         if npeaks == 1:
             cons[1, 0] = CFIXED  # the delta between peaks
@@ -1337,7 +1337,7 @@ function, parameters list, configuration function and description.
 
 def test(a):
     from silx.math.fit import fitmanager
-    x = numpy.arange(1000).astype(numpy.float)
+    x = numpy.arange(1000).astype(numpy.float64)
     p = [1500, 100., 50.0,
          1500, 700., 50.0]
     y_synthetic = functions.sum_gauss(x, *p) + 1

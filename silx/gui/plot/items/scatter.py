@@ -861,7 +861,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                value = numpy.array(value, copy=True, dtype=numpy.float)
+                value = numpy.array(value, copy=True, dtype=numpy.float64)
                 value[clipped] = numpy.nan
 
         x, y, xerror, yerror = PointsBase._logFilterData(self, xPositive, yPositive)

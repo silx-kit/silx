@@ -48,7 +48,7 @@ class PickingResult(object):
             self._indices = None
         else:
             # Indices is set to None if indices array is empty
-            indices = numpy.array(indices, copy=False, dtype=numpy.int)
+            indices = numpy.array(indices, copy=False, dtype=numpy.int64)
             self._indices = None if indices.size == 0 else indices
 
     def getItem(self):

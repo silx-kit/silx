@@ -113,7 +113,8 @@ class ImageMask(BaseMask):
         """
         if kind == 'edf':
             edfFile = EdfFile(filename, access="w+")
-            edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
+            header = {"program_name": "silx-mask", "masked_value": "nonzero"}
+            edfFile.WriteImage(header, self.getMask(copy=False), Append=0)
 
         elif kind == 'tif':
             tiffFile = TiffIO(filename, mode='w')
@@ -621,7 +622,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.load(filename)
         except RuntimeWarning as e:
@@ -713,22 +716,35 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if os.path.exists(filename) and "HDF5" not in nameFilter:
             try:
                 os.remove(filename)
-            except IOError:
+            except IOError as e:
                 msg = qt.QMessageBox(self)
+                msg.setWindowTitle("Removing existing file")
                 msg.setIcon(qt.QMessageBox.Critical)
+
+                if hasattr(e, "strerror"):
+                    strerror = e.strerror
+                else:
+                    strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % (sys.exc_info()[1]))
+                            "Input Output Error: %s" % strerror)
                 msg.exec_()
                 return
 
+        # Update the directory according to the user selection
         self.maskFileDir = os.path.dirname(filename)
+
         try:
             self.save(filename, extension[1:])
         except Exception as e:
-            raise
             msg = qt.QMessageBox(self)
+            msg.setWindowTitle("Saving mask file")
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
+
+            if hasattr(e, "strerror"):
+                strerror = e.strerror
+            else:
+                strerror = sys.exc_info()[1]
+            msg.setText("Cannot save file %s\n%s" % (filename, strerror))
             msg.exec_()
 
     def resetSelectionMask(self):
@@ -780,7 +796,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 # Convert from plot to array coords
                 center = (event['points'][0] - self._origin) / self._scale
                 size = event['points'][1] / self._scale
-                center = center.astype(numpy.int)  # (row, col)
+                center = center.astype(numpy.int64)  # (row, col)
                 self._mask.updateEllipse(level, center[1], center[0], size[1], size[0], doMask)
                 self._mask.commit()
 
@@ -789,7 +805,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 doMask = self._isMasking()
                 # Convert from plot to array coords
                 vertices = (event['points'] - self._origin) / self._scale
-                vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
+                vertices = vertices.astype(numpy.int64)[:, (1, 0)]  # (row, col)
                 self._mask.updatePolygon(level, vertices, doMask)
                 self._mask.commit()
 

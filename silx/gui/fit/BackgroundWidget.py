@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2004-2017 V.A. Sole, European Synchrotron Radiation Facility
+# Copyright (C) 2004-2020 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -337,7 +337,7 @@ class BackgroundWidget(qt.QWidget):
         pars = self.getParameters()
 
         # smoothed data
-        y = numpy.ravel(numpy.array(self._y)).astype(numpy.float)
+        y = numpy.ravel(numpy.array(self._y)).astype(numpy.float64)
         if pars["SmoothingFlag"]:
             ysmooth = filters.savitsky_golay(y, pars['SmoothingWidth'])
             f = [0.25, 0.5, 0.25]

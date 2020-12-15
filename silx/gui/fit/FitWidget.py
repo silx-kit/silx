@@ -720,7 +720,7 @@ class FitWidget(qt.QWidget):
 if __name__ == "__main__":
     import numpy
 
-    x = numpy.arange(1500).astype(numpy.float)
+    x = numpy.arange(1500).astype(numpy.float64)
     constant_bg = 3.14
 
     p = [1000, 100., 30.0,

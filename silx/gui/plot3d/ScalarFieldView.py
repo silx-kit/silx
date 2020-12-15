@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -239,7 +239,7 @@ class SelectedRegion(object):
     def __init__(self, arrayRange, dataBBox,
                  translation=(0., 0., 0.),
                  scale=(1., 1., 1.)):
-        self._arrayRange = numpy.array(arrayRange, copy=True, dtype=numpy.int)
+        self._arrayRange = numpy.array(arrayRange, copy=True, dtype=numpy.int64)
         assert self._arrayRange.shape == (3, 2)
         assert numpy.all(self._arrayRange[:, 1] >= self._arrayRange[:, 0])
 
@@ -1449,7 +1449,7 @@ class ScalarFieldView(Plot3DWindow):
                  min(self._data.shape[1], max(*yrange))),
                 (max(0, min(*xrange_)),
                  min(self._data.shape[2], max(*xrange_))),
-                ), dtype=numpy.int)
+                ), dtype=numpy.int64)
 
         # numpy.equal supports None
         if not numpy.all(numpy.equal(selectedRange, self._selectedRange)):

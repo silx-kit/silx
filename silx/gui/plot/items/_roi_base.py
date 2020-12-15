@@ -105,7 +105,7 @@ class _RegionOfInterestBase(qt.QObject):
                  interest.
         :rtype: bool
         """
-        raise NotImplementedError("Base class")
+        return False  # Override in subclass to perform actual test
 
 
 class RoiInteractionMode(object):
@@ -490,10 +490,6 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """"Called when the ROI creation interaction was started.
         """
         pass
-
-    @docstring(_RegionOfInterestBase)
-    def contains(self, position):
-        raise NotImplementedError("Base class")
 
     def creationFinalized(self):
         """"Called when the ROI creation interaction was finalized.
