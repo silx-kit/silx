@@ -1615,3 +1615,118 @@ class ColormapDialog(qt.QDialog):
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
             super(ColormapDialog, self).keyPressEvent(event)
+
+
+class _ROIGroupBox(qt.QGroupBox):
+    """GroupBox used to """
+
+    sigROIChanged = qt.Signal()
+    """Signal emitted when the ROI change"""
+
+    def __init__(self, parent=None,
+                 roiName=ColormapDialog.DEFAULT_AUTOSCALE_ROI_NAME):
+        qt.QGroupBox.__init__(self, 'ROI', parent)
+        self.setLayout(qt.QFormLayout())
+        self._displayCB = qt.QCheckBox('display', self)
+        self.layout().addRow(self._displayCB)
+        self._nameQLE = qt.QLineEdit(roiName, self)
+        self.layout().addRow('name', self._nameQLE)
+
+        # origin
+        self._xOriginQSB = qt.QDoubleSpinBox(self)
+        self._xOriginQSB.setPrefix('x: ')
+        self._xOriginQSB.setContentsMargins(0, 0, 0, 0)
+        self._xOriginQSB.setMinimum(-float('inf'))
+        self._xOriginQSB.setMaximum(float('inf'))
+        self._yOriginQSB = qt.QDoubleSpinBox(self)
+        self._yOriginQSB.setPrefix('y: ')
+        self._yOriginQSB.setContentsMargins(0, 0, 0, 0)
+        self._yOriginQSB.setMinimum(-float('inf'))
+        self._yOriginQSB.setMaximum(float('inf'))
+        self._originWidget = qt.QWidget(parent=self)
+        self._originWidget.setLayout(qt.QHBoxLayout())
+        self._originWidget.setContentsMargins(0, 0, 0, 0)
+        self._originWidget.layout().addWidget(self._xOriginQSB)
+        self._originWidget.layout().addWidget(self._yOriginQSB)
+        self.layout().addRow('origin', self._originWidget)
+
+        # width
+        self._widthDSB = qt.QDoubleSpinBox(self)
+        self._widthDSB.setMinimum(-float('inf'))
+        self._widthDSB.setMaximum(float('inf'))
+        self.layout().addRow('width', self._widthDSB)
+
+        # height
+        self._heightDSB = qt.QDoubleSpinBox(self)
+        self._heightDSB.setMinimum(-float('inf'))
+        self._heightDSB.setMaximum(float('inf'))
+        self.layout().addRow('height', self._heightDSB)
+
+        # default configuration
+        self._displayCB.setChecked(True)
+
+        # connect signal / slot
+        self._widthDSB.valueChanged.connect(self._ROIModificationRequested)
+        self._heightDSB.valueChanged.connect(self._ROIModificationRequested)
+        self._xOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+        self._yOriginQSB.valueChanged.connect(self._ROIModificationRequested)
+        self._displayCB.toggled.connect(self._ROIModificationRequested)
+
+    def setOrigin(self, origin: tuple) -> None:
+        """
+        Define ROI origin
+        :param tuple origin: (x, y) ROi origin
+        """
+        assert len(origin) is 2, 'expected tuple with (x, y)'
+        self._xOriginQSB.setValue(origin[0])
+        self._yOriginQSB.setValue(origin[1])
+
+    def getOrigin(self) -> tuple:
+        """
+        :return: (x, y) ROi origin
+        """
+        return self._xOriginQSB.value(), self._yOriginQSB.value()
+
+    def setSize(self, size_: tuple) -> None:
+        """
+        :param tuple size_: ROI size as (width, height)
+        """
+        assert len(size_) is 2, 'expected tuple with (width, height)'
+        assert size_[0] is not 0
+        assert size_[1] is not 0
+        self._widthDSB.setValue(size_[0])
+        self._heightDSB.setValue(size_[1])
+
+    def getSize(self) -> tuple:
+        """
+        :return: (width, height)
+        """
+        return self._widthDSB.value(), self._heightDSB.value()
+
+    def getDisplay(self) -> bool:
+        """
+        :return: True if the ROi display is requested
+        """
+        return self._displayCB.isChecked()
+
+    def setDisplay(self, display: bool) -> None:
+        """
+        :param bool display: if True the ROi will be displayed
+        """
+        self._displayCB.setChecked(display)
+
+    def getName(self) -> str:
+        """
+        :return: ROi name
+        :rtype: str
+        """
+        return self._nameQLE.text()
+
+    def setName(self, name: str) -> None:
+        """
+        :param str name: ROI name
+        """
+        self._nameQLE.setText(name)
+
+    def _ROIModificationRequested(self, *args, **kwargs):
+        self.sigROIChanged.emit()
