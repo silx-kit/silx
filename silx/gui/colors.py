@@ -925,15 +925,7 @@ class Colormap(qt.QObject):
             vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
-            from .plot.items.core import ColormapMixIn  # avoid cyclic import
-            if isinstance(data, ColormapMixIn):
-                min_, max_ = data._getColormapAutoscaleRange(self)
-                # Make sure min_, max_ are not None
-                min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
-                max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
-            else:
-                min_, max_ = normalizer.autoscale(
-                    data, mode=self.getAutoscaleMode())
+            min_, max_ = self.computeMinMax(data=data)
 
             if vmin is None:  # Set vmin respecting provided vmax
                 vmin = min_ if vmax is None else min(min_, vmax)
@@ -942,6 +934,19 @@ class Colormap(qt.QObject):
                 vmax = max(max_, vmin)  # Handle max_ <= 0 for log scale
 
         return vmin, vmax
+
+    def computeMinMax(self, data):
+        normalizer = self._getNormalizer()
+        from .plot.items.core import ColormapMixIn  # avoid cyclic import
+        if isinstance(data, ColormapMixIn):
+            min_, max_ = data._getColormapAutoscaleRange(self)
+            # Make sure min_, max_ are not None
+            min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
+            max_ = normalizer.DEFAULT_RANGE[1] if max_ is None else max_
+        else:
+            min_, max_ = normalizer.autoscale(
+                data, mode=self.getAutoscaleMode())
+        return min_, max_
 
     def getVRange(self):
         """Get the bounds of the colormap
