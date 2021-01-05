@@ -936,6 +936,13 @@ class Colormap(qt.QObject):
         return vmin, vmax
 
     def computeMinMax(self, data):
+        """
+        Compute min and max on provided data according to the active
+        normalizer.
+
+        :param data:
+        :return: (min, max)
+        """
         normalizer = self._getNormalizer()
         from .plot.items.core import ColormapMixIn  # avoid cyclic import
         if isinstance(data, ColormapMixIn):

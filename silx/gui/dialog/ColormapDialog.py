@@ -1699,11 +1699,24 @@ class ColormapDialog(qt.QDialog):
             size = (maxX-minX, maxY-minY)
         self.setMinMaxFromRectROI(origin=origin, size=size)
 
-    def setMinMaxFromRectROI(self, origin, size):
+    def setMinMaxFromRectROI(self, origin: tuple, size: tuple):
+        """
+        Compute min / max value on data from a rectangle roi of origin
+        and size and set those values as active.
+
+        :param tuple origin:
+        :param tuple size:
+        """
         min, max = self.computeMinMaxFromRect(origin=origin, size=size)
         self.getColormap().setVRange(min, max)
 
-    def computeMinMaxFromRect(self, origin, size) -> tuple:
+    def computeMinMaxFromRect(self, origin: tuple, size: tuple) -> tuple:
+        """
+        Compute min and max value for the "active" data or item
+        :param tuple origin:
+        :param tuple size:
+        :return: min, max
+        """
         colormap = self.getColormap()
         data = None
         origin = numpy.array(origin)
