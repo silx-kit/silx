@@ -86,6 +86,9 @@ from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
+from silx.utils.enum import Enum as _Enum
+from silx.gui.plot.items.roi import RectangleROI
+from silx.gui.plot.tools.roi import RegionOfInterestManager
 
 _logger = logging.getLogger(__name__)
 
@@ -800,12 +803,19 @@ class _ColormapHistogram(qt.QWidget):
         self.update()
 
 
+class MinMaxMode(_Enum):
+    VISIBLE_DATA = "visible data"
+    ROI = "roi"
+
+
 class ColormapDialog(qt.QDialog):
     """A QDialog widget to set the colormap.
 
     :param parent: See :class:`QDialog`
     :param str title: The QDialog title
     """
+
+    DEFAULT_AUTOSCALE_ROI_NAME = 'autoscale roi'
 
     visibleChanged = qt.Signal(bool)
     """This event is sent when the dialog visibility change"""
@@ -847,6 +857,10 @@ class ColormapDialog(qt.QDialog):
         minimum, positive minimum, maximum"""
 
         self._colormapStoredState = None
+
+        # ROI to compute colormap min / max
+        self._roiForColormapRange = None
+        self._roiForColormapManager = None
 
         # Colormap row
         self._comboBoxColormap = ColormapNameComboBox(parent=self)
@@ -913,9 +927,31 @@ class ColormapDialog(qt.QDialog):
         rangeLayout.addWidget(self._maxValue, 1, 1)
         rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
+        # histo widget
         self._histoWidget = _ColormapHistogram(self)
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
         self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
+
+        # compute min / max widget
+        self._computeMinMaxWidget = qt.QWidget(self)
+        self._computeMinMaxWidget.setLayout(qt.QHBoxLayout())
+        self._computeMinMaxWidget.setContentsMargins(0, 0, 0, 0)
+        self._computeMinMaxButton = qt.QPushButton("compute min/max",
+                                                   self._computeMinMaxWidget)
+        self._computeMinMaxWidget.layout().addWidget(self._computeMinMaxButton)
+        self._computeMinMaxWidget.layout().addWidget(
+            qt.QLabel("from", self._computeMinMaxWidget))
+        self._minMaxMode = qt.QComboBox(self._computeMinMaxWidget)
+        for mode in MinMaxMode:
+            self._minMaxMode.addItem(mode.value)
+        self._computeMinMaxWidget.layout().addWidget(self._minMaxMode)
+        idx = self._minMaxMode.findText(
+            MinMaxMode.VISIBLE_DATA.value)
+        self._minMaxMode.setCurrentIndex(idx)
+
+        # roi widget
+        self._roiGroupBox = _ROIGroupBox(self)
+        self._roiGroupBox.setVisible(False)
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
@@ -956,6 +992,8 @@ class ColormapDialog(qt.QDialog):
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(label, autoScaleCombo)
         formLayout.addRow(self._buttonsModal)
+        formLayout.addRow(self._computeMinMaxWidget)
+        formLayout.addRow(self._roiGroupBox)
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
 
@@ -965,9 +1003,23 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._minValue, self._maxValue)
         self.setTabOrder(self._maxValue, self._autoButtons)
         self.setTabOrder(self._autoButtons, self._autoScaleCombo)
-        self.setTabOrder(self._autoScaleCombo, self._buttonsModal)
+        self.setTabOrder(self._autoScaleCombo, self._computeMinMaxWidget)
+        self.setTabOrder(self._computeMinMaxWidget, self._roiGroupBox)
+        self.setTabOrder(self._roiGroupBox, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
+        # signal / slot connection
+        self._roiGroupBox.sigROIChanged.connect(
+            self._updateROI
+        )
+        self._minMaxMode.currentIndexChanged.connect(
+            self._MinMaxCalculationModeChanged
+        )
+        self._computeMinMaxButton.released.connect(
+            self._setMinMaxFrmActiveRoiMode
+        )
+
+        # tune
         self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
@@ -1615,6 +1667,83 @@ class ColormapDialog(qt.QDialog):
                 nextFocus.setFocus(qt.Qt.OtherFocusReason)
         else:
             super(ColormapDialog, self).keyPressEvent(event)
+
+    def getMinMaxRoiCalcMode(self) -> MinMaxMode:
+        """
+
+        :return: the calculation mode to use to compute manually min and max
+        """
+        return MinMaxMode.from_value(self._minMaxMode.currentText())
+
+    def _setMinMaxFrmActiveRoiMode(self):
+        mode = self.getMinMaxRoiCalcMode()
+        if mode is MinMaxMode.ROI:
+            roi = self._getRoiForColormapRange()
+            origin = roi.getOrigin()
+            size = roi.getSize()
+        elif mode is MinMaxMode.VISIBLE_DATA:
+            minX, maxX = self._getItem().getPlot().getXAxis().getLimits()
+            minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
+            origin = (minX, minY)
+            size = (maxX-minX, maxY-minY)
+        self.setMinMaxFromRectROI(origin=origin, size=size)
+
+    def setMinMaxFromRectROI(self, origin, size):
+        min, max = self.computeMinMaxFromRect(origin=origin, size=size)
+        self.getColormap().setVRange(min, max)
+
+    def computeMinMaxFromRect(self, origin, size) -> tuple:
+        self.getColormap().
+        return 0, 0
+
+    def _updateROIGroupBox(self):
+        old = self._roiGroupBox.blockSignals(True)
+        self._roiGroupBox.setOrigin(self._roiForColormapRange.getOrigin())
+        self._roiGroupBox.setSize(self._roiForColormapRange.getSize())
+        if self.getMinMaxRoiCalcMode() is MinMaxMode.ROI:
+            self._roiGroupBox.setDisplay(self._roiForColormapRange.isVisible())
+        self._roiGroupBox.setName(self._roiForColormapRange.getName())
+        self._roiGroupBox.blockSignals(old)
+
+    def _MinMaxCalculationModeChanged(self, *args, **kwargs):
+        self._roiGroupBox.setVisible(self.getMinMaxRoiCalcMode() is MinMaxMode.ROI)
+        self._updateROI()
+
+    def _roiItemChanged(self, *args, **kwargs):
+        self._updateROIGroupBox()
+
+    def _getRoiForColormapRange(self):
+        method = self.getMinMaxRoiCalcMode()
+        if self._roiForColormapRange is None:
+            self._roiForColormapManager = RegionOfInterestManager(parent=self._getItem().getPlot())
+            self._roiForColormapRange = RectangleROI(parent=self._roiForColormapManager)
+            self._roiForColormapRange.setName(ColormapDialog.DEFAULT_AUTOSCALE_ROI_NAME)
+            minX, maxX = self._getItem().getPlot().getXAxis().getLimits()
+            minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
+            self._roiForColormapRange.setGeometry(origin=(minX, minY),
+                                                  size=(maxX-minX, maxY-minY))
+            self._roiForColormapRange.sigRegionChanged.connect(self._roiItemChanged)
+
+            old = self._roiGroupBox.blockSignals(True)
+            if method is MinMaxMode.VISIBLE_DATA:
+                self._roiForColormapRange.setVisible(False)
+            elif method is MinMaxMode.ROI:
+                self._roiForColormapRange.setVisible(self._roiGroupBox.getDisplay())
+                self._roiGroupBox.blockSignals(old)
+
+            self._updateROIGroupBox()
+
+        return self._roiForColormapRange
+
+    def _updateROI(self):
+        mode = self.getMinMaxRoiCalcMode()
+        roi = self._getRoiForColormapRange()
+        if mode is MinMaxMode.ROI:
+            roi.setGeometry(origin=self._roiGroupBox.getOrigin(),
+                            size=self._roiGroupBox.getSize())
+            roi.setVisible(self._roiGroupBox.getDisplay())
+            roi.setEditable(True)
+            roi.setName(self._roiGroupBox.getName())
 
 
 class _ROIGroupBox(qt.QGroupBox):
