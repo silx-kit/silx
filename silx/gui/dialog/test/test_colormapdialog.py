@@ -378,6 +378,88 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertEqual(result, 0)
 
 
+class TestColormapDialogMethod(TestCaseQt):
+    """
+    Test the different method to compute autoscale
+    """
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.colormap = Colormap(name='gray', vmin=None, vmax=None,
+                                 normalization='linear')
+        self.colormap.vmin = None
+        self.colormap.vmax = None
+
+        self.colormapDiag = ColormapDialog.ColormapDialog()
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        colormapDiag = self.colormapDiag
+        colormapDiag.setItem(None)
+        self.colormapDiag = None
+        if colormapDiag is not None:
+            colormapDiag.close()
+            colormapDiag.deleteLater()
+            colormapDiag = None
+        self.qapp.processEvents()
+        TestCaseQt.tearDown(self)
+
+    def test_mode_visible_data_imageData_frm_plot(self):
+        """Test item of type `ImageData` with `visible data` mode"""
+        data = numpy.arange(20*20).reshape(20, 20)
+        # define plot
+        plot = PlotWindow()
+        img_o = (-3, -4)
+        plot.addImage(data=data, origin=img_o, legend='test')
+        x_limits = (-10, 0)
+        plot.getXAxis().setLimits(*x_limits)
+        y_limits = (0, 5)
+        plot.getYAxis().setLimits(*y_limits)
+        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+        # set up the ColormapDialog
+        img_item = plot.getImage(legend='test')
+        self.colormapDiag.setItem(img_item)
+        self.colormapDiag.setMinMaxRoiCalcMode("visible data")
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+        self.qapp.processEvents()
+        self.colormapDiag.show()
+        plot.show()
+        # self.qapp.exec_()
+
+        # check result
+        sub_data = data[4:10, 0:4]
+        self.assertEqual(self.colormapDiag._minValue.getValue(), sub_data.min())
+        self.assertEqual(self.colormap.getVMin(), sub_data.min())
+        self.assertEqual(self.colormap.getVMax(), sub_data.max())
+
+    def test_mode_roi_imageData_frm_plot(self):
+        """Test item of type `ImageData` with `roi` mode with a plot (add
+        management of image origin and scale)"""
+        data = numpy.arange(20*20).reshape(20, 20)
+        # define plot
+        plot = PlotWindow()
+        img_o = (0, 12)
+        plot.addImage(data=data, origin=img_o, legend='test')
+        plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+        # set up the ColormapDialog
+        img_item = plot.getImage(legend='test')
+        self.colormapDiag.setItem(img_item)
+        # set up the ColormapDialog
+        self.colormapDiag.setMinMaxRoiCalcMode("roi")
+        self.colormapDiag._roiGroupBox.setOrigin((1, 18))
+        self.assertEqual(data.shape, (20, 20))
+        self.colormapDiag._roiGroupBox.setSize((1, 1))
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+
+        # check result
+        sub_data = data[6:8, 1:3]
+        self.assertEqual(self.colormap.getVMin(), sub_data.min())
+        self.assertEqual(self.colormap.getVMax(), sub_data.max())
+
+
 class TestColormapAction(TestCaseQt):
     def setUp(self):
         TestCaseQt.setUp(self)
@@ -443,7 +525,8 @@ class TestColormapAction(TestCaseQt):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for testClass in (TestColormapDialog, TestColormapAction):
+    for testClass in (TestColormapDialog, TestColormapAction,
+                      TestColormapDialogMethod):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
