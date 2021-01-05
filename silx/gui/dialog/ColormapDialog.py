@@ -89,6 +89,7 @@ from silx.utils import deprecation
 from silx.utils.enum import Enum as _Enum
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.items.image import ImageData
 
 _logger = logging.getLogger(__name__)
 
@@ -1693,8 +1694,14 @@ class ColormapDialog(qt.QDialog):
         self.getColormap().setVRange(min, max)
 
     def computeMinMaxFromRect(self, origin, size) -> tuple:
-        self.getColormap().
-        return 0, 0
+        colormap = self.getColormap()
+        data = None
+        if self._data is not None:
+            data = self._data()
+        elif self._item is not None:
+            data = self._item().getData(copy=False)
+        return colormap.computeMinMax(data=_filter_data(data,
+                                                        rectangle_roi=(origin, size)))
 
     def _updateROIGroupBox(self):
         old = self._roiGroupBox.blockSignals(True)
@@ -1859,3 +1866,35 @@ class _ROIGroupBox(qt.QGroupBox):
 
     def _ROIModificationRequested(self, *args, **kwargs):
         self.sigROIChanged.emit()
+
+
+def _filter_data(data, rectangle_roi):
+    """Filter data according to a rectangle roi (origin size)"""
+    if data is None:
+        return None
+
+    if rectangle_roi is None:
+        return data
+
+    roi_origin, roi_size = rectangle_roi
+
+    if data.ndim == 2:
+        minX, maxX = roi_origin[0], roi_origin[0] + roi_size[0]
+        minY, maxY = roi_origin[1], roi_origin[1] + roi_size[1]
+
+        XMinBound = int(minX)
+        YMinBound = int(minY)
+        XMaxBound = int(maxX)
+        YMaxBound = int(maxY)
+
+        XMinBound = max(XMinBound, 0)
+        YMinBound = max(YMinBound, 0)
+
+        if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
+            return None
+        else:
+            return data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
+    elif data.ndim == 3:
+        pass
+    else:
+        _logger.error("{} dimension data are not handled".format(data.ndim))
