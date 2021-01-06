@@ -524,11 +524,49 @@ class LegendListView(qt.QListView):
         self.setContextMenu(contextMenu)
 
     def setLegendList(self, legendList, row=None):
-        self.clear()
-        if row is None:
-            row = 0
-        model = self.model()
-        model.insertLegendList(row, legendList)
+        if row is not None:
+            model = self.model()
+            model.insertLegendList(row, legendList)
+        elif len(legendList) != self.model().rowCount():
+            self.clear()
+            model = self.model()
+            model.insertLegendList(0, legendList)
+        else:
+            model = self.model()
+            for i, (new_legend, icon) in enumerate(legendList):
+                modelIndex = model.index(i)
+                legend = str(modelIndex.data(qt.Qt.DisplayRole))
+                if new_legend != legend:
+                    model.setData(modelIndex, new_legend, qt.Qt.DisplayRole)
+
+                color = modelIndex.data(LegendModel.iconColorRole)
+                new_color = icon.get('color', None)
+                if new_color != color:
+                    model.setData(modelIndex, new_color, LegendModel.iconColorRole)
+
+                linewidth = modelIndex.data(LegendModel.iconLineWidthRole)
+                new_linewidth = icon.get('linewidth', 1.0)
+                if new_linewidth != linewidth:
+                    model.setData(modelIndex, new_linewidth, LegendModel.iconLineWidthRole)
+
+                linestyle = modelIndex.data(LegendModel.iconLineStyleRole)
+                new_linestyle = icon.get('linestyle', None)
+                visible = not LegendIconWidget.isEmptyLineStyle(new_linestyle)
+                model.setData(modelIndex, visible, LegendModel.showLineRole)
+                if new_linestyle != linestyle:
+                    model.setData(modelIndex, new_linestyle, LegendModel.iconLineStyleRole)
+
+                symbol = modelIndex.data(LegendModel.iconSymbolRole)
+                new_symbol = icon.get('symbol', None)
+                visible = not LegendIconWidget.isEmptySymbol(new_symbol)
+                model.setData(modelIndex, visible, LegendModel.showSymbolRole)
+                if new_symbol != symbol:
+                    model.setData(modelIndex, new_symbol, LegendModel.iconSymbolRole)
+
+                selected = modelIndex.data(qt.Qt.CheckStateRole)
+                new_selected = icon.get('selected', True)
+                if new_selected != selected:
+                    model.setData(modelIndex, new_selected, qt.Qt.CheckStateRole)
         _logger.debug('LegendListView.setLegendList(legendList) finished')
 
     def clear(self):
