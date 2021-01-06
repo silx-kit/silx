@@ -529,10 +529,8 @@ class LegendListView(qt.QListView):
             model.insertLegendList(row, legendList)
         elif len(legendList) != self.model().rowCount():
             self.clear()
-            if row is None:
-                row = 0
             model = self.model()
-            model.insertLegendList(row, legendList)
+            model.insertLegendList(0, legendList)
         else:
             model = self.model()
             for i, (new_legend, icon) in enumerate(legendList):
