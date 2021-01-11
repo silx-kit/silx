@@ -34,6 +34,9 @@ import numpy
 
 
 class DataFiltererBase:
+    """Base class for filtering data from an instance of a `DataItem` with
+    an instance of a `RegionOfInterest`
+    """
     def __init__(self, data_item, roi_item):
         self._data_item = data_item
         self._roi_item = roi_item
@@ -61,6 +64,9 @@ class DataFiltererBase:
 
 
 class CurveFilter(DataFiltererBase):
+    """
+    Filter `Curve` item
+    """
 
     def _build_mask(self):
         minX, maxX = self.roi_item.getFrom(), self.roi_item.getTo()
@@ -85,6 +91,10 @@ class HistogramFilter(DataFiltererBase):
 
 
 class ScatterFilter(DataFiltererBase):
+    """
+    Filter `Scatter` item
+    """
+
     def _build_mask(self):
         xData = self.data_item.getXData(copy=True)
         if self.roi_item:
@@ -94,6 +104,10 @@ class ScatterFilter(DataFiltererBase):
 
 
 class ImageFilter(DataFiltererBase):
+    """
+    Filter `Image` item
+    """
+
     def _build_mask(self):
         data = self.data_item.getData()
         minX, maxX = 0, data.shape[1]
