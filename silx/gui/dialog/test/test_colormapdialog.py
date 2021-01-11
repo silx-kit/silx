@@ -460,6 +460,80 @@ class TestColormapDialogMethod(TestCaseQt):
         self.assertEqual(self.colormap.getVMax(), sub_data.max())
 
 
+class TestColormapDialogComputeMinMax(TestCaseQt):
+    """
+    Test the min and max calculation from a roi or from visible data
+    """
+    def setUp(self):
+        TestCaseQt.setUp(self)
+        self.colormap = Colormap(name='gray', vmin=None, vmax=None,
+                                 normalization='linear')
+
+        self.colormapDiag = ColormapDialog.ColormapDialog()
+        self.colormapDiag.setColormap(self.colormap)
+        self.colormapDiag.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+        self.plot = PlotWindow()
+
+    def tearDown(self):
+        self.qapp.processEvents()
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+
+        colormapDiag = self.colormapDiag
+        colormapDiag.setItem(None)
+        self.colormapDiag = None
+        if colormapDiag is not None:
+            colormapDiag.close()
+            colormapDiag.deleteLater()
+            colormapDiag = None
+        self.qapp.processEvents()
+        TestCaseQt.tearDown(self)
+
+    def testFromVisible(self):
+        self.colormapDiag.setMinMaxRoiCalcMode("visible data")
+        data = numpy.arange(100).reshape(10, 10)
+        self.plot.addImage(data, legend="data")
+        self.plot.setActiveImage(legend="data")
+        self.colormapDiag.setItem(self.plot.getActiveImage(just_legend=False))
+        self.plot.show()
+        self.colormapDiag.show()
+
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+        self.qapp.processEvents()
+        self.assertEqual(self.colormapDiag._minValue.getValue(), 0)
+        self.assertEqual(self.colormapDiag._maxValue.getValue(), 99)
+        self.plot.getXAxis().setLimits(2, 6)
+        self.plot.getYAxis().setLimits(2, 6)
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+        self.assertEqual(self.colormapDiag._minValue.getValue(), 22)
+        self.assertEqual(self.colormapDiag._maxValue.getValue(), 66)
+
+    def testFromRoi(self):
+        data = numpy.arange(100).reshape(10, 10)
+        data *= 100
+        self.plot.addImage(data, legend="data", origin=(10, 10))
+        self.plot.setActiveImage(legend="data")
+        self.colormapDiag.setItem(self.plot.getActiveImage(just_legend=False))
+        self.plot.show()
+        self.colormapDiag.show()
+
+        self.colormapDiag.setMinMaxRoiCalcMode("roi")
+        roi = self.colormapDiag._getRoiForColormapRange()
+        roi.setOrigin([0, 0])
+        roi.setSize([2, 2])
+
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+        self.qapp.processEvents()
+        self.assertEqual(self.colormapDiag._minValue.getValue(), 0)
+        self.assertEqual(self.colormapDiag._maxValue.getValue(), 1)
+        roi.setOrigin([10, 10])
+        self.colormapDiag._setMinMaxFrmActiveRoiMode()
+        self.assertEqual(self.colormapDiag._minValue.getValue(), 0)
+        self.assertEqual(self.colormapDiag._maxValue.getValue(), 22*100)
+
+
 class TestColormapAction(TestCaseQt):
     def setUp(self):
         TestCaseQt.setUp(self)
@@ -526,7 +600,8 @@ class TestColormapAction(TestCaseQt):
 def suite():
     test_suite = unittest.TestSuite()
     for testClass in (TestColormapDialog, TestColormapAction,
-                      TestColormapDialogMethod):
+                      TestColormapDialogMethod,
+                      TestColormapDialogComputeMinMax):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
