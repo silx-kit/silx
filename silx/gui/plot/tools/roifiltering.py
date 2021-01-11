@@ -71,6 +71,19 @@ class CurveDataFilter(DataFiltererBase):
         return mask
 
 
+class HistogramFilter(DataFiltererBase):
+    """
+    Filter `Histogram` item
+    """
+    def _build_mask(self):
+        yData, edges = self.data_item.getData(copy=True)[0:2]
+        xData = self.data_item._revertComputeEdges(x=edges,
+                                                   histogramType=self.data_item.getAlignment())
+        mask = (self.roi_item._fromdata <= xData) & (xData <= self.roi_item._todata)
+        mask = mask == 0
+        return mask
+
+
 class ScatterFilter(DataFiltererBase):
     def _build_mask(self):
         xData = self.data_item.getXData(copy=True)
