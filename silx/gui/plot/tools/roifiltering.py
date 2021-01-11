@@ -31,6 +31,8 @@ __date__ = "08/01/2020"
 
 
 import numpy
+from ..items.roi import _RegionOfInterestBase
+from ..items.core import DataItem
 
 
 class DataFiltererBase:
@@ -38,10 +40,14 @@ class DataFiltererBase:
     an instance of a `RegionOfInterest`
     """
     def __init__(self, data_item, roi_item):
+        if not isinstance(roi_item, _RegionOfInterestBase):
+            raise TypeError("roi_item should be an instance of `_RegionOfInterestBase`")
+        if not isinstance(data_item, DataItem):
+            raise TypeError("data_item should be an instance of `DataItem`")
         self._data_item = data_item
         self._roi_item = roi_item
         self.__data = None
-        self.__mask = self._build_mask()
+        self.__mask = None
 
     @property
     def data_item(self):
@@ -53,6 +59,8 @@ class DataFiltererBase:
 
     @property
     def mask(self):
+        if self.__mask is None:
+            self.__mask = self._build_mask()
         return self.__mask
 
     @property
