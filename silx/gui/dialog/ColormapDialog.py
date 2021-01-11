@@ -91,6 +91,7 @@ from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.items.image import ImageData
 from silx.gui.plot.items.scatter import Scatter
+from silx.gui.plot.tools import roifiltering
 
 _logger = logging.getLogger(__name__)
 
@@ -1721,11 +1722,7 @@ class ColormapDialog(qt.QDialog):
         data = None
         origin = numpy.array(origin)
         if self._data is not None:
-            data = self._data()
-            if data and data.ndim == 2:
-                data = _filter_2d_data()
-            elif data:
-                _logger.warning("Only {}d data are handled.".format(data.ndim))
+            _logger.warning("Only some instances of DataItem are handled.")
         elif self._item is not None:
             item = self._item()
             if isinstance(item, ImageData):
@@ -1899,52 +1896,18 @@ class _ROIGroupBox(qt.QGroupBox):
 
 
 def _filter_item_data(item, rectangle_roi):
-    origin, roi_size = rectangle_roi
     if item is None:
         return None
     elif isinstance(item, ImageData):
-        return _filter_2d_data(data=item.getData(),
-                               rectangle_roi=rectangle_roi)
+        filter = roifiltering.ImageFilter(data_item=item,
+                                          roi_item=rectangle_roi)
+        values = numpy.ma.array(item.getData(), mask=filter.mask)
+        return values.compressed
     elif isinstance(item, Scatter):
-        values_data = item.getValueData(copy=True)
-        x_data = item.getXData(copy=True)
-        y_data = item.getYData(copy=True)
-
-        min_x, max_x = origin[0], origin[0] + roi_size[0]
-        min_y, max_y = origin[1], origin[1] + roi_size[1]
-
-        # filter on X axis
-        values_data = values_data[(min_x <= x_data) & (x_data <= max_x)]
-        y_data = y_data[(min_x <= x_data) & (x_data <= max_x)]
-        # filter on Y axis
-        return values_data[(min_y <= y_data) & (y_data <= max_y)]
+        filter = roifiltering.ScatterFilter(data_item=item,
+                                            roi_item=rectangle_roi)
+        values = item.getValueData(copy=True)
+        values = numpy.ma.array(values, mask=filter.mask)
+        return values.compressed()
     else:
         _logger.warning("Only Scatter and Image are handled. Not {}".format(type(item)))
-
-
-def _filter_2d_data(data, rectangle_roi):
-    """Filter data according to a rectangle roi (origin size)"""
-    # TODO: data should handle
-    if data is None:
-        return None
-
-    if rectangle_roi is None:
-        return data
-
-    roi_origin, roi_size = rectangle_roi
-
-    minX, maxX = roi_origin[0], roi_origin[0] + roi_size[0]
-    minY, maxY = roi_origin[1], roi_origin[1] + roi_size[1]
-
-    XMinBound = int(minX)
-    YMinBound = int(minY)
-    XMaxBound = int(maxX)
-    YMaxBound = int(maxY)
-
-    XMinBound = max(XMinBound, 0)
-    YMinBound = max(YMinBound, 0)
-
-    if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
-        return None
-    else:
-        return data[YMinBound:YMaxBound + 1, XMinBound:XMaxBound + 1]
