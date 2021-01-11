@@ -46,7 +46,6 @@ class DataFiltererBase:
             raise TypeError("data_item should be an instance of `DataItem`")
         self._data_item = data_item
         self._roi_item = roi_item
-        self.__data = None
         self.__mask = None
 
     @property
@@ -62,10 +61,6 @@ class DataFiltererBase:
         if self.__mask is None:
             self.__mask = self._build_mask()
         return self.__mask
-
-    @property
-    def data(self):
-        return self.__data
 
     def _build_mask(self):
         raise NotImplemented("Base class")
