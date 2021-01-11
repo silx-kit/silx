@@ -60,7 +60,7 @@ class DataFiltererBase:
         raise NotImplemented("Base class")
 
 
-class CurveDataFilter(DataFiltererBase):
+class CurveFilter(DataFiltererBase):
 
     def _build_mask(self):
         minX, maxX = self.roi_item.getFrom(), self.roi_item.getTo()
