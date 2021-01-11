@@ -1691,16 +1691,17 @@ class ColormapDialog(qt.QDialog):
         mode = self.getMinMaxRoiCalcMode()
         if mode is MinMaxMode.ROI:
             roi = self._getRoiForColormapRange()
-            origin = roi.getOrigin()
-            size = roi.getSize()
         elif mode is MinMaxMode.VISIBLE_DATA:
             minX, maxX = self._getItem().getPlot().getXAxis().getLimits()
             minY, maxY = self._getItem().getPlot().getYAxis().getLimits()
-            origin = (minX, minY)
-            size = (maxX-minX, maxY-minY)
-        self.setMinMaxFromRectROI(origin=origin, size=size)
+            roi = RectangleROI()
+            roi.setOrigin(numpy.array([minX, minY]))
+            roi.setSize(numpy.array([maxX - minX, maxY - minY]))
+        else:
+            raise TypeError("mode %s is not handled" % mode)
+        self.setMinMaxFromROI(roi=roi)
 
-    def setMinMaxFromRectROI(self, origin: tuple, size: tuple):
+    def setMinMaxFromROI(self, roi):
         """
         Compute min / max value on data from a rectangle roi of origin
         and size and set those values as active.
@@ -1708,10 +1709,10 @@ class ColormapDialog(qt.QDialog):
         :param tuple origin:
         :param tuple size:
         """
-        min, max = self.computeMinMaxFromRect(origin=origin, size=size)
+        min, max = self.computeMinMaxFromRoi(roi)
         self.getColormap().setVRange(min, max)
 
-    def computeMinMaxFromRect(self, origin: tuple, size: tuple) -> tuple:
+    def computeMinMaxFromRoi(self, roi) -> tuple:
         """
         Compute min and max value for the "active" data or item
         :param tuple origin:
@@ -1720,14 +1721,11 @@ class ColormapDialog(qt.QDialog):
         """
         colormap = self.getColormap()
         data = None
-        origin = numpy.array(origin)
         if self._data is not None:
             _logger.warning("Only some instances of DataItem are handled.")
         elif self._item is not None:
             item = self._item()
-            if isinstance(item, ImageData):
-                origin -= numpy.array(self._item().getOrigin())
-            data = _filter_item_data(item=item, rectangle_roi=(origin, size))
+            data = _filter_item_data(item=item, roi=roi)
         return colormap.computeMinMax(data=data)
 
     def _updateROIGroupBox(self):
@@ -1895,17 +1893,17 @@ class _ROIGroupBox(qt.QGroupBox):
         self.sigROIChanged.emit()
 
 
-def _filter_item_data(item, rectangle_roi):
+def _filter_item_data(item, roi):
     if item is None:
         return None
     elif isinstance(item, ImageData):
         filter = roifiltering.ImageFilter(data_item=item,
-                                          roi_item=rectangle_roi)
+                                          roi_item=roi)
         values = numpy.ma.array(item.getData(), mask=filter.mask)
-        return values.compressed
+        return values.compressed()
     elif isinstance(item, Scatter):
         filter = roifiltering.ScatterFilter(data_item=item,
-                                            roi_item=rectangle_roi)
+                                            roi_item=roi)
         values = item.getValueData(copy=True)
         values = numpy.ma.array(values, mask=filter.mask)
         return values.compressed()
