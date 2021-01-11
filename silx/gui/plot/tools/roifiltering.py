@@ -76,7 +76,6 @@ class CurveFilter(DataFiltererBase):
         xData, yData = self.data_item.getData(copy=True)[0:2]
 
         mask = (minX <= xData) & (xData <= maxX)
-        mask = mask == 0
         return mask
 
 
@@ -89,7 +88,6 @@ class HistogramFilter(DataFiltererBase):
         xData = self.data_item._revertComputeEdges(x=edges,
                                                    histogramType=self.data_item.getAlignment())
         mask = (self.roi_item._fromdata <= xData) & (xData <= self.roi_item._todata)
-        mask = mask == 0
         return mask
 
 
@@ -100,8 +98,16 @@ class ScatterFilter(DataFiltererBase):
 
     def _build_mask(self):
         xData = self.data_item.getXData(copy=True)
+        from ..CurvesROIWidget import ROI
         if self.roi_item:
-            return (xData < self.roi_item.getFrom()) | (xData > self.roi_item.getTo())
+            if isinstance(self.roi_item, ROI):
+                return (xData < self.roi_item.getFrom()) | (xData > self.roi_item.getTo())
+            else:
+                mask = numpy.zeros_like(self.data_item.getValueData())
+                yData = self.data_item.getYData(copy=False)
+                for i_value, (x, y) in enumerate(zip(xData, yData)):
+                    mask[i_value] = self.roi_item.contains((x, y))
+                return mask
         else:
             return numpy.zeros_like(xData)
 

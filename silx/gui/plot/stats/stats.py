@@ -42,6 +42,7 @@ import numpy.ma
 from .. import items
 from ..CurvesROIWidget import ROI
 from ..items.roi import RegionOfInterest
+from ..items.roi import RectangleROI
 
 from ....math.combo import min_max
 from silx.utils.proxy import docstring
@@ -343,8 +344,11 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
-                # TODO: should also be done using the CurveDataFilter
-                mask = (minX <= xData) & (xData <= maxX)
+                # mask = (minX <= xData) & (xData <= maxX)
+                filter = CurveFilter(roi_item=ROI(fromdata=minX, todata=maxX,
+                                                  name="__ROICurveFilter__"),
+                                     data_item=item)
+                mask = filter.mask
             yData = yData[mask]
             xData = xData[mask]
             mask = numpy.zeros_like(yData)
@@ -356,7 +360,7 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             else:
                 data_filter = CurveFilter(data_item=item,
                                           roi_item=roi_for_filtering)
-                mask = data_filter.mask
+                mask = data_filter.mask == 0
         else:
             mask = numpy.zeros_like(yData)
 
@@ -408,14 +412,17 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
             if self.is_mask_valid(onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
-                mask = (minX <= xData) & (xData <= maxX)
+                filter = HistogramFilter(roi_item=ROI(fromdata=minX,
+                                                      todata=maxX),
+                                         data_item=item)
+                mask = filter.mask
                 self._set_mask_validity(onlimits=True, from_=minX, to_=maxX)
         elif roi:
             if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
                 mask = self.mask
             else:
                 filter = HistogramFilter(data_item=item, roi_item=roi)
-                mask = filter.mask
+                mask = filter.mask == 0
                 self._set_mask_validity(onlimits=True, from_=roi._fromdata,
                                         to_=roi._todata)
         else:
@@ -456,7 +463,7 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
     :param bool onlimits: True if we want to apply statistic only on
                           visible data.
     :param roi: Region of interest for computing the statistics.
-                For now, incompatible with `onlinits` calculation
+                For now, incompatible with `onlimits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
     def __init__(self, item, plot, onlimits, roi):
@@ -571,7 +578,6 @@ class _ImageContext(_StatsContext):
         """mask use to know of the stat should be count in or not"""
 
         if onlimits:
-            # TODO: should be done using a DataItemFilter
             minX, maxX = plot.getXAxis().getLimits()
             minY, maxY = plot.getYAxis().getLimits()
 
@@ -591,7 +597,6 @@ class _ImageContext(_StatsContext):
                                       XMinBound:XMaxBound + 1]
             mask = numpy.zeros_like(self.data)
         elif roi:
-            # TODO: this should be accessible from the DataItemFilter
             minX, maxX = 0, self.data.shape[1]
             minY, maxY = 0, self.data.shape[0]
 
