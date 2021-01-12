@@ -511,7 +511,7 @@ class ArrayImagePlot(qt.QWidget):
             self._plot.getYAxis().setScale('linear')
             self._plot.addImage(image, legend=legend,
                                 origin=origin, scale=scale,
-                                replace=True)
+                                replace=True, resetzoom=False)
         else:
             xaxisscale, yaxisscale = self._axis_scales
 
