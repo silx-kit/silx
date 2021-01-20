@@ -41,10 +41,15 @@ except Exception as error:
     print("Unable to import pyopencl: %s" % error)
 else:
     print("PyOpenCL platform:")
-    for p in pyopencl.get_platforms():
-        print("  %s" % p)
-        for d in p.get_devices():
-            print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+    try:
+        cl_platforms = pyopencl.get_platforms()
+    except pyopencl.LogicError:
+        print("The module pyOpenCL has been imported but get_platforms failed")
+    else:
+        for p in cl_platforms:
+            print("  %s" % p)
+            for d in p.get_devices():
+                print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
 try:
     from silx.opencl import ocl
 except Exception:
