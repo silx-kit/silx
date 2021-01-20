@@ -23,19 +23,16 @@ jobs:
         include:
           - name-suffix: "PyQt5 sdist"
             os: ubuntu-20.04
-            pip-cache-path: ~/.cache/pip
             python-version: 3.6
             BUILD_COMMAND: sdist
             QT_BINDING: PyQt5
           - name-suffix: "PySide2 wheel"
             os: macos-latest
-            pip-cache-path: ~/Library/Caches/pip
             python-version: 3.8
             BUILD_COMMAND: bdist_wheel
             QT_BINDING: PySide2
           - name-suffix: "No GUI wheel"
             os: windows-latest
-            pip-cache-path: ~\AppData\Local\pip\Cache
             python-version: 3.9
             BUILD_COMMAND: bdist_wheel
             QT_BINDING:
@@ -65,14 +62,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip
-        uses: actions/cache@v2
-        with:
-          path: ${{ matrix.pip-cache-path }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Upgrade distribution modules
         run: |
@@ -107,10 +96,9 @@ jobs:
         run: pip install --pre --find-links dist/ silx
 
       - name: Print python info used for tests
-        run: pip list
-        #run: |
-        #  python ./ci/info_platform.py
-        #  pip list
+        run: |
+          python ./ci/info_platform.py
+          pip list
 
       # For Linux: Start X server with dummy video dirver
       # Use this instead of Xvfb to have RANDR extension
