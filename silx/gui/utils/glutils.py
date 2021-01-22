@@ -31,8 +31,8 @@ import sys
 if __name__ == "__main__":
     # When run as a script, remove directory from sys.path
     # This avoids other script in same directory to override Python modules
-    if os.path.abspath(sys.path[0]) == os.path.abspath(os.path.dirname(__file__)):
-        sys.path.pop(0)
+    sys.path = [path for path in sys.path
+        if os.path.abspath(path) == os.path.abspath(os.path.dirname(__file__))]
 
 import subprocess
 from silx.gui import qt
