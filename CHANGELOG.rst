@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+0.14.1b0: 2021/01/25
+--------------------
+
+This is a bug-fix version of silx.
+
+* silx.gui.utils.glutils: Fixed `isOpenGLAvailable` (PR #3356)
+
+
 0.14.0: 2020/12/11
 ------------------
 

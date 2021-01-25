@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,6 @@
 
 import os
 import sys
-
-if __name__ == "__main__":
-    # When run as a script, remove directory from sys.path
-    # This avoids other script in same directory to override Python modules
-    if os.path.abspath(sys.path[0]) == os.path.abspath(os.path.dirname(__file__)):
-        sys.path.pop(0)
-
 import subprocess
 from silx.gui import qt
 
@@ -77,7 +70,7 @@ def _runtimeOpenGLCheck(version):
 
     try:
         error = subprocess.check_output(
-            [sys.executable, __file__, major, minor],
+            [sys.executable, '-s', '-S', __file__, major, minor],
             env=env,
             timeout=2)
     except subprocess.TimeoutExpired:

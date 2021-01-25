@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -72,8 +72,8 @@ PRERELEASE_NORMALIZED_NAME = {"dev": "a",
 
 MAJOR = 0
 MINOR = 14
-MICRO = 0
-RELEV = "final"  # <16
+MICRO = 1
+RELEV = "beta"  # <16
 SERIAL = 0  # <16
 
 date = __date__
