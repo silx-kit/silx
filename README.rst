@@ -75,7 +75,7 @@ Testing
 *silx* features a comprehensive test-suite used in continuous integration for
 all major operating systems:
 
-- Travis CI status: |Travis Status|
+- Github Actions CI status: |Github Actions Status|
 - Appveyor CI status: |Appveyor Status|
 
 Please refer to the `documentation on testing <http://www.silx.org/doc/silx/dev/install.html#testing>`_
@@ -100,8 +100,8 @@ Citation
 
 *silx* releases can be cited via their DOI on Zenodo: |zenodo DOI|
 
-.. |Travis Status| image:: https://travis-ci.com/silx-kit/silx.svg?branch=master
-   :target: https://travis-ci.com/silx-kit/silx
+.. |Github Actions Status| image:: https://github.com/silx-kit/silx/workflows/CI/badge.svg
+   :target: https://github.com/silx-kit/silx/actions
 .. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
    :target: https://ci.appveyor.com/project/ESRF/silx?branch=master
 .. |zenodo DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.591709.svg
