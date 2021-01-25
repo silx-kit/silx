@@ -110,6 +110,7 @@ jobs:
       - name: Run the tests
         run: |
           if [ ${{ runner.os }} == 'Linux' ]; then
+              export OCL_ICD_VENDORS=$(pwd)/intel_opencl_icd/vendors
               export DISPLAY=:99.0
               Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/travis-xorg.conf :99 &
               sleep 3
