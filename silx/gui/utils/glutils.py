@@ -74,7 +74,7 @@ def _runtimeOpenGLCheck(version):
         script_file = shutil.copy(__file__, directory)
         try:
             error = subprocess.check_output(
-                [sys.executable, script_file, major, minor],
+                [sys.executable, '-s', '-S', script_file, major, minor],
                 env=env,
                 timeout=2)
         except subprocess.TimeoutExpired:
