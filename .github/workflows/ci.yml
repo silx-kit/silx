@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  # Triggers the workflow on push only for the master branch or pull request events
+  push:
+    branches: [ master ]
+  pull_request:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} ${{ matrix.name-suffix }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name-suffix: "PyQt5 sdist"
+            os: ubuntu-20.04
+            python-version: 3.6
+            BUILD_COMMAND: sdist
+            QT_BINDING: PyQt5
+          - name-suffix: "PySide2 wheel"
+            os: macos-latest
+            python-version: 3.8
+            BUILD_COMMAND: bdist_wheel
+            QT_BINDING: PySide2
+          - name-suffix: "No GUI wheel"
+            os: windows-latest
+            python-version: 3.9
+            BUILD_COMMAND: bdist_wheel
+            QT_BINDING:
+            # No GUI tests on Windows
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+        # Install X server packages
+        # libegl1-mesa: Required by Qt xcb platform plugin
+        # ocl-icd-opencl-dev: OpenCL headers, lib and icd loader
+        # libgl1-mesa-glx: For OpenGL
+        # xserver-xorg-video-dummy: For OpenGL
+        # libxkbcommon-x11-0: needed for Qt plugins
+      - name: Install X server
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1-mesa ocl-icd-opencl-dev libgl1-mesa-glx xserver-xorg-video-dummy libxkbcommon-x11-0 libxkbcommon0 libxkbcommon-dev libxcb-icccm4 libxcb-image0 libxcb-shm0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-render0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 libxcb1
+
+      # Runs a single command using the runners shell
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade distribution modules
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install --upgrade --pre numpy cython
+
+      - name: Print python info used for build
+        run: |
+          python ./ci/info_platform.py
+          pip list
+
+      - name: Generate source package or wheel
+        run: |
+          if [ ${{ runner.os }} == 'macOS' ]; then
+              export MACOSX_DEPLOYMENT_TARGET=10.9;
+          fi
+          python setup.py ${{ matrix.BUILD_COMMAND }}
+          ls dist
+
+      - name: Pre-install dependencies
+        run: |
+          if [ -s "ci/requirements-pinned.txt" ];
+          then
+            pip install -r ci/requirements-pinned.txt;
+          fi
+          pip install --pre -r requirements.txt
+          if [ "${{ matrix.QT_BINDING }}" == "PySide2" ]; then
+            pip install --pre pyside2;
+          fi
+
+      - name: Install silx package
+        run: pip install --pre --find-links dist/ silx
+
+      - name: Print python info used for tests
+        run: |
+          python ./ci/info_platform.py
+          pip list
+
+      # For Linux: Start X server with dummy video dirver
+      # Use this instead of Xvfb to have RANDR extension
+      # Otherwise there is a bug with Qt5.10.0
+      - name: Run the tests
+        run: |
+          if [ ${{ runner.os }} == 'Linux' ]; then
+              export DISPLAY=:99.0
+              Xorg -noreset +extension GLX +extension RANDR +extension RENDER -logfile ./99.log -config ./ci/travis-xorg.conf :99 &
+              sleep 3
+          fi
+          echo "QT_BINDING="${{ matrix.QT_BINDING }}
+          if [ -n "${{ matrix.QT_BINDING }}" ]; then
+            python run_tests.py --installed -v --qt-binding=${{ matrix.QT_BINDING }};
+          else
+            python run_tests.py --installed -v --no-gui;
+          fi
