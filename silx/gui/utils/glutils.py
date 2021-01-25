@@ -26,15 +26,10 @@
 """
 
 import os
+import shutil
 import sys
-
-if __name__ == "__main__":
-    # When run as a script, remove directory from sys.path
-    # This avoids other script in same directory to override Python modules
-    sys.path = [path for path in sys.path
-        if os.path.abspath(path) != os.path.abspath(os.path.dirname(__file__))]
-
 import subprocess
+import tempfile
 from silx.gui import qt
 
 
@@ -75,22 +70,24 @@ def _runtimeOpenGLCheck(version):
     env['PYTHONPATH'] = os.pathsep.join(
         [os.path.abspath(p) for p in sys.path])
 
-    try:
-        error = subprocess.check_output(
-            [sys.executable, __file__, major, minor],
-            env=env,
-            timeout=2)
-    except subprocess.TimeoutExpired:
-        status = False
-        error = "Qt OpenGL widget hang"
-        if sys.platform.startswith('linux'):
-            error += ':\nIf connected remotely, GLX forwarding might be disabled.'
-    except subprocess.CalledProcessError as e:
-        status = False
-        error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-    else:
-        status = True
-        error = error.decode()
+    with tempfile.TemporaryDirectory() as directory:
+        script_file = shutil.copy(__file__, directory)
+        try:
+            error = subprocess.check_output(
+                [sys.executable, script_file, major, minor],
+                env=env,
+                timeout=2)
+        except subprocess.TimeoutExpired:
+            status = False
+            error = "Qt OpenGL widget hang"
+            if sys.platform.startswith('linux'):
+                error += ':\nIf connected remotely, GLX forwarding might be disabled.'
+        except subprocess.CalledProcessError as e:
+            status = False
+            error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
+        else:
+            status = True
+            error = error.decode()
     return _isOpenGLAvailableResult(status, error)
 
 
