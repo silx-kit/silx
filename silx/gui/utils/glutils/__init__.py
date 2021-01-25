@@ -26,10 +26,8 @@
 """
 
 import os
-import shutil
 import sys
 import subprocess
-import tempfile
 from silx.gui import qt
 
 
@@ -70,24 +68,22 @@ def _runtimeOpenGLCheck(version):
     env['PYTHONPATH'] = os.pathsep.join(
         [os.path.abspath(p) for p in sys.path])
 
-    with tempfile.TemporaryDirectory() as directory:
-        script_file = shutil.copy(__file__, directory)
-        try:
-            error = subprocess.check_output(
-                [sys.executable, '-s', '-S', script_file, major, minor],
-                env=env,
-                timeout=2)
-        except subprocess.TimeoutExpired:
-            status = False
-            error = "Qt OpenGL widget hang"
-            if sys.platform.startswith('linux'):
-                error += ':\nIf connected remotely, GLX forwarding might be disabled.'
-        except subprocess.CalledProcessError as e:
-            status = False
-            error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-        else:
-            status = True
-            error = error.decode()
+    try:
+        error = subprocess.check_output(
+            [sys.executable, '-s', '-S', __file__, major, minor],
+            env=env,
+            timeout=2)
+    except subprocess.TimeoutExpired:
+        status = False
+        error = "Qt OpenGL widget hang"
+        if sys.platform.startswith('linux'):
+            error += ':\nIf connected remotely, GLX forwarding might be disabled.'
+    except subprocess.CalledProcessError as e:
+        status = False
+        error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
+    else:
+        status = True
+        error = error.decode()
     return _isOpenGLAvailableResult(status, error)
 
 
