@@ -8,3 +8,6 @@ pybind11  # Required to build pyopencl
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2020.3.1; sys_platform == 'win32'
+
+# pyopencl 2021.1 does not build on macos10.15
+pyopencl == 2020.3.1; sys_platform == 'darwin'
