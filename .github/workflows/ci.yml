@@ -27,7 +27,7 @@ jobs:
             BUILD_COMMAND: sdist
             QT_BINDING: PyQt5
           - name-suffix: "PySide2 wheel"
-            os: macos-latest
+            os: macos-11.0
             python-version: 3.8
             BUILD_COMMAND: bdist_wheel
             QT_BINDING: PySide2
