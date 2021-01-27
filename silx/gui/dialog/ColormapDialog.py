@@ -73,7 +73,7 @@ import numpy
 
 from .. import qt
 from .. import utils
-from ..colors import Colormap
+from ..colors import Colormap, cursorColorForColormap
 from ..plot import PlotWidget
 from ..plot.items.axis import Axis
 from ..plot.items import BoundingRect
@@ -84,8 +84,11 @@ from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
+from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
+from silx.gui.plot.items.roi import RectangleROI
+from silx.gui.plot.tools.roi import RegionOfInterestManager
 
 _logger = logging.getLogger(__name__)
 
@@ -917,6 +920,25 @@ class ColormapDialog(qt.QDialog):
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
         self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
 
+        # Scale to buttons
+        self._visibleAreaButton = qt.QPushButton(self)
+        self._visibleAreaButton.setText("Visible Area")
+        self._visibleAreaButton.clicked.connect(
+            self._handleScaleToVisibleAreaClicked,
+            type=qt.Qt.QueuedConnection)
+
+        # Place-holder for selected area ROI manager
+        self._roiForColormapManager = None
+
+        self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton.setText("Selection")
+        self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
+        self._selectedAreaButton.setCheckable(True)
+        self._selectedAreaButton.setDisabledWhenWaiting(False)
+        self._selectedAreaButton.toggled.connect(
+            self._handleScaleToSelectionToggled,
+            type=qt.Qt.QueuedConnection)
+
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
         self._buttonsModal = qt.QDialogButtonBox(parent=self)
@@ -955,6 +977,14 @@ class ColormapDialog(qt.QDialog):
         label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(label, autoScaleCombo)
+
+        layout = qt.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._visibleAreaButton)
+        layout.addWidget(self._selectedAreaButton)
+        label = qt.QLabel('Scale to:', self)
+        formLayout.addRow(label, layout)
+
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
@@ -965,7 +995,9 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._minValue, self._maxValue)
         self.setTabOrder(self._maxValue, self._autoButtons)
         self.setTabOrder(self._autoButtons, self._autoScaleCombo)
-        self.setTabOrder(self._autoScaleCombo, self._buttonsModal)
+        self.setTabOrder(self._autoScaleCombo, self._visibleAreaButton)
+        self.setTabOrder(self._visibleAreaButton, self._selectedAreaButton)
+        self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
         self.setFixedSize(self.sizeHint())
@@ -1311,6 +1343,50 @@ class ColormapDialog(qt.QDialog):
                 colormap.setVRange(xmin, xmax)
         self._updateWidgetRange()
 
+    def setColormapRangeFromDataBounds(self, bounds):
+        """Set the range of the colormap from current item and rect.
+
+        If there is no ColormapMixIn item attached to the ColormapDialog,
+        nothing is done.
+
+        :param Union[List[float],None] bounds:
+            (xmin, xmax, ymin, ymax) Rectangular region in data space
+        """
+        if bounds is None:
+            return None  # no-op
+
+        colormap = self.getColormap()
+        if colormap is None:
+            return  # no-op
+
+        item = self._getItem()
+        if not isinstance(item, items.ColormapMixIn):
+            return None  # no-op
+
+        data = item.getColormappedData(copy=False)
+
+        if isinstance(item, items.ImageBase):
+            ox, oy = item.getOrigin()
+            sx, sy = item.getScale()
+
+            xmin, xmax, ymin, ymax = bounds
+            ystart = max(0, int((ymin - oy) / sy))
+            ystop = max(0, int(numpy.ceil((ymax - oy) / sy)))
+            xstart = max(0, int((xmin - ox) / sx))
+            xstop = max(0, int(numpy.ceil((xmax - ox) / sx)))
+
+            subset = data[ystart:ystop, xstart:xstop]
+
+        elif isinstance(item, items.Scatter):
+            pass  # TODO
+
+        if subset.size == 0:
+            return  # no-op
+
+        vmin, vmax = colormap._computeAutoscaleRange(subset)
+        colormap.setVRange(vmin, vmax)
+        #self._setColormapRange(vmin, vmax)
+
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
         xmin, xmax = self._getFiniteColormapRange()
@@ -1399,6 +1475,8 @@ class ColormapDialog(qt.QDialog):
             self._autoscaleModeLabel.setEnabled(False)
             self._histoWidget.setVisible(False)
             self._histoWidget.setFiniteRange((None, None))
+            self._visibleAreaButton.setEnabled(False)
+            self._selectedAreaButton.setEnabled(False)
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             with utils.blockSignals(self._comboBoxColormap):
@@ -1422,6 +1500,10 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._visibleAreaButton):
+                self._visibleAreaButton.setEnabled(colormap.isEditable())
+            with utils.blockSignals(self._selectedAreaButton):
+                self._selectedAreaButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
@@ -1590,6 +1672,58 @@ class ColormapDialog(qt.QDialog):
         if vmax is None:
             vmax = xmax
         self._setColormapRange(vmin, vmax)
+
+    def _handleScaleToVisibleAreaClicked(self):
+        """Set colormap range from current item's visible area"""
+        item = self._getItem()
+        if item is None:
+            return  # no-op
+
+        bounds = item.getVisibleBounds()
+        if bounds is None:
+            return  # no-op
+
+        self.setColormapRangeFromDataBounds(bounds)
+
+    def _handleScaleToSelectionToggled(self, checked=False):
+        """Handle toggle of scale to selected are button"""
+        # Reset any previous ROI manager
+        if self._roiForColormapManager is not None:
+            self._roiForColormapManager.clear()
+            self._roiForColormapManager.stop()
+            self._roiForColormapManager = None
+
+        item = self._getItem()
+        if item is None:
+            return  # no-op
+
+        plotWidget = item.getPlot()
+        if plotWidget is None:
+            return  # no-op
+
+        self._selectedAreaButton.setWaiting(checked)
+        if checked:
+            self._selectedAreaButton.setText("Draw Area...")
+            self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
+            cmap = self.getColormap()
+            self._roiForColormapManager.setColor(
+                'black' if cmap is None else cursorColorForColormap(cmap.getName()))
+            self._roiForColormapManager.sigInteractiveModeFinished.connect(
+                self.__roiInteractiveModeFinished)
+            self._roiForColormapManager.sigInteractiveRoiFinalized.connect(self.__roiFinalized)
+            self._roiForColormapManager.start(RectangleROI)
+        else:
+            self._selectedAreaButton.setText("Selection")
+
+    def __roiInteractiveModeFinished(self):
+        self._selectedAreaButton.setChecked(False)
+
+    def __roiFinalized(self, roi):
+        self._selectedAreaButton.setChecked(False)
+        if roi is not None:
+            ox, oy = roi.getOrigin()
+            width, height = roi.getSize()
+            self.setColormapRangeFromDataBounds((ox, ox+width, oy, oy+height))
 
     def keyPressEvent(self, event):
         """Override key handling.
