@@ -922,6 +922,7 @@ class ColormapDialog(qt.QDialog):
 
         # Scale to buttons
         self._visibleAreaButton = qt.QPushButton(self)
+        self._visibleAreaButton.setEnabled(False)
         self._visibleAreaButton.setText("Visible Area")
         self._visibleAreaButton.clicked.connect(
             self._handleScaleToVisibleAreaClicked,
@@ -931,6 +932,7 @@ class ColormapDialog(qt.QDialog):
         self._roiForColormapManager = None
 
         self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton.setEnabled(False)
         self._selectedAreaButton.setText("Selection")
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._selectedAreaButton.setCheckable(True)
@@ -1205,6 +1207,7 @@ class ColormapDialog(qt.QDialog):
                     raise ValueError("Item %s is not supported" % item)
                 self._item = weakref.ref(item, self._itemAboutToFinalize)
         finally:
+            self._syncScaleToButtonsEnabled()
             self._dataRange = None
             self._histogramData = None
             self._invalidateData()
@@ -1226,6 +1229,7 @@ class ColormapDialog(qt.QDialog):
             return
 
         self._item = None
+        self._syncScaleToButtonsEnabled()
         if data is None:
             self._data = None
             self._itemHolder = None
@@ -1463,6 +1467,8 @@ class ColormapDialog(qt.QDialog):
         if self._colormapChange.locked():
             return
 
+        self._syncScaleToButtonsEnabled()
+
         colormap = self.getColormap()
         if colormap is None:
             self._comboBoxColormap.setEnabled(False)
@@ -1475,8 +1481,6 @@ class ColormapDialog(qt.QDialog):
             self._autoscaleModeLabel.setEnabled(False)
             self._histoWidget.setVisible(False)
             self._histoWidget.setFiniteRange((None, None))
-            self._visibleAreaButton.setEnabled(False)
-            self._selectedAreaButton.setEnabled(False)
         else:
             assert colormap.getNormalization() in Colormap.NORMALIZATIONS
             with utils.blockSignals(self._comboBoxColormap):
@@ -1500,10 +1504,6 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
-            with utils.blockSignals(self._visibleAreaButton):
-                self._visibleAreaButton.setEnabled(colormap.isEditable())
-            with utils.blockSignals(self._selectedAreaButton):
-                self._selectedAreaButton.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._autoButtons):
                 self._autoButtons.setEnabled(colormap.isEditable())
                 self._autoButtons.setAutoRangeFromColormap(colormap)
@@ -1673,6 +1673,13 @@ class ColormapDialog(qt.QDialog):
             vmax = xmax
         self._setColormapRange(vmin, vmax)
 
+    def _syncScaleToButtonsEnabled(self):
+        """Set the state of scale to buttons according to current item and colormap"""
+        colormap = self.getColormap()
+        enabled = self._item is not None and colormap is not None and colormap.isEditable()
+        self._visibleAreaButton.setEnabled(enabled)
+        self._selectedAreaButton.setEnabled(enabled)
+
     def _handleScaleToVisibleAreaClicked(self):
         """Set colormap range from current item's visible area"""
         item = self._getItem()
@@ -1695,10 +1702,12 @@ class ColormapDialog(qt.QDialog):
 
         item = self._getItem()
         if item is None:
+            self._selectedAreaButton.setChecked(False)
             return  # no-op
 
         plotWidget = item.getPlot()
         if plotWidget is None:
+            self._selectedAreaButton.setChecked(False)
             return  # no-op
 
         self._selectedAreaButton.setWaiting(checked)
