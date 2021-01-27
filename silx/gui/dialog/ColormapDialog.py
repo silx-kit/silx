@@ -1369,11 +1369,12 @@ class ColormapDialog(qt.QDialog):
 
         data = item.getColormappedData(copy=False)
 
+        xmin, xmax, ymin, ymax = bounds
+
         if isinstance(item, items.ImageBase):
             ox, oy = item.getOrigin()
             sx, sy = item.getScale()
 
-            xmin, xmax, ymin, ymax = bounds
             ystart = max(0, int((ymin - oy) / sy))
             ystop = max(0, int(numpy.ceil((ymax - oy) / sy)))
             xstart = max(0, int((xmin - ox) / sx))
@@ -1382,7 +1383,12 @@ class ColormapDialog(qt.QDialog):
             subset = data[ystart:ystop, xstart:xstop]
 
         elif isinstance(item, items.Scatter):
-            pass  # TODO
+            x = item.getXData(copy=False)
+            y = item.getYData(copy=False)
+            subset = data[
+                numpy.logical_and(
+                    numpy.logical_and(xmin <= x, x <= xmax),
+                    numpy.logical_and(ymin <= y, y <= ymax))]
 
         if subset.size == 0:
             return  # no-op
