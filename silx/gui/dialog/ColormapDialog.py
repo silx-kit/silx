@@ -1396,8 +1396,7 @@ class ColormapDialog(qt.QDialog):
             return  # no-op
 
         vmin, vmax = colormap._computeAutoscaleRange(subset)
-        colormap.setVRange(vmin, vmax)
-        #self._setColormapRange(vmin, vmax)
+        self._setColormapRange(vmin, vmax)
 
     def _updateWidgetRange(self):
         """Update the colormap range displayed into the widget."""
