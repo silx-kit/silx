@@ -984,8 +984,10 @@ class ColormapDialog(qt.QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._visibleAreaButton)
         layout.addWidget(self._selectedAreaButton)
-        label = qt.QLabel('Scale to:', self)
-        formLayout.addRow(label, layout)
+        self._scaleToAreaGroup = qt.QGroupBox('Scale to:', self)
+        self._scaleToAreaGroup.setLayout(layout)
+        self._scaleToAreaGroup.setVisible(False)
+        formLayout.addRow(self._scaleToAreaGroup)
 
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
@@ -1683,6 +1685,7 @@ class ColormapDialog(qt.QDialog):
         """Set the state of scale to buttons according to current item and colormap"""
         colormap = self.getColormap()
         enabled = self._item is not None and colormap is not None and colormap.isEditable()
+        self._scaleToAreaGroup.setVisible(enabled)
         self._visibleAreaButton.setEnabled(enabled)
         if not enabled:
             self._selectedAreaButton.setChecked(False)
