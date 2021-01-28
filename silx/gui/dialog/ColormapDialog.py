@@ -1684,6 +1684,8 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         enabled = self._item is not None and colormap is not None and colormap.isEditable()
         self._visibleAreaButton.setEnabled(enabled)
+        if not enabled:
+            self._selectedAreaButton.setChecked(False)
         self._selectedAreaButton.setEnabled(enabled)
 
     def _handleScaleToVisibleAreaClicked(self):
@@ -1706,6 +1708,11 @@ class ColormapDialog(qt.QDialog):
             self._roiForColormapManager.stop()
             self._roiForColormapManager = None
 
+        if not checked:  # Reset button status
+            self._selectedAreaButton.setWaiting(False)
+            self._selectedAreaButton.setText("Selection")
+            return
+
         item = self._getItem()
         if item is None:
             self._selectedAreaButton.setChecked(False)
@@ -1716,19 +1723,17 @@ class ColormapDialog(qt.QDialog):
             self._selectedAreaButton.setChecked(False)
             return  # no-op
 
-        self._selectedAreaButton.setWaiting(checked)
-        if checked:
-            self._selectedAreaButton.setText("Draw Area...")
-            self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
-            cmap = self.getColormap()
-            self._roiForColormapManager.setColor(
-                'black' if cmap is None else cursorColorForColormap(cmap.getName()))
-            self._roiForColormapManager.sigInteractiveModeFinished.connect(
-                self.__roiInteractiveModeFinished)
-            self._roiForColormapManager.sigInteractiveRoiFinalized.connect(self.__roiFinalized)
-            self._roiForColormapManager.start(RectangleROI)
-        else:
-            self._selectedAreaButton.setText("Selection")
+        self._selectedAreaButton.setWaiting(True)
+        self._selectedAreaButton.setText("Draw Area...")
+
+        self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
+        cmap = self.getColormap()
+        self._roiForColormapManager.setColor(
+            'black' if cmap is None else cursorColorForColormap(cmap.getName()))
+        self._roiForColormapManager.sigInteractiveModeFinished.connect(
+            self.__roiInteractiveModeFinished)
+        self._roiForColormapManager.sigInteractiveRoiFinalized.connect(self.__roiFinalized)
+        self._roiForColormapManager.start(RectangleROI)
 
     def __roiInteractiveModeFinished(self):
         self._selectedAreaButton.setChecked(False)
