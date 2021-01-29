@@ -1087,12 +1087,12 @@ class TestHdf5TreeView(TestCaseQt):
         selected = list(view.selectedH5Nodes())[0]
         self.assertIs(item, selected.h5py_object)
 
-    def testSelection_RecurssiveLink(self):
+    def testSelection_RecursiveLink(self):
         """
-        Recurssive link selection
+        Recursive link selection
 
         This example is not really working as expected cause commonh5 do not
-        support recurssive links.
+        support recursive links.
         But item.name == "/a/b" and the result is found.
         """
         tree = commonh5.File("/foo/bar/1.mock", "w")

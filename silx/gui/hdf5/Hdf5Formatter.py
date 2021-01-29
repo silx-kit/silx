@@ -186,7 +186,8 @@ class Hdf5Formatter(qt.QObject):
         dtype = dtype.newbyteorder('N')
         return text
 
-    def humanReadableHdf5Type(self, dataset):
+    @staticmethod
+    def humanReadableHdf5Type(dataset):
         """Format the internal HDF5 type as a string"""
         t = dataset.id.get_type()
         class_ = t.get_class()
