@@ -229,7 +229,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
             shape = self.getData(copy=False).shape[:2]
             if mask.shape != shape:
-                _logger.warning("Unconsistent shape between mask and data %s, %s", mask.shape, shape)
+                _logger.warning("Inconsistent shape between mask and data %s, %s", mask.shape, shape)
                 # Clip/extent is done lazily in getMaskData
         elif self._mask is None:
                 return  # No update
