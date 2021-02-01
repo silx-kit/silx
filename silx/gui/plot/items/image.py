@@ -100,6 +100,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
         self._mask = mask
+        self.__valueDataCache = None  # Store default data
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
@@ -186,6 +187,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         """
         previousShape = self._data.shape
         self._data = data
+        self._valueDataChanged()
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
@@ -233,7 +235,42 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                 return  # No update
 
         self._mask = mask
+        self._valueDataChanged()
         self._updated(ItemChangedType.MASK)
+
+    def _valueDataChanged(self):
+        """Clear cache of default data array"""
+        self.__valueDataCache = None
+
+    def _getValueData(self, copy=True):
+        """Return data used by :meth:`getValueData`
+
+        :param bool copy:
+        :rtype: numpy.ndarray
+        """
+        return self.getData(copy=copy)
+
+    def getValueData(self, copy=True):
+        """Return data (converted to int or float) with mask applied.
+
+        Masked values are set to Not-A-Number.
+        It returns a 2D array of values (int or float).
+
+        :param bool copy:
+        :rtype: numpy.ndarray
+        """
+        if self.__valueDataCache is None:
+            data = self._getValueData(copy=False)
+            mask = self.getMaskData(copy=False)
+            if mask is not None:
+                if numpy.issubdtype(data.dtype, numpy.floating):
+                    dtype = data.dtype
+                else:
+                    dtype = numpy.float64
+                data = numpy.array(data, dtype=dtype, copy=True)
+                data[mask != 0] = numpy.NaN
+            self.__valueDataCache = data
+        return numpy.array(self.__valueDataCache, copy=copy)
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
@@ -298,7 +335,6 @@ class ImageData(ImageBase, ColormapMixIn):
         ColormapMixIn.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
-        self.__maskedDataCache = None  # Store masked data
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -406,8 +442,6 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        self.__maskedDataCache = None  # Clear masked data cache
-        self._setColormappedData(self.getMaskedData(copy=False), copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -427,29 +461,13 @@ class ImageData(ImageBase, ColormapMixIn):
 
         super().setData(data)
 
-    def setMaskData(self, mask, copy=True):
-        """Set the image data
-
-        :param numpy.ndarray data:
-        """
-        self.__maskedDataCache = None  # Clear masked data cache
-        super().setMaskData(mask, copy=copy)
-        self._setColormappedData(self.getMaskedData(copy=False), copy=False)
-
-    def getMaskedData(self, copy=True):
-        """Return masked data as an array of float32 if masked.
-
-        :param bool copy:
-        :rtype: numpy.ndarray
-        """
-        if self.__maskedDataCache is None:
-            data = self.getData(copy=False)
-            mask = self.getMaskData(copy=False)
-            if mask is not None:
-                data = numpy.array(data, dtype=numpy.float32, copy=True)
-                data[mask != 0] = numpy.NaN
-            self.__maskedDataCache = data
-        return numpy.array(self.__maskedDataCache, copy=copy)
+    def _updated(self, event=None, checkVisibility=True):
+        # Synchronizes colormapped data if changed
+        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
+            self._setColormappedData(
+                self.getValueData(copy=False),
+                copy=False)
+        super()._updated(event=event, checkVisibility=checkVisibility)
 
 
 class ImageRgba(ImageBase):
@@ -495,6 +513,20 @@ class ImageRgba(ImageBase):
         assert data.ndim == 3
         assert data.shape[-1] in (3, 4)
         super().setData(data)
+
+    def _getValueData(self, copy=True):
+        """Compute the intensity of the RGBA image as default data.
+
+        Conversion: https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion
+
+        :param bool copy:
+        """
+        rgba = self.getRgbaImageData(copy=False).astype(numpy.float32) / 255.
+        intensity = (rgba[:, :, 0] * 0.299 +
+                     rgba[:, :, 1] * 0.587 +
+                     rgba[:, :, 2] * 0.114)
+        intensity *= rgba[:, :, 3]
+        return intensity
 
 
 class MaskImageData(ImageData):
