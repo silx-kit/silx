@@ -275,8 +275,18 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         # ItemChangedType.COMPLEX_MODE triggers ItemChangedType.DATA
         # No need to handle it twice.
         if event in (ItemChangedType.DATA, ItemChangedType.MASK):
-            self._setColormappedData(
-                self.getValueData(copy=False), copy=False)
+            # Color-mapped data is NOT the `getValueData` for some modes
+            if self.getComplexMode() in (
+                    self.ComplexMode.AMPLITUDE_PHASE,
+                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
+                data = self.getData(copy=False, mode=self.ComplexMode.PHASE)
+                mask = self.getMaskData(copy=False)
+                if mask is not None:
+                    data = numpy.copy(data)
+                    data[mask != 0] = numpy.nan
+            else:
+                data = self.getValueData(copy=False)
+            self._setColormappedData(data, copy=False)
         super()._updated(event=event, checkVisibility=checkVisibility)
 
     def getComplexData(self, copy=True):
