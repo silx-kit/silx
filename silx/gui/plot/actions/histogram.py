@@ -192,21 +192,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             self._cleanUp()
             return
 
-        if isinstance(item, items.ImageBase):
-            array = item.getData(copy=False)
-            if array.ndim == 3:  # RGB(A) images
-                _logger.info('Converting current image from RGB(A) to grayscale\
-                    in order to compute the intensity distribution')
-                array = (array[:,:, 0] * 0.299 +
-                         array[:,:, 1] * 0.587 +
-                         array[:,:, 2] * 0.114)
-
-            # Apply mask if any
-            mask = item.getMaskData(copy=False)
-            if mask is not None:
-                array = array[numpy.logical_not(mask)]
-
-        elif isinstance(item, items.Scatter):
+        if isinstance(item, (items.ImageBase, items.Scatter)):
             array = item.getValueData(copy=False)
         else:
             assert(False)
