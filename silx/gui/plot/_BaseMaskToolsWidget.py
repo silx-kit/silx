@@ -82,7 +82,6 @@ class BaseMask(qt.QObject):
             self.setDataItem(dataItem)
             self.reset(self.getDataValues().shape)
         super(BaseMask, self).__init__()
-        self.sigChanged.connect(self.setDataMask)
 
     def setDataItem(self, item):
         """Set a data item
@@ -110,12 +109,6 @@ class BaseMask(qt.QObject):
         :rtype: numpy.ndarray
         """
         raise NotImplementedError("To be implemented in subclass")
-
-    def setDataMask(self):
-        """Update the mask stored inside the DataItem (if possible)
-        """
-        if "setMaskData" in dir(self._dataItem):
-            self._dataItem.setMaskData(self.getMask(copy=True), copy=False)
 
     def _notify(self):
         """Notify of mask change."""

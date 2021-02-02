@@ -103,6 +103,13 @@ class ImageMask(BaseMask):
         """
         return self._dataItem.getData(copy=False)
 
+    def commit(self):
+        """Append the current mask to history if changed"""
+        super().commit()
+        item = self.getDataItem()
+        if item is not None:
+            item.setMaskData(self.getMask(copy=True), copy=False)
+
     def save(self, filename, kind):
         """Save current mask in a file
 
