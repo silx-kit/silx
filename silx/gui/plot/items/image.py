@@ -521,11 +521,11 @@ class ImageRgba(ImageBase):
 
         :param bool copy:
         """
-        rgba = self.getRgbaImageData(copy=False).astype(numpy.float32) / 255.
+        rgba = self.getRgbaImageData(copy=False).astype(numpy.float32)
         intensity = (rgba[:, :, 0] * 0.299 +
                      rgba[:, :, 1] * 0.587 +
                      rgba[:, :, 2] * 0.114)
-        intensity *= rgba[:, :, 3]
+        intensity *= rgba[:, :, 3] / 255.
         return intensity
 
 
