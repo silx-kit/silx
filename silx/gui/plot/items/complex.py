@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -263,8 +263,12 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
                 'Image is not complex, converting it to complex to plot it.')
             data = numpy.array(data, dtype=numpy.complex64)
 
-        self._dataByModesCache = {}
-        self._setColormappedData(self.getData(copy=False), copy=False)
+        # Compute current mode data and set colormap data
+        mode = self.getComplexMode()
+        dataForMode = self.__convertComplexData(data, self.getComplexMode())
+        self._dataByModesCache = {mode: dataForMode}
+        self._setColormappedData(dataForMode, copy=False)
+
         super().setData(data)
 
     def getComplexData(self, copy=True):
@@ -275,6 +279,31 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         :rtype: numpy.ndarray of complex
         """
         return super().getData(copy=copy)
+
+    def __convertComplexData(self, data, mode):
+        """Convert complex data to given mode.
+
+        :param numpy.ndarray data:
+        :param Union[ComplexMode,str] mode:
+        :rtype: numpy.ndarray of float
+        """
+        if mode is self.ComplexMode.PHASE:
+            return numpy.angle(data)
+        elif mode is self.ComplexMode.REAL:
+            return numpy.real(data)
+        elif mode is self.ComplexMode.IMAGINARY:
+            return numpy.imag(data)
+        elif mode in (self.ComplexMode.ABSOLUTE,
+                      self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+                      self.ComplexMode.AMPLITUDE_PHASE):
+            return numpy.absolute(data)
+        elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
+            return numpy.absolute(data) ** 2
+        else:
+            _logger.error(
+                'Unsupported conversion mode: %s, fallback to absolute',
+                str(mode))
+            return numpy.absolute(data)
 
     def getData(self, copy=True, mode=None):
         """Returns the image data corresponding to (current) mode.
@@ -295,27 +324,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             mode = self.ComplexMode.from_value(mode)
 
         if mode not in self._dataByModesCache:
-            # Compute data for mode and store it in cache
-            complexData = self.getComplexData(copy=False)
-            if mode is self.ComplexMode.PHASE:
-                data = numpy.angle(complexData)
-            elif mode is self.ComplexMode.REAL:
-                data = numpy.real(complexData)
-            elif mode is self.ComplexMode.IMAGINARY:
-                data = numpy.imag(complexData)
-            elif mode in (self.ComplexMode.ABSOLUTE,
-                          self.ComplexMode.LOG10_AMPLITUDE_PHASE,
-                          self.ComplexMode.AMPLITUDE_PHASE):
-                data = numpy.absolute(complexData)
-            elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
-                data = numpy.absolute(complexData) ** 2
-            else:
-                _logger.error(
-                    'Unsupported conversion mode: %s, fallback to absolute',
-                    str(mode))
-                data = numpy.absolute(complexData)
-
-            self._dataByModesCache[mode] = data
+            self._dataByModesCache[mode] = self.__convertComplexData(
+                self.getComplexData(copy=False), mode)
 
         return numpy.array(self._dataByModesCache[mode], copy=copy)
 
