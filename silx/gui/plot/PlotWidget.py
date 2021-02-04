@@ -910,8 +910,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
         :param info: User-defined information associated to the curve
-        :param bool replace: True (the default) to delete already existing
-                             curves
+        :param bool replace: True to delete already existing curves
+                             (the default is False)
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in colors.py
