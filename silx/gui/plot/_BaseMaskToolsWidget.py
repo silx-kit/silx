@@ -60,6 +60,9 @@ class BaseMask(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the mask has changed"""
 
+    sigStateChanged = qt.Signal()
+    """Signal emitted for each mask commit/undo/redo operation"""
+
     sigUndoable = qt.Signal(bool)
     """Signal emitted when undo becomes possible/impossible"""
 
@@ -158,6 +161,7 @@ class BaseMask(qt.QObject):
 
             if len(self._history) == 2:
                 self.sigUndoable.emit(True)
+        self.sigStateChanged.emit()
 
     def undo(self):
         """Restore previous mask if any"""
@@ -170,6 +174,7 @@ class BaseMask(qt.QObject):
                 self.sigRedoable.emit(True)
             if len(self._history) == 1:  # Last value in history
                 self.sigUndoable.emit(False)
+            self.sigStateChanged.emit()
 
     def redo(self):
         """Restore previously undone modification if any"""
@@ -182,8 +187,9 @@ class BaseMask(qt.QObject):
                 self.sigRedoable.emit(False)
             if len(self._history) == 2:  # Something to undo
                 self.sigUndoable.emit(True)
+            self.sigStateChanged.emit()
 
-                # Whole mask operations
+    # Whole stack operations
 
     def clear(self, level):
         """Set all values of the given mask level to 0.
