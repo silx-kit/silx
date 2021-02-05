@@ -51,6 +51,7 @@ from ._BaseMaskToolsWidget import BaseMask, BaseMaskToolsWidget, BaseMaskToolsDo
 from . import items
 from ..colors import cursorColorForColormap, rgba
 from .. import qt
+from ..utils import LockReentrant
 
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
@@ -102,13 +103,6 @@ class ImageMask(BaseMask):
         :rtype: 2D or 3D numpy.ndarray
         """
         return self._dataItem.getData(copy=False)
-
-    def commit(self):
-        """Append the current mask to history if changed"""
-        super().commit()
-        item = self.getDataItem()
-        if item is not None:
-            item.setMaskData(self.getMask(copy=True), copy=False)
 
     def save(self, filename, kind):
         """Save current mask in a file
@@ -292,6 +286,36 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         self._scale = (1., 1.)  # Mask scale in plot
         self._z = 1  # Mask layer in plot
         self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
+
+        self.__itemMaskUpdatedLock = LockReentrant()
+        self.__itemMaskUpdated = False
+
+    def __maskStateChanged(self) -> None:
+        """Handle mask commit to update item mask"""
+        item = self._mask.getDataItem()
+        if item is not None:
+            with self.__itemMaskUpdatedLock:
+                item.setMaskData(self._mask.getMask(copy=True), copy=False)
+
+    def setItemMaskUpdated(self, enabled: bool) -> None:
+        """Toggle item mask and mask tool synchronisation.
+
+        :param bool enabled: True to synchronise. Default: False
+        """
+        enabled = bool(enabled)
+        if enabled != self.__itemMaskUpdated:
+            if self.__itemMaskUpdated:
+                self._mask.sigStateChanged.disconnect(self.__maskStateChanged)
+            self.__itemMaskUpdated = enabled
+            if self.__itemMaskUpdated:
+                self._mask.sigStateChanged.connect(self.__maskStateChanged)
+
+    def isItemMaskUpdated(self) -> bool:
+        """Returns whether or not item and mask tool masks are synchronised.
+
+        :rtype: bool
+        """
+        return self.__itemMaskUpdated
 
     def setSelectionMask(self, mask, copy=True):
         """Set the mask to a new array.
@@ -504,8 +528,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                      items.ItemChangedType.ZVALUE):
             self.__imageUpdated()
 
-        elif event == items.ItemChangedType.MASK:
-            # Update mask from the image item
+        elif (event == items.ItemChangedType.MASK and
+                self.isItemMaskUpdated() and
+                not self.__itemMaskUpdatedLock.locked()):
+            # Update mask from the image item unless mask tool is updating it
             self.setSelectionMask(image.getMaskData(copy=False), copy=True)
 
     def __imageUpdated(self):
