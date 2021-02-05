@@ -770,7 +770,8 @@ class _ColormapHistogram(qt.QWidget):
             else:
                 histogram = numpy.array(histogram, copy=True)
                 bin_edges = numpy.array(bin_edges, copy=True)
-                norm_histogram = histogram / numpy.nanmax(histogram)
+                with numpy.errstate(invalid='ignore'):
+                    norm_histogram = histogram / numpy.nanmax(histogram)
                 self._plot.addHistogram(norm_histogram,
                                         bin_edges,
                                         legend="Data",
