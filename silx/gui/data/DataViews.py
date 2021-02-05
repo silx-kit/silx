@@ -1042,6 +1042,8 @@ class _Plot2dView(DataView):
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
+        maskToolsWidget = widget.getMaskToolsDockWidget().widget()
+        maskToolsWidget.setItemMaskUpdated(True)
         return widget
 
     def clear(self):
@@ -1156,6 +1158,8 @@ class _ComplexImageView(DataView):
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
         widget.getYAxis().setLabel('Y')
+        maskToolsWidget = widget.getPlot().getMaskToolsDockWidget().widget()
+        maskToolsWidget.setItemMaskUpdated(True)
         return widget
 
     def clear(self):
@@ -1254,6 +1258,8 @@ class _StackView(DataView):
         widget.setLabels(self.axesNames(None, None))
         # hide default option panel
         widget.setOptionVisible(False)
+        maskToolWidget = widget.getPlotWidget().getMaskToolsDockWidget().widget()
+        maskToolWidget.setItemMaskUpdated(True)
         return widget
 
     def clear(self):
