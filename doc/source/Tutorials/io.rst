@@ -72,6 +72,19 @@ It exposes an HDF5 group as a python object that resembles a python
 dictionary and an HDF5 dataset or attribute as an object that resembles a
 numpy array.
 
+
+silx.io.h5py_utils
+++++++++++++++++++
+
+The *h5py* library does not support concurrent HDF5 reading and writing in
+different processes in a convenient way. SWMR does not allow adding groups,
+datasets and attributes during writing. In addition SWMR does not work on
+network file systems.
+
+The module :mod:`silx.io.h5py_utils` provides utility methods for reading
+an HDF5 file that is being modified by another process without SWMR.
+
+
 API description
 ---------------
 
@@ -277,6 +290,39 @@ inside its context manager:
     with silx.io.open("data/CuZnO_2.spec") as sf:
         # read the information you need...
         maxPhi = sf["2.1/measurement/Phi"][...].max()
+
+
+Concurrent HDF5
++++++++++++++++
+
+When reading an HDF5 file that is being written to, exceptions
+can be raised when opening the file or reading data. The only
+solution is to retry opening and reading until it succeeds.
+
+For example to process all top-level groups of an HDF5 file:
+
+.. code-block:: python
+
+    import silx.io.h5py_utils
+
+    @silx.io.h5py_utils.retry()
+    def process_scan(filename, name):
+        """The method will be executed again if
+        any HDF5 IO fails.
+        """
+        with silx.io.h5py_utils.File(filename) as h5file:
+            scan = h5file[name]
+            I0 = scan["measurement/I0"][()]
+            It = scan["measurement/It"][()]
+            return It/I0
+
+    scans = silx.io.h5py_utils.safe_top_level_names("myfile.h5")
+
+    for name in scans:
+        result = process_scan("myfile.h5", name)
+
+Note that the method with the `retry` decorator has to be idempotent
+as it can be executed several times for one call.
 
 
 Additional resources
