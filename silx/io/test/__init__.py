@@ -40,6 +40,7 @@ from .test_nxdata import suite as test_nxdata_suite
 from .test_commonh5 import suite as test_commonh5_suite
 from .test_rawh5 import suite as test_rawh5_suite
 from .test_url import suite as test_url_suite
+from .test_h5py_utils import suite as test_h5py_utils_suite
 
 
 def suite():
@@ -56,4 +57,5 @@ def suite():
     test_suite.addTest(test_commonh5_suite())
     test_suite.addTest(test_rawh5_suite())
     test_suite.addTest(test_url_suite())
+    test_suite.addTest(test_h5py_utils_suite())
     return test_suite
