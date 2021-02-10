@@ -71,6 +71,7 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
+        self._autoResetZoom = True
         layout = qt.QStackedLayout(self)
         layout.setStackingMode(qt.QStackedLayout.StackAll)
 
@@ -88,6 +89,24 @@ class _PlotWithWaitingLabel(qt.QWidget):
         super(_PlotWithWaitingLabel, self).close()
         self.updateThread.stop()
 
+    def setAutoResetZoom(self, reset):
+        """
+        Should we reset the zoom when adding an image (eq. when browsing)
+
+        :param bool reset:
+        """
+        self._autoResetZoom = reset
+        if self._autoResetZoom:
+            self._plot.resetZoom()
+
+    def isAutoResetZoom(self):
+        """
+
+        :return: True if a reset is done when the image change
+        :rtype: bool
+        """
+        return self._autoResetZoom
+
     def setWaiting(self, activate=True):
         if activate is True:
             self._plot.clear()
@@ -97,7 +116,7 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def setData(self, data):
         self.setWaiting(activate=False)
-        self._plot.addImage(data=data)
+        self._plot.addImage(data=data, resetzoom=self._autoResetZoom)
 
     def clear(self):
         self._plot.clear()
@@ -601,3 +620,18 @@ class ImageStack(qt.QMainWindow):
         """display a simple image of loading..."""
         self._plot.setWaiting(activate=True)
 
+    def setAutoResetZoom(self, reset):
+        """
+        Should we reset the zoom when adding an image (eq. when browsing)
+
+        :param bool reset:
+        """
+        self._plot.setAutoResetZoom(reset)
+
+    def isAutoResetZoom(self) -> bool:
+        """
+
+        :return: True if a reset is done when the image change
+        :rtype: bool
+        """
+        return self._plot.isAutoResetZoom()
