@@ -18,6 +18,7 @@
    spech5.rst
    url.rst
    utils.rst
+   h5py_utils.rst
 
 Top-level functions
 -------------------

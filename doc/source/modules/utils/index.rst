@@ -9,3 +9,4 @@
     html.rst
     testutils.rst
     weakref.rst
+    retry.rst
