@@ -411,7 +411,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if image is not None:
             try:
                 image.sigItemChanged.disconnect(self.__imageChanged)
-            except TypeError:
+            except (RuntimeError, TypeError):
                 pass  # TODO should not happen
 
         if self.isMaskInteractionActivated():
