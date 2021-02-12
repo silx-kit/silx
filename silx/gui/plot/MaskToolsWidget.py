@@ -418,7 +418,15 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # Disable drawing tool
             self.browseAction.trigger()
 
-        if self.getSelectionMask(copy=False) is not None:
+        if self.isItemMaskUpdated():  # No "after-care"
+            self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
+            self._mask.setDataItem(None)
+            self._mask.reset()
+
+            if self.plot.getImage(self._maskName):
+                self.plot.remove(self._maskName, kind='image')
+
+        elif self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChangedAfterCare)
 
@@ -445,7 +453,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         else:
             self._defaultOverlayColor = rgba('black')
 
-    def _activeImageChangedAfterCare(self, *args):  # TODO
+    def _activeImageChangedAfterCare(self, *args):
         """Check synchro of active image and mask when mask widget is hidden.
 
         If active image has no more the same size as the mask, the mask is
@@ -516,6 +524,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 else:  # Image item has a mask: set it in tool
                     self.setSelectionMask(
                         image.getMaskData(copy=False), copy=True)
+                    self._mask.resetHistory()
             self.__imageUpdated()
             if self.isVisible():
                 image.sigItemChanged.connect(self.__imageChanged)
