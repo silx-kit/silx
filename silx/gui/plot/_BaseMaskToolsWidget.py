@@ -189,7 +189,7 @@ class BaseMask(qt.QObject):
                 self.sigUndoable.emit(True)
             self.sigStateChanged.emit()
 
-    # Whole stack operations
+    # Whole mask operations
 
     def clear(self, level):
         """Set all values of the given mask level to 0.
