@@ -508,6 +508,14 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._updateInteractiveMode()
 
         else:  # Update and connect to image's sigItemChanged
+            if self.isItemMaskUpdated():
+                if image.getMaskData(copy=False) is None:
+                    # Image item has no mask: use current mask from the tool
+                    image.setMaskData(
+                        self.getSelectionMask(copy=False), copy=True)
+                else:  # Image item has a mask: set it in tool
+                    self.setSelectionMask(
+                        image.getMaskData(copy=False), copy=True)
             self.__imageUpdated()
             if self.isVisible():
                 image.sigItemChanged.connect(self.__imageChanged)
