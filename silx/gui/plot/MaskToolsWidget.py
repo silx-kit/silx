@@ -485,16 +485,15 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._mask.setDataItem(activeImage)
                 self._updatePlotMask()
 
-    def _setMaskedImage(self, image, ignorePrevious=False):
+    def _setMaskedImage(self, image):
         """Change the image that is used a reference to author the mask"""
-        if not ignorePrevious:
-            previous = self.getMaskedItem()
-            if previous is not None and self.isVisible():
-                # Disconnect from previous image
-                try:
-                    previous.sigItemChanged.disconnect(self.__imageChanged)
-                except TypeError:
-                    pass  # TODO fixme should not happen
+        previous = self.getMaskedItem()
+        if previous is not None and self.isVisible():
+            # Disconnect from previous image
+            try:
+                previous.sigItemChanged.disconnect(self.__imageChanged)
+            except TypeError:
+                pass  # TODO fixme should not happen
 
         # Set the image
         self._mask.setDataItem(image)
