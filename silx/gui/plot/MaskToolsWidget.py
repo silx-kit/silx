@@ -308,6 +308,8 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self._mask.sigStateChanged.disconnect(self.__maskStateChanged)
             self.__itemMaskUpdated = enabled
             if self.__itemMaskUpdated:
+                # Synchronize item and tool mask
+                self._setMaskedImage(self._mask.getDataItem())
                 self._mask.sigStateChanged.connect(self.__maskStateChanged)
 
     def isItemMaskUpdated(self) -> bool:
