@@ -136,6 +136,15 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self.mouseRelease(
             plot, qt.Qt.LeftButton, pos=star[-1])
 
+    def _isMaskItemSync(self):
+        """Check if masks from item and tools are sync or not"""
+        if self.maskWidget.isItemMaskUpdated():
+            return numpy.all(numpy.equal(
+                self.maskWidget.getSelectionMask(),
+                self.plot.getActiveImage().getMaskData(copy=False)))
+        else:
+            return True
+
     def testWithAnImage(self):
         """Plot with an image: test MaskToolsWidget interactions"""
 
@@ -152,80 +161,91 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                  ((0, 0), (-1, -1)),
                  ((1000, 1000), (-1, -1))]
 
-        for origin, scale in tests:
-            with self.subTest(origin=origin, scale=scale):
-                self.plot.addImage(numpy.arange(1024**2).reshape(1024, 1024),
-                                   legend='test',
-                                   origin=origin,
-                                   scale=scale)
-                self.qapp.processEvents()
+        for itemMaskUpdated in (False, True):
+            for origin, scale in tests:
+                with self.subTest(origin=origin, scale=scale):
+                    self.maskWidget.setItemMaskUpdated(itemMaskUpdated)
+                    self.plot.addImage(numpy.arange(1024**2).reshape(1024, 1024),
+                                       legend='test',
+                                       origin=origin,
+                                       scale=scale)
+                    self.qapp.processEvents()
 
-                # Test draw rectangle #
-                toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
-                self.assertIsNot(toolButton, None)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
+                    self.assertEqual(
+                        self.maskWidget.isItemMaskUpdated(), itemMaskUpdated)
 
-                # mask
-                self.maskWidget.maskStateGroup.button(1).click()
-                self.qapp.processEvents()
-                self._drag()
-                self.assertFalse(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    # Test draw rectangle #
+                    toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
+                    self.assertIsNot(toolButton, None)
+                    self.mouseClick(toolButton, qt.Qt.LeftButton)
 
-                # unmask same region
-                self.maskWidget.maskStateGroup.button(0).click()
-                self.qapp.processEvents()
-                self._drag()
-                self.assertTrue(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    # mask
+                    self.maskWidget.maskStateGroup.button(1).click()
+                    self.qapp.processEvents()
+                    self._drag()
+                    self.assertFalse(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                # Test draw polygon #
-                toolButton = getQToolButtonFromAction(self.maskWidget.polygonAction)
-                self.assertIsNot(toolButton, None)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
+                    # unmask same region
+                    self.maskWidget.maskStateGroup.button(0).click()
+                    self.qapp.processEvents()
+                    self._drag()
+                    self.assertTrue(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                # mask
-                self.maskWidget.maskStateGroup.button(1).click()
-                self.qapp.processEvents()
-                self._drawPolygon()
-                self.assertFalse(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    # Test draw polygon #
+                    toolButton = getQToolButtonFromAction(self.maskWidget.polygonAction)
+                    self.assertIsNot(toolButton, None)
+                    self.mouseClick(toolButton, qt.Qt.LeftButton)
 
-                # unmask same region
-                self.maskWidget.maskStateGroup.button(0).click()
-                self.qapp.processEvents()
-                self._drawPolygon()
-                self.assertTrue(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    # mask
+                    self.maskWidget.maskStateGroup.button(1).click()
+                    self.qapp.processEvents()
+                    self._drawPolygon()
+                    self.assertFalse(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                # Test draw pencil #
-                toolButton = getQToolButtonFromAction(self.maskWidget.pencilAction)
-                self.assertIsNot(toolButton, None)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
+                    # unmask same region
+                    self.maskWidget.maskStateGroup.button(0).click()
+                    self.qapp.processEvents()
+                    self._drawPolygon()
+                    self.assertTrue(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                self.maskWidget.pencilSpinBox.setValue(30)
-                self.qapp.processEvents()
+                    # Test draw pencil #
+                    toolButton = getQToolButtonFromAction(self.maskWidget.pencilAction)
+                    self.assertIsNot(toolButton, None)
+                    self.mouseClick(toolButton, qt.Qt.LeftButton)
 
-                # mask
-                self.maskWidget.maskStateGroup.button(1).click()
-                self.qapp.processEvents()
-                self._drawPencil()
-                self.assertFalse(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.maskWidget.pencilSpinBox.setValue(30)
+                    self.qapp.processEvents()
 
-                # unmask same region
-                self.maskWidget.maskStateGroup.button(0).click()
-                self.qapp.processEvents()
-                self._drawPencil()
-                self.assertTrue(
-                    numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    # mask
+                    self.maskWidget.maskStateGroup.button(1).click()
+                    self.qapp.processEvents()
+                    self._drawPencil()
+                    self.assertFalse(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                # Test no draw tool #
-                toolButton = getQToolButtonFromAction(self.maskWidget.browseAction)
-                self.assertIsNot(toolButton, None)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
+                    # unmask same region
+                    self.maskWidget.maskStateGroup.button(0).click()
+                    self.qapp.processEvents()
+                    self._drawPencil()
+                    self.assertTrue(
+                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
+                    self.assertTrue(self._isMaskItemSync())
 
-                self.plot.clear()
+                    # Test no draw tool #
+                    toolButton = getQToolButtonFromAction(self.maskWidget.browseAction)
+                    self.assertIsNot(toolButton, None)
+                    self.mouseClick(toolButton, qt.Qt.LeftButton)
+
+                    self.plot.clear()
 
     def __loadSave(self, file_format):
         """Plot with an image: test MaskToolsWidget operations"""
