@@ -167,7 +167,10 @@ class ProfileRoiMixIn:
     def __profileWindowAboutToClose(self):
         profileManager = self.getProfileManager()
         roiManager = profileManager.getRoiManager()
-        roiManager.removeRoi(self)
+        try:
+            roiManager.removeRoi(self)
+        except ValueError:
+            pass
 
     def computeProfile(self, item):
         """
