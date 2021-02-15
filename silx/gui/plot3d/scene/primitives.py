@@ -1383,7 +1383,7 @@ class ColorPoints(_Points):
     """A set of points with an associated color and size."""
 
     _ATTR_INFO = _Points._ATTR_INFO.copy()
-    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (4,)}})
+    _ATTR_INFO.update({'value': {'dims': (1, 2), 'lastDim': (3, 4)}})
 
     def __init__(self, x, y, z, color=(1., 1., 1., 1.), size=1.,
                  indices=None):
