@@ -33,6 +33,7 @@ import os
 import tempfile
 import unittest
 import h5py
+from copy import deepcopy
 
 from collections import defaultdict
 
@@ -72,7 +73,63 @@ link_attrs["links"]["absolute_softlink"] = h5py.SoftLink("/links/group/dataset")
 link_attrs["links"]["external_link"] = h5py.ExternalLink(ext_filename, "/ext_group/dataset")
 
 
-class TestDictToH5(unittest.TestCase):
+class DictTestCase(unittest.TestCase):
+
+    def assertRecursiveEqual(self, expected, actual, nodes=tuple()):
+        err_msg = "\n\n Tree nodes: {}".format(nodes)
+        if isinstance(expected, dict):
+            self.assertTrue(isinstance(actual, dict), msg=err_msg)
+            self.assertEqual(
+                set(expected.keys()),
+                set(actual.keys()),
+                msg=err_msg
+            )
+            for k in actual:
+                self.assertRecursiveEqual(
+                    expected[k],
+                    actual[k],
+                    nodes=nodes + (k,),
+                )
+            return
+        if isinstance(actual, numpy.ndarray):
+            actual = actual.tolist()
+        if isinstance(expected, numpy.ndarray):
+            expected = expected.tolist()
+
+        self.assertEqual(expected, actual, msg=err_msg)
+
+
+class H5DictTestCase(DictTestCase):
+
+    def _dictRoundTripNormalize(self, treedict):
+        """Convert the dictionary as expected from a round-trip
+        treedict -> dicttoh5 -> h5todict -> newtreedict
+        """
+        for key, value in list(treedict.items()):
+            if isinstance(value, dict):
+                self._dictRoundTripNormalize(value)
+
+        # Expand treedict[("group", "attr_name")]
+        #     to treedict["group"]["attr_name"]
+        for key, value in list(treedict.items()):
+            if not isinstance(key, tuple):
+                continue
+            # Put the attribute inside the group
+            grpname, attr = key
+            if not grpname:
+                continue
+            group = treedict.setdefault(grpname, dict())
+            if isinstance(group, dict):
+                del treedict[key]
+                group[("", attr)] = value
+
+    def dictRoundTripNormalize(self, treedict):
+        treedict2 = deepcopy(treedict)
+        self._dictRoundTripNormalize(treedict2)
+        return treedict2
+
+
+class TestDictToH5(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
@@ -110,14 +167,13 @@ class TestDictToH5(unittest.TestCase):
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
 
-    def testH5Overwrite(self):
+    def testH5OverwriteDeprecatedApi(self):
         dd = ConfigDict({'t': True})
 
         dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
         dd = ConfigDict({'t': False})
-        with TestLogging(dictdump_logger, warning=1):
-            dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
-                     overwrite_data=False)
+        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
+                 overwrite_data=False)
 
         res = h5todict(self.h5_fname)
         assert(res['t'] == True)
@@ -200,8 +256,7 @@ class TestDictToH5(unittest.TestCase):
             ("group", "attr"): 10,
         }
         with h5py.File(self.h5_fname, "w") as h5file:
-            with TestLogging(dictdump_logger, warning=1):
-                dictdump.dicttoh5(ddict, h5file)
+            dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group"].attrs['attr'], 10)
 
     def testFlatDict(self):
@@ -241,8 +296,223 @@ class TestDictToH5(unittest.TestCase):
             numpy.testing.assert_array_equal(h5py_read_dataset(h5file["darks"]["0"]),
                                              ddict['darks']['0'])
 
+    def testOverwrite(self):
+        # Tree structure that will be tested
+        group1 = {
+            ("", "attr2"): "original2",
+            "dset1": 0,
+            "dset2": [0, 1],
+            ("dset1", "attr1"): "original1",
+            ("dset1", "attr2"): "original2",
+            ("dset2", "attr1"): "original1",
+            ("dset2", "attr2"): "original2",
+        }
+        group2 = {
+            "subgroup1": group1.copy(),
+            "subgroup2": group1.copy(),
+            ("subgroup1", "attr1"): "original1",
+            ("subgroup2", "attr1"): "original1"
+        }
+        group2.update(group1)
+        # initial HDF5 tree
+        otreedict = {
+            ('', 'attr1'): "original1",
+            ('', 'attr2'): "original2",
+            'group1': group1,
+            'group2': group2,
+            ('group1', 'attr1'): "original1",
+            ('group2', 'attr1'): "original1"
+        }
+        wtreedict = None  # dumped dictionary
+        etreedict = None  # expected HDF5 tree after dump
 
-class TestH5ToDict(unittest.TestCase):
+        def reset_file():
+            dicttoh5(
+                otreedict,
+                h5file=self.h5_fname,
+                mode="w",
+            )
+
+        def append_file(existing):
+            dicttoh5(
+                wtreedict,
+                h5file=self.h5_fname,
+                mode="a",
+                existing=existing
+            )
+
+        def assert_file():
+            rtreedict = h5todict(
+                self.h5_fname,
+                include_attributes=True,
+                asarray=False
+            )
+            netreedict = self.dictRoundTripNormalize(etreedict)
+            try:
+                self.assertRecursiveEqual(netreedict, rtreedict)
+            except AssertionError:
+                from pprint import pprint
+                print("\nDUMP:")
+                pprint(wtreedict)
+                print("\nEXPECTED:")
+                pprint(netreedict)
+                print("\nHDF5:")
+                pprint(rtreedict)
+                raise
+
+        def assert_append(existing):
+            append_file(existing)
+            assert_file()
+
+        # Test wrong arguments
+        with self.assertRaises(ValueError):
+            dicttoh5(
+                otreedict,
+                h5file=self.h5_fname,
+                mode="w",
+                existing="wrong-value"
+            )
+
+        # No writing
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        assert_file()
+
+        # Write identical dictionary
+        wtreedict = deepcopy(otreedict)
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add", "update", "overwrite"]:
+            assert_append(existing)
+
+        # Write empty dictionary
+        wtreedict = dict()
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add", "update", "overwrite"]:
+            assert_append(existing)
+
+        # Modified dataset
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = dict()
+        wtreedict["group2"]["subgroup2"]["dset1"] = {"dset3": [10, 20]}
+        wtreedict["group2"]["subgroup2"]["dset2"] = [10, 20]
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add"]:
+            assert_append(existing)
+
+        etreedict["group2"]["subgroup2"]["dset2"] = [10, 20]
+        assert_append("update")
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        etreedict["group2"]["subgroup2"] = dict()
+        etreedict["group2"]["subgroup2"]["dset1"] = {"dset3": [10, 20]}
+        etreedict["group2"]["subgroup2"]["dset2"] = [10, 20]
+        assert_append("overwrite")
+
+        # Modified group
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = [0, 1]
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add", "update"]:
+            assert_append(existing)
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        etreedict["group2"]["subgroup2"] = [0, 1]
+        assert_append("overwrite")
+
+        # Modified attribute
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = dict()
+        wtreedict["group2"]["subgroup2"][("dset1", "attr1")] = "modified"
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add"]:
+            assert_append(existing)
+
+        etreedict["group2"]["subgroup2"][("dset1", "attr1")] = "modified"
+        assert_append("update")
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        etreedict["group2"]["subgroup2"] = dict()
+        etreedict["group2"]["subgroup2"]["dset1"] = dict()
+        etreedict["group2"]["subgroup2"]["dset1"][("", "attr1")] = "modified"
+        assert_append("overwrite")
+
+        # Delete group
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = None
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add"]:
+            assert_append(existing)
+
+        del etreedict["group2"]["subgroup2"]
+        del etreedict["group2"][("subgroup2", "attr1")]
+        assert_append("update")
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        assert_append("overwrite")
+
+        # Delete dataset
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = dict()
+        wtreedict["group2"]["subgroup2"]["dset2"] = None
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add"]:
+            assert_append(existing)
+
+        del etreedict["group2"]["subgroup2"]["dset2"]
+        del etreedict["group2"]["subgroup2"][("dset2", "attr1")]
+        del etreedict["group2"]["subgroup2"][("dset2", "attr2")]
+        assert_append("update")
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        etreedict["group2"]["subgroup2"] = dict()
+        assert_append("overwrite")
+
+        # Delete attribute
+        wtreedict = dict()
+        wtreedict["group2"] = dict()
+        wtreedict["group2"]["subgroup2"] = dict()
+        wtreedict["group2"]["subgroup2"][("dset2", "attr1")] = None
+
+        reset_file()
+        etreedict = deepcopy(otreedict)
+        for existing in [None, "add"]:
+            assert_append(existing)
+
+        del etreedict["group2"]["subgroup2"][("dset2", "attr1")]
+        assert_append("update")
+
+        etreedict["group2"] = dict()
+        del etreedict[("group2", "attr1")]
+        etreedict["group2"]["subgroup2"] = dict()
+        etreedict["group2"]["subgroup2"]["dset2"] = dict()
+        assert_append("overwrite")
+
+
+class TestH5ToDict(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
@@ -313,7 +583,7 @@ class TestH5ToDict(unittest.TestCase):
         numpy.testing.assert_array_equal(ddict[("", "attr_2utf8")], adict[("", "attr_2utf8")])
 
 
-class TestDictToNx(unittest.TestCase):
+class TestDictToNx(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "nx.h5")
@@ -417,7 +687,7 @@ class TestDictToNx(unittest.TestCase):
             self.assertEqual(h5file["/links/group/subgroup/relative_softlink"][()], 10)
 
 
-class TestNxToDict(unittest.TestCase):
+class TestNxToDict(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "nx.h5")
@@ -510,7 +780,7 @@ class TestNxToDict(unittest.TestCase):
             h5todict(self.h5_fname, path="/Mars", errors='raise')
 
 
-class TestDictToJson(unittest.TestCase):
+class TestDictToJson(DictTestCase):
     def setUp(self):
         self.dir_path = tempfile.mkdtemp()
         self.json_fname = os.path.join(self.dir_path, "cityattrs.json")
@@ -528,7 +798,7 @@ class TestDictToJson(unittest.TestCase):
             self.assertIn('"inhabitants": 160215', json_content)
 
 
-class TestDictToIni(unittest.TestCase):
+class TestDictToIni(DictTestCase):
     def setUp(self):
         self.dir_path = tempfile.mkdtemp()
         self.ini_fname = os.path.join(self.dir_path, "test.ini")
