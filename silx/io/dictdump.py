@@ -384,7 +384,28 @@ def dicttoh5(treedict, h5file, h5path='/',
                 h5a[attr_name] = value
 
 
-def nexus_to_h5_dict(treedict, parents=tuple()):
+def _has_nx_class(treedict, key=""):
+    return key + "@NX_class" in treedict or \
+           (key, "NX_class") in treedict
+
+
+def _ensure_nx_class(treedict, parents=tuple()):
+    """Each group needs an "NX_class" attribute.
+    """
+    if _has_nx_class(treedict):
+        return
+    nparents = len(parents)
+    if nparents == 0:
+        treedict[("", "NX_class")] = "NXroot"
+    elif nparents == 1:
+        treedict[("", "NX_class")] = "NXentry"
+    else:
+        treedict[("", "NX_class")] = "NXcollection"
+
+
+def nexus_to_h5_dict(
+    treedict, parents=tuple(), add_nx_class=True, has_nx_class=False
+):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
         * key with ">{url}" notation: strip ">" and convert value to
@@ -395,14 +416,20 @@ def nexus_to_h5_dict(treedict, parents=tuple()):
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
     :param parents: Needed to resolve up-links (tuple of HDF5 group names)
+    :param add_nx_class: Add "NX_class" attribute when missing
+    :param has_nx_class: The "NX_class" attribute is defined in the parent
 
     :rtype dict:
     """
+    if not isinstance(treedict, Mapping):
+        raise TypeError("'treedict' must be a dictionary")
     copy = dict()
     for key, value in treedict.items():
         if "@" in key:
+            # HDF5 attribute
             key = tuple(key.rsplit("@", 1))
         elif key.startswith(">"):
+            # HDF5 link
             if isinstance(value, str):
                 key = key[1:]
                 first, sep, second = value.partition("::")
@@ -424,9 +451,18 @@ def nexus_to_h5_dict(treedict, parents=tuple()):
             elif is_link(value):
                 key = key[1:]
         if isinstance(value, Mapping):
-            copy[key] = nexus_to_h5_dict(value, parents=parents+(key,))
+            # HDF5 group
+            key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
+            copy[key] = nexus_to_h5_dict(
+                value,
+                parents=parents+(key,),
+                add_nx_class=add_nx_class,
+                has_nx_class=key_has_nx_class)
         else:
+            # HDF5 dataset or link
             copy[key] = value
+    if add_nx_class and not has_nx_class:
+        _ensure_nx_class(copy, parents)
     return copy
 
 
@@ -617,7 +653,7 @@ def h5todict(h5file,
     return ddict
 
 
-def dicttonx(treedict, h5file, h5path="/", **kw):
+def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     """
     Write a nested dictionary to a HDF5 file, using string keys as member names.
     The NeXus convention is used to identify attributes with ``"@"`` character,
@@ -630,6 +666,8 @@ def dicttonx(treedict, h5file, h5path="/", **kw):
          and array-like objects as leafs. The ``"/"`` character can be used
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
+    :param add_nx_class: Add "NX_class" attribute when missing. By default it
+        is ``True`` when ``existing`` is ``"add"`` or ``None``.
 
     The named parameters are passed to dicttoh5.
 
@@ -668,7 +706,11 @@ def dicttonx(treedict, h5file, h5path="/", **kw):
     """
     h5file, h5path = _normalize_h5_path(h5file, h5path)
     parents = tuple(p for p in h5path.split("/") if p)
-    nxtreedict = nexus_to_h5_dict(treedict, parents=parents)
+    if add_nx_class is None:
+        add_nx_class = kw.get("existing") in [None, "add"]
+    nxtreedict = nexus_to_h5_dict(
+        treedict, parents=parents, add_nx_class=add_nx_class
+    )
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 

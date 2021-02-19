@@ -686,6 +686,119 @@ class TestDictToNx(H5DictTestCase):
         with h5py.File(self.h5_fname, "r") as h5file:
             self.assertEqual(h5file["/links/group/subgroup/relative_softlink"][()], 10)
 
+    def testOverwrite(self):
+        entry_name = "entry"
+        wtreedict = {
+            "group1": {"a": 1, "b": 2},
+            "group2@attr3": "attr3",
+            "group2@attr4": "attr4",
+            "group2": {
+                "@attr1": "attr1",
+                "@attr2": "attr2",
+                "c": 3,
+                "d": 4,
+                "dataset4": 8,
+                "dataset4@units": "keV",
+            },
+            "group3": {"subgroup": {"e": 9, "f": 10}},
+            "dataset1": 5,
+            "dataset2": 6,
+            "dataset3": 7,
+            "dataset3@units": "mm",
+        }
+        esubtree = {
+            "@NX_class": "NXentry",
+            "group1": {"@NX_class": "NXcollection", "a": 1, "b": 2},
+            "group2": {
+                "@NX_class": "NXcollection",
+                "@attr1": "attr1",
+                "@attr2": "attr2",
+                "@attr3": "attr3",
+                "@attr4": "attr4",
+                "c": 3,
+                "d": 4,
+                "dataset4": 8,
+                "dataset4@units": "keV",
+            },
+            "group3": {
+                "@NX_class": "NXcollection",
+                "subgroup": {"@NX_class": "NXcollection", "e": 9, "f": 10},
+            },
+            "dataset1": 5,
+            "dataset2": 6,
+            "dataset3": 7,
+            "dataset3@units": "mm",
+        }
+        etreedict = {entry_name: esubtree}
+
+        def append_file(existing, add_nx_class):
+            dictdump.dicttonx(
+                wtreedict,
+                h5file=self.h5_fname,
+                mode="a",
+                h5path=entry_name,
+                existing=existing,
+                add_nx_class=add_nx_class
+            )
+
+        def assert_file():
+            rtreedict = dictdump.nxtodict(
+                self.h5_fname,
+                include_attributes=True,
+                asarray=False,
+            )
+            netreedict = self.dictRoundTripNormalize(etreedict)
+            try:
+                self.assertRecursiveEqual(netreedict, rtreedict)
+            except AssertionError:
+                from pprint import pprint
+                print("\nDUMP:")
+                pprint(wtreedict)
+                print("\nEXPECTED:")
+                pprint(netreedict)
+                print("\nHDF5:")
+                pprint(rtreedict)
+                raise
+
+        def assert_append(existing, add_nx_class=None):
+            append_file(existing, add_nx_class=add_nx_class)
+            assert_file()
+
+        # First to an empty file
+        assert_append(None)
+
+        # Add non-existing attributes/datasets/groups
+        wtreedict["group1"].pop("a")
+        wtreedict["group2"].pop("@attr1")
+        wtreedict["group2"]["@attr2"] = "attr3"  # only for update
+        wtreedict["group2"]["@type"] = "test"
+        wtreedict["group2"]["dataset4"] = 9  # only for update
+        del wtreedict["group2"]["dataset4@units"]
+        wtreedict["group3"] = {}
+        esubtree["group2"]["@type"] = "test"
+        assert_append("add")
+
+        # Add update existing attributes and datasets
+        esubtree["group2"]["@attr2"] = "attr3"
+        esubtree["group2"]["dataset4"] = 9
+        assert_append("update")
+
+        # Do not add missing NX_class by default when updating
+        wtreedict["group2"]["@NX_class"] = "NXprocess"
+        esubtree["group2"]["@NX_class"] = "NXprocess"
+        assert_append("update")
+        del wtreedict["group2"]["@NX_class"]
+        assert_append("update")
+
+        # Overwrite existing groups/datasets/attributes
+        esubtree["group1"].pop("a")
+        esubtree["group2"].pop("@attr1")
+        esubtree["group2"]["@NX_class"] = "NXcollection"
+        esubtree["group2"]["dataset4"] = 9
+        del esubtree["group2"]["dataset4@units"]
+        esubtree["group3"] = {"@NX_class": "NXcollection"}
+        assert_append("overwrite", add_nx_class=True)
+
 
 class TestNxToDict(H5DictTestCase):
     def setUp(self):
