@@ -714,7 +714,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 
-def nxtodict(h5file, **kw):
+def nxtodict(h5file, include_attributes=True, **kw):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -723,7 +723,7 @@ def nxtodict(h5file, **kw):
 
     The named parameters are passed to h5todict.
     """
-    nxtreedict = h5todict(h5file, **kw)
+    nxtreedict = h5todict(h5file, include_attributes=include_attributes, **kw)
     return h5_to_nexus_dict(nxtreedict)
 
 
