@@ -35,7 +35,11 @@ import sys
 import h5py
 
 from .configdict import ConfigDict
-from .utils import is_group, is_dataset, is_link, is_softlink, is_externallink
+from .utils import is_group
+from .utils import is_dataset
+from .utils import is_link
+from .utils import is_softlink
+from .utils import is_externallink
 from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 from .utils import h5py_read_dataset
@@ -68,7 +72,7 @@ def _prepare_hdf5_write_value(array_like):
         return array
 
 
-class _SafeH5FileWrite(object):
+class _SafeH5FileWrite:
     """Context manager returning a :class:`h5py.File` object.
 
     If this object is initialized with a file path, we open the file
@@ -84,7 +88,6 @@ class _SafeH5FileWrite(object):
     """
     def __init__(self, h5file, mode="w"):
         """
-
         :param h5file:  HDF5 file path or :class:`h5py.File` instance
         :param str mode:  Can be ``"r+"`` (read/write, file must exist),
             ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
@@ -138,6 +141,33 @@ class _SafeH5FileRead:
             self.h5file.close()
 
 
+def _normalize_h5_path(h5root, h5path):
+    """
+    :param h5root: File name or h5py-like File, Group or Dataset
+    :param str h5path: relative to ``h5root``
+    :returns 2-tuple: (File or file object, h5path)
+    """
+    if is_group(h5root):
+        group_name = h5root.name
+        if group_name == "/":
+            pass
+        elif h5path:
+            h5path = group_name + "/" + h5path
+        else:
+            h5path = group_name
+        h5file = h5root.file
+    elif is_dataset(h5root):
+        h5path = h5root.name
+        h5file = h5root.file
+    else:
+        h5file = h5root
+    if not h5path:
+        h5path = "/"
+    elif not h5path.endswith("/"):
+        h5path += "/"
+    return h5file, h5path
+
+
 def dicttoh5(treedict, h5file, h5path='/',
              mode="w", overwrite_data=None,
              create_dataset_args=None, existing=None):
@@ -163,10 +193,8 @@ def dicttoh5(treedict, h5file, h5path='/',
         to define sub trees. If tuples are used as keys they should have the
         format (dataset_name,attr_name) and will add a 5h attribute with the
         corresponding value.
-    :param h5file: HDF5 file name or handle. If a file name is provided, the
-        function opens the file in the specified mode and closes it again
-        before completing.
-    :param h5path: Target path in HDF5 file in which scan groups are created.
+    :param h5file: File name or h5py-like File, Group or Dataset
+    :param h5path: Target path in the HDF5 file relative to ``h5file``.
         Default is root (``"/"``)
     :param mode: Can be ``"r+"`` (read/write, file must exist),
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
@@ -246,8 +274,7 @@ def dicttoh5(treedict, h5file, h5path='/',
     if not isinstance(treedict, Mapping):
         raise TypeError("'treedict' must be a dictionary")
 
-    if not h5path.endswith("/"):
-        h5path += "/"
+    h5file, h5path = _normalize_h5_path(h5file, h5path)
 
     def _iter_treedict(attributes=False):
         nonlocal treedict
@@ -497,10 +524,8 @@ def h5todict(h5file,
         scalars). In some cases, you may find that a list of heterogeneous
         data types is converted to a numpy array of strings.
 
-    :param h5file: File name or :class:`h5py.File` object or spech5 file or
-        fabioh5 file.
-    :param str path: Name of HDF5 group to use as dictionary root level,
-        to read only a sub-group in the file
+    :param h5file: File name or h5py-like File, Group or Dataset
+    :param str path: Target path in the HDF5 file relative to ``h5file``
     :param List[str] exclude_names: Groups and datasets whose name contains
         a string in this list will be ignored. Default is None (ignore nothing)
     :param bool asarray: True (default) to read scalar as arrays, False to
@@ -514,6 +539,7 @@ def h5todict(h5file,
         - 'ignore': Ignore errors
     :return: Nested dictionary
     """
+    h5file, path = _normalize_h5_path(h5file, path)
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
         if path not in h5f:
@@ -640,6 +666,7 @@ def dicttonx(treedict, h5file, h5path="/", **kw):
 
         dicttonx(gauss,"test.h5")
     """
+    h5file, h5path = _normalize_h5_path(h5file, h5path)
     parents = tuple(p for p in h5path.split("/") if p)
     nxtreedict = nexus_to_h5_dict(treedict, parents=parents)
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
