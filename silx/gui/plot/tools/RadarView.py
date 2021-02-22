@@ -162,7 +162,7 @@ class RadarView(qt.QGraphicsView):
 
     _DATA_PEN = qt.QPen(qt.QColor('white'))
     _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
-    _VISIBLE_PEN = qt.QPen(qt.QColor('red'))
+    _VISIBLE_PEN = qt.QPen(qt.QColor('blue'))
     _VISIBLE_PEN.setWidth(2)
     _VISIBLE_PEN.setCosmetic(True)
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
