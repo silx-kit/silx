@@ -138,12 +138,7 @@ class ImageView(PlotWindow):
             self.HISTOGRAMS_HEIGHT)
         self._histoHPlot.setInteractiveMode('zoom')
         self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
-
-        self.setPanWithArrowKeys(True)
-
-        self.setInteractiveMode('zoom')  # Color set in setColormap
-        self.sigPlotSignal.connect(self._imagePlotCB)
-        self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
+        self._histoHPlot.setDataMargins(0., 0., 0.1, 0.1)
 
         self._histoVPlot = PlotWidget(backend=backend, parent=self)
         self._histoVPlot.getWidgetHandle().setMinimumWidth(
@@ -152,6 +147,12 @@ class ImageView(PlotWindow):
             self.HISTOGRAMS_HEIGHT)
         self._histoVPlot.setInteractiveMode('zoom')
         self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
+        self._histoVPlot.setDataMargins(0.1, 0.1, 0., 0.)
+
+        self.setPanWithArrowKeys(True)
+        self.setInteractiveMode('zoom')  # Color set in setColormap
+        self.sigPlotSignal.connect(self._imagePlotCB)
+        self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
         self._radarView = RadarView(parent=self)
         self._radarView.connectPlot(self)
@@ -258,20 +259,10 @@ class ImageView(PlotWindow):
                     xCoords = (coords + 1) // 2 + subsetXMin
                     xCoords = origin[0] + scale[0] * xCoords
                     xData = numpy.take(histoHVisibleData, coords // 2)
-                    vMin = self._cache['histoHMin']
-                    vMax = self._cache['histoHMax']
-                    vOffset = 0.1 * (vMax - vMin)
-                    if vOffset == 0.:
-                        vOffset = 1.
                     coords = numpy.arange(2 * histoVVisibleData.size)
                     yCoords = (coords + 1) // 2 + subsetYMin
                     yCoords = origin[1] + scale[1] * yCoords
                     yData = numpy.take(histoVVisibleData, coords // 2)
-                    vMin = self._cache['histoVMin']
-                    vMax = self._cache['histoVMax']
-                    vOffset = 0.1 * (vMax - vMin)
-                    if vOffset == 0.:
-                        vOffset = 1.
 
                     self._histoHPlot.addCurve(xCoords, xData,
                                               xlabel='', ylabel='',
@@ -288,12 +279,16 @@ class ImageView(PlotWindow):
                                               selectable=False,
                                               resetzoom=False)
 
+                    hMin = self._cache['histoHMin']
+                    hMax = self._cache['histoHMax']
                     axis = self._histoHPlot.getYAxis()
                     with blockSignals(axis):
-                        axis.setLimits(vMin - vOffset, vMax + vOffset)
+                        axis.setLimits(hMin, hMax)
+                    vMin = self._cache['histoVMin']
+                    vMax = self._cache['histoVMax']
                     axis = self._histoVPlot.getXAxis()
                     with blockSignals(axis):
-                        axis.setLimits(vMin - vOffset, vMax + vOffset)
+                        axis.setLimits(vMin, vMax)
             else:
                 self._dirtyCache()
                 self._histoHPlot.remove(kind='curve')
