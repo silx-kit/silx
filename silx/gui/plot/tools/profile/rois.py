@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -137,11 +137,7 @@ class _ImageProfileArea(items.Shape):
         if not isinstance(item, items.ImageBase):
             raise TypeError("Unexpected class %s" % type(item))
 
-        if isinstance(item, items.ImageRgba):
-            rgba = item.getData(copy=False)
-            currentData = rgba[..., 0]
-        else:
-            currentData = item.getData(copy=False)
+        currentData = item.getValueData(copy=False)
 
         roi = self.getParentRoi()
         origin = item.getOrigin()
@@ -310,15 +306,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 method=method)
             return coords, profile, profileName, xLabel
 
-        if isinstance(item, items.ImageRgba):
-            rgba = item.getData(copy=False)
-            is_uint8 = rgba.dtype.type == numpy.uint8
-            # luminosity
-            if is_uint8:
-                rgba = rgba.astype(numpy.float64)
-            currentData = 0.21 * rgba[..., 0] + 0.72 * rgba[..., 1] + 0.07 * rgba[..., 2]
-        else:
-            currentData = item.getData(copy=False)
+        currentData = item.getValueData(copy=False)
 
         yLabel = "%s" % str(method).capitalize()
         coords, profile, title, xLabel = createProfile2(currentData)
@@ -427,7 +415,7 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         scale = item.getScale()
         method = self.getProfileMethod()
         lineWidth = self.getProfileLineWidth()
-        currentData = item.getData(copy=False)
+        currentData = item.getValueData(copy=False)
 
         roiInfo = self._getRoiInfo()
         roiStart, roiEnd, _lineProjectionMode = roiInfo
