@@ -162,6 +162,10 @@ class RadarView(qt.QGraphicsView):
 
     _DATA_PEN = qt.QPen(qt.QColor('white'))
     _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
+    _ACTIVEDATA_PEN = qt.QPen(qt.QColor('black'))
+    _ACTIVEDATA_BRUSH = qt.QBrush(qt.QColor('transparent'))
+    _ACTIVEDATA_PEN.setWidth(2)
+    _ACTIVEDATA_PEN.setCosmetic(True)
     _VISIBLE_PEN = qt.QPen(qt.QColor('blue'))
     _VISIBLE_PEN.setWidth(2)
     _VISIBLE_PEN.setCosmetic(True)
@@ -176,6 +180,19 @@ class RadarView(qt.QGraphicsView):
         self._dataRect = self._scene.addRect(0, 0, 1, 1,
                                              self._DATA_PEN,
                                              self._DATA_BRUSH)
+        self._imageRect = self._scene.addRect(0, 0, 1, 1,
+                                              self._ACTIVEDATA_PEN,
+                                              self._ACTIVEDATA_BRUSH)
+        self._imageRect.setVisible(False)
+        self._scatterRect = self._scene.addRect(0, 0, 1, 1,
+                                                self._ACTIVEDATA_PEN,
+                                                self._ACTIVEDATA_BRUSH)
+        self._scatterRect.setVisible(False)
+        self._curveRect = self._scene.addRect(0, 0, 1, 1,
+                                              self._ACTIVEDATA_PEN,
+                                              self._ACTIVEDATA_BRUSH)
+        self._curveRect.setVisible(False)
+
         self._visibleRect = _DraggableRectItem(0, 0, 1, 1)
         self._visibleRect.setPen(self._VISIBLE_PEN)
         self._visibleRect.setBrush(self._VISIBLE_BRUSH)
@@ -303,3 +320,21 @@ class RadarView(qt.QGraphicsView):
         width = ranges.x[1] - ranges.x[0]
         height = ranges.y[1] - ranges.y[0]
         self.setDataRect(ranges.x[0], ranges.y[0], width, height)
+
+        def updateItem(rect, item):
+            if item is None:
+                rect.setVisible(False)
+                return
+            ranges = item._getBounds()
+            if ranges is None:
+                rect.setVisible(False)
+                return
+            xmin, xmax, ymin, ymax = ranges
+            width = xmax - xmin
+            height = ymax - ymin
+            rect.setRect(xmin, ymin, width, height)
+            rect.setVisible(True)
+
+        updateItem(self._imageRect, plot.getActiveImage())
+        updateItem(self._scatterRect, plot.getActiveScatter())
+        updateItem(self._curveRect, plot.getActiveCurve())
