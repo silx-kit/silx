@@ -47,6 +47,7 @@ __date__ = "26/04/2018"
 
 import logging
 import numpy
+import collections
 
 import silx
 from .. import qt
@@ -62,6 +63,92 @@ from .utils.axis import SyncAxes
 from ..utils import blockSignals
 
 _logger = logging.getLogger(__name__)
+
+
+ProfileSumResult = collections.namedtuple("ProfileResult",
+                                          ["dataXRange", "dataYRange",
+                                           'histoH', 'histoHRange',
+                                           'histoV', 'histoVRange',
+                                           "xCoords", "xData",
+                                           "yCoords", "yData"])
+
+
+def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
+    """
+    Compute a full vertical and horizontal profile on an image item using a
+    a range in the plot referential.
+
+    Optionally takes a previous computed result to be able to skip the
+    computation.
+
+    :rtype: ProfileSumResult
+    """
+    data = imageItem.getData(copy=False)
+    origin = imageItem.getOrigin()
+    scale = imageItem.getScale()
+    height, width = data.shape
+
+    xMin, xMax = xRange
+    yMin, yMax = yRange
+
+    # Convert plot area limits to image coordinates
+    # and work in image coordinates (i.e., in pixels)
+    xMin = int((xMin - origin[0]) / scale[0])
+    xMax = int((xMax - origin[0]) / scale[0])
+    yMin = int((yMin - origin[1]) / scale[1])
+    yMax = int((yMax - origin[1]) / scale[1])
+
+    if (xMin >= width or xMax < 0 or
+            yMin >= height or yMax < 0):
+        return None
+
+    # The image is at least partly in the plot area
+    # Get the visible bounds in image coords (i.e., in pixels)
+    subsetXMin = 0 if xMin < 0 else xMin
+    subsetXMax = (width if xMax >= width else xMax) + 1
+    subsetYMin = 0 if yMin < 0 else yMin
+    subsetYMax = (height if yMax >= height else yMax) + 1
+
+    if cache is not None:
+        if ((subsetXMin, subsetXMax) == cache.dataXRange and
+                (subsetYMin, subsetYMax) == cache.dataYRange):
+            # The visible area of data is the same
+            return cache
+
+    # Rebuild histograms for visible area
+    visibleData = data[subsetYMin:subsetYMax,
+                       subsetXMin:subsetXMax]
+    histoHVisibleData = numpy.sum(visibleData, axis=0)
+    histoVVisibleData = numpy.sum(visibleData, axis=1)
+    histoHMin = numpy.min(histoHVisibleData)
+    histoHMax = numpy.max(histoHVisibleData)
+    histoVMin = numpy.min(histoVVisibleData)
+    histoVMax = numpy.max(histoVVisibleData)
+
+    # Convert to histogram curve and update plots
+    # Taking into account origin and scale
+    coords = numpy.arange(2 * histoHVisibleData.size)
+    xCoords = (coords + 1) // 2 + subsetXMin
+    xCoords = origin[0] + scale[0] * xCoords
+    xData = numpy.take(histoHVisibleData, coords // 2)
+    coords = numpy.arange(2 * histoVVisibleData.size)
+    yCoords = (coords + 1) // 2 + subsetYMin
+    yCoords = origin[1] + scale[1] * yCoords
+    yData = numpy.take(histoVVisibleData, coords // 2)
+
+    result = ProfileSumResult(
+        dataXRange=(subsetXMin, subsetXMax),
+        dataYRange=(subsetYMin, subsetYMax),
+        histoH=histoHVisibleData,
+        histoHRange=(histoHMin, histoHMax),
+        histoV=histoVVisibleData,
+        histoVRange=(histoVMin, histoVMax),
+        xCoords=xCoords,
+        xData=xData,
+        yCoords=yCoords,
+        yData=yData)
+
+    return result
 
 
 class ImageView(PlotWindow):
@@ -201,96 +288,35 @@ class ImageView(PlotWindow):
         """Update histograms content using current active image."""
         activeImage = self.getActiveImage()
         if activeImage is not None:
-            data = activeImage.getData(copy=False)
-            origin = activeImage.getOrigin()
-            scale = activeImage.getScale()
-            height, width = data.shape
+            xRange = self.getXAxis().getLimits()
+            yRange = self.getYAxis().getLimits()
+            result = computeProfileSumOnRange(activeImage, xRange, yRange, self._cache)
+            self._cache = result
+            if result is not None:
+                self._histoHPlot.addCurve(result.xCoords, result.xData,
+                                          xlabel='', ylabel='',
+                                          replace=False,
+                                          color=self.HISTOGRAMS_COLOR,
+                                          linestyle='-',
+                                          selectable=False,
+                                          resetzoom=False)
+                self._histoVPlot.addCurve(result.yData, result.yCoords,
+                                          xlabel='', ylabel='',
+                                          replace=False,
+                                          color=self.HISTOGRAMS_COLOR,
+                                          linestyle='-',
+                                          selectable=False,
+                                          resetzoom=False)
 
-            xMin, xMax = self.getXAxis().getLimits()
-            yMin, yMax = self.getYAxis().getLimits()
-
-            # Convert plot area limits to image coordinates
-            # and work in image coordinates (i.e., in pixels)
-            xMin = int((xMin - origin[0]) / scale[0])
-            xMax = int((xMax - origin[0]) / scale[0])
-            yMin = int((yMin - origin[1]) / scale[1])
-            yMax = int((yMax - origin[1]) / scale[1])
-
-            if (xMin < width and xMax >= 0 and
-                    yMin < height and yMax >= 0):
-                # The image is at least partly in the plot area
-                # Get the visible bounds in image coords (i.e., in pixels)
-                subsetXMin = 0 if xMin < 0 else xMin
-                subsetXMax = (width if xMax >= width else xMax) + 1
-                subsetYMin = 0 if yMin < 0 else yMin
-                subsetYMax = (height if yMax >= height else yMax) + 1
-
-                if (self._cache is None or
-                        subsetXMin != self._cache['dataXMin'] or
-                        subsetXMax != self._cache['dataXMax'] or
-                        subsetYMin != self._cache['dataYMin'] or
-                        subsetYMax != self._cache['dataYMax']):
-                    # The visible area of data has changed, update histograms
-
-                    # Rebuild histograms for visible area
-                    visibleData = data[subsetYMin:subsetYMax,
-                                       subsetXMin:subsetXMax]
-                    histoHVisibleData = numpy.sum(visibleData, axis=0)
-                    histoVVisibleData = numpy.sum(visibleData, axis=1)
-
-                    self._cache = {
-                        'dataXMin': subsetXMin,
-                        'dataXMax': subsetXMax,
-                        'dataYMin': subsetYMin,
-                        'dataYMax': subsetYMax,
-
-                        'histoH': histoHVisibleData,
-                        'histoHMin': numpy.min(histoHVisibleData),
-                        'histoHMax': numpy.max(histoHVisibleData),
-
-                        'histoV': histoVVisibleData,
-                        'histoVMin': numpy.min(histoVVisibleData),
-                        'histoVMax': numpy.max(histoVVisibleData)
-                    }
-
-                    # Convert to histogram curve and update plots
-                    # Taking into account origin and scale
-                    coords = numpy.arange(2 * histoHVisibleData.size)
-                    xCoords = (coords + 1) // 2 + subsetXMin
-                    xCoords = origin[0] + scale[0] * xCoords
-                    xData = numpy.take(histoHVisibleData, coords // 2)
-                    coords = numpy.arange(2 * histoVVisibleData.size)
-                    yCoords = (coords + 1) // 2 + subsetYMin
-                    yCoords = origin[1] + scale[1] * yCoords
-                    yData = numpy.take(histoVVisibleData, coords // 2)
-
-                    self._histoHPlot.addCurve(xCoords, xData,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False,
-                                              resetzoom=False)
-                    self._histoVPlot.addCurve(yData, yCoords,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False,
-                                              resetzoom=False)
-
-                    hMin = self._cache['histoHMin']
-                    hMax = self._cache['histoHMax']
-                    axis = self._histoHPlot.getYAxis()
-                    with blockSignals(axis):
-                        axis.setLimits(hMin, hMax)
-                    vMin = self._cache['histoVMin']
-                    vMax = self._cache['histoVMax']
-                    axis = self._histoVPlot.getXAxis()
-                    with blockSignals(axis):
-                        axis.setLimits(vMin, vMax)
+                hMin, hMax = result.histoHRange
+                axis = self._histoHPlot.getYAxis()
+                with blockSignals(axis):
+                    axis.setLimits(hMin, hMax)
+                vMin, vMax = result.histoVRange
+                axis = self._histoVPlot.getXAxis()
+                with blockSignals(axis):
+                    axis.setLimits(vMin, vMax)
             else:
-                self._dirtyCache()
                 self._histoHPlot.remove(kind='curve')
                 self._histoVPlot.remove(kind='curve')
 
@@ -328,15 +354,15 @@ class ImageView(PlotWindow):
                     xOrigin = activeImage.getOrigin()[0]
                     xScale = activeImage.getScale()[0]
 
-                    minValue = xOrigin + xScale * self._cache['dataXMin']
+                    minValue = xOrigin + xScale * self._cache.dataXRange[0]
 
                     if eventDict['x'] >= minValue:
-                        data = self._cache['histoH']
+                        data = self._cache.histoH
                         column = int((eventDict['x'] - minValue) / xScale)
                         if column >= 0 and column < data.shape[0]:
                             self.valueChanged.emit(
                                 float('nan'),
-                                float(column + self._cache['dataXMin']),
+                                float(column + self._cache.dataXRange[0]),
                                 data[column])
 
     def _histoVPlotCB(self, eventDict):
@@ -348,14 +374,14 @@ class ImageView(PlotWindow):
                     yOrigin = activeImage.getOrigin()[1]
                     yScale = activeImage.getScale()[1]
 
-                    minValue = yOrigin + yScale * self._cache['dataYMin']
+                    minValue = yOrigin + yScale * self._cache.dataYRange[0]
 
                     if eventDict['y'] >= minValue:
-                        data = self._cache['histoV']
+                        data = self._cache.histoV
                         row = int((eventDict['y'] - minValue) / yScale)
                         if row >= 0 and row < data.shape[0]:
                             self.valueChanged.emit(
-                                float(row + self._cache['dataYMin']),
+                                float(row + self._cache.dataYRange[0]),
                                 float('nan'),
                                 data[row])
 
@@ -386,12 +412,12 @@ class ImageView(PlotWindow):
         else:
             if axis == 'x':
                 return dict(
-                    data=numpy.array(self._cache['histoH'], copy=True),
-                    extent=(self._cache['dataXMin'], self._cache['dataXMax']))
+                    data=numpy.array(self._cache.histoH, copy=True),
+                    extent=self._cache.dataXRange)
             else:
                 return dict(
-                    data=numpy.array(self._cache['histoV'], copy=True),
-                    extent=(self._cache['dataYMin'], self._cache['dataYMax']))
+                    data=numpy.array(self._cache.histoV, copy=True),
+                    extent=(self._cache.dataYRange))
 
     def radarView(self):
         """Get the lower right radarView widget."""
