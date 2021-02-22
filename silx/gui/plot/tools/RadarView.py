@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "22/02/2021"
 
 import logging
+import weakref
 from ... import qt
 
 _logger = logging.getLogger(__name__)
@@ -170,6 +171,7 @@ class RadarView(qt.QGraphicsView):
     _PIXMAP_SIZE = 256
 
     def __init__(self, parent=None):
+        self.__plotRef = None
         self._scene = qt.QGraphicsScene()
         self._dataRect = self._scene.addRect(0, 0, 1, 1,
                                              self._DATA_PEN,
@@ -185,6 +187,9 @@ class RadarView(qt.QGraphicsView):
         self.setFocusPolicy(qt.Qt.NoFocus)
         self.setStyleSheet('border: 0px')
         self.setToolTip(self._TOOLTIP)
+
+        self.__timer = qt.QTimer(self)
+        self.__timer.timeout.connect(self._updateDataContent)
 
     def sizeHint(self):
         # """Overridden to avoid sizeHint to depend on content size."""
@@ -213,6 +218,88 @@ class RadarView(qt.QGraphicsView):
 
         The coordinates are relative to the data rect.
         """
+        self.__visibleRect = left, top, width, height
         self._visibleRect.setRect(0, 0, width, height)
         self._visibleRect.setPos(left, top)
         self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
+
+    def __setVisibleRectFromPlot(self, plot):
+        """Update radar view visible area.
+
+        Takes care of y coordinate conversion.
+        """
+        xMin, xMax = plot.getXAxis().getLimits()
+        yMin, yMax = plot.getYAxis().getLimits()
+        self.setVisibleRect(xMin, yMin, xMax - xMin, yMax - yMin)
+
+    def getPlot(self):
+        """
+        Returns the connected plot
+        """
+        if self.__plotRef is None:
+            return None
+        plot = self.__plotRef()
+        if plot is None:
+            self.__plotRef = None
+        return plot
+
+    def connectPlot(self, plot):
+        """Connect a plot to the radar view.
+
+        As result `setDataRect` and `setVisibleRect` will be called
+        automatically.
+        """
+        self.__plotRef = weakref.ref(plot)
+        plot.getXAxis().sigLimitsChanged.connect(self._xLimitChanged)
+        plot.getYAxis().sigLimitsChanged.connect(self._yLimitChanged)
+        plot.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
+        self.__setVisibleRectFromPlot(plot)
+        self._updateYAxisInverted()
+        self.__timer.start(500)
+
+    def disconnectPlot(self, plot):
+        """Disconnect a plot to the radar view.
+
+        As result `setDataRect` and `setVisibleRect` will be called
+        automatically.
+        """
+        currentPlot = self.getPlot()
+        assert currentPlot is plot
+        self.__plotRef = None
+        plot.getXAxis().sigLimitsChanged.disconnect(self._xLimitChanged)
+        plot.getYAxis().sigLimitsChanged.disconnect(self._yLimitChanged)
+        plot.getYAxis().sigInvertedChanged.disconnect(self._updateYAxisInverted)
+        # FIXME: It would be good to clean up the display here
+        self.__timer.stop()
+
+    def _xLimitChanged(self, vmin, vmax):
+        plot = self.getPlot()
+        self.__setVisibleRectFromPlot(plot)
+
+    def _yLimitChanged(self, vmin, vmax):
+        plot = self.getPlot()
+        self.__setVisibleRectFromPlot(plot)
+
+    def _updateYAxisInverted(self, inverted=None):
+        """Sync radar view axis orientation."""
+        plot = self.getPlot()
+        if inverted is None:
+            # Do not perform this when called from plot signal
+            inverted = plot.getYAxis().isInverted()
+        # Use scale to invert radarView
+        # RadarView default Y direction is from top to bottom
+        # As opposed to Plot. So invert RadarView when Plot is NOT inverted.
+        self.resetTransform()
+        if not inverted:
+            self.scale(1., -1.)
+        self.update()
+
+    def _updateDataContent(self):
+        """Update the content to the current data content"""
+        plot = self.getPlot()
+        if plot is None:
+            return
+        ranges = plot.getDataRange()
+        width = ranges.x[1] - ranges.x[0]
+        height = ranges.y[1] - ranges.y[0]
+        self.setDataRect(ranges.x[0], ranges.y[0], width, height)

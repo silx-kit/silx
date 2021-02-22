@@ -157,6 +157,7 @@ class ImageView(PlotWindow):
         self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
 
         self._radarView = RadarView(parent=self)
+        self._radarView.connectPlot(self)
         self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
         self.__setCentralWidget()
@@ -299,15 +300,6 @@ class ImageView(PlotWindow):
 
             self._updatingLimits = wasUpdatingLimits
 
-    def _updateRadarView(self):
-        """Update radar view visible area.
-
-        Takes care of y coordinate conversion.
-        """
-        xMin, xMax = self.getXAxis().getLimits()
-        yMin, yMax = self.getYAxis().getLimits()
-        self._radarView.setVisibleRect(xMin, yMin, xMax - xMin, yMax - yMin)
-
     # Plots event listeners
 
     def _imagePlotCB(self, eventDict):
@@ -349,8 +341,6 @@ class ImageView(PlotWindow):
 
             # Set vertical histo limits
             self._histoVPlot.getYAxis().setLimits(yMin, yMax)
-
-            self._updateRadarView()
 
             self._updatingLimits = False
 
@@ -420,16 +410,6 @@ class ImageView(PlotWindow):
 
         self._histoVPlot.getYAxis().setInverted(inverted)
 
-        # Use scale to invert radarView
-        # RadarView default Y direction is from top to bottom
-        # As opposed to Plot. So invert RadarView when Plot is NOT inverted.
-        self._radarView.resetTransform()
-        if not inverted:
-            self._radarView.scale(1., -1.)
-        self._updateRadarView()
-
-        self._radarView.update()
-
     def _activeImageChangedSlot(self, previous, legend):
         """Handle Plot active image change.
 
@@ -474,12 +454,14 @@ class ImageView(PlotWindow):
         :param RadarView radarView: Widget subclassing RadarView to replace
                                     the lower right corner widget.
         """
-        self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
+        if self._radarView is not None:
+            self._radarView.disconnectPlot(self)
+            self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
         self._radarView = radarView
-        self._radarView.visibleRectDragged.connect(self._radarViewCB)
+        if self._radarView is not None:
+            self._radarView.connectPlot(self)
+            self._radarView.visibleRectDragged.connect(self._radarViewCB)
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
-
-        self._updateYAxisInverted()
 
     # High-level API
 
@@ -600,7 +582,6 @@ class ImageView(PlotWindow):
         data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
         assert len(data.shape) == 2
-        height, width = data.shape
 
         self.addImage(data,
                       legend=self._imageLegend,
@@ -609,11 +590,6 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-
-        self._radarView.setDataRect(origin[0],
-                                    origin[1],
-                                    width * scale[0],
-                                    height * scale[1])
 
         if reset:
             self.resetZoom()
