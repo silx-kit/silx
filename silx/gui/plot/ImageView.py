@@ -58,6 +58,8 @@ from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
 from .tools.RadarView import RadarView
+from .utils.axis import SyncAxes
+from ..utils import blockSignals
 
 _logger = logging.getLogger(__name__)
 
@@ -102,7 +104,6 @@ class ImageView(PlotWindow):
     def __init__(self, parent=None, backend=None):
         self._imageLegend = '__ImageView__image' + str(id(self))
         self._cache = None  # Store currently visible data information
-        self._updatingLimits = False
 
         super(ImageView, self).__init__(parent=parent, backend=backend,
                                         resetzoom=True, autoScale=False,
@@ -128,9 +129,6 @@ class ImageView(PlotWindow):
 
         self.addToolBar(self.profile)
 
-        # Sync PlotBackend and ImageView
-        self._updateYAxisInverted()
-
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
         self._histoHPlot = PlotWidget(backend=backend, parent=self)
@@ -145,7 +143,6 @@ class ImageView(PlotWindow):
 
         self.setInteractiveMode('zoom')  # Color set in setColormap
         self.sigPlotSignal.connect(self._imagePlotCB)
-        self.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
         self._histoVPlot = PlotWidget(backend=backend, parent=self)
@@ -158,6 +155,9 @@ class ImageView(PlotWindow):
 
         self._radarView = RadarView(parent=self)
         self._radarView.connectPlot(self)
+
+        self.__syncXAxis = SyncAxes([self.getXAxis(), self._histoHPlot.getXAxis()])
+        self.__syncYAxis = SyncAxes([self.getYAxis(), self._histoVPlot.getYAxis()])
 
         self.__setCentralWidget()
 
@@ -200,9 +200,6 @@ class ImageView(PlotWindow):
         """Update histograms content using current active image."""
         activeImage = self.getActiveImage()
         if activeImage is not None:
-            wasUpdatingLimits = self._updatingLimits
-            self._updatingLimits = True
-
             data = activeImage.getData(copy=False)
             origin = activeImage.getOrigin()
             scale = activeImage.getScale()
@@ -261,43 +258,46 @@ class ImageView(PlotWindow):
                     xCoords = (coords + 1) // 2 + subsetXMin
                     xCoords = origin[0] + scale[0] * xCoords
                     xData = numpy.take(histoHVisibleData, coords // 2)
-                    self._histoHPlot.addCurve(xCoords, xData,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False)
                     vMin = self._cache['histoHMin']
                     vMax = self._cache['histoHMax']
                     vOffset = 0.1 * (vMax - vMin)
                     if vOffset == 0.:
                         vOffset = 1.
-                    self._histoHPlot.getYAxis().setLimits(vMin - vOffset,
-                                                          vMax + vOffset)
-
                     coords = numpy.arange(2 * histoVVisibleData.size)
                     yCoords = (coords + 1) // 2 + subsetYMin
                     yCoords = origin[1] + scale[1] * yCoords
                     yData = numpy.take(histoVVisibleData, coords // 2)
-                    self._histoVPlot.addCurve(yData, yCoords,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False)
                     vMin = self._cache['histoVMin']
                     vMax = self._cache['histoVMax']
                     vOffset = 0.1 * (vMax - vMin)
                     if vOffset == 0.:
                         vOffset = 1.
-                    self._histoVPlot.getXAxis().setLimits(vMin - vOffset,
-                                                          vMax + vOffset)
+
+                    self._histoHPlot.addCurve(xCoords, xData,
+                                              xlabel='', ylabel='',
+                                              replace=False,
+                                              color=self.HISTOGRAMS_COLOR,
+                                              linestyle='-',
+                                              selectable=False,
+                                              resetzoom=False)
+                    self._histoVPlot.addCurve(yData, yCoords,
+                                              xlabel='', ylabel='',
+                                              replace=False,
+                                              color=self.HISTOGRAMS_COLOR,
+                                              linestyle='-',
+                                              selectable=False,
+                                              resetzoom=False)
+
+                    axis = self._histoHPlot.getYAxis()
+                    with blockSignals(axis):
+                        axis.setLimits(vMin - vOffset, vMax + vOffset)
+                    axis = self._histoVPlot.getXAxis()
+                    with blockSignals(axis):
+                        axis.setLimits(vMin - vOffset, vMax + vOffset)
             else:
                 self._dirtyCache()
                 self._histoHPlot.remove(kind='curve')
                 self._histoVPlot.remove(kind='curve')
-
-            self._updatingLimits = wasUpdatingLimits
 
     # Plots event listeners
 
@@ -322,26 +322,7 @@ class ImageView(PlotWindow):
                                                data[y][x])
 
         elif eventDict['event'] == 'limitsChanged':
-            self._updateHistogramsLimits()
-
-    def _updateHistogramsLimits(self):
-            # Do not handle histograms limitsChanged while
-            # updating their limits from here.
-            self._updatingLimits = True
-
-            # Refresh histograms
             self._updateHistograms()
-
-            xMin, xMax = self.getXAxis().getLimits()
-            yMin, yMax = self.getYAxis().getLimits()
-
-            # Set horizontal histo limits
-            self._histoHPlot.getXAxis().setLimits(xMin, xMax)
-
-            # Set vertical histo limits
-            self._histoVPlot.getYAxis().setLimits(yMin, yMax)
-
-            self._updatingLimits = False
 
     def _histoHPlotCB(self, eventDict):
         """Callback for horizontal histogram plot events."""
@@ -363,12 +344,6 @@ class ImageView(PlotWindow):
                                 float(column + self._cache['dataXMin']),
                                 data[column])
 
-        elif eventDict['event'] == 'limitsChanged':
-            if (not self._updatingLimits and
-                    eventDict['xdata'] != self.getXAxis().getLimits()):
-                xMin, xMax = eventDict['xdata']
-                self.getXAxis().setLimits(xMin, xMax)
-
     def _histoVPlotCB(self, eventDict):
         """Callback for vertical histogram plot events."""
         if eventDict['event'] == 'mouseMoved':
@@ -388,20 +363,6 @@ class ImageView(PlotWindow):
                                 float(row + self._cache['dataYMin']),
                                 float('nan'),
                                 data[row])
-
-        elif eventDict['event'] == 'limitsChanged':
-            if (not self._updatingLimits and
-                    eventDict['ydata'] != self.getYAxis().getLimits()):
-                yMin, yMax = eventDict['ydata']
-                self.getYAxis().setLimits(yMin, yMax)
-
-    def _updateYAxisInverted(self, inverted=None):
-        """Sync image, vertical histogram and radar view axis orientation."""
-        if inverted is None:
-            # Do not perform this when called from plot signal
-            inverted = self.getYAxis().isInverted()
-
-        self._histoVPlot.getYAxis().setInverted(inverted)
 
     def _activeImageChangedSlot(self, previous, legend):
         """Handle Plot active image change.
@@ -581,11 +542,8 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-
         if reset:
             self.resetZoom()
-        else:
-            self._updateHistogramsLimits()
 
 
 # ImageViewMainWindow #########################################################
