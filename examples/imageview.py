@@ -88,7 +88,10 @@ def main(argv=None):
     if not args.filename:
         logger.warning('No image file provided, displaying dummy data')
         edfFile = None
-        data = numpy.arange(1024 * 1024.).reshape(1024, 1024)
+        size = 512
+        xx, yy = numpy.ogrid[-size:size, -size:size]
+        data = numpy.cos(xx / (size//5)) + numpy.cos(yy / (size//5))
+        data = numpy.random.poisson(numpy.abs(data))
         nbFrames = 1
 
     else:
