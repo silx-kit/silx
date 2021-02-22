@@ -158,7 +158,6 @@ class ImageView(PlotWindow):
 
         self._radarView = RadarView(parent=self)
         self._radarView.connectPlot(self)
-        self._radarView.visibleRectDragged.connect(self._radarViewCB)
 
         self.__setCentralWidget()
 
@@ -396,12 +395,6 @@ class ImageView(PlotWindow):
                 yMin, yMax = eventDict['ydata']
                 self.getYAxis().setLimits(yMin, yMax)
 
-    def _radarViewCB(self, left, top, width, height):
-        """Slot for radar view visible rectangle changes."""
-        if not self._updatingLimits:
-            # Takes care of Y axis conversion
-            self.setLimits(left, left + width, top, top + height)
-
     def _updateYAxisInverted(self, inverted=None):
         """Sync image, vertical histogram and radar view axis orientation."""
         if inverted is None:
@@ -456,11 +449,9 @@ class ImageView(PlotWindow):
         """
         if self._radarView is not None:
             self._radarView.disconnectPlot(self)
-            self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
         self._radarView = radarView
         if self._radarView is not None:
             self._radarView.connectPlot(self)
-            self._radarView.visibleRectDragged.connect(self._radarViewCB)
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
     # High-level API

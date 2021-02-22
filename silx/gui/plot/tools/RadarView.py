@@ -35,6 +35,7 @@ __date__ = "22/02/2021"
 import logging
 import weakref
 from ... import qt
+from ...utils import LockReentrant
 
 _logger = logging.getLogger(__name__)
 
@@ -205,6 +206,9 @@ class RadarView(qt.QGraphicsView):
         self.setStyleSheet('border: 0px')
         self.setToolTip(self._TOOLTIP)
 
+        self.__reentrant = LockReentrant()
+        self.visibleRectDragged.connect(self._viewRectDragged)
+
         self.__timer = qt.QTimer(self)
         self.__timer.timeout.connect(self._updateDataContent)
 
@@ -310,6 +314,18 @@ class RadarView(qt.QGraphicsView):
         if not inverted:
             self.scale(1., -1.)
         self.update()
+
+    def _viewRectDragged(self, left, top, width, height):
+        """Slot for radar view visible rectangle changes."""
+        plot = self.getPlot()
+        if plot is None:
+            return
+
+        if self.__reentrant.locked():
+            return
+
+        with self.__reentrant:
+            plot.setLimits(left, left + width, top, top + height)
 
     def _updateDataContent(self):
         """Update the content to the current data content"""
