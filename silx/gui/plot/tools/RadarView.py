@@ -253,9 +253,10 @@ class RadarView(qt.QGraphicsView):
         yMin, yMax = plot.getYAxis().getLimits()
         self.setVisibleRect(xMin, yMin, xMax - xMin, yMax - yMin)
 
-    def getPlot(self):
-        """
-        Returns the connected plot
+    def getPlotWidget(self):
+        """Returns the connected plot
+
+        :rtype: Union[None,PlotWidget]
         """
         if self.__plotRef is None:
             return None
@@ -284,7 +285,7 @@ class RadarView(qt.QGraphicsView):
         As result `setDataRect` and `setVisibleRect` will be called
         automatically.
         """
-        currentPlot = self.getPlot()
+        currentPlot = self.getPlotWidget()
         assert currentPlot is plot
         self.__plotRef = None
         plot.getXAxis().sigLimitsChanged.disconnect(self._xLimitChanged)
@@ -294,16 +295,16 @@ class RadarView(qt.QGraphicsView):
         self.__timer.stop()
 
     def _xLimitChanged(self, vmin, vmax):
-        plot = self.getPlot()
+        plot = self.getPlotWidget()
         self.__setVisibleRectFromPlot(plot)
 
     def _yLimitChanged(self, vmin, vmax):
-        plot = self.getPlot()
+        plot = self.getPlotWidget()
         self.__setVisibleRectFromPlot(plot)
 
     def _updateYAxisInverted(self, inverted=None):
         """Sync radar view axis orientation."""
-        plot = self.getPlot()
+        plot = self.getPlotWidget()
         if inverted is None:
             # Do not perform this when called from plot signal
             inverted = plot.getYAxis().isInverted()
@@ -317,7 +318,7 @@ class RadarView(qt.QGraphicsView):
 
     def _viewRectDragged(self, left, top, width, height):
         """Slot for radar view visible rectangle changes."""
-        plot = self.getPlot()
+        plot = self.getPlotWidget()
         if plot is None:
             return
 
@@ -329,7 +330,7 @@ class RadarView(qt.QGraphicsView):
 
     def _updateDataContent(self):
         """Update the content to the current data content"""
-        plot = self.getPlot()
+        plot = self.getPlotWidget()
         if plot is None:
             return
         ranges = plot.getDataRange()
