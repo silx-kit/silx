@@ -61,6 +61,7 @@ from ...utils.proxy import docstring
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
+from . import _utils
 
 _logger = logging.getLogger(__name__)
 
@@ -151,6 +152,59 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
     return result
 
 
+class _SideHistogram(PlotWidget):
+    """
+    Widget displaying one of the side profile of the ImageView.
+    """
+
+    sigMouseMoved = qt.Signal(float, float)
+
+    def __init__(self, parent=None, backend=None, direction=qt.Qt.Horizontal):
+        super(_SideHistogram, self).__init__(parent=parent, backend=backend)
+        self._direction = direction
+        self.sigPlotSignal.connect(self._plotEvents)
+        self._color = "blue"
+
+    def _plotEvents(self, eventDict):
+        """Callback for horizontal histogram plot events."""
+        if eventDict['event'] == 'mouseMoved':
+            self.sigMouseMoved.emit(eventDict['x'], eventDict['y'])
+
+    def setProfileColor(self, color):
+        self._color = color
+
+    def setProfileSum(self, result):
+        if result is None:
+            self.remove(kind='curve')
+            return
+
+        margins = self.getDataMargins()
+
+        if self._direction == qt.Qt.Horizontal:
+            xx, yy = result.xCoords, result.xData
+            dataAxis = self.getYAxis()
+            vMin, vMax = result.histoHRange
+            _, _, vMin, vMax = _utils.addMarginsToLimits(margins, False, False, 0, 0, vMin, vMax)
+        elif self._direction == qt.Qt.Vertical:
+            xx, yy = result.yData, result.yCoords
+            dataAxis = self.getXAxis()
+            vMin, vMax = result.histoVRange
+            vMin, vMax, _, _ = _utils.addMarginsToLimits(margins, False, False, vMin, vMax, 0, 0)
+        else:
+            assert False
+
+        self.addCurve(xx, yy,
+                      xlabel='', ylabel='',
+                      replace=False,
+                      color=self._color,
+                      linestyle='-',
+                      selectable=False,
+                      resetzoom=False)
+
+        with blockSignals(dataAxis):
+            dataAxis.setLimits(vMin, vMax)
+
+
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
 
@@ -218,23 +272,23 @@ class ImageView(PlotWindow):
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
-        self._histoHPlot = PlotWidget(backend=backend, parent=self)
-        self._histoHPlot.getWidgetHandle().setMinimumHeight(
-            self.HISTOGRAMS_HEIGHT)
-        self._histoHPlot.getWidgetHandle().setMaximumHeight(
-            self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Horizontal)
+        widgetHandle = self._histoHPlot.getWidgetHandle()
+        widgetHandle.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
+        widgetHandle.setMaximumHeight(self.HISTOGRAMS_HEIGHT)
         self._histoHPlot.setInteractiveMode('zoom')
-        self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
         self._histoHPlot.setDataMargins(0., 0., 0.1, 0.1)
+        self._histoHPlot.sigMouseMoved.connect(self._mouseMovedOnHistoH)
+        self._histoHPlot.setProfileColor(self.HISTOGRAMS_COLOR)
 
-        self._histoVPlot = PlotWidget(backend=backend, parent=self)
-        self._histoVPlot.getWidgetHandle().setMinimumWidth(
-            self.HISTOGRAMS_HEIGHT)
-        self._histoVPlot.getWidgetHandle().setMaximumWidth(
-            self.HISTOGRAMS_HEIGHT)
+        self._histoVPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Vertical)
+        widgetHandle = self._histoVPlot.getWidgetHandle()
+        widgetHandle.setMinimumWidth(self.HISTOGRAMS_HEIGHT)
+        widgetHandle.setMaximumWidth(self.HISTOGRAMS_HEIGHT)
         self._histoVPlot.setInteractiveMode('zoom')
-        self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
         self._histoVPlot.setDataMargins(0.1, 0.1, 0., 0.)
+        self._histoVPlot.sigMouseMoved.connect(self._mouseMovedOnHistoV)
+        self._histoVPlot.setProfileColor(self.HISTOGRAMS_COLOR)
 
         self.setPanWithArrowKeys(True)
         self.setInteractiveMode('zoom')  # Color set in setColormap
@@ -292,33 +346,8 @@ class ImageView(PlotWindow):
             yRange = self.getYAxis().getLimits()
             result = computeProfileSumOnRange(activeImage, xRange, yRange, self._cache)
             self._cache = result
-            if result is not None:
-                self._histoHPlot.addCurve(result.xCoords, result.xData,
-                                          xlabel='', ylabel='',
-                                          replace=False,
-                                          color=self.HISTOGRAMS_COLOR,
-                                          linestyle='-',
-                                          selectable=False,
-                                          resetzoom=False)
-                self._histoVPlot.addCurve(result.yData, result.yCoords,
-                                          xlabel='', ylabel='',
-                                          replace=False,
-                                          color=self.HISTOGRAMS_COLOR,
-                                          linestyle='-',
-                                          selectable=False,
-                                          resetzoom=False)
-
-                hMin, hMax = result.histoHRange
-                axis = self._histoHPlot.getYAxis()
-                with blockSignals(axis):
-                    axis.setLimits(hMin, hMax)
-                vMin, vMax = result.histoVRange
-                axis = self._histoVPlot.getXAxis()
-                with blockSignals(axis):
-                    axis.setLimits(vMin, vMax)
-            else:
-                self._histoHPlot.remove(kind='curve')
-                self._histoVPlot.remove(kind='curve')
+            self._histoHPlot.setProfileSum(result)
+            self._histoVPlot.setProfileSum(result)
 
     # Plots event listeners
 
@@ -345,45 +374,47 @@ class ImageView(PlotWindow):
         elif eventDict['event'] == 'limitsChanged':
             self._updateHistograms()
 
-    def _histoHPlotCB(self, eventDict):
-        """Callback for horizontal histogram plot events."""
-        if eventDict['event'] == 'mouseMoved':
-            if self._cache is not None:
-                activeImage = self.getActiveImage()
-                if activeImage is not None:
-                    xOrigin = activeImage.getOrigin()[0]
-                    xScale = activeImage.getScale()[0]
+    def _mouseMovedOnHistoH(self, x, y):
+        if self._cache is None:
+            return
+        activeImage = self.getActiveImage()
+        if activeImage is None:
+            return
 
-                    minValue = xOrigin + xScale * self._cache.dataXRange[0]
+        xOrigin = activeImage.getOrigin()[0]
+        xScale = activeImage.getScale()[0]
 
-                    if eventDict['x'] >= minValue:
-                        data = self._cache.histoH
-                        column = int((eventDict['x'] - minValue) / xScale)
-                        if column >= 0 and column < data.shape[0]:
-                            self.valueChanged.emit(
-                                float('nan'),
-                                float(column + self._cache.dataXRange[0]),
-                                data[column])
+        minValue = xOrigin + xScale * self._cache.dataXRange[0]
 
-    def _histoVPlotCB(self, eventDict):
-        """Callback for vertical histogram plot events."""
-        if eventDict['event'] == 'mouseMoved':
-            if self._cache is not None:
-                activeImage = self.getActiveImage()
-                if activeImage is not None:
-                    yOrigin = activeImage.getOrigin()[1]
-                    yScale = activeImage.getScale()[1]
+        if x >= minValue:
+            data = self._cache.histoH
+            column = int((x - minValue) / xScale)
+            if column >= 0 and column < data.shape[0]:
+                self.valueChanged.emit(
+                    float('nan'),
+                    float(column + self._cache.dataXRange[0]),
+                    data[column])
 
-                    minValue = yOrigin + yScale * self._cache.dataYRange[0]
+    def _mouseMovedOnHistoV(self, x, y):
+        if self._cache is None:
+            return
+        activeImage = self.getActiveImage()
+        if activeImage is None:
+            return
 
-                    if eventDict['y'] >= minValue:
-                        data = self._cache.histoV
-                        row = int((eventDict['y'] - minValue) / yScale)
-                        if row >= 0 and row < data.shape[0]:
-                            self.valueChanged.emit(
-                                float(row + self._cache.dataYRange[0]),
-                                float('nan'),
-                                data[row])
+        yOrigin = activeImage.getOrigin()[1]
+        yScale = activeImage.getScale()[1]
+
+        minValue = yOrigin + yScale * self._cache.dataYRange[0]
+
+        if y >= minValue:
+            data = self._cache.histoV
+            row = int((y - minValue) / yScale)
+            if row >= 0 and row < data.shape[0]:
+                self.valueChanged.emit(
+                    float(row + self._cache.dataYRange[0]),
+                    float('nan'),
+                    data[row])
 
     def _activeImageChangedSlot(self, previous, legend):
         """Handle Plot active image change.
