@@ -333,9 +333,9 @@ class RadarView(qt.QGraphicsView):
         if plot is None:
             return
         ranges = plot.getDataRange()
-        width = ranges.x[1] - ranges.x[0]
-        height = ranges.y[1] - ranges.y[0]
-        self.setDataRect(ranges.x[0], ranges.y[0], width, height)
+        xmin, xmax = ranges.x if ranges.x is not None else (0, 0)
+        ymin, ymax = ranges.y if ranges.y is not None else (0, 0)
+        self.setDataRect(xmin, ymin, xmax - xmin, ymax - ymin)
 
         def updateItem(rect, item):
             if item is None:
