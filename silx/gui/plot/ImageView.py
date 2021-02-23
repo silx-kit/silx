@@ -51,6 +51,7 @@ import collections
 
 import silx
 from .. import qt
+from .. import colors
 
 from . import items, PlotWindow, PlotWidget, actions
 from ..colors import Colormap
@@ -62,6 +63,8 @@ from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
 from . import _utils
+from .tools.profile import manager
+from .tools.profile import rois
 
 _logger = logging.getLogger(__name__)
 
@@ -155,7 +158,11 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
 class _SideHistogram(PlotWidget):
     """
     Widget displaying one of the side profile of the ImageView.
+
+    Implement ProfileWindow
     """
+
+    sigClose = qt.Signal()
 
     sigMouseMoved = qt.Signal(float, float)
 
@@ -164,6 +171,8 @@ class _SideHistogram(PlotWidget):
         self._direction = direction
         self.sigPlotSignal.connect(self._plotEvents)
         self._color = "blue"
+        self.__profile = None
+        self.__profileSum = None
 
     def _plotEvents(self, eventDict):
         """Callback for horizontal histogram plot events."""
@@ -174,35 +183,175 @@ class _SideHistogram(PlotWidget):
         self._color = color
 
     def setProfileSum(self, result):
-        if result is None:
-            self.remove(kind='curve')
+        self.__profileSum = result
+        if self.__profile is None:
+            self.__drawProfileSum()
+
+    def prepareWidget(self, roi):
+        """Implements `ProfileWindow`"""
+        pass
+
+    def setRoiProfile(self, roi):
+        """Implements `ProfileWindow`"""
+        if roi is None:
+            return
+        self._roiColor = colors.rgba(roi.getColor())
+
+    def getProfile(self):
+        """Implements `ProfileWindow`"""
+        return self.__profile
+
+    def setProfile(self, data):
+        """Implements `ProfileWindow`"""
+        self.__profile = data
+        if data is None:
+            self.__drawProfileSum()
+        else:
+            self.__drawProfile()
+
+    def __drawProfileSum(self):
+        """Only draw the profile sum on the plot.
+
+        Other elements are removed
+        """
+        profileSum = self.__profileSum
+
+        try:
+            self.removeCurve('profile')
+        except Exception:
+            pass
+
+        if profileSum is None:
+            try:
+                self.removeCurve('profilesum')
+            except Exception:
+                pass
             return
 
-        margins = self.getDataMargins()
-
         if self._direction == qt.Qt.Horizontal:
-            xx, yy = result.xCoords, result.xData
-            dataAxis = self.getYAxis()
-            vMin, vMax = result.histoHRange
-            _, _, vMin, vMax = _utils.addMarginsToLimits(margins, False, False, 0, 0, vMin, vMax)
+            xx, yy = profileSum.xCoords, profileSum.xData
         elif self._direction == qt.Qt.Vertical:
-            xx, yy = result.yData, result.yCoords
-            dataAxis = self.getXAxis()
-            vMin, vMax = result.histoVRange
-            vMin, vMax, _, _ = _utils.addMarginsToLimits(margins, False, False, vMin, vMax, 0, 0)
+            xx, yy = profileSum.yData, profileSum.yCoords
         else:
             assert False
 
         self.addCurve(xx, yy,
                       xlabel='', ylabel='',
-                      replace=False,
+                      legend="profilesum",
                       color=self._color,
                       linestyle='-',
                       selectable=False,
                       resetzoom=False)
 
+        self.__updateLimits()
+
+    def __drawProfile(self):
+        """Only draw the profile on the plot.
+
+        Other elements are removed
+        """
+        profile = self.__profile
+
+        try:
+            self.removeCurve('profilesum')
+        except Exception:
+            pass
+
+        if profile is None:
+            try:
+                self.removeCurve('profile')
+            except Exception:
+                pass
+            self.setProfileSum(self.__profileSum)
+            return
+
+        if self._direction == qt.Qt.Horizontal:
+            xx, yy = profile.coords, profile.profile
+        elif self._direction == qt.Qt.Vertical:
+            xx, yy = profile.profile, profile.coords
+        else:
+            assert False
+
+        self.addCurve(xx,
+                      yy,
+                      legend="profile",
+                      color=self._roiColor,
+                      resetzoom=False)
+
+        self.__updateLimits()
+
+    def __updateLimits(self):
+        if self.__profile:
+            data = self.__profile.profile
+            vMin = numpy.nanmin(data)
+            vMax = numpy.nanmax(data)
+        elif self.__profileSum is not None:
+            if self._direction == qt.Qt.Horizontal:
+                vMin, vMax = self.__profileSum.histoHRange
+            elif self._direction == qt.Qt.Vertical:
+                vMin, vMax = self.__profileSum.histoVRange
+            else:
+                assert False
+        else:
+            vMin, vMax = 0, 0
+
+        # Tune the result using the data margins
+        margins = self.getDataMargins()
+        if self._direction == qt.Qt.Horizontal:
+            _, _, vMin, vMax = _utils.addMarginsToLimits(margins, False, False, 0, 0, vMin, vMax)
+        elif self._direction == qt.Qt.Vertical:
+            vMin, vMax, _, _ = _utils.addMarginsToLimits(margins, False, False, vMin, vMax, 0, 0)
+        else:
+            assert False
+
+        if self._direction == qt.Qt.Horizontal:
+            dataAxis = self.getYAxis()
+        elif self._direction == qt.Qt.Vertical:
+            dataAxis = self.getXAxis()
+        else:
+            assert False
+
         with blockSignals(dataAxis):
             dataAxis.setLimits(vMin, vMax)
+
+
+class _CustomProfileManager(manager.ProfileManager):
+    """This custom profile manager uses a single predefined profile window
+    if it is specified. Else the behavior is the same as the default
+    ProfileManager """
+
+    def setProfileWindow(self, profileWindow):
+        self.__profileWindow = profileWindow
+
+    def createProfileWindow(self, plot, roi):
+        if isinstance(roi, rois.ProfileImageVerticalLineROI):
+            return self._verticalWidget
+        if isinstance(roi, rois.ProfileImageHorizontalLineROI):
+            return self._horizontalWidget
+        if self.__profileWindow is not None:
+            return self.__profileWindow
+        else:
+            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+
+    def clearProfileWindow(self, profileWindow):
+        if profileWindow is self._horizontalWidget:
+            profileWindow.setProfile(None)
+        elif profileWindow is self._verticalWidget:
+            profileWindow.setProfile(None)
+        elif self.__profileWindow is not None:
+            self.__profileWindow.setProfile(None)
+        else:
+            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
+
+    def setSideWidgets(self, horizontalWidget, verticalWidget):
+        self._horizontalWidget = horizontalWidget
+        self._verticalWidget = verticalWidget
+
+
+class _ProfileToolBar(ProfileToolBar):
+    """Override the profile toolbar to provide our own profile manager"""
+    def createProfileManager(self, parent, plot):
+        return _CustomProfileManager(parent, plot)
 
 
 class ImageView(PlotWindow):
@@ -262,7 +411,8 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = ProfileToolBar(plot=self)
+        self.profile = _ProfileToolBar(plot=self)
+        self.profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
         """"Profile tools attached to this plot.
 
         See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
