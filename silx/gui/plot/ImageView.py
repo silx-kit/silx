@@ -610,11 +610,9 @@ class ImageView(PlotWindow):
         :param RadarView radarView: Widget subclassing RadarView to replace
                                     the lower right corner widget.
         """
-        if self._radarView is not None:
-            self._radarView.disconnectPlot(self)
+        self._radarView.disconnectPlot(self)
         self._radarView = radarView
-        if self._radarView is not None:
-            self._radarView.connectPlot(self)
+        self._radarView.connectPlot(self)
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
 
     # High-level API
