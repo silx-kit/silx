@@ -265,34 +265,33 @@ class RadarView(qt.QGraphicsView):
             self.__plotRef = None
         return plot
 
-    def connectPlot(self, plot):
-        """Connect a plot to the radar view.
+    def setPlotWidget(self, plot):
+        """Set the PlotWidget this radar view connects to.
 
         As result `setDataRect` and `setVisibleRect` will be called
         automatically.
-        """
-        self.__plotRef = weakref.ref(plot)
-        plot.getXAxis().sigLimitsChanged.connect(self._xLimitChanged)
-        plot.getYAxis().sigLimitsChanged.connect(self._yLimitChanged)
-        plot.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
-        self.__setVisibleRectFromPlot(plot)
-        self._updateYAxisInverted()
-        self.__timer.start(500)
 
-    def disconnectPlot(self, plot):
-        """Disconnect a plot to the radar view.
-
-        As result `setDataRect` and `setVisibleRect` will be called
-        automatically.
+        :param Union[None,PlotWidget] plot:
         """
-        currentPlot = self.getPlotWidget()
-        assert currentPlot is plot
-        self.__plotRef = None
-        plot.getXAxis().sigLimitsChanged.disconnect(self._xLimitChanged)
-        plot.getYAxis().sigLimitsChanged.disconnect(self._yLimitChanged)
-        plot.getYAxis().sigInvertedChanged.disconnect(self._updateYAxisInverted)
+        previousPlot = self.getPlotWidget()
+        if previousPlot is not None:  # Disconnect previous plot
+            plot.getXAxis().sigLimitsChanged.disconnect(self._xLimitChanged)
+            plot.getYAxis().sigLimitsChanged.disconnect(self._yLimitChanged)
+            plot.getYAxis().sigInvertedChanged.disconnect(self._updateYAxisInverted)
+
+        # Reset plot and timer
         # FIXME: It would be good to clean up the display here
+        self.__plotRef = None
         self.__timer.stop()
+
+        if plot is not None:  # Connect new plot
+            self.__plotRef = weakref.ref(plot)
+            plot.getXAxis().sigLimitsChanged.connect(self._xLimitChanged)
+            plot.getYAxis().sigLimitsChanged.connect(self._yLimitChanged)
+            plot.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
+            self.__setVisibleRectFromPlot(plot)
+            self._updateYAxisInverted()
+            self.__timer.start(500)
 
     def _xLimitChanged(self, vmin, vmax):
         plot = self.getPlotWidget()
