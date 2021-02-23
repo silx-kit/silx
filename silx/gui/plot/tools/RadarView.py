@@ -337,20 +337,25 @@ class RadarView(qt.QGraphicsView):
         ymin, ymax = ranges.y if ranges.y is not None else (0, 0)
         self.setDataRect(xmin, ymin, xmax - xmin, ymax - ymin)
 
-        def updateItem(rect, item):
-            if item is None:
-                rect.setVisible(False)
-                return
-            ranges = item._getBounds()
-            if ranges is None:
-                rect.setVisible(False)
-                return
-            xmin, xmax, ymin, ymax = ranges
-            width = xmax - xmin
-            height = ymax - ymin
-            rect.setRect(xmin, ymin, width, height)
-            rect.setVisible(True)
+        self.__updateItem(self._imageRect, plot.getActiveImage())
+        self.__updateItem(self._scatterRect, plot.getActiveScatter())
+        self.__updateItem(self._curveRect, plot.getActiveCurve())
 
-        updateItem(self._imageRect, plot.getActiveImage())
-        updateItem(self._scatterRect, plot.getActiveScatter())
-        updateItem(self._curveRect, plot.getActiveCurve())
+    def __updateItem(self, rect, item):
+        """Sync rect with item bounds
+
+        :param QGraphicsRectItem rect:
+        :param Item item:
+        """
+        if item is None:
+            rect.setVisible(False)
+            return
+        ranges = item._getBounds()
+        if ranges is None:
+            rect.setVisible(False)
+            return
+        xmin, xmax, ymin, ymax = ranges
+        width = xmax - xmin
+        height = ymax - ymin
+        rect.setRect(xmin, ymin, width, height)
+        rect.setVisible(True)
