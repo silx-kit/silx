@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -101,7 +101,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if data is None:
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
-
+        self.__valueDataCache = None  # Store default data
         self._origin = (0., 0.)
         self._scale = (1., 1.)
 
@@ -187,12 +187,40 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :param numpy.ndarray data:
         """
         self._data = data
+        self._valueDataChanged()
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
+
+    def _valueDataChanged(self):
+        """Clear cache of default data array"""
+        self.__valueDataCache = None
+
+    def _getValueData(self, copy=True):
+        """Return data used by :meth:`getValueData`
+
+        :param bool copy:
+        :rtype: numpy.ndarray
+        """
+        return self.getData(copy=copy)
+
+    def getValueData(self, copy=True):
+        """Return data (converted to int or float).
+
+        Masked values are set to Not-A-Number.
+        It returns a 2D array of values (int or float).
+
+        :param bool copy:
+        :rtype: numpy.ndarray
+        """
+        if self.__valueDataCache is None:
+            self.__valueDataCache = self._getValueData(copy=False)
+        return numpy.array(self.__valueDataCache, copy=copy)
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
 
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
         :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
         raise NotImplementedError('This MUST be implemented in sub-class')
@@ -422,6 +450,20 @@ class ImageRgba(ImageBase):
         assert data.ndim == 3
         assert data.shape[-1] in (3, 4)
         super().setData(data)
+
+    def _getValueData(self, copy=True):
+        """Compute the intensity of the RGBA image as default data.
+
+        Conversion: https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion
+
+        :param bool copy:
+        """
+        rgba = self.getRgbaImageData(copy=False).astype(numpy.float32)
+        intensity = (rgba[:, :, 0] * 0.299 +
+                     rgba[:, :, 1] * 0.587 +
+                     rgba[:, :, 2] * 0.114)
+        intensity *= rgba[:, :, 3] / 255.
+        return intensity
 
 
 class MaskImageData(ImageData):

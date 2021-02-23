@@ -184,6 +184,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
     def setComplexMode(self, mode):
         changed = super(ImageComplexData, self).setComplexMode(mode)
         if changed:
+            self._valueDataChanged()
+
             # Backward compatibility
             self._updated(ItemChangedType.VISUALIZATION_MODE)
 
