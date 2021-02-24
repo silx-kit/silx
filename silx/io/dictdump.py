@@ -263,10 +263,11 @@ def dicttoh5(treedict, h5file, h5path='/',
         else:
             existing = "add"
     else:
-        if existing not in ["add", "overwrite", "update"]:
+        valid_existing_values = ("add", "overwrite", "update")
+        if existing not in valid_existing_values:
             raise ValueError((
-                'Argument "existing" can only have values '
-                '"add", "overwrite" and "update"'
+                "Argument 'existing' can only have values: {}"
+                "".format(valid_existing_values)
             ))
         if overwrite_data is not None:
             logger.warning("The argument `overwrite_data` is ignored")
