@@ -206,13 +206,14 @@ def dicttoh5(treedict, h5file, h5path='/',
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5f.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-    :param existing: can be 'add' (default), 'update' or 'overwrite'.
-        add: Existing HDF5 items are untouched. Nodes from the dict tree are
+    :param existing: Can be ``add`` (default), ``update`` or ``overwrite``.
+
+        * ``add``: Existing HDF5 items are untouched. Nodes from the dict tree are
             added to the HDF5 tree when the existing HDF5 tree allows it.
-        update: Existing HDF5 items may be updated or deleted explicitly
+        * ``update``: Existing HDF5 items may be updated or deleted explicitly
             by assigning them to `None`. The dict tree will be a subtree
             of the HDF5 tree.
-        overwrite: Existing HDF5 items may be overwritten or deleted.
+        * ``overwrite``: Existing HDF5 items may be overwritten or deleted.
             The HDF5 tree will be exactly the dict tree, except for already
             existing top-level items that were not deleted explicitly by
             assigning them to `None`.
