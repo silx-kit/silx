@@ -246,8 +246,8 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if overwrite_data is not None:
         reason = (
-            '`overwrite_data=True` becomes `existing="update"` and '
-            '`overwrite_data=False` becomes `existing="add"`'
+            "`overwrite_data=True` becomes `existing='update'` and "
+            "`overwrite_data=False` becomes `existing='add'`"
         )
         deprecated_warning(
             type_="argument",
@@ -283,7 +283,7 @@ def dicttoh5(treedict, h5file, h5path='/',
             if isinstance(key, tuple) == attributes:
                 yield key, value
 
-    change_allowed = existing in ["overwrite", "update"]
+    change_allowed = existing in ("overwrite", "update")
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
         # Create the root of the tree
