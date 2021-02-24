@@ -382,7 +382,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                 if exists and not change_allowed:
                     continue
                 data = _prepare_hdf5_write_value(value)
-                h5a[attr_name] = value
+                h5a[attr_name] = data
 
 
 def _has_nx_class(treedict, key=""):
