@@ -254,7 +254,7 @@ def dicttoh5(treedict, h5file, h5path='/',
             name="overwrite_data",
             reason=reason,
             replacement="existing",
-            since_version="x.y.z",
+            since_version="0.15",
         )
 
     if existing is None:
