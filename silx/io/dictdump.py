@@ -708,7 +708,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     h5file, h5path = _normalize_h5_path(h5file, h5path)
     parents = tuple(p for p in h5path.split("/") if p)
     if add_nx_class is None:
-        add_nx_class = kw.get("existing") in [None, "add"]
+        add_nx_class = kw.get("existing", None) in (None, "add")
     nxtreedict = nexus_to_h5_dict(
         treedict, parents=parents, add_nx_class=add_nx_class
     )
