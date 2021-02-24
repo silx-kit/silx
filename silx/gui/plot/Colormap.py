@@ -25,11 +25,9 @@
 """Deprecated module providing the Colormap object
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
-__date__ = "24/04/2018"
+__date__ = "27/11/2020"
 
 import silx.utils.deprecation
 

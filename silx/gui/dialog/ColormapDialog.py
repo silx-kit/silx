@@ -59,12 +59,9 @@ The updates of the colormap description are also available through the signal:
 :attr:`ColormapDialog.sigColormapChanged`.
 """  # noqa
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
-__date__ = "27/11/2018"
-
+__date__ = "08/12/2020"
 
 import enum
 import logging
@@ -91,7 +88,6 @@ from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 
 _logger = logging.getLogger(__name__)
-
 
 _colormapIconPreview = {}
 
@@ -513,6 +509,7 @@ class _ColormapHistogram(qt.QWidget):
         :returns: Tuple{float, float}
         """
         scale = self._plot.getXAxis().getScale()
+
         def isDisplayable(pos):
             if pos is None:
                 return False
@@ -773,7 +770,8 @@ class _ColormapHistogram(qt.QWidget):
             else:
                 histogram = numpy.array(histogram, copy=True)
                 bin_edges = numpy.array(bin_edges, copy=True)
-                norm_histogram = histogram / max(histogram)
+                with numpy.errstate(invalid='ignore'):
+                    norm_histogram = histogram / numpy.nanmax(histogram)
                 self._plot.addHistogram(norm_histogram,
                                         bin_edges,
                                         legend="Data",
@@ -1130,9 +1128,9 @@ class ColormapDialog(qt.QDialog):
         if data.ndim == 3:  # RGB(A) images
             _logger.info('Converting current image from RGB(A) to grayscale\
                 in order to compute the intensity distribution')
-            data = (data[:, :, 0] * 0.299 +
-                    data[:, :, 1] * 0.587 +
-                    data[:, :, 2] * 0.114)
+            data = (data[:,:, 0] * 0.299 +
+                    data[:,:, 1] * 0.587 +
+                    data[:,:, 2] * 0.114)
 
         # bad hack: get 256 continuous bins in the case we have a B&W
         normalizeData = True
@@ -1177,7 +1175,7 @@ class ColormapDialog(qt.QDialog):
         bins = histogram.edges[0]
         if normalizeData:
             if scale == Colormap.LOGARITHM:
-                bins = 10**bins
+                bins = 10 ** bins
         return histogram.histo, bins
 
     def _getItem(self):

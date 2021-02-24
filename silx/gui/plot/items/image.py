@@ -28,8 +28,7 @@ of the :class:`Plot`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/10/2017"
-
+__date__ = "08/12/2020"
 
 try:
     from collections import abc
@@ -42,7 +41,6 @@ import numpy
 from ....utils.proxy import docstring
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
-
 
 _logger = logging.getLogger(__name__)
 
@@ -80,8 +78,8 @@ def _convertImageToRgba32(image, copy=True):
     if image.shape[-1] == 3:
         new_image = numpy.empty((image.shape[0], image.shape[1], 4),
                                 dtype=numpy.uint8)
-        new_image[:, :, :3] = image
-        new_image[:, :, 3] = 255
+        new_image[:,:,:3] = image
+        new_image[:,:, 3] = 255
         return new_image  # This is a copy anyway
     else:
         return numpy.array(image, copy=copy)
@@ -93,7 +91,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     :param numpy.ndarray data: Initial image data
     """
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, mask=None):
         DataItem.__init__(self)
         LabelsMixIn.__init__(self)
         DraggableMixIn.__init__(self)
@@ -101,6 +99,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if data is None:
             data = numpy.zeros((0, 0, 4), dtype=numpy.uint8)
         self._data = data
+        self._mask = mask
         self.__valueDataCache = None  # Store default data
         self._origin = (0., 0.)
         self._scale = (1., 1.)
@@ -186,10 +185,58 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
         :param numpy.ndarray data:
         """
+        previousShape = self._data.shape
         self._data = data
         self._valueDataChanged()
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
+
+        if (self.getMaskData(copy=False) is not None and
+                previousShape != self._data.shape):
+            # Data shape changed, so mask shape changes.
+            # Send event, mask is lazily updated in getMaskData
+            self._updated(ItemChangedType.MASK)
+
+    def getMaskData(self, copy=True):
+        """Returns the mask data
+
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        :rtype: Union[None,numpy.ndarray]
+        """
+        if self._mask is None:
+            return None
+
+        # Update mask if it does not match data shape
+        shape = self.getData(copy=False).shape[:2]
+        if self._mask.shape != shape:
+            # Clip/extend mask to match data
+            newMask = numpy.zeros(shape, dtype=self._mask.dtype)
+            newMask[:self._mask.shape[0], :self._mask.shape[1]] = self._mask[:shape[0], :shape[1]]
+            self._mask = newMask
+
+        return numpy.array(self._mask, copy=copy)
+
+    def setMaskData(self, mask, copy=True):
+        """Set the image data
+
+        :param numpy.ndarray data:
+        :param bool copy: True (Default) to make a copy,
+                          False to use as is (do not modify!)
+        """
+        if mask is not None:
+            mask = numpy.array(mask, copy=copy)
+
+            shape = self.getData(copy=False).shape[:2]
+            if mask.shape != shape:
+                _logger.warning("Inconsistent shape between mask and data %s, %s", mask.shape, shape)
+                # Clip/extent is done lazily in getMaskData
+        elif self._mask is None:
+            return  # No update
+
+        self._mask = mask
+        self._valueDataChanged()
+        self._updated(ItemChangedType.MASK)
 
     def _valueDataChanged(self):
         """Clear cache of default data array"""
@@ -204,7 +251,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         return self.getData(copy=copy)
 
     def getValueData(self, copy=True):
-        """Return data (converted to int or float).
+        """Return data (converted to int or float) with mask applied.
 
         Masked values are set to Not-A-Number.
         It returns a 2D array of values (int or float).
@@ -213,7 +260,16 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         :rtype: numpy.ndarray
         """
         if self.__valueDataCache is None:
-            self.__valueDataCache = self._getValueData(copy=False)
+            data = self._getValueData(copy=False)
+            mask = self.getMaskData(copy=False)
+            if mask is not None:
+                if numpy.issubdtype(data.dtype, numpy.floating):
+                    dtype = data.dtype
+                else:
+                    dtype = numpy.float64
+                data = numpy.array(data, dtype=dtype, copy=True)
+                data[mask != 0] = numpy.NaN
+            self.__valueDataCache = data
         return numpy.array(self.__valueDataCache, copy=copy)
 
     def getRgbaImageData(self, copy=True):
@@ -336,7 +392,7 @@ class ImageData(ImageBase, ColormapMixIn):
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
-                image[:, :, 3] = image[:, :, 3] * alphaImage
+                image[:,:, 3] = image[:,:, 3] * alphaImage
             return image
 
     def getAlternativeImageData(self, copy=True):
@@ -386,7 +442,6 @@ class ImageData(ImageBase, ColormapMixIn):
             _logger.warning(
                 'Converting complex image to absolute value to plot it.')
             data = numpy.absolute(data)
-        self._setColormappedData(data, copy=False)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -405,6 +460,14 @@ class ImageData(ImageBase, ColormapMixIn):
         self.__alpha = alpha
 
         super().setData(data)
+
+    def _updated(self, event=None, checkVisibility=True):
+        # Synchronizes colormapped data if changed
+        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
+            self._setColormappedData(
+                self.getValueData(copy=False),
+                copy=False)
+        super()._updated(event=event, checkVisibility=checkVisibility)
 
 
 class ImageRgba(ImageBase):

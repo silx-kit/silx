@@ -33,7 +33,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/04/2020"
+__date__ = "01/12/2020"
 
 import numpy
 import weakref
@@ -284,7 +284,7 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
             roiStart, roiEnd = self.getEndPoints()
         else:
             assert False
-    
+
         return roiStart, roiEnd, lineProjectionMode
 
     def computeProfile(self, item):
@@ -436,8 +436,8 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
             method=method)
 
         # Compute the line size
-        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1])**2 +
-                              (roiEnd[0] - roiStart[0])**2)
+        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1]) ** 2 +
+                              (roiEnd[0] - roiStart[0]) ** 2)
         coords = numpy.linspace(0, lineSize, len(profile),
                                 endpoint=True,
                                 dtype=numpy.float32)

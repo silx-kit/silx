@@ -34,7 +34,7 @@ The following QAction are available:
 from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "10/10/2018"
+__date__ = "01/12/2020"
 __license__ = "MIT"
 
 import numpy
@@ -173,7 +173,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self.computeIntensityDistribution()
 
     def _itemUpdated(self, event):
-        if event == items.ItemChangedType.DATA:
+        if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
             self.computeIntensityDistribution()
 
     def _cleanUp(self):

@@ -371,6 +371,8 @@ class ArrayImagePlot(qt.QWidget):
                                                normalization=Colormap.LINEAR))
         self._plot.getIntensityHistogramAction().setVisible(True)
         self._plot.setKeepDataAspectRatio(True)
+        maskToolWidget = self._plot.getMaskToolsDockWidget().widget()
+        maskToolWidget.setItemMaskUpdated(True)
 
         # not closable
         self._selector = NumpyAxesSelector(self)
@@ -587,6 +589,8 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         self._plot.getPlot().getIntensityHistogramAction().setVisible(True)
         self._plot.setKeepDataAspectRatio(True)
+        maskToolWidget = self._plot.getPlot().getMaskToolsDockWidget().widget()
+        maskToolWidget.setItemMaskUpdated(True)
 
         # not closable
         self._selector = NumpyAxesSelector(self)
@@ -769,6 +773,9 @@ class ArrayStackPlot(qt.QWidget):
         self.__x_axis_name = None
 
         self._stack_view = StackView(self)
+        maskToolWidget = self._stack_view.getPlotWidget().getMaskToolsDockWidget().widget()
+        maskToolWidget.setItemMaskUpdated(True)
+
         self._hline = qt.QFrame(self)
         self._hline.setFrameStyle(qt.QFrame.HLine)
         self._hline.setFrameShadow(qt.QFrame.Sunken)

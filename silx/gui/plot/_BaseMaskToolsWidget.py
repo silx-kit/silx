@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/04/2019"
+__date__ = "08/12/2020"
 
 import os
 import weakref
@@ -60,6 +60,9 @@ class BaseMask(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the mask has changed"""
 
+    sigStateChanged = qt.Signal()
+    """Signal emitted for each mask commit/undo/redo operation"""
+
     sigUndoable = qt.Signal(bool)
     """Signal emitted when undo becomes possible/impossible"""
 
@@ -81,7 +84,6 @@ class BaseMask(qt.QObject):
         if dataItem is not None:
             self.setDataItem(dataItem)
             self.reset(self.getDataValues().shape)
-
         super(BaseMask, self).__init__()
 
     def setDataItem(self, item):
@@ -91,6 +93,13 @@ class BaseMask(qt.QObject):
         :return:
         """
         self._dataItem = item
+
+    def getDataItem(self):
+        """Returns current plot item the mask is on.
+
+        :rtype: Union[~silx.gui.plot.items.Item,None]
+        """
+        return self._dataItem
 
     def getDataValues(self):
         """Return data values, as a numpy array with the same shape
@@ -152,6 +161,7 @@ class BaseMask(qt.QObject):
 
             if len(self._history) == 2:
                 self.sigUndoable.emit(True)
+        self.sigStateChanged.emit()
 
     def undo(self):
         """Restore previous mask if any"""
@@ -164,6 +174,7 @@ class BaseMask(qt.QObject):
                 self.sigRedoable.emit(True)
             if len(self._history) == 1:  # Last value in history
                 self.sigUndoable.emit(False)
+            self.sigStateChanged.emit()
 
     def redo(self):
         """Restore previously undone modification if any"""
@@ -176,8 +187,9 @@ class BaseMask(qt.QObject):
                 self.sigRedoable.emit(False)
             if len(self._history) == 2:  # Something to undo
                 self.sigUndoable.emit(True)
+            self.sigStateChanged.emit()
 
-                # Whole mask operations
+    # Whole mask operations
 
     def clear(self, level):
         """Set all values of the given mask level to 0.
@@ -211,7 +223,7 @@ class BaseMask(qt.QObject):
         """
         if shape is None:
             # assume dimensionality never changes
-            shape = (0, ) * len(self._mask.shape)   # empty array
+            shape = (0,) * len(self._mask.shape)  # empty array
         shapeChanged = (shape != self._mask.shape)
         self._mask = numpy.zeros(shape, dtype=numpy.uint8)
         if shapeChanged:
@@ -414,6 +426,13 @@ class BaseMaskToolsWidget(qt.QWidget):
     def _emitSigMaskChanged(self):
         """Notify mask changes"""
         self.sigMaskChanged.emit()
+
+    def getMaskedItem(self):
+        """Returns the item that is currently being masked
+
+        :rtype: Union[~silx.gui.plot.items.Item,None]
+        """
+        return self._mask.getDataItem()
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a numpy array.
@@ -935,11 +954,11 @@ class BaseMaskToolsWidget(qt.QWidget):
         colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
 
         # Set color
-        colors[:, :3] = self._defaultOverlayColor[:3]
+        colors[:,:3] = self._defaultOverlayColor[:3]
 
         # check if some colors has been directly set by the user
         mask = numpy.equal(self._defaultColors, False)
-        colors[mask, :3] = self._overlayColors[mask, :3]
+        colors[mask,:3] = self._overlayColors[mask,:3]
 
         # Set alpha
         colors[:, -1] = alpha / 2.

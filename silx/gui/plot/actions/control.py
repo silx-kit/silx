@@ -374,22 +374,7 @@ class ColormapAction(PlotAction):
             return
         image = self.plot.getActiveImage()
 
-        if isinstance(image, items.ImageComplexData):
-            # Specific init for complex images
-            colormap = image.getColormap()
-
-            mode = image.getComplexMode()
-            if mode in (items.ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
-                        items.ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE):
-                data = image.getData(
-                    copy=False, mode=items.ImageComplexData.ComplexMode.PHASE)
-            else:
-                data = image.getData(copy=False)
-
-            # Set histogram and range if any
-            self._dialog.setData(data)
-
-        elif isinstance(image, items.ColormapMixIn):
+        if isinstance(image, items.ColormapMixIn):
             # Set dialog from active image
             colormap = image.getColormap()
             # Set histogram and range if any

@@ -189,15 +189,13 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             # Backward compatibility
             self._updated(ItemChangedType.VISUALIZATION_MODE)
 
-            # Send data updated as value returned by getData has changed
-            self._updated(ItemChangedType.DATA)
-
             # Update ColormapMixIn colormap
             colormap = self._colormaps[self.getComplexMode()]
             if colormap is not super(ImageComplexData, self).getColormap():
                 super(ImageComplexData, self).setColormap(colormap)
 
-            self._setColormappedData(self.getData(copy=False), copy=False)
+            # Send data updated as value returned by getData has changed
+            self._updated(ItemChangedType.DATA)
         return changed
 
     def _setAmplitudeRangeInfo(self, max_=None, delta=2):
@@ -269,9 +267,27 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         mode = self.getComplexMode()
         dataForMode = self.__convertComplexData(data, self.getComplexMode())
         self._dataByModesCache = {mode: dataForMode}
-        self._setColormappedData(dataForMode, copy=False)
 
         super().setData(data)
+
+    def _updated(self, event=None, checkVisibility=True):
+        # Synchronizes colormapped data if changed
+        # ItemChangedType.COMPLEX_MODE triggers ItemChangedType.DATA
+        # No need to handle it twice.
+        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
+            # Color-mapped data is NOT the `getValueData` for some modes
+            if self.getComplexMode() in (
+                    self.ComplexMode.AMPLITUDE_PHASE,
+                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
+                data = self.getData(copy=False, mode=self.ComplexMode.PHASE)
+                mask = self.getMaskData(copy=False)
+                if mask is not None:
+                    data = numpy.copy(data)
+                    data[mask != 0] = numpy.nan
+            else:
+                data = self.getValueData(copy=False)
+            self._setColormappedData(data, copy=False)
+        super()._updated(event=event, checkVisibility=checkVisibility)
 
     def getComplexData(self, copy=True):
         """Returns the image complex data
