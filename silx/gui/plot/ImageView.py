@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -403,6 +403,11 @@ class ImageView(PlotWindow):
                                         copy=True, save=True, print_=True,
                                         control=False, position=False,
                                         roi=False, mask=True)
+
+        # Enable mask synchronisation to use it in profiles
+        maskToolsWidget = self.getMaskToolsDockWidget().widget()
+        maskToolsWidget.setItemMaskUpdated(True)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
