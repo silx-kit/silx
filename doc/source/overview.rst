@@ -40,6 +40,6 @@ Project
 Additional Material
 -------------------
 
-- Code Camp Talks. *silx* follows a quarterly release cycle. Prior to each release, a code camp takes place in which the novelties are presented and interested users make use of the development version in order to spot bugs or missing features. The  `PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
+- Code Camp held before releases: `The PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
 
 
