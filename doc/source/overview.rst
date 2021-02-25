@@ -8,7 +8,7 @@ Source code, pre-built binaries (aka Python wheels) for Windows, MacOS and
 ManyLinux1.
 Debian packages of released versions are made available in the following places:
 
-- `Wheels and source code on PyPi <https://pypi.python.org/pypi/silx>`_
+- `Wheels and source code on PyPi <https://pypi.org/project/silx/>`_
 - `Debian 9 packages <http://www.silx.org/pub/debian/>`_
 - `Documentation on silx.org <http://www.silx.org/doc/silx/latest/>`_
 - :doc:`changelog`

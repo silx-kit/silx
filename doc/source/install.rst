@@ -69,7 +69,7 @@ The GUI widgets depend on the following extra packages:
   or `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `qt_console <https://pypi.python.org/pypi/qtconsole>`_
+* `qt_console <https://pypi.org/project/qtconsole>`_
   for the ``silx.gui.console`` widget.
 * `dateutil <https://pypi.org/project/python-dateutil/>`_
 
@@ -278,7 +278,7 @@ Building from source
 ++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from
-`the pypi project page <https://pypi.python.org/pypi/silx>`_.
+`the pypi project page <https://pypi.org/project/silx>`_.
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
