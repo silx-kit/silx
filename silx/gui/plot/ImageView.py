@@ -47,9 +47,11 @@ __date__ = "26/04/2018"
 
 import logging
 import numpy
+import collections
 
 import silx
 from .. import qt
+from .. import colors
 
 from . import items, PlotWindow, PlotWidget, actions
 from ..colors import Colormap
@@ -57,192 +59,300 @@ from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
+from .tools.RadarView import RadarView
+from .utils.axis import SyncAxes
+from ..utils import blockSignals
+from . import _utils
+from .tools.profile import manager
+from .tools.profile import rois
 
 _logger = logging.getLogger(__name__)
 
 
-# RadarView ###################################################################
+ProfileSumResult = collections.namedtuple("ProfileResult",
+                                          ["dataXRange", "dataYRange",
+                                           'histoH', 'histoHRange',
+                                           'histoV', 'histoVRange',
+                                           "xCoords", "xData",
+                                           "yCoords", "yData"])
 
-class RadarView(qt.QGraphicsView):
-    """Widget presenting a synthetic view of a 2D area and
-    the current visible area.
 
-    Coordinates are as in QGraphicsView:
-    x goes from left to right and y goes from top to bottom.
-    This widget preserves the aspect ratio of the areas.
+def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
+    """
+    Compute a full vertical and horizontal profile on an image item using a
+    a range in the plot referential.
 
-    The 2D area and the visible area can be set with :meth:`setDataRect`
-    and :meth:`setVisibleRect`.
-    When the visible area has been dragged by the user, its new position
-    is signaled by the *visibleRectDragged* signal.
+    Optionally takes a previous computed result to be able to skip the
+    computation.
 
-    It is possible to invert the direction of the axes by using the
-    :meth:`scale` method of QGraphicsView.
+    :rtype: ProfileSumResult
+    """
+    data = imageItem.getData(copy=False)
+    origin = imageItem.getOrigin()
+    scale = imageItem.getScale()
+    height, width = data.shape
+
+    xMin, xMax = xRange
+    yMin, yMax = yRange
+
+    # Convert plot area limits to image coordinates
+    # and work in image coordinates (i.e., in pixels)
+    xMin = int((xMin - origin[0]) / scale[0])
+    xMax = int((xMax - origin[0]) / scale[0])
+    yMin = int((yMin - origin[1]) / scale[1])
+    yMax = int((yMax - origin[1]) / scale[1])
+
+    if (xMin >= width or xMax < 0 or
+            yMin >= height or yMax < 0):
+        return None
+
+    # The image is at least partly in the plot area
+    # Get the visible bounds in image coords (i.e., in pixels)
+    subsetXMin = 0 if xMin < 0 else xMin
+    subsetXMax = (width if xMax >= width else xMax) + 1
+    subsetYMin = 0 if yMin < 0 else yMin
+    subsetYMax = (height if yMax >= height else yMax) + 1
+
+    if cache is not None:
+        if ((subsetXMin, subsetXMax) == cache.dataXRange and
+                (subsetYMin, subsetYMax) == cache.dataYRange):
+            # The visible area of data is the same
+            return cache
+
+    # Rebuild histograms for visible area
+    visibleData = data[subsetYMin:subsetYMax,
+                       subsetXMin:subsetXMax]
+    histoHVisibleData = numpy.sum(visibleData, axis=0)
+    histoVVisibleData = numpy.sum(visibleData, axis=1)
+    histoHMin = numpy.min(histoHVisibleData)
+    histoHMax = numpy.max(histoHVisibleData)
+    histoVMin = numpy.min(histoVVisibleData)
+    histoVMax = numpy.max(histoVVisibleData)
+
+    # Convert to histogram curve and update plots
+    # Taking into account origin and scale
+    coords = numpy.arange(2 * histoHVisibleData.size)
+    xCoords = (coords + 1) // 2 + subsetXMin
+    xCoords = origin[0] + scale[0] * xCoords
+    xData = numpy.take(histoHVisibleData, coords // 2)
+    coords = numpy.arange(2 * histoVVisibleData.size)
+    yCoords = (coords + 1) // 2 + subsetYMin
+    yCoords = origin[1] + scale[1] * yCoords
+    yData = numpy.take(histoVVisibleData, coords // 2)
+
+    result = ProfileSumResult(
+        dataXRange=(subsetXMin, subsetXMax),
+        dataYRange=(subsetYMin, subsetYMax),
+        histoH=histoHVisibleData,
+        histoHRange=(histoHMin, histoHMax),
+        histoV=histoVVisibleData,
+        histoVRange=(histoVMin, histoVMax),
+        xCoords=xCoords,
+        xData=xData,
+        yCoords=yCoords,
+        yData=yData)
+
+    return result
+
+
+class _SideHistogram(PlotWidget):
+    """
+    Widget displaying one of the side profile of the ImageView.
+
+    Implement ProfileWindow
     """
 
-    visibleRectDragged = qt.Signal(float, float, float, float)
-    """Signals that the visible rectangle has been dragged.
+    sigClose = qt.Signal()
 
-    It provides: left, top, width, height in data coordinates.
-    """
+    sigMouseMoved = qt.Signal(float, float)
 
-    _DATA_PEN = qt.QPen(qt.QColor('white'))
-    _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
-    _VISIBLE_PEN = qt.QPen(qt.QColor('red'))
-    _VISIBLE_PEN.setWidth(2)
-    _VISIBLE_PEN.setCosmetic(True)
-    _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
-    _TOOLTIP = 'Radar View:\nRed contour: Visible area\nGray area: The image'
+    def __init__(self, parent=None, backend=None, direction=qt.Qt.Horizontal):
+        super(_SideHistogram, self).__init__(parent=parent, backend=backend)
+        self._direction = direction
+        self.sigPlotSignal.connect(self._plotEvents)
+        self._color = "blue"
+        self.__profile = None
+        self.__profileSum = None
 
-    _PIXMAP_SIZE = 256
+    def _plotEvents(self, eventDict):
+        """Callback for horizontal histogram plot events."""
+        if eventDict['event'] == 'mouseMoved':
+            self.sigMouseMoved.emit(eventDict['x'], eventDict['y'])
 
-    class _DraggableRectItem(qt.QGraphicsRectItem):
-        """RectItem which signals its change through visibleRectDragged."""
-        def __init__(self, *args, **kwargs):
-            super(RadarView._DraggableRectItem, self).__init__(
-                *args, **kwargs)
+    def setProfileColor(self, color):
+        self._color = color
 
-            self._previousCursor = None
-            self.setFlag(qt.QGraphicsItem.ItemIsMovable)
-            self.setFlag(qt.QGraphicsItem.ItemSendsGeometryChanges)
-            self.setAcceptHoverEvents(True)
-            self._ignoreChange = False
-            self._constraint = 0, 0, 0, 0
+    def setProfileSum(self, result):
+        self.__profileSum = result
+        if self.__profile is None:
+            self.__drawProfileSum()
 
-        def setConstraintRect(self, left, top, width, height):
-            """Set the constraint rectangle for dragging.
+    def prepareWidget(self, roi):
+        """Implements `ProfileWindow`"""
+        pass
 
-            The coordinates are in the _DraggableRectItem coordinate system.
+    def setRoiProfile(self, roi):
+        """Implements `ProfileWindow`"""
+        if roi is None:
+            return
+        self._roiColor = colors.rgba(roi.getColor())
 
-            This constraint only applies to modification through interaction
-            (i.e., this constraint is not applied to change through API).
+    def getProfile(self):
+        """Implements `ProfileWindow`"""
+        return self.__profile
 
-            If the _DraggableRectItem is smaller than the constraint rectangle,
-            the _DraggableRectItem remains within the constraint rectangle.
-            If the _DraggableRectItem is wider than the constraint rectangle,
-            the constraint rectangle remains within the _DraggableRectItem.
-            """
-            self._constraint = left, left + width, top, top + height
+    def setProfile(self, data):
+        """Implements `ProfileWindow`"""
+        self.__profile = data
+        if data is None:
+            self.__drawProfileSum()
+        else:
+            self.__drawProfile()
 
-        def setPos(self, *args, **kwargs):
-            """Overridden to ignore changes from API in itemChange."""
-            self._ignoreChange = True
-            super(RadarView._DraggableRectItem, self).setPos(*args, **kwargs)
-            self._ignoreChange = False
+    def __drawProfileSum(self):
+        """Only draw the profile sum on the plot.
 
-        def moveBy(self, *args, **kwargs):
-            """Overridden to ignore changes from API in itemChange."""
-            self._ignoreChange = True
-            super(RadarView._DraggableRectItem, self).moveBy(*args, **kwargs)
-            self._ignoreChange = False
-
-        def itemChange(self, change, value):
-            """Callback called before applying changes to the item."""
-            if (change == qt.QGraphicsItem.ItemPositionChange and
-                    not self._ignoreChange):
-                # Makes sure that the visible area is in the data
-                # or that data is in the visible area if area is too wide
-                x, y = value.x(), value.y()
-                xMin, xMax, yMin, yMax = self._constraint
-
-                if self.rect().width() <= (xMax - xMin):
-                    if x < xMin:
-                        value.setX(xMin)
-                    elif x > xMax - self.rect().width():
-                        value.setX(xMax - self.rect().width())
-                else:
-                    if x > xMin:
-                        value.setX(xMin)
-                    elif x < xMax - self.rect().width():
-                        value.setX(xMax - self.rect().width())
-
-                if self.rect().height() <= (yMax - yMin):
-                    if y < yMin:
-                        value.setY(yMin)
-                    elif y > yMax - self.rect().height():
-                        value.setY(yMax - self.rect().height())
-                else:
-                    if y > yMin:
-                        value.setY(yMin)
-                    elif y < yMax - self.rect().height():
-                        value.setY(yMax - self.rect().height())
-
-                if self.pos() != value:
-                    # Notify change through signal
-                    views = self.scene().views()
-                    assert len(views) == 1
-                    views[0].visibleRectDragged.emit(
-                        value.x() + self.rect().left(),
-                        value.y() + self.rect().top(),
-                        self.rect().width(),
-                        self.rect().height())
-
-                return value
-
-            return super(RadarView._DraggableRectItem, self).itemChange(
-                change, value)
-
-        def hoverEnterEvent(self, event):
-            """Called when the mouse enters the rectangle area"""
-            self._previousCursor = self.cursor()
-            self.setCursor(qt.Qt.OpenHandCursor)
-
-        def hoverLeaveEvent(self, event):
-            """Called when the mouse leaves the rectangle area"""
-            if self._previousCursor is not None:
-                self.setCursor(self._previousCursor)
-                self._previousCursor = None
-
-    def __init__(self, parent=None):
-        self._scene = qt.QGraphicsScene()
-        self._dataRect = self._scene.addRect(0, 0, 1, 1,
-                                             self._DATA_PEN,
-                                             self._DATA_BRUSH)
-        self._visibleRect = self._DraggableRectItem(0, 0, 1, 1)
-        self._visibleRect.setPen(self._VISIBLE_PEN)
-        self._visibleRect.setBrush(self._VISIBLE_BRUSH)
-        self._scene.addItem(self._visibleRect)
-
-        super(RadarView, self).__init__(self._scene, parent)
-        self.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
-        self.setFocusPolicy(qt.Qt.NoFocus)
-        self.setStyleSheet('border: 0px')
-        self.setToolTip(self._TOOLTIP)
-
-    def sizeHint(self):
-        # """Overridden to avoid sizeHint to depend on content size."""
-        return self.minimumSizeHint()
-
-    def wheelEvent(self, event):
-        # """Overridden to disable vertical scrolling with wheel."""
-        event.ignore()
-
-    def resizeEvent(self, event):
-        # """Overridden to fit current content to new size."""
-        self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
-        super(RadarView, self).resizeEvent(event)
-
-    def setDataRect(self, left, top, width, height):
-        """Set the bounds of the data rectangular area.
-
-        This sets the coordinate system.
+        Other elements are removed
         """
-        self._dataRect.setRect(left, top, width, height)
-        self._visibleRect.setConstraintRect(left, top, width, height)
-        self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
+        profileSum = self.__profileSum
 
-    def setVisibleRect(self, left, top, width, height):
-        """Set the visible rectangular area.
+        try:
+            self.removeCurve('profile')
+        except Exception:
+            pass
 
-        The coordinates are relative to the data rect.
+        if profileSum is None:
+            try:
+                self.removeCurve('profilesum')
+            except Exception:
+                pass
+            return
+
+        if self._direction == qt.Qt.Horizontal:
+            xx, yy = profileSum.xCoords, profileSum.xData
+        elif self._direction == qt.Qt.Vertical:
+            xx, yy = profileSum.yData, profileSum.yCoords
+        else:
+            assert False
+
+        self.addCurve(xx, yy,
+                      xlabel='', ylabel='',
+                      legend="profilesum",
+                      color=self._color,
+                      linestyle='-',
+                      selectable=False,
+                      resetzoom=False)
+
+        self.__updateLimits()
+
+    def __drawProfile(self):
+        """Only draw the profile on the plot.
+
+        Other elements are removed
         """
-        self._visibleRect.setRect(0, 0, width, height)
-        self._visibleRect.setPos(left, top)
-        self.fitInView(self._scene.itemsBoundingRect(), qt.Qt.KeepAspectRatio)
+        profile = self.__profile
+
+        try:
+            self.removeCurve('profilesum')
+        except Exception:
+            pass
+
+        if profile is None:
+            try:
+                self.removeCurve('profile')
+            except Exception:
+                pass
+            self.setProfileSum(self.__profileSum)
+            return
+
+        if self._direction == qt.Qt.Horizontal:
+            xx, yy = profile.coords, profile.profile
+        elif self._direction == qt.Qt.Vertical:
+            xx, yy = profile.profile, profile.coords
+        else:
+            assert False
+
+        self.addCurve(xx,
+                      yy,
+                      legend="profile",
+                      color=self._roiColor,
+                      resetzoom=False)
+
+        self.__updateLimits()
+
+    def __updateLimits(self):
+        if self.__profile:
+            data = self.__profile.profile
+            vMin = numpy.nanmin(data)
+            vMax = numpy.nanmax(data)
+        elif self.__profileSum is not None:
+            if self._direction == qt.Qt.Horizontal:
+                vMin, vMax = self.__profileSum.histoHRange
+            elif self._direction == qt.Qt.Vertical:
+                vMin, vMax = self.__profileSum.histoVRange
+            else:
+                assert False
+        else:
+            vMin, vMax = 0, 0
+
+        # Tune the result using the data margins
+        margins = self.getDataMargins()
+        if self._direction == qt.Qt.Horizontal:
+            _, _, vMin, vMax = _utils.addMarginsToLimits(margins, False, False, 0, 0, vMin, vMax)
+        elif self._direction == qt.Qt.Vertical:
+            vMin, vMax, _, _ = _utils.addMarginsToLimits(margins, False, False, vMin, vMax, 0, 0)
+        else:
+            assert False
+
+        if self._direction == qt.Qt.Horizontal:
+            dataAxis = self.getYAxis()
+        elif self._direction == qt.Qt.Vertical:
+            dataAxis = self.getXAxis()
+        else:
+            assert False
+
+        with blockSignals(dataAxis):
+            dataAxis.setLimits(vMin, vMax)
 
 
-# ImageView ###################################################################
+class _CustomProfileManager(manager.ProfileManager):
+    """This custom profile manager uses a single predefined profile window
+    if it is specified. Else the behavior is the same as the default
+    ProfileManager """
+
+    def setProfileWindow(self, profileWindow):
+        self.__profileWindow = profileWindow
+
+    def createProfileWindow(self, plot, roi):
+        if isinstance(roi, rois.ProfileImageVerticalLineROI):
+            return self._verticalWidget
+        if isinstance(roi, rois.ProfileImageHorizontalLineROI):
+            return self._horizontalWidget
+        if self.__profileWindow is not None:
+            return self.__profileWindow
+        else:
+            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+
+    def clearProfileWindow(self, profileWindow):
+        if profileWindow is self._horizontalWidget:
+            profileWindow.setProfile(None)
+        elif profileWindow is self._verticalWidget:
+            profileWindow.setProfile(None)
+        elif self.__profileWindow is not None:
+            self.__profileWindow.setProfile(None)
+        else:
+            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
+
+    def setSideWidgets(self, horizontalWidget, verticalWidget):
+        self._horizontalWidget = horizontalWidget
+        self._verticalWidget = verticalWidget
+
+
+class _ProfileToolBar(ProfileToolBar):
+    """Override the profile toolbar to provide our own profile manager"""
+    def createProfileManager(self, parent, plot):
+        return _CustomProfileManager(parent, plot)
+
 
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
@@ -284,7 +394,6 @@ class ImageView(PlotWindow):
     def __init__(self, parent=None, backend=None):
         self._imageLegend = '__ImageView__image' + str(id(self))
         self._cache = None  # Store currently visible data information
-        self._updatingLimits = False
 
         super(ImageView, self).__init__(parent=parent, backend=backend,
                                         resetzoom=True, autoScale=False,
@@ -302,7 +411,8 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = ProfileToolBar(plot=self)
+        self.profile = _ProfileToolBar(plot=self)
+        self.profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
         """"Profile tools attached to this plot.
 
         See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
@@ -310,36 +420,36 @@ class ImageView(PlotWindow):
 
         self.addToolBar(self.profile)
 
-        # Sync PlotBackend and ImageView
-        self._updateYAxisInverted()
-
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
-        self._histoHPlot = PlotWidget(backend=backend, parent=self)
-        self._histoHPlot.getWidgetHandle().setMinimumHeight(
-            self.HISTOGRAMS_HEIGHT)
-        self._histoHPlot.getWidgetHandle().setMaximumHeight(
-            self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Horizontal)
+        widgetHandle = self._histoHPlot.getWidgetHandle()
+        widgetHandle.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
+        widgetHandle.setMaximumHeight(self.HISTOGRAMS_HEIGHT)
         self._histoHPlot.setInteractiveMode('zoom')
-        self._histoHPlot.sigPlotSignal.connect(self._histoHPlotCB)
+        self._histoHPlot.setDataMargins(0., 0., 0.1, 0.1)
+        self._histoHPlot.sigMouseMoved.connect(self._mouseMovedOnHistoH)
+        self._histoHPlot.setProfileColor(self.HISTOGRAMS_COLOR)
+
+        self._histoVPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Vertical)
+        widgetHandle = self._histoVPlot.getWidgetHandle()
+        widgetHandle.setMinimumWidth(self.HISTOGRAMS_HEIGHT)
+        widgetHandle.setMaximumWidth(self.HISTOGRAMS_HEIGHT)
+        self._histoVPlot.setInteractiveMode('zoom')
+        self._histoVPlot.setDataMargins(0.1, 0.1, 0., 0.)
+        self._histoVPlot.sigMouseMoved.connect(self._mouseMovedOnHistoV)
+        self._histoVPlot.setProfileColor(self.HISTOGRAMS_COLOR)
 
         self.setPanWithArrowKeys(True)
-
         self.setInteractiveMode('zoom')  # Color set in setColormap
         self.sigPlotSignal.connect(self._imagePlotCB)
-        self.getYAxis().sigInvertedChanged.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
-        self._histoVPlot = PlotWidget(backend=backend, parent=self)
-        self._histoVPlot.getWidgetHandle().setMinimumWidth(
-            self.HISTOGRAMS_HEIGHT)
-        self._histoVPlot.getWidgetHandle().setMaximumWidth(
-            self.HISTOGRAMS_HEIGHT)
-        self._histoVPlot.setInteractiveMode('zoom')
-        self._histoVPlot.sigPlotSignal.connect(self._histoVPlotCB)
-
         self._radarView = RadarView(parent=self)
-        self._radarView.visibleRectDragged.connect(self._radarViewCB)
+        self._radarView.setPlotWidget(self)
+
+        self.__syncXAxis = SyncAxes([self.getXAxis(), self._histoHPlot.getXAxis()])
+        self.__syncYAxis = SyncAxes([self.getYAxis(), self._histoVPlot.getYAxis()])
 
         self.__setCentralWidget()
 
@@ -382,113 +492,12 @@ class ImageView(PlotWindow):
         """Update histograms content using current active image."""
         activeImage = self.getActiveImage()
         if activeImage is not None:
-            wasUpdatingLimits = self._updatingLimits
-            self._updatingLimits = True
-
-            data = activeImage.getData(copy=False)
-            origin = activeImage.getOrigin()
-            scale = activeImage.getScale()
-            height, width = data.shape
-
-            xMin, xMax = self.getXAxis().getLimits()
-            yMin, yMax = self.getYAxis().getLimits()
-
-            # Convert plot area limits to image coordinates
-            # and work in image coordinates (i.e., in pixels)
-            xMin = int((xMin - origin[0]) / scale[0])
-            xMax = int((xMax - origin[0]) / scale[0])
-            yMin = int((yMin - origin[1]) / scale[1])
-            yMax = int((yMax - origin[1]) / scale[1])
-
-            if (xMin < width and xMax >= 0 and
-                    yMin < height and yMax >= 0):
-                # The image is at least partly in the plot area
-                # Get the visible bounds in image coords (i.e., in pixels)
-                subsetXMin = 0 if xMin < 0 else xMin
-                subsetXMax = (width if xMax >= width else xMax) + 1
-                subsetYMin = 0 if yMin < 0 else yMin
-                subsetYMax = (height if yMax >= height else yMax) + 1
-
-                if (self._cache is None or
-                        subsetXMin != self._cache['dataXMin'] or
-                        subsetXMax != self._cache['dataXMax'] or
-                        subsetYMin != self._cache['dataYMin'] or
-                        subsetYMax != self._cache['dataYMax']):
-                    # The visible area of data has changed, update histograms
-
-                    # Rebuild histograms for visible area
-                    visibleData = data[subsetYMin:subsetYMax,
-                                       subsetXMin:subsetXMax]
-                    histoHVisibleData = numpy.sum(visibleData, axis=0)
-                    histoVVisibleData = numpy.sum(visibleData, axis=1)
-
-                    self._cache = {
-                        'dataXMin': subsetXMin,
-                        'dataXMax': subsetXMax,
-                        'dataYMin': subsetYMin,
-                        'dataYMax': subsetYMax,
-
-                        'histoH': histoHVisibleData,
-                        'histoHMin': numpy.min(histoHVisibleData),
-                        'histoHMax': numpy.max(histoHVisibleData),
-
-                        'histoV': histoVVisibleData,
-                        'histoVMin': numpy.min(histoVVisibleData),
-                        'histoVMax': numpy.max(histoVVisibleData)
-                    }
-
-                    # Convert to histogram curve and update plots
-                    # Taking into account origin and scale
-                    coords = numpy.arange(2 * histoHVisibleData.size)
-                    xCoords = (coords + 1) // 2 + subsetXMin
-                    xCoords = origin[0] + scale[0] * xCoords
-                    xData = numpy.take(histoHVisibleData, coords // 2)
-                    self._histoHPlot.addCurve(xCoords, xData,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False)
-                    vMin = self._cache['histoHMin']
-                    vMax = self._cache['histoHMax']
-                    vOffset = 0.1 * (vMax - vMin)
-                    if vOffset == 0.:
-                        vOffset = 1.
-                    self._histoHPlot.getYAxis().setLimits(vMin - vOffset,
-                                                          vMax + vOffset)
-
-                    coords = numpy.arange(2 * histoVVisibleData.size)
-                    yCoords = (coords + 1) // 2 + subsetYMin
-                    yCoords = origin[1] + scale[1] * yCoords
-                    yData = numpy.take(histoVVisibleData, coords // 2)
-                    self._histoVPlot.addCurve(yData, yCoords,
-                                              xlabel='', ylabel='',
-                                              replace=False,
-                                              color=self.HISTOGRAMS_COLOR,
-                                              linestyle='-',
-                                              selectable=False)
-                    vMin = self._cache['histoVMin']
-                    vMax = self._cache['histoVMax']
-                    vOffset = 0.1 * (vMax - vMin)
-                    if vOffset == 0.:
-                        vOffset = 1.
-                    self._histoVPlot.getXAxis().setLimits(vMin - vOffset,
-                                                          vMax + vOffset)
-            else:
-                self._dirtyCache()
-                self._histoHPlot.remove(kind='curve')
-                self._histoVPlot.remove(kind='curve')
-
-            self._updatingLimits = wasUpdatingLimits
-
-    def _updateRadarView(self):
-        """Update radar view visible area.
-
-        Takes care of y coordinate conversion.
-        """
-        xMin, xMax = self.getXAxis().getLimits()
-        yMin, yMax = self.getYAxis().getLimits()
-        self._radarView.setVisibleRect(xMin, yMin, xMax - xMin, yMax - yMin)
+            xRange = self.getXAxis().getLimits()
+            yRange = self.getYAxis().getLimits()
+            result = computeProfileSumOnRange(activeImage, xRange, yRange, self._cache)
+            self._cache = result
+            self._histoHPlot.setProfileSum(result)
+            self._histoVPlot.setProfileSum(result)
 
     # Plots event listeners
 
@@ -513,104 +522,49 @@ class ImageView(PlotWindow):
                                                data[y][x])
 
         elif eventDict['event'] == 'limitsChanged':
-            self._updateHistogramsLimits()
-
-    def _updateHistogramsLimits(self):
-            # Do not handle histograms limitsChanged while
-            # updating their limits from here.
-            self._updatingLimits = True
-
-            # Refresh histograms
             self._updateHistograms()
 
-            xMin, xMax = self.getXAxis().getLimits()
-            yMin, yMax = self.getYAxis().getLimits()
+    def _mouseMovedOnHistoH(self, x, y):
+        if self._cache is None:
+            return
+        activeImage = self.getActiveImage()
+        if activeImage is None:
+            return
 
-            # Set horizontal histo limits
-            self._histoHPlot.getXAxis().setLimits(xMin, xMax)
+        xOrigin = activeImage.getOrigin()[0]
+        xScale = activeImage.getScale()[0]
 
-            # Set vertical histo limits
-            self._histoVPlot.getYAxis().setLimits(yMin, yMax)
+        minValue = xOrigin + xScale * self._cache.dataXRange[0]
 
-            self._updateRadarView()
+        if x >= minValue:
+            data = self._cache.histoH
+            column = int((x - minValue) / xScale)
+            if column >= 0 and column < data.shape[0]:
+                self.valueChanged.emit(
+                    float('nan'),
+                    float(column + self._cache.dataXRange[0]),
+                    data[column])
 
-            self._updatingLimits = False
+    def _mouseMovedOnHistoV(self, x, y):
+        if self._cache is None:
+            return
+        activeImage = self.getActiveImage()
+        if activeImage is None:
+            return
 
-    def _histoHPlotCB(self, eventDict):
-        """Callback for horizontal histogram plot events."""
-        if eventDict['event'] == 'mouseMoved':
-            if self._cache is not None:
-                activeImage = self.getActiveImage()
-                if activeImage is not None:
-                    xOrigin = activeImage.getOrigin()[0]
-                    xScale = activeImage.getScale()[0]
+        yOrigin = activeImage.getOrigin()[1]
+        yScale = activeImage.getScale()[1]
 
-                    minValue = xOrigin + xScale * self._cache['dataXMin']
+        minValue = yOrigin + yScale * self._cache.dataYRange[0]
 
-                    if eventDict['x'] >= minValue:
-                        data = self._cache['histoH']
-                        column = int((eventDict['x'] - minValue) / xScale)
-                        if column >= 0 and column < data.shape[0]:
-                            self.valueChanged.emit(
-                                float('nan'),
-                                float(column + self._cache['dataXMin']),
-                                data[column])
-
-        elif eventDict['event'] == 'limitsChanged':
-            if (not self._updatingLimits and
-                    eventDict['xdata'] != self.getXAxis().getLimits()):
-                xMin, xMax = eventDict['xdata']
-                self.getXAxis().setLimits(xMin, xMax)
-
-    def _histoVPlotCB(self, eventDict):
-        """Callback for vertical histogram plot events."""
-        if eventDict['event'] == 'mouseMoved':
-            if self._cache is not None:
-                activeImage = self.getActiveImage()
-                if activeImage is not None:
-                    yOrigin = activeImage.getOrigin()[1]
-                    yScale = activeImage.getScale()[1]
-
-                    minValue = yOrigin + yScale * self._cache['dataYMin']
-
-                    if eventDict['y'] >= minValue:
-                        data = self._cache['histoV']
-                        row = int((eventDict['y'] - minValue) / yScale)
-                        if row >= 0 and row < data.shape[0]:
-                            self.valueChanged.emit(
-                                float(row + self._cache['dataYMin']),
-                                float('nan'),
-                                data[row])
-
-        elif eventDict['event'] == 'limitsChanged':
-            if (not self._updatingLimits and
-                    eventDict['ydata'] != self.getYAxis().getLimits()):
-                yMin, yMax = eventDict['ydata']
-                self.getYAxis().setLimits(yMin, yMax)
-
-    def _radarViewCB(self, left, top, width, height):
-        """Slot for radar view visible rectangle changes."""
-        if not self._updatingLimits:
-            # Takes care of Y axis conversion
-            self.setLimits(left, left + width, top, top + height)
-
-    def _updateYAxisInverted(self, inverted=None):
-        """Sync image, vertical histogram and radar view axis orientation."""
-        if inverted is None:
-            # Do not perform this when called from plot signal
-            inverted = self.getYAxis().isInverted()
-
-        self._histoVPlot.getYAxis().setInverted(inverted)
-
-        # Use scale to invert radarView
-        # RadarView default Y direction is from top to bottom
-        # As opposed to Plot. So invert RadarView when Plot is NOT inverted.
-        self._radarView.resetTransform()
-        if not inverted:
-            self._radarView.scale(1., -1.)
-        self._updateRadarView()
-
-        self._radarView.update()
+        if y >= minValue:
+            data = self._cache.histoV
+            row = int((y - minValue) / yScale)
+            if row >= 0 and row < data.shape[0]:
+                self.valueChanged.emit(
+                    float(row + self._cache.dataYRange[0]),
+                    float('nan'),
+                    data[row])
 
     def _activeImageChangedSlot(self, previous, legend):
         """Handle Plot active image change.
@@ -639,12 +593,12 @@ class ImageView(PlotWindow):
         else:
             if axis == 'x':
                 return dict(
-                    data=numpy.array(self._cache['histoH'], copy=True),
-                    extent=(self._cache['dataXMin'], self._cache['dataXMax']))
+                    data=numpy.array(self._cache.histoH, copy=True),
+                    extent=self._cache.dataXRange)
             else:
                 return dict(
-                    data=numpy.array(self._cache['histoV'], copy=True),
-                    extent=(self._cache['dataYMin'], self._cache['dataYMax']))
+                    data=numpy.array(self._cache.histoV, copy=True),
+                    extent=(self._cache.dataYRange))
 
     def radarView(self):
         """Get the lower right radarView widget."""
@@ -656,12 +610,9 @@ class ImageView(PlotWindow):
         :param RadarView radarView: Widget subclassing RadarView to replace
                                     the lower right corner widget.
         """
-        self._radarView.visibleRectDragged.disconnect(self._radarViewCB)
         self._radarView = radarView
-        self._radarView.visibleRectDragged.connect(self._radarViewCB)
+        self._radarView.setPlotWidget(self)
         self.centralWidget().layout().addWidget(self._radarView, 1, 1)
-
-        self._updateYAxisInverted()
 
     # High-level API
 
@@ -782,7 +733,6 @@ class ImageView(PlotWindow):
         data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
         assert len(data.shape) == 2
-        height, width = data.shape
 
         self.addImage(data,
                       legend=self._imageLegend,
@@ -791,16 +741,8 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-
-        self._radarView.setDataRect(origin[0],
-                                    origin[1],
-                                    width * scale[0],
-                                    height * scale[1])
-
         if reset:
             self.resetZoom()
-        else:
-            self._updateHistogramsLimits()
 
 
 # ImageViewMainWindow #########################################################

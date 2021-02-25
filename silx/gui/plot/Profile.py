@@ -116,7 +116,7 @@ class ProfileToolBar(qt.QToolBar):
 
         # If a profileWindow is defined,
         # It will be used to display all the profiles
-        self._manager = _CustomProfileManager(self, plot)
+        self._manager = self.createProfileManager(self, plot)
         self._manager.setProfileWindow(profileWindow)
         self._manager.setDefaultColorFromCursorColor(True)
         self._manager.setItemType(image=True)
@@ -154,6 +154,9 @@ class ProfileToolBar(qt.QToolBar):
 
         plot.sigActiveImageChanged.connect(self._activeImageChanged)
         self._activeImageChanged()
+
+    def createProfileManager(self, parent, plot):
+        return _CustomProfileManager(parent, plot)
 
     def _createProfileActions(self):
         self.hLineAction = self._manager.createProfileAction(rois.ProfileImageHorizontalLineROI, self)
