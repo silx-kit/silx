@@ -10,11 +10,11 @@ This table summarizes the support matrix of silx:
 +------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
 +------------+--------------+---------------------+
-| `Windows`_ | 3.5-3.8      | PyQt5.6+, PySide2   |
+| `Windows`_ | 3.6-3.9      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `MacOS`_   | 3.5-3.8      | PyQt5.6+, PySide2   |
+| `MacOS`_   | 3.6-3.9      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `Linux`_   | 3.5-3.8      | PyQt5.3+, PySide2   |
+| `Linux`_   | 3.6-3.9      | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
@@ -93,7 +93,7 @@ Build dependencies
 In addition to run-time dependencies, building *silx* requires a C/C++ compiler,
 `numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
 
-On Windows it is recommended to use Python 3.5, because with previous versions
+On Windows it is recommended to use Python 3.6 or newer, because with previous versions
 of Python, it might be difficult to compile extensions (i.e. binary modules).
 
 This project uses Cython (version > 0.21) to generate C files.
@@ -173,9 +173,6 @@ binary wheel for it.
 This means that you would have to install *silx* from its sources, which requires
 you to install a C compiler first.
 
-We also encourage you to use Python 3.5 or newer as former versions are no longer
-officially supported.
-
 Configure Python as explained on
 `docs.python.org <https://docs.python.org/3/using/windows.html#configuring-python>`_
 to add the python installation directory to your PATH environment variable.
@@ -200,8 +197,7 @@ prompt.
 MacOS
 -----
 
-Apple ships Python 2.7 by default on their operating systems.
-You must install Python 3.5 or newer to install silx.
+Make sure to use python3 to install silx (you might need to install python3).
 
 Then, install *silx* with ``pip``, see `Installing with pip`_::
 
