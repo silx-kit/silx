@@ -1613,14 +1613,32 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         assert len(x) == len(y)
         assert x.ndim == y.ndim == 1
 
+        # Convert complex data
+        if numpy.iscomplexobj(x):
+            _logger.warning(
+                'Converting x data to absolute value to plot it.')
+            x = numpy.absolute(x)
+        if numpy.iscomplexobj(y):
+            _logger.warning(
+                'Converting y data to absolute value to plot it.')
+            y = numpy.absolute(y)
+
         if xerror is not None:
             if isinstance(xerror, abc.Iterable):
                 xerror = numpy.array(xerror, copy=copy)
+                if numpy.iscomplexobj(xerror):
+                    _logger.warning(
+                        'Converting xerror data to absolute value to plot it.')
+                    xerror = numpy.absolute(xerror)
             else:
                 xerror = float(xerror)
         if yerror is not None:
             if isinstance(yerror, abc.Iterable):
                 yerror = numpy.array(yerror, copy=copy)
+                if numpy.iscomplexobj(yerror):
+                    _logger.warning(
+                        'Converting yerror data to absolute value to plot it.')
+                    yerror = numpy.absolute(yerror)
             else:
                 yerror = float(yerror)
         # TODO checks on xerror, yerror
