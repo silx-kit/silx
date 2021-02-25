@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
     app = qt.QApplication([])
     window = qt.QMainWindow(flags=
-        qt.Qt.Window |
+        qt.Qt.Popup |
         qt.Qt.FramelessWindowHint |
         qt.Qt.NoDropShadowWindowHint |
         qt.Qt.WindowStaysOnTopHint)
