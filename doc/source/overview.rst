@@ -34,7 +34,7 @@ Project
 - Continuous integration: *silx* is continuously tested on all three major
   operating systems:
 
-  - Linux and MacOS X: `Travis <https://travis-ci.org/silx-kit/silx>`_
+  - Linux, MacOS, Windows: `GitHub Actions <https://github.com/silx-kit/silx/actions>`_
   - Windows: `AppVeyor <https://ci.appveyor.com/project/ESRF/silx>`_
 
 Additional Material
