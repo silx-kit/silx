@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,7 +87,7 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
 
     :rtype: ProfileSumResult
     """
-    data = imageItem.getData(copy=False)
+    data = imageItem.getValueData(copy=False)
     origin = imageItem.getOrigin()
     scale = imageItem.getScale()
     height, width = data.shape
@@ -122,12 +122,12 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
     # Rebuild histograms for visible area
     visibleData = data[subsetYMin:subsetYMax,
                        subsetXMin:subsetXMax]
-    histoHVisibleData = numpy.sum(visibleData, axis=0)
-    histoVVisibleData = numpy.sum(visibleData, axis=1)
-    histoHMin = numpy.min(histoHVisibleData)
-    histoHMax = numpy.max(histoHVisibleData)
-    histoVMin = numpy.min(histoVVisibleData)
-    histoVMax = numpy.max(histoVVisibleData)
+    histoHVisibleData = numpy.nansum(visibleData, axis=0)
+    histoVVisibleData = numpy.nansum(visibleData, axis=1)
+    histoHMin = numpy.nanmin(histoHVisibleData)
+    histoHMax = numpy.nanmax(histoHVisibleData)
+    histoVMin = numpy.nanmin(histoVVisibleData)
+    histoVMax = numpy.nanmax(histoVVisibleData)
 
     # Convert to histogram curve and update plots
     # Taking into account origin and scale
@@ -403,6 +403,11 @@ class ImageView(PlotWindow):
                                         copy=True, save=True, print_=True,
                                         control=False, position=False,
                                         roi=False, mask=True)
+
+        # Enable mask synchronisation to use it in profiles
+        maskToolsWidget = self.getMaskToolsDockWidget().widget()
+        maskToolsWidget.setItemMaskUpdated(True)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
