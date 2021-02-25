@@ -73,35 +73,24 @@ The GUI widgets depend on the following extra packages:
   for the ``silx.gui.console`` widget.
 * `dateutil <https://pypi.org/project/python-dateutil/>`_
 
-Tools for reading and writing files depend on the following packages:
-
-* `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 files
-* `fabio <https://github.com/silx-kit/fabio>`_ for multiple image formats
-
 *silx.opencl* further depends on OpenCL and the following packages too :
 
 * `pyopencl <https://mathema.tician.de/software/pyopencl/>`_
 * `Mako <http://www.makotemplates.org/>`_
 
 The complete list of dependencies with the minimal version is described in the
-`requirement.txt <https://github.com/silx-kit/silx/blob/0.8/requirements.txt>`_
+`requirement.txt <https://github.com/silx-kit/silx/blob/master/requirements.txt>`_
 at the top level of the source package.
 
 Build dependencies
 ++++++++++++++++++
 
 In addition to run-time dependencies, building *silx* requires a C/C++ compiler,
-`numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
-
-On Windows it is recommended to use Python 3.6 or newer, because with previous versions
-of Python, it might be difficult to compile extensions (i.e. binary modules).
-
-This project uses Cython (version > 0.21) to generate C files.
-Cython is mandatory to build *silx* from the development branch.
+`numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_.
 
 The complete list of dependencies for building the package, including its
 documentation, is described in the
-`requirement-dev.txt <https://github.com/silx-kit/silx/blob/0.8/requirements-dev.txt>`_
+`requirement-dev.txt <https://github.com/silx-kit/silx/blob/master/requirements-dev.txt>`_
 at the top level of the source package.
 
 
