@@ -110,7 +110,7 @@ Linux
 
 Packages are available for a few distributions:
 
-- Debian 9: see `Installing a Debian package`_.
+- Debian/Ubuntu: see `Installing a Debian package`_.
 - `CentOS 7 RPM packages <http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Fedora 23 rpm packages <http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_ provided by Leonid Bloch.
@@ -125,35 +125,24 @@ You can also follow one of those installation procedures:
 Installing a Debian package
 +++++++++++++++++++++++++++
 
-Debian 9 (Stretch) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
-To install it, you need to download this file :
+silx is officially packaged in `Debian <https://packages.debian.org/search?searchon=names&keywords=silx>`_
+and `Ubuntu <https://packages.ubuntu.com/search?keywords=silx&searchon=names&suite=all&section=all>`_.
 
-.. code-block:: bash 
+To install it, run `apt-get install silx` as root.
+The `python3-silx` package provides the library, while the `silx` package provides the executable (`silx view`, `silx convert`, ...).
 
-    http://www.silx.org/pub/debian/silx.list
-
-and copy it into the /etc/apt/sources.list.d folder.
-Then run ``apt-get update`` and ``apt-get install python-silx``
-
-.. code-block:: bash 
-
-   wget http://www.silx.org/pub/debian/silx.list
-   sudo cp silx.list /etc/apt/sources.list.d
-   sudo apt-get update
-   sudo apt-get install python-silx python3-silx silx
-
-The `python-silx` and `python3-silx` packages provide the library,
-while the `silx` package provides the executable (`silx view`, `silx convert` ...).
+Unofficial (possibly more recent) packages are available for Debian 10 (Buster, amd64) and Ubuntu 20.04 (Focal, amd64 and ppc64le) in this repository: http://www.silx.org/pub/linux-repo/.
+See information on `how-to use this repository <http://www.silx.org/pub/linux-repo/>`_ before running `apt-get install silx`.
 
 .. note::
     
-    The packages are built automatically, hence not signed. 
-    You have to accept the installation of non-signed packages.  
+    Those packages are built automatically, hence not signed.
+    You have to accept the installation of non-signed packages.
 
 If the packages are not installed, it might be due to the priority list.
-You can display the priority list using `apt-cache policy python-silx`.
-If the Pin-number of silx.org is too low compared to other sources:
-download http://www.silx.org/pub/debian/silx.pref into /etc/apt/preferences.d
+You can display the priority list using `apt-cache policy silx`.
+If the Pin-number of silx.org is too low compared to other sources,
+see the "Information/Troubleshooting" section `here <http://www.silx.org/pub/linux-repo/>`_,
 and start the update/install procedure again.
 
     

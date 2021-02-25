@@ -5,21 +5,19 @@ Releases
 --------
 
 Source code, pre-built binaries (aka Python wheels) for Windows, MacOS and
-ManyLinux1.
-Debian packages of released versions are made available in the following places:
+ManyLinux, Debian/Ubuntu packages of released versions are made available in the following places:
 
 - `Wheels and source code on PyPi <https://pypi.org/project/silx/>`_
-- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
 - `Documentation on silx.org <http://www.silx.org/doc/silx/latest/>`_
+- `Unofficial Debian/Ubuntu packages <https://github.com/silx-kit/silx/releases>`_
 - :doc:`changelog`
 
 Nightly builds
 --------------
 
-Debian 9 packages and documentation are automatically generated from the tip of
-the project's repository on a daily basis:
+Linux packages and documentation are automatically generated from the tip of the project's repository on a regular basis:
 
-- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
+- `Debian 10 and Ubuntu20.04 packages <http://www.silx.org/pub/linux-repo/>`_
 - `Documentation <http://www.silx.org/doc/silx/dev/>`_
 
 Project
