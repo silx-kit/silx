@@ -333,12 +333,12 @@ class TestDictToH5(H5DictTestCase):
                 mode="w",
             )
 
-        def append_file(existing):
+        def append_file(update_mode):
             dicttoh5(
                 wtreedict,
                 h5file=self.h5_fname,
                 mode="a",
-                existing=existing
+                update_mode=update_mode
             )
 
         def assert_file():
@@ -360,8 +360,8 @@ class TestDictToH5(H5DictTestCase):
                 pprint(rtreedict)
                 raise
 
-        def assert_append(existing):
-            append_file(existing)
+        def assert_append(update_mode):
+            append_file(update_mode)
             assert_file()
 
         # Test wrong arguments
@@ -370,7 +370,7 @@ class TestDictToH5(H5DictTestCase):
                 otreedict,
                 h5file=self.h5_fname,
                 mode="w",
-                existing="wrong-value"
+                update_mode="wrong-value"
             )
 
         # No writing
@@ -383,16 +383,16 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add", "update", "overwrite"]:
-            assert_append(existing)
+        for update_mode in [None, "add", "modify", "replace"]:
+            assert_append(update_mode)
 
         # Write empty dictionary
         wtreedict = dict()
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add", "update", "overwrite"]:
-            assert_append(existing)
+        for update_mode in [None, "add", "modify", "replace"]:
+            assert_append(update_mode)
 
         # Modified dataset
         wtreedict = dict()
@@ -403,18 +403,18 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add"]:
-            assert_append(existing)
+        for update_mode in [None, "add"]:
+            assert_append(update_mode)
 
         etreedict["group2"]["subgroup2"]["dset2"] = [10, 20]
-        assert_append("update")
+        assert_append("modify")
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
         etreedict["group2"]["subgroup2"] = dict()
         etreedict["group2"]["subgroup2"]["dset1"] = {"dset3": [10, 20]}
         etreedict["group2"]["subgroup2"]["dset2"] = [10, 20]
-        assert_append("overwrite")
+        assert_append("replace")
 
         # Modified group
         wtreedict = dict()
@@ -423,13 +423,13 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add", "update"]:
-            assert_append(existing)
+        for update_mode in [None, "add", "modify"]:
+            assert_append(update_mode)
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
         etreedict["group2"]["subgroup2"] = [0, 1]
-        assert_append("overwrite")
+        assert_append("replace")
 
         # Modified attribute
         wtreedict = dict()
@@ -439,18 +439,18 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add"]:
-            assert_append(existing)
+        for update_mode in [None, "add"]:
+            assert_append(update_mode)
 
         etreedict["group2"]["subgroup2"][("dset1", "attr1")] = "modified"
-        assert_append("update")
+        assert_append("modify")
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
         etreedict["group2"]["subgroup2"] = dict()
         etreedict["group2"]["subgroup2"]["dset1"] = dict()
         etreedict["group2"]["subgroup2"]["dset1"][("", "attr1")] = "modified"
-        assert_append("overwrite")
+        assert_append("replace")
 
         # Delete group
         wtreedict = dict()
@@ -459,16 +459,16 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add"]:
-            assert_append(existing)
+        for update_mode in [None, "add"]:
+            assert_append(update_mode)
 
         del etreedict["group2"]["subgroup2"]
         del etreedict["group2"][("subgroup2", "attr1")]
-        assert_append("update")
+        assert_append("modify")
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
-        assert_append("overwrite")
+        assert_append("replace")
 
         # Delete dataset
         wtreedict = dict()
@@ -478,18 +478,18 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add"]:
-            assert_append(existing)
+        for update_mode in [None, "add"]:
+            assert_append(update_mode)
 
         del etreedict["group2"]["subgroup2"]["dset2"]
         del etreedict["group2"]["subgroup2"][("dset2", "attr1")]
         del etreedict["group2"]["subgroup2"][("dset2", "attr2")]
-        assert_append("update")
+        assert_append("modify")
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
         etreedict["group2"]["subgroup2"] = dict()
-        assert_append("overwrite")
+        assert_append("replace")
 
         # Delete attribute
         wtreedict = dict()
@@ -499,17 +499,17 @@ class TestDictToH5(H5DictTestCase):
 
         reset_file()
         etreedict = deepcopy(otreedict)
-        for existing in [None, "add"]:
-            assert_append(existing)
+        for update_mode in [None, "add"]:
+            assert_append(update_mode)
 
         del etreedict["group2"]["subgroup2"][("dset2", "attr1")]
-        assert_append("update")
+        assert_append("modify")
 
         etreedict["group2"] = dict()
         del etreedict[("group2", "attr1")]
         etreedict["group2"]["subgroup2"] = dict()
         etreedict["group2"]["subgroup2"]["dset2"] = dict()
-        assert_append("overwrite")
+        assert_append("replace")
 
 
 class TestH5ToDict(H5DictTestCase):
@@ -731,13 +731,13 @@ class TestDictToNx(H5DictTestCase):
         }
         etreedict = {entry_name: esubtree}
 
-        def append_file(existing, add_nx_class):
+        def append_file(update_mode, add_nx_class):
             dictdump.dicttonx(
                 wtreedict,
                 h5file=self.h5_fname,
                 mode="a",
                 h5path=entry_name,
-                existing=existing,
+                update_mode=update_mode,
                 add_nx_class=add_nx_class
             )
 
@@ -760,8 +760,8 @@ class TestDictToNx(H5DictTestCase):
                 pprint(rtreedict)
                 raise
 
-        def assert_append(existing, add_nx_class=None):
-            append_file(existing, add_nx_class=add_nx_class)
+        def assert_append(update_mode, add_nx_class=None):
+            append_file(update_mode, add_nx_class=add_nx_class)
             assert_file()
 
         # First to an empty file
@@ -781,14 +781,14 @@ class TestDictToNx(H5DictTestCase):
         # Add update existing attributes and datasets
         esubtree["group2"]["@attr2"] = "attr3"
         esubtree["group2"]["dataset4"] = 9
-        assert_append("update")
+        assert_append("modify")
 
         # Do not add missing NX_class by default when updating
         wtreedict["group2"]["@NX_class"] = "NXprocess"
         esubtree["group2"]["@NX_class"] = "NXprocess"
-        assert_append("update")
+        assert_append("modify")
         del wtreedict["group2"]["@NX_class"]
-        assert_append("update")
+        assert_append("modify")
 
         # Overwrite existing groups/datasets/attributes
         esubtree["group1"].pop("a")
@@ -797,7 +797,7 @@ class TestDictToNx(H5DictTestCase):
         esubtree["group2"]["dataset4"] = 9
         del esubtree["group2"]["dataset4@units"]
         esubtree["group3"] = {"@NX_class": "NXcollection"}
-        assert_append("overwrite", add_nx_class=True)
+        assert_append("replace", add_nx_class=True)
 
 
 class TestNxToDict(H5DictTestCase):

@@ -170,7 +170,7 @@ def _normalize_h5_path(h5root, h5path):
 
 def dicttoh5(treedict, h5file, h5path='/',
              mode="w", overwrite_data=None,
-             create_dataset_args=None, existing=None):
+             create_dataset_args=None, update_mode=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
     If a dictionary value is a sub-dictionary, a group is created. If it is
@@ -182,7 +182,7 @@ def dicttoh5(treedict, h5file, h5path='/',
     The tuples should have the format (dataset_name, attr_name).
 
     Existing HDF5 items can be deleted by providing the dictionary value
-    ``None``, provided that ``existing in ["update", "overwrite"]``.
+    ``None``, provided that ``update_mode in ["modify", "replace"]``.
 
     .. note::
 
@@ -201,22 +201,21 @@ def dicttoh5(treedict, h5file, h5path='/',
         exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
     :param overwrite_data: Deprecated. ``True`` is approximately equivalent
-        to ``existing="update"`` and ``False`` is equivalent to
-        ``existing="add"``.
+        to ``update_mode="modify"`` and ``False`` is equivalent to
+        ``update_mode="add"``.
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5f.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-    :param existing: Can be ``add`` (default), ``update`` or ``overwrite``.
+    :param update_mode: Can be ``add`` (default), ``modify`` or ``replace``.
 
-        * ``add``: Existing HDF5 items are untouched. Nodes from the dict tree are
-            added to the HDF5 tree when the existing HDF5 tree allows it.
-        * ``update``: Existing HDF5 items may be updated or deleted explicitly
-            by assigning them to `None`. The dict tree will be a subtree
-            of the HDF5 tree.
-        * ``overwrite``: Existing HDF5 items may be overwritten or deleted.
-            The HDF5 tree will be exactly the dict tree, except for already
-            existing top-level items that were not deleted explicitly by
-            assigning them to `None`.
+        * ``add``: Extend the existing HDF5 tree when possible. Existing HDF5
+            items (groups, datasets and attributes) remain untouched.
+        * ``modify``: Extend the existing HDF5 tree when possible, modify
+            existing attributes, modify same-sized dataset values and delete
+            HDF5 items with a ``None`` value in the dict tree.
+        * ``replace``: Replace the existing HDF5 tree. Items from the root of
+            the HDF5 tree that are not present in the root of the dict tree
+            will remain untouched.
 
     Example::
 
@@ -247,27 +246,27 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if overwrite_data is not None:
         reason = (
-            "`overwrite_data=True` becomes `existing='update'` and "
-            "`overwrite_data=False` becomes `existing='add'`"
+            "`overwrite_data=True` becomes `update_mode='modify'` and "
+            "`overwrite_data=False` becomes `update_mode='add'`"
         )
         deprecated_warning(
             type_="argument",
             name="overwrite_data",
             reason=reason,
-            replacement="existing",
+            replacement="update_mode",
             since_version="0.15",
         )
 
-    if existing is None:
+    if update_mode is None:
         if overwrite_data:
-            existing = "update"
+            update_mode = "modify"
         else:
-            existing = "add"
+            update_mode = "add"
     else:
-        valid_existing_values = ("add", "overwrite", "update")
-        if existing not in valid_existing_values:
+        valid_existing_values = ("add", "replace", "modify")
+        if update_mode not in valid_existing_values:
             raise ValueError((
-                "Argument 'existing' can only have values: {}"
+                "Argument 'update_mode' can only have values: {}"
                 "".format(valid_existing_values)
             ))
         if overwrite_data is not None:
@@ -284,13 +283,13 @@ def dicttoh5(treedict, h5file, h5path='/',
             if isinstance(key, tuple) == attributes:
                 yield key, value
 
-    change_allowed = existing in ("overwrite", "update")
+    change_allowed = update_mode in ("replace", "modify")
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
         # Create the root of the tree
         if h5path in h5f:
             if not is_group(h5f[h5path]):
-                if existing == "overwrite":
+                if update_mode == "replace":
                     del h5f[h5path]
                     h5f.create_group(h5path)
                 else:
@@ -310,18 +309,18 @@ def dicttoh5(treedict, h5file, h5path='/',
                     exists = False
             elif isinstance(value, Mapping):
                 # HDF5 group
-                if exists and existing == "overwrite":
+                if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
                 if value:
                     dicttoh5(value, h5f, h5name,
-                             existing=existing,
+                             update_mode=update_mode,
                              create_dataset_args=create_dataset_args)
                 elif not exists:
                     h5f.create_group(h5name)
             elif is_link(value):
                 # HDF5 link
-                if exists and existing == "overwrite":
+                if exists and update_mode == "replace":
                     del h5f[h5name]
                     exists = False
                 if not exists:
@@ -341,7 +340,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                         continue
                     except Exception:
                         # Delete the existing dataset
-                        if existing != "overwrite":
+                        if update_mode != "replace":
                             if not is_dataset(h5f[h5name]):
                                 continue
                             attrs_backup = dict(h5f[h5name].attrs)
@@ -669,7 +668,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
     :param add_nx_class: Add "NX_class" attribute when missing. By default it
-        is ``True`` when ``existing`` is ``"add"`` or ``None``.
+        is ``True`` when ``update_mode`` is ``"add"`` or ``None``.
 
     The named parameters are passed to dicttoh5.
 
@@ -709,7 +708,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     h5file, h5path = _normalize_h5_path(h5file, h5path)
     parents = tuple(p for p in h5path.split("/") if p)
     if add_nx_class is None:
-        add_nx_class = kw.get("existing", None) in (None, "add")
+        add_nx_class = kw.get("update_mode", None) in (None, "add")
     nxtreedict = nexus_to_h5_dict(
         treedict, parents=parents, add_nx_class=add_nx_class
     )
