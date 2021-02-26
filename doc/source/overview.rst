@@ -5,21 +5,19 @@ Releases
 --------
 
 Source code, pre-built binaries (aka Python wheels) for Windows, MacOS and
-ManyLinux1.
-Debian packages of released versions are made available in the following places:
+ManyLinux, Debian/Ubuntu packages of released versions are made available in the following places:
 
-- `Wheels and source code on PyPi <https://pypi.python.org/pypi/silx>`_
-- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
+- `Wheels and source code on PyPi <https://pypi.org/project/silx/>`_
 - `Documentation on silx.org <http://www.silx.org/doc/silx/latest/>`_
+- `Unofficial Debian/Ubuntu packages <https://github.com/silx-kit/silx/releases>`_
 - :doc:`changelog`
 
 Nightly builds
 --------------
 
-Debian 9 packages and documentation are automatically generated from the tip of
-the project's repository on a daily basis:
+Linux packages and documentation are automatically generated from the tip of the project's repository on a regular basis:
 
-- `Debian 9 packages <http://www.silx.org/pub/debian/>`_
+- `Debian 10 and Ubuntu20.04 packages <http://www.silx.org/pub/linux-repo/>`_
 - `Documentation <http://www.silx.org/doc/silx/dev/>`_
 
 Project
@@ -36,12 +34,12 @@ Project
 - Continuous integration: *silx* is continuously tested on all three major
   operating systems:
 
-  - Linux and MacOS X: `Travis <https://travis-ci.org/silx-kit/silx>`_
+  - Linux, MacOS, Windows: `GitHub Actions <https://github.com/silx-kit/silx/actions>`_
   - Windows: `AppVeyor <https://ci.appveyor.com/project/ESRF/silx>`_
 
 Additional Material
 -------------------
 
-- Code Camp Talks. *silx* follows a quarterly release cycle. Prior to each release, a code camp takes place in which the novelties are presented and interested users make use of the development version in order to spot bugs or missing features. The  `PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
+- Code Camp held before releases: `The PDFs of the talks are available for download <http://ftp.esrf.fr/pub/scisoft/silx/talks/>`_
 
 

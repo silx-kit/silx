@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -469,7 +469,7 @@ def configuration(parent_package='', top_path=None):
     except ImportError:
         raise ImportError(
             "To install this package, you must install numpy first\n"
-            "(See https://pypi.python.org/pypi/numpy)")
+            "(See https://pypi.org/project/numpy)")
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,

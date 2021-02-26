@@ -10,11 +10,11 @@ This table summarizes the support matrix of silx:
 +------------+--------------+---------------------+
 | System     | Python vers. | Qt and its bindings |
 +------------+--------------+---------------------+
-| `Windows`_ | 3.5-3.8      | PyQt5.6+, PySide2   |
+| `Windows`_ | 3.6-3.9      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `MacOS`_   | 3.5-3.8      | PyQt5.6+, PySide2   |
+| `MacOS`_   | 3.6-3.9      | PyQt5.6+, PySide2   |
 +------------+--------------+---------------------+
-| `Linux`_   | 3.5-3.8      | PyQt5.3+, PySide2   |
+| `Linux`_   | 3.6-3.9      | PyQt5.3+, PySide2   |
 +------------+--------------+---------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
@@ -69,14 +69,9 @@ The GUI widgets depend on the following extra packages:
   or `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
-* `qt_console <https://pypi.python.org/pypi/qtconsole>`_
+* `qt_console <https://pypi.org/project/qtconsole>`_
   for the ``silx.gui.console`` widget.
 * `dateutil <https://pypi.org/project/python-dateutil/>`_
-
-Tools for reading and writing files depend on the following packages:
-
-* `h5py <http://docs.h5py.org/en/latest/build.html>`_ for HDF5 files
-* `fabio <https://github.com/silx-kit/fabio>`_ for multiple image formats
 
 *silx.opencl* further depends on OpenCL and the following packages too :
 
@@ -84,24 +79,18 @@ Tools for reading and writing files depend on the following packages:
 * `Mako <http://www.makotemplates.org/>`_
 
 The complete list of dependencies with the minimal version is described in the
-`requirement.txt <https://github.com/silx-kit/silx/blob/0.8/requirements.txt>`_
+`requirement.txt <https://github.com/silx-kit/silx/blob/master/requirements.txt>`_
 at the top level of the source package.
 
 Build dependencies
 ++++++++++++++++++
 
 In addition to run-time dependencies, building *silx* requires a C/C++ compiler,
-`numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
-
-On Windows it is recommended to use Python 3.5, because with previous versions
-of Python, it might be difficult to compile extensions (i.e. binary modules).
-
-This project uses Cython (version > 0.21) to generate C files.
-Cython is mandatory to build *silx* from the development branch.
+`numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_.
 
 The complete list of dependencies for building the package, including its
 documentation, is described in the
-`requirement-dev.txt <https://github.com/silx-kit/silx/blob/0.8/requirements-dev.txt>`_
+`requirement-dev.txt <https://github.com/silx-kit/silx/blob/master/requirements-dev.txt>`_
 at the top level of the source package.
 
 
@@ -110,7 +99,7 @@ Linux
 
 Packages are available for a few distributions:
 
-- Debian 9: see `Installing a Debian package`_.
+- Debian/Ubuntu: see `Installing a Debian package`_.
 - `CentOS 7 RPM packages <http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Fedora 23 rpm packages <http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/>`_ provided by the Max IV institute at Lund, Sweden.
 - `Arch Linux (AUR) package <https://aur.archlinux.org/packages/python-silx>`_ provided by Leonid Bloch.
@@ -125,35 +114,24 @@ You can also follow one of those installation procedures:
 Installing a Debian package
 +++++++++++++++++++++++++++
 
-Debian 9 (Stretch) packages are available on http://www.silx.org/pub/debian/ for amd64 computers.
-To install it, you need to download this file :
+silx is officially packaged in `Debian <https://packages.debian.org/search?searchon=names&keywords=silx>`_
+and `Ubuntu <https://packages.ubuntu.com/search?keywords=silx&searchon=names&suite=all&section=all>`_.
 
-.. code-block:: bash 
+To install it, run `apt-get install silx` as root.
+The `python3-silx` package provides the library, while the `silx` package provides the executable (`silx view`, `silx convert`, ...).
 
-    http://www.silx.org/pub/debian/silx.list
-
-and copy it into the /etc/apt/sources.list.d folder.
-Then run ``apt-get update`` and ``apt-get install python-silx``
-
-.. code-block:: bash 
-
-   wget http://www.silx.org/pub/debian/silx.list
-   sudo cp silx.list /etc/apt/sources.list.d
-   sudo apt-get update
-   sudo apt-get install python-silx python3-silx silx
-
-The `python-silx` and `python3-silx` packages provide the library,
-while the `silx` package provides the executable (`silx view`, `silx convert` ...).
+Unofficial (possibly more recent) packages are available for Debian 10 (Buster, amd64) and Ubuntu 20.04 (Focal, amd64 and ppc64le) in this repository: http://www.silx.org/pub/linux-repo/.
+See information on `how-to use this repository <http://www.silx.org/pub/linux-repo/>`_ before running `apt-get install silx`.
 
 .. note::
     
-    The packages are built automatically, hence not signed. 
-    You have to accept the installation of non-signed packages.  
+    Those packages are built automatically, hence not signed.
+    You have to accept the installation of non-signed packages.
 
 If the packages are not installed, it might be due to the priority list.
-You can display the priority list using `apt-cache policy python-silx`.
-If the Pin-number of silx.org is too low compared to other sources:
-download http://www.silx.org/pub/debian/silx.pref into /etc/apt/preferences.d
+You can display the priority list using `apt-cache policy silx`.
+If the Pin-number of silx.org is too low compared to other sources,
+see the "Information/Troubleshooting" section `here <http://www.silx.org/pub/linux-repo/>`_,
 and start the update/install procedure again.
 
     
@@ -184,9 +162,6 @@ binary wheel for it.
 This means that you would have to install *silx* from its sources, which requires
 you to install a C compiler first.
 
-We also encourage you to use Python 3.5 or newer as former versions are no longer
-officially supported.
-
 Configure Python as explained on
 `docs.python.org <https://docs.python.org/3/using/windows.html#configuring-python>`_
 to add the python installation directory to your PATH environment variable.
@@ -211,8 +186,7 @@ prompt.
 MacOS
 -----
 
-Apple ships Python 2.7 by default on their operating systems.
-You must install Python 3.5 or newer to install silx.
+Make sure to use python3 to install silx (you might need to install python3).
 
 Then, install *silx* with ``pip``, see `Installing with pip`_::
 
@@ -278,7 +252,7 @@ Building from source
 ++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from
-`the pypi project page <https://pypi.python.org/pypi/silx>`_.
+`the pypi project page <https://pypi.org/project/silx>`_.
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 

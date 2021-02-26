@@ -54,7 +54,7 @@ Or using Anaconda on Linux and MacOS:
 
 Unofficial packages for different distributions are available:
 
-- Unofficial Debian9 packages are available at http://www.silx.org/pub/debian/
+- Unofficial Debian10 and Ubuntu20.04 packages are available at http://www.silx.org/pub/linux-repo/
 - CentOS 7 rpm packages are provided by Max IV at: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
 - Fedora 23 rpm packages are provided by Max IV at http://pubrepo.maxiv.lu.se/rpm/fc23/x86_64/
 - Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx

@@ -4,7 +4,7 @@
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2018 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -55,7 +55,7 @@ else:
     try:
         import pyopencl
     except ImportError:
-        logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
+        logger.warning("Unable to import pyOpenCl. Please install it from: https://pypi.org/project/pyopencl")
         pyopencl = None
     else:
         try:

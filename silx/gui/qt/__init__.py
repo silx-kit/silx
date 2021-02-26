@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ Example of using :mod:`silx.gui.qt` module:
 >>> widget = qt.QWidget()
 
 For an alternative solution providing a structured namespace,
-see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
+see `qtpy <https://pypi.org/project/QtPy/>`_ which
 provides the namespace of PyQt5 over PyQt4, PySide and PySide2.
 """
 
