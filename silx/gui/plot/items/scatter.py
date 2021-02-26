@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -934,6 +934,12 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         value = numpy.array(value, copy=copy)
         assert value.ndim == 1
         assert len(x) == len(value)
+
+        # Convert complex data
+        if numpy.iscomplexobj(value):
+            _logger.warning(
+                'Converting value data to absolute value to plot it.')
+            value = numpy.absolute(value)
 
         # Reset triangulation and interpolator
         if self.__delaunayFuture is not None:

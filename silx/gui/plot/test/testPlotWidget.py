@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -559,6 +559,11 @@ class TestPlotCurve(PlotWidgetTestCase):
         self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
                            baseline=list(range(0, 100, 1)))
 
+    def testPlotCurveComplexData(self):
+        """Test curve with complex data"""
+        data = numpy.arange(100.) + 1j
+        self.plot.addCurve(x=data, y=data, xerror=data, yerror=data)
+
 
 class TestPlotHistogram(PlotWidgetTestCase):
     """Basic tests for add Histogram"""
@@ -590,6 +595,13 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         y = numpy.arange(100)
         value = numpy.arange(100)
         self.plot.addScatter(x, y, value)
+        self.plot.resetZoom()
+
+    def testScatterComplexData(self):
+        """Test scatter item with complex data"""
+        data = numpy.arange(100.) + 1j
+        self.plot.addScatter(
+            x=data, y=data, value=data, xerror=data, yerror=data)
         self.plot.resetZoom()
 
     def testScatterVisualization(self):
