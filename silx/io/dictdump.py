@@ -26,6 +26,7 @@ by text strings to following file formats: `HDF5, INI, JSON`
 """
 
 from collections import OrderedDict
+from collections.abc import Mapping
 import json
 import logging
 import numpy
@@ -34,11 +35,16 @@ import sys
 import h5py
 
 from .configdict import ConfigDict
-from .utils import is_group, is_link, is_softlink, is_externallink
+from .utils import is_group
+from .utils import is_dataset
+from .utils import is_link
+from .utils import is_softlink
+from .utils import is_externallink
 from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 from .utils import h5py_read_dataset
 from .utils import H5pyAttributesReadWrapper
+from silx.utils.deprecation import deprecated_warning
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -66,7 +72,7 @@ def _prepare_hdf5_write_value(array_like):
         return array
 
 
-class _SafeH5FileWrite(object):
+class _SafeH5FileWrite:
     """Context manager returning a :class:`h5py.File` object.
 
     If this object is initialized with a file path, we open the file
@@ -82,7 +88,6 @@ class _SafeH5FileWrite(object):
     """
     def __init__(self, h5file, mode="w"):
         """
-
         :param h5file:  HDF5 file path or :class:`h5py.File` instance
         :param str mode:  Can be ``"r+"`` (read/write, file must exist),
             ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
@@ -106,7 +111,7 @@ class _SafeH5FileWrite(object):
             self.h5file.close()
 
 
-class _SafeH5FileRead(object):
+class _SafeH5FileRead:
     """Context manager returning a :class:`h5py.File` or a
     :class:`silx.io.spech5.SpecH5` or a :class:`silx.io.fabioh5.File` object.
 
@@ -136,18 +141,48 @@ class _SafeH5FileRead(object):
             self.h5file.close()
 
 
+def _normalize_h5_path(h5root, h5path):
+    """
+    :param h5root: File name or h5py-like File, Group or Dataset
+    :param str h5path: relative to ``h5root``
+    :returns 2-tuple: (File or file object, h5path)
+    """
+    if is_group(h5root):
+        group_name = h5root.name
+        if group_name == "/":
+            pass
+        elif h5path:
+            h5path = group_name + "/" + h5path
+        else:
+            h5path = group_name
+        h5file = h5root.file
+    elif is_dataset(h5root):
+        h5path = h5root.name
+        h5file = h5root.file
+    else:
+        h5file = h5root
+    if not h5path:
+        h5path = "/"
+    elif not h5path.endswith("/"):
+        h5path += "/"
+    return h5file, h5path
+
+
 def dicttoh5(treedict, h5file, h5path='/',
-             mode="w", overwrite_data=False,
-             create_dataset_args=None):
+             mode="w", overwrite_data=None,
+             create_dataset_args=None, update_mode=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
     If a dictionary value is a sub-dictionary, a group is created. If it is
     any other data type, it is cast into a numpy array and written as a
     :mod:`h5py` dataset. Dictionary keys must be strings and cannot contain
     the ``/`` character.
-    
+
     If dictionary keys are tuples they are interpreted to set h5 attributes.
-    The tuples should have the format (dataset_name,attr_name)
+    The tuples should have the format (dataset_name, attr_name).
+
+    Existing HDF5 items can be deleted by providing the dictionary value
+    ``None``, provided that ``update_mode in ["modify", "replace"]``.
 
     .. note::
 
@@ -158,21 +193,29 @@ def dicttoh5(treedict, h5file, h5path='/',
         to define sub trees. If tuples are used as keys they should have the
         format (dataset_name,attr_name) and will add a 5h attribute with the
         corresponding value.
-    :param h5file: HDF5 file name or handle. If a file name is provided, the
-        function opens the file in the specified mode and closes it again
-        before completing.
-    :param h5path: Target path in HDF5 file in which scan groups are created.
+    :param h5file: File name or h5py-like File, Group or Dataset
+    :param h5path: Target path in the HDF5 file relative to ``h5file``.
         Default is root (``"/"``)
     :param mode: Can be ``"r+"`` (read/write, file must exist),
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
         exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
-    :param overwrite_data: If ``True``, existing groups and datasets can be
-        overwritten, if ``False`` they are skipped. This parameter is only
-        relevant if ``h5file_mode`` is ``"r+"`` or ``"a"``.
+    :param overwrite_data: Deprecated. ``True`` is approximately equivalent
+        to ``update_mode="modify"`` and ``False`` is equivalent to
+        ``update_mode="add"``.
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5f.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
+    :param update_mode: Can be ``add`` (default), ``modify`` or ``replace``.
+
+        * ``add``: Extend the existing HDF5 tree when possible. Existing HDF5
+            items (groups, datasets and attributes) remain untouched.
+        * ``modify``: Extend the existing HDF5 tree when possible, modify
+            existing attributes, modify same-sized dataset values and delete
+            HDF5 items with a ``None`` value in the dict tree.
+        * ``replace``: Replace the existing HDF5 tree. Items from the root of
+            the HDF5 tree that are not present in the root of the dict tree
+            will remain untouched.
 
     Example::
 
@@ -201,44 +244,110 @@ def dicttoh5(treedict, h5file, h5path='/',
                  create_dataset_args=create_ds_args)
     """
 
-    if not h5path.endswith("/"):
-        h5path += "/"
+    if overwrite_data is not None:
+        reason = (
+            "`overwrite_data=True` becomes `update_mode='modify'` and "
+            "`overwrite_data=False` becomes `update_mode='add'`"
+        )
+        deprecated_warning(
+            type_="argument",
+            name="overwrite_data",
+            reason=reason,
+            replacement="update_mode",
+            since_version="0.15",
+        )
+
+    if update_mode is None:
+        if overwrite_data:
+            update_mode = "modify"
+        else:
+            update_mode = "add"
+    else:
+        valid_existing_values = ("add", "replace", "modify")
+        if update_mode not in valid_existing_values:
+            raise ValueError((
+                "Argument 'update_mode' can only have values: {}"
+                "".format(valid_existing_values)
+            ))
+        if overwrite_data is not None:
+            logger.warning("The argument `overwrite_data` is ignored")
+
+    if not isinstance(treedict, Mapping):
+        raise TypeError("'treedict' must be a dictionary")
+
+    h5file, h5path = _normalize_h5_path(h5file, h5path)
+
+    def _iter_treedict(attributes=False):
+        nonlocal treedict
+        for key, value in treedict.items():
+            if isinstance(key, tuple) == attributes:
+                yield key, value
+
+    change_allowed = update_mode in ("replace", "modify")
 
     with _SafeH5FileWrite(h5file, mode=mode) as h5f:
-        if isinstance(treedict, dict) and h5path != "/":
-            if h5path not in h5f:
-                h5f.create_group(h5path)
-
-        for key in filter(lambda k: not isinstance(k, tuple), treedict):
-            key_is_group = isinstance(treedict[key], dict)
-            h5name = h5path + key
-
-            if key_is_group and treedict[key]:
-                # non-empty group: recurse
-                dicttoh5(treedict[key], h5f, h5name,
-                         overwrite_data=overwrite_data,
-                         create_dataset_args=create_dataset_args)
-                continue
-
-            if h5name in h5f:
-                # key already exists: delete or skip
-                if overwrite_data is True:
-                    del h5f[h5name]
+        # Create the root of the tree
+        if h5path in h5f:
+            if not is_group(h5f[h5path]):
+                if update_mode == "replace":
+                    del h5f[h5path]
+                    h5f.create_group(h5path)
                 else:
-                    logger.warning('key (%s) already exists. '
-                                    'Not overwriting.' % (h5name))
-                    continue
+                    return
+        else:
+            h5f.create_group(h5path)
 
-            value = treedict[key]
+        # Loop over all groups, links and datasets
+        for key, value in _iter_treedict(attributes=False):
+            h5name = h5path + key
+            exists = h5name in h5f
 
-            if value is None or key_is_group:
-                # Create empty group
-                h5f.create_group(h5name)
+            if value is None:
+                # Delete HDF5 item
+                if exists and change_allowed:
+                    del h5f[h5name]
+                    exists = False
+            elif isinstance(value, Mapping):
+                # HDF5 group
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if value:
+                    dicttoh5(value, h5f, h5name,
+                             update_mode=update_mode,
+                             create_dataset_args=create_dataset_args)
+                elif not exists:
+                    h5f.create_group(h5name)
             elif is_link(value):
-                h5f[h5name] = value
+                # HDF5 link
+                if exists and update_mode == "replace":
+                    del h5f[h5name]
+                    exists = False
+                if not exists:
+                    # Create link from h5py link object
+                    h5f[h5name] = value
             else:
+                # HDF5 dataset
+                if exists and not change_allowed:
+                    continue
                 data = _prepare_hdf5_write_value(value)
-                # can't apply filters on scalars (datasets with shape == () )
+
+                # Edit the existing dataset
+                attrs_backup = None
+                if exists:
+                    try:
+                        h5f[h5name][()] = data
+                        continue
+                    except Exception:
+                        # Delete the existing dataset
+                        if update_mode != "replace":
+                            if not is_dataset(h5f[h5name]):
+                                continue
+                            attrs_backup = dict(h5f[h5name].attrs)
+                        del h5f[h5name]
+
+                # Create dataset
+                # can't apply filters on scalars (datasets with shape == ())
                 if data.shape == () or create_dataset_args is None:
                     h5f.create_dataset(h5name,
                                        data=data)
@@ -246,36 +355,58 @@ def dicttoh5(treedict, h5file, h5path='/',
                     h5f.create_dataset(h5name,
                                        data=data,
                                        **create_dataset_args)
+                if attrs_backup:
+                    h5f[h5name].attrs.update(attrs_backup)
 
-        # deal with h5 attributes which have tuples as keys in treedict
-        for key in filter(lambda k: isinstance(k, tuple), treedict):
-            assert len(key) == 2, "attribute must be defined by 2 values"
+        # Loop over all attributes
+        for key, value in _iter_treedict(attributes=True):
+            if len(key) != 2:
+                raise ValueError("HDF5 attribute must be described by 2 values")
             h5name = h5path + key[0]
             attr_name = key[1]
 
             if h5name not in h5f:
-                # Create empty group if key for attr does not exist
+                # Create an empty group to store the attribute
                 h5f.create_group(h5name)
-                logger.warning(
-                    "key (%s) does not exist. attr %s "
-                    "will be written to ." % (h5name, attr_name)
-                )
 
-            if attr_name in h5f[h5name].attrs:
-                if not overwrite_data:
-                    logger.warning(
-                        "attribute %s@%s already exists. Not overwriting."
-                        "" % (h5name, attr_name)
-                    )
+            h5a = h5f[h5name].attrs
+            exists = attr_name in h5a
+
+            if value is None:
+                # Delete HDF5 attribute
+                if exists and change_allowed:
+                    del h5a[attr_name]
+                    exists = False
+            else:
+                # Add/modify HDF5 attribute
+                if exists and not change_allowed:
                     continue
-
-            # Write attribute
-            value = treedict[key]
-            data = _prepare_hdf5_write_value(value)
-            h5f[h5name].attrs[attr_name] = data
+                data = _prepare_hdf5_write_value(value)
+                h5a[attr_name] = data
 
 
-def nexus_to_h5_dict(treedict, parents=tuple()):
+def _has_nx_class(treedict, key=""):
+    return key + "@NX_class" in treedict or \
+           (key, "NX_class") in treedict
+
+
+def _ensure_nx_class(treedict, parents=tuple()):
+    """Each group needs an "NX_class" attribute.
+    """
+    if _has_nx_class(treedict):
+        return
+    nparents = len(parents)
+    if nparents == 0:
+        treedict[("", "NX_class")] = "NXroot"
+    elif nparents == 1:
+        treedict[("", "NX_class")] = "NXentry"
+    else:
+        treedict[("", "NX_class")] = "NXcollection"
+
+
+def nexus_to_h5_dict(
+    treedict, parents=tuple(), add_nx_class=True, has_nx_class=False
+):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
         * key with ">{url}" notation: strip ">" and convert value to
@@ -286,14 +417,20 @@ def nexus_to_h5_dict(treedict, parents=tuple()):
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
     :param parents: Needed to resolve up-links (tuple of HDF5 group names)
+    :param add_nx_class: Add "NX_class" attribute when missing
+    :param has_nx_class: The "NX_class" attribute is defined in the parent
 
     :rtype dict:
     """
+    if not isinstance(treedict, Mapping):
+        raise TypeError("'treedict' must be a dictionary")
     copy = dict()
     for key, value in treedict.items():
         if "@" in key:
+            # HDF5 attribute
             key = tuple(key.rsplit("@", 1))
         elif key.startswith(">"):
+            # HDF5 link
             if isinstance(value, str):
                 key = key[1:]
                 first, sep, second = value.partition("::")
@@ -314,10 +451,19 @@ def nexus_to_h5_dict(treedict, parents=tuple()):
                     value = h5py.SoftLink(first)
             elif is_link(value):
                 key = key[1:]
-        if isinstance(value, dict):
-            copy[key] = nexus_to_h5_dict(value, parents=parents+(key,))
+        if isinstance(value, Mapping):
+            # HDF5 group
+            key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
+            copy[key] = nexus_to_h5_dict(
+                value,
+                parents=parents+(key,),
+                add_nx_class=add_nx_class,
+                has_nx_class=key_has_nx_class)
         else:
+            # HDF5 dataset or link
             copy[key] = value
+    if add_nx_class and not has_nx_class:
+        _ensure_nx_class(copy, parents)
     return copy
 
 
@@ -336,7 +482,8 @@ def h5_to_nexus_dict(treedict):
     copy = dict()
     for key, value in treedict.items():
         if isinstance(key, tuple):
-            assert len(key)==2, "attribute must be defined by 2 values"
+            if len(key) != 2:
+                raise ValueError("HDF5 attribute must be described by 2 values")
             key = "%s@%s" % (key[0], key[1])
         elif is_softlink(value):
             key = ">" + key
@@ -344,7 +491,7 @@ def h5_to_nexus_dict(treedict):
         elif is_externallink(value):
             key = ">" + key
             value = value.filename + "::" + value.path
-        if isinstance(value, dict):
+        if isinstance(value, Mapping):
             copy[key] = h5_to_nexus_dict(value)
         else:
             copy[key] = value
@@ -414,10 +561,8 @@ def h5todict(h5file,
         scalars). In some cases, you may find that a list of heterogeneous
         data types is converted to a numpy array of strings.
 
-    :param h5file: File name or :class:`h5py.File` object or spech5 file or
-        fabioh5 file.
-    :param str path: Name of HDF5 group to use as dictionary root level,
-        to read only a sub-group in the file
+    :param h5file: File name or h5py-like File, Group or Dataset
+    :param str path: Target path in the HDF5 file relative to ``h5file``
     :param List[str] exclude_names: Groups and datasets whose name contains
         a string in this list will be ignored. Default is None (ignore nothing)
     :param bool asarray: True (default) to read scalar as arrays, False to
@@ -431,6 +576,7 @@ def h5todict(h5file,
         - 'ignore': Ignore errors
     :return: Nested dictionary
     """
+    h5file, path = _normalize_h5_path(h5file, path)
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
         if path not in h5f:
@@ -508,7 +654,7 @@ def h5todict(h5file,
     return ddict
 
 
-def dicttonx(treedict, h5file, h5path="/", **kw):
+def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     """
     Write a nested dictionary to a HDF5 file, using string keys as member names.
     The NeXus convention is used to identify attributes with ``"@"`` character,
@@ -521,6 +667,8 @@ def dicttonx(treedict, h5file, h5path="/", **kw):
          and array-like objects as leafs. The ``"/"`` character can be used
          to define sub tree. The ``"@"`` character is used to write attributes.
          The ``">"`` prefix is used to define links.
+    :param add_nx_class: Add "NX_class" attribute when missing. By default it
+        is ``True`` when ``update_mode`` is ``"add"`` or ``None``.
 
     The named parameters are passed to dicttoh5.
 
@@ -557,12 +705,17 @@ def dicttonx(treedict, h5file, h5path="/", **kw):
 
         dicttonx(gauss,"test.h5")
     """
+    h5file, h5path = _normalize_h5_path(h5file, h5path)
     parents = tuple(p for p in h5path.split("/") if p)
-    nxtreedict = nexus_to_h5_dict(treedict, parents=parents)
+    if add_nx_class is None:
+        add_nx_class = kw.get("update_mode", None) in (None, "add")
+    nxtreedict = nexus_to_h5_dict(
+        treedict, parents=parents, add_nx_class=add_nx_class
+    )
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 
-def nxtodict(h5file, **kw):
+def nxtodict(h5file, include_attributes=True, **kw):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -571,7 +724,7 @@ def nxtodict(h5file, **kw):
 
     The named parameters are passed to h5todict.
     """
-    nxtreedict = h5todict(h5file, **kw)
+    nxtreedict = h5todict(h5file, include_attributes=include_attributes, **kw)
     return h5_to_nexus_dict(nxtreedict)
 
 
