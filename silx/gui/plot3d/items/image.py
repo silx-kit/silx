@@ -245,13 +245,14 @@ class HeightMapData(_HeightMap, ColormapMixIn):
         height, width = heightData.shape
         # Generates coordinates
         y, x = numpy.mgrid[0:height, 0:width]
-        x = numpy.ravel(x)
-        y = numpy.ravel(y)
 
         if data.shape != heightData.shape:  # data and height size miss-match
-            # Colormapped data is interpolated to match the height field
-            data = BilinearImage(data).map_coordinates(
-                (y * data.shape[0] / height, x * data.shape[1] / width))
+            # Colormapped data is interpolated (nearest-neighbour) to match the height field
+            data = data[numpy.floor(y * data.shape[0] / height).astype(numpy.int),
+                        numpy.floor(x * data.shape[1] / height).astype(numpy.int)]
+
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
 
         primitive = primitives.Points(
             x=x,
@@ -315,17 +316,17 @@ class HeightMapRGBA(_HeightMap):
             return  # Nothing to display
 
         # Display as a set of points
-        height, width = rgba.shape[:2]
+        height, width = heightData.shape
         # Generates coordinates
         y, x = numpy.mgrid[0:height, 0:width]
-        x = numpy.ravel(x)
-        y = numpy.ravel(y)
 
         if rgba.shape[:2] != heightData.shape:  # image and height size miss-match
-            # We interpolate the height map to match the RGBA size
-            # Best to do it the other way around, but simpler to implement this way
-            heightData = BilinearImage(heightData).map_coordinates(
-                (y * heightData.shape[0] / height, x * heightData.shape[1] / width))
+            # RGBA data is interpolated (nearest-neighbour) to match the height field
+            rgba = rgba[numpy.floor(y * rgba.shape[0] / height).astype(numpy.int),
+                        numpy.floor(x * rgba.shape[1] / height).astype(numpy.int)]
+
+        x = numpy.ravel(x)
+        y = numpy.ravel(y)
 
         primitive = primitives.ColorPoints(
             x=x,
