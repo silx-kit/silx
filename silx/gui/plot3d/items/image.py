@@ -33,7 +33,6 @@ __date__ = "15/11/2017"
 
 import numpy
 
-from ....image.bilinear import BilinearImage
 from ..scene import primitives, utils
 from .core import DataItem3D, ItemChangedType
 from .mixins import ColormapMixIn, InterpolationMixIn
@@ -188,7 +187,7 @@ class _HeightMap(DataItem3D):
         self.__data = numpy.zeros((0, 0), dtype=numpy.float32)
 
     def setData(self, data, copy: bool=True):
-        """"Set the height field data.
+        """Set the height field data.
 
         :param data:
         :param copy: True (default) to copy the data,
