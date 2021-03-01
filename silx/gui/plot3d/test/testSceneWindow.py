@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import qt
 
 from silx.gui.plot3d.SceneWindow import SceneWindow
-
+from silx.gui.plot3d.items import HeightMapData, HeightMapRGBA
 
 class TestSceneWindow(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
@@ -113,6 +113,42 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
 
         sceneWidget.resetZoom('front')
         self.qapp.processEvents()
+
+    def testHeightMap(self):
+        """Test height map items"""
+        sceneWidget = self.window.getSceneWidget()
+
+        height = numpy.arange(10000).reshape(100, 100) /100.
+
+        for shape in ((100, 100), (4, 5), (150, 20), (110, 110)):
+            with self.subTest(shape=shape):
+                items = []
+
+                # Colormapped data height map
+                data = numpy.arange(numpy.prod(shape)).astype(numpy.float32).reshape(shape)
+
+                heightmap = HeightMapData()
+                heightmap.setData(height)
+                heightmap.setColormappedData(data)
+                heightmap.getColormap().setName('viridis')
+                items.append(heightmap)
+                sceneWidget.addItem(heightmap)
+
+                # RGBA height map
+                colors = numpy.zeros(shape + (3,), dtype=numpy.float32)
+                colors[:, :, 1] = numpy.random.random(shape)
+
+                heightmap = HeightMapRGBA()
+                heightmap.setData(height)
+                heightmap.setColorData(colors)
+                heightmap.setTranslation(100., 0., 0.)
+                items.append(heightmap)
+                sceneWidget.addItem(heightmap)
+
+                self.assertEqual(sceneWidget.getItems(), tuple(items))
+                sceneWidget.resetZoom('front')
+                self.qapp.processEvents()
+                sceneWidget.clearItems()
 
     def testChangeContent(self):
         """Test add/remove/clear items"""
