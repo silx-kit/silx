@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@ def retry(**kw):
     fails on HDF5 IO. Mainly used for reading an HDF5 file that is being
     written.
 
-    :param **kw: see `silx.utils.retry`
+    :param \**kw: see `silx.utils.retry`
     """
     kw.setdefault("retry_on_error", _retry_h5py_error)
     return retry_mod.retry(**kw)
@@ -88,7 +88,7 @@ def retry_contextmanager(**kw):
     entered until it not longer fails on HDF5 IO. Mainly used for reading
     an HDF5 file that is being written.
 
-    :param **kw: see `silx.utils.retry_contextmanager`
+    :param \**kw: see `silx.utils.retry_contextmanager`
     """
     kw.setdefault("retry_on_error", _retry_h5py_error)
     return retry_mod.retry_contextmanager(**kw)
@@ -106,7 +106,7 @@ def retry_in_subprocess(**kw):
 
         method = retry_in_subprocess()(_method)
 
-    :param **kw: see `silx.utils.retry_in_subprocess`
+    :param \**kw: see `silx.utils.retry_in_subprocess`
     """
     kw.setdefault("retry_on_error", _retry_h5py_error)
     return retry_mod.retry_in_subprocess(**kw)
@@ -117,7 +117,7 @@ def group_has_end_time(h5item):
     dataset. A reader can use this as an indication that the Group
     has been fully written (at least if the writer supports this).
 
-    :param Group or Dataset h5item:
+    :param Union[h5py.Group,h5py.Dataset] h5item:
     :returns bool:
     """
     if isinstance(h5item, h5py.Group):
