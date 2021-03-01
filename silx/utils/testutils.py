@@ -102,6 +102,17 @@ def parameterize(test_case_class, *args, **kwargs):
     return suite
 
 
+class LoggingRuntimeError(RuntimeError):
+    """Raised when the `TestLogging` fails"""
+
+    def __init__(self, msg, records):
+        super(LoggingRuntimeError, self).__init__(msg)
+        self.records = records
+
+    def __str__(self):
+        return super(LoggingRuntimeError, self).__str__() + " -> " + str(self.records)
+
+
 class TestLogging(logging.Handler):
     """Context checking the number of logging messages from a specified Logger.
 
@@ -220,8 +231,8 @@ class TestLogging(logging.Handler):
                 expected_count = expected_count_by_level[level]
                 message += "%d %s (got %d)" % (expected_count, logging.getLevelName(level), count)
 
-            raise RuntimeError(
-                'Expected %s' % message)
+            raise LoggingRuntimeError(
+                'Expected %s' % message, records=list(self.records))
 
     def emit(self, record):
         """Override :meth:`logging.Handler.emit`"""
