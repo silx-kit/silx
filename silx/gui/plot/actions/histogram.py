@@ -137,6 +137,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._lastItemFilter = _LastActiveItem(self, plot)
         self._histo = None
         self._item = None
+        self.__statsLabels = None
 
     def _connectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
@@ -231,6 +232,14 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                           color='#66aad7')
         plot.resetZoom()
 
+        if self.__statsLabels is not None:
+            # Update stats labels
+            self.__statsLabels['min'].setText("{:.5g}".format(xmin))
+            self.__statsLabels['max'].setText("{:.5g}".format(xmax))
+            self.__statsLabels['mean'].setText("{:.5g}".format(numpy.nanmean(array)))
+            self.__statsLabels['std'].setText("{:.5g}".format(numpy.nanstd(array)))
+            self.__statsLabels['sum'].setText("{:.5g}".format(numpy.nansum(array)))
+
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
 
@@ -246,6 +255,35 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         window.setDataMargins(0.1, 0.1, 0.1, 0.1)
         window.getXAxis().setLabel("Value")
         window.getYAxis().setLabel("Count")
+
+        statsLayout = qt.QHBoxLayout()
+        statsWidget = qt.QWidget()
+        statsWidget.setLayout(statsLayout)
+
+        self.__statsLabels = {}
+        for key in ("min", "max", "mean", "std", "sum"):
+            widget = qt.QWidget(parent=statsWidget)
+            layout = qt.QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            widget.setLayout(layout)
+
+            keyWidget = qt.QLabel(parent=widget)
+            keyWidget.setText("<b>" + key.capitalize() + ":<b>")
+            layout.addWidget(keyWidget)
+            valueWidget = qt.QLabel(parent=widget)
+            valueWidget.setText("-")
+            valueWidget.setTextInteractionFlags(
+                qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
+            self.__statsLabels[key] = valueWidget
+            layout.addWidget(valueWidget)
+
+            statsLayout.addWidget(widget)
+        statsLayout.addStretch(1)
+
+        dock = qt.QDockWidget(parent=window)
+        dock.setWindowTitle("Statistics")
+        dock.setWidget(statsWidget)
+        window.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
         return window
 
     def getHistogram(self):
