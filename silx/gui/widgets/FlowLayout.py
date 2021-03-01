@@ -71,7 +71,7 @@ class FlowLayout(qt.QLayout):
             return None
 
     def expandingDirections(self):
-        return 0
+        return qt.Qt.Orientations()
 
     def hasHeightForWidth(self):
         return True
