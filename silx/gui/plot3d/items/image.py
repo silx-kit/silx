@@ -186,6 +186,68 @@ class _HeightMap(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self.__data = numpy.zeros((0, 0), dtype=numpy.float32)
 
+    def _pickFull(self, context, threshold=0., sort='depth'):
+        """Perform picking in this item at given widget position.
+
+        :param PickContext context: Current picking context
+        :param float threshold: Picking threshold in pixel.
+            Perform picking in a square of size threshold x threshold.
+        :param str sort: How returned indices are sorted:
+
+            - 'index' (default): sort by the value of the indices
+            - 'depth':  Sort by the depth of the points from the current
+              camera point of view.
+        :return: Object holding the results or None
+        :rtype: Union[None,PickingResult]
+        """
+        assert sort in ('index', 'depth')
+
+        rayNdc = context.getPickingSegment(frame='ndc')
+        if rayNdc is None:  # No picking outside viewport
+            return None
+
+        # TODO no colormapped or color data
+        # Project data to NDC
+        heightData = self.getData(copy=False)
+        if heightData.size == 0:
+            return  # Nothing displayed
+
+        height, width = heightData.shape
+        z = numpy.ravel(heightData)
+        y, x = numpy.mgrid[0:height, 0:width]
+        dataPoints = numpy.transpose((numpy.ravel(x),
+                                      numpy.ravel(y),
+                                      z,
+                                      numpy.ones_like(z)))
+
+        primitive = self._getScenePrimitive()
+
+        pointsNdc = primitive.objectToNDCTransform.transformPoints(
+            dataPoints, perspectiveDivide=True)
+
+        # Perform picking
+        distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
+        # TODO issue with symbol size: using pixel instead of points
+        threshold += 1.  # symbol size
+        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
+        picked = numpy.where(numpy.logical_and(
+                numpy.all(distancesNdc < thresholdNdc, axis=1),
+                numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
+                                  pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
+
+        if sort == 'depth':
+            # Sort picked points from front to back
+            picked = picked[numpy.argsort(pointsNdc[picked, 2])]
+
+        if picked.size > 0:
+            # Convert indices from 1D to 2D
+            return PickingResult(self,
+                                 positions=dataPoints[picked, :3],
+                                 indices=(picked // height, picked % height),
+                                 fetchdata=self.getData)
+        else:
+            return None
+
     def setData(self, data, copy: bool=True):
         """Set the height field data.
 
