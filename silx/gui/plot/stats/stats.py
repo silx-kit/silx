@@ -387,11 +387,13 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            if self.is_mask_valid(onlimits, from_=minX, to_=maxX):
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
                 mask = (minX <= xData) & (xData <= maxX)
-                self._set_mask_validity(onlimits=True, from_=minX, to_=maxX)
+            yData = yData[mask]
+            xData = xData[mask]
+            mask = numpy.zeros_like(yData)
         elif roi:
             if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
                 mask = self.mask
@@ -402,10 +404,6 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                                         to_=roi._todata)
         else:
             mask = numpy.zeros_like(yData)
-
-        if onlimits:
-            yData = yData[mask]
-            xData = xData[mask]
 
         self.data = (xData, yData)
         self.values = numpy.ma.array(yData, mask=mask)
