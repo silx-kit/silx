@@ -34,19 +34,18 @@
 Common OpenCL abstract base classe for different processing
 """
 
-from __future__ import absolute_import, print_function, division
-
 __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/12/2020"
+__date__ = "02/03/2021"
 __status__ = "stable"
 
+import sys
 import os
 import logging
 import gc
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import numpy
 import threading
 from .common import ocl, pyopencl, release_cl_buffers, query_kernel_info, allocate_texture, check_textures_availability
@@ -342,20 +341,45 @@ class OpenclProcessing(object):
         ev = pyopencl.enqueue_copy(*copy_args, **copy_kwargs)
         self.profile_add(ev, "Transfer to texture")
 
-    def log_profile(self):
+    def log_profile(self, stats=False):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
+        
+        :param stats: if True, prints the statistics on each kernel instead of all execution timings
+        :return: list of lines to print
         """
-        t = 0.0
-        out = ["", "Profiling info for OpenCL %s" % self.__class__.__name__]
+        total_time = 0.0
+        out = [""]
+        if stats:
+            stats = OrderedDict()
+            out.append(f"OpenCL kernel profiling statistics in milliseconds for: {self.__class__.__name__}")
+            out.append(f"{'Kernel name':>50} (count):      min   median      max     mean      std")
+        else:
+            stats = None
+            out.append(f"Profiling info for OpenCL: {self.__class__.__name__}")
+
         if self.profile:
             for e in self.events:
                 if "__len__" in dir(e) and len(e) >= 2:
-                    et = 1e-6 * (e[1].profile.end - e[1].profile.start)
-                    out.append("%50s:\t%.3fms" % (e[0], et))
-                    t += et
+                    name = e[0]
+                    pr = e[1].profile
+                    t0 = pr.start
+                    t1 = pr.end
+                    et = 1e-6 * (t1 - t0)
+                    total_time += et
+                    if stats is None:
+                        out.append(f"{name:>50}        : {et:.3f}ms")
+                    else:
+                        if name in stats:
+                            stats[name].append(et)
+                        else:
+                            stats[name] = [et]
+            if stats is not None:
+                for k, v in stats.items():
+                    n = numpy.array(v)
+                    out.append(f"{k:>50} ({len(v):5}): {n.min():8.3f} {numpy.median(n):8.3f} {n.max():8.3f} {n.mean():8.3f} {n.std():8.3f}")
+            out.append("_" * 80)
+            out.append(f"{'Total OpenCL execution time':>50}        : {total_time:.3f}ms")
 
-        out.append("_" * 80)
-        out.append("%50s:\t%.3fms" % ("Total execution time", t))
         logger.info(os.linesep.join(out))
         return out
 
