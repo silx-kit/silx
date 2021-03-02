@@ -98,20 +98,26 @@ class _LastActiveItem(qt.QObject):
     def _activeImageChanged(self, previous, current):
         """Handle active image change"""
         plot = self.getPlotWidget()
-        item = plot.getImage(current)
-        if item is None:
-            self.setActiveItem(None)
-        elif isinstance(item, items.ImageBase):
-            self.setActiveItem(item)
+        if current is None:  # Fall-back to active scatter if any
+            self.setActiveItem(plot.getActiveScatter())
         else:
-            # Do not touch anything, which is consistent with silx v0.12 behavior
-            pass
+            item = plot.getImage(current)
+            if item is None:
+                self.setActiveItem(None)
+            elif isinstance(item, items.ImageBase):
+                self.setActiveItem(item)
+            else:
+                # Do not touch anything, which is consistent with silx v0.12 behavior
+                pass
 
     def _activeScatterChanged(self, previous, current):
         """Handle active scatter change"""
         plot = self.getPlotWidget()
-        item = plot.getScatter(current)
-        self.setActiveItem(item)
+        if current is None:  # Fall-back to active image if any
+            self.setActiveItem(plot.getActiveImage())
+        else:
+            item = plot.getScatter(current)
+            self.setActiveItem(item)
 
 
 class PixelIntensitiesHistoAction(PlotToolAction):
@@ -179,7 +185,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _cleanUp(self):
         plot = self.getHistogramPlotWidget()
         try:
-            plot.remove('pixel intensity', kind='item')
+            plot.remove('pixel intensity', kind='histogram')
         except Exception:
             pass
 
