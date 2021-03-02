@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,20 @@ from .. import items
 
 
 _logger = logging.getLogger(__name__)
+
+
+class _PositionInfoLabel(qt.QLabel):
+    """QLabel with a default size larger than what is displayed."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setText('------')
+        self.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+
+    def sizeHint(self):
+        hint = super().sizeHint()
+        width = self.fontMetrics().boundingRect('##############').width()
+        return qt.QSize(max(hint.width(), width), hint.height())
 
 
 # PositionInfo ################################################################
@@ -117,11 +131,8 @@ class PositionInfo(qt.QWidget):
         for name, func in converters:
             layout.addWidget(qt.QLabel('<b>' + name + ':</b>'))
 
-            contentWidget = qt.QLabel()
+            contentWidget = _PositionInfoLabel(self)
             contentWidget.setText('------')
-            contentWidget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
-            contentWidget.setFixedWidth(
-                contentWidget.fontMetrics().boundingRect('##############').width())
             layout.addWidget(contentWidget)
             self._fields.append((contentWidget, name, func))
 
