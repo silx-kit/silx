@@ -243,7 +243,7 @@ class _HeightMap(DataItem3D):
             # Convert indices from 1D to 2D
             return PickingResult(self,
                                  positions=dataPoints[picked, :3],
-                                 indices=(picked // height, picked % height),
+                                 indices=(picked // width, picked % width),
                                  fetchdata=self.getData)
         else:
             return None
