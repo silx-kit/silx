@@ -39,6 +39,7 @@ __license__ = "MIT"
 
 import numpy
 import logging
+import typing
 import weakref
 
 from .PlotToolAction import PlotToolAction
@@ -120,6 +121,36 @@ class _LastActiveItem(qt.QObject):
             self.setActiveItem(item)
 
 
+class _StatWidget(qt.QWidget):
+    """Widget displaying a name and a value
+
+    :param parent:
+    :param name:
+    """
+
+    def __init__(self, parent=None, name: str=''):
+        super().__init__(parent)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        keyWidget = qt.QLabel(parent=self)
+        keyWidget.setText("<b>" + name.capitalize() + ":<b>")
+        layout.addWidget(keyWidget)
+        self.__valueWidget = qt.QLabel(parent=self)
+        self.__valueWidget.setText("-")
+        self.__valueWidget.setTextInteractionFlags(
+            qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
+        layout.addWidget(self.__valueWidget)
+
+    def setValue(self, value: typing.Optional[float]):
+        """Set the displayed value
+
+        :param value:
+        """
+        self.__valueWidget.setText(
+            "-" if value is None else "{:.5g}".format(value))
+
+
 class PixelIntensitiesHistoAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
@@ -137,7 +168,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._lastItemFilter = _LastActiveItem(self, plot)
         self._histo = None
         self._item = None
-        self.__statsLabels = None
+        self.__statsWidgets = None
 
     def _connectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
@@ -184,11 +215,27 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             self.computeIntensityDistribution()
 
     def _cleanUp(self):
+        self._setStats()  # Reset displayed stats
         plot = self.getHistogramPlotWidget()
         try:
             plot.remove('pixel intensity', kind='histogram')
         except Exception:
             pass
+
+    def _setStats(self,
+            min_: typing.Optional[float] = None,
+            max_: typing.Optional[float] = None,
+            mean: typing.Optional[float] = None,
+            std: typing.Optional[float] = None,
+            sum_: typing.Optional[float] = None):
+        """Set displayed stats."""
+        if self.__statsWidgets is not None:
+            # Update stats value
+            self.__statsWidgets['min'].setValue(min_)
+            self.__statsWidgets['max'].setValue(max_)
+            self.__statsWidgets['mean'].setValue(mean)
+            self.__statsWidgets['std'].setValue(std)
+            self.__statsWidgets['sum'].setValue(sum_)
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
@@ -232,13 +279,12 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                           color='#66aad7')
         plot.resetZoom()
 
-        if self.__statsLabels is not None:
-            # Update stats labels
-            self.__statsLabels['min'].setText("{:.5g}".format(xmin))
-            self.__statsLabels['max'].setText("{:.5g}".format(xmax))
-            self.__statsLabels['mean'].setText("{:.5g}".format(numpy.nanmean(array)))
-            self.__statsLabels['std'].setText("{:.5g}".format(numpy.nanstd(array)))
-            self.__statsLabels['sum'].setText("{:.5g}".format(numpy.nansum(array)))
+        self._setStats(
+            min_=xmin,
+            max_=xmax,
+            mean=numpy.nanmean(array),
+            std=numpy.nanstd(array),
+            sum_=numpy.nansum(array))
 
     def getHistogramPlotWidget(self):
         """Create the plot histogram if needed, otherwise create it
@@ -256,27 +302,14 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         window.getXAxis().setLabel("Value")
         window.getYAxis().setLabel("Count")
 
-        statsLayout = qt.QHBoxLayout()
         statsWidget = qt.QWidget()
-        statsWidget.setLayout(statsLayout)
+        statsLayout = qt.QHBoxLayout(statsWidget)
 
-        self.__statsLabels = {}
-        for key in ("min", "max", "mean", "std", "sum"):
-            widget = qt.QWidget(parent=statsWidget)
-            layout = qt.QHBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
-            widget.setLayout(layout)
+        self.__statsWidgets = dict(
+            (name, _StatWidget(parent=statsWidget, name=name))
+            for name in ("min", "max", "mean", "std", "sum"))
 
-            keyWidget = qt.QLabel(parent=widget)
-            keyWidget.setText("<b>" + key.capitalize() + ":<b>")
-            layout.addWidget(keyWidget)
-            valueWidget = qt.QLabel(parent=widget)
-            valueWidget.setText("-")
-            valueWidget.setTextInteractionFlags(
-                qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
-            self.__statsLabels[key] = valueWidget
-            layout.addWidget(valueWidget)
-
+        for widget in self.__statsWidgets.values():
             statsLayout.addWidget(widget)
         statsLayout.addStretch(1)
 
