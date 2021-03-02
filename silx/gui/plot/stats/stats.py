@@ -401,7 +401,7 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                 self._set_mask_validity(onlimits=True, from_=roi._fromdata,
                                         to_=roi._todata)
         else:
-            mask = numpy.zeros_like(self.data)
+            mask = numpy.zeros_like(yData)
 
         if onlimits:
             yData = yData[mask]
