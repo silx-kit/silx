@@ -84,6 +84,15 @@ class TestTestLogging(unittest.TestCase):
             logger.error("aaa")
             self.assertIsNotNone(listener)
 
+    def testErrorMessage(self):
+        logger = logging.getLogger(__name__ + "testCanBreak")
+        listener = testutils.TestLogging(logger, error=1, warning=2)
+        with self.assertRaisesRegex(RuntimeError, "aaabbb"):
+            with listener:
+                logger.error("aaa")
+                logger.warning("aaabbb")
+                logger.error("aaa")
+
 
 def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
