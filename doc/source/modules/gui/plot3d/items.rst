@@ -112,6 +112,29 @@ The following classes allows to configure :class:`ScalarField3D` visualization:
              getParameters, setParameters,
              getDisplayValuesBelowMin, setDisplayValuesBelowMin
 
+Height map
+----------
+
+.. currentmodule:: silx.gui.plot3d.items.image
+
+:class:`HeightMapData`
+++++++++++++++++++++++
+
+:class:`HeightMapData` inherits from :class:`.DataItem3D` and also provides its API.
+
+.. autoclass:: HeightMapData
+   :members: getData, setData,
+             getColormappedData, setColormappedData
+
+:class:`HeightMapRGBA`
+++++++++++++++++++++++
+
+:class:`HeightMapRGBA` inherits from :class:`.DataItem3D` and also provides its API.
+
+.. autoclass:: HeightMapRGBA
+   :members: getData, setData,
+             getColorData, setColorData
+
 Clipping plane
 --------------
 
