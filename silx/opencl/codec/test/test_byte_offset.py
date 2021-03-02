@@ -37,7 +37,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "10/11/2017"
+__date__ = "02/03/2021"
 
 import sys
 import time
@@ -78,8 +78,8 @@ class TestByteOffset(unittest.TestCase):
         tests the byte offset decompression on GPU
         """
         ref, raw = self._create_test_data(shape=(91, 97), nexcept=229)
-        #ref, raw = self._create_test_data(shape=(7, 9), nexcept=0)
-        
+        # ref, raw = self._create_test_data(shape=(7, 9), nexcept=0)
+
         size = numpy.prod(ref.shape)
 
         try:
@@ -104,8 +104,8 @@ class TestByteOffset(unittest.TestCase):
                      1000.0 * (t1 - t0),
                      1000.0 * (t2 - t1))
         bo.log_profile()
-        #print(ref)
-        #print(res_cl.get())
+        # print(ref)
+        # print(res_cl.get())
         self.assertEqual(delta_cy, 0, "Checks fabio works")
         self.assertEqual(delta_cl, 0, "Checks opencl works")
 
@@ -119,7 +119,7 @@ class TestByteOffset(unittest.TestCase):
         ref, raw = self._create_test_data(shape=shape, nexcept=0, lam=100)
 
         try:
-            bo = byte_offset.ByteOffset(len(raw), size, profile=False)
+            bo = byte_offset.ByteOffset(len(raw), size, profile=True)
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
@@ -155,6 +155,7 @@ class TestByteOffset(unittest.TestCase):
             logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
                          1000.0 * (t1 - t0),
                          1000.0 * (t2 - t1))
+        bo.log_profile(stats=True)
 
     def test_encode(self):
         """Test byte offset compression"""
