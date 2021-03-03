@@ -197,6 +197,21 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
         self.assertEqual(items[5].getType(), 'rectangle')
 
+    def testRemoveDiscardItem(self):
+        """Test removeItem and discardItem"""
+        self.plot.addCurve((1, 2, 3), (1, 2, 3))
+        curve = self.plot.getItems()[0]
+        self.plot.removeItem(curve)
+        with self.assertRaises(ValueError):
+            self.plot.removeItem(curve)
+
+        self.plot.addCurve((1, 2, 3), (1, 2, 3))
+        curve = self.plot.getItems()[0]
+        result = self.plot.discardItem(curve)
+        self.assertTrue(result)
+        result = self.plot.discardItem(curve)
+        self.assertFalse(result)
+
     def testBackGroundColors(self):
         self.plot.setVisible(True)
         self.qWaitForWindowExposed(self.plot)
