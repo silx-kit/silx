@@ -42,6 +42,7 @@ from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
 import datetime as dt
 import itertools
+import typing
 import warnings
 
 import numpy
@@ -82,6 +83,121 @@ Object returned when requesting the data range.
 """
 _PlotDataRange = namedtuple('PlotDataRange',
                             ['x', 'y', 'yright'])
+
+
+class _PlotWidgetSelection(qt.QObject):
+    """Object managing a :class:`PlotWidget` selection.
+
+    It is a wrapper over :class:`PlotWidget`'s active items API.
+
+    :param PlotWidget parent:
+    """
+
+    sigCurrentItemChanged = qt.Signal(object, object)
+    """This signal is emitted whenever the current item changes.
+
+    It provides the current and previous items.
+    """
+
+    def __init__(self, parent):
+        assert isinstance(parent, PlotWidget)
+        super(_PlotWidgetSelection, self).__init__(parent=parent)
+
+        self.__current = self.__findCurrentItem()
+
+        parent.sigActiveImageChanged.connect(self._activeImageChanged)
+        parent.sigActiveCurveChanged.connect(self._activeCurveChanged)
+        parent.sigActiveScatterChanged.connect(self._activeScatterChanged)
+
+    def __findCurrentItem(self) -> typing.Optional[items.Item]:
+        """Returns current active item with most priority."""
+        plot = self.parent()
+        if plot is None:
+            return None
+
+        current = plot.getActiveImage()
+        if current is None:
+            current = plot.getActiveCurve()
+            if current is None:
+                current = plot.getActiveScatter()
+        return current
+
+    def getSelectedItems(self) -> typing.Tuple[items.Item]:
+        """Returns the list of currently selected items in the :class:`PlotWidget`"""
+        plot = self.parent()
+        if plot is None:
+            return ()
+
+        active = (plot.getActiveImage(),
+                  plot.getActiveCurve(),
+                  plot.getActiveScatter())
+        current = self.getCurrentItem()
+        if current is not None and current not in active:
+            # Current might not be an active item, if so add it
+            active = active + (current,)
+
+        return tuple(item for item in active if item is not None)  # Filter-out None
+
+    def getCurrentItem(self) -> typing.Optional[items.Item]:
+        """Returns the current item in the :class:`PlotWidget` or None. """
+        return self.__current
+
+    def setCurrentItem(self, item: typing.Optional[items.Item]):
+        """Set the current item in the :class:`PlotWidget`.
+
+        :param item:
+            The new item to select or None to clear the selection.
+        :raise ValueError: If the item is not the :class:`PlotWidget`
+        """
+        previous = self.getCurrentItem()
+        if previous is item:
+            return
+
+        if item is None:
+            self.__current = None
+        elif isinstance(item, items.Item):
+            plot = self.parent()
+            if plot is None or item.getPlot() is not plot:
+                raise ValueError(
+                    "Item is not in the PlotWidget: %s" % str(item))
+            self.__current = item
+
+            # Sync active item if needed
+            kind = plot._itemKind(item)
+            if (kind in plot._ACTIVE_ITEM_KINDS and
+                    item is not plot._getActiveItem(kind)):
+                plot._setActiveItem(kind, item.getName())
+        else:
+            raise ValueError("Not an Item: %s" % str(item))
+
+        self.sigCurrentItemChanged.emit(previous, item)
+
+    def __setCurrentItem(self, kind: str, legend: typing.Optional[str]):
+        """Set current item from kind and legend"""
+        plot = self.parent()
+        if plot is None:
+            return
+
+        if legend is None:
+            current = self.__findCurrentItem()
+        else:
+            current = plot._getItem(kind=kind, legend=legend)
+        self.setCurrentItem(current)
+
+    def _activeImageChanged(self, previous, current):
+        """Handle active image change"""
+        if previous != current:
+            self.__setCurrentItem(kind='image', legend=current)
+
+    def _activeCurveChanged(self, previous, current):
+        """Handle active curve change"""
+        if previous != current:
+            self.__setCurrentItem(kind='curve', legend=current)
+
+    def _activeScatterChanged(self, previous, current):
+        """Handle active scatter change"""
+        if previous != current:
+            self.__setCurrentItem(kind='scatter', legend=current)
 
 
 class PlotWidget(qt.QMainWindow):
@@ -313,6 +429,9 @@ class PlotWidget(qt.QMainWindow):
         self._foregroundColorsUpdated()
         self._backgroundColorsUpdated()
 
+        # selection handling
+        self.__selection = None
+
     def __getBackendClass(self, backend):
         """Returns backend class corresponding to backend.
 
@@ -373,6 +492,12 @@ class PlotWidget(qt.QMainWindow):
                 raise RuntimeError("None of the request backends are available")
 
         raise ValueError("Backend not supported %s" % str(backend))
+
+    def selection(self):
+        """Returns the selection hander"""
+        if self.__selection is None:  # Lazy initialization
+            self.__selection = _PlotWidgetSelection(parent=self)
+        return self.__selection
 
     # TODO: Can be removed for silx 0.10
     @staticmethod
