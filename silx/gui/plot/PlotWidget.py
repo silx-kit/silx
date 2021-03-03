@@ -103,40 +103,39 @@ class _PlotWidgetSelection(qt.QObject):
         assert isinstance(parent, PlotWidget)
         super(_PlotWidgetSelection, self).__init__(parent=parent)
 
-        self.__current = self.__findCurrentItem()
+        # Init history
+        self.__history = [  # Store active items from most recent to oldest
+            item for item in (parent.getActiveCurve(),
+                              parent.getActiveImage(),
+                              parent.getActiveScatter())
+            if item is not None]
+
+        self.__current = self.__mostRecentActiveItem()
 
         parent.sigActiveImageChanged.connect(self._activeImageChanged)
         parent.sigActiveCurveChanged.connect(self._activeCurveChanged)
         parent.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
-    def __findCurrentItem(self) -> typing.Optional[items.Item]:
-        """Returns current active item with most priority."""
-        plot = self.parent()
-        if plot is None:
-            return None
-
-        current = plot.getActiveImage()
-        if current is None:
-            current = plot.getActiveCurve()
-            if current is None:
-                current = plot.getActiveScatter()
-        return current
+    def __mostRecentActiveItem(self) -> typing.Optional[items.Item]:
+        """Returns most recent active item."""
+        return self.__history[0] if len(self.__history) >= 1 else None
 
     def getSelectedItems(self) -> typing.Tuple[items.Item]:
-        """Returns the list of currently selected items in the :class:`PlotWidget`"""
+        """Returns the list of currently selected items in the :class:`PlotWidget`.
+
+        The list is given from most recently current item to oldest one."""
         plot = self.parent()
         if plot is None:
             return ()
 
-        active = (plot.getActiveImage(),
-                  plot.getActiveCurve(),
-                  plot.getActiveScatter())
+        active = tuple(self.__history)
+
         current = self.getCurrentItem()
         if current is not None and current not in active:
             # Current might not be an active item, if so add it
-            active = active + (current,)
+            active = (current,) + active
 
-        return tuple(item for item in active if item is not None)  # Filter-out None
+        return active
 
     def getCurrentItem(self) -> typing.Optional[items.Item]:
         """Returns the current item in the :class:`PlotWidget` or None. """
@@ -155,6 +154,14 @@ class _PlotWidgetSelection(qt.QObject):
 
         if item is None:
             self.__current = None
+
+            # Reset all PlotWidget active items
+            plot = self.parent()
+            if plot is not None:
+                for kind in PlotWidget._ACTIVE_ITEM_KINDS:
+                    if plot._getActiveItem(kind) is not None:
+                        plot._setActiveItem(kind, None)
+
         elif isinstance(item, items.Item):
             plot = self.parent()
             if plot is None or item.getPlot() is not plot:
@@ -162,8 +169,14 @@ class _PlotWidgetSelection(qt.QObject):
                     "Item is not in the PlotWidget: %s" % str(item))
             self.__current = item
 
-            # Sync active item if needed
             kind = plot._itemKind(item)
+
+            # Update history
+            # TODO needed?
+            self.__history = [item for item in self.__history
+                              if PlotWidget._itemKind(item) != kind]
+
+            # Sync active item if needed
             if (kind in plot._ACTIVE_ITEM_KINDS and
                     item is not plot._getActiveItem(kind)):
                 plot._setActiveItem(kind, item.getName())
@@ -172,32 +185,52 @@ class _PlotWidgetSelection(qt.QObject):
 
         self.sigCurrentItemChanged.emit(previous, item)
 
-    def __setCurrentItem(self, kind: str, legend: typing.Optional[str]):
+    def __activeItemChanged(self,
+                            kind: str,
+                            previous: typing.Optional[str],
+                            legend: typing.Optional[str]):
         """Set current item from kind and legend"""
+        if previous == legend:
+            return  # No-op for update of item
+
         plot = self.parent()
         if plot is None:
             return
 
-        if legend is None:
-            current = self.__findCurrentItem()
+        # Remove items of this kind from the history
+        self.__history = [item for item in self.__history
+                          if PlotWidget._itemKind(item) != kind]
+
+        # Retrieve current item
+        if legend is None:  # Use most recent active item
+            currentItem = self.__mostRecentActiveItem()
         else:
-            current = plot._getItem(kind=kind, legend=legend)
-        self.setCurrentItem(current)
+            currentItem = plot._getItem(kind=kind, legend=legend)
+            if currentItem is None:  # Fallback in case something went wrong
+                currentItem = self.__mostRecentActiveItem()
+
+        # Update history
+        if currentItem is not None:
+            while currentItem in self.__history:
+                self.__history.remove(currentItem)
+            self.__history.insert(0, currentItem)
+
+        if currentItem != self.__current:
+            previousItem = self.__current
+            self.__current = currentItem
+            self.sigCurrentItemChanged.emit(previousItem, currentItem)
 
     def _activeImageChanged(self, previous, current):
         """Handle active image change"""
-        if previous != current:
-            self.__setCurrentItem(kind='image', legend=current)
+        self.__activeItemChanged('image', previous, current)
 
     def _activeCurveChanged(self, previous, current):
         """Handle active curve change"""
-        if previous != current:
-            self.__setCurrentItem(kind='curve', legend=current)
+        self.__activeItemChanged('curve', previous, current)
 
     def _activeScatterChanged(self, previous, current):
         """Handle active scatter change"""
-        if previous != current:
-            self.__setCurrentItem(kind='scatter', legend=current)
+        self.__activeItemChanged('scatter', previous, current)
 
 
 class PlotWidget(qt.QMainWindow):
