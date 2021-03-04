@@ -99,6 +99,9 @@ class _PlotWidgetSelection(qt.QObject):
     It provides the current and previous items.
     """
 
+    sigSelectedItemsChanged = qt.Signal()
+    """Signal emitted whenever the list of selected items changes."""
+
     def __init__(self, parent):
         assert isinstance(parent, PlotWidget)
         super(_PlotWidgetSelection, self).__init__(parent=parent)
@@ -152,6 +155,8 @@ class _PlotWidgetSelection(qt.QObject):
         if previous is item:
             return
 
+        previousSelected = self.getSelectedItems()
+
         if item is None:
             self.__current = None
 
@@ -184,6 +189,9 @@ class _PlotWidgetSelection(qt.QObject):
 
         self.sigCurrentItemChanged.emit(previous, item)
 
+        if previousSelected != self.getSelectedItems():
+            self.sigSelectedItemsChanged.emit()
+
     def __activeItemChanged(self,
                             kind: str,
                             previous: typing.Optional[str],
@@ -195,6 +203,8 @@ class _PlotWidgetSelection(qt.QObject):
         plot = self.parent()
         if plot is None:
             return
+
+        previousSelected = self.getSelectedItems()
 
         # Remove items of this kind from the history
         self.__history = [item for item in self.__history
@@ -218,6 +228,9 @@ class _PlotWidgetSelection(qt.QObject):
             previousItem = self.__current
             self.__current = currentItem
             self.sigCurrentItemChanged.emit(previousItem, currentItem)
+
+        if previousSelected != self.getSelectedItems():
+            self.sigSelectedItemsChanged.emit()
 
     def _activeImageChanged(self, previous, current):
         """Handle active image change"""
