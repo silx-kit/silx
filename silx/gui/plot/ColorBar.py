@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import numpy
 
 from ._utils import ticklayout
 from .. import qt
+from ..qt import inspect as qt_inspect
 from silx.gui import colors
 
 _logger = logging.getLogger(__name__)
@@ -112,14 +113,15 @@ class ColorBarWidget(qt.QWidget):
 
     def _disconnectPlot(self):
         """Disconnect from Plot signals"""
-        plot = self.getPlot()
-        if plot is not None and self._isConnected:
+        if self._isConnected:
             self._isConnected = False
-            plot.sigActiveImageChanged.disconnect(
-                self._activeImageChanged)
-            plot.sigActiveScatterChanged.disconnect(
-                self._activeScatterChanged)
-            plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
+            plot = self.getPlot()
+            if plot is not None and qt_inspect.isValid(plot):
+                plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChanged)
+                plot.sigActiveScatterChanged.disconnect(
+                    self._activeScatterChanged)
+                plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
     def _connectPlot(self):
         """Connect to Plot signals"""
