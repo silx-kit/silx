@@ -4,7 +4,7 @@ Change Log
 0.15.0rc1: 2021/03/
 ---------------------
 
-Key features are `silx.io.h5py_utils` which provides `h5py` concurrency helpers and image mask support by `silx.gui.plot.PlotWidget`'s tools.
+Main new features are the `silx.io.h5py_utils` module which provides `h5py` concurrency helpers and image mask support by `silx.gui.plot.PlotWidget`'s tools.
 
 * `silx view`:
 
@@ -45,7 +45,7 @@ Key features are `silx.io.h5py_utils` which provides `h5py` concurrency helpers 
 
 * `silx.image`:
 
-   * Added mask support to `bilinear` interpolator (PR #3286)
+  * Added mask support to `bilinear` interpolator (PR #3286)
 
 * `silx.opencl`:
 
