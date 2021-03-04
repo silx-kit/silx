@@ -171,8 +171,7 @@ class _PlotWidgetSelection(qt.QObject):
 
             kind = plot._itemKind(item)
 
-            # Update history
-            # TODO needed?
+            # Clean-up history to be safe
             self.__history = [item for item in self.__history
                               if PlotWidget._itemKind(item) != kind]
 
