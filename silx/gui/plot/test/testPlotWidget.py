@@ -1884,6 +1884,153 @@ class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
                 self.assertEqual(self.plot.getItems(), items)
 
 
+class TestPlotWidgetSelection(PlotWidgetTestCase):
+    """Test PlotWidget.selection and active items handling"""
+
+    def _checkSelection(self, selection, current=None, selected=()):
+        """Check current item and selected items."""
+        self.assertIs(selection.getCurrentItem(), current)
+        self.assertEqual(selection.getSelectedItems(), selected)
+
+    def testSyncWithActiveItems(self):
+        """Test update of PlotWidgetSelection according to active items"""
+        listener = SignalListener()
+
+        selection = self.plot.selection()
+        selection.sigCurrentItemChanged.connect(listener)
+        self._checkSelection(selection)
+
+        # Active item is current
+        self.plot.addImage(((0, 1), (2, 3)), legend='image')
+        image = self.plot.getActiveImage()
+        self.assertEqual(listener.callCount(), 1)
+        self._checkSelection(selection, image, (image,))
+
+        # No active = no current
+        self.plot.setActiveImage(None)
+        self.assertEqual(listener.callCount(), 2)
+        self._checkSelection(selection)
+
+        # Active item is current
+        self.plot.setActiveImage('image')
+        self.assertEqual(listener.callCount(), 3)
+        self._checkSelection(selection, image, (image,))
+
+        # Mosted recently "actived" item is current
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
+        scatter = self.plot.getActiveScatter()
+        self.assertEqual(listener.callCount(), 4)
+        self._checkSelection(selection, scatter, (scatter, image))
+
+        # Previously mosted recently "actived" item is current
+        self.plot.setActiveScatter(None)
+        self.assertEqual(listener.callCount(), 5)
+        self._checkSelection(selection, image, (image,))
+
+        # Mosted recently "actived" item is current
+        self.plot.setActiveScatter('scatter')
+        self.assertEqual(listener.callCount(), 6)
+        self._checkSelection(selection, scatter, (scatter, image))
+
+        # No active = no current
+        self.plot.setActiveImage(None)
+        self.plot.setActiveScatter(None)
+        self.assertEqual(listener.callCount(), 7)
+        self._checkSelection(selection)
+
+        # Mosted recently "actived" item is current
+        self.plot.setActiveScatter('scatter')
+        self.assertEqual(listener.callCount(), 8)
+        self.plot.setActiveImage('image')
+        self.assertEqual(listener.callCount(), 9)
+        self._checkSelection(selection, image, (image, scatter))
+
+        # Add a curve which is not active by default
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
+        curve = self.plot.getCurve('curve')
+        self.assertEqual(listener.callCount(), 9)
+        self._checkSelection(selection, image, (image, scatter))
+
+        # Mosted recently "actived" item is current
+        self.plot.setActiveCurve('curve')
+        self.assertEqual(listener.callCount(), 10)
+        self._checkSelection(selection, curve, (curve, image, scatter))
+
+        # Add a curve which is not active by default
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve2')
+        curve2 = self.plot.getCurve('curve2')
+        self.assertEqual(listener.callCount(), 10)
+        self._checkSelection(selection, curve, (curve, image, scatter))
+
+        # Mosted recently "actived" item is current, previous curve is removed
+        self.plot.setActiveCurve('curve2')
+        self.assertEqual(listener.callCount(), 11)
+        self._checkSelection(selection, curve2, (curve2, image, scatter))
+
+        # No items = no current
+        self.plot.clear()
+        self.assertEqual(listener.callCount(), 12)
+        self._checkSelection(selection)
+
+    def testPlotWidgetWithItems(self):
+        """Test init of selection on a plot with items"""
+        self.plot.addImage(((0, 1), (2, 3)), legend='image')
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
+        self.plot.setActiveCurve('curve')
+
+        selection = self.plot.selection()
+        self.assertIsNotNone(selection.getCurrentItem())
+        selected = selection.getSelectedItems()
+        self.assertEqual(len(selected), 3)
+        self.assertIn(self.plot.getActiveCurve(), selected)
+        self.assertIn(self.plot.getActiveImage(), selected)
+        self.assertIn(self.plot.getActiveScatter(), selected)
+
+    def testSetCurrentItem(self):
+        """Test setCurrentItem"""
+        # Add items to the plot
+        self.plot.addImage(((0, 1), (2, 3)), legend='image')
+        image = self.plot.getActiveImage()
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
+        scatter = self.plot.getActiveScatter()
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
+        self.plot.setActiveCurve('curve')
+        curve = self.plot.getActiveCurve()
+
+        selection = self.plot.selection()
+        self.assertIsNotNone(selection.getCurrentItem())
+        self.assertEqual(len(selection.getSelectedItems()), 3)
+
+        # Set current to None reset all active items
+        selection.setCurrentItem(None)
+        self._checkSelection(selection)
+        self.assertIsNone(self.plot.getActiveCurve())
+        self.assertIsNone(self.plot.getActiveImage())
+        self.assertIsNone(self.plot.getActiveScatter())
+
+        # Set current to an item makes it active
+        selection.setCurrentItem(image)
+        self._checkSelection(selection, image, (image,))
+        self.assertIsNone(self.plot.getActiveCurve())
+        self.assertIs(self.plot.getActiveImage(), image)
+        self.assertIsNone(self.plot.getActiveScatter())
+
+        # Set current to an item makes it active and keeps other active
+        selection.setCurrentItem(curve)
+        self._checkSelection(selection, curve, (curve, image))
+        self.assertIs(self.plot.getActiveCurve(), curve)
+        self.assertIs(self.plot.getActiveImage(), image)
+        self.assertIsNone(self.plot.getActiveScatter())
+
+        # Set current to an item makes it active and keeps other active
+        selection.setCurrentItem(scatter)
+        self._checkSelection(selection, scatter, (scatter, curve, image))
+        self.assertIs(self.plot.getActiveCurve(), curve)
+        self.assertIs(self.plot.getActiveImage(), image)
+        self.assertIs(self.plot.getActiveScatter(), scatter)
+
+
 def suite():
     testClasses = (TestPlotWidget,
                    TestPlotImage,
@@ -1897,7 +2044,8 @@ def suite():
                    TestPlotEmptyLog,
                    TestPlotCurveLog,
                    TestPlotImageLog,
-                   TestPlotMarkerLog)
+                   TestPlotMarkerLog,
+                   TestPlotWidgetSelection)
 
     test_suite = unittest.TestSuite()
 
