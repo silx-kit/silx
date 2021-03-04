@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -193,19 +193,6 @@ class _StatsContext(object):
 
         self.clipData(item, plot, onlimits, roi=roi)
 
-    def clipData(self, item, plot, onlimits, roi):
-        """
-        Clip the data to the current mask to have accurate statistics
-
-        :param item: item for whiwh we want to clip data
-        :param plot: plot containing the item
-        :param onlimits: do we want to apply statistic only on
-                         visible data.
-        :param roi: Region of interest for computing the statistics.
-        :type roi: Union[None,:class:`_RegionOfInterestBase`]
-        """
-        raise NotImplementedError()
-
     def clear_mask(self):
         """
         Remove the mask to force recomputation of it on next iteration
@@ -232,7 +219,8 @@ class _StatsContext(object):
         raise NotImplementedError("Base class")
 
     def clipData(self, item, plot, onlimits, roi):
-        """
+        """Clip the data to the current mask to have accurate statistics
+
         Function called before computing each statistics associated to this
         context. It will insure the context for the (item, plot, onlimits, roi)
         is created.
@@ -399,11 +387,13 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
 
         if onlimits:
             minX, maxX = plot.getXAxis().getLimits()
-            if self.is_mask_valid(onlimits, from_=minX, to_=maxX):
+            if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
                 mask = self.mask
             else:
                 mask = (minX <= xData) & (xData <= maxX)
-                self._set_mask_validity(onlimits=True, from_=minX, to_=maxX)
+            yData = yData[mask]
+            xData = xData[mask]
+            mask = numpy.zeros_like(yData)
         elif roi:
             if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
                 mask = self.mask
@@ -413,11 +403,7 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                 self._set_mask_validity(onlimits=True, from_=roi._fromdata,
                                         to_=roi._todata)
         else:
-            mask = numpy.zeros_like(self.data)
-
-        if onlimits:
-            yData = yData[mask]
-            xData = xData[mask]
+            mask = numpy.zeros_like(yData)
 
         self.data = (xData, yData)
         self.values = numpy.ma.array(yData, mask=mask)
