@@ -337,27 +337,17 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _connectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
         item = self._lastItemFilter.getActiveItem()
-        self._setSelectedItem(item)
+        self.getHistogramWidget().setItem(item)
         PlotToolAction._connectPlot(self, window)
 
     def _disconnectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.disconnect(self._activeItemChanged)
         PlotToolAction._disconnectPlot(self, window)
-        self._setSelectedItem(None)
-
-    def _getSelectedItem(self):
-        self.getHistogramWidget().getItem()
+        self.getHistogramWidget().setItem(None)
 
     def _activeItemChanged(self, previous, current):
         if self._isWindowInUse():
-            self._setSelectedItem(current)
-
-    def _setSelectedItem(self, item):
-        self.getHistogramWidget().setItem(item)
-
-    @deprecated(since_version='0.15.0')
-    def _cleanUp(self):
-        self.getHistogramWidget().reset()
+            self.getHistogramWidget().setItem(current)
 
     @deprecated(since_version='0.15.0')
     def computeIntensityDistribution(self):
