@@ -43,13 +43,29 @@ import typing
 import weakref
 
 from .PlotToolAction import PlotToolAction
+
 from silx.math.histogram import Histogramnd
 from silx.math.combo import min_max
 from silx.gui import qt
 from silx.gui.plot import items
+from silx.gui.widgets.ElidedLabel import ElidedLabel
 from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
+
+
+class _ElidedLabel(ElidedLabel):
+    """QLabel with a default size larger than what is displayed."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+
+    def sizeHint(self):
+        hint = super().sizeHint()
+        nbchar = max(len(self.getText()), 12)
+        width = self.fontMetrics().boundingRect('#' * nbchar).width()
+        return qt.QSize(max(hint.width(), width), hint.height())
 
 
 class _StatWidget(qt.QWidget):
@@ -67,7 +83,7 @@ class _StatWidget(qt.QWidget):
         keyWidget = qt.QLabel(parent=self)
         keyWidget.setText("<b>" + name.capitalize() + ":<b>")
         layout.addWidget(keyWidget)
-        self.__valueWidget = qt.QLabel(parent=self)
+        self.__valueWidget = _ElidedLabel(parent=self)
         self.__valueWidget.setText("-")
         self.__valueWidget.setTextInteractionFlags(
             qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
