@@ -155,9 +155,13 @@ class _StatWidget(qt.QWidget):
 class HistogramWidget(qt.QWidget):
     """Widget displaying a histogram and some statistic indicators"""
 
+    _SUPPORTED_ITEM_CLASS = items.ImageBase, items.Scatter
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle('Histogram')
+
+        self.__itemRef = None  # weakref on the item to track
 
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -200,6 +204,78 @@ class HistogramWidget(qt.QWidget):
         self.getPlotWidget().clear()
         self.setStatistics()
 
+    def getItem(self) -> typing.Optional[items.Item]:
+        """Returns item used to display histogram and statistics."""
+        return None if self.__itemRef is None else self.__itemRef()
+
+    def setItem(self, item: typing.Optional[items.Item]):
+        """Set item from which to display histogram and statistics.
+
+        :param item:
+        """
+        previous = self.getItem()
+        if previous is not None:
+            previous.sigItemChanged.disconnect(self.__itemChanged)
+
+        self.__itemRef = None if item is None else weakref.ref(item)
+        if item is not None:
+            if isinstance(item, self._SUPPORTED_ITEM_CLASS):
+                # Only listen signal for supported items
+                item.sigItemChanged.connect(self.__itemChanged)
+            self._updateFromItem()
+
+    def __itemChanged(self, event):
+        """Handle update of the item"""
+        if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
+            self._updateFromItem()
+
+    def _updateFromItem(self):
+        """Update histogram and stats from the item"""
+        item = self.getItem()
+
+        if item is None:
+            self.reset()
+            return
+
+        if not isinstance(item, self._SUPPORTED_ITEM_CLASS):
+            _logger.error("Unsupported item", item)
+            self.reset()
+            return
+
+        # Compute histogram and stats
+        array = item.getValueData(copy=False)
+
+        if array.size == 0:
+            self.reset()
+            return
+
+        xmin, xmax = min_max(array, min_positive=False, finite=True)
+        nbins = min(1024, int(numpy.sqrt(array.size)))
+        data_range = xmin, xmax
+
+        # bad hack: get 256 bins in the case we have a B&W
+        if numpy.issubdtype(array.dtype, numpy.integer):
+            if nbins > xmax - xmin:
+                nbins = xmax - xmin
+
+        nbins = max(2, nbins)
+
+        data = array.ravel().astype(numpy.float32)
+        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
+        if len(histogram.edges) != 1:
+            _logger.error("Error while computing the histogram")
+            self.reset()
+            return
+
+        self.setHistogram(histogram.histo, histogram.edges[0])
+        self.resetZoom()
+        self.setStatistics(
+            min_=xmin,
+            max_=xmax,
+            mean=numpy.nanmean(array),
+            std=numpy.nanstd(array),
+            sum_=numpy.nansum(array))
+
     def setHistogram(self, histogram, edges):
         """Set displayed histogram
 
@@ -214,9 +290,11 @@ class HistogramWidget(qt.QWidget):
             color='#66aad7',
             resetzoom=False)
 
-    def getHistogram(self, copy=True):
+    def getHistogram(self, copy: bool=True):
         """Returns currently displayed histogram.
 
+        :param copy: True to get a copy,
+            False to get internal representation (Do not modify!)
         :return: (histogram, edges) or None
         """
         for item in self.getPlotWidget().getItems():
@@ -255,8 +333,6 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                                 tooltip='Compute image intensity distribution',
                                 parent=parent)
         self._lastItemFilter = _LastActiveItem(self, plot)
-        self._histo = None
-        self._item = None
 
     def _connectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
@@ -270,87 +346,22 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._setSelectedItem(None)
 
     def _getSelectedItem(self):
-        item = self._item
-        if item is None:
-            return None
-        else:
-            return item()
+        self.getHistogramWidget().getItem()
 
     def _activeItemChanged(self, previous, current):
         if self._isWindowInUse():
             self._setSelectedItem(current)
 
     def _setSelectedItem(self, item):
-        if item is not None:
-            if not isinstance(item, (items.ImageBase, items.Scatter)):
-                # Filter out other things
-                return
+        self.getHistogramWidget().setItem(item)
 
-        old = self._getSelectedItem()
-        if item is old:
-            return
-        if old is not None:
-            old.sigItemChanged.disconnect(self._itemUpdated)
-        if item is None:
-            self._item = None
-        else:
-            self._item = weakref.ref(item)
-            item.sigItemChanged.connect(self._itemUpdated)
-        self.computeIntensityDistribution()
-
-    def _itemUpdated(self, event):
-        if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
-            self.computeIntensityDistribution()
-
+    @deprecated(since_version='0.15.0')
     def _cleanUp(self):
-        widget = self.getHistogramWidget()
-        if widget is not None:
-            widget.reset()
+        self.getHistogramWidget().reset()
 
+    @deprecated(since_version='0.15.0')
     def computeIntensityDistribution(self):
-        """Get the active image and compute the image intensity distribution
-        """
-        item = self._getSelectedItem()
-
-        if item is None:
-            self._cleanUp()
-            return
-
-        if isinstance(item, (items.ImageBase, items.Scatter)):
-            array = item.getValueData(copy=False)
-        else:
-            assert(False)
-
-        if array.size == 0:
-            self._cleanUp()
-            return
-
-        xmin, xmax = min_max(array, min_positive=False, finite=True)
-        nbins = min(1024, int(numpy.sqrt(array.size)))
-        data_range = xmin, xmax
-
-        # bad hack: get 256 bins in the case we have a B&W
-        if numpy.issubdtype(array.dtype, numpy.integer):
-            if nbins > xmax - xmin:
-                nbins = xmax - xmin
-
-        nbins = max(2, nbins)
-
-        data = array.ravel().astype(numpy.float32)
-        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
-        assert len(histogram.edges) == 1
-        self._histo = histogram.histo
-        edges = histogram.edges[0]
-
-        widget = self.getHistogramWidget()
-        widget.setHistogram(self._histo, edges)
-        widget.resetZoom()
-        widget.setStatistics(
-            min_=xmin,
-            max_=xmax,
-            mean=numpy.nanmean(array),
-            std=numpy.nanstd(array),
-            sum_=numpy.nansum(array))
+        self.getHistogramWidget()._updateFromItem()
 
     def getHistogramWidget(self):
         """Returns the widget displaying the histogram"""
@@ -364,9 +375,10 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _createToolWindow(self):
         return HistogramWidget(self.plot, qt.Qt.Window)
 
-    def getHistogram(self):
+    def getHistogram(self) -> typing.Optional[numpy.ndarray]:
         """Return the last computed histogram
 
-        :return: the histogram displayed in the HistogramPlotWiget
+        :return: the histogram displayed in the HistogramWidget
         """
-        return self._histo
+        histogram = self.getHistogramWidget().getHistogram()
+        return None if histogram is None else histogram[0]
