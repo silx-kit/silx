@@ -47,6 +47,7 @@ from silx.math.histogram import Histogramnd
 from silx.math.combo import min_max
 from silx.gui import qt
 from silx.gui.plot import items
+from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -151,6 +152,93 @@ class _StatWidget(qt.QWidget):
             "-" if value is None else "{:.5g}".format(value))
 
 
+class HistogramWidget(qt.QWidget):
+    """Widget displaying a histogram and some statistic indicators"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setWindowTitle('Histogram')
+
+        layout = qt.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Plot
+        # Lazy import to avoid circular dependencies
+        from silx.gui.plot.PlotWindow import Plot1D
+        self.__plot = Plot1D(self)
+        layout.addWidget(self.__plot)
+
+        self.__plot.setDataMargins(0.1, 0.1, 0.1, 0.1)
+        self.__plot.getXAxis().setLabel("Value")
+        self.__plot.getYAxis().setLabel("Count")
+
+        # Stats display
+        statsWidget = qt.QWidget(self)
+        layout.addWidget(statsWidget)
+        statsLayout = qt.QHBoxLayout(statsWidget)
+        statsLayout.setContentsMargins(4, 4, 4, 4)
+
+        self.__statsWidgets = dict(
+            (name, _StatWidget(parent=statsWidget, name=name))
+            for name in ("min", "max", "mean", "std", "sum"))
+
+        for widget in self.__statsWidgets.values():
+            statsLayout.addWidget(widget)
+        statsLayout.addStretch(1)
+
+    def getPlotWidget(self):
+        """Returns :class:`PlotWidget` use to display the histogram"""
+        return self.__plot
+
+    def resetZoom(self):
+        self.getPlotWidget().resetZoom()
+
+    def reset(self):
+        """Clear displayed information"""
+        self.getPlotWidget().clear()
+        self.setStatistics()
+
+    def setHistogram(self, histogram, edges):
+        """Set displayed histogram
+
+        :param histogram: Bin values (N)
+        :param edges: Bin edges (N+1)
+        """
+        self.getPlotWidget().addHistogram(
+            histogram=histogram,
+            edges=edges,
+            legend='histogram',
+            fill=True,
+            color='#66aad7',
+            resetzoom=False)
+
+    def getHistogram(self, copy=True):
+        """Returns currently displayed histogram.
+
+        :return: (histogram, edges) or None
+        """
+        for item in self.getPlotWidget().getItems():
+            if item.getName() == 'histogram':
+                return (item.getValueData(copy=copy),
+                        item.getBinEdgesData(copy=copy))
+        else:
+            return None
+
+    def setStatistics(self,
+            min_: typing.Optional[float] = None,
+            max_: typing.Optional[float] = None,
+            mean: typing.Optional[float] = None,
+            std: typing.Optional[float] = None,
+            sum_: typing.Optional[float] = None):
+        """Set displayed statistic indicators."""
+        self.__statsWidgets['min'].setValue(min_)
+        self.__statsWidgets['max'].setValue(max_)
+        self.__statsWidgets['mean'].setValue(mean)
+        self.__statsWidgets['std'].setValue(std)
+        self.__statsWidgets['sum'].setValue(sum_)
+
+
 class PixelIntensitiesHistoAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
@@ -168,7 +256,6 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         self._lastItemFilter = _LastActiveItem(self, plot)
         self._histo = None
         self._item = None
-        self.__statsWidgets = None
 
     def _connectPlot(self, window):
         self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
@@ -215,27 +302,9 @@ class PixelIntensitiesHistoAction(PlotToolAction):
             self.computeIntensityDistribution()
 
     def _cleanUp(self):
-        self._setStats()  # Reset displayed stats
-        plot = self.getHistogramPlotWidget()
-        try:
-            plot.remove('pixel intensity', kind='histogram')
-        except Exception:
-            pass
-
-    def _setStats(self,
-            min_: typing.Optional[float] = None,
-            max_: typing.Optional[float] = None,
-            mean: typing.Optional[float] = None,
-            std: typing.Optional[float] = None,
-            sum_: typing.Optional[float] = None):
-        """Set displayed stats."""
-        if self.__statsWidgets is not None:
-            # Update stats value
-            self.__statsWidgets['min'].setValue(min_)
-            self.__statsWidgets['max'].setValue(max_)
-            self.__statsWidgets['mean'].setValue(mean)
-            self.__statsWidgets['std'].setValue(std)
-            self.__statsWidgets['sum'].setValue(sum_)
+        widget = self.getHistogramWidget()
+        if widget is not None:
+            widget.reset()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
@@ -271,53 +340,28 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         assert len(histogram.edges) == 1
         self._histo = histogram.histo
         edges = histogram.edges[0]
-        plot = self.getHistogramPlotWidget()
-        plot.addHistogram(histogram=self._histo,
-                          edges=edges,
-                          legend='pixel intensity',
-                          fill=True,
-                          color='#66aad7')
-        plot.resetZoom()
 
-        self._setStats(
+        widget = self.getHistogramWidget()
+        widget.setHistogram(self._histo, edges)
+        widget.resetZoom()
+        widget.setStatistics(
             min_=xmin,
             max_=xmax,
             mean=numpy.nanmean(array),
             std=numpy.nanstd(array),
             sum_=numpy.nansum(array))
 
-    def getHistogramPlotWidget(self):
-        """Create the plot histogram if needed, otherwise create it
-
-        :return: the PlotWidget showing the histogram of the pixel intensities
-        """
+    def getHistogramWidget(self):
+        """Returns the widget displaying the histogram"""
         return self._getToolWindow()
 
+    @deprecated(since_version='0.15.0',
+                replacement='getHistogramWidget().getPlotWidget()')
+    def getHistogramPlotWidget(self):
+        return self._getToolWindow().getPlotWidget()
+
     def _createToolWindow(self):
-        from silx.gui.plot.PlotWindow import Plot1D
-        window = Plot1D(parent=self.plot)
-        window.setWindowFlags(qt.Qt.Window)
-        window.setWindowTitle('Image Intensity Histogram')
-        window.setDataMargins(0.1, 0.1, 0.1, 0.1)
-        window.getXAxis().setLabel("Value")
-        window.getYAxis().setLabel("Count")
-
-        statsWidget = qt.QWidget()
-        statsLayout = qt.QHBoxLayout(statsWidget)
-
-        self.__statsWidgets = dict(
-            (name, _StatWidget(parent=statsWidget, name=name))
-            for name in ("min", "max", "mean", "std", "sum"))
-
-        for widget in self.__statsWidgets.values():
-            statsLayout.addWidget(widget)
-        statsLayout.addStretch(1)
-
-        dock = qt.QDockWidget(parent=window)
-        dock.setWindowTitle("Statistics")
-        dock.setWidget(statsWidget)
-        window.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
-        return window
+        return HistogramWidget(self.plot, qt.Qt.Window)
 
     def getHistogram(self):
         """Return the last computed histogram
