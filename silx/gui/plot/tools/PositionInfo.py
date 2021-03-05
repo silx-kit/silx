@@ -44,17 +44,17 @@ import numpy
 from ....utils.deprecation import deprecated
 from ... import qt
 from .. import items
+from ...widgets.ElidedLabel import ElidedLabel
 
 
 _logger = logging.getLogger(__name__)
 
 
-class _PositionInfoLabel(qt.QLabel):
+class _PositionInfoLabel(ElidedLabel):
     """QLabel with a default size larger than what is displayed."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setText('------')
         self.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 
     def sizeHint(self):
