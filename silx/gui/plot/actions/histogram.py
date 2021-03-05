@@ -152,7 +152,7 @@ class HistogramWidget(qt.QWidget):
             if isinstance(item, self._SUPPORTED_ITEM_CLASS):
                 # Only listen signal for supported items
                 item.sigItemChanged.connect(self.__itemChanged)
-            self._updateFromItem()
+        self._updateFromItem()
 
     def __itemChanged(self, event):
         """Handle update of the item"""
