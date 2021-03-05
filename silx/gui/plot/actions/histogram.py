@@ -192,6 +192,7 @@ class HistogramWidget(qt.QWidget):
         return self.__plot
 
     def resetZoom(self):
+        """Reset PlotWidget zoom"""
         self.getPlotWidget().resetZoom()
 
     def reset(self):
