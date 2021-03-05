@@ -254,16 +254,12 @@ class PositionInfo(qt.QWidget):
                 if isinstance(item, items.Histogram):
                     result = item.pick(xPixel, yPixel)
                     if result is not None:  # Histogram picked
+                        index = result.getIndices()[0]
                         edges = item.getBinEdgesData(copy=False)
-                        value = item.getValueData(copy=False)
-
-                        # TODO fix picking bug with fill index = result.getIndices()[0]
-                        index = numpy.searchsorted(edges, (x,), side='left')[0] - 1
-                        index = numpy.clip(index, 0, len(value) - 1)
 
                         # Snap to bin center and value
                         xData = 0.5 * (edges[index] + edges[index + 1])
-                        yData = value[index]
+                        yData = item.getValueData(copy=False)[index]
 
                         # Update label style sheet
                         styleSheet = "color: rgb(0, 0, 0);"
