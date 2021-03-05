@@ -65,7 +65,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
-        self.assertTrue(histoAction.getHistogramPlotWidget().isVisible())
+        self.assertTrue(histoAction.getHistogramWidget().isVisible())
 
         # test the pixel intensity diagram is hiding
         self.qapp.setActiveWindow(self.plotImage)
@@ -73,7 +73,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
-        self.assertFalse(histoAction.getHistogramPlotWidget().isVisible())
+        self.assertFalse(histoAction.getHistogramWidget().isVisible())
 
     def testImageFormatInput(self):
         """Test multiple type as image input"""
@@ -108,9 +108,9 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
 
-        plot = histoAction.getHistogramPlotWidget()
-        self.assertTrue(plot.isVisible())
-        items = plot.getItems()
+        widget = histoAction.getHistogramWidget()
+        self.assertTrue(widget.isVisible())
+        items = widget.getPlotWidget().getItems()
         self.assertEqual(len(items), 1)
 
     def testChangeItem(self):
@@ -131,9 +131,9 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Reach histogram from the first item
-        plot = histoAction.getHistogramPlotWidget()
-        self.assertTrue(plot.isVisible())
-        items = plot.getItems()
+        widget = histoAction.getHistogramWidget()
+        self.assertTrue(widget.isVisible())
+        items = widget.getPlotWidget().getItems()
         data1 = items[0].getValueData(copy=False)
 
         # Set another item to the plot
