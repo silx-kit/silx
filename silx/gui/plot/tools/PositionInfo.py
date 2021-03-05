@@ -227,7 +227,7 @@ class PositionInfo(qt.QWidget):
                 if snappingMode & self.SNAPPING_SCATTER:
                     kinds.append(items.Scatter)
                 selectedItems = [item for item in plot.getItems()
-                                 if isinstance(item, kinds) and item.isVisible()]
+                                 if isinstance(item, tuple(kinds)) and item.isVisible()]
 
             # Compute distance threshold
             if qt.BINDING in ('PyQt5', 'PySide2'):
