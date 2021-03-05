@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,10 @@ try:
 except ImportError:  # Python2 support
     import collections as abc
 
+from ....utils.proxy import docstring
 from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, YAxisMixIn, ItemChangedType)
+                   LineMixIn, YAxisMixIn, ItemChangedType, Item)
+from ._pick import PickingResult
 
 _logger = logging.getLogger(__name__)
 
@@ -218,6 +220,28 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
                     numpy.nanmax(edges),
                     min(0, numpy.nanmin(values)),
                     max(0, numpy.nanmax(values)))
+
+    @docstring(DataItem)
+    def pick(self, x, y):
+        result = super().pick(x, y)
+        if result is None:
+            return None
+        else:
+            if self.isFill():  # Indices not correctly managed by backend
+                plot = self.getPlot()
+                if plot is None:
+                    return None
+
+                xData, _ = plot.pixelToData(x, y, axis=self.getYAxis())
+                edges = self.getBinEdgesData(copy=False)
+
+                index = numpy.searchsorted(edges, (xData,), side='left')[0] - 1
+                # Safe indexing in histogram values
+                index = numpy.clip(index, 0, len(edges) - 2)
+                return PickingResult(self, numpy.array([index]))
+
+            else:  # Convert from curve indices to histogram indices
+                return PickingResult(self, numpy.unique(result.getIndices() // 2))
 
     def getValueData(self, copy=True):
         """The values of the histogram
