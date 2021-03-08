@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "28/08/2018"
 
 import logging
+import typing
 
 import numpy
 from collections import OrderedDict, namedtuple
@@ -221,25 +222,50 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
                     min(0, numpy.nanmin(values)),
                     max(0, numpy.nanmax(values)))
 
+    def __pickFilledHistogram(self, x: float, y: float) -> typing.Optional[PickingResult]:
+        """Picking implementation for filled histogram
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if not self.isFill():
+            return None
+
+        plot = self.getPlot()
+        if plot is None:
+            return None
+
+        xData, yData = plot.pixelToData(x, y, axis=self.getYAxis())
+        xmin, xmax, ymin, ymax = self.getBounds()
+        if not xmin < xData < xmax or not ymin < yData < ymax:
+            return None  # Outside bounding box
+
+        # Check x
+        edges = self.getBinEdgesData(copy=False)
+        index = numpy.searchsorted(edges, (xData,), side='left')[0] - 1
+        # Safe indexing in histogram values
+        index = numpy.clip(index, 0, len(edges) - 2)
+
+        # Check y
+        baseline = self.getBaseline(copy=False)
+        if baseline is None:
+            baseline = 0  # Default value
+
+        value = self.getValueData(copy=False)[index]
+        if ((baseline <= value and baseline <= yData <= value) or
+                (value < baseline and value <= yData <= baseline)):
+            return PickingResult(self, numpy.array([index]))
+        else:
+            return None
+
     @docstring(DataItem)
     def pick(self, x, y):
-        result = super().pick(x, y)
-        if result is None:
-            return None
+        if self.isFill():
+            return self.__pickFilledHistogram(x, y)
         else:
-            if self.isFill():  # Indices not correctly managed by backend
-                plot = self.getPlot()
-                if plot is None:
-                    return None
-
-                xData, _ = plot.pixelToData(x, y, axis=self.getYAxis())
-                edges = self.getBinEdgesData(copy=False)
-
-                index = numpy.searchsorted(edges, (xData,), side='left')[0] - 1
-                # Safe indexing in histogram values
-                index = numpy.clip(index, 0, len(edges) - 2)
-                return PickingResult(self, numpy.array([index]))
-
+            result = super().pick(x, y)
+            if result is None:
+                return None
             else:  # Convert from curve indices to histogram indices
                 return PickingResult(self, numpy.unique(result.getIndices() // 2))
 
