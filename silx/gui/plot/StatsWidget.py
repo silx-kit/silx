@@ -868,6 +868,12 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
+            # _updateStats is call when the plot visible area change.
+            # to force stats update we consider roi changed
+            if self._statsOnVisibleData:
+                roi_changed = True
+            else:
+                roi_changed = False
             stats = statsHandler.calculate(
                 item, plot, self._statsOnVisibleData,
                 data_changed=data_changed, roi_changed=roi_changed)
