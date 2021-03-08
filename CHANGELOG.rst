@@ -25,18 +25,24 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
 
     * Added mask support to Image items and use it in plot tools (histogram, profile, colormap) (PR #3369, #3381)
     * Added `ImageStack` methods to configure automatic reset zoom (PR #3373)
+    * Added some statistic indicators in `PixelIntensitiesHistoAction` action (PR #3391)
     * Enhanced `silx.gui.plot.ImageView` integration of ROI profiles in side plots (PR #3380)
+    * Enhanced `PositionInfo`: snapping to histogram (PR #3405) and information labels layout (PR #3399)
     * Fixed `LegendSelector` blinking when updated (PR #3346)
     * Fixed profile tool issue when closing profile window after attaced PlotWidget (PR #3375)
     * Fixed histogram action (PR #3396)
+    * Fixed support of histogram plot items in `stats` module (PR #3398, #3407)
+    * Fixed `ColorBar` when deleting attached PlotWidget (PR #3403)
 
     * `silx.gui.plot.PlotWidget`:
 
       * Added `getValueData` method to image items (PR #3378)
       * Added `discardItem` method (PR #3400)
+      * Added unified `selection()` handler compatible with active item management (PR #3401)
       * Fixed `addCurve` documentation (PR #3371)
       * Fixed complex image first displayed mode (PR #3364)
       * Fixed curve and scatter items support of complex data input (PR #3384)
+      * Fixed histogram picking (PR #3405)
 
   * `silx.gui.plot3d`:
 
