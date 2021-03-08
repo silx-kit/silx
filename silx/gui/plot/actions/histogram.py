@@ -122,6 +122,8 @@ class HistogramWidget(qt.QWidget):
         self.__plot.setDataMargins(0.1, 0.1, 0.1, 0.1)
         self.__plot.getXAxis().setLabel("Value")
         self.__plot.getYAxis().setLabel("Count")
+        posInfo = self.__plot.getPositionInfoWidget()
+        posInfo.setSnappingMode(posInfo.SNAPPING_CURVE)
 
         # Stats display
         statsWidget = qt.QWidget(self)

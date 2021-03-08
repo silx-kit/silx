@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ __license__ = "MIT"
 __date__ = "28/08/2018"
 
 import logging
+import typing
 
 import numpy
 from collections import OrderedDict, namedtuple
@@ -38,8 +39,10 @@ try:
 except ImportError:  # Python2 support
     import collections as abc
 
+from ....utils.proxy import docstring
 from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, YAxisMixIn, ItemChangedType)
+                   LineMixIn, YAxisMixIn, ItemChangedType, Item)
+from ._pick import PickingResult
 
 _logger = logging.getLogger(__name__)
 
@@ -218,6 +221,53 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
                     numpy.nanmax(edges),
                     min(0, numpy.nanmin(values)),
                     max(0, numpy.nanmax(values)))
+
+    def __pickFilledHistogram(self, x: float, y: float) -> typing.Optional[PickingResult]:
+        """Picking implementation for filled histogram
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
+        if not self.isFill():
+            return None
+
+        plot = self.getPlot()
+        if plot is None:
+            return None
+
+        xData, yData = plot.pixelToData(x, y, axis=self.getYAxis())
+        xmin, xmax, ymin, ymax = self.getBounds()
+        if not xmin < xData < xmax or not ymin < yData < ymax:
+            return None  # Outside bounding box
+
+        # Check x
+        edges = self.getBinEdgesData(copy=False)
+        index = numpy.searchsorted(edges, (xData,), side='left')[0] - 1
+        # Safe indexing in histogram values
+        index = numpy.clip(index, 0, len(edges) - 2)
+
+        # Check y
+        baseline = self.getBaseline(copy=False)
+        if baseline is None:
+            baseline = 0  # Default value
+
+        value = self.getValueData(copy=False)[index]
+        if ((baseline <= value and baseline <= yData <= value) or
+                (value < baseline and value <= yData <= baseline)):
+            return PickingResult(self, numpy.array([index]))
+        else:
+            return None
+
+    @docstring(DataItem)
+    def pick(self, x, y):
+        if self.isFill():
+            return self.__pickFilledHistogram(x, y)
+        else:
+            result = super().pick(x, y)
+            if result is None:
+                return None
+            else:  # Convert from curve indices to histogram indices
+                return PickingResult(self, numpy.unique(result.getIndices() // 2))
 
     def getValueData(self, copy=True):
         """The values of the histogram

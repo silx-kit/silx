@@ -224,10 +224,11 @@ class PositionInfo(qt.QWidget):
                 kinds = []
                 if snappingMode & self.SNAPPING_CURVE:
                     kinds.append(items.Curve)
+                    kinds.append(items.Histogram)
                 if snappingMode & self.SNAPPING_SCATTER:
                     kinds.append(items.Scatter)
                 selectedItems = [item for item in plot.getItems()
-                                 if isinstance(item, kinds) and item.isVisible()]
+                                 if isinstance(item, tuple(kinds)) and item.isVisible()]
 
             # Compute distance threshold
             if qt.BINDING in ('PyQt5', 'PySide2'):
@@ -244,38 +245,54 @@ class PositionInfo(qt.QWidget):
             distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
 
             for item in selectedItems:
-                if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and
-                        not item.getSymbol()):
+                if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and (
+                        not isinstance(item, items.SymbolMixIn) or
+                        not item.getSymbol())):
                     # Only handled if item symbols are visible
                     continue
 
-                xArray = item.getXData(copy=False)
-                yArray = item.getYData(copy=False)
-                closestIndex = numpy.argmin(
-                    pow(xArray - x, 2) + pow(yArray - y, 2))
+                if isinstance(item, items.Histogram):
+                    result = item.pick(xPixel, yPixel)
+                    if result is not None:  # Histogram picked
+                        index = result.getIndices()[0]
+                        edges = item.getBinEdgesData(copy=False)
 
-                xClosest = xArray[closestIndex]
-                yClosest = yArray[closestIndex]
+                        # Snap to bin center and value
+                        xData = 0.5 * (edges[index] + edges[index + 1])
+                        yData = item.getValueData(copy=False)[index]
 
-                if isinstance(item, items.YAxisMixIn):
-                    axis = item.getYAxis()
-                else:
-                    axis = 'left'
-
-                closestInPixels = plot.dataToPixel(
-                    xClosest, yClosest, axis=axis)
-                if closestInPixels is not None:
-                    curveDistInPixels = (
-                        (closestInPixels[0] - xPixel)**2 +
-                        (closestInPixels[1] - yPixel)**2)
-
-                    if curveDistInPixels <= distInPixels:
                         # Update label style sheet
                         styleSheet = "color: rgb(0, 0, 0);"
+                        break
 
-                        # if close enough, snap to data point coord
-                        xData, yData = xClosest, yClosest
-                        distInPixels = curveDistInPixels
+                else:  # Curve, Scatter
+                    xArray = item.getXData(copy=False)
+                    yArray = item.getYData(copy=False)
+                    closestIndex = numpy.argmin(
+                        pow(xArray - x, 2) + pow(yArray - y, 2))
+
+                    xClosest = xArray[closestIndex]
+                    yClosest = yArray[closestIndex]
+
+                    if isinstance(item, items.YAxisMixIn):
+                        axis = item.getYAxis()
+                    else:
+                        axis = 'left'
+
+                    closestInPixels = plot.dataToPixel(
+                        xClosest, yClosest, axis=axis)
+                    if closestInPixels is not None:
+                        curveDistInPixels = (
+                            (closestInPixels[0] - xPixel)**2 +
+                            (closestInPixels[1] - yPixel)**2)
+
+                        if curveDistInPixels <= distInPixels:
+                            # Update label style sheet
+                            styleSheet = "color: rgb(0, 0, 0);"
+
+                            # if close enough, snap to data point coord
+                            xData, yData = xClosest, yClosest
+                            distInPixels = curveDistInPixels
 
         for label, name, func in self._fields:
             label.setStyleSheet(styleSheet)
