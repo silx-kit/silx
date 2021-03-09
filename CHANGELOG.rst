@@ -62,7 +62,7 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
   * Removed debian 9 packaging (PR #3383)
   * Enhanced test functions: `silx.test.run_tests` (PR #3331), `silx.utils.testutils.TestLogging` (PR #3393)
   * Continuous integration: Added github actions and removed travis-ci (PR #3353, #3359), fixed (PR #3361, #3366)
-  * Updated documentation (PR #3383, #3387)
+  * Updated documentation (PR #3383, #3387, #3408)
   * Fixed debian packaging (PR #3362)
 
 
