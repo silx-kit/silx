@@ -328,9 +328,8 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
                 mask = self.mask
             else:
                 mask = (minX <= xData) & (xData <= maxX)
-            yData = yData[mask]
-            xData = xData[mask]
-            mask = numpy.zeros_like(yData)
+                mask = mask == 0
+                self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         elif roi:
             minX, maxX = roi.getFrom(), roi.getTo()
             if self.is_mask_valid(onlimits=onlimits, from_=minX, to_=maxX):
@@ -338,10 +337,11 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
             else:
                 mask = (minX <= xData) & (xData <= maxX)
                 mask = mask == 0
-                mask = mask.astype(numpy.int32)
+                self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         else:
             mask = numpy.zeros_like(yData)
 
+        mask = mask.astype(numpy.uint32)
         self.xData = xData
         self.yData = yData
         self.values = numpy.ma.array(yData, mask=mask)
@@ -351,7 +351,6 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
         else:
             self.min, self.max = None, None
         self.data = (xData, yData)
-
         self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
@@ -391,32 +390,29 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                 mask = self.mask
             else:
                 mask = (minX <= xData) & (xData <= maxX)
-            yData = yData[mask]
-            xData = xData[mask]
-            mask = numpy.zeros_like(yData)
+                mask = mask == 0
+                self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         elif roi:
-            if self.is_mask_valid(onlimits, from_=roi._fromdata, to_=roi._todata):
+            if self.is_mask_valid(onlimits=onlimits, from_=roi._fromdata, to_=roi._todata):
                 mask = self.mask
             else:
                 mask = (roi._fromdata <= xData) & (xData <= roi._todata)
                 mask = mask == 0
-                self._set_mask_validity(onlimits=True, from_=roi._fromdata,
+                self._set_mask_validity(onlimits=onlimits, from_=roi._fromdata,
                                         to_=roi._todata)
         else:
             mask = numpy.zeros_like(yData)
-
-        self.data = (xData, yData)
-        self.values = numpy.ma.array(yData, mask=mask)
-        self.axes = (xData,)
-
+        mask = mask.astype(numpy.uint32)
         self.xData = xData
         self.yData = yData
-
+        self.values = numpy.ma.array(yData, mask=(mask))
         unmasked_data = self.values.compressed()
         if len(unmasked_data) > 0:
             self.min, self.max = min_max(unmasked_data)
         else:
             self.min, self.max = None, None
+        self.data = (self.xData, self.yData)
+        self.axes = (self.xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         _StatsContext._checkContextInputs(self, item=item, plot=plot,
