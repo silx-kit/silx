@@ -54,8 +54,5 @@ _logging.getLogger(__name__).addHandler(_logging.NullHandler())
 
 project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
 
-try:
-    from ._version import __date__ as date  # noqa
-    from ._version import version, version_info, hexversion, strictversion  # noqa
-except ImportError:
-    raise RuntimeError("Do NOT use %s from its sources: build it and use the built version" % project)
+from ._version import __date__ as date  # noqa
+from ._version import version, version_info, hexversion, strictversion  # noqa
