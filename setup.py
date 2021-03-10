@@ -86,14 +86,14 @@ export LC_ALL=en_US.utf-8
 """)
 
 
-def get_version():
+def get_version(debian=False):
     """Returns current version number from _version.py file"""
     dirname = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "src", PROJECT)
     sys.path.insert(0, dirname)
     import _version
     sys.path = sys.path[1:]
-    return _version.strictversion
+    return _version.debianversion if debian else _version.strictversion
 
 
 def get_readme():
@@ -763,8 +763,7 @@ class sdist_debian(sdist):
 
     @staticmethod
     def get_debian_name():
-        import version
-        name = "%s_%s" % (PROJECT, version.debianversion)
+        name = "%s_%s" % (PROJECT, get_version(debian=True))
         return name
 
     def prune_file_list(self):
