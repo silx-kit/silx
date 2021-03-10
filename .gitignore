@@ -1,19 +1,19 @@
 # Cythonized files
-silx/image/bilinear.c
-silx/image/marchingsquares/_mergeimpl.cpp
-silx/image/shapes.c
-silx/io/specfile.c
-silx/math/chistogramnd.c
-silx/math/chistogramnd_lut.c
-silx/math/colormap.c
-silx/math/combo.c
-silx/math/interpolate.c
-silx/math/fit/filters.c
-silx/math/fit/functions.c
-silx/math/fit/peaks.c
-silx/math/marchingcubes.cpp
-silx/math/medianfilter/medianfilter.cpp
-silx/third_party/_local/scipy_spatial/qhull.c
+src/silx/image/bilinear.c
+src/silx/image/marchingsquares/_mergeimpl.cpp
+src/silx/image/shapes.c
+src/silx/io/specfile.c
+src/silx/math/chistogramnd.c
+src/silx/math/chistogramnd_lut.c
+src/silx/math/colormap.c
+src/silx/math/combo.c
+src/silx/math/interpolate.c
+src/silx/math/fit/filters.c
+src/silx/math/fit/functions.c
+src/silx/math/fit/peaks.c
+src/silx/math/marchingcubes.cpp
+src/silx/math/medianfilter/medianfilter.cpp
+src/silx/third_party/_local/scipy_spatial/qhull.c
 
 # Hidden files
 .*
