@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,7 @@ __date__ = "07/06/2018"
 import logging
 logging.basicConfig()
 
+import multiprocessing
 import sys
 from silx.utils.launcher import Launcher
 import silx._version
@@ -52,6 +53,8 @@ def main():
     :rtype: int
     :returns: The execution status
     """
+    multiprocessing.freeze_support()
+
     launcher = Launcher(prog="silx", version=silx._version.version)
     launcher.add_command("view",
                          module_name="silx.app.view.main",

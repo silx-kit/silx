@@ -30,7 +30,9 @@ __date__ = "07/06/2018"
 
 
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 import logging
 import subprocess
@@ -74,38 +76,46 @@ class TestLauncher(unittest.TestCase):
             result = e.args[0]
         self.assertEqual(result, 0)
 
-    def executeCommandLine(self, command_line, env):
+    def executeAsScript(self, filename, *args):
         """Execute a command line.
 
         Log output as debug in case of bad return code.
         """
-        _logger.info("Execute: %s", " ".join(command_line))
-        p = subprocess.Popen(command_line,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
-        out, err = p.communicate()
-        _logger.info("Return code: %d", p.returncode)
-        try:
-            out = out.decode('utf-8')
-        except UnicodeError:
-            pass
-        try:
-            err = err.decode('utf-8')
-        except UnicodeError:
-            pass
+        env = self.createTestEnv()
 
-        if p.returncode != 0:
-            _logger.info("stdout:")
-            _logger.info("%s", out)
-            _logger.info("stderr:")
-            _logger.info("%s", err)
-        else:
-            _logger.debug("stdout:")
-            _logger.debug("%s", out)
-            _logger.debug("stderr:")
-            _logger.debug("%s", err)
-        self.assertEqual(p.returncode, 0)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Copy file to temporary dir to avoid import from current dir.
+            script = os.path.join(tmpdir, 'launcher.py')
+            shutil.copyfile(filename, script)
+            command_line = [sys.executable, script] + list(args)
+
+            _logger.info("Execute: %s", " ".join(command_line))
+            p = subprocess.Popen(command_line,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 env=env)
+            out, err = p.communicate()
+            _logger.info("Return code: %d", p.returncode)
+            try:
+                out = out.decode('utf-8')
+            except UnicodeError:
+                pass
+            try:
+                err = err.decode('utf-8')
+            except UnicodeError:
+                pass
+
+            if p.returncode != 0:
+                _logger.info("stdout:")
+                _logger.info("%s", out)
+                _logger.info("stderr:")
+                _logger.info("%s", err)
+            else:
+                _logger.debug("stdout:")
+                _logger.debug("%s", out)
+                _logger.debug("stderr:")
+                _logger.debug("%s", err)
+            self.assertEqual(p.returncode, 0)
 
     def createTestEnv(self):
         """
@@ -120,18 +130,14 @@ class TestLauncher(unittest.TestCase):
 
         Uses subprocess to avoid to parasite the current environment.
         """
-        env = self.createTestEnv()
-        commandLine = [sys.executable, main.__file__, "--help"]
-        self.executeCommandLine(commandLine, env)
+        self.executeAsScript(main.__file__, "--help")
 
     def testExecuteSilxViewHelp(self):
         """Test if the main module is well connected.
 
         Uses subprocess to avoid to parasite the current environment.
         """
-        env = self.createTestEnv()
-        commandLine = [sys.executable, silx_main.__file__, "view", "--help"]
-        self.executeCommandLine(commandLine, env)
+        self.executeAsScript(silx_main.__file__, "view", "--help")
 
 
 def suite():
