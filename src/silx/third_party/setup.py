@@ -37,7 +37,7 @@ from numpy.distutils.misc_util import Configuration
 def configuration(parent_package='', top_path=None):
     config = Configuration('third_party', parent_package, top_path)
     # includes _local only if it is available
-    local_path = os.path.join(top_path, "silx", "third_party", "_local")
+    local_path = os.path.join(top_path, "src", "silx", "third_party", "_local")
     if os.path.exists(local_path):
         config.add_subpackage('_local')
         config.add_subpackage('_local.scipy_spatial')

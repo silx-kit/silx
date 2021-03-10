@@ -35,7 +35,7 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('marchingsquares', parent_package, top_path)
     config.add_subpackage('test')
 
-    silx_include = os.path.join(top_path, "silx", "utils", "include")
+    silx_include = os.path.join(top_path, "src", "silx", "utils", "include")
     config.add_extension('_mergeimpl',
                          sources=['_mergeimpl.pyx'],
                          include_dirs=[numpy.get_include(), silx_include],

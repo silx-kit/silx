@@ -30,7 +30,7 @@ You have to patch the setup module like that:
 
 .. code-block:: python
 
-    silx_include = os.path.join(top_path, "silx", "utils", "include")
+    silx_include = os.path.join(top_path, "src", ""silx", "utils", "include")
     config.add_extension('my_extension',
                          include_dirs=[silx_include],
                          ...)

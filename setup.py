@@ -476,7 +476,9 @@ def configuration(parent_package='', top_path=None):
         assume_default_configuration=True,
         delegate_options_to_subpackages=True,
         quiet=True)
-    config.add_subpackage(PROJECT)
+    config.add_subpackage(
+        PROJECT, subpackage_path=os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), 'src', PROJECT))
     return config
 
 # ############## #

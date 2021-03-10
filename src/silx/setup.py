@@ -43,7 +43,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('third_party')
     config.add_subpackage('utils')
     config.add_subpackage('app')
-    config.add_subpackage("examples", "../examples")
+    config.add_subpackage("examples", "../../examples")
 
     return config
 
