@@ -41,7 +41,7 @@ ICONS_RST_DIR = os.path.join(PROJECT_ROOT, 'doc', 'source', 'modules', 'gui')
 
 ICONS_RST_FILENAME = os.path.join(ICONS_RST_DIR, 'icons.rst')
 
-ICONS_DIR = os.path.join(PROJECT_ROOT, 'silx', 'resources', 'gui', 'icons', '*.png')
+ICONS_DIR = os.path.join(PROJECT_ROOT, 'src', 'silx', 'resources', 'gui', 'icons', '*.png')
 
 
 ICONS_RST_HEADER = """
