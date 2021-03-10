@@ -211,19 +211,7 @@ def main(argv):
         logger.info("Start Jupyter notebook")
         from notebook.notebookapp import main as notebook_main
         os.environ["PYTHONPATH"] = LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
-
-        filename = os.path.join(LIBPATH, '.__bootstrap_pythonstartup.py')
-
-        with open(filename, 'w') as fp:
-            fp.write('import sys; sys.path.pop(0)')
-
-        os.environ["PYTHONSTARTUP"] = filename
         notebook_main(argv=[])
-
-        try:
-            os.remove(filename)
-        except:
-            logger.error("Cannot delete temporary file: %s", filename)
 
     elif options.script:
         logger.info("Executing %s from source checkout", options.script)
@@ -250,8 +238,6 @@ def main(argv):
 
     else:
         logging.info("Running IPython by default")
-        logger.info("Patch the sys.argv: %s", sys.argv)
-        sys.path.insert(2, "")
         try:
             from IPython import start_ipython
         except Exception as err:
