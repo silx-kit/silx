@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -149,6 +149,9 @@ class RecordTableModel(qt.QAbstractTableModel):
     :param qt.QObject parent: Parent object
     :param numpy.ndarray data: A numpy array or a h5py dataset
     """
+
+    MAX_NUMBER_OF_ROWS = 10e6 + 1
+
     def __init__(self, parent=None, data=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
@@ -170,7 +173,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         elif not self.__is_array:
             return 1
         else:
-            return len(self.__data)
+            return min(len(self.__data), self.MAX_NUMBER_OF_ROWS)
 
     def columnCount(self, parent_idx=None):
         """Returns number of columns to be displayed in table"""
@@ -188,8 +191,11 @@ class RecordTableModel(qt.QAbstractTableModel):
         if self.__data is None:
             return None
 
+        if index.row() == self.MAX_NUMBER_OF_ROWS - 1:
+            return "[...]" if role == qt.Qt.DisplayRole else None
+
         if self.__is_array:
-            if index.row() >= len(self.__data):
+            if index.row() >= self.rowCount():
                 return None
             data = self.__data[index.row()]
         else:
@@ -223,7 +229,9 @@ class RecordTableModel(qt.QAbstractTableModel):
 
         if role == qt.Qt.DisplayRole:
             if orientation == qt.Qt.Vertical:
-                if not self.__is_array:
+                if section == self.MAX_NUMBER_OF_ROWS -1:
+                    return "[...]"
+                elif not self.__is_array:
                     return "Scalar"
                 else:
                     return str(section)
