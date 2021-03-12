@@ -2042,6 +2042,9 @@ class _Image(Geometry):
 
         vec4 color = imageColor(data, vTexCoords);
         color.a *= alpha;
+        if (color.a == 0.) { /* Discard fully transparent pixels */
+            discard;
+        }
 
         vec3 normal = vec3(0.0, 0.0, 1.0);
         gl_FragColor = $lightingCall(color, vPosition, normal);
