@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.data import ArrayTableWidget
+from silx.gui.data.ArrayTableModel import ArrayTableModel
 from silx.gui.utils.testutils import TestCaseQt
 
 import h5py
@@ -185,6 +186,18 @@ class TestArrayWidget(TestCaseQt):
         self.aw.setArrayData(b0, copy=False)
         b1 = self.aw.getData(copy=False)
         self.assertIs(b0, b1)
+
+    def testClipping(self):
+        """Test clipping of large arrays"""
+        self.aw.show()
+        self.qWaitForWindowExposed(self.aw)
+
+        data = numpy.arange(ArrayTableModel.MAX_NUMBER_OF_SECTIONS + 10)
+
+        for shape in [(1, -1), (-1, 1)]:
+            with self.subTest(shape=shape):
+                self.aw.setArrayData(data.reshape(shape), editable=True)
+                self.qapp.processEvents()
 
 
 class TestH5pyArrayWidget(TestCaseQt):
