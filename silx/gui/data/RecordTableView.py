@@ -153,8 +153,6 @@ class RecordTableModel(qt.QAbstractTableModel):
     MAX_NUMBER_OF_ROWS = 10e6
     """Maximum number of display values of the dataset"""
 
-    _CLIPPING_TOOLTIP = "Dataset is too large: display is clipped"
-
     def __init__(self, parent=None, data=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
@@ -185,6 +183,15 @@ class RecordTableModel(qt.QAbstractTableModel):
         else:
             return len(self.__fields)
 
+    def __clippedData(self, role=qt.Qt.DisplayRole):
+        """Return data for cells representing clipped data"""
+        if role == qt.Qt.DisplayRole:
+            return "..."
+        elif role == qt.Qt.ToolTipRole:
+            return "Dataset is too large: display is clipped"
+        else:
+            return None
+
     def data(self, index, role=qt.Qt.DisplayRole):
         """QAbstractTableModel method to access data values
         in the format ready to be displayed"""
@@ -195,19 +202,14 @@ class RecordTableModel(qt.QAbstractTableModel):
             return None
 
         # Special display of one before last data for clipped table
-        if self.isClipped() and index.row() == self.rowCount() - 2:
-            if role == qt.Qt.DisplayRole:
-                return "..."
-            elif role == qt.Qt.ToolTipRole:
-                return self._CLIPPING_TOOLTIP
-            else:
-                return None
+        if self.__isClipped() and index.row() == self.rowCount() - 2:
+            return self.__clippedData(role)
 
         if self.__is_array:
             row = index.row()
             if row >= self.rowCount():
                 return None
-            elif self.isClipped() and row == self.rowCount() - 1:
+            elif self.__isClipped() and row == self.rowCount() - 1:
                 # Clipped array, display last value at the end
                 data = self.__data[-1]
             else:
@@ -242,15 +244,10 @@ class RecordTableModel(qt.QAbstractTableModel):
             return None
 
         # Handle clipping of huge tables
-        if (self.isClipped() and
+        if (self.__isClipped() and
                 orientation == qt.Qt.Vertical and
                 section == self.rowCount() - 2):
-            if role == qt.Qt.DisplayRole:
-                return "..."
-            elif role == qt.Qt.ToolTipRole:
-                return self._CLIPPING_TOOLTIP
-            else:
-                return None
+            return self.__clippedData(role)
 
         if role == qt.Qt.DisplayRole:
             if orientation == qt.Qt.Vertical:
@@ -279,7 +276,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         """
         return qt.QAbstractTableModel.flags(self, index)
 
-    def isClipped(self) -> bool:
+    def __isClipped(self) -> bool:
         """Returns whether the displayed array is clipped or not"""
         return self.__data is not None and self.__is_array and len(self.__data) > self.MAX_NUMBER_OF_ROWS
 
