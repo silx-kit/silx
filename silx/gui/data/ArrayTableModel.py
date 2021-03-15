@@ -188,8 +188,27 @@ class ArrayTableModel(qt.QAbstractTableModel):
             return 1
         return min(self._array.shape[col_dim], self.MAX_NUMBER_OF_SECTIONS)
 
+    def __isClipped(self, orientation=qt.Qt.Vertical) -> bool:
+        """Returns whether or not array is clipped in a given orientation"""
+        if orientation == qt.Qt.Vertical:
+            dim = self._getRowDim()
+        else:
+            dim = self._getColumnDim()
+        return (dim is not None and
+                self._array.shape[dim] > self.MAX_NUMBER_OF_SECTIONS)
+
+    def __isClippedIndex(self, index) -> bool:
+        """Returns whether or not index's cell represents clipped data."""
+        if not index.isValid():
+            return False
+        if index.row() == self.MAX_NUMBER_OF_SECTIONS - 2:
+            return self.__isClipped(qt.Qt.Vertical)
+        if index.column() == self.MAX_NUMBER_OF_SECTIONS - 2:
+            return self.__isClipped(qt.Qt.Horizontal)
+        return False
+
     def __clippedData(self, role=qt.Qt.DisplayRole):
-        """Return data for clipped cells"""
+        """Return data for cells representing clipped data"""
         if role == qt.Qt.DisplayRole:
             return "..."
         elif role == qt.Qt.ToolTipRole:
@@ -201,24 +220,20 @@ class ArrayTableModel(qt.QAbstractTableModel):
         """QAbstractTableModel method to access data values
         in the format ready to be displayed"""
         if index.isValid():
-            row, column = index.row(), index.column()
-
-            # Check if array is clipped
-            row_dim, col_dim = self._getRowDim(), self._getColumnDim()
-            isRowClipped = (row_dim is not None and
-                self._array.shape[row_dim] > self.MAX_NUMBER_OF_SECTIONS)
-            isColumnClipped = (col_dim is not None and
-                self._array.shape[col_dim] > self.MAX_NUMBER_OF_SECTIONS)
-
-            # For clipped array, display one before last cells with ...
-            if ((isRowClipped and row == self.MAX_NUMBER_OF_SECTIONS - 2) or
-                    (isColumnClipped and column == self.MAX_NUMBER_OF_SECTIONS - 2)):
+            if self.__isClippedIndex(index):  # Special displayed for clipped data
                 return self.__clippedData(role)
 
-            # When clipped display last data of the array in last column of the table
-            selection = self._getIndexTuple(
-                self._array.shape[row_dim] - 1 if (isRowClipped and row == self.MAX_NUMBER_OF_SECTIONS - 1) else row,
-                self._array.shape[col_dim] - 1 if (isColumnClipped and column == self.MAX_NUMBER_OF_SECTIONS - 1) else column)
+            row, column = index.row(), index.column()
+
+            # When clipped, display last data of the array in last column of the table
+            if (self.__isClipped(qt.Qt.Vertical) and
+                    row == self.MAX_NUMBER_OF_SECTIONS - 1):
+                row = self._array.shape[self._getRowDim()] - 1
+            if (self.__isClipped(qt.Qt.Horizontal) and
+                    column == self.MAX_NUMBER_OF_SECTIONS - 1):
+                column = self._array.shape[self._getColumnDim()] - 1
+
+            selection = self._getIndexTuple(row, column)
 
             if role == qt.Qt.DisplayRole:
                 return self._formatter.toString(self._array[selection], self._array.dtype)
@@ -254,21 +269,18 @@ class ArrayTableModel(qt.QAbstractTableModel):
         """QAbstractTableModel method
         Return the 0-based row or column index, for display in the
         horizontal and vertical headers"""
-        if orientation == qt.Qt.Vertical:
-            dim = self._getRowDim()
-        else:
-            dim = self._getColumnDim()
-
-        # Handle clipped arrays
-        if (dim is not None and
-                self._array.shape[dim] > self.MAX_NUMBER_OF_SECTIONS):
-            # Header is clipped
+        if self.__isClipped(orientation):  # Header is clipped
             if section == self.MAX_NUMBER_OF_SECTIONS - 2:
+                # Represent clipped data
                 return self.__clippedData(role)
 
             elif section == self.MAX_NUMBER_OF_SECTIONS - 1:
                 # Display last index from data not table
                 if role == qt.Qt.DisplayRole:
+                    if orientation == qt.Qt.Vertical:
+                        dim = self._getRowDim()
+                    else:
+                        dim = self._getColumnDim()
                     return str(self._array.shape[dim] - 1)
                 else:
                     return None
@@ -280,7 +292,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
     def flags(self, index):
         """QAbstractTableModel method to inform the view whether data
         is editable or not."""
-        if not self._editable:
+        if not self._editable or self.__isClippedIndex(index):
             return qt.QAbstractTableModel.flags(self, index)
         return qt.QAbstractTableModel.flags(self, index) | qt.Qt.ItemIsEditable
 
