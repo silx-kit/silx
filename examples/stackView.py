@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,12 +47,18 @@ dim2_calib = (-5., 15. / 120.)
 
 # sv = StackView()
 sv = StackViewMainWindow()
-sv.setColormap("jet", autoscale=True)
 sv.setStack(mystack,
             calibrations=[dim0_calib, dim1_calib, dim2_calib])
 sv.setLabels(["dim0: -10 to 10 (200 samples)",
               "dim1: -10 to 5 (150 samples)",
               "dim2: -5 to 10 (120 samples)"])
+sv.setColormap("jet")
+sv.scaleColormapRangeToStack()
+
+# Enable use of mask in other tools: colormap autoscale, histogram, profile
+maskToolsWidget = sv.getPlotWidget().getMaskToolsDockWidget().widget()
+maskToolsWidget.setItemMaskUpdated(True)
+
 sv.show()
 
 app.exec_()
