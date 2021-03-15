@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,10 @@ class ArrayTableModel(qt.QAbstractTableModel):
     :param sequence[int] perspective: See documentation
         of :meth:`setPerspective`.
     """
+
+    MAX_NUMBER_OF_SECTIONS = 10e6
+    """Maximum number of displayed rows and columns"""
+
     def __init__(self, parent=None, data=None, perspective=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
@@ -173,7 +177,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if row_dim is None:
             # 0-D and 1-D arrays
             return 1
-        return self._array.shape[row_dim]
+        return min(self._array.shape[row_dim], self.MAX_NUMBER_OF_SECTIONS)
 
     def columnCount(self, parent_idx=None):
         """QAbstractTableModel method
@@ -182,14 +186,40 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if col_dim is None:
             # 0-D array
             return 1
-        return self._array.shape[col_dim]
+        return min(self._array.shape[col_dim], self.MAX_NUMBER_OF_SECTIONS)
+
+    def __clippedData(self, role=qt.Qt.DisplayRole):
+        """Return data for clipped cells"""
+        if role == qt.Qt.DisplayRole:
+            return "..."
+        elif role == qt.Qt.ToolTipRole:
+            return "Dataset is too large: display is clipped"
+        else:
+            return None
 
     def data(self, index, role=qt.Qt.DisplayRole):
         """QAbstractTableModel method to access data values
         in the format ready to be displayed"""
         if index.isValid():
-            selection = self._getIndexTuple(index.row(),
-                                            index.column())
+            row, column = index.row(), index.column()
+
+            # Check if array is clipped
+            row_dim, col_dim = self._getRowDim(), self._getColumnDim()
+            isRowClipped = (row_dim is not None and
+                self._array.shape[row_dim] > self.MAX_NUMBER_OF_SECTIONS)
+            isColumnClipped = (col_dim is not None and
+                self._array.shape[col_dim] > self.MAX_NUMBER_OF_SECTIONS)
+
+            # For clipped array, display one before last cells with ...
+            if ((isRowClipped and row == self.MAX_NUMBER_OF_SECTIONS - 2) or
+                    (isColumnClipped and column == self.MAX_NUMBER_OF_SECTIONS - 2)):
+                return self.__clippedData(role)
+
+            # When clipped display last data of the array in last column of the table
+            selection = self._getIndexTuple(
+                self._array.shape[row_dim] - 1 if (isRowClipped and row == self.MAX_NUMBER_OF_SECTIONS - 1) else row,
+                self._array.shape[col_dim] - 1 if (isColumnClipped and column == self.MAX_NUMBER_OF_SECTIONS - 1) else column)
+
             if role == qt.Qt.DisplayRole:
                 return self._formatter.toString(self._array[selection], self._array.dtype)
 
@@ -224,11 +254,27 @@ class ArrayTableModel(qt.QAbstractTableModel):
         """QAbstractTableModel method
         Return the 0-based row or column index, for display in the
         horizontal and vertical headers"""
+        if orientation == qt.Qt.Vertical:
+            dim = self._getRowDim()
+        else:
+            dim = self._getColumnDim()
+
+        # Handle clipped arrays
+        if (dim is not None and
+                self._array.shape[dim] > self.MAX_NUMBER_OF_SECTIONS):
+            # Header is clipped
+            if section == self.MAX_NUMBER_OF_SECTIONS - 2:
+                return self.__clippedData(role)
+
+            elif section == self.MAX_NUMBER_OF_SECTIONS - 1:
+                # Display last index from data not table
+                if role == qt.Qt.DisplayRole:
+                    return str(self._array.shape[dim] - 1)
+                else:
+                    return None
+
         if role == qt.Qt.DisplayRole:
-            if orientation == qt.Qt.Vertical:
-                return "%d" % section
-            if orientation == qt.Qt.Horizontal:
-                return "%d" % section
+            return "%d" % section
         return None
 
     def flags(self, index):
