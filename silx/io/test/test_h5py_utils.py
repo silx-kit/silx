@@ -31,6 +31,7 @@ __date__ = "27/01/2020"
 import unittest
 import os
 import sys
+import time
 import shutil
 import tempfile
 import threading
@@ -96,18 +97,20 @@ def _top_level_names_test(txtfilename, *args, **kw):
     sys.stderr = open(os.devnull, "w")
 
     with open(txtfilename, mode="r") as f:
-        counter = int(f.readline().strip())
+        failcounter = int(f.readline().strip())
 
-    nsleep = kw.pop("nsleep")
-    if counter < nsleep:
-        counter += 1
+    ncausefailure = kw.pop("ncausefailure")
+    faildelay = kw.pop("faildelay")
+    if failcounter < ncausefailure:
+        time.sleep(faildelay)
+        failcounter += 1
         with open(txtfilename, mode="w") as f:
-            f.write(str(counter))
-        if counter % 2:
+            f.write(str(failcounter))
+        if failcounter % 2:
             raise RetryError
         else:
             _cause_segfault()
-    return h5py_utils.top_level_names(*args, **kw)
+    return h5py_utils._top_level_names(*args, **kw)
 
 
 top_level_names_test = h5py_utils.retry_in_subprocess()(_top_level_names_test)
@@ -145,7 +148,7 @@ class TestH5pyUtils(unittest.TestCase):
         i = 1
         while True:
             filename = os.path.join(self.test_dir, "file{}.h5".format(i))
-            with self._open_context(filename) as f:
+            with self._open_context(filename):
                 pass
             yield filename
             i += 1
@@ -326,34 +329,28 @@ class TestH5pyUtils(unittest.TestCase):
     @subtests
     def test_retry_custom(self):
         filename = self._new_filename()
-        nsleep = 3
-        retry_period = 0.01
-
-        # just to make sure the test doesn't hang
-        overhead = 10
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
 
         @h5py_utils.retry_contextmanager()
         def open_item(filename, name):
-            nonlocal counter
-            if counter < nsleep:
-                counter += 1
+            nonlocal failcounter
+            if failcounter < ncausefailure:
+                time.sleep(faildelay)
+                failcounter += 1
                 raise RetryError
             with h5py_utils.File(filename) as h5file:
                 yield h5file[name]
 
-        counter = 0
-        kw = {
-            "retry_timeout": nsleep * (retry_period + overhead),
-            "retry_period": retry_period,
-        }
+        failcounter = 0
+        kw = {"retry_timeout": sufficient_timeout}
         with open_item(filename, "/check", **kw) as item:
             self.assertTrue(item[()])
 
-        counter = 0
-        kw = {
-            "retry_timeout": nsleep * (retry_period * 0.9),
-            "retry_period": retry_period,
-        }
+        failcounter = 0
+        kw = {"retry_timeout": insufficient_timeout}
         with self.assertRaises(RetryTimeoutError):
             with open_item(filename, "/check", **kw) as item:
                 pass
@@ -361,18 +358,17 @@ class TestH5pyUtils(unittest.TestCase):
     @subtests
     def test_retry_in_subprocess(self):
         filename = self._new_filename()
-        txtfilename = os.path.join(self.test_dir, "counter.txt")
-        nsleep = 3
-        retry_period = 0.01
-
-        # just to make sure the test doesn't hang
-        overhead = 10
+        txtfilename = os.path.join(self.test_dir, "failcounter.txt")
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
 
         kw = {
-            "retry_timeout": nsleep * (retry_period + overhead),
-            "retry_period": retry_period,
+            "retry_timeout": sufficient_timeout,
             "include_only": None,
-            "nsleep": nsleep,
+            "ncausefailure": ncausefailure,
+            "faildelay": faildelay,
         }
         with open(txtfilename, mode="w") as f:
             f.write("0")
@@ -380,10 +376,10 @@ class TestH5pyUtils(unittest.TestCase):
         self.assertEqual(names, ["check"])
 
         kw = {
-            "retry_timeout": nsleep * (retry_period * 0.9),
-            "retry_period": retry_period,
+            "retry_timeout": insufficient_timeout,
             "include_only": None,
-            "nsleep": nsleep,
+            "ncausefailure": ncausefailure,
+            "faildelay": faildelay,
         }
         with open(txtfilename, mode="w") as f:
             f.write("0")
