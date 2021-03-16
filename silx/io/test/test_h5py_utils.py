@@ -363,11 +363,11 @@ class TestH5pyUtils(unittest.TestCase):
         filename = self._new_filename()
         txtfilename = os.path.join(self.test_dir, "counter.txt")
         nsleep = 3
-        retry_period = 0.01
 
         # just to make sure the test doesn't hang
         overhead = 10
 
+        retry_period = 2.
         kw = {
             "retry_timeout": nsleep * (retry_period + overhead),
             "retry_period": retry_period,
@@ -379,8 +379,9 @@ class TestH5pyUtils(unittest.TestCase):
         names = top_level_names_test(txtfilename, filename, **kw)
         self.assertEqual(names, ["check"])
 
+        retry_period = 0.01
         kw = {
-            "retry_timeout": nsleep * (retry_period * 0.9),
+            "retry_timeout": nsleep * retry_period * 0.01,
             "retry_period": retry_period,
             "include_only": None,
             "nsleep": nsleep,
