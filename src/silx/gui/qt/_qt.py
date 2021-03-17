@@ -88,7 +88,7 @@ if BINDING == 'PyQt5':
     try:
         from PyQt5.QtOpenGL import *  # noqa
     except ImportError:
-        _logger.info("PySide.QtOpenGL not available")
+        _logger.info("PyQt5.QtOpenGL not available")
         HAS_OPENGL = False
     else:
         HAS_OPENGL = True
