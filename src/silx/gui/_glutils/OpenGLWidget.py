@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -210,15 +210,14 @@ else:
                 _logger.error('_OpenGLWidget has no parent')
                 return
 
-            if qt.BINDING in ('PyQt5', 'PySide2'):
-                devicePixelRatio = self.window().windowHandle().devicePixelRatio()
+            devicePixelRatio = self.window().windowHandle().devicePixelRatio()
 
-                if devicePixelRatio != self.getDevicePixelRatio():
-                    # Update devicePixelRatio and call resizeOpenGL
-                    # as resizeGL is not always called.
-                    self.__devicePixelRatio = devicePixelRatio
-                    self.makeCurrent()
-                    parent.resizeGL(self.width(), self.height())
+            if devicePixelRatio != self.getDevicePixelRatio():
+                # Update devicePixelRatio and call resizeOpenGL
+                # as resizeGL is not always called.
+                self.__devicePixelRatio = devicePixelRatio
+                self.makeCurrent()
+                parent.resizeGL(self.width(), self.height())
 
             if self.isValid():
                 parent.paintGL()
