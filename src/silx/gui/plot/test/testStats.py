@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -693,9 +693,6 @@ class TestEmptyStatsWidget(TestCaseQt):
         self.qWaitForWindowExposed(widget)
 
 
-# skip unit test for pyqt4 because there is some unrealised widget without
-# apparent reason
-@unittest.skipIf(qt.qVersion().split('.')[0] == '4', reason='PyQt4 not tested')
 class TestLineWidget(TestCaseQt):
     """Some test for the StatsLineWidget."""
     def setUp(self):

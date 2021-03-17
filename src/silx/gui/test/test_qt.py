@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -140,7 +140,6 @@ class TestLoadUi(TestCaseQt):
     </ui>
     """
 
-    @unittest.skipIf(qt.BINDING == "PySide", "Not fully working with PySide")
     def testLoadUi(self):
         """Create a QMainWindow from an ui file"""
         with temp_dir() as tmp:
@@ -166,9 +165,6 @@ class TestLoadUi(TestCaseQt):
 class TestQtInspect(unittest.TestCase):
     """Test functions of silx.gui.qt.inspect module"""
 
-    # shiboken module is not always available
-    @unittest.skipIf(qt.BINDING == 'PySide' and qt_inspect is None,
-                     reason="shiboken module not available")
     def test(self):
         """Test functions of silx.gui.qt.inspect module"""
         self.assertIsNotNone(qt_inspect)
