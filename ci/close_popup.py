@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,36 +41,10 @@ import logging
 import time
 import pynput
 
-qt = None
 try:
     from PyQt5 import Qt as qt
 except ImportError:
-    pass
-
-if qt is None:
-    try:
-        from PyQt4 import Qt as qt
-    except ImportError:
-        pass
-
-if qt is None:
-    try:
-        # Create a 'qt'-like module
-        mapping = {}
-        from PySide import QtCore as __mapping
-        mapping.update(__mapping.__dict__)
-        from PySide import QtGui as __mapping
-        mapping.update(__mapping.__dict__)
-
-        class Mapping(object):
-            pass
-        qt = Mapping()
-        for k, v in mapping.items():
-            if k.startswith("_"):
-                continue
-            setattr(qt, k, v)
-    except ImportError:
-        pass
+    qt = None
 
 
 logging.basicConfig(level=logging.INFO)
