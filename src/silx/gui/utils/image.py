@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -116,12 +116,12 @@ def convertQImageToArray(image):
     channels = 3 if format_ == qt.QImage.Format_RGB888 else 4
 
     ptr = image.bits()
-    if qt.BINDING not in ('PySide', 'PySide2'):
+    if qt.BINDING == 'PyQt5':
         ptr.setsize(image.byteCount())
-        if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
-            ptr = ptr.asstring()
-    elif sys.version_info[0] == 3:  # PySide with Python3
+    elif qt.BINDING == 'PySide2':
         ptr = ptr.tobytes()
+    else:
+        raise RuntimeError("Unsupported Qt binding: %s" % qt.BINDING)
 
     # Create an array view on QImage internal data
     view = _as_strided(

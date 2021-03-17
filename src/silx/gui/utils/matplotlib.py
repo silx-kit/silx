@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,23 +47,17 @@ from .. import qt
 def _matplotlib_use(backend, force):
     """Wrapper of `matplotlib.use` to set-up backend.
 
-     It adds extra initialization for PySide and PySide2 with matplotlib < 2.2.
+     It adds extra initialization for PySide2 with matplotlib < 2.2.
     """
     # This is kept for compatibility with matplotlib < 2.2
-    if parse_version(matplotlib.__version__) < parse_version('2.2'):
-        if qt.BINDING == 'PySide':
-            matplotlib.rcParams['backend.qt4'] = 'PySide'
-        if qt.BINDING == 'PySide2':
-            matplotlib.rcParams['backend.qt5'] = 'PySide2'
+    if (parse_version(matplotlib.__version__) < parse_version('2.2') and
+            qt.BINDING == 'PySide2'):
+        matplotlib.rcParams['backend.qt5'] = 'PySide2'
 
     matplotlib.use(backend, force=force)
 
 
-if qt.BINDING in ('PyQt4', 'PySide'):
-    _matplotlib_use('Qt4Agg', force=False)
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
-
-elif qt.BINDING in ('PyQt5', 'PySide2'):
+if qt.BINDING in ('PyQt5', 'PySide2'):
     _matplotlib_use('Qt5Agg', force=False)
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
