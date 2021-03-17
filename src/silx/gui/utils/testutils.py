@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,28 +43,12 @@ from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
 
 
-if qt.BINDING == 'PySide':
-    from PySide.QtTest import QTest
-elif qt.BINDING == 'PySide2':
+if qt.BINDING == 'PySide2':
     from PySide2.QtTest import QTest
 elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
-elif qt.BINDING == 'PyQt4':
-    from PyQt4.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
-
-# Qt4/Qt5 compatibility wrapper
-if qt.BINDING in ('PySide', 'PyQt4'):
-    _logger.info("QTest.qWaitForWindowExposed not available," +
-                 "using QTest.qWaitForWindowShown instead.")
-
-    def qWaitForWindowExposed(window, timeout=None):
-        """Mimic QTest.qWaitForWindowExposed for Qt4."""
-        QTest.qWaitForWindowShown(window)
-        return True
-else:
-    qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
 def qWaitForWindowExposedAndActivate(window, timeout=None):
@@ -75,9 +59,9 @@ def qWaitForWindowExposedAndActivate(window, timeout=None):
     See QTest.qWaitForWindowExposed for details.
     """
     if timeout is None:
-        result = qWaitForWindowExposed(window)
+        result = QTest.qWaitForWindowExposed(window)
     else:
-        result = qWaitForWindowExposed(window, timeout)
+        result = QTest.qWaitForWindowExposed(window, timeout)
 
     if result:
         # Makes sure window is active and on top
@@ -98,7 +82,7 @@ class TestCaseQt(unittest.TestCase):
     To allow some widgets to remain alive at the end of a test, set the
     allowedLeakingWidgets attribute to the number of widgets that can remain
     alive at the end of the test.
-    With PySide, this test is not run for now as it seems PySide
+    With PySide2, this test is not run for now as it seems PySide2
     is leaking widgets internally.
 
     All keyboard and mouse event simulation methods call qWait(20) after
@@ -173,8 +157,8 @@ class TestCaseQt(unittest.TestCase):
                        _inspect.createdByPython(widget))]
         del self.__previousWidgets
 
-        if qt.BINDING in ('PySide', 'PySide2'):
-            return  # Do not test for leaking widgets with PySide
+        if qt.BINDING == 'PySide2':
+            return  # Do not test for leaking widgets with PySide2
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
         self.allowedLeakingWidgets = 0
@@ -325,8 +309,8 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING in ('PySide', 'PySide2'):
-            # PySide has no qWait, provide a replacement
+        if qt.BINDING =='PySide2':
+            # PySide2 has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             qapp = qt.QApplication.instance()
@@ -378,13 +362,6 @@ class TestCaseQt(unittest.TestCase):
         :rtype: bool
         """
         cls._qobject_destroyed = False
-        if qt.BINDING == 'PyQt4':
-            # Without this, QWidget will be still alive on PyQt4
-            # (at least on Windows Python 2.7)
-            # If it is not skipped on PySide, silx.gui.dialog tests will
-            # segfault (at least on Windows Python 2.7)
-            import gc
-            gc.collect()
         qobject = ref()
         if qobject is None:
             return True
@@ -508,7 +485,7 @@ def getQToolButtonFromAction(action):
 
 
 def findChildren(parent, kind, name=None):
-    if qt.BINDING in ("PySide", "PySide2") and name is not None:
+    if qt.BINDING == "PySide2" and name is not None:
         result = []
         for obj in parent.findChildren(kind):
             if obj.objectName() == name:
