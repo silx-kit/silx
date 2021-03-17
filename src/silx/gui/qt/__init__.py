@@ -26,18 +26,15 @@
 
 - `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_
 - `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
-- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt5, PyQt4, PySide2.
+Qt bindings are tried in this order: PyQt5, PySide2.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
 This module provides a flat namespace over Qt bindings by importing
-all symbols from **QtCore** and **QtGui** packages and if available
-from **QtOpenGL** and **QtSvg** packages.
-For **PyQt5**, it also imports all symbols from **QtWidgets** and
-**QtPrintSupport** packages.
+all symbols from **QtCore**, **QtGui**, **QtWidgets** and **QtPrintSupport**
+packages and if available from **QtOpenGL** and **QtSvg** packages.
 
 Example of using :mod:`silx.gui.qt` module:
 
@@ -46,15 +43,8 @@ Example of using :mod:`silx.gui.qt` module:
 >>> widget = qt.QWidget()
 
 For an alternative solution providing a structured namespace,
-see `qtpy <https://pypi.org/project/QtPy/>`_ which
-provides the namespace of PyQt5 over PyQt4, PySide and PySide2.
+see `qtpy <https://pypi.org/project/QtPy/>`_.
 """
 
 from ._qt import *  # noqa
 from ._utils import *  # noqa
-
-
-if sys.platform == "darwin":
-    if BINDING in ["PySide", "PyQt4"]:
-        from . import _macosx
-        _macosx.patch_QUrl_toLocalFile()

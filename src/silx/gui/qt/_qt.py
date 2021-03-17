@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,17 +33,15 @@ import logging
 import sys
 import traceback
 
-from ...utils.deprecation import deprecated_warning
-
 
 _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, PyQt4 or PySide2."""
+"""The name of the Qt binding in use: PyQt5, PySide2."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PyQt4 or PySide2."""
+"""The Qt binding module in use: PyQt5, PySide2."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -55,14 +53,8 @@ HAS_OPENGL = False
 if 'PySide2.QtCore' in sys.modules:
     BINDING = 'PySide2'
 
-elif 'PySide.QtCore' in sys.modules:
-    BINDING = 'PySide'
-
 elif 'PyQt5.QtCore' in sys.modules:
     BINDING = 'PyQt5'
-
-elif 'PyQt4.QtCore' in sys.modules:
-    BINDING = 'PyQt4'
 
 else:  # Then try Qt bindings
     try:
@@ -71,126 +63,19 @@ else:  # Then try Qt bindings
         if 'PyQt5' in sys.modules:
             del sys.modules["PyQt5"]
         try:
-            import sip
-            sip.setapi("QString", 2)
-            sip.setapi("QVariant", 2)
-            sip.setapi('QDate', 2)
-            sip.setapi('QDateTime', 2)
-            sip.setapi('QTextStream', 2)
-            sip.setapi('QTime', 2)
-            sip.setapi('QUrl', 2)
-            import PyQt4.QtCore  # noqa
+            import PySide2.QtCore  # noqa
         except ImportError:
-            if 'PyQt4' in sys.modules:
-                del sys.modules["sip"]
-                del sys.modules["PyQt4"]
-            try:
-                import PySide2.QtCore  # noqa
-            except ImportError:
-                if 'PySide2' in sys.modules:
-                    del sys.modules["PySide2"]
-                try:
-                    import PySide.QtCore  # noqa
-                except ImportError:
-                    if 'PySide' in sys.modules:
-                        del sys.modules["PySide"]
-                    raise ImportError(
-                        'No Qt wrapper found. Install PyQt5, PyQt4 or PySide2.')
-                else:
-                    BINDING = 'PySide'
-            else:
-                BINDING = 'PySide2'
+            if 'PySide2' in sys.modules:
+                del sys.modules["PySide2"]
+            raise ImportError(
+                'No Qt wrapper found. Install PyQt5, PySide2.')
         else:
-            BINDING = 'PyQt4'
+            BINDING = 'PySide2'
     else:
         BINDING = 'PyQt5'
 
 
-if BINDING == 'PyQt4':
-    _logger.debug('Using PyQt4 bindings')
-    deprecated_warning("Qt Binding", "PyQt4",
-                       replacement='PyQt5',
-                       since_version='0.9.0')
-
-    if sys.version_info < (3, ):
-        try:
-            import sip
-            sip.setapi("QString", 2)
-            sip.setapi("QVariant", 2)
-            sip.setapi('QDate', 2)
-            sip.setapi('QDateTime', 2)
-            sip.setapi('QTextStream', 2)
-            sip.setapi('QTime', 2)
-            sip.setapi('QUrl', 2)
-        except:
-            _logger.warning("Cannot set sip API")
-
-    import PyQt4 as QtBinding  # noqa
-
-    from PyQt4.QtCore import *  # noqa
-    from PyQt4.QtGui import *  # noqa
-
-    try:
-        from PyQt4.QtOpenGL import *  # noqa
-    except ImportError:
-        _logger.info("PyQt4.QtOpenGL not available")
-        HAS_OPENGL = False
-    else:
-        HAS_OPENGL = True
-
-    try:
-        from PyQt4.QtSvg import *  # noqa
-    except ImportError:
-        _logger.info("PyQt4.QtSvg not available")
-        HAS_SVG = False
-    else:
-        HAS_SVG = True
-
-    from PyQt4.uic import loadUi  # noqa
-
-    Signal = pyqtSignal
-
-    Property = pyqtProperty
-
-    Slot = pyqtSlot
-
-elif BINDING == 'PySide':
-    _logger.debug('Using PySide bindings')
-    deprecated_warning("Qt Binding", "PySide",
-                       replacement='PySide2',
-                       since_version='0.9.0')
-
-    import PySide as QtBinding  # noqa
-
-    from PySide.QtCore import *  # noqa
-    from PySide.QtGui import *  # noqa
-
-    try:
-        from PySide.QtOpenGL import *  # noqa
-    except ImportError:
-        _logger.info("PySide.QtOpenGL not available")
-        HAS_OPENGL = False
-    else:
-        HAS_OPENGL = True
-
-    try:
-        from PySide.QtSvg import *  # noqa
-    except ImportError:
-        _logger.info("PySide.QtSvg not available")
-        HAS_SVG = False
-    else:
-        HAS_SVG = True
-
-    pyqtSignal = Signal
-
-    # Import loadUi wrapper for PySide
-    from ._pyside_dynamic import loadUi  # noqa
-
-    # Import missing classes
-    if not hasattr(locals(), "QIdentityProxyModel"):
-        from ._pyside_missing import QIdentityProxyModel  # noqa
-
-elif BINDING == 'PyQt5':
+if BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')
 
     import PyQt5 as QtBinding  # noqa
@@ -262,7 +147,7 @@ elif BINDING == 'PySide2':
     pyqtSignal = Signal
 
 else:
-    raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5, PySide2')
+    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
 
 
 # provide a exception handler but not implement it by default

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,21 +37,16 @@ __date__ = "08/10/2018"
 from . import _qt as qt
 
 
-if qt.BINDING in ('PyQt4', 'PyQt5'):
-    if qt.BINDING == 'PyQt5':
-        try:
-            from PyQt5.sip import isdeleted as _isdeleted  # noqa
-            from PyQt5.sip import ispycreated as createdByPython  # noqa
-            from PyQt5.sip import ispyowned as ownedByPython  # noqa
-        except ImportError:
-            from sip import isdeleted as _isdeleted  # noqa
-            from sip import ispycreated as createdByPython  # noqa
-            from sip import ispyowned as ownedByPython  # noqa
-
-    else:  # PyQt4
+if qt.BINDING == 'PyQt5':
+    try:
+        from PyQt5.sip import isdeleted as _isdeleted  # noqa
+        from PyQt5.sip import ispycreated as createdByPython  # noqa
+        from PyQt5.sip import ispyowned as ownedByPython  # noqa
+    except ImportError:
         from sip import isdeleted as _isdeleted  # noqa
         from sip import ispycreated as createdByPython  # noqa
         from sip import ispyowned as ownedByPython  # noqa
+
 
     def isValid(obj):
         """Returns True if underlying C++ object is valid.
@@ -71,15 +66,6 @@ elif qt.BINDING == 'PySide2':
         from shiboken2 import createdByPython  # noqa
         from shiboken2 import ownedByPython  # noqa
 
-elif qt.BINDING == 'PySide':
-    try:  # Available through PySide
-        from PySide.shiboken import isValid  # noqa
-        from PySide.shiboken import createdByPython  # noqa
-        from PySide.shiboken import ownedByPython  # noqa
-    except ImportError:  # Available through standalone shiboken package
-        from Shiboken.shiboken import isValid  # noqa
-        from Shiboken.shiboken import createdByPython  # noqa
-        from Shiboken.shiboken import ownedByPython  # noqa
 
 else:
     raise ImportError("Unsupported Qt binding %s" % qt.BINDING)
