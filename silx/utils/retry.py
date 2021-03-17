@@ -189,7 +189,8 @@ def retry_in_subprocess(
 ):
     """Same as `retry` but it also retries segmentation faults.
 
-    On Window you cannot use this decorator with the "@" syntax:
+    As subprocesses are spawned, you cannot use this decorator with the "@" syntax
+    because the decorated method needs to be an attribute of a module:
 
     .. code-block:: python
 
@@ -214,14 +215,16 @@ def retry_in_subprocess(
             _retry_period = kw.pop("retry_period", retry_period)
             _retry_on_error = kw.pop("retry_on_error", retry_on_error)
 
-            queue = multiprocessing.Queue(maxsize=1)
+            ctx = multiprocessing.get_context('spawn')
+
+            queue = ctx.Queue(maxsize=1)
             prockw = {
                 "target": _subprocess_main,
                 "args": (queue, method, retry_on_error) + args,
                 "kwargs": kw,
             }
 
-            p = multiprocessing.Process(**prockw)
+            p = ctx.Process(**prockw)
             p.start()
             try:
                 for options in _retry_loop(
@@ -229,7 +232,7 @@ def retry_in_subprocess(
                 ):
                     with _handle_exception(options):
                         if not p.is_alive():
-                            p = multiprocessing.Process(**prockw)
+                            p = ctx.Process(**prockw)
                             p.start()
                         try:
                             result = queue.get(block=True, timeout=_retry_period)
