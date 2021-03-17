@@ -231,15 +231,12 @@ class PositionInfo(qt.QWidget):
                                  if isinstance(item, tuple(kinds)) and item.isVisible()]
 
             # Compute distance threshold
-            if qt.BINDING in ('PyQt5', 'PySide2'):
-                window = plot.window()
-                windowHandle = window.windowHandle()
-                if windowHandle is not None:
-                    ratio = windowHandle.devicePixelRatio()
-                else:
-                    ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
+            window = plot.window()
+            windowHandle = window.windowHandle()
+            if windowHandle is not None:
+                ratio = windowHandle.devicePixelRatio()
             else:
-                ratio = 1.
+                ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
 
             # Baseline squared distance threshold
             distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2

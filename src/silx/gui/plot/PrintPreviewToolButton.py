@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -222,11 +222,7 @@ class PrintPreviewToolButton(qt.QToolButton):
                                                keepRatio=self._printGeometry["keepAspectRatio"])
         else:
             _logger.warning("Missing QtSvg library, using a raster image")
-            if qt.BINDING in ["PyQt4", "PySide"]:
-                pixmap = qt.QPixmap.grabWidget(self._plot.centralWidget())
-            else:
-                # PyQt5 and hopefully PyQt6+
-                pixmap = self._plot.centralWidget().grab()
+            pixmap = self._plot.centralWidget().grab()
             self.printPreviewDialog.addPixmap(pixmap,
                                               title=self.getTitle(),
                                               comment=comment,
