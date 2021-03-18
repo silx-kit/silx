@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __date__ = "08/03/2019"
 
 import unittest
 from . import test_weakref
-from . import test_html
 from . import test_array_like
 from . import test_launcher
 from . import test_deprecation
@@ -45,7 +44,6 @@ from . import test_retry
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_html.suite())
     test_suite.addTest(test_array_like.suite())
     test_suite.addTest(test_launcher.suite())
     test_suite.addTest(test_deprecation.suite())
