@@ -31,6 +31,7 @@ __date__ = "05/02/2020"
 import unittest
 import os
 import sys
+import time
 import tempfile
 
 from .. import retry
@@ -47,19 +48,20 @@ def _cause_segfault():
         c += 1
 
 
-def _submain(filename, kwcheck=None, nsleep=0):
+def _submain(filename, kwcheck=None, ncausefailure=0, faildelay=0):
     assert filename
     assert kwcheck
     sys.stderr = open(os.devnull, "w")
 
     with open(filename, mode="r") as f:
-        counter = int(f.readline().strip())
+        failcounter = int(f.readline().strip())
 
-    if counter < nsleep:
-        counter += 1
+    if failcounter < ncausefailure:
+        time.sleep(faildelay)
+        failcounter += 1
         with open(filename, mode="w") as f:
-            f.write(str(counter))
-        if counter % 2:
+            f.write(str(failcounter))
+        if failcounter % 2:
             raise retry.RetryError
         else:
             _cause_segfault()
@@ -72,7 +74,7 @@ _wsubmain = retry.retry_in_subprocess()(_submain)
 class TestRetry(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        self.ctr_file = os.path.join(self.test_dir, "counter.txt")
+        self.ctr_file = os.path.join(self.test_dir, "failcounter.txt")
 
     def tearDown(self):
         if os.path.exists(self.ctr_file):
@@ -80,97 +82,86 @@ class TestRetry(unittest.TestCase):
         os.rmdir(self.test_dir)
 
     def test_retry(self):
-        nsleep = 3
-        retry_period = 0.01
-
-        # just to make sure the test doesn't hang
-        overhead = 10
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
 
         @retry.retry()
         def method(check, kwcheck=None):
             assert check
             assert kwcheck
-            nonlocal counter
-            if counter < nsleep:
-                counter += 1
+            nonlocal failcounter
+            if failcounter < ncausefailure:
+                time.sleep(faildelay)
+                failcounter += 1
                 raise retry.RetryError
             return True
 
-        counter = 0
+        failcounter = 0
         kw = {
             "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period + overhead),
-            "retry_period": retry_period,
+            "retry_timeout": sufficient_timeout,
         }
         self.assertTrue(method(True, **kw))
 
-        counter = 0
+        failcounter = 0
         kw = {
             "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period * 0.9),
-            "retry_period": retry_period,
+            "retry_timeout": insufficient_timeout,
         }
         with self.assertRaises(retry.RetryTimeoutError):
             method(True, **kw)
 
     def test_retry_contextmanager(self):
-        nsleep = 3
-        retry_period = 0.01
-
-        # just to make sure the test doesn't hang
-        overhead = 10
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
 
         @retry.retry_contextmanager()
         def context(check, kwcheck=None):
             assert check
             assert kwcheck
-            nonlocal counter
-            if counter < nsleep:
-                counter += 1
+            nonlocal failcounter
+            if failcounter < ncausefailure:
+                time.sleep(faildelay)
+                failcounter += 1
                 raise retry.RetryError
             yield True
 
-        counter = 0
-        kw = {
-            "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period + overhead),
-            "retry_period": retry_period,
-        }
+        failcounter = 0
+        kw = {"kwcheck": True, "retry_timeout": sufficient_timeout}
         with context(True, **kw) as result:
             self.assertTrue(result)
 
-        counter = 0
-        kw = {
-            "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period * 0.9),
-            "retry_period": retry_period,
-        }
+        failcounter = 0
+        kw = {"kwcheck": True, "retry_timeout": insufficient_timeout}
         with self.assertRaises(retry.RetryTimeoutError):
             with context(True, **kw) as result:
                 pass
 
     def test_retry_in_subprocess(self):
-        nsleep = 3
-        retry_period = 0.01
-
-        # just to make sure the test doesn't hang
-        overhead = 10
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
 
         kw = {
-            "nsleep": nsleep,
+            "ncausefailure": ncausefailure,
+            "faildelay": faildelay,
             "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period + overhead),
-            "retry_period": retry_period,
+            "retry_timeout": sufficient_timeout,
         }
         with open(self.ctr_file, mode="w") as f:
             f.write("0")
         self.assertTrue(_wsubmain(self.ctr_file, **kw))
 
         kw = {
-            "nsleep": nsleep,
+            "ncausefailure": ncausefailure,
+            "faildelay": faildelay,
             "kwcheck": True,
-            "retry_timeout": nsleep * (retry_period - 0.001),
-            "retry_period": retry_period,
+            "retry_timeout": insufficient_timeout,
         }
         with open(self.ctr_file, mode="w") as f:
             f.write("0")
