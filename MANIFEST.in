@@ -4,7 +4,6 @@ include copyright
 include LICENSE
 include MANIFEST.in
 include run_tests.py
-include version.py
 include stdeb.cfg
 include build-deb.sh
 include requirements.txt
