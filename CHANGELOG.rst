@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-0.15.0rc1: 2021/03/09
----------------------
+0.15.0: 2021/03/18
+------------------
 
 Main new features are the `silx.io.h5py_utils` module which provides `h5py` concurrency helpers and image mask support by `silx.gui.plot.PlotWidget`'s tools.
 
