@@ -1,6 +1,75 @@
 Change Log
 ==========
 
+0.15.0: 2021/03/18
+------------------
+
+Main new features are the `silx.io.h5py_utils` module which provides `h5py` concurrency helpers and image mask support by `silx.gui.plot.PlotWidget`'s tools.
+
+* `silx view`:
+
+  * Fixed zoom reseting when scrolling a NXdata 3D stack (PR #3351)
+  * Fixed support of very large 1D datasets in "Raw" table view (PR #3418)
+
+* `silx.io`:
+
+  * Added `h5py_utils` helper module for concurrent HDF5 reading and writing without SWMR (PR #3368, #3426)
+  * Enhanced `dictdump` module functions regarding overwriting existing files (PR #3376)
+
+* `silx.gui`:
+
+  * Added scale to visible or selected area buttons options to `silx.gui.dialog.ColormapDialog` (PR #3365)
+  * Fixed and enhanced`silx.gui.utils.glutils.isOpenGLAvailable` (PR #3356, #3385)
+  * Fixed `silx.gui.widgets.FlowLayout` (PR #3389)
+  * Enhanced `silx.gui.data.ArrayTableWidget`: Added support of array clipping if data is too large (PR #3419)
+
+  * `silx.gui.plot`:
+
+    * Added mask support to Image items and use it in plot tools (histogram, profile, colormap) (PR #3369, #3381)
+    * Added `ImageStack` methods to configure automatic reset zoom (PR #3373)
+    * Added some statistic indicators in `PixelIntensitiesHistoAction` action (PR #3391)
+    * Enhanced `silx.gui.plot.ImageView` integration of ROI profiles in side plots (PR #3380)
+    * Enhanced `PositionInfo`: snapping to histogram (PR #3405) and information labels layout (PR #3399)
+    * Fixed `LegendSelector` blinking when updated (PR #3346)
+    * Fixed profile tool issue when closing profile window after attaced PlotWidget (PR #3375)
+    * Fixed histogram action (PR #3396)
+    * Fixed support of histogram plot items in `stats` module (PR #3398, #3407)
+    * Fixed `ColorBar` when deleting attached PlotWidget (PR #3403)
+
+    * `silx.gui.plot.PlotWidget`:
+
+      * Added `getValueData` method to image items (PR #3378)
+      * Added `discardItem` method (PR #3400)
+      * Added unified `selection()` handler compatible with active item management (PR #3401)
+      * Fixed `addCurve` documentation (PR #3371)
+      * Fixed complex image first displayed mode (PR #3364)
+      * Fixed curve and scatter items support of complex data input (PR #3384)
+      * Fixed histogram picking (PR #3405)
+      * Fixed rendering (PR #3416)
+
+  * `silx.gui.plot3d`:
+
+    * Added `HeightMapData` and `HeightMapRGBA` items (PR #3386, #3397)
+    * Fixed support for RGB colored points in internal scene graph (PR #3374)
+    * Fixed `ImageRgba` alpha channel display (PR #3414)
+
+* `silx.image`:
+
+  * Added mask support to `bilinear` interpolator (PR #3286)
+
+* `silx.opencl`:
+
+  * Added print statics of OpenCL kernel execution time (PR #3395)
+
+* Miscellaneous:
+
+  * Removed debian 9 packaging (PR #3383)
+  * Enhanced test functions: `silx.test.run_tests` (PR #3331), `silx.utils.testutils.TestLogging` (PR #3393)
+  * Continuous integration: Added github actions and removed travis-ci (PR #3353, #3359), fixed (PR #3361, #3366)
+  * Updated documentation (PR #3383, #3387, #3409, #3416, #3427)
+  * Fixed debian packaging (PR #3362)
+  * Fixed `silx test` application on Windows (PR #3411)
+
 0.14.0: 2020/12/11
 ------------------
 
