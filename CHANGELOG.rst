@@ -9,10 +9,11 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
 * `silx view`:
 
   * Fixed zoom reseting when scrolling a NXdata 3D stack (PR #3351)
+  * Fixed support of very large 1D datasets in "Raw" table view (PR #3418)
 
 * `silx.io`:
 
-  * Added `h5py_utils` helper module for concurrent HDF5 reading and writing without SWMR (PR #3368)
+  * Added `h5py_utils` helper module for concurrent HDF5 reading and writing without SWMR (PR #3368, #3426)
   * Enhanced `dictdump` module functions regarding overwriting existing files (PR #3376)
 
 * `silx.gui`:
@@ -20,6 +21,7 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
   * Added scale to visible or selected area buttons options to `silx.gui.dialog.ColormapDialog` (PR #3365)
   * Fixed and enhanced`silx.gui.utils.glutils.isOpenGLAvailable` (PR #3356, #3385)
   * Fixed `silx.gui.widgets.FlowLayout` (PR #3389)
+  * Enhanced `silx.gui.data.ArrayTableWidget`: Added support of array clipping if data is too large (PR #3419)
 
   * `silx.gui.plot`:
 
@@ -43,11 +45,13 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
       * Fixed complex image first displayed mode (PR #3364)
       * Fixed curve and scatter items support of complex data input (PR #3384)
       * Fixed histogram picking (PR #3405)
+      * Fixed rendering (PR #3416)
 
   * `silx.gui.plot3d`:
 
     * Added `HeightMapData` and `HeightMapRGBA` items (PR #3386, #3397)
     * Fixed support for RGB colored points in internal scene graph (PR #3374)
+    * Fixed `ImageRgba` alpha channel display (PR #3414)
 
 * `silx.image`:
 
@@ -62,9 +66,9 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
   * Removed debian 9 packaging (PR #3383)
   * Enhanced test functions: `silx.test.run_tests` (PR #3331), `silx.utils.testutils.TestLogging` (PR #3393)
   * Continuous integration: Added github actions and removed travis-ci (PR #3353, #3359), fixed (PR #3361, #3366)
-  * Updated documentation (PR #3383, #3387, #3408)
+  * Updated documentation (PR #3383, #3387, #3409, #3416, #3427)
   * Fixed debian packaging (PR #3362)
-
+  * Fixed `silx test` application on Windows (PR #3411)
 
 0.14.0: 2020/12/11
 ------------------
