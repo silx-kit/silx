@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,16 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utils function relative to HTML
-"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/09/2016"
 
+from .deprecation import deprecated_warning
 
-def escape(string, quote=True):
-    """Returns a string where HTML metacharacters are properly escaped.
+deprecated_warning(type_='module',
+                   name=__name__,
+                   replacement='html',
+                   since_version='0.15.0')
 
-    Compatibility layer to avoid incompatibilities between Python versions,
-    Qt versions and Qt bindings.
-
-    >>> import silx.utils.html
-    >>> silx.utils.html.escape("<html>")
-    >>> "&lt;html&gt;"
-
-    .. note:: Since Python 3.3 you can use the `html` module. For previous
-        version, it is provided by `sgi` module.
-    .. note:: Qt4 provides it with `Qt.escape` while Qt5 provide it with
-        `QString.toHtmlEscaped`. But `QString` is not exposed by `PyQt` or
-        `PySide`.
-
-    :param str string: Human readable string.
-    :param bool quote: Escape quote and double quotes (default behaviour).
-    :returns: Valid HTML syntax to display the input string.
-    :rtype: str
-    """
-    string = string.replace("&", "&amp;")  # must be done first
-    string = string.replace("<", "&lt;")
-    string = string.replace(">", "&gt;")
-    if quote:
-        string = string.replace("'", "&apos;")
-        string = string.replace("\"", "&quot;")
-    return string
+from html import escape  # noqa

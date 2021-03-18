@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,13 +31,13 @@ __license__ = "MIT"
 __date__ = "17/01/2019"
 
 
+from html import escape
 import logging
 import os.path
 
 import silx.io.utils
 import silx.io.url
 from .. import qt
-from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
 
