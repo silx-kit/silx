@@ -90,7 +90,9 @@ def _retry_loop(retry_timeout=None, retry_period=None, retry_on_error=None):
             raise RetryTimeoutError from options.get("exception")
 
 
-def retry(retry_timeout=None, retry_period=None, retry_on_error=_default_retry_on_error):
+def retry(
+    retry_timeout=None, retry_period=None, retry_on_error=_default_retry_on_error
+):
     """Decorator for a method that needs to be executed until it not longer
     fails or until `retry_on_error` returns False.
 
@@ -189,7 +191,8 @@ def retry_in_subprocess(
 ):
     """Same as `retry` but it also retries segmentation faults.
 
-    On Window you cannot use this decorator with the "@" syntax:
+    As subprocesses are spawned, you cannot use this decorator with the "@" syntax
+    because the decorated method needs to be an attribute of a module:
 
     .. code-block:: python
 
@@ -214,23 +217,33 @@ def retry_in_subprocess(
             _retry_period = kw.pop("retry_period", retry_period)
             _retry_on_error = kw.pop("retry_on_error", retry_on_error)
 
-            queue = multiprocessing.Queue(maxsize=1)
-            prockw = {
-                "target": _subprocess_main,
-                "args": (queue, method, retry_on_error) + args,
-                "kwargs": kw,
-            }
+            ctx = multiprocessing.get_context("spawn")
 
-            p = multiprocessing.Process(**prockw)
-            p.start()
+            def start_subprocess():
+                queue = ctx.Queue(maxsize=1)
+                p = ctx.Process(
+                    target=_subprocess_main,
+                    args=(queue, method, retry_on_error) + args,
+                    kwargs=kw,
+                )
+                p.start()
+                return p, queue
+
+            def stop_subprocess(p):
+                try:
+                    p.kill()
+                except AttributeError:
+                    p.terminate()
+                p.join()
+
+            p, queue = start_subprocess()
             try:
                 for options in _retry_loop(
                     retry_timeout=_retry_timeout, retry_on_error=_retry_on_error
                 ):
                     with _handle_exception(options):
                         if not p.is_alive():
-                            p = multiprocessing.Process(**prockw)
-                            p.start()
+                            p, queue = start_subprocess()
                         try:
                             result = queue.get(block=True, timeout=_retry_period)
                         except Empty:
@@ -239,15 +252,12 @@ def retry_in_subprocess(
                             pass
                         else:
                             if isinstance(result, BaseException):
+                                stop_subprocess(p)
                                 raise result
                             else:
                                 return result
             finally:
-                try:
-                    p.kill()
-                except AttributeError:
-                    p.terminate()
-                p.join()
+                stop_subprocess(p)
 
         return wrapper
 
