@@ -34,4 +34,4 @@ deprecated_warning(type_='module',
                    replacement='html',
                    since_version='0.15.0')
 
-from html import escape
+from html import escape  # noqa
