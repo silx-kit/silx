@@ -1,4 +1,7 @@
-# coding: utf-8
+# coding: ascii
+#
+# JK: Numpy.distutils which imports this does not handle utf-8 in version<1.12
+#
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -23,27 +26,24 @@
 #
 # ###########################################################################*/
 
-"""
-Store in a Cython module if it was compiled with OpenMP
+__authors__ = ["Valentin Valls"]
+__license__ = "MIT"
+__date__ = "23/04/2018"
 
-You have to patch the setup module like that:
-
-.. code-block:: python
-
-    silx_include = os.path.join(top_path, "silx", "utils", "include")
-    config.add_extension('my_extension',
-                         include_dirs=[silx_include],
-                         ...)
-
-Then you can include it like that in your Cython module:
-
-.. code-block:: python
-
-    include "../../utils/_have_openmp.pxi"
-
-"""
+import os
+from numpy.distutils.misc_util import Configuration
 
 
-cdef extern from "silx_store_openmp.h":
-    int COMPILED_WITH_OPENMP
-_COMPILED_WITH_OPENMP = COMPILED_WITH_OPENMP
+def configuration(parent_package='', top_path=None):
+    config = Configuration('third_party', parent_package, top_path)
+    # includes _local only if it is available
+    local_path = os.path.join(top_path, "src", "silx", "third_party", "_local")
+    if os.path.exists(local_path):
+        config.add_subpackage('_local')
+        config.add_subpackage('_local.scipy_spatial')
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+    setup(configuration=configuration)

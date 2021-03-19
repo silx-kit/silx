@@ -47,7 +47,6 @@ from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
 try:
     from setuptools import Command
-    from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.sdist import sdist
     try:
         from Cython.Build import build_ext
@@ -60,7 +59,6 @@ except ImportError:
         from numpy.distutils.core import Command
     except ImportError:
         from distutils.core import Command
-    from distutils.command.build_py import build_py as _build_py
     from distutils.command.sdist import sdist
     try:
         from Cython.Build import build_ext
@@ -88,13 +86,14 @@ export LC_ALL=en_US.utf-8
 """)
 
 
-def get_version():
-    """Returns current version number from version.py file"""
-    dirname = os.path.dirname(os.path.abspath(__file__))
+def get_version(debian=False):
+    """Returns current version number from _version.py file"""
+    dirname = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "src", PROJECT)
     sys.path.insert(0, dirname)
-    import version
+    import _version
     sys.path = sys.path[1:]
-    return version.strictversion
+    return _version.debianversion if debian else _version.strictversion
 
 
 def get_readme():
@@ -124,22 +123,6 @@ classifiers = ["Development Status :: 4 - Beta",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
-
-# ########## #
-# version.py #
-# ########## #
-
-
-class build_py(_build_py):
-    """
-    Enhanced build_py which copies version.py to <PROJECT>._version.py
-    """
-
-    def find_package_modules(self, package, package_dir):
-        modules = _build_py.find_package_modules(self, package, package_dir)
-        if package == PROJECT:
-            modules.append((PROJECT, '_version', 'version.py'))
-        return modules
 
 ########
 # Test #
@@ -476,7 +459,9 @@ def configuration(parent_package='', top_path=None):
         assume_default_configuration=True,
         delegate_options_to_subpackages=True,
         quiet=True)
-    config.add_subpackage(PROJECT)
+    config.add_subpackage(
+        PROJECT, subpackage_path=os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), 'src', PROJECT))
     return config
 
 # ############## #
@@ -778,8 +763,7 @@ class sdist_debian(sdist):
 
     @staticmethod
     def get_debian_name():
-        import version
-        name = "%s_%s" % (PROJECT, version.debianversion)
+        name = "%s_%s" % (PROJECT, get_version(debian=True))
         return name
 
     def prune_file_list(self):
@@ -910,7 +894,6 @@ def get_project_configuration(dry_run):
 
     cmdclass = dict(
         build=Build,
-        build_py=build_py,
         test=PyTest,
         build_screenshots=BuildDocAndGenerateScreenshotCommand,
         build_doc=BuildDocCommand,

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,37 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""The silx package contains the following main sub-packages:
 
-__authors__ = ["T. Vincent"]
+- silx.gui: Qt widgets for data visualization and data file browsing
+- silx.image: Some processing functions for 2D images
+- silx.io: Reading and writing data files (HDF5/NeXus, SPEC, ...)
+- silx.math: Some processing functions for 1D, 2D, 3D, nD arrays
+- silx.opencl: OpenCL-based data processing
+- silx.sx: High-level silx functions suited for (I)Python console.
+- silx.utils: Miscellaneous convenient functions
+
+See silx documentation: http://www.silx.org/doc/silx/latest/
+"""
+
+from __future__ import absolute_import, print_function, division
+
+__authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
-__date__ = "26/07/2018"
+__date__ = "26/04/2018"
 
-from numpy.distutils.misc_util import Configuration
+import os as _os
+import logging as _logging
+from ._config import Config as _Config
 
+config = _Config()
+"""Global configuration shared with the whole library"""
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('image')
-    config.add_subpackage('opencl')
-    config.add_subpackage('resources')
-    config.add_subpackage('sx')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
-    config.add_subpackage('utils')
-    config.add_subpackage('app')
-    config.add_subpackage("examples", "../examples")
-
-    return config
+# Attach a do nothing logging handler for silx
+_logging.getLogger(__name__).addHandler(_logging.NullHandler())
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
 
-    setup(configuration=configuration)
+from ._version import __date__ as date  # noqa
+from ._version import version, version_info, hexversion, strictversion  # noqa

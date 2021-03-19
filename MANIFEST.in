@@ -4,18 +4,17 @@ include copyright
 include LICENSE
 include MANIFEST.in
 include run_tests.py
-include version.py
 include stdeb.cfg
 include build-deb.sh
 include requirements.txt
 include requirements-dev.txt
 include pyproject.toml
-recursive-include silx *.pyx *.pxd *.pxi
-recursive-include silx *.h *.c *.hpp *.cpp
+recursive-include src/silx *.pyx *.pxd *.pxi
+recursive-include src/silx *.h *.c *.hpp *.cpp
 recursive-include doc/source *.py *.rst *.png *.ico *.ipynb
 global-exclude .ipynb_checkpoints/*
 recursive-include qtdesigner_plugins *.py *.rst
-recursive-include silx/resources *
+recursive-include src/silx/resources *
 recursive-include examples *
 recursive-include package *
 

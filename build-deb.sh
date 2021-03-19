@@ -3,7 +3,7 @@
 #    Project: Silx
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2020 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -29,9 +29,6 @@
 
 project=silx
 source_project=silx
-version=$(python3 -c"import version; print(version.version)")
-strictversion=$(python3 -c"import version; print(version.strictversion)")
-debianversion=$(python3 -c"import version; print(version.debianversion)")
 
 deb_name=$(echo "$source_project" | tr '[:upper:]' '[:lower:]')
 
@@ -65,6 +62,13 @@ project_directory="`dirname \"$0\"`"
 project_directory="`( cd \"$project_directory\" && pwd )`" # absolutized
 dist_directory=${project_directory}/dist/${target_system}
 build_directory=${project_directory}/build/${target_system}
+
+# Get version info
+cd ${project_directory}/src/${project}
+version=$(python3 -c"import _version; print(_version.version)")
+strictversion=$(python3 -c"import _version; print(_version.strictversion)")
+debianversion=$(python3 -c"import _version; print(_version.debianversion)")
+cd ${project_directory}
 
 if [ -d /usr/lib/ccache ];
 then
