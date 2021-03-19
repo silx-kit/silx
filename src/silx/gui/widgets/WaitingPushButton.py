@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -105,11 +105,6 @@ class WaitingPushButton(qt.QPushButton):
             w += self.style().pixelMetric(qt.QStyle.PM_MenuButtonIndicator, opt, self)
 
         contentSize = qt.QSize(w, h)
-        if qt.qVersion().startswith("4.8."):
-            # On PyQt4/PySide the method QCommonStyle sizeFromContents returns
-            # different size when the widget provides an icon or not.
-            # In Qt5 there is not this problem.
-            opt.icon = qt.QIcon()
         sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
         sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
         return sizeHint

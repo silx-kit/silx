@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,36 +40,6 @@ from . import _utils
 from ... import io as silx_io
 
 _logger = logging.getLogger(__name__)
-
-"""Helpers to take care of None objects as signal parameters.
-PySide crash if a signal with a None parameter is emitted between threads.
-"""
-if qt.BINDING == 'PySide':
-    class _NoneWraper(object):
-        pass
-    _NoneWraperInstance = _NoneWraper()
-
-    def _wrapNone(x):
-        """Wrap x if it is a None value, else returns x"""
-        if x is None:
-            return _NoneWraperInstance
-        else:
-            return x
-
-    def _unwrapNone(x):
-        """Unwrap x as a None if a None was stored by `wrapNone`, else returns
-        x"""
-        if x is _NoneWraperInstance:
-            return None
-        else:
-            return x
-else:
-    # Allow to fix None event params to avoid PySide crashes
-    def _wrapNone(x):
-        return x
-
-    def _unwrapNone(x):
-        return x
 
 
 def _createRootLabel(h5obj):
@@ -147,9 +117,6 @@ class LoadingItemRunnable(qt.QRunnable):
             if h5file is not None:
                 h5file.close()
 
-        # Take care of None value in case of PySide
-        newItem = _wrapNone(newItem)
-        error = _wrapNone(error)
         self.itemReady.emit(self.oldItem, newItem, error)
         self.runnerFinished.emit(self)
 
@@ -299,9 +266,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param Hdf5Node newItem: item loaded, or None if error is defined
         :param Exception error: An exception, or None if newItem is defined
         """
-        # Take care of None value in case of PySide
-        newItem = _unwrapNone(newItem)
-        error = _unwrapNone(error)
         row = self.__root.indexOfChild(oldItem)
 
         rootIndex = qt.QModelIndex()

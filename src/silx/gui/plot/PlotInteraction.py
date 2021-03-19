@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -559,9 +559,7 @@ class SelectPolygon(Select):
 
         :rtype: float
         """
-        ratio = 1.
-        if qt.BINDING in ('PyQt5', 'PySide2'):
-            ratio = self.plot.window().windowHandle().devicePixelRatio()
+        ratio = self.plot.window().windowHandle().devicePixelRatio()
         return self.DRAG_THRESHOLD_DIST * ratio
 
 

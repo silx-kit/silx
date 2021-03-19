@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -119,15 +119,9 @@ def main(argv):
 
     if options.qt_binding:
         binding = options.qt_binding.lower()
-        if binding == "pyqt4":
-            _logger.info("Force using PyQt4")
-            import PyQt4.QtCore  # noqa
-        elif binding == "pyqt5":
+        if binding == "pyqt5":
             _logger.info("Force using PyQt5")
             import PyQt5.QtCore  # noqa
-        elif binding == "pyside":
-            _logger.info("Force using PySide")
-            import PySide.QtCore  # noqa
         elif binding == "pyside2":
             _logger.info("Force using PySide2")
             import PySide2.QtCore  # noqa

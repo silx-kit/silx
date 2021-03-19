@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,12 +54,10 @@ class TestBlockSignals(TestCaseQt):
 
         self.assertEqual(listener.arguments(), [("received",)] * len(objs))
 
-    @unittest.skipUnless(qt.BINDING in ('PyQt5', 'PySide2'), 'Qt5 only test')
     def testManyObjects(self):
         """Test blockSignals with 2 QObjects"""
         self._test(qt.QObject(), qt.QObject())
 
-    @unittest.skipUnless(qt.BINDING in ('PyQt5', 'PySide2'), 'Qt5 only test')
     def testOneObject(self):
         """Test blockSignals context manager with a single QObject"""
         self._test(qt.QObject())

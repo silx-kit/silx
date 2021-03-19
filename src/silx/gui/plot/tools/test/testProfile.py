@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ class TestRois(TestCaseQt):
     def test_init(self):
         """Check that the constructor is not called twice"""
         roi = rois.ProfileImageVerticalLineROI()
-        if qt.BINDING not in ["PySide", "PySide2"]:
+        if qt.BINDING == "PyQt5":
             # the profile ROI + the shape
             self.assertEqual(roi.receivers(roi.sigRegionChanged), 2)
 

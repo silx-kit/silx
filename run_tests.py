@@ -374,7 +374,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
                              "INFO messages. Use -vv for full verbosity, " +
                              "including debug messages and test help strings.")
     parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                        help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+                        help="Force using a Qt binding: 'PyQt5', 'PySide2'")
     if test_options is not None:
         test_options.add_parser_argument(parser)
 
@@ -412,22 +412,9 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     if options.qt_binding:
         binding = options.qt_binding.lower()
-        if binding == "pyqt4":
-            logger.info("Force using PyQt4")
-            if sys.version < "3.0.0":
-                try:
-                    import sip
-                    sip.setapi("QString", 2)
-                    sip.setapi("QVariant", 2)
-                except Exception:
-                    logger.warning("Cannot set sip API")
-            import PyQt4.QtCore  # noqa
-        elif binding == "pyqt5":
+        if binding == "pyqt5":
             logger.info("Force using PyQt5")
             import PyQt5.QtCore  # noqa
-        elif binding == "pyside":
-            logger.info("Force using PySide")
-            import PySide.QtCore  # noqa
         elif binding == "pyside2":
             logger.info("Force using PySide2")
             import PySide2.QtCore  # noqa

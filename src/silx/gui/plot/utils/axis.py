@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,12 +35,7 @@ from contextlib import contextmanager
 import weakref
 import silx.utils.weakref as silxWeakref
 from silx.gui.plot.items.axis import Axis, XAxis, YAxis
-
-try:
-    from ...qt.inspect import isValid as _isQObjectValid
-except ImportError:  # PySide(1) fallback
-    def _isQObjectValid(obj):
-        return True
+from ...qt.inspect import isValid as _isQObjectValid
 
 
 _logger = logging.getLogger(__name__)
