@@ -56,6 +56,8 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
     ndims = None
 
     def setUp(self):
+        if type(self).__name__.startswith("_"):
+            self.skipTest("Abstract class")
         ndims = self.ndims
         self.tested_dim = ndims-1
 
@@ -470,6 +472,8 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
     def setUp(self):
         ndims = self.ndims
+        if ndims is None:
+            self.skipTest("Abstract class")
         self.tested_dim = ndims-1
 
         if ndims is None:

@@ -49,7 +49,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
     Unit tests of the chistogramnd error cases.
     """
     def setUp(self):
-        raise NotImplementedError('')
+        self.skipTest("Abstract class")
 
     def test_weights_shape(self):
         """

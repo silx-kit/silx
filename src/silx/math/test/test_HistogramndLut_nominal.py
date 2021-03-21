@@ -56,6 +56,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
     def setUp(self):
         ndims = self.ndims
+        if ndims is None:
+            self.skipTest("Abstract class")
         self.tested_dim = ndims-1
 
         if ndims is None:

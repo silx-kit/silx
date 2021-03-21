@@ -166,6 +166,8 @@ class _TestHistogramnd(unittest.TestCase):
         return sample, weights
 
     def setUp(self):
+        if type(self).__name__.startswith("_"):
+            self.skipTest("Abstract class")
         self.sample, self.weights = self.generate_data()
         self.rtol = _RTOL_DICT.get(self.dtype_weights, None)
 
