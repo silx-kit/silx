@@ -105,7 +105,7 @@ before_test:
 test_script:
     # Run tests with selected Qt binding and without OpenCL
     - echo "WITH_GL_TEST=%WITH_GL_TEST%"
-    - "python run_tests.py --installed -v --no-opencl --qt-binding %QT_BINDING%"
+    - "python run_tests.py --installed -v --no-opencl --qt-binding=%QT_BINDING%"
 
 after_test:
     # Leave test virtualenv
