@@ -176,6 +176,11 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
 
     args = [normalize_option(p) for p in sys.argv[1:] if p != "--installed"]
 
+    # Run test on PROJECT_PATH if nothing is specified
+    without_options = [a for a in args if not a.startswith("-")]
+    if len(without_options) == 0:
+        args += [PROJECT_PATH]
+
     argv = ["pytest", "--rootdir", PROJECT_PATH] + args
     process = subprocess.run(argv)
 
