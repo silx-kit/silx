@@ -22,24 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
-from . import test_arraywidget
-from . import test_numpyaxesselector
-from . import test_dataviewer
-from . import test_textformatter
-
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "24/01/2017"
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_arraywidget.suite(),
-         test_numpyaxesselector.suite(),
-         test_dataviewer.suite(),
-         test_textformatter.suite(),
-        ])
-    return test_suite

@@ -23,19 +23,3 @@
 #
 # ###########################################################################*/
 """plot3d tools test suite."""
-
-from __future__ import absolute_import
-
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "03/10/2018"
-
-
-import unittest
-from .testPositionInfoWidget import suite as testPositionInfoWidgetSuite
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(testPositionInfoWidgetSuite())
-    return testsuite

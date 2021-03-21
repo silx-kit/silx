@@ -22,18 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
-from . import test_hdf5
-
-
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "28/09/2016"
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_hdf5.suite()])
-    return test_suite

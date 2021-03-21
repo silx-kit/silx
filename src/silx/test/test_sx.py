@@ -30,6 +30,7 @@ __date__ = "06/11/2018"
 import logging
 import unittest
 import numpy
+import pytest
 
 from silx.utils.testutils import ParametricTestCase
 from silx.test.utils import test_options
@@ -40,10 +41,10 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import rgba
 from silx.gui.colors import Colormap
 
-
 _logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures("qapp")
 class SXTest(TestCaseQt, ParametricTestCase):
     """Test the sx module"""
 
@@ -279,14 +280,3 @@ class SXTest(TestCaseQt, ParametricTestCase):
         # 2D positions, values
         window = sx.points3d(x, y, values=values, mode=',',
                              colormap='magma', vmin=0.4, vmax=0.5)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(SXTest))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

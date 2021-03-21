@@ -22,22 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-from __future__ import absolute_import, division, unicode_literals
-
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "18/10/2016"
-
-
-import unittest
-
-from .test_dtime_ticklayout import suite as test_dtime_ticklayout_suite
-from .test_ticklayout import suite as test_ticklayout_suite
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(test_dtime_ticklayout_suite())
-    testsuite.addTest(test_ticklayout_suite())
-    return testsuite

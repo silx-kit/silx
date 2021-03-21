@@ -21,17 +21,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-__authors__ = ["J. Kieffer"]
-__license__ = "MIT"
-__date__ = "13/10/2017"
-
-import unittest
-from . import test_byte_offset
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(test_byte_offset.suite())
-
-    return testSuite
