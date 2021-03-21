@@ -174,7 +174,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
             return os.path.join(PROJECT_PATH, path)
         return option
 
-    args = [normalize_option(p) for p in sys.argv[1:]]
+    args = [normalize_option(p) for p in sys.argv[1:] if p != "--installed"]
 
     argv = ["pytest", "--rootdir", PROJECT_PATH] + args
     process = subprocess.run(argv)
