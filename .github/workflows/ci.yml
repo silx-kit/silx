@@ -99,6 +99,11 @@ jobs:
             pip install --pre pyside2;
           fi
 
+      - name: Install pytest
+        run: |
+          pip install pytest
+          pip install pytest-xvfb
+
       - name: Install silx package
         run: pip install --pre --find-links dist/ silx
 

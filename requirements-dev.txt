@@ -4,11 +4,13 @@
 -r requirements.txt
 wheel             # To build wheels
 Sphinx            # To build the documentation in doc/
-lxml              # For test coverage in run_test.py
-coverage          # For test coverage in run_test.py
 pillow            # For loading images in documentation generation
 nbsphinx          # For converting ipynb in documentation
 pandoc            # For documentation Qt snapshot updates
+
+pytest            # For testing
+pytest-xvfb       # For GUI testing
+pytest-cov        # For coverage
 
 # Use dev version of PyInstaller to keep hooks up-to-date
 https://github.com/pyinstaller/pyinstaller/archive/develop.zip; sys_platform == "win32"
