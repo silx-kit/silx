@@ -52,7 +52,6 @@ if ocl is not None:
     from ..utils import read_cl_file
     from .. import pyopencl
     import pyopencl.array
-from ...test.utils import test_options
 
 
 class TestKahan(unittest.TestCase):
@@ -62,8 +61,6 @@ class TestKahan(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not test_options.WITH_OPENCL_TEST:
-            raise unittest.SkipTest("User request to skip OpenCL tests")
         if pyopencl is None or ocl is None:
             raise unittest.SkipTest("OpenCL module (pyopencl) is not present or no device available")
 

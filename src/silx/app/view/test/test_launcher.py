@@ -36,15 +36,15 @@ import tempfile
 import unittest
 import logging
 import subprocess
+import pytest
 
-from silx.test.utils import test_options
 from .. import main
 from silx import __main__ as silx_main
 
 _logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(test_options.WITH_QT_TEST, test_options.WITH_QT_TEST_REASON)
+@pytest.mark.usefixtures("qapp")
 class TestLauncher(unittest.TestCase):
     """Test command line parsing"""
 

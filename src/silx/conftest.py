@@ -29,6 +29,15 @@ def test_options(request):
     yield options
 
 
+@pytest.fixture(scope="class")
+def test_options_class_attr(request, test_options):
+    """Provides test_options as class attribute
+
+    Used as transition from TestCase to pytest
+    """
+    request.cls.test_options = test_options
+
+
 @pytest.fixture(scope="session")
 def use_opengl(test_options):
     """Fixture to flag test using a OpenGL.

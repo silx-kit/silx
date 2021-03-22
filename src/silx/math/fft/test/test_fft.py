@@ -28,6 +28,7 @@
 import numpy as np
 import unittest
 import logging
+import pytest
 try:
     from scipy.misc import ascent
     __have_scipy = True
@@ -89,6 +90,7 @@ class TestData(object):
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")
+@pytest.mark.usefixtures("test_options_class_attr")
 class TestFFT(ParametricTestCase):
     """Test cuda/opencl/fftw backends of FFT"""
 
@@ -147,7 +149,7 @@ class TestFFT(ParametricTestCase):
         """Compare given backend with numpy for given conditions"""
         logger.debug("backend: %s, trdim: %s, mode: %s, size: %s",
                      backend, trdim, mode, str(size))
-        if size == "3D" and test_options.TEST_LOW_MEM:
+        if size == "3D" and self.test_options.TEST_LOW_MEM:
             self.skipTest("low mem")
 
         ndim = len(size)

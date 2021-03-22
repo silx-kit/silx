@@ -45,6 +45,7 @@ import unittest
 import time
 import logging
 import numpy
+import pytest
 try:
     import scipy.misc
     import scipy.ndimage
@@ -60,7 +61,7 @@ if ocl:
 from ..utils import calc_size, get_opencl_code, matching_correction
 from ..plan import SiftPlan
 from ..match import MatchPlan
-from silx.test.utils import test_options
+
 logger = logging.getLogger(__name__)
 
 
@@ -113,7 +114,7 @@ class TestTransform(unittest.TestCase):
         image_height, image_width = output_height, output_width
         return image, image_height, image_width
 
-    @unittest.skipIf(test_options.TEST_LOW_MEM, "low mem")
+    @pytest.mark.usefixtures("use_large_memory")
     def test_transform(self):
         '''
         tests transform kernel

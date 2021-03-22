@@ -33,7 +33,6 @@ import numpy
 import pytest
 
 from silx.utils.testutils import ParametricTestCase
-from silx.test.utils import test_options
 
 from silx.gui import qt
 # load TestCaseQt before sx
@@ -200,8 +199,7 @@ class SXTest(TestCaseQt, ParametricTestCase):
                 plt.setAttribute(qt.Qt.WA_DeleteOnClose)
                 plt.close()
 
-    @unittest.skipUnless(test_options.WITH_GL_TEST,
-                         test_options.WITH_GL_TEST_REASON)
+    @pytest.mark.usefixtures("use_opengl")
     def test_contour3d(self):
         """Test contour3d function"""
         from silx import sx  # Lazy loading to avoid it to create QApplication
@@ -253,8 +251,7 @@ class SXTest(TestCaseQt, ParametricTestCase):
         self.assertEqual(rgba(isosurfaces[0].getColor()),
                          (0., 0., 0., 0.4))
 
-    @unittest.skipUnless(test_options.WITH_GL_TEST,
-                         test_options.WITH_GL_TEST_REASON)
+    @pytest.mark.usefixtures("use_opengl")
     def test_points3d(self):
         """Test points3d function"""
         from silx import sx  # Lazy loading to avoid it to create QApplication

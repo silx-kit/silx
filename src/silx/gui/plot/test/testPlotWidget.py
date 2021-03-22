@@ -33,12 +33,11 @@ import unittest
 import logging
 import numpy
 import sys
+import pytest
 
 from silx.utils.testutils import ParametricTestCase, parameterize
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
-
-from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
@@ -1860,13 +1859,15 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
 
+@pytest.mark.usefixtures("test_options_class_attr")
 class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
     """Test [get|set]Backend to switch backend"""
 
+    @pytest.mark.usefixtures("test_options")
     def testSwitchBackend(self):
         """Test switching a plot with a few items"""
         backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
-        if test_options.WITH_GL_TEST:
+        if self.test_options.WITH_GL_TEST:
             backends['gl'] = 'BackendOpenGL'
 
         self.plot.addImage(numpy.arange(100).reshape(10, 10))
@@ -2062,6 +2063,7 @@ def suite():
     if sys.version_info[0] == 2:
         test_suite.addTest(parameterize(TestSpecialBackend, backend=b"mpl"))
 
+    from silx.test.utils import test_options
     if test_options.WITH_GL_TEST:
         # Tests with OpenGL backend
         for testClass in testClasses:

@@ -26,12 +26,9 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-
 """
 Test suite for all reductionsessing kernels.
 """
-
-from __future__ import division
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
@@ -45,6 +42,7 @@ import time
 import logging
 import math
 import numpy
+import pytest
 try:
     import scipy
 except ImportError:
@@ -55,7 +53,6 @@ if ocl:
     import pyopencl.array
 
 from ..utils import get_opencl_code
-from silx.test.utils import test_options
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +89,7 @@ class TestReduction(unittest.TestCase):
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
 
-    @unittest.skipIf(test_options.TEST_LOW_MEM, "low mem")
+    @pytest.mark.usefixtures("use_large_memory")
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
 

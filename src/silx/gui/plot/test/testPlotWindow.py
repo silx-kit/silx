@@ -31,13 +31,14 @@ __date__ = "27/06/2017"
 
 import unittest
 import numpy
+import pytest
 
 from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction
-from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.colors import Colormap
+
 
 class TestPlotWindow(TestCaseQt):
     """Base class for tests of PlotWindow."""
@@ -155,8 +156,7 @@ class TestPlotWindow(TestCaseQt):
         self.assertEqual(self._count, 1)
         del self._count
 
-    @unittest.skipUnless(test_options.WITH_GL_TEST,
-                         test_options.WITH_QT_TEST_REASON)
+    @pytest.mark.usefixtures("use_opengl")
     def testSwitchBackend(self):
         """Test switching an empty plot"""
         self.plot.resetZoom()
