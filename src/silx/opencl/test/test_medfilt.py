@@ -153,10 +153,7 @@ class TestMedianFilter(unittest.TestCase):
                 plot_opencl.set_data(data_size, data_opencl)
                 update_fig(fig)
         fig.show()
-        if sys.version_info[0] < 3:
-            raw_input()
-        else:
-            input()
+        input()
 
 
 def benchmark():
