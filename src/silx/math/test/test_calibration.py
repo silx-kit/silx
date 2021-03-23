@@ -143,16 +143,3 @@ class TestFunctionCalibration(unittest.TestCase):
                                    self.non_affine_fun(x))
             self.assertAlmostEqual(self.affine_calib(x),
                                    self.affine_fun(x))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestNoCalibration))
-    test_suite.addTest(loadTests(TestArrayCalibration))
-    test_suite.addTest(loadTests(TestLinearCalibration))
-    test_suite.addTest(loadTests(TestFunctionCalibration))
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

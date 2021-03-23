@@ -513,23 +513,3 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
         self.err_unmanaged_dtypes = ((np.double, np.uint16),
                                      (np.uint16, np.double),
                                      (np.uint16, np.uint16))
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (Test_chistogramnd_1D_errors,
-              Test_chistogramnd_ND_errors,
-              Test_chistogramnd_ND_range)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

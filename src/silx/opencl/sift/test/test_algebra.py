@@ -190,10 +190,3 @@ class TestAlgebra(unittest.TestCase):
         if self.PROFILE:
             logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.debug("Compact operation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestAlgebra("test_combine"))
-    testSuite.addTest(TestAlgebra("test_compact"))
-    return testSuite

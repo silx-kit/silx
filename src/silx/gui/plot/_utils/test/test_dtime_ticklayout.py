@@ -38,7 +38,7 @@ from silx.gui.plot._utils.dtime_ticklayout import (
     calcTicks, DtUnit, SECONDS_PER_YEAR)
 
 
-class DtTestTickLayout(unittest.TestCase):
+class TestTickLayout(unittest.TestCase):
     """Test ticks layout algorithms"""
 
     def testSmallMonthlySpacing(self):
@@ -77,17 +77,3 @@ class DtTestTickLayout(unittest.TestCase):
                              numTicks, d2))
 
             value = value * 1.5 # let date period grow exponentially
-
-
-
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(DtTestTickLayout))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -201,14 +201,3 @@ class TestAxisSync(TestCaseQt):
         self.assertEqual(self.plot1.getXAxis().getLimits(), (10, 500))
         self.assertEqual(self.plot2.getXAxis().getLimits(), (10, 500))
         self.assertNotEqual(self.plot3.getXAxis().getLimits(), (10, 500))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestAxisSync))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

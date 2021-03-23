@@ -152,18 +152,3 @@ class TestBgTheories(unittest.TestCase):
         esti_par, cons = bgtheories.THEORY["Snip"].estimate(self.x, self.y)
         self.assertTrue(numpy.array_equal(cons, [[3, 0, 0]]))
         self.assertEqual(esti_par, [7])
-
-
-test_cases = (TestBgTheories,)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

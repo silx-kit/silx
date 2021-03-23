@@ -158,15 +158,3 @@ class TestSelectPolygon(PlotWidgetTestCase):
                       if event['event'].startswith('drawing')]
         self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
         self.assertEqual(len(drawEvents[-1]['points']), 3)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestSelectPolygon,):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

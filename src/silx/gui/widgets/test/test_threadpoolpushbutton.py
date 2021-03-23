@@ -122,14 +122,3 @@ class TestThreadPoolPushButton(TestCaseQt):
         result = listener.karguments(argumentName="test")
         self.assertListEqual(result, ["be", "s", "exception", "f"])
         listener.clear()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestThreadPoolPushButton))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

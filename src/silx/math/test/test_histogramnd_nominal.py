@@ -26,6 +26,7 @@ Nominal tests of the histogramnd function.
 """
 
 import unittest
+import pytest
 
 import numpy as np
 
@@ -919,35 +920,11 @@ class Test_Histogramnd_nominal_1d(_Test_Histogramnd_nominal):
     ndims = 1
 
 
+@pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_2d(_Test_Histogramnd_nominal):
     ndims = 2
 
 
+@pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
     ndims = 3
-
-
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (Test_chistogram_nominal_1d,
-              Test_chistogram_nominal_2d,
-              Test_chistogram_nominal_3d,
-              Test_Histogramnd_nominal_1d,
-              # Test_Histogramnd_nominal_2d,
-              # Test_Histogramnd_nominal_3d
-              )
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

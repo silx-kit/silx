@@ -70,14 +70,3 @@ class TestBoxLayoutDockWidget(TestCaseQt):
         self.window.addDockWidget(qt.Qt.LeftDockWidgetArea, dock)
         self.qapp.processEvents()
         self.assertEqual(layout.direction(), qt.QBoxLayout.TopToBottom)
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestBoxLayoutDockWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

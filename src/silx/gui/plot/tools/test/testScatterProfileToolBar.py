@@ -182,15 +182,3 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
         data = window.getProfile()
         self.assertIsInstance(data, core.CurveProfileData)
         self.assertEqual(len(data.coords), 8)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestScatterProfileToolBar))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -159,17 +159,7 @@ class TestMedianFilter(unittest.TestCase):
             input()
 
 
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestMedianFilter("test_medfilt"))
-    return testSuite
-
-
 def benchmark():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestMedianFilter("benchmark"))
     return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

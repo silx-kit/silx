@@ -101,14 +101,3 @@ class TestRangeSlider(TestCaseQt, ParametricTestCase):
                 pixmap = self.slider.getGroovePixmap()
                 self.assertIsInstance(pixmap, qt.QPixmap)
                 self.assertEqual(pixmap.width(), len(profile))
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestRangeSlider))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

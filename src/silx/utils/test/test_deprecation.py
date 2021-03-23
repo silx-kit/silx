@@ -94,14 +94,3 @@ class TestDeprecation(unittest.TestCase):
         filename = __file__.replace(".pyc", ".py")
         self.assertTrue(filename in message)
         self.assertTrue("testBacktrace" in message)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDeprecation))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

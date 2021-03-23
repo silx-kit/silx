@@ -1122,19 +1122,3 @@ class TestHdf5TreeView(TestCaseQt):
 
         selection = list(view.selectedH5Nodes())
         self.assertEqual(len(selection), 0)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestHdf5TreeModel))
-    test_suite.addTest(loadTests(TestHdf5TreeModelSignals))
-    test_suite.addTest(loadTests(TestNexusSortFilterProxyModel))
-    test_suite.addTest(loadTests(TestHdf5TreeView))
-    test_suite.addTest(loadTests(TestH5Node))
-    test_suite.addTest(loadTests(TestH5Item))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -83,14 +83,3 @@ class TestNumpyFile(unittest.TestCase):
         h5 = rawh5.NumpyFile(filename)
         self.assertIn("a/b/c", h5)
         self.assertIn("a/b/e", h5)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestNumpyFile))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

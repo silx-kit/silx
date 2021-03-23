@@ -246,16 +246,3 @@ class TestStackViewMainWindow(TestCaseQt):
                          (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))
         self.assertTrue(numpy.array_equal(numpy.transpose(self.mystack, axes=(1, 0, 2)),
                                           my_trans_stack))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestStackView))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestStackViewMainWindow))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

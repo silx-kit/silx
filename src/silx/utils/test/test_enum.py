@@ -83,14 +83,3 @@ class TestEnum(unittest.TestCase):
         self.assertEqual(enum_.from_value('B'), enum_.B)
         with self.assertRaises(ValueError):
             enum_.from_value(3)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestEnum))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

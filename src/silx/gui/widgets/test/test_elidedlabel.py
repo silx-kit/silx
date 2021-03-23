@@ -98,14 +98,3 @@ class TestElidedLabel(testutils.TestCaseQt):
         displayedTooltip = qt.QLabel.toolTip(self.label)
         self.assertNotIn(raw1, displayedTooltip)
         self.assertIn(raw2, displayedTooltip)
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestElidedLabel))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

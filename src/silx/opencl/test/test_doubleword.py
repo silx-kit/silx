@@ -242,15 +242,3 @@ class TestDoubleWord(unittest.TestCase):
         self.assertLess(abs(self.a / self.b - res_m).max(), EPS32, "Major matches")
         self.assertGreater(abs(self.a / self.b - res_m).max(), EPS64, "Exact mismatches")
         self.assertLess(abs(self.a / self.b - res).max(), 6 * EPS32 ** 2, "Exact matches")
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    testsuite.addTest(loader(TestDoubleWord))
-    return testsuite
-
-
-if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(suite())

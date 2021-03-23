@@ -138,14 +138,3 @@ class TestLauncher(unittest.TestCase):
         Uses subprocess to avoid to parasite the current environment.
         """
         self.executeAsScript(silx_main.__file__, "view", "--help")
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loader(TestLauncher))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

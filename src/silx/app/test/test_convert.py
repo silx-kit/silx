@@ -154,14 +154,3 @@ class TestConvertCommand(unittest.TestCase):
         os.unlink(specname)
         os.unlink(h5name)
         os.rmdir(tempdir)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loader(TestConvertCommand))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

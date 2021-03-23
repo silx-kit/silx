@@ -123,14 +123,3 @@ class TestInterp3d(ParametricTestCase):
             with self.subTest(method=method):
                 result = interpolate.interp3d(data, points, method=method)
                 self.assertTrue(numpy.allclose(ref_result, result))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestInterp3d))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

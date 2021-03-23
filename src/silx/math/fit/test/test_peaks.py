@@ -130,17 +130,3 @@ class Test_peak_search(unittest.TestCase):
                 theoretical_peak_index = params[i*(len(params)//6) + 1]
                 found_peak_index = peaks[i][0]
                 self.assertLess(abs(found_peak_index - theoretical_peak_index), 25)
-
-
-test_cases = (Test_peak_search,)
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

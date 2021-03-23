@@ -326,15 +326,3 @@ class TestVisibleExtent(PlotWidgetTestCase):
         image.setVisible(True)
         # Receives delayed event now
         self.assertEqual(listener.callCount(), 5)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    for klass in (TestSigItemChangedSignal, TestSymbol, TestVisibleExtent):
-        test_suite.addTest(loadTests(klass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

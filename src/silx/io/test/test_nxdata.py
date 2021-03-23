@@ -561,18 +561,3 @@ class TestSaveNXdata(unittest.TestCase):
         self.assertTrue(numpy.array_equal(nxd.axes[0],
                                           a0))
         h5f.close()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNXdata))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestLegacyNXdata))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSaveNXdata))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

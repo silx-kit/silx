@@ -125,14 +125,3 @@ class TestSubmitToQtThread(TestCaseQt):
                 break
         else:
             self.fail('Thread pool task still running')
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestSubmitToQtThread))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

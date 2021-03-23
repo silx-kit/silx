@@ -439,15 +439,3 @@ class TestColormapAction(TestCaseQt):
         self.colormap1.setName('blue')
         self.colormapDialog.close()
         self.assertFalse(self.plot.getColormapAction().isChecked())
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for testClass in (TestColormapDialog, TestColormapAction):
-        test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-            testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

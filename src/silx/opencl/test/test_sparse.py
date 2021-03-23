@@ -186,18 +186,3 @@ class TestCSR(unittest.TestCase):
             "something wrong with densified data (%s)"
             % current_config
         )
-
-
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestCSR)
-    )
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
-
-

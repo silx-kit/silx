@@ -173,14 +173,3 @@ class TestConversionTypes(testutils.ParametricTestCase):
             with self.subTest(datetime=datetime):
                 dtype = number.min_numerical_convertible_type(datetime)
                 self.assertEqual(dtype, numpy.float64)
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestConversionTypes))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

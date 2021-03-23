@@ -150,12 +150,3 @@ class TestCpy2d(unittest.TestCase):
         self.program.cpy2d(self.queue, ndrange, wg, *kernel_args)
         res = self.d_array2.get()
         self.compare(res, self.array2)
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestCpy2d("test_cpy2d"))
-    return testSuite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -922,18 +922,3 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         else:
             # Maybe the cube is selected but not sliced
             self.assertEqual(len(data.shape), 3)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDataFileDialogInteraction))
-    test_suite.addTest(loadTests(TestDataFileDialogApi))
-    test_suite.addTest(loadTests(TestDataFileDialog_FilterDataset))
-    test_suite.addTest(loadTests(TestDataFileDialog_FilterGroup))
-    test_suite.addTest(loadTests(TestDataFileDialog_FilterNXdata))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

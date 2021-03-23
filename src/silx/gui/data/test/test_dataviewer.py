@@ -299,16 +299,3 @@ class TestDataView(TestCaseQt):
         dataViewClass = DataViews._StackView
         widget = self.createDataViewWithData(dataViewClass, data)
         self.qWaitForWindowExposed(widget)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTestsFromTestCase = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTestsFromTestCase(TestDataViewer))
-    test_suite.addTest(loadTestsFromTestCase(TestDataViewerFrame))
-    test_suite.addTest(loadTestsFromTestCase(TestDataView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

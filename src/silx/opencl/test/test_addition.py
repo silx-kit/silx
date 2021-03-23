@@ -37,6 +37,7 @@ __date__ = "30/11/2020"
 
 import logging
 import numpy
+import pytest
 
 import unittest
 from ..common import ocl, _measure_workgroup_size, query_kernel_info
@@ -86,7 +87,6 @@ class TestAddition(unittest.TestCase):
         self.img = self.data = None
         self.d_array_img = self.d_array_5 = self.program = None
 
-    @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_add(self):
         """
         tests the addition  kernel
@@ -111,7 +111,7 @@ class TestAddition(unittest.TestCase):
                     self.__class__.max_valid_wg = wg
                 self.assertTrue(good, "calculation is correct for WG=%s" % wg)
 
-    @unittest.skipUnless(ocl, "pyopencl is missing")
+    @pytest.mark.skip(reason="Not enabled")
     def test_measurement(self):
         """
         tests that all devices are working properly ... lengthy and error prone
@@ -122,7 +122,6 @@ class TestAddition(unittest.TestCase):
                 self.assertEqual(meas, device.max_work_group_size,
                                  "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
 
-    @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_query(self):
         """
         tests that all devices are working properly ... lengthy and error prone
@@ -140,15 +139,3 @@ class TestAddition(unittest.TestCase):
         min_wg = query_kernel_info(program=self.program, kernel="addition", what="PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
         max_wg = query_kernel_info(program=self.program, kernel="addition", what="WORK_GROUP_SIZE")
         self.assertEqual(max_wg % min_wg, 0, msg="max_wg is a multiple of min_wg")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestAddition("test_add"))
-    # testSuite.addTest(TestAddition("test_measurement"))
-    testSuite.addTest(TestAddition("test_query"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

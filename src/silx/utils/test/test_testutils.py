@@ -92,14 +92,3 @@ class TestTestLogging(unittest.TestCase):
                 logger.error("aaa")
                 logger.warning("aaabbb")
                 logger.error("aaa")
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestTestLogging))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -196,9 +196,3 @@ class TestTransform(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
             logger.info("Transformation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestTransform("test_transform"))
-    return testSuite

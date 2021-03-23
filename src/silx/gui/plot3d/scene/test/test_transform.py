@@ -78,14 +78,3 @@ class TestTransformList(unittest.TestCase):
 
         transforms[1].tx += 1
         self.assertEqual(self._callCount, 1)
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTransformList))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

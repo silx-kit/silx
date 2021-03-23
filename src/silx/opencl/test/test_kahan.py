@@ -252,15 +252,3 @@ class TestKahan(unittest.TestCase):
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot2")
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    testsuite.addTest(loader(TestKahan))
-    return testsuite
-
-
-if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(suite())

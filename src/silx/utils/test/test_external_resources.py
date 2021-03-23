@@ -87,14 +87,3 @@ class TestExternalResources(unittest.TestCase):
         shutil.rmtree(directory_path)
         filelist = self.resources.download_all()
         self.assertGreater(len(filelist), 1, "At least 2 items were downloaded")
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestExternalResources))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

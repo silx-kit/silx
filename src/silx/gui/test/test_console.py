@@ -78,14 +78,3 @@ class TestConsole(TestCaseQt):
         self.keyClicks(self.console, 'import silx')
         self.keyClick(self.console, qt.Qt.Key_Enter)
         self.qapp.processEvents()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestConsole))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

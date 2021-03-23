@@ -328,17 +328,3 @@ class TestDocstring(unittest.TestCase):
             pass
 
         self.assertEqual(f.__doc__, g.__doc__)
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestProxy))
-    test_suite.addTest(loadTests(TestPickle))
-    test_suite.addTest(loadTests(TestInheritedProxy))
-    test_suite.addTest(loadTests(TestDocstring))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

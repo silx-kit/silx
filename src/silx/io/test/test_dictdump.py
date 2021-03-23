@@ -1007,19 +1007,3 @@ class TestDictToIni(DictTestCase):
                 self.assertEqual(orig_key2, read_key)
                 self.assertEqual(test_ordered_dict3[section][orig_key2],
                                  read_instance[section][read_key])
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDictToIni))
-    test_suite.addTest(loadTests(TestDictToH5))
-    test_suite.addTest(loadTests(TestDictToNx))
-    test_suite.addTest(loadTests(TestDictToJson))
-    test_suite.addTest(loadTests(TestH5ToDict))
-    test_suite.addTest(loadTests(TestNxToDict))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

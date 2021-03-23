@@ -565,25 +565,3 @@ class TestHistogramndLut_nominal_2d(_TestHistogramndLut_nominal):
 
 class TestHistogramndLut_nominal_3d(_TestHistogramndLut_nominal):
     ndims = 3
-
-
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (TestHistogramndLut_nominal_1d,
-              TestHistogramndLut_nominal_2d,
-              TestHistogramndLut_nominal_3d,)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

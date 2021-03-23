@@ -262,11 +262,3 @@ class TestMergeImplContours(unittest.TestCase):
         polygons = ms.find_contours(0.5)
         self.assertEqual(len(polygons), 11)
         self.assertEqual(self.count_closed_polygons(polygons), 3)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestMergeImplApi))
-    test_suite.addTest(loadTests(TestMergeImplContours))
-    return test_suite

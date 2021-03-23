@@ -613,17 +613,3 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
         frameData = _TestableFrameData("foo", reader)
         self.assertEqual(frameData.dtype.kind, "i")
         self.assertEqual(frameData.shape, (10, 3, 2))
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestFabioH5))
-    test_suite.addTest(loadTests(TestFabioH5MultiFrames))
-    test_suite.addTest(loadTests(TestFabioH5WithEdf))
-    test_suite.addTest(loadTests(TestFabioH5WithFileSeries))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

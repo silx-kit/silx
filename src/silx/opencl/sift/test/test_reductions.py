@@ -213,14 +213,3 @@ class TestReduction(unittest.TestCase):
         logger.debug("%s/%s where max %s %s ", nmax, max_res, numpy.where(data == nmax), numpy.where(data.ravel() == nmax))
         self.assertEqual(nmin, min_res, "min: numpy vs OpenCL")
         self.assertEqual(nmax, max_res, "max: numpy vs OpenCL")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    if ocl:
-        testSuite.addTest(TestReduction("test_max_min_rnd"))
-        testSuite.addTest(TestReduction("test_max_min"))
-        testSuite.addTest(TestReduction("test_max_min_rnd_big"))
-        testSuite.addTest(TestReduction("test_max_min_serial"))
-        testSuite.addTest(TestReduction("test_max_min_vectorial"))
-    return testSuite

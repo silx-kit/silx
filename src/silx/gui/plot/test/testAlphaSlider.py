@@ -202,17 +202,3 @@ class TestNamedScatterAlphaSlider(TestCaseQt):
         self.aslider.setValue(128)
         self.assertAlmostEqual(self.aslider.getAlpha(),
                                128. / 255)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestActiveImageAlphaSlider, TestNamedImageAlphaSlider,
-                      TestNamedScatterAlphaSlider):
-        test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-            testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

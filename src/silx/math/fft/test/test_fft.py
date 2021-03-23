@@ -77,7 +77,7 @@ class TransformInfos(object):
         self.sizes["batched_2D"] = self.sizes["3D"]
 
 
-class TestData(object):
+class Data(object):
     def __init__(self):
         self.data = ascent().astype("float32")
         self.data1d = self.data[:, 0]  # non-contiguous data
@@ -102,7 +102,7 @@ class TestFFT(ParametricTestCase):
             np.dtype("complex128"): 1e-9,
         }
         self.transform_infos = TransformInfos()
-        self.test_data = TestData()
+        self.test_data = Data()
 
     @staticmethod
     def calc_mae(arr1, arr2):
@@ -222,7 +222,7 @@ class TestNumpyFFT(ParametricTestCase):
         transforms["batched_2D"] = transforms["2D"]
         self.transforms = transforms
         self.transform_infos = TransformInfos()
-        self.test_data = TestData()
+        self.test_data = Data()
 
     def test(self):
         """Test the numpy backend against native fft.
@@ -256,17 +256,3 @@ class TestNumpyFFT(ParametricTestCase):
         res2 = F.ifft(res)
         ref2 = np_ifft(ref)
         self.assertTrue(np.allclose(res2, ref2))
-
-
-def suite():
-    suite = unittest.TestSuite()
-    for cls in (TestNumpyFFT, TestFFT):
-        suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(cls))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
-
-

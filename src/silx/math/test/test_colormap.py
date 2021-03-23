@@ -251,16 +251,3 @@ class TestColormap(ParametricTestCase):
                              normalization, vmin, vmax)
                 with self.assertRaises(ValueError):
                     self._test(data, colors, vmin, vmax, normalization, None)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestColormap))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNormalization))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

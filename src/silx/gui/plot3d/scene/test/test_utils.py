@@ -256,20 +256,3 @@ class TestTriangleNormals(ParametricTestCase):
 
         testnormals = utils.trianglesNormal(positions)
         self.assertTrue(numpy.allclose(testnormals, normals))
-
-
-# suite #######################################################################
-
-def suite():
-    testsuite = unittest.TestSuite()
-    for test in (TestAngleBetweenVectors,
-                 TestPlaneParameters,
-                 TestUnindexArrays,
-                 TestTriangleNormals):
-        testsuite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(test))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -455,15 +455,3 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.listener.clear()
         self.plot.setActiveCurve('curve0')
         self.assertEqual(self.listener.callCount(), 0)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestCurvesROIWidget,):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

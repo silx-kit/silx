@@ -197,15 +197,3 @@ class TestTextFormatterWithH5py(TestCaseQt):
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
         self.assertEqual(result, '[REF NULL_REF]')
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestTextFormatter))
-    test_suite.addTest(loadTests(TestTextFormatterWithH5py))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

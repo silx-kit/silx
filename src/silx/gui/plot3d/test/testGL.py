@@ -71,14 +71,3 @@ class TestOpenGL(TestCaseQt):
         widget.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.qWaitForWindowExposed(widget)
         widget.close()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestOpenGL))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

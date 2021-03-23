@@ -172,14 +172,3 @@ class TestPlotWindow(TestCaseQt):
                 self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
                 self.assertEqual(
                     self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotWindow))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -42,14 +42,3 @@ class TestOutcome(unittest.TestCase):
     def testNoneOutcome(self):
         test = TestCaseQt()
         test._currentTestSucceeded()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loader(TestOutcome))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

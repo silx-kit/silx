@@ -132,16 +132,3 @@ class TestPlotToolsToolbars(PlotWidgetTestCase):
                         tools.OutputToolBar):
             tb = tbClass(parent=self.plot, plot=self.plot)
         self.plot.addToolBar(tb)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo, TestPlotToolsToolbars):
-        test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-            testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

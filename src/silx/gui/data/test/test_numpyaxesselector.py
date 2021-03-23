@@ -148,14 +148,3 @@ class TestNumpyAxesSelector(TestCaseQt):
         widget.setData(None)
         self.assertEqual(listener.callCount(), 3)
         listener.clear()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNumpyAxesSelector))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

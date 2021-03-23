@@ -377,18 +377,3 @@ class TestCustomNxdataWidgetInteraction(TestCaseQt):
         axesIndex = self.model.index(1, 0, nxdataIndex)
         item = self.model.itemFromIndex(axesIndex)
         self.model.removeAxisItem(item)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loader(TestViewer))
-    test_suite.addTest(loader(TestAbout))
-    test_suite.addTest(loader(TestDataPanel))
-    test_suite.addTest(loader(TestCustomNxdataWidget))
-    test_suite.addTest(loader(TestCustomNxdataWidgetInteraction))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

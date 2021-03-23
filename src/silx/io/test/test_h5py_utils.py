@@ -385,13 +385,3 @@ class TestH5pyUtils(unittest.TestCase):
             f.write("0")
         with self.assertRaises(RetryTimeoutError):
             top_level_names_test(txtfilename, filename, **kw)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestH5pyUtils))
-    return test_suite
-
-
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")

@@ -655,19 +655,3 @@ class TestGetProfilePlot(TestCaseQt):
         profileWindow = roi.getProfileWindow()
         self.assertIsInstance(roi.getProfileWindow(), qt.QMainWindow)
         self.assertIsInstance(profileWindow.getCurrentPlotWidget(), Plot1D)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestRois))
-    test_suite.addTest(loadTests(TestInteractions))
-    test_suite.addTest(loadTests(TestProfileToolBar))
-    test_suite.addTest(loadTests(TestGetProfilePlot))
-    test_suite.addTest(loadTests(TestProfile3DToolBar))
-    test_suite.addTest(loadTests(TestDeprecatedProfileToolBar))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

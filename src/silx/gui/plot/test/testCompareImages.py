@@ -104,14 +104,3 @@ class TestCompareImages(TestCaseQt):
         self.widget.setImage2(numpy.random.rand(10, 10))
         for mode in CompareImages.VisualizationMode:
             self.widget.setVisualizationMode(mode)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestCompareImages))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

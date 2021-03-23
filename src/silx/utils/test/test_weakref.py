@@ -313,18 +313,3 @@ class TestWeakList(unittest.TestCase):
         # only a coverage
         self.list.sort()
         self.assertEqual(len(self.list), 2)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakMethod))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakMethodProxy))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakList))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

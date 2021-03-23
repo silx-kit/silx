@@ -72,15 +72,3 @@ class TestBB(unittest.TestCase):
         bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
         self.assertTrue(bb1.contains(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
         self.assertFalse(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2)).contains(bb1))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestBB,):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

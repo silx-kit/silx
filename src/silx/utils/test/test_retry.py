@@ -167,13 +167,3 @@ class TestRetry(unittest.TestCase):
             f.write("0")
         with self.assertRaises(retry.RetryTimeoutError):
             _wsubmain(self.ctr_file, **kw)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRetry))
-    return test_suite
-
-
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
