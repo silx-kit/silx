@@ -52,7 +52,6 @@ try:
 except ImportError:
     scipy = None
 
-from silx.utils.testutils import parameterize
 # for Python implementation of tested functions
 from .test_image_functions import my_compact, my_orientation, keypoints_compare, my_descriptor, descriptors_compare
 from .test_image_setup import orientation_setup, descriptor_setup
@@ -62,20 +61,15 @@ logger = logging.getLogger(__name__)
 
 
 @unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
-class TestKeypoints(unittest.TestCase):
-
-    def __init__(self, methodName='runTest',
-                 orientation_script=None, orientation_param=None,
-                 keypoint_script=None, keypoint_param=None):
-        super(TestKeypoints, self).__init__(methodName)
-        self.orientation_script = orientation_script
-        self.orientation_param = orientation_param
-        self.keypoint_script = keypoint_script
-        self.keypoint_param = keypoint_param
+class _TestKeypoints(unittest.TestCase):
+    orientation_script = None
+    orientation_param = None
+    keypoint_script = None
+    keypoint_param = None
 
     @classmethod
     def setUpClass(cls):
-        super(TestKeypoints, cls).setUpClass()
+        super(_TestKeypoints, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -92,7 +86,7 @@ class TestKeypoints(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestKeypoints, cls).tearDownClass()
+        super(_TestKeypoints, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -369,10 +363,22 @@ class TestFeature(unittest.TestCase):
         check_kp(kp)
 
 
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(parameterize(TestKeypoints, "orientation_gpu", (128,), "descriptor_gpu2", (8, 8, 8)))
-    testSuite.addTest(parameterize(TestKeypoints, "orientation_cpu", (1,), "descriptor_cpu", (1,)))
-    testSuite.addTest(parameterize(TestKeypoints, "orientation_gpu", (128,), "descriptor_gpu1", (8, 4, 4)))
-    testSuite.addTest(TestFeature("test_keypoints"))
-    return testSuite
+class TestCpu(_TestKeypoints):
+    orientation_script = "orientation_cpu"
+    orientation_param = (1,)
+    keypoint_script = "descriptor_cpu"
+    keypoint_param = (1,)
+
+
+class TestGpu1(_TestKeypoints):
+    orientation_script = "orientation_gpu"
+    orientation_param = (128,)
+    keypoint_script = "descriptor_gpu2"
+    keypoint_param = (8, 8, 8)
+
+
+class TestGpu2(_TestKeypoints):
+    orientation_script = "orientation_gpu"
+    orientation_param = (128,)
+    keypoint_script = "descriptor_gpu1"
+    keypoint_param = (128,)

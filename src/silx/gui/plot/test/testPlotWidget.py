@@ -35,7 +35,7 @@ import numpy
 import sys
 import pytest
 
-from silx.utils.testutils import ParametricTestCase, parameterize
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
 
@@ -2037,43 +2037,61 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self.assertIs(self.plot.getActiveScatter(), scatter)
 
 
-def suite():
-    testClasses = (TestPlotWidget,
-                   TestPlotImage,
-                   TestPlotCurve,
-                   TestPlotHistogram,
-                   TestPlotScatter,
-                   TestPlotMarker,
-                   TestPlotItem,
-                   TestPlotAxes,
-                   TestPlotActiveCurveImage,
-                   TestPlotEmptyLog,
-                   TestPlotCurveLog,
-                   TestPlotImageLog,
-                   TestPlotMarkerLog,
-                   TestPlotWidgetSelection)
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotWidget_Gl(TestPlotWidget):
+    backend="gl"
 
-    test_suite = unittest.TestSuite()
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotImage_Gl(TestPlotImage):
+    backend="gl"
 
-    # Tests with matplotlib
-    for testClass in testClasses:
-        test_suite.addTest(parameterize(testClass, backend=None))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotCurve_Gl(TestPlotCurve):
+    backend="gl"
 
-    test_suite.addTest(parameterize(TestSpecialBackend, backend=u"mpl"))
-    if sys.version_info[0] == 2:
-        test_suite.addTest(parameterize(TestSpecialBackend, backend=b"mpl"))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotHistogram_Gl(TestPlotHistogram):
+    backend="gl"
 
-    from silx.test.utils import test_options
-    if test_options.WITH_GL_TEST:
-        # Tests with OpenGL backend
-        for testClass in testClasses:
-            test_suite.addTest(parameterize(testClass, backend='gl'))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotScatter_Gl(TestPlotScatter):
+    backend="gl"
 
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestPlotWidgetSwitchBackend))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotMarker_Gl(TestPlotMarker):
+    backend="gl"
 
-    return test_suite
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotItem_Gl(TestPlotItem):
+    backend="gl"
 
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotAxes_Gl(TestPlotAxes):
+    backend="gl"
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotActiveCurveImage_Gl(TestPlotActiveCurveImage):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotEmptyLog_Gl(TestPlotEmptyLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotCurveLog_Gl(TestPlotCurveLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotImageLog_Gl(TestPlotImageLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotWidgetSelection_Gl(TestPlotWidgetSelection):
+    backend="gl"
+
+class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
+    backend="mpl"
