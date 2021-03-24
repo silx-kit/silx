@@ -31,17 +31,8 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
-import unittest
-
-from silx.gui.utils.testutils import TestCaseQt
-
+import pytest
 from silx.gui import qt
-try:
-    from silx.gui.console import IPythonDockWidget
-except ImportError:
-    console_missing = True
-else:
-    console_missing = False
 
 
 # dummy objects to test pushing variables to the interactive namespace
@@ -52,29 +43,33 @@ def _f():
     print("Hello World!")
 
 
-@unittest.skipIf(console_missing, "Could not import Ipython and/or qtconsole")
-class TestConsole(TestCaseQt):
-    """Basic test for ``module.IPythonDockWidget``"""
+@pytest.fixture
+def console(qapp_utils):
+    """Create a console widget"""
+    # Console tests disabled due to corruption of python environment
+    pytest.skip("Disabled (see issue #538)")
+    try:
+        from silx.gui.console import IPythonDockWidget
+    except ImportError:
+        pytest.skip("IPythonDockWidget is not available")
 
-    def setUp(self):
-        super(TestConsole, self).setUp()
-        self.console = IPythonDockWidget(
-            available_vars={"a": _a, "f": _f},
-            custom_banner="Welcome!\n")
-        self.console.show()
-        self.qWaitForWindowExposed(self.console)
+    console = IPythonDockWidget(
+        available_vars={"a": _a, "f": _f},
+        custom_banner="Welcome!\n")
+    console.show()
+    qapp_utils.qWaitForWindowExposed(console)
+    yield console
+    console.setAttribute(qt.Qt.WA_DeleteOnClose)
+    console.close()
+    console = None
 
-    def tearDown(self):
-        self.console.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.console.close()
-        del self.console
-        super(TestConsole, self).tearDown()
 
-    def testShow(self):
-        pass
+def testShow(console):
+    pass
 
-    def testInteract(self):
-        self.mouseClick(self.console, qt.Qt.LeftButton)
-        self.keyClicks(self.console, 'import silx')
-        self.keyClick(self.console, qt.Qt.Key_Enter)
-        self.qapp.processEvents()
+
+def testInteract(console, qapp_utils):
+    qapp_utils.mouseClick(console, qt.Qt.LeftButton)
+    qapp_utils.keyClicks(console, 'import silx')
+    qapp_utils.keyClick(console, qt.Qt.Key_Enter)
+    qapp_utils.qapp.processEvents()
