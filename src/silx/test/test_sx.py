@@ -39,6 +39,10 @@ from silx.gui.colors import Colormap
 def sx(qapp):
     """Lazy loading to avoid it to create QApplication before qapp fixture"""
     from silx import sx
+    if sx._IS_NOTEBOOK:
+        pytest.skip("notebook context")
+    if sx._NO_DISPLAY:
+        pytest.skip("no DISPLAY specified")
     yield sx
 
 
