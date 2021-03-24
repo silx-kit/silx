@@ -29,13 +29,10 @@ __license__ = "MIT"
 __date__ = "07/06/2018"
 
 
-import unittest
 import weakref
 import numpy
-import tempfile
-import shutil
-import os.path
 import h5py
+import pytest
 
 from silx.gui import qt
 from silx.app.view.Viewer import Viewer
@@ -46,36 +43,42 @@ from silx.gui.hdf5._utils import Hdf5DatasetMimeData
 from silx.gui.utils.testutils import TestCaseQt
 from silx.io import commonh5
 
-_tmpDirectory = None
 
-
-def setUpModule():
-    global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
-
-    # create h5 data
-    filename = _tmpDirectory + "/data.h5"
+@pytest.fixture(scope="module")
+def data_h5(tmpdir_factory):
+    filename = tmpdir_factory.mktemp("data").join("data.h5")
+    filename = str(filename)
     f = h5py.File(filename, "w")
     g = f.create_group("arrays")
     g.create_dataset("scalar", data=10)
     g.create_dataset("integers", data=numpy.array([10, 20, 30]))
     f.close()
+    return filename
 
-    # create h5 data
-    filename = _tmpDirectory + "/data2.h5"
+
+@pytest.fixture(scope="module")
+def data2_h5(tmpdir_factory):
+    filename = tmpdir_factory.mktemp("data").join("data2.h5")
+    filename = str(filename)
     f = h5py.File(filename, "w")
     g = f.create_group("arrays")
     g.create_dataset("scalar", data=20)
     g.create_dataset("integers", data=numpy.array([10, 20, 30]))
     f.close()
+    return filename
 
 
-def tearDownModule():
-    global _tmpDirectory
-    shutil.rmtree(_tmpDirectory)
-    _tmpDirectory = None
+@pytest.fixture(scope="class")
+def data_class_attr(request, data_h5, data2_h5):
+    """Provides test_options as class attribute
+
+    Used as transition from TestCase to pytest
+    """
+    request.cls.data_h5 = data_h5
+    request.cls.data2_h5 = data2_h5
 
 
+@pytest.mark.usefixtures("qapp")
 class TestViewer(TestCaseQt):
     """Test for Viewer class"""
 
@@ -90,6 +93,7 @@ class TestViewer(TestCaseQt):
         self.qWaitForDestroy(ref)
 
 
+@pytest.mark.usefixtures("qapp")
 class TestAbout(TestCaseQt):
     """Test for About box class"""
 
@@ -109,6 +113,8 @@ class TestAbout(TestCaseQt):
         self.qWaitForDestroy(ref)
 
 
+@pytest.mark.usefixtures("qapp")
+@pytest.mark.usefixtures("data_class_attr")
 class TestDataPanel(TestCaseQt):
 
     def testConstruct(self):
@@ -164,7 +170,7 @@ class TestDataPanel(TestCaseQt):
         self.assertIs(widget.getCustomNxdataItem(), data)
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
+        f = h5py.File(self.data_h5, mode='r')
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -175,8 +181,8 @@ class TestDataPanel(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
-        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"), mode='r')
+        f = h5py.File(self.data_h5, mode='r')
+        f2 = h5py.File(self.data2_h5, mode='r')
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -189,6 +195,8 @@ class TestDataPanel(TestCaseQt):
             f2.close()
 
 
+@pytest.mark.usefixtures("qapp")
+@pytest.mark.usefixtures("data_class_attr")
 class TestCustomNxdataWidget(TestCaseQt):
 
     def testConstruct(self):
@@ -243,7 +251,7 @@ class TestCustomNxdataWidget(TestCaseQt):
         self.assertFalse(item.isValid())
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
+        f = h5py.File(self.data_h5, mode='r')
         try:
             widget = CustomNxdataWidget()
             model = widget.model()
@@ -255,8 +263,8 @@ class TestCustomNxdataWidget(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(os.path.join(_tmpDirectory, "data.h5"), mode='r')
-        f2 = h5py.File(os.path.join(_tmpDirectory, "data2.h5"), mode='r')
+        f = h5py.File(self.data_h5, mode='r')
+        f2 = h5py.File(self.data2_h5, mode='r')
         try:
             widget = CustomNxdataWidget()
             model = widget.model()
@@ -269,6 +277,7 @@ class TestCustomNxdataWidget(TestCaseQt):
             f2.close()
 
 
+@pytest.mark.usefixtures("qapp")
 class TestCustomNxdataWidgetInteraction(TestCaseQt):
     """Test CustomNxdataWidget with user interaction"""
 
