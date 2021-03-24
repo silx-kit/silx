@@ -333,6 +333,13 @@ class TestCaseQt(unittest.TestCase):
 
         return result
 
+    def exposeAndClose(self, widget):
+        """Wait for expose a widget, flag it delete on close, and close it."""
+        self.qWaitForWindowExposed(widget)
+        self.qapp.processEvents()
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.close()
+
     _qobject_destroyed = False
 
     @classmethod
