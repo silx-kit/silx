@@ -26,7 +26,7 @@ jobs:
             python-version: 3.6
             BUILD_COMMAND: sdist
             QT_BINDING: PyQt5
-            RUN_TESTS_OPTIONS: --qt-binding=PyQt5
+            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opengl
           - name-suffix: "PySide2 wheel"
             os: macos-latest
             python-version: 3.8
