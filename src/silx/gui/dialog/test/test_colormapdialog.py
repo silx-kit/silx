@@ -29,40 +29,56 @@ __license__ = "MIT"
 __date__ = "09/11/2018"
 
 
-import unittest
+import pytest
+import weakref
 
 from silx.gui import qt
 from silx.gui.dialog import ColormapDialog
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.colors import Colormap, preferredColormaps
 from silx.utils.testutils import ParametricTestCase
-from silx.gui.plot.PlotWindow import PlotWindow
 from silx.gui.plot.items.image import ImageData
 
-import numpy.random
+import numpy
 
 
+@pytest.fixture
+def colormap():
+    colormap = Colormap(name='gray',
+                        vmin=10.0, vmax=20.0,
+                        normalization='linear')
+    yield colormap
+
+
+@pytest.fixture
+def colormapDialog(qapp):
+    dialog = ColormapDialog.ColormapDialog()
+    dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
+    yield weakref.proxy(dialog)
+    qapp.processEvents()
+    from silx.gui.qt import inspect
+    if inspect.isValid(dialog):
+        dialog.close()
+        qapp.processEvents()
+
+
+@pytest.fixture
+def colormap_class_attr(request, qapp_utils, colormap, colormapDialog):
+    """Provides few fixtures to a class as class attribute
+
+    Used as transition from TestCase to pytest
+    """
+    request.cls.qapp_utils = qapp_utils
+    request.cls.colormap = colormap
+    request.cls.colormapDiag = colormapDialog
+    yield
+    request.cls.qapp_utils = None
+    request.cls.colormap = None
+    request.cls.colormapDiag = None
+
+
+@pytest.mark.usefixtures("colormap_class_attr")
 class TestColormapDialog(TestCaseQt, ParametricTestCase):
-    """Test the ColormapDialog."""
-    def setUp(self):
-        TestCaseQt.setUp(self)
-        ParametricTestCase.setUp(self)
-        self.colormap = Colormap(name='gray', vmin=10.0, vmax=20.0,
-                                 normalization='linear')
-
-        self.colormapDiag = ColormapDialog.ColormapDialog()
-
-    def tearDown(self):
-        self.qapp.processEvents()
-        colormapDiag = self.colormapDiag
-        self.colormapDiag = None
-        if colormapDiag is not None:
-            colormapDiag.close()
-            colormapDiag.deleteLater()
-            colormapDiag = None
-        self.qapp.processEvents()
-        ParametricTestCase.tearDown(self)
-        TestCaseQt.tearDown(self)
 
     def testGUIEdition(self):
         """Make sure the colormap is correctly edited and also that the
@@ -204,10 +220,11 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside. For now
         we make sure the colormap is still running and nothing more"""
-        self.colormapDiag.setColormap(self.colormap)
+        colormap = Colormap(name='gray')
+        self.colormapDiag.setColormap(colormap)
         self.colormapDiag.show()
         self.qapp.processEvents()
-        del self.colormap
+        colormap = None
         self.assertTrue(self.colormapDiag.getColormap() is None)
         self.colormapDiag._comboBoxColormap._setCurrentName('blue')
 
@@ -376,66 +393,3 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         qt.QTimer.singleShot(1000, colormapDiag.deleteLater)
         result = colormapDiag.exec_()
         self.assertEqual(result, 0)
-
-
-class TestColormapAction(TestCaseQt):
-    def setUp(self):
-        TestCaseQt.setUp(self)
-        self.plot = PlotWindow()
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-
-        self.colormap1 = Colormap(name='blue', vmin=0.0, vmax=1.0,
-                                  normalization='linear')
-        self.colormap2 = Colormap(name='red', vmin=10.0, vmax=100.0,
-                                  normalization='log')
-        self.defaultColormap = self.plot.getDefaultColormap()
-
-        self.plot.getColormapAction()._actionTriggered(checked=True)
-        self.colormapDialog = self.plot.getColormapAction()._dialog
-        self.colormapDialog.setAttribute(qt.Qt.WA_DeleteOnClose)
-
-    def tearDown(self):
-        self.colormapDialog.close()
-        self.plot.close()
-        del self.colormapDialog
-        del self.plot
-        TestCaseQt.tearDown(self)
-
-    def testActiveColormap(self):
-        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
-
-        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                           origin=(0, 0),
-                           colormap=self.colormap1)
-        self.plot.setActiveImage('img1')
-        self.assertTrue(self.colormapDialog.getColormap() is self.colormap1)
-
-        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img2',
-                           origin=(0, 0),
-                           colormap=self.colormap2)
-        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img3',
-                           origin=(0, 0))
-
-        self.plot.setActiveImage('img3')
-        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
-        self.plot.getActiveImage().setColormap(self.colormap2)
-        self.assertTrue(self.colormapDialog.getColormap() is self.colormap2)
-
-        self.plot.remove('img2')
-        self.plot.remove('img3')
-        self.plot.remove('img1')
-        self.assertTrue(self.colormapDialog.getColormap() is self.defaultColormap)
-
-    def testShowHideColormapDialog(self):
-        self.plot.getColormapAction()._actionTriggered(checked=False)
-        self.assertFalse(self.plot.getColormapAction().isChecked())
-        self.plot.getColormapAction()._actionTriggered(checked=True)
-        self.assertTrue(self.plot.getColormapAction().isChecked())
-        self.plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                           origin=(0, 0),
-                           colormap=self.colormap1)
-        self.colormap1.setName('red')
-        self.plot.getColormapAction()._actionTriggered()
-        self.colormap1.setName('blue')
-        self.colormapDialog.close()
-        self.assertFalse(self.plot.getColormapAction().isChecked())
