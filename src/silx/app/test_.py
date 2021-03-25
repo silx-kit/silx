@@ -33,6 +33,9 @@ import logging
 import unittest
 
 
+_logger = logging.getLogger(__name__)
+
+
 class StreamHandlerUnittestReady(logging.StreamHandler):
     """The unittest class TestResult redefine sys.stdout/err to capture
     stdout/err from tests and to display them only when a test fail.
@@ -62,16 +65,6 @@ def createBasicHandler():
     return hdlr
 
 
-# Use an handler compatible with unittests, else use_buffer is not working
-for h in logging.root.handlers:
-    logging.root.removeHandler(h)
-logging.root.addHandler(createBasicHandler())
-logging.captureWarnings(True)
-
-_logger = logging.getLogger(__name__)
-"""Module logger"""
-
-
 class TextTestResultWithSkipList(unittest.TextTestResult):
     """Override default TextTestResult to display list of skipped tests at the
     end
@@ -90,6 +83,12 @@ def main(argv):
     :param argv: Command line arguments
     :returns: exit status
     """
+    # Use an handler compatible with unittests, else use_buffer is not working
+    for h in logging.root.handlers:
+        logging.root.removeHandler(h)
+    logging.root.addHandler(createBasicHandler())
+    logging.captureWarnings(True)
+
     from silx.test import utils
 
     parser = argparse.ArgumentParser(description=__doc__)
