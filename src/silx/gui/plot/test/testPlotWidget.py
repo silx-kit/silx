@@ -32,7 +32,6 @@ __date__ = "03/01/2019"
 import unittest
 import logging
 import numpy
-import sys
 import pytest
 
 from silx.utils.testutils import ParametricTestCase
