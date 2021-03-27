@@ -51,6 +51,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
     """
     Unit tests of the HistogramndLut class.
     """
+    __test__ = False  # ignore abstract class
 
     ndims = None
 
@@ -556,12 +557,15 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 1
 
 
 class TestHistogramndLut_nominal_2d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 2
 
 
 class TestHistogramndLut_nominal_3d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 3

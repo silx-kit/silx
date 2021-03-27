@@ -28,7 +28,7 @@ __date__ = "19/02/2019"
 
 import os
 import tempfile
-import unittest
+import pytest
 from contextlib import contextmanager
 
 import numpy
@@ -61,7 +61,8 @@ class _DataViewMock(DataView):
         return 0
 
 
-class AbstractDataViewerTests(TestCaseQt):
+class _TestAbstractDataViewer(TestCaseQt):
+    __test__ = False  # ignore abstract class
 
     def create_widget(self):
         # Avoid to raise an error when testing the full module
@@ -246,12 +247,14 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertTrue(view in nxdata_view.getViews())
 
 
-class TestDataViewer(AbstractDataViewerTests):
+class TestDataViewer(_TestAbstractDataViewer):
+    __test__ = True  # because _TestAbstractDataViewer is ignored
     def create_widget(self):
         return DataViewer()
 
 
-class TestDataViewerFrame(AbstractDataViewerTests):
+class TestDataViewerFrame(_TestAbstractDataViewer):
+    __test__ = True  # because _TestAbstractDataViewer is ignored
     def create_widget(self):
         return DataViewerFrame()
 
@@ -283,8 +286,8 @@ class TestDataView(TestCaseQt):
         widget = self.createDataViewWithData(dataViewClass, data[0])
         self.qWaitForWindowExposed(widget)
 
+    @pytest.mark.usefixtures("use_opengl")
     def testCubeWithComplex(self):
-        self.skipTest("OpenGL widget not yet tested")
         try:
             import silx.gui.plot3d  # noqa
         except ImportError:

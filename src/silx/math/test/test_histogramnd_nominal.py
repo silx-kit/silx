@@ -53,6 +53,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
     """
     Unit tests of the histogramnd function.
     """
+    __test__ = False  # ignore abstract classe
 
     ndims = None
 
@@ -463,11 +464,12 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertEqual(id(cumul), id(cumul_2))
         self.assertTrue(np.allclose(cumul, expected_c, rtol=10e-15))
-        
+
 class _Test_Histogramnd_nominal(unittest.TestCase):
     """
     Unit tests of the Histogramnd class.
     """
+    __test__ = False  # ignore abstract class
 
     ndims = None
 
@@ -905,26 +907,32 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
 
 class Test_chistogram_nominal_1d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 1
 
 
 class Test_chistogram_nominal_2d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 2
 
 
 class Test_chistogram_nominal_3d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 3
 
 
 class Test_Histogramnd_nominal_1d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 1
 
 
 @pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_2d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 2
 
 
 @pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 3

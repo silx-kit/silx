@@ -62,6 +62,8 @@ logger = logging.getLogger(__name__)
 
 @unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
 class _TestKeypoints(unittest.TestCase):
+    __test__ = False  # ignore abstract class
+
     orientation_script = None
     orientation_param = None
     keypoint_script = None
@@ -364,6 +366,7 @@ class TestFeature(unittest.TestCase):
 
 
 class TestCpu(_TestKeypoints):
+    __test__ = True  # because _TestKeypoints is ignored
     orientation_script = "orientation_cpu"
     orientation_param = (1,)
     keypoint_script = "descriptor_cpu"
@@ -371,6 +374,7 @@ class TestCpu(_TestKeypoints):
 
 
 class TestGpu1(_TestKeypoints):
+    __test__ = True  # because _TestKeypoints is ignored
     orientation_script = "orientation_gpu"
     orientation_param = (128,)
     keypoint_script = "descriptor_gpu2"
@@ -378,6 +382,7 @@ class TestGpu1(_TestKeypoints):
 
 
 class TestGpu2(_TestKeypoints):
+    __test__ = True  # because _TestKeypoints is ignored
     orientation_script = "orientation_gpu"
     orientation_param = (128,)
     keypoint_script = "descriptor_gpu1"

@@ -83,10 +83,11 @@ def _get_in_range_indices(array,
 
 
 class _TestHistogramnd(unittest.TestCase):
-
     """
     Unit tests of the histogramnd function.
     """
+    __test__ = False  # ignore abstract class
+
     sample_rng = None
     weights_rng = None
     n_dims = None
@@ -610,11 +611,9 @@ class _TestHistogramnd(unittest.TestCase):
 
 
 class _TestHistogramnd_1d(_TestHistogramnd):
-
     """
     Unit tests of the 1D histogramnd function.
     """
-
     sample_rng = [-55., 100.]
     weights_rng = [-70., 150.]
     n_dims = 1
@@ -628,11 +627,9 @@ class _TestHistogramnd_1d(_TestHistogramnd):
 
 
 class _TestHistogramnd_2d(_TestHistogramnd):
-
     """
     Unit tests of the 1D histogramnd function.
     """
-
     sample_rng = [-50.2, 100.99]
     weights_rng = [70., 150.]
     n_dims = 2
@@ -646,11 +643,9 @@ class _TestHistogramnd_2d(_TestHistogramnd):
 
 
 class _TestHistogramnd_3d(_TestHistogramnd):
-
     """
     Unit tests of the 1D histogramnd function.
     """
-
     sample_rng = [10.2, 200.9]
     weights_rng = [0., 100.]
     n_dims = 3
@@ -670,135 +665,162 @@ class _TestHistogramnd_3d(_TestHistogramnd):
 
 
 class TestHistogramnd_1d_double_double(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_double_float(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_double_int32(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_1d_float_double(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_float_float(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_float_int32(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_1d_int32_double(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_int32_float(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_int32_int32(_TestHistogramnd_1d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_double_double(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_double_float(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_double_int32(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_float_double(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_float_float(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_float_int32(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_int32_double(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_int32_float(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_int32_int32(_TestHistogramnd_2d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_double_double(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_double_float(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_double_int32(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_float_double(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_float_float(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_float_int32(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_int32_double(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_int32_float(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_int32_int32(_TestHistogramnd_3d):
+    __test__ = True  # bacause _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32

@@ -47,6 +47,7 @@ except ImportError:
 
 class _TestCommonFeatures(unittest.TestCase):
     """Test common features supported by h5py and our implementation."""
+    __test__ = False  # ignore abstract class tests
 
     @classmethod
     def createFile(cls):
@@ -156,6 +157,7 @@ class _TestCommonFeatures(unittest.TestCase):
 
 class TestCommonFeatures_h5py(_TestCommonFeatures):
     """Check if h5py is compliant with what we expect."""
+    __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
     def create_resource(cls):
@@ -183,6 +185,7 @@ class TestCommonFeatures_h5py(_TestCommonFeatures):
 
 class TestCommonFeatures_commonH5(_TestCommonFeatures):
     """Check if commonh5 is compliant with h5py."""
+    __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
     def create_resource(cls):
