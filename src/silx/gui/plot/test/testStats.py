@@ -1005,6 +1005,12 @@ class TestAdvancedROIImageContext(TestCaseQt):
         self.data = numpy.random.rand(*self.data_dims)
         self.plot = Plot2D()
 
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+        TestCaseQt.tearDown(self)
+
     def test(self):
         """Test stats result on an image context with different scale and
         origins"""
