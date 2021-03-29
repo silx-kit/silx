@@ -266,76 +266,6 @@ class HistogramWidget(qt.QWidget):
         self.__statsWidgets['sum'].setValue(sum_)
 
 
-class _LastActiveItem(qt.QObject):
-
-    sigActiveItemChanged = qt.Signal(object, object)
-    """Emitted when the active plot item have changed"""
-
-    def __init__(self, parent, plot):
-        assert plot is not None
-        super(_LastActiveItem, self).__init__(parent=parent)
-        self.__plot = weakref.ref(plot)
-        self.__item = None
-        item = self.__findActiveItem()
-        self.setActiveItem(item)
-        plot.sigActiveImageChanged.connect(self._activeImageChanged)
-        plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
-
-    def getPlotWidget(self):
-        return self.__plot()
-
-    def __findActiveItem(self):
-        plot = self.getPlotWidget()
-        image = plot.getActiveImage()
-        if image is not None:
-            return image
-        scatter = plot.getActiveScatter()
-        if scatter is not None:
-            return scatter
-
-    def getActiveItem(self):
-        if self.__item is None:
-            return None
-        item = self.__item()
-        if item is None:
-            self.__item = None
-        return item
-
-    def setActiveItem(self, item):
-        previous = self.getActiveItem()
-        if previous is item:
-            return
-        if item is None:
-            self.__item = None
-        else:
-            self.__item = weakref.ref(item)
-        self.sigActiveItemChanged.emit(previous, item)
-
-    def _activeImageChanged(self, previous, current):
-        """Handle active image change"""
-        plot = self.getPlotWidget()
-        if current is None:  # Fall-back to active scatter if any
-            self.setActiveItem(plot.getActiveScatter())
-        else:
-            item = plot.getImage(current)
-            if item is None:
-                self.setActiveItem(None)
-            elif isinstance(item, items.ImageBase):
-                self.setActiveItem(item)
-            else:
-                # Do not touch anything, which is consistent with silx v0.12 behavior
-                pass
-
-    def _activeScatterChanged(self, previous, current):
-        """Handle active scatter change"""
-        plot = self.getPlotWidget()
-        if current is None:  # Fall-back to active image if any
-            self.setActiveItem(plot.getActiveImage())
-        else:
-            item = plot.getScatter(current)
-            self.setActiveItem(item)
-
-
 class PixelIntensitiesHistoAction(PlotToolAction):
     """QAction to plot the pixels intensities diagram
 
@@ -350,22 +280,42 @@ class PixelIntensitiesHistoAction(PlotToolAction):
                                 text='pixels intensity',
                                 tooltip='Compute image intensity distribution',
                                 parent=parent)
-        self._lastItemFilter = _LastActiveItem(self, plot)
 
     def _connectPlot(self, window):
-        self._lastItemFilter.sigActiveItemChanged.connect(self._activeItemChanged)
-        item = self._lastItemFilter.getActiveItem()
-        self.getHistogramWidget().setItem(item)
+        plot = self.plot
+        if plot is not None:
+            selection = plot.selection()
+            selection.sigSelectedItemsChanged.connect(self._selectedItemsChanged)
+            self._updateSelectedItem()
+
         PlotToolAction._connectPlot(self, window)
 
     def _disconnectPlot(self, window):
-        self._lastItemFilter.sigActiveItemChanged.disconnect(self._activeItemChanged)
+        plot = self.plot
+        if plot is not None:
+            selection = self.plot.selection()
+            selection.sigSelectedItemsChanged.disconnect(self._selectedItemsChanged)
+
         PlotToolAction._disconnectPlot(self, window)
         self.getHistogramWidget().setItem(None)
 
-    def _activeItemChanged(self, previous, current):
+    def _updateSelectedItem(self):
+        """Synchronises selected item with plot widget."""
+        plot = self.plot
+        if plot is not None:
+            selected = plot.selection().getSelectedItems()
+            # Give priority to image over scatter
+            for klass in (items.ImageBase, items.Scatter):
+                for item in selected:
+                    if isinstance(item, klass):
+                        # Found a matching item, use it
+                        self.getHistogramWidget().setItem(item)
+                        return
+        self.getHistogramWidget().setItem(None)
+
+    def _selectedItemsChanged(self):
         if self._isWindowInUse():
-            self.getHistogramWidget().setItem(current)
+            self._updateSelectedItem()
 
     @deprecated(since_version='0.15.0')
     def computeIntensityDistribution(self):
