@@ -39,6 +39,7 @@ import six
 
 import silx.io
 from silx.io.specfile import is_specfile
+from silx.io.fioh5 import is_fiofile
 from silx.io import fabioh5
 
 _logger = logging.getLogger(__name__)
@@ -166,6 +167,26 @@ def contains_specfile(filenames):
         if is_specfile(fname):
             return True
     return False
+
+
+def contains_fiofile(filenames):
+    """Return True if any file in a list are FIO files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if is_fiofile(fname):
+            return True
+    return False
+
+
+def are_all_fiofile(filenames):
+    """Return True if all files in a list are FIO files.
+    :param List[str] filenames: list of filenames
+    """
+    for fname in filenames:
+        if not is_fiofile(fname):
+            return False
+    return True
 
 
 def main(argv):
@@ -460,6 +481,7 @@ def main(argv):
 
     if (len(options.input_files) > 1 and
             not contains_specfile(options.input_files) and
+            not contains_fiofile(options.input_files) and
             not options.add_root_group) or options.file_pattern is not None:
         # File series -> stack of images
         input_group = fabioh5.File(file_series=options.input_files)
@@ -475,6 +497,7 @@ def main(argv):
 
     elif len(options.input_files) == 1 or \
             are_all_specfile(options.input_files) or\
+            are_all_fiofile(options.input_files) or\
             options.add_root_group:
         # single file, or spec files
         h5paths_and_groups = []
