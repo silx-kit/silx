@@ -65,9 +65,10 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
         def stop(self):
             """Stop the update thread"""
-            self.animated_icon.unregister(self._label)
-            self.running = False
-            self.join(2)
+            if self.running:
+                self.animated_icon.unregister(self._label)
+                self.running = False
+                self.join(2)
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
@@ -87,6 +88,9 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def close(self) -> bool:
         super(_PlotWithWaitingLabel, self).close()
+        self.stopUpdateThread()
+
+    def stopUpdateThread(self):
         self.updateThread.stop()
 
     def setAutoResetZoom(self, reset):
