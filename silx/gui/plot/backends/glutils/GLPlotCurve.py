@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -235,11 +235,14 @@ class _Fill2D(object):
 
     def discard(self):
         """Release VBOs"""
-        if self._xFillVboData is not None:
+        if self.isInitialized():
             self._xFillVboData.vbo.discard()
 
         self._xFillVboData = None
         self._yFillVboData = None
+
+    def isInitialized(self):
+        return self._xFillVboData is not None
 
 
 # line ########################################################################
@@ -1061,12 +1064,15 @@ class _ErrorBars(object):
 
     def discard(self):
         """Release VBOs"""
-        if self._attribs is not None:
+        if self.isInitialized():
             self._lines.xVboData, self._lines.yVboData = None, None
             self._xErrPoints.xVboData, self._xErrPoints.yVboData = None, None
             self._yErrPoints.xVboData, self._yErrPoints.yVboData = None, None
             self._attribs[0].vbo.discard()
             self._attribs = None
+
+    def isInitialized(self):
+        return self._attribs is not None
 
 
 # curves ######################################################################
@@ -1271,6 +1277,11 @@ class GLPlotCurve2D(GLPlotItem):
         self._errorBars.discard()
         if self.fill is not None:
             self.fill.discard()
+
+    def isInitialized(self):
+        return (self.xVboData is not None or
+                self._errorBars.isInitialized() or
+                (self.fill is not None and self.fill.isInitialized()))
 
     def pick(self, xPickMin, yPickMin, xPickMax, yPickMax):
         """Perform picking on the curve according to its rendering.

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -285,6 +285,10 @@ class GLPlotColormap(_GLPlotData2D):
             self._texture.discard()
             self._texture = None
         self._textureIsDirty = False
+
+    def isInitialized(self):
+        return (self._cmap_texture is not None or
+                self._texture is not None)
 
     @property
     def cmapRange(self):
@@ -622,10 +626,13 @@ class GLPlotRGBAImage(_GLPlotData2D):
         return self._alpha
 
     def discard(self):
-        if self._texture is not None:
+        if self.isInitialized():
             self._texture.discard()
             self._texture = None
         self._textureIsDirty = False
+
+    def isInitialized(self):
+        return self._texture is not None
 
     def updateData(self, data):
         assert data.dtype in self._SUPPORTED_DTYPES
