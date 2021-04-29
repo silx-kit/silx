@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -144,11 +144,14 @@ class GLPlotTriangles(GLPlotItem):
 
     def discard(self):
         """Release resources on the GPU"""
-        if self.__vbos is not None:
+        if self.isInitialized():
             self.__vbos[0].vbo.discard()
             self.__vbos = None
             self.__indicesVbo.discard()
             self.__indicesVbo = None
+
+    def isInitialized(self):
+        return self.__vbos is not None
 
     def prepare(self):
         """Allocate resources on the GPU"""
