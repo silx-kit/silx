@@ -600,11 +600,14 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if gridInfo.order == 'column':
                     image = numpy.transpose(image, axes=(1, 0, 2))
 
-                colormap = self.getColormap()
-                if colormap.isAutoscale():
-                    # Avoid backend to compute autoscale: use item cache
-                    colormap = colormap.copy()
-                    colormap.setVRange(*colormap.getColormapRange(self))
+                if image.ndim == 2:
+                    colormap = self.getColormap()
+                    if colormap.isAutoscale():
+                        # Avoid backend to compute autoscale: use item cache
+                        colormap = colormap.copy()
+                        colormap.setVRange(*colormap.getColormapRange(self))
+                else:
+                    colormap = None
 
                 return backend.addImage(
                     data=image,
