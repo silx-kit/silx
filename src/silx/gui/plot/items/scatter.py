@@ -580,16 +580,17 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     dim0, dim1 = dim1, dim0
 
                 values = self.getValueData(copy=False)
-                if len(values) == dim0 * dim1:
+                if self.__alpha is None and len(values) == dim0 * dim1:
                     image = values.reshape(dim0, dim1)
                 else:
                     # The points do not fill the whole image
-                    if numpy.issubdtype(values.dtype, numpy.floating):
+                    if (self.__alpha is None and
+                            numpy.issubdtype(values.dtype, numpy.floating)):
                         image = numpy.empty(dim0 * dim1, dtype=values.dtype)
                         image[:len(values)] = values
                         image[len(values):] = float('nan')  # Transparent pixels
                         image.shape = dim0, dim1
-                    else:  # No NaN, so convert to RGBA
+                    else:  # Per value alpha or no NaN, so convert to RGBA
                         rgbacolors = self.__applyColormapToData()
                         image = numpy.empty((dim0 * dim1, 4), dtype=numpy.uint8)
                         image[:len(rgbacolors)] = rgbacolors
