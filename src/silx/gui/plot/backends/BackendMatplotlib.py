@@ -994,6 +994,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         Override in subclass to actually draw something.
         """
+        with self._plot._paintContext():
+            self._replot()
+
+    def _replot(self):
+        """Call from subclass :meth:`replot` to handle updates"""
         # TODO images, markers? scatter plot? move in remove?
         # Right Y axis only support curve for now
         # Hide right Y axis if no line is present
@@ -1342,8 +1347,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         # Make postRedisplay asynchronous using Qt signal
         self._sigPostRedisplay.connect(
-            super(BackendMatplotlibQt, self).postRedisplay,
-            qt.Qt.QueuedConnection)
+            self.__deferredReplot, qt.Qt.QueuedConnection)
 
         self._picked = None
 
@@ -1354,6 +1358,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
+
+    def __deferredReplot(self):
+        # Since this is deferred, makes sure it is still needed
+        plot = self._plotRef()
+        if plot is not None and plot._getDirtyPlot():
+            self.replot()
 
     def _getDevicePixelRatio(self) -> float:
         """Compatibility wrapper for devicePixelRatioF"""
@@ -1504,27 +1514,28 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self._drawOverlays()
 
     def replot(self):
-        BackendMatplotlib.replot(self)
+        with self._plot._paintContext():
+            BackendMatplotlib._replot(self)
 
-        dirtyFlag = self._plot._getDirtyPlot()
+            dirtyFlag = self._plot._getDirtyPlot()
 
-        if dirtyFlag == 'overlay':
-            # Only redraw overlays using fast rendering path
-            if self._background is None:
-                self._background = self.copy_from_bbox(self.fig.bbox)
-            self.restore_region(self._background)
-            self._drawOverlays()
-            self.blit(self.fig.bbox)
+            if dirtyFlag == 'overlay':
+                # Only redraw overlays using fast rendering path
+                if self._background is None:
+                    self._background = self.copy_from_bbox(self.fig.bbox)
+                self.restore_region(self._background)
+                self._drawOverlays()
+                self.blit(self.fig.bbox)
 
-        elif dirtyFlag:  # Need full redraw
-            self.draw()
+            elif dirtyFlag:  # Need full redraw
+                self.draw()
 
-        # Workaround issue of rendering overlays with some matplotlib versions
-        if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
-                not hasattr(self, '_firstReplot')):
-            self._firstReplot = False
-            if self._hasOverlays():
-                qt.QTimer.singleShot(0, self.draw)  # Request async draw
+            # Workaround issue of rendering overlays with some matplotlib versions
+            if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
+                    not hasattr(self, '_firstReplot')):
+                self._firstReplot = False
+                if self._hasOverlays():
+                    qt.QTimer.singleShot(0, self.draw)  # Request async draw
 
     # cursor
 

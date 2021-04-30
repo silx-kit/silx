@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -328,23 +328,13 @@ class BackendBase(object):
         return None
 
     def postRedisplay(self):
-        """Trigger a :meth:`Plot.replot`.
-
-        Default implementation triggers a synchronous replot if plot is dirty.
-        This method should be overridden by the embedding widget in order to
-        provide an asynchronous call to replot in order to optimize the number
-        replot operations.
-        """
-        # This method can be deferred and it might happen that plot has been
-        # destroyed in between, especially with unittests
-
-        plot = self._plotRef()
-        if plot is not None and plot._getDirtyPlot():
-            plot.replot()
+        """Trigger backend update and repaint."""
+        self.replot()
 
     def replot(self):
         """Redraw the plot."""
-        pass
+        with self._plot._paintContext():
+            pass
 
     def saveGraph(self, fileName, fileFormat, dpi):
         """Save the graph to a file (or a StringIO)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -196,9 +196,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     So, the caller should not modify these arrays afterwards.
     """
 
-    _sigPostRedisplay = qt.Signal()
-    """Signal handling automatic asynchronous replot"""
-
     def __init__(self, plot, parent=None, f=qt.Qt.WindowFlags()):
         glu.OpenGLWidget.__init__(self, parent,
                                   alphaBufferSize=8,
@@ -233,11 +230,6 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame.size = (  # Init size with size int
             int(self.getDevicePixelRatio() * 640),
             int(self.getDevicePixelRatio() * 480))
-
-        # Make postRedisplay asynchronous using Qt signal
-        self._sigPostRedisplay.connect(
-            super(BackendOpenGL, self).postRedisplay,
-            qt.Qt.QueuedConnection)
 
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
@@ -386,23 +378,28 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def paintGL(self):
-        with glu.Context.current(self.context()):
-            # Release OpenGL resources
-            for item in self._glGarbageCollector:
-                item.discard()
-            self._glGarbageCollector = []
+        plot = self._plotRef()
+        if plot is None:
+            return
 
-            gl.glClearColor(*self._backgroundColor)
-            gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
+        with plot._paintContext():
+            with glu.Context.current(self.context()):
+                # Release OpenGL resources
+                for item in self._glGarbageCollector:
+                    item.discard()
+                self._glGarbageCollector = []
 
-            # Check if window is large enough
-            if self._plotFrame.plotSize <= (2, 2):
-                return
+                gl.glClearColor(*self._backgroundColor)
+                gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
 
-            # Sync plot frame with window
-            self._plotFrame.devicePixelRatio = self.getDevicePixelRatio()
-            # self._paintDirectGL()
-            self._paintFBOGL()
+                # Check if window is large enough
+                if self._plotFrame.plotSize <= (2, 2):
+                    return
+
+                # Sync plot frame with window
+                self._plotFrame.devicePixelRatio = self.getDevicePixelRatio()
+                # self._paintDirectGL()
+                self._paintFBOGL()
 
     def _renderItems(self, overlay=False):
         """Render items according to :class:`PlotWidget` order
@@ -1162,11 +1159,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return self
 
     def postRedisplay(self):
-        self._sigPostRedisplay.emit()
+        self.update()
 
     def replot(self):
         self.update()  # async redraw
-        # self.repaint()  # immediate redraw
 
     def saveGraph(self, fileName, fileFormat, dpi):
         if dpi is not None:
