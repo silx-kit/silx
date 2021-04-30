@@ -598,7 +598,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         image.shape = dim0, dim1, 4
 
                 if gridInfo.order == 'column':
-                    image = numpy.transpose(image, axes=(1, 0, 2))
+                    if image.ndim == 2:
+                        image = numpy.transpose(image)
+                    else:
+                        image = numpy.transpose(image, axes=(1, 0, 2))
 
                 if image.ndim == 2:
                     colormap = self.getColormap()
