@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -92,3 +92,8 @@ class GLPlotItem:
     def discard(self):
         """Discards OpenGL resources this item has created."""
         pass
+
+    def isInitialized(self) -> bool:
+        """Returns True if resources where initialized and requires `discard`.
+        """
+        return True

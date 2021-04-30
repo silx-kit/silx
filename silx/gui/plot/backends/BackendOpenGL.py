@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -990,7 +990,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                item.getYAxis() == 'right')
                 self._plotFrame.isY2Axis = next(y2AxisItems, None) is not None
 
-            self._glGarbageCollector.append(item)
+            if item.isInitialized():
+                self._glGarbageCollector.append(item)
 
         elif isinstance(item, (_MarkerItem, _ShapeItem)):
             pass  # No-op
