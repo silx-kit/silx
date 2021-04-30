@@ -1,11 +1,12 @@
 Change Log
 ==========
 
-0.14.1b0: 2021/01/25
---------------------
+0.14.1: 2021/04/30
+------------------
 
 This is a bug-fix version of silx.
 
+* silx.gui.plot: Fixed `PlotWidget` OpenGL backend memory leak (PR #3445)
 * silx.gui.utils.glutils: Fixed `isOpenGLAvailable` (PR #3356)
 
 
