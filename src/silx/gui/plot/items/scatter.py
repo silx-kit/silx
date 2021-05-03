@@ -954,7 +954,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__cacheHistogramInfo = None
 
         self._value = value
-        self._updateColormappedData()
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]
@@ -971,3 +970,5 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # call self._updated + plot._invalidateDataRange()
         PointsBase.setData(self, x, y, xerror, yerror, copy)
+
+        self._updateColormappedData()
