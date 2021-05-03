@@ -712,7 +712,12 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         self.qapp.processEvents()
 
+        scatter.setData(*numpy.random.random(300).reshape(3, -1))
+        self.qapp.processEvents()
+
+        # Update data
         scatter.setData(*numpy.random.random(3000).reshape(3, -1))
+        self.qapp.processEvents()
 
         for reduction in ('count', 'sum', 'mean'):
             with self.subTest(reduction=reduction):
