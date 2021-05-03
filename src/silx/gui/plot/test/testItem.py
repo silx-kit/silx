@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -205,8 +205,8 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
         self.assertEqual(listener.arguments(),
                          [(ItemChangedType.COLORMAP,),
-                          (ItemChangedType.COLORMAP,),
                           (ItemChangedType.DATA,),
+                          (ItemChangedType.COLORMAP,),
                           (ItemChangedType.VISUALIZATION_MODE,)])
 
     def testShapeChanged(self):
