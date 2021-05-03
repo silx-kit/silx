@@ -1362,7 +1362,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def __deferredReplot(self):
         # Since this is deferred, makes sure it is still needed
         plot = self._plotRef()
-        if plot is not None and plot._getDirtyPlot():
+        if (plot is not None and
+                plot._getDirtyPlot() and
+                plot.getBackend() is self):
             self.replot()
 
     def _getDevicePixelRatio(self) -> float:
