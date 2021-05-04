@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -926,13 +926,11 @@ class Test_Histogramnd_nominal_1d(_Test_Histogramnd_nominal):
     ndims = 1
 
 
-@pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_2d(_Test_Histogramnd_nominal):
     __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 2
 
 
-@pytest.mark.skip(reason="Not enabled")
 class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
     __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 3

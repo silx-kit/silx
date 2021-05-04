@@ -111,7 +111,6 @@ class TestAddition(unittest.TestCase):
                     self.__class__.max_valid_wg = wg
                 self.assertTrue(good, "calculation is correct for WG=%s" % wg)
 
-    @pytest.mark.skip(reason="Not enabled")
     def test_measurement(self):
         """
         tests that all devices are working properly ... lengthy and error prone
