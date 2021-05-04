@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -665,162 +665,162 @@ class _TestHistogramnd_3d(_TestHistogramnd):
 
 
 class TestHistogramnd_1d_double_double(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_double_float(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_double_int32(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_1d_float_double(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_float_float(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_float_int32(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_1d_int32_double(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_int32_float(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_int32_int32(_TestHistogramnd_1d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_double_double(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_double_float(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_double_int32(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_float_double(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_float_float(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_float_int32(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_2d_int32_double(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_int32_float(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_int32_int32(_TestHistogramnd_2d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_double_double(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_double_float(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_double_int32(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.double
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_float_double(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_float_float(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_float_int32(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.float32
     dtype_weights = np.int32
 
 
 class TestHistogramnd_3d_int32_double(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_int32_float(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_int32_int32(_TestHistogramnd_3d):
-    __test__ = True  # bacause _TestHistogramnd is ignored
+    __test__ = True  # because _TestHistogramnd is ignored
     dtype_sample = np.int32
     dtype_weights = np.int32

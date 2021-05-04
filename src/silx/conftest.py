@@ -42,7 +42,7 @@ def test_options_class_attr(request, test_options):
 def use_opengl(test_options):
     """Fixture to flag test using a OpenGL.
 
-    This can be skiped with `--no-opengl`.
+    This can be skipped with `--no-opengl`.
     """
     if not test_options.WITH_GL_TEST:
         pytest.skip(test_options.WITH_GL_TEST_REASON, allow_module_level=True)
@@ -52,7 +52,7 @@ def use_opengl(test_options):
 def use_opencl(test_options):
     """Fixture to flag test using a OpenCL.
 
-    This can be skiped with `--no-opencl`.
+    This can be skipped with `--no-opencl`.
     """
     if not test_options.WITH_OPENCL_TEST:
         pytest.skip(test_options.WITH_OPENCL_TEST_REASON, allow_module_level=True)
@@ -62,9 +62,9 @@ def use_opencl(test_options):
 def use_large_memory(test_options):
     """Fixture to flag test using a large memory consumption.
 
-    This can be skiped with `--low-mem`.
+    This can be skipped with `--low-mem`.
     """
-    if not test_options.TEST_LOW_MEM:
+    if test_options.TEST_LOW_MEM:
         pytest.skip(test_options.TEST_LOW_MEM_REASON, allow_module_level=True)
 
 
@@ -72,7 +72,7 @@ def use_large_memory(test_options):
 def use_gui(test_options):
     """Fixture to flag test using GUI.
 
-    This can be skiped with `--no-gui`.
+    This can be skipped with `--no-gui`.
     """
     if not test_options.WITH_QT_TEST:
         pytest.skip(test_options.WITH_QT_TEST_REASON, allow_module_level=True)
