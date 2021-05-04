@@ -158,6 +158,8 @@ def import_project_module(project_name, project_dir):
 
 
 if __name__ == "__main__":  # Needed for multiprocessing support on Windows
+    import pytest
+
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_NAME = get_project_name(PROJECT_DIR)
     logger.info("Project name: %s", PROJECT_NAME)
@@ -181,7 +183,5 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     if len(without_options) == 0:
         args += [PROJECT_PATH]
 
-    argv = ["pytest", "--rootdir", PROJECT_PATH] + args
-    process = subprocess.run(argv)
-
-    sys.exit(process.returncode)
+    argv = ["--rootdir", PROJECT_PATH] + args
+    sys.exit(pytest.main(argv))
