@@ -386,4 +386,4 @@ class TestGpu2(_TestKeypoints):
     orientation_script = "orientation_gpu"
     orientation_param = (128,)
     keypoint_script = "descriptor_gpu1"
-    keypoint_param = (128,)
+    keypoint_param = (8, 4, 4)
