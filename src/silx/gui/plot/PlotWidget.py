@@ -3128,14 +3128,22 @@ class PlotWidget(qt.QMainWindow):
         if self._autoreplot and self._getDirtyPlot():
             self._backend.postRedisplay()
 
-    def replot(self):
-        """Redraw the plot immediately."""
+    @contextmanager
+    def _paintContext(self):
+        """This context MUST surround backend rendering.
+
+        It is in charge of performing required PlotWidget operations
+        """
         for item in self._contentToUpdate:
             item._update(self._backend)
 
         self._contentToUpdate = []
-        self._backend.replot()
+        yield
         self._dirty = False  # reset dirty flag
+
+    def replot(self):
+        """Request to draw the plot."""
+        self._backend.replot()
 
     def _forceResetZoom(self, dataMargins=None):
         """Reset the plot limits to the bounds of the data and redraw the plot.
