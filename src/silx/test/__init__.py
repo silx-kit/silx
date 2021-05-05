@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,3 +24,28 @@
 # ###########################################################################*/
 """This package provides test of the root modules
 """
+
+import os
+
+import pytest
+from silx.test.utils import test_options
+
+
+def run_tests(module: str='silx', verbosity: int=0, args=()):
+    """Run tests
+
+    :param module: Name of the silx module to test (default: 'silx')
+    :param verbosity: Requested level of verbosity
+    :param args: List of extra arguments to pass to `pytest`
+    """
+    test_options.configure()
+
+    return pytest.main([
+        '--pyargs',
+        module,
+        '--verbosity',
+        str(verbosity),
+        '-o python_files=["test/test*.py","test/Test*.py"]',
+        '-o python_classes=["Test"]',
+        '-o python_functions=["Test"]',
+    ] + list(args))
