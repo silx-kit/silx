@@ -26,7 +26,6 @@
 """
 
 import pytest
-import silx
 
 
 def run_tests(module: str='silx', verbosity: int=0, args=()):
