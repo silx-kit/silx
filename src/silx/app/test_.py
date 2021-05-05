@@ -27,13 +27,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "12/01/2018"
 
-import sys
-import argparse
-import logging
-
-
-_logger = logging.getLogger(__name__)
-
 
 def main(argv):
     """
@@ -42,45 +35,10 @@ def main(argv):
     :param argv: Command line arguments
     :returns: exit status
     """
-    from silx.test import utils
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-v", "--verbose", default=0,
-                        action="count", dest="verbose",
-                        help="Increase verbosity. Option -v prints additional " +
-                             "INFO messages. Use -vv for full verbosity, " +
-                             "including debug messages and test help strings.")
-    parser.add_argument("--qt-binding", dest="qt_binding", default=None,
-                        help="Force using a Qt binding: 'PyQt5' or 'PySide2'")
-    utils.test_options.add_parser_argument(parser)
-
-    options = parser.parse_args(argv[1:])
-
-    if options.verbose == 1:
-        logging.root.setLevel(logging.INFO)
-        _logger.info("Set log level: INFO")
-    elif options.verbose > 1:
-        logging.root.setLevel(logging.DEBUG)
-        _logger.info("Set log level: DEBUG")
-
-    if options.qt_binding:
-        binding = options.qt_binding.lower()
-        if binding == "pyqt5":
-            _logger.info("Force using PyQt5")
-            import PyQt5.QtCore  # noqa
-        elif binding == "pyside2":
-            _logger.info("Force using PySide2")
-            import PySide2.QtCore  # noqa
-        else:
-            raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
-
-    # Configure test options
-    utils.test_options.configure(options)
-
     import silx.test
     import pytest
 
-    if silx.test._run_tests(verbosity=options.verbose) == pytest.ExitCode.OK:
+    if silx.test.run_tests(args=argv[1:]) == pytest.ExitCode.OK:
         exit_status = 0
     else:
         exit_status = 1

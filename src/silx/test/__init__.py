@@ -25,22 +25,8 @@
 """This package provides test of the root modules
 """
 
-import os
-
 import pytest
-from silx.test.utils import test_options
-
-
-def _run_tests(module: str='silx', verbosity: int=0, args=()):
-    return pytest.main([
-        '--pyargs',
-        module,
-        '--verbosity',
-        str(verbosity),
-        '-o python_files=["test/test*.py","test/Test*.py"]',
-        '-o python_classes=["Test"]',
-        '-o python_functions=["Test"]',
-    ] + list(args))
+import silx
 
 
 def run_tests(module: str='silx', verbosity: int=0, args=()):
@@ -50,5 +36,12 @@ def run_tests(module: str='silx', verbosity: int=0, args=()):
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    test_options.configure()
-    return self._run_tests(module, verbosity, args)
+    return pytest.main([
+        '--pyargs',
+        module,
+        '--verbosity',
+        str(verbosity),
+        '-o python_files=["test/test*.py","test/Test*.py"]',
+        '-o python_classes=["Test"]',
+        '-o python_functions=["Test"]',
+    ] + list(args))
