@@ -5,9 +5,3 @@ requires = [
     "numpy>=1.12",
     "Cython>=0.21.1"
 ]
-
-[tool.pytest.ini_options]
-python_files = ["test/test*.py", "test/Test*.py"]
-python_classes = ["Test"]
-python_functions = ["test"]
-testpaths = ["src/silx"]
