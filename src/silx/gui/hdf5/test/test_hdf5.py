@@ -35,7 +35,6 @@ import unittest
 import tempfile
 import numpy
 from pkg_resources import parse_version
-import shutil
 from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
@@ -48,36 +47,17 @@ import h5py
 import pytest
 
 
-_tmpDirectory = None
-
 h5py2_9 = parse_version(h5py.version.version) >= parse_version('2.9.0')
 
 
-def setUpModule():
-    global _tmpDirectory
-    _tmpDirectory = tempfile.mkdtemp(prefix=__name__)
-
-    filename = _tmpDirectory + "/data.h5"
-
+@pytest.fixture
+def useH5File(request, tmpdir):
+    request.cls.filename = os.path.join(tmpdir, "data.h5")
     # create h5 data
-    f = h5py.File(filename, "w")
-    g = f.create_group("arrays")
-    g.create_dataset("scalar", data=10)
-    f.close()
-
-
-def tearDownModule():
-    global _tmpDirectory
-    shutil.rmtree(_tmpDirectory)
-    _tmpDirectory = None
-
-
-_called = 0
-
-
-class _Holder(object):
-    def callback(self, *args, **kvargs):
-        _called += 1
+    with h5py.File(request.cls.filename, "w") as f:
+        g = f.create_group("arrays")
+        g.create_dataset("scalar", data=10)
+    yield
 
 
 def create_NXentry(group, name):
@@ -87,6 +67,7 @@ def create_NXentry(group, name):
     return node
 
 
+@pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
@@ -119,10 +100,9 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertIsNotNone(model)
 
     def testAppendFilename(self):
-        filename = _tmpDirectory + "/data.h5"
         model = hdf5.Hdf5TreeModel()
         self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
-        model.appendFile(filename)
+        model.appendFile(self.filename)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # clean up
         ref = weakref.ref(model)
@@ -134,11 +114,10 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertRaises(IOError, model.appendFile, "#%$")
 
     def testInsertFilename(self):
-        filename = _tmpDirectory + "/data.h5"
         try:
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
-            model.insertFile(filename)
+            model.insertFile(self.filename)
             self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
             # clean up
             index = model.index(0, 0, qt.QModelIndex())
@@ -150,11 +129,10 @@ class TestHdf5TreeModel(TestCaseQt):
             self.qWaitForDestroy(ref)
 
     def testInsertFilenameAsync(self):
-        filename = _tmpDirectory + "/data.h5"
         try:
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
-            model.insertFileAsync(filename)
+            model.insertFileAsync(self.filename)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
             self.waitForPendingOperations(model)
@@ -182,8 +160,7 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
 
     def testSynchronizeObject(self):
-        filename = _tmpDirectory + "/data.h5"
-        h5 = h5py.File(filename, mode="r")
+        h5 = h5py.File(self.filename, mode="r")
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
@@ -244,10 +221,9 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def testCloseFile(self):
         """A file inserted as a filename is open and closed internally."""
-        filename = _tmpDirectory + "/data.h5"
         model = hdf5.Hdf5TreeModel()
         self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
-        model.insertFile(filename)
+        model.insertFile(self.filename)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         index = model.index(0, 0)
         h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
@@ -258,9 +234,8 @@ class TestHdf5TreeModel(TestCaseQt):
     def testNotCloseFile(self):
         """A file inserted as an h5py object is not open (then not closed)
         internally."""
-        filename = _tmpDirectory + "/data.h5"
         try:
-            h5File = h5py.File(filename, mode="r")
+            h5File = h5py.File(self.filename, mode="r")
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertH5pyObject(h5File)
@@ -274,10 +249,9 @@ class TestHdf5TreeModel(TestCaseQt):
             h5File.close()
 
     def testDropExternalFile(self):
-        filename = _tmpDirectory + "/data.h5"
         model = hdf5.Hdf5TreeModel()
         mimeData = qt.QMimeData()
-        mimeData.setUrls([qt.QUrl.fromLocalFile(filename)])
+        mimeData.setUrls([qt.QUrl.fromLocalFile(self.filename)])
         model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
         # after sync
@@ -389,13 +363,13 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEqual(index, qt.QModelIndex())
 
 
+@pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModelSignals(TestCaseQt):
 
     def setUp(self):
         TestCaseQt.setUp(self)
         self.model = hdf5.Hdf5TreeModel()
-        filename = _tmpDirectory + "/data.h5"
-        self.h5 = h5py.File(filename, mode='r')
+        self.h5 = h5py.File(self.filename, mode='r')
         self.model.insertH5pyObject(self.h5)
 
         self.listener = SignalListener()
@@ -421,18 +395,16 @@ class TestHdf5TreeModelSignals(TestCaseQt):
             raise RuntimeError("Still waiting for a pending operation")
 
     def testInsert(self):
-        filename = _tmpDirectory + "/data.h5"
-        h5 = h5py.File(filename, mode='r')
+        h5 = h5py.File(self.filename, mode='r')
         self.model.insertH5pyObject(h5)
         self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
-        filename = _tmpDirectory + "/data.h5"
-        self.model.insertFile(filename)
+        self.model.insertFile(self.filename)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
         self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
-        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, filename)
+        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, self.filename)
 
     def testRemoved(self):
         self.model.removeH5pyObject(self.h5)
@@ -593,72 +565,57 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
+@pytest.fixture #(scope='class')
+def useH5Model(request, tmpdir):
+    # Create HDF5 files
+    filename = os.path.join(tmpdir, "base.h5")
+    extH5FileName = os.path.join(tmpdir, "base__external.h5")
+    extDatFileName = os.path.join(tmpdir, "base__external.dat")
+
+    externalh5 = h5py.File(extH5FileName, mode="w")
+    externalh5["target/dataset"] = 50
+    externalh5["target/link"] = h5py.SoftLink("/target/dataset")
+    externalh5["/ext/vds0"] = [0, 1]
+    externalh5["/ext/vds1"] = [2, 3]
+    externalh5.close()
+
+    numpy.array([0,1,10,10,2,3]).tofile(extDatFileName)
+
+    h5 = h5py.File(filename, mode="w")
+    h5["group/dataset"] = 50
+    h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
+    h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
+    h5["link/soft_link_to_link"] = h5py.SoftLink("/link/soft_link")
+    h5["link/soft_link_to_file"] = h5py.SoftLink("/")
+    h5["group/soft_link_relative"] = h5py.SoftLink("dataset")
+    h5["link/external_link"] = h5py.ExternalLink(extH5FileName, "/target/dataset")
+    h5["link/external_link_to_link"] = h5py.ExternalLink(extH5FileName, "/target/link")
+    h5["broken_link/external_broken_file"] = h5py.ExternalLink(extH5FileName + "_not_exists", "/target/link")
+    h5["broken_link/external_broken_link"] = h5py.ExternalLink(extH5FileName, "/target/not_exists")
+    h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
+    h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
+    if h5py2_9:
+        layout = h5py.VirtualLayout((2,2), dtype=int)
+        layout[0] = h5py.VirtualSource("base__external.h5", name="/ext/vds0", shape=(2,), dtype=int)
+        layout[1] = h5py.VirtualSource("base__external.h5", name="/ext/vds1", shape=(2,), dtype=int)
+        h5.create_group("/ext")
+        h5["/ext"].create_virtual_dataset("virtual", layout)
+        external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
+        h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
+        h5.close()
+
+    with h5py.File(filename, mode="r") as h5File:
+        # Create model
+        request.cls.model = hdf5.Hdf5TreeModel()
+        request.cls.model.insertH5pyObject(h5File)
+        yield
+        ref = weakref.ref(request.cls.model)
+        request.cls.model = None
+        request.cls.qWaitForDestroy(ref)
+
+
+@pytest.mark.usefixtures('useH5Model')
 class _TestModelBase(TestCaseQt):
-
-    @classmethod
-    def setUpClass(cls):
-        super(_TestModelBase, cls).setUpClass()
-
-        cls.tmpDirectory = tempfile.mkdtemp()
-        cls.h5Filename = cls.createResource(cls.tmpDirectory)
-        cls.h5File = h5py.File(cls.h5Filename, mode="r")
-        cls.model = cls.createModel(cls.h5File)
-
-    @classmethod
-    def createResource(cls, directory):
-        filename = os.path.join(directory, "base.h5")
-        extH5FileName = os.path.join(directory, "base__external.h5")
-        extDatFileName = os.path.join(directory, "base__external.dat")
-
-        externalh5 = h5py.File(extH5FileName, mode="w")
-        externalh5["target/dataset"] = 50
-        externalh5["target/link"] = h5py.SoftLink("/target/dataset")
-        externalh5["/ext/vds0"] = [0, 1]
-        externalh5["/ext/vds1"] = [2, 3]
-        externalh5.close()
-
-        numpy.array([0,1,10,10,2,3]).tofile(extDatFileName)
-
-        h5 = h5py.File(filename, mode="w")
-        h5["group/dataset"] = 50
-        h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
-        h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
-        h5["link/soft_link_to_link"] = h5py.SoftLink("/link/soft_link")
-        h5["link/soft_link_to_file"] = h5py.SoftLink("/")
-        h5["group/soft_link_relative"] = h5py.SoftLink("dataset")
-        h5["link/external_link"] = h5py.ExternalLink(extH5FileName, "/target/dataset")
-        h5["link/external_link_to_link"] = h5py.ExternalLink(extH5FileName, "/target/link")
-        h5["broken_link/external_broken_file"] = h5py.ExternalLink(extH5FileName + "_not_exists", "/target/link")
-        h5["broken_link/external_broken_link"] = h5py.ExternalLink(extH5FileName, "/target/not_exists")
-        h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
-        h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
-        if h5py2_9:
-            layout = h5py.VirtualLayout((2,2), dtype=int)
-            layout[0] = h5py.VirtualSource("base__external.h5", name="/ext/vds0", shape=(2,), dtype=int)
-            layout[1] = h5py.VirtualSource("base__external.h5", name="/ext/vds1", shape=(2,), dtype=int)
-            h5.create_group("/ext")
-            h5["/ext"].create_virtual_dataset("virtual", layout)
-            external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
-            h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
-            h5.close()
-
-        return filename
-
-    @classmethod
-    def createModel(cls, h5pyFile):
-        model = hdf5.Hdf5TreeModel()
-        model.insertH5pyObject(h5pyFile)
-        return model
-
-    @classmethod
-    def tearDownClass(cls):
-        ref = weakref.ref(cls.model)
-        cls.model = None
-        cls.qWaitForDestroy(ref)
-        cls.h5File.close()
-        shutil.rmtree(cls.tmpDirectory)
-        super(_TestModelBase, cls).tearDownClass()
-
     def getIndexFromPath(self, model, path):
         """
         :param qt.QAbstractItemModel: model
