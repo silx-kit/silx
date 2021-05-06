@@ -50,7 +50,7 @@ import pytest
 
 _tmpDirectory = None
 
-h5pyHasVirtualDataset = parse_version(h5py.version.version) >= parse_version('2.9.0')
+h5py2_9 = parse_version(h5py.version.version) >= parse_version('2.9.0')
 
 
 def setUpModule():
@@ -632,15 +632,15 @@ class _TestModelBase(TestCaseQt):
         h5["broken_link/external_broken_link"] = h5py.ExternalLink(extH5FileName, "/target/not_exists")
         h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
         h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
-        h5.create_group("/ext")
-        if h5pyHasVirtualDataset:
+        if h5py2_9:
             layout = h5py.VirtualLayout((2,2), dtype=int)
             layout[0] = h5py.VirtualSource("base__external.h5", name="/ext/vds0", shape=(2,), dtype=int)
             layout[1] = h5py.VirtualSource("base__external.h5", name="/ext/vds1", shape=(2,), dtype=int)
+            h5.create_group("/ext")
             h5["/ext"].create_virtual_dataset("virtual", layout)
-        external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
-        h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
-        h5.close()
+            external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
+            h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
+            h5.close()
 
         return filename
 
@@ -766,13 +766,14 @@ class TestH5Item(_TestModelBase):
 
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
 
-    @pytest.mark.skipif(not h5pyHasVirtualDataset, reason="h5py does not support virtual dataset")
+    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalVirtual(self):
         path = ["base.h5", "ext", "virtual"]
         h5item = self.getH5ItemFromPath(self.model, path)
 
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "Virtual")
 
+    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalRaw(self):
         path = ["base.h5", "ext", "raw"]
         h5item = self.getH5ItemFromPath(self.model, path)
@@ -947,7 +948,7 @@ class TestH5Node(_TestModelBase):
         self.assertEqual(h5node.local_basename, "dataset")
         self.assertEqual(h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset")
 
-    @pytest.mark.skipif(not h5pyHasVirtualDataset, reason="h5py does not support virtual dataset")
+    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalVirtual(self):
         path = ["base.h5", "ext", "virtual"]
         h5node = self.getH5NodeFromPath(self.model, path)
@@ -959,6 +960,7 @@ class TestH5Node(_TestModelBase):
         self.assertEqual(h5node.local_basename, "virtual")
         self.assertEqual(h5node.local_name, "/ext/virtual")
 
+    @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalRaw(self):
         path = ["base.h5", "ext", "raw"]
         h5node = self.getH5NodeFromPath(self.model, path)
