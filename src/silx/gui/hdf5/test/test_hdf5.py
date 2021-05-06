@@ -50,9 +50,10 @@ import pytest
 h5py2_9 = parse_version(h5py.version.version) >= parse_version('2.9.0')
 
 
-@pytest.fixture
-def useH5File(request, tmpdir):
-    request.cls.filename = os.path.join(tmpdir, "data.h5")
+@pytest.fixture(scope="class")
+def useH5File(request, tmpdir_factory):
+    tmp = tmpdir_factory.mktemp("test_hdf5")
+    request.cls.filename = os.path.join(tmp, "data.h5")
     # create h5 data
     with h5py.File(request.cls.filename, "w") as f:
         g = f.create_group("arrays")
@@ -565,12 +566,13 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
-@pytest.fixture #(scope='class')
-def useH5Model(request, tmpdir):
+@pytest.fixture(scope='class')
+def useH5Model(request, tmpdir_factory):
     # Create HDF5 files
-    filename = os.path.join(tmpdir, "base.h5")
-    extH5FileName = os.path.join(tmpdir, "base__external.h5")
-    extDatFileName = os.path.join(tmpdir, "base__external.dat")
+    tmp = tmpdir_factory.mktemp("test_hdf5")
+    filename = os.path.join(tmp, "base.h5")
+    extH5FileName = os.path.join(tmp, "base__external.h5")
+    extDatFileName = os.path.join(tmp, "base__external.dat")
 
     externalh5 = h5py.File(extH5FileName, mode="w")
     externalh5["target/dataset"] = 50
@@ -611,7 +613,7 @@ def useH5Model(request, tmpdir):
         yield
         ref = weakref.ref(request.cls.model)
         request.cls.model = None
-        request.cls.qWaitForDestroy(ref)
+        TestCaseQt.qWaitForDestroy(ref)
 
 
 @pytest.mark.usefixtures('useH5Model')
