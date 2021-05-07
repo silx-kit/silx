@@ -420,8 +420,8 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.__profile = None
-        self.setProfileWindowBehavior(self.ProfileWindowBehavior.POPUP)
+        self.__profile = ProfileToolBar(plot=self)
+        self.addToolBar(self.__profile)
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
@@ -846,7 +846,7 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
         self.__profileMenu = self.menuBar().addMenu('Profile')
-        self.__profileMenu.__updateProfileMenu()
+        self.__updateProfileMenu()
 
         # Connect to ImageView's signal
         self.valueChanged.connect(self._statusBarSlot)
