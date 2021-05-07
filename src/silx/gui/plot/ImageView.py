@@ -48,6 +48,8 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
+from typing import Union
+import weakref
 
 import silx
 from .. import qt
@@ -59,6 +61,7 @@ from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
+from ...utils.enum import Enum
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
@@ -416,14 +419,8 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = _ProfileToolBar(plot=self)
-        self.profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
-        """"Profile tools attached to this plot.
-
-        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
-        """
-
-        self.addToolBar(self.profile)
+        self.__profile = None
+        self.setProfileWindowBehavior(self.ProfileWindowBehavior.POPUP)
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
@@ -578,6 +575,66 @@ class ImageView(PlotWindow):
         """
         self._dirtyCache()
         self._updateHistograms()
+
+    class ProfileWindowBehavior(Enum):
+        """Profile window behavior options"""
+        POPUP = 'popup'
+        """All profiles are displayed in pop-up windows"""
+
+        EMBEDDED = 'embedded'
+        """Horizontal, vertical and cross profiles are displayed in
+        sides widgets, others are displayed in pop-up windows.
+        """
+
+    def setProfileWindowBehavior(self, behavior: Union[str, ProfileWindowBehavior]):
+        """Set where profile widgets are displayed.
+
+        :param behavior:
+        - 'popup': All profiles are displayed in pop-up windows
+        - 'embedded': Horizontal, vertical and cross profiles are displayed in
+          sides widgets, others are displayed in pop-up windows.
+        """
+        behavior = self.ProfileWindowBehavior.from_value(behavior)
+
+        if self.__profile is not None:  # Bypass during __init__
+            self.removeToolBar(self.__profile)
+            self.__profile.clearProfile()
+            self.__profile = None
+
+        activeImage = self.getActiveImage(just_legend=True)
+        self.setActiveImage(None)
+
+        if behavior is self.ProfileWindowBehavior.EMBEDDED:
+            self.__profile = _ProfileToolBar(plot=self)
+            self.__profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
+        else:
+            self.__profile = ProfileToolBar(plot=self)
+        self.addToolBar(self.__profile)
+        self.setActiveImage(activeImage)
+
+    def getProfileWindowBehavior(self) -> ProfileWindowBehavior:
+        """Returns current profile display behavior.
+
+        See :meth:`setProfileBehavior` and :class:`ProfileWindowBehavior`
+        """
+        if isinstance(self.__profile, _ProfileToolBar):
+            return self.ProfileWindowBehavior.EMBEDDED
+        else:
+            return self.ProfileWindowBehavior.POPUP
+
+    def getProfileToolBar(self):
+        """"Returns profile tools attached to this plot.
+
+        Do not keep a reference to the returned value,
+        this method returns a `weakref.proxy` since profile toolbar might change.
+
+        :rtype: silx.gui.plot.PlotTools.ProfileToolBar
+        """
+        return weakref.proxy(self.__profile)
+
+    @property
+    def profile(self):
+        return self.__profile
 
     def getHistogram(self, axis):
         """Return the histogram and corresponding row or column extent.
@@ -786,15 +843,21 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
 
-        menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self.profile.hLineAction)
-        menu.addAction(self.profile.vLineAction)
-        menu.addAction(self.profile.crossAction)
-        menu.addAction(self.profile.lineAction)
-        menu.addAction(self.profile.clearAction)
+        self.__profileMenu = self.menuBar().addMenu('Profile')
+        self.__profileMenu.__updateProfileMenu()
 
         # Connect to ImageView's signal
         self.valueChanged.connect(self._statusBarSlot)
+
+    def __updateProfileMenu(self):
+        """Update actions available in 'Profile' menu"""
+        profile = self.getProfileToolBar()
+        self.__profileMenu.clear()
+        self.__profileMenu.addAction(profile.hLineAction)
+        self.__profileMenu.addAction(profile.vLineAction)
+        self.__profileMenu.addAction(profile.crossAction)
+        self.__profileMenu.addAction(profile.lineAction)
+        self.__profileMenu.addAction(profile.clearAction)
 
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
@@ -810,11 +873,13 @@ class ImageViewMainWindow(ImageView):
 
         self.statusBar().showMessage(msg)
 
-    def setImage(self, image, *args, **kwargs):
-        """Set the displayed image.
+    @docstring(ImageView)
+    def setProfileWindowBehavior(self, behavior: str):
+        super().setProfileWindowBehavior(behavior)
+        self.__updateProfileMenu()
 
-        See :meth:`ImageView.setImage` for details.
-        """
+    @docstring(ImageView)
+    def setImage(self, image, *args, **kwargs):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
             assert len(image.shape) == 2
             height, width = image.shape
