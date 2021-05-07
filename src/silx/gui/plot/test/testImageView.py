@@ -124,6 +124,30 @@ class TestImageView(TestCaseQt):
         self.plot.setColormap(cmap)
         self.assertIs(self.plot.getColormap(), cmap)
 
+    def testSetProfileWindowBehavior(self):
+        """Test change of profile window display behavior"""
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.POPUP,
+        )
+
+        self.plot.setProfileWindowBehavior('embedded')
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.EMBEDDED,
+        )
+
+        image = numpy.arange(100).reshape(10, 10)
+        self.plot.setImage(image)
+
+        self.plot.setProfileWindowBehavior(
+            ImageView.ProfileWindowBehavior.POPUP
+        )
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.POPUP,
+        )
+
 
 def suite():
     test_suite = unittest.TestSuite()
