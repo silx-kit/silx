@@ -58,7 +58,6 @@ vlen_bytes = h5py.special_dtype(vlen=bytes)
 UPDATE_MODE_VALID_EXISTING_VALUES = ("add", "replace", "modify")
 
 
-
 def _prepare_hdf5_write_value(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
 
