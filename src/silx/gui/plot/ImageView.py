@@ -420,8 +420,8 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.__profile = ProfileToolBar(plot=self)
-        self.addToolBar(self.__profile)
+        self.__profile = None
+        self.setProfileWindowBehavior('popup')
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
@@ -818,6 +818,7 @@ class ImageViewMainWindow(ImageView):
     """
     def __init__(self, parent=None, backend=None):
         self._dataInfo = None
+        self.__profileMenu = None
         super(ImageViewMainWindow, self).__init__(parent, backend)
         self.setWindowFlags(qt.Qt.Window)
 
@@ -853,6 +854,9 @@ class ImageViewMainWindow(ImageView):
 
     def __updateProfileMenu(self):
         """Update actions available in 'Profile' menu"""
+        if self.__profileMenu is None:
+            return  # Skip during ImageView.__init__
+
         profile = self.getProfileToolBar()
         self.__profileMenu.clear()
         self.__profileMenu.addAction(profile.hLineAction)
