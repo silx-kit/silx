@@ -571,10 +571,10 @@ class ImageView(PlotWindow):
                 horizontalProfileWindow = None
                 verticalProfileWindow = None
 
-            self.__profile.getProfileManager().setSpecializedProfileWindow(
+            manager.setSpecializedProfileWindow(
                 rois.ProfileImageHorizontalLineROI, horizontalProfileWindow
             )
-            self.__profile.getProfileManager().setSpecializedProfileWindow(
+            manager.setSpecializedProfileWindow(
                 rois.ProfileImageVerticalLineROI, verticalProfileWindow
             )
             self.__profileWindowBehavior = behavior
