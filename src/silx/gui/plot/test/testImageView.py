@@ -35,7 +35,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 
-from silx.gui.plot.ImageView import ImageView, ProfileWindowBehavior
+from silx.gui.plot.ImageView import ImageView
 from silx.gui.colors import Colormap
 
 
@@ -128,24 +128,24 @@ class TestImageView(TestCaseQt):
         """Test change of profile window display behavior"""
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ProfileWindowBehavior.POPUP,
+            ImageView.ProfileWindowBehavior.POPUP,
         )
 
         self.plot.setProfileWindowBehavior('embedded')
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ProfileWindowBehavior.EMBEDDED,
+            ImageView.ProfileWindowBehavior.EMBEDDED,
         )
 
         image = numpy.arange(100).reshape(10, 10)
         self.plot.setImage(image)
 
         self.plot.setProfileWindowBehavior(
-            ProfileWindowBehavior.POPUP
+            ImageView.ProfileWindowBehavior.POPUP
         )
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ProfileWindowBehavior.POPUP,
+            ImageView.ProfileWindowBehavior.POPUP,
         )
 
 
