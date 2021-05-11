@@ -55,6 +55,8 @@ logger = logging.getLogger(__name__)
 vlen_utf8 = h5py.special_dtype(vlen=str)
 vlen_bytes = h5py.special_dtype(vlen=bytes)
 
+UPDATE_MODE_VALID_EXISTING_VALUES = ("add", "replace", "modify")
+
 
 def _prepare_hdf5_write_value(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
@@ -263,11 +265,10 @@ def dicttoh5(treedict, h5file, h5path='/',
         else:
             update_mode = "add"
     else:
-        valid_existing_values = ("add", "replace", "modify")
-        if update_mode not in valid_existing_values:
+        if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
             raise ValueError((
                 "Argument 'update_mode' can only have values: {}"
-                "".format(valid_existing_values)
+                "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
             ))
         if overwrite_data is not None:
             logger.warning("The argument `overwrite_data` is ignored")
