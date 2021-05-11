@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -194,7 +194,7 @@ import numpy
 import six
 
 from silx import version as silx_version
-from .specfile import SpecFile
+from .specfile import SpecFile, SfErrColNotFound
 from . import commonh5
 
 __authors__ = ["P. Knobel", "D. Naudet"]
@@ -678,7 +678,14 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
             else:
                 # Take value from #P scan header.
                 # (may return float("inf") if #P line is missing from scan hdr)
-                motor_value = scan.motor_position_by_name(motor_name)
+                try:
+                    motor_value = scan.motor_position_by_name(motor_name)
+                except SfErrColNotFound:
+                    logger1.warning(
+                        "Missing value for positioner: %s, set to 'inf'",
+                        motor_name)
+                    motor_value = float('inf')
+
             self.add_node(SpecH5NodeDataset(name=safe_motor_name,
                                             data=motor_value,
                                             parent=self))
