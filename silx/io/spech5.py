@@ -670,9 +670,14 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="positioners", parent=parent,
                                 attrs={"NX_class": to_h5py_utf8("NXcollection")})
+
+        dataset_info = []  # Store list of positioner's (name, is_data, value)
+        is_error = False   # True if error encountered
+
         for motor_name in scan.motor_names:
             safe_motor_name = motor_name.replace("/", "%")
-            if motor_name in scan.labels and scan.data.shape[0] > 0:
+            is_data = motor_name in scan.labels and scan.data.shape[0] > 0
+            if is_data:
                 # return a data column if one has the same label as the motor
                 motor_value = scan.data_column_by_name(motor_name)
             else:
@@ -681,14 +686,18 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
                 try:
                     motor_value = scan.motor_position_by_name(motor_name)
                 except SfErrColNotFound:
-                    logger1.warning(
-                        "Missing value for positioner: %s, set to 'inf'",
-                        motor_name)
+                    is_error = True
                     motor_value = float('inf')
+            dataset_info.append((safe_motor_name, is_data, motor_value))
 
-            self.add_node(SpecH5NodeDataset(name=safe_motor_name,
-                                            data=motor_value,
-                                            parent=self))
+        if is_error:
+            logger1.warning("Mismatching number of elements in #P and #O, set to 'inf'")
+
+        for name, is_data, value in dataset_info:
+            self.add_node(SpecH5NodeDataset(
+                name=name,
+                data=value if is_data or not is_error else float('inf'),
+                parent=self))
 
 
 class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
