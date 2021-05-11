@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 
-from silx.gui.plot import ImageView
+from silx.gui.plot.ImageView import ImageView, ProfileWindowBehavior
 from silx.gui.colors import Colormap
 
 
@@ -128,24 +128,24 @@ class TestImageView(TestCaseQt):
         """Test change of profile window display behavior"""
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.POPUP,
+            ProfileWindowBehavior.POPUP,
         )
 
         self.plot.setProfileWindowBehavior('embedded')
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.EMBEDDED,
+            ProfileWindowBehavior.EMBEDDED,
         )
 
         image = numpy.arange(100).reshape(10, 10)
         self.plot.setImage(image)
 
         self.plot.setProfileWindowBehavior(
-            ImageView.ProfileWindowBehavior.POPUP
+            ProfileWindowBehavior.POPUP
         )
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
-            ImageView.ProfileWindowBehavior.POPUP,
+            ProfileWindowBehavior.POPUP,
         )
 
 

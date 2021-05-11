@@ -319,33 +319,64 @@ class _SideHistogram(PlotWidget):
             dataAxis.setLimits(vMin, vMax)
 
 
+class ProfileWindowBehavior(Enum):
+    """ImageView's profile window behavior options"""
+    POPUP = 'popup'
+    """All profiles are displayed in pop-up windows"""
+
+    EMBEDDED = 'embedded'
+    """Horizontal, vertical and cross profiles are displayed in
+    sides widgets, others are displayed in pop-up windows.
+    """
+
+
 class _CustomProfileManager(manager.ProfileManager):
     """This custom profile manager uses a single predefined profile window
     if it is specified. Else the behavior is the same as the default
     ProfileManager """
 
+    def __init__(self, *args, **kwargs):
+        self.__profileWindow = None
+        self.__windowBehavior = ProfileWindowBehavior.POPUP
+        super().__init__(*args, **kwargs)
+
+    def setWindowBehavior(self, behavior: Union[str, ProfileWindowBehavior]):
+        behavior = ProfileWindowBehavior.from_value(behavior)
+        if behavior is not self.getWindowBehavior():
+            self.clearProfile()
+            self.requestUpdateAllProfile()
+            self.__windowBehavior = behavior
+
+    def getWindowBehavior(self) -> ProfileWindowBehavior:
+        return self.__windowBehavior
+
     def setProfileWindow(self, profileWindow):
         self.__profileWindow = profileWindow
 
     def createProfileWindow(self, plot, roi):
-        if isinstance(roi, rois.ProfileImageVerticalLineROI):
-            return self._verticalWidget
-        if isinstance(roi, rois.ProfileImageHorizontalLineROI):
-            return self._horizontalWidget
-        if self.__profileWindow is not None:
-            return self.__profileWindow
-        else:
-            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+        if self.getWindowBehavior() is ProfileWindowBehavior.EMBEDDED:
+            if isinstance(roi, rois.ProfileImageVerticalLineROI):
+                return self._verticalWidget
+            if isinstance(roi, rois.ProfileImageHorizontalLineROI):
+                return self._horizontalWidget
+            if self.__profileWindow is not None:
+                return self.__profileWindow
+
+        return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
 
     def clearProfileWindow(self, profileWindow):
-        if profileWindow is self._horizontalWidget:
-            profileWindow.setProfile(None)
-        elif profileWindow is self._verticalWidget:
-            profileWindow.setProfile(None)
-        elif self.__profileWindow is not None:
-            self.__profileWindow.setProfile(None)
-        else:
-            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
+        if self.getWindowBehavior() is ProfileWindowBehavior.EMBEDDED:
+            if profileWindow is self._horizontalWidget:
+                profileWindow.setProfile(None)
+                return
+            elif profileWindow is self._verticalWidget:
+                profileWindow.setProfile(None)
+                return
+            elif self.__profileWindow is not None:
+                self.__profileWindow.setProfile(None)
+                return
+
+        return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
 
     def setSideWidgets(self, horizontalWidget, verticalWidget):
         self._horizontalWidget = horizontalWidget
@@ -420,8 +451,9 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.__profile = None
-        self.setProfileWindowBehavior('popup')
+        self.__profile = _ProfileToolBar(plot=self)
+        self.__profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
+        self.addToolBar(self.__profile)
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
@@ -577,61 +609,29 @@ class ImageView(PlotWindow):
         self._dirtyCache()
         self._updateHistograms()
 
-    class ProfileWindowBehavior(Enum):
-        """Profile window behavior options"""
-        POPUP = 'popup'
-        """All profiles are displayed in pop-up windows"""
-
-        EMBEDDED = 'embedded'
-        """Horizontal, vertical and cross profiles are displayed in
-        sides widgets, others are displayed in pop-up windows.
-        """
-
     def setProfileWindowBehavior(self, behavior: Union[str, ProfileWindowBehavior]):
         """Set where profile widgets are displayed.
 
-        :param behavior:
+        :param ProfileWindowBehavior behavior:
         - 'popup': All profiles are displayed in pop-up windows
         - 'embedded': Horizontal, vertical and cross profiles are displayed in
           sides widgets, others are displayed in pop-up windows.
         """
-        behavior = self.ProfileWindowBehavior.from_value(behavior)
-
-        if self.__profile is not None:  # Bypass during __init__
-            self.removeToolBar(self.__profile)
-            self.__profile.clearProfile()
-            self.__profile = None
-
-        activeImage = self.getActiveImage(just_legend=True)
-        self.setActiveImage(None)
-
-        if behavior is self.ProfileWindowBehavior.EMBEDDED:
-            self.__profile = _ProfileToolBar(plot=self)
-            self.__profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
-        else:
-            self.__profile = ProfileToolBar(plot=self)
-        self.addToolBar(self.__profile)
-        self.setActiveImage(activeImage)
+        self.__profile.getProfileManager().setWindowBehavior(behavior)
 
     def getProfileWindowBehavior(self) -> ProfileWindowBehavior:
         """Returns current profile display behavior.
 
         See :meth:`setProfileBehavior` and :class:`ProfileWindowBehavior`
         """
-        if isinstance(self.__profile, _ProfileToolBar):
-            return self.ProfileWindowBehavior.EMBEDDED
-        else:
-            return self.ProfileWindowBehavior.POPUP
+        return self.__profile.getProfileManager().getWindowBehavior()
 
     def getProfileToolBar(self):
         """"Returns profile tools attached to this plot.
 
-        Do not keep a reference to the returned value,
-        this method returns a `weakref.proxy` since profile toolbar might change.
-
         :rtype: silx.gui.plot.PlotTools.ProfileToolBar
         """
-        return weakref.proxy(self.__profile)
+        return self.__profile
 
     @property
     @deprecated(replacement="getProfileToolBar()")
@@ -818,7 +818,6 @@ class ImageViewMainWindow(ImageView):
     """
     def __init__(self, parent=None, backend=None):
         self._dataInfo = None
-        self.__profileMenu = None
         super(ImageViewMainWindow, self).__init__(parent, backend)
         self.setWindowFlags(qt.Qt.Window)
 
@@ -854,9 +853,6 @@ class ImageViewMainWindow(ImageView):
 
     def __updateProfileMenu(self):
         """Update actions available in 'Profile' menu"""
-        if self.__profileMenu is None:
-            return  # Skip during ImageView.__init__
-
         profile = self.getProfileToolBar()
         self.__profileMenu.clear()
         self.__profileMenu.addAction(profile.hLineAction)
