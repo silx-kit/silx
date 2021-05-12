@@ -25,8 +25,15 @@
 """This package provides test of the root modules
 """
 
-import pytest
+import logging
 
+
+try:
+    import pytest
+except ImportError:
+    logging.getLogger(__name__).error(
+        "pytest is required to run the tests, please install it.")
+    raise
 
 def run_tests(module: str='silx', verbosity: int=0, args=()):
     """Run tests
