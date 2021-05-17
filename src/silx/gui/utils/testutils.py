@@ -484,7 +484,12 @@ def getQToolButtonFromAction(action):
     :param QAction action: The QAction from which to get QToolButton.
     :return: A QToolButton associated to action or None.
     """
-    for widget in action.associatedWidgets():
+    if qt.BINDING == "PySide6":
+        widgets = action.associatedObjects()
+    else:
+        widgets = action.associatedWidgets()
+
+    for widget in widgets:
         if isinstance(widget, qt.QToolButton):
             return widget
     return None
