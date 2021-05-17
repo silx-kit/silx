@@ -314,14 +314,14 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING =='PySide2':
+        if qt.BINDING in ('PySide2', 'PySide6'):
             # PySide2 has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             qapp = qt.QApplication.instance()
             while timeout > 0:
                 qapp.processEvents(qt.QEventLoop.AllEvents,
-                                   maxtime=timeout)
+                                   timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
             QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
