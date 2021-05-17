@@ -132,7 +132,7 @@ class TestCaseQt(unittest.TestCase):
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
-        if qt.BINDING == 'PySide2':
+        if qt.BINDING in ('PySide2', 'PySide6'):
             self.__previousWidgets = None
         else:
             self.__previousWidgets = self.qapp.allWidgets()
