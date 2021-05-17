@@ -47,6 +47,8 @@ if qt.BINDING == 'PySide2':
     from PySide2.QtTest import QTest
 elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
+elif qt.BINDING == 'PySide6':
+    from PySide6.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
 
