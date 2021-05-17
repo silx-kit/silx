@@ -232,7 +232,10 @@ class About(qt.QDialog):
 
     def __updateSize(self):
         """Force the size to a QMessageBox like size."""
-        screenSize = qt.QApplication.desktop().availableGeometry(qt.QCursor.pos()).size()
+        if qt.BINDING in ("PySide2", "PyQt5"):
+            screenSize = qt.QApplication.desktop().availableGeometry(qt.QCursor.pos()).size()
+        else:  # Qt6
+            screenSize = qt.QApplication.instance().primaryScreen().availableGeometry().size()
         hardLimit = min(screenSize.width() - 480, 1000)
         if screenSize.width() <= 1024:
             hardLimit = screenSize.width()
