@@ -35,7 +35,7 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "13/12/2018"
+__date__ = "17/05/2021"
 
 import logging
 import time
@@ -58,11 +58,13 @@ class TestStatistics(unittest.TestCase):
     def setUpClass(cls):
         cls.size = 1 << 20  # 1 million elements
         cls.data = numpy.random.randint(0, 65000, cls.size).astype("uint16")
-        t0 = time.time()
-        cls.ref = StatResults(cls.data.min(), cls.data.max(), cls.data.size,
-                              cls.data.sum(), cls.data.mean(), cls.data.std() ** 2,
-                              cls.data.std())
-        t1 = time.time()
+        fdata = cls.data.astype("float64") 
+        t0 = time.perf_counter()
+        std = fdata.std()
+        cls.ref = StatResults(fdata.min(), fdata.max(), float(fdata.size),
+                              fdata.sum(), fdata.mean(), std ** 2,
+                              std)
+        t1 = time.perf_counter()
         cls.ref_time = t1 - t0
 
     @classmethod
@@ -90,13 +92,14 @@ class TestStatistics(unittest.TestCase):
                 except Exception as err:
                     failed_init = True
                     res = StatResults(0,0,0,0,0,0,0)
+                    print(err)
                 else:
                     failed_init = False
-                    t0 = time.time()
-                    res = s(self.data)
-                    t1 = time.time()
-                logger.warning("failed_init %s", failed_init)
+                    t0 = time.perf_counter()
+                    res = s(self.data,  comp=False)
+                    t1 = time.perf_counter()
                 if failed_init or not self.validate(res):
+                    logger.error("failed_init %s", failed_init)
                     logger.error("Failed on platform %s device %s", platform, device)
                     logger.error("Reference results: %s", self.ref)
                     logger.error("Faulty results: %s", res)

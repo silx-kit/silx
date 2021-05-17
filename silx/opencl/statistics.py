@@ -29,13 +29,10 @@
 large data where numpy is not very efficient.
 """
 
-from __future__ import absolute_import, print_function, with_statement, division
-
-
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "11/01/2019"
-__copyright__ = "2012-2017, ESRF, Grenoble"
+__date__ = "17/05/2021"
+__copyright__ = "2012-2019, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
 import logging
@@ -128,7 +125,7 @@ class Statistics(OpenclProcessing):
                                          self.kernel_files,
                                          "-D NIMAGE=%i" % self.size)
         compiler_options = self.get_compiler_options(x87_volatile=True)
-        src = concatenate_cl_kernel(("kahan.cl", "statistics.cl"))
+        src = concatenate_cl_kernel(("doubleword.cl", "statistics.cl"))
         self.reduction_comp = ReductionKernel(self.ctx,
                                               dtype_out=float8,
                                               neutral=zero8,
@@ -154,7 +151,7 @@ class Statistics(OpenclProcessing):
         :param numpy.ndarray data: numpy array with data
         :param dest: name of the buffer as registered in the class
         """
-
+        logger.info("send data to %s", dest)
         dest_type = numpy.dtype([i.dtype for i in self.buffers if i.name == dest][0])
         events = []
         if (data.dtype == dest_type) or (data.dtype.itemsize > dest_type.itemsize):
