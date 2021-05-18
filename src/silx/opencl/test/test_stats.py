@@ -35,7 +35,7 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/05/2021"
+__date__ = "18/05/2021"
 
 import logging
 import time
@@ -58,7 +58,7 @@ class TestStatistics(unittest.TestCase):
     def setUpClass(cls):
         cls.size = 1 << 20  # 1 million elements
         cls.data = numpy.random.randint(0, 65000, cls.size).astype("uint16")
-        fdata = cls.data.astype("float64") 
+        fdata = cls.data.astype("float64")
         t0 = time.perf_counter()
         std = fdata.std()
         cls.ref = StatResults(fdata.min(), fdata.max(), float(fdata.size),
@@ -91,12 +91,13 @@ class TestStatistics(unittest.TestCase):
                     s = Statistics(template=self.data, platformid=pid, deviceid=did)
                 except Exception as err:
                     failed_init = True
-                    res = StatResults(0,0,0,0,0,0,0)
+                    res = StatResults(0, 0, 0, 0, 0, 0, 0)
                     print(err)
                 else:
                     failed_init = False
+                    res = s(self.data, comp=False)
                     t0 = time.perf_counter()
-                    res = s(self.data,  comp=False)
+                    res = s(self.data, comp=True)
                     t1 = time.perf_counter()
                 if failed_init or not self.validate(res):
                     logger.error("failed_init %s", failed_init)

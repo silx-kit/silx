@@ -79,11 +79,12 @@ static inline float8 map_statistics(global float* data, int position)
     if (isfinite(value))
     {
         result = (float8)(value, value, 1.0f, 0.0f, value, 0.0f, 0.0f, 0.0f);
-        //                min     max   cnt   cnt_err  sum   sum_err M  M_err
+        //                min     max   cnt_h cnt_l sum_h  sum_l M2_h  M2_l
     }
     else
     {
         result = (float8)(FLT_MAX, -FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        //                min        max     cnt_h cnt_l sum_h sum_l M2_h  M2_l
     }
     return result;
 }
@@ -108,7 +109,8 @@ static inline float8 map_statistics(global float* data, int position)
 static inline float8 reduce_statistics(float8 a, float8 b)
 {
     float2 sum_a, sum_b, M_a, M_b, count_a, count_b;
-
+    float2 count, sum;
+    float2 M, delta, delta2, omega3;
     //test on count
     if (a.s2 == 0.0f)
     {
@@ -132,21 +134,22 @@ static inline float8 reduce_statistics(float8 a, float8 b)
         M_b = (float2)(b.s6, b.s7);
     }
     // count = count_a + count_b
-    float2 count = dw_plus_dw(count_a, count_b);
+    count = dw_plus_dw(count_a, count_b);
     // sum = sum_a + sum_b
-    float2 sum = dw_plus_dw(sum_a, sum_b);
+    sum = dw_plus_dw(sum_a, sum_b);
+    
     // M2 = M_a + M_b + (Omega_A*V_B-Omega_B*V_A)² / (Omega_A * Omega_B * Omega_{AB})
-    float2 M2;
-    M2 =  dw_plus_dw(M_a, M_b);
-    float2 delta = dw_plus_dw(dw_times_dw(count_b, M_a),
-                             -dw_times_dw(count_a, M_b));
-    float2 omega3 = dw_times_dw(count, dw_times_dw(count_a, count_b)); 
-    M2 = dw_plus_dw(M2, dw_div_dw(dw_times_dw(delta, delta), omega3));
-                                     
+    M =  dw_plus_dw(M_a, M_b);
+    delta = dw_plus_dw(dw_times_dw(count_b, sum_a),
+                      -dw_times_dw(count_a, sum_b));
+    delta2 = dw_times_dw(delta, delta);
+    omega3 = dw_times_dw(count, dw_times_dw(count_a, count_b));            
+    M = dw_plus_dw(M, dw_div_dw(delta2, omega3));
+                                    
     float8 result = (float8)(min(a.s0, b.s0), max(a.s1, b.s1),
                              count.s0,        count.s1,
                              sum.s0,          sum.s1,
-                             M2.s0,           M2.s1);
+                             M.s0,            M.s1);
     return result;
 }
 
@@ -158,12 +161,12 @@ static inline float8 reduce_statistics(float8 a, float8 b)
  * The float8 used here contain contains:
  * s0: minimum value
  * s1: maximum value
- * s2: count number of valid pixels
- * s3: count (error associated to)
- * s4: sum of valid pixels
- * s5: sum (error associated to)
- * s6: M=variance*(count-1)
- * s7: M=variance*(count-1) (error associated to)
+ * s2: count number of valid pixels (major)
+ * s3: count number of valid pixels (minor)
+ * s4: sum of valid pixels (major)
+ * s5: sum of valid pixels (minor)
+ * s6: variance*count (major)
+ * s7: variance*count (minor)
  *
  */
 
@@ -198,7 +201,6 @@ static inline float8 reduce_statistics_simple(float8 a, float8 b)
     float delta = sum_a*count_b - sum_b*count_a;
     float delta2 = delta * delta;
     float M2 = M_a + M_b + delta2/(count*count_a*count_b);
-    //M2 = M_a + M_b + delta ** 2 / (count_a*count_b*(count_a + count_b))
     float8 result = (float8)(min(a.s0, b.s0), max(a.s1, b.s1),
                              count,        0.0f,
                              sum,          0.0f,
