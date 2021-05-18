@@ -11,12 +11,15 @@
  */
 
 //This library can be expanded to double-double by redefining fp, fp2 and one to double, double2 and 1.0.
-#ifndef fp
+#ifdef DOUBLEDOUBLE
+#define fp double
+#define fp2 double2
+#define one 1.0
+#else
 #define fp float
 #define fp2 float2
 #define one 1.0f
 #endif
-
 
 /* Nota: i386 computer use x87 registers which are larger than the 32bits precision
  * which can invalidate the error compensation mechanism.
@@ -75,7 +78,7 @@ inline fp2 dw_times_fp(fp2 x, fp y){
     return fast_sum2(c.s0, fma(x.s1, y, c.s1));
 }
 
-//Algorrithm 14, p52: Multiplication DW*DW, 8 flops
+//Algorithm 14, p52: Multiplication DW*DW, 8 flops
 inline fp2 dw_times_dw(fp2 x, fp2 y){
     fp2 c = prod2(x.s0, y.s0);
     X87_VOLATILE fp l = fma(x.s1, y.s0, x.s0 * y.s1);
