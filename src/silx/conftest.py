@@ -1,5 +1,7 @@
 import pytest
 import logging
+import os
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,11 @@ def pytest_addoption(parser):
     parser.addoption("--low-mem", dest="low_mem", default=False,
                      action="store_true",
                      help="Disable test with large memory consumption (>100Mbyte")
+
+
+def pytest_configure(config):
+    if not config.getoption('opencl', True):
+        os.environ['SILX_OPENCL'] = 'False'  # Disable OpenCL support in silx
 
 
 @pytest.fixture(scope="session")
