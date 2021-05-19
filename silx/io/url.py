@@ -344,6 +344,8 @@ class DataUrl(object):
         :rtype: bool
         """
         file_path = self.file_path()
+        if file_path is None:
+            return False
         if len(file_path) > 0:
             if file_path[0] == "/":
                 return True
