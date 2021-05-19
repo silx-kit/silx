@@ -183,8 +183,8 @@ class Statistics(OpenclProcessing):
                                    self.cl_mem["raw"].data,
                                    self.cl_mem[dest].data)
             events += [
-                EventDescription("copy H->D %s" % dest, copy_image),
-                EventDescription("cast to float", cast_to_float)
+                EventDescription("copy H->D raw", copy_image),
+                EventDescription(f"cast to float {dest}", cast_to_float)
             ]
         if self.profile:
             self.events += events
@@ -220,7 +220,7 @@ class Statistics(OpenclProcessing):
             res_d, evt = reduction(self.cl_mem["converted"][:self.size],
                                    queue=self.queue,
                                    return_event=True)
-            events.append(EventDescription("statistical reduction %s" % ("comp"if comp else "simple"), evt))
+            events.append(EventDescription(f"statistical reduction {comp}", evt))
             if self.profile:
                 self.events += events
             res_h = res_d.get()
