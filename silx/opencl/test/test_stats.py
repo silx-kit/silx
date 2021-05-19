@@ -85,7 +85,7 @@ class TestStatistics(unittest.TestCase):
         for pid, platform in enumerate(ocl.platforms):
             for did, device in enumerate(platform.devices):
                 try:
-                    s = Statistics(template=self.data, platformid=pid, deviceid=did, profile=True)
+                    s = Statistics(template=self.data, platformid=pid, deviceid=did)
                 except Exception as err:
                     failed_init = True
                     res = StatResults(0, 0, 0, 0, 0, 0, 0)
@@ -104,8 +104,6 @@ class TestStatistics(unittest.TestCase):
                             logger.error("Reference results: %s", self.ref)
                             logger.error("Faulty results: %s", res)
                             self.assertTrue(False, f"Stat calculation failed on {platform},{device}  in mode {comp}")
-                        else:
-                            s.log_profile()
 
 
 def suite():
