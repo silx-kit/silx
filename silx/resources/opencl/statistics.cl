@@ -209,3 +209,75 @@ static inline float8 reduce_statistics_simple(float8 a, float8 b)
 }
 
 
+#ifdef cl_khr_fp64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+
+// unpack a double in two floats such as the  sum of the two is the double number
+static inline float2 unpack_double(double inp){
+    float major = (float) inp;
+    float minor = (float) (inp - major);
+    return (float2)(major, minor);  
+}
+
+// pack two floats into a double
+static inline double pack_double(float major, float minor){
+    return (double)major + (double)minor;
+}
+
+/* \brief reduction function associated to the statistics using double precision arithmetics
+ *
+ * this is described in:
+ * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+ *
+ * The float8 used here contain contains:
+ * s0: minimum value
+ * s1: maximum value
+ * s2: count number of valid pixels (major)
+ * s3: count number of valid pixels (minor)
+ * s4: sum of valid pixels (major)
+ * s5: sum of valid pixels (minor)
+ * s6: variance*count (major)
+ * s7: variance*count (minor)
+ *
+ */
+
+static inline float8 reduce_statistics_double(float8 a, float8 b)
+{
+    double sum_a, sum_b, M_a, M_b, count_a, count_b;
+
+    //test on count
+    if (a.s2 == 0.0)
+    {
+        return b;
+    }
+    else
+    {
+        count_a = pack_double(a.s2, a.s3);
+        sum_a = pack_double(a.s4,a.s5);
+        M_a = pack_double(a.s6, a.s7);
+    }
+    //test on count
+    if (b.s2 == 0.0)
+    {
+        return a;
+    }
+    else
+    {
+        count_b = pack_double(b.s2, b.s3);
+        sum_b = pack_double(b.s4, b.s5);
+        M_b = pack_double(b.s6, b.s7);
+    }
+    double count = count_a + count_b;
+    double sum = sum_a + sum_b;
+    double delta = sum_a*count_b - sum_b*count_a;
+    double delta2 = delta * delta;
+    double M2 = M_a + M_b + delta2/(count*count_a*count_b);
+    float8 result = (float8)((float2)(min(a.s0, b.s0), max(a.s1, b.s1)),
+                                unpack_double(count),
+                                unpack_double( sum),
+                                unpack_double( M2));
+    return result;
+}
+
+#endif

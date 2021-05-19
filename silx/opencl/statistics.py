@@ -31,7 +31,7 @@ large data where numpy is not very efficient.
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
-__date__ = "17/05/2021"
+__date__ = "19/05/2021"
 __copyright__ = "2012-2019, ESRF, Grenoble"
 __contact__ = "jerome.kieffer@esrf.fr"
 
@@ -143,6 +143,19 @@ class Statistics(OpenclProcessing):
                                                 preamble=src,
                                                 options=compiler_options)
 
+        if "self.cl_khr_fp64" in self.device.extensions:
+            self.reduction_double = ReductionKernel(self.ctx,
+                                                    dtype_out=float8,
+                                                    neutral=zero8,
+                                                    map_expr="map_statistics(data, i)",
+                                                    reduce_expr="reduce_statistics_double(a,b)",
+                                                    arguments="__global float *data",
+                                                    preamble=src,
+                                                    options=compiler_options)
+        else:
+            logger.info("Device %s does not support double-precision arithmetics, fall-back on compensated one", self.device)
+            self.reduction_double = self.reduction_comp
+
     def send_buffer(self, data, dest):
         """
         Send a numpy array to the device, including the cast on the device if
@@ -190,12 +203,20 @@ class Statistics(OpenclProcessing):
         size = data.size
         assert size <= self.size, "size is OK"
         events = []
+        if comp is True:
+            comp = "comp"
+        elif comp is False:
+            comp = "single"
+        else:
+            comp = comp.lower()
         with self.sem:
             self.send_buffer(data, "converted")
-            if comp:
-                reduction = self.reduction_comp
-            else:
+            if comp in ("single", "fp32", "float32"):
                 reduction = self.reduction_simple
+            elif comp in ("double", "fp64", "float64"):
+                reduction = self.reduction_double
+            else:
+                reduction = self.reduction_comp
             res_d, evt = reduction(self.cl_mem["converted"][:self.size],
                                    queue=self.queue,
                                    return_event=True)

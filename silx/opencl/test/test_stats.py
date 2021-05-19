@@ -28,14 +28,11 @@
 """
 Simple test of an addition
 """
-
-from __future__ import division, print_function
-
 __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/05/2021"
+__date__ = "19/05/2021"
 
 import logging
 import time
@@ -88,24 +85,27 @@ class TestStatistics(unittest.TestCase):
         for pid, platform in enumerate(ocl.platforms):
             for did, device in enumerate(platform.devices):
                 try:
-                    s = Statistics(template=self.data, platformid=pid, deviceid=did)
+                    s = Statistics(template=self.data, platformid=pid, deviceid=did, profile=True)
                 except Exception as err:
                     failed_init = True
                     res = StatResults(0, 0, 0, 0, 0, 0, 0)
                     print(err)
                 else:
                     failed_init = False
-                    res = s(self.data, comp=False)
-                    t0 = time.perf_counter()
-                    res = s(self.data, comp=True)
-                    t1 = time.perf_counter()
-                if failed_init or not self.validate(res):
-                    logger.error("failed_init %s", failed_init)
-                    logger.error("Failed on platform %s device %s", platform, device)
-                    logger.error("Reference results: %s", self.ref)
-                    logger.error("Faulty results: %s", res)
-                    self.assertTrue(False, "Stat calculation failed on %s %s" % (platform, device))
-                logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
+                    for comp in ("single", "double", "comp"):
+                        t0 = time.perf_counter()
+                        res = s(self.data, comp=comp)
+                        t1 = time.perf_counter()
+                        logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
+
+                        if failed_init or not self.validate(res):
+                            logger.error("failed_init %s; Computation modes %s", failed_init, comp)
+                            logger.error("Failed on platform %s device %s", platform, device)
+                            logger.error("Reference results: %s", self.ref)
+                            logger.error("Faulty results: %s", res)
+                            self.assertTrue(False, f"Stat calculation failed on {platform},{device}  in mode {comp}")
+                        else:
+                            s.log_profile()
 
 
 def suite():
