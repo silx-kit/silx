@@ -619,6 +619,8 @@ class Colormap(qt.QObject):
         self._autoscaleMode = str(autoscaleMode)
         self._vmin = float(vmin) if vmin is not None else None
         self._vmax = float(vmax) if vmax is not None else None
+        self.__warnBadVmin = True
+        self.__warnBadVmax = True
 
     def setFromColormap(self, other):
         """Set this colormap using information from the `other` colormap.
@@ -767,8 +769,12 @@ class Colormap(qt.QObject):
         assert norm in self.NORMALIZATIONS
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
-        self._normalization = str(norm)
-        self.sigChanged.emit()
+        norm = str(norm)
+        if norm != self._normalization:
+            self._normalization = norm
+            self.__warnBadVmin = True
+            self.__warnBadVmax = True
+            self.sigChanged.emit()
 
     def setGammaNormalizationParameter(self, gamma: float) -> None:
         """Set the gamma correction parameter.
@@ -837,8 +843,10 @@ class Colormap(qt.QObject):
                       "vmin = %s, vmax = %s" % (vmin, self._vmax)
                 raise ValueError(err)
 
-        self._vmin = vmin
-        self.sigChanged.emit()
+        if vmin != self._vmin:
+            self._vmin = vmin
+            self.__warnBadVmin = True
+            self.sigChanged.emit()
 
     def getVMax(self):
         """Return the upper bounds of the colormap or None
@@ -862,8 +870,10 @@ class Colormap(qt.QObject):
                       "vmin = %s, vmax = %s" % (self._vmin, vmax)
                 raise ValueError(err)
 
-        self._vmax = vmax
-        self.sigChanged.emit()
+        if vmax != self._vmax:
+            self._vmax = vmax
+            self.__warnBadVmax = True
+            self.sigChanged.emit()
 
     def isEditable(self):
         """ Return if the colormap is editable or not
@@ -916,12 +926,16 @@ class Colormap(qt.QObject):
 
         # Handle invalid bounds as autoscale
         if vmin is not None and not normalizer.isValid(vmin):
-            _logger.info(
-                'Invalid vmin, switching to autoscale for lower bound')
+            if self.__warnBadVmin:
+                self.__warnBadVmin = False
+                _logger.info(
+                    'Invalid vmin, switching to autoscale for lower bound')
             vmin = None
         if vmax is not None and not normalizer.isValid(vmax):
-            _logger.info(
-                'Invalid vmax, switching to autoscale for upper bound')
+            if self.__warnBadVmax:
+                self.__warnBadVmax = False
+                _logger.info(
+                    'Invalid vmax, switching to autoscale for upper bound')
             vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
@@ -971,7 +985,11 @@ class Colormap(qt.QObject):
         if self._vmin == vmin and self._vmax == vmax:
             return
 
+        if vmin != self._vmin:
+            self.__warnBadVmin = True
         self._vmin = vmin
+        if vmax != self._vmax:
+            self.__warnBadVmax = True
         self._vmax = vmax
         self.sigChanged.emit()
 
@@ -1060,6 +1078,8 @@ class Colormap(qt.QObject):
         self._normalization = normalization
         self._autoscaleMode = autoscaleMode
 
+        self.__warnBadVmin = True
+        self.__warnBadVmax = True
         self.sigChanged.emit()
 
     @staticmethod
