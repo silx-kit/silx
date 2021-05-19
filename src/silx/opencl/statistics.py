@@ -143,7 +143,7 @@ class Statistics(OpenclProcessing):
                                                 preamble=src,
                                                 options=compiler_options)
 
-        if "self.cl_khr_fp64" in self.device.extensions:
+        if "cl_khr_fp64" in self.device.extensions:
             self.reduction_double = ReductionKernel(self.ctx,
                                                     dtype_out=float8,
                                                     neutral=zero8,
