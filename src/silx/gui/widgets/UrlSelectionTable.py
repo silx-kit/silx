@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2021 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -37,7 +37,7 @@ import functools
 import logging
 import os
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class UrlSelectionTable(TableWidget):
