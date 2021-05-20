@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 #
-#    Project: Azimuthal integration
-#             https://github.com/silx-kit/pyFAI
+#    Project: OpenCL numerical library
+#             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2019 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -28,13 +28,11 @@
 
 "test suite for OpenCL code"
 
-from __future__ import absolute_import, division, print_function
-
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "17/05/2021"
 
 
 import unittest

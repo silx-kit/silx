@@ -3,11 +3,11 @@
  *
  *
  *
- *   Copyright (C) 2012-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2012-2021 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 13/12/2018
+ *   Last revision: 17/05/2021
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,29 @@
  *
  * \brief OpenCL kernels for min, max, mean and std calculation
  *
- * Constant to be provided at build time:
+ * This module provides two functions to perform the `map` and the `reduce` 
+ * to be used with pyopencl reduction to calculate in a single pass the minimum, 
+ * maximum, sum, count, mean and standart deviation for an array.
+ * 
+ * So beside the reduction mechanisme from pyopencl, this algorithm implementes equations from
+ * https://dbs.ifi.uni-heidelberg.de/files/Team/eschubert/publications/SSDBM18-covariance-authorcopy.pdf
+ *
+ * let A and B be 2 disjoint partition of all elements
+ * 
+ * Omega_A = sum_{i \in A}(omaga_i) The sum of all weights
+ * V_A is the weighted sum of the signal over the partition
+ * VV_A is the weighted sum of deviation squarred
+ * 
+ * With this the mean is V / Omega and the variance equals VV / omega.
+ * 
+ * Redction operator performs:
+ * Omega_{AB} = Omega_A + Omega_B
+ * V_{AB} = V_A + V_B
+ * VV{AB} = VV_A + VV_B + (Omega_A*V_B-Omega_B*V_A)² / (Omega_A * Omega_B * Omega_{AB})
+ *
+ * To avoid any numerical degradation, the doubleword library is used to perform all floating point operations. 
  *
  */
-
 #include "for_eclipse.h"
 
 /* \brief read a value at given position and initialize the float8 for the reduction
@@ -44,12 +63,12 @@
  * The float8 returned contains:
  * s0: minimum value
  * s1: maximum value
- * s2: count number of valid pixels
- * s3: count (error associated to)
- * s4: sum of valid pixels
- * s5: sum (error associated to)
- * s6: variance*count
- * s7: variance*count (error associated to)
+ * s2: Omega_h count number of valid pixels
+ * s3: Omega_l error associated to the count
+ * s4: V_h sum of signal
+ * s5: V_l error associated to the sum of signal
+ * s6: VVh variance*count
+ * s7: VVl error associated to variance*count
  *
  */
 static inline float8 map_statistics(global float* data, int position)
@@ -60,11 +79,12 @@ static inline float8 map_statistics(global float* data, int position)
     if (isfinite(value))
     {
         result = (float8)(value, value, 1.0f, 0.0f, value, 0.0f, 0.0f, 0.0f);
-        //                min     max   cnt   cnt_err  sum   sum_err M  M_err
+        //                min     max   cnt_h cnt_l sum_h  sum_l M2_h  M2_l
     }
     else
     {
         result = (float8)(FLT_MAX, -FLT_MAX, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        //                min        max     cnt_h cnt_l sum_h sum_l M2_h  M2_l
     }
     return result;
 }
@@ -89,7 +109,8 @@ static inline float8 map_statistics(global float* data, int position)
 static inline float8 reduce_statistics(float8 a, float8 b)
 {
     float2 sum_a, sum_b, M_a, M_b, count_a, count_b;
-
+    float2 count, sum;
+    float2 M, delta, delta2, omega3;
     //test on count
     if (a.s2 == 0.0f)
     {
@@ -113,39 +134,22 @@ static inline float8 reduce_statistics(float8 a, float8 b)
         M_b = (float2)(b.s6, b.s7);
     }
     // count = count_a + count_b
-    float2 count = compensated_sum(count_a, count_b);
+    count = dw_plus_dw(count_a, count_b);
     // sum = sum_a + sum_b
-    float2 sum = compensated_sum(sum_a, sum_b);
-
-    //delta = avg_b - avg_a
-    //delta^2 = avg_b^2 + avg_a^2 - 2*avg_b*avg_a
-    //coount_a*count_b*delta^2 = count_a/count_b * sum_b^2 + count_b/count_a*sum_a^2 - 2*sum_a*sum_b
-
-    //float2 sum2_a = compensated_mul(sum_a, sum_a);
-    //float2 sum2_b = compensated_mul(sum_b, sum_b);
-    //float2 ca_over_cb = compensated_mul(count_a, compensated_inv(count_b));
-    //float2 cb_over_ca = compensated_mul(count_b, compensated_inv(count_a));
-
-    //float2 delta2cbca = compensated_sum(compensated_sum(
-    //                    compensated_mul(ca_over_cb, sum2_b),
-    //                    compensated_mul(cb_over_ca, sum2_a)),
-    //                    -2.0f * compensated_mul(sum_a, sum_b));
-//////////////
-//    float2 delta = compensated_sum(
-//                  compensated_mul(sum_b, compensated_inv(count_b)),
-//              -1*(compensated_mul(sum_a, compensated_inv(count_a))));
-    float2 delta = compensated_sum(compensated_div(sum_b, count_b),
-                                   -1*compensated_div(sum_a, count_a));
-
-    float2 delta2cbca = compensated_mul(compensated_mul(delta, delta),
-                                        compensated_mul(count_a, count_b));
-    float2 M2 = compensated_sum(compensated_sum(M_a, M_b),
-                                compensated_mul(delta2cbca, compensated_inv(count)));
-    //M2 = M_a + M_b + delta ** 2 * count_a * count_b / (count_a + count_b)
+    sum = dw_plus_dw(sum_a, sum_b);
+    
+    // M2 = M_a + M_b + (Omega_A*V_B-Omega_B*V_A)² / (Omega_A * Omega_B * Omega_{AB})
+    M =  dw_plus_dw(M_a, M_b);
+    delta = dw_plus_dw(dw_times_dw(count_b, sum_a),
+                      -dw_times_dw(count_a, sum_b));
+    delta2 = dw_times_dw(delta, delta);
+    omega3 = dw_times_dw(count, dw_times_dw(count_a, count_b));            
+    M = dw_plus_dw(M, dw_div_dw(delta2, omega3));
+                                    
     float8 result = (float8)(min(a.s0, b.s0), max(a.s1, b.s1),
                              count.s0,        count.s1,
                              sum.s0,          sum.s1,
-                             M2.s0,           M2.s1);
+                             M.s0,            M.s1);
     return result;
 }
 
@@ -157,12 +161,12 @@ static inline float8 reduce_statistics(float8 a, float8 b)
  * The float8 used here contain contains:
  * s0: minimum value
  * s1: maximum value
- * s2: count number of valid pixels
- * s3: count (error associated to)
- * s4: sum of valid pixels
- * s5: sum (error associated to)
- * s6: M=variance*(count-1)
- * s7: M=variance*(count-1) (error associated to)
+ * s2: count number of valid pixels (major)
+ * s3: count number of valid pixels (minor)
+ * s4: sum of valid pixels (major)
+ * s5: sum of valid pixels (minor)
+ * s6: variance*count (major)
+ * s7: variance*count (minor)
  *
  */
 
@@ -194,10 +198,9 @@ static inline float8 reduce_statistics_simple(float8 a, float8 b)
     }
     float count = count_a + count_b;
     float sum = sum_a + sum_b;
-    float delta = sum_a/count_a - sum_b/count_b;
-    float delta2cbca = count_b * count_a * delta * delta;
-    float M2 = M_a + M_b + delta2cbca/count;
-    //M2 = M_a + M_b + delta ** 2 * count_a * count_b / (count_a + count_b)
+    float delta = sum_a*count_b - sum_b*count_a;
+    float delta2 = delta * delta;
+    float M2 = M_a + M_b + delta2/(count*count_a*count_b);
     float8 result = (float8)(min(a.s0, b.s0), max(a.s1, b.s1),
                              count,        0.0f,
                              sum,          0.0f,
@@ -206,3 +209,75 @@ static inline float8 reduce_statistics_simple(float8 a, float8 b)
 }
 
 
+#ifdef cl_khr_fp64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+
+// unpack a double in two floats such as the  sum of the two is the double number
+static inline float2 unpack_double(double inp){
+    float major = (float) inp;
+    float minor = (float) (inp - major);
+    return (float2)(major, minor);  
+}
+
+// pack two floats into a double
+static inline double pack_double(float major, float minor){
+    return (double)major + (double)minor;
+}
+
+/* \brief reduction function associated to the statistics using double precision arithmetics
+ *
+ * this is described in:
+ * https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
+ *
+ * The float8 used here contain contains:
+ * s0: minimum value
+ * s1: maximum value
+ * s2: count number of valid pixels (major)
+ * s3: count number of valid pixels (minor)
+ * s4: sum of valid pixels (major)
+ * s5: sum of valid pixels (minor)
+ * s6: variance*count (major)
+ * s7: variance*count (minor)
+ *
+ */
+
+static inline float8 reduce_statistics_double(float8 a, float8 b)
+{
+    double sum_a, sum_b, M_a, M_b, count_a, count_b;
+
+    //test on count
+    if (a.s2 == 0.0)
+    {
+        return b;
+    }
+    else
+    {
+        count_a = pack_double(a.s2, a.s3);
+        sum_a = pack_double(a.s4,a.s5);
+        M_a = pack_double(a.s6, a.s7);
+    }
+    //test on count
+    if (b.s2 == 0.0)
+    {
+        return a;
+    }
+    else
+    {
+        count_b = pack_double(b.s2, b.s3);
+        sum_b = pack_double(b.s4, b.s5);
+        M_b = pack_double(b.s6, b.s7);
+    }
+    double count = count_a + count_b;
+    double sum = sum_a + sum_b;
+    double delta = sum_a*count_b - sum_b*count_a;
+    double delta2 = delta * delta;
+    double M2 = M_a + M_b + delta2/(count*count_a*count_b);
+    float8 result = (float8)((float2)(min(a.s0, b.s0), max(a.s1, b.s1)),
+                                unpack_double(count),
+                                unpack_double( sum),
+                                unpack_double( M2));
+    return result;
+}
+
+#endif

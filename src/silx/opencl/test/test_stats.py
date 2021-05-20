@@ -28,14 +28,11 @@
 """
 Simple test of an addition
 """
-
-from __future__ import division, print_function
-
 __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "13/12/2018"
+__date__ = "19/05/2021"
 
 import logging
 import time
@@ -58,11 +55,13 @@ class TestStatistics(unittest.TestCase):
     def setUpClass(cls):
         cls.size = 1 << 20  # 1 million elements
         cls.data = numpy.random.randint(0, 65000, cls.size).astype("uint16")
-        t0 = time.time()
-        cls.ref = StatResults(cls.data.min(), cls.data.max(), cls.data.size,
-                              cls.data.sum(), cls.data.mean(), cls.data.std() ** 2,
-                              cls.data.std())
-        t1 = time.time()
+        fdata = cls.data.astype("float64")
+        t0 = time.perf_counter()
+        std = fdata.std()
+        cls.ref = StatResults(fdata.min(), fdata.max(), float(fdata.size),
+                              fdata.sum(), fdata.mean(), std ** 2,
+                              std)
+        t1 = time.perf_counter()
         cls.ref_time = t1 - t0
 
     @classmethod
@@ -89,19 +88,22 @@ class TestStatistics(unittest.TestCase):
                     s = Statistics(template=self.data, platformid=pid, deviceid=did)
                 except Exception as err:
                     failed_init = True
-                    res = StatResults(0,0,0,0,0,0,0)
+                    res = StatResults(0, 0, 0, 0, 0, 0, 0)
+                    print(err)
                 else:
                     failed_init = False
-                    t0 = time.time()
-                    res = s(self.data)
-                    t1 = time.time()
-                logger.warning("failed_init %s", failed_init)
-                if failed_init or not self.validate(res):
-                    logger.error("Failed on platform %s device %s", platform, device)
-                    logger.error("Reference results: %s", self.ref)
-                    logger.error("Faulty results: %s", res)
-                    self.assertTrue(False, "Stat calculation failed on %s %s" % (platform, device))
-                logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
+                    for comp in ("single", "double", "comp"):
+                        t0 = time.perf_counter()
+                        res = s(self.data, comp=comp)
+                        t1 = time.perf_counter()
+                        logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
+
+                        if failed_init or not self.validate(res):
+                            logger.error("failed_init %s; Computation modes %s", failed_init, comp)
+                            logger.error("Failed on platform %s device %s", platform, device)
+                            logger.error("Reference results: %s", self.ref)
+                            logger.error("Faulty results: %s", res)
+                            self.assertTrue(False, f"Stat calculation failed on {platform},{device}  in mode {comp}")
 
 
 def suite():
