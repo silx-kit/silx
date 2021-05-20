@@ -7,7 +7,10 @@
  * http://www.theses.fr/2017LYSEN036
  * All page number and equation number are refering to this document. 
  * 
- * 
+ * The precision of the calculation (bounds) is provided in ULP (smallest possible mantissa) 
+ * and come from the table 2.2 (page 68 of the thesis).
+ * The number of equivalent FLOP is taken from the table 2.3 (page 69 the thesis). 
+ * Note that FLOP are not all equal: a division is much more expensive than an addition.
  */
 
 //This library can be expanded to double-double by redefining fp, fp2 and one to double, double2 and 1.0.
@@ -57,14 +60,14 @@ inline fp2 fp_times_fp(fp x, fp y){
     return (fp2)(p, e);  
 }
 
-//Algorithm 7, p38: Addition of a FP to a DW. 10flop
+//Algorithm 7, p38: Addition of a FP to a DW. 10flop bounds:2u²+5u³
 inline fp2 dw_plus_fp(fp2 x, fp y){
     fp2 s = fp_plus_fp(x.s0, y);
     X87_VOLATILE fp v = x.s1 + s.s1;
     return fast_fp_plus_fp(s.s0, v);
 }
 
-//Algorithm 9, p40: addition of two DW: 20flop
+//Algorithm 9, p40: addition of two DW: 20flop bounds:3u²+13u³
 inline fp2 dw_plus_dw(fp2 x, fp2 y){
     fp2 s = fp_plus_fp(x.s0, y.s0);
     fp2 t = fp_plus_fp(x.s1, y.s1);
@@ -72,20 +75,20 @@ inline fp2 dw_plus_dw(fp2 x, fp2 y){
     return fast_fp_plus_fp(v.s0, t.s1 + v.s1);
 }
 
-//Algorithm 12, p49: Multiplication FP*DW: 6flops
+//Algorithm 12, p49: Multiplication FP*DW: 6flops bounds:2u²
 inline fp2 dw_times_fp(fp2 x, fp y){
     fp2 c = fp_times_fp(x.s0, y);
     return fast_fp_plus_fp(c.s0, fma(x.s1, y, c.s1));
 }
 
-//Algorithm 14, p52: Multiplication DW*DW, 8 flops
+//Algorithm 14, p52: Multiplication DW*DW, 8 flops bounds:6u²
 inline fp2 dw_times_dw(fp2 x, fp2 y){
     fp2 c = fp_times_fp(x.s0, y.s0);
     X87_VOLATILE fp l = fma(x.s1, y.s0, x.s0 * y.s1);
     return fast_fp_plus_fp(c.s0, c.s1 + l);
 }
 
-//Algorithm 17, p55: Division DW / FP, 10flops
+//Algorithm 17, p55: Division DW / FP, 10flops bounds: 3.5u²
 inline fp2 dw_div_fp(fp2 x, fp y){
     X87_VOLATILE fp th = x.s0 / y;
     fp2 pi = fp_times_fp(th, y);
@@ -105,7 +108,7 @@ inline fp2 inv_dw(fp2 y){
     return dw_plus_fp(delta, th);
 }
     
-//Algorithm 20, p64: Division DW / DW, 30 flops
+//Algorithm 20, p64: Division DW / DW, 30 flops: bounds:9.8²
 inline fp2 dw_div_dw(fp2 x, fp2 y){
     return dw_times_dw(x, inv_dw(y));
 }
