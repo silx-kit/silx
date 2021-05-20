@@ -108,7 +108,7 @@ inline fp2 inv_dw(fp2 y){
     return dw_plus_fp(delta, th);
 }
     
-//Algorithm 20, p64: Division DW / DW, 30 flops: bounds:9.8²
+//Algorithm 20, p64: Division DW / DW, 30 flops: bounds:9.8u²
 inline fp2 dw_div_dw(fp2 x, fp2 y){
     return dw_times_dw(x, inv_dw(y));
 }
