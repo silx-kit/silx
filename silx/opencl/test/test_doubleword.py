@@ -32,7 +32,7 @@ __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/05/2021"
+__date__ = "31/05/2021"
 
 import unittest
 import numpy
@@ -99,7 +99,7 @@ class TestDoubleWord(unittest.TestCase):
     def test_fast_sum2(self):
         test_kernel = ElementwiseKernel(self.ctx,
                       "float *a, float *b, float *res_h, float *res_l",
-                      "float2 tmp = fast_sum2(a[i], b[i]); res_h[i] = tmp.s0; res_l[i] = tmp.s1",
+                      "float2 tmp = fast_fp_plus_fp(a[i], b[i]); res_h[i] = tmp.s0; res_l[i] = tmp.s1",
                       preamble=self.doubleword)
         a_g = pyopencl.array.to_device(self.queue, self.ah)
         b_g = pyopencl.array.to_device(self.queue, self.bl)
@@ -113,7 +113,7 @@ class TestDoubleWord(unittest.TestCase):
     def test_sum2(self):
         test_kernel = ElementwiseKernel(self.ctx,
                     "float *a, float *b, float *res_h, float *res_l",
-                    "float2 tmp = sum2(a[i],b[i]); res_h[i]=tmp.s0; res_l[i]=tmp.s1;",
+                    "float2 tmp = fp_plus_fp(a[i],b[i]); res_h[i]=tmp.s0; res_l[i]=tmp.s1;",
                     preamble=self.doubleword)
         a_g = pyopencl.array.to_device(self.queue, self.ah)
         b_g = pyopencl.array.to_device(self.queue, self.bh)
@@ -127,7 +127,7 @@ class TestDoubleWord(unittest.TestCase):
     def test_prod2(self):
         test_kernel = ElementwiseKernel(self.ctx,
                     "float *a, float *b, float *res_h, float *res_l",
-                    "float2 tmp = prod2(a[i],b[i]); res_h[i]=tmp.s0; res_l[i]=tmp.s1;",
+                    "float2 tmp = fp_times_fp(a[i],b[i]); res_h[i]=tmp.s0; res_l[i]=tmp.s1;",
                     preamble=self.doubleword)
         a_g = pyopencl.array.to_device(self.queue, self.ah)
         b_g = pyopencl.array.to_device(self.queue, self.bh)
