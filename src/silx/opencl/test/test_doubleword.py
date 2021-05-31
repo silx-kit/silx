@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 #
-#    Project: Azimuthal integration
+#    Project: The silx project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2019 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2021-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #

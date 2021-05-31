@@ -4,7 +4,7 @@
 #    Project: OpenCL numerical library
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2032 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
