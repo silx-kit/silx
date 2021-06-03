@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,10 +98,10 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__compareWidget = None
 
         menu = qt.QMenu(self)
-        self.__visualizationAction = qt.QAction(self)
-        self.__visualizationAction.setMenu(menu)
-        self.__visualizationAction.setCheckable(False)
-        self.addAction(self.__visualizationAction)
+        self.__visualizationToolButton = qt.QToolButton(self)
+        self.__visualizationToolButton.setMenu(menu)
+        self.__visualizationToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.addWidget(self.__visualizationToolButton)
         self.__visualizationGroup = qt.QActionGroup(self)
         self.__visualizationGroup.setExclusive(True)
         self.__visualizationGroup.triggered.connect(self.__visualizationModeChanged)
@@ -177,10 +177,10 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__visualizationGroup.addAction(action)
 
         menu = qt.QMenu(self)
-        self.__alignmentAction = qt.QAction(self)
-        self.__alignmentAction.setMenu(menu)
-        self.__alignmentAction.setIconVisibleInMenu(True)
-        self.addAction(self.__alignmentAction)
+        self.__alignmentToolButton = qt.QToolButton(self)
+        self.__alignmentToolButton.setMenu(menu)
+        self.__alignmentToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.addWidget(self.__alignmentToolButton)
         self.__alignmentGroup = qt.QActionGroup(self)
         self.__alignmentGroup.setExclusive(True)
         self.__alignmentGroup.triggered.connect(self.__alignmentModeChanged)
@@ -320,13 +320,13 @@ class CompareImagesToolBar(qt.QToolBar):
         """
         selectedAction = self.__visualizationGroup.checkedAction()
         if selectedAction is not None:
-            self.__visualizationAction.setText(selectedAction.text())
-            self.__visualizationAction.setIcon(selectedAction.icon())
-            self.__visualizationAction.setToolTip(selectedAction.toolTip())
+            self.__visualizationToolButton.setText(selectedAction.text())
+            self.__visualizationToolButton.setIcon(selectedAction.icon())
+            self.__visualizationToolButton.setToolTip(selectedAction.toolTip())
         else:
-            self.__visualizationAction.setText("")
-            self.__visualizationAction.setIcon(qt.QIcon())
-            self.__visualizationAction.setToolTip("")
+            self.__visualizationToolButton.setText("")
+            self.__visualizationToolButton.setIcon(qt.QIcon())
+            self.__visualizationToolButton.setToolTip("")
 
     def __alignmentModeChanged(self, selectedAction):
         """Called when user requesting changes of the alignment mode.
@@ -342,13 +342,13 @@ class CompareImagesToolBar(qt.QToolBar):
         """
         selectedAction = self.__alignmentGroup.checkedAction()
         if selectedAction is not None:
-            self.__alignmentAction.setText(selectedAction.text())
-            self.__alignmentAction.setIcon(selectedAction.icon())
-            self.__alignmentAction.setToolTip(selectedAction.toolTip())
+            self.__alignmentToolButton.setText(selectedAction.text())
+            self.__alignmentToolButton.setIcon(selectedAction.icon())
+            self.__alignmentToolButton.setToolTip(selectedAction.toolTip())
         else:
-            self.__alignmentAction.setText("")
-            self.__alignmentAction.setIcon(qt.QIcon())
-            self.__alignmentAction.setToolTip("")
+            self.__alignmentToolButton.setText("")
+            self.__alignmentToolButton.setIcon(qt.QIcon())
+            self.__alignmentToolButton.setToolTip("")
 
     def __keypointVisibilityChanged(self):
         """Called when action managing keypoints visibility changes"""
