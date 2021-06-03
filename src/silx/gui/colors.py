@@ -132,8 +132,8 @@ def rgba(color, colorDict=None):
     if colorDict is None:
         colorDict = _COLORDICT
 
-    if hasattr(color, 'getRgbF'):  # QColor support
-        color = color.getRgbF()
+    if hasattr(color, 'getRgb'):  # QColor support
+        color = color.getRgb()
 
     values = numpy.asarray(color).ravel()
 
