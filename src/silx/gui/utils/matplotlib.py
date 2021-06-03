@@ -57,7 +57,7 @@ def _matplotlib_use(backend, force):
     matplotlib.use(backend, force=force)
 
 
-if qt.BINDING in ('PyQt5', 'PySide2'):
+if qt.BINDING in ('PySide6', 'PyQt5', 'PySide2'):
     _matplotlib_use('Qt5Agg', force=False)
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
