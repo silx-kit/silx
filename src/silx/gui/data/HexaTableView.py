@@ -112,9 +112,9 @@ class HexaTableModel(qt.QAbstractTableModel):
         self.__connector = None
         self.setArrayData(data)
 
-        if hasattr(qt.QFontDatabase, "systemFont"):
+        if hasattr(qt.QFontDatabase, "systemFont"):  # Qt >= 5.2
             self.__font = qt.QFontDatabase.systemFont(qt.QFontDatabase.FixedFont)
-        else:
+        else:  # Qt < 5.2
             self.__font = qt.QFont("Monospace")
             self.__font.setStyleHint(qt.QFont.TypeWriter)
         self.__palette = qt.QPalette()
