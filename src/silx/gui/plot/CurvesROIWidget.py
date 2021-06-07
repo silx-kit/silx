@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -528,10 +528,7 @@ class ROITable(TableWidget):
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(self.COLUMNS)
         header = self.horizontalHeader()
-        if hasattr(header, 'setSectionResizeMode'):  # Qt5
-            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            header.setResizeMode(qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
         self.sortByColumn(0, qt.Qt.AscendingOrder)
         self.hideColumn(self.COLUMNS_INDEX['ID'])
 

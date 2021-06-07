@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1258,16 +1258,12 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
-        if hasattr(horizontalHeader, 'setResizeMode'):  # Qt 4
-            setSectionResizeMode = horizontalHeader.setResizeMode
-        else:  # Qt5
-            setSectionResizeMode = horizontalHeader.setSectionResizeMode
 
-        setSectionResizeMode(0, qt.QHeaderView.Interactive)
-        setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(3, qt.QHeaderView.Stretch)
-        setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(0, qt.QHeaderView.Interactive)
+        horizontalHeader.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(3, qt.QHeaderView.Stretch)
+        horizontalHeader.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
