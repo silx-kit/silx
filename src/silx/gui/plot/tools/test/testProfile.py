@@ -375,59 +375,56 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
 
+        self.plot.addImage(
+            numpy.arange(100 * 100).reshape(100, -1))
+
         for method in ('sum', 'mean'):
-            for image in (False, True):
-                with self.subTest(method=method, image=image):
-                    # 2 positions to use for mouse events
-                    pos1 = widget.width() * 0.4, widget.height() * 0.4
-                    pos2 = widget.width() * 0.6, widget.height() * 0.6
+            with self.subTest(method=method):
+                # 2 positions to use for mouse events
+                pos1 = widget.width() * 0.4, widget.height() * 0.4
+                pos2 = widget.width() * 0.6, widget.height() * 0.6
 
-                    if image:
-                        self.plot.addImage(
-                            numpy.arange(100 * 100).reshape(100, -1))
+                # Trigger tool button for diagonal profile mode
+                self.toolBar.lineAction.trigger()
 
-                    # Trigger tool button for diagonal profile mode
-                    self.toolBar.lineAction.trigger()
+                # draw profile line
+                widget.setFocus(qt.Qt.OtherFocusReason)
+                self.mouseMove(widget, pos=pos1)
+                self.qWait(100)
+                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+                self.qWait(100)
+                self.mouseMove(widget, pos=pos2)
+                self.qWait(100)
+                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+                self.qWait(100)
 
-                    # draw profile line
-                    widget.setFocus(qt.Qt.OtherFocusReason)
-                    self.mouseMove(widget, pos=pos1)
-                    self.qWait(100)
-                    self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                    self.qWait(100)
-                    self.mouseMove(widget, pos=pos2)
-                    self.qWait(100)
-                    self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
-                    self.qWait(100)
+                manager = self.toolBar.getProfileManager()
 
-                    manager = self.toolBar.getProfileManager()
+                for _ in range(20):
+                    self.qWait(200)
+                    if not manager.hasPendingOperations():
+                        break
 
-                    for _ in range(20):
-                        self.qWait(200)
-                        if not manager.hasPendingOperations():
-                            break
+                roi = manager.getCurrentRoi()
+                self.assertIsNotNone(roi)
+                roi.setProfileLineWidth(3)
+                roi.setProfileMethod(method)
 
-                    roi = manager.getCurrentRoi()
-                    self.assertIsNotNone(roi)
-                    roi.setProfileLineWidth(3)
-                    roi.setProfileMethod(method)
+                for _ in range(20):
+                    self.qWait(200)
+                    if not manager.hasPendingOperations():
+                        break
 
-                    for _ in range(20):
-                        self.qWait(200)
-                        if not manager.hasPendingOperations():
-                            break
+                curveItem = self.toolBar.getProfilePlot().getAllCurves()[0]
+                if method == 'sum':
+                    self.assertTrue(curveItem.getData()[1].max() > 10000)
+                elif method == 'mean':
+                    self.assertTrue(curveItem.getData()[1].max() < 10000)
 
-                    if image is True:
-                        curveItem = self.toolBar.getProfilePlot().getAllCurves()[0]
-                        if method == 'sum':
-                            self.assertTrue(curveItem.getData()[1].max() > 10000)
-                        elif method == 'mean':
-                            self.assertTrue(curveItem.getData()[1].max() < 10000)
-
-                    # Remove the ROI so the profile window is also removed
-                    roiManager = manager.getRoiManager()
-                    roiManager.removeRoi(roi)
-                    self.qWait(100)
+                # Remove the ROI so the profile window is also removed
+                roiManager = manager.getRoiManager()
+                roiManager.removeRoi(roi)
+                self.qWait(100)
 
 
 class TestDeprecatedProfileToolBar(TestCaseQt):
