@@ -31,8 +31,6 @@ __date__ = "16/06/2017"
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
 
-QTVERSION = qt.qVersion()
-
 
 class Hdf5HeaderView(qt.QHeaderView):
     """
@@ -53,12 +51,8 @@ class Hdf5HeaderView(qt.QHeaderView):
         self.customContextMenuRequested.connect(self.__createContextMenu)
 
         # default initialization done by QTreeView for it's own header
-        if QTVERSION < "5.0":
-            self.setClickable(True)
-            self.setMovable(True)
-        else:
-            self.setSectionsClickable(True)
-            self.setSectionsMovable(True)
+        self.setSectionsClickable(True)
+        self.setSectionsMovable(True)
         self.setDefaultAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         self.setStretchLastSection(True)
 
