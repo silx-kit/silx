@@ -574,10 +574,10 @@ class _ColorScale(qt.QWidget):
         if self.getColormap() is not None:
             painter.setBrush(self._gradient)
             penColor = self.palette().color(qt.QPalette.Active,
-                                            qt.QPalette.Foreground)
+                                            qt.QPalette.WindowText)
         else:
             penColor = self.palette().color(qt.QPalette.Disabled,
-                                            qt.QPalette.Foreground)
+                                            qt.QPalette.WindowText)
         painter.setPen(penColor)
 
         painter.drawRect(qt.QRect(
