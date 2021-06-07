@@ -306,8 +306,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if h5pyObject is None or self.isSupportedObject(h5pyObject):
             self.__obj = h5pyObject
@@ -315,10 +314,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             _logger.warning("Object class %s unsupported. Object ignored.", type(h5pyObject))
         self.__initProperties()
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def __formatHdf5Type(self, dataset):
         """Format the HDF5 type"""
@@ -544,8 +540,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
         self.__hdf5Formatter.setTextFormatter(formatter)
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if self.__formatter is not None:
             self.__formatter.formatChanged.disconnect(self.__formatChanged)
@@ -554,10 +549,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if self.__formatter is not None:
             self.__formatter.formatChanged.connect(self.__formatChanged)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def getFormatter(self):
         """Returns the text formatter used.

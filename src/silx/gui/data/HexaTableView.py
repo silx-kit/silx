@@ -217,8 +217,7 @@ class HexaTableModel(qt.QAbstractTableModel):
 
         :param data: A numpy object or a dataset.
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         self.__connector = None
         self.__data = data
@@ -229,10 +228,7 @@ class HexaTableModel(qt.QAbstractTableModel):
                 data = data[()]
             self.__connector = _VoidConnector(data)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def arrayData(self):
         """Returns the internal data.
