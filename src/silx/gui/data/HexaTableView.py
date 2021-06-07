@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -274,13 +274,8 @@ class HexaTableView(qt.QTableView):
     def __fixHeader(self):
         """Update the view according to the state of the auto-resize"""
         header = self.horizontalHeader()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-
         header.setDefaultSectionSize(30)
         header.setStretchLastSection(True)
         for i in range(0x10):
-            setResizeMode(i, qt.QHeaderView.Fixed)
-        setResizeMode(0x10, qt.QHeaderView.Stretch)
+            header.setSectionResizeMode(i, qt.QHeaderView.Fixed)
+        header.setSectionResizeMode(0x10, qt.QHeaderView.Stretch)

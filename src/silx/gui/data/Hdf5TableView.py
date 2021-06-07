@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -627,15 +627,11 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
 
         model.setObject(data)
         header = self.horizontalHeader()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-        setResizeMode(0, qt.QHeaderView.Fixed)
-        setResizeMode(1, qt.QHeaderView.ResizeToContents)
-        setResizeMode(2, qt.QHeaderView.Stretch)
-        setResizeMode(3, qt.QHeaderView.ResizeToContents)
-        setResizeMode(4, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, qt.QHeaderView.Fixed)
+        header.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
+        header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
 
         for row in range(model.rowCount()):
