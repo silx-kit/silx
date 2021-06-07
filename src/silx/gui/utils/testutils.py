@@ -394,14 +394,8 @@ class TestCaseQt(unittest.TestCase):
         filename = "Screenshot_%s.png" % self.id()
         filename = os.path.join(basedir, filename)
 
-        if not hasattr(self.qapp, "primaryScreen"):
-            # Qt4
-            winId = qt.QApplication.desktop().winId()
-            pixmap = qt.QPixmap.grabWindow(winId)
-        else:
-            # Qt5
-            screen = self.qapp.primaryScreen()
-            pixmap = screen.grabWindow(0)
+        screen = self.qapp.primaryScreen()
+        pixmap = screen.grabWindow(0)
         pixmap.save(filename)
         _logger.log(level, "Screenshot saved at %s", filename)
 
