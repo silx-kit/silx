@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -380,10 +380,7 @@ class Plot3DWidget(glu.OpenGLWidget):
     def wheelEvent(self, event):
         xpixel = event.x() * self.getDevicePixelRatio()
         ypixel = event.y() * self.getDevicePixelRatio()
-        if hasattr(event, 'delta'):  # Qt4
-            angle = event.delta() / 8.
-        else:  # Qt5
-            angle = event.angleDelta().y() / 8.
+        angle = event.angleDelta().y() / 8.
         event.accept()
 
         if self.eventHandler is not None and angle != 0 and self.isValid():

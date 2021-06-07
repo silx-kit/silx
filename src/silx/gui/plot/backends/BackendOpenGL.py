@@ -275,10 +275,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         event.accept()
 
     def wheelEvent(self, event):
-        if hasattr(event, 'angleDelta'):  # Qt 5
-            delta = event.angleDelta().y()
-        else:  # Qt 4 support
-            delta = event.delta()
+        delta = event.angleDelta().y()
         angleInDegrees = delta / 8.
         self._plot.onMouseWheel(event.x(), event.y(), angleInDegrees)
         event.accept()
