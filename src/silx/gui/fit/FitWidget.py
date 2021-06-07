@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -53,7 +53,6 @@ from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
 from ...utils.deprecation import deprecated
 
-QTVERSION = qt.qVersion()
 DEBUG = 0
 _logger = logging.getLogger(__name__)
 

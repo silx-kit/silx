@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -306,8 +306,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             `silx.gui.hdf5.H5Node` which is needed to display some local path
             information.
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if h5pyObject is None or self.isSupportedObject(h5pyObject):
             self.__obj = h5pyObject
@@ -315,10 +314,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             _logger.warning("Object class %s unsupported. Object ignored.", type(h5pyObject))
         self.__initProperties()
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def __formatHdf5Type(self, dataset):
         """Format the HDF5 type"""
@@ -544,8 +540,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
         self.__hdf5Formatter.setTextFormatter(formatter)
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if self.__formatter is not None:
             self.__formatter.formatChanged.disconnect(self.__formatChanged)
@@ -554,10 +549,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if self.__formatter is not None:
             self.__formatter.formatChanged.connect(self.__formatChanged)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def getFormatter(self):
         """Returns the text formatter used.
@@ -627,15 +619,11 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
 
         model.setObject(data)
         header = self.horizontalHeader()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-        setResizeMode(0, qt.QHeaderView.Fixed)
-        setResizeMode(1, qt.QHeaderView.ResizeToContents)
-        setResizeMode(2, qt.QHeaderView.Stretch)
-        setResizeMode(3, qt.QHeaderView.ResizeToContents)
-        setResizeMode(4, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, qt.QHeaderView.Fixed)
+        header.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, qt.QHeaderView.Stretch)
+        header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
 
         for row in range(model.rowCount()):

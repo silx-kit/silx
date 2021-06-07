@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -229,11 +229,7 @@ class PrintPreviewDialog(qt.QDialog):
             comment = ' ' * 88
         if commentPosition is None:
             commentPosition = "CENTER"
-        if qt.qVersion() < "5.0":
-            rectItem = qt.QGraphicsRectItem(self.page, self.scene)
-        else:
-            rectItem = qt.QGraphicsRectItem(self.page)
-
+        rectItem = qt.QGraphicsRectItem(self.page)
         rectItem.setRect(qt.QRectF(1, 1,
                                    pixmap.width(), pixmap.height()))
 
@@ -250,28 +246,19 @@ class PrintPreviewDialog(qt.QDialog):
         rectItemResizeRect = _GraphicsResizeRectItem(rectItem, self.scene)
         rectItemResizeRect.setZValue(2)
 
-        if qt.qVersion() < "5.0":
-            pixmapItem = qt.QGraphicsPixmapItem(rectItem, self.scene)
-        else:
-            pixmapItem = qt.QGraphicsPixmapItem(rectItem)
+        pixmapItem = qt.QGraphicsPixmapItem(rectItem)
         pixmapItem.setPixmap(pixmap)
         pixmapItem.setZValue(0)
 
         # I add the title
-        if qt.qVersion() < "5.0":
-            textItem = qt.QGraphicsTextItem(title, rectItem, self.scene)
-        else:
-            textItem = qt.QGraphicsTextItem(title, rectItem)
+        textItem = qt.QGraphicsTextItem(title, rectItem)
         textItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
         offset = 0.5 * textItem.boundingRect().width()
         textItem.moveBy(0.5 * pixmap.width() - offset, -20)
         textItem.setZValue(2)
 
         # I add the comment
-        if qt.qVersion() < "5.0":
-            commentItem = qt.QGraphicsTextItem(comment, rectItem, self.scene)
-        else:
-            commentItem = qt.QGraphicsTextItem(comment, rectItem)
+        commentItem = qt.QGraphicsTextItem(comment, rectItem)
         commentItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
         offset = 0.5 * commentItem.boundingRect().width()
         if commentPosition.upper() == "LEFT":
@@ -341,10 +328,7 @@ class PrintPreviewDialog(qt.QDialog):
 
         # Comment / legend
         dummyComment = 80 * "1"
-        if qt.qVersion() < '5.0':
-            commentItem = qt.QGraphicsTextItem(dummyComment, svgItem, self.scene)
-        else:
-            commentItem = qt.QGraphicsTextItem(dummyComment, svgItem)
+        commentItem = qt.QGraphicsTextItem(dummyComment, svgItem)
         commentItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
         # we scale the text to have the legend  box have the same width as the graph
         scaleCalculationRect = qt.QRectF(commentItem.boundingRect())
@@ -354,10 +338,7 @@ class PrintPreviewDialog(qt.QDialog):
         commentItem.setZValue(1)
 
         commentItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
-        if qt.qVersion() < "5.0":
-            commentItem.scale(scale, scale)
-        else:
-            commentItem.setScale(scale)
+        commentItem.setScale(scale)
 
         # align
         if commentPosition.upper() == "CENTER":
@@ -382,10 +363,7 @@ class PrintPreviewDialog(qt.QDialog):
                            svgItem.boundingRect().y() + svgItem.boundingRect().height())
 
         # Title
-        if qt.qVersion() < '5.0':
-            textItem = qt.QGraphicsTextItem(title, svgItem, self.scene)
-        else:
-            textItem = qt.QGraphicsTextItem(title, svgItem)
+        textItem = qt.QGraphicsTextItem(title, svgItem)
         textItem.setTextInteractionFlags(qt.Qt.TextEditorInteraction)
         textItem.setZValue(1)
         textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
@@ -394,10 +372,7 @@ class PrintPreviewDialog(qt.QDialog):
         textItem.moveBy(svgItem.boundingRect().x() +
                         0.5 * svgItem.boundingRect().width() - title_offset * scale,
                         svgItem.boundingRect().y())
-        if qt.qVersion() < "5.0":
-            textItem.scale(scale, scale)
-        else:
-            textItem.setScale(scale)
+        textItem.setScale(scale)
 
     def setup(self):
         """Open a print dialog to ensure the :attr:`printer` is set.
@@ -567,10 +542,7 @@ class _GraphicsSvgRectItem(qt.QGraphicsRectItem):
 class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
     """Resizable QGraphicsRectItem."""
     def __init__(self, parent=None, scene=None, keepratio=True):
-        if qt.qVersion() < '5.0':
-            qt.QGraphicsRectItem.__init__(self, parent, scene)
-        else:
-            qt.QGraphicsRectItem.__init__(self, parent)
+        qt.QGraphicsRectItem.__init__(self, parent)
         rect = parent.boundingRect()
         x = rect.x()
         y = rect.y()
@@ -627,10 +599,7 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         self._w = rect.width()
         self._h = rect.height()
         self._ratio = self._w / self._h
-        if qt.qVersion() < "5.0":
-            self._newRect = qt.QGraphicsRectItem(parent, scene)
-        else:
-            self._newRect = qt.QGraphicsRectItem(parent)
+        self._newRect = qt.QGraphicsRectItem(parent)
         self._newRect.setRect(qt.QRectF(self._x,
                                         self._y,
                                         self._w,
@@ -669,20 +638,17 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         parent = self.parentItem()
 
         # deduce scale from rectangle
-        if (qt.qVersion() < "5.0") or self.keepRatio:
+        if self.keepRatio:
             scalex = self._newRect.rect().width() / self._w
             scaley = scalex
         else:
             scalex = self._newRect.rect().width() / self._w
             scaley = self._newRect.rect().height() / self._h
 
-        if qt.qVersion() < "5.0":
-            parent.scale(scalex, scaley)
-        else:
-            # apply the scale to the previous transformation matrix
-            previousTransform = parent.transform()
-            parent.setTransform(
-                    previousTransform.scale(scalex, scaley))
+        # apply the scale to the previous transformation matrix
+        previousTransform = parent.transform()
+        parent.setTransform(
+                previousTransform.scale(scalex, scaley))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None

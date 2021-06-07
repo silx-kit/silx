@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1605,10 +1605,7 @@ class TreeView(qt.QTreeView):
         self.setIconSize(qt.QSize(16, 16))
 
         header = self.header()
-        if hasattr(header, 'setSectionResizeMode'):  # Qt5
-            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            header.setResizeMode(qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
         delegate = ItemDelegate()
         self.setItemDelegate(delegate)

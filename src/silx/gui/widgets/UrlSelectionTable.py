@@ -65,11 +65,8 @@ class UrlSelectionTable(TableWidget):
         self.setColumnCount(len(self.COLUMS_INDEX))
         self.setHorizontalHeaderLabels(list(self.COLUMS_INDEX.keys()))
         self.verticalHeader().hide()
-        if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
-            self.horizontalHeader().setSectionResizeMode(0,
-                                                         qt.QHeaderView.Stretch)
-        else:  # Qt4
-            self.horizontalHeader().setResizeMode(0, qt.QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(0,
+                                                     qt.QHeaderView.Stretch)
 
         self.setSortingEnabled(True)
         self._checkBoxes = {}

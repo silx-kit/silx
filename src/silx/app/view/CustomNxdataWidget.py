@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -791,14 +791,10 @@ class CustomNxdataWidget(qt.QTreeView):
         self.__model.rowsAboutToBeInserted.connect(self.__rowsAboutToBeInserted)
 
         header = self.header()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-        setResizeMode(0, qt.QHeaderView.ResizeToContents)
-        setResizeMode(1, qt.QHeaderView.Stretch)
-        setResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setResizeMode(3, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(0, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, qt.QHeaderView.Stretch)
+        header.setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, qt.QHeaderView.ResizeToContents)
 
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self.setDropIndicatorShown(True)
@@ -810,11 +806,10 @@ class CustomNxdataWidget(qt.QTreeView):
         self.customContextMenuRequested[qt.QPoint].connect(self.__executeContextMenu)
 
     def __rowsAboutToBeInserted(self, parentIndex, start, end):
-        if qt.qVersion()[0:2] == "5.":
-            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
-            # Uses of ResizeToContents looks to break nice update of cells with Qt5
-            # This patch make the view blinking
-            self.repaint()
+        # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+        # Uses of ResizeToContents looks to break nice update of cells with Qt5
+        # This patch make the view blinking
+        self.repaint()
 
     def __rowsAboutToBeRemoved(self, parentIndex, start, end):
         """Called when an item was removed from the model."""
@@ -828,11 +823,10 @@ class CustomNxdataWidget(qt.QTreeView):
         for item in items:
             self.sigNxdataItemRemoved.emit(item)
 
-        if qt.qVersion()[0:2] == "5.":
-            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
-            # Uses of ResizeToContents looks to break nice update of cells with Qt5
-            # This patch make the view blinking
-            self.repaint()
+        # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+        # Uses of ResizeToContents looks to break nice update of cells with Qt5
+        # This patch make the view blinking
+        self.repaint()
 
     def __nxdataUpdate(self, index):
         """Called when a virtual NXdata was updated from the model."""

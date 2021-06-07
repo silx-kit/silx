@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -112,9 +112,9 @@ class HexaTableModel(qt.QAbstractTableModel):
         self.__connector = None
         self.setArrayData(data)
 
-        if hasattr(qt.QFontDatabase, "systemFont"):
+        if hasattr(qt.QFontDatabase, "systemFont"):  # Qt >= 5.2
             self.__font = qt.QFontDatabase.systemFont(qt.QFontDatabase.FixedFont)
-        else:
+        else:  # Qt < 5.2
             self.__font = qt.QFont("Monospace")
             self.__font.setStyleHint(qt.QFont.TypeWriter)
         self.__palette = qt.QPalette()
@@ -217,8 +217,7 @@ class HexaTableModel(qt.QAbstractTableModel):
 
         :param data: A numpy object or a dataset.
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         self.__connector = None
         self.__data = data
@@ -229,10 +228,7 @@ class HexaTableModel(qt.QAbstractTableModel):
                 data = data[()]
             self.__connector = _VoidConnector(data)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def arrayData(self):
         """Returns the internal data.
@@ -274,13 +270,8 @@ class HexaTableView(qt.QTableView):
     def __fixHeader(self):
         """Update the view according to the state of the auto-resize"""
         header = self.horizontalHeader()
-        if qt.qVersion() < "5.0":
-            setResizeMode = header.setResizeMode
-        else:
-            setResizeMode = header.setSectionResizeMode
-
         header.setDefaultSectionSize(30)
         header.setStretchLastSection(True)
         for i in range(0x10):
-            setResizeMode(i, qt.QHeaderView.Fixed)
-        setResizeMode(0x10, qt.QHeaderView.Stretch)
+            header.setSectionResizeMode(i, qt.QHeaderView.Fixed)
+        header.setSectionResizeMode(0x10, qt.QHeaderView.Stretch)

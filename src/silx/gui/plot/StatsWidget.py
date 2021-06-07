@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -627,10 +627,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             self.setHorizontalHeaderItem(2 + index, headerItem)
 
         horizontalHeader = self.horizontalHeader()
-        if hasattr(horizontalHeader, 'setSectionResizeMode'):  # Qt5
-            horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            horizontalHeader.setResizeMode(qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
         self._updateItemObserve()
 
