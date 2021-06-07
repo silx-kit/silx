@@ -174,6 +174,8 @@ class About(qt.QDialog):
         </table>
         <dl>
             <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
+            <dt><b>HDF5 version</b></dt><dd>{hdf5_version}</dd>
+            <dt><b>h5py version</b></dt><dd>{h5py_version}</dd>
             <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
             <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
             <dt><b>Python version</b></dt><dd>{python_version}</dd>
@@ -216,6 +218,8 @@ class About(qt.QDialog):
             esrf_url="http://www.esrf.eu",
             project_url="https://github.com/silx-kit/silx",
             silx_version=silx._version.version,
+            h5py_version=h5py.version.version,
+            hdf5_version=h5py.version.hdf5_version,
             qt_binding=qt.BINDING,
             qt_version=qt.qVersion(),
             python_version=sys.version.replace("\n", "<br />"),
