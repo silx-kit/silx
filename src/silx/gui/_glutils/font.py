@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -97,11 +97,6 @@ def rasterText(text, font,
         _logger.info("Trying to raster empty text, replaced by white space")
         text = ' '  # Replace empty text by white space to produce an image
 
-    if (devicePixelRatio != 1.0 and
-            not hasattr(qt.QImage, 'setDevicePixelRatio')):  # Qt 4
-        _logger.error('devicePixelRatio not supported')
-        devicePixelRatio = 1.0
-
     if not isinstance(font, qt.QFont):
         font = qt.QFont(font, size, weight, italic)
 
@@ -131,9 +126,7 @@ def rasterText(text, font,
     image = qt.QImage(int(width),
                       int(bounds.height() * devicePixelRatio + 2),
                       qt.QImage.Format_RGB888)
-    if (devicePixelRatio != 1.0 and
-            hasattr(image, 'setDevicePixelRatio')):  # Qt 5
-        image.setDevicePixelRatio(devicePixelRatio)
+    image.setDevicePixelRatio(devicePixelRatio)
 
     # TODO if Qt5 use Format_Grayscale8 instead
     image.fill(0)
