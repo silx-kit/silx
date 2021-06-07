@@ -806,11 +806,10 @@ class CustomNxdataWidget(qt.QTreeView):
         self.customContextMenuRequested[qt.QPoint].connect(self.__executeContextMenu)
 
     def __rowsAboutToBeInserted(self, parentIndex, start, end):
-        if qt.qVersion()[0:2] == "5.":
-            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
-            # Uses of ResizeToContents looks to break nice update of cells with Qt5
-            # This patch make the view blinking
-            self.repaint()
+        # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+        # Uses of ResizeToContents looks to break nice update of cells with Qt5
+        # This patch make the view blinking
+        self.repaint()
 
     def __rowsAboutToBeRemoved(self, parentIndex, start, end):
         """Called when an item was removed from the model."""
@@ -824,11 +823,10 @@ class CustomNxdataWidget(qt.QTreeView):
         for item in items:
             self.sigNxdataItemRemoved.emit(item)
 
-        if qt.qVersion()[0:2] == "5.":
-            # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
-            # Uses of ResizeToContents looks to break nice update of cells with Qt5
-            # This patch make the view blinking
-            self.repaint()
+        # FIXME: workaround for https://github.com/silx-kit/silx/issues/1919
+        # Uses of ResizeToContents looks to break nice update of cells with Qt5
+        # This patch make the view blinking
+        self.repaint()
 
     def __nxdataUpdate(self, index):
         """Called when a virtual NXdata was updated from the model."""
