@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -155,10 +155,6 @@ class _SideBar(qt.QListView):
 
         if not DEFAULT_SIDEBAR_URL:
             _logger.debug("Skip default sidebar URLs (from setted variable)")
-            feed_sidebar = False
-        elif version.version[0] == 4 and sys.platform in ["win32"]:
-            # Avoid locking the GUI 5min in case of use of network driver
-            _logger.debug("Skip default sidebar URLs (avoid lock when using network drivers)")
             feed_sidebar = False
         elif version < LooseVersion("5.11.2") and qt.BINDING == "PyQt5" and sys.platform in ["linux", "linux2"]:
             # Avoid segfault on PyQt5 + gtk
@@ -565,18 +561,12 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__h5 = None
         self.__fabio = None
 
-        if qt.qVersion() < "5.0":
-            # On Qt4 it is needed to provide a safe file system model
-            _logger.debug("Uses SafeFileSystemModel")
-            from .SafeFileSystemModel import SafeFileSystemModel
-            self.__fileModel = SafeFileSystemModel(self)
-        else:
-            # On Qt5 a safe icon provider is still needed to avoid freeze
-            _logger.debug("Uses default QFileSystemModel with a SafeFileIconProvider")
-            self.__fileModel = qt.QFileSystemModel(self)
-            from .SafeFileIconProvider import SafeFileIconProvider
-            iconProvider = SafeFileIconProvider()
-            self.__fileModel.setIconProvider(iconProvider)
+        # On Qt5 a safe icon provider is still needed to avoid freeze
+        _logger.debug("Uses default QFileSystemModel with a SafeFileIconProvider")
+        self.__fileModel = qt.QFileSystemModel(self)
+        from .SafeFileIconProvider import SafeFileIconProvider
+        iconProvider = SafeFileIconProvider()
+        self.__fileModel.setIconProvider(iconProvider)
 
         # The common file dialog filter only on Mac OS X
         self.__fileModel.setNameFilterDisables(sys.platform == "darwin")
