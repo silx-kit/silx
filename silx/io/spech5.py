@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -194,7 +194,7 @@ import numpy
 import six
 
 from silx import version as silx_version
-from .specfile import SpecFile
+from .specfile import SpecFile, SfErrColNotFound
 from . import commonh5
 
 __authors__ = ["P. Knobel", "D. Naudet"]
@@ -670,6 +670,10 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="positioners", parent=parent,
                                 attrs={"NX_class": to_h5py_utf8("NXcollection")})
+
+        dataset_info = []  # Store list of positioner's (name, value)
+        is_error = False   # True if error encountered
+
         for motor_name in scan.motor_names:
             safe_motor_name = motor_name.replace("/", "%")
             if motor_name in scan.labels and scan.data.shape[0] > 0:
@@ -678,10 +682,24 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
             else:
                 # Take value from #P scan header.
                 # (may return float("inf") if #P line is missing from scan hdr)
-                motor_value = scan.motor_position_by_name(motor_name)
-            self.add_node(SpecH5NodeDataset(name=safe_motor_name,
-                                            data=motor_value,
-                                            parent=self))
+                try:
+                    motor_value = scan.motor_position_by_name(motor_name)
+                except SfErrColNotFound:
+                    is_error = True
+                    motor_value = float('inf')
+            dataset_info.append((safe_motor_name, motor_value))
+
+        if is_error:  # Filter-out scalar values
+            logger1.warning("Mismatching number of elements in #P and #O: Ignoring")
+            dataset_info = [
+                (name, value) for name, value in dataset_info
+                if not isinstance(value, float)]
+
+        for name, value in dataset_info:
+            self.add_node(SpecH5NodeDataset(
+                name=name,
+                data=value,
+                parent=self))
 
 
 class InstrumentMcaGroup(commonh5.Group, SpecH5Group):

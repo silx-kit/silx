@@ -624,7 +624,7 @@ class BuildExt(build_ext):
             ext.extra_compile_args.append('-fvisibility=hidden')
 
             import numpy
-            numpy_version = [int(i) for i in numpy.version.short_version.split(".", 2)[:2]]
+            numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
             if numpy_version < [1, 16]:
                 ext.extra_compile_args.append(
                     '''-D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
