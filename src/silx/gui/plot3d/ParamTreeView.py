@@ -43,8 +43,6 @@ __date__ = "05/12/2017"
 import numbers
 import sys
 
-import six
-
 from .. import qt
 from ..widgets.FloatEdit import FloatEdit as _FloatEdit
 from ._model import visitQAbstractItemModel
@@ -354,7 +352,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             editor.setRange(*range_)
             editor.sliderReleased.connect(self._commit)
 
-        elif isinstance(data, six.string_types) and editorHint is not None:
+        elif isinstance(data, str) and editorHint is not None:
             # Use a combo box
             editor = qt.QComboBox(parent)
             if data not in editorHint:

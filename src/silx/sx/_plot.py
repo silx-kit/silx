@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ import logging
 import weakref
 
 import numpy
-import six
 
 from ..utils.weakref import WeakList
 from ..gui import qt
@@ -143,7 +142,7 @@ def plot(*args, **kwargs):
             curves.append((numpy.arange(len(first_arg)), first_arg, None))
         else:
             second_arg = args.pop(0)
-            if isinstance(second_arg, six.string_types):
+            if isinstance(second_arg, str):
                 # curve defined as (y, style)
                 y = first_arg
                 style = second_arg
@@ -151,7 +150,7 @@ def plot(*args, **kwargs):
             else:  # second_arg must be an array-like
                 x = first_arg
                 y = second_arg
-                if len(args) >= 1 and isinstance(args[0], six.string_types):
+                if len(args) >= 1 and isinstance(args[0], str):
                     # Curve defined as (x, y, style)
                     style = args.pop(0)
                     curves.append((x, y, style))

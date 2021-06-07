@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import logging
 
 import h5py
 import numpy
-import six
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -39,7 +38,7 @@ _logger = logging.getLogger(__name__)
 
 
 def _str_to_utf8(text):
-    return numpy.array(text, dtype=h5py.special_dtype(vlen=six.text_type))
+    return numpy.array(text, dtype=h5py.special_dtype(vlen=str))
 
 
 def save_NXdata(filename, signal, axes=None,

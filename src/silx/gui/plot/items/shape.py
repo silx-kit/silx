@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ __date__ = "21/12/2018"
 import logging
 
 import numpy
-import six
 
 from ... import colors
 from .core import (
@@ -142,7 +141,7 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
                          False to use internal representation (do not modify!)
         """
         if color is not None:
-            if isinstance(color, six.string_types):
+            if isinstance(color, str):
                 color = colors.rgba(color)
             else:
                 color = numpy.array(color, copy=copy)

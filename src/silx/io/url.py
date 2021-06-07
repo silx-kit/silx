@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -134,7 +134,7 @@ class DataUrl(object):
     def __str__(self):
         if self.is_valid() or self.__path is None:
             def quote_string(string):
-                if isinstance(string, six.string_types):
+                if isinstance(string, str):
                     return "'%s'" % string
                 else:
                     return string

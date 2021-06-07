@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ Other public functions:
 
 import json
 import numpy
-import six
 
 from silx.io.utils import is_group, is_file, is_dataset, h5py_read_dataset
 
@@ -247,7 +246,7 @@ class NXdata(object):
 
         if "axes" in self.group.attrs:
             axes_names = get_attr_as_unicode(self.group, "axes")
-            if isinstance(axes_names, (six.text_type, six.binary_type)):
+            if isinstance(axes_names, (str, bytes)):
                 axes_names = [axes_names]
 
             self.issues += validate_number_of_axes(self.group, signal_name,
@@ -579,7 +578,7 @@ class NXdata(object):
             else:
                 return [None] * ndims
 
-        if isinstance(axes_dataset_names, (six.text_type, six.binary_type)):
+        if isinstance(axes_dataset_names, (str, bytes)):
             axes_dataset_names = [axes_dataset_names]
 
         for i, axis_name in enumerate(axes_dataset_names):
@@ -679,14 +678,14 @@ class NXdata(object):
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
         if uncertainties_names is None:
             uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
-        if isinstance(uncertainties_names, six.text_type):
+        if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
             # take the uncertainty with the same index as the axis in @axes
             axes_ds_names = get_attr_as_unicode(self.group, "axes")
             if axes_ds_names is None:
                 axes_ds_names = get_attr_as_unicode(self.signal, "axes")
-            if isinstance(axes_ds_names, six.text_type):
+            if isinstance(axes_ds_names, str):
                 axes_ds_names = [axes_ds_names]
             elif isinstance(axes_ds_names, numpy.ndarray):
                 # transform numpy.ndarray into list

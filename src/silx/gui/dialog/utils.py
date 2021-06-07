@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,7 @@ __license__ = "MIT"
 __date__ = "25/10/2017"
 
 import os
-import sys
 import types
-
-import six
 
 from silx.gui import qt
 
@@ -46,10 +43,6 @@ def samefile(path1, path2):
     :param str path2: Another path to a file
     :rtype: bool
     """
-    if six.PY2 and sys.platform == "win32":
-        path1 = os.path.normcase(path1)
-        path2 = os.path.normcase(path2)
-        return path1 == path2
     if path1 == path2:
         return True
     if path1 == "":

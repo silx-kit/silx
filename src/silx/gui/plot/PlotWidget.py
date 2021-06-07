@@ -57,7 +57,6 @@ try:
 except ImportError:
     _logger.debug("matplotlib not available")
 
-import six
 from ..colors import Colormap
 from .. import colors
 from . import PlotInteraction
@@ -494,7 +493,7 @@ class PlotWidget(qt.QMainWindow):
         if callable(backend):
             return backend
 
-        elif isinstance(backend, six.string_types):
+        elif isinstance(backend, str):
             backend = backend.lower()
             if backend in ('matplotlib', 'mpl'):
                 try:

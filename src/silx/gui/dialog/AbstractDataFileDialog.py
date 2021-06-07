@@ -38,7 +38,6 @@ import functools
 from distutils.version import LooseVersion
 
 import numpy
-import six
 
 import silx.io.url
 from silx.gui import qt
@@ -474,7 +473,7 @@ class _FabioData(object):
         if isinstance(selector, tuple) and len(selector) == 1:
             selector = selector[0]
 
-        if isinstance(selector, six.integer_types):
+        if isinstance(selector, int):
             if 0 <= selector < self.__fabioFile.nframes:
                 if self.__fabioFile.nframes == 1:
                     return self.__fabioFile.data

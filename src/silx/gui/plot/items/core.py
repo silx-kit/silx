@@ -42,7 +42,6 @@ import warnings
 import weakref
 
 import numpy
-import six
 
 from ....utils.deprecation import deprecated
 from ....utils.proxy import docstring
@@ -925,7 +924,7 @@ class ColorMixIn(ItemMixInBase):
         :param bool copy: True (Default) to get a copy,
                          False to use internal representation (do not modify!)
         """
-        if isinstance(color, six.string_types):
+        if isinstance(color, str):
             color = colors.rgba(color)
         elif isinstance(color, qt.QColor):
             color = colors.rgba(color)

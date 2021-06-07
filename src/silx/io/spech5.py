@@ -191,7 +191,6 @@ import io
 
 import h5py
 import numpy
-import six
 
 from silx import version as silx_version
 from .specfile import SpecFile, SfErrColNotFound
@@ -204,7 +203,7 @@ __date__ = "17/07/2018"
 logger1 = logging.getLogger(__name__)
 
 
-text_dtype = h5py.special_dtype(vlen=six.text_type)
+text_dtype = h5py.special_dtype(vlen=str)
 
 
 def to_h5py_utf8(str_list):
@@ -472,7 +471,7 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             # use unicode (utf-8 when saved to HDF5 output)
             value = to_h5py_utf8(data)
         elif isinstance(data, float):
@@ -797,7 +796,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     def __getitem__(self, item):
         # optimization for fetching a single spectrum if data not already loaded
         if not self._is_initialized:
-            if isinstance(item, six.integer_types):
+            if isinstance(item, int):
                 if item < 0:
                     # negative indexing
                     item += len(self)
@@ -806,7 +805,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
             # accessing a slice or element of a single spectrum [i, j:k]
             try:
                 spectrum_idx, channel_idx_or_slice = item
-                assert isinstance(spectrum_idx, six.integer_types)
+                assert isinstance(spectrum_idx, int)
             except (ValueError, TypeError, AssertionError):
                 pass
             else:
