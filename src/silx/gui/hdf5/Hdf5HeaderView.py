@@ -62,7 +62,7 @@ class Hdf5HeaderView(qt.QHeaderView):
     def setModel(self, model):
         """Override model to configure view when a model is expected
 
-        `qt.QHeaderView.setResizeMode` expect already existing columns
+        `qt.QHeaderView.setSectionResizeMode` expect already existing columns
         to work.
 
         :param model qt.QAbstractItemModel: A model

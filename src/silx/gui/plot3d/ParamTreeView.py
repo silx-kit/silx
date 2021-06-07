@@ -433,10 +433,7 @@ class ParamTreeView(qt.QTreeView):
 
         header = self.header()
         header.setMinimumSectionSize(128)  # For colormap pixmaps
-        if hasattr(header, 'setSectionResizeMode'):  # Qt5
-            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            header.setResizeMode(qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
         delegate = ParameterTreeDelegate()
         self.setItemDelegate(delegate)
