@@ -830,8 +830,6 @@ def get_project_configuration(dry_run):
         # for io support
         "h5py",
         "fabio>=0.9",
-        # Python 2/3 compatibility
-        "six",
         ]
 
     # Add Python 2.7 backports
