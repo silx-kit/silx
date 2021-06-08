@@ -594,7 +594,7 @@ class RegionOfInterestManager(qt.QObject):
             roi.setInteractionMode(mode)
 
     def _feedContextMenu(self, menu):
-        """Called wen the default plot context menu is about to be displayed"""
+        """Called when the default plot context menu is about to be displayed"""
         roi = self.getCurrentRoi()
         if roi is not None:
             if roi.isEditable():
@@ -631,10 +631,8 @@ class RegionOfInterestManager(qt.QObject):
                 action.triggered.connect(callback)
             modeGroup.addAction(action)
             submenu.addAction(action)
-        action = qt.QAction(menu)
-        action.setMenu(submenu)
-        action.setText("%s interaction mode" % roi.getName())
-        menu.addAction(action)
+        submenu.setTitle("%s interaction mode" % roi.getName())
+        menu.addMenu(submenu)
 
     # RegionOfInterest API
 
