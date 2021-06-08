@@ -29,10 +29,8 @@ __license__ = "MIT"
 __date__ = "29/01/2018"
 
 import logging
-import six
 from collections.abc import Iterable
-
-parse = six.moves.urllib.parse
+import urllib.parse
 
 
 _logger = logging.getLogger(__name__)
@@ -217,7 +215,7 @@ class DataUrl(object):
         # data_slice if == ::2 for example
         if '?' not in path:
             path = path.replace("::", "?", 1)
-        url = parse.urlparse(path)
+        url = urllib.parse.urlparse(path)
 
         is_valid = True
 
@@ -238,7 +236,7 @@ class DataUrl(object):
         self.__scheme = scheme
         self.__file_path = file_path
 
-        query = parse.parse_qsl(url.query, keep_blank_values=True)
+        query = urllib.parse.parse_qsl(url.query, keep_blank_values=True)
         if len(query) == 1 and query[0][1] == "":
             # there is no query keys
             data_path = query[0][0]
