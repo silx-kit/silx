@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,8 @@ import json
 import logging
 import tempfile
 import unittest
-import six
+import urllib.request
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
@@ -141,17 +142,17 @@ class ExternalResources(object):
             if "https_proxy" in os.environ:
                 dictProxies['https'] = os.environ["https_proxy"]
             if dictProxies:
-                proxy_handler = six.moves.urllib.request.ProxyHandler(dictProxies)
-                opener = six.moves.urllib.request.build_opener(proxy_handler).open
+                proxy_handler = urllib.request.ProxyHandler(dictProxies)
+                opener = urllib.request.build_opener(proxy_handler).open
             else:
-                opener = six.moves.urllib.request.urlopen
+                opener = urllib.request.urlopen
 
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener("%s/%s" % (self.url_base, filename),
                               data=None, timeout=self.timeout).read()
                 logger.info("Image %s successfully downloaded.", filename)
-            except six.moves.urllib.error.URLError:
+            except urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
             if not os.path.isdir(os.path.dirname(fullfilename)):

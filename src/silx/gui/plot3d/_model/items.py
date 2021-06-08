@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,6 @@ import logging
 import weakref
 
 import numpy
-import six
 
 from ...utils.image import convertArrayToQImage
 from ...colors import preferredColormaps
@@ -296,7 +295,7 @@ class Item3DRow(BaseRow):
     """Events for which to update the first column in the tree"""
 
     def __init__(self, item, name=None):
-        self.__name = None if name is None else six.text_type(name)
+        self.__name = None if name is None else str(name)
         super(Item3DRow, self).__init__()
 
         self.setFlags(
@@ -524,12 +523,12 @@ class DataItem3DTransformRow(StaticRow):
         :param int index: dimension to convert
         """
         value = center[index]
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return value.title()
         elif value == 0.:
             return 'Origin'
         else:
-            return six.text_type(value)
+            return str(value)
 
     def _setCenter(self, value, index):
         """Set one dimension of the rotation center.

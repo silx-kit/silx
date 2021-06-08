@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,6 @@ import logging
 
 import h5py
 import numpy
-import six
 
 import silx.io
 from silx.io import is_dataset, is_group, is_softlink
@@ -109,11 +108,10 @@ def _attr_utf8(attr_value):
     :param attr_value: String (possibly bytes if PY2)
     :return: Attr ready to be written by h5py as utf8
     """
-    if isinstance(attr_value, six.binary_type) or \
-       isinstance(attr_value, six.text_type):
+    if isinstance(attr_value, (bytes, str)):
         out_attr_value = numpy.array(
             attr_value,
-            dtype=h5py.special_dtype(vlen=six.text_type))
+            dtype=h5py.special_dtype(vlen=str))
     else:
         out_attr_value = attr_value
 

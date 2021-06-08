@@ -31,7 +31,6 @@ from __future__ import division
 import collections
 
 import numpy
-import six
 
 from silx.gui import qt
 import silx.io.utils
@@ -79,11 +78,7 @@ class _VoidConnector(object):
         bufferId = pos >> 10
         bufferPos = pos & 0b1111111111
         data = self.__getBuffer(bufferId)
-        value = data[bufferPos]
-        if six.PY2:
-            return ord(value)
-        else:
-            return value
+        return data[bufferPos]
 
     def __len__(self):
         """

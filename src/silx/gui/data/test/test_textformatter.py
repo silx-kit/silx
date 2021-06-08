@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import shutil
 import tempfile
 
 import numpy
-import six
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
@@ -168,7 +167,7 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, '["abc"]')
 
     def testArrayUnicode(self):
-        dtype = h5py.special_dtype(vlen=six.text_type)
+        dtype = h5py.special_dtype(vlen=str)
         d = numpy.array([u"i\u2661cookies"], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)

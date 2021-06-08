@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,6 @@ import inspect
 import types
 import logging
 
-import six
-
 
 debug_logger = logging.getLogger("silx.DEBUG")
 
@@ -52,11 +50,10 @@ def log_method(func, class_name=None):
         global _indent
 
         indent = "  " * _indent
-        func_name = func.func_name if six.PY2 else func.__name__
         if class_name is not None:
-            name = "%s.%s" % (class_name, func_name)
+            name = "%s.%s" % (class_name, func.__name__)
         else:
-            name = "%s" % (func_name)
+            name = "%s" % func.__name__
 
         debug_logger.warning("%s%s" % (indent, name))
         _indent += 1

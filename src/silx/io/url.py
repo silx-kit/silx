@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,8 @@ __license__ = "MIT"
 __date__ = "29/01/2018"
 
 import logging
-import six
 from collections.abc import Iterable
-
-parse = six.moves.urllib.parse
+import urllib.parse
 
 
 _logger = logging.getLogger(__name__)
@@ -134,7 +132,7 @@ class DataUrl(object):
     def __str__(self):
         if self.is_valid() or self.__path is None:
             def quote_string(string):
-                if isinstance(string, six.string_types):
+                if isinstance(string, str):
                     return "'%s'" % string
                 else:
                     return string
@@ -217,7 +215,7 @@ class DataUrl(object):
         # data_slice if == ::2 for example
         if '?' not in path:
             path = path.replace("::", "?", 1)
-        url = parse.urlparse(path)
+        url = urllib.parse.urlparse(path)
 
         is_valid = True
 
@@ -238,7 +236,7 @@ class DataUrl(object):
         self.__scheme = scheme
         self.__file_path = file_path
 
-        query = parse.parse_qsl(url.query, keep_blank_values=True)
+        query = urllib.parse.parse_qsl(url.query, keep_blank_values=True)
         if len(query) == 1 and query[0][1] == "":
             # there is no query keys
             data_path = query[0][0]

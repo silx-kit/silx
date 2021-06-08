@@ -31,7 +31,6 @@ import sys
 import tempfile
 
 import numpy
-import six
 
 logging.basicConfig()
 _logger = logging.getLogger("hdf5widget")
@@ -59,7 +58,7 @@ _file_cache = {}
 
 def str_attrs(str_list):
     """Return a numpy array of unicode strings"""
-    text_dtype = h5py.special_dtype(vlen=six.text_type)
+    text_dtype = h5py.special_dtype(vlen=str)
     return numpy.array(str_list, dtype=text_dtype)
 
 
