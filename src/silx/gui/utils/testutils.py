@@ -178,6 +178,8 @@ class TestCaseQt(unittest.TestCase):
                 "Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
+        self.qapp.processEvents()
+
         if len(self.__class__._exceptions) > 0:
             messages = "\n".join(self.__class__._exceptions)
             raise AssertionError("Exception occured in Qt thread:\n" + messages)
