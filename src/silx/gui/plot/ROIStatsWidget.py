@@ -102,7 +102,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
                 raise ValueError('kind not managed')
         return list(filter(lambda x: is_compatible(x, kind), self._rois))
 
-    def exec_(self):
+    def exec(self):
         self._kindCB.clear()
         self._itemCB.clear()
         # filter kind without any items
@@ -143,7 +143,10 @@ class _GetROIItemCoupleDialog(qt.QDialog):
             self._kindCB.addItem(kind)
         self._updateValidItemAndRoi()
 
-        return qt.QDialog.exec_(self)
+        return qt.QDialog.exec(self)
+
+    def exec_(self):  # Qt5 compatibility
+        return self.exec()
 
     def _updateValidItemAndRoi(self, *args, **kwargs):
         self._itemCB.clear()
@@ -724,7 +727,7 @@ class ROIStatsWidget(qt.QMainWindow):
         """Ask the user what couple ROI / item he want to display"""
         dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
                                          rois=self._rois)
-        if dialog.exec_():
+        if dialog.exec():
             self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
 
     def addItem(self, plotItem, roi):
