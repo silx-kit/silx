@@ -268,7 +268,7 @@ class ParametersTab(qt.QTabWidget):
 
         # Show first fit result in another tab in our widget
         w.fillFromFit(fit.fit_results, view='Asymetric gaussians')
-        a.exec_()
+        a.exec()
 
     """
 
@@ -548,7 +548,7 @@ def test():
     pw.addCurve(x, y2, "Asymetric gaussians")
     pw.show()
 
-    a.exec_()
+    a.exec()
 
 
 if __name__ == "__main__":

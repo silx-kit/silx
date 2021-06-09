@@ -881,7 +881,7 @@ class CustomNxdataWidget(qt.QTreeView):
         menu = self.createDefaultContextMenu(index)
         if menu is None or menu.isEmpty():
             return
-        menu.exec_(qt.QCursor.pos())
+        menu.exec(qt.QCursor.pos())
 
     def removeDatasetsFrom(self, root):
         """

@@ -190,4 +190,4 @@ def exceptionHandler(type_, value, trace):
     msg.setInformativeText("%s %s\nPlease report details" % (type_, value))
     msg.setDetailedText(("%s " % value) + ''.join(traceback.format_tb(trace)))
     msg.raise_()
-    msg.exec_()
+    msg.exec()

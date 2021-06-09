@@ -196,4 +196,4 @@ if __name__ == "__main__":
     window.show()
 
     qt.QTimer.singleShot(1000, app.quit)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

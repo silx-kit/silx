@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -183,7 +183,7 @@ class GroupDialog(_Hdf5ItemSelectionDialog):
         dialog.addFile(filepath1)
         dialog.addFile(filepath2)
 
-        if dialog.exec_():
+        if dialog.exec():
             print("File path: %s" % dialog.getSelectedDataUrl().file_path())
             print("HDF5 group path : %s " % dialog.getSelectedDataUrl().data_path())
         else:

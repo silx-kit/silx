@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2018 V.A. Sole, European Synchrotron Radiation Facility
+# Copyright (C) 2004-2021 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -533,11 +533,11 @@ def main():
 
     tdd = getFitConfigDialog(mw, default={"a": 1})
     tdd.show()
-    tdd.exec_()
+    tdd.exec()
     print("TabsDialogData result: ", tdd.result())
     print("TabsDialogData output: ", tdd.output)
 
-    a.exec_()
+    a.exec()
 
 if __name__ == "__main__":
     main()

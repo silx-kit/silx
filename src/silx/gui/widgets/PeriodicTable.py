@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -84,7 +84,7 @@ This example uses the widgets with the standard builtin elements list.
     pcombo.sigSelectionChanged.connect(change_combo)
 
     w.show()
-    a.exec_()
+    a.exec()
 
 
 The second example explains how to define custom elements.
@@ -129,7 +129,7 @@ The second example explains how to define custom elements.
         print("New table click, mass number:", item.A)
 
     ptable.sigElementClicked.connect(click_table)
-    app.exec_()
+    app.exec()
 
 """
 
@@ -509,7 +509,7 @@ class PeriodicTable(qt.QWidget):
          pt = PeriodicTable()
          pt.sigElementClicked.connect(pt.elementToggle)
          pt.show()
-         app.exec_()
+         app.exec()
 
     To print all selected elements each time a new element is selected::
 

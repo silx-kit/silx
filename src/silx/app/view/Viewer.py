@@ -764,7 +764,7 @@ class Viewer(qt.QMainWindow):
         else:
             dialog.restoreState(self.__dialogState)
 
-        result = dialog.exec_()
+        result = dialog.exec()
         if not result:
             return
 

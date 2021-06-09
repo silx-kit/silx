@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -149,7 +149,7 @@ class GroupPropertiesWidget(qt.QWidget):
             self._colormapDialog.setColormap(self._colormap)
 
         previousColormap = self._colormapDialog.getColormap()
-        if self._colormapDialog.exec_():
+        if self._colormapDialog.exec():
             colormap = self._colormapDialog.getColormap()
 
             for item in group.visit():

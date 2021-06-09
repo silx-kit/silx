@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1365,7 +1365,7 @@ def test(a):
         # Offset of 1 to see the difference in log scale
         plot1D(x, (y_synthetic + 1, y_fit), "Input data + 1, Fit")
 
-        app.exec_()
+        app.exec()
     except ImportError:
         _logger.warning("Unable to load qt binding, can't plot results.")
 

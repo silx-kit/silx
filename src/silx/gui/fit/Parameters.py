@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -876,7 +876,7 @@ def main(args):
     fit.runfit()
     tab.fillFromFit(fit.fit_results)
     tab.show()
-    app.exec_()
+    app.exec()
 
 if __name__ == "__main__":
     main(sys.argv)
