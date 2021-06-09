@@ -150,6 +150,25 @@ else:
     raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
 
 
+if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility monkey-patching
+    # QtWidgets
+    QApplication.exec = lambda self: QApplication.exec_(self)
+    QColorDialog.exec = lambda self: QColorDialog.exec_(self)
+    QDialog.exec = lambda self: QDialog.exec_(self)
+    QErrorMessage.exec = lambda self: QErrorMessage.exec_(self)
+    QFileDialog.exec = lambda self: QFileDialog.exec_(self)
+    QFontDialog.exec = lambda self: QFontDialog.exec_(self)
+    QInputDialog.exec = lambda self: QInputDialog.exec_(self)
+    QMenu.exec = lambda self: QMenu.exec_(self)
+    QMessageBox.exec = lambda self: QMessageBox.exec_(self)
+    QProgressDialog.exec = lambda self: QProgressDialog.exec_(self)
+    #QtCore
+    QCoreApplication.exec = lambda self: QCoreApplication.exec_(self)
+    QEventLoop.exec = lambda self: QEventLoop.exec_(self)
+    QTextStreamManipulator.exec = lambda self: QTextStreamManipulator.exec_(self)
+    QThread.exec = lambda self: QThread.exec_(self)
+
+
 # provide a exception handler but not implement it by default
 def exceptionHandler(type_, value, trace):
     """
