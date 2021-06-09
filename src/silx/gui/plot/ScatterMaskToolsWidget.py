@@ -488,7 +488,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                     strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
                             "Input Output Error: %s" % strerror)
-                msg.()
+                msg.exec()
                 return
 
         # Update the directory according to the user selection
