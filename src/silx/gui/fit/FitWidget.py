@@ -163,7 +163,7 @@ class FitWidget(qt.QWidget):
 
             - :meth:`show`: should cause the widget to become visible to the
               user)
-            - :meth:`exec_`: should run while the user is interacting with the
+            - :meth:`exec`: should run while the user is interacting with the
               widget, interrupting the rest of the program. It should
               typically end (*return*) when the user clicks an *OK*
               or a *Cancel* button.
@@ -365,7 +365,7 @@ class FitWidget(qt.QWidget):
         :raise: KeyError if parameter ``theory_name`` does not match an
             existing fit theory or background theory in :attr:`fitmanager`.
         :raise: AttributeError if the widget does not implement the mandatory
-            methods (*show*, *exec_*, *result*, *setDefault*) or the mandatory
+            methods (*show*, *exec*, *result*, *setDefault*) or the mandatory
             attribute (*output*).
         """
         theories = self.fitmanager.bgtheories if theory_is_background else\
@@ -375,7 +375,12 @@ class FitWidget(qt.QWidget):
             raise KeyError("%s does not match an existing fitmanager theory")
 
         if config_widget is not None:
-            for mandatory_attr in ["show", "exec_", "result", "output"]:
+            if (not hasattr(config_widget, "exec") and
+                    not hasattr(config_widget, "exec_")):
+                raise AttributeError(
+                    "Custom configuration widget must define exec or exec_")
+
+            for mandatory_attr in ["show", "result", "output"]:
                 if not hasattr(config_widget, mandatory_attr):
                     raise AttributeError(
                             "Custom configuration widget must define " +
@@ -473,7 +478,10 @@ class FitWidget(qt.QWidget):
         if hasattr(configdialog, "setDefault"):
             configdialog.setDefault(newconfiguration)
         configdialog.show()
-        configdialog.exec_()
+        if hasattr(configdialog, "exec"):
+            configdialog.exec()
+        else:  # Qt5 compatibility
+            configdialog.exec_()
         if configdialog.result():
             newconfiguration.update(configdialog.output)
 
@@ -509,7 +517,7 @@ class FitWidget(qt.QWidget):
                 text += "yourself in the table and press Start Fit\n"
                 msg.setText(text)
                 msg.setWindowTitle('FitWidget Message')
-                msg.exec_()
+                msg.exec()
                 return
         except Exception as e:    # noqa (we want to catch and report all errors)
             _logger.warning('Estimate error: %s', traceback.format_exc())
@@ -517,7 +525,7 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Estimate Error")
             msg.setText("Error on estimate: %s" % e)
-            msg.exec_()
+            msg.exec()
             ddict = {
                 'event': 'EstimateFailed',
                 'data': None}
@@ -561,7 +569,7 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Fit Error")
             msg.setText("Error on Fit: %s" % e)
-            msg.exec_()
+            msg.exec()
             ddict = {
                 'event': 'FitFailed',
                 'data': None
@@ -735,4 +743,4 @@ if __name__ == "__main__":
     w = FitWidget()
     w.setData(x=x, y=y)
     w.show()
-    a.exec_()
+    a.exec()
