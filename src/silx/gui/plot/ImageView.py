@@ -69,6 +69,7 @@ from ..utils import blockSignals
 from . import _utils
 from .tools.profile import manager
 from .tools.profile import rois
+from .actions import PlotAction
 
 _logger = logging.getLogger(__name__)
 
@@ -319,6 +320,25 @@ class _SideHistogram(PlotWidget):
             dataAxis.setLimits(vMin, vMax)
 
 
+class ShowSideHistogramsAction(PlotAction):
+    """QAction to change visibility of side histogram of a :class:`.ImageView`.
+
+    :param plot: :class:`.ImageView` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ShowSideHistogramsAction, self).__init__(
+            plot, icon='side-histograms', text='Show/hide side histograms',
+            tooltip='Show/hide side histogram',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+
+    def _actionTriggered(self, checked=False):
+        if self.plot.isSideHistogramDisplayed() != checked:
+            self.plot.setSideHistogramDisplayed(checked)
+
+
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
 
@@ -384,6 +404,9 @@ class ImageView(PlotWindow):
         maskToolsWidget = self.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
 
+        self.__showSideHistogramsAction = ShowSideHistogramsAction(self, self)
+        self.__showSideHistogramsAction.setChecked(True)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
@@ -391,6 +414,9 @@ class ImageView(PlotWindow):
             self.getYAxis().setInverted(True)
 
         self._initWidgets(backend)
+
+        toolBar = self.toolBar()
+        toolBar.addAction(self.__showSideHistogramsAction)
 
         self.__profileWindowBehavior = self.ProfileWindowBehavior.POPUP
         self.__profile = ProfileToolBar(plot=self)
@@ -463,6 +489,20 @@ class ImageView(PlotWindow):
 
     def _dirtyCache(self):
         self._cache = None
+
+    def getShowSideHistogramsAction(self):
+        return self.__showSideHistogramsAction
+
+    def setSideHistogramDisplayed(self, show):
+        """Display or not the side histograms"""
+        self._histoHPlot.setVisible(show)
+        self._histoVPlot.setVisible(show)
+        self._radarView.setVisible(show)
+        self.__showSideHistogramsAction.setChecked(show)
+
+    def isSideHistogramDisplayed(self):
+        """True if the side histograms are displayed"""
+        return self._histoHPlot.isVisible()
 
     def _updateHistograms(self):
         """Update histograms content using current active image."""
@@ -804,6 +844,7 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(self.getColormapAction())
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
+        menu.addAction(self.getShowSideHistogramsAction())
 
         self.__profileMenu = self.menuBar().addMenu('Profile')
         self.__updateProfileMenu()
