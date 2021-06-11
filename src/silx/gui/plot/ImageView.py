@@ -345,7 +345,7 @@ class ImageView(PlotWindow):
     """Minimum size in pixels of the image area."""
 
     # Qt signals
-    valueChanged = qt.Signal(float, float, float)
+    valueChanged = qt.Signal(float, float, object)
     """Signals that the data value under the cursor has changed.
 
     It provides: row, column, data value.
@@ -483,7 +483,7 @@ class ImageView(PlotWindow):
             activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData(copy=False)
-                height, width = data.shape
+                height, width = data.shape[0:2]
 
                 # Get corresponding coordinate in image
                 origin = activeImage.getOrigin()
@@ -756,7 +756,7 @@ class ImageView(PlotWindow):
 
         data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
-        assert len(data.shape) == 2
+        assert data.ndim in (2, 3)
 
         self.addImage(data,
                       legend=self._imageLegend,
@@ -821,6 +821,20 @@ class ImageViewMainWindow(ImageView):
         self.__profileMenu.addAction(profile.lineAction)
         self.__profileMenu.addAction(profile.clearAction)
 
+    def _formatValueToString(self, value):
+        try:
+            if isinstance(value, numpy.ndarray):
+                if len(value) == 4:
+                    return "RGBA: %i %i %i %i" % (value[0], value[1], value[2], value[3])
+                elif len(value) == 3:
+                    return "RGB: %i %i %i" % (value[0], value[1], value[2])
+            else:
+                return "Value: %g" % value
+        except Exception:
+            _logger.error("Error while formatting pixel value", exc_info=True)
+            pass
+        return "Value: %s" % value
+
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
         if numpy.isnan(row):
@@ -828,8 +842,8 @@ class ImageViewMainWindow(ImageView):
         elif numpy.isnan(column):
             msg = 'Row: %d, Sum: %g' % (int(row), value)
         else:
-            msg = 'Position: (%d, %d), Value: %g' % (int(row), int(column),
-                                                     value)
+            msg_value = self._formatValueToString(value)
+            msg = 'Position: (%d, %d), %s' % (int(row), int(column), msg_value)
         if self._dataInfo is not None:
             msg = self._dataInfo + ', ' + msg
 
@@ -843,8 +857,8 @@ class ImageViewMainWindow(ImageView):
     @docstring(ImageView)
     def setImage(self, image, *args, **kwargs):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
-            assert len(image.shape) == 2
-            height, width = image.shape
+            assert image.ndim in (2, 3)
+            height, width = image.shape[0:2]
             self._dataInfo = 'Data: %dx%d (%s)' % (width, height,
                                                    str(image.dtype))
             self.statusBar().showMessage(self._dataInfo)
