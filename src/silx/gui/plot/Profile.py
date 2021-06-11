@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,16 +57,43 @@ class _CustomProfileManager(manager.ProfileManager):
     if it is specified. Else the behavior is the same as the default
     ProfileManager """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__profileWindow = None
+        self.__specializedProfileWindows = {}
+
+    def setSpecializedProfileWindow(self, roiClass, profileWindow):
+        """Set a profile window for a given class or ROI.
+
+        Setting profileWindow to None removes the roiClass from the list.
+
+        :param roiClass:
+        :param profileWindow:
+        """
+        if profileWindow is None:
+            self.__specializedProfileWindows.pop(roiClass, None)
+        else:
+            self.__specializedProfileWindows[roiClass] = profileWindow
+
     def setProfileWindow(self, profileWindow):
         self.__profileWindow = profileWindow
 
     def createProfileWindow(self, plot, roi):
+        for roiClass, specializedProfileWindow in self.__specializedProfileWindows.items():
+            if isinstance(roi, roiClass):
+                return specializedProfileWindow
+
         if self.__profileWindow is not None:
             return self.__profileWindow
         else:
             return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
 
     def clearProfileWindow(self, profileWindow):
+        for specializedProfileWindow in self.__specializedProfileWindows.values():
+            if profileWindow is specializedProfileWindow:
+                profileWindow.setProfile(None)
+                return
+
         if self.__profileWindow is not None:
             self.__profileWindow.setProfile(None)
         else:
