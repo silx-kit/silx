@@ -433,19 +433,19 @@ class ImageView(PlotWindow):
         """Set central widget with all its content"""
         layout = qt.QGridLayout()
         layout.addWidget(self.getWidgetHandle(), 0, 0)
-        layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
-        layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
+        layout.addWidget(self._histoVPlot, 0, 1)
+        layout.addWidget(self._histoHPlot, 1, 0)
         layout.addWidget(self._radarView, 1, 1, 1, 2)
         layout.addWidget(self.getColorBarWidget(), 0, 2)
 
-        layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
-        layout.setColumnStretch(0, 1)
-        layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
-        layout.setColumnStretch(1, 0)
+        self._radarView.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._radarView.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._histoVPlot.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
 
-        layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
         layout.setRowStretch(0, 1)
-        layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
         layout.setRowStretch(1, 0)
 
         layout.setSpacing(0)
