@@ -7,7 +7,11 @@ Change Log
 Minor release:
 
 * `silx.io.spech5`: Enhanced robustness for missing positioner values (PR #3477)
-* `silx.gui`: Fixed naming of some loggers (PR #3477)
+* `silx.gui`:
+
+  * Fixed naming of some loggers (PR #3477)
+  * Fixed assert on ImageStack when length of urls > 0 (PR #3491)
+
 * Misc: Fixed support of `numpy` 1.21rc1 (PR #3477)
 
 0.15.1: 2021/05/17
