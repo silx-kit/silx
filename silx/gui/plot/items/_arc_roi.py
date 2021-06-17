@@ -29,6 +29,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "28/06/2018"
 
+import logging
 import numpy
 
 from ... import utils
@@ -38,6 +39,9 @@ from ....utils.proxy import docstring
 from ._roi_base import HandleBasedROI
 from ._roi_base import InteractionModeMixIn
 from ._roi_base import RoiInteractionMode
+
+
+logger = logging.getLogger(__name__)
 
 
 class _ArcGeometry:
@@ -779,7 +783,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             If `startAngle` is smaller than `endAngle` the rotation is clockwise,
             else the rotation is anticlockwise.
         """
-        assert innerRadius <= outerRadius
+        if innerRadius > outerRadius:
+            logger.error("inner radius larger than outer radius")
+            innerRadius, outerRadius = outerRadius, innerRadius
         assert numpy.abs(startAngle - endAngle) <= 2 * numpy.pi
         center = numpy.array(center)
         radius = (innerRadius + outerRadius) * 0.5
