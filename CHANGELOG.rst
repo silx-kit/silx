@@ -10,7 +10,8 @@ Minor release:
 * `silx.gui`:
 
   * Fixed naming of some loggers (PR #3477)
-  * Fixed assert on ImageStack when length of urls > 0 (PR #3491)
+  * Fixed assert on `ImageStack` when length of urls > 0 (PR #3491)
+  * `silx.gui.plot`: Fixed `ArcROI.setGeometry` (PR #3493)
 
 * Misc: Fixed support of `numpy` 1.21rc1 (PR #3477)
 
