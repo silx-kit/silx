@@ -179,8 +179,7 @@ class UrlList(qt.QWidget):
         sel_items = self._listWidget.findItems(url.path(), qt.Qt.MatchExactly)
         if sel_items is None:
             _logger.warning(url.path(), ' is not registered in the list.')
-        else:
-            assert len(sel_items) == 1
+        elif len(sel_items) > 0:
             item = sel_items[0]
             self._listWidget.setCurrentItem(item)
             self.sigCurrentUrlChanged.emit(item.text())
