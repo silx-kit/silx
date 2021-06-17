@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -786,7 +786,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         if innerRadius > outerRadius:
             logger.error("inner radius larger than outer radius")
             innerRadius, outerRadius = outerRadius, innerRadius
-        assert numpy.abs(startAngle - endAngle) <= 2 * numpy.pi
         center = numpy.array(center)
         radius = (innerRadius + outerRadius) * 0.5
         weight = outerRadius - innerRadius
