@@ -756,7 +756,7 @@ class ImageView(PlotWindow):
 
         data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
-        assert data.ndim in (2, 3)
+        assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
 
         self.addImage(data,
                       legend=self._imageLegend,
