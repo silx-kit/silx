@@ -52,12 +52,12 @@ if ocl is not None:
     from .. import pyopencl
     import pyopencl.array
     from pyopencl.elementwise import ElementwiseKernel
-from ...test.utils import test_options
 
 EPS32 = numpy.finfo("float32").eps
 EPS64 = numpy.finfo("float64").eps
 
 
+@unittest.skipUnless(ocl, "PyOpenCl is missing")
 class TestDoubleWord(unittest.TestCase):
     """
     Test the kernels for compensated math in OpenCL
@@ -65,8 +65,6 @@ class TestDoubleWord(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not test_options.WITH_OPENCL_TEST:
-            raise unittest.SkipTest("User request to skip OpenCL tests")
         if pyopencl is None or ocl is None:
             raise unittest.SkipTest("OpenCL module (pyopencl) is not present or no device available")
 
