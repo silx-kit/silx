@@ -13,6 +13,7 @@ Minor release:
   * Fixed assert on `ImageStack` when length of urls > 0 (PR #3491)
   * `silx.gui.plot`: Fixed `ArcROI.setGeometry` (PR #3493)
 
+* `silx.opencl`: Expose the double-word library and include it in tests (PR #3466)
 * Misc: Fixed support of `numpy` 1.21rc1 (PR #3477)
 
 0.15.1: 2021/05/17
