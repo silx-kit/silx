@@ -857,7 +857,7 @@ class ImageViewMainWindow(ImageView):
     @docstring(ImageView)
     def setImage(self, image, *args, **kwargs):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
-            assert image.ndim in (2, 3)
+            assert image.ndim == 2 or (image.ndim == 3 and image.shape[2] in (3, 4))
             height, width = image.shape[0:2]
             self._dataInfo = 'Data: %dx%d (%s)' % (width, height,
                                                    str(image.dtype))
