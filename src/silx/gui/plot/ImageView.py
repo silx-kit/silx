@@ -827,7 +827,7 @@ class ImageViewMainWindow(ImageView):
                 if len(value) == 4:
                     return "RGBA: %.3g, %.3g, %.3g, %.3g" % (value[0], value[1], value[2], value[3])
                 elif len(value) == 3:
-                    return "RGB: %i %i %i" % (value[0], value[1], value[2])
+                    return "RGB: %.3g, %.3g, %.3g" % (value[0], value[1], value[2])
             else:
                 return "Value: %g" % value
         except Exception:
