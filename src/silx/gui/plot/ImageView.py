@@ -825,7 +825,7 @@ class ImageViewMainWindow(ImageView):
         try:
             if isinstance(value, numpy.ndarray):
                 if len(value) == 4:
-                    return "RGBA: %i %i %i %i" % (value[0], value[1], value[2], value[3])
+                    return "RGBA: %.3g, %.3g, %.3g, %.3g" % (value[0], value[1], value[2], value[3])
                 elif len(value) == 3:
                     return "RGB: %i %i %i" % (value[0], value[1], value[2])
             else:
