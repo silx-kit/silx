@@ -1,12 +1,16 @@
 Change Log
 ==========
 
-0.15.2:
--------
+0.15.2: 2021/06/21
+------------------
 
 Minor release:
 
-* `silx.io.spech5`: Enhanced robustness for missing positioner values (PR #3477)
+* `silx.io`:
+
+  * `silx.io.spech5`: Enhanced robustness for missing positioner values (PR #3477)
+  * `silx.io.url`: Fixed `DataUrl.is_absolute` (PR #3467)
+
 * `silx.gui`:
 
   * Fixed naming of some loggers (PR #3477)
