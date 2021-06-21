@@ -1,6 +1,36 @@
 Change Log
 ==========
 
+0.15.2: 2021/06/21
+------------------
+
+Minor release:
+
+* `silx.io`:
+
+  * `silx.io.spech5`: Enhanced robustness for missing positioner values (PR #3477)
+  * `silx.io.url`: Fixed `DataUrl.is_absolute` (PR #3467)
+
+* `silx.gui`:
+
+  * Fixed naming of some loggers (PR #3477)
+  * Fixed assert on `ImageStack` when length of urls > 0 (PR #3491)
+  * `silx.gui.plot`: Fixed `ArcROI.setGeometry` (PR #3493)
+
+* `silx.opencl`: Expose the double-word library and include it in tests (PR #3466)
+* Misc: Fixed support of `numpy` 1.21rc1 (PR #3477)
+
+0.15.1: 2021/05/17
+------------------
+
+Minor release:
+
+* silx.gui.plot.PlotWidget: Fixed `PlotWidget` OpenGL backend memory leak (PR #3448)
+* silx.gui.plot.ImageView:
+
+  * Fixed profile window default behavior (PR #3458)
+  * Added `setProfileWindowBehavior` method (PR #3458)
+
 0.15.0: 2021/03/18
 ------------------
 
@@ -69,6 +99,14 @@ Main new features are the `silx.io.h5py_utils` module which provides `h5py` conc
   * Updated documentation (PR #3383, #3387, #3409, #3416, #3427)
   * Fixed debian packaging (PR #3362)
   * Fixed `silx test` application on Windows (PR #3411)
+
+0.14.1: 2021/04/30
+------------------
+
+This is a bug-fix version of silx.
+
+* silx.gui.plot: Fixed `PlotWidget` OpenGL backend memory leak (PR #3445)
+* silx.gui.utils.glutils: Fixed `isOpenGLAvailable` (PR #3356)
 
 0.14.0: 2020/12/11
 ------------------
