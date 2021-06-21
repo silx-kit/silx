@@ -148,6 +148,24 @@ class TestImageView(TestCaseQt):
             ImageView.ProfileWindowBehavior.POPUP,
         )
 
+    def testRGBImage(self):
+        """Test setImage"""
+        image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+    def testRGBAImage(self):
+        """Test setImage"""
+        image = numpy.arange(100 * 4, dtype=numpy.uint8).reshape(10, 10, 4)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
 
 def suite():
     test_suite = unittest.TestSuite()
