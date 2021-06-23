@@ -62,15 +62,3 @@ class TestMedianFilterEngines(unittest.TestCase):
             kernel_size=TestMedianFilterEngines.KERNEL,
             engine='opencl')
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for testClass in (TestMedianFilterEngines, ):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

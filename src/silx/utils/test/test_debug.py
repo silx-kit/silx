@@ -86,14 +86,3 @@ class TestDebug(unittest.TestCase):
         result = test.random_args("foo", 50, a=10, b=100)
         self.assertEqual(result[0], ("foo", 50))
         self.assertEqual(result[1], {"a": 10, "b": 100})
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDebug))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

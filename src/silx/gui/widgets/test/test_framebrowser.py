@@ -60,14 +60,3 @@ class TestFrameBrowser(TestCaseQt):
 
         widget.setValue(range_[0] - 100)
         self.assertEqual(widget.getValue(), range_[0])
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestFrameBrowser))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

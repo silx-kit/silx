@@ -352,15 +352,3 @@ class TestEllipseFill(unittest.TestCase):
         rows, cols = shapes.ellipse_fill(*args)
         numpy.testing.assert_allclose(rows, expected_rows + 10)
         numpy.testing.assert_allclose(cols, expected_cols + 50)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill, TestEllipseFill):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

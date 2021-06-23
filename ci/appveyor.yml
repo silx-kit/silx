@@ -88,6 +88,10 @@ before_test:
     # Install selected Qt binding
     - "pip install %PIP_OPTIONS% %QT_BINDING%"
 
+    # Install pytest
+    - "pip install %PIP_OPTIONS% pytest"
+    - "pip install %PIP_OPTIONS% pytest-xvfb"
+
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi
     # At this point all install_requires dependencies MUST be installed
@@ -105,7 +109,7 @@ before_test:
 test_script:
     # Run tests with selected Qt binding and without OpenCL
     - echo "WITH_GL_TEST=%WITH_GL_TEST%"
-    - "python run_tests.py --installed -v --no-opencl --qt-binding %QT_BINDING%"
+    - "python run_tests.py --installed -v --no-opencl --qt-binding=%QT_BINDING%"
 
 after_test:
     # Leave test virtualenv

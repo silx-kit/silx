@@ -48,14 +48,3 @@ class TestTableWidget(TestCaseQt):
         table.show()
         table.hide()
         self.qapp.processEvents()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTableWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

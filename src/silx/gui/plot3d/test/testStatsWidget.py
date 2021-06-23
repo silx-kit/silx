@@ -199,18 +199,3 @@ class TestScalarFieldView(TestCaseQt):
             comy = numpy.sum(numpy.arange(data.shape[1]) * numpy.sum(data, axis=(0, 2))) / sum_
             comx = numpy.sum(numpy.arange(data.shape[2]) * numpy.sum(data, axis=(0, 1))) / sum_
             self.assertEqual(self._getTextFor(0, 'COM'), str((comx, comy, comz)))
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestSceneWidget))
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestScalarFieldView))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -70,14 +70,3 @@ class TestBackgroundWidget(TestCaseQt):
         self.assertEqual(output["StripWidth"], 1)
         self.assertEqual(output["SmoothingFlag"], False)
         self.assertEqual(output["SmoothingWidth"], 3)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestBackgroundWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

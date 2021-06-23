@@ -70,15 +70,3 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
 
         self.widget.setFogMode(self.widget.FogMode.NONE)
         self.qapp.processEvents()
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestSceneWidget))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

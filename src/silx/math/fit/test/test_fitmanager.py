@@ -496,18 +496,3 @@ class TestPolynomials(unittest.TestCase):
         self._testPoly([1, -2, 3, -4, -5, 6],
                        "Degree 5 Polynomial",
                        places=4)
-
-
-test_cases = (TestFitmanager, TestPolynomials)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

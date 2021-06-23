@@ -123,15 +123,3 @@ class TestImage(unittest.TestCase):
         self.assertEqual(delta.sum(), 0, "errors are self-compensated")
         self.assertLessEqual(abs(delta).max(), 1, "errors are small")
         self.assertLessEqual(abs(deltap).max(), 3e-5, "errors on position are small: %s" % (abs(deltap).max()))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestImage("test_cast"))
-    testSuite.addTest(TestImage("test_normalize"))
-    testSuite.addTest(TestImage("test_histogram"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -108,9 +108,3 @@ class TestLinalign(unittest.TestCase):
         if self.PROFILE and (out is not None):
             delta = (out - self.lena)[100:400, 100:400]
             logger.info({"min": delta.min(), "max:": delta.max(), "mean": delta.mean(), "std:": delta.std()})
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestLinalign("test_align"))
-    return testSuite

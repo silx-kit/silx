@@ -165,14 +165,3 @@ class TestImageView(TestCaseQt):
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestImageView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

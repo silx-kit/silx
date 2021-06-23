@@ -370,18 +370,3 @@ class Test_leastsq(unittest.TestCase):
                 # test that all FIXED parameters have 100% uncertainty
                 self.assertAlmostEqual(uncertainties[i],
                                        parameters_estimate[i])
-
-
-test_cases = (Test_leastsq,)
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

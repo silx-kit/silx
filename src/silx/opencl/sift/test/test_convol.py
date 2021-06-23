@@ -215,11 +215,3 @@ class TestConvol(unittest.TestCase):
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms and vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start),
                                                                                           1e-6 * (k2.profile.end - k2.profile.start)))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestConvol("test_convol"))
-    testSuite.addTest(TestConvol("test_convol_hor"))
-    testSuite.addTest(TestConvol("test_convol_vert"))
-    return testSuite

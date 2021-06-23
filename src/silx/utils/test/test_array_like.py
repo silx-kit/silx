@@ -428,18 +428,3 @@ class TestFunctions(unittest.TestCase):
 
         os.unlink(h5_fname)
         os.rmdir(tempdir)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedDatasetView))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedListOfImages))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestFunctions))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

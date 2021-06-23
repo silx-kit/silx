@@ -215,14 +215,3 @@ class TestDataUrl(unittest.TestCase):
                 url = DataUrl(scheme="silx", file_path="/foo.h5", data_slice=data_slice)
                 path = url.path()
                 DataUrl(path=path)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDataUrl))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

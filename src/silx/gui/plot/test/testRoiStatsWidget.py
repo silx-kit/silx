@@ -275,16 +275,3 @@ class TestRoiStatsPlotItemUpdate(_TestRoiStatsBase):
         self.assertEqual(tableItems['mean'].text(), '1010.0')
         self.statsWidget._updateAllStats(is_request=True)
         self.assertEqual(tableItems['mean'].text(), '1110.0')
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestRoiStatsCouple, TestRoiStatsRoiUpdate,
-                      TestRoiStatsPlotItemUpdate):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

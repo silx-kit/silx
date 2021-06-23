@@ -103,14 +103,4 @@ class TestStatistics(unittest.TestCase):
                             logger.error("Failed on platform %s device %s", platform, device)
                             logger.error("Reference results: %s", self.ref)
                             logger.error("Faulty results: %s", res)
-                            self.assertTrue(False, f"Stat calculation failed on {platform},{device}  in mode {comp}")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestStatistics("test_measurement"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
+                            self.assertTrue(False, f"Stat calculation failed on {platform},{device} in mode {comp}")

@@ -51,11 +51,14 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
     """
     Unit tests of the HistogramndLut class.
     """
+    __test__ = False  # ignore abstract class
 
     ndims = None
 
     def setUp(self):
         ndims = self.ndims
+        if ndims is None:
+            self.skipTest("Abstract class")
         self.tested_dim = ndims-1
 
         if ndims is None:
@@ -554,34 +557,15 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 1
 
 
 class TestHistogramndLut_nominal_2d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 2
 
 
 class TestHistogramndLut_nominal_3d(_TestHistogramndLut_nominal):
+    __test__ = True  # because _TestHistogramndLut_nominal is ignored
     ndims = 3
-
-
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (TestHistogramndLut_nominal_1d,
-              TestHistogramndLut_nominal_2d,
-              TestHistogramndLut_nominal_3d,)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

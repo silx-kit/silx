@@ -860,22 +860,3 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
         # legitimate "%"
         self.assertIn("MRTSlit%UP",
                       self.sfh5["1.1/instrument/positioners"])
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecDate))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5MultiMca))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5NoDataCols))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5SlashInLabels))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -122,14 +122,3 @@ class TestFitWidget(TestCaseQt):
         # clove dialog
         # self.mouseClick(fw.configdialogs["foo"].ok, qt.Qt.LeftButton)
         # self.qapp.processEvents()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestFitWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

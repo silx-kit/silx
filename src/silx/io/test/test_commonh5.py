@@ -45,8 +45,9 @@ except ImportError:
     commonh5 = None
 
 
-class TestCommonFeatures(unittest.TestCase):
+class _TestCommonFeatures(unittest.TestCase):
     """Test common features supported by h5py and our implementation."""
+    __test__ = False  # ignore abstract class tests
 
     @classmethod
     def createFile(cls):
@@ -154,8 +155,9 @@ class TestCommonFeatures(unittest.TestCase):
         self.h5[self.id() + "/a"] = 10
 
 
-class TestCommonFeatures_h5py(TestCommonFeatures):
+class TestCommonFeatures_h5py(_TestCommonFeatures):
     """Check if h5py is compliant with what we expect."""
+    __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
     def create_resource(cls):
@@ -181,8 +183,9 @@ class TestCommonFeatures_h5py(TestCommonFeatures):
             shutil.rmtree(cls.tmp_dir)
 
 
-class TestCommonFeatures_commonH5(TestCommonFeatures):
+class TestCommonFeatures_commonH5(_TestCommonFeatures):
     """Check if commonh5 is compliant with h5py."""
+    __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
     def create_resource(cls):
@@ -280,16 +283,3 @@ class TestSpecificCommonH5(unittest.TestCase):
         group["a"] = 10
         group["b"] = commonh5.SoftLink(None, path="/" + self.id() + "/a")
         self.assertEqual(group["b"].dtype.kind, "i")
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestCommonFeatures_h5py))
-    test_suite.addTest(loadTests(TestCommonFeatures_commonH5))
-    test_suite.addTest(loadTests(TestSpecificCommonH5))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

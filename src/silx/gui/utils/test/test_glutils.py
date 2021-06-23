@@ -53,14 +53,3 @@ class TestIsOpenGLAvailable(unittest.TestCase):
                 else:
                     self.assertTrue(result.status)
                     self.assertTrue(len(result.error) == 0)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestIsOpenGLAvailable))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

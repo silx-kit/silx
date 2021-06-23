@@ -857,8 +857,14 @@ def get_project_configuration(dry_run):
         'scipy',
         'Pillow']
 
+    test_requires = [
+        "pytest",
+        "pytest-xvfb"
+    ]
+
     extras_require = {
         'full': full_requires,
+        'test': test_requires,
     }
 
     # Here for packaging purpose only

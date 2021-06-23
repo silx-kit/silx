@@ -184,14 +184,3 @@ class TestImageStack(TestCaseQt):
                    'Remaining urls are: ' + str(remaining_urls)
             raise TimeoutError(mess)
         return True
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestImageStack))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

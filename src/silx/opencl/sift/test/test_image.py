@@ -253,11 +253,3 @@ class TestImage(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Keypoints interpolation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestImage("test_gradient"))
-    testSuite.addTest(TestImage("test_local_maxmin"))
-    testSuite.addTest(TestImage("test_interpolation"))
-    return testSuite

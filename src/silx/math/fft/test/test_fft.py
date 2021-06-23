@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@
 import numpy as np
 import unittest
 import logging
+import pytest
 try:
     from scipy.misc import ascent
     __have_scipy = True
@@ -39,7 +40,6 @@ from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
 from silx.math.fft.fftw import __have_fftw__
 
-from silx.test.utils import test_options
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class TransformInfos(object):
         self.sizes["batched_2D"] = self.sizes["3D"]
 
 
-class TestData(object):
+class Data(object):
     def __init__(self):
         self.data = ascent().astype("float32")
         self.data1d = self.data[:, 0]  # non-contiguous data
@@ -89,6 +89,7 @@ class TestData(object):
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")
+@pytest.mark.usefixtures("test_options_class_attr")
 class TestFFT(ParametricTestCase):
     """Test cuda/opencl/fftw backends of FFT"""
 
@@ -100,7 +101,7 @@ class TestFFT(ParametricTestCase):
             np.dtype("complex128"): 1e-9,
         }
         self.transform_infos = TransformInfos()
-        self.test_data = TestData()
+        self.test_data = Data()
 
     @staticmethod
     def calc_mae(arr1, arr2):
@@ -147,7 +148,7 @@ class TestFFT(ParametricTestCase):
         """Compare given backend with numpy for given conditions"""
         logger.debug("backend: %s, trdim: %s, mode: %s, size: %s",
                      backend, trdim, mode, str(size))
-        if size == "3D" and test_options.TEST_LOW_MEM:
+        if size == "3D" and self.test_options.TEST_LOW_MEM:
             self.skipTest("low mem")
 
         ndim = len(size)
@@ -220,7 +221,7 @@ class TestNumpyFFT(ParametricTestCase):
         transforms["batched_2D"] = transforms["2D"]
         self.transforms = transforms
         self.transform_infos = TransformInfos()
-        self.test_data = TestData()
+        self.test_data = Data()
 
     def test(self):
         """Test the numpy backend against native fft.
@@ -254,17 +255,3 @@ class TestNumpyFFT(ParametricTestCase):
         res2 = F.ifft(res)
         ref2 = np_ifft(ref)
         self.assertTrue(np.allclose(res2, ref2))
-
-
-def suite():
-    suite = unittest.TestSuite()
-    for cls in (TestNumpyFFT, TestFFT):
-        suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(cls))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
-
-

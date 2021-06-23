@@ -36,10 +36,10 @@ __license__ = "MIT"
 __copyright__ = "2019 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "01/08/2019"
 
+import pytest
 import logging
 from itertools import product
 import numpy as np
-from silx.utils.testutils import parameterize
 from silx.image.utils import gaussian_kernel
 
 try:
@@ -60,11 +60,26 @@ if ocl:
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and scipy_convolve, "PyOpenCl/scipy is missing")
-class TestConvolution(unittest.TestCase):
+class ConvolutionData:
+
+    def __init__(self, param):
+        self.param = param
+        self.mode = param["boundary_handling"]
+        logger.debug(
+            """
+            Testing convolution with boundary_handling=%s,
+            use_textures=%s, input_device=%s, output_device=%s
+            """
+            % (
+                self.mode,
+                param["use_textures"],
+                param["input_on_device"],
+                param["output_on_device"],
+            )
+        )
+
     @classmethod
     def setUpClass(cls):
-        super(TestConvolution, cls).setUpClass()
         cls.image = np.ascontiguousarray(ascent()[:, :511], dtype="f")
         cls.data1d = cls.image[0]
         cls.data2d = cls.image
@@ -99,30 +114,13 @@ class TestConvolution(unittest.TestCase):
         )
         return errmsg
 
-    def __init__(self, methodName="runTest", param=None):
-        unittest.TestCase.__init__(self, methodName)
-        self.param = param
-        self.mode = param["boundary_handling"]
-        logger.debug(
-            """
-            Testing convolution with boundary_handling=%s,
-            use_textures=%s, input_device=%s, output_device=%s
-            """
-            % (
-                self.mode,
-                param["use_textures"],
-                param["input_on_device"],
-                param["output_on_device"],
-            )
-        )
-
     def instantiate_convol(self, shape, kernel, axes=None):
         if self.mode == "constant":
             if not (self.param["use_textures"]) or (
                 self.param["use_textures"]
                 and not (check_textures_availability(self.ctx))
             ):
-                self.skipTest("mode=constant not implemented without textures")
+                pytest.skip("mode=constant not implemented without textures")
         C = Convolution(
             shape,
             kernel,
@@ -196,70 +194,87 @@ class TestConvolution(unittest.TestCase):
         metric = self.compare(res, ref)
         logger.info("%s: max error = %.2e" % (test_name, metric))
         tol = self.tol[str("%dD" % kernel.ndim)]
-        self.assertLess(metric, tol, self.print_err(conv))
-
-    def test_1D(self):
-        self.template_test("test_1D")
-
-    def test_separable_2D(self):
-        self.template_test("test_separable_2D")
-
-    def test_separable_3D(self):
-        self.template_test("test_separable_3D")
-
-    def test_nonseparable_2D(self):
-        self.template_test("test_nonseparable_2D")
-
-    def test_nonseparable_3D(self):
-        self.template_test("test_nonseparable_3D")
-
-    def test_batched_2D(self):
-        """
-        Test batched (nonseparable) 2D convolution on 3D data.
-        In this test: batch along "z" (axis 0)
-        """
-        data = self.data3d
-        kernel = self.kernel2d
-        conv = self.instantiate_convol(data.shape, kernel, axes=(0,))
-        res = conv(data)  # 3D
-        ref = scipy_convolve(data[0], kernel, mode=self.mode)  # 2D
-
-        std = np.std(res, axis=0)
-        std_max = np.max(np.abs(std))
-        self.assertLess(std_max, self.tol["2D"], self.print_err(conv))
-        metric = self.compare(res[0], ref)
-        logger.info("test_nonseparable_3D: max error = %.2e" % metric)
-        self.assertLess(metric, self.tol["2D"], self.print_err(conv))
+        assert metric < tol, self.print_err(conv)
 
 
-def test_convolution():
-    boundary_handling_ = ["reflect", "nearest", "wrap", "constant"]
-    use_textures_ = [True, False]
-    input_on_device_ = [True, False]
-    output_on_device_ = [True, False]
-    testSuite = unittest.TestSuite()
-
+def convolution_data_params():
+    boundary_handlings = ["reflect", "nearest", "wrap", "constant"]
+    use_textures = [True, False]
+    input_on_devices = [True, False]
+    output_on_devices = [True, False]
     param_vals = list(
-        product(boundary_handling_, use_textures_, input_on_device_, output_on_device_)
+        product(boundary_handlings, use_textures, input_on_devices, output_on_devices)
     )
-    for boundary_handling, use_textures, input_dev, output_dev in param_vals:
-        testcase = parameterize(
-            TestConvolution,
-            param={
-                "boundary_handling": boundary_handling,
-                "input_on_device": input_dev,
-                "output_on_device": output_dev,
-                "use_textures": use_textures,
-            },
-        )
-        testSuite.addTest(testcase)
-    return testSuite
+    params = []
+    for boundary_handling, use_texture, input_dev, output_dev in param_vals:
+        param={
+            "boundary_handling": boundary_handling,
+            "input_on_device": input_dev,
+            "output_on_device": output_dev,
+            "use_textures": use_texture,
+        }
+        params.append(param)
+
+    return params
 
 
-def suite():
-    testSuite = test_convolution()
-    return testSuite
+@pytest.fixture(scope="module", params=convolution_data_params())
+def convolution_data(request):
+    """Provide a set of convolution data
+
+    The module scope allows to test each function during a single setup of each
+    convolution data
+    """
+    cdata = None
+    try:
+        cdata = ConvolutionData(request.param)
+        cdata.setUpClass()
+        yield cdata
+    finally:
+        cdata.tearDownClass()
 
 
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_1D(convolution_data):
+    convolution_data.template_test("test_1D")
+
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_separable_2D(convolution_data):
+    convolution_data.template_test("test_separable_2D")
+
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_separable_3D(convolution_data):
+    convolution_data.template_test("test_separable_3D")
+
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_nonseparable_2D(convolution_data):
+    convolution_data.template_test("test_nonseparable_2D")
+
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_nonseparable_3D(convolution_data):
+    convolution_data.template_test("test_nonseparable_3D")
+
+@pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
+@pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
+def test_batched_2D(convolution_data):
+    """
+    Test batched (nonseparable) 2D convolution on 3D data.
+    In this test: batch along "z" (axis 0)
+    """
+    data = convolution_data.data3d
+    kernel = convolution_data.kernel2d
+    conv = convolution_data.instantiate_convol(data.shape, kernel, axes=(0,))
+    res = conv(data)  # 3D
+    ref = scipy_convolve(data[0], kernel, mode=convolution_data.mode)  # 2D
+
+    std = np.std(res, axis=0)
+    std_max = np.max(np.abs(std))
+    assert std_max < convolution_data.tol["2D"], convolution_data.print_err(conv)
+    metric = convolution_data.compare(res[0], ref)
+    logger.info("test_nonseparable_3D: max error = %.2e" % metric)
+    assert metric < convolution_data.tol["2D"], convolution_data.print_err(conv)

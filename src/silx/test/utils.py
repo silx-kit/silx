@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,9 @@ class _TestOptions(object):
         self.WITH_OPENCL_TEST = True
         """OpenCL tests are included"""
 
+        self.WITH_OPENCL_TEST_REASON = ""
+        """Reason for OpenCL tests are disabled if any"""
+
         self.WITH_GL_TEST = True
         """OpenGL tests are included"""
 
@@ -69,6 +72,9 @@ class _TestOptions(object):
 
         self.TEST_LOW_MEM = False
         """Skip tests using too much memory"""
+
+        self.TEST_LOW_MEM_REASON = ""
+        """Reason for low_memory tests are disabled if any"""
 
     def configure(self, parsed_options=None):
         """Configure the TestOptions class from the command line arguments and the
@@ -84,8 +90,14 @@ class _TestOptions(object):
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
 
-        if (parsed_options is not None and not parsed_options.opencl) or os.environ.get('SILX_OPENCL', 'True') == 'False':
+        if parsed_options is not None and not parsed_options.opencl:
+            self.WITH_OPENCL_TEST_REASON = "Skipped by command line"
             self.WITH_OPENCL_TEST = False
+        elif os.environ.get('SILX_OPENCL', 'True') == 'False':
+            self.WITH_OPENCL_TEST_REASON = "Skipped by SILX_OPENCL env var"
+            self.WITH_OPENCL_TEST = False
+
+        if not self.WITH_OPENCL_TEST:
             # That's an easy way to skip OpenCL tests
             # It disable the use of OpenCL on the full silx project
             os.environ['SILX_OPENCL'] = "False"
@@ -106,40 +118,22 @@ class _TestOptions(object):
                 self.WITH_GL_TEST = False
                 self.WITH_GL_TEST_REASON = "OpenGL package not available"
 
-        if (parsed_options is not None and parsed_options.low_mem) or os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        if parsed_options is not None and parsed_options.low_mem:
             self.TEST_LOW_MEM = True
+            self.TEST_LOW_MEM_REASON = "Skipped by command line"
+        elif os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+            self.TEST_LOW_MEM = True
+            self.TEST_LOW_MEM_REASON = "Skipped by SILX_TEST_LOW_MEM env var"
 
         if self.WITH_QT_TEST:
             try:
                 from silx.gui import qt
             except ImportError:
-                pass
+                self.WITH_QT_TEST = False
+                self.WITH_QT_TEST_REASON = "Qt is not installed"
             else:
                 if sys.platform == "win32" and qt.qVersion() == "5.9.2":
                     self.SKIP_TEST_FOR_ISSUE_936 = True
-
-    def add_parser_argument(self, parser):
-        """Add extrat arguments to the test argument parser
-
-        :param ArgumentParser parser: An argument parser
-        """
-
-        parser.add_argument("-x", "--no-gui", dest="gui", default=True,
-                            action="store_false",
-                            help="Disable the test of the graphical use interface")
-        parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
-                            action="store_false",
-                            help="Disable tests using OpenGL")
-        parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
-                            action="store_false",
-                            help="Disable the test of the OpenCL part")
-        parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
-                            action="store_true",
-                            help="Disable test with large memory consumption (>100Mbyte")
-
-
-test_options = _TestOptions()
-"""Singleton providing configuration information for all the tests"""
 
 
 # Temporary directory context #################################################

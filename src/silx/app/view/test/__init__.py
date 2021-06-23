@@ -22,20 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "07/06/2018"
-
-import unittest
-
-from silx.test.utils import test_options
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    if test_options.WITH_QT_TEST:
-        from . import test_launcher
-        from . import test_view
-        test_suite.addTest(test_view.suite())
-        test_suite.addTest(test_launcher.suite())
-    return test_suite

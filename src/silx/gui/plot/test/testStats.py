@@ -1005,6 +1005,12 @@ class TestAdvancedROIImageContext(TestCaseQt):
         self.data = numpy.random.rand(*self.data_dims)
         self.plot = Plot2D()
 
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        self.plot = None
+        TestCaseQt.tearDown(self)
+
     def test(self):
         """Test stats result on an image context with different scale and
         origins"""
@@ -1039,17 +1045,3 @@ class TestAdvancedROIImageContext(TestCaseQt):
                         th_sum = numpy.sum(self.data[y_start:y_end, x_start:x_end])
                         self.assertAlmostEqual(_stats['sum'].calculate(context),
                                                th_sum)
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestStats, TestStatsHandler, TestStatsWidgetWithScatters,
-                      TestStatsWidgetWithImages, TestStatsWidgetWithCurves,
-                      TestStatsFormatter, TestEmptyStatsWidget, TestStatsROI,
-                      TestLineWidget, TestUpdateModeWidget, ):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

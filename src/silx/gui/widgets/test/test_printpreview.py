@@ -61,14 +61,3 @@ class TestPrintPreview(TestCaseQt):
         d = PrintPreviewDialog(printer=p)
         d.addPixmap(qt.QPixmap.fromImage(qt.QImage(resource_filename("gui/icons/clipboard.png"))))
         self.qapp.processEvents()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPrintPreview))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

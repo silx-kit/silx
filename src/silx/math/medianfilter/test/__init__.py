@@ -21,16 +21,3 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-__authors__ = ["H. Payno"]
-__license__ = "MIT"
-__date__ = "22/06/2016"
-
-import unittest
-
-from . import test_medianfilter
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_medianfilter.suite())
-    return test_suite

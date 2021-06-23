@@ -63,13 +63,3 @@ class TestQEventName(TestCaseQt):
         result = utils.getQEventName(70000)
         self.assertIn("Unknown", result)
         self.assertIn("70000", result)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestQEventName))
-    return test_suite
-
-
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")

@@ -119,13 +119,3 @@ class TestProj(unittest.TestCase):
             res = self.proj.projection(self.phantom)
             errmax = np.max(np.abs(res - res0))
             self.assertTrue(errmax < 1.e-6, "Max error is too high")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestProj("test_proj"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

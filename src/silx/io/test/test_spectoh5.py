@@ -181,14 +181,3 @@ class TestConvertSpecHDF5(unittest.TestCase):
             array_equal(self.h5f["/1.2/instrument/mca_1/channels"],
                         self.h5f["/1.2/measurement/mca_1/info/channels"])
         )
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestConvertSpecHDF5))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

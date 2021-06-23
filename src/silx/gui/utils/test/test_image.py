@@ -77,14 +77,3 @@ class TestQImageConversion(TestCaseQt, ParametricTestCase):
                 self.assertEqual(qimage.width(), image.shape[1])
                 self.assertEqual(image.shape[2], len(color))
                 self.assertTrue(numpy.all(numpy.equal(image, color)))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestQImageConversion))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

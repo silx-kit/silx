@@ -301,15 +301,3 @@ class TestByteOffset(unittest.TestCase):
                      numpy.mean(bo_durations),
                      numpy.min(bo_durations),
                      numpy.max(bo_durations))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(TestByteOffset("test_decompress"))
-    test_suite.addTest(TestByteOffset("test_many_decompress"))
-    test_suite.addTest(TestByteOffset("test_encode"))
-    test_suite.addTest(TestByteOffset("test_encode_to_array"))
-    test_suite.addTest(TestByteOffset("test_encode_to_bytes"))
-    test_suite.addTest(TestByteOffset("test_encode_to_bytes_from_array"))
-    test_suite.addTest(TestByteOffset("test_many_encode"))
-    return test_suite

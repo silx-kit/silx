@@ -111,15 +111,3 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
                 curve.setSymbol(symbol)
                 self.qapp.processEvents()
                 self.qWait(1000)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestCurveLegendsWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

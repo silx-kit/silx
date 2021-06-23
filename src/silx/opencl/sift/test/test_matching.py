@@ -168,9 +168,3 @@ class TestMatching(unittest.TestCase):
         if self.PROFILE:
             logger.debug("Global execution time: %.3fms." % (1000.0 * (t1 - t0)))
             logger.debug("Matching on device took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestMatching("test_matching"))
-    return testSuite

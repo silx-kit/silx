@@ -52,15 +52,3 @@ class TestTomography(unittest.TestCase):
                                                      fullrot=False,
                                                      props=1)
         self.assertTrue(numpy.isclose(centerTrueData, 256, rtol=0.01))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for testClass in (TestTomography, ):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

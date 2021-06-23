@@ -257,16 +257,3 @@ def _numerical_derivative(f, x, params=[], delta_factor=0.0001):
     y_minus = f(x - deltax, *params)
 
     return (y_plus - y_minus) / (2 * deltax)
-
-test_cases = (Test_functions,)
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -183,15 +183,3 @@ class TestQtInspect(unittest.TestCase):
 
         del parent
         self.assertFalse(qt_inspect.isValid(obj))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestCaseCls in (TestQtWrapper, TestLoadUi, TestQtInspect):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestCaseCls))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

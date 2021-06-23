@@ -82,14 +82,3 @@ class TestFitConfig(TestCaseQt):
 
         self.assertTrue(output["AutoFwhm"])
         self.assertEqual(output["StripWidth"], 2)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestFitConfig))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

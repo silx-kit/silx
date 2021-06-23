@@ -61,14 +61,3 @@ class TestBlockSignals(TestCaseQt):
     def testOneObject(self):
         """Test blockSignals context manager with a single QObject"""
         self._test(qt.QObject())
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestBlockSignals))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

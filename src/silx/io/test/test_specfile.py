@@ -418,16 +418,3 @@ class TestSFLocale(unittest.TestCase):
     def test_locale_C(self):
         locale.setlocale(locale.LC_NUMERIC, 'C')  # use default (C) locale
         self.crunch_data()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecFile))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSFLocale))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

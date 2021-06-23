@@ -26,7 +26,7 @@ jobs:
             python-version: 3.6
             BUILD_COMMAND: sdist
             QT_BINDING: PyQt5
-            RUN_TESTS_OPTIONS: --qt-binding=PyQt5
+            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opengl
           - name-suffix: "PySide2 wheel"
             os: macos-latest
             python-version: 3.8
@@ -98,6 +98,11 @@ jobs:
           if [ "${{ matrix.QT_BINDING }}" == "PySide2" ]; then
             pip install --pre pyside2;
           fi
+
+      - name: Install pytest
+        run: |
+          pip install pytest
+          pip install pytest-xvfb
 
       - name: Install silx package
         run: pip install --pre --find-links dist/ silx

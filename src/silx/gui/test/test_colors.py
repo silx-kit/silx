@@ -601,19 +601,3 @@ class TestAutoscaleRange(ParametricTestCase):
                 else:
                     self.assertAlmostEqual(vRange[0], expectedRange[0])
                     self.assertAlmostEqual(vRange[1], expectedRange[1])
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestApplyColormapToData))
-    test_suite.addTest(loadTests(TestColor))
-    test_suite.addTest(loadTests(TestDictAPI))
-    test_suite.addTest(loadTests(TestObjectAPI))
-    test_suite.addTest(loadTests(TestPreferredColormaps))
-    test_suite.addTest(loadTests(TestRegisteredLut))
-    test_suite.addTest(loadTests(TestAutoscaleRange))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

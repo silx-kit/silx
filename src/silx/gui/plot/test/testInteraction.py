@@ -76,14 +76,3 @@ class TestInteraction(unittest.TestCase):
         clickOrDrag.handleEvent('release', 20, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 4)
         self.assertEqual(events[-1], ('endDrag', (10, 10), (20, 10), Interaction.LEFT_BTN))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestInteraction))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -30,6 +30,8 @@ __date__ = "26/01/2018"
 
 
 import logging
+import pytest
+import unittest
 
 from silx.gui.utils.testutils import TestCaseQt
 
@@ -40,20 +42,17 @@ from silx.gui.plot import PlotWidget
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixture("test_options_class_attr")
 class PlotWidgetTestCase(TestCaseQt):
     """Base class for tests of PlotWidget, not a TestCase in itself.
 
     plot attribute is the PlotWidget created for the test.
     """
-
     __screenshot_already_taken = False
-
-    def __init__(self, methodName='runTest', backend=None):
-        TestCaseQt.__init__(self, methodName=methodName)
-        self.__backend = backend
+    backend = None
 
     def _createPlot(self):
-        return PlotWidget(backend=self.__backend)
+        return PlotWidget(backend=self.backend)
 
     def setUp(self):
         super(PlotWidgetTestCase, self).setUp()

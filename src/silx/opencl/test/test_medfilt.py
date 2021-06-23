@@ -153,23 +153,10 @@ class TestMedianFilter(unittest.TestCase):
                 plot_opencl.set_data(data_size, data_opencl)
                 update_fig(fig)
         fig.show()
-        if sys.version_info[0] < 3:
-            raw_input()
-        else:
-            input()
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestMedianFilter("test_medfilt"))
-    return testSuite
+        input()
 
 
 def benchmark():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestMedianFilter("benchmark"))
     return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

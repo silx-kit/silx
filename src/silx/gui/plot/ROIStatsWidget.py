@@ -273,7 +273,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
     def add(self, item):
         assert isinstance(item, ROIStatsItemHelper)
         if item.id_key() in self._items:
-            _logger.warning(item.id_key(), 'is already present')
+            _logger.warning("Item %s is already present", item.id_key())
             return None
         self._items[item.id_key()] = item
         self._addItem(item)

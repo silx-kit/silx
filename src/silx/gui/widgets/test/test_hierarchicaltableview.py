@@ -101,14 +101,3 @@ class TestHierarchicalTableView(TestCaseQt):
         model.setData1()
         span = widget.rowSpan(0, 0), widget.columnSpan(0, 0)
         self.assertEqual(span, (1, 3))
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestHierarchicalTableView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

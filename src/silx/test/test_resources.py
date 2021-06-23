@@ -185,16 +185,3 @@ class TestResourcesWithCustomDirectory(TestResources):
         silx.resources._RESOURCES_DIR = cls._old
         del cls._old
         super(TestResourcesWithCustomDirectory, cls).tearDownClass()
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestResources))
-    test_suite.addTest(loadTests(TestResourcesWithoutPkgResources))
-    test_suite.addTest(loadTests(TestResourcesWithCustomDirectory))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

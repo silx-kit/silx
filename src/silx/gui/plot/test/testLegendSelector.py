@@ -128,15 +128,3 @@ class TestRenameCurveDialog(TestCaseQt):
         newName = self.dialog.getText()
         self.assertEqual(newName, 'curve1changed')
         del self.dialog
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestLegendSelector, TestRenameCurveDialog):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

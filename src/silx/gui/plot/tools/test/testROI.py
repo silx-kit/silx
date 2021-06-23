@@ -680,15 +680,3 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
         manager.clear()
         self.qapp.processEvents()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestRoiItems))
-    test_suite.addTest(loadTests(TestRegionOfInterestManager))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
