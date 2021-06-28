@@ -494,10 +494,15 @@ class ImageView(PlotWindow):
 
     def setSideHistogramDisplayed(self, show):
         """Display or not the side histograms"""
+        if self.isSideHistogramDisplayed() == show:
+            return
         self._histoHPlot.setVisible(show)
         self._histoVPlot.setVisible(show)
         self._radarView.setVisible(show)
         self.__showSideHistogramsAction.setChecked(show)
+        if show:
+            # Probably have to be computed
+            self._updateHistograms()
 
     def isSideHistogramDisplayed(self):
         """True if the side histograms are displayed"""
@@ -505,6 +510,10 @@ class ImageView(PlotWindow):
 
     def _updateHistograms(self):
         """Update histograms content using current active image."""
+        if not self.isSideHistogramDisplayed():
+            # The histogram computation can be skipped
+            return
+
         activeImage = self.getActiveImage()
         if activeImage is not None:
             xRange = self.getXAxis().getLimits()
