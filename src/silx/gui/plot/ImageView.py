@@ -910,11 +910,13 @@ class ImageViewMainWindow(ImageView):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
             assert image.ndim == 2 or (image.ndim == 3 and image.shape[2] in (3, 4))
             height, width = image.shape[0:2]
-            self._dataInfo = 'Data: %dx%d (%s)' % (width, height,
-                                                   str(image.dtype))
-            self.statusBar().showMessage(self._dataInfo)
+            dataInfo = 'Data: %dx%d (%s)' % (width, height, str(image.dtype))
         else:
-            self._dataInfo = None
+            dataInfo = None
+
+        if self._dataInfo != dataInfo:
+            self._dataInfo = dataInfo
+            self.statusBar().showMessage(self._dataInfo)
 
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
