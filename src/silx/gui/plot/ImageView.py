@@ -764,7 +764,7 @@ class ImageView(PlotWindow):
         self.setInteractiveMode('zoom', color=cursorColor)
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
-                 copy=True, reset=True):
+                 copy=True, reset=None, resetzoom=True):
         """Set the image to display.
 
         :param image: A 2D array representing the image or None to empty plot.
@@ -780,9 +780,13 @@ class ImageView(PlotWindow):
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
         :param bool copy: Whether to copy image data (default) or not.
-        :param bool reset: Whether to reset zoom and ROI (default) or not.
+        :param bool reset: Deprecated. Alias for `resetzoom`.
+        :param bool resetzoom: Whether to reset zoom and ROI (default) or not.
         """
         self._dirtyCache()
+
+        if reset is not None:
+            resetzoom = reset
 
         assert len(origin) == 2
         assert len(scale) == 2
@@ -804,7 +808,7 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-        if reset:
+        if resetzoom:
             self.resetZoom()
 
 
