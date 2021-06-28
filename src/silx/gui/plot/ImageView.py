@@ -920,4 +920,3 @@ class ImageViewMainWindow(ImageView):
 
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
-        self.setStatusBar(None)
