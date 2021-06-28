@@ -840,8 +840,6 @@ class ImageViewMainWindow(ImageView):
         # Add toolbars and status bar
         self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
-        self.statusBar()
-
         menu = self.menuBar().addMenu('File')
         menu.addAction(self.getOutputToolBar().getSaveAction())
         menu.addAction(self.getOutputToolBar().getPrintAction())
