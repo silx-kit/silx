@@ -49,7 +49,6 @@ import logging
 import numpy
 import collections
 from typing import Union
-import weakref
 
 import silx
 from .. import qt
