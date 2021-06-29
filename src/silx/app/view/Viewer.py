@@ -579,10 +579,9 @@ class Viewer(qt.QMainWindow):
         action.triggered.connect(self.open)
         self._openAction = action
 
-        action = qt.QAction("Open Recent", self)
-        action.setStatusTip("Open a recently openned file")
-        action.triggered.connect(self.open)
-        self._openRecentAction = action
+        menu = qt.QMenu("Open Recent", self)
+        menu.setStatusTip("Open a recently opened file")
+        self._openRecentMenu = menu
 
         action = qt.QAction("Close All", self)
         action.setStatusTip("Close all opened files")
@@ -666,23 +665,21 @@ class Viewer(qt.QMainWindow):
 
     def __updateFileMenu(self):
         files = self.__context.getRecentFiles()
-        self._openRecentAction.setEnabled(len(files) != 0)
-        menu = None
+        self._openRecentMenu.clear()
+        self._openRecentMenu.setEnabled(len(files) != 0)
         if len(files) != 0:
-            menu = qt.QMenu()
             for filePath in files:
                 baseName = os.path.basename(filePath)
                 action = qt.QAction(baseName, self)
                 action.setToolTip(filePath)
                 action.triggered.connect(functools.partial(self.__openRecentFile, filePath))
-                menu.addAction(action)
-            menu.addSeparator()
+                self._openRecentMenu.addAction(action)
+            self._openRecentMenu.addSeparator()
             baseName = os.path.basename(filePath)
             action = qt.QAction("Clear history", self)
             action.setToolTip("Clear the history of the recent files")
             action.triggered.connect(self.__clearRecentFile)
-            menu.addAction(action)
-        self._openRecentAction.setMenu(menu)
+            self._openRecentMenu.addAction(action)
 
     def __clearRecentFile(self):
         self.__context.clearRencentFiles()
@@ -738,7 +735,7 @@ class Viewer(qt.QMainWindow):
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
-        fileMenu.addAction(self._openRecentAction)
+        fileMenu.addMenu(self._openRecentMenu)
         fileMenu.addAction(self._closeAllAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self._exitAction)
