@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,8 @@ from .core import (Item, DataItem,  # noqa
 from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
-from .image import ImageBase, ImageData, ImageRgba, ImageStack, MaskImageData  # noqa
+from .image import ImageBase, ImageData, ImageDataBase, ImageRgba, ImageStack, MaskImageData  # noqa
+from .image_aggregated import ImageDataAggregated  # noqa
 from .shape import Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
