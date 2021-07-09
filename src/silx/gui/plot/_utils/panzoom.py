@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,12 @@ __license__ = "MIT"
 __date__ = "08/08/2017"
 
 
+import logging
 import math
 import numpy
+
+
+_logger = logging.getLogger(__name__)
 
 
 # Float 32 info ###############################################################
@@ -41,6 +45,35 @@ FLOAT32_SAFE_MIN = -1e37
 FLOAT32_MINPOS = numpy.finfo(numpy.float32).tiny
 FLOAT32_SAFE_MAX = 1e37
 # TODO double support
+
+
+def checkAxisLimits(vmin, vmax, isLog: bool=False, name: str=""):
+    """Makes sure axis range is not empty and within supported range.
+
+    :param float vmin: Min axis value
+    :param float vmax: Max axis value
+    :return: (min, max) making sure min < max
+    :rtype: 2-tuple of float
+    """
+    min_ = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
+    vmax = numpy.clip(vmax, min_, FLOAT32_SAFE_MAX)
+    vmin = numpy.clip(vmin, min_, FLOAT32_SAFE_MAX)
+
+    if vmax < vmin:
+        _logger.debug('%s axis: max < min, inverting limits.', name)
+        vmin, vmax = vmax, vmin
+    elif vmax == vmin:
+        _logger.debug('%s axis: max == min, expanding limits.', name)
+        if vmin == 0.:
+            vmin, vmax = -0.1, 0.1
+        elif vmin < 0:
+            vmax *= 0.9
+            vmin = max(vmin * 1.1, FLOAT32_SAFE_MIN)  # Clip to range
+        else:  # vmin > 0
+            vmax = min(vmin * 1.1, FLOAT32_SAFE_MAX)  # Clip to range
+            vmin *= 0.9
+
+    return vmin, vmax
 
 
 def scale1DRange(min_, max_, center, scale, isLog):
