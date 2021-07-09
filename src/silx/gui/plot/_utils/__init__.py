@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ __date__ = "21/03/2017"
 import numpy
 
 from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
-from .panzoom import applyZoomToPlot, applyPan
+from .panzoom import applyZoomToPlot, applyPan, checkAxisLimits
 
 
 def addMarginsToLimits(margins, isXLog, isYLog,
@@ -90,4 +90,3 @@ def addMarginsToLimits(margins, isXLog, isYLog,
         return xMin, xMax, yMin, yMax
     else:
         return xMin, xMax, yMin, yMax, y2Min, y2Max
-
