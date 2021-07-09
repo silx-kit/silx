@@ -326,3 +326,35 @@ class TestVisibleExtent(PlotWidgetTestCase):
         image.setVisible(True)
         # Receives delayed event now
         self.assertEqual(listener.callCount(), 5)
+
+
+class TestImageDataAggregated(PlotWidgetTestCase):
+    """Test ImageDataAggregated item"""
+
+    def test(self):
+        data = numpy.random.random(1024**2).reshape(1024, 1024)
+
+        item = items.ImageDataAggregated()
+        item.setData(data)
+        self.assertEqual(item.getAggregationMode(), item.Aggregation.NONE)
+        self.plot.addItem(item)
+
+        for mode in item.Aggregation.members():
+            with self.subTest(mode=mode):
+                self.plot.resetZoom()
+                self.qapp.processEvents()
+
+                item.setAggregationMode(mode)
+                self.qapp.processEvents()
+
+                # Zoom-out
+                for i in range(4):
+                    xmin, xmax = self.plot.getXAxis().getLimits()
+                    ymin, ymax =  self.plot.getYAxis().getLimits()
+                    self.plot.setLimits(
+                        xmin - (xmax - xmin)/2,
+                        xmax + (xmax - xmin)/2,
+                        ymin - (ymax - ymin)/2,
+                        ymax + (ymax - ymin)/2,
+                    )
+                    self.qapp.processEvents()
