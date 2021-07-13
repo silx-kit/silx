@@ -204,6 +204,7 @@ def test_contour3d(sx, qapp_utils):
     assert len(isosurfaces) == 1
 
     if not window.getPlot3DWidget().isValid():
+        del window, isosurfaces  # Release widget reference
         pytest.skip("OpenGL context is not valid")
 
     # N contours + color
@@ -249,6 +250,7 @@ def test_points3d(sx, qapp_utils):
     window = sx.points3d(x, y, z)
 
     if not window.getSceneWidget().isValid():
+        del window  # Release widget reference
         pytest.skip("OpenGL context is not valid")
 
     # 3D positions, values
