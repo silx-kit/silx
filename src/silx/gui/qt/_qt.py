@@ -150,7 +150,7 @@ else:
     raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
 
 
-if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility monkey-patching
+if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility
     class _ExecMixIn:
         """Mix-in class providind `exec` compatibility"""
         def exec(self, *args, **kwargs):
