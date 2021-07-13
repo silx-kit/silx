@@ -31,6 +31,7 @@ __date__ = "05/12/2016"
 
 import os.path
 import unittest
+import pytest
 
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt
@@ -183,3 +184,29 @@ class TestQtInspect(unittest.TestCase):
 
         del parent
         self.assertFalse(qt_inspect.isValid(obj))
+
+
+@pytest.mark.skipif(qt.BINDING not in ("PyQt5", "PySide"),
+                    reason="PyQt5/PySide2 only test")
+def test_exec_():
+    """Test the exec_ is still useable with Qt5 bindings"""
+    klasses = [
+        #QtWidgets
+        qt.QApplication,
+        qt.QColorDialog,
+        qt.QDialog,
+        qt.QErrorMessage,
+        qt.QFileDialog,
+        qt.QFontDialog,
+        qt.QInputDialog,
+        qt.QMenu,
+        qt.QMessageBox,
+        qt.QProgressDialog,
+        #QtCore
+        qt.QCoreApplication,
+        qt.QEventLoop,
+        qt.QThread,
+    ]
+    for klass in klasses:
+        assert hasattr(klass, "exec") and callable(klass.exec), "%s.exec missing" % klass.__name__
+        assert hasattr(klass, "exec_") and callable(klass.exec_), "%s.exec_ missing" % klass.__name__
