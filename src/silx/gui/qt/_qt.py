@@ -151,22 +151,29 @@ else:
 
 
 if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility monkey-patching
+    class _ExecMixIn:
+        """Mix-in class providind `exec` compatibility"""
+        def exec(self, *args, **kwargs):
+            self.exec_(*args, **kwargs)
+
     # QtWidgets
-    QApplication.exec = lambda self: QApplication.exec_(self)
-    QColorDialog.exec = lambda self: QColorDialog.exec_(self)
-    QDialog.exec = lambda self: QDialog.exec_(self)
-    QErrorMessage.exec = lambda self: QErrorMessage.exec_(self)
-    QFileDialog.exec = lambda self: QFileDialog.exec_(self)
-    QFontDialog.exec = lambda self: QFontDialog.exec_(self)
-    QInputDialog.exec = lambda self: QInputDialog.exec_(self)
-    QMenu.exec = lambda self: QMenu.exec_(self)
-    QMessageBox.exec = lambda self: QMessageBox.exec_(self)
-    QProgressDialog.exec = lambda self: QProgressDialog.exec_(self)
+    class QApplication(QApplication, _ExecMixIn): pass
+    class QColorDialog(QColorDialog, _ExecMixIn): pass
+    class QDialog(QDialog, _ExecMixIn): pass
+    class QErrorMessage(QErrorMessage, _ExecMixIn): pass
+    class QFileDialog(QFileDialog, _ExecMixIn): pass
+    class QFontDialog(QFontDialog, _ExecMixIn): pass
+    class QInputDialog(QInputDialog, _ExecMixIn): pass
+    class QMenu(QMenu, _ExecMixIn): pass
+    class QMessageBox(QMessageBox, _ExecMixIn): pass
+    class QProgressDialog(QProgressDialog, _ExecMixIn): pass
     #QtCore
-    QCoreApplication.exec = lambda self: QCoreApplication.exec_(self)
-    QEventLoop.exec = lambda self: QEventLoop.exec_(self)
-    QTextStreamManipulator.exec = lambda self: QTextStreamManipulator.exec_(self)
-    QThread.exec = lambda self: QThread.exec_(self)
+    class QCoreApplication(QCoreApplication, _ExecMixIn): pass
+    class QEventLoop(QEventLoop, _ExecMixIn): pass
+    if hasattr(QTextStreamManipulator, "exec_"):
+        # exec_ only wrapped in PySide2 and NOT in PyQt5
+        class QTextStreamManipulator(QTextStreamManipulator, _ExecMixIn): pass
+    class QThread(QThread, _ExecMixIn): pass
 
 
 # provide a exception handler but not implement it by default
