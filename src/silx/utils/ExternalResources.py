@@ -36,8 +36,7 @@ import json
 import logging
 import tempfile
 import unittest
-import urllib.request
-import urllib.error
+import six
 
 logger = logging.getLogger(__name__)
 
@@ -142,17 +141,17 @@ class ExternalResources(object):
             if "https_proxy" in os.environ:
                 dictProxies['https'] = os.environ["https_proxy"]
             if dictProxies:
-                proxy_handler = urllib.request.ProxyHandler(dictProxies)
-                opener = urllib.request.build_opener(proxy_handler).open
+                proxy_handler = six.moves.urllib.request.ProxyHandler(dictProxies)
+                opener = six.moves.urllib.request.build_opener(proxy_handler).open
             else:
-                opener = urllib.request.urlopen
+                opener = six.moves.urllib.request.urlopen
 
             logger.debug("wget %s/%s", self.url_base, filename)
             try:
                 data = opener("%s/%s" % (self.url_base, filename),
                               data=None, timeout=self.timeout).read()
                 logger.info("Image %s successfully downloaded.", filename)
-            except urllib.error.URLError:
+            except six.moves.urllib.error.URLError:
                 raise unittest.SkipTest("network unreachable.")
 
             if not os.path.isdir(os.path.dirname(fullfilename)):

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,17 +33,16 @@ import os
 import unittest
 import shutil
 import socket
-import urllib.request
-import urllib.error
+import six
 
 from silx.utils.ExternalResources import ExternalResources
 
 
 def isSilxWebsiteAvailable():
     try:
-        urllib.request.urlopen('http://www.silx.org', timeout=1)
+        six.moves.urllib.request.urlopen('http://www.silx.org', timeout=1)
         return True
-    except urllib.error.URLError:
+    except six.moves.urllib.error.URLError:
         return False
     except socket.timeout:
         # This exception is still received in Python 2.7
