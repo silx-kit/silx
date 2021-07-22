@@ -217,7 +217,7 @@ def main(argv=None):
         updateThread = UpdateThread(mainWindow)
         updateThread.start()
 
-    return app.exec_()
+    return app.exec()
 
 
 if __name__ == "__main__":

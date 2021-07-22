@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1058,13 +1058,16 @@ class ColormapDialog(qt.QDialog):
             self.__aboutToDelete = True
         return super(ColormapDialog, self).event(event)
 
-    def exec_(self):
+    def exec(self):
         wasModal = self.isModal()
         self.setModal(True)
-        result = super(ColormapDialog, self).exec_()
+        result = super(ColormapDialog, self).exec()
         if not self.__aboutToDelete:
             self.setModal(wasModal)
         return result
+
+    def exec_(self):  # Qt5 compatibility wrapper
+        return self.exec()
 
     def _getFiniteColormapRange(self):
         """Return a colormap range where auto ranges are fixed

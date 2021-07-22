@@ -326,7 +326,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                 dialog.setOption(qt.QColorDialog.DontUseNativeDialog, True)
             dialog.setCurrentColor(initialColor)
             dialog.currentColorChanged.connect(callback)
-            if dialog.exec_() == qt.QDialog.Rejected:
+            if dialog.exec() == qt.QDialog.Rejected:
                 # Reset color
                 dialog.setCurrentColor(initialColor)
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -110,7 +110,7 @@ class SaveAction(Plot3DAction):
             dialog.setFileMode(qt.QFileDialog.AnyFile)
             dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
 
-            if not dialog.exec_():
+            if not dialog.exec():
                 return
 
             nameFilter = dialog.selectedNameFilter()
@@ -166,7 +166,7 @@ class PrintAction(Plot3DAction):
             printer = self.getPrinter()
             dialog = qt.QPrintDialog(printer, plot3d)
             dialog.setWindowTitle('Print Plot3D snapshot')
-            if not dialog.exec_():
+            if not dialog.exec():
                 return
 
             image = plot3d.grabGL()
@@ -231,7 +231,7 @@ class VideoAction(Plot3DAction):
         dialog.setFileMode(dialog.AnyFile)
         dialog.setAcceptMode(dialog.AcceptSave)
 
-        if not dialog.exec_():
+        if not dialog.exec():
             return
 
         nameFilter = dialog.selectedNameFilter()

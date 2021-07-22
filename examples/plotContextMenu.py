@@ -87,7 +87,7 @@ class PlotWidgetWithContextMenu(PlotWidget):
         # plot area, and thus needs to be converted.
         plotArea = self.getWidgetHandle()
         globalPosition = plotArea.mapToGlobal(pos)
-        menu.exec_(globalPosition)
+        menu.exec(globalPosition)
 
 
 # Start the QApplication
@@ -100,4 +100,4 @@ plot.addCurve(x, numpy.sin(x), legend='sin')
 
 # Show the widget and start the application
 plot.show()
-app.exec_()
+app.exec()

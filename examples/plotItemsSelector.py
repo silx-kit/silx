@@ -46,11 +46,11 @@ pw.show()
 
 isd = ItemsSelectionDialog(plot=pw)
 isd.setItemsSelectionMode(qt.QTableWidget.ExtendedSelection)
-result = isd.exec_()
+result = isd.exec()
 if result:
     for item in isd.getSelectedItems():
         print(item.getName(), type(item))
 else:
     print("Selection cancelled")
 
-app.exec_()
+app.exec()

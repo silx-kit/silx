@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ def _selectDataset(filename, mode=DatasetDialog.SaveMode):
     dialog.addFile(filename)
     dialog.setWindowTitle("Select a 2D dataset")
     dialog.setMode(mode)
-    if not dialog.exec_():
+    if not dialog.exec():
         return None
     return dialog.getSelectedDataUrl().data_path()
 
@@ -666,7 +666,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -683,13 +683,13 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Warning)
             msg.setText("Mask loaded but an operation was applied.\n" + message)
-            msg.exec_()
+            msg.exec()
         except Exception as e:
             message = e.args[0]
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
-            msg.exec_()
+            msg.exec()
 
     @staticmethod
     def _loadFromHdf5(filename):
@@ -740,7 +740,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 dialog.setOption(dialog.DontConfirmOverwrite, False)
 
         dialog.filterSelected.connect(onFilterSelection)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -778,7 +778,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
                             "Input Output Error: %s" % strerror)
-                msg.exec_()
+                msg.exec()
                 return
 
         # Update the directory according to the user selection
@@ -796,7 +796,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             else:
                 strerror = sys.exc_info()[1]
             msg.setText("Cannot save file %s\n%s" % (filename, strerror))
-            msg.exec_()
+            msg.exec()
 
     def resetSelectionMask(self):
         """Reset the mask"""

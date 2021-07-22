@@ -384,7 +384,7 @@ class PrintPreviewDialog(qt.QDialog):
             self.printer = printer.getDefaultPrinter()
         if self.printDialog is None:
             self.printDialog = qt.QPrintDialog(self.printer, self)
-        if self.printDialog.exec_():
+        if self.printDialog.exec():
             if self.printer.width() <= 0 or self.printer.height() <= 0:
                 self.message = qt.QMessageBox(self)
                 self.message.setIcon(qt.QMessageBox.Critical)
@@ -426,10 +426,13 @@ class PrintPreviewDialog(qt.QDialog):
         self.printer.setOutputFileName(name)
 
     # overloaded methods
-    def exec_(self):
+    def exec(self):
         if self._toBeCleared:
             self._clearAll()
-        return qt.QDialog.exec_(self)
+        return qt.QDialog.exec(self)
+
+    def exec_(self):  # Qt5 compatibility
+        return self.exec()
 
     def raise_(self):
         if self._toBeCleared:
@@ -685,10 +688,10 @@ def main():
                     commentPosition="CENTER")
         w.addImage(qt.QImage(filename), comment=comment, commentPosition="LEFT")
 
-    sys.exit(w.exec_())
+    sys.exit(w.exec())
 
 
 if __name__ == '__main__':
     a = qt.QApplication(sys.argv)
     main()
-    a.exec_()
+    a.exec()

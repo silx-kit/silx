@@ -647,4 +647,4 @@ if __name__ == "__main__":
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))
     w.show()
-    app.exec_()
+    app.exec()

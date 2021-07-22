@@ -203,4 +203,4 @@ else:
     window.addIsosurface(default_isolevel, '#FF0000FF')
 
 window.show()
-app.exec_()
+app.exec()

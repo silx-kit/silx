@@ -283,7 +283,7 @@ class CurvesROIWidget(qt.QWidget):
             ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.roiFileDir)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -316,7 +316,7 @@ class CurvesROIWidget(qt.QWidget):
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
         dialog.setDirectory(self.roiFileDir)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -334,7 +334,7 @@ class CurvesROIWidget(qt.QWidget):
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
                 msg.setText("Input Output Error: %s" % (sys.exc_info()[1]))
-                msg.exec_()
+                msg.exec()
                 return
         self.roiFileDir = os.path.dirname(outputFile)
         self.save(outputFile)

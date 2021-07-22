@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -129,7 +129,7 @@ class About(qt.QDialog):
         licenseDialog = qt.QMessageBox(self)
         licenseDialog.setWindowTitle("License")
         licenseDialog.setText(text)
-        licenseDialog.exec_()
+        licenseDialog.exec()
 
     def setApplicationName(self, name):
         self.__applicationName = name
@@ -258,4 +258,4 @@ class About(qt.QDialog):
         """
         dialog = About(parent)
         dialog.setApplicationName(applicationName)
-        dialog.exec_()
+        dialog.exec()

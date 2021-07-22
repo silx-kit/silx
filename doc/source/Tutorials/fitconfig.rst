@@ -52,7 +52,7 @@ dialog by FitWidget:
 
         - :meth:`show`: should cause the widget to become visible to the
           user)
-        - :meth:`exec_`: should run while the user is interacting with the
+        - :meth:`exec`: should run while the user is interacting with the
           widget, interrupting the rest of the program. It should
           typically end (*return*) when the user clicks an *OK*
           or a *Cancel* button.
@@ -175,7 +175,7 @@ used by our fit function to scale the *y* values.
     fw.associateConfigDialog("scaled linear", CustomConfigWidget())
     fw.show()
 
-    app.exec_()
+    app.exec()
 
 .. |img0| image:: img/custom_config_scale1.0.png
    :height: 300px

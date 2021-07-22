@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -454,7 +454,7 @@ class LegendListItemWidget(qt.QItemDelegate):
         # Mouse events are sent to editorEvent()
         # even if they don't start editing of the item.
         if event.button() == qt.Qt.RightButton and self.contextMenu:
-            self.contextMenu.exec_(event.globalPos(), modelIndex)
+            self.contextMenu.exec(event.globalPos(), modelIndex)
             return True
         elif event.button() == qt.Qt.LeftButton:
             # Check if checkbox was clicked
@@ -705,7 +705,7 @@ class LegendListContextMenu(qt.QMenu):
         self.addAction('Remove curve', self.removeItemAction)
         self.addAction('Rename curve', self.renameItemAction)
 
-    def exec_(self, pos, idx):
+    def exec(self, pos, idx):
         self.__currentIdx = idx
 
         # Set checkable action state
@@ -716,6 +716,9 @@ class LegendListContextMenu(qt.QMenu):
             modelIndex.data(LegendModel.showLineRole))
 
         super(LegendListContextMenu, self).popup(pos)
+
+    def exec_(self, pos, idx):  # Qt5-like compatibility
+        return self.exec(pos, idx)
 
     def currentIdx(self):
         return self.__currentIdx
@@ -866,7 +869,7 @@ class RenameCurveDialog(qt.QDialog):
         msg.setWindowTitle(text)
         text += "\n%s" % addedText
         msg.setText(text)
-        msg.exec_()
+        msg.exec()
 
     def getText(self):
         return str(self.lineEdit.text())
@@ -946,7 +949,7 @@ class LegendsDockWidget(qt.QDockWidget):
             curveList = self.plot.getAllCurves(just_legend=True)
             oldLegend = ddict['legend']
             dialog = RenameCurveDialog(self.plot, oldLegend, curveList)
-            ret = dialog.exec_()
+            ret = dialog.exec()
             if ret:
                 newLegend = dialog.getText()
                 self.renameCurve(oldLegend, newLegend)

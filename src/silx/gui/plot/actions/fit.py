@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -183,7 +183,7 @@ class FitAction(PlotToolAction):
             isd.setAvailableKinds(["curve", "histogram"])
             isd.selectAllKinds()
 
-            if not isd.exec_():  # Cancel
+            if not isd.exec():  # Cancel
                 self._getToolWindow().setVisible(False)
             else:
                 selectedItems = isd.getSelectedItems()

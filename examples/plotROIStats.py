@@ -248,7 +248,7 @@ def example_curve(mode):
     window.setUpdateMode(mode)
 
     window.show()
-    app.exec_()
+    app.exec()
 
 
 def example_image(mode):
@@ -278,7 +278,7 @@ def example_image(mode):
     window.setUpdateMode(mode)
 
     window.show()
-    app.exec_()
+    app.exec()
     updateThread.stop()  # Stop updating the plot
 
 
@@ -314,7 +314,7 @@ def example_curve_image(mode):
     updateThread.start()  # Start updating the plot
 
     window.show()
-    app.exec_()
+    app.exec()
     updateThread.stop()  # Stop updating the plot
 
 

@@ -201,7 +201,7 @@ def main():
     app = qt.QApplication([])
     widget = Example()
     widget.show()
-    app.exec_()
+    app.exec()
 
 if __name__ == "__main__":
     main()

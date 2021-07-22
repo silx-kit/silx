@@ -683,7 +683,7 @@ class PlotWidget(qt.QMainWindow):
         # draw interaction mode
         menu.aboutToHide.connect(self.__simulateMouseMove)
 
-        menu.exec_(event.globalPos())
+        menu.exec(event.globalPos())
 
     def _setDirtyPlot(self, overlayOnly=False):
         """Mark the plot as needing redraw
