@@ -49,7 +49,6 @@ import logging
 import numpy
 import collections
 from typing import Union
-import weakref
 
 import silx
 from .. import qt
@@ -69,6 +68,7 @@ from ..utils import blockSignals
 from . import _utils
 from .tools.profile import manager
 from .tools.profile import rois
+from .actions import PlotAction
 
 _logger = logging.getLogger(__name__)
 
@@ -319,6 +319,25 @@ class _SideHistogram(PlotWidget):
             dataAxis.setLimits(vMin, vMax)
 
 
+class ShowSideHistogramsAction(PlotAction):
+    """QAction to change visibility of side histogram of a :class:`.ImageView`.
+
+    :param plot: :class:`.ImageView` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ShowSideHistogramsAction, self).__init__(
+            plot, icon='side-histograms', text='Show/hide side histograms',
+            tooltip='Show/hide side histogram',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+
+    def _actionTriggered(self, checked=False):
+        if self.plot.isSideHistogramDisplayed() != checked:
+            self.plot.setSideHistogramDisplayed(checked)
+
+
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
 
@@ -384,6 +403,9 @@ class ImageView(PlotWindow):
         maskToolsWidget = self.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
 
+        self.__showSideHistogramsAction = ShowSideHistogramsAction(self, self)
+        self.__showSideHistogramsAction.setChecked(True)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
@@ -391,6 +413,9 @@ class ImageView(PlotWindow):
             self.getYAxis().setInverted(True)
 
         self._initWidgets(backend)
+
+        toolBar = self.toolBar()
+        toolBar.addAction(self.__showSideHistogramsAction)
 
         self.__profileWindowBehavior = self.ProfileWindowBehavior.POPUP
         self.__profile = ProfileToolBar(plot=self)
@@ -433,19 +458,19 @@ class ImageView(PlotWindow):
         """Set central widget with all its content"""
         layout = qt.QGridLayout()
         layout.addWidget(self.getWidgetHandle(), 0, 0)
-        layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
-        layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
+        layout.addWidget(self._histoVPlot, 0, 1)
+        layout.addWidget(self._histoHPlot, 1, 0)
         layout.addWidget(self._radarView, 1, 1, 1, 2)
         layout.addWidget(self.getColorBarWidget(), 0, 2)
 
-        layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
-        layout.setColumnStretch(0, 1)
-        layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
-        layout.setColumnStretch(1, 0)
+        self._radarView.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._radarView.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._histoVPlot.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
 
-        layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
         layout.setRowStretch(0, 1)
-        layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
         layout.setRowStretch(1, 0)
 
         layout.setSpacing(0)
@@ -464,8 +489,31 @@ class ImageView(PlotWindow):
     def _dirtyCache(self):
         self._cache = None
 
+    def getShowSideHistogramsAction(self):
+        return self.__showSideHistogramsAction
+
+    def setSideHistogramDisplayed(self, show):
+        """Display or not the side histograms"""
+        if self.isSideHistogramDisplayed() == show:
+            return
+        self._histoHPlot.setVisible(show)
+        self._histoVPlot.setVisible(show)
+        self._radarView.setVisible(show)
+        self.__showSideHistogramsAction.setChecked(show)
+        if show:
+            # Probably have to be computed
+            self._updateHistograms()
+
+    def isSideHistogramDisplayed(self):
+        """True if the side histograms are displayed"""
+        return self._histoHPlot.isVisible()
+
     def _updateHistograms(self):
         """Update histograms content using current active image."""
+        if not self.isSideHistogramDisplayed():
+            # The histogram computation can be skipped
+            return
+
         activeImage = self.getActiveImage()
         if activeImage is not None:
             xRange = self.getXAxis().getLimits()
@@ -725,7 +773,7 @@ class ImageView(PlotWindow):
         self.setInteractiveMode('zoom', color=cursorColor)
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
-                 copy=True, reset=True):
+                 copy=True, reset=None, resetzoom=True):
         """Set the image to display.
 
         :param image: A 2D array representing the image or None to empty plot.
@@ -741,9 +789,13 @@ class ImageView(PlotWindow):
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
         :param bool copy: Whether to copy image data (default) or not.
-        :param bool reset: Whether to reset zoom and ROI (default) or not.
+        :param bool reset: Deprecated. Alias for `resetzoom`.
+        :param bool resetzoom: Whether to reset zoom and ROI (default) or not.
         """
         self._dirtyCache()
+
+        if reset is not None:
+            resetzoom = reset
 
         assert len(origin) == 2
         assert len(scale) == 2
@@ -765,7 +817,7 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-        if reset:
+        if resetzoom:
             self.resetZoom()
 
 
@@ -788,8 +840,6 @@ class ImageViewMainWindow(ImageView):
         # Add toolbars and status bar
         self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
-        self.statusBar()
-
         menu = self.menuBar().addMenu('File')
         menu.addAction(self.getOutputToolBar().getSaveAction())
         menu.addAction(self.getOutputToolBar().getPrintAction())
@@ -804,6 +854,7 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(self.getColormapAction())
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
+        menu.addAction(self.getShowSideHistogramsAction())
 
         self.__profileMenu = self.menuBar().addMenu('Profile')
         self.__updateProfileMenu()
@@ -859,12 +910,13 @@ class ImageViewMainWindow(ImageView):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
             assert image.ndim == 2 or (image.ndim == 3 and image.shape[2] in (3, 4))
             height, width = image.shape[0:2]
-            self._dataInfo = 'Data: %dx%d (%s)' % (width, height,
-                                                   str(image.dtype))
-            self.statusBar().showMessage(self._dataInfo)
+            dataInfo = 'Data: %dx%d (%s)' % (width, height, str(image.dtype))
         else:
-            self._dataInfo = None
+            dataInfo = None
+
+        if self._dataInfo != dataInfo:
+            self._dataInfo = dataInfo
+            self.statusBar().showMessage(self._dataInfo)
 
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
-        self.setStatusBar(None)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,10 @@ import enum
 import logging
 
 import dateutil.tz
+import numpy
 
 from ... import qt
+from .. import _utils
 
 
 _logger = logging.getLogger(__name__)
@@ -141,26 +143,15 @@ class Axis(qt.QObject):
         self._getPlot()._notifyLimitsChanged(emitSignal=False)
 
     def _checkLimits(self, vmin, vmax):
-        """Makes sure axis range is not empty
+        """Makes sure axis range is not empty and within supported range.
 
         :param float vmin: Min axis value
         :param float vmax: Max axis value
         :return: (min, max) making sure min < max
         :rtype: 2-tuple of float
         """
-        if vmax < vmin:
-            _logger.debug('%s axis: max < min, inverting limits.', self._defaultLabel)
-            vmin, vmax = vmax, vmin
-        elif vmax == vmin:
-            _logger.debug('%s axis: max == min, expanding limits.', self._defaultLabel)
-            if vmin == 0.:
-                vmin, vmax = -0.1, 0.1
-            elif vmin < 0:
-                vmin, vmax = vmin * 1.1, vmin * 0.9
-            else:  # xmin > 0
-                vmin, vmax = vmin * 0.9, vmin * 1.1
-
-        return vmin, vmax
+        return _utils.checkAxisLimits(
+            vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel)
 
     def isInverted(self):
         """Return True if the axis is inverted (top to bottom for the y-axis),

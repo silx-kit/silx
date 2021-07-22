@@ -40,12 +40,74 @@ __license__ = "MIT"
 __date__ = "08/11/2018"
 
 import logging
+import numpy
+import time
+import threading
+
+from silx.gui.utils import concurrent
 from silx.gui.plot.ImageView import ImageViewMainWindow
 from silx.gui import qt
-import numpy
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
+
+
+Nx = 150
+Ny = 50
+
+
+class UpdateThread(threading.Thread):
+    """Thread updating the image of a :class:`~sil.gui.plot.Plot2D`
+
+    :param plot2d: The Plot2D to update."""
+
+    def __init__(self, imageview):
+        self.imageview = imageview
+        self.running = False
+        self.future_result = None
+        super(UpdateThread, self).__init__()
+
+    def start(self):
+        """Start the update thread"""
+        self.running = True
+        super(UpdateThread, self).start()
+
+    def run(self, pos={'x0': 0, 'y0': 0}):
+        """Method implementing thread loop that updates the plot
+
+        It produces an image every 10 ms or so, and
+        either updates the plot or skip the image
+        """
+        while self.running:
+            time.sleep(0.01)
+
+            # Create image
+            # width of peak
+            sigma_x = 0.15
+            sigma_y = 0.25
+            # x and y positions
+            x = numpy.linspace(-1.5, 1.5, Nx)
+            y = numpy.linspace(-1.0, 1.0, Ny)
+            xv, yv = numpy.meshgrid(x, y)
+            signal = numpy.exp(- ((xv - pos['x0']) ** 2 / sigma_x ** 2
+                                  + (yv - pos['y0']) ** 2 / sigma_y ** 2))
+            # add noise
+            signal += 0.3 * numpy.random.random(size=signal.shape)
+            # random walk of center of peak ('drift')
+            pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
+            pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
+
+            # If previous frame was not added to the plot yet, skip this one
+            if self.future_result is None or self.future_result.done():
+                # plot the data asynchronously, and
+                # keep a reference to the `future` object
+                self.future_result = concurrent.submitToQtMainThread(
+                    self.imageview.setImage, signal, resetzoom=False)
+
+    def stop(self):
+        """Stop the update thread"""
+        self.running = False
+        self.join(2)
 
 
 def main(argv=None):
@@ -82,12 +144,17 @@ def main(argv=None):
     parser.add_argument(
         'filename', nargs='?',
         help='EDF filename of the image to open')
+    parser.add_argument(
+        '--live', action='store_true',
+        help='Live update of a generated image')
     args = parser.parse_args(args=argv)
 
     # Open the input file
-    if not args.filename:
+    edfFile = None
+    if args.live:
+        data = None
+    elif not args.filename:
         logger.warning('No image file provided, displaying dummy data')
-        edfFile = None
         size = 512
         xx, yy = numpy.ogrid[-size:size, -size:size]
         data = numpy.cos(xx / (size//5)) + numpy.cos(yy / (size//5))
@@ -118,9 +185,10 @@ def main(argv=None):
         colormap = mainWindow.getDefaultColormap()
         colormap.setNormalization(colormap.LOGARITHM)
 
-    mainWindow.setImage(data,
-                        origin=args.origin,
-                        scale=args.scale)
+    if data is not None:
+        mainWindow.setImage(data,
+                            origin=args.origin,
+                            scale=args.scale)
 
     if edfFile is not None and nbFrames > 1:
         # Add a toolbar for multi-frame EDF support
@@ -143,6 +211,11 @@ def main(argv=None):
 
     mainWindow.show()
     mainWindow.setFocus(qt.Qt.OtherFocusReason)
+
+    if args.live:
+        # Start updating the plot
+        updateThread = UpdateThread(mainWindow)
+        updateThread.start()
 
     return app.exec()
 

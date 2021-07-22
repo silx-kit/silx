@@ -1559,6 +1559,23 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 axis._setLogarithmic(False)
                 self.plot.clear()
 
+    def testAxisLimitOverflow(self):
+        """Test setting limis beyond supported range"""
+        xaxis, yaxis = self.plot.getXAxis(), self.plot.getYAxis()
+        for scale in ("linear", "log"):
+            xaxis.setScale(scale)
+            yaxis.setScale(scale)
+            for limits in ((1e300, 1e308),
+                           (-1e308, 1e308),
+                           (1e-300, 2e-300)):
+                with self.subTest(scale=scale, limits=limits):
+                    xaxis.setLimits(*limits)
+                    self.qapp.processEvents()
+                    self.assertNotEqual(xaxis.getLimits(), limits)
+                    yaxis.setLimits(*limits)
+                    self.qapp.processEvents()
+                    self.assertNotEqual(yaxis.getLimits(), limits)
+
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""

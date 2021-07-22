@@ -747,7 +747,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: actions.PlotAction
         """
-        return self.keepDataAspectRatioButton
+        return self.keepDataAspectRatioAction
 
     def getYAxisInvertedButton(self):
         """Button to switch the Y axis orientation

@@ -300,7 +300,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
         # Loop over all groups, links and datasets
         for key, value in _iter_treedict(attributes=False):
-            h5name = h5path + key
+            h5name = h5path + str(key)
             exists = h5name in h5f
 
             if value is None:
