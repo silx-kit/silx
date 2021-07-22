@@ -278,8 +278,12 @@ def _parse_UB_matrix(header_line):
 
     :param str header_line: G3 header line
     :return: UB matrix
+    :raises ValueError: For malformed UB matrix header line
     """
-    return numpy.array(list(map(float, header_line.split()))).reshape((1, 3, 3))
+    values = list(map(float, header_line.split()))  # Can raise ValueError
+    if len(values) < 9:
+        raise ValueError("Not enough values in UB matrix")
+    return numpy.array(values).reshape((1, 3, 3))
 
 
 def _ub_matrix_in_scan(scan):
@@ -288,13 +292,27 @@ def _ub_matrix_in_scan(scan):
     :param scan: specfile.Scan instance
     :return: True or False
     """
-    if "G3" not in scan.scan_header_dict:
+    header_line = scan.scan_header_dict.get("G3", None)
+    if header_line is None:
         return False
-    return numpy.any(_parse_UB_matrix(scan.scan_header_dict["G3"]))
+    try:
+        ub_matrix = _parse_UB_matrix(header_line)
+    except ValueError:
+        return False
+    return numpy.any(ub_matrix)
 
 
 def _parse_unit_cell(header_line):
-    return numpy.array(list(map(float, header_line.split()))[0:6]).reshape((1, 6))
+    """Parse G1 header line and return unit cell
+
+    :param str header_line: G1 header line
+    :return: unit cell
+    :raises ValueError: For malformed unit cell header line
+    """
+    values = list(map(float, header_line.split()[0:6]))  # can raise ValueError
+    if len(values) < 6:
+        raise ValueError("Not enough values in unit cell")
+    return numpy.array(values).reshape((1, 6))
 
 
 def _unit_cell_in_scan(scan):
@@ -303,9 +321,14 @@ def _unit_cell_in_scan(scan):
     :param scan: specfile.Scan instance
     :return: True or False
     """
-    if "G1" not in scan.scan_header_dict:
+    header_line = scan.scan_header_dict.get("G1", None)
+    if header_line is None:
         return False
-    return numpy.any(_parse_unit_cell(scan.scan_header_dict["G1"]))
+    try:
+        unit_cell = _parse_unit_cell(header_line)
+    except ValueError:
+        return False
+    return numpy.any(unit_cell)
 
 
 def _parse_ctime(ctime_lines, analyser_index=0):
