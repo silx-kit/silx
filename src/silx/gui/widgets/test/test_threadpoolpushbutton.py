@@ -35,7 +35,7 @@ from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.utils.testutils import TestLogging
+from silx.utils.testutils import TestLogging as _TestLogging
 
 
 class TestThreadPoolPushButton(TestCaseQt):
@@ -114,7 +114,7 @@ class TestThreadPoolPushButton(TestCaseQt):
         button.succeeded.connect(listener.partial(test="Unexpected success"))
         button.failed.connect(listener.partial(test="exception"))
         button.finished.connect(listener.partial(test="f"))
-        with TestLogging('silx.gui.widgets.ThreadPoolPushButton', error=1):
+        with _TestLogging('silx.gui.widgets.ThreadPoolPushButton', error=1):
             button.executeCallable()
             self.qapp.processEvents()
             time.sleep(0.1)
