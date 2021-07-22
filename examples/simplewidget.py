@@ -219,7 +219,7 @@ def main():
     sys.excepthook = qt.exceptionHandler
     window = SimpleWidgetExample()
     window.show()
-    result = app.exec_()
+    result = app.exec()
     # remove ending warnings relative to QTimer
     app.deleteLater()
     sys.excepthook = sys.__excepthook__

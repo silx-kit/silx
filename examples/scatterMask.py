@@ -150,4 +150,4 @@ if __name__ == "__main__":
     msw.setScatter(x, y, v=v)
     msw.setBackgroundImage(bg_img)
     msw.show()
-    app.exec_()
+    app.exec()

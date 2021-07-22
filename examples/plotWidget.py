@@ -178,7 +178,7 @@ def main():
     window.setAttribute(qt.Qt.WA_DeleteOnClose)
     window.show()
     window.showImage()
-    app.exec_()
+    app.exec()
 
 
 if __name__ == '__main__':

@@ -124,7 +124,7 @@ def main():
     updateThread = UpdateThread(plot2d)
     updateThread.start()  # Start updating the plot
 
-    app.exec_()
+    app.exec()
 
     updateThread.stop()  # Stop updating the plot
 
