@@ -56,5 +56,5 @@ Example
                     commentPosition="CENTER")
         w.addImage(qt.QImage(filename), comment=comment, commentPosition="LEFT")
 
-    w.exec_()
-    a.exec_()
+    w.exec()
+    a.exec()

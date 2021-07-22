@@ -72,7 +72,7 @@ def main(argv=None):
     addLine([70, 0], [70, 100], "_", "_", "l6", "black")
 
     mainWindow.setVisible(True)
-    return app.exec_()
+    return app.exec()
 
 
 if __name__ == "__main__":

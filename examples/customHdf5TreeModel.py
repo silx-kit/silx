@@ -279,7 +279,7 @@ def main(filenames):
     sys.excepthook = qt.exceptionHandler
     window = Hdf5TreeViewExample(filenames)
     window.show()
-    result = app.exec_()
+    result = app.exec()
     # remove ending warnings relative to QTimer
     app.deleteLater()
     sys.exit(result)

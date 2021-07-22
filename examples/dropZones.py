@@ -140,7 +140,7 @@ class DragLabel(qt.QLabel):
                 self._url.path().encode(encoding='utf-8'))
             drag = qt.QDrag(self)
             drag.setMimeData(mimeData)
-            dropAction = drag.exec_()
+            dropAction = drag.exec()
 
 
 class DragAndDropExample(qt.QMainWindow):
@@ -178,7 +178,7 @@ def main():
             silx.io.url.DataUrl(file_path=filename, data_path='/curve', scheme="silx")))
         example.setWindowTitle("Drag&Drop URLs sample code")
         example.show()
-        app.exec_()
+        app.exec()
 
 
 if __name__ == "__main__":

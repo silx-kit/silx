@@ -190,5 +190,5 @@ plotwin.getYAxis().setLabel("amplitude")
 plotwin.getXAxis().setLabel("time")
 
 plotwin.show()
-app.exec_()
+app.exec()
 sys.excepthook = sys.__excepthook__

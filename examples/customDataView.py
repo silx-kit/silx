@@ -96,7 +96,7 @@ def main():
     widget.addView(MyColorView(widget))
     widget.setData(Color.GREEN)
     widget.show()
-    result = app.exec_()
+    result = app.exec()
     # remove ending warnings relative to QTimer
     app.deleteLater()
     sys.exit(result)
