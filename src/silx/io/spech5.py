@@ -298,6 +298,7 @@ def _ub_matrix_in_scan(scan):
     try:
         ub_matrix = _parse_UB_matrix(header_line)
     except ValueError:
+        logger1.warning("Malformed G3 header line")
         return False
     return numpy.any(ub_matrix)
 
@@ -327,6 +328,7 @@ def _unit_cell_in_scan(scan):
     try:
         unit_cell = _parse_unit_cell(header_line)
     except ValueError:
+        logger1.warning("Malformed G1 header line")
         return False
     return numpy.any(unit_cell)
 
