@@ -23,7 +23,7 @@ Let's look at a simple usage example:
     w = ArrayTableWidget()
     w.setArrayData(array, labels=True)
     w.show()
-    app.exec_()
+    app.exec()
 
 
 .. |imgArray0| image:: img/arraywidget3D_0.png
@@ -242,6 +242,6 @@ of RGB colors.
                       fgcolors=fcolors)
    atw.show()
 
-   app.exec_()
+   app.exec()
 
 

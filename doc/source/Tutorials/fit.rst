@@ -450,7 +450,7 @@ The following example illustrates the strip background removal process:
     app = qt.QApplication([])
     plot(x, y, x, actual_bg, x, strip_bg)
     plot(x, y, x, (y - strip_bg))
-    app.exec_()
+    app.exec()
 
 .. |imgStrip1| image:: img/stripbg_plot1.png
    :height: 300px
@@ -545,7 +545,7 @@ Simple usage
     w.setData(x=x, y=y)
     w.show()
 
-    a.exec_()
+    a.exec()
 
 .. |imgFitWidget1| image:: img/fitwidget1.png
    :width: 300px
@@ -638,7 +638,7 @@ The :class:`FitWidget` can be initialised with a non-standard
     fw = FitWidget(fitmngr=myfitmngr)
     fw.show()
 
-    a.exec_()
+    a.exec()
 
 In our previous example, we didn't load a customised :class:`FitManager`,
 therefore, the fit widget automatically initialised the default fit manager and
