@@ -533,6 +533,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
             def fill_histo(h, v, dim, op=None):
                 idx = [self.other_axes_index]*len(h.shape)
                 idx[dim] = slice(0, None)
+                idx = tuple(idx)
                 if op:
                     h[idx] = op(h[idx], v)
                 else:
