@@ -865,11 +865,11 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
 def testUnitCellUBMatrix(tmp_path):
     """Test unit cell (#G1) and UB matrix (#G3)"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_text("""
+    file_path.write_bytes(bytes("""
 #S 1 OK
 #G1 0 1 2 3 4 5
 #G3 0 1 2 3 4 5 6 7 8
-""")
+""", encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
         assert numpy.array_equal(
             spech5["/1.1/sample/ub_matrix"],
@@ -885,11 +885,11 @@ def testUnitCellUBMatrix(tmp_path):
 def testMalformedUnitCellUBMatrix(tmp_path):
     """Test malformed unit cell (#G1) and UB matrix (#G3): 1 value"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_text("""
+    file_path.write_bytes(bytes("""
 #S 1 all malformed=0
 #G1 0
 #G3 0
-""")
+""", encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
         assert "sample" not in spech5["1.1"]
 
@@ -897,11 +897,11 @@ def testMalformedUnitCellUBMatrix(tmp_path):
 def testMalformedUBMatrix(tmp_path):
     """Test malformed UB matrix (#G3): all zeros"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_text("""
+    file_path.write_bytes(bytes("""
 #S 1 G3 all 0
 #G1 0 1 2 3 4 5
 #G3 0 0 0 0 0 0 0 0 0
-""")
+""", encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
         assert "ub_matrix" not in spech5["/1.1/sample"]
         assert numpy.array_equal(
@@ -915,11 +915,11 @@ def testMalformedUBMatrix(tmp_path):
 def testMalformedUnitCell(tmp_path):
     """Test malformed unit cell (#G1): missing values"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_text("""
+    file_path.write_bytes(bytes("""
 #S 1 G1 malformed missing values
 #G1 0 1 2
 #G3 0 1 2 3 4 5 6 7 8
-""")
+""", encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
         assert "unit_cell" not in spech5["/1.1/sample"]
         assert "unit_cell_abc" not in spech5["/1.1/sample"]
