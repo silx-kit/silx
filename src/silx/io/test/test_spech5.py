@@ -101,13 +101,13 @@ sftext = """#F /tmp/sf.dat
 @A 1 1 1
 
 #S 1000 bbbbb
-#G1 3.25 3.25 5.207 90 90 120 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
+#G2 3.25 3.25 5.207 90 90 120 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
 #G3 0.0106337923671 0.027529133 1.206191273 -1.43467075 0.7633438883 0.02401568018 -1.709143587 -2.097621783 0.02456954971
 #L a  b
 1 2
 
 #S 1001 ccccc
-#G1 0. 0. 0. 0 0 0 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
+#G2 0. 0. 0. 0 0 0 2.232368448 2.232368448 1.206680489 90 90 60 1 1 2 -1 2 2 26.132 7.41 -88.96 1.11 1.000012861 15.19 26.06 67.355 -88.96 1.11 1.000012861 15.11 0.723353 0.723353
 #G3 0. 0. 0. 0. 0.0 0. 0. 0. 0.
 #L a  b
 1 2
@@ -863,11 +863,11 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
 
 
 def testUnitCellUBMatrix(tmp_path):
-    """Test unit cell (#G1) and UB matrix (#G3)"""
+    """Test unit cell (#G2) and UB matrix (#G3)"""
     file_path = tmp_path / "spec.dat"
     file_path.write_bytes(bytes("""
 #S 1 OK
-#G1 0 1 2 3 4 5
+#G2 0 1 2 3 4 5
 #G3 0 1 2 3 4 5 6 7 8
 """, encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
@@ -883,11 +883,11 @@ def testUnitCellUBMatrix(tmp_path):
 
 
 def testMalformedUnitCellUBMatrix(tmp_path):
-    """Test malformed unit cell (#G1) and UB matrix (#G3): 1 value"""
+    """Test malformed unit cell (#G2) and UB matrix (#G3): 1 value"""
     file_path = tmp_path / "spec.dat"
     file_path.write_bytes(bytes("""
 #S 1 all malformed=0
-#G1 0
+#G2 0
 #G3 0
 """, encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
@@ -899,7 +899,7 @@ def testMalformedUBMatrix(tmp_path):
     file_path = tmp_path / "spec.dat"
     file_path.write_bytes(bytes("""
 #S 1 G3 all 0
-#G1 0 1 2 3 4 5
+#G2 0 1 2 3 4 5
 #G3 0 0 0 0 0 0 0 0 0
 """, encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
@@ -913,11 +913,11 @@ def testMalformedUBMatrix(tmp_path):
 
 
 def testMalformedUnitCell(tmp_path):
-    """Test malformed unit cell (#G1): missing values"""
+    """Test malformed unit cell (#G2): missing values"""
     file_path = tmp_path / "spec.dat"
     file_path.write_bytes(bytes("""
-#S 1 G1 malformed missing values
-#G1 0 1 2
+#S 1 G2 malformed missing values
+#G2 0 1 2
 #G3 0 1 2 3 4 5 6 7 8
 """, encoding="ascii"))
     with SpecH5(str(file_path)) as spech5:
