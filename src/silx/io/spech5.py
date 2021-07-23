@@ -304,9 +304,9 @@ def _ub_matrix_in_scan(scan):
 
 
 def _parse_unit_cell(header_line):
-    """Parse G1 header line and return unit cell
+    """Parse G2 header line and return unit cell
 
-    :param str header_line: G1 header line
+    :param str header_line: G2 header line
     :return: unit cell
     :raises ValueError: For malformed unit cell header line
     """
@@ -317,18 +317,18 @@ def _parse_unit_cell(header_line):
 
 
 def _unit_cell_in_scan(scan):
-    """Return True if scan header has a G1 line and all values are not 0.
+    """Return True if scan header has a G2 line and all values are not 0.
 
     :param scan: specfile.Scan instance
     :return: True or False
     """
-    header_line = scan.scan_header_dict.get("G1", None)
+    header_line = scan.scan_header_dict.get("G2", None)
     if header_line is None:
         return False
     try:
         unit_cell = _parse_unit_cell(header_line)
     except ValueError:
-        logger1.warning("Malformed G1 header line")
+        logger1.warning("Malformed G2 header line")
         return False
     return numpy.any(unit_cell)
 
@@ -889,15 +889,15 @@ class SampleGroup(commonh5.Group, SpecH5Group):
 
         if _unit_cell_in_scan(scan):
             self.add_node(SpecH5NodeDataset(name="unit_cell",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"]),
+                                            data=_parse_unit_cell(scan.scan_header_dict["G2"]),
                                             parent=self,
                                             attrs={"interpretation": to_h5py_utf8("scalar")}))
             self.add_node(SpecH5NodeDataset(name="unit_cell_abc",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
+                                            data=_parse_unit_cell(scan.scan_header_dict["G2"])[0, 0:3],
                                             parent=self,
                                             attrs={"interpretation": to_h5py_utf8("scalar")}))
             self.add_node(SpecH5NodeDataset(name="unit_cell_alphabetagamma",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
+                                            data=_parse_unit_cell(scan.scan_header_dict["G2"])[0, 3:6],
                                             parent=self,
                                             attrs={"interpretation": to_h5py_utf8("scalar")}))
         if _ub_matrix_in_scan(scan):
