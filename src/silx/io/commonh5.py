@@ -24,9 +24,6 @@
 """
 This module contains generic objects, emulating *h5py* groups, datasets and
 files. They are used in :mod:`spech5` and :mod:`fabioh5`.
-
-.. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
-    library, which is not a mandatory dependency for `silx`.
 """
 import collections
 try:
