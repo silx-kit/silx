@@ -38,6 +38,7 @@ import silx.io.url
 
 import h5py
 from ..utils import h5ls
+from silx.io import commonh5
 
 import fabio
 
@@ -869,3 +870,54 @@ class TestH5Strings(unittest.TestCase):
 
     def test_attribute_no_string(self):
         self._check_attribute(numpy.int64(10))
+
+
+def test_visitall_hdf5(tmp_path):
+    """visit HDF5 file content not following links"""
+    external_filepath = tmp_path / "external.h5"
+    with h5py.File(external_filepath, mode="w") as h5file:
+        h5file["target/dataset"] = 50
+
+    filepath = tmp_path / "base.h5"
+    with h5py.File(filepath, mode="w") as h5file:
+        h5file["group/dataset"] = 50
+        h5file["link/soft_link"] = h5py.SoftLink("/group/dataset")
+        h5file["link/external_link"] = h5py.ExternalLink("external.h5", "/target/dataset")
+
+    with h5py.File(filepath, mode="r") as h5file:
+        visited_items = {}
+        for path, item in utils.visitall(h5file):
+            if isinstance(item, h5py.Dataset):
+                content = item[()]
+            elif isinstance(item, h5py.Group):
+                content = None
+            elif isinstance(item, h5py.SoftLink):
+                content = item.path
+            elif isinstance(item, h5py.ExternalLink):
+                content = item.filename, item.path
+            else:
+                raise AssertionError("Item should not be present: %s" % path)
+            visited_items[path] = (item.__class__, content)
+
+    assert visited_items == {
+        "/group": (h5py.Group, None),
+        "/group/dataset": (h5py.Dataset, 50),
+        "/link": (h5py.Group, None),
+        "/link/soft_link": (h5py.SoftLink, "/group/dataset"),
+        "/link/external_link": (h5py.ExternalLink, ("external.h5", "/target/dataset")),
+    }
+
+def test_visitall_commonh5():
+    """Visit commonh5 File object"""
+    fobj = commonh5.File("filename.file", mode="w")
+    group = fobj.create_group("group")
+    dataset = group.create_dataset("dataset", data=numpy.array(50))
+    group["soft_link"] = dataset # Create softlink
+
+    visited_items = dict(utils.visitall(fobj))
+    assert len(visited_items) == 3
+    assert visited_items["/group"] is group
+    assert visited_items["/group/dataset"] is dataset
+    soft_link = visited_items["/group/soft_link"]
+    assert isinstance(soft_link, commonh5.SoftLink)
+    assert soft_link.path == "/group/dataset"
