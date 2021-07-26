@@ -254,12 +254,6 @@ class Hdf5Writer(object):
             _logger.warning("Unsuppored entity, ignoring: %s", h5_name)
 
 
-def _is_commonh5_group(grp):
-    """Return True if grp is a commonh5 group.
-    (h5py.Group objects are not commonh5 groups)"""
-    return is_group(grp) and not isinstance(grp, h5py.Group)
-
-
 def write_to_h5(infile, h5file, h5path='/', mode="a",
                 overwrite_data=False, link_type="soft",
                 create_dataset_args=None, min_size=500):
@@ -298,23 +292,15 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     # both infile and h5file can be either file handle or a file name: 4 cases
     if not isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
-            if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             with h5py.File(h5file, mode) as h5f:
                 writer.write(h5pylike, h5f)
     elif isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
-            if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             writer.write(h5pylike, h5file)
     elif is_group(infile) and not isinstance(h5file, h5py.File):
-        if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         with h5py.File(h5file, mode) as h5f:
             writer.write(infile, h5f)
     else:
-        if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         writer.write(infile, h5file)
 
 
