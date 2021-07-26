@@ -62,8 +62,8 @@ import h5py
 import numpy
 
 import silx.io
-from silx.io import is_dataset, is_group, is_softlink
-from silx.io import fabioh5
+from .utils import is_dataset, is_group, is_softlink, visitall
+from . import fabioh5
 
 
 _logger = logging.getLogger(__name__)
@@ -175,7 +175,8 @@ class Hdf5Writer(object):
         """
         # Recurse through all groups and datasets to add them to the HDF5
         self._h5f = h5f
-        infile.visititems(self.append_member_to_h5, visit_links=True)
+        for name, item in visitall(infile):
+            self.append_member_to_h5(name, item)
 
         # Handle the attributes of the root group
         root_grp = h5f[self.h5path]
@@ -249,6 +250,8 @@ class Hdf5Writer(object):
                 if self.overwrite_data or key not in grp.attrs:
                     grp.attrs.create(key,
                                      _attr_utf8(obj.attrs[key]))
+        else:
+            _logger.warning("Unsuppored entity, ignoring: %s", h5_name)
 
 
 def _is_commonh5_group(grp):
