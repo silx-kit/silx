@@ -51,7 +51,8 @@ class Test_leastsq(unittest.TestCase):
         def myexp(x):
             # put a (bad) filter to avoid over/underflows
             # with no python looping
-            return numpy.exp(x*numpy.less(abs(x), 250)) - \
+            with numpy.errstate(invalid='ignore'):
+                return numpy.exp(x*numpy.less(abs(x), 250)) - \
                    1.0 * numpy.greater_equal(abs(x), 250)
 
         self.my_exp = myexp

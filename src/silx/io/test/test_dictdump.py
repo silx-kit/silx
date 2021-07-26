@@ -37,7 +37,7 @@ from copy import deepcopy
 
 from collections import defaultdict
 
-from silx.utils.testutils import TestLogging
+from silx.utils.testutils import TestLogging as _TestLogging
 
 from ..configdict import ConfigDict
 from .. import dictdump
@@ -207,7 +207,7 @@ class TestDictToH5(H5DictTestCase):
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             # This should not warn
-            with TestLogging(dictdump_logger, warning=0):
+            with _TestLogging(dictdump_logger, warning=0):
                 dictdump.dicttoh5(ddict, h5file, h5path="foo/bar")
 
     def testKeyOrder(self):
@@ -869,7 +869,7 @@ class TestNxToDict(H5DictTestCase):
         ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='ignore')
         self.assertFalse(ddict)
 
-        with TestLogging(dictdump_logger, error=1):
+        with _TestLogging(dictdump_logger, error=1):
             ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='log')
             self.assertFalse(ddict)
 
@@ -885,7 +885,7 @@ class TestNxToDict(H5DictTestCase):
         ddict = h5todict(self.h5_fname, path="/Mars", errors='ignore')
         self.assertFalse(ddict)
 
-        with TestLogging(dictdump_logger, error=2):
+        with _TestLogging(dictdump_logger, error=2):
             ddict = h5todict(self.h5_fname, path="/Mars", errors='log')
             self.assertFalse(ddict)
 
