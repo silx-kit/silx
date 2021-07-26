@@ -840,7 +840,7 @@ def get_project_configuration(dry_run):
         install_requires.append("enum34")
         install_requires.append("futures")
 
-    setup_requires = ["setuptools", "numpy>=1.12", "Cython>=0.21.1"]
+    setup_requires = ["setuptools", "numpy>=1.12", "Cython>=3.0.0a9"]
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
