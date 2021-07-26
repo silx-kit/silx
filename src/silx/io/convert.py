@@ -222,9 +222,9 @@ class Hdf5Writer(object):
                 else:
                     # fancy arguments don't apply to small dataset
                     if obj.size < self.min_size:
-                        ds = self._h5f.create_dataset(h5_name, data=obj.value)
+                        ds = self._h5f.create_dataset(h5_name, data=obj[()])
                     else:
-                        ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                        ds = self._h5f.create_dataset(h5_name, data=obj[()],
                                                       **self.create_dataset_args)
             else:
                 ds = self._h5f[h5_name]
