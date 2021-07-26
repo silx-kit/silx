@@ -999,23 +999,26 @@ class CompareImages(qt.QMainWindow):
         self.__updateSeparators()
 
         # Avoid to change the colormap range when the separator is moving
-        # TODO: The colormap histogram will still be wrong
-        mode1 = self.__getImageMode(data1)
-        mode2 = self.__getImageMode(data2)
-        if mode1 == "intensity" and mode1 == mode2:
-            if self.__data1.size == 0:
-                vmin = self.__data2.min()
-                vmax = self.__data2.max()
-            elif self.__data2.size == 0:
-                vmin = self.__data1.min()
-                vmax = self.__data1.max()
-            else:
-                vmin = min(self.__data1.min(), self.__data2.min())
-                vmax = max(self.__data1.max(), self.__data2.max())
-            colormap = self.getColormap()
-            colormap.setVRange(vmin=vmin, vmax=vmax)
-            self.__image1.setColormap(colormap)
-            self.__image2.setColormap(colormap)
+        # and when on modes `with a separator`
+        if mode in (VisualizationMode.HORIZONTAL_LINE,
+                        VisualizationMode.VERTICAL_LINE):
+            # TODO: The colormap histogram will still be wrong
+            mode1 = self.__getImageMode(data1)
+            mode2 = self.__getImageMode(data2)
+            if mode1 == "intensity" and mode1 == mode2:
+                if self.__data1.size == 0:
+                    vmin = self.__data2.min()
+                    vmax = self.__data2.max()
+                elif self.__data2.size == 0:
+                    vmin = self.__data1.min()
+                    vmax = self.__data1.max()
+                else:
+                    vmin = min(self.__data1.min(), self.__data2.min())
+                    vmax = max(self.__data1.max(), self.__data2.max())
+                colormap = self.getColormap()
+                colormap.setVRange(vmin=vmin, vmax=vmax)
+                self.__image1.setColormap(colormap)
+                self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
         """Returns a value identifying the way the image is stored in the
