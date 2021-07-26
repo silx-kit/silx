@@ -105,7 +105,7 @@ jobs:
           pip install pytest-xvfb
 
       - name: Install silx package
-        run: pip install --pre --find-links dist/ silx
+        run: pip install --pre --verbose --find-links dist/ silx
 
       - name: Print python info used for tests
         run: |
