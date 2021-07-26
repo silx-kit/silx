@@ -165,13 +165,16 @@ class Hdf5Writer(object):
         """List of *(link_path, target_path)* tuples."""
 
     def write(self, infile, h5f):
-        """Do the conversion from :attr:`sfh5` (Spec file) to *h5f* (HDF5)
+        """Copy `infile` content to `h5f` file under `h5path`.
 
         All the parameters needed for the conversion have been initialized
         in the constructor.
 
-        :param infile: :class:`SpecH5` object
-        :param h5f: :class:`h5py.File` instance
+        External links in `infile` are ignored.
+
+        :param Union[commonh5.Group,h5py.Group] infile:
+             File/Class from which to read the content to copy from.
+        :param h5py.File h5f: File where to write the copied content to
         """
         # Recurse through all groups and datasets to add them to the HDF5
         self._h5f = h5f
@@ -259,8 +262,10 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
                 create_dataset_args=None, min_size=500):
     """Write content of a h5py-like object into a HDF5 file.
 
-    :param infile: Path of input file, or :class:`commonh5.File` object
-        or :class:`commonh5.Group` object.
+    Warning: External links in `infile` are ignored.
+
+    :param infile: Path of input file, :class:`commonh5.File`,
+        :class:`commonh5.Group`, :class:`h5py.File` or :class:`h5py.Group`
     :param h5file: Path of output HDF5 file or HDF5 file handle
         (`h5py.File` object)
     :param str h5path: Target path in HDF5 file in which scan groups are created.
