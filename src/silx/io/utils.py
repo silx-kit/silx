@@ -791,7 +791,7 @@ def _visitall(item, path=''):
 
     for name, child_item in item.items():
         if isinstance(child_item, (h5py.Group, h5py.Dataset)):
-            link = child_item.get(name, getlink=True)
+            link = item.get(name, getlink=True)
         else:
             link = child_item
         child_path = '/'.join((path, name))
