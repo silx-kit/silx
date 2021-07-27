@@ -840,8 +840,6 @@ def get_project_configuration(dry_run):
         install_requires.append("enum34")
         install_requires.append("futures")
 
-    setup_requires = ["setuptools", "numpy>=1.12", "Cython>=0.21.1"]
-
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
         # opencl
@@ -927,7 +925,6 @@ def get_project_configuration(dry_run):
                         description="Software library for X-ray data analysis",
                         long_description=get_readme(),
                         install_requires=install_requires,
-                        setup_requires=setup_requires,
                         extras_require=extras_require,
                         cmdclass=cmdclass,
                         package_data=package_data,
