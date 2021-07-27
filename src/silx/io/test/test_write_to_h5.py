@@ -75,13 +75,16 @@ def test_with_hdf5(tmp_path):
 def test_with_spech5(tmp_path):
     """Test write_to_h5 with SpecH5 input"""
     filepath = tmp_path / "file.spec"
-    filepath.write_text(
+    filepath.write_bytes(
+        bytes(
 """#F /tmp/sf.dat
 
 #S 1 cmd
 #L a  b
 1 2
-""")
+""",
+        encoding='ascii')
+    )
 
     output_filepath = tmp_path / "output.h5"
     with spech5.SpecH5(str(filepath)) as spech5file:
