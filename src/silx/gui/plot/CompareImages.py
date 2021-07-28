@@ -726,11 +726,18 @@ class CompareImages(qt.QMainWindow):
         """
         if self.__visualizationMode == mode:
             return
+        previousMode = self.getVisualizationMode()
         self.__visualizationMode = mode
         mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
-        self.__updateData()
+        visModeRawDisplay = (VisualizationMode.ONLY_A,
+                             VisualizationMode.ONLY_B,
+                             VisualizationMode.VERTICAL_LINE,
+                             VisualizationMode.HORIZONTAL_LINE)
+        updateColormap = not(previousMode in visModeRawDisplay and
+                             mode in visModeRawDisplay)
+        self.__updateData(updateColormap=updateColormap)
         self.sigConfigurationChanged.emit()
 
     def getVisualizationMode(self):
@@ -745,7 +752,7 @@ class CompareImages(qt.QMainWindow):
         if self.__alignmentMode == mode:
             return
         self.__alignmentMode = mode
-        self.__updateData()
+        self.__updateData(updateColormap=False)
         self.sigConfigurationChanged.emit()
 
     def getAlignmentMode(self):
@@ -849,7 +856,7 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
-    def setData(self, image1, image2):
+    def setData(self, image1, image2, updateColormap=True):
         """Set images to compare.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -863,11 +870,11 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__raw2 = image2
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage1(self, image1):
+    def setImage1(self, image1, updateColormap=True):
         """Set image1 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -879,11 +886,11 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image1: The first image
         """
         self.__raw1 = image1
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage2(self, image2):
+    def setImage2(self, image2, updateColormap=True):
         """Set image2 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -895,7 +902,7 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         self.__raw2 = image2
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
@@ -913,7 +920,7 @@ class CompareImages(qt.QMainWindow):
                                colormap=self._colormapKeyPoints,
                                legend="keypoints")
 
-    def __updateData(self):
+    def __updateData(self, updateColormap):
         """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
@@ -997,28 +1004,27 @@ class CompareImages(qt.QMainWindow):
             value = self.__data1.shape[0] // 2
             self.__hline.setPosition(0, value)
         self.__updateSeparators()
+        if updateColormap:
+            self.__updateColormap()
 
-        # Avoid to change the colormap range when the separator is moving
-        # and when on modes `with a separator`
-        if mode in (VisualizationMode.HORIZONTAL_LINE,
-                        VisualizationMode.VERTICAL_LINE):
-            # TODO: The colormap histogram will still be wrong
-            mode1 = self.__getImageMode(data1)
-            mode2 = self.__getImageMode(data2)
-            if mode1 == "intensity" and mode1 == mode2:
-                if self.__data1.size == 0:
-                    vmin = self.__data2.min()
-                    vmax = self.__data2.max()
-                elif self.__data2.size == 0:
-                    vmin = self.__data1.min()
-                    vmax = self.__data1.max()
-                else:
-                    vmin = min(self.__data1.min(), self.__data2.min())
-                    vmax = max(self.__data1.max(), self.__data2.max())
-                colormap = self.getColormap()
-                colormap.setVRange(vmin=vmin, vmax=vmax)
-                self.__image1.setColormap(colormap)
-                self.__image2.setColormap(colormap)
+    def __updateColormap(self):
+        # TODO: The colormap histogram will still be wrong
+        mode1 = self.__getImageMode(self.__data1)
+        mode2 = self.__getImageMode(self.__data2)
+        if mode1 == "intensity" and mode1 == mode2:
+            if self.__data1.size == 0:
+                vmin = self.__data2.min()
+                vmax = self.__data2.max()
+            elif self.__data2.size == 0:
+                vmin = self.__data1.min()
+                vmax = self.__data1.max()
+            else:
+                vmin = min(self.__data1.min(), self.__data2.min())
+                vmax = max(self.__data1.max(), self.__data2.max())
+            colormap = self.getColormap()
+            colormap.setVRange(vmin=vmin, vmax=vmax)
+            self.__image1.setColormap(colormap)
+            self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
         """Returns a value identifying the way the image is stored in the
