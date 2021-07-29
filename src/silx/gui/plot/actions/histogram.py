@@ -262,7 +262,7 @@ class HistogramWidget(qt.QWidget):
         if nbins is None:
             nbins = self.__nbinsLineEdit.getValue()
         if range_ is None:
-            range_ = self.__rangeSlider.getRange()
+            range_ = self.__rangeSlider.getValues()
 
         hist = self.getHistogram(copy=False)
         if hist is not None:
