@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -100,12 +100,14 @@ def segmentTrianglesIntersection(segment, triangles):
     intersect = numpy.where(intersect)[0]  # Indices of intersected triangles
 
     # Get barycentric coordinates
-    barycentric = subVolumes[intersect] / volume[intersect].reshape(-1, 1)
+    with numpy.errstate(invalid="ignore"):
+        barycentric = subVolumes[intersect] / volume[intersect].reshape(-1, 1)
     del subVolumes
 
     # Test segment/triangles intersection
     volAlpha = numpy.sum(t0s0CrossEdge01[intersect] * edge02[intersect], axis=1)
-    t = volAlpha / volume[intersect]  # segment parameter of intersected triangles
+    with numpy.errstate(invalid="ignore"):
+        t = volAlpha / volume[intersect]  # segment parameter of intersected triangles
     del t0s0CrossEdge01
     del edge02
     del volAlpha

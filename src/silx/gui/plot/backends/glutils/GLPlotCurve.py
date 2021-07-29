@@ -987,10 +987,12 @@ class _ErrorBars(object):
 
             # Interleave vertices for xError
             endXError = 4 * nbDataPts
-            xCoords[0:endXError-3:4] = self._xData + xErrorPlus
+            with numpy.errstate(invalid="ignore"):
+                xCoords[0:endXError-3:4] = self._xData + xErrorPlus
             xCoords[1:endXError-2:4] = self._xData
             xCoords[2:endXError-1:4] = self._xData
-            xCoords[3:endXError:4] = self._xData - xErrorMinus
+            with numpy.errstate(invalid="ignore"):
+                xCoords[3:endXError:4] = self._xData - xErrorMinus
 
             yCoords[0:endXError-3:4] = self._yData
             yCoords[1:endXError-2:4] = self._yData
@@ -1013,10 +1015,12 @@ class _ErrorBars(object):
             xCoords[endXError+2::4] = self._xData
             xCoords[endXError+3::4] = self._xData
 
-            yCoords[endXError::4] = self._yData + yErrorPlus
+            with numpy.errstate(invalid="ignore"):
+                yCoords[endXError::4] = self._yData + yErrorPlus
             yCoords[endXError+1::4] = self._yData
             yCoords[endXError+2::4] = self._yData
-            yCoords[endXError+3::4] = self._yData - yErrorMinus
+            with numpy.errstate(invalid="ignore"):
+                yCoords[endXError+3::4] = self._yData - yErrorMinus
 
         return xCoords, yCoords
 
@@ -1143,8 +1147,9 @@ class GLPlotCurve2D(GLPlotItem):
         if xData.itemsize > 4 or yData.itemsize > 4:  # Use normalization
             # offset data, do not offset error as it is relative
             self.offset = self.xMin, self.yMin
-            self.xData = (xData - self.offset[0]).astype(numpy.float32)
-            self.yData = (yData - self.offset[1]).astype(numpy.float32)
+            with numpy.errstate(invalid="ignore"):
+                self.xData = (xData - self.offset[0]).astype(numpy.float32)
+                self.yData = (yData - self.offset[1]).astype(numpy.float32)
 
         else:  # float32
             self.offset = 0., 0.
