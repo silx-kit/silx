@@ -385,9 +385,13 @@ class HistogramWidget(qt.QWidget):
         # Set slider range: do not keep the range value, but the relative pos.
         previousPositions = self.__rangeSlider.getPositions()
         if xmin == xmax:  # Enlarge range is none
-            range_ = sorted((xmin * .99, xmin * 1.01))
+            if xmin == 0:
+                range_ = -0.01, 0.01
+            else:
+                range_ = sorted((xmin * .99, xmin * 1.01))
         else:
             range_ = xmin, xmax
+
         self.__rangeSlider.setRange(*range_)
         self.__rangeSlider.setPositions(*previousPositions)
 
