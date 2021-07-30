@@ -384,7 +384,11 @@ class HistogramWidget(qt.QWidget):
         self.__nbinsLineEdit.setDefaultValue(guessed_nbins, extend_range=True)
         # Set slider range: do not keep the range value, but the relative pos.
         previousPositions = self.__rangeSlider.getPositions()
-        self.__rangeSlider.setRange(xmin, xmax)
+        if xmin == xmax:  # Enlarge range is none
+            range_ = sorted((xmin * .99, xmin * 1.01))
+        else:
+            range_ = xmin, xmax
+        self.__rangeSlider.setRange(*range_)
         self.__rangeSlider.setPositions(*previousPositions)
 
         histogram = Histogramnd(
