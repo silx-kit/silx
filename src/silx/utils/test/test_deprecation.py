@@ -53,22 +53,22 @@ class TestDeprecation(unittest.TestCase):
     def deprecatedEveryTime(self):
         pass
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithoutParam(self):
         self.deprecatedWithoutParam()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=1)
     def testAnnotationWithParams(self):
         self.deprecatedWithParams()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=3)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=3)
     def testLoggedEveryTime(self):
         """Logged everytime cause it is 3 different locations"""
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
         self.deprecatedOnlyOnce()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=1)
     def testLoggedSingleTime(self):
         def log():
             self.deprecatedOnlyOnce()
@@ -76,13 +76,13 @@ class TestDeprecation(unittest.TestCase):
         log()
         log()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=3)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=3)
     def testLoggedEveryTime2(self):
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
         self.deprecatedEveryTime()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=1)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=1)
     def testWarning(self):
         deprecation.deprecated_warning(type_="t", name="n")
 

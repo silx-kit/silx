@@ -26,8 +26,8 @@
 
 - :class:`ParametricTestCase` provides a :meth:`TestCase.subTest` replacement
   for Python < 3.4
-- :class:`LoggingValidator` with context or the :func:`test_logging` decorator
-  enables testing the number of logging messages of different levels.
+- :class:`LoggingValidator` with context or the :func:`validate_logging`
+  decorator enables testing the number of logging messages of different levels.
 """
 
 __authors__ = ["T. Vincent"]
@@ -239,8 +239,9 @@ class LoggingValidator(logging.Handler):
         self.records.append(record)
 
 
-def test_logging(logger=None, critical=None, error=None,
-                 warning=None, info=None, debug=None, notset=None):
+
+def validate_logging(logger=None, critical=None, error=None,
+                     warning=None, info=None, debug=None, notset=None):
     """Decorator checking number of logging messages.
 
     Propagation of logging messages is disabled by this decorator.
@@ -249,7 +250,7 @@ def test_logging(logger=None, critical=None, error=None,
     a RuntimeError.
 
     >>> class Test(unittest.TestCase):
-    ...     @test_logging('module_logger_name', error=2, warning=0)
+    ...     @validate_logging('module_logger_name', error=2, warning=0)
     ...     def test(self):
     ...         pass  # Test expecting 2 ERROR and 0 WARNING messages
 
