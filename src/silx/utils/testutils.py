@@ -40,6 +40,8 @@ import functools
 import logging
 import sys
 import unittest
+from . import deprecation
+
 
 _logger = logging.getLogger(__name__)
 
@@ -239,7 +241,6 @@ class LoggingValidator(logging.Handler):
         self.records.append(record)
 
 
-
 def validate_logging(logger=None, critical=None, error=None,
                      warning=None, info=None, debug=None, notset=None):
     """Decorator checking number of logging messages.
@@ -281,6 +282,22 @@ def validate_logging(logger=None, critical=None, error=None,
             return result
         return wrapper
     return decorator
+
+
+# Backward compatibility
+class TestLogging(LoggingValidator):
+    def __init__(self, *args, **kwargs):
+        deprecation.deprecated_warning(
+            "Class",
+            "TestLogging",
+            since_version="1.0.0",
+            replacement="LoggingValidator")
+        super().__init__(*args, **kwargs)
+
+
+@deprecation.deprecated(since_version="1.0.0", replacement="validate_logging")
+def test_logging(*args, **kwargs):
+    return validate_logging(*args, **kwargs)
 
 
 # Simulate missing library context
