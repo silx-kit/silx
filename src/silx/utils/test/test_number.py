@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -154,7 +154,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
             self.skipTest("numpy > 1.10.4 expected")
         # value does not fit even in a 128 bits mantissa
         value = "1.0340282366920938463463374607431768211456"
-        func = testutils.test_logging(number._logger.name, warning=1)
+        func = testutils.validate_logging(number._logger.name, warning=1)
         func = func(number.min_numerical_convertible_type)
         dtype = func(value)
         self.assertIn(dtype, (numpy.longdouble, ))

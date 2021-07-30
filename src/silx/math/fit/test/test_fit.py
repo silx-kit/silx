@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -242,7 +242,7 @@ class Test_leastsq(unittest.TestCase):
                                                       fittedpar[i])
             self.assertTrue(test_condition, msg)
 
-    @testutils.test_logging(fitlogger.name, warning=2)
+    @testutils.validate_logging(fitlogger.name, warning=2)
     def testBadlyShapedData(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)
@@ -264,7 +264,7 @@ class Test_leastsq(unittest.TestCase):
                                                           fittedpar[i])
                 self.assertTrue(test_condition, msg)
 
-    @testutils.test_logging(fitlogger.name, warning=3)
+    @testutils.validate_logging(fitlogger.name, warning=3)
     def testDataWithNaN(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)

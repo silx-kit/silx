@@ -33,7 +33,7 @@ import functools
 import unittest
 import numpy
 
-from silx.utils.testutils import TestLogging as _TestLogging
+from silx.utils.testutils import LoggingValidator
 from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -72,7 +72,7 @@ class TestPositionInfo(PlotWidgetTestCase):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        with _TestLogging(tools.__name__, **kwargs):
+        with LoggingValidator(tools.__name__, **kwargs):
             # Move mouse to center
             center = self.plot.size() / 2
             self.mouseMove(self.plot, pos=(center.width(), center.height()))

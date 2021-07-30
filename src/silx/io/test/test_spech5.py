@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -569,7 +569,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.sfh5["/1001.1/sample/unit_cell"]
 
-    @testutils.test_logging(spech5.logger1.name, warning=2)
+    @testutils.validate_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:

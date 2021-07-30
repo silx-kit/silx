@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -376,7 +376,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.mca.channels,
                          [])
 
-    @testutils.test_logging(specfile._logger.name, warning=1)
+    @testutils.validate_logging(specfile._logger.name, warning=1)
     def test_empty_scan(self):
         """Test reading a scan with no data points"""
         self.assertEqual(len(self.empty_scan.labels),

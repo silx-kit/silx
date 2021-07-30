@@ -369,7 +369,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                             if not manager.hasPendingOperations():
                                 break
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=4)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=4)
     def testDiagonalProfile(self):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
@@ -446,7 +446,7 @@ class TestDeprecatedProfileToolBar(TestCaseQt):
 
         super(TestDeprecatedProfileToolBar, self).tearDown()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
     def testCustomProfileWindow(self):
         from silx.gui.plot import ProfileMainWindow
 
@@ -510,7 +510,7 @@ class TestProfile3DToolBar(TestCaseQt):
 
         super(TestProfile3DToolBar, self).tearDown()
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
     def testMethodProfile2D(self):
         """Test that the profile can have a different method if we want to
         compute then in 1D or in 2D"""
@@ -539,7 +539,7 @@ class TestProfile3DToolBar(TestCaseQt):
         expected = numpy.array([[1, 4], [7, 10], [13, 16]])
         numpy.testing.assert_almost_equal(data, expected)
 
-    @testutils.test_logging(deprecation.depreclog.name, warning=2)
+    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
     def testMethodSumLine(self):
         """Simple interaction test to make sure the sum is correctly computed
         """
