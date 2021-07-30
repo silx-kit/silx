@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 - :class:`ParametricTestCase` provides a :meth:`TestCase.subTest` replacement
   for Python < 3.4
-- :class:`TestLogging` with context or the :func:`test_logging` decorator
+- :class:`LoggingValidator` with context or the :func:`test_logging` decorator
   enables testing the number of logging messages of different levels.
 """
 
@@ -103,7 +103,7 @@ def parameterize(test_case_class, *args, **kwargs):
 
 
 class LoggingRuntimeError(RuntimeError):
-    """Raised when the `TestLogging` fails"""
+    """Raised when the `LoggingValidator` fails"""
 
     def __init__(self, msg, records):
         super(LoggingRuntimeError, self).__init__(msg)
@@ -113,14 +113,14 @@ class LoggingRuntimeError(RuntimeError):
         return super(LoggingRuntimeError, self).__str__() + " -> " + str(self.records)
 
 
-class TestLogging(logging.Handler):
+class LoggingValidator(logging.Handler):
     """Context checking the number of logging messages from a specified Logger.
 
     It disables propagation of logging message while running.
 
     This is meant to be used as a with statement, for example:
 
-    >>> with TestLogging(logger, error=2, warning=0):
+    >>> with LoggingValidator(logger, error=2, warning=0):
     >>>     pass  # Run tests here expecting 2 ERROR and no WARNING from logger
     ...
 
@@ -164,7 +164,7 @@ class TestLogging(logging.Handler):
         self._expected_count = sum([v for k, v in self.expected_count_by_level.items() if v is not None])
         """Amount of any logging expected"""
 
-        super(TestLogging, self).__init__()
+        super(LoggingValidator, self).__init__()
 
     def __enter__(self):
         """Context (i.e., with) support"""
@@ -270,8 +270,8 @@ def test_logging(logger=None, critical=None, error=None,
                        Default: Do not check.
     """
     def decorator(func):
-        test_context = TestLogging(logger, critical, error,
-                                   warning, info, debug, notset)
+        test_context = LoggingValidator(
+            logger, critical, error, warning, info, debug, notset)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

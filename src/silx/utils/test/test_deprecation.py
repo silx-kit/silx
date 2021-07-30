@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,10 +87,10 @@ class TestDeprecation(unittest.TestCase):
         deprecation.deprecated_warning(type_="t", name="n")
 
     def testBacktrace(self):
-        testLogging = testutils.TestLogging(deprecation.depreclog.name)
-        with testLogging:
+        loggingValidator = testutils.LoggingValidator(deprecation.depreclog.name)
+        with loggingValidator:
             self.deprecatedEveryTime()
-        message = testLogging.records[0].getMessage()
+        message = loggingValidator.records[0].getMessage()
         filename = __file__.replace(".pyc", ".py")
         self.assertTrue(filename in message)
         self.assertTrue("testBacktrace" in message)
