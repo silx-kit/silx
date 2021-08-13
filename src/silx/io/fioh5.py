@@ -173,7 +173,7 @@ import six
 
 from silx import version as silx_version
 from . import commonh5
-from .spech5 import SpecH5NodeDataset
+#from .spech5 import SpecH5NodeDataset
 
 logger1 = logging.getLogger(__name__)
 
@@ -333,6 +333,42 @@ class FioFile(object):
             self.start_time = ""
             self.title = ""
 
+class FioH5NodeDataset(commonh5.Dataset):
+    """This class inherits :class:`commonh5.Dataset`, to which it adds
+    little extra functionality. The main additional functionality is the
+    proxy behavior that allows to mimic the numpy array stored in this
+    class.
+    """
+    def __init__(self, name, data, parent=None, attrs=None):
+        # get proper value types, to inherit from numpy
+        # attributes (dtype, shape, size)
+        if isinstance(data, six.string_types):
+            # use unicode (utf-8 when saved to HDF5 output)
+            value = to_h5py_utf8(data)
+        elif isinstance(data, float):
+            # use 32 bits for float scalars
+            value = numpy.float32(data)
+        elif isinstance(data, int):
+            value = numpy.int_(data)
+        else:
+            # Enforce numpy array
+            array = numpy.array(data)
+            data_kind = array.dtype.kind
+
+            if data_kind in ["S", "U"]:
+                value = numpy.asarray(array,
+                                      dtype=text_dtype)
+            value = array # numerical data has already the correct data type
+        commonh5.Dataset.__init__(self, name, value, parent, attrs)
+
+    def __getattr__(self, item):
+        """Proxy to underlying numpy array methods.
+        """
+        if hasattr(self[()], item):
+            return getattr(self[()], item)
+
+        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
+
 
 class FioH5(commonh5.File):
     """This class reads a FIO file and exposes it as a *h5py.File*.
@@ -390,17 +426,17 @@ class FioScanGroup(commonh5.Group):
             title = scan.title
         else:
             title = scan_key  # use scan number as default title
-        self.add_node(SpecH5NodeDataset(name="title",
+        self.add_node(FioH5NodeDataset(name="title",
                                         data=to_h5py_utf8(title),
                                         parent=self))
 
         if hasattr(scan, 'start_time'):
             start_time = scan.start_time
-            self.add_node(SpecH5NodeDataset(name="start_time",
+            self.add_node(FioH5NodeDataset(name="start_time",
                                             data=to_h5py_utf8(start_time),
                                             parent=self))
 
-        self.add_node(SpecH5NodeDataset(name="comments",
+        self.add_node(FioH5NodeDataset(name="comments",
                                         data=to_h5py_utf8(scan.comments),
                                         parent=self))
 
@@ -420,7 +456,7 @@ class FioMeasurementGroup(commonh5.Group):
 
         for label in scan.names:
             safe_label = label.replace("/", "%")
-            self.add_node(SpecH5NodeDataset(name=safe_label,
+            self.add_node(FioH5NodeDataset(name=safe_label,
                                             data=scan.data[label],
                                             parent=self))
 
@@ -437,7 +473,7 @@ class FioInstrumentGroup(commonh5.Group):
 
         self.add_node(FioParameterGroup(parent=self, scan=scan))
         self.add_node(FioFileGroup(parent=self, scan=scan))
-        self.add_node(SpecH5NodeDataset(name="comment",
+        self.add_node(FioH5NodeDataset(name="comment",
                                         data=to_h5py_utf8(scan.comments),
                                         parent=self))
 
@@ -452,11 +488,11 @@ class FioFileGroup(commonh5.Group):
         commonh5.Group.__init__(self, name="fiofile", parent=parent,
                                       attrs={"NX_class": to_h5py_utf8("NXcollection")})
 
-        self.add_node(SpecH5NodeDataset(name="comments",
+        self.add_node(FioH5NodeDataset(name="comments",
                                         data=to_h5py_utf8(scan.commentsection),
                                         parent=self))
 
-        self.add_node(SpecH5NodeDataset(name="parameter",
+        self.add_node(FioH5NodeDataset(name="parameter",
                                         data=to_h5py_utf8(scan.parameterssection),
                                         parent=self))
 
@@ -473,7 +509,7 @@ class FioParameterGroup(commonh5.Group):
 
         for label in scan.parameter:
             safe_label = label.replace("/", "%")
-            self.add_node(SpecH5NodeDataset(name=safe_label,
-                                            ata=to_h5py_utf8(scan.parameter[label]),
+            self.add_node(FioH5NodeDataset(name=safe_label,
+                                            data=to_h5py_utf8(scan.parameter[label]),
                                             parent=self))
 
