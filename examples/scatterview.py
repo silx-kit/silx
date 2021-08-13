@@ -91,7 +91,7 @@ def main(argv=None):
     mainWindow.show()
     mainWindow.setFocus(qt.Qt.OtherFocusReason)
 
-    return app.exec_()
+    return app.exec()
 
 
 if __name__ == "__main__":

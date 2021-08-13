@@ -22,36 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "08/03/2019"
-
-
-import unittest
-from . import test_weakref
-from . import test_array_like
-from . import test_launcher
-from . import test_deprecation
-from . import test_proxy
-from . import test_debug
-from . import test_number
-from . import test_external_resources
-from . import test_enum
-from . import test_testutils
-from . import test_retry
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref.suite())
-    test_suite.addTest(test_array_like.suite())
-    test_suite.addTest(test_launcher.suite())
-    test_suite.addTest(test_deprecation.suite())
-    test_suite.addTest(test_proxy.suite())
-    test_suite.addTest(test_debug.suite())
-    test_suite.addTest(test_number.suite())
-    test_suite.addTest(test_external_resources.suite())
-    test_suite.addTest(test_enum.suite())
-    test_suite.addTest(test_testutils.suite())
-    test_suite.addTest(test_retry.suite())
-    return test_suite

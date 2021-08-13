@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import logging
 import re
 import time
 import numpy
-import six
 
 import silx.io
 from silx.io.specfile import is_specfile
@@ -543,6 +542,6 @@ def main(argv):
                 new_creator = previous_creator + "; " + creator
             h5f.attrs["creator"] = numpy.array(
                     new_creator,
-                    dtype=h5py.special_dtype(vlen=six.text_type))
+                    dtype=h5py.special_dtype(vlen=str))
 
     return 0

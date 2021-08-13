@@ -152,7 +152,7 @@ else:
                         _towrite = _line.lstrip(' ')
                         if not _towrite.startswith(':'):
                             _file.write(_towrite + '\n')
-                    _file.write("app.exec_()")
+                    _file.write("app.exec()")
                 self.content = []
                 if script is not None:
                     _logger.warning('Cannot specify a script if source code (content) is given.'

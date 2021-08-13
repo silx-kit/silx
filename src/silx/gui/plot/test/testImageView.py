@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import numpy
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 
-from silx.gui.plot import ImageView
+from silx.gui.plot.ImageView import ImageView
 from silx.gui.colors import Colormap
 
 
@@ -124,13 +124,44 @@ class TestImageView(TestCaseQt):
         self.plot.setColormap(cmap)
         self.assertIs(self.plot.getColormap(), cmap)
 
+    def testSetProfileWindowBehavior(self):
+        """Test change of profile window display behavior"""
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.POPUP,
+        )
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestImageView))
-    return test_suite
+        self.plot.setProfileWindowBehavior('embedded')
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.EMBEDDED,
+        )
 
+        image = numpy.arange(100).reshape(10, 10)
+        self.plot.setImage(image)
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+        self.plot.setProfileWindowBehavior(
+            ImageView.ProfileWindowBehavior.POPUP
+        )
+        self.assertIs(
+            self.plot.getProfileWindowBehavior(),
+            ImageView.ProfileWindowBehavior.POPUP,
+        )
+
+    def testRGBImage(self):
+        """Test setImage"""
+        image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+    def testRGBAImage(self):
+        """Test setImage"""
+        image = numpy.arange(100 * 4, dtype=numpy.uint8).reshape(10, 10, 4)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
+        self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))

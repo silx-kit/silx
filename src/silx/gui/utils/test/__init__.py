@@ -23,34 +23,3 @@
 #
 # ###########################################################################*/
 """silx.gui.utils tests"""
-
-
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "24/04/2018"
-
-
-import unittest
-
-from . import test_async
-from . import test_glutils
-from . import test_image
-from . import test_qtutils
-from . import test_testutils
-from . import test
-
-
-def suite():
-    """Test suite for module silx.image.test"""
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test.suite())
-    test_suite.addTest(test_async.suite())
-    test_suite.addTest(test_glutils.suite())
-    test_suite.addTest(test_image.suite())
-    test_suite.addTest(test_qtutils.suite())
-    test_suite.addTest(test_testutils.suite())
-    return test_suite
-
-
-if __name__ == "__main__":
-    unittest.main(defaultTest="suite")

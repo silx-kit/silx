@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,6 @@ __date__ = "16/06/2017"
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
 
-QTVERSION = qt.qVersion()
-
 
 class Hdf5HeaderView(qt.QHeaderView):
     """
@@ -53,12 +51,8 @@ class Hdf5HeaderView(qt.QHeaderView):
         self.customContextMenuRequested.connect(self.__createContextMenu)
 
         # default initialization done by QTreeView for it's own header
-        if QTVERSION < "5.0":
-            self.setClickable(True)
-            self.setMovable(True)
-        else:
-            self.setSectionsClickable(True)
-            self.setSectionsMovable(True)
+        self.setSectionsClickable(True)
+        self.setSectionsMovable(True)
         self.setDefaultAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         self.setStretchLastSection(True)
 
@@ -68,7 +62,7 @@ class Hdf5HeaderView(qt.QHeaderView):
     def setModel(self, model):
         """Override model to configure view when a model is expected
 
-        `qt.QHeaderView.setResizeMode` expect already existing columns
+        `qt.QHeaderView.setSectionResizeMode` expect already existing columns
         to work.
 
         :param model qt.QAbstractItemModel: A model
@@ -78,27 +72,22 @@ class Hdf5HeaderView(qt.QHeaderView):
 
     def __updateAutoResize(self):
         """Update the view according to the state of the auto-resize"""
-        if QTVERSION < "5.0":
-            setResizeMode = self.setResizeMode
-        else:
-            setResizeMode = self.setSectionResizeMode
-
         if self.__auto_resize:
-            setResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.ResizeToContents)
-            setResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.ResizeToContents)
-            setResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.ResizeToContents)
-            setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents)
-            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents)
         else:
-            setResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive)
-            setResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive)
 
     def setAutoResizeColumns(self, autoResize):
         """Enable/disable auto-resize. When auto-resized, the header take care

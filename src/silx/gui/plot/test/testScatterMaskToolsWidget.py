@@ -304,15 +304,3 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
         self._drag()
 
         self.assertGreater(len(l), 0)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestScatterMaskToolsWidget,):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

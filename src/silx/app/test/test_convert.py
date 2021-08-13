@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ class TestConvertCommand(unittest.TestCase):
             result = e.args[0]
         self.assertNotEqual(result, 0)
 
-    @testutils.test_logging(convert._logger.name, error=3)
+    @testutils.validate_logging(convert._logger.name, error=3)
     # one error log per missing file + one "Aborted" error log
     def testWrongFiles(self):
         result = convert.main(["convert", "foo.spec", "bar.edf"])
@@ -154,14 +154,3 @@ class TestConvertCommand(unittest.TestCase):
         os.unlink(specname)
         os.unlink(h5name)
         os.rmdir(tempdir)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loader(TestConvertCommand))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

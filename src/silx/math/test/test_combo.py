@@ -205,14 +205,3 @@ class TestMinMax(ParametricTestCase):
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
                     self._test_min_max(data, min_positive=True, finite=True)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestMinMax))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -143,15 +143,3 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
 
         # Histogram is not the same
         self.assertFalse(numpy.array_equal(data1, data2))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestPixelIntensitiesHisto))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

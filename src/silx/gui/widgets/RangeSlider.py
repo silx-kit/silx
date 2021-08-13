@@ -731,7 +731,7 @@ class RangeSlider(qt.QWidget):
 
         selectedInnerContrastLine = qt.QColor(255, 255, 255, 30)
 
-        outline = option.palette.color(qt.QPalette.Background).darker(140)
+        outline = option.palette.color(qt.QPalette.Window).darker(140)
         if (option.state & qt.QStyle.State_HasFocus and option.state & qt.QStyle.State_KeyboardFocusChange):
             outline = highlight.darker(125)
             if outline.value() > 160:

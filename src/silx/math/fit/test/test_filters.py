@@ -120,18 +120,3 @@ class TestSmooth(unittest.TestCase):
             for j in range(0, y.shape[1]):
                 self.assertAlmostEqual(smoothed_y[i, j],
                                        expected_smooth[i, j])
-
-
-test_cases = (TestSmooth,)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

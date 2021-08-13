@@ -87,7 +87,7 @@ A Qt GUI script must have a QApplication initialised before creating widgets:
 
    if __name__ == '__main__':
        [...]
-       qapp.exec_()
+       qapp.exec()
 
 Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt bindings (PyQt5, PySide2).
 If you prefer to choose the Qt binding yourself, import it before importing

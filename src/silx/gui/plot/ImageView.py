@@ -48,6 +48,7 @@ __date__ = "26/04/2018"
 import logging
 import numpy
 import collections
+from typing import Union
 
 import silx
 from .. import qt
@@ -59,12 +60,15 @@ from ..colors import cursorColorForColormap
 from .tools import LimitsToolBar
 from .Profile import ProfileToolBar
 from ...utils.proxy import docstring
+from ...utils.deprecation import deprecated
+from ...utils.enum import Enum
 from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
 from . import _utils
 from .tools.profile import manager
 from .tools.profile import rois
+from .actions import PlotAction
 
 _logger = logging.getLogger(__name__)
 
@@ -315,43 +319,23 @@ class _SideHistogram(PlotWidget):
             dataAxis.setLimits(vMin, vMax)
 
 
-class _CustomProfileManager(manager.ProfileManager):
-    """This custom profile manager uses a single predefined profile window
-    if it is specified. Else the behavior is the same as the default
-    ProfileManager """
+class ShowSideHistogramsAction(PlotAction):
+    """QAction to change visibility of side histogram of a :class:`.ImageView`.
 
-    def setProfileWindow(self, profileWindow):
-        self.__profileWindow = profileWindow
+    :param plot: :class:`.ImageView` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
 
-    def createProfileWindow(self, plot, roi):
-        if isinstance(roi, rois.ProfileImageVerticalLineROI):
-            return self._verticalWidget
-        if isinstance(roi, rois.ProfileImageHorizontalLineROI):
-            return self._horizontalWidget
-        if self.__profileWindow is not None:
-            return self.__profileWindow
-        else:
-            return super(_CustomProfileManager, self).createProfileWindow(plot, roi)
+    def __init__(self, plot, parent=None):
+        super(ShowSideHistogramsAction, self).__init__(
+            plot, icon='side-histograms', text='Show/hide side histograms',
+            tooltip='Show/hide side histogram',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
 
-    def clearProfileWindow(self, profileWindow):
-        if profileWindow is self._horizontalWidget:
-            profileWindow.setProfile(None)
-        elif profileWindow is self._verticalWidget:
-            profileWindow.setProfile(None)
-        elif self.__profileWindow is not None:
-            self.__profileWindow.setProfile(None)
-        else:
-            return super(_CustomProfileManager, self).clearProfileWindow(profileWindow)
-
-    def setSideWidgets(self, horizontalWidget, verticalWidget):
-        self._horizontalWidget = horizontalWidget
-        self._verticalWidget = verticalWidget
-
-
-class _ProfileToolBar(ProfileToolBar):
-    """Override the profile toolbar to provide our own profile manager"""
-    def createProfileManager(self, parent, plot):
-        return _CustomProfileManager(parent, plot)
+    def _actionTriggered(self, checked=False):
+        if self.plot.isSideHistogramDisplayed() != checked:
+            self.plot.setSideHistogramDisplayed(checked)
 
 
 class ImageView(PlotWindow):
@@ -380,7 +364,7 @@ class ImageView(PlotWindow):
     """Minimum size in pixels of the image area."""
 
     # Qt signals
-    valueChanged = qt.Signal(float, float, float)
+    valueChanged = qt.Signal(float, float, object)
     """Signals that the data value under the cursor has changed.
 
     It provides: row, column, data value.
@@ -390,6 +374,17 @@ class ImageView(PlotWindow):
     (i.e., the sum along the corresponding row/column).
     Row and columns are either Nan or integer values.
     """
+
+    class ProfileWindowBehavior(Enum):
+        """ImageView's profile window behavior options"""
+
+        POPUP = 'popup'
+        """All profiles are displayed in pop-up windows"""
+
+        EMBEDDED = 'embedded'
+        """Horizontal, vertical and cross profiles are displayed in
+        sides widgets, others are displayed in pop-up windows.
+        """
 
     def __init__(self, parent=None, backend=None):
         self._imageLegend = '__ImageView__image' + str(id(self))
@@ -408,6 +403,9 @@ class ImageView(PlotWindow):
         maskToolsWidget = self.getMaskToolsDockWidget().widget()
         maskToolsWidget.setItemMaskUpdated(True)
 
+        self.__showSideHistogramsAction = ShowSideHistogramsAction(self, self)
+        self.__showSideHistogramsAction.setChecked(True)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
@@ -416,14 +414,12 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = _ProfileToolBar(plot=self)
-        self.profile.getProfileManager().setSideWidgets(self._histoHPlot, self._histoVPlot)
-        """"Profile tools attached to this plot.
+        toolBar = self.toolBar()
+        toolBar.addAction(self.__showSideHistogramsAction)
 
-        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
-        """
-
-        self.addToolBar(self.profile)
+        self.__profileWindowBehavior = self.ProfileWindowBehavior.POPUP
+        self.__profile = ProfileToolBar(plot=self)
+        self.addToolBar(self.__profile)
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
@@ -462,19 +458,19 @@ class ImageView(PlotWindow):
         """Set central widget with all its content"""
         layout = qt.QGridLayout()
         layout.addWidget(self.getWidgetHandle(), 0, 0)
-        layout.addWidget(self._histoVPlot.getWidgetHandle(), 0, 1)
-        layout.addWidget(self._histoHPlot.getWidgetHandle(), 1, 0)
+        layout.addWidget(self._histoVPlot, 0, 1)
+        layout.addWidget(self._histoHPlot, 1, 0)
         layout.addWidget(self._radarView, 1, 1, 1, 2)
         layout.addWidget(self.getColorBarWidget(), 0, 2)
 
-        layout.setColumnMinimumWidth(0, self.IMAGE_MIN_SIZE)
-        layout.setColumnStretch(0, 1)
-        layout.setColumnMinimumWidth(1, self.HISTOGRAMS_HEIGHT)
-        layout.setColumnStretch(1, 0)
+        self._radarView.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._radarView.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
+        self._histoHPlot.setMinimumWidth(self.IMAGE_MIN_SIZE)
+        self._histoVPlot.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
 
-        layout.setRowMinimumHeight(0, self.IMAGE_MIN_SIZE)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
         layout.setRowStretch(0, 1)
-        layout.setRowMinimumHeight(1, self.HISTOGRAMS_HEIGHT)
         layout.setRowStretch(1, 0)
 
         layout.setSpacing(0)
@@ -493,8 +489,31 @@ class ImageView(PlotWindow):
     def _dirtyCache(self):
         self._cache = None
 
+    def getShowSideHistogramsAction(self):
+        return self.__showSideHistogramsAction
+
+    def setSideHistogramDisplayed(self, show):
+        """Display or not the side histograms"""
+        if self.isSideHistogramDisplayed() == show:
+            return
+        self._histoHPlot.setVisible(show)
+        self._histoVPlot.setVisible(show)
+        self._radarView.setVisible(show)
+        self.__showSideHistogramsAction.setChecked(show)
+        if show:
+            # Probably have to be computed
+            self._updateHistograms()
+
+    def isSideHistogramDisplayed(self):
+        """True if the side histograms are displayed"""
+        return self._histoHPlot.isVisible()
+
     def _updateHistograms(self):
         """Update histograms content using current active image."""
+        if not self.isSideHistogramDisplayed():
+            # The histogram computation can be skipped
+            return
+
         activeImage = self.getActiveImage()
         if activeImage is not None:
             xRange = self.getXAxis().getLimits()
@@ -512,7 +531,7 @@ class ImageView(PlotWindow):
             activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData(copy=False)
-                height, width = data.shape
+                height, width = data.shape[0:2]
 
                 # Get corresponding coordinate in image
                 origin = activeImage.getOrigin()
@@ -578,6 +597,54 @@ class ImageView(PlotWindow):
         """
         self._dirtyCache()
         self._updateHistograms()
+
+    def setProfileWindowBehavior(self, behavior: Union[str, ProfileWindowBehavior]):
+        """Set where profile widgets are displayed.
+
+        :param ProfileWindowBehavior behavior:
+        - 'popup': All profiles are displayed in pop-up windows
+        - 'embedded': Horizontal, vertical and cross profiles are displayed in
+          sides widgets, others are displayed in pop-up windows.
+        """
+        behavior = self.ProfileWindowBehavior.from_value(behavior)
+        if behavior is not self.getProfileWindowBehavior():
+            manager = self.__profile.getProfileManager()
+            manager.clearProfile()
+            manager.requestUpdateAllProfile()
+
+            if behavior is self.ProfileWindowBehavior.EMBEDDED:
+                horizontalProfileWindow = self._histoHPlot
+                verticalProfileWindow = self._histoVPlot
+            else:
+                horizontalProfileWindow = None
+                verticalProfileWindow = None
+
+            manager.setSpecializedProfileWindow(
+                rois.ProfileImageHorizontalLineROI, horizontalProfileWindow
+            )
+            manager.setSpecializedProfileWindow(
+                rois.ProfileImageVerticalLineROI, verticalProfileWindow
+            )
+            self.__profileWindowBehavior = behavior
+
+    def getProfileWindowBehavior(self) -> ProfileWindowBehavior:
+        """Returns current profile display behavior.
+
+        See :meth:`setProfileWindowBehavior` and :class:`ProfileWindowBehavior`
+        """
+        return self.__profileWindowBehavior
+
+    def getProfileToolBar(self):
+        """"Returns profile tools attached to this plot.
+
+        :rtype: silx.gui.plot.PlotTools.ProfileToolBar
+        """
+        return self.__profile
+
+    @property
+    @deprecated(replacement="getProfileToolBar()")
+    def profile(self):
+        return self.getProfileToolBar()
 
     def getHistogram(self, axis):
         """Return the histogram and corresponding row or column extent.
@@ -706,7 +773,7 @@ class ImageView(PlotWindow):
         self.setInteractiveMode('zoom', color=cursorColor)
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
-                 copy=True, reset=True):
+                 copy=True, reset=None, resetzoom=True):
         """Set the image to display.
 
         :param image: A 2D array representing the image or None to empty plot.
@@ -722,9 +789,13 @@ class ImageView(PlotWindow):
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
         :param bool copy: Whether to copy image data (default) or not.
-        :param bool reset: Whether to reset zoom and ROI (default) or not.
+        :param bool reset: Deprecated. Alias for `resetzoom`.
+        :param bool resetzoom: Whether to reset zoom and ROI (default) or not.
         """
         self._dirtyCache()
+
+        if reset is not None:
+            resetzoom = reset
 
         assert len(origin) == 2
         assert len(scale) == 2
@@ -737,7 +808,7 @@ class ImageView(PlotWindow):
 
         data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
-        assert len(data.shape) == 2
+        assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
 
         self.addImage(data,
                       legend=self._imageLegend,
@@ -746,7 +817,7 @@ class ImageView(PlotWindow):
                       resetzoom=False)
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
-        if reset:
+        if resetzoom:
             self.resetZoom()
 
 
@@ -769,8 +840,6 @@ class ImageViewMainWindow(ImageView):
         # Add toolbars and status bar
         self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
-        self.statusBar()
-
         menu = self.menuBar().addMenu('File')
         menu.addAction(self.getOutputToolBar().getSaveAction())
         menu.addAction(self.getOutputToolBar().getPrintAction())
@@ -785,16 +854,37 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(self.getColormapAction())
         menu.addAction(actions.control.KeepAspectRatioAction(self, self))
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
+        menu.addAction(self.getShowSideHistogramsAction())
 
-        menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self.profile.hLineAction)
-        menu.addAction(self.profile.vLineAction)
-        menu.addAction(self.profile.crossAction)
-        menu.addAction(self.profile.lineAction)
-        menu.addAction(self.profile.clearAction)
+        self.__profileMenu = self.menuBar().addMenu('Profile')
+        self.__updateProfileMenu()
 
         # Connect to ImageView's signal
         self.valueChanged.connect(self._statusBarSlot)
+
+    def __updateProfileMenu(self):
+        """Update actions available in 'Profile' menu"""
+        profile = self.getProfileToolBar()
+        self.__profileMenu.clear()
+        self.__profileMenu.addAction(profile.hLineAction)
+        self.__profileMenu.addAction(profile.vLineAction)
+        self.__profileMenu.addAction(profile.crossAction)
+        self.__profileMenu.addAction(profile.lineAction)
+        self.__profileMenu.addAction(profile.clearAction)
+
+    def _formatValueToString(self, value):
+        try:
+            if isinstance(value, numpy.ndarray):
+                if len(value) == 4:
+                    return "RGBA: %.3g, %.3g, %.3g, %.3g" % (value[0], value[1], value[2], value[3])
+                elif len(value) == 3:
+                    return "RGB: %.3g, %.3g, %.3g" % (value[0], value[1], value[2])
+            else:
+                return "Value: %g" % value
+        except Exception:
+            _logger.error("Error while formatting pixel value", exc_info=True)
+            pass
+        return "Value: %s" % value
 
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
@@ -803,27 +893,30 @@ class ImageViewMainWindow(ImageView):
         elif numpy.isnan(column):
             msg = 'Row: %d, Sum: %g' % (int(row), value)
         else:
-            msg = 'Position: (%d, %d), Value: %g' % (int(row), int(column),
-                                                     value)
+            msg_value = self._formatValueToString(value)
+            msg = 'Position: (%d, %d), %s' % (int(row), int(column), msg_value)
         if self._dataInfo is not None:
             msg = self._dataInfo + ', ' + msg
 
         self.statusBar().showMessage(msg)
 
-    def setImage(self, image, *args, **kwargs):
-        """Set the displayed image.
+    @docstring(ImageView)
+    def setProfileWindowBehavior(self, behavior: str):
+        super().setProfileWindowBehavior(behavior)
+        self.__updateProfileMenu()
 
-        See :meth:`ImageView.setImage` for details.
-        """
+    @docstring(ImageView)
+    def setImage(self, image, *args, **kwargs):
         if hasattr(image, 'dtype') and hasattr(image, 'shape'):
-            assert len(image.shape) == 2
-            height, width = image.shape
-            self._dataInfo = 'Data: %dx%d (%s)' % (width, height,
-                                                   str(image.dtype))
-            self.statusBar().showMessage(self._dataInfo)
+            assert image.ndim == 2 or (image.ndim == 3 and image.shape[2] in (3, 4))
+            height, width = image.shape[0:2]
+            dataInfo = 'Data: %dx%d (%s)' % (width, height, str(image.dtype))
         else:
-            self._dataInfo = None
+            dataInfo = None
+
+        if self._dataInfo != dataInfo:
+            self._dataInfo = dataInfo
+            self.statusBar().showMessage(self._dataInfo)
 
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
-        self.setStatusBar(None)

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import threading
 import typing
 import logging
 
-_logger = logging.getLogger(__file__)
+_logger = logging.getLogger(__name__)
 
 
 class _PlotWithWaitingLabel(qt.QWidget):
@@ -65,9 +65,10 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
         def stop(self):
             """Stop the update thread"""
-            self.animated_icon.unregister(self._label)
-            self.running = False
-            self.join(2)
+            if self.running:
+                self.animated_icon.unregister(self._label)
+                self.running = False
+                self.join(2)
 
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
@@ -87,6 +88,9 @@ class _PlotWithWaitingLabel(qt.QWidget):
 
     def close(self) -> bool:
         super(_PlotWithWaitingLabel, self).close()
+        self.stopUpdateThread()
+
+    def stopUpdateThread(self):
         self.updateThread.stop()
 
     def setAutoResetZoom(self, reset):
@@ -179,8 +183,7 @@ class UrlList(qt.QWidget):
         sel_items = self._listWidget.findItems(url.path(), qt.Qt.MatchExactly)
         if sel_items is None:
             _logger.warning(url.path(), ' is not registered in the list.')
-        else:
-            assert len(sel_items) == 1
+        elif len(sel_items) > 0:
             item = sel_items[0]
             self._listWidget.setCurrentItem(item)
             self.sigCurrentUrlChanged.emit(item.text())

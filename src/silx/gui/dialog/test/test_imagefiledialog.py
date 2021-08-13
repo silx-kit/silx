@@ -770,15 +770,3 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         dialog.selectUrl(_tmpDirectory + "/data.h5::/cube[a;45,-90]")
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog._selectedData())
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestImageFileDialogInteraction))
-    test_suite.addTest(loadTests(TestImageFileDialogApi))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

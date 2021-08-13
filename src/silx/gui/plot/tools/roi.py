@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -594,7 +594,7 @@ class RegionOfInterestManager(qt.QObject):
             roi.setInteractionMode(mode)
 
     def _feedContextMenu(self, menu):
-        """Called wen the default plot context menu is about to be displayed"""
+        """Called when the default plot context menu is about to be displayed"""
         roi = self.getCurrentRoi()
         if roi is not None:
             if roi.isEditable():
@@ -631,10 +631,8 @@ class RegionOfInterestManager(qt.QObject):
                 action.triggered.connect(callback)
             modeGroup.addAction(action)
             submenu.addAction(action)
-        action = qt.QAction(menu)
-        action.setMenu(submenu)
-        action.setText("%s interaction mode" % roi.getName())
-        menu.addAction(action)
+        submenu.setTitle("%s interaction mode" % roi.getName())
+        menu.addMenu(submenu)
 
     # RegionOfInterest API
 
@@ -911,7 +909,7 @@ class RegionOfInterestManager(qt.QObject):
 
         return True
 
-    def exec_(self, roiClass):
+    def exec(self, roiClass):
         """Block until :meth:`quit` is called.
 
         :param class kind: The class of the ROI which have to be created.
@@ -926,7 +924,7 @@ class RegionOfInterestManager(qt.QObject):
         plot.raise_()
 
         self._eventLoop = qt.QEventLoop()
-        self._eventLoop.exec_()
+        self._eventLoop.exec()
         self._eventLoop = None
 
         self.stop()
@@ -935,8 +933,11 @@ class RegionOfInterestManager(qt.QObject):
         self.clear()
         return rois
 
+    def exec_(self, roiClass):  # Qt5-like compatibility
+        return self.exec(roiClass)
+
     def quit(self):
-        """Stop a blocking :meth:`exec_` and call :meth:`stop`"""
+        """Stop a blocking :meth:`exec` and call :meth:`stop`"""
         if self._eventLoop is not None:
             self._eventLoop.quit()
             self._eventLoop = None
@@ -946,9 +947,9 @@ class RegionOfInterestManager(qt.QObject):
 class InteractiveRegionOfInterestManager(RegionOfInterestManager):
     """RegionOfInterestManager with features for use from interpreter.
 
-    It is meant to be used through the :meth:`exec_`.
+    It is meant to be used through the :meth:`exec`.
     It provides some messages to display in a status bar and
-    different modes to end blocking calls to :meth:`exec_`.
+    different modes to end blocking calls to :meth:`exec`.
 
     :param parent: See QObject
     """
@@ -1010,7 +1011,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     @enum.unique
     class ValidationMode(enum.Enum):
-        """Mode of validation to leave blocking :meth:`exec_`"""
+        """Mode of validation to leave blocking :meth:`exec`"""
 
         AUTO = 'auto'
         """Automatically ends the interactive mode once
@@ -1027,7 +1028,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         NONE = 'none'
         """Do not provide the user a way to end the interactive mode.
 
-        The end of :meth:`exec_` is done through :meth:`quit` or timeout.
+        The end of :meth:`exec` is done through :meth:`quit` or timeout.
         """
 
     def getValidationMode(self):
@@ -1174,12 +1175,12 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             self.quit()
 
     def isExec(self):
-        """Returns True if :meth:`exec_` is currently running.
+        """Returns True if :meth:`exec` is currently running.
 
         :rtype: bool"""
         return self.__execClass is not None
 
-    def exec_(self, roiClass, timeout=0):
+    def exec(self, roiClass, timeout=0):
         """Block until ROI selection is done or timeout is elapsed.
 
         :meth:`quit` also ends this blocking call.
@@ -1205,13 +1206,13 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             timer.timeout.connect(self.__timeoutUpdate)
             timer.start(1000)
 
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
+            rois = super(InteractiveRegionOfInterestManager, self).exec(roiClass)
 
             timer.stop()
             self.__timeoutEndTime = None
 
         else:
-            rois = super(InteractiveRegionOfInterestManager, self).exec_(roiClass)
+            rois = super(InteractiveRegionOfInterestManager, self).exec(roiClass)
 
         plot.removeEventFilter(self)
 
@@ -1219,6 +1220,9 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         self.__updateMessage()
 
         return rois
+
+    def exec_(self, roiClass, timeout=0):  # Qt5-like compatibility
+        return self.exec(roiClass, timeout)
 
 
 class _DeleteRegionOfInterestToolButton(qt.QToolButton):
@@ -1258,16 +1262,12 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
 
         horizontalHeader = self.horizontalHeader()
         horizontalHeader.setDefaultAlignment(qt.Qt.AlignLeft)
-        if hasattr(horizontalHeader, 'setResizeMode'):  # Qt 4
-            setSectionResizeMode = horizontalHeader.setResizeMode
-        else:  # Qt5
-            setSectionResizeMode = horizontalHeader.setSectionResizeMode
 
-        setSectionResizeMode(0, qt.QHeaderView.Interactive)
-        setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
-        setSectionResizeMode(3, qt.QHeaderView.Stretch)
-        setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(0, qt.QHeaderView.Interactive)
+        horizontalHeader.setSectionResizeMode(1, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(2, qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(3, qt.QHeaderView.Stretch)
+        horizontalHeader.setSectionResizeMode(4, qt.QHeaderView.ResizeToContents)
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)

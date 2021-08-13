@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ Nominal tests of the histogramnd function.
 """
 
 import unittest
+import pytest
 
 import numpy as np
 
@@ -52,10 +53,13 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
     """
     Unit tests of the histogramnd function.
     """
+    __test__ = False  # ignore abstract classe
 
     ndims = None
 
     def setUp(self):
+        if type(self).__name__.startswith("_"):
+            self.skipTest("Abstract class")
         ndims = self.ndims
         self.tested_dim = ndims-1
 
@@ -460,16 +464,19 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertEqual(id(cumul), id(cumul_2))
         self.assertTrue(np.allclose(cumul, expected_c, rtol=10e-15))
-        
+
 class _Test_Histogramnd_nominal(unittest.TestCase):
     """
     Unit tests of the Histogramnd class.
     """
+    __test__ = False  # ignore abstract class
 
     ndims = None
 
     def setUp(self):
         ndims = self.ndims
+        if ndims is None:
+            self.skipTest("Abstract class")
         self.tested_dim = ndims-1
 
         if ndims is None:
@@ -526,6 +533,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
             def fill_histo(h, v, dim, op=None):
                 idx = [self.other_axes_index]*len(h.shape)
                 idx[dim] = slice(0, None)
+                idx = tuple(idx)
                 if op:
                     h[idx] = op(h[idx], v)
                 else:
@@ -900,50 +908,30 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
 
 
 class Test_chistogram_nominal_1d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 1
 
 
 class Test_chistogram_nominal_2d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 2
 
 
 class Test_chistogram_nominal_3d(_Test_chistogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 3
 
 
 class Test_Histogramnd_nominal_1d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 1
 
 
 class Test_Histogramnd_nominal_2d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 2
 
 
 class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
+    __test__ = True  # because _Test_chistogramnd_nominal is ignored
     ndims = 3
-
-
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (Test_chistogram_nominal_1d,
-              Test_chistogram_nominal_2d,
-              Test_chistogram_nominal_3d,
-              Test_Histogramnd_nominal_1d,
-              # Test_Histogramnd_nominal_2d,
-              # Test_Histogramnd_nominal_3d
-              )
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

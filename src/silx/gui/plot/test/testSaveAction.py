@@ -130,14 +130,3 @@ class TestSaveActionExtension(PlotWidgetTestCase):
         filters = saveAction.getFileFilters('all')
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
         self.assertEqual(list(filters.keys()).index(nameFilter), newIndex)
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for cls in (TestSaveActionSaveCurvesAsSpec, TestSaveActionExtension):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(cls))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

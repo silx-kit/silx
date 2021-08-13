@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -129,7 +129,7 @@ class About(qt.QDialog):
         licenseDialog = qt.QMessageBox(self)
         licenseDialog.setWindowTitle("License")
         licenseDialog.setText(text)
-        licenseDialog.exec_()
+        licenseDialog.exec()
 
     def setApplicationName(self, name):
         self.__applicationName = name
@@ -174,6 +174,8 @@ class About(qt.QDialog):
         </table>
         <dl>
             <dt><b>Silx version</b></dt><dd>{silx_version}</dd>
+            <dt><b>HDF5 version</b></dt><dd>{hdf5_version}</dd>
+            <dt><b>h5py version</b></dt><dd>{h5py_version}</dd>
             <dt><b>Qt version</b></dt><dd>{qt_version}</dd>
             <dt><b>Qt binding</b></dt><dd>{qt_binding}</dd>
             <dt><b>Python version</b></dt><dd>{python_version}</dd>
@@ -216,6 +218,8 @@ class About(qt.QDialog):
             esrf_url="http://www.esrf.eu",
             project_url="https://github.com/silx-kit/silx",
             silx_version=silx._version.version,
+            h5py_version=h5py.version.version,
+            hdf5_version=h5py.version.hdf5_version,
             qt_binding=qt.BINDING,
             qt_version=qt.qVersion(),
             python_version=sys.version.replace("\n", "<br />"),
@@ -254,4 +258,4 @@ class About(qt.QDialog):
         """
         dialog = About(parent)
         dialog.setApplicationName(applicationName)
-        dialog.exec_()
+        dialog.exec()

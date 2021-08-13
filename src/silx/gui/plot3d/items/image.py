@@ -309,8 +309,8 @@ class HeightMapData(_HeightMap, ColormapMixIn):
 
         if data.shape != heightData.shape:  # data and height size miss-match
             # Colormapped data is interpolated (nearest-neighbour) to match the height field
-            data = data[numpy.floor(y * data.shape[0] / height).astype(numpy.int),
-                        numpy.floor(x * data.shape[1] / height).astype(numpy.int)]
+            data = data[numpy.floor(y * data.shape[0] / height).astype(numpy.int32),
+                        numpy.floor(x * data.shape[1] / height).astype(numpy.int32)]
 
         x = numpy.ravel(x)
         y = numpy.ravel(y)
@@ -383,8 +383,8 @@ class HeightMapRGBA(_HeightMap):
 
         if rgba.shape[:2] != heightData.shape:  # image and height size miss-match
             # RGBA data is interpolated (nearest-neighbour) to match the height field
-            rgba = rgba[numpy.floor(y * rgba.shape[0] / height).astype(numpy.int),
-                        numpy.floor(x * rgba.shape[1] / height).astype(numpy.int)]
+            rgba = rgba[numpy.floor(y * rgba.shape[0] / height).astype(numpy.int32),
+                        numpy.floor(x * rgba.shape[1] / height).astype(numpy.int32)]
 
         x = numpy.ravel(x)
         y = numpy.ravel(y)

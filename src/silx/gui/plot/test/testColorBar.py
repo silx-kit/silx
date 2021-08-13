@@ -338,17 +338,3 @@ class TestColorBarUpdate(TestCaseQt):
 
     # TODO : should also check that if the colormap is changing then values (especially in log scale)
     # should be coherent if in autoscale
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for ui in (TestColorScale, TestNoAutoscale, TestColorBarWidget,
-               TestColorBarUpdate):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(ui))
-
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

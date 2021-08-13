@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -187,13 +187,13 @@ class ItemsSelectionDialog(qt.QDialog):
       - :meth:`setItemsSelectionMode`
 
     This widget inherits QDialog and therefore implements the usual
-    dialog methods, e.g. :meth:`exec_`.
+    dialog methods, e.g. :meth:`exec`.
 
     A trivial usage example would be::
 
         isd = ItemsSelectionDialog(plot=my_plot_widget)
         isd.setItemsSelectionMode(qt.QTableWidget.SingleSelection)
-        result = isd.exec_()
+        result = isd.exec()
         if result:
             for item in isd.getSelectedItems():
                 print(item.getName(), type(item))

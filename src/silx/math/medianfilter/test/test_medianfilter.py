@@ -720,21 +720,3 @@ class TestVsScipy(ParametricTestCase):
                                         mode=mode)
 
                     self.assertTrue(numpy.array_equal(resScipy, resSilx))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for test in [TestGeneralExecution,
-                 TestVsScipy,
-                 TestMedianFilterNearest,
-                 TestMedianFilterReflect,
-                 TestMedianFilterMirror,
-                 TestMedianFilterShrink,
-                 TestMedianFilterConstant]:
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(test))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

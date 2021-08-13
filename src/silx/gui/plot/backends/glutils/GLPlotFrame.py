@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ from collections import namedtuple
 import numpy
 
 from ...._glutils import gl, Program
-from ..._utils import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
+from ..._utils import checkAxisLimits, FLOAT32_MINPOS
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
@@ -869,15 +869,6 @@ class GLPlotFrame2D(GLPlotFrame):
                                 self._dataRanges['y'],
                                 self._dataRanges['y2'])
 
-    @staticmethod
-    def _clipToSafeRange(min_, max_, isLog):
-        # Clip range if needed
-        minLimit = FLOAT32_MINPOS if isLog else FLOAT32_SAFE_MIN
-        min_ = numpy.clip(min_, minLimit, FLOAT32_SAFE_MAX)
-        max_ = numpy.clip(max_, minLimit, FLOAT32_SAFE_MAX)
-        assert min_ < max_
-        return min_, max_
-
     def setDataRanges(self, x=None, y=None, y2=None):
         """Set data range over each axes.
 
@@ -889,16 +880,16 @@ class GLPlotFrame2D(GLPlotFrame):
         :param y2: (min, max) data range over Y2 axis
         """
         if x is not None:
-            self._dataRanges['x'] = \
-                self._clipToSafeRange(x[0], x[1], self.xAxis.isLog)
+            self._dataRanges['x'] = checkAxisLimits(
+                x[0], x[1], self.xAxis.isLog, name='x')
 
         if y is not None:
-            self._dataRanges['y'] = \
-                self._clipToSafeRange(y[0], y[1], self.yAxis.isLog)
+            self._dataRanges['y'] = checkAxisLimits(
+                y[0], y[1], self.yAxis.isLog, name='y')
 
         if y2 is not None:
-            self._dataRanges['y2'] = \
-                self._clipToSafeRange(y2[0], y2[1], self.y2Axis.isLog)
+            self._dataRanges['y2'] = checkAxisLimits(
+                y2[0], y2[1], self.y2Axis.isLog, name='y2')
 
         self.xAxis.dataRange = self._dataRanges['x']
         self.yAxis.dataRange = self._dataRanges['y']

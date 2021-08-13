@@ -231,15 +231,3 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
                 self.mouseMove(sceneWidget, pos=center-20)
                 self.mouseRelease(sceneWidget, qt.Qt.LeftButton, pos=center-20)
                 self.keyRelease(sceneWidget, qt.Qt.Key_Control)
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestSceneWindow))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

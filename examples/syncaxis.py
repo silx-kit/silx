@@ -99,4 +99,4 @@ if __name__ == "__main__":
     window = SyncPlot()
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
     window.setVisible(True)
-    app.exec_()
+    app.exec()

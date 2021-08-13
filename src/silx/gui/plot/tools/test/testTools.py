@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ import functools
 import unittest
 import numpy
 
-from silx.utils.testutils import TestLogging
+from silx.utils.testutils import LoggingValidator
 from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -72,7 +72,7 @@ class TestPositionInfo(PlotWidgetTestCase):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        with TestLogging(tools.__name__, **kwargs):
+        with LoggingValidator(tools.__name__, **kwargs):
             # Move mouse to center
             center = self.plot.size() / 2
             self.mouseMove(self.plot, pos=(center.width(), center.height()))
@@ -132,16 +132,3 @@ class TestPlotToolsToolbars(PlotWidgetTestCase):
                         tools.OutputToolBar):
             tb = tbClass(parent=self.plot, plot=self.plot)
         self.plot.addToolBar(tb)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo, TestPlotToolsToolbars):
-        test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-            testClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

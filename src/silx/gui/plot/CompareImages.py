@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,10 +98,10 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__compareWidget = None
 
         menu = qt.QMenu(self)
-        self.__visualizationAction = qt.QAction(self)
-        self.__visualizationAction.setMenu(menu)
-        self.__visualizationAction.setCheckable(False)
-        self.addAction(self.__visualizationAction)
+        self.__visualizationToolButton = qt.QToolButton(self)
+        self.__visualizationToolButton.setMenu(menu)
+        self.__visualizationToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.addWidget(self.__visualizationToolButton)
         self.__visualizationGroup = qt.QActionGroup(self)
         self.__visualizationGroup.setExclusive(True)
         self.__visualizationGroup.triggered.connect(self.__visualizationModeChanged)
@@ -177,10 +177,10 @@ class CompareImagesToolBar(qt.QToolBar):
         self.__visualizationGroup.addAction(action)
 
         menu = qt.QMenu(self)
-        self.__alignmentAction = qt.QAction(self)
-        self.__alignmentAction.setMenu(menu)
-        self.__alignmentAction.setIconVisibleInMenu(True)
-        self.addAction(self.__alignmentAction)
+        self.__alignmentToolButton = qt.QToolButton(self)
+        self.__alignmentToolButton.setMenu(menu)
+        self.__alignmentToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.addWidget(self.__alignmentToolButton)
         self.__alignmentGroup = qt.QActionGroup(self)
         self.__alignmentGroup.setExclusive(True)
         self.__alignmentGroup.triggered.connect(self.__alignmentModeChanged)
@@ -320,13 +320,13 @@ class CompareImagesToolBar(qt.QToolBar):
         """
         selectedAction = self.__visualizationGroup.checkedAction()
         if selectedAction is not None:
-            self.__visualizationAction.setText(selectedAction.text())
-            self.__visualizationAction.setIcon(selectedAction.icon())
-            self.__visualizationAction.setToolTip(selectedAction.toolTip())
+            self.__visualizationToolButton.setText(selectedAction.text())
+            self.__visualizationToolButton.setIcon(selectedAction.icon())
+            self.__visualizationToolButton.setToolTip(selectedAction.toolTip())
         else:
-            self.__visualizationAction.setText("")
-            self.__visualizationAction.setIcon(qt.QIcon())
-            self.__visualizationAction.setToolTip("")
+            self.__visualizationToolButton.setText("")
+            self.__visualizationToolButton.setIcon(qt.QIcon())
+            self.__visualizationToolButton.setToolTip("")
 
     def __alignmentModeChanged(self, selectedAction):
         """Called when user requesting changes of the alignment mode.
@@ -342,13 +342,13 @@ class CompareImagesToolBar(qt.QToolBar):
         """
         selectedAction = self.__alignmentGroup.checkedAction()
         if selectedAction is not None:
-            self.__alignmentAction.setText(selectedAction.text())
-            self.__alignmentAction.setIcon(selectedAction.icon())
-            self.__alignmentAction.setToolTip(selectedAction.toolTip())
+            self.__alignmentToolButton.setText(selectedAction.text())
+            self.__alignmentToolButton.setIcon(selectedAction.icon())
+            self.__alignmentToolButton.setToolTip(selectedAction.toolTip())
         else:
-            self.__alignmentAction.setText("")
-            self.__alignmentAction.setIcon(qt.QIcon())
-            self.__alignmentAction.setToolTip("")
+            self.__alignmentToolButton.setText("")
+            self.__alignmentToolButton.setIcon(qt.QIcon())
+            self.__alignmentToolButton.setToolTip("")
 
     def __keypointVisibilityChanged(self):
         """Called when action managing keypoints visibility changes"""
@@ -726,11 +726,18 @@ class CompareImages(qt.QMainWindow):
         """
         if self.__visualizationMode == mode:
             return
+        previousMode = self.getVisualizationMode()
         self.__visualizationMode = mode
         mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
-        self.__updateData()
+        visModeRawDisplay = (VisualizationMode.ONLY_A,
+                             VisualizationMode.ONLY_B,
+                             VisualizationMode.VERTICAL_LINE,
+                             VisualizationMode.HORIZONTAL_LINE)
+        updateColormap = not(previousMode in visModeRawDisplay and
+                             mode in visModeRawDisplay)
+        self.__updateData(updateColormap=updateColormap)
         self.sigConfigurationChanged.emit()
 
     def getVisualizationMode(self):
@@ -745,7 +752,7 @@ class CompareImages(qt.QMainWindow):
         if self.__alignmentMode == mode:
             return
         self.__alignmentMode = mode
-        self.__updateData()
+        self.__updateData(updateColormap=False)
         self.sigConfigurationChanged.emit()
 
     def getAlignmentMode(self):
@@ -849,7 +856,7 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
-    def setData(self, image1, image2):
+    def setData(self, image1, image2, updateColormap=True):
         """Set images to compare.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -863,11 +870,11 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__raw2 = image2
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage1(self, image1):
+    def setImage1(self, image1, updateColormap=True):
         """Set image1 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -879,11 +886,11 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image1: The first image
         """
         self.__raw1 = image1
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage2(self, image2):
+    def setImage2(self, image2, updateColormap=True):
         """Set image2 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -895,7 +902,7 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         self.__raw2 = image2
-        self.__updateData()
+        self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
@@ -913,7 +920,7 @@ class CompareImages(qt.QMainWindow):
                                colormap=self._colormapKeyPoints,
                                legend="keypoints")
 
-    def __updateData(self):
+    def __updateData(self, updateColormap):
         """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
@@ -997,11 +1004,13 @@ class CompareImages(qt.QMainWindow):
             value = self.__data1.shape[0] // 2
             self.__hline.setPosition(0, value)
         self.__updateSeparators()
+        if updateColormap:
+            self.__updateColormap()
 
-        # Avoid to change the colormap range when the separator is moving
+    def __updateColormap(self):
         # TODO: The colormap histogram will still be wrong
-        mode1 = self.__getImageMode(data1)
-        mode2 = self.__getImageMode(data2)
+        mode1 = self.__getImageMode(self.__data1)
+        mode2 = self.__getImageMode(self.__data2)
         if mode1 == "intensity" and mode1 == mode2:
             if self.__data1.size == 0:
                 vmin = self.__data2.min()

@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2004-2020 V.A. Sole, European Synchrotron Radiation Facility
+# Copyright (C) 2004-2021 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -527,8 +527,8 @@ def main():
     w = BackgroundDialog()
     w.parametersWidget.parametersWidget.sigBackgroundParamWidgetSignal.connect(mySlot)
     w.setData(x, y)
-    w.exec_()
-    #a.exec_()
+    w.exec()
+    #a.exec()
 
 if __name__ == "__main__":
     main()

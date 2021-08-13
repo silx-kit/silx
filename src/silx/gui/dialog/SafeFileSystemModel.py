@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,6 @@ import sys
 import os.path
 import logging
 import weakref
-
-import six
 
 from silx.gui import qt
 from .SafeFileIconProvider import SafeFileIconProvider
@@ -300,7 +298,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
 
     def index(self, *args, **kwargs):
         path_api = False
-        path_api |= len(args) >= 1 and isinstance(args[0], six.string_types)
+        path_api |= len(args) >= 1 and isinstance(args[0], str)
         path_api |= "path" in kwargs
 
         if path_api:
@@ -538,7 +536,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
 
     def index(self, *args, **kwargs):
         path_api = False
-        path_api |= len(args) >= 1 and isinstance(args[0], six.string_types)
+        path_api |= len(args) >= 1 and isinstance(args[0], str)
         path_api |= "path" in kwargs
 
         if path_api:

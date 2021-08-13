@@ -172,17 +172,3 @@ class TestMarchingCubes(ParametricTestCase):
                 self.assertAllClose(ref_result.get_indices(),
                                     result.get_indices(),
                                     atol=0., rtol=0.)
-
-
-test_cases = (TestMarchingCubes,)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        test_suite.addTests(
-            unittest.defaultTestLoader.loadTestsFromTestCase(test_class))
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

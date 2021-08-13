@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -265,7 +265,5 @@ class Hdf5TreeView(qt.QTreeView):
         """
         super(Hdf5TreeView, self).mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
-            # Qt5 only sends itemClicked on left button mouse click
-            if qt.qVersion() > "5":
-                qindex = self.indexAt(event.pos())
-                self.clicked.emit(qindex)
+            qindex = self.indexAt(event.pos())
+            self.clicked.emit(qindex)

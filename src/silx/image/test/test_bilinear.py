@@ -165,14 +165,3 @@ class TestBilinear(unittest.TestCase):
                         "correct horizontal profile")
         self.assertLess(abs(res_ver - expected_profile).max(), 1e-5,
                         "correct vertical profile")
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(TestBilinear("test_max_search_round"))
-    testsuite.addTest(TestBilinear("test_max_search_half"))
-    testsuite.addTest(TestBilinear("test_map"))
-    testsuite.addTest(TestBilinear("test_profile_grad"))
-    testsuite.addTest(TestBilinear("test_profile_gaus"))
-    testsuite.addTest(TestBilinear("test_mask_grad"))
-    return testsuite

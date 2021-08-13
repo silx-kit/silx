@@ -314,16 +314,3 @@ class TestH5pyArrayWidget(TestCaseQt):
         self.assertIs(b0, b1)
 
         h5f.close()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestArrayWidget))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5pyArrayWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

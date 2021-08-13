@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ from collections import defaultdict
 import enum
 
 import numpy
-import six
 
 from ... import qt
 from ...plot.items import ItemChangedType
@@ -99,7 +98,7 @@ class Item3D(qt.QObject):
         self.__syncForegroundColor()
 
         labelIndex = self._LABEL_INDICES[self.__class__]
-        self._label = six.text_type(self.__class__.__name__)
+        self._label = str(self.__class__.__name__)
         if labelIndex != 0:
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
@@ -172,7 +171,7 @@ class Item3D(qt.QObject):
 
         :param str label:
         """
-        label = six.text_type(label)
+        label = str(label)
         if label != self._label:
             self._label = label
             self._updated(Item3DChangedType.LABEL)
@@ -416,7 +415,7 @@ class DataItem3D(Item3D):
         """
         center = []
         for position in (x, y, z):
-            if isinstance(position, six.string_types):
+            if isinstance(position, str):
                 assert position in self._ROTATION_CENTER_TAGS
             else:
                 position = float(position)

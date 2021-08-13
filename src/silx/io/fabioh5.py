@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,6 @@ import os
 
 import fabio.file_series
 import numpy
-import six
 
 from . import commonh5
 from silx import version as silx_version
@@ -142,7 +141,7 @@ class FrameData(commonh5.LazyLoadableDataset):
     def __getitem__(self, item):
         # optimization for fetching a single frame if data not already loaded
         if not self._is_initialized:
-            if isinstance(item, six.integer_types) and \
+            if isinstance(item, int) and \
                     isinstance(self.__fabio_reader.fabio_file(),
                                fabio.file_series.file_series):
                 if item < 0:
@@ -195,7 +194,7 @@ class RawHeaderData(commonh5.LazyLoadableDataset):
 
         if dtype == numpy.unicode_:
             # h5py only support vlen unicode
-            dtype = h5py.special_dtype(vlen=six.text_type)
+            dtype = h5py.special_dtype(vlen=str)
 
         return numpy.array(headers, dtype=dtype)
 
@@ -702,7 +701,7 @@ class FabioReader(object):
             assert dtype.kind != "O"
             return dtype.type(value)
 
-        if isinstance(value, six.binary_type):
+        if isinstance(value, bytes):
             try:
                 value = value.decode('utf-8')
             except UnicodeDecodeError:
@@ -742,10 +741,10 @@ class FabioReader(object):
 
             result_type = numpy.result_type(*types)
 
-            if issubclass(result_type.type, (numpy.string_, six.binary_type)):
+            if issubclass(result_type.type, (numpy.string_, bytes)):
                 # use the raw data to create the result
                 return numpy.string_(value)
-            elif issubclass(result_type.type, (numpy.unicode_, six.text_type)):
+            elif issubclass(result_type.type, (numpy.unicode_, str)):
                 # use the raw data to create the result
                 return numpy.unicode_(value)
             else:

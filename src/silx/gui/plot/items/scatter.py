@@ -483,6 +483,18 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         return self.__cacheHistogramInfo
 
+    def __applyColormapToData(self):
+        """Compute colors by applying colormap to values.
+
+        :returns: Array of RGBA colors
+        """
+        cmap = self.getColormap()
+        rgbacolors = cmap.applyToData(self)
+
+        if self.__alpha is not None:
+            rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
+        return rgbacolors
+
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
@@ -520,16 +532,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 colormap=self.getColormap(),
                 alpha=self.getAlpha())
 
-        # Compute colors
-        cmap = self.getColormap()
-        rgbacolors = cmap.applyToData(self)
-
-        if self.__alpha is not None:
-            rgbacolors[:, -1] = (rgbacolors[:, -1] * self.__alpha).astype(numpy.uint8)
-
-        visualization = self.getVisualization()
-
-        if visualization is self.Visualization.POINTS:
+        elif visualization is self.Visualization.POINTS:
+            rgbacolors = self.__applyColormapToData()
             return backend.addCurve(xFiltered, yFiltered,
                                     color=rgbacolors[mask],
                                     symbol=self.getSymbol(),
@@ -558,6 +562,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         'Cannot get a triangulation: Cannot display as solid surface')
                     return None
                 else:
+                    rgbacolors = self.__applyColormapToData()
                     triangles = triangulation.simplices.astype(numpy.int32)
                     return backend.addTriangles(xFiltered,
                                                 yFiltered,
@@ -574,23 +579,44 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if gridInfo.order == 'column':  # transposition needed
                     dim0, dim1 = dim1, dim0
 
-                if len(rgbacolors) == dim0 * dim1:
-                    image = rgbacolors.reshape(dim0, dim1, -1)
+                values = self.getValueData(copy=False)
+                if self.__alpha is None and len(values) == dim0 * dim1:
+                    image = values.reshape(dim0, dim1)
                 else:
                     # The points do not fill the whole image
-                    image = numpy.empty((dim0 * dim1, 4), dtype=rgbacolors.dtype)
-                    image[:len(rgbacolors)] = rgbacolors
-                    image[len(rgbacolors):] = 0, 0, 0, 0  # Transparent pixels
-                    image.shape = dim0, dim1, -1
+                    if (self.__alpha is None and
+                            numpy.issubdtype(values.dtype, numpy.floating)):
+                        image = numpy.empty(dim0 * dim1, dtype=values.dtype)
+                        image[:len(values)] = values
+                        image[len(values):] = float('nan')  # Transparent pixels
+                        image.shape = dim0, dim1
+                    else:  # Per value alpha or no NaN, so convert to RGBA
+                        rgbacolors = self.__applyColormapToData()
+                        image = numpy.empty((dim0 * dim1, 4), dtype=numpy.uint8)
+                        image[:len(rgbacolors)] = rgbacolors
+                        image[len(rgbacolors):] = (0, 0, 0, 0)  # Transparent pixels
+                        image.shape = dim0, dim1, 4
 
                 if gridInfo.order == 'column':
-                    image = numpy.transpose(image, axes=(1, 0, 2))
+                    if image.ndim == 2:
+                        image = numpy.transpose(image)
+                    else:
+                        image = numpy.transpose(image, axes=(1, 0, 2))
+
+                if image.ndim == 2:
+                    colormap = self.getColormap()
+                    if colormap.isAutoscale():
+                        # Avoid backend to compute autoscale: use item cache
+                        colormap = colormap.copy()
+                        colormap.setVRange(*colormap.getColormapRange(self))
+                else:
+                    colormap = None
 
                 return backend.addImage(
                     data=image,
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,
-                    colormap=None,
+                    colormap=colormap,
                     alpha=self.getAlpha())
 
             elif visualization is self.Visualization.IRREGULAR_GRID:
@@ -601,6 +627,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 shape = gridInfo.shape
                 if shape is None:  # No shape, no display
                     return None
+
+                rgbacolors = self.__applyColormapToData()
 
                 nbpoints = len(xFiltered)
                 if nbpoints == 1:
@@ -954,7 +982,6 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self.__cacheHistogramInfo = None
 
         self._value = value
-        self._updateColormappedData()
 
         if alpha is not None:
             # Make sure alpha is an array of float in [0, 1]
@@ -971,3 +998,5 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # call self._updated + plot._invalidateDataRange()
         PointsBase.setData(self, x, y, xerror, yerror, copy)
+
+        self._updateColormappedData()

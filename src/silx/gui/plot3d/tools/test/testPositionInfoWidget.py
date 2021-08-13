@@ -87,15 +87,3 @@ class TestPositionInfoWidget(TestCaseQt):
 
         # Remove SceneWidget
         self.positionInfoWidget.setSceneWidget(None)
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestPositionInfoWidget))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

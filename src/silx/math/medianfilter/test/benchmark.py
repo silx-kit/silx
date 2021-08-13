@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -118,5 +118,5 @@ if scipy is not None:
 if pymca is not None:
     plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
 plot.show()
-app.exec_()
+app.exec()
 del app

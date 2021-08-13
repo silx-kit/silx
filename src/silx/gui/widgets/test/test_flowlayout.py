@@ -64,14 +64,3 @@ class TestFlowLayout(TestCaseQt):
         self.assertEqual(layout.horizontalSpacing(), 10)
         layout.setVerticalSpacing(5)
         self.assertEqual(layout.verticalSpacing(), 5)
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestFlowLayout))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

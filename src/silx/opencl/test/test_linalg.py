@@ -202,15 +202,3 @@ class TestLinAlg(unittest.TestCase):
         self.la.gradient(self.image)
         laplacian_ocl = self.la.divergence(self.la.d_gradient, return_to_host=True)
         self.compare(laplacian_ocl, laplacian_ref, 1e-6, "laplacian")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestLinAlg("test_gradient"))
-    testSuite.addTest(TestLinAlg("test_divergence"))
-    testSuite.addTest(TestLinAlg("test_laplacian"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

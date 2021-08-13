@@ -22,31 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "26/03/2018"
-
-
-import unittest
-
-from . import testROI
-from . import testTools
-from . import testScatterProfileToolBar
-from . import testCurveLegendsWidget
-from . import testProfile
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testROI.suite(),
-         testTools.suite(),
-         testScatterProfileToolBar.suite(),
-         testCurveLegendsWidget.suite(),
-         testProfile.suite(),
-         ])
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

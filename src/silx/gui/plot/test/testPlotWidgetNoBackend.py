@@ -616,16 +616,3 @@ class TestPlotHistogram(unittest.TestCase):
         xHisto, yHisto = _getHistogramCurve(y, edges)
         numpy.testing.assert_array_equal(
             yHisto, numpy.array([-3, -3, 2, 2, 5, 5, 0, 0]))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
-                      TestPlotHistogram, TestPlotAddScatter):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

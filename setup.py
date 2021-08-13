@@ -609,7 +609,7 @@ class BuildExt(build_ext):
             ext.extra_compile_args.append('-fvisibility=hidden')
 
             import numpy
-            numpy_version = [int(i) for i in numpy.version.short_version.split(".", 2)[:2]]
+            numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
             if numpy_version < [1, 16]:
                 ext.extra_compile_args.append(
                     '''-D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
@@ -830,8 +830,6 @@ def get_project_configuration(dry_run):
         # for io support
         "h5py",
         "fabio>=0.9",
-        # Python 2/3 compatibility
-        "six",
         ]
 
     # Add Python 2.7 backports
@@ -841,8 +839,6 @@ def get_project_configuration(dry_run):
     if sys.version_info[0] == 2:
         install_requires.append("enum34")
         install_requires.append("futures")
-
-    setup_requires = ["setuptools", "numpy>=1.12", "Cython>=0.21.1"]
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
@@ -859,8 +855,14 @@ def get_project_configuration(dry_run):
         'scipy',
         'Pillow']
 
+    test_requires = [
+        "pytest",
+        "pytest-xvfb"
+    ]
+
     extras_require = {
         'full': full_requires,
+        'test': test_requires,
     }
 
     # Here for packaging purpose only
@@ -923,7 +925,6 @@ def get_project_configuration(dry_run):
                         description="Software library for X-ray data analysis",
                         long_description=get_readme(),
                         install_requires=install_requires,
-                        setup_requires=setup_requires,
                         extras_require=extras_require,
                         cmdclass=cmdclass,
                         package_data=package_data,

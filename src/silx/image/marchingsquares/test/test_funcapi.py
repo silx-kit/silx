@@ -90,10 +90,3 @@ class TestFunctionalApi(unittest.TestCase):
         self.assertEqual(events[1][1][0, 0], 0)
         self.assertEqual(events[2][0], "find_pixels")
         self.assertEqual(events[2][1], level)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestFunctionalApi))
-    return test_suite

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ import copy
 import logging
 
 import numpy
-import six
 
 from silx.io import is_dataset
 from silx.utils.deprecation import deprecated
@@ -71,11 +70,11 @@ def get_attr_as_unicode(item, attr_name, default=None):
     """
     attr = item.attrs.get(attr_name, default)
 
-    if isinstance(attr, six.binary_type):
+    if isinstance(attr, bytes):
         # byte-string
         return attr.decode("utf-8")
     elif isinstance(attr, numpy.ndarray) and not attr.shape:
-        if isinstance(attr[()], six.binary_type):
+        if isinstance(attr[()], bytes):
             # byte string as ndarray scalar
             return attr[()].decode("utf-8")
         else:
@@ -97,7 +96,7 @@ def get_uncertainties_names(group, signal_name):
     uncertainties_names = get_attr_as_unicode(group, "uncertainties")
     if uncertainties_names is None:
         uncertainties_names = get_attr_as_unicode(group[signal_name], "uncertainties")
-    if isinstance(uncertainties_names, six.text_type):
+    if isinstance(uncertainties_names, str):
         uncertainties_names = [uncertainties_names]
     return uncertainties_names
 
@@ -125,7 +124,7 @@ def get_auxiliary_signals_names(group):
     """Return list of auxiliary signals names"""
     auxiliary_signals_names = get_attr_as_unicode(group, "auxiliary_signals",
                                                   default=[])
-    if isinstance(auxiliary_signals_names, (six.text_type, six.binary_type)):
+    if isinstance(auxiliary_signals_names, (str, bytes)):
         auxiliary_signals_names = [auxiliary_signals_names]
     return auxiliary_signals_names
 

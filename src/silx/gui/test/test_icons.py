@@ -144,15 +144,3 @@ class TestAnimatedIcons(TestCaseQt):
 
     def testMultiImageIconNotExists(self):
         self.assertRaises(ValueError, icons.MultiImageAnimatedIcon, "not-exists")
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestIcons))
-    test_suite.addTest(loadTests(TestAnimatedIcons))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

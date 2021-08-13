@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,12 +32,11 @@ import tempfile
 import unittest
 import h5py
 import numpy
-import six
 
 from .. import nxdata
 
 
-text_dtype = h5py.special_dtype(vlen=six.text_type)
+text_dtype = h5py.special_dtype(vlen=str)
 
 
 class TestNXdata(unittest.TestCase):
@@ -562,18 +561,3 @@ class TestSaveNXdata(unittest.TestCase):
         self.assertTrue(numpy.array_equal(nxd.axes[0],
                                           a0))
         h5f.close()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNXdata))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestLegacyNXdata))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSaveNXdata))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

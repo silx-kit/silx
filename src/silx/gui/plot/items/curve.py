@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ __date__ = "24/04/2018"
 import logging
 
 import numpy
-import six
 
 from ....utils.deprecation import deprecated
 from ... import colors
@@ -62,7 +61,7 @@ class CurveStyle(_Style):
         if color is None:
             self._color = None
         else:
-            if isinstance(color, six.string_types):
+            if isinstance(color, str):
                 color = colors.rgba(color)
             else:  # array-like expected
                 color = numpy.array(color, copy=False)

@@ -335,7 +335,6 @@ class PlotWindow(PlotWidget):
         foreground = self.getForegroundColor()
 
         palette = self._colorbar.palette()
-        palette.setColor(qt.QPalette.Background, color)
         palette.setColor(qt.QPalette.Window, color)
         palette.setColor(qt.QPalette.WindowText, foreground)
         palette.setColor(qt.QPalette.Text, foreground)
@@ -748,7 +747,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: actions.PlotAction
         """
-        return self.keepDataAspectRatioButton
+        return self.keepDataAspectRatioAction
 
     def getYAxisInvertedButton(self):
         """Button to switch the Y axis orientation

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,10 +46,7 @@ class TableModel(HierarchicalTableView.HierarchicalTableModel):
         return 3
 
     def setData1(self):
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
 
         content = {}
         content[0, 0] = ("title", True, (1, 3))
@@ -58,8 +55,8 @@ class TableModel(HierarchicalTableView.HierarchicalTableModel):
         content[1, 2] = ("c", False, (1, 1))
         content[2, 2] = ("d", False, (1, 1))
         self.__content = content
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+
+        self.endResetModel()
 
     def data(self, index, role=qt.Qt.DisplayRole):
         if not index.isValid():
@@ -104,14 +101,3 @@ class TestHierarchicalTableView(TestCaseQt):
         model.setData1()
         span = widget.rowSpan(0, 0), widget.columnSpan(0, 0)
         self.assertEqual(span, (1, 3))
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestHierarchicalTableView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

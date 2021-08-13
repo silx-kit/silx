@@ -46,7 +46,7 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 
-class BenchmarkMinMax(ParametricTestCase):
+class TestBenchmarkMinMax(ParametricTestCase):
     """Benchmark of min max combo"""
 
     DTYPES = ('float32', 'float64',
@@ -190,14 +190,3 @@ class BenchmarkMinMax(ParametricTestCase):
             pyplot.plot(values/ref, label=label + ' / ' + ref_key)
         pyplot.legend()
         pyplot.show()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        unittest.defaultTestLoader.loadTestsFromTestCase(BenchmarkMinMax))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

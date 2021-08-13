@@ -22,22 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-from __future__ import absolute_import, division, unicode_literals
-
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "25/07/2016"
-
-
-import unittest
-
-from .test_transform import suite as test_transform_suite
-from .test_utils import suite as test_utils_suite
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(test_transform_suite())
-    testsuite.addTest(test_utils_suite())
-    return testsuite

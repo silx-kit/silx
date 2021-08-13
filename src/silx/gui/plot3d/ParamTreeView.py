@@ -43,8 +43,6 @@ __date__ = "05/12/2017"
 import numbers
 import sys
 
-import six
-
 from .. import qt
 from ..widgets.FloatEdit import FloatEdit as _FloatEdit
 from ._model import visitQAbstractItemModel
@@ -328,7 +326,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                 dialog.setOption(qt.QColorDialog.DontUseNativeDialog, True)
             dialog.setCurrentColor(initialColor)
             dialog.currentColorChanged.connect(callback)
-            if dialog.exec_() == qt.QDialog.Rejected:
+            if dialog.exec() == qt.QDialog.Rejected:
                 # Reset color
                 dialog.setCurrentColor(initialColor)
 
@@ -354,7 +352,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             editor.setRange(*range_)
             editor.sliderReleased.connect(self._commit)
 
-        elif isinstance(data, six.string_types) and editorHint is not None:
+        elif isinstance(data, str) and editorHint is not None:
             # Use a combo box
             editor = qt.QComboBox(parent)
             if data not in editorHint:
@@ -376,14 +374,11 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                     userProperty = metaObject.userProperty()
                     if userProperty.isValid() and userProperty.hasNotifySignal():
                         notifySignal = userProperty.notifySignal()
-                        if hasattr(notifySignal, 'signature'):  # Qt4
-                            signature = notifySignal.signature()
+                        signature = notifySignal.methodSignature()
+                        if qt.BINDING == 'PySide2':
+                            signature = signature.data()
                         else:
-                            signature = notifySignal.methodSignature()
-                            if qt.BINDING == 'PySide2':
-                                signature = signature.data()
-                            else:
-                                signature = bytes(signature)
+                            signature = bytes(signature)
 
                         if hasattr(signature, 'decode'):  # For PySide with python3
                             signature = signature.decode('ascii')
@@ -433,10 +428,7 @@ class ParamTreeView(qt.QTreeView):
 
         header = self.header()
         header.setMinimumSectionSize(128)  # For colormap pixmaps
-        if hasattr(header, 'setSectionResizeMode'):  # Qt5
-            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            header.setResizeMode(qt.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
         delegate = ParameterTreeDelegate()
         self.setItemDelegate(delegate)

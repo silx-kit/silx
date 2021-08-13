@@ -121,14 +121,3 @@ class TestScatterView(PlotWidgetTestCase):
 
         alphaData = self.plot.getScatterItem().getAlphaData()
         self.assertTrue(numpy.all(numpy.equal(alpha, alphaData)))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestScatterView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

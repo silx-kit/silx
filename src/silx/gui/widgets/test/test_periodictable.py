@@ -146,18 +146,3 @@ class TestPeriodicList(TestCaseQt):
             self.assertIn(e.symbol, ["Li", "He", "Au"])
             self.assertIn(e.Z, [2, 3, 79])
             self.assertIn(e.name, ["lithium", "helium", "gold"])
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPeriodicTable))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPeriodicList))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPeriodicCombo))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

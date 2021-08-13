@@ -86,7 +86,6 @@ class ScatterView(qt.QMainWindow):
         self._colorbar = ColorBarWidget(parent=self, plot=plot)
         self._colorbar.setAutoFillBackground(True)
         palette = self._colorbar.palette()
-        palette.setColor(qt.QPalette.Background, qt.Qt.white)
         palette.setColor(qt.QPalette.Window, qt.Qt.white)
         self._colorbar.setPalette(palette)
 

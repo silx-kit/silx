@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -102,7 +102,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
                 raise ValueError('kind not managed')
         return list(filter(lambda x: is_compatible(x, kind), self._rois))
 
-    def exec_(self):
+    def exec(self):
         self._kindCB.clear()
         self._itemCB.clear()
         # filter kind without any items
@@ -143,7 +143,10 @@ class _GetROIItemCoupleDialog(qt.QDialog):
             self._kindCB.addItem(kind)
         self._updateValidItemAndRoi()
 
-        return qt.QDialog.exec_(self)
+        return qt.QDialog.exec(self)
+
+    def exec_(self):  # Qt5 compatibility
+        return self.exec()
 
     def _updateValidItemAndRoi(self, *args, **kwargs):
         self._itemCB.clear()
@@ -273,7 +276,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
     def add(self, item):
         assert isinstance(item, ROIStatsItemHelper)
         if item.id_key() in self._items:
-            _logger.warning(item.id_key(), 'is already present')
+            _logger.warning("Item %s is already present", item.id_key())
             return None
         self._items[item.id_key()] = item
         self._addItem(item)
@@ -377,10 +380,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             self.setHorizontalHeaderItem(3 + index, headerItem)
 
         horizontalHeader = self.horizontalHeader()
-        if hasattr(horizontalHeader, 'setSectionResizeMode'):  # Qt5
-            horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
-        else:  # Qt4
-            horizontalHeader.setResizeMode(qt.QHeaderView.ResizeToContents)
+        horizontalHeader.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
 
         self._updateItemObserve()
 
@@ -727,7 +727,7 @@ class ROIStatsWidget(qt.QMainWindow):
         """Ask the user what couple ROI / item he want to display"""
         dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
                                          rois=self._rois)
-        if dialog.exec_():
+        if dialog.exec():
             self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
 
     def addItem(self, plotItem, roi):

@@ -22,27 +22,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-__authors__ = ["J. Kieffer"]
-__license__ = "MIT"
-__date__ = "17/04/2018"
-
-import unittest
-from . import test_bilinear
-from . import test_shapes
-from . import test_medianfilter
-from . import test_tomography
-from . import test_bb
-from ..marchingsquares.test import suite as marchingsquares_suite
-
-
-def suite():
-    """Test suite for module silx.image.test"""
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_bilinear.suite())
-    test_suite.addTest(test_medianfilter.suite())
-    test_suite.addTest(test_shapes.suite())
-    test_suite.addTest(test_tomography.suite())
-    test_suite.addTest(marchingsquares_suite())
-    test_suite.addTest(test_bb.suite())
-    return test_suite

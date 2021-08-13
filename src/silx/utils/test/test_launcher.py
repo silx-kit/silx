@@ -189,16 +189,3 @@ class TestLauncher(ParametricTestCase):
             with self.subTest(args=tests):
                 status = runner.execute(arguments)
                 self.assertEqual(status, 0)
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestLauncherCommand))
-    test_suite.addTest(loader(TestLauncher))
-    test_suite.addTest(loader(TestModuleCommand))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

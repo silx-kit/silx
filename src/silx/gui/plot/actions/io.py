@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ def selectOutputGroup(h5filename):
     dialog = GroupDialog()
     dialog.addFile(h5filename)
     dialog.setWindowTitle("Select an output group")
-    if not dialog.exec_():
+    if not dialog.exec():
         return None
     return dialog.getSelectedDataUrl().data_path()
 
@@ -196,7 +196,7 @@ class SaveAction(PlotAction):
         msg.setIcon(qt.QMessageBox.Critical)
         msg.setInformativeText(informativeText + ' ' + str(sys.exc_info()[1]))
         msg.setDetailedText(traceback.format_exc())
-        msg.exec_()
+        msg.exec()
 
     def _saveSnapshot(self, plot, filename, nameFilter):
         """Save a snapshot of the :class:`PlotWindow` widget.
@@ -649,7 +649,7 @@ class SaveAction(PlotAction):
 
         dialog.filterSelected.connect(onFilterSelection)
 
-        if not dialog.exec_():
+        if not dialog.exec():
             return False
 
         nameFilter = dialog.selectedNameFilter()
@@ -734,7 +734,7 @@ class PrintAction(PlotAction):
         """
         dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
         dialog.setWindowTitle('Print Plot')
-        if not dialog.exec_():
+        if not dialog.exec():
             return False
 
         # Print a snapshot of the plot widget at the top of the page
@@ -767,7 +767,7 @@ class PrintAction(PlotAction):
         # Init printer and start printer dialog
         dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
         dialog.setWindowTitle('Print Plot')
-        if not dialog.exec_():
+        if not dialog.exec():
             return False
 
         # Save Plot as PNG and make a pixmap from it with default dpi

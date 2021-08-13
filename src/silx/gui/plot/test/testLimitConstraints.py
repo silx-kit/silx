@@ -112,14 +112,3 @@ class TestLimitConstaints(unittest.TestCase):
         self.plot.setLimits(xmin=-1, xmax=101, ymin=-1, ymax=101)
         self.plot.getXAxis().setLimitsConstraints(minPos=0, maxPos=100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 100))
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestLimitConstaints))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

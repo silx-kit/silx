@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -424,7 +424,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -441,13 +441,13 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         #     msg = qt.QMessageBox(self)
         #     msg.setIcon(qt.QMessageBox.Warning)
         #     msg.setText("Mask loaded but an operation was applied.\n" + message)
-        #     msg.exec_()
+        #     msg.exec()
         except Exception as e:
             message = e.args[0]
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot load mask from file. " + message)
-            msg.exec_()
+            msg.exec()
 
     def _saveMask(self):
         """Open Save mask dialog"""
@@ -462,7 +462,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
         dialog.setDirectory(self.maskFileDir)
-        if not dialog.exec_():
+        if not dialog.exec():
             dialog.close()
             return
 
@@ -488,7 +488,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                     strerror = sys.exc_info()[1]
                 msg.setText("Cannot save.\n"
                             "Input Output Error: %s" % strerror)
-                msg.exec_()
+                msg.exec()
                 return
 
         # Update the directory according to the user selection
@@ -506,7 +506,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             else:
                 strerror = sys.exc_info()[1]
             msg.setText("Cannot save file %s\n%s" % (filename, strerror))
-            msg.exec_()
+            msg.exec()
 
     def resetSelectionMask(self):
         """Reset the mask"""

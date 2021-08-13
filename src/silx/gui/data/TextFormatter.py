@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ import logging
 import numbers
 
 import numpy
-import six
 
 from silx.gui import qt
 
@@ -202,19 +201,13 @@ class TextFormatter(qt.QObject):
 
     def __formatBinary(self, data):
         if isinstance(data, numpy.void):
-            if six.PY2:
-                data = [ord(d) for d in data.data]
+            data = data.item()
+            if isinstance(data, numpy.ndarray):
+                # Before numpy 1.15.0 the item API was returning a numpy array
+                data = data.astype(numpy.uint8)
             else:
-                data = data.item()
-                if isinstance(data, numpy.ndarray):
-                    # Before numpy 1.15.0 the item API was returning a numpy array
-                    data = data.astype(numpy.uint8)
-                else:
-                    # Now it is supposed to be a bytes type
-                    pass
-        elif six.PY2:
-            data = [ord(d) for d in data]
-            # In python3 data is already a bytes array
+                # Now it is supposed to be a bytes type
+                pass
         data = ["\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             return "b\"%s\"" % "".join(data)
@@ -222,8 +215,6 @@ class TextFormatter(qt.QObject):
             return "".join(data)
 
     def __formatSafeAscii(self, data):
-        if six.PY2:
-            data = [ord(d) for d in data]
         data = [chr(d) if (d > 0x20 and d < 0x7F) else "\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             data = [c if c != '"' else "\\" + c for c in data]
@@ -265,7 +256,7 @@ class TextFormatter(qt.QObject):
                 return "NULL_REF"
         vlen = h5py.check_dtype(vlen=dtype)
         if vlen is not None:
-            if vlen == six.text_type:
+            if vlen == str:
                 # HDF5 UTF8
                 # With h5py>=3 reading dataset returns bytes
                 if isinstance(data, (bytes, numpy.bytes_)):
@@ -274,7 +265,7 @@ class TextFormatter(qt.QObject):
                     except UnicodeDecodeError:
                         self.__formatSafeAscii(data)
                 return self.__formatText(data)
-            elif vlen == six.binary_type:
+            elif vlen == bytes:
                 # HDF5 ASCII
                 return self.__formatCharString(data)
             elif isinstance(vlen, numpy.dtype):
@@ -317,9 +308,9 @@ class TextFormatter(qt.QObject):
                     text.append(field[0] + ":" + self.toString(data[index], field[1][0]))
                 return "(" + " ".join(text) + ")"
             return self.__formatBinary(data)
-        elif isinstance(data, (numpy.unicode_, six.text_type)):
+        elif isinstance(data, (numpy.unicode_, str)):
             return self.__formatText(data)
-        elif isinstance(data, (numpy.string_, six.binary_type)):
+        elif isinstance(data, (numpy.string_, bytes)):
             if dtype is None and hasattr(data, "dtype"):
                 dtype = data.dtype
             if dtype is not None:
@@ -337,7 +328,7 @@ class TextFormatter(qt.QObject):
             except UnicodeDecodeError:
                 pass
             return self.__formatBinary(data)
-        elif isinstance(data, six.string_types):
+        elif isinstance(data, str):
             text = "%s" % data
             return self.__formatText(text)
         elif isinstance(data, (numpy.integer)):

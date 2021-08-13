@@ -82,14 +82,3 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
         # Test float data
         self.plot.setData(numpy.arange(100, dtype=numpy.float64).reshape(10, 10))
         self.qWait(100)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestComplexImageView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

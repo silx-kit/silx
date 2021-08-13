@@ -59,7 +59,7 @@ Simple example
     y = x / numpy.sin(x)
     pw.addCurve(x, y)
 
-    app.exec_()
+    app.exec()
 
 Singleton example
 +++++++++++++++++
@@ -98,7 +98,7 @@ plots on the same page. The plots all instantiate a
     plot_widgets[1].addCurve(x, numpy.cos(x * 2 * numpy.pi / 1000))
     plot_widgets[2].addCurve(x, numpy.tan(x * 2 * numpy.pi / 1000))
 
-    app.exec_()
+    app.exec()
 
 """
 from __future__ import absolute_import
@@ -343,7 +343,7 @@ class PrintPreviewToolButton(qt.QToolButton):
             self._printConfigurationDialog = PrintGeometryDialog(self.parent())
 
         self._printConfigurationDialog.setPrintGeometry(self._printGeometry)
-        if self._printConfigurationDialog.exec_():
+        if self._printConfigurationDialog.exec():
             self._printGeometry = self._printConfigurationDialog.getPrintGeometry()
 
     def _getPlotAspectRatio(self):
@@ -385,4 +385,4 @@ if __name__ == '__main__':
     y = x / numpy.sin(x)
     pw.addCurve(x, y)
 
-    app.exec_()
+    app.exec()

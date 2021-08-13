@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,9 @@ import sys
 import time
 import logging
 import collections
+import urllib.parse
 
 import numpy
-import six
 
 from silx.utils.proxy import Proxy
 import silx.io.url
@@ -605,7 +605,7 @@ def open(filename):  # pylint:disable=redefined-builtin
         raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
     else:
         # That's maybe an URL supported by h5pyd
-        uri = six.moves.urllib.parse.urlparse(filename)
+        uri = urllib.parse.urlparse(filename)
         if h5pyd is None:
             raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
         path = uri.path

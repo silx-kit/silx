@@ -32,13 +32,11 @@ __date__ = "03/01/2019"
 import unittest
 import logging
 import numpy
-import sys
+import pytest
 
-from silx.utils.testutils import ParametricTestCase, parameterize
+from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
-
-from silx.test.utils import test_options
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget
@@ -712,7 +710,12 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         self.qapp.processEvents()
 
+        scatter.setData(*numpy.random.random(300).reshape(3, -1))
+        self.qapp.processEvents()
+
+        # Update data
         scatter.setData(*numpy.random.random(3000).reshape(3, -1))
+        self.qapp.processEvents()
 
         for reduction in ('count', 'sum', 'mean'):
             with self.subTest(reduction=reduction):
@@ -1556,6 +1559,23 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
                 axis._setLogarithmic(False)
                 self.plot.clear()
 
+    def testAxisLimitOverflow(self):
+        """Test setting limis beyond supported range"""
+        xaxis, yaxis = self.plot.getXAxis(), self.plot.getYAxis()
+        for scale in ("linear", "log"):
+            xaxis.setScale(scale)
+            yaxis.setScale(scale)
+            for limits in ((1e300, 1e308),
+                           (-1e308, 1e308),
+                           (1e-300, 2e-300)):
+                with self.subTest(scale=scale, limits=limits):
+                    xaxis.setLimits(*limits)
+                    self.qapp.processEvents()
+                    self.assertNotEqual(xaxis.getLimits(), limits)
+                    yaxis.setLimits(*limits)
+                    self.qapp.processEvents()
+                    self.assertNotEqual(yaxis.getLimits(), limits)
+
 
 class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
@@ -1855,13 +1875,15 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
 
+@pytest.mark.usefixtures("test_options_class_attr")
 class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
     """Test [get|set]Backend to switch backend"""
 
+    @pytest.mark.usefixtures("test_options")
     def testSwitchBackend(self):
         """Test switching a plot with a few items"""
         backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
-        if test_options.WITH_GL_TEST:
+        if self.test_options.WITH_GL_TEST:
             backends['gl'] = 'BackendOpenGL'
 
         self.plot.addImage(numpy.arange(100).reshape(10, 10))
@@ -2031,42 +2053,61 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self.assertIs(self.plot.getActiveScatter(), scatter)
 
 
-def suite():
-    testClasses = (TestPlotWidget,
-                   TestPlotImage,
-                   TestPlotCurve,
-                   TestPlotHistogram,
-                   TestPlotScatter,
-                   TestPlotMarker,
-                   TestPlotItem,
-                   TestPlotAxes,
-                   TestPlotActiveCurveImage,
-                   TestPlotEmptyLog,
-                   TestPlotCurveLog,
-                   TestPlotImageLog,
-                   TestPlotMarkerLog,
-                   TestPlotWidgetSelection)
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotWidget_Gl(TestPlotWidget):
+    backend="gl"
 
-    test_suite = unittest.TestSuite()
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotImage_Gl(TestPlotImage):
+    backend="gl"
 
-    # Tests with matplotlib
-    for testClass in testClasses:
-        test_suite.addTest(parameterize(testClass, backend=None))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotCurve_Gl(TestPlotCurve):
+    backend="gl"
 
-    test_suite.addTest(parameterize(TestSpecialBackend, backend=u"mpl"))
-    if sys.version_info[0] == 2:
-        test_suite.addTest(parameterize(TestSpecialBackend, backend=b"mpl"))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotHistogram_Gl(TestPlotHistogram):
+    backend="gl"
 
-    if test_options.WITH_GL_TEST:
-        # Tests with OpenGL backend
-        for testClass in testClasses:
-            test_suite.addTest(parameterize(testClass, backend='gl'))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotScatter_Gl(TestPlotScatter):
+    backend="gl"
 
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
-        TestPlotWidgetSwitchBackend))
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotMarker_Gl(TestPlotMarker):
+    backend="gl"
 
-    return test_suite
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotItem_Gl(TestPlotItem):
+    backend="gl"
 
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotAxes_Gl(TestPlotAxes):
+    backend="gl"
 
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotActiveCurveImage_Gl(TestPlotActiveCurveImage):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotEmptyLog_Gl(TestPlotEmptyLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotCurveLog_Gl(TestPlotCurveLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotImageLog_Gl(TestPlotImageLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
+    backend="gl"
+
+@pytest.mark.usefixtures("use_opengl")
+class TestPlotWidgetSelection_Gl(TestPlotWidgetSelection):
+    backend="gl"
+
+class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
+    backend="mpl"

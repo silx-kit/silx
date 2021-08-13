@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -191,10 +191,9 @@ import io
 
 import h5py
 import numpy
-import six
 
 from silx import version as silx_version
-from .specfile import SpecFile
+from .specfile import SpecFile, SfErrColNotFound
 from . import commonh5
 
 __authors__ = ["P. Knobel", "D. Naudet"]
@@ -204,7 +203,7 @@ __date__ = "17/07/2018"
 logger1 = logging.getLogger(__name__)
 
 
-text_dtype = h5py.special_dtype(vlen=six.text_type)
+text_dtype = h5py.special_dtype(vlen=str)
 
 
 def to_h5py_utf8(str_list):
@@ -279,8 +278,12 @@ def _parse_UB_matrix(header_line):
 
     :param str header_line: G3 header line
     :return: UB matrix
+    :raises ValueError: For malformed UB matrix header line
     """
-    return numpy.array(list(map(float, header_line.split()))).reshape((1, 3, 3))
+    values = list(map(float, header_line.split()))  # Can raise ValueError
+    if len(values) < 9:
+        raise ValueError("Not enough values in UB matrix")
+    return numpy.array(values).reshape((1, 3, 3))
 
 
 def _ub_matrix_in_scan(scan):
@@ -289,13 +292,28 @@ def _ub_matrix_in_scan(scan):
     :param scan: specfile.Scan instance
     :return: True or False
     """
-    if "G3" not in scan.scan_header_dict:
+    header_line = scan.scan_header_dict.get("G3", None)
+    if header_line is None:
         return False
-    return numpy.any(_parse_UB_matrix(scan.scan_header_dict["G3"]))
+    try:
+        ub_matrix = _parse_UB_matrix(header_line)
+    except ValueError:
+        logger1.warning("Malformed G3 header line")
+        return False
+    return numpy.any(ub_matrix)
 
 
 def _parse_unit_cell(header_line):
-    return numpy.array(list(map(float, header_line.split()))[0:6]).reshape((1, 6))
+    """Parse G1 header line and return unit cell
+
+    :param str header_line: G1 header line
+    :return: unit cell
+    :raises ValueError: For malformed unit cell header line
+    """
+    values = list(map(float, header_line.split()[0:6]))  # can raise ValueError
+    if len(values) < 6:
+        raise ValueError("Not enough values in unit cell")
+    return numpy.array(values).reshape((1, 6))
 
 
 def _unit_cell_in_scan(scan):
@@ -304,9 +322,15 @@ def _unit_cell_in_scan(scan):
     :param scan: specfile.Scan instance
     :return: True or False
     """
-    if "G1" not in scan.scan_header_dict:
+    header_line = scan.scan_header_dict.get("G1", None)
+    if header_line is None:
         return False
-    return numpy.any(_parse_unit_cell(scan.scan_header_dict["G1"]))
+    try:
+        unit_cell = _parse_unit_cell(header_line)
+    except ValueError:
+        logger1.warning("Malformed G1 header line")
+        return False
+    return numpy.any(unit_cell)
 
 
 def _parse_ctime(ctime_lines, analyser_index=0):
@@ -472,7 +496,7 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             # use unicode (utf-8 when saved to HDF5 output)
             value = to_h5py_utf8(data)
         elif isinstance(data, float):
@@ -670,6 +694,10 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
         commonh5.Group.__init__(self, name="positioners", parent=parent,
                                 attrs={"NX_class": to_h5py_utf8("NXcollection")})
+
+        dataset_info = []  # Store list of positioner's (name, value)
+        is_error = False   # True if error encountered
+
         for motor_name in scan.motor_names:
             safe_motor_name = motor_name.replace("/", "%")
             if motor_name in scan.labels and scan.data.shape[0] > 0:
@@ -678,10 +706,24 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
             else:
                 # Take value from #P scan header.
                 # (may return float("inf") if #P line is missing from scan hdr)
-                motor_value = scan.motor_position_by_name(motor_name)
-            self.add_node(SpecH5NodeDataset(name=safe_motor_name,
-                                            data=motor_value,
-                                            parent=self))
+                try:
+                    motor_value = scan.motor_position_by_name(motor_name)
+                except SfErrColNotFound:
+                    is_error = True
+                    motor_value = float('inf')
+            dataset_info.append((safe_motor_name, motor_value))
+
+        if is_error:  # Filter-out scalar values
+            logger1.warning("Mismatching number of elements in #P and #O: Ignoring")
+            dataset_info = [
+                (name, value) for name, value in dataset_info
+                if not isinstance(value, float)]
+
+        for name, value in dataset_info:
+            self.add_node(SpecH5NodeDataset(
+                name=name,
+                data=value,
+                parent=self))
 
 
 class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
@@ -779,7 +821,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     def __getitem__(self, item):
         # optimization for fetching a single spectrum if data not already loaded
         if not self._is_initialized:
-            if isinstance(item, six.integer_types):
+            if isinstance(item, int):
                 if item < 0:
                     # negative indexing
                     item += len(self)
@@ -788,7 +830,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
             # accessing a slice or element of a single spectrum [i, j:k]
             try:
                 spectrum_idx, channel_idx_or_slice = item
-                assert isinstance(spectrum_idx, six.integer_types)
+                assert isinstance(spectrum_idx, int)
             except (ValueError, TypeError, AssertionError):
                 pass
             else:

@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ from collections import OrderedDict
 from silx.gui import qt
 from silx.gui.fit.Parameters import Parameters
 
-QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -269,7 +268,7 @@ class ParametersTab(qt.QTabWidget):
 
         # Show first fit result in another tab in our widget
         w.fillFromFit(fit.fit_results, view='Asymetric gaussians')
-        a.exec_()
+        a.exec()
 
     """
 
@@ -406,10 +405,7 @@ class ParametersTab(qt.QTabWidget):
         ncols = table.columnCount()
         for l in range(ncols):
             text += ('<td align="left" bgcolor="%s"><b>' % hcolor)
-            if QTVERSION < '4.0.0':
-                text += (str(table.horizontalHeader().label(l)))
-            else:
-                text += (str(table.horizontalHeaderItem(l).text()))
+            text += str(table.horizontalHeaderItem(l).text())
             text += "</b></td>"
         text += "</tr>"
         nrows = table.rowCount()
@@ -552,7 +548,7 @@ def test():
     pw.addCurve(x, y2, "Asymetric gaussians")
     pw.show()
 
-    a.exec_()
+    a.exec()
 
 
 if __name__ == "__main__":

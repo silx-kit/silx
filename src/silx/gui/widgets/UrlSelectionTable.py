@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2017 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2021 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -37,7 +37,7 @@ import functools
 import logging
 import os
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class UrlSelectionTable(TableWidget):
@@ -65,11 +65,8 @@ class UrlSelectionTable(TableWidget):
         self.setColumnCount(len(self.COLUMS_INDEX))
         self.setHorizontalHeaderLabels(list(self.COLUMS_INDEX.keys()))
         self.verticalHeader().hide()
-        if hasattr(self.horizontalHeader(), 'setSectionResizeMode'):  # Qt5
-            self.horizontalHeader().setSectionResizeMode(0,
-                                                         qt.QHeaderView.Stretch)
-        else:  # Qt4
-            self.horizontalHeader().setResizeMode(0, qt.QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(0,
+                                                     qt.QHeaderView.Stretch)
 
         self.setSortingEnabled(True)
         self._checkBoxes = {}

@@ -296,8 +296,7 @@ class RecordTableModel(qt.QAbstractTableModel):
             converted to a numpy array using ``numpy.array(data)`` (e.g.
             a nested sequence).
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         self.__data = data
         if isinstance(data, numpy.ndarray):
@@ -323,10 +322,7 @@ class RecordTableModel(qt.QAbstractTableModel):
             else:
                 self.__fields = None
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def arrayData(self):
         """Returns the internal data.
@@ -343,8 +339,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         if formatter is self.__formatter:
             return
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if self.__formatter is not None:
             self.__formatter.formatChanged.disconnect(self.__formatChanged)
@@ -356,10 +351,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         if self.__formatter is not None:
             self.__formatter.formatChanged.connect(self.__formatChanged)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def getFormatter(self):
         """Returns the text formatter used.

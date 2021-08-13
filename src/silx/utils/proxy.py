@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@ __date__ = "02/10/2017"
 
 
 import functools
-import six
 
 
 class Proxy(object):
@@ -67,9 +66,6 @@ class Proxy(object):
     __gt__ = property(lambda self: self.__obj.__gt__)
     __ge__ = property(lambda self: self.__obj.__ge__)
 
-    if six.PY2:
-        __cmp__ = property(lambda self: self.__obj.__cmp__)
-
     # binary numeric methods
 
     __add__ = property(lambda self: self.__obj.__add__)
@@ -81,13 +77,6 @@ class Proxy(object):
     __mul__ = property(lambda self: self.__obj.__mul__)
     __rmul__ = property(lambda self: self.__obj.__rmul__)
     __imul__ = property(lambda self: self.__obj.__imul__)
-
-    if six.PY2:
-        # Only part of Python 2
-        # Python 3 uses __truediv__ and __floordiv__
-        __div__ = property(lambda self: self.__obj.__div__)
-        __rdiv__ = property(lambda self: self.__obj.__rdiv__)
-        __idiv__ = property(lambda self: self.__obj.__idiv__)
 
     __truediv__ = property(lambda self: self.__obj.__truediv__)
     __rtruediv__ = property(lambda self: self.__obj.__rtruediv__)
@@ -128,10 +117,9 @@ class Proxy(object):
     __pos__ = property(lambda self: self.__obj.__pos__)
     __abs__ = property(lambda self: self.__obj.__abs__)
     __invert__ = property(lambda self: self.__obj.__invert__)
-    if six.PY3:
-        __floor__ = property(lambda self: self.__obj.__floor__)
-        __ceil__ = property(lambda self: self.__obj.__ceil__)
-        __round__ = property(lambda self: self.__obj.__round__)
+    __floor__ = property(lambda self: self.__obj.__floor__)
+    __ceil__ = property(lambda self: self.__obj.__ceil__)
+    __round__ = property(lambda self: self.__obj.__round__)
 
     # cast
 
@@ -141,22 +129,14 @@ class Proxy(object):
     __int__ = property(lambda self: self.__obj.__int__)
     __float__ = property(lambda self: self.__obj.__float__)
     __hash__ = property(lambda self: self.__obj.__hash__)
-    if six.PY2:
-        __long__ = property(lambda self: self.__obj.__long__)
-        __oct__ = property(lambda self: self.__obj.__oct__)
-        __hex__ = property(lambda self: self.__obj.__hex__)
-        __unicode__ = property(lambda self: self.__obj.__unicode__)
-        __nonzero__ = property(lambda self: lambda: bool(self.__obj))
-    if six.PY3:
-        __bytes__ = property(lambda self: self.__obj.__bytes__)
-        __bool__ = property(lambda self: lambda: bool(self.__obj))
-        __format__ = property(lambda self: self.__obj.__format__)
+    __bytes__ = property(lambda self: self.__obj.__bytes__)
+    __bool__ = property(lambda self: lambda: bool(self.__obj))
+    __format__ = property(lambda self: self.__obj.__format__)
 
     # container
 
     __len__ = property(lambda self: self.__obj.__len__)
-    if six.PY3:
-        __length_hint__ = property(lambda self: self.__obj.__length_hint__)
+    __length_hint__ = property(lambda self: self.__obj.__length_hint__)
     __getitem__ = property(lambda self: self.__obj.__getitem__)
     __missing__ = property(lambda self: self.__obj.__missing__)
     __setitem__ = property(lambda self: self.__obj.__setitem__)
@@ -165,11 +145,6 @@ class Proxy(object):
     __reversed__ = property(lambda self: self.__obj.__reversed__)
     __contains__ = property(lambda self: self.__obj.__contains__)
 
-    if six.PY2:
-        __getslice__ = property(lambda self: self.__obj.__getslice__)
-        __setslice__ = property(lambda self: self.__obj.__setslice__)
-        __delslice__ = property(lambda self: self.__obj.__delslice__)
-
     # pickle
 
     __reduce__ = property(lambda self: self.__obj.__reduce__)
@@ -177,31 +152,23 @@ class Proxy(object):
 
     # async
 
-    if six.PY3:
-        __await__ = property(lambda self: self.__obj.__await__)
-        __aiter__ = property(lambda self: self.__obj.__aiter__)
-        __anext__ = property(lambda self: self.__obj.__anext__)
-        __aenter__ = property(lambda self: self.__obj.__aenter__)
-        __aexit__ = property(lambda self: self.__obj.__aexit__)
+    __await__ = property(lambda self: self.__obj.__await__)
+    __aiter__ = property(lambda self: self.__obj.__aiter__)
+    __anext__ = property(lambda self: self.__obj.__anext__)
+    __aenter__ = property(lambda self: self.__obj.__aenter__)
+    __aexit__ = property(lambda self: self.__obj.__aexit__)
 
     # other
 
     __index__ = property(lambda self: self.__obj.__index__)
-    if six.PY2:
-        __coerce__ = property(lambda self: self.__obj.__coerce__)
 
-    if six.PY3:
-        __next__ = property(lambda self: self.__obj.__next__)
+    __next__ = property(lambda self: self.__obj.__next__)
 
     __enter__ = property(lambda self: self.__obj.__enter__)
     __exit__ = property(lambda self: self.__obj.__exit__)
 
     __concat__ = property(lambda self: self.__obj.__concat__)
     __iconcat__ = property(lambda self: self.__obj.__iconcat__)
-
-    if six.PY2:
-        __repeat__ = property(lambda self: self.__obj.__repeat__)
-        __irepeat__ = property(lambda self: self.__obj.__irepeat__)
 
     __call__ = property(lambda self: self.__obj.__call__)
 

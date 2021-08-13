@@ -48,8 +48,10 @@ class _Test_chistogramnd_errors(unittest.TestCase):
     """
     Unit tests of the chistogramnd error cases.
     """
+    __test__ = False  # ignore abstract class
+
     def setUp(self):
-        raise NotImplementedError('')
+        self.skipTest("Abstract class")
 
     def test_weights_shape(self):
         """
@@ -381,6 +383,7 @@ class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 1D histogramnd error cases.
     """
+    __test__ = True  # because _Test_chistogramnd_errors is ignored
 
     def setUp(self):
         # nominal values
@@ -453,6 +456,7 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 3D histogramnd error cases.
     """
+    __test__ = True  # because _Test_chistogramnd_errors is ignored
 
     def setUp(self):
         # nominal values
@@ -513,23 +517,3 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
         self.err_unmanaged_dtypes = ((np.double, np.uint16),
                                      (np.uint16, np.double),
                                      (np.uint16, np.uint16))
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
-
-test_cases = (Test_chistogramnd_1D_errors,
-              Test_chistogramnd_ND_errors,
-              Test_chistogramnd_ND_range)
-
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

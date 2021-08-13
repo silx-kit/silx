@@ -150,6 +150,32 @@ else:
     raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
 
 
+if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility
+    class _ExecMixIn:
+        """Mix-in class providind `exec` compatibility"""
+        def exec(self, *args, **kwargs):
+            self.exec_(*args, **kwargs)
+
+    # QtWidgets
+    class QApplication(QApplication, _ExecMixIn): pass
+    class QColorDialog(QColorDialog, _ExecMixIn): pass
+    class QDialog(QDialog, _ExecMixIn): pass
+    class QErrorMessage(QErrorMessage, _ExecMixIn): pass
+    class QFileDialog(QFileDialog, _ExecMixIn): pass
+    class QFontDialog(QFontDialog, _ExecMixIn): pass
+    class QInputDialog(QInputDialog, _ExecMixIn): pass
+    class QMenu(QMenu, _ExecMixIn): pass
+    class QMessageBox(QMessageBox, _ExecMixIn): pass
+    class QProgressDialog(QProgressDialog, _ExecMixIn): pass
+    #QtCore
+    class QCoreApplication(QCoreApplication, _ExecMixIn): pass
+    class QEventLoop(QEventLoop, _ExecMixIn): pass
+    if hasattr(QTextStreamManipulator, "exec_"):
+        # exec_ only wrapped in PySide2 and NOT in PyQt5
+        class QTextStreamManipulator(QTextStreamManipulator, _ExecMixIn): pass
+    class QThread(QThread, _ExecMixIn): pass
+
+
 # provide a exception handler but not implement it by default
 def exceptionHandler(type_, value, trace):
     """
@@ -171,4 +197,4 @@ def exceptionHandler(type_, value, trace):
     msg.setInformativeText("%s %s\nPlease report details" % (type_, value))
     msg.setDetailedText(("%s " % value) + ''.join(traceback.format_tb(trace)))
     msg.raise_()
-    msg.exec_()
+    msg.exec()

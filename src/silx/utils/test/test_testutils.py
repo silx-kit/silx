@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,26 +34,26 @@ import logging
 from .. import testutils
 
 
-class TestTestLogging(unittest.TestCase):
-    """Tests for TestLogging."""
+class TestLoggingValidator(unittest.TestCase):
+    """Tests for LoggingValidator"""
 
     def testRight(self):
         logger = logging.getLogger(__name__ + "testRight")
-        listener = testutils.TestLogging(logger, error=1)
+        listener = testutils.LoggingValidator(logger, error=1)
         with listener:
             logger.error("expected")
             logger.info("ignored")
 
     def testCustomLevel(self):
         logger = logging.getLogger(__name__ + "testCustomLevel")
-        listener = testutils.TestLogging(logger, error=1)
+        listener = testutils.LoggingValidator(logger, error=1)
         with listener:
             logger.error("expected")
             logger.log(666, "custom level have to be ignored")
 
     def testWrong(self):
         logger = logging.getLogger(__name__ + "testWrong")
-        listener = testutils.TestLogging(logger, error=1)
+        listener = testutils.LoggingValidator(logger, error=1)
         with self.assertRaises(RuntimeError):
             with listener:
                 logger.error("expected")
@@ -61,14 +61,14 @@ class TestTestLogging(unittest.TestCase):
 
     def testManyErrors(self):
         logger = logging.getLogger(__name__ + "testManyErrors")
-        listener = testutils.TestLogging(logger, error=1, warning=2)
+        listener = testutils.LoggingValidator(logger, error=1, warning=2)
         with self.assertRaises(RuntimeError):
             with listener:
                 pass
 
     def testCanBeChecked(self):
         logger = logging.getLogger(__name__ + "testCanBreak")
-        listener = testutils.TestLogging(logger, error=1, warning=2)
+        listener = testutils.LoggingValidator(logger, error=1, warning=2)
         with self.assertRaises(RuntimeError):
             with listener:
                 logger.error("aaa")
@@ -80,26 +80,15 @@ class TestTestLogging(unittest.TestCase):
 
     def testWithAs(self):
         logger = logging.getLogger(__name__ + "testCanBreak")
-        with testutils.TestLogging(logger) as listener:
+        with testutils.LoggingValidator(logger) as listener:
             logger.error("aaa")
             self.assertIsNotNone(listener)
 
     def testErrorMessage(self):
         logger = logging.getLogger(__name__ + "testCanBreak")
-        listener = testutils.TestLogging(logger, error=1, warning=2)
+        listener = testutils.LoggingValidator(logger, error=1, warning=2)
         with self.assertRaisesRegex(RuntimeError, "aaabbb"):
             with listener:
                 logger.error("aaa")
                 logger.warning("aaabbb")
                 logger.error("aaa")
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestTestLogging))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

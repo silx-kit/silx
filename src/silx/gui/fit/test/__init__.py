@@ -22,22 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
-from .testFitWidget import suite as testFitWidgetSuite
-from .testFitConfig import suite as testFitConfigSuite
-from .testBackgroundWidget import suite as testBackgroundWidgetSuite
-
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "21/07/2016"
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testFitWidgetSuite(),
-         testFitConfigSuite(),
-         testBackgroundWidgetSuite()])
-    return test_suite

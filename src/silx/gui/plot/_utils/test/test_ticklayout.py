@@ -79,14 +79,3 @@ class TestTickLayout(ParametricTestCase):
             with self.subTest(vmin=vmin, vmax=vmax):
                 ticks = ticklayout.niceNumbersForLog10(vmin, vmax)
                 self.assertEqual(ticks, ref_ticks)
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestTickLayout))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main()

@@ -226,12 +226,3 @@ class TestGaussian(unittest.TestCase):
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
         self.assertLess(abs(delta).max(), 1e-6, "gaussian are the same ")
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestGaussian("test_v1_odd"))
-    testSuite.addTest(TestGaussian("test_v1_even"))
-    testSuite.addTest(TestGaussian("test_v2_odd"))
-    testSuite.addTest(TestGaussian("test_v2_even"))
-    return testSuite

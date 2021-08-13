@@ -342,10 +342,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             dimensions, to view frames parallel to the last two axes.
         :param bool editable: Flag to enable editing data. Default *False*.
         """
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
 
         if data is None:
             # empty array
@@ -386,8 +383,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         self._perspective = tuple(perspective) if perspective is not None else\
             tuple(range(0, len(self._array.shape) - 2))
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+        self.endResetModel()
 
     def setArrayColors(self, bgcolors=None, fgcolors=None):
         """Set the colors for all table cells by passing an array
@@ -485,10 +481,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             # index is ignored
             return
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
 
         if len(shape) == 3:
             len_ = shape[self._perspective[0]]
@@ -508,8 +501,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
                                      "not in range 0-%d" % (shape[i_] - 1))
             self._index = index
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+        self.endResetModel()
 
     def setFormatter(self, formatter):
         """Set the formatter object to be used to display data from the model
@@ -519,8 +511,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if formatter is self._formatter:
             return
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
+        self.beginResetModel()
 
         if self._formatter is not None:
             self._formatter.formatChanged.disconnect(self.__formatChanged)
@@ -529,10 +520,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if self._formatter is not None:
             self._formatter.formatChanged.connect(self.__formatChanged)
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
-        else:
-            self.reset()
+        self.endResetModel()
 
     def getFormatter(self):
         """Returns the text formatter used.
@@ -597,18 +585,14 @@ class ArrayTableModel(qt.QAbstractTableModel):
                     " for %d-D array " % n_dimensions +
                     "with shape " + str(self._array.shape))
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
 
         self._perspective = perspective
 
         # reset index
         self._index = [0 for _i in range(n_dimensions - 2)]
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+        self.endResetModel()
 
     def setFrameAxes(self, row_axis, col_axis):
         """Set the perspective by specifying the two axes parallel to the frame
@@ -643,17 +627,13 @@ class ArrayTableModel(qt.QAbstractTableModel):
                     " for %d-D array " % n_dimensions +
                     "with shape " + str(self._array.shape))
 
-        if qt.qVersion() > "4.6":
-            self.beginResetModel()
-        else:
-            self.reset()
+        self.beginResetModel()
 
         self._perspective = perspective
         # reset index
         self._index = [0 for _i in range(n_dimensions - 2)]
 
-        if qt.qVersion() > "4.6":
-            self.endResetModel()
+        self.endResetModel()
 
 
 if __name__ == "__main__":
@@ -667,4 +647,4 @@ if __name__ == "__main__":
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))
     w.show()
-    app.exec_()
+    app.exec()

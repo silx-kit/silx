@@ -215,17 +215,3 @@ class TestFBP(unittest.TestCase):
             errmax, 1.e-1,
             "Something wrong with FBP on odd-sized sinogram"
         )
-
-
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestFBP("test_fbp"))
-    testSuite.addTest(TestFBP("test_fbp_filters"))
-    testSuite.addTest(TestFBP("test_fbp_oddsize"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

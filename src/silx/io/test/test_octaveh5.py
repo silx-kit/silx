@@ -154,12 +154,3 @@ class TestOctaveH5(unittest.TestCase):
         data_readed = reader.get('BEAMGEO')
         self.assertEqual(data_readed, self._get_struct_BEAMGEO() )
         reader.close()
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestOctaveH5))
-    return test_suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

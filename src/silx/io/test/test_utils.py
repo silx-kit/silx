@@ -869,20 +869,3 @@ class TestH5Strings(unittest.TestCase):
 
     def test_attribute_no_string(self):
         self._check_attribute(numpy.int64(10))
-
-
-def suite():
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loadTests(TestSave))
-    test_suite.addTest(loadTests(TestH5Ls))
-    test_suite.addTest(loadTests(TestOpen))
-    test_suite.addTest(loadTests(TestNodes))
-    test_suite.addTest(loadTests(TestGetData))
-    test_suite.addTest(loadTests(TestRawFileToH5))
-    test_suite.addTest(loadTests(TestH5Strings))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,38 +62,27 @@ class TestDebug(unittest.TestCase):
         test = _Foobar()
         test.b()
 
-    @testutils.test_logging(debug.debug_logger.name, warning=2)
+    @testutils.validate_logging(debug.debug_logger.name, warning=2)
     def testMethod(self):
         test = _Foobar()
         test.a()
 
-    @testutils.test_logging(debug.debug_logger.name, warning=4)
+    @testutils.validate_logging(debug.debug_logger.name, warning=4)
     def testInterleavedMethod(self):
         test = _Foobar()
         test.b()
 
-    @testutils.test_logging(debug.debug_logger.name, warning=2)
+    @testutils.validate_logging(debug.debug_logger.name, warning=2)
     def testNamedArgument(self):
         # Arguments arre still provided to the patched method
         test = _Foobar()
         result = test.named_args(10, 11)
         self.assertEqual(result, (11, 12))
 
-    @testutils.test_logging(debug.debug_logger.name, warning=2)
+    @testutils.validate_logging(debug.debug_logger.name, warning=2)
     def testRandomArguments(self):
         # Arguments arre still provided to the patched method
         test = _Foobar()
         result = test.random_args("foo", 50, a=10, b=100)
         self.assertEqual(result[0], ("foo", 50))
         self.assertEqual(result[1], {"a": 10, "b": 100})
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDebug))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

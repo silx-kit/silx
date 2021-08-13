@@ -21,35 +21,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-__authors__ = ["J. Kieffer"]
-__license__ = "MIT"
-__date__ = "12/01/2017"
-
-import unittest
-from . import test_gaussian
-from . import test_preproc
-from . import test_reductions
-from . import test_convol
-from . import test_algebra
-from . import test_image
-from . import test_keypoints
-from . import test_matching
-from . import test_align
-from . import test_transform
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(test_algebra.suite())
-    testSuite.addTest(test_gaussian.suite())
-    testSuite.addTest(test_preproc.suite())
-    testSuite.addTest(test_reductions.suite())
-    testSuite.addTest(test_convol.suite())
-    testSuite.addTest(test_image.suite())
-    testSuite.addTest(test_keypoints.suite())
-    testSuite.addTest(test_matching.suite())
-    testSuite.addTests(test_align.suite())
-    testSuite.addTests(test_transform.suite())
-
-    return testSuite

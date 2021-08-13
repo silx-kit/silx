@@ -154,8 +154,7 @@ a *frame number*.
 
 .. note::
 
-   This additional attribute is not mentionned in the official NXdata
-   specification.
+   This attribute is documented in the official NeXus `description <https://manual.nexusformat.org/nxdl_desc.html>`_
 
 
 Writing NXdata with h5py

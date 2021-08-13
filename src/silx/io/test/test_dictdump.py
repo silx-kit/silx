@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ from copy import deepcopy
 
 from collections import defaultdict
 
-from silx.utils.testutils import TestLogging
+from silx.utils.testutils import LoggingValidator
 
 from ..configdict import ConfigDict
 from .. import dictdump
@@ -207,7 +207,7 @@ class TestDictToH5(H5DictTestCase):
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             # This should not warn
-            with TestLogging(dictdump_logger, warning=0):
+            with LoggingValidator(dictdump_logger, warning=0):
                 dictdump.dicttoh5(ddict, h5file, h5path="foo/bar")
 
     def testKeyOrder(self):
@@ -869,7 +869,7 @@ class TestNxToDict(H5DictTestCase):
         ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='ignore')
         self.assertFalse(ddict)
 
-        with TestLogging(dictdump_logger, error=1):
+        with LoggingValidator(dictdump_logger, error=1):
             ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='log')
             self.assertFalse(ddict)
 
@@ -885,7 +885,7 @@ class TestNxToDict(H5DictTestCase):
         ddict = h5todict(self.h5_fname, path="/Mars", errors='ignore')
         self.assertFalse(ddict)
 
-        with TestLogging(dictdump_logger, error=2):
+        with LoggingValidator(dictdump_logger, error=2):
             ddict = h5todict(self.h5_fname, path="/Mars", errors='log')
             self.assertFalse(ddict)
 
@@ -1007,19 +1007,3 @@ class TestDictToIni(DictTestCase):
                 self.assertEqual(orig_key2, read_key)
                 self.assertEqual(test_ordered_dict3[section][orig_key2],
                                  read_instance[section][read_key])
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestDictToIni))
-    test_suite.addTest(loadTests(TestDictToH5))
-    test_suite.addTest(loadTests(TestDictToNx))
-    test_suite.addTest(loadTests(TestDictToJson))
-    test_suite.addTest(loadTests(TestH5ToDict))
-    test_suite.addTest(loadTests(TestNxToDict))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

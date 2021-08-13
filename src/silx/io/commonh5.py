@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@ import weakref
 
 import h5py
 import numpy
-import six
 
 from . import utils
 
@@ -230,7 +229,7 @@ class Dataset(Node):
         :param numpy.ndarray data: Data associated to the dataset
         :raises TypeError: In the case the data is not valid.
         """
-        if isinstance(data, (six.text_type, six.binary_type)):
+        if isinstance(data, (str, bytes)):
             return
 
         chartype = data.dtype.char
@@ -841,42 +840,24 @@ class Group(Node):
         for x in self._get_items().__iter__():
             yield x
 
-    if six.PY2:
-        def keys(self):
-            """Returns a list of the children's names."""
-            return self._get_items().keys()
+    def keys(self):
+        """Returns an iterator over the children's names in a group."""
+        return self._get_items().keys()
 
-        def values(self):
-            """Returns a list of the children nodes (groups and datasets).
+    def values(self):
+        """Returns an iterator over the children nodes (groups and datasets)
+        in a group.
 
-            .. versionadded:: 0.6
-            """
-            return self._get_items().values()
+        .. versionadded:: 0.6
+        """
+        return self._get_items().values()
 
-        def items(self):
-            """Returns a list of tuples containing (name, node) pairs.
-            """
-            return self._get_items().items()
+    def items(self):
+        """Returns items iterator containing name-node mapping.
 
-    else:
-        def keys(self):
-            """Returns an iterator over the children's names in a group."""
-            return self._get_items().keys()
-
-        def values(self):
-            """Returns an iterator over the children nodes (groups and datasets)
-            in a group.
-
-            .. versionadded:: 0.6
-            """
-            return self._get_items().values()
-
-        def items(self):
-            """Returns items iterator containing name-node mapping.
-
-            :rtype: iterator
-            """
-            return self._get_items().items()
+        :rtype: iterator
+        """
+        return self._get_items().items()
 
     def visit(self, func, visit_links=False):
         """Recursively visit all names in this group and subgroups.

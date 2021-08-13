@@ -193,14 +193,3 @@ class TestSpecfilewrapper(unittest.TestCase):
     def test_mca_header(self):
         self.assertEqual(self.scan1_2.header("CALIB"),
                          ["#@CALIB 1 2 3"])
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecfilewrapper))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

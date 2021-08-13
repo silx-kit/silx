@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -235,11 +235,14 @@ class _Fill2D(object):
 
     def discard(self):
         """Release VBOs"""
-        if self._xFillVboData is not None:
+        if self.isInitialized():
             self._xFillVboData.vbo.discard()
 
         self._xFillVboData = None
         self._yFillVboData = None
+
+    def isInitialized(self):
+        return self._xFillVboData is not None
 
 
 # line ########################################################################
@@ -984,10 +987,12 @@ class _ErrorBars(object):
 
             # Interleave vertices for xError
             endXError = 4 * nbDataPts
-            xCoords[0:endXError-3:4] = self._xData + xErrorPlus
+            with numpy.errstate(invalid="ignore"):
+                xCoords[0:endXError-3:4] = self._xData + xErrorPlus
             xCoords[1:endXError-2:4] = self._xData
             xCoords[2:endXError-1:4] = self._xData
-            xCoords[3:endXError:4] = self._xData - xErrorMinus
+            with numpy.errstate(invalid="ignore"):
+                xCoords[3:endXError:4] = self._xData - xErrorMinus
 
             yCoords[0:endXError-3:4] = self._yData
             yCoords[1:endXError-2:4] = self._yData
@@ -1010,10 +1015,12 @@ class _ErrorBars(object):
             xCoords[endXError+2::4] = self._xData
             xCoords[endXError+3::4] = self._xData
 
-            yCoords[endXError::4] = self._yData + yErrorPlus
+            with numpy.errstate(invalid="ignore"):
+                yCoords[endXError::4] = self._yData + yErrorPlus
             yCoords[endXError+1::4] = self._yData
             yCoords[endXError+2::4] = self._yData
-            yCoords[endXError+3::4] = self._yData - yErrorMinus
+            with numpy.errstate(invalid="ignore"):
+                yCoords[endXError+3::4] = self._yData - yErrorMinus
 
         return xCoords, yCoords
 
@@ -1061,12 +1068,15 @@ class _ErrorBars(object):
 
     def discard(self):
         """Release VBOs"""
-        if self._attribs is not None:
+        if self.isInitialized():
             self._lines.xVboData, self._lines.yVboData = None, None
             self._xErrPoints.xVboData, self._xErrPoints.yVboData = None, None
             self._yErrPoints.xVboData, self._yErrPoints.yVboData = None, None
             self._attribs[0].vbo.discard()
             self._attribs = None
+
+    def isInitialized(self):
+        return self._attribs is not None
 
 
 # curves ######################################################################
@@ -1137,8 +1147,9 @@ class GLPlotCurve2D(GLPlotItem):
         if xData.itemsize > 4 or yData.itemsize > 4:  # Use normalization
             # offset data, do not offset error as it is relative
             self.offset = self.xMin, self.yMin
-            self.xData = (xData - self.offset[0]).astype(numpy.float32)
-            self.yData = (yData - self.offset[1]).astype(numpy.float32)
+            with numpy.errstate(invalid="ignore"):
+                self.xData = (xData - self.offset[0]).astype(numpy.float32)
+                self.yData = (yData - self.offset[1]).astype(numpy.float32)
 
         else:  # float32
             self.offset = 0., 0.
@@ -1271,6 +1282,11 @@ class GLPlotCurve2D(GLPlotItem):
         self._errorBars.discard()
         if self.fill is not None:
             self.fill.discard()
+
+    def isInitialized(self):
+        return (self.xVboData is not None or
+                self._errorBars.isInitialized() or
+                (self.fill is not None and self.fill.isInitialized()))
 
     def pick(self, xPickMin, yPickMin, xPickMax, yPickMax):
         """Perform picking on the curve according to its rendering.

@@ -22,19 +22,3 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "17/04/2018"
-
-import unittest
-from . import test_funcapi
-from . import test_mergeimpl
-
-
-def suite():
-    """Test suite for module silx.image.test"""
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_funcapi.suite())
-    test_suite.addTest(test_mergeimpl.suite())
-    return test_suite

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 #
-#    Project: Azimuthal integration
-#             https://github.com/silx-kit/pyFAI
+#    Project: OpenCL numerical library
+#             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2015-2019 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2015-2021 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -28,13 +28,11 @@
 
 "test suite for OpenCL code"
 
-from __future__ import absolute_import, division, print_function
-
 __author__ = "Jérôme Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "01/08/2019"
+__date__ = "17/05/2021"
 
 
 import unittest
@@ -54,7 +52,6 @@ if ocl is not None:
     from ..utils import read_cl_file
     from .. import pyopencl
     import pyopencl.array
-from ...test.utils import test_options
 
 
 class TestKahan(unittest.TestCase):
@@ -64,8 +61,6 @@ class TestKahan(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not test_options.WITH_OPENCL_TEST:
-            raise unittest.SkipTest("User request to skip OpenCL tests")
         if pyopencl is None or ocl is None:
             raise unittest.SkipTest("OpenCL module (pyopencl) is not present or no device available")
 
@@ -257,15 +252,3 @@ class TestKahan(unittest.TestCase):
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot2")
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    testsuite.addTest(loader(TestKahan))
-    return testsuite
-
-
-if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(suite())

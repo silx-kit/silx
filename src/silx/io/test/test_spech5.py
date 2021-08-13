@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 #
 # ############################################################################*/
 """Tests for spech5"""
-from numpy import array_equal
+import numpy
 import os
 import io
 import sys
@@ -369,17 +369,17 @@ class TestSpecH5(unittest.TestCase):
                 u"#P1 4.74255 6.197579 2.238283")
 
     def testLinks(self):
-        self.assertTrue(
-            array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
-                        self.sfh5["/1.2/instrument/mca_0/data"])
+        self.assertTrue(numpy.array_equal(
+            self.sfh5["/1.2/measurement/mca_0/data"],
+            self.sfh5["/1.2/instrument/mca_0/data"])
         )
-        self.assertTrue(
-            array_equal(self.sfh5["/1.2/measurement/mca_0/info/data"],
-                        self.sfh5["/1.2/instrument/mca_0/data"])
+        self.assertTrue(numpy.array_equal(
+            self.sfh5["/1.2/measurement/mca_0/info/data"],
+            self.sfh5["/1.2/instrument/mca_0/data"])
         )
-        self.assertTrue(
-            array_equal(self.sfh5["/1.2/measurement/mca_0/info/channels"],
-                        self.sfh5["/1.2/instrument/mca_0/channels"])
+        self.assertTrue(numpy.array_equal(
+            self.sfh5["/1.2/measurement/mca_0/info/channels"],
+            self.sfh5["/1.2/instrument/mca_0/channels"])
         )
         self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/"].keys(),
                          self.sfh5["/1.2/instrument/mca_0/"].keys())
@@ -569,7 +569,7 @@ class TestSpecH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.sfh5["/1001.1/sample/unit_cell"]
 
-    @testutils.test_logging(spech5.logger1.name, warning=2)
+    @testutils.validate_logging(spech5.logger1.name, warning=2)
     def testOpenFileDescriptor(self):
         """Open a SpecH5 file from a file descriptor"""
         with io.open(self.sfh5.filename) as f:
@@ -862,20 +862,68 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
                       self.sfh5["1.1/instrument/positioners"])
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecDate))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5MultiMca))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5NoDataCols))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5SlashInLabels))
-    return test_suite
+def testUnitCellUBMatrix(tmp_path):
+    """Test unit cell (#G1) and UB matrix (#G3)"""
+    file_path = tmp_path / "spec.dat"
+    file_path.write_bytes(bytes("""
+#S 1 OK
+#G1 0 1 2 3 4 5
+#G3 0 1 2 3 4 5 6 7 8
+""", encoding="ascii"))
+    with SpecH5(str(file_path)) as spech5:
+        assert numpy.array_equal(
+            spech5["/1.1/sample/ub_matrix"],
+            numpy.arange(9).reshape(1, 3, 3))
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5])
 
 
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
+def testMalformedUnitCellUBMatrix(tmp_path):
+    """Test malformed unit cell (#G1) and UB matrix (#G3): 1 value"""
+    file_path = tmp_path / "spec.dat"
+    file_path.write_bytes(bytes("""
+#S 1 all malformed=0
+#G1 0
+#G3 0
+""", encoding="ascii"))
+    with SpecH5(str(file_path)) as spech5:
+        assert "sample" not in spech5["1.1"]
+
+
+def testMalformedUBMatrix(tmp_path):
+    """Test malformed UB matrix (#G3): all zeros"""
+    file_path = tmp_path / "spec.dat"
+    file_path.write_bytes(bytes("""
+#S 1 G3 all 0
+#G1 0 1 2 3 4 5
+#G3 0 0 0 0 0 0 0 0 0
+""", encoding="ascii"))
+    with SpecH5(str(file_path)) as spech5:
+        assert "ub_matrix" not in spech5["/1.1/sample"]
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
+        assert numpy.array_equal(
+            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5])
+
+
+def testMalformedUnitCell(tmp_path):
+    """Test malformed unit cell (#G1): missing values"""
+    file_path = tmp_path / "spec.dat"
+    file_path.write_bytes(bytes("""
+#S 1 G1 malformed missing values
+#G1 0 1 2
+#G3 0 1 2 3 4 5 6 7 8
+""", encoding="ascii"))
+    with SpecH5(str(file_path)) as spech5:
+        assert "unit_cell" not in spech5["/1.1/sample"]
+        assert "unit_cell_abc" not in spech5["/1.1/sample"]
+        assert "unit_cell_alphabetagamma" not in spech5["/1.1/sample"]
+        assert numpy.array_equal(
+            spech5["/1.1/sample/ub_matrix"],
+            numpy.arange(9).reshape(1, 3, 3))

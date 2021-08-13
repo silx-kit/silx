@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -149,7 +149,7 @@ def mainQt(options):
             _logger.debug("Backtrace", exc_info=True)
 
     window.show()
-    result = app.exec_()
+    result = app.exec()
     # remove ending warnings relative to QTimer
     app.deleteLater()
     return result

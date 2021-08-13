@@ -61,14 +61,3 @@ class TestLegendIconWidget(TestCaseQt, ParametricTestCase):
         self.widget.setSymbol("o")
         self.widget.setSymbolColormap("viridis")
         self.qapp.processEvents()
-
-
-def suite():
-    loader = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(loader(TestLegendIconWidget))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

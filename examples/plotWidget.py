@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ class MyPlotWindow(qt.QMainWindow):
         # Make ColorBarWidget background white by changing its palette
         colorBar.setAutoFillBackground(True)
         palette = colorBar.palette()
-        palette.setColor(qt.QPalette.Background, qt.Qt.white)
+        palette.setColor(qt.QPalette.Window, qt.Qt.white)
         palette.setColor(qt.QPalette.Window, qt.Qt.white)
         colorBar.setPalette(palette)
 
@@ -178,7 +178,7 @@ def main():
     window.setAttribute(qt.Qt.WA_DeleteOnClose)
     window.show()
     window.showImage()
-    app.exec_()
+    app.exec()
 
 
 if __name__ == '__main__':

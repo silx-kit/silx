@@ -126,14 +126,3 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         dock = qt.QDockWidget()
         dock.setWidget(paramTreeWidget)
         self.widget.addDockWidget(qt.Qt.BottomDockWidgetArea, dock)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(TestScalarFieldView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

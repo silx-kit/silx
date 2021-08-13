@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,8 @@ class Test_leastsq(unittest.TestCase):
         def myexp(x):
             # put a (bad) filter to avoid over/underflows
             # with no python looping
-            return numpy.exp(x*numpy.less(abs(x), 250)) - \
+            with numpy.errstate(invalid='ignore'):
+                return numpy.exp(x*numpy.less(abs(x), 250)) - \
                    1.0 * numpy.greater_equal(abs(x), 250)
 
         self.my_exp = myexp
@@ -241,7 +242,7 @@ class Test_leastsq(unittest.TestCase):
                                                       fittedpar[i])
             self.assertTrue(test_condition, msg)
 
-    @testutils.test_logging(fitlogger.name, warning=2)
+    @testutils.validate_logging(fitlogger.name, warning=2)
     def testBadlyShapedData(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)
@@ -263,7 +264,7 @@ class Test_leastsq(unittest.TestCase):
                                                           fittedpar[i])
                 self.assertTrue(test_condition, msg)
 
-    @testutils.test_logging(fitlogger.name, warning=3)
+    @testutils.validate_logging(fitlogger.name, warning=3)
     def testDataWithNaN(self):
         parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.).reshape(1000, 10)
@@ -370,18 +371,3 @@ class Test_leastsq(unittest.TestCase):
                 # test that all FIXED parameters have 100% uncertainty
                 self.assertAlmostEqual(uncertainties[i],
                                        parameters_estimate[i])
-
-
-test_cases = (Test_leastsq,)
-
-def suite():
-    loader = unittest.defaultTestLoader
-    test_suite = unittest.TestSuite()
-    for test_class in test_cases:
-        tests = loader.loadTestsFromTestCase(test_class)
-        test_suite.addTests(tests)
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.utils.testutils import TestLogging
+from silx.utils.testutils import LoggingValidator
 
 
 class TestThreadPoolPushButton(TestCaseQt):
@@ -114,7 +114,7 @@ class TestThreadPoolPushButton(TestCaseQt):
         button.succeeded.connect(listener.partial(test="Unexpected success"))
         button.failed.connect(listener.partial(test="exception"))
         button.finished.connect(listener.partial(test="f"))
-        with TestLogging('silx.gui.widgets.ThreadPoolPushButton', error=1):
+        with LoggingValidator('silx.gui.widgets.ThreadPoolPushButton', error=1):
             button.executeCallable()
             self.qapp.processEvents()
             time.sleep(0.1)
@@ -122,14 +122,3 @@ class TestThreadPoolPushButton(TestCaseQt):
         result = listener.karguments(argumentName="test")
         self.assertListEqual(result, ["be", "s", "exception", "f"])
         listener.clear()
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestThreadPoolPushButton))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

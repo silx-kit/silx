@@ -22,38 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
-from . import test_hierarchicaltableview
-from . import test_printpreview
-from . import test_framebrowser
-from . import test_boxlayoutdockwidget
-from . import test_rangeslider
-from . import test_flowlayout
-from . import test_elidedlabel
-from . import test_legendiconwidget
-
-__authors__ = ["V. Valls", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/07/2017"
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         test_printpreview.suite(),
-         test_hierarchicaltableview.suite(),
-         test_framebrowser.suite(),
-         test_boxlayoutdockwidget.suite(),
-         test_rangeslider.suite(),
-         test_flowlayout.suite(),
-         test_elidedlabel.suite(),
-         test_legendiconwidget.suite(),
-         ])
-    return test_suite

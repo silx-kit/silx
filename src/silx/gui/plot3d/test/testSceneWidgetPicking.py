@@ -312,15 +312,3 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
                 self.assertEqual(len(picking), 0)
-
-
-def suite():
-    testsuite = unittest.TestSuite()
-    testsuite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(
-            TestSceneWidgetPicking))
-    return testsuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

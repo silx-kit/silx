@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "06/06/2018"
 
 import numpy
-import six
 
 from silx.gui import qt
 from silx.gui.data.TextFormatter import TextFormatter
@@ -125,12 +124,12 @@ class Hdf5Formatter(qt.QObject):
         return self.humanReadableDType(dtype, full)
 
     def humanReadableDType(self, dtype, full=False):
-        if dtype == six.binary_type or numpy.issubdtype(dtype, numpy.string_):
+        if dtype == bytes or numpy.issubdtype(dtype, numpy.string_):
             text = "string"
             if full:
                 text = "ASCII " + text
             return text
-        elif dtype == six.text_type or numpy.issubdtype(dtype, numpy.unicode_):
+        elif dtype == str or numpy.issubdtype(dtype, numpy.unicode_):
             text = "string"
             if full:
                 text = "UTF-8 " + text

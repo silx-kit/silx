@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -172,7 +172,7 @@ class PrintGeometryDialog(qt.QDialog):
     Use methods :meth:`setPrintGeometry` and :meth:`getPrintGeometry`
     to interact with the widget.
 
-    Execute method :meth:`exec_` to run the dialog.
+    Execute method :meth:`exec` to run the dialog.
     The return value of that method is *True* if the geometry was set
     (*Ok* button clicked) or *False* if the user clicked the *Cancel*
     button.

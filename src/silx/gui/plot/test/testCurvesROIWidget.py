@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ __date__ = "16/11/2017"
 
 import logging
 import os.path
-import unittest
+import pytest
 from collections import OrderedDict
 import numpy
 
@@ -361,6 +361,7 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.qWaitForWindowExposed(self.plot)
 
         toolButton = getQToolButtonFromAction(self.plot.getRoiAction())
+        self.qapp.processEvents()
         self.mouseClick(widget=toolButton, button=qt.Qt.LeftButton)
 
         self.curves_roi_widget.show()
@@ -368,20 +369,20 @@ class TestRoiWidgetSignals(TestCaseQt):
 
     def tearDown(self):
         self.plot = None
+        self.curves_roi_widget = None
 
     def testSigROISignalAddRmRois(self):
         """Test SigROISignal when adding and removing ROIS"""
-        self.assertEqual(self.listener.callCount(), 1)
         self.listener.clear()
 
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=0, todata=5)
-        self.curves_roi_widget.roiTable.registerROI(roi1)
+        self.curves_roi_widget.roiTable.addRoi(roi1)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
         self.listener.clear()
 
         roi2 = CurvesROIWidget.ROI(name='linear2', fromdata=0, todata=5)
-        self.curves_roi_widget.roiTable.registerROI(roi2)
+        self.curves_roi_widget.roiTable.addRoi(roi2)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear2')
         self.listener.clear()
@@ -398,7 +399,7 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.assertTrue(self.listener.arguments()[0][0]['current'] is None)
         self.listener.clear()
 
-        self.curves_roi_widget.roiTable.registerROI(roi1)
+        self.curves_roi_widget.roiTable.addRoi(roi1)
         self.assertEqual(self.listener.callCount(), 1)
         self.assertTrue(self.listener.arguments()[0][0]['current'] == 'linear')
         self.assertTrue(self.curves_roi_widget.roiTable.activeRoi == roi1)
@@ -415,7 +416,7 @@ class TestRoiWidgetSignals(TestCaseQt):
         """Test SigROISignal when modifying it"""
         self.curves_roi_widget.roiTable.setMiddleROIMarkerFlag(True)
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
-        self.curves_roi_widget.roiTable.registerROI(roi1)
+        self.curves_roi_widget.roiTable.addRoi(roi1)
         self.curves_roi_widget.roiTable.setActiveRoi(roi1)
 
         # test modify the roi2 object
@@ -432,38 +433,31 @@ class TestRoiWidgetSignals(TestCaseQt):
         roi1.setType('new type')
         self.assertEqual(self.listener.callCount(), 1)
 
+        widget = self.plot.getWidgetHandle()
+        widget.setFocus(qt.Qt.OtherFocusReason)
+
         # modify roi limits (from the gui)
         roi_marker_handler = self.curves_roi_widget.roiTable._markersHandler.getMarkerHandler(roi1.getID())
         for marker_type in ('min', 'max', 'middle'):
             with self.subTest(marker_type=marker_type):
                 self.listener.clear()
                 marker = roi_marker_handler.getMarker(marker_type)
-                self.qapp.processEvents()
-                items_interaction = ItemsInteraction(plot=self.plot)
-                x_pix, y_pix = self.plot.dataToPixel(marker.getXPosition(), 1)
-                items_interaction.beginDrag(x_pix, y_pix)
-                self.qapp.processEvents()
-                items_interaction.endDrag(x_pix+10, y_pix)
+                x_pix, y_pix = self.plot.dataToPixel(marker.getXPosition(), marker.getYPosition())
+                self.mouseMove(widget, pos=(x_pix, y_pix))
+                self.qWait(100)
+                self.mousePress(widget, qt.Qt.LeftButton, pos=(x_pix, y_pix))
+                self.mouseMove(widget, pos=(x_pix+20, y_pix))
+                self.qWait(100)
+                self.mouseRelease(widget, qt.Qt.LeftButton, pos=(x_pix+20, y_pix))
+                self.qWait(100)
+                self.mouseMove(widget, pos=(x_pix, y_pix))
                 self.qapp.processEvents()
                 self.assertEqual(self.listener.callCount(), 1)
 
     def testSetActiveCurve(self):
         """Test sigRoiSignal when set an active curve"""
         roi1 = CurvesROIWidget.ROI(name='linear', fromdata=2, todata=5)
-        self.curves_roi_widget.roiTable.registerROI(roi1)
         self.curves_roi_widget.roiTable.setActiveRoi(roi1)
         self.listener.clear()
         self.plot.setActiveCurve('curve0')
         self.assertEqual(self.listener.callCount(), 0)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    for TestClass in (TestCurvesROIWidget,):
-        test_suite.addTest(
-            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

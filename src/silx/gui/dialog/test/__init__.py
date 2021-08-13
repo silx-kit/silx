@@ -22,28 +22,3 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Tests for Qt dialogs"""
-
-__authors__ = ["V. Valls"]
-__license__ = "MIT"
-__date__ = "24/04/2018"
-
-
-import logging
-import os
-import sys
-import unittest
-
-
-_logger = logging.getLogger(__name__)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    from . import test_imagefiledialog
-    from . import test_datafiledialog
-    from . import test_colormapdialog
-    test_suite.addTest(test_imagefiledialog.suite())
-    test_suite.addTest(test_datafiledialog.suite())
-    test_suite.addTest(test_colormapdialog.suite())
-    return test_suite
