@@ -8,3 +8,8 @@ pybind11  # Required to build pyopencl
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2020.3.1; sys_platform == 'win32'
+
+# There is a change of behaviour of libhdf5 regarding file locking
+# with libhdf5 1.12.1 included in h5py 3.4.0 wheels
+# See https://github.com/silx-kit/silx/issues/3523
+h5py==3.3.0; python_version >= '3.7'
