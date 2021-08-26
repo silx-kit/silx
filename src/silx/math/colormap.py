@@ -34,7 +34,7 @@ import warnings
 import numpy
 
 from ..resources import resource_filename as _resource_filename
-from .combo import min_max
+from .combo import min_max as _min_max
 from . import _colormap
 from ._colormap import cmap  # noqa
 
@@ -68,7 +68,7 @@ _COLORMAP_CACHE = {}
 """Cache already used colormaps as name: color LUT"""
 
 
-def _arrayToRgba8888(colors):
+def _array_to_rgba8888(colors):
     """Convert colors from a numpy array using float (0..1) int or uint
     (0..255) to uint8 RGBA.
 
@@ -98,7 +98,7 @@ def _arrayToRgba8888(colors):
     return colors
 
 
-def _createColormapLut(name):
+def _create_colormap_lut(name):
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -142,7 +142,7 @@ def _createColormapLut(name):
             # Load colormap LUT
             colors = numpy.load(_resource_filename("gui/colormaps/%s.npy" % name))
             # Convert to uint8 and add alpha channel
-            lut = _arrayToRgba8888(colors)
+            lut = _array_to_rgba8888(colors)
             return lut
 
         else:
@@ -151,7 +151,7 @@ def _createColormapLut(name):
     raise ValueError("Unknown colormap '%s'" % name)
 
 
-def registerLut(name, colors, cursor_color='#000000', preferred=True):
+def register_lut(name, colors, cursor_color='#000000', preferred=True):
     """Register a custom LUT to be used with `Colormap` objects.
 
     It can override existing LUT names.
@@ -166,14 +166,14 @@ def registerLut(name, colors, cursor_color='#000000', preferred=True):
         preferred colormaps in dialogs.
     """
     description = _LUT_DESCRIPTION('user', cursor_color, preferred=preferred)
-    colors = _arrayToRgba8888(colors)
+    colors = _array_to_rgba8888(colors)
     _AVAILABLE_LUTS[name] = description
 
     # Register the cache as the LUT was already loaded
     _COLORMAP_CACHE[name] = colors
 
 
-def _getColormap(name):
+def _get_colormap(name):
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -183,7 +183,7 @@ def _getColormap(name):
     """
     name = str(name)
     if name not in _COLORMAP_CACHE:
-        lut = _createColormapLut(name)
+        lut = _create_colormap_lut(name)
         _COLORMAP_CACHE[name] = lut
     return _COLORMAP_CACHE[name]
 
@@ -207,7 +207,7 @@ class _NormalizationMixIn:
     DEFAULT_RANGE = 0, 1
     """Fallback for (vmin, vmax)"""
 
-    def isValid(self, value):
+    def is_valid(self, value):
         """Check if a value is in the valid range for this normalization.
 
         Override in subclass.
@@ -233,10 +233,10 @@ class _NormalizationMixIn:
             return self.DEFAULT_RANGE
 
         if mode == MINMAX:
-            vmin, vmax = self.autoscaleMinMax(data)
+            vmin, vmax = self.autoscale_minmax(data)
         elif mode == STDDEV3:
-            dmin, dmax = self.autoscaleMinMax(data)
-            stdmin, stdmax = self.autoscaleMean3Std(data)
+            dmin, dmax = self.autoscale_minmax(data)
+            stdmin, stdmax = self.autoscale_mean3std(data)
             if dmin is None:
                 vmin = stdmin
             elif stdmin is None:
@@ -263,20 +263,20 @@ class _NormalizationMixIn:
             vmax = vmin
         return float(vmin), float(vmax)
 
-    def autoscaleMinMax(self, data):
+    def autoscale_minmax(self, data):
         """Autoscale using min/max
 
         :param numpy.ndarray data:
         :returns: (vmin, vmax)
         :rtype: Tuple[float,float]
         """
-        data = data[self.isValid(data)]
+        data = data[self.is_valid(data)]
         if data.size == 0:
             return None, None
-        result = min_max(data, min_positive=False, finite=True)
+        result = _min_max(data, min_positive=False, finite=True)
         return result.minimum, result.maximum
 
-    def autoscaleMean3Std(self, data):
+    def autoscale_mean3std(self, data):
         """Autoscale using mean+/-3std
 
         This implementation only works for normalization that do NOT
@@ -306,7 +306,7 @@ class _NormalizationMixIn:
 class _LinearNormalizationMixIn(_NormalizationMixIn):
     """Colormap normalization mix-in class specific to autoscale taken from initial range"""
 
-    def autoscaleMean3Std(self, data):
+    def autoscale_mean3std(self, data):
         """Autoscale using mean+/-3std
 
         Do the autoscale on the data itself, not the normalized data.
@@ -344,11 +344,11 @@ class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _Normalizati
         _colormap.LogarithmicNormalization.__init__(self)
         _NormalizationMixIn.__init__(self)
 
-    def isValid(self, value):
+    def is_valid(self, value):
         return value > 0.
 
-    def autoscaleMinMax(self, data):
-        result = min_max(data, min_positive=True, finite=True)
+    def autoscale_minmax(self, data):
+        result = _min_max(data, min_positive=True, finite=True)
         return result.min_positive, result.maximum
 
 
@@ -361,7 +361,7 @@ class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
         _colormap.SqrtNormalization.__init__(self)
         _NormalizationMixIn.__init__(self)
 
-    def isValid(self, value):
+    def is_valid(self, value):
         return value >= 0.
 
 
@@ -436,7 +436,7 @@ def apply_colormap(data,
         Gamma correction parameter (used only for "gamma" normalization)
     :returns: Array of colors
     """
-    colors = _getColormap(colormap)
+    colors = _get_colormap(colormap)
 
     if norm == "gamma":
         normalizer = _GammaNormalization(gamma)
