@@ -68,7 +68,7 @@ _COLORMAP_CACHE = {}
 """Cache already used colormaps as name: color LUT"""
 
 
-def _array_to_rgba8888(colors):
+def array_to_rgba8888(colors):
     """Convert colors from a numpy array using float (0..1) int or uint
     (0..255) to uint8 RGBA.
 
@@ -142,7 +142,7 @@ def _create_colormap_lut(name):
             # Load colormap LUT
             colors = numpy.load(_resource_filename("gui/colormaps/%s.npy" % name))
             # Convert to uint8 and add alpha channel
-            lut = _array_to_rgba8888(colors)
+            lut = array_to_rgba8888(colors)
             return lut
 
         else:
@@ -166,14 +166,14 @@ def register_lut(name, colors, cursor_color='#000000', preferred=True):
         preferred colormaps in dialogs.
     """
     description = _LUT_DESCRIPTION('user', cursor_color, preferred=preferred)
-    colors = _array_to_rgba8888(colors)
+    colors = array_to_rgba8888(colors)
     _AVAILABLE_LUTS[name] = description
 
     # Register the cache as the LUT was already loaded
     _COLORMAP_CACHE[name] = colors
 
 
-def _get_colormap(name):
+def get_colormap(name):
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -189,17 +189,6 @@ def _get_colormap(name):
 
 
 # Normalizations
-
-MINMAX = 'minmax'
-"""constant for autoscale using min/max data range"""
-
-STDDEV3 = 'stddev3'
-"""constant for autoscale using mean +/- 3*std(data)
-with a clamp on min/max of the data"""
-
-AUTOSCALE_MODES = (MINMAX, STDDEV3)
-"""Tuple of managed auto scale algorithms"""
-
 
 class _NormalizationMixIn:
     """Colormap normalization mix-in class"""
@@ -224,7 +213,7 @@ class _NormalizationMixIn:
         """Returns range for given data and autoscale mode.
 
         :param Union[None,numpy.ndarray] data:
-        :param str mode: Autoscale mode, see :class:`Colormap`
+        :param str mode: Autoscale mode: 'minmax' or 'stddev3'
         :returns: Range as (min, max)
         :rtype: Tuple[float,float]
         """
@@ -232,9 +221,9 @@ class _NormalizationMixIn:
         if data is None or data.size == 0:
             return self.DEFAULT_RANGE
 
-        if mode == MINMAX:
+        if mode == "minmax":
             vmin, vmax = self.autoscale_minmax(data)
-        elif mode == STDDEV3:
+        elif mode == "stddev3":
             dmin, dmax = self.autoscale_minmax(data)
             stdmin, stdmax = self.autoscale_mean3std(data)
             if dmin is None:
@@ -328,14 +317,14 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
         return mean - 3 * std, mean + 3 * std
 
 
-class _LinearNormalization(_colormap.LinearNormalization, _LinearNormalizationMixIn):
+class LinearNormalization(_colormap.LinearNormalization, _LinearNormalizationMixIn):
     """Linear normalization"""
     def __init__(self):
         _colormap.LinearNormalization.__init__(self)
         _LinearNormalizationMixIn.__init__(self)
 
 
-class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
+class LogarithmicNormalization(_colormap.LogarithmicNormalization, _NormalizationMixIn):
     """Logarithm normalization"""
 
     DEFAULT_RANGE = 1, 10
@@ -352,7 +341,7 @@ class _LogarithmicNormalization(_colormap.LogarithmicNormalization, _Normalizati
         return result.min_positive, result.maximum
 
 
-class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
+class SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
     """Square root normalization"""
 
     DEFAULT_RANGE = 0, 1
@@ -365,7 +354,7 @@ class _SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
         return value >= 0.
 
 
-class _GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn):
+class GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn):
     """Gamma correction normalization:
 
     Linear normalization to [0, 1] followed by power normalization.
@@ -377,7 +366,7 @@ class _GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixI
         _LinearNormalizationMixIn.__init__(self)
 
 
-class _ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
+class ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
     """Inverse hyperbolic sine normalization"""
 
     def __init__(self):
@@ -385,42 +374,21 @@ class _ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn)
         _NormalizationMixIn.__init__(self)
 
 
-LINEAR = 'linear'
-"""constant for linear normalization"""
-
-LOGARITHM = 'log'
-"""constant for logarithmic normalization"""
-
-SQRT = 'sqrt'
-"""constant for square root normalization"""
-
-GAMMA = 'gamma'
-"""Constant for gamma correction normalization"""
-
-ARCSINH = 'arcsinh'
-"""constant for inverse hyperbolic sine normalization"""
+# Colormap function
 
 _BASIC_NORMALIZATIONS = {
-    LINEAR: _LinearNormalization(),
-    LOGARITHM: _LogarithmicNormalization(),
-    SQRT: _SqrtNormalization(),
-    ARCSINH: _ArcsinhNormalization(),
-    }
-"""Normalizations without parameters"""
-
-NORMALIZATIONS = LINEAR, LOGARITHM, SQRT, GAMMA, ARCSINH
-"""Tuple of managed normalizations"""
-
-
-# Colormap function
+    "linear": LinearNormalization(),
+    "log": LogarithmicNormalization(),
+    "sqrt": SqrtNormalization(),
+    "arcsinh": ArcsinhNormalization(),
+}
 
 _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
-
 def apply_colormap(data,
                    colormap: str,
-                   norm: str=LINEAR,
-                   autoscale: str=MINMAX,
+                   norm: str="linear",
+                   autoscale: str="minmax",
                    vmin=None,
                    vmax=None,
                    gamma=1.0):
@@ -436,10 +404,10 @@ def apply_colormap(data,
         Gamma correction parameter (used only for "gamma" normalization)
     :returns: Array of colors
     """
-    colors = _get_colormap(colormap)
+    colors = get_colormap(colormap)
 
     if norm == "gamma":
-        normalizer = _GammaNormalization(gamma)
+        normalizer = GammaNormalization(gamma)
     else:
         normalizer = _BASIC_NORMALIZATIONS[norm]
 
