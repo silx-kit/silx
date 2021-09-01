@@ -68,6 +68,12 @@ elif qt.BINDING == 'PySide2':
 elif qt.BINDING == 'PySide6':
     from shiboken6 import isValid, createdByPython, ownedByPython  # noqa
 
+elif qt.BINDING == 'PyQt6':
+    from PyQt6.sip import isdeleted as _isdeleted  # noqa
+    from PyQt6.sip import ispycreated as createdByPython  # noqa
+    from PyQt6.sip import ispyowned as ownedByPython  # noqa
+
+
 else:
     raise ImportError("Unsupported Qt binding %s" % qt.BINDING)
 
