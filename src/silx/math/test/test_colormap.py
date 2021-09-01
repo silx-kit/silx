@@ -33,7 +33,6 @@ __date__ = "16/05/2018"
 
 import logging
 import sys
-import unittest
 
 import numpy
 
@@ -251,3 +250,20 @@ class TestColormap(ParametricTestCase):
                              normalization, vmin, vmax)
                 with self.assertRaises(ValueError):
                     self._test(data, colors, vmin, vmax, normalization, None)
+
+
+def test_apply_colormap():
+    """Basic test of silx.math.colormap.apply_colormap"""
+    data = numpy.arange(256)
+    expected_colors = numpy.empty((256, 4), dtype=numpy.uint8)
+    expected_colors[:, :3] = numpy.arange(256, dtype=numpy.uint8).reshape(256, 1)
+    expected_colors[:, 3] = 255
+    colors = colormap.apply_colormap(
+        data,
+        colormap="gray",
+        norm="linear",
+        autoscale="minmax",
+        vmin=None,
+        vmax=None,
+        gamma=1.0)
+    assert numpy.array_equal(colors, expected_colors)
