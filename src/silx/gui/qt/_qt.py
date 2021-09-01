@@ -38,10 +38,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, PySide2, PySide6."""
+"""The name of the Qt binding in use: PyQt5, PySide2, PySide6, PyQt6."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PySide2, PySide6."""
+"""The Qt binding module in use: PyQt5, PySide2, PySide6, PyQt6."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -50,7 +50,7 @@ HAS_OPENGL = False
 """True if Qt provides support for OpenGL (QtOpenGL)."""
 
 # First check for an already loaded wrapper
-for _binding in ('PySide2', 'PyQt5', 'PySide6'):
+for _binding in ('PySide2', 'PyQt5', 'PySide6', 'PyQt6'):
     if _binding + '.QtCore' in sys.modules:
         BINDING = _binding
         break
@@ -70,8 +70,16 @@ else:  # Then try Qt bindings
             except ImportError:
                 if 'PySide2' in sys.modules:
                     del sys.modules["PySide2"]
-                raise ImportError(
-                    'No Qt wrapper found. Install PyQt5 or PySide6.')
+                try:
+                    import PyQt6.QtCore  # noqa
+                except ImportError:
+                    if 'PyQt6' in sys.modules:
+                        del sys.modules["PyQt6"]
+
+                    raise ImportError(
+                        'No Qt wrapper found. Install PyQt5, PySide2, PySide6, PyQt6.')
+                else:
+                    BINDING = 'PyQt6'
             else:
                 BINDING = 'PySide2'
         else:
@@ -209,8 +217,49 @@ elif BINDING == 'PySide6':
 
     pyqtSignal = Signal
 
+
+elif BINDING == 'PyQt6':
+    _logger.debug('Using PyQt6 bindings')
+
+    import PyQt6 as QtBinding  # noqa
+
+    from PyQt6.QtCore import *  # noqa
+    from PyQt6.QtGui import *  # noqa
+    from PyQt6.QtWidgets import *  # noqa
+    from PyQt6.QtPrintSupport import *  # noqa
+
+    try:
+        from PyQt6.QtOpenGL import *  # noqa
+    except ImportError:
+        _logger.info("PyQt6.QtOpenGL not available")
+        HAS_OPENGL = False
+    else:
+        HAS_OPENGL = True
+
+    try:
+        from PyQt6.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PyQt6.QtSvg not available")
+        HAS_SVG = False
+    else:
+        HAS_SVG = True
+
+    from PyQt6.uic import loadUi  # noqa
+
+    Signal = pyqtSignal
+
+    Property = pyqtProperty
+
+    Slot = pyqtSlot
+
+    # TODO, needed?
+    # Disable PyQt5's cooperative multi-inheritance since other bindings do not provide it.
+    # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
+    class _Foo(object): pass
+    class QObject(QObject, _Foo): pass
+
 else:
-    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2 or PySide6')
+    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2, PySide6 or PyQt6')
 
 
 # provide a exception handler but not implement it by default
