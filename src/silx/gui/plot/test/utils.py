@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ from silx.gui.plot import PlotWidget
 logger = logging.getLogger(__name__)
 
 
-@pytest.mark.usefixture("test_options_class_attr")
+@pytest.mark.usefixtures("test_options_class_attr")
 class PlotWidgetTestCase(TestCaseQt):
     """Base class for tests of PlotWidget, not a TestCase in itself.
 
