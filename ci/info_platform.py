@@ -63,7 +63,7 @@ else:
                 print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
 
 
-for binding_name in ("PyQt5", "PySide2", "PySide6"):
+for binding_name in ("PyQt5", "PySide2", "PySide6", "PyQt6"):
     # Check Qt version in subprocess to avoid issues with importing multiple Qt bindins
     cmd = [
         sys.executable,
