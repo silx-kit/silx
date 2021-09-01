@@ -42,22 +42,22 @@ from ._colormap import cmap  # noqa
 __all__ = ["apply_colormap", "cmap"]
 
 
-_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color", "preferred"])
+_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color"])
 """Description of a LUT for internal purpose."""
 
 
 _AVAILABLE_LUTS = collections.OrderedDict([
-    ('gray', _LUT_DESCRIPTION('builtin', '#ff66ff', True)),
-    ('reversed gray', _LUT_DESCRIPTION('builtin', '#ff66ff', True)),
-    ('red', _LUT_DESCRIPTION('builtin', '#00ff00', True)),
-    ('green', _LUT_DESCRIPTION('builtin', '#ff66ff', True)),
-    ('blue', _LUT_DESCRIPTION('builtin', '#ffff00', True)),
-    ('viridis', _LUT_DESCRIPTION('resource', '#ff66ff', True)),
-    ('cividis', _LUT_DESCRIPTION('resource', '#ff66ff', True)),
-    ('magma', _LUT_DESCRIPTION('resource', '#00ff00', True)),
-    ('inferno', _LUT_DESCRIPTION('resource', '#00ff00', True)),
-    ('plasma', _LUT_DESCRIPTION('resource', '#00ff00', True)),
-    ('temperature', _LUT_DESCRIPTION('builtin', '#ff66ff', True)),
+    ('gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
+    ('reversed gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
+    ('red', _LUT_DESCRIPTION('builtin', '#00ff00')),
+    ('green', _LUT_DESCRIPTION('builtin', '#ff66ff')),
+    ('blue', _LUT_DESCRIPTION('builtin', '#ffff00')),
+    ('viridis', _LUT_DESCRIPTION('resource', '#ff66ff')),
+    ('cividis', _LUT_DESCRIPTION('resource', '#ff66ff')),
+    ('magma', _LUT_DESCRIPTION('resource', '#00ff00')),
+    ('inferno', _LUT_DESCRIPTION('resource', '#00ff00')),
+    ('plasma', _LUT_DESCRIPTION('resource', '#00ff00')),
+    ('temperature', _LUT_DESCRIPTION('builtin', '#ff66ff')),
 ])
 """Description for internal porpose of all the default LUT provided by the library."""
 
@@ -151,29 +151,47 @@ def _create_colormap_lut(name):
     raise ValueError("Unknown colormap '%s'" % name)
 
 
-def register_lut(name, colors, cursor_color='#000000', preferred=True):
-    """Register a custom LUT to be used with `Colormap` objects.
+def register_colormap(name, lut, cursor_color='#000000'):
+    """Register a custom colormap LUT
 
     It can override existing LUT names.
 
     :param str name: Name of the LUT as defined to configure colormaps
-    :param numpy.ndarray colors: The custom LUT to register.
+    :param numpy.ndarray lut: The custom LUT to register.
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
     :param str cursor_color: Color used to display overlay over images using
         colormap with this LUT.
-    :param bool preferred: If true, this LUT will be displayed as part of the
-        preferred colormaps in dialogs.
     """
-    description = _LUT_DESCRIPTION('user', cursor_color, preferred=preferred)
-    colors = array_to_rgba8888(colors)
+    description = _LUT_DESCRIPTION('user', cursor_color)
+    colors = array_to_rgba8888(lut)
     _AVAILABLE_LUTS[name] = description
 
     # Register the cache as the LUT was already loaded
     _COLORMAP_CACHE[name] = colors
 
 
-def get_colormap(name):
+def get_registered_colormaps():
+    """Returns currently registered colormap names"""
+    return tuple(_AVAILABLE_LUTS.keys())
+
+
+def get_colormap_cursor_color(name):
+    """Get a color suitable for overlay over a colormap.
+
+    :param str name: The name of the colormap.
+    :return: Name of the color.
+    :rtype: str
+    """
+    description = _AVAILABLE_LUTS.get(name, None)
+    if description is not None:
+        color = description.cursor_color
+        if color is not None:
+            return color
+    return 'black'
+
+
+def get_colormap_lut(name):
     """Returns the color LUT corresponding to a colormap name
 
     :param str name: Name of the colormap to load
@@ -366,6 +384,10 @@ class GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn
         _LinearNormalizationMixIn.__init__(self)
 
 
+# Backward compatibility
+PowerNormalization = GammaNormalization
+
+
 class ArcsinhNormalization(_colormap.ArcsinhNormalization, _NormalizationMixIn):
     """Inverse hyperbolic sine normalization"""
 
@@ -404,7 +426,7 @@ def apply_colormap(data,
         Gamma correction parameter (used only for "gamma" normalization)
     :returns: Array of colors
     """
-    colors = get_colormap(colormap)
+    colors = get_colormap_lut(colormap)
 
     if norm == "gamma":
         normalizer = GammaNormalization(gamma)
