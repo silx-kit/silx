@@ -48,6 +48,8 @@ elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
 elif qt.BINDING == 'PySide6':
     from PySide6.QtTest import QTest
+elif qt.BINDING == 'PyQt6':
+    from PyQt6.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
 
@@ -489,7 +491,7 @@ def getQToolButtonFromAction(action):
     :param QAction action: The QAction from which to get QToolButton.
     :return: A QToolButton associated to action or None.
     """
-    if qt.BINDING == "PySide6":
+    if qt.BINDING in ("PySide6", "PyQt6"):
         widgets = action.associatedObjects()
     else:
         widgets = action.associatedWidgets()
