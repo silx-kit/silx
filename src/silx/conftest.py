@@ -115,6 +115,8 @@ def qapp_utils(qapp):
     """Helper containing method to deal with QApplication and widget"""
     from silx.gui.utils.testutils import TestCaseQt
     utils = TestCaseQt()
+    utils.setUpClass()
     utils.setUp()
     yield utils
     utils.tearDown()
+    utils.tearDownClass()
