@@ -221,6 +221,14 @@ elif BINDING == 'PySide6':
 elif BINDING == 'PyQt6':
     _logger.debug('Using PyQt6 bindings')
 
+    # Monkey-patch module to expose enum values for compatibility
+    # All Qt modules loaded here should be patched.
+    from . import _pyqt6
+    from PyQt6 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
+    _pyqt6.patch_enums(
+        QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg)
+    _pyqt6.patch_qtcore_qt()
+
     import PyQt6 as QtBinding  # noqa
 
     from PyQt6.QtCore import *  # noqa
