@@ -51,7 +51,7 @@ def colormap():
 
 
 @pytest.fixture
-def colormapDialog(qapp):
+def colormapDialog(qapp, qapp_utils):
     dialog = ColormapDialog.ColormapDialog()
     dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
     yield weakref.proxy(dialog)
