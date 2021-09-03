@@ -6,6 +6,19 @@ import os
 logger = logging.getLogger(__name__)
 
 
+def _set_qt_binding(binding):
+    if binding is not None:
+        binding = binding.lower()
+        if binding == "pyqt5":
+            logger.info("Force using PyQt5")
+            import PyQt5.QtCore  # noqa
+        elif binding == "pyside2":
+            logger.info("Force using PySide2")
+            import PySide2.QtCore  # noqa
+        else:
+            raise ValueError("Qt binding '%s' is unknown" % binding)
+
+
 def pytest_addoption(parser):
     parser.addoption("--qt-binding", type=str, default=None, dest="qt_binding",
                      help="Force using a Qt binding: 'PyQt5', 'PySide2'")
@@ -26,6 +39,8 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     if not config.getoption('opencl', True):
         os.environ['SILX_OPENCL'] = 'False'  # Disable OpenCL support in silx
+
+    _set_qt_binding(config.option.qt_binding)
 
 
 @pytest.fixture(scope="session")
@@ -87,17 +102,7 @@ def use_gui(test_options):
 
 @pytest.fixture(scope="session")
 def qapp(use_gui, xvfb, request):
-    binding = request.config.option.qt_binding
-    if binding is not None:
-        binding = binding.lower()
-        if binding == "pyqt5":
-            logger.info("Force using PyQt5")
-            import PyQt5.QtCore  # noqa
-        elif binding == "pyside2":
-            logger.info("Force using PySide2")
-            import PySide2.QtCore  # noqa
-        else:
-            raise ValueError("Qt binding '%s' is unknown" % binding)
+    _set_qt_binding(request.config.option.qt_binding)
 
     from silx.gui import qt
     app = qt.QApplication.instance()
