@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -216,7 +216,7 @@ class DialogExample(qt.QMainWindow):
         dialog = self.createDialog()
 
         # Execute the dialog as modal
-        result = dialog.exec_()
+        result = dialog.exec()
         self.printResult(dialog, result)
 
     def openDialogStoredState(self):
@@ -226,7 +226,7 @@ class DialogExample(qt.QMainWindow):
             dialog.restoreState(self.__state[dialog.__class__])
 
         # Execute the dialog as modal
-        result = dialog.exec_()
+        result = dialog.exec()
         self.__state[dialog.__class__] = dialog.saveState()
         self.printResult(dialog, result)
 
@@ -237,7 +237,7 @@ class DialogExample(qt.QMainWindow):
         dialog.setDirectory(path)
 
         # Execute the dialog as modal
-        result = dialog.exec_()
+        result = dialog.exec()
         self.printResult(dialog, result)
 
     def openDialogAtComputer(self):
@@ -247,7 +247,7 @@ class DialogExample(qt.QMainWindow):
         dialog.setDirectory(path)
 
         # Execute the dialog as modal
-        result = dialog.exec_()
+        result = dialog.exec()
         self.printResult(dialog, result)
 
 
@@ -255,7 +255,7 @@ def main():
     app = qt.QApplication([])
     example = DialogExample()
     example.show()
-    app.exec_()
+    app.exec()
 
 
 if __name__ == "__main__":
