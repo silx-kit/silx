@@ -150,15 +150,15 @@ class TestCaseQt(unittest.TestCase):
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
+        if qt.BINDING == 'PySide2':
+            return  # Do not test for leaking widgets with PySide2
+
         gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
                    if (widget not in self.__previousWidgets and
                        _inspect.createdByPython(widget))]
         del self.__previousWidgets
-
-        if qt.BINDING == 'PySide2':
-            return  # Do not test for leaking widgets with PySide2
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
         self.allowedLeakingWidgets = 0
