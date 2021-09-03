@@ -146,34 +146,37 @@ elif BINDING == 'PySide2':
 
     pyqtSignal = Signal
 
-else:
-    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
-
-
-if BINDING in ('PyQt5', 'PySide2'):  # Qt6 compatibility
+    # Qt6 compatibility:
+    # with PySide2 `exec` method has a special behavior
     class _ExecMixIn:
         """Mix-in class providind `exec` compatibility"""
         def exec(self, *args, **kwargs):
-            self.exec_(*args, **kwargs)
+            return super().exec_(*args, **kwargs)
 
     # QtWidgets
-    class QApplication(QApplication, _ExecMixIn): pass
-    class QColorDialog(QColorDialog, _ExecMixIn): pass
-    class QDialog(QDialog, _ExecMixIn): pass
-    class QErrorMessage(QErrorMessage, _ExecMixIn): pass
-    class QFileDialog(QFileDialog, _ExecMixIn): pass
-    class QFontDialog(QFontDialog, _ExecMixIn): pass
-    class QInputDialog(QInputDialog, _ExecMixIn): pass
-    class QMenu(QMenu, _ExecMixIn): pass
-    class QMessageBox(QMessageBox, _ExecMixIn): pass
-    class QProgressDialog(QProgressDialog, _ExecMixIn): pass
+    class QApplication(_ExecMixIn, QApplication): pass
+    class QColorDialog(_ExecMixIn, QColorDialog): pass
+    class QDialog(_ExecMixIn, QDialog): pass
+    class QErrorMessage(_ExecMixIn, QErrorMessage): pass
+    class QFileDialog(_ExecMixIn, QFileDialog): pass
+    class QFontDialog(_ExecMixIn, QFontDialog): pass
+    class QInputDialog(_ExecMixIn, QInputDialog): pass
+    class QMenu(_ExecMixIn, QMenu): pass
+    class QMessageBox(_ExecMixIn, QMessageBox): pass
+    class QProgressDialog(_ExecMixIn, QProgressDialog): pass
     #QtCore
-    class QCoreApplication(QCoreApplication, _ExecMixIn): pass
-    class QEventLoop(QEventLoop, _ExecMixIn): pass
+    class QCoreApplication(_ExecMixIn, QCoreApplication): pass
+    class QEventLoop(_ExecMixIn, QEventLoop): pass
     if hasattr(QTextStreamManipulator, "exec_"):
         # exec_ only wrapped in PySide2 and NOT in PyQt5
-        class QTextStreamManipulator(QTextStreamManipulator, _ExecMixIn): pass
-    class QThread(QThread, _ExecMixIn): pass
+        class QTextStreamManipulator(_ExecMixIn, QTextStreamManipulator): pass
+    class QThread(_ExecMixIn, QThread): pass
+
+
+
+
+else:
+    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2')
 
 
 # provide a exception handler but not implement it by default
