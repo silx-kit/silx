@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -112,7 +112,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
                            functools.partial(self._switchCurveVisibility, curve))
 
             globalPosition = self.mapToGlobal(pos)
-            menu.exec_(globalPosition)
+            menu.exec(globalPosition)
 
 
 # First create the QApplication
@@ -151,4 +151,4 @@ window.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 window.setAttribute(qt.Qt.WA_DeleteOnClose)
 window.show()
 
-app.exec_()
+app.exec()

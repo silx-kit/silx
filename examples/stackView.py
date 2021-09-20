@@ -61,4 +61,4 @@ maskToolsWidget.setItemMaskUpdated(True)
 
 sv.show()
 
-app.exec_()
+app.exec()
