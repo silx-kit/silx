@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget
 from silx.gui.colors import Colormap
-from silx.gui import colors
+from silx.math.colormap import LinearNormalization, LogarithmicNormalization
 from silx.gui.plot import Plot2D
 from silx.gui import qt
 import numpy
@@ -318,7 +318,7 @@ class TestColorBarUpdate(TestCaseQt):
             self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
         self.assertIsInstance(
             self.colorBar.getColorScaleBar().getTickBar()._normalizer,
-            colors._LinearNormalization)
+            LinearNormalization)
 
         # update colormap
         colormap.setVMin(0.5)
@@ -334,7 +334,7 @@ class TestColorBarUpdate(TestCaseQt):
         colormap.setNormalization('log')
         self.assertIsInstance(
             self.colorBar.getColorScaleBar().getTickBar()._normalizer,
-            colors._LogarithmicNormalization)
+            LogarithmicNormalization)
 
     # TODO : should also check that if the colormap is changing then values (especially in log scale)
     # should be coherent if in autoscale
