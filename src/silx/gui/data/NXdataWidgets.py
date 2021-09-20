@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
-from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView
+from silx.gui.plot import Plot1D, Plot2D, StackView, ScatterView, items
 from silx.gui.plot.ComplexImageView import ComplexImageView
 from silx.gui.colors import Colormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
@@ -165,7 +165,12 @@ class ArrayCurvePlot(qt.QWidget):
             # linear calibration a + b * x
             x = x[0] + x[1] * numpy.arange(len_y)
 
-        self._plot.remove(kind=("curve",))
+        # Only remove curves that will no longer belong to the plot
+        # So remaining curves keep their settings
+        for item in self._plot.getItems():
+            if (isinstance(item, items.Curve) and
+                    item.getName() not in self.__signals_names):
+                self._plot.remove(item)
 
         for i in range(len(self.__signals)):
             legend = self.__signals_names[i]
