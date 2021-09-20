@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -486,8 +486,8 @@ def _cmap(data_types[:] data,
     return numpy.array(output, copy=False)
 
 
-def cmap(data,
-         colors,
+def cmap(data not None,
+         colors not None,
          double vmin,
          double vmax,
          normalization='linear',
@@ -514,12 +514,15 @@ def cmap(data,
         returned array is that of data array + the last dimension of colors.
         The dtype of the returned array is that of the colors array.
     :rtype: numpy.ndarray
+    :raises ValueError: If data of colors dtype is not supported
     """
     cdef int nb_channels
     cdef Normalization norm
 
     # Make data a numpy array of native endian type (no need for contiguity)
     data = numpy.array(data, copy=False)
+    if data.dtype.kind not in ('b', 'i', 'u', 'f'):
+        raise ValueError("Unsupported data dtype: %s" % data.dtype)
     native_endian_dtype = data.dtype.newbyteorder('N')
     if native_endian_dtype.kind == 'f' and native_endian_dtype.itemsize == 2:
         native_endian_dtype = "=f4"  # Use native float32 instead of float16
@@ -527,9 +530,18 @@ def cmap(data,
 
     # Make colors a contiguous array of native endian type
     colors = numpy.array(colors, copy=False)
+    if colors.dtype.kind == 'f':
+        colors_dtype = numpy.dtype('float32')
+    elif colors.dtype.kind in ('b', 'i', 'u'):
+        colors_dtype = numpy.dtype('uint8')
+    else:
+        raise ValueError("Unsupported colors dtype: %s" % colors.dtype)
+    if (colors_dtype.kind != colors.dtype.kind or
+            colors_dtype.itemsize != colors.dtype.itemsize):
+        # Do not warn if only endianness has changed
+        _logger.warning("Casting colors from %s to %s", colors.dtype, colors_dtype)
     nb_channels = colors.shape[colors.ndim - 1]
-    colors = numpy.ascontiguousarray(colors,
-                                     dtype=colors.dtype.newbyteorder('N'))
+    colors = numpy.ascontiguousarray(colors, dtype=colors_dtype)
 
     # Make normalization a Normalization object
     if isinstance(normalization, str):
