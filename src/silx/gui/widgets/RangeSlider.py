@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -287,8 +287,12 @@ class RangeSlider(qt.QWidget):
         Slider positions remains unchanged and slider values are modified.
 
         :param float minimum:
+        :raises ValueError:
         """
         minimum = float(minimum)
+        if minimum == self.getMaximum():
+            raise ValueError("min and max must be different")
+
         if minimum != self.getMinimum():
             if minimum > self.getMaximum():
                 self.__maxValue = minimum
@@ -309,8 +313,12 @@ class RangeSlider(qt.QWidget):
         Slider positions remains unchanged and slider values are modified.
 
         :param float maximum:
+        :raises ValueError:
         """
         maximum = float(maximum)
+        if maximum == self.getMinimum():
+            raise ValueError("min and max must be different")
+
         if maximum != self.getMaximum():
             if maximum < self.getMinimum():
                 self.__minValue = maximum
@@ -332,8 +340,11 @@ class RangeSlider(qt.QWidget):
 
         :param float minimum:
         :param float maximum:
+        :raises ValueError:
         """
         minimum, maximum = float(minimum), float(maximum)
+        if minimum == maximum:
+            raise ValueError("min and max must be different")
         if minimum != self.getMinimum() or maximum != self.getMaximum():
             self.__minValue = minimum
             self.__maxValue = max(maximum, minimum)
