@@ -328,10 +328,10 @@ class FitAction(PlotToolAction):
         """Handle change of active curve in the PlotWidget
         """
         if current is None:
-            self._setFittedItem(None)
+            item = _getUniqueCurveOrHistogram(self.plot)
         else:
             item = self.plot.getCurve(current)
-            self._setFittedItem(item)
+        self._setFittedItem(item)
 
     def __setFittedItemAutoUpdateEnabled(self, enabled):
         """Implement the change of fitted item update mode
@@ -344,7 +344,7 @@ class FitAction(PlotToolAction):
             return
 
         if enabled:
-            self._setFittedItem(plot.getActiveCurve())
+            self._setFittedItem(_getUniqueCurveOrHistogram(self.plot))
             plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
 
         else:
