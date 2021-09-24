@@ -208,6 +208,14 @@ class File(h5py.File):
         :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
         :param **kwargs: see `h5py.File.__init__`
         """
+        # File locking behavior has changed in recent versions of libhdf5
+        hdf5_version = h5py.version.hdf5_version_tuple
+        if hdf5_version >= (1, 12, 1) or (
+                hdf5_version[:2] == (1, 10) and hdf5_version[2] >= 7):
+            raise RuntimeError(
+                "The version of libhdf5 used by h5py ({}) is not supported.".format(
+                    h5py.version.hdf5_version))
+
         if mode is None:
             mode = "r"
         elif mode not in ("r", "w", "w-", "x", "a", "r+"):
