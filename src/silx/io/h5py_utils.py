@@ -31,12 +31,15 @@ __license__ = "MIT"
 __date__ = "27/01/2020"
 
 
+import logging
 import os
 import traceback
 import h5py
 
 from .._version import calc_hexversion
 from ..utils import retry as retry_mod
+
+_logger = logging.getLogger(__name__)
 
 H5PY_HEX_VERSION = calc_hexversion(*h5py.version.version_tuple[:3])
 HDF5_HEX_VERSION = calc_hexversion(*h5py.version.hdf5_version_tuple[:3])
@@ -212,8 +215,9 @@ class File(h5py.File):
         hdf5_version = h5py.version.hdf5_version_tuple
         if hdf5_version >= (1, 12, 1) or (
                 hdf5_version[:2] == (1, 10) and hdf5_version[2] >= 7):
-            raise RuntimeError(
-                "The version of libhdf5 used by h5py ({}) is not supported.".format(
+            _logger.critical(
+                "The version of libhdf5 ({}) used by h5py is not supported: "
+                "Do not expect file locking to work.".format(
                     h5py.version.hdf5_version))
 
         if mode is None:
