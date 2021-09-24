@@ -5,7 +5,7 @@ src/silx/image/shapes.c
 src/silx/io/specfile.c
 src/silx/math/chistogramnd.c
 src/silx/math/chistogramnd_lut.c
-src/silx/math/colormap.c
+src/silx/math/_colormap.c
 src/silx/math/combo.c
 src/silx/math/interpolate.c
 src/silx/math/fit/filters.c
