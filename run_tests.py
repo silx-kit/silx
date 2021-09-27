@@ -169,11 +169,11 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     PROJECT_PATH = project_module.__path__[0]
 
     def normalize_option(option):
-        if option == "src/silx":
+        option_parts = option.split(os.path.sep)
+        if option_parts == ["src", "silx"]:
             return PROJECT_PATH
-        if option.startswith("src/silx/"):
-            path = option[9:]
-            return os.path.join(PROJECT_PATH, path)
+        if option_parts[:2] == ["src", "silx"]:
+            return os.path.join(PROJECT_PATH, *option_parts[2:])
         return option
 
     args = [normalize_option(p) for p in sys.argv[1:] if p != "--installed"]
