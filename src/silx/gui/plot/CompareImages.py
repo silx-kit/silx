@@ -43,6 +43,7 @@ from silx.gui import plot
 from silx.gui import icons
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
+from silx.utils.weakref import WeakMethodProxy
 
 _logger = logging.getLogger(__name__)
 
@@ -592,7 +593,7 @@ class CompareImages(qt.QMainWindow):
                 text='',
                 draggable=True,
                 color='blue',
-                constraint=self.__separatorConstraint)
+                constraint=WeakMethodProxy(self.__separatorConstraint))
         self.__vline = self.__plot._getMarker(legend)
 
         legend = VisualizationMode.HORIZONTAL_LINE.name
@@ -602,7 +603,7 @@ class CompareImages(qt.QMainWindow):
                 text='',
                 draggable=True,
                 color='blue',
-                constraint=self.__separatorConstraint)
+                constraint=WeakMethodProxy(self.__separatorConstraint))
         self.__hline = self.__plot._getMarker(legend)
 
         # default values
