@@ -39,6 +39,7 @@ __license__ = "MIT"
 __date__ = "10/10/2018"
 
 import logging
+import sys
 import weakref
 import numpy
 
@@ -91,7 +92,6 @@ class _FitItemSelector(qt.QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__plotWidgetRef = None
-        self.__plotWidgetFinializer = None
         self.__currentItem = None
 
     def getCurrentItem(self):
@@ -124,20 +124,11 @@ class _FitItemSelector(qt.QObject):
             previousPlotWidget.sigActiveCurveChanged.disconnect(
                 self.__plotWidgetUpdated)
 
-        # Cancel previous finalizer
-        if self.__plotWidgetFinializer is not None:
-            self.__plotWidgetFinializer.detach()
-
         if plotWidget is None:
             self.__plotWidgetRef = None
-            self.__plotWidgetFinializer = None
             self.__setCurrentItem(None)
             return
-        self.__plotWidgetRef = weakref.ref(plotWidget)
-        # Using finalizer to avoid an issue during Python exit
-        self.__plotWidgetFinializer = weakref.finalize(
-            plotWidget, self.__plotDeleted)
-        self.__plotWidgetFinializer.atexit = False
+        self.__plotWidgetRef = weakref.ref(plotWidget, self.__plotDeleted)
 
         # connect to new plot
         plotWidget.sigItemAdded.connect(self.__plotWidgetUpdated)
@@ -158,6 +149,9 @@ class _FitItemSelector(qt.QObject):
 
     def __setCurrentItem(self, item):
         """Handle change of current item"""
+        if sys.is_finalizing():
+            return
+
         previousItem = self.getCurrentItem()
         if item != previousItem:
             if previousItem is not None:
