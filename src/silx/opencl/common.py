@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "30/11/2020"
+__date__ = "29/09/2021"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -80,12 +80,12 @@ FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/mu
                  "ACC": 8}  # ACC: the Xeon-phi (MIC) appears to be able to process 8 Flops per hyperthreaded-core
 
 # Sources : https://en.wikipedia.org/wiki/CUDA
-NVIDIA_FLOP_PER_CORE = {(1, 0): 24,  # Guessed !
-                        (1, 1): 24,  # Measured on G98 [Quadro NVS 295]
-                        (1, 2): 24,  # Guessed !
-                        (1, 3): 24,  # measured on a GT285 (GT200)
-                        (2, 0): 64,  # Measured on a 580 (GF110)
-                        (2, 1): 96,  # Measured on Quadro2000 GF106GL
+NVIDIA_FLOP_PER_CORE = {(1, 0): 24,   # Guessed !
+                        (1, 1): 24,   # Measured on G98 [Quadro NVS 295]
+                        (1, 2): 24,   # Guessed !
+                        (1, 3): 24,   # measured on a GT285 (GT200)
+                        (2, 0): 64,   # Measured on a 580 (GF110)
+                        (2, 1): 96,   # Measured on Quadro2000 GF106GL
                         (3, 0): 384,  # Guessed!
                         (3, 5): 384,  # Measured on K20
                         (3, 7): 384,  # K80: Guessed!
@@ -96,7 +96,9 @@ NVIDIA_FLOP_PER_CORE = {(1, 0): 24,  # Guessed !
                         (6, 1): 128,  # GP104
                         (6, 2): 128,  # ?
                         (7, 0): 128,  # Volta # measured on Telsa V100
-                        (7, 1): 128,  # Volta ?
+                        (7, 2): 128,  # Volta ?
+                        (8, 0): 128,  # Ampere ? A100 is much less powerfull in single precision
+                        (8, 6): 256,  # Ampere # Measured on RTX A5000
                         }
 
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
