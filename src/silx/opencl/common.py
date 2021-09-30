@@ -95,10 +95,11 @@ NVIDIA_FLOP_PER_CORE = {(1, 0): 24,   # Guessed !
                         (6, 0): 128,  # GP100
                         (6, 1): 128,  # GP104
                         (6, 2): 128,  # ?
-                        (7, 0): 128,  # Volta # measured on Telsa V100
-                        (7, 2): 128,  # Volta ?
-                        (8, 0): 128,  # Ampere ? A100 is much less powerfull in single precision
-                        (8, 6): 256,  # Ampere # Measured on RTX A5000
+                        (7, 0): 128,  # Volta  # measured on Telsa V100
+                        (7, 2): 128,  # Volta  ? 
+                        (7, 5): 128,  # Turing # measured on RTX 6000
+                        (8, 0): 128,  # Ampere # measured on Tesla A100
+                        (8, 6): 256,  # Ampere # measured on RTX A5000
                         }
 
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
