@@ -377,10 +377,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         return convertArrayToQImage(image)
 
     def wheelEvent(self, event):
-        if qt.BINDING == "PySide6":
-            x, y = event.position().x(), event.position().y()
-        else:
-            x, y = event.x(), event.y()
+        x, y = qt.getMouseEventPosition(event)
         xpixel = x * self.getDevicePixelRatio()
         ypixel = y * self.getDevicePixelRatio()
         angle = event.angleDelta().y() / 8.
@@ -431,8 +428,9 @@ class Plot3DWidget(glu.OpenGLWidget):
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
 
     def mousePressEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
@@ -441,8 +439,9 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         event.accept()
 
         if self.eventHandler is not None and self.isValid():
@@ -450,8 +449,9 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 

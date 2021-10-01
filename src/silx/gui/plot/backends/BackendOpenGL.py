@@ -241,12 +241,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def mousePressEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mousePressEvent(event)
-        self._plot.onMousePress(
-            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
+        x, y = qt.getMouseEventPosition(event)
+        self._plot.onMousePress(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def mouseMoveEvent(self, event):
-        qtPos = event.x(), event.y()
+        qtPos = qt.getMouseEventPosition()
 
         previousMousePosInPixels = self._mousePosInPixels
         if qtPos == self._mouseInPlotArea(*qtPos):
@@ -267,17 +267,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def mouseReleaseEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mouseReleaseEvent(event)
-        self._plot.onMouseRelease(
-            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
+        x, y = qt.getMouseEventPosition(event)
+        self._plot.onMouseRelease(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
         angleInDegrees = delta / 8.
-        if qt.BINDING == "PySide6":
-            x, y = event.position().x(), event.position().y()
-        else:
-            x, y = event.x(), event.y()
+        x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseWheel(x, y, angleInDegrees)
         event.accept()
 
