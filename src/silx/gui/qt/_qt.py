@@ -202,7 +202,7 @@ elif BINDING == 'PySide6':
         from PySide6.QtOpenGL import *  # noqa
         from PySide6.QtOpenGLWidgets import QOpenGLWidget  # noqa
     except ImportError:
-        _logger.info("PySide6.QtOpenGL not available")
+        _logger.info("PySide6's QtOpenGL or QtOpenGLWidgets not available")
         HAS_OPENGL = False
     else:
         HAS_OPENGL = True
@@ -238,8 +238,9 @@ elif BINDING == 'PyQt6':
 
     try:
         from PyQt6.QtOpenGL import *  # noqa
+        from PyQt6.QtOpenGLWidgets import QOpenGLWidget  # noqa
     except ImportError:
-        _logger.info("PyQt6.QtOpenGL not available")
+        _logger.info("PyQt6's QtOpenGL or QtOpenGLWidgets not available")
         HAS_OPENGL = False
     else:
         HAS_OPENGL = True
