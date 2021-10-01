@@ -44,7 +44,7 @@ _logger = logging.getLogger(__name__)
 
 
 if not hasattr(qt, 'QOpenGLWidget') and not hasattr(qt, 'QGLWidget'):
-    OpenGLWidget = None
+    _OpenGLWidget = None
 
 else:
     if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
