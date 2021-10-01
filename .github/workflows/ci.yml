@@ -21,18 +21,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - name-suffix: "PyQt5 sdist"
+          - name-suffix: "PySide2 sdist"
             os: ubuntu-20.04
             python-version: 3.6
             BUILD_COMMAND: sdist
-            QT_BINDING: PyQt5
-            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opengl
-          - name-suffix: "PySide2 wheel"
+            QT_BINDING: PySide2
+            RUN_TESTS_OPTIONS: --qt-binding=PySide2 --no-opengl
+          - name-suffix: "PyQt5 wheel"
             os: macos-latest
             python-version: 3.8
             BUILD_COMMAND: bdist_wheel
-            QT_BINDING: PySide2
-            RUN_TESTS_OPTIONS: --qt-binding=PySide2 --no-opencl
+            QT_BINDING: PyQt5
+            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl
           - name-suffix: "No GUI wheel"
             os: windows-latest
             python-version: 3.9
