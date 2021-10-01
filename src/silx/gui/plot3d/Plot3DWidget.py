@@ -122,7 +122,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         LINEAR = 'linear'
         """Linear fog through the whole scene"""
 
-    def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=qt.Qt.Widget):
         self._firstRender = True
 
         super(Plot3DWidget, self).__init__(

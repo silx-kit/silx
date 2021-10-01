@@ -62,7 +62,3 @@ def patch_enums(*modules):
                                     break
 
                                 setattr(cls, item.name, item)
-
-def patch_qtcore_qt():
-    """Add PySide6 compatibility patches to PyQt6.QtCore.Qt"""
-    Qt.WindowFlags = int

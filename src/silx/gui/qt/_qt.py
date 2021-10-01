@@ -227,7 +227,6 @@ elif BINDING == 'PyQt6':
     from PyQt6 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
     _pyqt6.patch_enums(
         QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg)
-    _pyqt6.patch_qtcore_qt()
 
     import PyQt6 as QtBinding  # noqa
 

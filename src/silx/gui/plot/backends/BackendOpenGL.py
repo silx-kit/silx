@@ -193,7 +193,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     So, the caller should not modify these arrays afterwards.
     """
 
-    def __init__(self, plot, parent=None, f=qt.Qt.WindowFlags()):
+    def __init__(self, plot, parent=None, f=qt.Qt.Widget):
         glu.OpenGLWidget.__init__(self, parent,
                                   alphaBufferSize=8,
                                   depthBufferSize=0,
