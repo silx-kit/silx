@@ -225,8 +225,9 @@ elif BINDING == 'PyQt6':
     # All Qt modules loaded here should be patched.
     from . import _pyqt6
     from PyQt6 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
+    from PyQt6 import QtTest as _QtTest
     _pyqt6.patch_enums(
-        QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg)
+        QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg, _QtTest)
 
     import PyQt6 as QtBinding  # noqa
 
