@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,10 @@ class ElidedLabel(qt.QLabel):
 
     def __updateMinimumSize(self):
         metrics = self.fontMetrics()
-        width = metrics.width("...")
+        if qt.BINDING in ('PySide2', 'PyQt5'):
+            width = metrics.width("...")
+        else:  # Qt6
+            width = metrics.horizontalAdvance("...")
         self.setMinimumWidth(width)
 
     def __updateText(self):

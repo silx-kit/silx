@@ -47,6 +47,8 @@ if qt.BINDING == 'PySide2':
     from PySide2.QtTest import QTest
 elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
+elif qt.BINDING == 'PySide6':
+    from PySide6.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
 
@@ -130,7 +132,7 @@ class TestCaseQt(unittest.TestCase):
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
-        if qt.BINDING == 'PySide2':
+        if qt.BINDING in ('PySide2', 'PySide6'):
             self.__previousWidgets = None
         else:
             self.__previousWidgets = self.qapp.allWidgets()
@@ -176,6 +178,8 @@ class TestCaseQt(unittest.TestCase):
                 "Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
+        self.qapp.processEvents()
+
         if len(self.__class__._exceptions) > 0:
             messages = "\n".join(self.__class__._exceptions)
             raise AssertionError("Exception occured in Qt thread:\n" + messages)
@@ -312,14 +316,14 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING =='PySide2':
+        if qt.BINDING in ('PySide2', 'PySide6'):
             # PySide2 has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             qapp = qt.QApplication.instance()
             while timeout > 0:
                 qapp.processEvents(qt.QEventLoop.AllEvents,
-                                   maxtime=timeout)
+                                   timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
             QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
@@ -482,14 +486,19 @@ def getQToolButtonFromAction(action):
     :param QAction action: The QAction from which to get QToolButton.
     :return: A QToolButton associated to action or None.
     """
-    for widget in action.associatedWidgets():
+    if qt.BINDING == "PySide6":
+        widgets = action.associatedObjects()
+    else:
+        widgets = action.associatedWidgets()
+
+    for widget in widgets:
         if isinstance(widget, qt.QToolButton):
             return widget
     return None
 
 
 def findChildren(parent, kind, name=None):
-    if qt.BINDING == "PySide2" and name is not None:
+    if qt.BINDING in ("PySide2", "PySide6") and name is not None:
         result = []
         for obj in parent.findChildren(kind):
             if obj.objectName() == name:

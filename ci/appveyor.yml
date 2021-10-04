@@ -12,7 +12,7 @@ notifications:
   on_build_failure: false
   on_build_status_changed: true
 
-image: Visual Studio 2015
+image: Visual Studio 2019
 
 cache:
     - '%LOCALAPPDATA%\pip\Cache'
@@ -35,6 +35,12 @@ environment:
           QT_BINDING: "PySide2"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q"
+
+        # Python 3.7
+        - PYTHON_DIR: "C:\\Python37-x64"
+          QT_BINDING: "PySide6"
+          WITH_GL_TEST: True
+          PIP_OPTIONS: "-q --pre"
 
 branches:
     only:
@@ -87,6 +93,8 @@ before_test:
 
     # Install selected Qt binding
     - "pip install %PIP_OPTIONS% %QT_BINDING%"
+    # qtconsole does not support PySide6 yet
+    - IF %QT_BINDING%=="PySide6" pip uninstall -y qtconsole
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"

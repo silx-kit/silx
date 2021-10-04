@@ -78,5 +78,12 @@ try:
 except ImportError:
     pass
 
+try:
+    import PySide6.QtCore
+    have_qt_binding = True
+    print("Qt (from PySide6): %s" % PySide6.QtCore.qVersion())
+except ImportError:
+    pass
+
 if not have_qt_binding:
     print("No Qt binding")

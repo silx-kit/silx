@@ -66,6 +66,8 @@ elif qt.BINDING == 'PySide2':
         from shiboken2 import createdByPython  # noqa
         from shiboken2 import ownedByPython  # noqa
 
+elif qt.BINDING == 'PySide6':
+    from shiboken6 import isValid, createdByPython, ownedByPython  # noqa
 
 else:
     raise ImportError("Unsupported Qt binding %s" % qt.BINDING)

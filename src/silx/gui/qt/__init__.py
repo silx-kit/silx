@@ -25,10 +25,11 @@
 """Common wrapper over Python Qt bindings:
 
 - `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_
-- `PySide2 <https://wiki.qt.io/Qt_for_Python>`_
+- `PySide2 <https://pypi.org/project/PySide2/>`_
+- `PySide6 <https://pypi.org/project/PySide6/>`_
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt5, PySide2.
+Qt bindings are tried in this order: PyQt5, PySide2, PySide6.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
@@ -47,4 +48,7 @@ see `qtpy <https://pypi.org/project/QtPy/>`_.
 """
 
 from ._qt import *  # noqa
+if BINDING in ('PySide2', 'PySide6'):
+    # Import loadUi wrapper
+    from ._pyside_dynamic import loadUi # noqa
 from ._utils import *  # noqa

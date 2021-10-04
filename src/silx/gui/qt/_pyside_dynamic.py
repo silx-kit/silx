@@ -38,9 +38,18 @@
 
 import logging
 
-from PySide2.QtCore import QMetaObject, Property, Qt
-from PySide2.QtWidgets import QFrame
-from PySide2.QtUiTools import QUiLoader
+from ._qt import BINDING
+if BINDING == 'PySide2':
+    from PySide2.QtCore import QMetaObject, Property, Qt
+    from PySide2.QtWidgets import QFrame
+    from PySide2.QtUiTools import QUiLoader
+elif BINDING == 'PySide6':
+    from PySide6.QtCore import QMetaObject, Property, Qt
+    from PySide6.QtWidgets import QFrame
+    from PySide6.QtUiTools import QUiLoader
+else:
+    raise RuntimeError("Unsupported Qt binding: %s", BINDING)
+
 
 _logger = logging.getLogger(__name__)
 
