@@ -39,7 +39,8 @@ __license__ = "MIT"
 __date__ = "10/10/2018"
 
 import logging
-
+import sys
+import weakref
 import numpy
 
 from .PlotToolAction import PlotToolAction
@@ -64,10 +65,11 @@ def _getUniqueCurveOrHistogram(plot):
     if curve is not None:
         return curve
 
-    histograms = [item for item in plot.getItems()
-                  if isinstance(item, items.Histogram) and item.isVisible()]
-    curves = [item for item in plot.getItems()
-              if isinstance(item, items.Curve) and item.isVisible()]
+    visibleItems = [item for item in plot.getItems() if item.isVisible()]
+    histograms = [item for item in visibleItems
+                  if isinstance(item, items.Histogram)]
+    curves = [item for item in visibleItems
+              if isinstance(item, items.Curve)]
 
     if len(histograms) == 1 and len(curves) == 0:
         return histograms[0]
@@ -75,6 +77,96 @@ def _getUniqueCurveOrHistogram(plot):
         return curves[0]
     else:
         return None
+
+
+class _FitItemSelector(qt.QObject):
+    """
+    :class:`PlotWidget` observer that emits signal when fit selection changes.
+
+    Track active curve or unique curve or histogram.
+    """
+
+    sigCurrentItemChanged = qt.Signal(object)
+    """Signal emitted when the item to fit has changed"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__plotWidgetRef = None
+        self.__currentItem = None
+
+    def getCurrentItem(self):
+        """Return currently selected item
+
+        :rtype: Union[Item,None]
+        """
+        return self.__currentItem
+
+    def getPlotWidget(self):
+        """Return currently attached :class:`PlotWidget`
+
+        :rtype: Union[PlotWidget,None]
+        """
+        return None if self.__plotWidgetRef is None else self.__plotWidgetRef()
+
+    def setPlotWidget(self, plotWidget):
+        """Set the :class:`PlotWidget` for which to track changes
+
+        :param Union[PlotWidget,None] plotWidget:
+            The :class:`PlotWidget` to observe
+        """
+        # disconnect from previous plot
+        previousPlotWidget = self.getPlotWidget()
+        if previousPlotWidget is not None:
+            previousPlotWidget.sigItemAdded.disconnect(
+                self.__plotWidgetUpdated)
+            previousPlotWidget.sigItemRemoved.disconnect(
+                self.__plotWidgetUpdated)
+            previousPlotWidget.sigActiveCurveChanged.disconnect(
+                self.__plotWidgetUpdated)
+
+        if plotWidget is None:
+            self.__plotWidgetRef = None
+            self.__setCurrentItem(None)
+            return
+        self.__plotWidgetRef = weakref.ref(plotWidget, self.__plotDeleted)
+
+        # connect to new plot
+        plotWidget.sigItemAdded.connect(self.__plotWidgetUpdated)
+        plotWidget.sigItemRemoved.connect(self.__plotWidgetUpdated)
+        plotWidget.sigActiveCurveChanged.connect(self.__plotWidgetUpdated)
+        self.__plotWidgetUpdated()
+
+    def __plotDeleted(self):
+        """Handle deletion of PlotWidget"""
+        self.__setCurrentItem(None)
+
+    def __plotWidgetUpdated(self, *args, **kwargs):
+        """Handle updates of PlotWidget content"""
+        plotWidget = self.getPlotWidget()
+        if plotWidget is None:
+            return
+        self.__setCurrentItem(_getUniqueCurveOrHistogram(plotWidget))
+
+    def __setCurrentItem(self, item):
+        """Handle change of current item"""
+        if sys.is_finalizing():
+            return
+
+        previousItem = self.getCurrentItem()
+        if item != previousItem:
+            if previousItem is not None:
+                previousItem.sigItemChanged.disconnect(self.__itemUpdated)
+
+            self.__currentItem = item
+
+            if self.__currentItem is not None:
+                self.__currentItem.sigItemChanged.connect(self.__itemUpdated)
+            self.sigCurrentItemChanged.emit(self.__currentItem)
+
+    def __itemUpdated(self, event):
+        """Handle change on current item"""
+        if event == items.ItemChangedType.DATA:
+            self.sigCurrentItemChanged.emit(self.__currentItem)
 
 
 class FitAction(PlotToolAction):
@@ -98,6 +190,11 @@ class FitAction(PlotToolAction):
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
             parent=parent)
+
+        self.__fitItemSelector = _FitItemSelector()
+        self.__fitItemSelector.sigCurrentItemChanged.connect(
+            self._setFittedItem)
+
 
     @property
     @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
@@ -324,15 +421,6 @@ class FitAction(PlotToolAction):
         self.__item  = item
         self.__updateFitWidget()
 
-    def __activeCurveChanged(self, previous, current):
-        """Handle change of active curve in the PlotWidget
-        """
-        if current is None:
-            self._setFittedItem(None)
-        else:
-            item = self.plot.getCurve(current)
-            self._setFittedItem(item)
-
     def __setFittedItemAutoUpdateEnabled(self, enabled):
         """Implement the change of fitted item update mode
 
@@ -343,13 +431,7 @@ class FitAction(PlotToolAction):
             _logger.error("No associated PlotWidget")
             return
 
-        if enabled:
-            self._setFittedItem(plot.getActiveCurve())
-            plot.sigActiveCurveChanged.connect(self.__activeCurveChanged)
-
-        else:
-            plot.sigActiveCurveChanged.disconnect(
-                self.__activeCurveChanged)
+        self.__fitItemSelector.setPlotWidget(self.plot if enabled else None)
 
     def setFittedItemUpdatedFromActiveCurve(self, enabled):
         """Toggle fitted data synchronization with plot active curve.
