@@ -181,7 +181,7 @@ class TestImageView(TestCaseQt):
         self.qWait(100)
         self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
         self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(None)
+        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.NONE)
         self.qWait(100)
 
     def testRGBAInAggregationMode(self):

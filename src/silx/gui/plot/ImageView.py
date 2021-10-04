@@ -353,7 +353,7 @@ class AggregationModeAction(qt.QWidgetAction):
         filterAction.setText("No filter")
         filterAction.setCheckable(True)
         filterAction.setChecked(True)
-        filterAction.setProperty("aggregation", None)
+        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.NONE)
         densityNoFilterAction = filterAction
 
         filterAction = qt.QAction(self)
@@ -412,7 +412,7 @@ class AggregationModeAction(qt.QWidgetAction):
         """Returns an Aggregated enum from ImageDataAggregated"""
         densityAction = self.__densityGroup.checkedAction()
         if densityAction is None:
-            return None
+            return items.ImageDataAggregated.Aggregation.NONE
         return densityAction.property("aggregation")
 
 
@@ -915,9 +915,9 @@ class ImageView(PlotWindow):
         aggregation = self.getAggregationModeAction().getAggregationMode()
         if data.ndim != 2 and aggregation is not None:
             # RGB/A with aggregation is not supported
-            aggregation = None
+            aggregation = items.ImageDataAggregated.Aggregation.NONE
 
-        if aggregation is None:
+        if aggregation is items.ImageDataAggregated.Aggregation.NONE:
             self.addImage(data,
                           legend=self._imageLegend,
                           origin=origin, scale=scale,
