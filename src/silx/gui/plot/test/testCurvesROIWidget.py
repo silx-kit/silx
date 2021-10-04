@@ -435,6 +435,8 @@ class TestRoiWidgetSignals(TestCaseQt):
 
         widget = self.plot.getWidgetHandle()
         widget.setFocus(qt.Qt.OtherFocusReason)
+        self.plot.raise_()
+        self.qapp.processEvents()
 
         # modify roi limits (from the gui)
         roi_marker_handler = self.curves_roi_widget.roiTable._markersHandler.getMarkerHandler(roi1.getID())

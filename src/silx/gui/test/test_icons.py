@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "06/09/2017"
 
 
-import gc
 import unittest
 import weakref
 import tempfile
@@ -109,7 +108,6 @@ class TestIcons(TestCaseQt):
         icon = icons.getQIcon("crop")
         icon_ref = weakref.ref(icon)
         del icon
-        gc.collect()
         self.assertIsNone(icon_ref())
 
 

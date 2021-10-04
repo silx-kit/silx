@@ -129,12 +129,14 @@ class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 (x + offset, y - offset)]
 
         self.mouseMove(plot, pos=(0, 0))
-        self.mouseMove(plot, pos=star[0])
-        self.mousePress(plot, qt.Qt.LeftButton, pos=star[0])
-        for pos in star[1:]:
-            self.mouseMove(plot, pos=pos)
-        self.mouseRelease(
-            plot, qt.Qt.LeftButton, pos=star[-1])
+        for start, end in zip(star[:-1], star[1:]):
+           self.mouseMove(plot, pos=start)
+           self.mousePress(plot, qt.Qt.LeftButton, pos=start)
+           self.qapp.processEvents()
+           self.mouseMove(plot, pos=end)
+           self.qapp.processEvents()
+           self.mouseRelease(plot, qt.Qt.LeftButton, pos=end)
+           self.qapp.processEvents()
 
     def _isMaskItemSync(self):
         """Check if masks from item and tools are sync or not"""
