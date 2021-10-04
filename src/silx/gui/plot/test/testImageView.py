@@ -29,11 +29,11 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
-import unittest
 import numpy
 
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
+from silx.gui.plot import items
 
 from silx.gui.plot.ImageView import ImageView
 from silx.gui.colors import Colormap
@@ -165,3 +165,30 @@ class TestImageView(TestCaseQt):
         self.qWait(100)
         self.assertEqual(self.plot.getXAxis().getLimits(), (0, 10))
         self.assertEqual(self.plot.getYAxis().getLimits(), (0, 10))
+
+    def testImageAggregationMode(self):
+        """Test setImage"""
+        image = numpy.arange(100).reshape(10, 10)
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.qWait(100)
+
+    def testImageAggregationModeBackToNormalMode(self):
+        """Test setImage"""
+        image = numpy.arange(100).reshape(10, 10)
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.qWait(100)
+        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.NONE)
+        self.qWait(100)
+
+    def testRGBAInAggregationMode(self):
+        """Test setImage"""
+        image = numpy.arange(100 * 3, dtype=numpy.uint8).reshape(10, 10, 3)
+
+        self.plot.setImage(image, reset=True)
+        self.qWait(100)
+        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.qWait(100)
