@@ -181,7 +181,7 @@ text_dtype = h5py.special_dtype(vlen=six.text_type)
 
 ABORTLINENO = 5
 
-dtypeConverter = {'STRING': 'U32',
+dtypeConverter = {'STRING': 'O',
                   'DOUBLE': 'f8',
                   'FLOAT': 'f4',
                   'INTEGER': 'i8',
