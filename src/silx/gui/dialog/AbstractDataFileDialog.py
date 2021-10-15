@@ -676,7 +676,7 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileTypeCombo = FileTypeComboBox(self)
         self.__fileTypeCombo.setObjectName("fileTypeCombo")
         self.__fileTypeCombo.setDuplicatesEnabled(False)
-        self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLength)
+        self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLengthWithIcon)
         self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
         self.__fileTypeCombo.activated[int].connect(self.__filterSelected)
         self.__fileTypeCombo.setFabioUrlSupproted(self._isFabioFilesSupported())

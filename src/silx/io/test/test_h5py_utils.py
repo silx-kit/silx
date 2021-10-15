@@ -37,12 +37,14 @@ import tempfile
 import threading
 import multiprocessing
 from contextlib import contextmanager
+import h5py
+import pytest
 
 from .. import h5py_utils
 from ...utils.retry import RetryError, RetryTimeoutError
 
 IS_WINDOWS = sys.platform == "win32"
-
+HDF5_VERSION = h5py.version.hdf5_version_tuple
 
 def _subprocess_context_main(queue, contextmgr, *args, **kw):
     try:
@@ -124,7 +126,10 @@ def subtests(test):
 
     return wrapper
 
-
+@pytest.mark.skipif(
+    HDF5_VERSION >= (1, 12, 1) or (
+        HDF5_VERSION[:2] == (1, 10) and HDF5_VERSION[2] >= 7),
+    reason="Version of libhdf5 does not support changing HDF5_USE_FILE_LOCKING")
 class TestH5pyUtils(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()

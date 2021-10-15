@@ -62,8 +62,8 @@ import h5py
 import numpy
 
 import silx.io
-from silx.io import is_dataset, is_group, is_softlink
-from silx.io import fabioh5
+from .utils import is_dataset, is_group, is_softlink, visitall
+from . import fabioh5
 
 
 _logger = logging.getLogger(__name__)
@@ -165,17 +165,21 @@ class Hdf5Writer(object):
         """List of *(link_path, target_path)* tuples."""
 
     def write(self, infile, h5f):
-        """Do the conversion from :attr:`sfh5` (Spec file) to *h5f* (HDF5)
+        """Copy `infile` content to `h5f` file under `h5path`.
 
         All the parameters needed for the conversion have been initialized
         in the constructor.
 
-        :param infile: :class:`SpecH5` object
-        :param h5f: :class:`h5py.File` instance
+        External links in `infile` are ignored.
+
+        :param Union[commonh5.Group,h5py.Group] infile:
+             File/Class from which to read the content to copy from.
+        :param h5py.File h5f: File where to write the copied content to
         """
         # Recurse through all groups and datasets to add them to the HDF5
         self._h5f = h5f
-        infile.visititems(self.append_member_to_h5, visit_links=True)
+        for name, item in visitall(infile):
+            self.append_member_to_h5(name, item)
 
         # Handle the attributes of the root group
         root_grp = h5f[self.h5path]
@@ -221,9 +225,9 @@ class Hdf5Writer(object):
                 else:
                     # fancy arguments don't apply to small dataset
                     if obj.size < self.min_size:
-                        ds = self._h5f.create_dataset(h5_name, data=obj.value)
+                        ds = self._h5f.create_dataset(h5_name, data=obj[()])
                     else:
-                        ds = self._h5f.create_dataset(h5_name, data=obj.value,
+                        ds = self._h5f.create_dataset(h5_name, data=obj[()],
                                                       **self.create_dataset_args)
             else:
                 ds = self._h5f[h5_name]
@@ -249,12 +253,8 @@ class Hdf5Writer(object):
                 if self.overwrite_data or key not in grp.attrs:
                     grp.attrs.create(key,
                                      _attr_utf8(obj.attrs[key]))
-
-
-def _is_commonh5_group(grp):
-    """Return True if grp is a commonh5 group.
-    (h5py.Group objects are not commonh5 groups)"""
-    return is_group(grp) and not isinstance(grp, h5py.Group)
+        else:
+            _logger.warning("Unsuppored entity, ignoring: %s", h5_name)
 
 
 def write_to_h5(infile, h5file, h5path='/', mode="a",
@@ -262,8 +262,10 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
                 create_dataset_args=None, min_size=500):
     """Write content of a h5py-like object into a HDF5 file.
 
-    :param infile: Path of input file, or :class:`commonh5.File` object
-        or :class:`commonh5.Group` object.
+    Warning: External links in `infile` are ignored.
+
+    :param infile: Path of input file, :class:`commonh5.File`,
+        :class:`commonh5.Group`, :class:`h5py.File` or :class:`h5py.Group`
     :param h5file: Path of output HDF5 file or HDF5 file handle
         (`h5py.File` object)
     :param str h5path: Target path in HDF5 file in which scan groups are created.
@@ -295,23 +297,15 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     # both infile and h5file can be either file handle or a file name: 4 cases
     if not isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
-            if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             with h5py.File(h5file, mode) as h5f:
                 writer.write(h5pylike, h5f)
     elif isinstance(h5file, h5py.File) and not is_group(infile):
         with silx.io.open(infile) as h5pylike:
-            if not _is_commonh5_group(h5pylike):
-                raise IOError("Cannot convert HDF5 file %s to HDF5" % infile)
             writer.write(h5pylike, h5file)
     elif is_group(infile) and not isinstance(h5file, h5py.File):
-        if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         with h5py.File(h5file, mode) as h5f:
             writer.write(infile, h5f)
     else:
-        if not _is_commonh5_group(infile):
-            raise IOError("Cannot convert HDF5 file %s to HDF5" % infile.file.name)
         writer.write(infile, h5file)
 
 

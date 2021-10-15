@@ -793,6 +793,38 @@ def is_link(obj):
     return t in {H5Type.SOFT_LINK, H5Type.EXTERNAL_LINK}
 
 
+def _visitall(item, path=''):
+    """Helper function for func:`visitall`.
+
+    :param item: Item to visit
+    :param str path: Relative path of the item
+    """
+    if not is_group(item):
+        return
+
+    for name, child_item in item.items():
+        if isinstance(child_item, (h5py.Group, h5py.Dataset)):
+            link = item.get(name, getlink=True)
+        else:
+            link = child_item
+        child_path = '/'.join((path, name))
+
+        ret = link if link is not None and is_link(link) else child_item
+        yield child_path, ret
+        yield from _visitall(child_item, child_path)
+
+
+def visitall(item):
+    """Visit entity recursively including links.
+
+    It does not follow links.
+    This is a generator yielding (relative path, object) for visited items.
+
+    :param item: The item to visit.
+    """
+    yield from _visitall(item, '')
+
+
 def get_data(url):
     """Returns a numpy data from an URL.
 

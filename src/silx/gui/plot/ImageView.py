@@ -53,6 +53,7 @@ from typing import Union
 import silx
 from .. import qt
 from .. import colors
+from .. import icons
 
 from . import items, PlotWindow, PlotWidget, actions
 from ..colors import Colormap
@@ -338,6 +339,83 @@ class ShowSideHistogramsAction(PlotAction):
             self.plot.setSideHistogramDisplayed(checked)
 
 
+class AggregationModeAction(qt.QWidgetAction):
+    """Action providing few filters to the image"""
+
+    sigAggregationModeChanged = qt.Signal()
+
+    def __init__(self, parent):
+        qt.QWidgetAction.__init__(self, parent)
+
+        toolButton = qt.QToolButton(parent)
+
+        filterAction = qt.QAction(self)
+        filterAction.setText("No filter")
+        filterAction.setCheckable(True)
+        filterAction.setChecked(True)
+        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.NONE)
+        densityNoFilterAction = filterAction
+
+        filterAction = qt.QAction(self)
+        filterAction.setText("Max filter")
+        filterAction.setCheckable(True)
+        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MAX)
+        densityMaxFilterAction = filterAction
+
+        filterAction = qt.QAction(self)
+        filterAction.setText("Mean filter")
+        filterAction.setCheckable(True)
+        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MEAN)
+        densityMeanFilterAction = filterAction
+
+        filterAction = qt.QAction(self)
+        filterAction.setText("Min filter")
+        filterAction.setCheckable(True)
+        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MIN)
+        densityMinFilterAction = filterAction
+
+        densityGroup = qt.QActionGroup(self)
+        densityGroup.setExclusive(True)
+        densityGroup.addAction(densityNoFilterAction)
+        densityGroup.addAction(densityMaxFilterAction)
+        densityGroup.addAction(densityMeanFilterAction)
+        densityGroup.addAction(densityMinFilterAction)
+        densityGroup.triggered.connect(self._aggregationModeChanged)
+        self.__densityGroup = densityGroup
+
+        filterMenu = qt.QMenu(toolButton)
+        filterMenu.addAction(densityNoFilterAction)
+        filterMenu.addAction(densityMaxFilterAction)
+        filterMenu.addAction(densityMeanFilterAction)
+        filterMenu.addAction(densityMinFilterAction)
+
+        toolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        toolButton.setMenu(filterMenu)
+        toolButton.setText("Data filters")
+        toolButton.setToolTip("Enable/disable filter on the image")
+        icon = icons.getQIcon("aggregation-mode")
+        toolButton.setIcon(icon)
+        toolButton.setText("Pixel aggregation filter")
+
+        self.setDefaultWidget(toolButton)
+
+    def _aggregationModeChanged(self):
+        self.sigAggregationModeChanged.emit()
+
+    def setAggregationMode(self, mode):
+        """Set an Aggregated enum from ImageDataAggregated"""
+        for a in self.__densityGroup.actions():
+            if a.property("aggregation") is mode:
+                a.setChecked(True)
+
+    def getAggregationMode(self):
+        """Returns an Aggregated enum from ImageDataAggregated"""
+        densityAction = self.__densityGroup.checkedAction()
+        if densityAction is None:
+            return items.ImageDataAggregated.Aggregation.NONE
+        return densityAction.property("aggregation")
+
+
 class ImageView(PlotWindow):
     """Display a single image with horizontal and vertical histograms.
 
@@ -406,6 +484,9 @@ class ImageView(PlotWindow):
         self.__showSideHistogramsAction = ShowSideHistogramsAction(self, self)
         self.__showSideHistogramsAction.setChecked(True)
 
+        self.__aggregationModeAction = AggregationModeAction(self)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+
         if parent is None:
             self.setWindowTitle('ImageView')
 
@@ -416,6 +497,7 @@ class ImageView(PlotWindow):
 
         toolBar = self.toolBar()
         toolBar.addAction(self.__showSideHistogramsAction)
+        toolBar.addAction(self.__aggregationModeAction)
 
         self.__profileWindowBehavior = self.ProfileWindowBehavior.POPUP
         self.__profile = ProfileToolBar(plot=self)
@@ -488,6 +570,26 @@ class ImageView(PlotWindow):
 
     def _dirtyCache(self):
         self._cache = None
+
+    def getAggregationModeAction(self):
+        return self.__aggregationModeAction
+
+    def _aggregationModeChanged(self):
+        item = self._getItem("image", self._imageLegend)
+        if item is None:
+            return
+        aggregationMode = self.__aggregationModeAction.getAggregationMode()
+        if aggregationMode is not None and isinstance(item, items.ImageDataAggregated):
+            item.setAggregationMode(aggregationMode)
+        else:
+            # It means the item type have to be changed
+            self.removeImage(self._imageLegend)
+            image = item.getData(copy=False)
+            if image is None:
+                return
+            origin = item.getOrigin()
+            scale = item.getScale()
+            self.setImage(image, origin, scale, copy=False, resetzoom=False)
 
     def getShowSideHistogramsAction(self):
         return self.__showSideHistogramsAction
@@ -807,14 +909,47 @@ class ImageView(PlotWindow):
             return
 
         data = numpy.array(image, order='C', copy=copy)
-        assert data.size != 0
+        if data.size == 0:
+            self.remove(self._imageLegend, kind='image')
+            return
+
         assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
 
-        self.addImage(data,
-                      legend=self._imageLegend,
-                      origin=origin, scale=scale,
-                      colormap=self.getColormap(),
-                      resetzoom=False)
+        aggregation = self.getAggregationModeAction().getAggregationMode()
+        if data.ndim != 2 and aggregation is not None:
+            # RGB/A with aggregation is not supported
+            aggregation = items.ImageDataAggregated.Aggregation.NONE
+
+        if aggregation is items.ImageDataAggregated.Aggregation.NONE:
+            self.addImage(data,
+                          legend=self._imageLegend,
+                          origin=origin, scale=scale,
+                          colormap=self.getColormap(),
+                          resetzoom=False)
+        else:
+            item = self._getItem("image", self._imageLegend)
+            if isinstance(item, items.ImageDataAggregated):
+                item.setData(data)
+                item.setOrigin(origin)
+                item.setScale(scale)
+            else:
+                if isinstance(item, items.ImageDataAggregated):
+                    imageItem = item
+                    wasCreated = False
+                else:
+                    if item is not None:
+                        self.removeImage(self._imageLegend)
+                    imageItem = items.ImageDataAggregated()
+                    imageItem.setName(self._imageLegend)
+                    imageItem.setColormap(self.getColormap())
+                    wasCreated = True
+                imageItem.setData(data)
+                imageItem.setOrigin(origin)
+                imageItem.setScale(scale)
+                imageItem.setAggregationMode(aggregation)
+                if wasCreated:
+                    self.addItem(imageItem)
+
         self.setActiveImage(self._imageLegend)
         self._updateHistograms()
         if resetzoom:

@@ -327,12 +327,60 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             self._updated(ItemChangedType.SCALE)
 
 
-class ImageData(ImageBase, ColormapMixIn):
-    """Description of a data image with a colormap"""
+class ImageDataBase(ImageBase, ColormapMixIn):
+    """Base class for colormapped 2D data image"""
 
     def __init__(self):
         ImageBase.__init__(self, numpy.zeros((0, 0), dtype=numpy.float32))
         ColormapMixIn.__init__(self)
+
+    def _getColormapForRendering(self):
+        colormap = self.getColormap()
+        if colormap.isAutoscale():
+            # Avoid backend to compute autoscale: use item cache
+            colormap = colormap.copy()
+            colormap.setVRange(*colormap.getColormapRange(self))
+        return colormap
+
+    def getRgbaImageData(self, copy=True):
+        """Get the displayed RGB(A) image
+
+        :returns: Array of uint8 of shape (height, width, 4)
+        :rtype: numpy.ndarray
+        """
+        return self.getColormap().applyToData(self)
+
+    def setData(self, data, copy=True):
+        """"Set the image data
+
+        :param numpy.ndarray data: Data array with 2 dimensions (h, w)
+        :param bool copy: True (Default) to get a copy,
+                          False to use internal representation (do not modify!)
+        """
+        data = numpy.array(data, copy=copy)
+        assert data.ndim == 2
+        if data.dtype.kind == 'b':
+            _logger.warning(
+                'Converting boolean image to int8 to plot it.')
+            data = numpy.array(data, copy=False, dtype=numpy.int8)
+        elif numpy.iscomplexobj(data):
+            _logger.warning(
+                'Converting complex image to absolute value to plot it.')
+            data = numpy.absolute(data)
+        super().setData(data)
+
+    def _updated(self, event=None, checkVisibility=True):
+        # Synchronizes colormapped data if changed
+        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
+            self._setColormappedData(self.getValueData(copy=False), copy=False)
+        super()._updated(event=event, checkVisibility=checkVisibility)
+
+
+class ImageData(ImageDataBase):
+    """Description of a data image with a colormap"""
+
+    def __init__(self):
+        ImageDataBase.__init__(self)
         self._alternativeImage = None
         self.__alpha = None
 
@@ -353,16 +401,10 @@ class ImageData(ImageBase, ColormapMixIn):
         if dataToUse.size == 0:
             return None  # No data to display
 
-        colormap = self.getColormap()
-        if colormap.isAutoscale():
-            # Avoid backend to compute autoscale: use item cache
-            colormap = colormap.copy()
-            colormap.setVRange(*colormap.getColormapRange(self))
-
         return backend.addImage(dataToUse,
                                 origin=self.getOrigin(),
                                 scale=self.getScale(),
-                                colormap=colormap,
+                                colormap=self._getColormapForRendering(),
                                 alpha=self.getAlpha())
 
     def __getitem__(self, item):
@@ -386,9 +428,7 @@ class ImageData(ImageBase, ColormapMixIn):
         if alternative is not None:
             return _convertImageToRgba32(alternative, copy=copy)
         else:
-            # Apply colormap, in this case an new array is always returned
-            colormap = self.getColormap()
-            image = colormap.applyToData(self)
+            image = super().getRgbaImageData(copy=copy)
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
@@ -434,14 +474,6 @@ class ImageData(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
-        if data.dtype.kind == 'b':
-            _logger.warning(
-                'Converting boolean image to int8 to plot it.')
-            data = numpy.array(data, copy=False, dtype=numpy.int8)
-        elif numpy.iscomplexobj(data):
-            _logger.warning(
-                'Converting complex image to absolute value to plot it.')
-            data = numpy.absolute(data)
 
         if alternative is not None:
             alternative = numpy.array(alternative, copy=copy)
@@ -460,14 +492,6 @@ class ImageData(ImageBase, ColormapMixIn):
         self.__alpha = alpha
 
         super().setData(data)
-
-    def _updated(self, event=None, checkVisibility=True):
-        # Synchronizes colormapped data if changed
-        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
-            self._setColormappedData(
-                self.getValueData(copy=False),
-                copy=False)
-        super()._updated(event=event, checkVisibility=checkVisibility)
 
 
 class ImageRgba(ImageBase):

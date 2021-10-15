@@ -102,7 +102,13 @@ class PositionInfoWidget(qt.QWidget):
         widget = qt.QLabel('-')
         widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
-        widget.setMinimumWidth(widget.fontMetrics().width('#######'))
+
+        metrics = widget.fontMetrics()
+        if qt.BINDING in ('PySide2', 'PyQt5'):
+            width = metrics.width("#######")
+        else:  # Qt6
+            width = metrics.horizontalAdvance("#######")
+        widget.setMinimumWidth(width)
         subLayout.addWidget(widget)
 
         subLayout.addStretch(1)

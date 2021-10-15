@@ -38,6 +38,8 @@ from ._utils import ticklayout
 from .. import qt
 from ..qt import inspect as qt_inspect
 from silx.gui import colors
+from silx.math.colormap import LogarithmicNormalization
+
 
 _logger = logging.getLogger(__name__)
 
@@ -737,7 +739,7 @@ class _TickBar(qt.QWidget):
             # No range: no ticks
             self.ticks = ()
             self.subTicks = ()
-        elif isinstance(self._normalizer, colors._LogarithmicNormalization):
+        elif isinstance(self._normalizer, LogarithmicNormalization):
             self._computeTicksLog(nticks)
         else:  # Fallback: use linear
             self._computeTicksLin(nticks)

@@ -208,8 +208,13 @@ class FitWidget(qt.QWidget):
                     self.fitconfig.get("WeightFlag", False))
             self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
-            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            if qt.BINDING in ('Pyside2', 'PyQt5'):
+                self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
+                self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            else:  # Qt6
+                self.guiConfig.BkgComBox.textActivated.connect(self.bkgEvent)
+                self.guiConfig.FunComBox.textActivated.connect(self.funEvent)
+
             self._populateFunctions()
 
             layout.addWidget(self.guiConfig)

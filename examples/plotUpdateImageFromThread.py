@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -116,6 +116,7 @@ def main():
 
     # Create a Plot2D, set its limits and display it
     plot2d = Plot2D()
+    plot2d.getIntensityHistogramAction().setVisible(True)
     plot2d.setLimits(0, Nx, 0, Ny)
     plot2d.getDefaultColormap().setVRange(0., 1.5)
     plot2d.show()

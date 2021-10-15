@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -95,7 +95,7 @@ def main():
     updateThread = UpdateThread(plot1d)
     updateThread.start()  # Start updating the plot
 
-    app.exec_()
+    app.exec()
 
     updateThread.stop()  # Stop updating the plot
 

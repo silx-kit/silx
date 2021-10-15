@@ -37,9 +37,9 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "01/12/2020"
 __license__ = "MIT"
 
+from typing import Optional, Tuple
 import numpy
 import logging
-import typing
 import weakref
 
 from .PlotToolAction import PlotToolAction
@@ -49,6 +49,7 @@ from silx.math.combo import min_max
 from silx.gui import qt
 from silx.gui.plot import items
 from silx.gui.widgets.ElidedLabel import ElidedLabel
+from silx.gui.widgets.RangeSlider import RangeSlider
 from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
@@ -89,13 +90,146 @@ class _StatWidget(qt.QWidget):
             qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
         layout.addWidget(self.__valueWidget)
 
-    def setValue(self, value: typing.Optional[float]):
+    def setValue(self, value: Optional[float]):
         """Set the displayed value
 
         :param value:
         """
         self.__valueWidget.setText(
             "-" if value is None else "{:.5g}".format(value))
+
+
+class _IntEdit(qt.QLineEdit):
+    """QLineEdit for integers with a default value and update on validation.
+
+    :param QWidget parent:
+    """
+
+    sigValueChanged = qt.Signal(int)
+    """Signal emitted when the value has changed (on editing finished)"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.__value = None
+        self.setAlignment(qt.Qt.AlignRight)
+        validator = qt.QIntValidator()
+        self.setValidator(validator)
+        validator.bottomChanged.connect(self.__updateSize)
+        validator.topChanged.connect(self.__updateSize)
+        self.__updateSize()
+
+        self.textEdited.connect(self.__textEdited)
+
+    def __updateSize(self, *args):
+        """Update widget's maximum size according to bounds"""
+        bottom, top = self.getRange()
+        nbchar = max(len(str(bottom)), len(str(top)))
+        font = self.font()
+        font.setStyle(qt.QFont.StyleItalic)
+        fontMetrics = qt.QFontMetrics(font)
+        self.setMaximumWidth(
+            fontMetrics.boundingRect('0' * (nbchar + 1)).width()
+        )
+        self.setMaxLength(nbchar)
+
+    def __textEdited(self, _):
+        if self.font().style() != qt.QFont.StyleItalic:
+            font = self.font()
+            font.setStyle(qt.QFont.StyleItalic)
+            self.setFont(font)
+
+    # Use events rather than editingFinished to also trigger with empty text
+
+    def focusOutEvent(self, event):
+        self.__commitValue()
+        return super().focusOutEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() in (qt.Qt.Key_Enter, qt.Qt.Key_Return):
+            self.__commitValue()
+        return super().keyPressEvent(event)
+
+    def __commitValue(self):
+        """Update the value returned by :meth:`getValue`"""
+        value = self.getCurrentValue()
+        if value is None:
+            value = self.getDefaultValue()
+            if value is None:
+                return  # No value, keep previous one
+
+        if self.font().style() != qt.QFont.StyleNormal:
+            font = self.font()
+            font.setStyle(qt.QFont.StyleNormal)
+            self.setFont(font)
+
+        if value != self.__value:
+            self.__value = value
+            self.sigValueChanged.emit(value)
+
+    def getValue(self) -> Optional[int]:
+        """Return current value (None if never set)."""
+        return self.__value
+
+    def setRange(self, bottom: int, top: int):
+        """Set the range of valid values"""
+        self.validator().setRange(bottom, top)
+
+    def getRange(self) -> Tuple[int, int]:
+        """Returns the current range of valid values
+
+        :returns: (bottom, top)
+        """
+        return self.validator().bottom(), self.validator().top()
+
+    def __validate(self, value: int, extend_range: bool):
+        """Ensure value is in range
+
+        :param int value:
+        :param bool extend_range:
+            True to extend range if needed.
+            False to clip value if needed.
+        """
+        if extend_range:
+            bottom, top = self.getRange()
+            self.setRange(min(value, bottom), max(value, top))
+        return numpy.clip(value, *self.getRange())
+
+    def setDefaultValue(self, value: int, extend_range: bool=False):
+        """Set default value when QLineEdit is empty
+
+        :param int value:
+        :param bool extend_range:
+            True to extend range if needed.
+            False to clip value if needed
+        """
+        self.setPlaceholderText(str(self.__validate(value, extend_range)))
+        if self.getCurrentValue() is None:
+            self.__commitValue()
+
+    def getDefaultValue(self) -> Optional[int]:
+        """Return the default value or the bottom one if not set"""
+        try:
+            return int(self.placeholderText())
+        except ValueError:
+            return None
+
+    def setCurrentValue(self, value: int, extend_range: bool=False):
+        """Set the currently displayed value
+
+        :param int value:
+        :param bool extend_range:
+            True to extend range if needed.
+            False to clip value if needed
+        """
+        self.setText(str(self.__validate(value, extend_range)))
+        self.__commitValue()
+
+    def getCurrentValue(self) -> Optional[int]:
+        """Returns the displayed value or None if not correct"""
+        try:
+            return int(self.text())
+        except ValueError:
+            return None
 
 
 class HistogramWidget(qt.QWidget):
@@ -125,6 +259,28 @@ class HistogramWidget(qt.QWidget):
         posInfo = self.__plot.getPositionInfoWidget()
         posInfo.setSnappingMode(posInfo.SNAPPING_CURVE)
 
+        # Histogram controls
+        controlsWidget = qt.QWidget(self)
+        layout.addWidget(controlsWidget)
+        controlsLayout = qt.QHBoxLayout(controlsWidget)
+        controlsLayout.setContentsMargins(4, 4, 4, 4)
+
+        controlsLayout.addWidget(qt.QLabel("<b>Histogram:<b>"))
+        controlsLayout.addWidget(qt.QLabel("N. bins:"))
+        self.__nbinsLineEdit = _IntEdit(self)
+        self.__nbinsLineEdit.setRange(2, 9999)
+        self.__nbinsLineEdit.sigValueChanged.connect(
+            self.__updateHistogramFromControls)
+        controlsLayout.addWidget(self.__nbinsLineEdit)
+        self.__rangeLabel = qt.QLabel("Range:")
+        controlsLayout.addWidget(self.__rangeLabel)
+        self.__rangeSlider = RangeSlider(parent=self)
+        self.__rangeSlider.sigValueChanged.connect(
+            self.__updateHistogramFromControls)
+        self.__rangeSlider.sigValueChanged.connect(self.__rangeChanged)
+        controlsLayout.addWidget(self.__rangeSlider)
+        controlsLayout.addStretch(1)
+
         # Stats display
         statsWidget = qt.QWidget(self)
         layout.addWidget(statsWidget)
@@ -152,11 +308,11 @@ class HistogramWidget(qt.QWidget):
         self.getPlotWidget().clear()
         self.setStatistics()
 
-    def getItem(self) -> typing.Optional[items.Item]:
+    def getItem(self) -> Optional[items.Item]:
         """Returns item used to display histogram and statistics."""
         return None if self.__itemRef is None else self.__itemRef()
 
-    def setItem(self, item: typing.Optional[items.Item]):
+    def setItem(self, item: Optional[items.Item]):
         """Set item from which to display histogram and statistics.
 
         :param item:
@@ -176,6 +332,24 @@ class HistogramWidget(qt.QWidget):
         """Handle update of the item"""
         if event in (items.ItemChangedType.DATA, items.ItemChangedType.MASK):
             self._updateFromItem()
+
+    def __updateHistogramFromControls(self, *args):
+        """Handle udates coming from histogram control widgets"""
+
+        hist = self.getHistogram(copy=False)
+        if hist is not None:
+            count, edges = hist
+            if (len(count) == self.__nbinsLineEdit.getValue() and
+                    (edges[0], edges[-1]) == self.__rangeSlider.getValues()):
+                return  # Nothing has changed
+
+        self._updateFromItem()
+
+    def __rangeChanged(self, first, second):
+        """Handle change of histogram range from the range slider"""
+        tooltip = "Histogram range:\n[%g, %g]" % (first, second)
+        self.__rangeSlider.setToolTip(tooltip)
+        self.__rangeLabel.setToolTip(tooltip)
 
     def _updateFromItem(self):
         """Update histogram and stats from the item"""
@@ -198,18 +372,34 @@ class HistogramWidget(qt.QWidget):
             return
 
         xmin, xmax = min_max(array, min_positive=False, finite=True)
-        nbins = min(1024, int(numpy.sqrt(array.size)))
-        data_range = xmin, xmax
+        guessed_nbins = min(1024, int(numpy.sqrt(array.size)))
 
         # bad hack: get 256 bins in the case we have a B&W
         if numpy.issubdtype(array.dtype, numpy.integer):
-            if nbins > xmax - xmin:
-                nbins = xmax - xmin
+            if guessed_nbins > xmax - xmin:
+                guessed_nbins = xmax - xmin
+        guessed_nbins = max(2, guessed_nbins)
 
-        nbins = max(2, nbins)
+        # Set default nbins
+        self.__nbinsLineEdit.setDefaultValue(guessed_nbins, extend_range=True)
+        # Set slider range: do not keep the range value, but the relative pos.
+        previousPositions = self.__rangeSlider.getPositions()
+        if xmin == xmax:  # Enlarge range is none
+            if xmin == 0:
+                range_ = -0.01, 0.01
+            else:
+                range_ = sorted((xmin * .99, xmin * 1.01))
+        else:
+            range_ = xmin, xmax
 
-        data = array.ravel().astype(numpy.float32)
-        histogram = Histogramnd(data, n_bins=nbins, histo_range=data_range)
+        self.__rangeSlider.setRange(*range_)
+        self.__rangeSlider.setPositions(*previousPositions)
+
+        histogram = Histogramnd(
+            array.ravel().astype(numpy.float32),
+            n_bins=max(2, self.__nbinsLineEdit.getValue()),
+            histo_range=self.__rangeSlider.getValues(),
+        )
         if len(histogram.edges) != 1:
             _logger.error("Error while computing the histogram")
             self.reset()
@@ -230,6 +420,13 @@ class HistogramWidget(qt.QWidget):
         :param histogram: Bin values (N)
         :param edges: Bin edges (N+1)
         """
+        # Only useful if setHistogram is called directly
+        # TODO
+        #nbins = len(histogram)
+        #if nbins != self.__nbinsLineEdit.getDefaultValue():
+        #    self.__nbinsLineEdit.setValue(nbins, extend_range=True)
+        #self.__rangeSlider.setValues(edges[0], edges[-1])
+
         self.getPlotWidget().addHistogram(
             histogram=histogram,
             edges=edges,
@@ -253,11 +450,11 @@ class HistogramWidget(qt.QWidget):
             return None
 
     def setStatistics(self,
-            min_: typing.Optional[float] = None,
-            max_: typing.Optional[float] = None,
-            mean: typing.Optional[float] = None,
-            std: typing.Optional[float] = None,
-            sum_: typing.Optional[float] = None):
+            min_: Optional[float] = None,
+            max_: Optional[float] = None,
+            mean: Optional[float] = None,
+            std: Optional[float] = None,
+            sum_: Optional[float] = None):
         """Set displayed statistic indicators."""
         self.__statsWidgets['min'].setValue(min_)
         self.__statsWidgets['max'].setValue(max_)
@@ -333,7 +530,7 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     def _createToolWindow(self):
         return HistogramWidget(self.plot, qt.Qt.Window)
 
-    def getHistogram(self) -> typing.Optional[numpy.ndarray]:
+    def getHistogram(self) -> Optional[numpy.ndarray]:
         """Return the last computed histogram
 
         :return: the histogram displayed in the HistogramWidget
