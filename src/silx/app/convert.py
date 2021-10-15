@@ -199,11 +199,12 @@ def main(argv):
     parser.add_argument(
         'input_files',
         nargs="*",
-        help='Input files (EDF, TIFF, SPEC...). When specifying multiple '
-             'files, you cannot specify both fabio images and SPEC files. '
-             'Multiple SPEC files will simply be concatenated, with one '
-             'entry per scan. Multiple image files will be merged into '
-             'a single entry with a stack of images.')
+        help='Input files (EDF, TIFF, FIO, SPEC...). When specifying '
+             'multiple files, you cannot specify both fabio images '
+             'and SPEC (or FIO) files. Multiple SPEC or FIO files will '
+             'simply be concatenated, with one entry per scan. '
+             'Multiple image files will be merged into a single '
+             'entry with a stack of images.')
     # input_files and --filepattern are mutually exclusive
     parser.add_argument(
         '--file-pattern',

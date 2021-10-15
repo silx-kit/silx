@@ -25,7 +25,7 @@
 by *silx* into HDF5 file. Currently, SPEC file and fabio images are the
 supported formats.
 
-Read the documentation of :mod:`silx.io.spech5` and :mod:`silx.io.fabioh5` for
+Read the documentation of :mod:`silx.io.spech5`, :mod:`silx.io.fioh5` and :mod:`silx.io.fabioh5` for
 information on the structure of the output HDF5 files.
 
 Text strings are written to the HDF5 datasets as variable-length utf-8.

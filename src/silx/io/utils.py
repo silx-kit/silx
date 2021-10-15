@@ -462,6 +462,7 @@ def _open_local_file(filename):
     - h5 files, if `h5py` module is installed
     - SPEC files exposed as a NeXus layout
     - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - fio files exposed as a NeXus layout
     - Numpy files ('npy' and 'npz' files)
 
     The file is opened in read-only mode.
@@ -581,6 +582,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     - h5 files, if `h5py` module is installed
     - SPEC files exposed as a NeXus layout
     - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - fio files exposed as a NeXus layout
     - Numpy files ('npy' and 'npz' files)
 
     The filename can be trailled an HDF5 path using the separator `::`. In this

@@ -129,31 +129,6 @@ You can test for existence of data or groups::
     >>> "spam" in sfh5["1.1"]
     False
 
-.. note::
-
-    Text used to be stored with a dtype ``numpy.string_`` in silx versions
-    prior to *0.7.0*. The type ``numpy.string_`` is a byte-string format.
-    The consequence of this is that you had to decode strings before using
-    them in **Python 3**::
-
-        >>> from silx.io.fioh5 import FioH5
-        >>> sfh5 = FioH5("31oct98_00068.fio")
-        >>> sfh5["/68.1/title"]
-        b'ascan  tx3 -28.5 -24.5  20 0.5'
-        >>> sfh5["/68.1/title"].decode()
-        'ascan  tx3 -28.5 -24.5  20 0.5'
-
-    From silx version *0.7.0* onwards, text is now stored as unicode. This
-    corresponds to the default text type in python 3, and to the *unicode*
-    type in Python 2.
-
-    To be on the safe side, you can test for the presence of a *decode*
-    attribute, to ensure that you always work with unicode text::
-
-        >>> title = sfh5["/68.1/title"]
-        >>> if hasattr(title, "decode"):
-        ...     title = title.decode()
-
 """
 
 __authors__ = ["T. Fuchs"]
@@ -173,7 +148,7 @@ import six
 
 from silx import version as silx_version
 from . import commonh5
-#from .spech5 import SpecH5NodeDataset
+#from .spech5 import spec_date_to_iso8601
 
 logger1 = logging.getLogger(__name__)
 
@@ -227,8 +202,6 @@ def is_fiofile(filename):
 class FioFile(object):
     """This class opens a FIO file and reads the data.
 
-    It inherits :class:`silx.io.commonh5.Group` (via :class:`commonh5.File`),
-    which implements most of its API.
     """
 
     def __init__(self, filepath):
@@ -309,8 +282,7 @@ class FioFile(object):
                 param, value = line.split(' = ')
                 self.parameter[param] = value
         except Exception:
-            logger1.warning("Cannot parse parameter section %s",
-                            self.parameterssection)
+            logger1.warning("Cannot parse parameter section")
 
         # parse default sardana comments: username and start time
         try:
@@ -318,7 +290,9 @@ class FioFile(object):
             if len(commentlines) >= 2:
                 self.title = commentlines[0]
                 l2 = commentlines[1]
-                acqpos = l2.lower().find("acq")
+                acqpos = l2.lower().find("acquisition started at")
+                if acqpos < 0:
+                    raise Exception("acquisition str not found")
 
                 self.user = l2[:acqpos][4:].strip()
                 self.start_time = l2[acqpos+len("Acquisition started at"):].strip()
@@ -326,8 +300,7 @@ class FioFile(object):
             self.comments = "\n".join(commentlines[2:])
 
         except Exception:
-            logger1.warning("Cannot parse default comment section %s",
-                            self.commentsection)
+            logger1.warning("Cannot parse default comment section")
             self.comments = self.commentsection
             self.user = ""
             self.start_time = ""
