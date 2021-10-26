@@ -50,6 +50,8 @@ try:
 except ImportError as e:
     h5pyd = None
 
+from . import fioh5
+
 logger = logging.getLogger(__name__)
 
 NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]

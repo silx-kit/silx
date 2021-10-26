@@ -202,7 +202,6 @@ class TestUnnumberedFioH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp_dir = tempfile.TemporaryDirectory()
-        #fd, cls.fname = tempfile.mkstemp()
         cls.fname_nosuffix = os.path.join(cls.temp_dir.name, "eh1scan_nosuffix.fio")
         
         with open(cls.fname_nosuffix, 'w') as fiof:
@@ -264,7 +263,6 @@ class TestBrokenHeaderFioH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp_dir = tempfile.TemporaryDirectory()
-        #fd, cls.fname = tempfile.mkstemp()
         cls.fname_numbered = os.path.join(cls.temp_dir.name, "eh1scan_00005.fio")
         
         with open(cls.fname_numbered, 'w') as fiof:

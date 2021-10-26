@@ -88,14 +88,14 @@ Data and groups are accessed in :mod:`h5py` fashion::
     from silx.io.fioh5 import FioH5
 
     # Open a FioFile
-    sfh5 = FioH5("test_00056.fio")
+    fiofh5 = FioH5("test_00056.fio")
 
     # using FioH5 as a regular group to access scans
-    scan1group = sfh5["56.1"]
+    scan1group = fiofh5["56.1"]
     instrument_group = scan1group["instrument"]
 
     # alternative: full path access
-    measurement_group = sfh5["/56.1/measurement"]
+    measurement_group = fiofh5["/56.1/measurement"]
 
     # accessing a scan data column by name as a 1D numpy array
     data_array = measurement_group["Pslit HGap"]
@@ -103,9 +103,9 @@ Data and groups are accessed in :mod:`h5py` fashion::
 
 :class:`FioH5` files and groups provide a :meth:`keys` method::
 
-    >>> sfh5.keys()
+    >>> fiofh5.keys()
     ['96.1', '97.1', '98.1']
-    >>> sfh5['96.1'].keys()
+    >>> fiofh5['96.1'].keys()
     ['title', 'start_time', 'instrument', 'measurement']
 
 They can also be treated as iterators:
@@ -122,11 +122,11 @@ They can also be treated as iterators:
 
 You can test for existence of data or groups::
 
-    >>> "/1.1/measurement/Pslit HGap" in sfh5
+    >>> "/1.1/measurement/Pslit HGap" in fiofh5
     True
-    >>> "positioners" in sfh5["/2.1/instrument"]
+    >>> "positioners" in fiofh5["/2.1/instrument"]
     True
-    >>> "spam" in sfh5["1.1"]
+    >>> "spam" in fiofh5["1.1"]
     False
 
 """
@@ -144,33 +144,28 @@ import io
 
 import h5py
 import numpy
-import six
 
 from silx import version as silx_version
 from . import commonh5
 
+from .spech5 import to_h5py_utf8
+
 logger1 = logging.getLogger(__name__)
 
-text_dtype = h5py.special_dtype(vlen=six.text_type)
+text_dtype = h5py.special_dtype(vlen=str)
+
+if h5py.version.version_tuple[0] < 3:
+    string_dtype = 'S100'  # might truncate data due to fixed length strings
+else:
+    string_dtype = 'O'  # variable-length string (only supported as of h5py > 3.0)
 
 ABORTLINENO = 5
 
-dtypeConverter = {'STRING': 'O',
+dtypeConverter = {'STRING': string_dtype,
                   'DOUBLE': 'f8',
                   'FLOAT': 'f4',
                   'INTEGER': 'i8',
                   'BOOLEAN': '?'}
-
-
-def to_h5py_utf8(str_list):
-    """Convert a string or a list of strings to a numpy array of
-    unicode strings that can be written to HDF5 as utf-8.
-
-    This ensures that the type will be consistent between python 2 and
-    python 3, if attributes or datasets are saved to an HDF5 file.
-    """
-    return numpy.array(str_list, dtype=text_dtype)
-
 
 def is_fiofile(filename):
     """Test if a file is a FIO file, by checking if three consecutive lines
@@ -271,7 +266,7 @@ class FioFile(object):
                                       comments="!")
 
             # ToDo: read only last line of file,
-            # which contains end of acquisition timestamp.
+            # which sometimes contains the end of acquisition timestamp.
 
         self.parameter = {}
 
@@ -314,7 +309,7 @@ class FioH5NodeDataset(commonh5.Dataset):
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             # use unicode (utf-8 when saved to HDF5 output)
             value = to_h5py_utf8(data)
         elif isinstance(data, float):
@@ -330,7 +325,8 @@ class FioH5NodeDataset(commonh5.Dataset):
             if data_kind in ["S", "U"]:
                 value = numpy.asarray(array,
                                       dtype=text_dtype)
-            value = array # numerical data has already the correct data type
+            else:
+                value = array # numerical data has already the correct data type
         commonh5.Dataset.__init__(self, name, value, parent, attrs)
 
     def __getattr__(self, item):
@@ -339,7 +335,7 @@ class FioH5NodeDataset(commonh5.Dataset):
         if hasattr(self[()], item):
             return getattr(self[()], item)
 
-        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
+        raise AttributeError("FioH5NodeDataset has no attribute %s" % item)
 
 
 class FioH5(commonh5.File):
@@ -357,8 +353,14 @@ class FioH5(commonh5.File):
         if isinstance(filename, io.IOBase):
             # see https://github.com/silx-kit/silx/issues/858
             filename = filename.name
+        
+        if not is_fiofile(filename):
+            raise IOError("File %s is not a FIO file." % filepath)
 
-        fiof = FioFile(filename)  # reads complete file
+        try:
+            fiof = FioFile(filename)  # reads complete file
+        except Exception as e:
+            raise IOError("FIO file %s cannot be read.") from e
 
         attrs = {"NX_class": to_h5py_utf8("NXroot"),
                  "file_time": to_h5py_utf8(
