@@ -511,16 +511,11 @@ def _open_local_file(filename):
             debugging_info.append((sys.exc_info(),
                                    "File '%s' can't be read as spec file." % filename))
 
-        if extension == ".fio":
-            try:
-                from . import fioh5
-                return fioh5.FioH5(filename)
-            except ImportError:
-                debugging_info.append((sys.exc_info(),
-                                       "fioh5 can't be loaded."))
-            except IOError:
-                debugging_info.append((sys.exc_info(),
-                                       "File '%s' can't be read as fio file." % filename))
+        try:
+            return fioh5.FioH5(filename)
+        except IOError:
+            debugging_info.append((sys.exc_info(),
+                                   "File '%s' can't be read as fio file." % filename))
 
     finally:
         for exc_info, message in debugging_info:
