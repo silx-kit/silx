@@ -148,7 +148,6 @@ import six
 
 from silx import version as silx_version
 from . import commonh5
-#from .spech5 import spec_date_to_iso8601
 
 logger1 = logging.getLogger(__name__)
 
