@@ -152,20 +152,19 @@ from .spech5 import to_h5py_utf8
 
 logger1 = logging.getLogger(__name__)
 
-text_dtype = h5py.special_dtype(vlen=str)
-
 if h5py.version.version_tuple[0] < 3:
-    string_dtype = 'S100'  # might truncate data due to fixed length strings
+    text_dtype = h5py.special_dtype(vlen=str)  # old API
 else:
-    string_dtype = 'O'  # variable-length string (only supported as of h5py > 3.0)
+    text_dtype = 'O'  # variable-length string (supported as of h5py > 3.0)
 
 ABORTLINENO = 5
 
-dtypeConverter = {'STRING': string_dtype,
+dtypeConverter = {'STRING': text_dtype,
                   'DOUBLE': 'f8',
                   'FLOAT': 'f4',
                   'INTEGER': 'i8',
                   'BOOLEAN': '?'}
+
 
 def is_fiofile(filename):
     """Test if a file is a FIO file, by checking if three consecutive lines
@@ -219,7 +218,7 @@ class FioFile(object):
                     prev = fiof.tell()
                     line_counter = 0
                     continue
-                if line.startswith('%c'):
+                if line.startswith('%c'):  # comment section
                     line_counter = 0
                     self.commentsection = ''
                     line = fiof.readline()
@@ -228,7 +227,7 @@ class FioFile(object):
                         self.commentsection += line
                         prev = fiof.tell()
                         line = fiof.readline()
-                if line.startswith('%p'):
+                if line.startswith('%p'):  # parameter section
                     line_counter = 0
                     self.parameterssection = ''
                     line = fiof.readline()
@@ -237,7 +236,7 @@ class FioFile(object):
                         self.parameterssection += line
                         prev = fiof.tell()
                         line = fiof.readline()
-                if line.startswith('%d'):
+                if line.startswith('%d'):  # data type definitions
                     line_counter = 0
                     self.datacols = []
                     self.names = []
@@ -280,16 +279,17 @@ class FioFile(object):
 
         # parse default sardana comments: username and start time
         try:
+            acquiMarker = "acquisition started at"  # indicates timestamp
             commentlines = self.commentsection.splitlines()
             if len(commentlines) >= 2:
                 self.title = commentlines[0]
                 l2 = commentlines[1]
-                acqpos = l2.lower().find("acquisition started at")
+                acqpos = l2.lower().find(acquiMarker)
                 if acqpos < 0:
                     raise Exception("acquisition str not found")
 
                 self.user = l2[:acqpos][4:].strip()
-                self.start_time = l2[acqpos+len("Acquisition started at"):].strip()
+                self.start_time = l2[acqpos+len(acquiMarker):].strip()
                 commentlines = commentlines[2:]
             self.comments = "\n".join(commentlines[2:])
 
@@ -300,12 +300,14 @@ class FioFile(object):
             self.start_time = ""
             self.title = ""
 
+
 class FioH5NodeDataset(commonh5.Dataset):
     """This class inherits :class:`commonh5.Dataset`, to which it adds
     little extra functionality. The main additional functionality is the
     proxy behavior that allows to mimic the numpy array stored in this
     class.
     """
+
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
@@ -326,7 +328,7 @@ class FioH5NodeDataset(commonh5.Dataset):
                 value = numpy.asarray(array,
                                       dtype=text_dtype)
             else:
-                value = array # numerical data has already the correct data type
+                value = array  # numerical data is already the correct datatype
         commonh5.Dataset.__init__(self, name, value, parent, attrs)
 
     def __getattr__(self, item):
@@ -353,9 +355,9 @@ class FioH5(commonh5.File):
         if isinstance(filename, io.IOBase):
             # see https://github.com/silx-kit/silx/issues/858
             filename = filename.name
-        
+
         if not is_fiofile(filename):
-            raise IOError("File %s is not a FIO file." % filepath)
+            raise IOError("File %s is not a FIO file." % filename)
 
         try:
             fiof = FioFile(filename)  # reads complete file
@@ -401,18 +403,18 @@ class FioScanGroup(commonh5.Group):
         else:
             title = scan_key  # use scan number as default title
         self.add_node(FioH5NodeDataset(name="title",
-                                        data=to_h5py_utf8(title),
-                                        parent=self))
+                                       data=to_h5py_utf8(title),
+                                       parent=self))
 
         if hasattr(scan, 'start_time'):
             start_time = scan.start_time
             self.add_node(FioH5NodeDataset(name="start_time",
-                                            data=to_h5py_utf8(start_time),
-                                            parent=self))
+                                           data=to_h5py_utf8(start_time),
+                                           parent=self))
 
         self.add_node(FioH5NodeDataset(name="comments",
-                                        data=to_h5py_utf8(scan.comments),
-                                        parent=self))
+                                       data=to_h5py_utf8(scan.comments),
+                                       parent=self))
 
         self.add_node(FioInstrumentGroup(parent=self, scan=scan))
         self.add_node(FioMeasurementGroup(parent=self, scan=scan))
@@ -426,13 +428,13 @@ class FioMeasurementGroup(commonh5.Group):
         :param scan: FioFile object
         """
         commonh5.Group.__init__(self, name="measurement", parent=parent,
-                                      attrs={"NX_class": to_h5py_utf8("NXcollection"), })
+                            attrs={"NX_class": to_h5py_utf8("NXcollection")})
 
         for label in scan.names:
             safe_label = label.replace("/", "%")
             self.add_node(FioH5NodeDataset(name=safe_label,
-                                            data=scan.data[label],
-                                            parent=self))
+                                           data=scan.data[label],
+                                           parent=self))
 
 
 class FioInstrumentGroup(commonh5.Group):
@@ -443,13 +445,13 @@ class FioInstrumentGroup(commonh5.Group):
         :param scan: FioFile object
         """
         commonh5.Group.__init__(self, name="instrument", parent=parent,
-                                      attrs={"NX_class": to_h5py_utf8("NXinstrument")})
+                             attrs={"NX_class": to_h5py_utf8("NXinstrument")})
 
         self.add_node(FioParameterGroup(parent=self, scan=scan))
         self.add_node(FioFileGroup(parent=self, scan=scan))
         self.add_node(FioH5NodeDataset(name="comment",
-                                        data=to_h5py_utf8(scan.comments),
-                                        parent=self))
+                                       data=to_h5py_utf8(scan.comments),
+                                       parent=self))
 
 
 class FioFileGroup(commonh5.Group):
@@ -460,15 +462,15 @@ class FioFileGroup(commonh5.Group):
         :param scan: FioFile object
         """
         commonh5.Group.__init__(self, name="fiofile", parent=parent,
-                                      attrs={"NX_class": to_h5py_utf8("NXcollection")})
+                            attrs={"NX_class": to_h5py_utf8("NXcollection")})
 
         self.add_node(FioH5NodeDataset(name="comments",
-                                        data=to_h5py_utf8(scan.commentsection),
-                                        parent=self))
+                                       data=to_h5py_utf8(scan.commentsection),
+                                       parent=self))
 
         self.add_node(FioH5NodeDataset(name="parameter",
-                                        data=to_h5py_utf8(scan.parameterssection),
-                                        parent=self))
+                                       data=to_h5py_utf8(scan.parameterssection),
+                                       parent=self))
 
 
 class FioParameterGroup(commonh5.Group):
@@ -479,11 +481,10 @@ class FioParameterGroup(commonh5.Group):
         :param scan: FioFile object
         """
         commonh5.Group.__init__(self, name="parameter", parent=parent,
-                                      attrs={"NX_class": to_h5py_utf8("NXcollection")})
+                             attrs={"NX_class": to_h5py_utf8("NXcollection")})
 
         for label in scan.parameter:
             safe_label = label.replace("/", "%")
             self.add_node(FioH5NodeDataset(name=safe_label,
-                                            data=to_h5py_utf8(scan.parameter[label]),
-                                            parent=self))
-
+                                           data=to_h5py_utf8(scan.parameter[label]),
+                                           parent=self))
