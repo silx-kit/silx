@@ -50,8 +50,6 @@ try:
 except ImportError as e:
     h5pyd = None
 
-from . import fioh5
-
 logger = logging.getLogger(__name__)
 
 NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
@@ -514,6 +512,7 @@ def _open_local_file(filename):
                                    "File '%s' can't be read as spec file." % filename))
 
         try:
+            from . import fioh5
             return fioh5.FioH5(filename)
         except IOError:
             debugging_info.append((sys.exc_info(),
