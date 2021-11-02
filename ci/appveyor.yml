@@ -84,6 +84,7 @@ before_test:
     # Create test virtualenv
     - "python -m venv --clear %VENV_TEST_DIR%"
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
+    - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # First install any temporary pinned/additional requirements
     - pip install %PIP_OPTIONS% -r "ci\requirements-pinned.txt
