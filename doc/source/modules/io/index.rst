@@ -16,6 +16,7 @@
    specfile.rst
    specfilewrapper.rst
    spech5.rst
+   fioh5.rst
    url.rst
    utils.rst
    h5py_utils.rst

@@ -103,6 +103,7 @@ def supported_extensions(flat_formats=True):
 
     formats["Numpy binary files"] = set(extensions)
     formats["Coherent X-Ray Imaging files"] = set(["*.cxi"])
+    formats["FIO files"] = set(["*.fio"])
     return formats
 
 
@@ -461,6 +462,7 @@ def _open_local_file(filename):
     - h5 files, if `h5py` module is installed
     - SPEC files exposed as a NeXus layout
     - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - fio files exposed as a NeXus layout
     - Numpy files ('npy' and 'npz' files)
 
     The file is opened in read-only mode.
@@ -508,6 +510,14 @@ def _open_local_file(filename):
         except IOError:
             debugging_info.append((sys.exc_info(),
                                    "File '%s' can't be read as spec file." % filename))
+
+        try:
+            from . import fioh5
+            return fioh5.FioH5(filename)
+        except IOError:
+            debugging_info.append((sys.exc_info(),
+                                   "File '%s' can't be read as fio file." % filename))
+
     finally:
         for exc_info, message in debugging_info:
             logger.debug(message, exc_info=exc_info)
@@ -568,6 +578,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     - h5 files, if `h5py` module is installed
     - SPEC files exposed as a NeXus layout
     - raster files exposed as a NeXus layout (if `fabio` is installed)
+    - fio files exposed as a NeXus layout
     - Numpy files ('npy' and 'npz' files)
 
     The filename can be trailled an HDF5 path using the separator `::`. In this
