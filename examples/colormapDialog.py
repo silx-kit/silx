@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -140,7 +140,7 @@ class ColormapDialogExample(qt.QMainWindow):
         button = qt.QPushButton("Negative to positive")
         button.clicked.connect(self.setDataFromNegToPos)
         layout.addWidget(button)
-        button = qt.QPushButton("Only non finite values")
+        button = qt.QPushButton("With non finite values")
         button.clicked.connect(self.setDataWithNonFinite)
         layout.addWidget(button)
 
@@ -259,7 +259,7 @@ class ColormapDialogExample(qt.QMainWindow):
         if scipy is not None:
             from scipy import ndimage
             data = ndimage.gaussian_filter(data, sigma=20)
-        data = numpy.random.poisson(data)
+        data = numpy.random.poisson(data).astype(numpy.float32)
         data[10] = float("nan")
         data[50] = float("+inf")
         data[100] = float("-inf")
