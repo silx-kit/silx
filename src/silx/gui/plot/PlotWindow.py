@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -506,7 +506,7 @@ class PlotWindow(PlotWidget):
             self._dockWidgets.remove(dockwidget)
         super(PlotWindow, self).removeDockWidget(dockwidget)
 
-    def __handleFirstDockWidgetShow(self, visible):
+    def _handleFirstDockWidgetShow(self, visible):
         """Handle QDockWidget.visibilityChanged
 
         It calls :meth:`addTabbedDockWidget` for the `sender` widget.
@@ -519,7 +519,7 @@ class PlotWindow(PlotWidget):
         if visible:
             dockWidget = self.sender()
             dockWidget.visibilityChanged.disconnect(
-                self.__handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow)
             self.addTabbedDockWidget(dockWidget)
 
     def getColorBarWidget(self):
@@ -537,7 +537,7 @@ class PlotWindow(PlotWidget):
             self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
             self._legendsDockWidget.visibilityChanged.connect(
-                self.__handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow)
         return self._legendsDockWidget
 
     def getCurvesRoiDockWidget(self):
@@ -548,7 +548,7 @@ class PlotWindow(PlotWidget):
                 plot=self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
             self._curvesROIDockWidget.visibilityChanged.connect(
-                self.__handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow)
         return self._curvesROIDockWidget
 
     def getCurvesRoiWidget(self):
@@ -569,7 +569,7 @@ class PlotWindow(PlotWidget):
                 plot=self, name='Mask')
             self._maskToolsDockWidget.hide()
             self._maskToolsDockWidget.visibilityChanged.connect(
-                self.__handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow)
         return self._maskToolsDockWidget
 
     def getStatsWidget(self):
@@ -587,7 +587,7 @@ class PlotWindow(PlotWidget):
                 self.getStatsAction().setChecked)
             self._statsDockWidget.hide()
             self._statsDockWidget.visibilityChanged.connect(
-                self.__handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow)
         return self._statsDockWidget.widget()
 
     # getters for actions
