@@ -378,8 +378,12 @@ class Plot3DWidget(glu.OpenGLWidget):
         return convertArrayToQImage(image)
 
     def wheelEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        if qt.BINDING == "PySide6":
+            x, y = event.position().x(), event.position().y()
+        else:
+            x, y = event.x(), event.y()
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         angle = event.angleDelta().y() / 8.
         event.accept()
 
