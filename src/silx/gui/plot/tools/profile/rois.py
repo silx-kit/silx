@@ -917,7 +917,7 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
             axis = 0
         else:
             assert False
-        if position < bounds[0][axis] or position > bounds[1][axis]:
+        if bounds is None or position < bounds[0][axis] or position > bounds[1][axis]:
             # ROI outside of the scatter bound
             return None
 
