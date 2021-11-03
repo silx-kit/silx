@@ -277,7 +277,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
         angleInDegrees = delta / 8.
-        self._plot.onMouseWheel(event.x(), event.y(), angleInDegrees)
+        if qt.BINDING == "PySide6":
+            x, y = event.position().x(), event.position().y()
+        else:
+            x, y = event.x(), event.y()
+        self._plot.onMouseWheel(x, y, angleInDegrees)
         event.accept()
 
     def leaveEvent(self, _):
