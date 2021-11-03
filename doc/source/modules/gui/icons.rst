@@ -55,6 +55,8 @@ Available icons
      - add-shape-vertical
    * - |add|
      - add
+   * - |aggregation-mode|
+     - aggregation-mode
    * - |arrow-keys|
      - arrow-keys
    * - |axis|
@@ -339,6 +341,8 @@ Available icons
      - shape-square
    * - |shape-vertical|
      - shape-vertical
+   * - |side-histograms|
+     - side-histograms
    * - |silx|
      - silx
    * - |slice-cross|
@@ -420,6 +424,7 @@ Available icons
 .. |add-shape-unknown| image:: ../../../../src/silx/resources/gui/icons/add-shape-unknown.png
 .. |add-shape-vertical| image:: ../../../../src/silx/resources/gui/icons/add-shape-vertical.png
 .. |add| image:: ../../../../src/silx/resources/gui/icons/add.png
+.. |aggregation-mode| image:: ../../../../src/silx/resources/gui/icons/aggregation-mode.png
 .. |arrow-keys| image:: ../../../../src/silx/resources/gui/icons/arrow-keys.png
 .. |axis| image:: ../../../../src/silx/resources/gui/icons/axis.png
 .. |backend-opengl| image:: ../../../../src/silx/resources/gui/icons/backend-opengl.png
@@ -562,6 +567,7 @@ Available icons
 .. |shape-rectangle| image:: ../../../../src/silx/resources/gui/icons/shape-rectangle.png
 .. |shape-square| image:: ../../../../src/silx/resources/gui/icons/shape-square.png
 .. |shape-vertical| image:: ../../../../src/silx/resources/gui/icons/shape-vertical.png
+.. |side-histograms| image:: ../../../../src/silx/resources/gui/icons/side-histograms.png
 .. |silx| image:: ../../../../src/silx/resources/gui/icons/silx.png
 .. |slice-cross| image:: ../../../../src/silx/resources/gui/icons/slice-cross.png
 .. |slice-horizontal| image:: ../../../../src/silx/resources/gui/icons/slice-horizontal.png
