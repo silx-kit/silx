@@ -744,7 +744,7 @@ class PrintAction(PlotAction):
         if not painter.begin(self.getPrinter()):
             return False
 
-        pageRect = self.getPrinter().pageRect()
+        pageRect = self.getPrinter().pageRect(qt.QPrinter.DevicePixel)
         xScale = pageRect.width() / widget.width()
         yScale = pageRect.height() / widget.height()
         scale = min(xScale, yScale)
@@ -776,8 +776,9 @@ class PrintAction(PlotAction):
         pixmap = qt.QPixmap()
         pixmap.loadFromData(pngData, 'png')
 
-        xScale = self.getPrinter().pageRect().width() / pixmap.width()
-        yScale = self.getPrinter().pageRect().height() / pixmap.height()
+        pageRect = self.getPrinter().pageRect(qt.QPrinter.DevicePixel)
+        xScale = pageRect.width() / pixmap.width()
+        yScale = pageRect.height() / pixmap.height()
         scale = min(xScale, yScale)
 
         # Draw pixmap with painter

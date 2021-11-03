@@ -176,11 +176,12 @@ class PrintAction(Plot3DAction):
             if not painter.begin(printer):
                 return
 
-            if (printer.pageRect().width() < image.width() or
-                    printer.pageRect().height() < image.height()):
+            pageRect = printer.pageRect(qt.QPrinter.DevicePixel)
+            if (pageRect.width() < image.width() or
+                    pageRect.height() < image.height()):
                 # Downscale to page
-                xScale = printer.pageRect().width() / image.width()
-                yScale = printer.pageRect().height() / image.height()
+                xScale = pageRect.width() / image.width()
+                yScale = pageRect.height() / image.height()
                 scale = min(xScale, yScale)
             else:
                 scale = 1.
