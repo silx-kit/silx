@@ -160,7 +160,7 @@ class HexaTableModel(qt.QAbstractTableModel):
         elif role == qt.Qt.FontRole:
             return self.__font
 
-        elif role == qt.Qt.BackgroundColorRole:
+        elif role == qt.Qt.BackgroundRole:
             pos = (row << 4) + column
             if column != 0x10 and pos >= len(self.__connector):
                 return self.__palette.color(qt.QPalette.Disabled, qt.QPalette.Window)
