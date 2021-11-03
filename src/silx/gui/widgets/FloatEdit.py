@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,5 +61,11 @@ class FloatEdit(qt.QLineEdit):
 
         :param float value: The value to set the QLineEdit to.
         """
-        text = self.validator().locale().toString(float(value))
+        locale = self.validator().locale()
+        if qt.BINDING == "PySide6":
+            # Fix for PySide6 not selecting the right method
+            text = locale.toString(float(value), 'g')
+        else:
+            text = locale.toString(float(value))
+
         self.setText(text)
