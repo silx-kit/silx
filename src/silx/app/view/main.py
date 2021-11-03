@@ -86,6 +86,21 @@ def mainQt(options):
     # Import most of the things here to be sure to use the right logging level
     #
 
+    # Use max opened files hard limit as soft limit
+    try:
+        import resource
+    except ImportError:
+        _logger.debug("No resource module available")
+    else:
+        if hasattr(resource, 'RLIMIT_NOFILE'):
+            try:
+                hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+                resource.setrlimit(resource.RLIMIT_NOFILE, (hard_nofile, hard_nofile))
+            except (ValueError, OSError):
+                _logger.warning("Failed to retrieve and set the max opened files limit")
+            else:
+                _logger.debug("Set max opened files to %d", hard_nofile)
+
     # This needs to be done prior to load HDF5
     hdf5_file_locking = 'TRUE' if options.hdf5_file_locking else 'FALSE'
     _logger.info('Set HDF5_USE_FILE_LOCKING=%s', hdf5_file_locking)
