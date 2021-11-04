@@ -1,8 +1,8 @@
 [Setup]
-AppId={{1B71F614-D6B1-4E28-83C8-E04068C7F91A}
-AppName=silx
+AppId={{A694A78C-B4D1-4983-8BC6-A84D30341EB4}
+AppName=silx view
 AppVersion=#Version
-AppVerName=silx
+AppVerName=silx-view-#Version
 AppPublisher=ESRF
 AppPublisherURL=https://www.silx.org
 AppSupportURL=https://github.com/silx-kit/silx
@@ -16,6 +16,7 @@ Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
+WizardStyle=modern
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
