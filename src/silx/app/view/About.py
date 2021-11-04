@@ -30,8 +30,6 @@ __date__ = "05/07/2018"
 import os
 import sys
 
-import h5py
-
 from silx.gui import qt
 from silx.gui import icons
 
