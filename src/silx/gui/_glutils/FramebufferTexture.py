@@ -107,8 +107,11 @@ class FramebufferTexture(object):
             else:
                 self._depthId = None
 
-            assert (gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER) ==
-                gl.GL_FRAMEBUFFER_COMPLETE)
+            status = gl.glCheckFramebufferStatus(gl.GL_FRAMEBUFFER)
+            if status != gl.GL_FRAMEBUFFER_COMPLETE:
+                _logger.error(
+                    "OpenGL framebuffer initialization not complete, display may fail (error %d)",
+                    status)
 
     @property
     def shape(self):
