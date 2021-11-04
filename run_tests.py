@@ -53,12 +53,6 @@ logger.setLevel(logging.WARNING)
 
 logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
 
-try:
-    import resource
-except ImportError:
-    resource = None
-    logger.warning("resource module missing")
-
 
 try:
     import numpy
