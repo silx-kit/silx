@@ -30,6 +30,8 @@ __date__ = "05/07/2018"
 import os
 import sys
 
+import h5py
+
 from silx.gui import qt
 from silx.gui import icons
 
@@ -160,6 +162,7 @@ class About(qt.QDialog):
     def __updateText(self):
         """Update the content of the dialog according to the settings."""
         import silx._version
+        import h5py.version
 
         message = """<table>
         <tr><td width="50%" align="center" valign="middle">
@@ -187,28 +190,21 @@ class About(qt.QDialog):
         """
 
         optionals = []
-        optionals.append(self.__formatOptionalLibraries("H5py", "h5py" in sys.modules))
-        optionals.append(self.__formatOptionalLibraries("FabIO", "fabio" in sys.modules))
-
-        try:
-            import h5py.version
-            if h5py.version.hdf5_version_tuple >= (1, 10, 2):
-                # Previous versions only return True if the filter was first used
-                # to decode a dataset
-                import h5py.h5z
-                FILTER_LZ4 = 32004
-                FILTER_BITSHUFFLE = 32008
-                filters = [
-                    ("HDF5 LZ4 filter", FILTER_LZ4),
-                    ("HDF5 Bitshuffle filter", FILTER_BITSHUFFLE),
-                ]
-                for name, filterId in filters:
-                    isAvailable = h5py.h5z.filter_avail(filterId)
-                    optionals.append(self.__formatOptionalFilters(name, isAvailable))
-            else:
-                optionals.append(self.__formatOptionalLibraries("hdf5plugin", "hdf5plugin" in sys.modules))
-        except ImportError:
-            pass
+        if h5py.version.hdf5_version_tuple >= (1, 10, 2):
+            # Previous versions only return True if the filter was first used
+            # to decode a dataset
+            import h5py.h5z
+            FILTER_LZ4 = 32004
+            FILTER_BITSHUFFLE = 32008
+            filters = [
+                ("HDF5 LZ4 filter", FILTER_LZ4),
+                ("HDF5 Bitshuffle filter", FILTER_BITSHUFFLE),
+            ]
+            for name, filterId in filters:
+                isAvailable = h5py.h5z.filter_avail(filterId)
+                optionals.append(self.__formatOptionalFilters(name, isAvailable))
+        else:
+            optionals.append(self.__formatOptionalLibraries("hdf5plugin", "hdf5plugin" in sys.modules))
 
         # Access to the logo in SVG or PNG
         logo = icons.getQFile("silx:" + os.path.join("gui", "logo", "silx"))
