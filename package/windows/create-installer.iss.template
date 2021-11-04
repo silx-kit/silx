@@ -1,17 +1,17 @@
 [Setup]
 AppId={{1B71F614-D6B1-4E28-83C8-E04068C7F91A}
-AppName=Crispy
+AppName=silx
 AppVersion=#Version
-AppVerName=Crispy
-AppPublisher=Marius Retegan
-AppPublisherURL=https://github.com/mretegan/crispy
-AppSupportURL=https://github.com/mretegan/crispy
-AppUpdatesURL=https://github.com/mretegan/crispy/releases
-DefaultDirName={autopf}\Crispy
-DefaultGroupName=Crispy
-LicenseFile=..\LICENSE.txt
+AppVerName=silx
+AppPublisher=ESRF
+AppPublisherURL=https://www.silx.org
+AppSupportURL=https://github.com/silx-kit/silx
+AppUpdatesURL=https://github.com/silx-kit/silx/releases
+DefaultDirName={autopf}\silx
+DefaultGroupName=silx
+LicenseFile=..\..\LICENSE
 OutputDir=artifacts
-OutputBaseFilename=Crispy-#Version-x64
+OutputBaseFilename=silx-#Version-x64
 Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed=x64
@@ -21,11 +21,11 @@ ArchitecturesInstallIn64BitMode=x64
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "dist\Crispy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
-Source: "crispy.ico"; DestDir: "{app}"
+Source: "dist\silx\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "silx.ico"; DestDir: "{app}"
 
 [Icons]
-Name: "{group}\Crispy"; Filename: "{app}\crispy.exe"; IconFilename: "{app}\crispy.ico"
+Name: "{group}\silx"; Filename: "{app}\silx-view.exe"; IconFilename: "{app}\silx.ico"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 // Code from https://stackoverflow.com/questions/2000296/inno-setup-how-to-automatically-uninstall-previous-installed-version/2099805#209980
