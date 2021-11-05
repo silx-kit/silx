@@ -99,9 +99,9 @@ class ItemProxyRow(ProxyRow):
                                items.Item3DChangedType)):
             events = (events,)
         self.__events = events
-        item.sigItemChanged.connect(self.__itemChanged)
+        item.sigItemChanged.connect(self._itemChanged)
 
-    def __itemChanged(self, event):
+    def _itemChanged(self, event):
         """Handle item changed
 
         :param Union[ItemChangedType,Item3DChangedType] event:
@@ -1384,9 +1384,9 @@ class ComplexIsosurfaceRow(IsosurfaceRow):
         self._colormapRow = ColormapRow(item)
 
         self.__updateRowsForItem(item)
-        item.sigItemChanged.connect(self.__itemChanged)
+        item.sigItemChanged.connect(self._itemChanged)
 
-    def __itemChanged(self, event):
+    def _itemChanged(self, event):
         """Update enabled/disabled rows"""
         if event == items.ItemChangedType.COMPLEX_MODE:
             item = self.sender()
@@ -1560,7 +1560,7 @@ class Scatter2DPropertyMixInRow(object):
         self.__isEnabled = item.isPropertyEnabled(propertyName)
         self.__updateFlags()
 
-        item.sigItemChanged.connect(self.__itemChanged)
+        item.sigItemChanged.connect(self._itemChanged)
 
     def data(self, column, role):
         if column == 1 and not self.__isEnabled:
@@ -1577,7 +1577,7 @@ class Scatter2DPropertyMixInRow(object):
         else:
             self.setFlags(qt.Qt.NoItemFlags)
 
-    def __itemChanged(self, event):
+    def _itemChanged(self, event):
         """Set flags to enable/disable the row"""
         if event == items.ItemChangedType.VISUALIZATION_MODE:
             item = self.sender()
