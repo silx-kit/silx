@@ -27,7 +27,7 @@ SpecFile data within a python program.
 
 Documentation for the original C library SpecFile can be found on the ESRF
 website:
-`The manual for the SpecFile Library <http://www.esrf.eu/files/live/sites/www/files/Instrumentation/software/beamline-control/BLISS/documentation/SpecFileManual.pdf>`_
+`The manual for the SpecFile Library <http://ftp.esrf.fr/pub/scisoft/silx/doc/SpecFileManual.pdf>`_
 
 Examples
 ========
