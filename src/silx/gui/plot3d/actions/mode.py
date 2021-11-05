@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -143,7 +143,7 @@ class PickingModeAction(Plot3DAction):
 
     This signal is only emitted when the action is checked.
 
-    It provides the (x, y) clicked mouse position
+    It provides the (x, y) clicked mouse position in logical widget pixel coordinates
     """
 
     def __init__(self, parent, plot3d=None):

@@ -112,7 +112,7 @@ class Plot3DWidget(glu.OpenGLWidget):
     sigSceneClicked = qt.Signal(float, float)
     """Signal emitted when the scene is clicked with the left mouse button.
 
-    It provides the (x, y) clicked mouse position
+    It provides the (x, y) clicked mouse position in logical widget pixel coordinates.
     """
 
     @enum.unique
@@ -168,7 +168,9 @@ class Plot3DWidget(glu.OpenGLWidget):
     def __clickHandler(self, *args):
         """Handle interaction state machine click"""
         x, y = args[0][:2]
-        self.sigSceneClicked.emit(x, y)
+        # Convert from device pixel to logical pixel unit
+        devicePixelRatio = self.getDevicePixelRatio()
+        self.sigSceneClicked.emit(x / devicePixelRatio, y / devicePixelRatio)
 
     def setInteractiveMode(self, mode):
         """Set the interactive mode.
