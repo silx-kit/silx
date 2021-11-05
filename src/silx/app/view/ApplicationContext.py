@@ -74,8 +74,9 @@ class ApplicationContext(DataViewHooks):
         plotImageYAxisOrientation = settings.value("plot-image.y-axis-orientation", "")
         settings.endGroup()
 
-        if plotBackend != "":
-            silx.config.DEFAULT_PLOT_BACKEND = plotBackend
+        # Use matplotlib backend by default
+        silx.config.DEFAULT_PLOT_BACKEND = \
+            "opengl" if plotBackend == "opengl" else "matplotlib"
         if plotImageYAxisOrientation != "":
             silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = plotImageYAxisOrientation
 
