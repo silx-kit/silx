@@ -25,10 +25,6 @@
 This module is a cython binding to wrap the C SpecFile library, to access
 SpecFile data within a python program.
 
-Documentation for the original C library SpecFile can be found on the ESRF
-website:
-`The manual for the SpecFile Library <http://www.esrf.eu/files/live/sites/www/files/Instrumentation/software/beamline-control/BLISS/documentation/SpecFileManual.pdf>`_
-
 Examples
 ========
 
