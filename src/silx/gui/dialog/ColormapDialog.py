@@ -427,7 +427,7 @@ class _ColormapHistogram(qt.QWidget):
         if histo is not None:
             counts, edges = histo
             normalizer = Colormap(normalization=norm)._getNormalizer()
-            mask = normalizer.isValid(edges[:-1])  # Check lower bin edges only
+            mask = normalizer.is_valid(edges[:-1])  # Check lower bin edges only
             firstValid = numpy.argmax(mask)  # edges increases monotonically
             if firstValid == 0:  # Mask is all False or all True
                 return (counts, edges) if mask[0] else (None, None)
@@ -480,7 +480,7 @@ class _ColormapHistogram(qt.QWidget):
         if histo is not None:
             _histo, edges = histo
             normalizer = Colormap(normalization=norm)._getNormalizer()
-            edges = edges[normalizer.isValid(edges)]
+            edges = edges[normalizer.is_valid(edges)]
             if edges.size == 0:
                 return None, None
             else:
