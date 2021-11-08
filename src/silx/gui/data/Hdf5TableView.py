@@ -214,9 +214,9 @@ class _CellFilterAvailableData(_CellData):
 
     def data(self, role=qt.Qt.DisplayRole):
         state = self._states[self.__availability]
-        if role == qt.Qt.TextColorRole:
+        if role == qt.Qt.ForegroundRole:
             return state[1]
-        elif role == qt.Qt.BackgroundColorRole:
+        elif role == qt.Qt.BackgroundRole:
             return state[2]
         else:
             return None

@@ -372,6 +372,9 @@ class HistogramWidget(qt.QWidget):
             return
 
         xmin, xmax = min_max(array, min_positive=False, finite=True)
+        if xmin is None or xmax is None:  # All not finite data
+            self.reset()
+            return
         guessed_nbins = min(1024, int(numpy.sqrt(array.size)))
 
         # bad hack: get 256 bins in the case we have a B&W

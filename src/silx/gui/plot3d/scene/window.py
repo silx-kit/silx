@@ -352,6 +352,9 @@ class Window(event.Notifier):
         :param float devicePixelRatio:
             Ratio between device and device-independent pixels
         """
+        if self.size == (0, 0):
+            return
+
         if glcontext not in self._contexts:
             self._contexts[glcontext] = ContextGL2(glcontext)  # New context
 

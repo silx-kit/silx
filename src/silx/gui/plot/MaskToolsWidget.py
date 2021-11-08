@@ -502,7 +502,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # Disconnect from previous image
             try:
                 previous.sigItemChanged.disconnect(self.__imageChanged)
-            except TypeError:
+            except (RuntimeError, TypeError):
                 pass  # TODO fixme should not happen
 
         # Set the image
