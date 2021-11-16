@@ -223,17 +223,12 @@ class TestH5pyUtils(unittest.TestCase):
         self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
 
     @property
-    def _libbound_low(self):
-        libver = self._subtest_options.get("libver")
-        low, _ = h5py_utils._effective_hdf5_libver_bounds(libver)
-        return low
-
-    @property
     def _nonlocking_reader_before_writer(self):
         """A non-locking reader must open the file before it is locked by a writer"""
         if IS_WINDOWS and h5py_utils.HDF5_HAS_LOCKING_ARGUMENT:
             return True
-        if self._libbound_low != "v108":
+        libver = self._subtest_options.get("libver")
+        if not h5py_utils._libver_low_bound_is_v108(libver):
             return True
         return False
 

@@ -60,43 +60,21 @@ else:
 H5PY_HAS_LOCKING_ARGUMENT = H5PY_HEX_VERSION >= calc_hexversion(3, 5, 0)
 HAS_LOCKING_ARGUMENT = HDF5_HAS_LOCKING_ARGUMENT & H5PY_HAS_LOCKING_ARGUMENT
 
-
-if HDF5_HEX_VERSION >= calc_hexversion(1, 12, 0):
-    LIBVER_LIST = ["v108", "v110", "v112"]
-elif HDF5_HEX_VERSION >= calc_hexversion(1, 10, 0):
-    LIBVER_LIST = ["v108", "v110"]
-else:
-    LIBVER_LIST = ["v108"]
+LATEST_LIBVER_IS_V108 = HDF5_HEX_VERSION < calc_hexversion(1, 10, 0)
 
 
-def _parse_libver_bound(libver_bound):
-    """
-    :param str libver_bound:
-    :returns str:
-    """
-    if libver_bound == "earliest":
-        return LIBVER_LIST[0]
-    elif libver_bound == "latest":
-        return LIBVER_LIST[-1]
-    else:
-        assert libver_bound in LIBVER_LIST
-        return libver_bound
-
-
-def _effective_hdf5_libver_bounds(libver):
-    """
-    :param None or str or tuple libver:
-    :returns tuple:
-    """
+def _libver_low_bound_is_v108(libver) -> bool:
     if libver is None:
-        return LIBVER_LIST[0], LIBVER_LIST[-1]
+        return True
+    if LATEST_LIBVER_IS_V108:
+        return True
     if isinstance(libver, str):
-        libver = _parse_libver_bound(libver)
-        return libver, LIBVER_LIST[-1]
-    assert len(libver) == 2
-    low = _parse_libver_bound(libver[0])
-    high = _parse_libver_bound(libver[1])
-    return low, high
+        low = libver
+    else:
+        low = libver[0]
+    if low == "latest":
+        return False
+    return low == "v108"
 
 
 def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
@@ -127,8 +105,7 @@ def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
             _logger.warning(
                 "Non-locking readers will fail when a writer has already locked the HDF5 file (this restriction applies to libhdf5 >= 1.12.1 or libhdf5 >= 1.10.7 on Windows)"
             )
-        low, _ = _effective_hdf5_libver_bounds(libver)
-        if low != "v108":
+        if not _libver_low_bound_is_v108(libver):
             _logger.warning(
                 "Non-locking readers will fail when a writer has already locked the HDF5 file (this restriction applies to libver >= v110)"
             )
