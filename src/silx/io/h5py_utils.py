@@ -378,7 +378,7 @@ else:
         HDF5 file without the explicit argument `locking=True` will
         raise `ValueError`.
 
-        When using this class, you cannot open different files simultatiously
+        When using this class, you cannot open different files simultaneously
         with different modes because the locking flag is an environment variable.
         """
 
