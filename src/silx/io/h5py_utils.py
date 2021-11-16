@@ -269,114 +269,132 @@ top_level_names = retry()(_top_level_names)
 safe_top_level_names = retry_in_subprocess()(_top_level_names)
 
 
-if HAS_LOCKING_ARGUMENT:
+class _BaseFile(h5py.File):
+    """Takes care of HDF5 file locking and SWMR mode without the need
+    to handle those explicitely.
+    """
 
-    class File(h5py.File):
-        """Takes care of HDF5 file locking and SWMR mode without the need
-        to handle those explicitely.
+    _SWMR_LIBVER = "latest"
 
-        When non-locking readers are not supported, opening an
-        HDF5 file without the explicit argument `locking=True` will
-        raise `ValueError`.
+    def __init__(
+        self,
+        filename,
+        mode=None,
+        locking=None,
+        enable_file_locking=None,
+        swmr=None,
+        libver=None,
+        **kwargs,
+    ):
+        r"""The arguments `enable_file_locking` and `swmr` should not be
+        specified explicitly for normal use cases.
+
+        :param str filename:
+        :param str or None mode: read-only by default
+        :param bool or None locking: by default it is disabled for `mode='r'`
+                                        and `swmr=False` and enabled for all
+                                        other modes.
+        :param bool or None enable_file_locking: deprecated
+        :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
+        :param None or str or tuple libver:
+        :param \**kwargs: see `h5py.File.__init__`
         """
-
-        _SWMR_LIBVER = "latest"
-
-        def __init__(
-            self,
-            filename,
-            mode=None,
-            locking=None,
-            enable_file_locking=None,
-            swmr=None,
-            libver=None,
-            **kwargs,
-        ):
-            r"""The arguments `enable_file_locking` and `swmr` should not be
-            specified explicitly for normal use cases.
-
-            :param str filename:
-            :param str or None mode: read-only by default
-            :param bool or None locking: by default it is disabled for `mode='r'`
-                                         and `swmr=False` and enabled for all
-                                         other modes.
-            :param bool or None enable_file_locking: deprecated
-            :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-            :param None or str or tuple libver:
-            :param \**kwargs: see `h5py.File.__init__`
-            """
-            if mode is None:
-                mode = "r"
-            elif mode not in ("r", "w", "w-", "x", "a", "r+"):
-                raise ValueError("invalid mode {}".format(mode))
-            if not HAS_SWMR:
-                swmr = False
-            if swmr and libver is None:
-                libver = self._SWMR_LIBVER
-
-            if enable_file_locking is not None:
-                deprecated_warning(
-                    type_="argument",
-                    name="enable_file_locking",
-                    replacement="locking",
-                    since_version="1.0",
+        # File locking behavior has changed in recent versions of libhdf5
+        if HDF5_HAS_LOCKING_ARGUMENT != H5PY_HAS_LOCKING_ARGUMENT:
+            _logger.critical(
+                "The version of libhdf5 ({}) used by h5py ({}) is not supported: "
+                "Do not expect file locking to work.".format(
+                    h5py.version.hdf5_version, h5py.version.version
                 )
-                if locking is None:
-                    locking = enable_file_locking
-            locking = _hdf5_file_locking(
-                mode=mode, locking=locking, swmr=swmr, libver=libver
             )
-            kwargs.setdefault("locking", locking)
 
-            if HAS_TRACK_ORDER:
-                kwargs.setdefault("track_order", True)
-            try:
+        if mode is None:
+            mode = "r"
+        elif mode not in ("r", "w", "w-", "x", "a", "r+"):
+            raise ValueError("invalid mode {}".format(mode))
+        if not HAS_SWMR:
+            swmr = False
+        if swmr and libver is None:
+            libver = self._SWMR_LIBVER
+
+        if enable_file_locking is not None:
+            deprecated_warning(
+                type_="argument",
+                name="enable_file_locking",
+                replacement="locking",
+                since_version="1.0",
+            )
+            if locking is None:
+                locking = enable_file_locking
+        locking = _hdf5_file_locking(
+            mode=mode, locking=locking, swmr=swmr, libver=libver
+        )
+        self._set_locking(locking, kwargs)
+
+        if HAS_TRACK_ORDER:
+            kwargs.setdefault("track_order", True)
+        try:
+            super().__init__(filename, mode=mode, swmr=swmr, libver=libver, **kwargs)
+        except OSError as e:
+            #   wlock   wSWMR   rlock   rSWMR   OSError: Unable to open file (...)
+            # 1 TRUE    FALSE   FALSE   FALSE   -
+            # 2 TRUE    FALSE   FALSE   TRUE    -
+            # 3 TRUE    FALSE   TRUE    FALSE   unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
+            # 4 TRUE    FALSE   TRUE    TRUE    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
+            # 5 TRUE    TRUE    FALSE   FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
+            # 6 TRUE    TRUE    FALSE   TRUE    -
+            # 7 TRUE    TRUE    TRUE    FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
+            # 8 TRUE    TRUE    TRUE    TRUE    -
+            if (
+                mode == "r"
+                and swmr is None
+                and "file is already open for write" in str(e)
+            ):
+                # Try reading in SWMR mode (situation 5 and 7)
+                swmr = True
+                if libver is None:
+                    libver = self._SWMR_LIBVER
                 super().__init__(
                     filename, mode=mode, swmr=swmr, libver=libver, **kwargs
                 )
-            except OSError as e:
-                #   wlock   wSWMR   rlock   rSWMR   OSError: Unable to open file (...)
-                # 1 TRUE    FALSE   FALSE   FALSE   -
-                # 2 TRUE    FALSE   FALSE   TRUE    -
-                # 3 TRUE    FALSE   TRUE    FALSE   unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
-                # 4 TRUE    FALSE   TRUE    TRUE    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
-                # 5 TRUE    TRUE    FALSE   FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
-                # 6 TRUE    TRUE    FALSE   TRUE    -
-                # 7 TRUE    TRUE    TRUE    FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
-                # 8 TRUE    TRUE    TRUE    TRUE    -
-                if (
-                    mode == "r"
-                    and swmr is None
-                    and "file is already open for write" in str(e)
-                ):
-                    # Try reading in SWMR mode (situation 5 and 7)
-                    swmr = True
-                    if libver is None:
-                        libver = self._SWMR_LIBVER
-                    super().__init__(
-                        filename, mode=mode, swmr=swmr, libver=libver, **kwargs
-                    )
-                else:
-                    raise
             else:
-                try:
-                    if mode != "r" and swmr:
-                        # Try setting writer in SWMR mode
-                        self.swmr_mode = True
-                except Exception:
-                    self.close()
-                    raise
+                raise
+        else:
+            self._file_open_callback()
+            try:
+                if mode != "r" and swmr:
+                    # Try setting writer in SWMR mode
+                    self.swmr_mode = True
+            except Exception:
+                self.close()
+                raise
+
+    def _set_locking(self, locking: bool, open_options: dict):
+        raise NotImplementedError
+
+    def _file_open_callback(self):
+        raise NotImplementedError
+
+
+if HAS_LOCKING_ARGUMENT:
+
+    class File(_BaseFile):
+        """Takes care of HDF5 file locking and SWMR mode without the need
+        to handle those explicitely.
+        """
+
+        def _set_locking(self, locking: bool, open_options: dict):
+            open_options.setdefault("locking", locking)
+
+        def _file_open_callback(self):
+            pass
 
 
 else:
 
-    class File(h5py.File):
+    class File(_BaseFile):
         """Takes care of HDF5 file locking and SWMR mode without the need
         to handle those explicitely.
-
-        When non-locking readers are not supported, opening an
-        HDF5 file without the explicit argument `locking=True` will
-        raise `ValueError`.
 
         When using this class, you cannot open different files simultaneously
         with different modes because the locking flag is an environment variable.
@@ -384,105 +402,15 @@ else:
 
         _HDF5_FILE_LOCKING = None
         _NOPEN = 0
-        _SWMR_LIBVER = "latest"
 
-        def __init__(
-            self,
-            filename,
-            mode=None,
-            locking=None,
-            enable_file_locking=None,
-            swmr=None,
-            libver=None,
-            **kwargs,
-        ):
-            r"""The arguments `enable_file_locking` and `swmr` should not be
-            specified explicitly for normal use cases.
-
-            :param str filename:
-            :param str or None mode: read-only by default
-            :param bool or None locking: by default it is disabled for `mode='r'`
-                                         and `swmr=False` and enabled for all
-                                         other modes.
-            :param bool or None enable_file_locking: deprecated
-            :param bool or None swmr: try both modes when `mode='r'` and `swmr=None`
-            :param None or str or tuple libver:
-            :param \**kwargs: see `h5py.File.__init__`
-            """
-            # File locking behavior has changed in recent versions of libhdf5
-            if HDF5_HAS_LOCKING_ARGUMENT:
-                _logger.critical(
-                    "The version of libhdf5 ({}) used by h5py is not supported: "
-                    "Do not expect file locking to work.".format(
-                        h5py.version.hdf5_version
-                    )
-                )
-
-            if mode is None:
-                mode = "r"
-            elif mode not in ("r", "w", "w-", "x", "a", "r+"):
-                raise ValueError("invalid mode {}".format(mode))
-            if not HAS_SWMR:
-                swmr = False
-            if swmr and libver is None:
-                libver = self._SWMR_LIBVER
-
-            if enable_file_locking is not None:
-                deprecated_warning(
-                    type_="argument",
-                    name="enable_file_locking",
-                    replacement="locking",
-                    since_version="1.0",
-                )
-                if locking is None:
-                    locking = enable_file_locking
-            locking = _hdf5_file_locking(
-                mode=mode, locking=locking, swmr=swmr, libver=libver
-            )
+        def _set_locking(self, locking: bool, open_options: dict):
             if self._NOPEN:
                 self._check_locking_env(locking)
             else:
                 self._set_locking_env(locking)
 
-            if HAS_TRACK_ORDER:
-                kwargs.setdefault("track_order", True)
-            try:
-                super().__init__(
-                    filename, mode=mode, swmr=swmr, libver=libver, **kwargs
-                )
-            except OSError as e:
-                #   wlock   wSWMR   rlock   rSWMR   OSError: Unable to open file (...)
-                # 1 TRUE    FALSE   FALSE   FALSE   -
-                # 2 TRUE    FALSE   FALSE   TRUE    -
-                # 3 TRUE    FALSE   TRUE    FALSE   unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
-                # 4 TRUE    FALSE   TRUE    TRUE    unable to lock file, errno = 11, error message = 'Resource temporarily unavailable'
-                # 5 TRUE    TRUE    FALSE   FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
-                # 6 TRUE    TRUE    FALSE   TRUE    -
-                # 7 TRUE    TRUE    TRUE    FALSE   file is already open for write (may use <h5clear file> to clear file consistency flags)
-                # 8 TRUE    TRUE    TRUE    TRUE    -
-                if (
-                    mode == "r"
-                    and swmr is None
-                    and "file is already open for write" in str(e)
-                ):
-                    # Try reading in SWMR mode (situation 5 and 7)
-                    swmr = True
-                    if libver is None:
-                        libver = self._SWMR_LIBVER
-                    super().__init__(
-                        filename, mode=mode, swmr=swmr, libver=libver, **kwargs
-                    )
-                else:
-                    raise
-            else:
-                self._add_nopen(1)
-                try:
-                    if mode != "r" and swmr:
-                        # Try setting writer in SWMR mode
-                        self.swmr_mode = True
-                except Exception:
-                    self.close()
-                    raise
+        def _file_open_callback(self):
+            self._add_nopen(1)
 
         @classmethod
         def _add_nopen(cls, v):
