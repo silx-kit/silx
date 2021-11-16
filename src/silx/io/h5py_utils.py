@@ -246,12 +246,90 @@ top_level_names = retry()(_top_level_names)
 safe_top_level_names = retry_in_subprocess()(_top_level_names)
 
 
-class _BaseFile(h5py.File):
+class Hdf5FileLockingManager:
+    """Manage HDF5 file locking in the current process through the HDF5_USE_FILE_LOCKING
+    environment variable.
+    """
+
+    def __init__(self) -> None:
+        self._hdf5_file_locking = None
+        self._nfiles_open = 0
+
+    def opened(self):
+        self._add_nopen(1)
+
+    def closed(self):
+        self._add_nopen(-1)
+        if not self._nfiles_open:
+            self._restore_locking_env()
+
+    def set_locking(self, locking):
+        if self._nfiles_open:
+            self._check_locking_env(locking)
+        else:
+            self._set_locking_env(locking)
+
+    def _add_nopen(self, v):
+        self._nfiles_open = max(self._nfiles_open + v, 0)
+
+    def _set_locking_env(self, enable):
+        self._backup_locking_env()
+        if enable:
+            os.environ["HDF5_USE_FILE_LOCKING"] = "TRUE"
+        elif enable is None:
+            try:
+                del os.environ["HDF5_USE_FILE_LOCKING"]
+            except KeyError:
+                pass
+        else:
+            os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+
+    def _get_locking_env(self):
+        v = os.environ.get("HDF5_USE_FILE_LOCKING")
+        if v == "TRUE":
+            return True
+        elif v is None:
+            return None
+        else:
+            return False
+
+    def _check_locking_env(self, enable):
+        if enable != self._get_locking_env():
+            if enable:
+                raise RuntimeError(
+                    "Close all HDF5 files before enabling HDF5 file locking"
+                )
+            else:
+                raise RuntimeError(
+                    "Close all HDF5 files before disabling HDF5 file locking"
+                )
+
+    def _backup_locking_env(self):
+        v = os.environ.get("HDF5_USE_FILE_LOCKING")
+        if v is None:
+            self._hdf5_file_locking = None
+        else:
+            self._hdf5_file_locking = v == "TRUE"
+
+    def _restore_locking_env(self):
+        self._set_locking_env(self._hdf5_file_locking)
+        self._hdf5_file_locking = None
+
+
+class File(h5py.File):
     """Takes care of HDF5 file locking and SWMR mode without the need
     to handle those explicitely.
+
+    When file locking is managed through the HDF5_USE_FILE_LOCKING environment
+    variable, you cannot open different files simultaneously with different modes.
     """
 
     _SWMR_LIBVER = "latest"
+
+    if HAS_LOCKING_ARGUMENT:
+        _LOCKING_MGR = None
+    else:
+        _LOCKING_MGR = Hdf5FileLockingManager()
 
     def __init__(
         self,
@@ -306,7 +384,10 @@ class _BaseFile(h5py.File):
         locking = _hdf5_file_locking(
             mode=mode, locking=locking, swmr=swmr, libver=libver
         )
-        self._set_locking(locking, kwargs)
+        if self._LOCKING_MGR is None:
+            kwargs.setdefault("locking", locking)
+        else:
+            self._LOCKING_MGR.set_locking(locking)
 
         if HAS_TRACK_ORDER:
             kwargs.setdefault("track_order", True)
@@ -346,98 +427,14 @@ class _BaseFile(h5py.File):
                 self.close()
                 raise
 
-    def _set_locking(self, locking: bool, open_options: dict):
-        raise NotImplementedError
+    def close(self):
+        super().close()
+        self._file_close_callback()
 
     def _file_open_callback(self):
-        raise NotImplementedError
+        if self._LOCKING_MGR is not None:
+            self._LOCKING_MGR.opened()
 
-
-if HAS_LOCKING_ARGUMENT:
-
-    class File(_BaseFile):
-        """Takes care of HDF5 file locking and SWMR mode without the need
-        to handle those explicitely.
-        """
-
-        def _set_locking(self, locking: bool, open_options: dict):
-            open_options.setdefault("locking", locking)
-
-        def _file_open_callback(self):
-            pass
-
-
-else:
-
-    class File(_BaseFile):
-        """Takes care of HDF5 file locking and SWMR mode without the need
-        to handle those explicitely.
-
-        When using this class, you cannot open different files simultaneously
-        with different modes because the locking flag is an environment variable.
-        """
-
-        _HDF5_FILE_LOCKING = None
-        _NOPEN = 0
-
-        def _set_locking(self, locking: bool, open_options: dict):
-            if self._NOPEN:
-                self._check_locking_env(locking)
-            else:
-                self._set_locking_env(locking)
-
-        def _file_open_callback(self):
-            self._add_nopen(1)
-
-        @classmethod
-        def _add_nopen(cls, v):
-            cls._NOPEN = max(cls._NOPEN + v, 0)
-
-        def close(self):
-            super().close()
-            self._add_nopen(-1)
-            if not self._NOPEN:
-                self._restore_locking_env()
-
-        def _set_locking_env(self, enable):
-            self._backup_locking_env()
-            if enable:
-                os.environ["HDF5_USE_FILE_LOCKING"] = "TRUE"
-            elif enable is None:
-                try:
-                    del os.environ["HDF5_USE_FILE_LOCKING"]
-                except KeyError:
-                    pass
-            else:
-                os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
-
-        def _get_locking_env(self):
-            v = os.environ.get("HDF5_USE_FILE_LOCKING")
-            if v == "TRUE":
-                return True
-            elif v is None:
-                return None
-            else:
-                return False
-
-        def _check_locking_env(self, enable):
-            if enable != self._get_locking_env():
-                if enable:
-                    raise RuntimeError(
-                        "Close all HDF5 files before enabling HDF5 file locking"
-                    )
-                else:
-                    raise RuntimeError(
-                        "Close all HDF5 files before disabling HDF5 file locking"
-                    )
-
-        def _backup_locking_env(self):
-            v = os.environ.get("HDF5_USE_FILE_LOCKING")
-            if v is None:
-                self._HDF5_FILE_LOCKING = None
-            else:
-                self._HDF5_FILE_LOCKING = v == "TRUE"
-
-        def _restore_locking_env(self):
-            self._set_locking_env(self._HDF5_FILE_LOCKING)
-            self._HDF5_FILE_LOCKING = None
+    def _file_close_callback(self):
+        if self._LOCKING_MGR is not None:
+            self._LOCKING_MGR.closed()
