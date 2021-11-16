@@ -72,6 +72,7 @@ class TestPositionInfo(PlotWidgetTestCase):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
+        self.qapp.processEvents()
         with LoggingValidator(tools.__name__, **kwargs):
             # Move mouse to center
             center = self.plot.size() / 2

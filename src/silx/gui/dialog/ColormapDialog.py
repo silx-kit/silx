@@ -666,6 +666,7 @@ class _ColormapHistogram(qt.QWidget):
         else:
             norm = colormap.getNormalization()
             normColormap = colormap.copy()
+            normColormap.setEditable(True)
             normColormap.setVRange(0, 255)
             normColormap.setNormalization(Colormap.LINEAR)
             if norm == Colormap.LINEAR:
