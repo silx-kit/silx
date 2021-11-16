@@ -102,11 +102,11 @@ def _hdf5_file_locking(mode="r", locking=None, swmr=None, libver=None, **_):
         if swmr:
             raise ValueError("Locking is mandatory for HDF5 SWMR mode")
         if IS_WINDOWS and HDF5_HAS_LOCKING_ARGUMENT:
-            _logger.warning(
+            _logger.debug(
                 "Non-locking readers will fail when a writer has already locked the HDF5 file (this restriction applies to libhdf5 >= 1.12.1 or libhdf5 >= 1.10.7 on Windows)"
             )
         if not _libver_low_bound_is_v108(libver):
-            _logger.warning(
+            _logger.debug(
                 "Non-locking readers will fail when a writer has already locked the HDF5 file (this restriction applies to libver >= v110)"
             )
     return locking
