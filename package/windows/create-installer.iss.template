@@ -1,0 +1,92 @@
+[Setup]
+AppId={{A694A78C-B4D1-4983-8BC6-A84D30341EB4}
+AppName=silx view
+AppVersion=#Version
+AppVerName=silx-view-#Version
+AppPublisher=ESRF
+AppPublisherURL=https://www.silx.org
+AppSupportURL=https://github.com/silx-kit/silx
+AppUpdatesURL=https://github.com/silx-kit/silx/releases
+DefaultDirName={autopf}\silx
+DefaultGroupName=silx
+LicenseFile=..\..\LICENSE
+OutputDir=artifacts
+OutputBaseFilename=silx-#Version-x64
+Compression=lzma
+SolidCompression=yes
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+WizardStyle=modern
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Files]
+Source: "dist\silx\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "silx.ico"; DestDir: "{app}"
+
+[Icons]
+Name: "{group}\silx"; Filename: "{app}\silx-view.exe"; IconFilename: "{app}\silx.ico"
+Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
+
+// Code from https://stackoverflow.com/questions/2000296/inno-setup-how-to-automatically-uninstall-previous-installed-version/2099805#209980
+[Code]
+
+/////////////////////////////////////////////////////////////////////
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+
+/////////////////////////////////////////////////////////////////////
+function IsUpgrade(): Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+
+/////////////////////////////////////////////////////////////////////
+function UnInstallOldVersion(): Integer;
+var
+  sUnInstallString: String;
+  iResultCode: Integer;
+begin
+  // Return Values:
+  // 1 - uninstall string is empty
+  // 2 - error executing the UnInstallString
+  // 3 - successfully executed the UnInstallString
+
+  // default return value
+  Result := 0;
+
+  // get the uninstall string of the old app
+  sUnInstallString := GetUninstallString();
+  if sUnInstallString <> '' then begin
+    sUnInstallString := RemoveQuotes(sUnInstallString);
+    if Exec(sUnInstallString, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES','', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      Result := 3
+    else
+      Result := 2;
+  end else
+    Result := 1;
+end;
+
+/////////////////////////////////////////////////////////////////////
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep=ssInstall) then
+  begin
+    if (IsUpgrade()) then
+    begin
+      UnInstallOldVersion();
+    end;
+  end;
+end;
