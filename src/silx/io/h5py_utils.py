@@ -341,7 +341,7 @@ class File(h5py.File):
         libver=None,
         **kwargs,
     ):
-        r"""The arguments `enable_file_locking` and `swmr` should not be
+        r"""The arguments `locking` and `swmr` should not be
         specified explicitly for normal use cases.
 
         :param str filename:
