@@ -852,6 +852,7 @@ def get_project_configuration(dry_run):
         'python-dateutil',
         'PyQt5',
         # extra
+        'hdf5plugin',
         'scipy',
         'Pillow']
 

@@ -12,5 +12,7 @@ pytest            # For testing
 pytest-xvfb       # For GUI testing
 pytest-cov        # For coverage
 
+hdf5plugin        # For HDF5 compression filters handling
+
 # Use dev version of PyInstaller to keep hooks up-to-date
 https://github.com/pyinstaller/pyinstaller/archive/develop.zip; sys_platform == "win32"
