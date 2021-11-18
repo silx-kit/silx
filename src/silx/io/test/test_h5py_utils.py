@@ -33,24 +33,23 @@ import os
 import sys
 import time
 import shutil
+import logging
 import tempfile
-import threading
 import multiprocessing
 from contextlib import contextmanager
-import h5py
-import pytest
 
 from .. import h5py_utils
 from ...utils.retry import RetryError, RetryTimeoutError
 
 IS_WINDOWS = sys.platform == "win32"
-HDF5_VERSION = h5py.version.hdf5_version_tuple
+logger = logging.getLogger()
+
 
 def _subprocess_context_main(queue, contextmgr, *args, **kw):
     try:
         with contextmgr(*args, **kw):
             queue.put(None)
-            threading.Event().wait()
+            queue.get()
     except Exception:
         queue.put(None)
         raise
@@ -58,6 +57,7 @@ def _subprocess_context_main(queue, contextmgr, *args, **kw):
 
 @contextmanager
 def _subprocess_context(contextmgr, *args, **kw):
+    print("\nSTART", os.getpid())
     timeout = kw.pop("timeout", 10)
     queue = multiprocessing.Queue(maxsize=1)
     p = multiprocessing.Process(
@@ -68,20 +68,25 @@ def _subprocess_context(contextmgr, *args, **kw):
         queue.get(timeout=timeout)
         yield
     finally:
-        try:
-            p.kill()
-        except AttributeError:
-            p.terminate()
+        queue.put(None)
         p.join(timeout)
+        print(" EXIT", os.getpid())
 
 
 @contextmanager
 def _open_context(filename, **kw):
-    with h5py_utils.File(filename, **kw) as f:
-        if kw.get("mode") == "w":
-            f["check"] = True
-            f.flush()
-        yield f
+    try:
+        print(os.getpid(), "OPEN", filename, kw)
+        with h5py_utils.File(filename, **kw) as f:
+            if kw.get("mode") == "w":
+                f["check"] = True
+                f.flush()
+            yield f
+    except Exception:
+        print(" ", os.getpid(), "FAILED", filename, kw)
+        raise
+    else:
+        print(" ", os.getpid(), "CLOSED", filename, kw)
 
 
 def _cause_segfault():
@@ -120,16 +125,15 @@ top_level_names_test = h5py_utils.retry_in_subprocess()(_top_level_names_test)
 
 def subtests(test):
     def wrapper(self):
-        for _ in self._subtests():
-            with self.subTest(**self._subtest_options):
+        for subtest_options in self._subtests():
+            print("\n====SUB TEST===\n")
+            print(f"sub test options: {subtest_options}")
+            with self.subTest(str(subtest_options)):
                 test(self)
 
     return wrapper
 
-@pytest.mark.skipif(
-    HDF5_VERSION >= (1, 12, 1) or (
-        HDF5_VERSION[:2] == (1, 10) and HDF5_VERSION[2] >= 7),
-    reason="Version of libhdf5 does not support changing HDF5_USE_FILE_LOCKING")
+
 class TestH5pyUtils(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -140,14 +144,10 @@ class TestH5pyUtils(unittest.TestCase):
     def _subtests(self):
         self._subtest_options = {"mode": "w"}
         self.filename_generator = self._filenames()
-        yield
+        yield self._subtest_options
         self._subtest_options = {"mode": "w", "libver": "latest"}
         self.filename_generator = self._filenames()
         yield
-
-    @property
-    def _liber_allows_concurrent_access(self):
-        return self._subtest_options.get("libver") in [None, "earliest", "v18"]
 
     def _filenames(self):
         i = 1
@@ -163,15 +163,14 @@ class TestH5pyUtils(unittest.TestCase):
 
     @contextmanager
     def _open_context(self, filename, **kwargs):
-        kw = self._subtest_options
+        kw = dict(self._subtest_options)
         kw.update(kwargs)
         with _open_context(filename, **kw) as f:
-
             yield f
 
     @contextmanager
     def _open_context_subprocess(self, filename, **kwargs):
-        kw = self._subtest_options
+        kw = dict(self._subtest_options)
         kw.update(kwargs)
         with _subprocess_context(_open_context, filename, **kw):
             yield
@@ -186,85 +185,141 @@ class TestH5pyUtils(unittest.TestCase):
 
     @subtests
     def test_modes_single_process(self):
+        """Test concurrent access to the different files from the same process"""
+        # When using HDF5_USE_FILE_LOCKING, open files with and without
+        # locking should raise an exception. HDF5_USE_FILE_LOCKING should
+        # be reset when all files are closed.
+
         orig = os.environ.get("HDF5_USE_FILE_LOCKING")
         filename1 = self._new_filename()
         self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
         filename2 = self._new_filename()
         self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
+
         with self._open_context(filename1, mode="r"):
-            with self._open_context(filename2, mode="r"):
-                pass
-            for mode in ["w", "a"]:
-                with self.assertRaises(RuntimeError):
+            locking1 = False
+            for mode in ["r", "w", "a"]:
+                locking2 = mode != "r"
+                raise_condition = not h5py_utils.HAS_LOCKING_ARGUMENT
+                raise_condition &= locking1 != locking2
+                with self.assertRaisesIf(raise_condition, RuntimeError):
                     with self._open_context(filename2, mode=mode):
                         pass
-        self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
-        with self._open_context(filename1, mode="a"):
-            for mode in ["w", "a"]:
-                with self._open_context(filename2, mode=mode):
-                    pass
-            with self.assertRaises(RuntimeError):
-                with self._open_context(filename2, mode="r"):
-                    pass
+        self._validate_hdf5_data(filename1)
+        self._validate_hdf5_data(filename2)
         self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
 
+        with self._open_context(filename1, mode="a"):
+            locking1 = True
+            for mode in ["r", "w", "a"]:
+                locking2 = mode != "r"
+                raise_condition = not h5py_utils.HAS_LOCKING_ARGUMENT
+                raise_condition &= locking1 != locking2
+                with self.assertRaisesIf(raise_condition, RuntimeError):
+                    with self._open_context(filename2, mode=mode):
+                        pass
+        self._validate_hdf5_data(filename1)
+        self._validate_hdf5_data(filename2)
+        self.assertEqual(orig, os.environ.get("HDF5_USE_FILE_LOCKING"))
+
+    @property
+    def _libver_low_bound_is_v108(self):
+        libver = self._subtest_options.get("libver")
+        return h5py_utils._libver_low_bound_is_v108(libver)
+
+    @property
+    def _nonlocking_reader_before_writer(self):
+        """A non-locking reader must open the file before it is locked by a writer"""
+        if IS_WINDOWS and h5py_utils.HDF5_HAS_LOCKING_ARGUMENT:
+            return True
+        if not self._libver_low_bound_is_v108:
+            return True
+        return False
+
+    @contextmanager
+    def assertRaisesIf(self, condition, *args, **kw):
+        if condition:
+            with self.assertRaises(*args, **kw):
+                yield
+        else:
+            yield
+
+    @unittest.skipIf(
+        h5py_utils.HDF5_HAS_LOCKING_ARGUMENT != h5py_utils.H5PY_HAS_LOCKING_ARGUMENT,
+        "Versions of libhdf5 and h5py use incompatible file locking behaviour",
+    )
     @subtests
     def test_modes_multi_process(self):
-        if not self._liber_allows_concurrent_access:
-            # A concurrent reader with HDF5_USE_FILE_LOCKING=FALSE is
-            # no longer works with HDF5 >=1.10 (you get an exception
-            # when trying to open the file)
-            return
+        """Test concurrent access to the same file from different processes"""
         filename = self._new_filename()
 
-        # File open by truncating writer
-        with self._open_context_subprocess(filename, mode="w"):
-            with self._open_context(filename, mode="r") as f:
-                self._assert_hdf5_data(f)
-            if IS_WINDOWS:
-                with self._open_context(filename, mode="a") as f:
-                    self._assert_hdf5_data(f)
-            else:
-                with self.assertRaises(OSError):
+        nonlocking_reader_before_writer = self._nonlocking_reader_before_writer
+        writer_before_nonlocking_reader_exception = OSError
+        old_hdf5_on_windows = IS_WINDOWS and not h5py_utils.HDF5_HAS_LOCKING_ARGUMENT
+        locked_exception = OSError
+
+        # File locked by a writer
+        unexpected_access = old_hdf5_on_windows and self._libver_low_bound_is_v108
+        for wmode in ["w", "a"]:
+            with self._open_context_subprocess(filename, mode=wmode):
+                # Access by a second non-locking reader
+                with self.assertRaisesIf(
+                    nonlocking_reader_before_writer,
+                    writer_before_nonlocking_reader_exception,
+                ):
+                    with self._open_context(filename, mode="r") as f:
+                        self._assert_hdf5_data(f)
+                # No access by a second locking reader
+                if unexpected_access:
+                    logger.warning("unexpected concurrent access by a locking reader")
+                with self.assertRaisesIf(not unexpected_access, locked_exception):
+                    with self._open_context(filename, mode="r", locking=True) as f:
+                        self._assert_hdf5_data(f)
+                # No access by a second writer
+                if unexpected_access:
+                    logger.warning("unexpected concurrent access by a writer")
+                with self.assertRaisesIf(not unexpected_access, locked_exception):
                     with self._open_context(filename, mode="a") as f:
-                        pass
+                        self._assert_hdf5_data(f)
+                # Check for file corruption
+                if not nonlocking_reader_before_writer:
+                    self._validate_hdf5_data(filename)
             self._validate_hdf5_data(filename)
 
-        # File open by appending writer
-        with self._open_context_subprocess(filename, mode="a"):
+        # File locked by a reader
+        unexpected_access = old_hdf5_on_windows
+        with _subprocess_context(_open_context, filename, mode="r", locking=True):
+            # Access by a non-locking reader
             with self._open_context(filename, mode="r") as f:
                 self._assert_hdf5_data(f)
-            if IS_WINDOWS:
+            # Access by a locking reader
+            with self._open_context(filename, mode="r", locking=True) as f:
+                self._assert_hdf5_data(f)
+            # No access by a second writer
+            if unexpected_access:
+                logger.warning("unexpected concurrent access by a writer")
+            raise_condition = not unexpected_access
+            with self.assertRaisesIf(raise_condition, locked_exception):
                 with self._open_context(filename, mode="a") as f:
                     self._assert_hdf5_data(f)
-            else:
-                with self.assertRaises(OSError):
-                    with self._open_context(filename, mode="a") as f:
-                        pass
+            # Check for file corruption
             self._validate_hdf5_data(filename)
+        self._validate_hdf5_data(filename)
 
-        # File open by reader
+        # File open by a non-locking reader
         with self._open_context_subprocess(filename, mode="r"):
+            # Access by a second non-locking reader
             with self._open_context(filename, mode="r") as f:
                 self._assert_hdf5_data(f)
+            # Access by a second locking reader
+            with self._open_context(filename, mode="r", locking=True) as f:
+                self._assert_hdf5_data(f)
+            # Access by a second writer
             with self._open_context(filename, mode="a") as f:
-                pass
-            self._validate_hdf5_data(filename)
-
-        # File open by locking reader
-        with _subprocess_context(
-            _open_context, filename, mode="r", enable_file_locking=True
-        ):
-            with self._open_context(filename, mode="r") as f:
                 self._assert_hdf5_data(f)
-            if IS_WINDOWS:
-                with self._open_context(filename, mode="a") as f:
-                    self._assert_hdf5_data(f)
-            else:
-                with self.assertRaises(OSError):
-                    with self._open_context(filename, mode="a") as f:
-                        pass
+            # Check for file corruption
             self._validate_hdf5_data(filename)
+        self._validate_hdf5_data(filename)
 
     @subtests
     @unittest.skipIf(not h5py_utils.HAS_SWMR, "SWMR not supported")
@@ -327,7 +382,11 @@ class TestH5pyUtils(unittest.TestCase):
                 raise RetryError
 
         with h5py_utils.open_item(
-            filename, "/check", validate=validate, retry_timeout=1, retry_invalid=True
+            filename,
+            "/check",
+            validate=validate,
+            retry_timeout=1,
+            retry_invalid=True,
         ) as item:
             self.assertTrue(item[()])
 
