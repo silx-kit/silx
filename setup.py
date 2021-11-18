@@ -105,7 +105,7 @@ def get_readme():
     return long_description
 
 
-classifiers = ["Development Status :: 4 - Beta",
+classifiers = ["Development Status :: 5 - Production/Stable",
                "Environment :: Console",
                "Environment :: MacOS X",
                "Environment :: Win32 (MS Windows)",
