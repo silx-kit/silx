@@ -6,124 +6,124 @@ Change Log
 
 * `silx view`:
 
-	* Added Windows installer generation (PR #3548)
-	* Update 'About' dialog (#3547, #3475)
-	* Keep curve legend selection with changing dimensions (PR #3529)
-	* Increase max number of opened file at start-up (PR #3545)
+  * Added Windows installer generation (PR #3548)
+  * Update 'About' dialog (#3547, #3475)
+  * Keep curve legend selection with changing dimensions (PR #3529)
+  * Increase max number of opened file at start-up (PR #3545)
 
 * `silx.gui`:
 
-	* add PySide6 support (PR #3486, #3528, #3479, #3542, #3549, #3478, #3481):
-	* remove support of PyQt4 / Pyside (PR #3423, #3424, #3480, #3482)
-	* `silx.gui.colors`
+  * add PySide6 support (PR #3486, #3528, #3479, #3542, #3549, #3478, #3481):
+  * remove support of PyQt4 / Pyside (PR #3423, #3424, #3480, #3482)
+  * `silx.gui.colors`:
 
-		* Fixed duplicated logs when colormap vmin/vmax are not valid (PR #3471)
+    * Fixed duplicated logs when colormap vmin/vmax are not valid (PR #3471)
 
-	* `silx.gui.plot`:
+  * `silx.gui.plot`:
 
-		* `silx.gui.plot.actions`:
+    * `silx.gui.plot.actions`:
 
-			* `silx.gui.plot.actions.fit`
+      * `silx.gui.plot.actions.fit`:
 
-				* Updated behaviour of fitted item auto update (PR #3532)
+        * Updated behaviour of fitted item auto update (PR #3532)
 
-			* `silx.gui.plot.actions.histogram`
+      * `silx.gui.plot.actions.histogram`:
 
-				* Fixed issue when the whole image is masked (PR #3544)
-				* Fixed error on macOS 11 with 3D display in `silx view` (PR #3544)
-				* Allow user to change histogram nbins and range (PR #3514, #3514)
-				* Refactor `PixelIntensitiesHistoAction` to use `PlotWidget.selection` (PR #3408)
+        * Fixed issue when the whole image is masked (PR #3544)
+        * Fixed error on macOS 11 with 3D display in `silx view` (PR #3544)
+        * Allow user to change histogram nbins and range (PR #3514, #3514)
+        * Refactor `PixelIntensitiesHistoAction` to use `PlotWidget.selection` (PR #3408)
 
-		* `silx.gui.plot.CompareImages`:
+      * `silx.gui.plot.CompareImages`:
 
-			* Fix `colormap`: avoid forcing vmin and vmax when not in 'HORIZONTAL_LINE' or 'VERTICAL_LINE' mode (PR #3510)
+        * Fix `colormap`: avoid forcing vmin and vmax when not in 'HORIZONTAL_LINE' or 'VERTICAL_LINE' mode (PR #3510)
 		
-		* `silx.gui.plot.items`
+      * `silx.gui.plot.items`:
 		
-			* Fixed `ArcROI.setGeometry` (fix #3492)
-			* Added 'image_aggregated.ImageDataAggregated': item allowing to aggregate image data before display (PR #3503)
+        * Fixed `ArcROI.setGeometry` (fix #3492)
+        * Added 'image_aggregated.ImageDataAggregated': item allowing to aggregate image data before display (PR #3503)
 
-		* `silx.gui.plot.ImageStack`
+      * `silx.gui.plot.ImageStack`:
 
-			* Improve management of the `animation thread` (PR #3440, PR #3441)
+        * Improve management of the `animation thread` (PR #3440, PR #3441)
 
-		* `silx.gui.plot.ImageView`:
+      * `silx.gui.plot.ImageView`:
 
-			* Fixed profile window, added `setProfileWindowBehavior` method (PR #3457)
-			* Fixed issue with profile window size (PR #3455)
-			* Update 'imageview' example with a '--live' option (PR #3488)
-			* Added action to show/hide the side histogram (PR #3488)
-			* Added 'resetzoom' parameter to 'ImageView.setImage' (PR #3488)
-			* Added empty array support to 'ImageView.setImage' (PR #3530)
-			* Added aggregation mode action (PR #3536)
-			* Added support of RGB and RGBA images (PR #3487)
+        * Fixed profile window, added `setProfileWindowBehavior` method (PR #3457)
+        * Fixed issue with profile window size (PR #3455)
+        * Update 'imageview' example with a '--live' option (PR #3488)
+        * Added action to show/hide the side histogram (PR #3488)
+        * Added 'resetzoom' parameter to 'ImageView.setImage' (PR #3488)
+        * Added empty array support to 'ImageView.setImage' (PR #3530)
+        * Added aggregation mode action (PR #3536)
+        * Added support of RGB and RGBA images (PR #3487)
 
-		* `silx.gui.plot.PlotWidget`:
+      * `silx.gui.plot.PlotWidget`:
 
-			* Fixed update of `Scatter` item binned statistics visualization (PR #3452)
-			* Fixed OpenGL backend memory leak (PR #3453)
-			* Optimize scatter when rendered as regular grid with the OpenGL backend (PR #3447)
-			* Improve axis limits management by the OpenGL backend (PR #3504)
-			* Enhanced control of repaint (PR #3449)
+        * Fixed update of `Scatter` item binned statistics visualization (PR #3452)
+        * Fixed OpenGL backend memory leak (PR #3453)
+        * Optimize scatter when rendered as regular grid with the OpenGL backend (PR #3447)
+        * Improve axis limits management by the OpenGL backend (PR #3504)
+        * Enhanced control of repaint (PR #3449)
 
-		* `silx.gui.plot.PlotWindow`:
+      * `silx.gui.plot.PlotWindow`:
 
-			* Fixed returned action from 'getKeepDataAspectRatioAction' (PR #3500)
+        * Fixed returned action from 'getKeepDataAspectRatioAction' (PR #3500)
 
-	* `silx.gui.plot3d`
+    * `silx.gui.plot3d`:
 
-		* Fixed picking on highdpi screen (PR #3550)
-		* Fixed issue in parameter tree (PR #3550)
+      * Fixed picking on highdpi screen (PR #3550)
+      * Fixed issue in parameter tree (PR #3550)
 
-* `silx.io`
+* `silx.io`:
 
-	* Added read support for FIO files (PR #3539) thanks to tifuchs contribution
-	* `silx.io.dictdump`
+  * Added read support for FIO files (PR #3539) thanks to tifuchs contribution
+  * `silx.io.dictdump`:
 
-		* Fixed missing conversion of the key (PR #3505) thanks to rnwatanabe contribution
-		* Extract update modes list to a constant global variable (PR #3460) thanks to jpcbertoldo
+    * Fixed missing conversion of the key (PR #3505) thanks to rnwatanabe contribution
+    * Extract update modes list to a constant global variable (PR #3460) thanks to jpcbertoldo
 	
-	* silx.io.convert
+  * `silx.io.convert`:
 	
-		* 'write_to_h5': 'infile' parameter can now also be a HDF5 file as input (PR #3511)
+    * `write_to_h5`: 'infile' parameter can now also be a HDF5 file as input (PR #3511)
 	
-	* `silx.io.h5py_utils`
+  * `silx.io.h5py_utils`:
 
-		* Log a critical message for unsupported versions of libhdf5 (PR #3533)
-		* Support `locking` argument from the h5py.File when possible (PR #3554)
+    * Log a critical message for unsupported versions of libhdf5 (PR #3533)
+    * Support `locking` argument from the h5py.File when possible (PR #3554)
 
-	* `silx.io.spech5`
+  * `silx.io.spech5`:
 	
-		* Improve robustness (PR #3507, #3463)
+    * Improve robustness (PR #3507, #3463)
 	
-	* silx.io.url
+  * `silx.io.url`:
 
-		* Fixed is_absolute in the case the 'file_path()' returns None (PR #3437)
+    * Fixed is_absolute in the case the 'file_path()' returns None (PR #3437)
 
-	* `silx.io.utils`
+  * `silx.io.utils`:
 
-		* Added 'silx.io.utils.visitall': provides a visitor of all items including links that works for both `commonh5` and `h5py` (PR #3511)
+    * Added 'silx.io.utils.visitall': provides a visitor of all items including links that works for both `commonh5` and `h5py` (PR #3511)
 
-* `silx.math`
+* `silx.math`:
 
-	* `silx.math.colormap`
+  * `silx.math.colormap`:
 
-		* Improve `cmap` error messages (PR #3522)
-		* Added `apply_colormap` function (PR #3525)
+    * Improve `cmap` error messages (PR #3522)
+    * Added `apply_colormap` function (PR #3525)
 
-* `silx.opencl`
+* `silx.opencl`:
 
-	* Describe compute capabilities for Ampere generation GPU from Nvidia (PR #3535)
-	* Implement the doubleword OpenCL library (PR #3466, PR #3472)
+  * Describe compute capabilities for Ampere generation GPU from Nvidia (PR #3535)
+  * Implement the doubleword OpenCL library (PR #3466, PR #3472)
 
 * Miscellaneous:
 
-	* Setup the project to use pytest (PR #3431, #3516, #3526)
-	* Minor test clean up (PR #3515, #3508)
-	* Fixed 'run_test.py --qt-binding' option (PR #3527)
-	* Project structure: move `silx` sources in `src/silx` (PR #3412)
-	* Fixed support of numpy 1.21rc1 (PR ##3476)
-	* Removed `six` dependency (PR #3483)
+  * Setup the project to use `pytest` (PR #3431, #3516, #3526)
+  * Minor test clean up (PR #3515, #3508)
+  * Fixed 'run_test.py --qt-binding' option (PR #3527)
+  * Project structure: move `silx` sources in `src/silx` (PR #3412)
+  * Fixed support of numpy 1.21rc1 (PR ##3476)
+  * Removed `six` dependency (PR #3483)
 
 
 0.15.2: 2021/06/21
