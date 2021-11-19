@@ -4,6 +4,8 @@ Change Log
 1.0.0: 2021/11/XX
 -----------------
 
+This the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pytest` to run the tests.
+
 * `silx view`:
 
   * Added Windows installer generation (PR #3548)
