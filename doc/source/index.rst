@@ -1,6 +1,9 @@
 silx |version|
 ==============
 
+.. |silxView| image:: http://www.silx.org/doc/silx/img/silx-view-v1-0.gif
+   :height: 80px
+
 The silx project aims to provide a collection of Python packages to support the
 development of data assessment, reduction and analysis at synchrotron radiation
 facilities.
@@ -28,9 +31,11 @@ The current version (v\ |version|) caters for:
 
 * a set of applications:
 
-  * a unified viewer (*silx view filename*) for HDF5, SPEC and image file formats
-  * a unified converter to HDF5 format (*silx convert filename*)
+    * a unified viewer (:ref:`silx view` *filename*) for HDF5, SPEC and image file formats
+      |silxView|
+    * a unified converter to HDF5 format (*silx convert filename*)
 
+   
 
 .. toctree::
    :hidden:
