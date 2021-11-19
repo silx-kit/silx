@@ -244,11 +244,19 @@ class NXdata(object):
                                                   signal_name,
                                                   auxiliary_signals_names)
 
-        if "axes" in self.group.attrs:
-            axes_names = get_attr_as_unicode(self.group, "axes")
-            if isinstance(axes_names, (str, bytes)):
-                axes_names = [axes_names]
+        axes_names = get_attr_as_unicode(self.group, "axes")
+        if axes_names is None:
+            # try @axes on signal dataset (older NXdata specification)
+            axes_names = get_attr_as_unicode(self.group[signal_name], "axes")
+            if axes_names is not None:
+                # we expect a comma separated string
+                if hasattr(axes_names, "split"):
+                    axes_names = axes_names.split(":")
 
+        if isinstance(axes_names, (str, bytes)):
+            axes_names = [axes_names]
+
+        if axes_names:
             self.issues += validate_number_of_axes(self.group, signal_name,
                                                    num_axes=len(axes_names))
 
