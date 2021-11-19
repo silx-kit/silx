@@ -1,6 +1,10 @@
+.. _silx view:
 
 silx view
 =========
+
+.. figure:: http://www.silx.org/doc/silx/img/silx-view-v1-0.gif
+   :align: center
 
 Purpose
 -------
