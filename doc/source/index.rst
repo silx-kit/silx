@@ -32,7 +32,9 @@ The current version (v\ |version|) caters for:
 * a set of applications:
 
     * a unified viewer (:ref:`silx view` *filename*) for HDF5, SPEC and image file formats
+
       |silxView|
+
     * a unified converter to HDF5 format (*silx convert filename*)
 
    
