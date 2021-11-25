@@ -67,6 +67,7 @@ This the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pyt
         * Enhanced: Optimized scatter when rendered as regular grid with the OpenGL backend (PR #3447)
         * Enhanced axis limits management by the OpenGL backend (PR #3504)
         * Enhanced control of repaint (PR #3449)
+	* Enhanced text label background rendering with OpenGL backend (PR #3565)
 
       * `silx.gui.plot.PlotWindow`:
 
