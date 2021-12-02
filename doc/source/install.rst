@@ -246,7 +246,7 @@ installed using:
 
 .. code-block:: bash 
 
-    pip install -r https://github.com/silx-kit/silx/raw/0.8/requirements-dev.txt
+    pip install -r https://github.com/silx-kit/silx/raw/master/requirements-dev.txt
 
 
 Building from source
