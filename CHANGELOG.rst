@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-1.0.0: 2021/11/XX
+1.0.0: 2021/12/06
 -----------------
 
 This the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pytest` to run the tests.
