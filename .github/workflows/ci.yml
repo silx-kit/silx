@@ -97,6 +97,7 @@ jobs:
           if [ ${{ runner.os }} == 'macOS' ]; then
               export MACOSX_DEPLOYMENT_TARGET=10.9;
           fi
+          export SETUPTOOLS_USE_DISTUTILS=local
           python setup.py ${{ matrix.BUILD_COMMAND }}
           ls dist
 
@@ -122,7 +123,9 @@ jobs:
           pip install pytest-xvfb
 
       - name: Install silx package
-        run: pip install --pre --find-links dist/ silx
+        run: |
+          export SETUPTOOLS_USE_DISTUTILS=local
+          pip install --pre --find-links dist/ silx
 
       - name: Print python info used for tests
         run: |
