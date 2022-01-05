@@ -85,7 +85,7 @@ jobs:
       # Use latest setuptools using Python's distutils
       - name: Upgrade distribution modules
         run: |
-          pip install --upgrade setuptools<60.0.0
+          pip install --upgrade "setuptools<60.0.0"
           python -m pip install --upgrade pip wheel
           pip install --upgrade --pre numpy cython
 
