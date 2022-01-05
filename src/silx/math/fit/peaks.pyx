@@ -65,6 +65,7 @@ def peak_search(y, fwhm, sensitivity=3.5,
         if ``relevance_info`` is ``False``.
         Else, sequence of  ``(peak_index, peak_relevance)`` tuples (one tuple
         per peak).
+        WARNING: Peak indices are returned as float64.
     :raise: ``IndexError`` if the number of peaks is too large to fit in the
         output array.
     """
