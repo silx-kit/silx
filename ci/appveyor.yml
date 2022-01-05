@@ -64,6 +64,7 @@ build_script:
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
+    - "pip install %PIP_OPTIONS% --upgrade setuptools<60.0.0"
     - "pip install %PIP_OPTIONS% --upgrade wheel"
     - "pip install %PIP_OPTIONS% --upgrade numpy"
     - "pip install %PIP_OPTIONS% --upgrade cython"
