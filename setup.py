@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ PROJECT = "silx"
 if sys.version_info.major < 3:
     logger.error(PROJECT + " no longer supports Python2")
 
-if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
+if "LANG" not in os.environ and sys.platform == "darwin":
     print("""WARNING: the LANG environment variable is not defined,
 an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError.
 export LANG=en_US.utf-8
@@ -311,7 +311,6 @@ class BuildMan(Command):
             # help2man expect a single executable file to extract the help
             # we create it, execute it, and delete it at the end
 
-            py3 = sys.version_info >= (3, 0)
             try:
                 # create a launcher using the right python interpreter
                 script_name = os.path.join(workdir, target_name)
@@ -330,17 +329,6 @@ class BuildMan(Command):
                 synopsis = self.get_synopsis(module_name, env)
                 if synopsis:
                     command_line += ["-n", synopsis]
-                if not py3:
-                    # Before Python 3.4, ArgParser --version was using
-                    # stderr to print the version
-                    command_line.append("--no-discard-stderr")
-                    # Then we dont know if the documentation will contains
-                    # durtty things
-                    succeeded = self.run_targeted_script(target_name, script_name, env, False)
-                    if not succeeded:
-                        logger.info("Error while generating man file for target '%s'.", target_name)
-                        self.run_targeted_script(target_name, script_name, env, True)
-                        raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
 
                 p = subprocess.Popen(command_line, env=env)
                 status = p.wait()
@@ -604,7 +592,7 @@ class BuildExt(build_ext):
             # Avoids runtime symbol collision for manylinux1 platform
             # See issue #1070
             extern = 'extern "C" ' if ext.language == 'c++' else ''
-            return_type = 'void' if sys.version_info[0] <= 2 else 'PyObject*'
+            return_type = 'PyObject*'
 
             ext.extra_compile_args.append('-fvisibility=hidden')
 
@@ -627,19 +615,8 @@ class BuildExt(build_ext):
 
         :rtype: bool
         """
-        if sys.version_info >= (3, 0):
-            # It is normalized on Python 3
-            # But it is not available on Windows CPython
-            if hasattr(sys, "abiflags"):
-                return "d" in sys.abiflags
-        else:
-            # It's a Python 2 interpreter
-            # pydebug is not available on Windows/Mac OS interpreters
-            if hasattr(sys, "pydebug"):
-                return sys.pydebug
-
-        # We can't know if we uses debug interpreter
-        return False
+        # sys.abiflags not available on Windows CPython, return False by default
+        return "d" in getattr(sys, "abiflags", "")
 
     def patch_compiler(self):
         """
@@ -831,14 +808,6 @@ def get_project_configuration(dry_run):
         "h5py",
         "fabio>=0.9",
         ]
-
-    # Add Python 2.7 backports
-    # Equivalent to but supported by old setuptools:
-    # "enum34; python_version == '2.7'",
-    # "futures; python_version == '2.7'",
-    if sys.version_info[0] == 2:
-        install_requires.append("enum34")
-        install_requires.append("futures")
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
