@@ -41,7 +41,7 @@ logger = logging.getLogger("silx.setup")
 
 from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
-from setuptools import Command, setup
+from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
@@ -767,16 +767,13 @@ class sdist_debian(sdist):
 # ##### #
 
 
-def get_project_configuration(dry_run):
+def get_project_configuration():
     """Returns project arguments for setup"""
     # Use installed numpy version as minimal required version
     # This is useful for wheels to advertise the numpy version they were built with
-    if dry_run:
-        numpy_requested_version = ""
-    else:
-        from numpy.version import version as numpy_version
-        numpy_requested_version = ">=%s" % numpy_version
-        logger.info("Install requires: numpy %s", numpy_requested_version)
+    from numpy.version import version as numpy_version
+    numpy_requested_version = ">=%s" % numpy_version
+    logger.info("Install requires: numpy %s", numpy_requested_version)
 
     install_requires = [
         # for most of the computation
@@ -854,17 +851,7 @@ def get_project_configuration(dry_run):
         clean=CleanCommand,
         debian_src=sdist_debian)
 
-    if dry_run:
-        # DRY_RUN implies actions which do not require NumPy
-        #
-        # And they are required to succeed without Numpy for example when
-        # pip is used to install silx when Numpy is not yet present in
-        # the system.
-        setup_kwargs = {}
-    else:
-        config = configuration()
-        setup_kwargs = config.todict()
-
+    setup_kwargs = configuration().todict()
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
                         url="http://www.silx.org/",
@@ -884,21 +871,7 @@ def get_project_configuration(dry_run):
     return setup_kwargs
 
 
-def setup_package():
-    """Run setup(**kwargs)
-
-    Depending on the command, it either runs the complete setup which depends on numpy,
-    or a *dry run* setup with no dependency on numpy.
-    """
-
-    # Check if action requires build/install
-    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-        '--help' in sys.argv[1:] or
-        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                        'clean', '--name')))
-    setup_kwargs = get_project_configuration(dry_run)
-    setup(**setup_kwargs)
-
-
 if __name__ == "__main__":
-    setup_package()
+    from setuptools import setup
+
+    setup(**get_project_configuration())
