@@ -6,9 +6,10 @@ __authors__ = ["Jérôme Kieffer"]
 __date__ = "09/09/2016"
 __license__ = "MIT"
 
-
 import sys
 import platform
+import subprocess
+
 
 print("Python %s bits" % (tuple.__itemsize__ * 8))
 print("       maxsize: %s\t maxunicode: %s" % (sys.maxsize, sys.maxunicode))
@@ -62,28 +63,16 @@ else:
             for d in p.devices:
                 print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
 
-have_qt_binding = False
 
-try:
-    import PyQt5.QtCore
-    have_qt_binding = True
-    print("Qt (from PyQt5): %s" % PyQt5.QtCore.qVersion())
-except ImportError:
-    pass
-
-try:
-    import PySide2.QtCore
-    have_qt_binding = True
-    print("Qt (from PySide2): %s" % PySide2.QtCore.qVersion())
-except ImportError:
-    pass
-
-try:
-    import PySide6.QtCore
-    have_qt_binding = True
-    print("Qt (from PySide6): %s" % PySide6.QtCore.qVersion())
-except ImportError:
-    pass
-
-if not have_qt_binding:
-    print("No Qt binding")
+for binding_name in ("PyQt5", "PySide2", "PySide6"):
+    cmd = [
+        sys.executable,
+        "-c",
+        "import {0}.QtCore; print({0}.QtCore.qVersion())".format(binding_name),
+    ]
+    try:
+        version = subprocess.check_output(cmd, timeout=4).decode('ascii').rstrip("\n")
+    except subprocess.CalledProcessError:
+        print("{0}: Not available".format(binding_name))
+    else:
+        print("{0}: Qt version {1}".format(binding_name, version))
