@@ -65,6 +65,7 @@ else:
 
 
 for binding_name in ("PyQt5", "PySide2", "PySide6"):
+    # Check Qt version in subprocess to avoid issues with importing multiple Qt bindins
     cmd = [
         sys.executable,
         "-c",
