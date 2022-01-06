@@ -41,7 +41,7 @@ logger = logging.getLogger("silx.setup")
 
 from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
-from setuptools import Command
+from setuptools import Command, setup
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
@@ -896,22 +896,6 @@ def setup_package():
         '--help' in sys.argv[1:] or
         sys.argv[1] in ('--help-commands', 'egg_info', '--version',
                         'clean', '--name')))
-
-    if dry_run:
-        # DRY_RUN implies actions which do not require dependencies, like NumPy
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from distutils.core import setup
-            logger.info("Use distutils.core.setup")
-    else:
-        try:
-            from setuptools import setup
-        except ImportError:
-            from numpy.distutils.core import setup
-            logger.info("Use numpy.distutils.setup")
-
     setup_kwargs = get_project_configuration(dry_run)
     setup(**setup_kwargs)
 
