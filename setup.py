@@ -46,6 +46,14 @@ from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
 try:
+    import numpy
+    from numpy.distutils.misc_util import Configuration
+except ImportError:
+    raise ImportError(
+        "To install this package, you must install numpy first\n"
+        "(See https://pypi.org/project/numpy)")
+
+try:
     import sphinx
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
@@ -408,18 +416,11 @@ else:
 # numpy.distutils Configuration #
 # ############################# #
 
-
 def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
 
     See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
     """
-    try:
-        from numpy.distutils.misc_util import Configuration
-    except ImportError:
-        raise ImportError(
-            "To install this package, you must install numpy first\n"
-            "(See https://pypi.org/project/numpy)")
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -575,7 +576,6 @@ class BuildExt(build_ext):
 
             ext.extra_compile_args.append('-fvisibility=hidden')
 
-            import numpy
             numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
             if numpy_version < [1, 16]:
                 ext.extra_compile_args.append(
@@ -771,8 +771,7 @@ def get_project_configuration():
     """Returns project arguments for setup"""
     # Use installed numpy version as minimal required version
     # This is useful for wheels to advertise the numpy version they were built with
-    from numpy.version import version as numpy_version
-    numpy_requested_version = ">=%s" % numpy_version
+    numpy_requested_version = ">=%s" % numpy.version.version
     logger.info("Install requires: numpy %s", numpy_requested_version)
 
     install_requires = [
