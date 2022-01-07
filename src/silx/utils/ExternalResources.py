@@ -27,7 +27,7 @@
 
 __authors__ = ["Thomas Vincent", "J. Kieffer"]
 __license__ = "MIT"
-__date__ = "08/03/2019"
+__date__ = "21/12/2021"
 
 
 import os
@@ -38,7 +38,8 @@ import tempfile
 import unittest
 import urllib.request
 import urllib.error
-
+import hashlib
+from collections import OrderedDict
 logger = logging.getLogger(__name__)
 
 
@@ -68,10 +69,10 @@ class ExternalResources(object):
         self.project = project
         self._initialized = False
         self.sem = threading.Semaphore()
-
+        self.hash = hashlib.sha256
         self.env_key = env_key or (self.project.upper() + "_TESTDATA")
         self.url_base = url_base
-        self.all_data = set()
+        self.all_data = {}
         self.timeout = timeout
         self._data_home = None
 
@@ -104,6 +105,21 @@ class ExternalResources(object):
         self._data_home = data_home
         return data_home
 
+    def get_hash(self, filename=None, data=None):
+        "Calculate and return the hash of a file or a bunch of data"
+        if data is None and filename is None:
+            return
+        h = self.hash()
+        if filename is not None:
+            fullfilename = os.path.join(self.data_home, filename) 
+            if os.path.exists(fullfilename):
+                with open(fullfilename, "rb") as fd:
+                    data = fd.read()
+            else:
+                raise RuntimeError(f"Filename {fullfilename} does not exist !")
+        h.update(data)
+        return h.hexdigest()
+
     def _initialize_data(self):
         """Initialize for downloading test data"""
         if not self._initialized:
@@ -112,7 +128,13 @@ class ExternalResources(object):
                     self.testdata = os.path.join(self.data_home, "all_testdata.json")
                     if os.path.exists(self.testdata):
                         with open(self.testdata) as f:
-                            self.all_data = set(json.load(f))
+                            jdata = json.load(f)
+                        if isinstance(jdata, dict):
+                            self.all_data = jdata
+                        else: 
+                            #recalculate the hash only if the data was stored as a list
+                            self.all_data = {k: self.get_hash(k) for k in jdata}
+                            self.save_json()
                     self._initialized = True
 
     def clean_up(self):
@@ -160,7 +182,7 @@ class ExternalResources(object):
                 os.makedirs(os.path.dirname(fullfilename))
 
             try:
-                with open(fullfilename, "wb") as outfile:
+                with open(fullfilename, mode="wb") as outfile:
                     outfile.write(data)
             except IOError:
                 raise IOError("unable to write downloaded \
@@ -173,18 +195,31 @@ class ExternalResources(object):
                     This even works under windows !
                     Otherwise please try to download the images manually from
                     %s/%s""" % (filename, self.url_base, filename))
+            else:
+                self.all_data[filename] = self.get_hash(data=data)
+                self.save_json()
 
-        if filename not in self.all_data:
-            self.all_data.add(filename)
-            image_list = list(self.all_data)
-            image_list.sort()
-            try:
-                with open(self.testdata, "w") as fp:
-                    json.dump(image_list, fp, indent=4)
-            except IOError:
-                logger.debug("Unable to save JSON list")
-
+        else:
+            h = self.hash()
+            with open(fullfilename, mode="rb") as fd:
+                h.update(fd.read())
+            if h.hexdigest() != self.all_data[filename]:
+                logger.warning(f"Detected corruped file {fullfilename}")
+                self.all_data.pop(filename)
+                os.unlink(fullfilename)
+                return self.getfile(filename)
+            
         return fullfilename
+
+    def save_json(self):
+        image_list = list(self.all_data.keys())
+        image_list.sort()
+        dico = OrderedDict([(i, self.all_data[i]) for i in image_list])
+        try:
+            with open(self.testdata, "w") as fp:
+                json.dump(dico, fp, indent=4)
+        except IOError:
+            logger.info("Unable to save JSON dict")
 
     def getdir(self, dirname):
         """Downloads the requested tarball from the server
@@ -227,14 +262,8 @@ class ExternalResources(object):
         if not self._initialized:
             self._initialize_data()
         if filename not in self.all_data:
-            self.all_data.add(filename)
-            image_list = list(self.all_data)
-            image_list.sort()
-            try:
-                with open(self.testdata, "w") as fp:
-                    json.dump(image_list, fp, indent=4)
-            except IOError:
-                logger.debug("Unable to save JSON list")
+            self.all_data[filename] = self.get_hash(filename)
+            seld.save_json()
         baseimage = os.path.basename(filename)
         logger.info("UtilsTest.getimage('%s')" % baseimage)
 
@@ -313,7 +342,7 @@ class ExternalResources(object):
         if not self._initialized:
             self._initialize_data()
         if not imgs:
-            imgs = self.all_data
+            imgs = self.all_data.keys()
         res = []
         for fn in imgs:
             logger.info("Downloading from silx.org: %s", fn)
