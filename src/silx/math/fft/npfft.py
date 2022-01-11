@@ -42,7 +42,7 @@ class NPFFT(BaseFFT):
         axes=None,
         normalize="rescale",
     ):
-        super(NPFFT, self).__init__(
+        super().__init__(
             shape=shape,
             dtype=dtype,
             template=template,
