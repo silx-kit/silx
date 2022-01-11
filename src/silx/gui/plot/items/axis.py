@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -480,26 +480,10 @@ class YRightAxis(Axis):
         """
         Axis.__init__(self, plot)
         self.__mainAxis = mainAxis
-
-    @property
-    def sigInvertedChanged(self):
-        """Signal emitted when axis orientation has changed"""
-        return self.__mainAxis.sigInvertedChanged
-
-    @property
-    def sigScaleChanged(self):
-        """Signal emitted when axis scale has changed"""
-        return self.__mainAxis.sigScaleChanged
-
-    @property
-    def _sigLogarithmicChanged(self):
-        """Signal emitted when axis scale has changed to or from logarithmic"""
-        return self.__mainAxis._sigLogarithmicChanged
-
-    @property
-    def sigAutoScaleChanged(self):
-        """Signal emitted when axis autoscale has changed"""
-        return self.__mainAxis.sigAutoScaleChanged
+        self.__mainAxis.sigInvertedChanged.connect(self.sigInvertedChanged.emit)
+        self.__mainAxis.sigScaleChanged.connect(self.sigScaleChanged.emit)
+        self.__mainAxis._sigLogarithmicChanged.connect(self._sigLogarithmicChanged.emit)
+        self.__mainAxis.sigAutoScaleChanged.connect(self.sigAutoScaleChanged.emit)
 
     def _internalSetCurrentLabel(self, label):
         self._getBackend().setGraphYLabel(label, axis='right')
