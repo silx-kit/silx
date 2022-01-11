@@ -79,7 +79,7 @@ class NPFFT(BaseFFT):
 
 
     def _allocate(self, shape, dtype):
-        return np.zeros(self.queue, shape, dtype=dtype)
+        return np.zeros(shape, dtype=dtype)
 
 
     def compute_plans(self):
