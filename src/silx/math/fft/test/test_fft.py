@@ -40,9 +40,41 @@ from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
 from silx.math.fft.fftw import __have_fftw__
 
+if __have_cufft__:
+    import atexit
+    import pycuda.driver as cuda
+    from pycuda.tools import clear_context_caches
+
+def get_cuda_context(device_id=None, cleanup_at_exit=True):
+    """
+    Create or get a CUDA context.
+    """
+    current_ctx = cuda.Context.get_current()
+    # If a context already exists, use this one
+    # TODO what if the device used is different from device_id ?
+    if current_ctx is not None:
+        return current_ctx
+    # Otherwise create a new context
+    cuda.init()
+
+    if device_id is None:
+        device_id = 0
+    # Use the Context obtained by retaining the device's primary context,
+    # which is the one used by the CUDA runtime API (ex. scikit-cuda).
+    # Unlike Context.make_context(), the newly-created context is not made current.
+    context = cuda.Device(device_id).retain_primary_context()
+    context.push()
+    # Register a clean-up function at exit
+    def _finish_up(context):
+        if context is not None:
+            context.pop()
+            context = None
+        clear_context_caches()
+    if cleanup_at_exit:
+        atexit.register(_finish_up, context)
+    return context
 
 logger = logging.getLogger(__name__)
-
 
 class TransformInfos(object):
     def __init__(self):
@@ -113,7 +145,7 @@ class TestFFT(ParametricTestCase):
     @unittest.skipIf(not __have_cufft__,
                      "cuda back-end requires pycuda and scikit-cuda")
     def test_cuda(self):
-        import pycuda.autoinit
+        get_cuda_context()
 
         # Error is higher when using cuda. fast_math mode ?
         self.tol[np.dtype("float32")] *= 2
