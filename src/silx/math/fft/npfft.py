@@ -59,7 +59,6 @@ class NPFFT(BaseFFT):
         if normalize != "ortho":
             self.normalize = None
         self.set_fft_functions()
-        #~ self.allocate_arrays() # not needed for this backend
         self.compute_plans()
 
 
