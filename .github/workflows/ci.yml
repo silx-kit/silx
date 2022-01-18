@@ -45,7 +45,7 @@ jobs:
             BUILD_COMMAND: sdist
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl
-          - name-suffix: "PyQt5 wheel"
+          - name-suffix: "PyQt5 sdist"
             os: ubuntu-latest
             python-version: 3.10.2
             BUILD_COMMAND: sdist
