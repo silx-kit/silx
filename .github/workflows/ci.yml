@@ -39,6 +39,18 @@ jobs:
             BUILD_COMMAND: bdist_wheel
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opengl
+          - name-suffix: "PySide6 sdist"
+            os: ubuntu-latest
+            python-version: 3.10.2
+            BUILD_COMMAND: sdist
+            QT_BINDING: PySide6
+            RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl
+          - name-suffix: "PyQt5 sdist"
+            os: ubuntu-latest
+            python-version: 3.10.2
+            BUILD_COMMAND: sdist
+            QT_BINDING: PyQt5
+            RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl
           - name-suffix: "PySide6 wheel"
             os: macos-latest
             python-version: 3.9
