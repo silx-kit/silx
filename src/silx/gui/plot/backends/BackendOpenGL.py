@@ -526,7 +526,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 color = item['color']
                 intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
-                bgColor = (1., 1., 1., 0.5) if intensity <= 0.5 else (0., 0., 0., 0.5)
+                bgColor = (1., 1., 1., 0.75) if intensity <= 0.5 else (0., 0., 0., 0.75)
                 if xCoord is None or yCoord is None:
                     if xCoord is None:  # Horizontal line in data space
                         pixelPos = self._plotFrame.dataToPixel(
