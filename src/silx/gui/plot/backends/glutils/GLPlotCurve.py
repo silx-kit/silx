@@ -534,7 +534,7 @@ def distancesFromArrays(xData, yData):
         if begin == end:  # Empty shape
             continue
         elif end - begin == 1: # Single element
-            distances.append([0])
+            distances.append(numpy.array([0], dtype=numpy.float32))
         else:
             deltas = numpy.dstack((
                 numpy.ediff1d(xData[begin:end], to_begin=numpy.float32(0.)),
