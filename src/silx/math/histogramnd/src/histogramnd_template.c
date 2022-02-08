@@ -36,7 +36,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                         (HISTO_SAMPLE_T *i_sample,
                          HISTO_WEIGHT_T *i_weights,
                          int i_n_dim,
-                         int i_n_elem,
+                         size_t i_n_elem,
                          double *i_bin_ranges,
                          int *i_n_bins,
                          uint32_t *o_histo,
@@ -49,42 +49,42 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
     /* some counters */
     int i = 0, j = 0;
     long elem_idx = 0;
-    
+
     HISTO_WEIGHT_T * weight_ptr = 0;
     HISTO_SAMPLE_T elem_coord = 0.;
-    
+
     /* computed bin index (i_sample -> grid) */
     long bin_idx = 0;
-    
+
     double * g_min = 0;
     double * g_max = 0;
     double * range = 0;
-    
+
     /* ================================
      * Parsing options, if any.
      * ================================
      */
-    
+
     int filt_min_weight = 0;
     int filt_max_weight = 0;
     int last_bin_closed = 0;
-    
+
     /* Testing the option flags */
     if(i_opt_flags & HISTO_WEIGHT_MIN)
     {
         filt_min_weight = 1;
     }
-        
+
     if(i_opt_flags & HISTO_WEIGHT_MAX)
     {
         filt_max_weight = 1;
     }
-        
+
     if(i_opt_flags & HISTO_LAST_BIN_CLOSED)
     {
         last_bin_closed = 1;
     }
-    
+
     /* storing the min & max bin coordinates in their own arrays because
      * i_bin_ranges = [[min0, max0], [min1, max1], ...]
      * (mostly for the sake of clarity)
@@ -94,7 +94,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
     g_max = (double *) malloc(i_n_dim * sizeof(double));
     /* range used to convert from i_coords to bin indices in the grid */
     range = (double *) malloc(i_n_dim * sizeof(double));
-            
+
     if(!g_min || !g_max || !range)
     {
         free(g_min);
@@ -102,14 +102,14 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
         free(range);
         return HISTO_ERR_ALLOC;
     }
-    
+
     j = 0;
     for(i=0; i<i_n_dim; i++)
     {
         g_min[i] = i_bin_ranges[i*2];
         g_max[i] = i_bin_ranges[i*2+1];
         range[i] = g_max[i]-g_min[i];
-        
+
         for(bin_idx=0; bin_idx<i_n_bins[i]; j++, bin_idx++)
         {
             o_bin_edges[j] = g_min[i] +
@@ -117,9 +117,9 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
         }
         o_bin_edges[j++] = g_max[i];
     }
-    
+
     weight_ptr = i_weights;
-    
+
     if(!i_weights)
     {
         /* if weights are not provided there no point in trying to filter them
@@ -127,7 +127,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
          */
         filt_min_weight = 0;
         filt_max_weight = 0;
-        
+
         /* If the weights array is not provided then there is no point
          * updating the weighted histogram, only the bin counts (o_histo)
          * will be filled.
@@ -135,9 +135,9 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
          */
         o_cumul = 0;
     }
-    
+
     /* tried to use pointers instead of indices here, but it didn't
-     * seem any faster (probably because the compiler 
+     * seem any faster (probably because the compiler
      * optimizes stuff anyway),
      * so i'm keeping the "indices" version, for the sake of clarity
     */
@@ -159,11 +159,11 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
         }
 
         bin_idx = 0;
-        
+
         for(i=0; i<i_n_dim; i++)
         {
             elem_coord = i_sample[elem_idx+i];
-            
+
             /* =====================
              * Element is rejected if any of the following is NOT true :
              * 1. coordinate is >= than the minimum value
@@ -176,7 +176,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                 bin_idx = -1;
                 break;
             }
-            
+
             /* Here we make the assumption that most of the time
              * there will be more coordinates inside the grid interval
              *  (one test)
@@ -193,7 +193,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                  *               i_n_bins[i]
                  *           );
                  */
-                
+
                 /* Not using floor to speed up things.
                  * We don't (?) need all the error checking provided by
                  * the built-in floor().
@@ -221,33 +221,33 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                     break;
                 }
             } /* if(elem_coord<g_max[i]) */
-            
+
         } /* for(i=0; i<i_n_dim; i++) */
-        
+
         /* element is out of the grid */
         if(bin_idx==-1)
         {
             continue;
         }
-        
+
         if(o_histo)
         {
             o_histo[bin_idx] += 1;
         }
         if(o_cumul)
         {
-            /* not testing the pointer since o_cumul is null if 
-             * i_weights is null. 
+            /* not testing the pointer since o_cumul is null if
+             * i_weights is null.
              */
             o_cumul[bin_idx] += (HISTO_CUMUL_T) *weight_ptr;
         }
-        
+
     } /* for(elem_idx=0; elem_idx<i_n_elem*i_n_dim; elem_idx+=i_n_dim) */
-    
+
     free(g_min);
     free(g_max);
     free(range);
-    
+
     /* For now just returning 0 (OK) since all the checks are done in
      * python. This might change later if people want to call this
      * function directly from C (might have to implement error codes).
