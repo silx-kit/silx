@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "23/05/2018"
+__date__ = "12/01/2022"
 
 
 import logging
@@ -156,7 +156,7 @@ elif BINDING == 'PySide2':
             return super().exec_(*args, **kwargs)
 
     # QtWidgets
-    class QApplication(_ExecMixIn, QApplication): pass
+    QApplication.exec = QApplication.exec_
     class QColorDialog(_ExecMixIn, QColorDialog): pass
     class QDialog(_ExecMixIn, QDialog): pass
     class QErrorMessage(_ExecMixIn, QErrorMessage): pass
