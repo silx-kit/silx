@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -166,8 +166,13 @@ class NiceDateLocator(Locator):
             vmin, vmax = vmax, vmin
 
         # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
-        dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
-        dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        try:
+            dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
+            dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        except ValueError:
+            _logger.warning("Data range cannot be displayed with time axis")
+            return []
+
         dtTicks, self._spacing, self._unit = \
             calcTicks(dtMin, dtMax, self.numTicks)
 
