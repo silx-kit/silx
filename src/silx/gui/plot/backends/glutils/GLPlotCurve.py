@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -303,7 +303,7 @@ class GLLines2D(object):
         #version 120
 
         uniform mat4 matrix;
-        uniform vec2 halfViewportSize;
+        uniform float distanceScale;
         attribute float xPos;
         attribute float yPos;
         attribute vec4 color;
@@ -314,11 +314,7 @@ class GLLines2D(object):
 
         void main(void) {
             gl_Position = matrix * vec4(xPos, yPos, 0., 1.);
-            //Estimate distance in pixels
-            vec2 probe = vec2(matrix * vec4(1., 1., 0., 0.)) *
-                         halfViewportSize;
-            float pixelPerDataEstimate = length(probe)/sqrt(2.);
-            vDist = distance * pixelPerDataEstimate;
+            vDist = distance * distanceScale;
             vColor = color;
         }
         """,
@@ -427,10 +423,6 @@ class GLLines2D(object):
             program = self._DASH_PROGRAM
             program.use()
 
-            x, y, viewWidth, viewHeight = gl.glGetFloatv(gl.GL_VIEWPORT)
-            gl.glUniform2f(program.uniforms['halfViewportSize'],
-                           0.5 * viewWidth, 0.5 * viewHeight)
-
             dashPeriod = self.dashPeriod * width
             if self.style == DOTTED:
                 dash = (0.2 * dashPeriod,
@@ -456,6 +448,13 @@ class GLLines2D(object):
             else:
                 dash2ndColor = self.dash2ndColor
             gl.glUniform4f(program.uniforms['dash2ndColor'], *dash2ndColor)
+
+            viewWidth = gl.glGetFloatv(gl.GL_VIEWPORT)[2]
+            xNDCPerData = (
+                numpy.dot(context.matrix, [1., 0., 0., 1.])[0] -
+                numpy.dot(context.matrix, [0., 0., 0., 1.])[0])
+            xPixelPerData = 0.5 * viewWidth * xNDCPerData
+            gl.glUniform1f(program.uniforms['distanceScale'], xPixelPerData)
 
             distAttrib = program.attributes['distance']
             gl.glEnableVertexAttribArray(distAttrib)
@@ -515,11 +514,12 @@ class GLLines2D(object):
         gl.glDisable(gl.GL_LINE_SMOOTH)
 
 
-def distancesFromArrays(xData, yData):
+def distancesFromArrays(xData, yData, ratio: float=1.):
     """Returns distances between each points
 
     :param numpy.ndarray xData: X coordinate of points
     :param numpy.ndarray yData: Y coordinate of points
+    :param ratio: Y/X pixel per data resolution ratio
     :rtype: numpy.ndarray
     """
     # Split array into sub-shapes at not finite points
@@ -534,11 +534,11 @@ def distancesFromArrays(xData, yData):
         if begin == end:  # Empty shape
             continue
         elif end - begin == 1: # Single element
-            distances.append([0])
+            distances.append(numpy.array([0], dtype=numpy.float32))
         else:
             deltas = numpy.dstack((
                 numpy.ediff1d(xData[begin:end], to_begin=numpy.float32(0.)),
-                numpy.ediff1d(yData[begin:end], to_begin=numpy.float32(0.))))[0]
+                numpy.ediff1d(yData[begin:end] * ratio, to_begin=numpy.float32(0.))))[0]
             distances.append(
                 numpy.cumsum(numpy.sqrt(numpy.sum(deltas ** 2, axis=1))))
     return numpy.concatenate(distances)
@@ -1117,6 +1117,7 @@ class GLPlotCurve2D(GLPlotItem):
                  baseline=None,
                  isYLog=False):
         super().__init__()
+        self._ratio = None
         self.colorData = colorData
 
         # Compute x bounds
@@ -1235,7 +1236,7 @@ class GLPlotCurve2D(GLPlotItem):
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
             if self.lineStyle in (DASHED, DASHDOT, DOTTED):
-                dists = distancesFromArrays(self.xData, self.yData)
+                dists = distancesFromArrays(self.xData, self.yData, self._ratio)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
                         (self.xData, self.yData, dists))
@@ -1262,6 +1263,17 @@ class GLPlotCurve2D(GLPlotItem):
 
         :param RenderContext context: Rendering information
         """
+        if self.lineStyle in (DASHED, DASHDOT, DOTTED):
+            visibleRanges = context.plotFrame.transformedDataRanges
+            xLimits = visibleRanges.x
+            yLimits = visibleRanges.y if self.yaxis == 'left' else visibleRanges.y2
+            width, height = context.plotFrame.plotSize
+            ratio = (height * (xLimits[1] - xLimits[0])) / (width * (yLimits[1] - yLimits[0]))
+            if self._ratio is None or abs(1. - ratio/self._ratio) > 0.05:  # Tolerate 5% difference
+                # Rebuild curve buffers to update distances
+                self._ratio = ratio
+                self.discard()
+
         self.prepare()
         if self.fill is not None:
             self.fill.render(context)
