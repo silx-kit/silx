@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ __date__ = "06/04/2018"
 
 import datetime as dt
 import unittest
+import pytest
 
 
 from silx.gui.plot._utils.dtime_ticklayout import (
@@ -77,3 +78,17 @@ class TestTickLayout(unittest.TestCase):
                              numTicks, d2))
 
             value = value * 1.5 # let date period grow exponentially
+
+@pytest.mark.parametrize(
+    "dMin, dMax",
+    [
+        (dt.datetime(1, 1, 1), dt.datetime(400, 1, 1)),
+        (dt.datetime(4000, 1, 1), dt.datetime(9999, 1, 1)),
+        (dt.datetime(1, 1, 1), dt.datetime(9999, 12, 23)),
+    ],
+)
+def testCalcTicksOutOfBoundTicks(dMin, dMax):
+    """Test tick generation with values leading to out-of-bound ticks"""
+    ticks, _, unit = calcTicks(dMin, dMax, nTicks=5)
+    assert len(ticks) != 0
+    assert unit == DtUnit.YEARS
