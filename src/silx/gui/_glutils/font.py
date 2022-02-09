@@ -32,9 +32,13 @@ __date__ = "13/10/2016"
 import logging
 import numpy
 
-from ..utils.image import convertQImageToArray
-from ..utils.matplotlib import rasterMathText
 from .. import qt
+from ..utils.image import convertQImageToArray
+
+try:
+    from ..utils.matplotlib import rasterMathText
+except ImportError:
+    rasterMathText = None
 
 _logger = logging.getLogger(__name__)
 
@@ -177,7 +181,7 @@ def rasterText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.
     :return: Corresponding image in gray scale and baseline offset from top
     :rtype: (HxW numpy.ndarray of uint8, int)
     """
-    if text.count("$") >= 2:
+    if rasterMathText is not None and text.count("$") >= 2:
         return rasterMathText(text, font, size, weight, italic, devicePixelRatio)
     else:
         return rasterTextQt(text, font, size, weight, italic, devicePixelRatio)
