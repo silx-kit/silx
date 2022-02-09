@@ -141,14 +141,14 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     # RGB to R
     array = numpy.ascontiguousarray(array[:, :, 0])
 
-    # Remove leading and trailing empty columns but one on each side
-    column_cumsum = numpy.cumsum(numpy.sum(array, axis=0))
-    array = array[:, column_cumsum.argmin():column_cumsum.argmax() + 2]
-
-    # Remove leading and trailing empty rows but one on each side
-    row_cumsum = numpy.cumsum(numpy.sum(array, axis=1))
-    min_row = row_cumsum.argmin()
-    array = array[min_row:row_cumsum.argmax() + 2, :]
+    # Remove leading and trailing empty columns/rows but one on each side
+    filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
+    min_row = max(0, filled_rows[0] - 1)
+    filled_columns = numpy.nonzero(numpy.sum(array, axis=0))[0]
+    array = array[
+        min_row : filled_rows[-1] + 2,
+        max(0, filled_columns[0] - 1) : filled_columns[-1] + 2,
+    ]
 
     return array, metrics.ascent() - min_row
 
