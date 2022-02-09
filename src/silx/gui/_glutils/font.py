@@ -92,7 +92,7 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     """
     if not text:
         _logger.info("Trying to raster empty text, replaced by white space")
-        text = ' '  # Replace empty text by white space to produce an image
+        text = " "  # Replace empty text by white space to produce an image
 
     if not isinstance(font, qt.QFont):
         font = qt.QFont(font, size, weight, italic)
@@ -104,7 +104,8 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     painter.setPen(qt.Qt.white)
     painter.setFont(font)
     bounds = painter.boundingRect(
-        qt.QRect(0, 0, 4096, 4096), qt.Qt.TextExpandTabs, text)
+        qt.QRect(0, 0, 4096, 4096), qt.Qt.TextExpandTabs, text
+    )
     painter.end()
 
     metrics = qt.QFontMetrics(font)
@@ -120,9 +121,9 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
-    image = qt.QImage(int(width),
-                      int(bounds.height() * devicePixelRatio + 2),
-                      qt.QImage.Format_RGB888)
+    image = qt.QImage(
+        int(width), int(bounds.height() * devicePixelRatio + 2), qt.QImage.Format_RGB888
+    )
     image.setDevicePixelRatio(devicePixelRatio)
 
     # TODO if Qt5 use Format_Grayscale8 instead
