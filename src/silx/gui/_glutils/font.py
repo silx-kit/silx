@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import logging
 import numpy
 
 from ..utils.image import convertQImageToArray
+from ..utils.matplotlib import rasterMathText
 from .. import qt
 
 _logger = logging.getLogger(__name__)
@@ -66,11 +67,7 @@ ULTRA_BLACK = 99
 """Thickest characters: Maximum font weight"""
 
 
-def rasterText(text, font,
-               size=-1,
-               weight=-1,
-               italic=False,
-               devicePixelRatio=1.0):
+def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
     """Raster text using Qt.
 
     It supports multiple lines.
@@ -154,3 +151,32 @@ def rasterText(text, font,
     array = array[min_row:row_cumsum.argmax() + 2, :]
 
     return array, metrics.ascent() - min_row
+
+
+def rasterText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+    """Raster text using Qt or matplotlib if there may be math syntax.
+
+    It supports multiple lines.
+
+    :param str text: The text to raster
+    :param font: Font name or QFont to use
+    :type font: str or :class:`QFont`
+    :param int size:
+        Font size in points
+        Used only if font is given as name.
+    :param int weight:
+        Font weight in [0, 99], see QFont.Weight.
+        Used only if font is given as name.
+    :param bool italic:
+        True for italic font (default: False).
+        Used only if font is given as name.
+    :param float devicePixelRatio:
+        The current ratio between device and device-independent pixel
+        (default: 1.0)
+    :return: Corresponding image in gray scale and baseline offset from top
+    :rtype: (HxW numpy.ndarray of uint8, int)
+    """
+    if text.count("$") >= 2:
+        return rasterMathText(text, font, size, weight, italic, devicePixelRatio)
+    else:
+        return rasterTextQt(text, font, size, weight, italic, devicePixelRatio)
