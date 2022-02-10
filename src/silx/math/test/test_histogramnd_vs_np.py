@@ -26,6 +26,7 @@ Tests for the histogramnd function.
 Results are compared to numpy's histogramdd.
 """
 
+import os
 import unittest
 import operator
 
@@ -608,6 +609,41 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(np.allclose(result_c_1[1].sum(dtype=np.float64),
                                     result_np_w_1[0].sum(dtype=np.float64)),
                         msg=self.state_msg)
+
+    def test_histo_big_array(self):
+        """
+        Test histogram on arrays with more than 2**31-1 samples.
+        """
+        if os.environ.get("SILX_TEST_LOW_MEM", "1") == "1":
+            self.skipTest("Skip tests requiring a large memory amount")
+        if self.sample.ndim > 1:
+            self.skipTest("Test only many samples along one dimension")
+        if self.sample.dtype.itemsize > 4:
+            self.skipTest("Test only many samples for itemsize < 4")
+        n_repeat = (2**31 + 10) // self.sample.size
+        sample = np.repeat(self.sample, n_repeat)
+        n_bins = int(1e6)
+        result_c = histogramnd(
+            sample,
+            self.histo_range,
+            n_bins,
+            last_bin_closed=True
+        )
+        result_np = np.histogramdd(
+            sample,
+            n_bins,
+            range=self.histo_range
+        )
+        for i_edges, edges in enumerate(result_c[2]):
+            self.assertTrue(
+                np.allclose(
+                    edges,
+                    result_np[1][i_edges]
+                ),
+                msg='{0}. Testing bin_edges for dim {1}.'''.format(self.state_msg, i_edges+1)
+            )
+
+
 
 
 class _TestHistogramnd_1d(_TestHistogramnd):
