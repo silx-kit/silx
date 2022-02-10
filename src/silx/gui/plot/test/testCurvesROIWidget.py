@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -63,13 +63,11 @@ class TestCurvesROIWidget(TestCaseQt):
         self.qWaitForWindowExposed(self.widget)
 
     def tearDown(self):
+        del self.widget
+
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
-
-        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.widget.close()
-        del self.widget
 
         super(TestCurvesROIWidget, self).tearDown()
 
