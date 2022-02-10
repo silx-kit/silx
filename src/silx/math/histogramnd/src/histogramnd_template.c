@@ -48,7 +48,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
 {
     /* some counters */
     int i = 0, j = 0;
-    long elem_idx = 0;
+    size_t elem_idx = 0;
 
     HISTO_WEIGHT_T * weight_ptr = 0;
     HISTO_SAMPLE_T elem_coord = 0.;
