@@ -159,6 +159,7 @@ class GLPlotColormap(_GLPlotData2D):
     }
 
     uniform sampler2D data;
+    uniform float data_scale;
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
     uniform float cmap_parameter;
@@ -174,35 +175,35 @@ class GLPlotColormap(_GLPlotData2D):
     const float oneOverLog10 = 0.43429448190325176;
 
     void main(void) {
-        float data = texture2D(data, textureCoords()).r;
-        float value = data;
+        float raw_data = texture2D(data, textureCoords()).r * data_scale;
+        float value = 0.;
         if (cmap_normalization == 1) { /*Logarithm mapping*/
-            if (value > 0.) {
+            if (raw_data > 0.) {
                 value = clamp(cmap_oneOverRange *
-                              (oneOverLog10 * log(value) - cmap_min),
+                              (oneOverLog10 * log(raw_data) - cmap_min),
                               0., 1.);
             } else {
                 value = 0.;
             }
         } else if (cmap_normalization == 2) { /*Square root mapping*/
-            if (value >= 0.) {
-                value = clamp(cmap_oneOverRange * (sqrt(value) - cmap_min),
+            if (raw_data >= 0.) {
+                value = clamp(cmap_oneOverRange * (sqrt(raw_data) - cmap_min),
                               0., 1.);
             } else {
                 value = 0.;
             }
         } else if (cmap_normalization == 3) { /*Gamma correction mapping*/
             value = pow(
-                clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.),
+                clamp(cmap_oneOverRange * (raw_data - cmap_min), 0., 1.),
                 cmap_parameter);
         } else if (cmap_normalization == 4) { /* arcsinh mapping */
             /* asinh = log(x + sqrt(x*x + 1) for compatibility with GLSL 1.20 */
-             value = clamp(cmap_oneOverRange * (log(value + sqrt(value*value + 1.0)) - cmap_min), 0., 1.);
+            value = clamp(cmap_oneOverRange * (log(raw_data + sqrt(raw_data*raw_data + 1.0)) - cmap_min), 0., 1.);
         } else { /*Linear mapping and fallback*/
-            value = clamp(cmap_oneOverRange * (value - cmap_min), 0., 1.);
+            value = clamp(cmap_oneOverRange * (raw_data - cmap_min), 0., 1.);
         }
 
-        if (isnan(data)) {
+        if (isnan(raw_data)) {
             gl_FragColor = nancolor;
         } else {
             gl_FragColor = texture2D(cmap_texture, vec2(value, 0.5));
@@ -355,9 +356,10 @@ class GLPlotColormap(_GLPlotData2D):
 
         if self.data.dtype in (numpy.uint16, numpy.uint8):
             # Using unsigned int as normalized integer in OpenGL
-            # So normalize range
-            maxInt = float(numpy.iinfo(self.data.dtype).max)
-            dataMin, dataMax = dataMin / maxInt, dataMax / maxInt
+            # So revert normalization in the shader
+            dataScale = float(numpy.iinfo(self.data.dtype).max)
+        else:
+            dataScale = 1.
 
         if self.normalization == 'log':
             dataMin = math.log10(dataMin)
@@ -378,6 +380,7 @@ class GLPlotColormap(_GLPlotData2D):
         else:  # Linear and fallback
             normID = 0
 
+        gl.glUniform1f(prog.uniforms['data_scale'], dataScale)
         gl.glUniform1i(prog.uniforms['cmap_texture'],
                        self._cmap_texture.texUnit)
         gl.glUniform1i(prog.uniforms['cmap_normalization'], normID)
