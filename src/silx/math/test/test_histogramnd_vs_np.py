@@ -616,8 +616,6 @@ class _TestHistogramnd(unittest.TestCase):
         """
         Test histogram on arrays with more than 2**31-1 samples.
         """
-        if os.environ.get("SILX_TEST_LOW_MEM", "1") == "1":
-            self.skipTest("Skip tests requiring a large memory amount")
         if self.sample.ndim > 1:
             self.skipTest("Test only many samples along one dimension")
         if self.sample.dtype.itemsize > 4:
