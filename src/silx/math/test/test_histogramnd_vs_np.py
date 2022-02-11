@@ -610,6 +610,7 @@ class _TestHistogramnd(unittest.TestCase):
                                     result_np_w_1[0].sum(dtype=np.float64)),
                         msg=self.state_msg)
 
+    @pytest.mark.usefixtures("use_large_memory")
     def test_histo_big_array(self):
         """
         Test histogram on arrays with more than 2**31-1 samples.
