@@ -331,7 +331,7 @@ class _DataInPlotMode(enum.Enum):
 class _ColormapHistogram(qt.QWidget):
     """Display the colormap and the data as a plot."""
 
-    sigRangeMoving = qt.Signal(object, object)
+    sigRangeMoving = qt.Signal(object, object, object)
     """Emitted when a mouse interaction moves the location
     of the colormap range in the plot.
 
@@ -339,15 +339,17 @@ class _ColormapHistogram(qt.QWidget):
 
     - vmin: A float value if this range was moved, else None
     - vmax: A float value if this range was moved, else None
+    - gammaPos: A float value if this range was moved, else None
     """
 
-    sigRangeMoved = qt.Signal(object, object)
+    sigRangeMoved = qt.Signal(object, object, object)
     """Emitted when a mouse interaction stop.
 
     This signal contains 2 elements:
 
     - vmin: A float value if this range was moved, else None
     - vmax: A float value if this range was moved, else None
+    - gammaPos: A float value if this range was moved, else None
     """
 
     def __init__(self, parent):
@@ -359,7 +361,7 @@ class _ColormapHistogram(qt.QWidget):
         self._histogramData = {}
         """Histogram displayed in the plot"""
 
-        self._dragging = False, False
+        self._dragging = False, False, False
         """True, if the min or the max handle is dragging"""
 
         self._dataRange = {}
@@ -598,20 +600,24 @@ class _ColormapHistogram(qt.QWidget):
         if kind == 'markerMoving':
             value = event['xdata']
             if event['label'] == 'Min':
-                self._dragging = True, False
+                self._dragging = True, False, False
                 self._finiteRange = value, self._finiteRange[1]
-                self._last = value, None
+                self._last = value, None, None
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Max':
-                self._dragging = False, True
+                self._dragging = False, True, False
                 self._finiteRange = self._finiteRange[0], value
-                self._last = None, value
+                self._last = None, value, None
+                self.sigRangeMoving.emit(*self._last)
+            elif event['label'] == 'Gamma':
+                self._dragging = False, False, True
+                self._last = None, None, value
                 self.sigRangeMoving.emit(*self._last)
             self._updateLutItem(self._finiteRange)
         elif kind == 'markerMoved':
             self.sigRangeMoved.emit(*self._last)
             self._plot.resetZoom()
-            self._dragging = False, False
+            self._dragging = False, False, False
         else:
             pass
 
@@ -621,8 +627,13 @@ class _ColormapHistogram(qt.QWidget):
 
         if colormap is None:
             isDraggable = False
+            gamma = None
         else:
             isDraggable = colormap.isEditable()
+            if colormap.getNormalization() == Colormap.GAMMA:
+                gamma = colormap.getGammaNormalizationParameter()
+            else:
+                gamma = None
 
         with utils.blockSignals(self):
             if posMin is not None and not self._dragging[0]:
@@ -633,11 +644,31 @@ class _ColormapHistogram(qt.QWidget):
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMinMarkerConstraint)
+            if gamma is not None:
+                if not self._dragging[2]:
+                    posRange = posMax - posMin
+                    if posRange > 0:
+                        gammaPos = numpy.log(gamma) + 0.5
+                        gammaPos = posMin + (posMax - posMin) * gammaPos
+                    else:
+                        gammaPos = posMin
+                    self._plot.addXMarker(
+                        gammaPos,
+                        legend='Gamma',
+                        text='\nGamma',
+                        draggable=True,
+                        color="blue",
+                        constraint=self._plotGammaMarkerConstraint)
+            else:
+                try:
+                    self._plot.removeMarker('Gamma')
+                except Exception:
+                    pass
             if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
-                    text='Max',
+                    text='\n\nMax',
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMaxMarkerConstraint)
@@ -715,6 +746,15 @@ class _ColormapHistogram(qt.QWidget):
         if vmin is None:
             return x, y
         return max(x, vmin), y
+
+    def _plotGammaMarkerConstraint(self, x, y):
+        """Constraint of the gamma marker"""
+        vmin, vmax = self.getFiniteRange()
+        if vmin is not None:
+            x = max(x, vmin)
+        if vmax is not None:
+            x = min(x, vmax)
+        return x, y
 
     def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
@@ -1510,7 +1550,7 @@ class ColormapDialog(qt.QDialog):
                 self._gammaSpinBox.setValue(
                     colormap.getGammaNormalizationParameter())
                 self._gammaSpinBox.setEnabled(
-                    colormap.getNormalization() == 'gamma' and
+                    colormap.getNormalization() == Colormap.GAMMA and
                     colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
@@ -1655,12 +1695,13 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.setValue(xmax)
         self._setColormapRange(xmin, xmax)
 
-    def _histogramRangeMoving(self, vmin, vmax):
+    def _histogramRangeMoving(self, vmin, vmax, gammaPos):
         """Callback executed when for colormap range displayed in
         the histogram widget is moving.
 
         :param vmin: Update of the minimum range, else None
         :param vmax: Update of the maximum range, else None
+        :param gammaPos: Update of the gamma location, else None
         """
         colormap = self.getColormap()
         if vmin is not None:
@@ -1671,11 +1712,25 @@ class ColormapDialog(qt.QDialog):
             with self._colormapChange:
                 colormap.setVMax(vmax)
             self._maxValue.setValue(vmax)
+        if gammaPos is not None:
+            vmin, vmax = self._histoWidget.getFiniteRange()
+            vrange = vmax - vmin
+            if vrange > 0:
+                g = (gammaPos - vmin) / (vmax - vmin)
+            else:
+                g = 0.5
+            gamma = numpy.exp(g - 0.5)
+            with self._colormapChange:
+                colormap.setGammaNormalizationParameter(gamma)
+            with utils.blockSignals(self._gammaSpinBox):
+                self._gammaSpinBox.setValue(gamma)
 
-    def _histogramRangeMoved(self, vmin, vmax):
+    def _histogramRangeMoved(self, vmin, vmax, gammaPos):
         """Callback executed when for colormap range displayed in
         the histogram widget has finished to move
         """
+        if vmin is None and vmax is None:
+            return
         xmin = self._minValue.getValue()
         xmax = self._maxValue.getValue()
         if vmin is None:
