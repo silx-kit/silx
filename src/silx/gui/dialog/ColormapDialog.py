@@ -878,6 +878,9 @@ class ColormapDialog(qt.QDialog):
         self._item = None
         """Weak ref to an external item"""
 
+        self._colormapped = None
+        """Weak ref to reduce data update"""
+
         self._colormapChange = utils.LockReentrant()
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
@@ -1249,10 +1252,21 @@ class ColormapDialog(qt.QDialog):
         the data range or the histogram of the data using :meth:`setDataRange`
         and :meth:`setHistogram`
         """
-        # While event from items are not supported, we can't ignore dup items
-        # old = self._getItem()
-        # if old is item:
-        #     return
+        old = self._getItem()
+        if old is item:
+            # While event from items are not supported, we can't ignore dup items
+            if item is not None:
+                array = item.getColormappedData(copy=False)
+            else:
+                array = None
+            colormapped = self._colormapped
+            if colormapped is not None:
+                oldArray = colormapped()
+            else:
+                oldArray = None
+            if oldArray is array:
+                return
+
         self._data = None
         self._itemHolder = None
         try:
@@ -1305,7 +1319,12 @@ class ColormapDialog(qt.QDialog):
             return data
         item = self._getItem()
         if item is not None:
-            return item.getColormappedData(copy=False)
+            colormapped = item.getColormappedData(copy=False)
+            if colormapped is not None:
+                self._colormapped = weakref.ref(colormapped)
+            else:
+                self._colormapped = None
+            return colormapped
         return None
 
     def _colormapAboutToFinalize(self, weakrefColormap):
