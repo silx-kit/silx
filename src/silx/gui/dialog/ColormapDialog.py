@@ -603,11 +603,13 @@ class _ColormapHistogram(qt.QWidget):
                 self._dragging = True, False, False
                 self._finiteRange = value, self._finiteRange[1]
                 self._last = value, None, None
+                self._updateGammaPosition()
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Max':
                 self._dragging = False, True, False
                 self._finiteRange = self._finiteRange[0], value
                 self._last = None, value, None
+                self._updateGammaPosition()
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Gamma':
                 self._dragging = False, False, True
@@ -627,13 +629,8 @@ class _ColormapHistogram(qt.QWidget):
 
         if colormap is None:
             isDraggable = False
-            gamma = None
         else:
             isDraggable = colormap.isEditable()
-            if colormap.getNormalization() == Colormap.GAMMA:
-                gamma = colormap.getGammaNormalizationParameter()
-            else:
-                gamma = None
 
         with utils.blockSignals(self):
             if posMin is not None and not self._dragging[0]:
@@ -644,26 +641,7 @@ class _ColormapHistogram(qt.QWidget):
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMinMarkerConstraint)
-            if gamma is not None:
-                if not self._dragging[2]:
-                    posRange = posMax - posMin
-                    if posRange > 0:
-                        gammaPos = numpy.log(gamma) + 0.5
-                        gammaPos = posMin + (posMax - posMin) * gammaPos
-                    else:
-                        gammaPos = posMin
-                    self._plot.addXMarker(
-                        gammaPos,
-                        legend='Gamma',
-                        text='\nGamma',
-                        draggable=True,
-                        color="blue",
-                        constraint=self._plotGammaMarkerConstraint)
-            else:
-                try:
-                    self._plot.removeMarker('Gamma')
-                except Exception:
-                    pass
+            self._updateGammaPosition()
             if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
@@ -675,6 +653,39 @@ class _ColormapHistogram(qt.QWidget):
 
         self._updateLutItem((posMin, posMax))
         self._plot.resetZoom()
+
+    def _updateGammaPosition(self):
+        colormap = self.getColormap()
+        posMin, posMax = self._getDisplayableRange()
+
+        if colormap is None:
+            gamma = None
+        else:
+            if colormap.getNormalization() == Colormap.GAMMA:
+                gamma = colormap.getGammaNormalizationParameter()
+            else:
+                gamma = None
+
+        if gamma is not None:
+            if not self._dragging[2]:
+                posRange = posMax - posMin
+                if posRange > 0:
+                    gammaPos = numpy.log(gamma) + 0.5
+                    gammaPos = posMin + (posMax - posMin) * gammaPos
+                else:
+                    gammaPos = posMin
+                self._plot.addXMarker(
+                    gammaPos,
+                    legend='Gamma',
+                    text='\nGamma',
+                    draggable=True,
+                    color="blue",
+                    constraint=self._plotGammaMarkerConstraint)
+        else:
+            try:
+                self._plot.removeMarker('Gamma')
+            except Exception:
+                pass
 
     def _updateLutItem(self, vRange):
         colormap = self.getColormap()
