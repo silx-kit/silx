@@ -1055,7 +1055,6 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
-        self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
     def _invalidateColormap(self):
