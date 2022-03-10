@@ -292,25 +292,25 @@ class _AutoScaleButtons(qt.QWidget):
         self._bothAuto.toggled[bool].connect(self.__bothToggled)
         self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
 
-        self._minAuto = qt.QCheckBox(self)
-        self._minAuto.setText("")
+        self._minAuto = qt.QPushButton(self)
+        self._minAuto.setText("Min")
         self._minAuto.setToolTip("Enable/disable the autoscale for min")
+        self._minAuto.setCheckable(True)
         self._minAuto.toggled[bool].connect(self.__minToggled)
         self._minAuto.setFocusPolicy(qt.Qt.TabFocus)
+        self._minAuto.setVisible(False)
 
-        self._maxAuto = qt.QCheckBox(self)
-        self._maxAuto.setText("")
+        self._maxAuto = qt.QPushButton(self)
+        self._maxAuto.setText("Max")
         self._maxAuto.setToolTip("Enable/disable the autoscale for max")
+        self._maxAuto.setCheckable(True)
         self._maxAuto.toggled[bool].connect(self.__maxToggled)
         self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
+        self._maxAuto.setVisible(False)
 
-        layout.addStretch(1)
         layout.addWidget(self._minAuto)
-        layout.addSpacing(20)
-        layout.addWidget(self._bothAuto)
-        layout.addSpacing(20)
         layout.addWidget(self._maxAuto)
-        layout.addStretch(1)
+        layout.addWidget(self._bothAuto)
 
     def __bothToggled(self, checked):
         autoRange = checked, checked
@@ -1000,7 +1000,6 @@ class ColormapDialog(qt.QDialog):
         rangeLayout.setColumnStretch(2, 1)
         rangeLayout.setColumnStretch(3, 2)
         rangeLayout.setColumnStretch(4, 1)
-        rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
         self._histoWidget = _ColormapHistogram(self)
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
@@ -1053,28 +1052,32 @@ class ColormapDialog(qt.QDialog):
 
         self.setModal(self.isModal())
 
+        layout = qt.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._visibleAreaButton)
+        layout.addWidget(self._selectedAreaButton)
+        layout.addStretch()
+        self._scaleToAreaGroup = qt.QWidget(self)
+        self._scaleToAreaGroup.setLayout(layout)
+        self._scaleToAreaGroup.setVisible(False)
+
+        layoutScale = qt.QHBoxLayout()
+        layoutScale.setContentsMargins(0, 0, 0, 0)
+        layoutScale.addWidget(self._autoButtons)
+        layoutScale.addWidget(self._autoScaleCombo)
+        layoutScale.addStretch()
+
         formLayout = qt.QFormLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
         formLayout.addRow('Colormap:', self._comboBoxColormap)
         formLayout.addRow('Normalization:', self._comboBoxNormalization)
         formLayout.addRow('Gamma:', self._gammaSpinBox)
+        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(self._histoWidget)
         formLayout.addRow(rangeLayout)
-        label = qt.QLabel('Mode:', self)
-        self._autoscaleModeLabel = label
-        label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
-        formLayout.addRow(label, autoScaleCombo)
-
-        layout = qt.QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._visibleAreaButton)
-        layout.addWidget(self._selectedAreaButton)
-        self._scaleToAreaGroup = qt.QGroupBox('Scale to:', self)
-        self._scaleToAreaGroup.setLayout(layout)
-        self._scaleToAreaGroup.setVisible(False)
-        formLayout.addRow(self._scaleToAreaGroup)
-
+        formLayout.addRow('Scale:', layoutScale)
+        formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
         formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
@@ -1524,7 +1527,6 @@ class ColormapDialog(qt.QDialog):
             self._histoWidget.setFiniteRange((xmin, xmax))
         with utils.blockSignals(self._autoButtons):
             self._autoButtons.setAutoRange((autoMin, autoMax))
-        self._autoscaleModeLabel.setEnabled(autoMin or autoMax)
 
     def accept(self):
         self.storeCurrentState()
@@ -1593,7 +1595,6 @@ class ColormapDialog(qt.QDialog):
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
             self._autoButtons.setEnabled(False)
-            self._autoscaleModeLabel.setEnabled(False)
             self._histoWidget.setVisible(False)
             self._histoWidget.setFiniteRange((None, None))
         else:
@@ -1636,7 +1637,6 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._maxValue):
                 self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
                 self._maxValue.setEnabled(colormap.isEditable())
-            self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
             with utils.blockSignals(self._histoWidget):
                 self._histoWidget.setVisible(True)
