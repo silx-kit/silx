@@ -528,6 +528,7 @@ class _ColormapHistogram(qt.QWidget):
     def _initPlot(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget(self)
+        self._plot.setAxesDisplayed(False)
         self._plot.setDataMargins(0.125, 0.125, 0.01, 0.01)
         self._plot.getXAxis().setLabel("Data Values")
         self._plot.getYAxis().setLabel("")
