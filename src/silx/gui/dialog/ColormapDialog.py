@@ -126,6 +126,20 @@ class _BoundaryWidget(qt.QWidget):
         self.setLayout(qt.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._numVal = FloatEdit(parent=self, value=value)
+
+        self._iconAuto = icons.getQIcon('scale-auto')
+        self._iconFixed = icons.getQIcon('scale-fixed')
+
+        self._autoToggleAction = qt.QAction(self)
+        self._autoToggleAction.setText("Auto scale")
+        self._autoToggleAction.setToolTip("Toggle auto scale")
+        self._autoToggleAction.setCheckable(True)
+        self._autoToggleAction.setIcon(self._iconFixed)
+        self._autoToggleAction.setChecked(False)
+        self._autoToggleAction.toggled.connect(self._autoToggled)
+
+        self._numVal.addAction(self._autoToggleAction, qt.QLineEdit.LeadingPosition)
+
         self.layout().addWidget(self._numVal)
         self._autoCB = qt.QCheckBox('auto', parent=self)
         self.layout().addWidget(self._autoCB)
@@ -172,7 +186,7 @@ class _BoundaryWidget(qt.QWidget):
         return self._numVal.value()
 
     def _autoToggled(self, enabled):
-        self._numVal.setEnabled(not enabled)
+        self._updateAutoScaleState(enabled)
         self._updateDisplayedText()
         self.sigAutoScaleChanged.emit(enabled)
 
@@ -196,7 +210,20 @@ class _BoundaryWidget(qt.QWidget):
                 if not self.__textWasEdited:
                     self._numVal.setValue(value)
             self.__realValue = value
-            self._numVal.setEnabled(not isAuto)
+            self._updateAutoScaleState(isAuto)
+
+    def _updateAutoScaleState(self, isAutoScale):
+        self._numVal.setReadOnly(isAutoScale)
+        palette = qt.QPalette()
+        if isAutoScale:
+            color = palette.color(qt.QPalette.Disabled, qt.QPalette.Base)
+            icon = self._iconAuto
+        else:
+            color = palette.color(qt.QPalette.Normal, qt.QPalette.Base)
+            icon = self._iconFixed
+        palette.setColor(qt.QPalette.Base, color)
+        self._numVal.setPalette(palette)
+        self._autoToggleAction.setIcon(icon)
 
 
 class _AutoscaleModeComboBox(qt.QComboBox):
