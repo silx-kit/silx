@@ -944,11 +944,13 @@ class ColormapDialog(qt.QDialog):
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
         self._minValue.sigAutoScaleChanged.connect(self._minAutoscaleUpdated)
         self._minValue.sigValueChanged.connect(self._minValueUpdated)
+        self._minValue.setMinimumWidth(140)
 
         # Max row
         self._maxValue = _BoundaryWidget(parent=self, value=10.0)
         self._maxValue.sigAutoScaleChanged.connect(self._maxAutoscaleUpdated)
         self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
+        self._maxValue.setMinimumWidth(140)
 
         self._autoButtons = _AutoScaleButtons(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
@@ -962,10 +964,15 @@ class ColormapDialog(qt.QDialog):
         labelMax = qt.QLabel("Max", self)
         labelMax.setAlignment(qt.Qt.AlignHCenter)
         labelMax.setFont(miniFont)
-        rangeLayout.addWidget(labelMin, 0, 0)
-        rangeLayout.addWidget(labelMax, 0, 1)
-        rangeLayout.addWidget(self._minValue, 1, 0)
-        rangeLayout.addWidget(self._maxValue, 1, 1)
+        rangeLayout.addWidget(labelMin, 0, 1)
+        rangeLayout.addWidget(labelMax, 0, 3)
+        rangeLayout.addWidget(self._minValue, 1, 1)
+        rangeLayout.addWidget(self._maxValue, 1, 3)
+        rangeLayout.setColumnStretch(0, 1)
+        rangeLayout.setColumnStretch(1, 2)
+        rangeLayout.setColumnStretch(2, 1)
+        rangeLayout.setColumnStretch(3, 2)
+        rangeLayout.setColumnStretch(4, 1)
         rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
 
         self._histoWidget = _ColormapHistogram(self)
