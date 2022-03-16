@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -212,6 +212,7 @@ def addValueToDate(dateTime, value, unit):
     :param float value: value to be added
     :param DtUnit unit: of the value
     :return:
+    :raises ValueError: unit is unsupported or result is out of datetime bounds
     """
     #logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
 
@@ -362,6 +363,9 @@ def findStartDate(dMin, dMax, nTicks):
     else:
         niceVal = math.floor(dVal / niceSpacing) * niceSpacing
 
+    if unit == DtUnit.YEARS and niceVal <= dt.MINYEAR:
+        niceVal = max(1, niceSpacing)
+
     _logger.debug("StartValue: dVal = {}, niceVal: {} ({})"
                   .format(dVal, niceVal, unit.name))
 
@@ -394,7 +398,10 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
     dateTime = dMin
     while dateTime < dMax:
         yield dateTime
-        dateTime = addValueToDate(dateTime, step, unit)
+        try:
+            dateTime = addValueToDate(dateTime, step, unit)
+        except ValueError:
+            return  # current dateTime is out of datetime bounds
 
     if includeFirstBeyond:
         yield dateTime
@@ -419,12 +426,6 @@ def calcTicks(dMin, dMax, nTicks):
     for d in dateRange(startDate, dMax, niceSpacing, unit,
                        includeFirstBeyond=True):
         result.append(d)
-
-    assert result[0] <= dMin, \
-        "First nice date ({}) should be <= dMin {}".format(result[0], dMin)
-
-    assert result[-1] >= dMax, \
-        "Last nice date ({}) should be >= dMax {}".format(result[-1], dMax)
 
     return result, niceSpacing, unit
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,49 +31,61 @@ __date__ = "06/04/2018"
 
 
 import datetime as dt
-import unittest
+import pytest
 
 
-from silx.gui.plot._utils.dtime_ticklayout import (
-    calcTicks, DtUnit, SECONDS_PER_YEAR)
+from silx.gui.plot._utils.dtime_ticklayout import calcTicks, DtUnit, SECONDS_PER_YEAR
 
 
-class TestTickLayout(unittest.TestCase):
-    """Test ticks layout algorithms"""
+def testSmallMonthlySpacing():
+    """Tests a range that did result in a spacing of less than 1 month.
+    It is impossible to add fractional month so the unit must be in days
+    """
+    from dateutil import parser
 
-    def testSmallMonthlySpacing(self):
-        """ Tests a range that did result in a spacing of less than 1 month.
-            It is impossible to add fractional month so the unit must be in days
-        """
-        from dateutil import parser
-        d1 = parser.parse("2017-01-03 13:15:06.000044")
-        d2 = parser.parse("2017-03-08 09:16:16.307584")
-        _ticks, _units, spacing = calcTicks(d1, d2, nTicks=4)
+    d1 = parser.parse("2017-01-03 13:15:06.000044")
+    d2 = parser.parse("2017-03-08 09:16:16.307584")
+    _ticks, _units, spacing = calcTicks(d1, d2, nTicks=4)
 
-        self.assertEqual(spacing, DtUnit.DAYS)
+    assert spacing == DtUnit.DAYS
 
 
-    def testNoCrash(self):
-        """ Creates many combinations of and number-of-ticks and end-dates;
-        tests that it doesn't give an exception and returns a reasonable number
-        of ticks.
-        """
-        d1 = dt.datetime(2017, 1, 3, 13, 15, 6, 44)
+def testNoCrash():
+    """Creates many combinations of and number-of-ticks and end-dates;
+    tests that it doesn't give an exception and returns a reasonable number
+    of ticks.
+    """
+    d1 = dt.datetime(2017, 1, 3, 13, 15, 6, 44)
 
-        value = 100e-6 # Start at 100 micro sec range.
+    value = 100e-6  # Start at 100 micro sec range.
 
-        while value <= 200 * SECONDS_PER_YEAR:
+    while value <= 200 * SECONDS_PER_YEAR:
 
-            d2 = d1 + dt.timedelta(microseconds=value*1e6) # end date range
+        d2 = d1 + dt.timedelta(microseconds=value * 1e6)  # end date range
 
-            for numTicks in range(2, 12):
-                ticks, _, _ = calcTicks(d1, d2, numTicks)
+        for numTicks in range(2, 12):
+            ticks, _, _ = calcTicks(d1, d2, numTicks)
 
-                margin = 2.5
-                self.assertTrue(
-                    numTicks/margin <= len(ticks) <= numTicks*margin,
-                    "Condition {} <= {} <= {} failed for # ticks={} and d2={}:"
-                     .format(numTicks/margin, len(ticks), numTicks * margin,
-                             numTicks, d2))
+            margin = 2.5
+            assert (
+                numTicks / margin <= len(ticks) <= numTicks * margin
+            ), "Condition {} <= {} <= {} failed for # ticks={} and d2={}:".format(
+                numTicks / margin, len(ticks), numTicks * margin, numTicks, d2
+            )
 
-            value = value * 1.5 # let date period grow exponentially
+        value = value * 1.5  # let date period grow exponentially
+
+
+@pytest.mark.parametrize(
+    "dMin, dMax",
+    [
+        (dt.datetime(1, 1, 1), dt.datetime(400, 1, 1)),
+        (dt.datetime(4000, 1, 1), dt.datetime(9999, 1, 1)),
+        (dt.datetime(1, 1, 1), dt.datetime(9999, 12, 23)),
+    ],
+)
+def testCalcTicksOutOfBoundTicks(dMin, dMax):
+    """Test tick generation with values leading to out-of-bound ticks"""
+    ticks, _, unit = calcTicks(dMin, dMax, nTicks=5)
+    assert len(ticks) != 0
+    assert unit == DtUnit.YEARS
