@@ -34,10 +34,6 @@ import platform
 import shutil
 import logging
 import glob
-# io import has to be here also to fix a bug on Debian 7 with python2.7
-# Without this, the system io module is not loaded from numpy.distutils.
-# The silx.io module seems to be loaded instead.
-import io
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,27 +41,18 @@ logger = logging.getLogger("silx.setup")
 
 from distutils.command.clean import clean as Clean
 from distutils.command.build import build as _build
+from setuptools import Command
+from setuptools.command.sdist import sdist
+from setuptools.command.build_ext import build_ext
+
 try:
-    from setuptools import Command
-    from setuptools.command.sdist import sdist
-    try:
-        from Cython.Build import build_ext
-        logger.info("Use setuptools with cython")
-    except ImportError:
-        from setuptools.command.build_ext import build_ext
-        logger.info("Use setuptools, cython is missing")
+    import numpy
+    from numpy.distutils.misc_util import Configuration
 except ImportError:
-    try:
-        from numpy.distutils.core import Command
-    except ImportError:
-        from distutils.core import Command
-    from distutils.command.sdist import sdist
-    try:
-        from Cython.Build import build_ext
-        logger.info("Use distutils with cython")
-    except ImportError:
-        from distutils.command.build_ext import build_ext
-        logger.info("Use distutils, cython is missing")
+    raise ImportError(
+        "To install this package, you must install numpy first\n"
+        "(See https://pypi.org/project/numpy)")
+
 try:
     import sphinx
     import sphinx.util.console
@@ -78,7 +65,7 @@ PROJECT = "silx"
 if sys.version_info.major < 3:
     logger.error(PROJECT + " no longer supports Python2")
 
-if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0] > 2:
+if "LANG" not in os.environ and sys.platform == "darwin":
     print("""WARNING: the LANG environment variable is not defined,
 an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError.
 export LANG=en_US.utf-8
@@ -100,7 +87,7 @@ def get_readme():
     """Returns content of README.rst file"""
     dirname = os.path.dirname(os.path.abspath(__file__))
     filename = os.path.join(dirname, "README.rst")
-    with io.open(filename, "r", encoding="utf-8") as fp:
+    with open(filename, "r", encoding="utf-8") as fp:
         long_description = fp.read()
     return long_description
 
@@ -311,7 +298,6 @@ class BuildMan(Command):
             # help2man expect a single executable file to extract the help
             # we create it, execute it, and delete it at the end
 
-            py3 = sys.version_info >= (3, 0)
             try:
                 # create a launcher using the right python interpreter
                 script_name = os.path.join(workdir, target_name)
@@ -330,17 +316,6 @@ class BuildMan(Command):
                 synopsis = self.get_synopsis(module_name, env)
                 if synopsis:
                     command_line += ["-n", synopsis]
-                if not py3:
-                    # Before Python 3.4, ArgParser --version was using
-                    # stderr to print the version
-                    command_line.append("--no-discard-stderr")
-                    # Then we dont know if the documentation will contains
-                    # durtty things
-                    succeeded = self.run_targeted_script(target_name, script_name, env, False)
-                    if not succeeded:
-                        logger.info("Error while generating man file for target '%s'.", target_name)
-                        self.run_targeted_script(target_name, script_name, env, True)
-                        raise RuntimeError("Fail to generate '%s' man documentation" % target_name)
 
                 p = subprocess.Popen(command_line, env=env)
                 status = p.wait()
@@ -441,18 +416,11 @@ else:
 # numpy.distutils Configuration #
 # ############################# #
 
-
 def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
 
     See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
     """
-    try:
-        from numpy.distutils.misc_util import Configuration
-    except ImportError:
-        raise ImportError(
-            "To install this package, you must install numpy first\n"
-            "(See https://pypi.org/project/numpy)")
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -604,11 +572,10 @@ class BuildExt(build_ext):
             # Avoids runtime symbol collision for manylinux1 platform
             # See issue #1070
             extern = 'extern "C" ' if ext.language == 'c++' else ''
-            return_type = 'void' if sys.version_info[0] <= 2 else 'PyObject*'
+            return_type = 'PyObject*'
 
             ext.extra_compile_args.append('-fvisibility=hidden')
 
-            import numpy
             numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
             if numpy_version < [1, 16]:
                 ext.extra_compile_args.append(
@@ -627,19 +594,8 @@ class BuildExt(build_ext):
 
         :rtype: bool
         """
-        if sys.version_info >= (3, 0):
-            # It is normalized on Python 3
-            # But it is not available on Windows CPython
-            if hasattr(sys, "abiflags"):
-                return "d" in sys.abiflags
-        else:
-            # It's a Python 2 interpreter
-            # pydebug is not available on Windows/Mac OS interpreters
-            if hasattr(sys, "pydebug"):
-                return sys.pydebug
-
-        # We can't know if we uses debug interpreter
-        return False
+        # sys.abiflags not available on Windows CPython, return False by default
+        return "d" in getattr(sys, "abiflags", "")
 
     def patch_compiler(self):
         """
@@ -811,16 +767,12 @@ class sdist_debian(sdist):
 # ##### #
 
 
-def get_project_configuration(dry_run):
+def get_project_configuration():
     """Returns project arguments for setup"""
     # Use installed numpy version as minimal required version
     # This is useful for wheels to advertise the numpy version they were built with
-    if dry_run:
-        numpy_requested_version = ""
-    else:
-        from numpy.version import version as numpy_version
-        numpy_requested_version = ">=%s" % numpy_version
-        logger.info("Install requires: numpy %s", numpy_requested_version)
+    numpy_requested_version = ">=%s" % numpy.version.version
+    logger.info("Install requires: numpy %s", numpy_requested_version)
 
     install_requires = [
         # for most of the computation
@@ -831,14 +783,6 @@ def get_project_configuration(dry_run):
         "h5py",
         "fabio>=0.9",
         ]
-
-    # Add Python 2.7 backports
-    # Equivalent to but supported by old setuptools:
-    # "enum34; python_version == '2.7'",
-    # "futures; python_version == '2.7'",
-    if sys.version_info[0] == 2:
-        install_requires.append("enum34")
-        install_requires.append("futures")
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
@@ -914,17 +858,7 @@ def get_project_configuration(dry_run):
         clean=CleanCommand,
         debian_src=sdist_debian)
 
-    if dry_run:
-        # DRY_RUN implies actions which do not require NumPy
-        #
-        # And they are required to succeed without Numpy for example when
-        # pip is used to install silx when Numpy is not yet present in
-        # the system.
-        setup_kwargs = {}
-    else:
-        config = configuration()
-        setup_kwargs = config.todict()
-
+    setup_kwargs = configuration().todict()
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
                         url="http://www.silx.org/",
@@ -944,37 +878,7 @@ def get_project_configuration(dry_run):
     return setup_kwargs
 
 
-def setup_package():
-    """Run setup(**kwargs)
-
-    Depending on the command, it either runs the complete setup which depends on numpy,
-    or a *dry run* setup with no dependency on numpy.
-    """
-
-    # Check if action requires build/install
-    dry_run = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
-        '--help' in sys.argv[1:] or
-        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                        'clean', '--name')))
-
-    if dry_run:
-        # DRY_RUN implies actions which do not require dependencies, like NumPy
-        try:
-            from setuptools import setup
-            logger.info("Use setuptools.setup")
-        except ImportError:
-            from distutils.core import setup
-            logger.info("Use distutils.core.setup")
-    else:
-        try:
-            from setuptools import setup
-        except ImportError:
-            from numpy.distutils.core import setup
-            logger.info("Use numpy.distutils.setup")
-
-    setup_kwargs = get_project_configuration(dry_run)
-    setup(**setup_kwargs)
-
-
 if __name__ == "__main__":
-    setup_package()
+    from setuptools import setup
+
+    setup(**get_project_configuration())
