@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -871,6 +871,14 @@ def get_project_configuration(dry_run):
     # put all dependencies as install_requires
     if os.environ.get('SILX_FULL_INSTALL_REQUIRES') is not None:
         install_requires += full_requires
+
+    # Set the SILX_INSTALL_REQUIRES_STRIP env. var. to a comma-separated
+    # list of package names to remove them from install_requires
+    install_requires_strip = os.environ.get('SILX_INSTALL_REQUIRES_STRIP')
+    if install_requires_strip is not None:
+        for package_name in install_requires_strip.split(','):
+            install_requires.remove(package_name)
+
 
     package_data = {
         # Resources files for silx
