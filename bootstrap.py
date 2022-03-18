@@ -165,7 +165,7 @@ def find_executable(target):
 
     # search the file from setup.py
     import setup
-    config = setup.get_project_configuration(dry_run=True)
+    config = setup.get_project_configuration()
     # scripts from project configuration
     if "scripts" in config:
         for script_name in config["scripts"]:
