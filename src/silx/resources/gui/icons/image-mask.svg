@@ -1,11 +1,113 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg version="1.1" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
- <g transform="translate(-.4361 -.1802)">
-  <path d="m7.9557 1.6942c-2.4733 3.0522-4.0586 7.3933-4.0586 12.242 0 9.2281 5.6201 16.73 12.539 16.73s12.539-7.5015 12.539-16.73c0-4.5475-1.354-8.6683-3.5637-11.681-6.001 1.9433-11.808 1.5682-17.455-0.5608z"/>
-  <path transform="matrix(1.0559 0 0 1.0559 -2.567 -1.5541)" d="m16.644 11.458a3.8814 2.9492 0 1 1-7.7627 0 3.8814 2.9492 0 1 1 7.7627 0z" fill="#FFF"/>
-  <path transform="matrix(1.0559 0 0 1.0559 8.869 -1.5541)" d="m16.644 11.458a3.8814 2.9492 0 1 1-7.7627 0 3.8814 2.9492 0 1 1 7.7627 0z" fill="#FFF"/>
-  <path d="m16.563 13.059-2.0993 5.8501c1.2282 0.78863 2.6176 1.0247 4.3666 0.02799z" color="#000000" fill="#FFF"/>
-  <path d="m13.111 21.648h7.0723c1.1245 0 2.0297 0.90526 2.0297 2.0297h-11.132c0-1.1245 0.90526-2.0297 2.0297-2.0297z" fill="#FFF" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="m13.111 27.422h7.0723c1.1245 0 2.0297-0.90526 2.0297-2.0297h-11.132c0 1.1245 0.90526 2.0297 2.0297 2.0297z" fill="#FFF" stroke-linecap="round" stroke-linejoin="round"/>
- </g>
+<!-- Generator: Adobe Illustrator 21.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Icons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 48 48" style="enable-background:new 0 0 48 48;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFE500;}
+	.st1{fill:#EBCB00;}
+	.st2{fill:#FFF48C;}
+	.st3{opacity:0.15;fill:#45413C;}
+	.st4{fill:none;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st5{fill:#FFAA54;}
+	.st6{fill:#FFB0CA;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st7{fill:#FF87AF;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st8{fill:#00B8F0;}
+	.st9{fill:#4ACFFF;}
+	.st10{fill:#FFFFFF;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st11{fill:#45413C;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st12{fill:#009FD9;}
+	.st13{fill:none;stroke:#45413C;stroke-linecap:round;stroke-miterlimit:10;}
+	.st14{fill:#FFFFFF;stroke:#45413C;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st15{fill:#FF6242;}
+	.st16{fill:#FF866E;}
+	.st17{fill:#656769;}
+	.st18{fill:#87898C;}
+	.st19{fill:#4AEFF7;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st20{fill:none;stroke:#48CF3E;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st21{fill:none;stroke:#FF4064;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st22{fill:none;stroke:#FFB700;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st23{fill:none;stroke:#00AED9;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st24{fill:#FFFACF;}
+	.st25{fill:#45413C;}
+	.st26{fill:#FF866E;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st27{fill:#DABFF5;stroke:#45413C;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st28{fill:#EDDBFF;}
+	.st29{fill:none;stroke:#45413C;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st30{fill:#6DD627;}
+	.st31{fill:#46B000;}
+	.st32{fill:#C8FFA1;}
+	.st33{fill:url(#XMLID_91_);}
+	.st34{fill:url(#XMLID_92_);}
+	.st35{fill:#F0F0F0;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st36{fill:#EBCB00;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st37{fill:#BDBEC0;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st38{fill:#F0F0F0;}
+	.st39{fill:#FFFFFF;}
+	.st40{fill:url(#XMLID_93_);}
+	.st41{fill:url(#XMLID_94_);}
+	.st42{fill:#FFE500;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st43{fill:#E04122;}
+	.st44{fill:#8CFFE4;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st45{fill:#E5FFF9;}
+	.st46{fill:#E0E0E0;}
+	.st47{fill:#9CEB60;}
+	.st48{fill:#6DD627;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st49{fill:#E8F4FA;}
+	.st50{fill:#F0D5A8;}
+	.st51{fill:#DEBB7E;}
+	.st52{fill:#B89558;}
+	.st53{fill:#00B8F0;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st54{fill:#FFFCE5;}
+	.st55{fill:#FF87AF;}
+	.st56{fill:#4ACFFF;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st57{fill:#E5F8FF;}
+	.st58{fill:none;stroke:#45413C;stroke-miterlimit:10;}
+	.st59{fill:none;stroke:#FF6242;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st60{fill:#BDBEC0;}
+	.st61{fill:#B89558;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st62{fill:#FF6242;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st63{fill:#525252;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st64{fill:#525252;}
+	.st65{fill:#00DBA8;}
+	.st66{fill:#00AD85;}
+	.st67{fill:#BF8DF2;}
+	.st68{fill:#DABFF5;}
+	.st69{fill:#00F5BC;}
+	.st70{fill:#DAEDF7;}
+	.st71{fill:#C0DCEB;}
+	.st72{fill:#ADC4D9;}
+	.st73{fill:#ADC4D9;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st74{fill:#00DFEB;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st75{fill:#627B8C;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st76{fill:#8CA4B8;}
+	.st77{fill:#00DBA8;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st78{fill:#FF8A14;}
+	.st79{fill:#BF8256;}
+	.st80{fill:#DEA47A;}
+	.st81{fill:#915E3A;}
+	.st82{fill:#FFA694;}
+	.st83{fill:#E5FEFF;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st84{fill:#803EC2;stroke:#45413C;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st85{fill:#9F5AE5;}
+	.st86{fill:#803EC2;}
+</style>
+<g id="XMLID_670_">
+	<circle id="XMLID_643_" class="st0" cx="24" cy="21.5" r="20"/>
+	<path id="XMLID_635_" class="st1" d="M24,1.5c-11,0-20,9-20,20s9,20,20,20s20-9,20-20S35,1.5,24,1.5z M24,38.5   c-10.1,0-18.2-8.2-18.2-18.2C5.8,10.2,13.9,2,24,2s18.2,8.2,18.2,18.2C42.2,30.3,34.1,38.5,24,38.5z"/>
+	<ellipse id="XMLID_634_" class="st2" cx="24" cy="5.5" rx="6" ry="1.5"/>
+	<ellipse id="XMLID_633_" class="st3" cx="24" cy="45.5" rx="16" ry="1.5"/>
+	<ellipse id="XMLID_632_" class="st5" cx="36" cy="26.5" rx="2.5" ry="1.5"/>
+	<ellipse id="XMLID_631_" class="st5" cx="12" cy="26.5" rx="2.5" ry="1.5"/>
+	<path id="XMLID_630_" class="st44" d="M13,38.2c3.2,2.1,6.9,3.3,11,3.3c4.1,0,7.8-1.2,11-3.3v-8.7c0,0-6-2.5-11-2.5s-11,2.5-11,2.5   V38.2z"/>
+	<path id="XMLID_629_" class="st45" d="M24,27c-5,0-11,2.5-11,2.5V32c0,0,6-2.5,11-2.5S35,32,35,32v-2.5C35,29.5,29,27,24,27z"/>
+	<path id="XMLID_628_" class="st4" d="M13,38.2c3.2,2.1,6.9,3.3,11,3.3c4.1,0,7.8-1.2,11-3.3v-8.7c0,0-6-2.5-11-2.5s-11,2.5-11,2.5   V38.2z"/>
+	<circle id="XMLID_627_" class="st4" cx="24" cy="21.5" r="20"/>
+	<line id="XMLID_626_" class="st4" x1="13" y1="29.5" x2="4" y2="22.5"/>
+	<line id="XMLID_625_" class="st4" x1="35" y1="29.5" x2="44" y2="22.5"/>
+	<path id="XMLID_624_" class="st4" d="M35,33.5c0,0,1.5,1,4,1"/>
+	<path id="XMLID_622_" class="st4" d="M13,33.5c0,0-1.5,1-4,1"/>
+	<line id="XMLID_621_" class="st4" x1="16.5" y1="21" x2="11" y2="21"/>
+	<line id="XMLID_620_" class="st4" x1="37" y1="21" x2="31.5" y2="21"/>
+	<path id="XMLID_617_" class="st4" d="M13,16.2c1.1-0.2,2.2-0.5,3.4-1.1c1.1-0.6,2.1-1.3,2.9-2.1"/>
+	<path id="XMLID_409_" class="st4" d="M35,16.2c-1.1-0.2-2.2-0.5-3.4-1.1c-1.1-0.6-2.1-1.3-2.9-2.1"/>
+</g>
 </svg>
