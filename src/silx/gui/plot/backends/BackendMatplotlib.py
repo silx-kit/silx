@@ -64,6 +64,7 @@ from . import BackendBase
 from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+from ...qt import inspect as qt_inspect
 
 _PATCH_LINESTYLE = {
     "-": 'solid',
@@ -1521,6 +1522,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self._drawOverlays()
 
     def replot(self):
+        if not qt_inspect.isValid(self):
+            _logger.info("replot requested but widget no longer exists")
+            return
+
         with self._plot._paintContext():
             BackendMatplotlib._replot(self)
 
