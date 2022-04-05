@@ -32,6 +32,8 @@ import logging
 import os
 import signal
 import sys
+import glob
+from silx.io.url import DataUrl
 
 
 _logger = logging.getLogger(__name__)
@@ -154,14 +156,29 @@ def mainQt(options):
 
     # NOTE: under Windows, cmd does not convert `*.tif` into existing files
     options.files = silx.utils.files.expand_filenames(options.files)
+    for filename_pattern in options.files:
+        url = DataUrl(
+            path=filename_pattern,
+        )
+        from_pattern = glob.glob(url.file_path())
 
-    for filename in options.files:
-        # TODO: Would be nice to add a process widget and a cancel button
-        try:
-            window.appendFile(filename)
-        except IOError as e:
-            _logger.error(e.args[0])
-            _logger.debug("Backtrace", exc_info=True)
+        if len(from_pattern) == 0:
+            from_pattern = (filename_pattern, )
+        for filename in from_pattern:
+            # TODO: Would be nice to add a process widget and a cancel button
+            try:
+                # TODO: should be able to handle a DataUrl directly in order to speed up and simplify treatment
+                window.appendFile(
+                    DataUrl(
+                        file_path=filename,
+                        data_path=url.data_path(),
+                        scheme=url.scheme(),
+                        data_slice=url.data_slice()
+                    ).path()
+                )
+            except IOError as e:
+                _logger.error(e.args[0])
+                _logger.debug("Backtrace", exc_info=True)
 
     window.show()
     result = app.exec()

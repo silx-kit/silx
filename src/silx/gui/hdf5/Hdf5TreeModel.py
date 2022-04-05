@@ -107,9 +107,10 @@ class LoadingItemRunnable(qt.QRunnable):
         """
         h5file = None
         try:
-            h5file = silx_io.open(self.filename)
-            newItem = self.__loadItemTree(self.oldItem, h5file)
-            error = None
+            for h5file in silx_io.open(self.filename):
+                newItem = self.__loadItemTree(self.oldItem, h5file)
+                error = None
+            self.itemReady.emit(self.oldItem, newItem, error)
         except IOError as e:
             # Should be logged
             error = e
@@ -117,7 +118,6 @@ class LoadingItemRunnable(qt.QRunnable):
             if h5file is not None:
                 h5file.close()
 
-        self.itemReady.emit(self.oldItem, newItem, error)
         self.runnerFinished.emit(self)
 
     def autoDelete(self):
@@ -651,13 +651,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param filename: file path.
         """
         try:
-            h5file = silx_io.open(filename)
-            if self.__ownFiles:
-                self.__openedFiles.append(h5file)
-            self.sigH5pyObjectLoaded.emit(h5file)
-            self.insertH5pyObject(h5file, row=row)
-        except IOError:
-            _logger.debug("File '%s' can't be read.", filename, exc_info=True)
+            for h5file in silx_io.open(filename):
+                if self.__ownFiles and h5file:
+                    self.__openedFiles.append(h5file)
+                self.sigH5pyObjectLoaded.emit(h5file)
+                self.insertH5pyObject(h5file, row=row)
+        except IOError as e:
+            _logger.error("File '%s' can't be read.", filename, exc_info=True)
             raise
 
     def clear(self):

@@ -34,6 +34,7 @@ import time
 import logging
 import collections
 import urllib.parse
+import fnmatch
 
 import numpy
 
@@ -614,18 +615,47 @@ def open(filename):  # pylint:disable=redefined-builtin
 
     if url.data_slice():
         raise IOError("URL '%s' containing slicing is not supported" % filename)
-
     if url.data_path() in [None, "/", ""]:
         # The full file is requested
-        return h5_file
+        return (h5_file, )
     else:
-        # Only a children is requested
-        if url.data_path() not in h5_file:
-            msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
-            raise IOError(msg)
-        node = h5_file[url.data_path()]
-        proxy = _MainNode(node, h5_file)
-        return proxy
+        if "*" in url.data_path():
+            return _solve_wild_cards_for_data_path(url, h5_file)
+        else:
+            # Only a children is requested
+            if url.data_path() not in h5_file:
+                msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
+                raise IOError(msg)
+            node = h5_file[url.data_path()]
+            proxy = _MainNode(node, h5_file)
+            return (proxy, )
+
+
+def _solve_wild_cards_for_data_path(url, h5_file):
+    # solve possible wild card contained in the url.data_path() by opening the file parsing path
+    def search(node, data_path):
+        res = []
+        # if check a node
+        if "/" in data_path:
+            root_path_pattern, sub_path = data_path.split("/", 1)
+            valid_node_paths = fnmatch.filter(node.keys(), root_path_pattern)
+            for valid_node_path in valid_node_paths:
+                sub_node = node[valid_node_path]
+                res.extend(
+                    search(sub_node, data_path=sub_path)
+                )
+
+        # if at leaf level
+        else:
+            if isinstance(node, h5py.Group):
+                valid_dataset_paths = fnmatch.filter(node.keys(), data_path)
+                for valid_dataset_path in valid_dataset_paths:
+                    sub_node = node[valid_dataset_path]
+                    proxy = _MainNode(sub_node, h5_file)
+                    res.append(proxy)
+        return tuple(res)
+
+    return search(h5_file, data_path=url.data_path())
 
 
 def _get_classes_type():
