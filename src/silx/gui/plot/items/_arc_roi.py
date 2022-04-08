@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -635,7 +635,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             innerRadius = geometry.radius - geometry.weight * 0.5
             outerRadius = geometry.radius + geometry.weight * 0.5
 
-            delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
+            sign = numpy.sign(geometry.endAngle - geometry.startAngle)
+            delta = min(0.1, abs(geometry.startAngle - geometry.endAngle) / 100) * sign
+
             if geometry.startAngle == geometry.endAngle:
                 # Degenerated, it's a line (single radius)
                 angle = geometry.startAngle
@@ -654,7 +656,6 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 points = []
                 points.append(geometry.center)
                 points.append(geometry.startPoint)
-                delta = 0.1 if geometry.endAngle >= geometry.startAngle else -0.1
                 for angle in angles:
                     direction = numpy.array([numpy.cos(angle), numpy.sin(angle)])
                     points.append(geometry.center + direction * outerRadius)
