@@ -31,10 +31,10 @@
 #else
     #include <inttypes.h>
 #endif
-
+#include <stddef.h>
 #include "templates.h"
 
-/** Allowed flag values for the i_opt_flags arguments. 
+/** Allowed flag values for the i_opt_flags arguments.
  */
 typedef enum {
     HISTO_NONE              = 0,    /**< No options. */
@@ -43,7 +43,7 @@ typedef enum {
     HISTO_LAST_BIN_CLOSED   = 1<<2  /**< Last bin is closed. */
 } histo_opt_type;
 
-/** Return codees for the histogramnd function. 
+/** Return codees for the histogramnd function.
  */
 typedef enum {
     HISTO_OK         = 0, /**< No error. */
@@ -58,7 +58,7 @@ typedef enum {
 int histogramnd_double_double_double(double *i_sample,
                                      double *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -67,11 +67,11 @@ int histogramnd_double_double_double(double *i_sample,
                                      int i_opt_flags,
                                      double i_weight_min,
                                      double i_weight_max);
-                                
+
 int histogramnd_double_float_double(double *i_sample,
                                     float *i_weigths,
                                     int i_n_dim,
-                                    int i_n_elem,
+                                    size_t i_n_elem,
                                     double *i_bin_ranges,
                                     int *i_n_bin,
                                     uint32_t *o_histo,
@@ -80,11 +80,11 @@ int histogramnd_double_float_double(double *i_sample,
                                     int i_opt_flags,
                                     float i_weight_min,
                                     float i_weight_max);
-                                
+
 int histogramnd_double_int32_t_double(double *i_sample,
                                       int32_t *i_weigths,
                                       int i_n_dim,
-                                      int i_n_elem,
+                                      size_t i_n_elem,
                                       double *i_bin_ranges,
                                       int *i_n_bin,
                                       uint32_t *o_histo,
@@ -93,7 +93,7 @@ int histogramnd_double_int32_t_double(double *i_sample,
                                       int i_opt_flags,
                                       int32_t i_weight_min,
                                       int32_t i_weight_max);
-                        
+
 /*=====================
  * float sample, double cumul
  * ====================
@@ -101,7 +101,7 @@ int histogramnd_double_int32_t_double(double *i_sample,
 int histogramnd_float_double_double(float *i_sample,
                                     double *i_weigths,
                                     int i_n_dim,
-                                    int i_n_elem,
+                                    size_t i_n_elem,
                                     double *i_bin_ranges,
                                     int *i_n_bin,
                                     uint32_t *o_histo,
@@ -110,11 +110,11 @@ int histogramnd_float_double_double(float *i_sample,
                                     int i_opt_flags,
                                     double i_weight_min,
                                     double i_weight_max);
-                                
+
 int histogramnd_float_float_double(float *i_sample,
                                    float *i_weigths,
                                    int i_n_dim,
-                                   int i_n_elem,
+                                   size_t i_n_elem,
                                    double *i_bin_ranges,
                                    int *i_n_bin,
                                    uint32_t *o_histo,
@@ -123,11 +123,11 @@ int histogramnd_float_float_double(float *i_sample,
                                    int i_opt_flags,
                                    float i_weight_min,
                                    float i_weight_max);
-                                
+
 int histogramnd_float_int32_t_double(float *i_sample,
                                      int32_t *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -144,7 +144,7 @@ int histogramnd_float_int32_t_double(float *i_sample,
 int histogramnd_int32_t_double_double(int32_t *i_sample,
                                       double *i_weigths,
                                       int i_n_dim,
-                                      int i_n_elem,
+                                      size_t i_n_elem,
                                       double *i_bin_ranges,
                                       int *i_n_bin,
                                       uint32_t *o_histo,
@@ -153,11 +153,11 @@ int histogramnd_int32_t_double_double(int32_t *i_sample,
                                       int i_opt_flags,
                                       double i_weight_min,
                                       double i_weight_max);
-                                
+
 int histogramnd_int32_t_float_double(int32_t *i_sample,
                                      float *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -166,11 +166,11 @@ int histogramnd_int32_t_float_double(int32_t *i_sample,
                                      int i_opt_flags,
                                      float i_weight_min,
                                      float i_weight_max);
-                                
+
 int histogramnd_int32_t_int32_t_double(int32_t *i_sample,
                                        int32_t *i_weigths,
                                        int i_n_dim,
-                                       int i_n_elem,
+                                       size_t i_n_elem,
                                        double *i_bin_ranges,
                                        int *i_n_bin,
                                        uint32_t *o_histo,
@@ -179,7 +179,7 @@ int histogramnd_int32_t_int32_t_double(int32_t *i_sample,
                                        int i_opt_flags,
                                        int32_t i_weight_min,
                                        int32_t i_weight_max);
-                                       
+
 /*=====================
  * double sample, float cumul
  * ====================
@@ -188,7 +188,7 @@ int histogramnd_int32_t_int32_t_double(int32_t *i_sample,
 int histogramnd_double_double_float(double *i_sample,
                                      double *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -197,11 +197,11 @@ int histogramnd_double_double_float(double *i_sample,
                                      int i_opt_flags,
                                      double i_weight_min,
                                      double i_weight_max);
-                                
+
 int histogramnd_double_float_float(double *i_sample,
                                     float *i_weigths,
                                     int i_n_dim,
-                                    int i_n_elem,
+                                    size_t i_n_elem,
                                     double *i_bin_ranges,
                                     int *i_n_bin,
                                     uint32_t *o_histo,
@@ -210,11 +210,11 @@ int histogramnd_double_float_float(double *i_sample,
                                     int i_opt_flags,
                                     float i_weight_min,
                                     float i_weight_max);
-                                
+
 int histogramnd_double_int32_t_float(double *i_sample,
                                       int32_t *i_weigths,
                                       int i_n_dim,
-                                      int i_n_elem,
+                                      size_t i_n_elem,
                                       double *i_bin_ranges,
                                       int *i_n_bin,
                                       uint32_t *o_histo,
@@ -223,7 +223,7 @@ int histogramnd_double_int32_t_float(double *i_sample,
                                       int i_opt_flags,
                                       int32_t i_weight_min,
                                       int32_t i_weight_max);
-                        
+
 /*=====================
  * float sample, float cumul
  * ====================
@@ -231,7 +231,7 @@ int histogramnd_double_int32_t_float(double *i_sample,
 int histogramnd_float_double_float(float *i_sample,
                                     double *i_weigths,
                                     int i_n_dim,
-                                    int i_n_elem,
+                                    size_t i_n_elem,
                                     double *i_bin_ranges,
                                     int *i_n_bin,
                                     uint32_t *o_histo,
@@ -240,11 +240,11 @@ int histogramnd_float_double_float(float *i_sample,
                                     int i_opt_flags,
                                     double i_weight_min,
                                     double i_weight_max);
-                                
+
 int histogramnd_float_float_float(float *i_sample,
                                    float *i_weigths,
                                    int i_n_dim,
-                                   int i_n_elem,
+                                   size_t i_n_elem,
                                    double *i_bin_ranges,
                                    int *i_n_bin,
                                    uint32_t *o_histo,
@@ -253,11 +253,11 @@ int histogramnd_float_float_float(float *i_sample,
                                    int i_opt_flags,
                                    float i_weight_min,
                                    float i_weight_max);
-                                
+
 int histogramnd_float_int32_t_float(float *i_sample,
                                      int32_t *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -274,7 +274,7 @@ int histogramnd_float_int32_t_float(float *i_sample,
 int histogramnd_int32_t_double_float(int32_t *i_sample,
                                       double *i_weigths,
                                       int i_n_dim,
-                                      int i_n_elem,
+                                      size_t i_n_elem,
                                       double *i_bin_ranges,
                                       int *i_n_bin,
                                       uint32_t *o_histo,
@@ -283,11 +283,11 @@ int histogramnd_int32_t_double_float(int32_t *i_sample,
                                       int i_opt_flags,
                                       double i_weight_min,
                                       double i_weight_max);
-                                
+
 int histogramnd_int32_t_float_float(int32_t *i_sample,
                                      float *i_weigths,
                                      int i_n_dim,
-                                     int i_n_elem,
+                                     size_t i_n_elem,
                                      double *i_bin_ranges,
                                      int *i_n_bin,
                                      uint32_t *o_histo,
@@ -296,11 +296,11 @@ int histogramnd_int32_t_float_float(int32_t *i_sample,
                                      int i_opt_flags,
                                      float i_weight_min,
                                      float i_weight_max);
-                                
+
 int histogramnd_int32_t_int32_t_float(int32_t *i_sample,
                                        int32_t *i_weigths,
                                        int i_n_dim,
-                                       int i_n_elem,
+                                       size_t i_n_elem,
                                        double *i_bin_ranges,
                                        int *i_n_bin,
                                        uint32_t *o_histo,
@@ -309,5 +309,5 @@ int histogramnd_int32_t_int32_t_float(int32_t *i_sample,
                                        int i_opt_flags,
                                        int32_t i_weight_min,
                                        int32_t i_weight_max);
-                        
+
 #endif /* #define HISTOGRAMND_C_H */

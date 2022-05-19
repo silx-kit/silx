@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,13 +40,14 @@ class RenderContext:
     :param float dpi: Number of device pixels per inch
     """
 
-    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=96.):
+    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=96., plotFrame=None):
         self.matrix = matrix
         """Current transformation matrix"""
 
         self.__isXLog = isXLog
         self.__isYLog = isYLog
         self.__dpi = dpi
+        self.__plotFrame = plotFrame
 
     @property
     def isXLog(self):
@@ -62,6 +63,11 @@ class RenderContext:
     def dpi(self):
         """Number of device pixels per inch"""
         return self.__dpi
+
+    @property
+    def plotFrame(self):
+        """Current PlotFrame"""
+        return self.__plotFrame
 
 
 class GLPlotItem:

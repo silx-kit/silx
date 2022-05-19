@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -358,8 +358,12 @@ class PlotAxis(object):
                             yield ((xPixel, yPixel), dataPos, text)
                 else:
                     # Time series
-                    dtMin = dt.datetime.fromtimestamp(dataMin, tz=self.timeZone)
-                    dtMax = dt.datetime.fromtimestamp(dataMax, tz=self.timeZone)
+                    try:
+                        dtMin = dt.datetime.fromtimestamp(dataMin, tz=self.timeZone)
+                        dtMax = dt.datetime.fromtimestamp(dataMax, tz=self.timeZone)
+                    except ValueError:
+                        _logger.warning("Data range cannot be displayed with time axis")
+                        return  # Range is out of bound of the datetime
 
                     tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity)

@@ -1,6 +1,134 @@
 Change Log
 ==========
 
+1.0.0: 2021/12/06
+-----------------
+
+This the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pytest` to run the tests.
+
+* `silx view`:
+
+  * Added Windows installer generation (PR #3548)
+  * Updated 'About' dialog (#3547, #3475)
+  * Fixed: Keep curve legend selection with changing dimensions (PR #3529)
+  * Fixed: Increase max number of opened file at start-up (PR #3545)
+
+* `silx.gui`:
+
+  * Added PySide6 support (PR #3486, #3528, #3479, #3542, #3549, #3478, #3481):
+  * Removed support of PyQt4 / Pyside (PR #3423, #3424, #3480, #3482)
+  * `silx.gui.colors`:
+
+    * Fixed duplicated logs when colormap vmin/vmax are not valid (PR #3471)
+
+  * `silx.gui.plot`:
+
+    * `silx.gui.plot.actions`:
+
+      * `silx.gui.plot.actions.fit`:
+
+        * Updated behaviour of fitted item auto update (PR #3532)
+
+      * `silx.gui.plot.actions.histogram`:
+
+        * Enhanced: Allow user to change histogram nbins and range (PR #3514, #3514)
+        * Updated `PixelIntensitiesHistoAction` to use `PlotWidget.selection` (PR #3408)
+        * Fixed issue when the whole image is masked (PR #3544)
+        * Fixed error on macOS 11 with 3D display in `silx view` (PR #3544)
+
+      * `silx.gui.plot.CompareImages`:
+
+        * Fixed `colormap`: avoid forcing vmin and vmax when not in 'HORIZONTAL_LINE' or 'VERTICAL_LINE' mode (PR #3510)
+		
+      * `silx.gui.plot.items`:
+		
+        * Added 'image_aggregated.ImageDataAggregated': item allowing to aggregate image data before display (PR #3503)
+        * Fixed `ArcROI.setGeometry` (fix #3492)
+
+      * `silx.gui.plot.ImageStack`:
+
+        * Enhanced management of the `animation thread` (PR #3440, PR #3441)
+
+      * `silx.gui.plot.ImageView`:
+
+        * Added action to show/hide the side histogram (PR #3488)
+        * Added 'resetzoom' parameter to 'ImageView.setImage' (PR #3488)
+        * Added empty array support to 'ImageView.setImage' (PR #3530)
+        * Added aggregation mode action (PR #3536)
+        * Added support of RGB and RGBA images (PR #3487)
+        * Updated 'imageview' example with a '--live' option (PR #3488)
+        * Fixed profile window, added `setProfileWindowBehavior` method (PR #3457)
+        * Fixed issue with profile window size (PR #3455)
+
+      * `silx.gui.plot.PlotWidget`:
+
+        * Fixed update of `Scatter` item binned statistics visualization (PR #3452)
+        * Fixed OpenGL backend memory leak (PR #3453)
+        * Enhanced: Optimized scatter when rendered as regular grid with the OpenGL backend (PR #3447)
+        * Enhanced axis limits management by the OpenGL backend (PR #3504)
+        * Enhanced control of repaint (PR #3449)
+	* Enhanced text label background rendering with OpenGL backend (PR #3565)
+
+      * `silx.gui.plot.PlotWindow`:
+
+        * Fixed returned action from 'getKeepDataAspectRatioAction' (PR #3500)
+
+    * `silx.gui.plot3d`:
+
+      * Fixed picking on highdpi screen (PR #3550)
+      * Fixed issue in parameter tree (PR #3550)
+
+* `silx.io`:
+
+  * Added read support for FIO files (PR #3539) thanks to tifuchs contribution
+  * `silx.io.dictdump`:
+
+    * Fixed missing conversion of the key (PR #3505) thanks to rnwatanabe contribution
+    * Extract update modes list to a constant global variable (PR #3460) thanks to jpcbertoldo
+	
+  * `silx.io.convert`:
+	
+    * Enhanced `write_to_h5`: `infile` parameter can now also be a HDF5 file as input (PR #3511)
+	
+  * `silx.io.h5py_utils`:
+
+    * Added support of `locking` argument from the h5py.File when possible (PR #3554)
+    * Added log a critical message for unsupported versions of libhdf5 (PR #3533)
+
+  * `silx.io.spech5`:
+	
+    * Enhanced: Improve robustness (PR #3507, #3463)
+	
+  * `silx.io.url`:
+
+    * Fixed `is_absolute` in the case the `file_path()` returns None (PR #3437)
+
+  * `silx.io.utils`:
+
+    * Added 'silx.io.utils.visitall': provides a visitor of all items including links that works for both `commonh5` and `h5py` (PR #3511)
+
+* `silx.math`:
+
+  * `silx.math.colormap`:
+
+    * Added `apply_colormap` function (PR #3525)
+    * Enhanced `cmap` error messages (PR #3522)
+
+* `silx.opencl`:
+
+  * Added description of compute capabilities for Ampere generation GPU from Nvidia (PR #3535)
+  * Added doubleword OpenCL library (PR #3466, PR #3472)
+
+* Miscellaneous:
+
+  * Enhanced: Setup the project to use `pytest` (PR #3431, #3516, #3526)
+  * Enhanced: Minor test clean up (PR #3515, #3508)
+  * Updated project structure: move `silx` sources in `src/silx` (PR #3412)
+  * Fixed 'run_test.py --qt-binding' option (PR #3527)
+  * Fixed support of numpy 1.21rc1 (PR ##3476)
+  * Removed `six` dependency (PR #3483)
+
+
 0.15.2: 2021/06/21
 ------------------
 

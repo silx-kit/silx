@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,13 @@ __date__ = "13/10/2016"
 import logging
 import numpy
 
-from ..utils.image import convertQImageToArray
 from .. import qt
+from ..utils.image import convertQImageToArray
+
+try:
+    from ..utils.matplotlib import rasterMathText
+except ImportError:
+    rasterMathText = None
 
 _logger = logging.getLogger(__name__)
 
@@ -66,11 +71,7 @@ ULTRA_BLACK = 99
 """Thickest characters: Maximum font weight"""
 
 
-def rasterText(text, font,
-               size=-1,
-               weight=-1,
-               italic=False,
-               devicePixelRatio=1.0):
+def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
     """Raster text using Qt.
 
     It supports multiple lines.
@@ -95,7 +96,7 @@ def rasterText(text, font,
     """
     if not text:
         _logger.info("Trying to raster empty text, replaced by white space")
-        text = ' '  # Replace empty text by white space to produce an image
+        text = " "  # Replace empty text by white space to produce an image
 
     if not isinstance(font, qt.QFont):
         font = qt.QFont(font, size, weight, italic)
@@ -107,7 +108,8 @@ def rasterText(text, font,
     painter.setPen(qt.Qt.white)
     painter.setFont(font)
     bounds = painter.boundingRect(
-        qt.QRect(0, 0, 4096, 4096), qt.Qt.TextExpandTabs, text)
+        qt.QRect(0, 0, 4096, 4096), qt.Qt.TextExpandTabs, text
+    )
     painter.end()
 
     metrics = qt.QFontMetrics(font)
@@ -123,9 +125,9 @@ def rasterText(text, font,
     width = bounds.width() * devicePixelRatio + 2
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
-    image = qt.QImage(int(width),
-                      int(bounds.height() * devicePixelRatio + 2),
-                      qt.QImage.Format_RGB888)
+    image = qt.QImage(
+        int(width), int(bounds.height() * devicePixelRatio + 2), qt.QImage.Format_RGB888
+    )
     image.setDevicePixelRatio(devicePixelRatio)
 
     # TODO if Qt5 use Format_Grayscale8 instead
@@ -144,13 +146,42 @@ def rasterText(text, font,
     # RGB to R
     array = numpy.ascontiguousarray(array[:, :, 0])
 
-    # Remove leading and trailing empty columns but one on each side
-    column_cumsum = numpy.cumsum(numpy.sum(array, axis=0))
-    array = array[:, column_cumsum.argmin():column_cumsum.argmax() + 2]
-
-    # Remove leading and trailing empty rows but one on each side
-    row_cumsum = numpy.cumsum(numpy.sum(array, axis=1))
-    min_row = row_cumsum.argmin()
-    array = array[min_row:row_cumsum.argmax() + 2, :]
+    # Remove leading and trailing empty columns/rows but one on each side
+    filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
+    min_row = max(0, filled_rows[0] - 1)
+    filled_columns = numpy.nonzero(numpy.sum(array, axis=0))[0]
+    array = array[
+        min_row : filled_rows[-1] + 2,
+        max(0, filled_columns[0] - 1) : filled_columns[-1] + 2,
+    ]
 
     return array, metrics.ascent() - min_row
+
+
+def rasterText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+    """Raster text using Qt or matplotlib if there may be math syntax.
+
+    It supports multiple lines.
+
+    :param str text: The text to raster
+    :param font: Font name or QFont to use
+    :type font: str or :class:`QFont`
+    :param int size:
+        Font size in points
+        Used only if font is given as name.
+    :param int weight:
+        Font weight in [0, 99], see QFont.Weight.
+        Used only if font is given as name.
+    :param bool italic:
+        True for italic font (default: False).
+        Used only if font is given as name.
+    :param float devicePixelRatio:
+        The current ratio between device and device-independent pixel
+        (default: 1.0)
+    :return: Corresponding image in gray scale and baseline offset from top
+    :rtype: (HxW numpy.ndarray of uint8, int)
+    """
+    if rasterMathText is not None and text.count("$") >= 2:
+        return rasterMathText(text, font, size, weight, italic, devicePixelRatio)
+    else:
+        return rasterTextQt(text, font, size, weight, italic, devicePixelRatio)

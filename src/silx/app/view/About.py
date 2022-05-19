@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/07/2018"
+__date__ = "18/01/2022"
 
 import os
 import sys
@@ -233,7 +233,7 @@ class About(qt.QDialog):
         hardLimit = min(screenSize.width() - 480, 1000)
         if screenSize.width() <= 1024:
             hardLimit = screenSize.width()
-        softLimit = min(screenSize.width() / 2, 420)
+        softLimit = min(screenSize.width() // 2, 420)
 
         layoutMinimumSize = self.layout().totalMinimumSize()
         width = layoutMinimumSize.width()

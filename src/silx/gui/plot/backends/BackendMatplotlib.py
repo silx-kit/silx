@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ from . import BackendBase
 from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+from ...qt import inspect as qt_inspect
 
 _PATCH_LINESTYLE = {
     "-": 'solid',
@@ -166,8 +167,13 @@ class NiceDateLocator(Locator):
             vmin, vmax = vmax, vmin
 
         # vmin and vmax should be timestamps (i.e. seconds since 1 Jan 1970)
-        dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
-        dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        try:
+            dtMin = dt.datetime.fromtimestamp(vmin, tz=self.tz)
+            dtMax = dt.datetime.fromtimestamp(vmax, tz=self.tz)
+        except ValueError:
+            _logger.warning("Data range cannot be displayed with time axis")
+            return []
+
         dtTicks, self._spacing, self._unit = \
             calcTicks(dtMin, dtMax, self.numTicks)
 
@@ -1516,6 +1522,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self._drawOverlays()
 
     def replot(self):
+        if not qt_inspect.isValid(self):
+            _logger.info("replot requested but widget no longer exists")
+            return
+
         with self._plot._paintContext():
             BackendMatplotlib._replot(self)
 

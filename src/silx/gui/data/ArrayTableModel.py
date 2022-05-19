@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ from silx.gui.data.TextFormatter import TextFormatter
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "27/09/2017"
+__date__ = "18/01/2022"
 
 
 _logger = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         of :meth:`setPerspective`.
     """
 
-    MAX_NUMBER_OF_SECTIONS = 10e6
+    MAX_NUMBER_OF_SECTIONS = 10000000
     """Maximum number of displayed rows and columns"""
 
     def __init__(self, parent=None, data=None, perspective=None):

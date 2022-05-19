@@ -24,9 +24,7 @@
 #
 # ###########################################################################*/
 from .fftw import FFTW
-from .clfft import CLFFT
 from .npfft import NPFFT
-from .cufft import CUFFT
 
 
 def FFT(
@@ -71,20 +69,23 @@ def FFT(
     :param str backend:
         FFT Backend to use. Value can be "numpy", "fftw", "opencl", "cuda".
     """
-    backends = {
-        "numpy": NPFFT,
-        "np": NPFFT,
-        "fftw": FFTW,
-        "opencl": CLFFT,
-        "clfft": CLFFT,
-        "cuda": CUFFT,
-        "cufft": CUFFT,
-    }
-
+    backends = ["numpy", "fftw", "opencl", "cuda"]
     backend = backend.lower()
-    if backend not in backends:
+    if backend in ["numpy", "np"]:
+        fft_cls = NPFFT
+    elif backend == "fftw":
+        fft_cls = FFTW
+    elif backend in ["opencl", "clfft"]:
+        # Late import for creating context only if needed
+        from .clfft import CLFFT
+        fft_cls = CLFFT
+    elif backend in ["cuda", "cufft"]:
+        # Late import for creating context only if needed
+        from .cufft import CUFFT
+        fft_cls = CUFFT
+    else:
         raise ValueError("Unknown backend %s, available are %s" % (backend, backends))
-    F = backends[backend](
+    F = fft_cls(
         shape=shape,
         dtype=dtype,
         template=template,

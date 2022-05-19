@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -422,7 +422,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         pixelOffset = 3
 
         context = glutils.RenderContext(
-            isXLog=isXLog, isYLog=isYLog, dpi=self.getDotsPerInch())
+            isXLog=isXLog,
+            isYLog=isYLog,
+            dpi=self.getDotsPerInch(),
+            plotFrame=self._plotFrame,
+        )
 
         for plotItem in self.getItemsFromBackToFront(
                 condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
@@ -524,6 +528,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     # Do not render markers with negative coords on log axis
                     continue
 
+                color = item['color']
+                intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
+                bgColor = (1., 1., 1., 0.75) if intensity <= 0.5 else (0., 0., 0., 0.75)
                 if xCoord is None or yCoord is None:
                     if xCoord is None:  # Horizontal line in data space
                         pixelPos = self._plotFrame.dataToPixel(
@@ -538,7 +545,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             label = glutils.Text2D(
                                 item['text'], x, y,
                                 color=item['color'],
-                                bgColor=(1., 1., 1., 0.5),
+                                bgColor=bgColor,
                                 align=glutils.RIGHT,
                                 valign=glutils.BOTTOM,
                                 devicePixelRatio=self.getDevicePixelRatio())
@@ -564,7 +571,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             label = glutils.Text2D(
                                 item['text'], x, y,
                                 color=item['color'],
-                                bgColor=(1., 1., 1., 0.5),
+                                bgColor=bgColor,
                                 align=glutils.LEFT,
                                 valign=glutils.TOP,
                                 devicePixelRatio=self.getDevicePixelRatio())
@@ -601,7 +608,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         label = glutils.Text2D(
                             item['text'], x, y,
                             color=item['color'],
-                            bgColor=(1., 1., 1., 0.5),
+                            bgColor=bgColor,
                             align=glutils.LEFT,
                             valign=valign,
                             devicePixelRatio=self.getDevicePixelRatio())

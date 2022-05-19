@@ -74,7 +74,7 @@ class CLFFT(BaseFFT):
         if not(__have_clfft__) or not(__have_clfft__):
             raise ImportError("Please install pyopencl and gpyfft >= %s to use the OpenCL back-end" % __required_gpyfft_version__)
 
-        super(CLFFT, self).__init__(
+        super().__init__(
             shape=shape,
             dtype=dtype,
             template=template,
