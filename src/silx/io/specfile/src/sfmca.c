@@ -298,6 +298,11 @@ SfGetMca( SpecFile *sf, long index, long number, double **retdata, int *error )
        val = PyMcaAtof(strval);
        data[vals] = val;
        vals++;
+     } else if (i>0) {
+         strval[i] = '\0';
+         val = PyMcaAtof(strval);
+         data[vals] = val;
+         vals++;
      }
 #ifndef _GNU_SOURCE
 #ifdef PYMCA_POSIX
