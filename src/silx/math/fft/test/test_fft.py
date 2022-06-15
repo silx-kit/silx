@@ -25,10 +25,12 @@
 # ###########################################################################*/
 """Test of the FFT module"""
 
+from os import path
+import logging
 import numpy as np
 import unittest
-import logging
 import pytest
+from tempfile import TemporaryDirectory
 try:
     from scipy.misc import ascent
     __have_scipy = True
@@ -38,7 +40,7 @@ from silx.utils.testutils import ParametricTestCase
 from silx.math.fft.fft import FFT
 from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
-from silx.math.fft.fftw import __have_fftw__
+from silx.math.fft.fftw import __have_fftw__, import_wisdom, export_wisdom, get_wisdom_file
 
 if __have_cufft__:
     import atexit
@@ -287,3 +289,23 @@ class TestNumpyFFT(ParametricTestCase):
         res2 = F.ifft(res)
         ref2 = np_ifft(ref)
         self.assertTrue(np.allclose(res2, ref2))
+
+
+@pytest.mark.skipif(not(__have_fftw__), reason="Need fftw/pyfftw for this test")
+def test_fftw_wisdom():
+    """
+    Test FFTW wisdom import/export mechanism
+    """
+
+    assert path.isdir(path.dirname(get_wisdom_file())) # Default: tempdir.gettempdir()
+
+    with TemporaryDirectory(prefix="test_fftw_wisdom") as dname:
+        subdir = path.join(dname, "subdir")
+        get_wisdom_file(directory=subdir, create_dirs=False)
+        assert not(path.isdir(subdir))
+        fname = get_wisdom_file(directory=subdir, create_dirs=True)
+        assert path.isdir(subdir)
+        export_wisdom(fname)
+        assert path.isfile(fname)
+        import_wisdom(fname)
+
