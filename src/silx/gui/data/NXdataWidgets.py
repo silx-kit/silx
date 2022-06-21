@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -381,7 +381,6 @@ class ArrayImagePlot(qt.QWidget):
 
         # not closable
         self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
         self._selector.selectionChanged.connect(self._updateImage)
 
         self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
