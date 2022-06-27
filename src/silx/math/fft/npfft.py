@@ -33,6 +33,7 @@ class NPFFT(BaseFFT):
 
     Please see FFT class for parameters help.
     """
+
     def __init__(
         self,
         shape=None,
@@ -55,12 +56,25 @@ class NPFFT(BaseFFT):
         if template is not None and np.isrealobj(template):
             self.real_transform = True
         # For numpy functions.
-        # TODO Issue warning if user wants ifft(fft(data)) = N*data ?
-        if normalize != "ortho":
-            self.normalize = None
+
+        self.set_fft_norm(normalize)
         self.set_fft_functions()
         self.compute_plans()
 
+    def set_fft_norm(self, normalize):
+        # backward, forward indicates the direction in which the
+        # normalisation is done. default is "backward"
+        self.fft_norm = "backward"  # no normalisation by default
+        if normalize == "ortho":
+            self.fft_norm = "ortho"  # normalization 1/sqrt(N)
+        elif normalize == "none":
+            self.fft_norm = "backward"  # no normalization
+
+        self.ifft_norm = "backward"  # normalisation (1/N) by default
+        if normalize == "ortho":
+            self.ifft_norm = "ortho"  # normalization 1/sqrt(N)
+        elif normalize == "none":
+            self.ifft_norm = "forward"  # no normalization
 
     def set_fft_functions(self):
         # (fwd, inv) = _fft_functions[is_real][ndim]
@@ -74,33 +88,36 @@ class NPFFT(BaseFFT):
                 1: (np.fft.fft, np.fft.ifft),
                 2: (np.fft.fft2, np.fft.ifft2),
                 3: (np.fft.fftn, np.fft.ifftn),
-            }
+            },
         }
-
 
     def _allocate(self, shape, dtype):
         return np.zeros(shape, dtype=dtype)
-
 
     def compute_plans(self):
         ndim = len(self.shape)
         funcs = self._fft_functions[self.real_transform][np.minimum(ndim, 3)]
         if np.version.version[:4] in ["1.8.", "1.9."]:
             # norm keyword was introduced in 1.10 and we support numpy >= 1.8
-            self.numpy_args = {}
+            # TODO why no warnings ?
+            self.numpy_args_fft = {}
+            self.numpy_args_ifft = {}
         else:
-            self.numpy_args = {"norm": self.normalize}
+            self.numpy_args_fft = {"norm": self.fft_norm}
+            self.numpy_args_ifft = {"norm": self.ifft_norm}
         # Batched transform
         if (self.user_axes is not None) and len(self.user_axes) < ndim:
-            funcs = self._fft_functions[self.real_transform][np.minimum(ndim-1, 3)]
-            self.numpy_args["axes"] = self.user_axes
+            funcs = self._fft_functions[self.real_transform][np.minimum(ndim - 1, 3)]
+            self.numpy_args_fft["axes"] = self.user_axes
+            self.numpy_args_ifft["axes"] = self.user_axes
             # Special case of batched 1D transform on 2D data
             if ndim == 2:
                 assert len(self.user_axes) == 1
-                self.numpy_args["axis"] = self.user_axes[0]
-                self.numpy_args.pop("axes")
+                self.numpy_args_fft["axis"] = self.user_axes[0]
+                self.numpy_args_fft.pop("axes")
+                self.numpy_args_ifft["axis"] = self.user_axes[0]
+                self.numpy_args_ifft.pop("axes")
         self.numpy_funcs = funcs
-
 
     def fft(self, array):
         """
@@ -109,8 +126,7 @@ class NPFFT(BaseFFT):
         :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
         """
-        return self.numpy_funcs[0](array, **self.numpy_args)
-
+        return self.numpy_funcs[0](array, **self.numpy_args_fft)
 
     def ifft(self, array):
         """
@@ -119,5 +135,4 @@ class NPFFT(BaseFFT):
         :param numpy.ndarray array:
             Input data. Must be consistent with the current context.
         """
-        return self.numpy_funcs[1](array, **self.numpy_args)
-
+        return self.numpy_funcs[1](array, **self.numpy_args_ifft)

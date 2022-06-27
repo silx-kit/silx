@@ -62,7 +62,7 @@ def FFT(
     :param str normalize:
         Whether to normalize FFT and IFFT. Possible values are:
           * "rescale": in this case, Fourier data is divided by "N"
-            before IFFT, so that (FFT(data)) = data
+            before IFFT, so that IFFT(FFT(data)) = data
           * "ortho": in this case, FFT and IFFT are adjoint of eachother,
             the transform is unitary. Both FFT and IFFT are scaled with 1/sqrt(N).
           * "none": no normalizatio is done : IFFT(FFT(data)) = data*N
@@ -78,10 +78,12 @@ def FFT(
     elif backend in ["opencl", "clfft"]:
         # Late import for creating context only if needed
         from .clfft import CLFFT
+
         fft_cls = CLFFT
     elif backend in ["cuda", "cufft"]:
         # Late import for creating context only if needed
         from .cufft import CUFFT
+
         fft_cls = CUFFT
     else:
         raise ValueError("Unknown backend %s, available are %s" % (backend, backends))
