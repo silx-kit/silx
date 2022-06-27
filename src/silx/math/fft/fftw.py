@@ -93,17 +93,37 @@ class FFTW(BaseFFT):
             "data_out": self.data_out,
         }
 
+    # About normalization with norm="none", issues about pyfftw version :
+    # --------------- pyfftw 0.12 ---------------
+    # FFT :
+    # normalise_idft --> 1
+    # not normalise_idft --> 1
+    # IFFT :
+    # normalise_idft --> 1 / N
+    # not normalise_idft --> 1
+    # --------------- pyfftw 0.13 ---------------
+    # FFT :
+    # normalise_idft --> 1
+    # not normalise_idft --> 1 / N (this normalization is incorrect, doc says contrary)
+    # IFFT :
+    # normalise_idft --> 1 / N
+    # not normalise_idft --> 1
+
+    # Solution :
+    # select 'normalise_idft' for FFT and 'not normalise_idft' for IFFT
+    # => behavior is the same in both version :)
+
     def set_fftw_flags(self):
         self.fftw_flags = ("FFTW_MEASURE",)  # TODO
         self.fftw_planning_timelimit = None  # TODO
 
         # To skip normalization on norm="none", we should
-        # flip 'normalise_idft' to normalize no-where :
+        # flip 'normalise_idft' to normalize no-where (see comments up):
+        #
+        # and :
         # ortho (orthogonal normalization)
         # ortho = True : forward -> 1/sqrt(N), backward -> 1/sqrt(N)
-        # normalise_idft (normalise on inverse discrete fourier transform)
-        # normalise_idft = True : forward -> 1, backward -> 1/N
-        # normalise_idft = False : forward -> 1/N, backward -> 1
+
         self.fftw_norm_modes = {
             "rescale": (
                 {"ortho": False, "normalise_idft": True},  # fft
