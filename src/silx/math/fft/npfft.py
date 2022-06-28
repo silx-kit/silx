@@ -25,6 +25,7 @@
 # ###########################################################################*/
 import numpy as np
 import warnings
+from pkg_resources import parse_version
 
 from .basefft import BaseFFT
 
@@ -66,41 +67,21 @@ class NPFFT(BaseFFT):
         # backward, forward indicates the direction in which the
         # normalisation is done. default is "backward"
 
-        np_version = np.version.version
-
         # rescale is default norm with numpy, no need of keywords
         # if normalize == "rescale":  # normalisation 1/N on ifft
         self.numpy_args_fft = {}
         self.numpy_args_ifft = {}
 
         if self.normalize == "ortho":  # normalization 1/sqrt(N) on both fft & ifft
-            if np_version[:4] in ["1.8.", "1.9."]:
-                # norm keyword was introduced in 1.10 and we support numpy >= 1.8
-                warnings.warn(
-                    "Numpy version %s does not allow to norm='ortho' parameter. Effective normalization will be 'rescale'"
-                    % (np_version)
-                )  # default 'rescale' normalization
-            else:
-                self.numpy_args_fft = {"norm": "ortho"}
-                self.numpy_args_ifft = {"norm": "ortho"}
+            self.numpy_args_fft = {"norm": "ortho"}
+            self.numpy_args_ifft = {"norm": "ortho"}
 
         elif self.normalize == "none":  # no normalisation on both fft & ifft
-            if np_version[:5] in [
-                "1.10.",
-                "1.11.",
-                "1.12.",
-                "1.13.",
-                "1.14.",
-                "1.15.",
-                "1.16.",
-                "1.17.",
-                "1.18.",
-                "1.19.",
-            ] or np_version[:4] in ["1.8.", "1.9."]:
+            if parse_version(np.version.version) < parse_version("1.20"):
                 # "backward" & "forward" keywords were introduced in 1.20 and we support numpy >= 1.8
                 warnings.warn(
                     "Numpy version %s does not allow to non-normalization. Effective normalization will be 'rescale'"
-                    % (np_version)
+                    % (np.version.version)
                 )  # default 'rescale' normalization
             else:
                 self.numpy_args_fft = {"norm": "backward"}
