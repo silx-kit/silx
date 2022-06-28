@@ -24,6 +24,7 @@
 #
 # ###########################################################################*/
 import numpy as np
+import warnings
 
 from .basefft import BaseFFT
 
@@ -57,24 +58,53 @@ class NPFFT(BaseFFT):
             self.real_transform = True
         # For numpy functions.
 
-        self.set_fft_norm(normalize)
+        self.set_fft_norm()
         self.set_fft_functions()
         self.compute_plans()
 
-    def set_fft_norm(self, normalize):
+    def set_fft_norm(self):
         # backward, forward indicates the direction in which the
         # normalisation is done. default is "backward"
-        self.fft_norm = "backward"  # no normalisation by default
-        if normalize == "ortho":
-            self.fft_norm = "ortho"  # normalization 1/sqrt(N)
-        elif normalize == "none":
-            self.fft_norm = "backward"  # no normalization
 
-        self.ifft_norm = "backward"  # normalisation (1/N) by default
-        if normalize == "ortho":
-            self.ifft_norm = "ortho"  # normalization 1/sqrt(N)
-        elif normalize == "none":
-            self.ifft_norm = "forward"  # no normalization
+        np_version = np.version.version
+
+        # rescale is default norm with numpy, no need of keywords
+        # if normalize == "rescale":  # normalisation 1/N on ifft
+        self.numpy_args_fft = {}
+        self.numpy_args_ifft = {}
+
+        if self.normalize == "ortho":  # normalization 1/sqrt(N) on both fft & ifft
+            if np_version[:4] in ["1.8.", "1.9."]:
+                # norm keyword was introduced in 1.10 and we support numpy >= 1.8
+                warnings.warn(
+                    "Numpy version %s does not allow to norm='ortho' parameter. Effective normalization will be 'rescale'"
+                    % (np_version)
+                )  # default 'rescale' normalization
+            else:
+                self.numpy_args_fft = {"norm": "ortho"}
+                self.numpy_args_ifft = {"norm": "ortho"}
+
+        elif self.normalize == "none":  # no normalisation on both fft & ifft
+            if np_version[:5] in [
+                "1.10.",
+                "1.11.",
+                "1.12.",
+                "1.13.",
+                "1.14.",
+                "1.15.",
+                "1.16.",
+                "1.17.",
+                "1.18.",
+                "1.19.",
+            ] or np_version[:4] in ["1.8.", "1.9."]:
+                # "backward" & "forward" keywords were introduced in 1.20 and we support numpy >= 1.8
+                warnings.warn(
+                    "Numpy version %s does not allow to non-normalization. Effective normalization will be 'rescale'"
+                    % (np_version)
+                )  # default 'rescale' normalization
+            else:
+                self.numpy_args_fft = {"norm": "backward"}
+                self.numpy_args_ifft = {"norm": "forward"}
 
     def set_fft_functions(self):
         # (fwd, inv) = _fft_functions[is_real][ndim]
@@ -97,14 +127,10 @@ class NPFFT(BaseFFT):
     def compute_plans(self):
         ndim = len(self.shape)
         funcs = self._fft_functions[self.real_transform][np.minimum(ndim, 3)]
-        if np.version.version[:4] in ["1.8.", "1.9."]:
-            # norm keyword was introduced in 1.10 and we support numpy >= 1.8
-            # TODO why no warnings ?
-            self.numpy_args_fft = {}
-            self.numpy_args_ifft = {}
-        else:
-            self.numpy_args_fft = {"norm": self.fft_norm}
-            self.numpy_args_ifft = {"norm": self.ifft_norm}
+
+        # Set norm
+        # self.numpy_args_fft & self.numpy_args_ifft already set in set_fft_norm
+
         # Batched transform
         if (self.user_axes is not None) and len(self.user_axes) < ndim:
             funcs = self._fft_functions[self.real_transform][np.minimum(ndim - 1, 3)]
