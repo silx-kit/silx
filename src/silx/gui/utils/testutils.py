@@ -141,9 +141,10 @@ class TestCaseQt(unittest.TestCase):
     def _currentTestSucceeded(self):
         if hasattr(self, '_outcome'):
             if hasattr(self, '_feedErrorsToResult'):
-                # Python 3.4 - 3.10  (These two methods have no side effects)
-                result = self.defaultTestResult()
-                self._feedErrorsToResult(result, self._outcome.errors)
+                # For Python 3.4 -3.10
+                result = self.defaultTestResult()  # these 2 methods have no side effects
+                if hasattr(self._outcome, 'errors'):
+                    self._feedErrorsToResult(result, self._outcome.errors)
             else:
                 # Python 3.11+
                 result = self._outcome.result
