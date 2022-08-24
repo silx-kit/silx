@@ -507,8 +507,10 @@ class BackendBase(object):
         """Convert a position in data space to a position in pixels
         in the widget.
 
-        :param float x: The X coordinate in data space.
-        :param float y: The Y coordinate in data space.
+        :param x: The X coordinate in data space.
+        :type x: float or sequence of float
+        :param y: The Y coordinate in data space.
+        :type y: float or sequence of float
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :returns: The corresponding position in pixels or

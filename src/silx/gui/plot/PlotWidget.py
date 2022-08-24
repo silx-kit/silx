@@ -42,6 +42,7 @@ from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
 import datetime as dt
 import itertools
+import numbers
 import typing
 import warnings
 
@@ -3261,10 +3262,13 @@ class PlotWidget(qt.QMainWindow):
     def dataToPixel(self, x=None, y=None, axis="left", check=True):
         """Convert a position in data coordinates to a position in pixels.
 
-        :param float x: The X coordinate in data space. If None (default)
-                        the middle position of the displayed data is used.
-        :param float y: The Y coordinate in data space. If None (default)
-                        the middle position of the displayed data is used.
+        :param x: The X coordinate in data space. If None (default)
+            the middle position of the displayed data is used.
+        :type x: float or 1D numpy array of float
+        :param y: The Y coordinate in data space. If None (default)
+            the middle position of the displayed data is used.
+        :type y: float or 1D numpy array of float
+
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :param bool check: True to return None if outside displayed area,
@@ -3272,7 +3276,7 @@ class PlotWidget(qt.QMainWindow):
         :returns: The corresponding position in pixels or
                   None if the data position is not in the displayed area and
                   check is True.
-        :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
+        :rtype: A tuple of 2 floats or 2 arrays of float: (xPixel, yPixel) or None.
         """
         assert axis in ("left", "right")
 
@@ -3285,12 +3289,26 @@ class PlotWidget(qt.QMainWindow):
         if y is None:
             y = 0.5 * (ymax + ymin)
 
-        if check:
-            if x > xmax or x < xmin:
-                return None
+        if isinstance(x, numbers.Real) != isinstance(y, numbers.Real):
+            raise ValueError("x and y must be of the same type")
+        if not isinstance(x, numbers.Real) and (x.shape != y.shape or x.ndim != 1):
+            raise ValueError("x and y must be 1D arrays of the same length")
 
-            if y > ymax or y < ymin:
-                return None
+        if check:
+            isOutside = numpy.logical_or(
+                numpy.logical_or(x > xmax, x < xmin),
+                numpy.logical_or(y > ymax, y < ymin)
+            )
+
+            if numpy.any(isOutside):
+                if isinstance(x, numbers.Real):
+                    return None
+                else:  # Filter-out points that are outside
+                    x = numpy.asarray(x, dtype=numpy.float64)
+                    x[isOutside] = numpy.nan
+
+                    y = numpy.asarray(y, dtype=numpy.float64)
+                    y[isOutside] = numpy.nan
 
         return self._backend.dataToPixel(x, y, axis=axis)
 
@@ -3318,7 +3336,10 @@ class PlotWidget(qt.QMainWindow):
 
         if check:
             left, top, width, height = self.getPlotBoundsInPixels()
-            if not (left <= x <= left + width and top <= y <= top + height):
+            isOutside = numpy.logical_or(
+                numpy.logical_or(x < left, x > left + width),
+                numpy.logical_or(y < top, y > top + height))
+            if numpy.any(isOutside):
                 return None
 
         return self._backend.pixelToData(x, y, axis)
