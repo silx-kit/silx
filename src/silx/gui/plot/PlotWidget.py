@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -3304,10 +3304,10 @@ class PlotWidget(qt.QMainWindow):
                 if isinstance(x, numbers.Real):
                     return None
                 else:  # Filter-out points that are outside
-                    x = numpy.asarray(x, dtype=numpy.float64)
+                    x = numpy.array(x, copy=True, dtype=numpy.float64)
                     x[isOutside] = numpy.nan
 
-                    y = numpy.asarray(y, dtype=numpy.float64)
+                    y = numpy.array(y, copy=True, dtype=numpy.float64)
                     y[isOutside] = numpy.nan
 
         return self._backend.dataToPixel(x, y, axis=axis)
