@@ -767,6 +767,7 @@ def get_project_configuration():
     return dict(
         name=PROJECT,
         version=get_version(),
+        license="MIT",
         url="http://www.silx.org/",
         author="data analysis unit",
         author_email="silx@esrf.fr",
