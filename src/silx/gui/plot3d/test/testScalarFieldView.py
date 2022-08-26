@@ -29,7 +29,7 @@ __date__ = "17/01/2018"
 
 
 import logging
-import unittest
+import pytest
 
 import numpy
 
@@ -44,6 +44,7 @@ from silx.gui.plot3d.SFViewParamTree import TreeView
 _logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures("use_opengl")
 class TestScalarFieldView(TestCaseQt, ParametricTestCase):
     """Tests of ScalarFieldView widget."""
 

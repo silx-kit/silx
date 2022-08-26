@@ -89,7 +89,13 @@ def setUpModule():
 
 def tearDownModule():
     global _tmpDirectory
-    shutil.rmtree(_tmpDirectory)
+    for _ in range(10):
+        try:
+            shutil.rmtree(_tmpDirectory)
+        except PermissionError:  # Might fail on appveyor
+            testutils.TestCaseQt.qWait(500)
+        else:
+            break
     _tmpDirectory = None
 
 

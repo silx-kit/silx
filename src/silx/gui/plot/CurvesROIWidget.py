@@ -175,8 +175,8 @@ class CurvesROIWidget(qt.QWidget):
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
-        # expose API
-        self.getROIListAndDict = self.roiTable.getROIListAndDict
+    def getROIListAndDict(self):
+        return self.roiTable.getROIListAndDict()
 
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None

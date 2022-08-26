@@ -1331,7 +1331,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._synchronizeForegroundColors()
 
 
-class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
+class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     """QWidget matplotlib backend using a QtAgg canvas.
 
     It adds fast overlay drawing and mouse event management.
