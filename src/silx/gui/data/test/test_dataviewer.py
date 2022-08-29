@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -192,18 +192,36 @@ class _TestAbstractDataViewer(TestCaseQt):
         listener.clear()
 
     def test_change_display_mode(self):
+        listener = SignalListener()
         data = numpy.arange(10 ** 4)
         data.shape = [10] * 4
         widget = self.create_widget()
+        widget.selectionChanged.connect(listener)
         widget.setData(data)
+
         widget.setDisplayMode(DataViews.PLOT1D_MODE)
         self.assertEqual(widget.displayedView().modeId(), DataViews.PLOT1D_MODE)
+        self.qWait(200)
+        assert listener.arguments() == [((0, 0, 0, slice(None)), None)]
+        listener.clear()
+
         widget.setDisplayMode(DataViews.IMAGE_MODE)
         self.assertEqual(widget.displayedView().modeId(), DataViews.IMAGE_MODE)
+        self.qWait(200)
+        assert listener.arguments() == [((0, 0, slice(None), slice(None)), None)]
+        listener.clear()
+
         widget.setDisplayMode(DataViews.RAW_MODE)
         self.assertEqual(widget.displayedView().modeId(), DataViews.RAW_MODE)
+        self.qWait(200)
+        # Changing from 2D to 2D view: Selection didn't changed
+        assert listener.callCount() == 0
+
         widget.setDisplayMode(DataViews.EMPTY_MODE)
         self.assertEqual(widget.displayedView().modeId(), DataViews.EMPTY_MODE)
+        self.qWait(200)
+        assert listener.arguments() == [(None, None)]
+        listener.clear()
 
     def test_create_default_views(self):
         widget = self.create_widget()

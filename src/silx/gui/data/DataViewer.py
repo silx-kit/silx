@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -83,6 +83,14 @@ class DataViewer(qt.QFrame):
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
 
+    selectionChanged = qt.Signal(object, object)
+    """Emitted when the data selection changes.
+
+    It provides:
+    - the slicing as a tuple of slice or None.
+    - the permutation as a tuple of int or None.
+    """
+
     currentAvailableViewsChanged = qt.Signal()
     """Emitted when the current available views (which support the current
     data) change"""
@@ -118,6 +126,7 @@ class DataViewer(qt.QFrame):
         self.__useAxisSelection = False
         self.__userSelectedView = None
         self.__hooks = None
+        self.__previousSelection = DataSelection(None, None, None, None)
 
         self.__views = []
         self.__index = {}
@@ -279,6 +288,13 @@ class DataViewer(qt.QFrame):
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
         self.__currentView.setDataSelection(self.__displayedSelection)
+        # Emit signal only when selection has changed
+        if (self.__previousSelection.slice != self.__displayedSelection.slice or
+            self.__previousSelection.permutation != self.__displayedSelection.permutation
+        ):
+            self.selectionChanged.emit(
+                self.__displayedSelection.slice, self.__displayedSelection.permutation)
+            self.__previousSelection = self.__displayedSelection
 
     def setDisplayedView(self, view):
         """Set the displayed view.
