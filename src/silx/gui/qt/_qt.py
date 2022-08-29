@@ -33,6 +33,7 @@ import logging
 import sys
 import traceback
 
+from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
 
@@ -121,7 +122,12 @@ if BINDING == 'PyQt5':
 
 
 elif BINDING == 'PySide2':
-    _logger.debug('Using PySide2 bindings')
+    deprecation.deprecated_warning(
+        type_="Qt Binding",
+        name="PySide2",
+        replacement="PySide6",
+        since_version="1.1",
+    )
 
     import PySide2 as QtBinding  # noqa
 
