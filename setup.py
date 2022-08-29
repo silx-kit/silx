@@ -39,8 +39,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("silx.setup")
 
 from distutils.command.clean import clean as Clean
-from distutils.command.build import build as _build
-from setuptools import Command
+try:  # setuptools >=62.4.0
+    from setuptools.command.build import build as _build
+except ImportError:
+    from distutils.command.build import build as _build
+from setuptools import Command, Extension, find_packages
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
@@ -1019,15 +1022,15 @@ def get_project_configuration():
     if os.path.exists(os.path.join(
         os.path.dirname(__file__), "src", "silx", "third_party", "_local")
     ):
-        base_dir = 'src/silx/third_party/_local/scipy_spatial/'
         ext_modules.append(
             Extension(
                 name='silx.third_party._local.scipy_spatial.qhull',
                 sources=[
-                    base_dir + 'qhull.pyx',
-                ] + list(glob.glob(
-                    os.path.dirname(__file__) + '/' + base_dir + '/qhull/src/*.c')
-                ),
+                    'src/silx/third_party/_local/scipy_spatial/qhull.pyx',
+                ] + list(glob.glob(os.path.join(
+                    os.path.dirname(__file__),
+                    'src','silx', 'third_party', '_local', 'scipy_spatial','qhull', 'src', '*.c'
+                ))),
                 include_dirs=[numpy.get_include()],
             )
         )
