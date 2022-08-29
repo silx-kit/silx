@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1650,6 +1650,26 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                                    color='green', linestyle="-", symbol='o')
 
                 self.qapp.processEvents()
+
+                if xError is None:
+                    dataMin, dataMax = numpy.min(self.xData), numpy.max(self.xData)
+                else:
+                    xMinusError = self.xData - numpy.atleast_2d(xError)[0]
+                    dataMin = numpy.min(xMinusError[xMinusError > 0])
+                    xPlusError = self.xData + numpy.atleast_2d(xError)[-1]
+                    dataMax = numpy.max(xPlusError[xPlusError > 0])
+                plotMin, plotMax = self.plot.getXAxis().getLimits()
+                assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
+
+                if yError is None:
+                    dataMin, dataMax = numpy.min(self.yData), numpy.max(self.yData)
+                else:
+                    yMinusError = self.yData - numpy.atleast_2d(yError)[0]
+                    dataMin = numpy.min(yMinusError[yMinusError > 0])
+                    yPlusError = self.yData + numpy.atleast_2d(yError)[-1]
+                    dataMax = numpy.max(yPlusError[yPlusError > 0])
+                plotMin, plotMax = self.plot.getYAxis().getLimits()
+                assert numpy.allclose((dataMin, dataMax), (plotMin, plotMax))
 
                 self.plot.clear()
                 self.plot.resetZoom()
