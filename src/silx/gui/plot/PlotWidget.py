@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1130,8 +1130,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the curve (default: 1)
@@ -1540,8 +1540,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the scatter (default: 1)
