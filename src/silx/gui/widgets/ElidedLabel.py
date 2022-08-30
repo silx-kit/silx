@@ -117,7 +117,7 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__elideMode
 
-    elideMode = qt.Property(qt.Qt.TextElideMode, getToolTip, setToolTip)
+    elideMode = qt.Property(qt.Qt.TextElideMode, getElideMode, setElideMode)
 
     def setTextAsToolTip(self, enabled):
         """Enable displaying text as part of the tooltip if it is elided.
