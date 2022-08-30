@@ -26,8 +26,6 @@
 __license__ = "MIT"
 __date__ = "08/06/2020"
 
-import unittest
-
 from silx.gui import qt
 from silx.gui.widgets.ElidedLabel import ElidedLabel
 from silx.gui.utils import testutils
