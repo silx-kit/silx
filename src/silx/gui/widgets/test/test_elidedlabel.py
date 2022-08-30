@@ -44,6 +44,13 @@ class TestElidedLabel(testutils.TestCaseQt):
         del self.label
         self.qapp.processEvents()
 
+    def testQLabelApi(self):
+        """Test overrided API from QLabel"""
+        self.label.setText("a")
+        assert self.label.text() == "a"
+        self.label.setToolTip("b")
+        assert self.label.toolTip() == "b"
+
     def testElidedValue(self):
         """Test elided text"""
         raw = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
@@ -95,3 +102,21 @@ class TestElidedLabel(testutils.TestCaseQt):
         displayedTooltip = qt.QLabel.toolTip(self.label)
         self.assertNotIn(raw1, displayedTooltip)
         self.assertIn(raw2, displayedTooltip)
+
+    def testTooltip(self):
+        """Test tooltip when elided"""
+        self.label.setToolTip("Fooo")
+        assert self.label.toolTip() == "Fooo"
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        assert displayedTooltip == "Fooo"
+
+    def testElidedTextAndTooltip(self):
+        """Test tooltip when elided"""
+        raw1 = "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+        self.label.setText(raw1)
+        self.label.setFixedWidth(30)
+        self.label.setToolTip("Fooo")
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        assert self.label.toolTip() == "Fooo"
+        assert "Fooo" in displayedTooltip
+        assert raw1 in displayedTooltip
