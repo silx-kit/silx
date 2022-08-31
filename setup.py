@@ -1026,11 +1026,13 @@ def get_project_configuration():
             Extension(
                 name='silx.third_party._local.scipy_spatial.qhull',
                 sources=[
+                    'src/silx/third_party/_local/scipy_spatial/qhull/src/' + fname for fname in (
+                        'geom2_r.c', 'geom_r.c', 'global_r.c', 'io_r.c', 'libqhull_r.c', 'mem_r.c',
+                        'merge_r.c', 'poly2_r.c', 'poly_r.c', 'qset_r.c', 'random_r.c', 'rboxlib_r.c',
+                        'stat_r.c', 'usermem_r.c', 'userprintf_rbox_r.c', 'userprintf_r.c', 'user_r.c'
+                )] + [
                     'src/silx/third_party/_local/scipy_spatial/qhull.pyx',
-                ] + list(glob.glob(os.path.join(
-                    os.path.dirname(__file__),
-                    'src','silx', 'third_party', '_local', 'scipy_spatial','qhull', 'src', '*.c'
-                ))),
+                ],
                 include_dirs=[numpy.get_include()],
             )
         )
