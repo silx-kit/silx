@@ -112,29 +112,6 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
 
-########
-# Test #
-########
-
-
-class PyTest(Command):
-    """Command to start tests running the script: run_tests.py"""
-    user_options = []
-
-    description = "Execute the unittests"
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-        errno = subprocess.call([sys.executable, 'run_tests.py'])
-        if errno != 0:
-            raise SystemExit(errno)
-
 # ################### #
 # build_doc command   #
 # ################### #
@@ -824,7 +801,6 @@ def get_project_configuration():
 
     cmdclass = dict(
         build=Build,
-        test=PyTest,
         build_screenshots=BuildDocAndGenerateScreenshotCommand,
         build_doc=BuildDocCommand,
         test_doc=TestDocCommand,
