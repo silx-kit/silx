@@ -295,12 +295,22 @@ In case you want more control over the build procedure, the build command is:
 
     python setup.py build
 
-There are few advanced options to ``setup.py build``:
 
-* ``--no-cython``: Prevent Cython (even if installed) from re-generating the C source code.
-  Use the one provided by the development team.
-* ``--no-openmp``: Recompiles the Cython code without OpenMP support (default for MacOSX).
-* ``--openmp``: Recompiles the Cython code with OpenMP support (default for Windows and Linux).
+Advanced options can be set through the following environment variables:
+
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
+
+   * - Environment variable
+     - Description
+   * - ``SILX_WITH_OPENMP``
+     - Whether or not to compile Cython code with OpenMP support (default: ``True`` except on macOS where it is ``False``)
+   * - ``SILX_FORCE_CYTHON``
+     - Whether or not to force re-generating the C/C++ source code from Cython files (default: ``False``).
+
+.. note:: Boolean options are passed as ``True`` or ``False``.
+
 
 Package the build into a wheel and install it:
 

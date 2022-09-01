@@ -285,11 +285,11 @@ class Build(_build):
 
     user_options = [
         ('no-openmp', None,
-         "do not use OpenMP for compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to False"),
         ('openmp', None,
-         "use OpenMP for the compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to True"),
         ('force-cython', None,
-         "recompile all Cython extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_FORCE_CYTHON to True"),
     ]
     user_options.extend(_build.user_options)
 
@@ -304,8 +304,14 @@ class Build(_build):
 
     def finalize_options(self):
         _build.finalize_options(self)
+        if self.no_openmp is not None:
+            logger.warning("--no-openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to False")
+        if self.openmp is not None:
+            logger.warning("--openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to True")
+        if self.force_cython is not None:
+            logger.warning("--force-cython is deprecated: Instead, set the environment variable SILX_FORCE_CYTHON to True")
         if not self.force_cython:
-            self.force_cython = self._parse_env_as_bool("FORCE_CYTHON") is True
+            self.force_cython = self._parse_env_as_bool("SILX_FORCE_CYTHON") is True
         self.finalize_openmp_options()
 
     def _parse_env_as_bool(self, key):
@@ -332,7 +338,7 @@ class Build(_build):
         elif self.no_openmp:
             use_openmp = False
         else:
-            env_with_openmp = self._parse_env_as_bool("WITH_OPENMP")
+            env_with_openmp = self._parse_env_as_bool("SILX_WITH_OPENMP")
             if env_with_openmp is not None:
                 use_openmp = env_with_openmp
             else:
