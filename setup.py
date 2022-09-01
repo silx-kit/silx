@@ -345,13 +345,9 @@ class Build(_build):
                 # Use it by default
                 use_openmp = True
 
-        if use_openmp:
-            if platform.system() == "Darwin":
-                # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
-                osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
-                if osx >= (10, 8):
-                    logger.warning("OpenMP support ignored. Your platform does not support it.")
-                    use_openmp = False
+        if use_openmp and platform.system() == "Darwin":
+            logger.warning("OpenMP support ignored. Your platform does not support it.")
+            use_openmp = False
 
         # Remove attributes used by distutils parsing
         # use 'use_openmp' instead
