@@ -836,33 +836,32 @@ def get_project_configuration():
             )
         )
 
-    setup_kwargs = dict(
-        ext_modules=ext_modules,
+    return dict(
+        name=PROJECT,
+        version=get_version(),
+        url="http://www.silx.org/",
+        author="data analysis unit",
+        author_email="silx@esrf.fr",
+        classifiers=classifiers,
+        description="Software library for X-ray data analysis",
+        long_description=get_readme(),
+        install_requires=install_requires,
+        extras_require=extras_require,
+        python_requires='>=3.5',
+        cmdclass=cmdclass,
+        zip_safe=False,
+        entry_points=entry_points,
         packages=find_packages(where='src', include=['silx*']) + ['silx.examples'],
         package_dir={
             "": "src",
-            "silx.examples": "examples"},
+            "silx.examples": "examples",
+        },
+        ext_modules=ext_modules,
+        package_data=package_data,
         data_files=[
             ('silx/third_party/_local/scipy_spatial/qhull', ['src/silx/third_party/_local/scipy_spatial/qhull/COPYING.txt'])
-        ]
+        ],
     )
-    setup_kwargs.update(name=PROJECT,
-                        version=get_version(),
-                        url="http://www.silx.org/",
-                        author="data analysis unit",
-                        author_email="silx@esrf.fr",
-                        classifiers=classifiers,
-                        description="Software library for X-ray data analysis",
-                        long_description=get_readme(),
-                        install_requires=install_requires,
-                        extras_require=extras_require,
-                        cmdclass=cmdclass,
-                        package_data=package_data,
-                        zip_safe=False,
-                        entry_points=entry_points,
-                        python_requires='>=3.5',
-                        )
-    return setup_kwargs
 
 
 if __name__ == "__main__":
