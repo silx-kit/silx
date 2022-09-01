@@ -413,17 +413,6 @@ class BuildExt(build_ext):
             # Avoid empty arg
             ext.extra_link_args = [arg for arg in extra_link_args if arg]
 
-        elif self.compiler.compiler_type == 'unix':
-            # Avoids runtime symbol collision for manylinux1 platform
-            # See issue #1070
-            extern = 'extern "C" ' if ext.language == 'c++' else ''
-            return_type = 'PyObject*'
-
-            ext.extra_compile_args.append('-fvisibility=hidden')
-            ext.define_macros.append(
-                ('PyMODINIT_FUNC',
-                    '%s__attribute__((visibility("default"))) %s ' % (extern, return_type)))
-
     def is_debug_interpreter(self):
         """
         Returns true if the script is executed with a debug interpreter.
