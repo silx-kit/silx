@@ -313,8 +313,13 @@ To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
 
 .. code-block:: bash 
 
-    python setup.py build build_doc
+    python setup.py build
+    PYTHONPATH=build/lib.<OS-ARCHITECTURE-PYTHONVER>/ sphinx-build doc/source/ build/html
 
+.. note::
+
+    To re-generate the example script screenshots, build the documentation with the
+    environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
 
 Testing
 +++++++

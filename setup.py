@@ -54,13 +54,6 @@ except ImportError:
         "To install this package, you must install numpy first\n"
         "(See https://pypi.org/project/numpy)")
 
-try:
-    import sphinx
-    import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda: False
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    sphinx = None
 
 PROJECT = "silx"
 if sys.version_info.major < 3:
@@ -111,28 +104,6 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
-
-# ################### #
-# build_doc command   #
-# ################### #
-
-
-if sphinx is None:
-
-    class SphinxExpectedCommand(Command):
-        """Command to inform that sphinx is missing"""
-        user_options = []
-
-        def initialize_options(self):
-            pass
-
-        def finalize_options(self):
-            pass
-
-        def run(self):
-            raise RuntimeError(
-                'Sphinx is required to build or test the documentation.\n'
-                'Please install Sphinx (http://www.sphinx-doc.org).')
 
 
 class BuildMan(Command):
@@ -306,89 +277,6 @@ class BuildMan(Command):
                 if script_name is not None:
                     os.remove(script_name)
         os.rmdir(workdir)
-
-
-if sphinx is not None:
-
-    class BuildDocCommand(BuildDoc):
-        """Command to build documentation using sphinx.
-
-        Project should have already be built.
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # # Copy .ui files to the path:
-            # dst = os.path.join(
-            #     os.path.abspath(build.build_lib), "silx", "gui")
-            # if not os.path.isdir(dst):
-            #     os.makedirs(dst)
-            # for i in os.listdir("gui"):
-            #     if i.endswith(".ui"):
-            #         src = os.path.join("gui", i)
-            #         idst = os.path.join(dst, i)
-            #         if not os.path.exists(idst):
-            #             shutil.copy(src, idst)
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['html', 'latex']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-    class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
-
-        def run(self):
-            old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
-            os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
-            BuildDocCommand.run(self)
-            if old is not None:
-                os.environ['DIRECTIVE_SNAPSHOT_QT'] = old
-            else:
-                del os.environ['DIRECTIVE_SNAPSHOT_QT']
-
-else:
-    BuildDocCommand = SphinxExpectedCommand
-    BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
-
-# ################### #
-# test_doc command    #
-# ################### #
-
-if sphinx is not None:
-
-    class TestDocCommand(BuildDoc):
-        """Command to test the documentation using sphynx doctest.
-
-        http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['doctest']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-else:
-    TestDocCommand = SphinxExpectedCommand
 
 # ############## #
 # Compiler flags #
@@ -801,9 +689,6 @@ def get_project_configuration():
 
     cmdclass = dict(
         build=Build,
-        build_screenshots=BuildDocAndGenerateScreenshotCommand,
-        build_doc=BuildDocCommand,
-        test_doc=TestDocCommand,
         build_ext=BuildExt,
         build_man=BuildMan,
         clean=CleanCommand,
