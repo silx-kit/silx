@@ -30,15 +30,12 @@ __license__ = "MIT"
 import sys
 import os
 import platform
-import shutil
 import logging
-import glob
 
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
 
-from distutils.command.clean import clean as Clean
 try:  # setuptools >=62.4.0
     from setuptools.command.build import build as _build
 except ImportError:
@@ -475,70 +472,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-################################################################################
-# Clean command
-################################################################################
-
-
-class CleanCommand(Clean):
-    description = "Remove build artifacts from the source tree"
-
-    def expand(self, path_list):
-        """Expand a list of path using glob magic.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        path_list2 = []
-        for path in path_list:
-            if glob.has_magic(path):
-                iterator = glob.iglob(path)
-                path_list2.extend(iterator)
-            else:
-                path_list2.append(path)
-        return path_list2
-
-    def find(self, path_list):
-        """Find a file pattern if directories.
-
-        Could be done using "**/*.c" but it is only supported in Python 3.5.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        import fnmatch
-        path_list2 = []
-        for pattern in path_list:
-            for root, _, filenames in os.walk('.'):
-                for filename in fnmatch.filter(filenames, pattern):
-                    path_list2.append(os.path.join(root, filename))
-        return path_list2
-
-    def run(self):
-        Clean.run(self)
-
-        cython_files = self.find(["*.pyx"])
-        cythonized_files = [path.replace(".pyx", ".c") for path in cython_files]
-        cythonized_files += [path.replace(".pyx", ".cpp") for path in cython_files]
-
-        # really remove the directories
-        # and not only if they are empty
-        to_remove = [self.build_base]
-        to_remove = self.expand(to_remove)
-        to_remove += cythonized_files
-
-        if not self.dry_run:
-            for path in to_remove:
-                try:
-                    if os.path.isdir(path):
-                        shutil.rmtree(path)
-                    else:
-                        os.remove(path)
-                    logger.info("removing '%s'", path)
-                except OSError:
-                    pass
 
 ################################################################################
 # Debian source tree
@@ -691,7 +624,6 @@ def get_project_configuration():
         build=Build,
         build_ext=BuildExt,
         build_man=BuildMan,
-        clean=CleanCommand,
         debian_src=sdist_debian)
 
     def silx_io_specfile_define_macros():
