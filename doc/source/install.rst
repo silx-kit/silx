@@ -289,13 +289,6 @@ To set the environment variables, type on the command line:
 Advanced build options
 ++++++++++++++++++++++
 
-In case you want more control over the build procedure, the build command is:
-
-.. code-block:: bash 
-
-    python setup.py build
-
-
 Advanced options can be set through the following environment variables:
 
 .. list-table::
@@ -312,19 +305,19 @@ Advanced options can be set through the following environment variables:
 .. note:: Boolean options are passed as ``True`` or ``False``.
 
 
-Package the build into a wheel and install it:
+Package the build into a wheel and install it (this requires to install the `build <https://pypa-build.readthedocs.io>`_ package):
 
 .. code-block:: bash 
 
-    python setup.py bdist_wheel
+    python -m build --wheel
     pip install dist/silx*.whl 
 
 To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
 
 .. code-block:: bash 
 
-    python setup.py build
-    PYTHONPATH=build/lib.<OS-ARCHITECTURE-PYTHONVER>/ sphinx-build doc/source/ build/html
+    pip install .  # Make sure to install the same version as the source
+    sphinx-build doc/source/ build/html
 
 .. note::
 

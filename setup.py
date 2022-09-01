@@ -640,9 +640,7 @@ def get_project_configuration():
             if sys.platform.lower().startswith("linux"):
                 warn = ("silx.io.specfile WARNING:",
                         "A cleaner locale independent implementation",
-                        "may be achieved setting SPECFILE_USE_GNU_SOURCE to 1",
-                        "For instance running this script as:",
-                        "SPECFILE_USE_GNU_SOURCE=1 python setup.py build")
+                        "may be achieved setting SPECFILE_USE_GNU_SOURCE to 1")
                 print(os.linesep.join(warn))
         else:
             SPECFILE_USE_GNU_SOURCE = int(SPECFILE_USE_GNU_SOURCE)
