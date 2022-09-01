@@ -301,7 +301,9 @@ Advanced options can be set through the following environment variables:
      - Whether or not to compile Cython code with OpenMP support (default: ``True`` except on macOS where it is ``False``)
    * - ``SILX_FORCE_CYTHON``
      - Whether or not to force re-generating the C/C++ source code from Cython files (default: ``False``).
-
+   * - ``SPECFILE_USE_GNU_SOURCE``
+     - Whether or not to use a cleaner locale independent implementation of :mod:`silx.io.specfile` by using `_GNU_SOURCE=1`
+       (default: ``False``; POSIX operating system only).
 .. note:: Boolean options are passed as ``True`` or ``False``.
 
 

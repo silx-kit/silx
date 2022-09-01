@@ -634,24 +634,14 @@ def get_project_configuration():
 
     def silx_io_specfile_define_macros():
         # Locale and platform management
-        SPECFILE_USE_GNU_SOURCE = os.getenv("SPECFILE_USE_GNU_SOURCE")
-        if SPECFILE_USE_GNU_SOURCE is None:
-            SPECFILE_USE_GNU_SOURCE = 0
-            if sys.platform.lower().startswith("linux"):
-                warn = ("silx.io.specfile WARNING:",
-                        "A cleaner locale independent implementation",
-                        "may be achieved setting SPECFILE_USE_GNU_SOURCE to 1")
-                print(os.linesep.join(warn))
-        else:
-            SPECFILE_USE_GNU_SOURCE = int(SPECFILE_USE_GNU_SOURCE)
-
         if sys.platform == "win32":
             return [('WIN32', None), ('SPECFILE_POSIX', None)]
         elif os.name.lower().startswith('posix'):
             # the best choice is to have _GNU_SOURCE defined
             # as a compilation flag because that allows the
             # use of strtod_l
-            if SPECFILE_USE_GNU_SOURCE:
+            use_gnu_source = os.environ.get("SPECFILE_USE_GNU_SOURCE", "False")
+            if use_gnu_source in ("True", "1"):  # 1 was the initially supported value
                 return [('_GNU_SOURCE', 1)]
             return [('SPECFILE_POSIX', None)]
         else:
