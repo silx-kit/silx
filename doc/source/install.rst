@@ -304,6 +304,10 @@ Advanced options can be set through the following environment variables:
    * - ``SPECFILE_USE_GNU_SOURCE``
      - Whether or not to use a cleaner locale independent implementation of :mod:`silx.io.specfile` by using `_GNU_SOURCE=1`
        (default: ``False``; POSIX operating system only).
+   * - ``SILX_FULL_INSTALL_REQUIRES``
+     - Set it to put all dependencies as ``install_requires`` (For packaging purpose).
+   * - ``SILX_INSTALL_REQUIRES_STRIP``
+     - Comma-separated list of package names to remove from ``install_requires`` (For packaging purpose).
 .. note:: Boolean options are passed as ``True`` or ``False``.
 
 
