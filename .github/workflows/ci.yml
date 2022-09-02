@@ -138,7 +138,9 @@ jobs:
             pip install --pre pyside6;
             pip uninstall -y qtconsole; # No pyside6 support yet!
           fi
-
+          if [ "${{ matrix.QT_BINDING }}" == "PyQt6" ]; then
+            pip install --pre pyqt6;
+          fi
 
       - name: Install pytest
         run: |
