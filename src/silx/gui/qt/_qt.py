@@ -224,7 +224,13 @@ elif BINDING == 'PyQt6':
     # Monkey-patch module to expose enum values for compatibility
     # All Qt modules loaded here should be patched.
     from . import _pyqt6
-    from PyQt6 import QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
+    from PyQt6 import QtCore
+    if QtCore.PYQT_VERSION < int("0x60300", 16):
+        raise RuntimeError(
+            "PyQt6 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
+        )
+
+    from PyQt6 import QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
     from PyQt6 import QtTest as _QtTest
     _pyqt6.patch_enums(
         QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg, _QtTest)

@@ -21,4 +21,4 @@ PyOpenGL                  # For silx.gui.plot3d
 python-dateutil           # For silx.gui.plot
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 Pillow                    # For silx.opencl.image.test
-PyQt5  # PySide6, PyQt6>=6.1 # For silx.gui
+PyQt5  # PySide6, PyQt6>=6.3 # For silx.gui
