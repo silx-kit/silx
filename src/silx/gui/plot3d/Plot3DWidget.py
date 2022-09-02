@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -425,7 +425,11 @@ class Plot3DWidget(glu.OpenGLWidget):
         super(Plot3DWidget, self).keyReleaseEvent(event)
 
     # Mouse events #
-    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
+    _MOUSE_BTNS = {
+        qt.Qt.LeftButton: 'left',
+        qt.Qt.RightButton: 'right',
+        qt.Qt.MiddleButton: 'middle',
+    }
 
     def mousePressEvent(self, event):
         x, y = qt.getMouseEventPosition(event)
