@@ -102,8 +102,6 @@ before_test:
 
     # Install selected Qt binding
     - "pip install %PIP_OPTIONS% %QT_BINDING%"
-    # qtconsole does not support PySide6 yet
-    - IF %QT_BINDING%=="PySide6" pip uninstall -y qtconsole
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
