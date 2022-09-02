@@ -42,6 +42,13 @@ environment:
           WITH_GL_TEST: False  # OpenGL not working
           PIP_OPTIONS: "-q --pre"
 
+        # Python 3.10
+        - PYTHON_DIR: "C:\\Python310-x64"
+          QT_BINDING: "PyQt6"
+          WITH_GL_TEST: True
+          PIP_OPTIONS: "-q"
+
+
 branches:
     only:
         - master
