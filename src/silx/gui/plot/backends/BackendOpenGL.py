@@ -233,7 +233,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # QWidget
 
-    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
+    _MOUSE_BTNS = {
+        qt.Qt.LeftButton: 'left',
+        qt.Qt.RightButton: 'right',
+        qt.Qt.MiddleButton: 'middle',
+    }
 
     def sizeHint(self):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
@@ -246,7 +250,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         event.accept()
 
     def mouseMoveEvent(self, event):
-        qtPos = qt.getMouseEventPosition()
+        qtPos = qt.getMouseEventPosition(event)
 
         previousMousePosInPixels = self._mousePosInPixels
         if qtPos == self._mouseInPlotArea(*qtPos):
