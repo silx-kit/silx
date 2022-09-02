@@ -630,7 +630,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         invertAction.setText('Invert')
         icon = icons.getQIcon("mask-invert")
         invertAction.setIcon(icon)
-        invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertAction.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_I))
         invertAction.setToolTip('Invert current mask <b>%s</b>' %
                                 invertAction.shortcut().toString())
         invertAction.triggered.connect(self._handleInvertMask)
