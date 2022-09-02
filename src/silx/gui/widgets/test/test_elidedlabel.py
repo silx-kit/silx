@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ class TestElidedLabel(testutils.TestCaseQt):
         """Test elided text"""
         raw = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
         self.label.setText(raw)
-        self.label.setFixedWidth(30)
+        self.label.setFixedWidth(40)
         displayedText = qt.QLabel.text(self.label)
         self.assertNotEqual(raw, displayedText)
         self.assertIn("…", displayedText)
