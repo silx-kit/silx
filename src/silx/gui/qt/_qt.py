@@ -267,9 +267,8 @@ elif BINDING == 'PyQt6':
 
     Slot = pyqtSlot
 
-    # TODO, needed?
-    # Disable PyQt5's cooperative multi-inheritance since other bindings do not provide it.
-    # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
+    # Disable PyQt6 cooperative multi-inheritance since other bindings do not provide it.
+    # See https://www.riverbankcomputing.com/static/Docs/PyQt6/multiinheritance.html?highlight=inheritance
     class _Foo(object): pass
     class QObject(QObject, _Foo): pass
 
