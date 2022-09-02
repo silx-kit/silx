@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -428,7 +428,7 @@ class _Browser(qt.QStackedWidget):
         self.__detailView.header().restoreState(headerData)
 
         viewMode = stream.readInt32()
-        self.setViewMode(viewMode)
+        self.setViewMode(qt.QFileDialog.ViewMode(viewMode))
         return True
 
     def saveState(self):
@@ -443,7 +443,10 @@ class _Browser(qt.QStackedWidget):
         stream.writeQString(nameId)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__detailView.header().saveState())
-        stream.writeInt32(self.viewMode())
+        viewMode = self.viewMode()
+        if qt.BINDING == 'PyQt6':  # No auto conversion to int
+            viewMode = viewMode.value
+        stream.writeInt32(viewMode)
 
         return data
 
@@ -1694,7 +1697,7 @@ class AbstractDataFileDialog(qt.QDialog):
         if workingDirectory is not None:
             self.setDirectory(workingDirectory)
         result &= self.__browser.restoreState(browserData)
-        self.setViewMode(viewMode)
+        self.setViewMode(qt.QFileDialog.ViewMode(viewMode))
         colormap = self.colormap()
         if colormap is not None:
             result &= self.colormap().restoreState(colormapData)
@@ -1720,7 +1723,10 @@ class AbstractDataFileDialog(qt.QDialog):
         stream.writeQStringList(strings)
         stream.writeQString(u"%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
-        stream.writeInt32(self.viewMode())
+        viewMode = self.viewMode()
+        if qt.BINDING == 'PyQt6':  # No auto conversion to int
+            viewMode = viewMode.value
+        stream.writeInt32(viewMode)
         colormap = self.colormap()
         if colormap is not None:
             stream.writeQVariant(self.colormap().saveState())
