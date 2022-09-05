@@ -13,12 +13,11 @@ __license__ = "MIT"
 __date__ = "30/09/2020"
 
 import argparse
-import distutils.util
 import logging
 import os
 import subprocess
 import sys
-import tempfile
+import sysconfig
 
 logging.basicConfig()
 logger = logging.getLogger("bootstrap")
@@ -26,23 +25,17 @@ logger = logging.getLogger("bootstrap")
 
 def is_debug_python():
     """Returns true if the Python interpreter is in debug mode."""
-    try:
-        import sysconfig
-    except ImportError:  # pragma nocover
-        # Python < 2.7
-        import distutils.sysconfig as sysconfig
-
     if sysconfig.get_config_var("Py_DEBUG"):
         return True
 
     return hasattr(sys, "gettotalrefcount")
 
 
-def _distutils_dir_name(dname="lib"):
+def _setuptools_dir_name(dname="lib"):
     """
-    Returns the name of a distutils build directory
+    Returns the name of a setuptools build directory
     """
-    platform = distutils.util.get_platform()
+    platform = sysconfig.get_platform()
     architecture = "%s.%s-%i.%i" % (dname, platform,
                                     sys.version_info[0], sys.version_info[1])
     if is_debug_python():
@@ -50,7 +43,7 @@ def _distutils_dir_name(dname="lib"):
     return architecture
 
 
-def _distutils_scripts_name():
+def _setuptools_scripts_name():
     """Return the name of the distrutils scripts sirectory"""
     f = "scripts-{version[0]}.{version[1]}"
     return f.format(version=sys.version_info)
@@ -251,7 +244,7 @@ def main(argv):
 
 if __name__ == "__main__":
     home = os.path.dirname(os.path.abspath(__file__))
-    LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
+    LIBPATH = os.path.join(home, 'build', _setuptools_dir_name('lib'))
     cwd = os.getcwd()
     os.chdir(home)
     build = subprocess.Popen([sys.executable, "setup.py", "build"], shell=False)
