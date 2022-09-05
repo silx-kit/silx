@@ -45,7 +45,7 @@ environment:
         # Python 3.10
         - PYTHON_DIR: "C:\\Python310-x64"
           QT_BINDING: "PyQt6"
-          WITH_GL_TEST: True
+          WITH_GL_TEST: False  # OpenGL not working
           PIP_OPTIONS: "-q"
 
 
