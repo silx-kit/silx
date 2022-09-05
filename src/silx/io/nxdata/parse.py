@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -684,8 +684,6 @@ class NXdata(object):
                 return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
-        if uncertainties_names is None:
-            uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
@@ -720,15 +718,22 @@ class NXdata(object):
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        # case of signal
-        signal_errors = self.signal_dataset_name + "_errors"
-        if "errors" in self.group and is_dataset(self.group["errors"]):
-            errors = "errors"
-        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
-            errors = signal_errors
-        else:
-            return None
-        return self.group[errors]
+        dataset_names = [
+            # From NXData:
+            "errors",
+            # Not Nexus (VARIABLE_errors is only for axes), but supported anyway
+            self.signal_dataset_name + "_errors",
+            # From NXcanSAS application definition @uncertainties
+            get_attr_as_unicode(self.group[self.signal_dataset_name], "uncertainties"),
+        ]
+        for name in dataset_names:
+            if name is None:
+                continue
+            entity = self.group.get(name)
+            if entity is not None and is_dataset(entity):
+                return entity
+
+        return None
 
     @property
     def plot_style(self):
