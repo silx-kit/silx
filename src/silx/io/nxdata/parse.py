@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -684,8 +684,6 @@ class NXdata(object):
                 return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
-        if uncertainties_names is None:
-            uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
