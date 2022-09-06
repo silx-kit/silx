@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 1995-2019 European Synchrotron Radiation Facility
+# Copyright (C) 1995-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -86,6 +86,10 @@ DllExport double SfMotorPosByName( SpecFile *sf, long index, char *name,
                                       int *error );
 DllExport long   SfAllMotorPos   ( SpecFile *sf, long index, double **pos,
                                       int *error );
+
+
+#define BUFFER_SIZE 256
+#define MIN(a, b) (((a) <= (b)) ? (a) : (b))
 
 
 /*********************************************************************
@@ -180,7 +184,7 @@ SfLabel( SpecFile *sf, long index, long column, int *error )
 DllExport long
 SfAllLabels( SpecFile *sf, long index, char ***labels, int *error )
 {
-     static char tmplab[40];
+     static char tmplab[BUFFER_SIZE];
 
      char **labarr;
      char  *onelabel;
@@ -243,7 +247,7 @@ SfAllLabels( SpecFile *sf, long index, char ***labels, int *error )
 
      for (i=0;ptr < buf + strlen(buf) -1;ptr++,i++) {
          if (*ptr==' ' && *(ptr+1) == ' ') { /* two spaces delimits one label */
-             tmplab[i] = '\0';
+             tmplab[MIN(i, BUFFER_SIZE-1)] = '\0';
 
              labarr = (char **)realloc( labarr, (no_labels+1) * sizeof(char *));
              onelabel = (char *) malloc (i+2);
@@ -253,7 +257,7 @@ SfAllLabels( SpecFile *sf, long index, char ***labels, int *error )
              no_labels++;
              i=-1;
              for(;*(ptr+1) == ' ' && ptr < buf+strlen(buf)-1;ptr++);
-         } else {
+         } else if (i < BUFFER_SIZE) {
              tmplab[i] = *ptr;
          }
      }
@@ -318,7 +322,7 @@ SfAllMotors( SpecFile *sf, long index, char ***names, int *error )
      char **motarr;
      char  *onemot;
 
-     static char tmpmot[40];
+     static char tmpmot[BUFFER_SIZE];
 
      char  *ptr;
 
@@ -368,7 +372,7 @@ SfAllMotors( SpecFile *sf, long index, char ***names, int *error )
          for(ptr=thisline;*ptr == ' ';ptr++);
          for (i=0;ptr < endline -2;ptr++,i++) {
             if (*ptr==' ' && *(ptr+1) == ' ') {
-               tmpmot[i] = '\0';
+               tmpmot[MIN(i, BUFFER_SIZE-1)] = '\0';
 
                motarr = (char **)realloc( motarr, (motct+1) * sizeof(char *));
                onemot = (char *) malloc (i+2);
@@ -378,7 +382,7 @@ SfAllMotors( SpecFile *sf, long index, char ***names, int *error )
                motct++;
                i=-1;
                for(;*(ptr+1) == ' ' && ptr < endline -1;ptr++);
-            } else {
+            } else if (i < BUFFER_SIZE) {
                tmpmot[i] = *ptr;
             }
         }

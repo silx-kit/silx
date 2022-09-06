@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "22/07/2022"
 
 
 import gc
@@ -140,10 +140,14 @@ class TestCaseQt(unittest.TestCase):
 
     def _currentTestSucceeded(self):
         if hasattr(self, '_outcome'):
-            # For Python >= 3.4
-            result = self.defaultTestResult()  # these 2 methods have no side effects
-            if hasattr(self._outcome, 'errors'):
-                self._feedErrorsToResult(result, self._outcome.errors)
+            if hasattr(self, '_feedErrorsToResult'):
+                # For Python 3.4 -3.10
+                result = self.defaultTestResult()  # these 2 methods have no side effects
+                if hasattr(self._outcome, 'errors'):
+                    self._feedErrorsToResult(result, self._outcome.errors)
+            else:
+                # Python 3.11+
+                result = self._outcome.result
         else:
             # For Python < 3.4
             result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
@@ -155,10 +159,10 @@ class TestCaseQt(unittest.TestCase):
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
-        gc.collect()
-
         if self.__previousWidgets is None:
             return  # Do not test for leaking widgets with PySide2
+
+        gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
                    if (widget not in self.__previousWidgets and

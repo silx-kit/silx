@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -175,8 +175,8 @@ class CurvesROIWidget(qt.QWidget):
         self._isConnected = False  # True if connected to plot signals
         self._isInit = False
 
-        # expose API
-        self.getROIListAndDict = self.roiTable.getROIListAndDict
+    def getROIListAndDict(self):
+        return self.roiTable.getROIListAndDict()
 
     def getPlotWidget(self):
         """Returns the associated PlotWidget or None
@@ -1567,14 +1567,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
         action = super(CurvesROIDockWidget, self).toggleViewAction()
         action.setIcon(icons.getQIcon('plot-roi'))
         return action
-
-    def showEvent(self, event):
-        """Make sure this widget is raised when it is shown
-        (when it is first created as a tab in PlotWindow or when it is shown
-        again after hiding).
-        """
-        self.raise_()
-        qt.QDockWidget.showEvent(self, event)
 
     @property
     def currentROI(self):

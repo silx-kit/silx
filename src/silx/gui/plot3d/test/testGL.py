@@ -29,7 +29,7 @@ __date__ = "10/08/2017"
 
 
 import logging
-import unittest
+import pytest
 
 from silx.gui._glutils import gl, OpenGLWidget
 from silx.gui.utils.testutils import TestCaseQt
@@ -39,6 +39,7 @@ from silx.gui import qt
 _logger = logging.getLogger(__name__)
 
 
+@pytest.mark.usefixtures("use_opengl")
 class TestOpenGL(TestCaseQt):
     """Tests of OpenGL widget."""
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -215,7 +215,6 @@ class PlotWindow(PlotWidget):
 
         # lazy loaded actions needed by the controlButton menu
         self._consoleAction = None
-        self._statsAction = None
         self._panWithArrowKeysAction = None
         self._crosshairAction = None
 
@@ -401,14 +400,19 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self.addTabbedDockWidget(self._consoleDockWidget)
-            # self._consoleDockWidget.setVisible(True)
             self._consoleDockWidget.toggleViewAction().toggled.connect(
-                self.getConsoleAction().setChecked)
+                self._consoleDockWidgetToggled)
 
         self._consoleDockWidget.setVisible(isChecked)
 
-    def _toggleStatsVisibility(self, isChecked=False):
-        self.getStatsWidget().parent().setVisible(isChecked)
+    def _consoleVisibilityTriggered(self, isChecked):
+        if isChecked and self.isVisible():
+            self._consoleDockWidget.show()
+            self._consoleDockWidget.raise_()
+
+    def _consoleDockWidgetToggled(self, isChecked):
+        if self.isVisible():
+            self.getConsoleAction().setChecked(isChecked)
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.
@@ -522,6 +526,17 @@ class PlotWindow(PlotWidget):
                 self._handleFirstDockWidgetShow)
             self.addTabbedDockWidget(dockWidget)
 
+    def _handleDockWidgetViewActionTriggered(self, checked):
+        if checked:
+            action = self.sender()
+            if action is None:
+                return
+            dockWidget = action.parent()
+            if dockWidget is None:
+                return
+            dockWidget.show()  # Show needed here for raise to have an effect
+            dockWidget.raise_()
+
     def getColorBarWidget(self):
         """Returns the embedded :class:`ColorBarWidget` widget.
 
@@ -536,6 +551,8 @@ class PlotWindow(PlotWidget):
         if self._legendsDockWidget is None:
             self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
+            self._legendsDockWidget.toggleViewAction().triggered.connect(
+                self._handleDockWidgetViewActionTriggered)
             self._legendsDockWidget.visibilityChanged.connect(
                 self._handleFirstDockWidgetShow)
         return self._legendsDockWidget
@@ -547,6 +564,8 @@ class PlotWindow(PlotWidget):
             self._curvesROIDockWidget = CurvesROIDockWidget(
                 plot=self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
+            self._curvesROIDockWidget.toggleViewAction().triggered.connect(
+                self._handleDockWidgetViewActionTriggered)
             self._curvesROIDockWidget.visibilityChanged.connect(
                 self._handleFirstDockWidgetShow)
         return self._curvesROIDockWidget
@@ -568,6 +587,8 @@ class PlotWindow(PlotWidget):
             self._maskToolsDockWidget = MaskToolsDockWidget(
                 plot=self, name='Mask')
             self._maskToolsDockWidget.hide()
+            self._maskToolsDockWidget.toggleViewAction().triggered.connect(
+                self._handleDockWidgetViewActionTriggered)
             self._maskToolsDockWidget.visibilityChanged.connect(
                 self._handleFirstDockWidgetShow)
         return self._maskToolsDockWidget
@@ -583,9 +604,9 @@ class PlotWindow(PlotWidget):
             self._statsDockWidget.layout().setContentsMargins(0, 0, 0, 0)
             statsWidget = BasicStatsWidget(parent=self, plot=self)
             self._statsDockWidget.setWidget(statsWidget)
-            statsWidget.sigVisibilityChanged.connect(
-                self.getStatsAction().setChecked)
             self._statsDockWidget.hide()
+            self._statsDockWidget.toggleViewAction().triggered.connect(
+                self._handleDockWidgetViewActionTriggered)
             self._statsDockWidget.visibilityChanged.connect(
                 self._handleFirstDockWidgetShow)
         return self._statsDockWidget.widget()
@@ -618,6 +639,8 @@ class PlotWindow(PlotWidget):
             self._consoleAction.setCheckable(True)
             if IPythonDockWidget is not None:
                 self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
+                self._consoleAction.triggered.connect(self._consoleVisibilityTriggered)
+
             else:
                 self._consoleAction.setEnabled(False)
         return self._consoleAction
@@ -648,12 +671,7 @@ class PlotWindow(PlotWidget):
         return self._panWithArrowKeysAction
 
     def getStatsAction(self):
-        if self._statsAction is None:
-            self._statsAction = qt.QAction('Curves stats', self)
-            self._statsAction.setCheckable(True)
-            self._statsAction.setChecked(self.getStatsWidget().parent().isVisible())
-            self._statsAction.toggled.connect(self._toggleStatsVisibility)
-        return self._statsAction
+        return self.getStatsWidget().parent().toggleViewAction()
 
     def getRoiAction(self):
         """QAction toggling curve ROI dock widget

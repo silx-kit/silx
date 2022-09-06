@@ -28,7 +28,7 @@ __license__ = "MIT"
 __date__ = "03/10/2018"
 
 
-import unittest
+import pytest
 
 import numpy
 
@@ -39,6 +39,7 @@ from silx.gui import qt
 from silx.gui.plot3d.SceneWidget import SceneWidget, items
 
 
+@pytest.mark.usefixtures("use_opengl")
 class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
 
