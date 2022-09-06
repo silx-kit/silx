@@ -239,7 +239,7 @@ class PositionInfo(qt.QWidget):
                 ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
 
             # Baseline squared distance threshold
-            distInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
+            sqDistInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
 
             for item in selectedItems:
                 if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and (
@@ -263,33 +263,36 @@ class PositionInfo(qt.QWidget):
                         break
 
                 else:  # Curve, Scatter
-                    xArray = item.getXData(copy=False)
-                    yArray = item.getYData(copy=False)
-                    closestIndex = numpy.argmin(
-                        pow(xArray - x, 2) + pow(yArray - y, 2))
-
-                    xClosest = xArray[closestIndex]
-                    yClosest = yArray[closestIndex]
+                    result = item.pick(xPixel, yPixel)
+                    if result is None:
+                        continue
+                    indices = result.getIndices(copy=False)
+                    if indices is None:
+                        continue
 
                     if isinstance(item, items.YAxisMixIn):
                         axis = item.getYAxis()
                     else:
                         axis = 'left'
 
-                    closestInPixels = plot.dataToPixel(
-                        xClosest, yClosest, axis=axis)
-                    if closestInPixels is not None:
-                        curveDistInPixels = (
-                            (closestInPixels[0] - xPixel)**2 +
-                            (closestInPixels[1] - yPixel)**2)
+                    xArray = item.getXData(copy=False)[indices]
+                    yArray = item.getYData(copy=False)[indices]
+                    pixelPositions = plot.dataToPixel(xArray, yArray, axis=axis)
+                    if pixelPositions is None:
+                        continue
+                    sqDistances = (pixelPositions[0] - xPixel)**2 + (pixelPositions[1] - yPixel)**2
+                    if not numpy.any(numpy.isfinite(sqDistances)):
+                        continue
+                    closestIndex = numpy.nanargmin(sqDistances)
+                    closestSqDistInPixels = sqDistances[closestIndex]
 
-                        if curveDistInPixels <= distInPixels:
-                            # Update label style sheet
-                            styleSheet = "color: rgb(0, 0, 0);"
+                    if closestSqDistInPixels <= sqDistInPixels:
+                        # Update label style sheet
+                        styleSheet = "color: rgb(0, 0, 0);"
 
-                            # if close enough, snap to data point coord
-                            xData, yData = xClosest, yClosest
-                            distInPixels = curveDistInPixels
+                        # if close enough, snap to data point coord
+                        xData, yData = xArray[closestIndex], yArray[closestIndex]
+                        sqDistInPixels = closestSqDistInPixels
 
         for label, name, func in self._fields:
             label.setStyleSheet(styleSheet)

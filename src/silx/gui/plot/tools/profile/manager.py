@@ -180,6 +180,8 @@ class ProfileWindow(qt.QMainWindow):
         plot.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
         plot.setGraphYLabel('Profile')
         plot.setGraphXLabel('')
+        positionInfo = plot.getPositionInfoWidget()
+        positionInfo.setSnappingMode(positionInfo.SNAPPING_CURVE)
         return plot
 
     def createPlot2D(self, parent, backend):
