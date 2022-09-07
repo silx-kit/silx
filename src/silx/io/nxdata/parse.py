@@ -42,6 +42,8 @@ Other public functions:
 """
 
 import json
+from typing import Optional
+
 import numpy
 
 from silx.io.utils import is_group, is_file, is_dataset, h5py_read_dataset
@@ -975,35 +977,34 @@ def is_NXroot_with_default_NXdata(group, validate=True):
                                           validate=validate)
 
 
-def get_default(group, validate=True):
-    """Return a :class:`NXdata` object corresponding to the default NXdata group
-    in the group specified as parameter.
+def get_default(group, validate: bool=True) -> Optional[NXdata]:
+    """Find the default :class:`NXdata` group in given group.
 
-    This function can find the NXdata if the group is already a NXdata, or
-    if it is a NXentry defining a default NXdata, or if it is a NXroot
-    defining such a default valid NXentry.
+    `@default` attributes are recursively followed until finding a group with
+    NX_class="NXdata".
+    Return None if no valid NXdata group could be found.
 
-    Return None if no valid NXdata could be found.
-
-    :param group: h5py-like group following the Nexus specification
-        (NXdata, NXentry or NXroot).
-    :param bool validate: Set this to False if you are sure that group
-        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(group)`
-        returns True). Parameter provided for optimisation purposes.
-    :return: :class:`NXdata` object or None
+    :param group: h5py-like group to look for @default NXdata.
+        In cas it is a NXdata group, it is returned.
+    :param validate: False to disable checking the returned NXdata group.
     :raise TypeError: if group is not a h5py-like group
     """
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
-    if is_NXroot_with_default_NXdata(group, validate=validate):
-        default_entry = group[group.attrs["default"]]
-        default_data = default_entry[default_entry.attrs["default"]]
-    elif is_group_with_default_NXdata(group, validate=validate):
-        default_data = group[group.attrs["default"]]
-    elif not validate or is_valid_nxdata(group):
-        default_data = group
-    else:
+    if get_attr_as_unicode(group, "NX_class") == "NXdata":
+        nxdata = NXdata(group, validate=validate)
+        return nxdata if nxdata.is_valid else None
+
+    default_name = get_attr_as_unicode(group, "default")
+    if default_name is None:
         return None
 
-    return NXdata(default_data, validate=False)
+    default_entity = group.get(default_name)
+    if default_entity is None:
+        return None
+
+    try:
+        return get_default(default_entity, validate)
+    except TypeError:
+        return None
