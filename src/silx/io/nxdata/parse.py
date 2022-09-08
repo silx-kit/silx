@@ -977,18 +977,11 @@ def is_NXroot_with_default_NXdata(group, validate=True):
                                           validate=validate)
 
 
-def get_default(group, validate: bool=True) -> Optional[NXdata]:
-    """Find the default :class:`NXdata` group in given group.
-
-    `@default` attributes are recursively followed until finding a group with
-    NX_class="NXdata".
-    Return None if no valid NXdata group could be found.
-
-    :param group: h5py-like group to look for @default NXdata.
-        In cas it is a NXdata group, it is returned.
-    :param validate: False to disable checking the returned NXdata group.
-    :raise TypeError: if group is not a h5py-like group
-    """
+def _get_default(
+    group,
+    validate: bool,
+    traversed: list,
+) -> Optional[NXdata]:
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
@@ -1001,10 +994,25 @@ def get_default(group, validate: bool=True) -> Optional[NXdata]:
         return None
 
     default_entity = group.get(default_name)
-    if default_entity is None:
+    if default_entity is None or default_entity in traversed:
         return None
 
     try:
-        return get_default(default_entity, validate)
+        return _get_default(default_entity, validate, traversed + [default_entity])
     except TypeError:
         return None
+
+
+def get_default(group, validate: bool=True) -> Optional[NXdata]:
+    """Find the default :class:`NXdata` group in given group.
+
+    `@default` attributes are recursively followed until finding a group with
+    NX_class="NXdata".
+    Return None if no valid NXdata group could be found.
+
+    :param group: h5py-like group to look for @default NXdata.
+        In cas it is a NXdata group, it is returned.
+    :param validate: False to disable checking the returned NXdata group.
+    :raise TypeError: if group is not a h5py-like group
+    """
+    return _get_default(group, validate, [])
