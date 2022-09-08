@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import re
 import shutil
 import tempfile
 import unittest
-import sys
 
 from .. import utils
 from ..._version import calc_hexversion
@@ -39,6 +38,7 @@ import silx.io.url
 import h5py
 from ..utils import h5ls
 from silx.io import commonh5
+
 
 import fabio
 
@@ -921,3 +921,33 @@ def test_visitall_commonh5():
     soft_link = visited_items["/group/soft_link"]
     assert isinstance(soft_link, commonh5.SoftLink)
     assert soft_link.path == "/group/dataset"
+
+
+def test_match_hdf5(tmp_path):
+    """Test match function with HDF5 file"""
+    with h5py.File(tmp_path / "test_match.h5", "w") as h5f:
+        h5f.create_group("entry_0000/group")
+        h5f["entry_0000/data"] = 0
+        h5f.create_group("entry_0001/group")
+        h5f["entry_0001/data"] = 1
+        h5f.create_group("entry_0002")
+        h5f["entry_0003"] = 3
+
+        result = list(utils.match(h5f, "/entry_*/*"))
+
+        assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
+
+
+def test_match_commonh5():
+    """Test match function with commonh5 objects"""
+    with commonh5.File("filename.file", mode="w") as fobj:
+        fobj.create_group("entry_0000/group")
+        fobj["entry_0000/data"] = 0
+        fobj.create_group("entry_0001/group")
+        fobj["entry_0001/data"] = 1
+        fobj.create_group("entry_0002")
+        fobj["entry_0003"] = 3
+
+        result = list(utils.match(fobj, "/entry_*/*"))
+
+        assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
