@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -116,6 +116,7 @@ def mainQt(options):
 
     import silx
     import silx.utils.files
+    from silx.io.url import DataUrl
     from silx.gui import qt
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
@@ -152,13 +153,23 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
-    # NOTE: under Windows, cmd does not convert `*.tif` into existing files
-    options.files = silx.utils.files.expand_filenames(options.files)
-
+    urls = []
     for filename in options.files:
+        url = DataUrl(filename)
+
+        for file_path in silx.utils.files.expand_filenames([url.file_path()]):
+            urls.append(
+                DataUrl(
+                    file_path=file_path,
+                    data_path=url.data_path(),
+                    data_slice=url.data_slice(), scheme=url.scheme(),
+                )
+            )
+
+    for url in urls:
         # TODO: Would be nice to add a process widget and a cancel button
         try:
-            window.appendFile(filename)
+            window.appendFile(url.path())
         except IOError as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
