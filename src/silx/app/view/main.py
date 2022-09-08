@@ -28,10 +28,12 @@ __license__ = "MIT"
 __date__ = "17/01/2019"
 
 import argparse
+import glob
 import logging
 import os
 import signal
 import sys
+from typing import Generator, Iterable
 
 
 _logger = logging.getLogger(__name__)
@@ -69,6 +71,39 @@ def createParser():
         default=False,
         help='Start the application with HDF5 file locking enabled (it is disabled by default)')
     return parser
+
+
+def filesArgToUrls(filenames: Iterable[str]) -> Generator[object, None, None]:
+    """Expand filenames and HDF5 data path in files input argument"""
+    import silx.io
+    from silx.io.utils import match
+    from silx.io.url import DataUrl
+    import silx.utils.files
+
+    for filename in filenames:
+        url = DataUrl(filename)
+
+        for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
+            if glob.has_magic(url.data_path()):
+                try:
+                    with silx.io.open(file_path) as f:
+                        data_paths = list(match(f, url.data_path()))
+                except BaseException as e:
+                    _logger.error(
+                        f"Error searching HDF5 path pattern '{url.data_path()}' in file '{file_path}': Ignored")
+                    _logger.error(e.args[0])
+                    _logger.debug("Backtrace", exc_info=True)
+                    continue
+            else:
+                data_paths = [url.data_path()]
+
+            for data_path in data_paths:
+                yield DataUrl(
+                    file_path=file_path,
+                    data_path=data_path,
+                    data_slice=url.data_slice(),
+                    scheme=url.scheme(),
+                )
 
 
 def createWindow(parent, settings):
@@ -115,8 +150,6 @@ def mainQt(options):
     import h5py
 
     import silx
-    import silx.utils.files
-    from silx.io.url import DataUrl
     from silx.gui import qt
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
@@ -153,20 +186,8 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
-    urls = []
-    for filename in options.files:
-        url = DataUrl(filename)
 
-        for file_path in silx.utils.files.expand_filenames([url.file_path()]):
-            urls.append(
-                DataUrl(
-                    file_path=file_path,
-                    data_path=url.data_path(),
-                    data_slice=url.data_slice(), scheme=url.scheme(),
-                )
-            )
-
-    for url in urls:
+    for url in filesArgToUrls(options.files):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(url.path())
