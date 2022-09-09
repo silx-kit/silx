@@ -75,6 +75,7 @@ def createParser():
 
 def filesArgToUrls(filenames: Iterable[str]) -> Generator[object, None, None]:
     """Expand filenames and HDF5 data path in files input argument"""
+    # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
     import silx.io
     from silx.io.utils import match
     from silx.io.url import DataUrl
@@ -84,7 +85,7 @@ def filesArgToUrls(filenames: Iterable[str]) -> Generator[object, None, None]:
         url = DataUrl(filename)
 
         for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
-            if glob.has_magic(url.data_path()):
+            if url.data_path() is not None and glob.has_magic(url.data_path()):
                 try:
                     with silx.io.open(file_path) as f:
                         data_paths = list(match(f, url.data_path()))
