@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -294,6 +294,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                     del h5f[h5path]
                     h5f.create_group(h5path)
                 else:
+                    logger.info(f'Cannot overwrite {h5f.file.filename}::{h5f[h5path].name} with update_mode="{update_mode}"')
                     return
         else:
             h5f.create_group(h5path)
@@ -330,6 +331,7 @@ def dicttoh5(treedict, h5file, h5path='/',
             else:
                 # HDF5 dataset
                 if exists and not change_allowed:
+                    logger.info(f'Cannot modify dataset {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"')
                     continue
                 data = _prepare_hdf5_write_value(value)
 
@@ -343,6 +345,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                         # Delete the existing dataset
                         if update_mode != "replace":
                             if not is_dataset(h5f[h5name]):
+                                logger.info(f'Cannot overwrite {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"')
                                 continue
                             attrs_backup = dict(h5f[h5name].attrs)
                         del h5f[h5name]
@@ -381,6 +384,7 @@ def dicttoh5(treedict, h5file, h5path='/',
             else:
                 # Add/modify HDF5 attribute
                 if exists and not change_allowed:
+                    logger.info(f'Cannot modify attribute {h5f.file.filename}::{h5f[h5name].name}@{attr_name} with update_mode="{update_mode}"')
                     continue
                 data = _prepare_hdf5_write_value(value)
                 h5a[attr_name] = data
