@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -876,7 +876,9 @@ class _Plot1dView(DataView):
 
     def createWidget(self, parent):
         from silx.gui import plot
-        return plot.Plot1D(parent=parent)
+        widget = plot.Plot1D(parent=parent)
+        widget.setGraphGrid(True)
+        return widget
 
     def clear(self):
         self.getWidget().clear()

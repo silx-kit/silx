@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,6 +76,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__values = None
 
         self._plot = Plot1D(self)
+        self._plot.setGraphGrid(True)
 
         self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
