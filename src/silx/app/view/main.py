@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,12 @@ __license__ = "MIT"
 __date__ = "17/01/2019"
 
 import argparse
+import glob
 import logging
 import os
 import signal
 import sys
+from typing import Generator, Iterable
 
 
 _logger = logging.getLogger(__name__)
@@ -69,6 +71,40 @@ def createParser():
         default=False,
         help='Start the application with HDF5 file locking enabled (it is disabled by default)')
     return parser
+
+
+def filesArgToUrls(filenames: Iterable[str]) -> Generator[object, None, None]:
+    """Expand filenames and HDF5 data path in files input argument"""
+    # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
+    import silx.io
+    from silx.io.utils import match
+    from silx.io.url import DataUrl
+    import silx.utils.files
+
+    for filename in filenames:
+        url = DataUrl(filename)
+
+        for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
+            if url.data_path() is not None and glob.has_magic(url.data_path()):
+                try:
+                    with silx.io.open(file_path) as f:
+                        data_paths = list(match(f, url.data_path()))
+                except BaseException as e:
+                    _logger.error(
+                        f"Error searching HDF5 path pattern '{url.data_path()}' in file '{file_path}': Ignored")
+                    _logger.error(e.args[0])
+                    _logger.debug("Backtrace", exc_info=True)
+                    continue
+            else:
+                data_paths = [url.data_path()]
+
+            for data_path in data_paths:
+                yield DataUrl(
+                    file_path=file_path,
+                    data_path=data_path,
+                    data_slice=url.data_slice(),
+                    scheme=url.scheme(),
+                )
 
 
 def createWindow(parent, settings):
@@ -115,7 +151,6 @@ def mainQt(options):
     import h5py
 
     import silx
-    import silx.utils.files
     from silx.gui import qt
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
@@ -152,13 +187,11 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
-    # NOTE: under Windows, cmd does not convert `*.tif` into existing files
-    options.files = silx.utils.files.expand_filenames(options.files)
 
-    for filename in options.files:
+    for url in filesArgToUrls(options.files):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
-            window.appendFile(filename)
+            window.appendFile(url.path())
         except IOError as e:
             _logger.error(e.args[0])
             _logger.debug("Backtrace", exc_info=True)
