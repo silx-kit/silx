@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -267,7 +267,6 @@ class Viewer(qt.QMainWindow):
             index = indexes.pop(0)
             if index.column() != 0:
                 continue
-            h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
             rootIndex = index
             # Reach the root of the tree
             while rootIndex.parent().isValid():
@@ -275,7 +274,8 @@ class Viewer(qt.QMainWindow):
             rootRow = rootIndex.row()
             relativePath = self.__getRelativePath(model, rootIndex, index)
             selectedItems.append((rootRow, relativePath))
-            h5files.add(h5.file)
+            h5 = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5files.add(h5)
 
         if len(h5files) == 0:
             qt.QApplication.restoreOverrideCursor()
@@ -305,7 +305,7 @@ class Viewer(qt.QMainWindow):
         # FIXME: The architecture have to be reworked to support this feature.
         # model.synchronizeH5pyObject(h5)
 
-        filename = h5.filename
+        filename = f"{h5.file.filename}::{h5.name}"
         row = model.h5pyObjectRow(h5)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)
