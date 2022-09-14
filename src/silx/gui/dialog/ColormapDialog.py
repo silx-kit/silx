@@ -1042,10 +1042,14 @@ class ColormapDialog(qt.QDialog):
         super(ColormapDialog, self).closeEvent(event)
 
     def hideEvent(self, event):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.visibleChanged.emit(False)
         super(ColormapDialog, self).hideEvent(event)
 
     def close(self):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.accept()
         qt.QDialog.close(self)
 
