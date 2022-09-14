@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ ctypedef fused cumul_t:
     cnumpy.int64_t
 
 ctypedef fused weights_t:
+    cnumpy.uint16_t
     cnumpy.float64_t
     cnumpy.float32_t
     cnumpy.int32_t
@@ -108,7 +109,7 @@ def histogramnd_get_lut(sample,
         if histo_range.shape == (2,):
             pass
         elif histo_range.shape == (1, 2):
-            histo_range.reshape(-1)
+            histo_range = histo_range.reshape(-1)
         else:
             err_histo_range = True
     elif n_dims != 1 and histo_range.shape != (n_dims, 2):
