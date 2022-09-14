@@ -931,6 +931,7 @@ class ColormapDialog(qt.QDialog):
         self._roiForColormapManager = None
 
         self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton.setCheckable(True)
         self._selectedAreaButton.setEnabled(False)
         self._selectedAreaButton.setText("Selection")
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
@@ -1743,11 +1744,12 @@ class ColormapDialog(qt.QDialog):
         self._selectedAreaButton.setChecked(False)
 
     def __roiFinalized(self, roi):
-        self._selectedAreaButton.setChecked(False)
         if roi is not None:
             ox, oy = roi.getOrigin()
             width, height = roi.getSize()
             self.setColormapRangeFromDataBounds((ox, ox+width, oy, oy+height))
+            # clear ROI
+            self._roiForColormapManager.removeRoi(roi)
 
     def keyPressEvent(self, event):
         """Override key handling.
