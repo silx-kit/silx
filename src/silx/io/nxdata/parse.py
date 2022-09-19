@@ -725,12 +725,8 @@ class NXdata(object):
             "errors",
             # Not Nexus (VARIABLE_errors is only for axes), but supported anyway
             self.signal_dataset_name + "_errors",
-            # From NXcanSAS application definition @uncertainties
-            get_attr_as_unicode(self.group[self.signal_dataset_name], "uncertainties"),
         ]
         for name in dataset_names:
-            if name is None:
-                continue
             entity = self.group.get(name)
             if entity is not None and is_dataset(entity):
                 return entity
