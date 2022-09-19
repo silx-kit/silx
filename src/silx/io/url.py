@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -294,16 +294,6 @@ class DataUrl(object):
         if self.__path is not None:
             return self.__path
 
-        def slice_to_string(data_slice):
-            if data_slice == Ellipsis:
-                return "..."
-            elif data_slice == slice(None):
-                return ":"
-            elif isinstance(data_slice, int):
-                return str(data_slice)
-            else:
-                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
-
         if self.__data_path is not None and self.__data_slice is None:
             query = self.__data_path
         else:
@@ -311,11 +301,7 @@ class DataUrl(object):
             if self.__data_path is not None:
                 queries.append("path=" + self.__data_path)
             if self.__data_slice is not None:
-                if isinstance(self.__data_slice, Iterable):
-                    data_slice = ",".join([slice_to_string(s) for s in self.__data_slice])
-                else:
-                    data_slice = slice_to_string(self.__data_slice)
-                queries.append("slice=" + data_slice)
+                queries.append("slice=" + self.data_slice_string())
             query = "&".join(queries)
 
         path = ""
@@ -356,6 +342,32 @@ class DataUrl(object):
             if file_path[1] == ":":
                 return True
         return False
+
+    @staticmethod
+    def __slice_to_string(data_slice) -> str:
+        if data_slice == Ellipsis:
+            return "..."
+        if isinstance(data_slice, int):
+            return str(data_slice)
+        if isinstance(data_slice, slice):
+            slice_indices = [
+                "" if data_slice.start is None else str(data_slice.start),
+                "" if data_slice.stop is None else str(data_slice.stop),
+            ]
+            if data_slice.step is not None:
+                slice_indices.append(str(data_slice.step))
+            return ":".join(slice_indices)
+        raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
+
+    def data_slice_string(self) -> str:
+        """Returns data_slice as a numpy-like slicing string"""
+        if self.__data_slice is None:
+            return ""
+
+        if isinstance(self.__data_slice, Iterable):
+            return ",".join([self.__slice_to_string(s) for s in self.__data_slice])
+
+        return self.__slice_to_string(self.__data_slice)
 
     def file_path(self):
         """Returns the path to the file containing the data.
