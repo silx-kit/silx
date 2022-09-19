@@ -603,33 +603,47 @@ def open(filename):  # pylint:disable=redefined-builtin
     if url.scheme() in [None, "file", "silx"]:
         # That's a local file
         if not url.is_valid():
-            raise IOError("URL '%s' is not valid" % filename)
+            raise IOError(f"URL '{filename}' is not valid")
         h5_file = _open_local_file(url.file_path())
     elif url.scheme() in ["fabio"]:
-        raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
+        raise IOError(f"URL '{filename}' containing fabio scheme is not supported")
     else:
         # That's maybe an URL supported by h5pyd
         uri = urllib.parse.urlparse(filename)
         if h5pyd is None:
-            raise IOError("URL '%s' unsupported. Try to install h5pyd." % filename)
+            raise IOError(f"URL '{filename}' unsupported. Try to install h5pyd.")
         path = uri.path
         endpoint = "%s://%s" % (uri.scheme, uri.netloc)
         if path.startswith("/"):
             path = path[1:]
         return h5pyd.File(path, 'r', endpoint=endpoint)
 
-    if url.data_slice():
-        raise IOError("URL '%s' containing slicing is not supported" % filename)
 
-    if url.data_path() in [None, "/", ""]:
-        # The full file is requested
+    if url.data_path() in [None, "/", ""]:  # The full file is requested
+        if url.data_slice():
+            raise IOError(f"URL '{filename}' containing slicing is not supported")
+
         return h5_file
     else:
         # Only a children is requested
         if url.data_path() not in h5_file:
-            msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
-            raise IOError(msg)
+            raise IOError(
+                f"File '{filename}' does not contain path '{url.data_path()}'"
+            )
         node = h5_file[url.data_path()]
+
+        if url.data_slice() is not None:
+            from . import _sliceh5  # Lazy-import to avoid circular dependency
+            try:
+                return _sliceh5.DatasetSlice(
+                    f"{url.data_path()}[{url.data_slice_string()}]",
+                    h5_file,
+                    node,
+                    url.data_slice()
+                )
+            except ValueError:
+                raise IOError(f"URL {filename} contains slicing, but it is not a dataset")
+
         proxy = _MainNode(node, h5_file)
         return proxy
 
