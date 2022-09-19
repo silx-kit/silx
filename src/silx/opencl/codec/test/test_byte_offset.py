@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx

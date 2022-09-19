@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx

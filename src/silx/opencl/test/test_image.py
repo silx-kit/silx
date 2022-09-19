@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: image manipulation in  OpenCL
 #             https://github.com/silx-kit/silx

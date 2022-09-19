@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Median filter of images + OpenCL
 #             https://github.com/silx-kit/silx

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #
 #    Project: Sift implementation in Python + OpenCL
