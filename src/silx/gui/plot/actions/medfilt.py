@@ -34,8 +34,6 @@ The following QAction are available:
 
 """
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 

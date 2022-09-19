@@ -25,8 +25,6 @@
 """This module provides a QMainWindow with a 3D SceneWidget and toolbars.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "29/11/2017"

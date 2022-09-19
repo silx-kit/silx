@@ -37,8 +37,6 @@ It provides the following toolbars:
   - Print
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/09/2017"

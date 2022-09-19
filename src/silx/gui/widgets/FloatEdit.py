@@ -25,8 +25,6 @@
 """Module contains a float editor
 """
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "02/10/2017"

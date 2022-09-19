@@ -25,8 +25,6 @@
 """This module provides API to manage colors.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "29/01/2019"

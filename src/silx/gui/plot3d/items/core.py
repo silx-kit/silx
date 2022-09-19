@@ -25,8 +25,6 @@
 """This module provides the base class for items of the :class:`.SceneWidget`.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"

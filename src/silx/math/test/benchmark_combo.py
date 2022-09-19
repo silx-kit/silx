@@ -23,8 +23,6 @@
 # ############################################################################*/
 """Benchmarks of the combo module"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/01/2018"

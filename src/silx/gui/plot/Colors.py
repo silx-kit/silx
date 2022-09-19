@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Color conversion function, color dictionary and colormap tools."""
 
-from __future__ import absolute_import
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "14/06/2018"

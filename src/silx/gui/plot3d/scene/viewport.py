@@ -29,8 +29,6 @@ The attribute :attr:`scene` is the root group of the scene tree.
 :class:`RenderContext` handles the current state during rendering.
 """
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"

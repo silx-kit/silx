@@ -27,9 +27,6 @@ The class :class:`.PlotAction` help the creation of a qt.QAction associated
 with a :class:`.PlotWidget`.
 """
 
-from __future__ import division
-
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "03/01/2018"

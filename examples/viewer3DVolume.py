@@ -29,8 +29,6 @@ an interactive cutting plane.
 It can also be started without providing a file.
 """
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "05/01/2017"

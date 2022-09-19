@@ -48,8 +48,6 @@ David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999.
 It is due to expire in March 2019. 
 """
 
-from __future__ import division, print_function, with_statement
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

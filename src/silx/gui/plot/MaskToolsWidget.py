@@ -30,7 +30,6 @@ This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 - :class:`MaskToolsWidget`: GUI for :class:`Mask`
 - :class:`MaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"

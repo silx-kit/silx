@@ -31,8 +31,6 @@ It provides 2 URLs (corresponding to 2 datasets) that can be dragged to
 either a :class:`PlotWidget` or a QLable displaying the URL information.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "25/01/2019"

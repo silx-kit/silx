@@ -32,8 +32,6 @@ The following QAction are available:
 - :class:`PanModeAction`
 """
 
-from __future__ import division
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "16/08/2017"

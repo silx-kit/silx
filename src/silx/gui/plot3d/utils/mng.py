@@ -28,8 +28,6 @@ It only supports RGB888 images of the same shape stored as
 MNG-VLC (very low complexity) format.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/12/2016"

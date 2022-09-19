@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Tests of Enum class with extra class methods"""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "29/04/2019"

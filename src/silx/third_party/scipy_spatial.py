@@ -35,8 +35,6 @@ It should be used like that:
 
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/11/2017"

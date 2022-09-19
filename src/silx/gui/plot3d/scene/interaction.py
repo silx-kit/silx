@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module provides interaction to plug on the scene graph."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/07/2016"

@@ -26,8 +26,6 @@
 This package provides :class:`SceneWidget` content and parameters model.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "11/01/2018"

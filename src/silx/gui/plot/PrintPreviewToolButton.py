@@ -101,7 +101,6 @@ plots on the same page. The plots all instantiate a
     app.exec()
 
 """
-from __future__ import absolute_import
 
 import logging
 from io import StringIO

@@ -26,8 +26,6 @@
 This module provides a tree widget to set/view parameters of a ScalarFieldView.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["D. N."]
 __license__ = "MIT"
 __date__ = "24/04/2018"

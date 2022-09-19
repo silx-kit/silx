@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module provides classes to handle a perspective projection in 3D."""
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/07/2016"

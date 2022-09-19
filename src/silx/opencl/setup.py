@@ -21,8 +21,6 @@
 # THE SOFTWARE.
 #
 
-from __future__ import division
-
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"

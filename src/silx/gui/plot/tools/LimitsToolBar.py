@@ -25,9 +25,6 @@
 """A toolbar to display and edit limits of a PlotWidget
 """
 
-
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/10/2017"

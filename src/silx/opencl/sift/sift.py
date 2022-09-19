@@ -26,8 +26,6 @@
 used to align feature on images
 """
 
-from __future__ import division, print_function, with_statement
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

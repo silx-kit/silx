@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Test of functions available in silx.gui.utils module."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/08/2019"

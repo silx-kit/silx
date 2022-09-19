@@ -33,7 +33,6 @@ To view an image file with the current installed silx library:
 To get help:
 ``python examples/imageview.py -h``
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

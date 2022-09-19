@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module implements labels layout on graph axes."""
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "18/10/2016"

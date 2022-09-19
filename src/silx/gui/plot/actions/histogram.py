@@ -31,8 +31,6 @@ The following QAction are available:
 - :class:`PixelIntensitiesHistoAction`
 """
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "01/12/2020"
 __license__ = "MIT"

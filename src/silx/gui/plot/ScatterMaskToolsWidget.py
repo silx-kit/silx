@@ -31,8 +31,6 @@ This widget is meant to work with a modified :class:`silx.gui.plot.PlotWidget`
 - :class:`ScatterMaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
 
-from __future__ import division
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/02/2019"

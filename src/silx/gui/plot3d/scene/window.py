@@ -32,8 +32,6 @@ The :class:`Context` and :class:`ContextGL2` represent the operating system
 OpenGL context and handle OpenGL resources.
 """
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "10/01/2017"

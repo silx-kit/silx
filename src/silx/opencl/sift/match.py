@@ -33,8 +33,6 @@ Contains a class for creating a matching plan, allocating arrays,
 compiling kernels and other things like that
 """
 
-from __future__ import division, print_function, with_statement
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

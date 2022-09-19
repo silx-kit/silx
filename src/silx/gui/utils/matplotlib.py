@@ -23,8 +23,6 @@
 #
 # ###########################################################################*/
 
-from __future__ import absolute_import
-
 """This module initializes matplotlib and sets-up the backend to use.
 
 It MUST be imported prior to any other import of matplotlib.

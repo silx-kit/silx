@@ -25,8 +25,6 @@
 """This package provides classes that describes :class:`.SceneWidget` content.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"

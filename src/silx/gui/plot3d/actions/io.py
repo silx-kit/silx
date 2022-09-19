@@ -27,8 +27,6 @@
 It provides QAction to copy, save (snapshot and video), print a Plot3DWidget.
 """
 
-from __future__ import absolute_import, division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/09/2017"

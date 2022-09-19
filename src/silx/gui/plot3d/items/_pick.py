@@ -25,8 +25,6 @@
 """This module provides classes supporting item picking.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/09/2018"

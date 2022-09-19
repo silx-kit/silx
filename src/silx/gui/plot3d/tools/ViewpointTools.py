@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module provides a toolbar to control Plot3DWidget viewpoint."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/09/2017"

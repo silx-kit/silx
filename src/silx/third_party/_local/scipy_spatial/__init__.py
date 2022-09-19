@@ -28,8 +28,6 @@ Duplicated from scipy.spatial for silx internal use only.
 See `SciPy <https://www.scipy.org/>`_
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/11/2017"

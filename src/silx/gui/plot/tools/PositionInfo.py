@@ -27,8 +27,6 @@
 It can be configured to provide more information.
 """
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/10/2017"

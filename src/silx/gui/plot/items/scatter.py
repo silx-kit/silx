@@ -25,9 +25,6 @@
 """This module provides the :class:`Scatter` item of the :class:`Plot`.
 """
 
-from __future__ import division
-
-
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "29/03/2017"

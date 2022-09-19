@@ -28,8 +28,6 @@ The :class:`ComplexImageView` widget is dedicated to visualize a single 2D datas
 of complex data.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"

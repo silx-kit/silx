@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Module containing proxy objects"""
 
-from __future__ import absolute_import, print_function, division
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "02/10/2017"

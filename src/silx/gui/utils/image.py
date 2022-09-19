@@ -28,9 +28,6 @@
 - :func:`convertQImageToArray`
 """
 
-from __future__ import division
-
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "04/09/2018"

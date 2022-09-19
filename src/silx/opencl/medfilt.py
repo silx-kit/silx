@@ -31,8 +31,6 @@ The target is to mimic the signature of scipy.signal.medfilt and scipy.medfilt2
 
 The first implementation targets 2D implementation where this operation is costly (~10s/2kx2k image)
 """
-from __future__ import absolute_import, print_function, with_statement, division
-
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"

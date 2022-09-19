@@ -30,7 +30,6 @@
 """
 Python implementation of a few functions
 """
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

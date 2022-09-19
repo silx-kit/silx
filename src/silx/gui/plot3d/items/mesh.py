@@ -25,8 +25,6 @@
 """This module provides regular mesh item class.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/07/2018"

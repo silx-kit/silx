@@ -24,8 +24,6 @@
 # ############################################################################*/
 """Test for colormap mapping implementation"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/05/2018"

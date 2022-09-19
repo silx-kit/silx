@@ -31,8 +31,6 @@
 Test suite for image kernels
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

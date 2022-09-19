@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Deprecated module providing ColormapDialog."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "24/04/2018"

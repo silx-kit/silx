@@ -28,8 +28,6 @@ It supports iso-surfaces, a cutting plane and the definition of
 a region of interest.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "14/06/2018"

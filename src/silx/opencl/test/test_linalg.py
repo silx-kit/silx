@@ -25,8 +25,6 @@
 # ###########################################################################*/
 """Test of the linalg module"""
 
-from __future__ import division, print_function
-
 __authors__ = ["Pierre paleo"]
 __license__ = "MIT"
 __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"

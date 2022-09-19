@@ -23,8 +23,6 @@
 # ############################################################################*/
 """Tests of the calibration module"""
 
-from __future__ import division
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "14/05/2018"

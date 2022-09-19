@@ -26,7 +26,6 @@
 This module  define model and widget to display 1D slices from numpy
 array using compound data types or hdf5 databases.
 """
-from __future__ import division
 
 import itertools
 import numpy

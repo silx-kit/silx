@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Bunch of useful decorators"""
 
-from __future__ import absolute_import, print_function, division
-
 __authors__ = ["Jerome Kieffer", "H. Payno", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/02/2018"

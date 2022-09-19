@@ -25,7 +25,6 @@
 """This module is a collection of base classes used in modules
 :mod:`.MaskToolsWidget` (images) and :mod:`.ScatterMaskToolsWidget`
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"

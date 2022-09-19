@@ -31,7 +31,6 @@
 Unit tests become more and more difficult as we progress in the global SIFT algorithm
 For a better code visibility, the setups required by kernels will be put here
 '''
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

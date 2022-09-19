@@ -37,9 +37,6 @@ Basic usage of :class:`ImageView` is through the following methods:
 For an example of use, see `imageview.py` in :ref:`sample-code`.
 """
 
-from __future__ import division
-
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "26/04/2018"

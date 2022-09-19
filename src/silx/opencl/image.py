@@ -28,8 +28,6 @@
 """A general purpose library for manipulating 2D images in 1 or 3 colors 
 
 """
-from __future__ import absolute_import, print_function, with_statement, division
-
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"

@@ -27,8 +27,6 @@
 Example for the use of the ImageFileDialog.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "14/02/2018"

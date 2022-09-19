@@ -32,8 +32,6 @@ Nodes with children are provided with :class:`PrivateGroup` and
 Leaf rendering nodes should inherit from :class:`Elem`.
 """
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/07/2016"

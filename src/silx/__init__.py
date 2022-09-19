@@ -35,8 +35,6 @@
 See silx documentation: http://www.silx.org/doc/silx/latest/
 """
 
-from __future__ import absolute_import, print_function, division
-
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __date__ = "26/04/2018"

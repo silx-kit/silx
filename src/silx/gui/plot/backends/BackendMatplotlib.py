@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "21/12/2018"

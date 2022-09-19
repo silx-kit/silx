@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module provides functions to add to shaders."""
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/07/2018"

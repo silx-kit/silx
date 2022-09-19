@@ -26,7 +26,6 @@
 """
 Example to show the use of markers to draw head and tail of lines.
 """
-from __future__ import division
 
 __license__ = "MIT"
 

@@ -23,8 +23,6 @@
 #
 # ###########################################################################*/
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["P. Kenter"]
 __license__ = "MIT"
 __date__ = "06/04/2018"

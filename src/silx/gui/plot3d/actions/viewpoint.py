@@ -27,8 +27,6 @@
 It provides QAction to rotate or pan a Plot3DWidget.
 """
 
-from __future__ import absolute_import, division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/10/2017"

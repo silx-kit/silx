@@ -28,8 +28,6 @@
 Test of the Convolution class.
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Pierre Paleo"]
 __contact__ = "pierre.paleo@esrf.fr"
 __license__ = "MIT"

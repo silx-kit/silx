@@ -27,7 +27,6 @@
 .. image:: img/RangeSlider.png
    :align: center
 """
-from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"

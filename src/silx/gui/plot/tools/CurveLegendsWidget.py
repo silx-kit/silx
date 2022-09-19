@@ -25,8 +25,6 @@
 """This module provides a widget to display :class:`PlotWidget` curve legends.
 """
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "20/07/2018"

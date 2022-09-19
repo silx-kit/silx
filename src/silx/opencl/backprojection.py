@@ -25,8 +25,6 @@
 # ###########################################################################*/
 """Module for (filtered) backprojection on the GPU"""
 
-from __future__ import absolute_import, print_function, with_statement, division
-
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
 __date__ = "25/01/2019"

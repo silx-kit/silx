@@ -25,8 +25,6 @@
 """A cut plane in a 3D texture: hackish implementation...
 """
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "11/01/2018"

@@ -26,8 +26,6 @@
 This module provides classes to render 2D lines and scatter plots
 """
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"

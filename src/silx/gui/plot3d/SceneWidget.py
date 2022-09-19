@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """This module provides a widget to view data sets in 3D."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"

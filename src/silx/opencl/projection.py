@@ -25,8 +25,6 @@
 # ###########################################################################*/
 """Module for tomographic projector on the GPU"""
 
-from __future__ import absolute_import, print_function, with_statement, division
-
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
 __date__ = "01/08/2019"

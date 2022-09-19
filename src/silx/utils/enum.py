@@ -24,8 +24,6 @@
 # ###########################################################################*/
 """An :class:`.Enum` class with additional features."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "29/04/2019"

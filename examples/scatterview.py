@@ -26,7 +26,6 @@
 """
 Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget.
 """
-from __future__ import division
 
 __license__ = "MIT"
 

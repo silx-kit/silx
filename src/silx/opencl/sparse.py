@@ -25,8 +25,6 @@
 # ###########################################################################*/
 """Module for data sparsification on CPU/GPU."""
 
-from __future__ import absolute_import, print_function, with_statement, division
-
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"
 __date__ = "07/06/2019"

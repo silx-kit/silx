@@ -30,8 +30,6 @@
 Test suite for algebra kernels
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"

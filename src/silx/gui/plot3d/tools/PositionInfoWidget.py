@@ -25,8 +25,6 @@
 """This module provides a widget that displays data values of a SceneWidget.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/10/2018"

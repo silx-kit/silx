@@ -25,8 +25,6 @@
 """This module provides the Colormap object
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["H.Payno"]
 __license__ = "MIT"
 __date__ = "09/11/2018"

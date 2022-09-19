@@ -27,9 +27,6 @@ The class :class:`.PlotToolAction` help the creation of a qt.QAction associating
 a tool window with a :class:`.PlotWidget`.
 """
 
-from __future__ import division
-
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "10/10/2018"
