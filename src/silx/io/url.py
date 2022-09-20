@@ -211,10 +211,12 @@ class DataUrl(object):
         :param str path: Path representing the URL.
         """
         self.__path = path
-        # only replace if ? not here already. Otherwise can mess sith
-        # data_slice if == ::2 for example
+        # Convert path::query#fragment to path?query#fragment
+        # Caution: fragment or data_slice query param might contain `::`
         if '?' not in path:
-            path = path.replace("::", "?", 1)
+            parts = path.rsplit("#", 1)
+            parts[0] = parts[0].replace("::", "?", 1)
+            path = "#".join(parts)
         url = urllib.parse.urlparse(path)
 
         is_valid = True
@@ -236,11 +238,21 @@ class DataUrl(object):
         self.__scheme = scheme
         self.__file_path = file_path
 
+        # Url fragment to data_slice
+        if not url.fragment:
+            data_slice = None
+        else:
+            try:
+                data_slice = self._parse_slice(url.fragment)
+            except ValueError:
+                _logger.error(f"Cannot parse URL fragment '#{url.fragment}'")
+                is_valid = False
+                data_slice = None
+
         query = urllib.parse.parse_qsl(url.query, keep_blank_values=True)
         if len(query) == 1 and query[0][1] == "":
             # there is no query keys
             data_path = query[0][0]
-            data_slice = None
         else:
             merged_query = {}
             for name, value in query:
@@ -253,23 +265,30 @@ class DataUrl(object):
                 if name in merged_query:
                     values = merged_query.pop(name)
                     if len(values) > 1:
-                        _logger.warning("More than one query key named '%s'. The last one is used.", name)
+                        _logger.warning(
+                            f"More than one query key named '{name}': The last one is used"
+                        )
                     value = values[-1]
                 else:
                     value = None
                 return value
 
             data_path = pop_single_value(merged_query, "path")
-            data_slice = pop_single_value(merged_query, "slice")
-            if data_slice is not None:
+            slice_string = pop_single_value(merged_query, "slice")
+            if slice_string is not None:  # Else fallback to url #fragment
+                if data_slice is not None:
+                    _logger.warning(
+                        "'slice=' query parameter defined: Ignoring URL #fragment"
+                    )
                 try:
-                    data_slice = self._parse_slice(data_slice)
+                    data_slice = self._parse_slice(slice_string)
                 except ValueError:
+                    _logger.error(f"Cannot parse 'slice={slice_string}' query parameter")
                     is_valid = False
                     data_slice = None
 
             for key in merged_query.keys():
-                _logger.warning("Query key %s unsupported. Key skipped.", key)
+                _logger.warning(f"Query key '{key}' unsupported: Key ignored")
 
         self.__data_path = data_path
         self.__data_slice = data_slice
