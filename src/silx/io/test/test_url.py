@@ -182,6 +182,31 @@ class TestDataUrl(unittest.TestCase):
         expected = [False, True, None, "/a.h5", "/b", None]
         self.assertUrl(url, expected)
 
+    def test_fragment(self):
+        url = DataUrl("/a.h5?/b#1")
+        expected = [True, True, None, "/a.h5", "/b", (1,)]
+        self.assertUrl(url, expected)
+
+    def test_fragment_colon_separator(self):
+        url = DataUrl("/a.h5::/b#1::2")
+        expected = [True, True, None, "/a.h5", "/b", (slice(1, None, 2),)]
+        self.assertUrl(url, expected)
+
+    def test_fragment_empty(self):
+        url = DataUrl("/a.h5?/b#")
+        expected = [True, True, None, "/a.h5", "/b", None]
+        self.assertUrl(url, expected)
+
+    def test_fragment_no_query(self):
+        url = DataUrl("/a.h5#1:20:2")
+        expected = [True, True, None, "/a.h5", None, (slice(1, 20, 2),)]
+        self.assertUrl(url, expected)
+
+    def test_fragment_and_slice_param(self):
+        url = DataUrl("/a.h5?path=/b&slice=1#1:20:2")
+        expected = [True, True, None, "/a.h5", "/b", (1,)]
+        self.assertUrl(url, expected)
+
     def test_create_relative_url(self):
         url = DataUrl(scheme="silx", file_path="./foo.h5", data_path="/", data_slice=(5, 1))
         self.assertFalse(url.is_absolute())
