@@ -635,12 +635,7 @@ def open(filename):  # pylint:disable=redefined-builtin
         if url.data_slice() is not None:
             from . import _sliceh5  # Lazy-import to avoid circular dependency
             try:
-                return _sliceh5.DatasetSlice(
-                    url.data_path(),
-                    h5_file,
-                    node,
-                    url.data_slice()
-                )
+                return _sliceh5.DatasetSlice(node, url.data_slice())
             except ValueError:
                 raise IOError(f"URL {filename} contains slicing, but it is not a dataset")
 

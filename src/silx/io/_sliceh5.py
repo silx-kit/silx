@@ -131,21 +131,17 @@ class DatasetSlice(commonh5.Dataset):
 
     def __init__(
         self,
-        name: str,
-        h5_file: Union[h5py.File, commonh5.File],
         dataset: Union[h5py.Dataset, commonh5.Dataset],
         indices: IndicesType,
     ):
-        if not utils.is_file(h5_file):
-            raise ValueError(f"Unsupported h5_file '{h5_file}'")
         if not utils.is_dataset(dataset):
             raise ValueError(f"Unsupported dataset '{dataset}'")
 
-        self.__file = h5_file
         self.__dataset = dataset
+        self.__file = dataset.file  # Keep a ref on file to fix issue recovering it
         self.__indices = _expand_indices(len(self.__dataset.shape), indices)
         self.__shape = _get_selection_shape(self.__dataset.shape, self.__indices)
-        super().__init__(name, data=None, parent=h5_file)
+        super().__init__(self.__dataset.name, data=None, parent=self.__file)
 
     def _get_data(self) -> Union[h5py.Dataset, commonh5.Dataset]:
         # Give access to the underlying (h5py) dataset, not the selected data
@@ -208,4 +204,3 @@ class DatasetSlice(commonh5.Dataset):
     def close(self):
         """Close the file"""
         self.__file.close()
-        self.__file = None

@@ -50,19 +50,34 @@ def temp_h5file(request):
 def test_datasetslice(temp_h5file, indices):
     data = numpy.arange(50).reshape(10, 5)
     ref_data = numpy.array(data[indices], copy=False)
-    name = "/group/dataset"
 
     h5dataset = temp_h5file.create_group("group").create_dataset("dataset", data=data)
 
-    with DatasetSlice(name, temp_h5file, h5dataset, indices) as dset:
+    with DatasetSlice(h5dataset, indices) as dset:
         assert silx.io.is_dataset(dset)
-        assert dset.file is temp_h5file
+        assert dset.file == temp_h5file
         assert dset.shape == ref_data.shape
         assert dset.size == ref_data.size
         assert dset.dtype == ref_data.dtype
         assert len(dset) == len(ref_data)
         assert numpy.array_equal(dset[()], ref_data)
-        assert dset.name == name
+        assert dset.name == h5dataset.name
+
+
+def test_datasetslice_on_external_link(tmp_path):
+    data = numpy.arange(10).reshape(5, 2)
+
+    external_filename = str(tmp_path / "external.h5")
+    ext_dataset_name = "/external_data"
+    with h5py.File(external_filename, "w") as h5file:
+        h5file[ext_dataset_name] = data
+
+    with h5py.File(tmp_path / "test.h5", "w") as h5file:
+        h5file["group/data"] = h5py.ExternalLink(external_filename, ext_dataset_name)
+
+        with DatasetSlice(h5file["group/data"], slice(None)) as dset:
+            assert dset.name == ext_dataset_name
+            assert numpy.array_equal(dset[()], data)
 
 
 @pytest.mark.parametrize(
