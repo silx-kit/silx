@@ -206,6 +206,11 @@ class Node(object):
         f = self.file
         return f is None or f.mode == "w"
 
+    def __hash__(self):
+        if self.file is None:
+            return hash((self.__class__, None, self.name))
+        return hash((self.__class__, self.file.filename, self.file.mode, self.name))
+
 
 class Dataset(Node):
     """This class handles a numpy data object, as a mimicry of a
@@ -490,6 +495,9 @@ class Dataset(Node):
             return self[()] >= other[()]
         else:
             return self[()] >= other
+
+    def __hash__(self):
+        return super().__hash__()
 
     def __getattr__(self, item):
         """Proxy to underlying numpy array methods.

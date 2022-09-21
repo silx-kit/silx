@@ -557,7 +557,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def h5pyObjectRow(self, h5pyObject):
         for row in range(self.__root.childCount()):
             item = self.__root.child(row)
-            if item.obj == h5pyObject:
+            if hash(item.obj) == hash(h5pyObject):
                 return row
         return -1
 
@@ -572,7 +572,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj == h5pyObject:
+            if hash(item.obj) == hash(h5pyObject):
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.synchronizeIndex(qindex)
             index += 1
@@ -602,7 +602,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj == h5pyObject:
+            if hash(item.obj) == hash(h5pyObject):
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.removeIndex(qindex)
             else:

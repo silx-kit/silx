@@ -540,6 +540,7 @@ class _MainNode(Proxy):
 
     def __init__(self, h5_node, h5_file):
         super(_MainNode, self).__init__(h5_node)
+        self.__node = h5_node
         self.__file = h5_file
         self.__class = get_h5_class(h5_node)
 
@@ -570,6 +571,9 @@ class _MainNode(Proxy):
         """Close the file"""
         self.__file.close()
         self.__file = None
+
+    def __hash__(self):
+        return hash((self.__file, self.__node))
 
 
 def open(filename):  # pylint:disable=redefined-builtin
