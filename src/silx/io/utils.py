@@ -636,7 +636,7 @@ def open(filename):  # pylint:disable=redefined-builtin
             from . import _sliceh5  # Lazy-import to avoid circular dependency
             try:
                 return _sliceh5.DatasetSlice(
-                    f"{url.data_path()}[{url.data_slice_string()}]",
+                    url.data_path(),
                     h5_file,
                     node,
                     url.data_slice()
