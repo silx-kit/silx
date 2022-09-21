@@ -32,6 +32,7 @@ import os
 import logging
 from typing import Optional
 import functools
+import numpy
 from .. import qt
 from .. import icons
 from .Hdf5Node import Hdf5Node
