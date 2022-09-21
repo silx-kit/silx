@@ -187,6 +187,10 @@ class DatasetSlice(commonh5.Dataset):
     def __iter__(self):
         return self[()].__iter__()
 
+    def __hash__(self):
+        # Convert indices to str as slice is not hashable
+        return hash((self.__dataset, tuple(map(str, self.__indices))))
+
     @property
     def file(self) -> Union[h5py.File, commonh5.File]:
         return self.__file
