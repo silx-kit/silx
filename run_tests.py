@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -121,8 +121,10 @@ def build_project(name, root_dir):
         home = os.path.join(root_dir, "build", architecture)
 
     logger.warning("Building %s to %s", name, home)
-    p = subprocess.Popen([sys.executable, "setup.py", "build"],
-                         shell=False, cwd=root_dir)
+    cmd = [sys.executable, "setup.py", "build"]
+    if home:
+        cmd += ["--build-lib", home]
+    p = subprocess.Popen(cmd, shell=False, cwd=root_dir)
     logger.debug("subprocess ended with rc= %s", p.wait())
 
     if os.path.isdir(home):
