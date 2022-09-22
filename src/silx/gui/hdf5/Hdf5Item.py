@@ -31,6 +31,7 @@ __date__ = "17/01/2019"
 import logging
 import collections
 import enum
+from typing import Optional
 
 from .. import qt
 from .. import icons
@@ -62,10 +63,21 @@ class Hdf5Item(Hdf5Node):
     tree structure.
     """
 
-    def __init__(self, text, obj, parent, key=None, h5Class=None, linkClass=None, populateAll=False):
+    def __init__(
+        self,
+        text: Optional[str],
+        obj,
+        parent,
+        key=None,
+        h5Class=None,
+        linkClass=None,
+        populateAll=False,
+        openedPath: Optional[str] = None,
+    ):
         """
-        :param str text: text displayed
+        :param text: text displayed
         :param object obj: Pointer to a h5py-link object. See the `obj` attribute.
+        :param openedPath: The path with which the item was opened if any
         """
         self.__obj = obj
         self.__key = key
@@ -76,7 +88,7 @@ class Hdf5Item(Hdf5Node):
         self.__linkClass = linkClass
         self.__description = None
         self.__nx_class = None
-        Hdf5Node.__init__(self, parent, populateAll=populateAll)
+        Hdf5Node.__init__(self, parent, populateAll=populateAll, openedPath=openedPath)
 
     def _getCanonicalName(self):
         parent = self.parent

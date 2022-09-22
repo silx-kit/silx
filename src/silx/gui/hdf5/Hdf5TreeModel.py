@@ -30,6 +30,7 @@ __date__ = "12/03/2019"
 
 import os
 import logging
+from typing import Optional
 import functools
 from .. import qt
 from .. import icons
@@ -98,7 +99,13 @@ class LoadingItemRunnable(qt.QRunnable):
         :rtpye: Hdf5Node
         """
         text = _createRootLabel(h5obj)
-        item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
+        item = Hdf5Item(
+            text=text,
+            obj=h5obj,
+            parent=oldItem.parent,
+            populateAll=True,
+            openedPath=oldItem._openedPath,
+        )
         return item
 
     def run(self):
@@ -608,7 +615,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             else:
                 index += 1
 
-    def insertH5pyObject(self, h5pyObject, text=None, row=-1):
+    def insertH5pyObject(
+        self,
+        h5pyObject,
+        text: Optional[str] = None,
+        row: int = -1,
+        filename: Optional[str] = None,
+    ):
         """Append an HDF5 object from h5py to the tree.
 
         :param h5pyObject: File handle/descriptor for a :class:`h5py.File`
@@ -618,7 +631,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             text = _createRootLabel(h5pyObject)
         if row == -1:
             row = self.__root.childCount()
-        self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
+        self.insertNode(
+            row,
+            Hdf5Item(
+                text=text,
+                obj=h5pyObject,
+                parent=self.__root,
+                openedPath=filename,
+            )
+        )
 
     def hasPendingOperations(self):
         return len(self.__runnerSet) > 0
@@ -630,7 +651,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # create temporary item
         if synchronizingNode is None:
             text = os.path.basename(filename)
-            item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
+            item = Hdf5LoadingItem(
+                text=text,
+                parent=self.__root,
+                animatedIcon=self.__animatedIcon,
+                openedPath=filename,
+            )
             self.insertNode(row, item)
         else:
             item = synchronizingNode
@@ -655,7 +681,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if self.__ownFiles:
                 self.__openedFiles.append(h5file)
             self.sigH5pyObjectLoaded.emit(h5file)
-            self.insertH5pyObject(h5file, row=row)
+            self.insertH5pyObject(h5file, row=row, filename=filename)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise

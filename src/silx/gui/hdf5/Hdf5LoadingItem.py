@@ -27,6 +27,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "06/07/2018"
 
+from typing import Optional
 
 from .. import qt
 from .Hdf5Node import Hdf5Node
@@ -39,9 +40,15 @@ class Hdf5LoadingItem(Hdf5Node):
     At the end of the loading this item is replaced by the loaded one.
     """
 
-    def __init__(self, text, parent, animatedIcon):
+    def __init__(
+        self,
+        text,
+        parent,
+        animatedIcon,
+        openedPath: Optional[str] = None,
+    ):
         """Constructor"""
-        Hdf5Node.__init__(self, parent)
+        Hdf5Node.__init__(self, parent, openedPath=openedPath)
         self.__text = text
         self.__animatedIcon = animatedIcon
         self.__animatedIcon.register(self)

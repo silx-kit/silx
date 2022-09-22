@@ -28,6 +28,7 @@ __license__ = "MIT"
 __date__ = "24/07/2018"
 
 import weakref
+from typing import Optional
 
 
 class Hdf5Node(object):
@@ -36,16 +37,24 @@ class Hdf5Node(object):
     It provides link to the childs and to the parents, and a link to an
     external object.
     """
-    def __init__(self, parent=None, populateAll=False):
+    def __init__(
+        self,
+        parent=None,
+        populateAll=False,
+        openedPath: Optional[str]=None,
+    ):
         """
         Constructor
 
         :param Hdf5Node parent: Parent of the node, if exists, else None
         :param bool populateAll: If true, populate all the tree node. Else
             everything is lazy loaded.
+        :param openedPath:
+            The url or filename the node was created from, None if not directly created
         """
         self.__child = None
         self.__parent = None
+        self.__openedPath = openedPath
         if parent is not None:
             self.__parent = weakref.ref(parent)
         if populateAll:
@@ -58,6 +67,11 @@ class Hdf5Node(object):
             return "root"
         else:
             return "%s/?" % (parent._getCanonicalName())
+
+    @property
+    def _openedPath(self) -> Optional[str]:
+        """url or filename the node was created from, None if not directly created"""
+        return self.__openedPath
 
     @property
     def parent(self):
