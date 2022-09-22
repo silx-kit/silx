@@ -449,3 +449,35 @@ class TestH5pyUtils(unittest.TestCase):
             f.write("0")
         with self.assertRaises(RetryTimeoutError):
             top_level_names_test(txtfilename, filename, **kw)
+
+    @subtests
+    def test_retry_iterator(self):
+        filename = self._new_filename()
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
+
+        @h5py_utils.retry_iterator()
+        def iter_data(filename, name, start_index=0):
+            nonlocal failcounter
+            if start_index <= 0:
+                with h5py_utils.File(filename) as h5file:
+                    yield h5file[name][()]
+            if failcounter < ncausefailure:
+                time.sleep(faildelay)
+                failcounter += 1
+                raise RetryError
+            if start_index <= 1:
+                with h5py_utils.File(filename) as h5file:
+                    yield not h5file[name][()]
+
+        failcounter = 0
+        kw = {"retry_timeout": sufficient_timeout}
+        data = list(iter_data(filename, "/check", **kw))
+        self.assertEqual(data, [True, False])
+
+        failcounter = 0
+        kw = {"retry_timeout": insufficient_timeout}
+        with self.assertRaises(RetryTimeoutError):
+            list(iter_data(filename, "/check", **kw))

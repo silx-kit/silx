@@ -113,6 +113,43 @@ class TestRetry(unittest.TestCase):
         with self.assertRaises(retry.RetryTimeoutError):
             method(True, **kw)
 
+    def test_retry_yield(self):
+        ncausefailure = 3
+        faildelay = 0.1
+        sufficient_timeout = ncausefailure * (faildelay + 10)
+        insufficient_timeout = ncausefailure * faildelay * 0.5
+
+        @retry.retry_iterator()
+        def method(check, kwcheck=None, start_index=0):
+            if start_index <= 0:
+                yield 0
+            assert check
+            assert kwcheck
+            nonlocal failcounter
+            if failcounter < ncausefailure:
+                time.sleep(faildelay)
+                failcounter += 1
+                if start_index <= 1:
+                    yield 1
+                raise retry.RetryError
+            else:
+                if start_index <= 1:
+                    yield 1
+            if start_index <= 2:
+                yield 2
+
+        failcounter = 0
+        kw = {"kwcheck": True, "retry_timeout": sufficient_timeout}
+        self.assertEqual(list(method(True, **kw)), [0, 1, 2])
+
+        failcounter = 0
+        kw = {
+            "kwcheck": True,
+            "retry_timeout": insufficient_timeout,
+        }
+        with self.assertRaises(retry.RetryTimeoutError):
+            list(method(True, **kw))
+
     def test_retry_contextmanager(self):
         ncausefailure = 3
         faildelay = 0.1

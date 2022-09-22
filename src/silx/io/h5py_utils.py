@@ -151,6 +151,17 @@ def retry(**kw):
     return retry_mod.retry(**kw)
 
 
+def retry_iterator(**kw):
+    r"""Decorator for a method that needs to be iterated until it not longer
+    fails on HDF5 IO. Mainly used for reading an HDF5 file that is being
+    written.
+
+    :param \**kw: see `silx.utils.retry`
+    """
+    kw.setdefault("retry_on_error", _retry_h5py_error)
+    return retry_mod.retry_iterator(**kw)
+
+
 def retry_contextmanager(**kw):
     r"""Decorator to make a context manager from a method that needs to be
     entered until it not longer fails on HDF5 IO. Mainly used for reading
