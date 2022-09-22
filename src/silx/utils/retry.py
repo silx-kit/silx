@@ -157,12 +157,12 @@ def retry_contextmanager(
                 retry_on_error=_retry_on_error,
             ):
                 with _handle_exception(options):
-                    gen = method(*args, **kw)
-                    result = next(gen)
+                    ctx = method(*args, **kw)
+                    result = next(ctx)
                     options["retry_on_error"] = None
                     yield result
                     try:
-                        next(gen)
+                        next(ctx)
                     except StopIteration:
                         return
                     else:
