@@ -324,6 +324,34 @@ For example to process all top-level groups of an HDF5 file:
 Note that the method with the `retry` decorator has to be idempotent
 as it can be executed several times for one call.
 
+An equivalent decorator exists for context managers
+
+.. code-block:: python
+
+    import silx.io.h5py_utils
+
+    @silx.io.h5py_utils.retry_contextmanager()
+    def measurement_context(filename, name):
+        """The method will be entered again if
+        any HDF5 IO fails.
+        """
+        with silx.io.h5py_utils.File(filename) as h5file:
+            yield h5file[name]["measurement"]
+
+and for iterators
+
+.. code-block:: python
+
+    import silx.io.h5py_utils
+
+    @silx.io.h5py_utils.retry_iterator()
+    def iter_measurement(filename, names, start_index=0):
+        """The method will be iterated again if any HDF5
+        IO fails, possibly with a different start index.
+        """
+        with silx.io.h5py_utils.File(filename) as h5file:
+            for name in names[start_index:]:
+                yield h5file[name]["measurement"]
 
 Additional resources
 --------------------
