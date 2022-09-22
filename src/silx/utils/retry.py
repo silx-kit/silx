@@ -157,6 +157,8 @@ def retry_iterator(
             _retry_period = kw.pop("retry_period", retry_period)
             _retry_on_error = kw.pop("retry_on_error", retry_on_error)
             start_index = kw.pop("start_index", 0)
+            if start_index is None:
+                start_index = 0
             for options in _retry_loop(
                 retry_timeout=_retry_timeout,
                 retry_period=_retry_period,
