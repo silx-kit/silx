@@ -87,7 +87,9 @@ def _retry_loop(retry_timeout=None, retry_period=None, retry_on_error=None):
         if retry_period is not None:
             time.sleep(retry_period)
         if has_timeout and (time.time() - t0) > retry_timeout:
-            raise RetryTimeoutError from options.get("exception")
+            err_msg = "%s seconds" % retry_timeout
+            cause = options.get("exception")
+            raise RetryTimeoutError(err_msg) from cause
 
 
 def retry(
