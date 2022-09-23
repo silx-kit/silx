@@ -32,6 +32,7 @@ __date__ = "05/02/2020"
 
 
 import time
+import inspect
 from functools import wraps
 from contextlib import contextmanager
 import multiprocessing
@@ -58,13 +59,13 @@ def _default_retry_on_error(e):
 
 
 @contextmanager
-def _handle_exception(options):
+def _handle_exception(retry_state):
     try:
         yield
     except BaseException as e:
-        retry_on_error = options.get("retry_on_error")
+        retry_on_error = retry_state.get("retry_on_error")
         if retry_on_error is not None and retry_on_error(e):
-            options["exception"] = e
+            retry_state["exception"] = e
         else:
             raise
 
@@ -79,15 +80,19 @@ def _retry_loop(retry_timeout=None, retry_period=None, retry_on_error=None):
                                             eligible for retry
     """
     has_timeout = retry_timeout is not None
-    options = {"exception": None, "retry_on_error": retry_on_error}
     if has_timeout:
         t0 = time.time()
+    else:
+        t0 = None
+    retry_state = {"t0": t0, "exception": None, "retry_on_error": retry_on_error}
     while True:
-        yield options
+        yield retry_state
         if retry_period is not None:
             time.sleep(retry_period)
         if has_timeout and (time.time() - t0) > retry_timeout:
-            raise RetryTimeoutError from options.get("exception")
+            err_msg = "%s seconds" % retry_timeout
+            cause = retry_state.get("exception")
+            raise RetryTimeoutError(err_msg) from cause
 
 
 def retry(
@@ -99,6 +104,9 @@ def retry(
     The decorator arguments can be overriden by using them when calling the
     decorated method.
 
+    Generator functions are required to have a `start_index` argument which allows
+    the method to start iterating from the last failure when called on retry.
+
     :param num retry_timeout:
     :param num retry_period: sleep before retry
     :param callable or None retry_on_error: checks whether an exception is
@@ -109,18 +117,53 @@ def retry(
         retry_period = RETRY_PERIOD
 
     def decorator(method):
-        @wraps(method)
-        def wrapper(*args, **kw):
-            _retry_timeout = kw.pop("retry_timeout", retry_timeout)
-            _retry_period = kw.pop("retry_period", retry_period)
-            _retry_on_error = kw.pop("retry_on_error", retry_on_error)
-            for options in _retry_loop(
-                retry_timeout=_retry_timeout,
-                retry_period=_retry_period,
-                retry_on_error=_retry_on_error,
-            ):
-                with _handle_exception(options):
-                    return method(*args, **kw)
+        if inspect.isgeneratorfunction(method):
+            if "start_index" not in inspect.signature(method).parameters:
+                raise TypeError(
+                    "The generator function '%s' needs a `start_index` named argument because it is wrapped with the `retry` decorator."
+                    % method.__name__
+                )
+
+            @wraps(method)
+            def wrapper(*args, **kw):
+                _retry_timeout = kw.pop("retry_timeout", retry_timeout)
+                _retry_period = kw.pop("retry_period", retry_period)
+                _retry_on_error = kw.pop("retry_on_error", retry_on_error)
+                start_index = kw.pop("start_index", 0)
+                if start_index is None:
+                    start_index = 0
+                for retry_state in _retry_loop(
+                    retry_timeout=_retry_timeout,
+                    retry_period=_retry_period,
+                    retry_on_error=_retry_on_error,
+                ):
+                    with _handle_exception(retry_state):
+                        oretry_on_error = retry_state["retry_on_error"]
+                        for result in method(*args, start_index=start_index, **kw):
+                            start_index += 1
+                            retry_state["retry_on_error"] = None
+                            # any exception here will NOT cause a retry
+                            yield result
+                            # restart the retry loop
+                            if retry_state["t0"] is not None:
+                                retry_state["t0"] = time.time()
+                            retry_state["retry_on_error"] = oretry_on_error
+                        return
+
+        else:
+
+            @wraps(method)
+            def wrapper(*args, **kw):
+                _retry_timeout = kw.pop("retry_timeout", retry_timeout)
+                _retry_period = kw.pop("retry_period", retry_period)
+                _retry_on_error = kw.pop("retry_on_error", retry_on_error)
+                for retry_state in _retry_loop(
+                    retry_timeout=_retry_timeout,
+                    retry_period=_retry_period,
+                    retry_on_error=_retry_on_error,
+                ):
+                    with _handle_exception(retry_state):
+                        return method(*args, **kw)
 
         return wrapper
 
@@ -151,18 +194,18 @@ def retry_contextmanager(
             _retry_timeout = kw.pop("retry_timeout", retry_timeout)
             _retry_period = kw.pop("retry_period", retry_period)
             _retry_on_error = kw.pop("retry_on_error", retry_on_error)
-            for options in _retry_loop(
+            for retry_state in _retry_loop(
                 retry_timeout=_retry_timeout,
                 retry_period=_retry_period,
                 retry_on_error=_retry_on_error,
             ):
-                with _handle_exception(options):
-                    gen = method(*args, **kw)
-                    result = next(gen)
-                    options["retry_on_error"] = None
+                with _handle_exception(retry_state):
+                    ctx = method(*args, **kw)
+                    result = next(ctx)
+                    retry_state["retry_on_error"] = None
                     yield result
                     try:
-                        next(gen)
+                        next(ctx)
                     except StopIteration:
                         return
                     else:
@@ -238,10 +281,10 @@ def retry_in_subprocess(
 
             p, queue = start_subprocess()
             try:
-                for options in _retry_loop(
+                for retry_state in _retry_loop(
                     retry_timeout=_retry_timeout, retry_on_error=_retry_on_error
                 ):
-                    with _handle_exception(options):
+                    with _handle_exception(retry_state):
                         if not p.is_alive():
                             p, queue = start_subprocess()
                         try:
