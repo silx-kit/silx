@@ -81,7 +81,6 @@ from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
-from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
 from silx.gui.plot.items.roi import RectangleROI
@@ -930,13 +929,12 @@ class ColormapDialog(qt.QDialog):
         # Place-holder for selected area ROI manager
         self._roiForColormapManager = None
 
-        self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton = qt.QPushButton(self)
         self._selectedAreaButton.setCheckable(True)
         self._selectedAreaButton.setEnabled(False)
         self._selectedAreaButton.setText("Selection")
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._selectedAreaButton.setCheckable(True)
-        self._selectedAreaButton.setDisabledWhenWaiting(False)
         self._selectedAreaButton.toggled.connect(
             self._handleScaleToSelectionToggled,
             type=qt.Qt.QueuedConnection)
@@ -1718,7 +1716,6 @@ class ColormapDialog(qt.QDialog):
             self._roiForColormapManager = None
 
         if not checked:  # Reset button status
-            self._selectedAreaButton.setWaiting(False)
             self._selectedAreaButton.setText("Selection")
             return
 
@@ -1732,7 +1729,6 @@ class ColormapDialog(qt.QDialog):
             self._selectedAreaButton.setChecked(False)
             return  # no-op
 
-        self._selectedAreaButton.setWaiting(True)
         self._selectedAreaButton.setText("Draw Area...")
 
         self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
