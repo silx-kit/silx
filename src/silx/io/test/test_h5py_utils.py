@@ -451,14 +451,14 @@ class TestH5pyUtils(unittest.TestCase):
             top_level_names_test(txtfilename, filename, **kw)
 
     @subtests
-    def test_retry_iterator(self):
+    def test_retry_generator(self):
         filename = self._new_filename()
         ncausefailure = 3
         faildelay = 0.1
         sufficient_timeout = ncausefailure * (faildelay + 10)
         insufficient_timeout = ncausefailure * faildelay * 0.5
 
-        @h5py_utils.retry_iterator()
+        @h5py_utils.retry()
         def iter_data(filename, name, start_index=0):
             nonlocal failcounter
             if start_index <= 0:

@@ -338,13 +338,13 @@ An equivalent decorator exists for context managers
         with silx.io.h5py_utils.File(filename) as h5file:
             yield h5file[name]["measurement"]
 
-and for iterators
+Generator functions need to have a `start_index` parameter
 
 .. code-block:: python
 
     import silx.io.h5py_utils
 
-    @silx.io.h5py_utils.retry_iterator()
+    @silx.io.h5py_utils.retry()
     def iter_measurement(filename, names, start_index=0):
         """The method will be iterated again if any HDF5
         IO fails, possibly with a different start index.
