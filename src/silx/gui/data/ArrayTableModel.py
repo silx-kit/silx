@@ -235,7 +235,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
             selection = self._getIndexTuple(row, column)
 
-            if role == qt.Qt.DisplayRole:
+            if role == qt.Qt.DisplayRole or role == qt.Qt.EditRole:
                 return self._formatter.toString(self._array[selection], self._array.dtype)
 
             if role == qt.Qt.BackgroundRole and self._bgcolors is not None:
