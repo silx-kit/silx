@@ -262,7 +262,7 @@ class Viewer(qt.QMainWindow):
         indexes = selection.selectedIndexes()
         selectedItems = []
         model = self.__treeview.model()
-        h5files = set([])
+        h5files = []
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
@@ -276,7 +276,7 @@ class Viewer(qt.QMainWindow):
             selectedItems.append((rootRow, relativePath))
             h5 = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
             item = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
-            h5files.add((h5, item._openedPath))
+            h5files.append((h5, item._openedPath))
 
         if len(h5files) == 0:
             qt.QApplication.restoreOverrideCursor()
