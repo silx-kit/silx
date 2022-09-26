@@ -30,8 +30,11 @@ import json
 import logging
 import numpy
 import os.path
-import sys
 import h5py
+try:
+    import pint
+except ImportError:
+    pint = None
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -64,6 +67,8 @@ def _prepare_hdf5_write_value(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
+    if pint is not None and isinstance(array_like, pint.quantity.Quantity):
+        return numpy.array(array_like.magnitude)
     array = numpy.asarray(array_like)
     if numpy.issubdtype(array.dtype, numpy.bytes_):
         return numpy.array(array_like, dtype=vlen_bytes)
