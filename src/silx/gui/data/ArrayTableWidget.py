@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -30,7 +29,6 @@ sliders.
 The widget uses a TableView that relies on a custom abstract item
 model: :class:`silx.gui.data.ArrayTableModel`.
 """
-from __future__ import division
 import sys
 
 from silx.gui import qt

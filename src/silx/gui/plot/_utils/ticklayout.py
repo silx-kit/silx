@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2018 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module implements labels layout on graph axes."""
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

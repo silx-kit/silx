@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2022 European Synchrotron Radiation Facility
@@ -25,8 +24,6 @@
 """
 This module provides classes to render 2D lines and scatter plots
 """
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

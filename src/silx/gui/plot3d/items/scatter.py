@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2020 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """This module provides 2D and 3D scatter data item class.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

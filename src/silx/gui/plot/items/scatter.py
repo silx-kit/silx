@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -24,9 +23,6 @@
 # ###########################################################################*/
 """This module provides the :class:`Scatter` item of the :class:`Plot`.
 """
-
-from __future__ import division
-
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"

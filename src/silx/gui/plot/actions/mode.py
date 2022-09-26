@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2018 European Synchrotron Radiation Facility
@@ -31,8 +30,6 @@ The following QAction are available:
 - :class:`ZoomModeAction`
 - :class:`PanModeAction`
 """
-
-from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

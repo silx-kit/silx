@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 __authors__ = ["P. Paleo"]
 __license__ = "MIT"

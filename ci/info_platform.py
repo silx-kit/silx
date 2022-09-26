@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 """Print information about python."""
 
 __authors__ = ["Jérôme Kieffer"]

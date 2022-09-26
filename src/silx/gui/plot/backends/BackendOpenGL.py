@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2022 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ############################################################################*/
 """OpenGL Plot backend."""
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

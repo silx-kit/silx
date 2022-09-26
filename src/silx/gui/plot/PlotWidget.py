@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2022 European Synchrotron Radiation Facility
@@ -25,9 +24,6 @@
 
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
-
-from __future__ import division
-
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"

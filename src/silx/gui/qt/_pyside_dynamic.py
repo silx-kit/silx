@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 # Taken from: https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
 # Plus: https://github.com/spyder-ide/qtpy/commit/001a862c401d757feb63025f88dbb4601d353c84

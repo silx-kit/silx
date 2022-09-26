@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """Set of widgets to associate with a :class:'PlotWidget'.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

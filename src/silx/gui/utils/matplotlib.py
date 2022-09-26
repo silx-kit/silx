@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -22,8 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-from __future__ import absolute_import
 
 """This module initializes matplotlib and sets-up the backend to use.
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #
 #    Project: Sift implementation in Python + OpenCL
@@ -47,8 +46,6 @@ This algorithm is patented: U.S. Patent 6,711,293:
 David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999. 
 It is due to expire in March 2019. 
 """
-
-from __future__ import division, print_function, with_statement
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

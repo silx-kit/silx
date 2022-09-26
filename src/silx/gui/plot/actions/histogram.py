@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2021 European Synchrotron Radiation Facility
@@ -30,8 +29,6 @@ The following QAction are available:
 
 - :class:`PixelIntensitiesHistoAction`
 """
-
-from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __date__ = "01/12/2020"

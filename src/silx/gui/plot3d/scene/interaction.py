@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2019 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module provides interaction to plug on the scene graph."""
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

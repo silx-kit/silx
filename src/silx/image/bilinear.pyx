@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #cython: embedsignature=True, language_level=3
 ## This is for optimisation
 #cython: boundscheck=False, wraparound=False, cdivision=True, initializedcheck=False,

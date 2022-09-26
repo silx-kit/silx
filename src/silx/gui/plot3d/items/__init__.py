@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """This package provides classes that describes :class:`.SceneWidget` content.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

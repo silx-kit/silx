@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -26,7 +25,6 @@
 """
 Example to show the use of :class:`~silx.gui.plot.ScatterView.ScatterView` widget.
 """
-from __future__ import division
 
 __license__ = "MIT"
 

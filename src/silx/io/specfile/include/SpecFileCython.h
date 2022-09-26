@@ -1,5 +1,4 @@
 #/*##########################################################################
-# coding: utf-8
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

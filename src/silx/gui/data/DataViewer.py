@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -25,7 +24,6 @@
 """This module defines a widget designed to display data using the most adapted
 view from the ones provided by silx.
 """
-from __future__ import division
 
 import logging
 import os.path

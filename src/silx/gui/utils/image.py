@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -27,9 +26,6 @@
 - :func:`convertArrayToQImage`
 - :func:`convertQImageToArray`
 """
-
-from __future__ import division
-
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

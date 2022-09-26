@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module provides a Qt widget embedding an OpenGL scene."""
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

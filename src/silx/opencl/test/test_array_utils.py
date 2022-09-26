@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 #
 # ###########################################################################*/
 """Test of the OpenCL array_utils"""
-
-from __future__ import division, print_function
 
 __authors__ = ["Pierre paleo"]
 __license__ = "MIT"

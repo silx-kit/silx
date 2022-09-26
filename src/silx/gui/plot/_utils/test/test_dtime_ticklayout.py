@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2022 European Synchrotron Radiation Facility
@@ -22,8 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["P. Kenter"]
 __license__ = "MIT"

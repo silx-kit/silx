@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf8
 """
 Bootstrap helps you to test scripts without installing them
 by patching your PYTHONPATH on the fly

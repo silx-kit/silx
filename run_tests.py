@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility

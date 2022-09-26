@@ -1,4 +1,3 @@
-# coding: utf-8
 #
 # Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
@@ -25,8 +24,6 @@
 
 used to align feature on images
 """
-
-from __future__ import division, print_function, with_statement
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

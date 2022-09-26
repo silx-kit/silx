@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
@@ -29,8 +28,6 @@
 """
 Test suite for algebra kernels
 """
-
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"

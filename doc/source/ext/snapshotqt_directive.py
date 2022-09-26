@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2019 European Synchrotron Radiation Facility
@@ -31,7 +30,6 @@ Configuration variable in conf.py:
   the documentation source directory (i.e., the directory of conf.py)
   (default: '..').
 """
-from __future__ import absolute_import
 
 __authors__ = ["H. Payno", "T. Vincent"]
 __license__ = "MIT"
