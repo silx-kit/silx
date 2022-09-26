@@ -828,6 +828,22 @@ class TestDictToNx(H5DictTestCase):
         assert_append("replace", add_nx_class=True)
 
 
+@pytest.mark.skipif(pint is None, reason="Require pint")
+def test_dicttonx_pint(tmp_h5py_file):
+    ureg = pint.UnitRegistry()
+    treedict = {
+        "array_mm": pint.Quantity([1, 2, 3], ureg.mm),
+        "value_kg": 3 * ureg.kg,
+    }
+
+    dictdump.dicttonx(treedict, tmp_h5py_file)
+
+    result = dictdump.nxtodict(tmp_h5py_file)
+    for key, value in treedict.items():
+        assert numpy.array_equal(result[key], value.magnitude)
+        assert result[f"{key}@units"] == f"{value.units:~}"
+
+
 class TestNxToDict(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()

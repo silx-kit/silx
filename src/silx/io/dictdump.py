@@ -460,6 +460,7 @@ def nexus_to_h5_dict(
                     value = h5py.SoftLink(first)
             elif is_link(value):
                 key = key[1:]
+
         if isinstance(value, Mapping):
             # HDF5 group
             key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
@@ -468,9 +469,15 @@ def nexus_to_h5_dict(
                 parents=parents+(key,),
                 add_nx_class=add_nx_class,
                 has_nx_class=key_has_nx_class)
+
+        elif pint is not None and isinstance(value, pint.quantity.Quantity):
+            copy[key] = value.magnitude
+            copy[(key, "units")] = f"{value.units:~}"
+
         else:
             # HDF5 dataset or link
             copy[key] = value
+
     if add_nx_class and not has_nx_class:
         _ensure_nx_class(copy, parents)
     return copy
