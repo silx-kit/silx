@@ -413,52 +413,7 @@ class BuildExt(build_ext):
             # Avoid empty arg
             ext.extra_link_args = [arg for arg in extra_link_args if arg]
 
-    def is_debug_interpreter(self):
-        """
-        Returns true if the script is executed with a debug interpreter.
-
-        It looks to be a non-standard code. It is not working for Windows and
-        Mac. But it have to work at least for Debian interpreters.
-
-        :rtype: bool
-        """
-        # sys.abiflags not available on Windows CPython, return False by default
-        return "d" in getattr(sys, "abiflags", "")
-
-    def patch_compiler(self):
-        """
-        Patch the compiler to:
-        - always compile extensions with debug symboles (-g)
-        - only compile asserts in debug mode (-DNDEBUG)
-
-        Plus setuptools/distutils inject a lot of duplicated
-        flags. This function tries to clean up default debug options.
-        """
-        build_obj = self.distribution.get_command_obj("build")
-        if build_obj.debug:
-            debug_mode = build_obj.debug
-        else:
-            # Force debug_mode also when it uses python-dbg
-            # It is needed for Debian packaging
-            debug_mode = self.is_debug_interpreter()
-
-        if self.compiler.compiler_type == "unix":
-            args = list(self.compiler.compiler_so)
-            # clean up debug flags -g is included later in another way
-            must_be_cleaned = ["-DNDEBUG", "-g"]
-            args = filter(lambda x: x not in must_be_cleaned, args)
-            args = list(args)
-
-            # always insert symbols
-            args.append("-g")
-            # only strip asserts in release mode
-            if not debug_mode:
-                args.append('-DNDEBUG')
-            # patch options
-            self.compiler.compiler_so = list(args)
-
     def build_extensions(self):
-        self.patch_compiler()
         for ext in self.extensions:
             self.patch_extension(ext)
         build_ext.build_extensions(self)
