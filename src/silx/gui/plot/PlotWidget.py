@@ -3620,7 +3620,7 @@ class PlotWidget(qt.QMainWindow):
         qapp = qt.QApplication.instance()
         event = qt.QMouseEvent(
             qt.QEvent.MouseMove,
-            self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+            qt.QPointF(self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())),
             qt.Qt.NoButton,
             qapp.mouseButtons(),
             qapp.keyboardModifiers())
