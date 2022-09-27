@@ -30,15 +30,12 @@ __license__ = "MIT"
 import sys
 import os
 import platform
-import shutil
 import logging
-import glob
 
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
 
-from distutils.command.clean import clean as Clean
 try:  # setuptools >=62.4.0
     from setuptools.command.build import build as _build
 except ImportError:
@@ -54,13 +51,6 @@ except ImportError:
         "To install this package, you must install numpy first\n"
         "(See https://pypi.org/project/numpy)")
 
-try:
-    import sphinx
-    import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda: False
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    sphinx = None
 
 PROJECT = "silx"
 if sys.version_info.major < 3:
@@ -111,51 +101,6 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
-
-########
-# Test #
-########
-
-
-class PyTest(Command):
-    """Command to start tests running the script: run_tests.py"""
-    user_options = []
-
-    description = "Execute the unittests"
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-        errno = subprocess.call([sys.executable, 'run_tests.py'])
-        if errno != 0:
-            raise SystemExit(errno)
-
-# ################### #
-# build_doc command   #
-# ################### #
-
-
-if sphinx is None:
-
-    class SphinxExpectedCommand(Command):
-        """Command to inform that sphinx is missing"""
-        user_options = []
-
-        def initialize_options(self):
-            pass
-
-        def finalize_options(self):
-            pass
-
-        def run(self):
-            raise RuntimeError(
-                'Sphinx is required to build or test the documentation.\n'
-                'Please install Sphinx (http://www.sphinx-doc.org).')
 
 
 class BuildMan(Command):
@@ -330,89 +275,6 @@ class BuildMan(Command):
                     os.remove(script_name)
         os.rmdir(workdir)
 
-
-if sphinx is not None:
-
-    class BuildDocCommand(BuildDoc):
-        """Command to build documentation using sphinx.
-
-        Project should have already be built.
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # # Copy .ui files to the path:
-            # dst = os.path.join(
-            #     os.path.abspath(build.build_lib), "silx", "gui")
-            # if not os.path.isdir(dst):
-            #     os.makedirs(dst)
-            # for i in os.listdir("gui"):
-            #     if i.endswith(".ui"):
-            #         src = os.path.join("gui", i)
-            #         idst = os.path.join(dst, i)
-            #         if not os.path.exists(idst):
-            #             shutil.copy(src, idst)
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['html', 'latex']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-    class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
-
-        def run(self):
-            old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
-            os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
-            BuildDocCommand.run(self)
-            if old is not None:
-                os.environ['DIRECTIVE_SNAPSHOT_QT'] = old
-            else:
-                del os.environ['DIRECTIVE_SNAPSHOT_QT']
-
-else:
-    BuildDocCommand = SphinxExpectedCommand
-    BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
-
-# ################### #
-# test_doc command    #
-# ################### #
-
-if sphinx is not None:
-
-    class TestDocCommand(BuildDoc):
-        """Command to test the documentation using sphynx doctest.
-
-        http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['doctest']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-else:
-    TestDocCommand = SphinxExpectedCommand
-
 # ############## #
 # Compiler flags #
 # ############## #
@@ -423,11 +285,11 @@ class Build(_build):
 
     user_options = [
         ('no-openmp', None,
-         "do not use OpenMP for compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to False"),
         ('openmp', None,
-         "use OpenMP for the compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to True"),
         ('force-cython', None,
-         "recompile all Cython extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_FORCE_CYTHON to True"),
     ]
     user_options.extend(_build.user_options)
 
@@ -442,8 +304,14 @@ class Build(_build):
 
     def finalize_options(self):
         _build.finalize_options(self)
+        if self.no_openmp is not None:
+            logger.warning("--no-openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to False")
+        if self.openmp is not None:
+            logger.warning("--openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to True")
+        if self.force_cython is not None:
+            logger.warning("--force-cython is deprecated: Instead, set the environment variable SILX_FORCE_CYTHON to True")
         if not self.force_cython:
-            self.force_cython = self._parse_env_as_bool("FORCE_CYTHON") is True
+            self.force_cython = self._parse_env_as_bool("SILX_FORCE_CYTHON") is True
         self.finalize_openmp_options()
 
     def _parse_env_as_bool(self, key):
@@ -470,7 +338,7 @@ class Build(_build):
         elif self.no_openmp:
             use_openmp = False
         else:
-            env_with_openmp = self._parse_env_as_bool("WITH_OPENMP")
+            env_with_openmp = self._parse_env_as_bool("SILX_WITH_OPENMP")
             if env_with_openmp is not None:
                 use_openmp = env_with_openmp
             else:
@@ -610,70 +478,6 @@ class BuildExt(build_ext):
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-################################################################################
-# Clean command
-################################################################################
-
-
-class CleanCommand(Clean):
-    description = "Remove build artifacts from the source tree"
-
-    def expand(self, path_list):
-        """Expand a list of path using glob magic.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        path_list2 = []
-        for path in path_list:
-            if glob.has_magic(path):
-                iterator = glob.iglob(path)
-                path_list2.extend(iterator)
-            else:
-                path_list2.append(path)
-        return path_list2
-
-    def find(self, path_list):
-        """Find a file pattern if directories.
-
-        Could be done using "**/*.c" but it is only supported in Python 3.5.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        import fnmatch
-        path_list2 = []
-        for pattern in path_list:
-            for root, _, filenames in os.walk('.'):
-                for filename in fnmatch.filter(filenames, pattern):
-                    path_list2.append(os.path.join(root, filename))
-        return path_list2
-
-    def run(self):
-        Clean.run(self)
-
-        cython_files = self.find(["*.pyx"])
-        cythonized_files = [path.replace(".pyx", ".c") for path in cython_files]
-        cythonized_files += [path.replace(".pyx", ".cpp") for path in cython_files]
-
-        # really remove the directories
-        # and not only if they are empty
-        to_remove = [self.build_base]
-        to_remove = self.expand(to_remove)
-        to_remove += cythonized_files
-
-        if not self.dry_run:
-            for path in to_remove:
-                try:
-                    if os.path.isdir(path):
-                        shutil.rmtree(path)
-                    else:
-                        os.remove(path)
-                    logger.info("removing '%s'", path)
-                except OSError:
-                    pass
 
 ################################################################################
 # Debian source tree
@@ -824,37 +628,20 @@ def get_project_configuration():
 
     cmdclass = dict(
         build=Build,
-        test=PyTest,
-        build_screenshots=BuildDocAndGenerateScreenshotCommand,
-        build_doc=BuildDocCommand,
-        test_doc=TestDocCommand,
         build_ext=BuildExt,
         build_man=BuildMan,
-        clean=CleanCommand,
         debian_src=sdist_debian)
 
     def silx_io_specfile_define_macros():
         # Locale and platform management
-        SPECFILE_USE_GNU_SOURCE = os.getenv("SPECFILE_USE_GNU_SOURCE")
-        if SPECFILE_USE_GNU_SOURCE is None:
-            SPECFILE_USE_GNU_SOURCE = 0
-            if sys.platform.lower().startswith("linux"):
-                warn = ("silx.io.specfile WARNING:",
-                        "A cleaner locale independent implementation",
-                        "may be achieved setting SPECFILE_USE_GNU_SOURCE to 1",
-                        "For instance running this script as:",
-                        "SPECFILE_USE_GNU_SOURCE=1 python setup.py build")
-                print(os.linesep.join(warn))
-        else:
-            SPECFILE_USE_GNU_SOURCE = int(SPECFILE_USE_GNU_SOURCE)
-
         if sys.platform == "win32":
             return [('WIN32', None), ('SPECFILE_POSIX', None)]
         elif os.name.lower().startswith('posix'):
             # the best choice is to have _GNU_SOURCE defined
             # as a compilation flag because that allows the
             # use of strtod_l
-            if SPECFILE_USE_GNU_SOURCE:
+            use_gnu_source = os.environ.get("SPECFILE_USE_GNU_SOURCE", "False")
+            if use_gnu_source in ("True", "1"):  # 1 was the initially supported value
                 return [('_GNU_SOURCE', 1)]
             return [('SPECFILE_POSIX', None)]
         else:
@@ -1037,33 +824,32 @@ def get_project_configuration():
             )
         )
 
-    setup_kwargs = dict(
-        ext_modules=ext_modules,
+    return dict(
+        name=PROJECT,
+        version=get_version(),
+        url="http://www.silx.org/",
+        author="data analysis unit",
+        author_email="silx@esrf.fr",
+        classifiers=classifiers,
+        description="Software library for X-ray data analysis",
+        long_description=get_readme(),
+        install_requires=install_requires,
+        extras_require=extras_require,
+        python_requires='>=3.5',
+        cmdclass=cmdclass,
+        zip_safe=False,
+        entry_points=entry_points,
         packages=find_packages(where='src', include=['silx*']) + ['silx.examples'],
         package_dir={
             "": "src",
-            "silx.examples": "examples"},
+            "silx.examples": "examples",
+        },
+        ext_modules=ext_modules,
+        package_data=package_data,
         data_files=[
             ('silx/third_party/_local/scipy_spatial/qhull', ['src/silx/third_party/_local/scipy_spatial/qhull/COPYING.txt'])
-        ]
+        ],
     )
-    setup_kwargs.update(name=PROJECT,
-                        version=get_version(),
-                        url="http://www.silx.org/",
-                        author="data analysis unit",
-                        author_email="silx@esrf.fr",
-                        classifiers=classifiers,
-                        description="Software library for X-ray data analysis",
-                        long_description=get_readme(),
-                        install_requires=install_requires,
-                        extras_require=extras_require,
-                        cmdclass=cmdclass,
-                        package_data=package_data,
-                        zip_safe=False,
-                        entry_points=entry_points,
-                        python_requires='>=3.5',
-                        )
-    return setup_kwargs
 
 
 if __name__ == "__main__":
