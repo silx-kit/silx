@@ -27,17 +27,18 @@
 __license__ = "MIT"
 __date__ = "07/12/2018"
 
+from ...utils.deprecation import deprecated
 from silx.gui import qt
 
 
 class ElidedLabel(qt.QLabel):
-    """QLabel with an edile property.
+    """QLabel with an elide property.
 
-    By default if the text is too big, it is elided on the right.
+    By default if the text is too long, it is elided on the right.
 
     This mode can be changed with :func:`setElideMode`.
 
-    In case the text is elided, the full content is displayed as part of the
+    In this case the text is elided, the full content is displayed as part of the
     tool tip. This behavior can be disabled with :func:`setTextAsToolTip`.
     """
 
@@ -82,25 +83,41 @@ class ElidedLabel(qt.QLabel):
         else:
             qt.QLabel.setToolTip(self, self.__toolTip)
 
-    # Properties
+    # Inherited properties
+
+    def text(self):
+        """Returns the text defined by the user.
+
+        It can be different from the one really displayed, depending on the
+        `elideMode` defined for this widget.
+        """
+        return self.__text
+
+    @deprecated(replacement='text', since_version='1.1.0')
+    def getText(self):
+        return self.text()
 
     def setText(self, text):
         self.__text = text
         self.__updateText()
 
-    def getText(self):
-        return self.__text
+    def toolTip(self):
+        """Returns the tooltip defined by the user.
 
-    text = qt.Property(str, getText, setText)
+        It can be different from the one really displayed, if `textAsToolTip` was
+        set to true.
+        """
+        return self.__toolTip
+
+    @deprecated(replacement='toolTip', since_version='1.1.0')
+    def getToolTip(self):
+        return self.toolTip()
 
     def setToolTip(self, toolTip):
         self.__toolTip = toolTip
         self.__updateToolTip()
 
-    def getToolTip(self):
-        return self.__toolTip
-
-    toolTip = qt.Property(str, getToolTip, setToolTip)
+    # New properties
 
     def setElideMode(self, elideMode):
         """Set the elide mode.
@@ -117,7 +134,7 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__elideMode
 
-    elideMode = qt.Property(qt.Qt.TextElideMode, getToolTip, setToolTip)
+    elideMode = qt.Property(qt.Qt.TextElideMode, getElideMode, setElideMode)
 
     def setTextAsToolTip(self, enabled):
         """Enable displaying text as part of the tooltip if it is elided.
