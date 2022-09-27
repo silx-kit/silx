@@ -345,13 +345,9 @@ class Build(_build):
                 # Use it by default
                 use_openmp = True
 
-        if use_openmp:
-            if platform.system() == "Darwin":
-                # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
-                osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
-                if osx >= (10, 8):
-                    logger.warning("OpenMP support ignored. Your platform does not support it.")
-                    use_openmp = False
+        if use_openmp and platform.system() == "Darwin":
+            logger.warning("OpenMP support ignored. Your platform does not support it.")
+            use_openmp = False
 
         # Remove attributes used by distutils parsing
         # use 'use_openmp' instead
@@ -416,17 +412,6 @@ class BuildExt(build_ext):
                                for f in ext.extra_link_args]
             # Avoid empty arg
             ext.extra_link_args = [arg for arg in extra_link_args if arg]
-
-        elif self.compiler.compiler_type == 'unix':
-            # Avoids runtime symbol collision for manylinux1 platform
-            # See issue #1070
-            extern = 'extern "C" ' if ext.language == 'c++' else ''
-            return_type = 'PyObject*'
-
-            ext.extra_compile_args.append('-fvisibility=hidden')
-            ext.define_macros.append(
-                ('PyMODINIT_FUNC',
-                    '%s__attribute__((visibility("default"))) %s ' % (extern, return_type)))
 
     def is_debug_interpreter(self):
         """
