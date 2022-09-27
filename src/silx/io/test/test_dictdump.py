@@ -841,7 +841,7 @@ def test_dicttonx_pint(tmp_h5py_file):
     result = dictdump.nxtodict(tmp_h5py_file)
     for key, value in treedict.items():
         assert numpy.array_equal(result[key], value.magnitude)
-        assert result[f"{key}@units"] == f"{value.units:~}"
+        assert result[f"{key}@units"] == f"{value.units:~C}"
 
 
 class TestNxToDict(H5DictTestCase):

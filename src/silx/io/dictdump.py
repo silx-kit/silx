@@ -472,7 +472,7 @@ def nexus_to_h5_dict(
 
         elif pint is not None and isinstance(value, pint.quantity.Quantity):
             copy[key] = value.magnitude
-            copy[(key, "units")] = f"{value.units:~}"
+            copy[(key, "units")] = f"{value.units:~C}"
 
         else:
             # HDF5 dataset or link
