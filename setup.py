@@ -24,7 +24,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "06/05/2020"
+__date__ = "29/08/2022"
 __license__ = "MIT"
 
 import sys
@@ -39,14 +39,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("silx.setup")
 
 from distutils.command.clean import clean as Clean
-from distutils.command.build import build as _build
-from setuptools import Command
+try:  # setuptools >=62.4.0
+    from setuptools.command.build import build as _build
+except ImportError:
+    from distutils.command.build import build as _build
+from setuptools import Command, Extension, find_packages
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
 try:
     import numpy
-    from numpy.distutils.misc_util import Configuration
 except ImportError:
     raise ImportError(
         "To install this package, you must install numpy first\n"
@@ -411,26 +413,6 @@ if sphinx is not None:
 else:
     TestDocCommand = SphinxExpectedCommand
 
-# ############################# #
-# numpy.distutils Configuration #
-# ############################# #
-
-def configuration(parent_package='', top_path=None):
-    """Recursive construction of package info to be used in setup().
-
-    See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(
-        ignore_setup_xxx_py=True,
-        assume_default_configuration=True,
-        delegate_options_to_subpackages=True,
-        quiet=True)
-    config.add_subpackage(
-        PROJECT, subpackage_path=os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), 'src', PROJECT))
-    return config
-
 # ############## #
 # Compiler flags #
 # ############## #
@@ -574,15 +556,9 @@ class BuildExt(build_ext):
             return_type = 'PyObject*'
 
             ext.extra_compile_args.append('-fvisibility=hidden')
-
-            numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
-            if numpy_version < [1, 16]:
-                ext.extra_compile_args.append(
-                    '''-D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
-            else:
-                ext.define_macros.append(
-                    ('PyMODINIT_FUNC',
-                     '%s__attribute__((visibility("default"))) %s ' % (extern, return_type)))
+            ext.define_macros.append(
+                ('PyMODINIT_FUNC',
+                    '%s__attribute__((visibility("default"))) %s ' % (extern, return_type)))
 
     def is_debug_interpreter(self):
         """
@@ -602,7 +578,7 @@ class BuildExt(build_ext):
         - always compile extensions with debug symboles (-g)
         - only compile asserts in debug mode (-DNDEBUG)
 
-        Plus numpy.distutils/setuptools/distutils inject a lot of duplicated
+        Plus setuptools/distutils inject a lot of duplicated
         flags. This function tries to clean up default debug options.
         """
         build_obj = self.distribution.get_command_obj("build")
@@ -857,7 +833,220 @@ def get_project_configuration():
         clean=CleanCommand,
         debian_src=sdist_debian)
 
-    setup_kwargs = configuration().todict()
+    def silx_io_specfile_define_macros():
+        # Locale and platform management
+        SPECFILE_USE_GNU_SOURCE = os.getenv("SPECFILE_USE_GNU_SOURCE")
+        if SPECFILE_USE_GNU_SOURCE is None:
+            SPECFILE_USE_GNU_SOURCE = 0
+            if sys.platform.lower().startswith("linux"):
+                warn = ("silx.io.specfile WARNING:",
+                        "A cleaner locale independent implementation",
+                        "may be achieved setting SPECFILE_USE_GNU_SOURCE to 1",
+                        "For instance running this script as:",
+                        "SPECFILE_USE_GNU_SOURCE=1 python setup.py build")
+                print(os.linesep.join(warn))
+        else:
+            SPECFILE_USE_GNU_SOURCE = int(SPECFILE_USE_GNU_SOURCE)
+
+        if sys.platform == "win32":
+            return [('WIN32', None), ('SPECFILE_POSIX', None)]
+        elif os.name.lower().startswith('posix'):
+            # the best choice is to have _GNU_SOURCE defined
+            # as a compilation flag because that allows the
+            # use of strtod_l
+            if SPECFILE_USE_GNU_SOURCE:
+                return [('_GNU_SOURCE', 1)]
+            return [('SPECFILE_POSIX', None)]
+        else:
+            return []
+
+    ext_modules = [
+
+        # silx.image
+
+        Extension(
+            name='silx.image.bilinear',
+            sources=["src/silx/image/bilinear.pyx"],
+            language='c',
+        ),
+        Extension(
+            name='silx.image.marchingsquares._mergeimpl',
+            sources=['src/silx/image/marchingsquares/_mergeimpl.pyx'],
+            include_dirs=[
+                numpy.get_include(),
+                os.path.join(os.path.dirname(__file__), "src", "silx", "utils", "include")
+            ],
+            language='c++',
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.image.shapes',
+            sources=["src/silx/image/shapes.pyx"],
+            language='c',
+        ),
+
+        # silx.io
+
+        Extension(
+            name='silx.io.specfile',
+            sources=[
+                'src/silx/io/specfile/src/sfheader.c',
+                'src/silx/io/specfile/src/sfinit.c',
+                'src/silx/io/specfile/src/sflists.c',
+                'src/silx/io/specfile/src/sfdata.c',
+                'src/silx/io/specfile/src/sfindex.c',
+                'src/silx/io/specfile/src/sflabel.c',
+                'src/silx/io/specfile/src/sfmca.c',
+                'src/silx/io/specfile/src/sftools.c',
+                'src/silx/io/specfile/src/locale_management.c',
+                'src/silx/io/specfile.pyx',
+            ],
+            define_macros=silx_io_specfile_define_macros(),
+            include_dirs=['src/silx/io/specfile/include'],
+            language='c',
+        ),
+
+        # silx.math
+
+        Extension(
+            name='silx.math._colormap',
+            sources=["src/silx/math/_colormap.pyx"],
+            language='c',
+            include_dirs=[
+                'src/silx/math/include',
+                numpy.get_include(),
+            ],
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.math.chistogramnd',
+            sources=[
+                'src/silx/math/histogramnd/src/histogramnd_c.c',
+                'src/silx/math/chistogramnd.pyx',
+            ],
+            include_dirs=[
+                'src/silx/math/histogramnd/include',
+                numpy.get_include(),
+            ],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.chistogramnd_lut',
+            sources=['src/silx/math/chistogramnd_lut.pyx'],
+            include_dirs=[
+                'src/silx/math/histogramnd/include',
+                numpy.get_include(),
+            ],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.combo',
+            sources=['src/silx/math/combo.pyx'],
+            include_dirs=['src/silx/math/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.interpolate',
+            sources=["src/silx/math/interpolate.pyx"],
+            language='c',
+            include_dirs=[
+                'src/silx/math/include',
+                numpy.get_include(),
+            ],
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.math.marchingcubes',
+            sources=[
+                'src/silx/math/marchingcubes/mc_lut.cpp',
+                'src/silx/math/marchingcubes.pyx',
+            ],
+            include_dirs=[
+                'src/silx/math/marchingcubes',
+                numpy.get_include(),
+            ],
+            language='c++',
+        ),
+        Extension(
+            name='silx.math.medianfilter.medianfilter',
+            sources=['src/silx/math/medianfilter/medianfilter.pyx'],
+            include_dirs=[
+                'src/silx/math/medianfilter/include',
+                numpy.get_include(),
+            ],
+            language='c++',
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+
+        # silx.math.fit
+
+        Extension(
+            name='silx.math.fit.filters',
+            sources=[
+                'src/silx/math/fit/filters/src/smoothnd.c',
+                'src/silx/math/fit/filters/src/snip1d.c',
+                'src/silx/math/fit/filters/src/snip2d.c',
+                'src/silx/math/fit/filters/src/snip3d.c',
+                'src/silx/math/fit/filters/src/strip.c',
+                'src/silx/math/fit/filters.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/filters/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.fit.functions',
+            sources=[
+                'src/silx/math/fit/functions/src/funs.c',
+                'src/silx/math/fit/functions.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/functions/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.fit.peaks',
+            sources=[
+                'src/silx/math/fit/peaks/src/peaks.c',
+                'src/silx/math/fit/peaks.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/peaks/include'],
+            language='c',
+        ),
+    ]
+
+    # silx.third_party
+
+    if os.path.exists(os.path.join(
+        os.path.dirname(__file__), "src", "silx", "third_party", "_local")
+    ):
+        ext_modules.append(
+            Extension(
+                name='silx.third_party._local.scipy_spatial.qhull',
+                sources=[
+                    'src/silx/third_party/_local/scipy_spatial/qhull/src/' + fname for fname in (
+                        'geom2_r.c', 'geom_r.c', 'global_r.c', 'io_r.c', 'libqhull_r.c', 'mem_r.c',
+                        'merge_r.c', 'poly2_r.c', 'poly_r.c', 'qset_r.c', 'random_r.c', 'rboxlib_r.c',
+                        'stat_r.c', 'usermem_r.c', 'userprintf_rbox_r.c', 'userprintf_r.c', 'user_r.c'
+                )] + [
+                    'src/silx/third_party/_local/scipy_spatial/qhull.pyx',
+                ],
+                include_dirs=[numpy.get_include()],
+            )
+        )
+
+    setup_kwargs = dict(
+        ext_modules=ext_modules,
+        packages=find_packages(where='src', include=['silx*']) + ['silx.examples'],
+        package_dir={
+            "": "src",
+            "silx.examples": "examples"},
+        data_files=[
+            ('silx/third_party/_local/scipy_spatial/qhull', ['src/silx/third_party/_local/scipy_spatial/qhull/COPYING.txt'])
+        ]
+    )
     setup_kwargs.update(name=PROJECT,
                         version=get_version(),
                         url="http://www.silx.org/",
