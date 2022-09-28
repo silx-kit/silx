@@ -7,15 +7,15 @@ programming language.
 
 This table summarizes the support matrix of silx:
 
-+------------+--------------+----------------------------+
-| System     | Python vers. | Qt and its bindings        |
-+------------+--------------+----------------------------+
-| `Windows`_ | 3.6-3.9      | PyQt5.6+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
-| `MacOS`_   | 3.6-3.9      | PyQt5.6+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
-| `Linux`_   | 3.6-3.9      | PyQt5.3+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
++------------+--------------+---------------------+
+| System     | Python vers. | Qt and its bindings |
++------------+--------------+---------------------+
+| `Windows`_ | 3.6-3.9      | PyQt5.6+, PySide6   |
++------------+--------------+---------------------+
+| `MacOS`_   | 3.6-3.9      | PyQt5.6+, PySide6   |
++------------+--------------+---------------------+
+| `Linux`_   | 3.6-3.9      | PyQt5.3+, PySide6   |
++------------+--------------+---------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
 
@@ -65,8 +65,7 @@ The mandatory dependencies are:
 
 The GUI widgets depend on the following extra packages:
 
-* A Qt binding: either `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_,
-  `PySide2 <https://pypi.org/project/PySide2/>`_, or
+* A Qt binding: either `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ or
   `PySide6 <https://pypi.org/project/PySide6/>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_

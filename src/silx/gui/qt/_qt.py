@@ -32,6 +32,7 @@ import logging
 import sys
 import traceback
 
+from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
 
@@ -60,21 +61,21 @@ else:  # Then try Qt bindings
         if 'PyQt5' in sys.modules:
             del sys.modules["PyQt5"]
         try:
-            import PySide2.QtCore  # noqa
+            import PySide6.QtCore  # noqa
         except ImportError:
-            if 'PySide2' in sys.modules:
-                del sys.modules["PySide2"]
+            if 'PySide6' in sys.modules:
+                del sys.modules["PySide6"]
             try:
-                import PySide6.QtCore  # noqa
+                import PySide2.QtCore  # noqa
             except ImportError:
-                if 'PySide6' in sys.modules:
-                    del sys.modules["PySide6"]
+                if 'PySide2' in sys.modules:
+                    del sys.modules["PySide2"]
                 raise ImportError(
-                    'No Qt wrapper found. Install PyQt5, PySide2, PySide6.')
+                    'No Qt wrapper found. Install PyQt5 or PySide6.')
             else:
-                BINDING = 'PySide6'
+                BINDING = 'PySide2'
         else:
-            BINDING = 'PySide2'
+            BINDING = 'PySide6'
     else:
         BINDING = 'PyQt5'
 
@@ -120,7 +121,12 @@ if BINDING == 'PyQt5':
 
 
 elif BINDING == 'PySide2':
-    _logger.debug('Using PySide2 bindings')
+    deprecation.deprecated_warning(
+        type_="Qt Binding",
+        name="PySide2",
+        replacement="PySide6",
+        since_version="1.1",
+    )
 
     import PySide2 as QtBinding  # noqa
 
