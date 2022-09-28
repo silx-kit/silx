@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import sys
 import os
 import logging
 import functools
-from distutils.version import LooseVersion
 
 import numpy
 
@@ -148,13 +147,13 @@ class _SideBar(qt.QListView):
         :rtype: List[str]
         """
         urls = []
-        version = LooseVersion(qt.qVersion())
+        version = tuple(map(int, qt.qVersion().split('.')[:3]))
         feed_sidebar = True
 
         if not DEFAULT_SIDEBAR_URL:
             _logger.debug("Skip default sidebar URLs (from setted variable)")
             feed_sidebar = False
-        elif version < LooseVersion("5.11.2") and qt.BINDING == "PyQt5" and sys.platform in ["linux", "linux2"]:
+        elif version < (5, 11, 2) and qt.BINDING == "PyQt5" and sys.platform in ["linux", "linux2"]:
             # Avoid segfault on PyQt5 + gtk
             _logger.debug("Skip default sidebar URLs (avoid PyQt5 segfault)")
             feed_sidebar = False
