@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,14 @@ class DataViewerFrame(qt.QWidget):
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
 
+    selectionChanged = qt.Signal(object, object)
+    """Emitted when the data selection changes.
+
+    It provides:
+    - the slicing as a tuple of slice or None.
+    - the permutation as a tuple of int or None.
+    """
+
     def __init__(self, parent=None):
         """
         Constructor
@@ -103,6 +111,7 @@ class DataViewerFrame(qt.QWidget):
 
         self.__dataViewer.dataChanged.connect(self.__dataChanged)
         self.__dataViewer.displayedViewChanged.connect(self.__displayedViewChanged)
+        self.__dataViewer.selectionChanged.connect(self.__selectionChanged)
 
     def __dataChanged(self):
         """Called when the data is changed"""
@@ -111,6 +120,10 @@ class DataViewerFrame(qt.QWidget):
     def __displayedViewChanged(self, view):
         """Called when the displayed view changes"""
         self.displayedViewChanged.emit(view)
+
+    def __selectionChanged(self, slices, permutation):
+        """Called when the data selection has changed"""
+        self.selectionChanged.emit(slices, permutation)
 
     def setGlobalHooks(self, hooks):
         """Set a data view hooks for all the views
