@@ -32,6 +32,19 @@ __date__ = "30/11/2016"
 from . import _qt
 
 
+def getMouseEventPosition(event):
+    """Qt5/Qt6 compatibility wrapper to access QMouseEvent position
+
+    :param QMouseEvent event:
+    :returns: (x, y) as a tuple of float
+    """
+    if _qt.BINDING in ("PyQt5", "PySide2"):
+        return float(event.x()), float(event.y())
+    # Qt6
+    position = event.position()
+    return position.x(), position.y()
+
+
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""

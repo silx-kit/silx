@@ -7,4 +7,5 @@ pybind11  # Required to build pyopencl
 # Pinpoint pyopencl on Windows to latest wheel available in www.silx.org
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
-pyopencl == 2020.3.1; sys_platform == 'win32'
+pyopencl == 2020.3.1; sys_platform == 'win32' and python_version < '3.8'
+pyopencl == 2022.1.6; sys_platform == 'win32' and python_version >= '3.8'
