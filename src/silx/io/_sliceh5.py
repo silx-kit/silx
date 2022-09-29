@@ -127,12 +127,14 @@ class DatasetSlice(commonh5.Dataset):
     :param h5file: h5py-like file containing the dataset
     :param dataset: h5py-like dataset from which to access a slice
     :param indices: The indexing to select
+    :param attrs: dataset attributes
     """
 
     def __init__(
         self,
         dataset: Union[h5py.Dataset, commonh5.Dataset],
         indices: IndicesType,
+        attrs: dict,
     ):
         if not utils.is_dataset(dataset):
             raise ValueError(f"Unsupported dataset '{dataset}'")
@@ -141,7 +143,7 @@ class DatasetSlice(commonh5.Dataset):
         self.__file = dataset.file  # Keep a ref on file to fix issue recovering it
         self.__indices = _expand_indices(len(self.__dataset.shape), indices)
         self.__shape = _get_selection_shape(self.__dataset.shape, self.__indices)
-        super().__init__(self.__dataset.name, data=None, parent=self.__file)
+        super().__init__(self.__dataset.name, data=None, parent=self.__file, attrs=attrs)
 
     def _get_data(self) -> Union[h5py.Dataset, commonh5.Dataset]:
         # Give access to the underlying (h5py) dataset, not the selected data
