@@ -875,7 +875,9 @@ class _Plot1dView(DataView):
 
     def createWidget(self, parent):
         from silx.gui import plot
-        return plot.Plot1D(parent=parent)
+        widget = plot.Plot1D(parent=parent)
+        widget.setGraphGrid(True)
+        return widget
 
     def clear(self):
         self.getWidget().clear()

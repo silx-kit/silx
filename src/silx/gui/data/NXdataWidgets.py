@@ -75,6 +75,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__values = None
 
         self._plot = Plot1D(self)
+        self._plot.setGraphGrid(True)
 
         self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
