@@ -80,6 +80,7 @@ from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
+from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
 from silx.gui.plot.items.roi import RectangleROI
@@ -1004,6 +1005,7 @@ class ColormapDialog(qt.QDialog):
         self._histoWidget = _ColormapHistogram(self)
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
         self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
+        self._histoWidget.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
         # Scale to buttons
         self._visibleAreaButton = qt.QPushButton(self)
@@ -1067,11 +1069,14 @@ class ColormapDialog(qt.QDialog):
         layoutScale.addWidget(self._autoScaleCombo)
         layoutScale.addStretch()
 
-        formLayout = qt.QFormLayout(self)
+
+        formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
+
         formLayout.addRow('Colormap:', self._comboBoxColormap)
         formLayout.addRow('Normalization:', self._comboBoxNormalization)
         formLayout.addRow('Gamma:', self._gammaSpinBox)
+
         formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
         formLayout.addRow(self._histoWidget)
         formLayout.addRow(rangeLayout)
@@ -1080,7 +1085,7 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
-        formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+        formLayout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
 
         self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
         self.setTabOrder(self._comboBoxNormalization, self._gammaSpinBox)
