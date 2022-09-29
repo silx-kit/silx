@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -876,7 +875,9 @@ class _Plot1dView(DataView):
 
     def createWidget(self, parent):
         from silx.gui import plot
-        return plot.Plot1D(parent=parent)
+        widget = plot.Plot1D(parent=parent)
+        widget.setGraphGrid(True)
+        return widget
 
     def clear(self):
         self.getWidget().clear()
@@ -1759,6 +1760,8 @@ class _NXdataImageView(_NXdataBaseDataView):
         y_axis, x_axis = nxd.axes[img_slicing]
         y_label, x_label = nxd.axes_names[img_slicing]
         y_scale, x_scale = nxd.plot_style.axes_scale_types[img_slicing]
+        x_units = get_attr_as_unicode(x_axis, 'units') if x_axis else None
+        y_units = get_attr_as_unicode(y_axis, 'units') if y_axis else None
 
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
@@ -1766,7 +1769,9 @@ class _NXdataImageView(_NXdataBaseDataView):
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
             title=nxd.title, isRgba=isRgba,
-            xscale=x_scale, yscale=y_scale)
+            xscale=x_scale, yscale=y_scale,
+            keep_ratio=(x_units == y_units),
+        )
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1804,13 +1809,17 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         img_slicing = slice(-2, None)
         y_axis, x_axis = nxd.axes[img_slicing]
         y_label, x_label = nxd.axes_names[img_slicing]
+        x_units = get_attr_as_unicode(x_axis, 'units') if x_axis else None
+        y_units = get_attr_as_unicode(y_axis, 'units') if y_axis else None
 
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             x_axis=x_axis, y_axis=y_axis,
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
-            title=nxd.title)
+            title=nxd.title,
+            keep_ratio=(x_units == y_units),
+        )
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)

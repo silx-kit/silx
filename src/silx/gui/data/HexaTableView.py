@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -26,7 +25,6 @@
 This module defines model and widget to display raw data using an
 hexadecimal viewer.
 """
-from __future__ import division
 
 import collections
 

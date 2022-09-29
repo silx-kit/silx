@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2017 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """Color conversion function, color dictionary and colormap tools."""
-
-from __future__ import absolute_import
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"

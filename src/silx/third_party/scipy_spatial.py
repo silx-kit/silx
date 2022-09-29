@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017 European Synchrotron Radiation Facility
@@ -34,8 +33,6 @@ It should be used like that:
     from silx.third_party.scipy_spatial import Delaunay
 
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

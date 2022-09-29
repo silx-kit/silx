@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 #
 #    Project: OpenCL numerical library
 #             https://github.com/silx-kit/silx

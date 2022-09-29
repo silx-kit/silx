@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2019 European Synchrotron Radiation Facility
@@ -27,8 +26,6 @@
 """
 Test of the Convolution class.
 """
-
-from __future__ import division, print_function
 
 __authors__ = ["Pierre Paleo"]
 __contact__ = "pierre.paleo@esrf.fr"

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2020 European Synchrotron Radiation Facility
@@ -26,8 +25,6 @@
 This module provides functions to generate indices, to check intersection
 and to handle planes.
 """
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

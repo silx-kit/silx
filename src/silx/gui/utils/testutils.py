@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -49,6 +48,8 @@ elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
 elif qt.BINDING == 'PySide6':
     from PySide6.QtTest import QTest
+elif qt.BINDING == 'PyQt6':
+    from PyQt6.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
 
@@ -257,7 +258,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseClick for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -268,7 +269,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseDClick for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -288,7 +289,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mousePress for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -299,7 +300,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseRelease for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -490,7 +491,7 @@ def getQToolButtonFromAction(action):
     :param QAction action: The QAction from which to get QToolButton.
     :return: A QToolButton associated to action or None.
     """
-    if qt.BINDING == "PySide6":
+    if qt.BINDING in ("PySide6", "PyQt6"):
         widgets = action.associatedObjects()
     else:
         widgets = action.associatedWidgets()

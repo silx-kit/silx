@@ -7,7 +7,8 @@
 
 .. toctree::
    :maxdepth: 1
-   
+
+   commonh5.rst
    configdict.rst
    convert.rst
    dictdump.rst

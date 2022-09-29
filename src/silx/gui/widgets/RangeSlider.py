@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility
@@ -27,7 +26,6 @@
 .. image:: img/RangeSlider.png
    :align: center
 """
-from __future__ import absolute_import, division
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"

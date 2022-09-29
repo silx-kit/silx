@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # /*##########################################################################
 # Copyright (C) 2017 European Synchrotron Radiation Facility
 #
@@ -25,8 +24,6 @@
 Project: Sift implementation in Python + OpenCL
          https://github.com/silx-kit/silx
 """
-
-from __future__ import division
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """This module provides a flow layout for QWidget: :class:`FlowLayout`.
 """
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -26,8 +25,6 @@
 """
 Example for the use of the ImageFileDialog.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

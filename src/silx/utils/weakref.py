@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -25,7 +24,6 @@
 """Weakref utils for compatibility between Python 2 and Python 3 or for
 extended features.
 """
-from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

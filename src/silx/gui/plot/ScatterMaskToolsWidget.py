@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -30,8 +29,6 @@ This widget is meant to work with a modified :class:`silx.gui.plot.PlotWidget`
 - :class:`ScatterMaskToolsWidget`: GUI for :class:`ScatterMask`
 - :class:`ScatterMaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
-
-from __future__ import division
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

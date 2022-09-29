@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2018 European Synchrotron Radiation Facility
@@ -34,8 +33,6 @@
 
 See silx documentation: http://www.silx.org/doc/silx/latest/
 """
-
-from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"

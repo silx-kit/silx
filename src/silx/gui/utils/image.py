@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +26,6 @@
 - :func:`convertArrayToQImage`
 - :func:`convertQImageToArray`
 """
-
-from __future__ import division
-
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -118,6 +114,8 @@ def convertQImageToArray(image):
     ptr = image.bits()
     if qt.BINDING == 'PyQt5':
         ptr.setsize(image.byteCount())
+    elif qt.BINDING == 'PyQt6':
+        ptr.setsize(image.sizeInBytes())
     elif qt.BINDING in ('PySide2', 'PySide6'):
         ptr = ptr.tobytes()
     else:

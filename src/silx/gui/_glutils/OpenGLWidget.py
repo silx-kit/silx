@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -45,7 +44,7 @@ _logger = logging.getLogger(__name__)
 
 
 if not hasattr(qt, 'QOpenGLWidget') and not hasattr(qt, 'QGLWidget'):
-    OpenGLWidget = None
+    _OpenGLWidget = None
 
 else:
     if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
@@ -70,7 +69,7 @@ else:
                      depthBufferSize=24,
                      stencilBufferSize=8,
                      version=(2, 0),
-                     f=qt.Qt.WindowFlags()):
+                     f=qt.Qt.Widget):
             # True if using QGLWidget, False if using QOpenGLWidget
             self.__legacy = not hasattr(qt, 'QOpenGLWidget')
 
@@ -262,7 +261,7 @@ class OpenGLWidget(qt.QWidget):
                  depthBufferSize=24,
                  stencilBufferSize=8,
                  version=(2, 0),
-                 f=qt.Qt.WindowFlags()):
+                 f=qt.Qt.Widget):
         super(OpenGLWidget, self).__init__(parent, f)
 
         layout = qt.QHBoxLayout(self)
