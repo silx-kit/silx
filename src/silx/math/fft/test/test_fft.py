@@ -235,19 +235,15 @@ class TestFFT(ParametricTestCase):
 
     norms_backends_support = {
         "numpy": {
-            "condition": True,
             "supported_normalizations": ["rescale", "ortho", "none"],
         },
         "fftw": {
-            "condition": __have_fftw__,
             "supported_normalizations": ["rescale", "ortho", "none"],
         },
         "opencl": {
-            "condition": __have_clfft__,
             "supported_normalizations": ["rescale"],
         },
         "cuda": {
-            "condition": __have_cufft__,
             "supported_normalizations": ["rescale", "none"],
         }
     }
@@ -275,17 +271,20 @@ class TestFFT(ParametricTestCase):
         else:
             raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
 
+    @unittest.skipIf(not __have_fftw__, "fftw back-end requires pyfftw")
     def test_norms_fftw(self):
         return self._test_norms_with_backend("fftw")
 
     def test_norms_numpy(self):
         return self._test_norms_with_backend("numpy")
 
+    @unittest.skipIf(not __have_clfft__, "opencl back-end requires pyopencl and gpyfft")
     def test_norms_opencl(self):
         from silx.opencl.common import ocl
         if ocl is not None:
             return self._test_norms_with_backend("opencl")
 
+    @unittest.skipIf(not __have_cufft__, "cuda back-end requires pycuda and scikit-cuda")
     def test_norms_cuda(self):
         get_cuda_context()
         return self._test_norms_with_backend("cuda")
@@ -295,8 +294,6 @@ class TestFFT(ParametricTestCase):
 
         data = self.test_data.data
         tol = self.tol[np.dtype(data.dtype)]
-        if not backend_params["condition"]:
-            self.skipTest("Need requirements for %s" % backend_name)
 
         for norm in backend_params["supported_normalizations"]:
             fft = FFT(template=data, backend=backend_name, normalize=norm)
