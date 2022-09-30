@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2022 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -33,7 +30,7 @@ __date__ = "21/12/2018"
 
 import logging
 import datetime as dt
-from typing import Tuple
+from typing import Tuple, Union
 import numpy
 
 from pkg_resources import parse_version as _parse_version
@@ -1226,7 +1223,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         """Compatibility wrapper for devicePixelRatioF"""
         return 1.
 
-    def _mplToQtPosition(self, x: float, y: float) -> Tuple[float, float]:
+    def _mplToQtPosition(
+        self,
+        x: Union[float,numpy.ndarray],
+        y: Union[float,numpy.ndarray]
+    ) -> Tuple[Union[float,numpy.ndarray], Union[float,numpy.ndarray]]:
         """Convert matplotlib "display" space coord to Qt widget logical pixel
         """
         ratio = self._getDevicePixelRatio()
@@ -1244,7 +1245,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def dataToPixel(self, x, y, axis):
         ax = self.ax2 if axis == "right" else self.ax
-        displayPos = ax.transData.transform_point((x, y)).transpose()
+        points = numpy.transpose((x, y))
+        displayPos = ax.transData.transform(points).transpose()
         return self._mplToQtPosition(*displayPos)
 
     def pixelToData(self, x, y, axis):
@@ -1331,7 +1333,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._synchronizeForegroundColors()
 
 
-class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
+class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     """QWidget matplotlib backend using a QtAgg canvas.
 
     It adds fast overlay drawing and mouse event management.

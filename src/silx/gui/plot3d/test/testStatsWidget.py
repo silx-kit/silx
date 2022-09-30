@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2019 European Synchrotron Radiation Facility
@@ -28,7 +27,7 @@ __license__ = "MIT"
 __date__ = "25/01/2019"
 
 
-import unittest
+import pytest
 
 import numpy
 
@@ -43,6 +42,7 @@ from silx.gui.plot3d.ScalarFieldView import ScalarFieldView
 from silx.gui.plot3d.SceneWidget import SceneWidget, items
 
 
+@pytest.mark.usefixtures("use_opengl")
 class TestSceneWidget(TestCaseQt, ParametricTestCase):
     """Tests StatsWidget combined with SceneWidget"""
 

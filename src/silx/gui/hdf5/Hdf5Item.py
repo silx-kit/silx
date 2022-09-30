@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -209,7 +208,7 @@ class Hdf5Item(Hdf5Node):
                 self.__isBroken = True
             else:
                 self.__obj = obj
-                if not self.isGroupObj():
+                if silx.io.utils.get_h5_class(obj) not in [silx.io.utils.H5Type.GROUP, silx.io.utils.H5Type.FILE]:
                     try:
                         # pre-fetch of the data
                         if obj.shape is None:

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
@@ -22,8 +21,6 @@
 #
 # ############################################################################*/
 """Benchmarks of the combo module"""
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

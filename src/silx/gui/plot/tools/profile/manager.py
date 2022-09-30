@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -180,6 +179,8 @@ class ProfileWindow(qt.QMainWindow):
         plot.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
         plot.setGraphYLabel('Profile')
         plot.setGraphXLabel('')
+        positionInfo = plot.getPositionInfoWidget()
+        positionInfo.setSnappingMode(positionInfo.SNAPPING_CURVE)
         return plot
 
     def createPlot2D(self, parent, backend):

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2019 European Synchrotron Radiation Facility
@@ -45,8 +44,6 @@ The following QAction are available:
 - :class:`ZoomInAction`
 - :class:`ZoomOutAction`
 """
-
-from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"

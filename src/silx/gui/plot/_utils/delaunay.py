@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2019 European Synchrotron Radiation Facility
@@ -55,8 +54,7 @@ def delaunay(x, y):
     try:
         delaunay = _Delaunay(points)
     except (RuntimeError, ValueError):
-        _logger.error("Delaunay tesselation failed: %s",
-                      sys.exc_info()[1])
+        _logger.debug("Delaunay tesselation failed: %s", sys.exc_info()[1])
         delaunay = None
 
     return delaunay

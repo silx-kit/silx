@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2017 European Synchrotron Radiation Facility
@@ -25,7 +24,6 @@
 """This module defines a widget to be able to select the available view
 of the DataViewer.
 """
-from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

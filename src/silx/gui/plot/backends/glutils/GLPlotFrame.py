@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2022 European Synchrotron Radiation Facility
@@ -39,6 +38,8 @@ import datetime as dt
 import math
 import weakref
 import logging
+import numbers
+from typing import Optional, Union
 from collections import namedtuple
 
 import numpy
@@ -988,6 +989,26 @@ class GLPlotFrame2D(GLPlotFrame):
 
         return self._transformedDataY2ProjMat
 
+    @staticmethod
+    def __applyLog(
+        data: Union[float, numpy.ndarray],
+        isLog: bool
+    ) -> Optional[Union[float, numpy.ndarray]]:
+        """Apply log to data filtering out """
+        if not isLog:
+            return data
+
+        if isinstance(data, numbers.Real):
+            return None if data < FLOAT32_MINPOS else math.log10(data)
+
+        isBelowMin = data < FLOAT32_MINPOS
+        if numpy.any(isBelowMin):
+            data = numpy.array(data, copy=True, dtype=numpy.float64)
+            data[isBelowMin] = numpy.nan
+
+        with numpy.errstate(divide='ignore'):
+            return numpy.log10(data)
+
     def dataToPixel(self, x, y, axis='left'):
         """Convert data coordinate to widget pixel coordinate.
         """
@@ -995,19 +1016,13 @@ class GLPlotFrame2D(GLPlotFrame):
 
         trBounds = self.transformedDataRanges
 
-        if self.xAxis.isLog:
-            if x < FLOAT32_MINPOS:
-                return None
-            xDataTr = math.log10(x)
-        else:
-            xDataTr = x
+        xDataTr = self.__applyLog(x, self.xAxis.isLog)
+        if xDataTr is None:
+            return None
 
-        if self.yAxis.isLog:
-            if y < FLOAT32_MINPOS:
-                return None
-            yDataTr = math.log10(y)
-        else:
-            yDataTr = y
+        yDataTr = self.__applyLog(y, self.yAxis.isLog)
+        if yDataTr is None:
+            return None
 
         # Non-orthogonal axes
         if self.baseVectors != self.DEFAULT_BASE_VECTORS:
@@ -1019,20 +1034,23 @@ class GLPlotFrame2D(GLPlotFrame):
 
         plotWidth, plotHeight = self.plotSize
 
-        xPixel = int(self.margins.left +
-                     plotWidth * (xDataTr - trBounds.x[0]) /
-                     (trBounds.x[1] - trBounds.x[0]))
+        xPixel = (self.margins.left +
+            plotWidth * (xDataTr - trBounds.x[0]) /
+            (trBounds.x[1] - trBounds.x[0]))
 
         usedAxis = trBounds.y if axis == "left" else trBounds.y2
         yOffset = (plotHeight * (yDataTr - usedAxis[0]) /
                    (usedAxis[1] - usedAxis[0]))
 
         if self.isYAxisInverted:
-            yPixel = int(self.margins.top + yOffset)
+            yPixel = self.margins.top + yOffset
         else:
-            yPixel = int(self.size[1] - self.margins.bottom - yOffset)
+            yPixel = self.size[1] - self.margins.bottom - yOffset
 
-        return xPixel, yPixel
+        return (
+            int(xPixel) if isinstance(xPixel, numbers.Real) else xPixel.astype(numpy.int64),
+            int(yPixel) if isinstance(yPixel, numbers.Real) else yPixel.astype(numpy.int64),
+        )
 
     def pixelToData(self, x, y, axis="left"):
         """Convert pixel position to data coordinates.

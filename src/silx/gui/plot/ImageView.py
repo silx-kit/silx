@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility
@@ -36,9 +35,6 @@ Basic usage of :class:`ImageView` is through the following methods:
 
 For an example of use, see `imageview.py` in :ref:`sample-code`.
 """
-
-from __future__ import division
-
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

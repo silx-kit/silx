@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -88,7 +87,7 @@ def enable_gui():
 
     global qt, _qapp
 
-    if _IS_NOTEBOOK:
+    if _get_ipython is not None and _get_ipython() is not None:
         _get_ipython().enable_pylab(gui='qt', import_all=False)
 
     from silx.gui import qt

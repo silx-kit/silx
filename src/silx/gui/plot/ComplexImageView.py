@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -27,8 +26,6 @@
 The :class:`ComplexImageView` widget is dedicated to visualize a single 2D dataset
 of complex data.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["Vincent Favre-Nicolin", "T. Vincent"]
 __license__ = "MIT"

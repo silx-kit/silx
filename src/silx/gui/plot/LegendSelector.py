@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1030,10 +1029,3 @@ class LegendsDockWidget(qt.QDockWidget):
                 self.plot.sigContentChanged.disconnect(self.updateLegends)
                 self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
                 self._isConnected = False
-
-    def showEvent(self, event):
-        """Make sure this widget is raised when it is shown
-        (when it is first created as a tab in PlotWindow or when it is shown
-        again after hiding).
-        """
-        self.raise_()

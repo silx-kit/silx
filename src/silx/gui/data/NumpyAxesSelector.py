@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -25,7 +24,6 @@
 """This module defines a widget able to convert a numpy array from n-dimensions
 to a numpy array with less dimensions.
 """
-from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

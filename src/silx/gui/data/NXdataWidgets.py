@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -76,6 +75,7 @@ class ArrayCurvePlot(qt.QWidget):
         self.__values = None
 
         self._plot = Plot1D(self)
+        self._plot.setGraphGrid(True)
 
         self._selector = NumpyAxesSelector(self)
         self._selector.setNamedAxesSelectorVisibility(False)
@@ -412,7 +412,8 @@ class ArrayImagePlot(qt.QWidget):
                      signals_names=None,
                      xlabel=None, ylabel=None,
                      title=None, isRgba=False,
-                     xscale=None, yscale=None):
+                     xscale=None, yscale=None,
+                     keep_ratio: bool=True):
         """
 
         :param signals: list of n-D datasets, whose last 2 dimensions are used as the
@@ -430,6 +431,7 @@ class ArrayImagePlot(qt.QWidget):
         :param isRgba: True if data is a 3D RGBA image
         :param str xscale: Scale of X axis in (None, 'linear', 'log')
         :param str yscale: Scale of Y axis in (None, 'linear', 'log')
+        :param keep_ratio: Toggle plot keep aspect ratio
         """
         self._selector.selectionChanged.disconnect(self._updateImage)
         self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
@@ -465,6 +467,7 @@ class ArrayImagePlot(qt.QWidget):
 
         self._axis_scales = xscale, yscale
         self._updateImage()
+        self._plot.setKeepDataAspectRatio(keep_ratio)
         self._plot.resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
@@ -629,7 +632,8 @@ class ArrayComplexImagePlot(qt.QWidget):
                      x_axis=None, y_axis=None,
                      signals_names=None,
                      xlabel=None, ylabel=None,
-                     title=None):
+                     title=None,
+                     keep_ratio: bool=True):
         """
 
         :param signals: list of n-D datasets, whose last 2 dimensions are used as the
@@ -644,6 +648,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         :param xlabel: Label for X axis
         :param ylabel: Label for Y axis
         :param title: Graph title
+        :param keep_ratio: Toggle plot keep aspect ratio
         """
         self._selector.selectionChanged.disconnect(self._updateImage)
         self._auxSigSlider.valueChanged.disconnect(self._sliderIdxChanged)
@@ -673,6 +678,7 @@ class ArrayComplexImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._updateImage()
+        self._plot.setKeepDataAspectRatio(keep_ratio)
         self._plot.getPlot().resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)

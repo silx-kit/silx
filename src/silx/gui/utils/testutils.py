@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2018"
+__date__ = "22/07/2022"
 
 
 import gc
@@ -49,6 +48,8 @@ elif qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
 elif qt.BINDING == 'PySide6':
     from PySide6.QtTest import QTest
+elif qt.BINDING == 'PyQt6':
+    from PyQt6.QtTest import QTest
 else:
     raise ImportError('Unsupported Qt bindings')
 
@@ -140,10 +141,14 @@ class TestCaseQt(unittest.TestCase):
 
     def _currentTestSucceeded(self):
         if hasattr(self, '_outcome'):
-            # For Python >= 3.4
-            result = self.defaultTestResult()  # these 2 methods have no side effects
-            if hasattr(self._outcome, 'errors'):
-                self._feedErrorsToResult(result, self._outcome.errors)
+            if hasattr(self, '_feedErrorsToResult'):
+                # For Python 3.4 -3.10
+                result = self.defaultTestResult()  # these 2 methods have no side effects
+                if hasattr(self._outcome, 'errors'):
+                    self._feedErrorsToResult(result, self._outcome.errors)
+            else:
+                # Python 3.11+
+                result = self._outcome.result
         else:
             # For Python < 3.4
             result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
@@ -155,10 +160,10 @@ class TestCaseQt(unittest.TestCase):
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
-        gc.collect()
-
         if self.__previousWidgets is None:
             return  # Do not test for leaking widgets with PySide2
+
+        gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
                    if (widget not in self.__previousWidgets and
@@ -253,7 +258,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseClick for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -264,7 +269,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseDClick for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -284,7 +289,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mousePress for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -295,7 +300,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseRelease for details.
         """
         if modifier is None:
-            modifier = qt.Qt.KeyboardModifiers()
+            modifier = self.qapp.keyboardModifiers()
         pos = qt.QPoint(int(pos[0]), int(pos[1])) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
         self.qWait(20)
@@ -486,7 +491,7 @@ def getQToolButtonFromAction(action):
     :param QAction action: The QAction from which to get QToolButton.
     :return: A QToolButton associated to action or None.
     """
-    if qt.BINDING == "PySide6":
+    if qt.BINDING in ("PySide6", "PyQt6"):
         widgets = action.associatedObjects()
     else:
         widgets = action.associatedWidgets()

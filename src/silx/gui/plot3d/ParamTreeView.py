@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -32,8 +31,6 @@ This module contains:
   :class:`FloatEditor`, :class:`Vector3DEditor`,
   :class:`Vector4DEditor`, :class:`IntSliderEditor`, :class:`BooleanEditor`
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

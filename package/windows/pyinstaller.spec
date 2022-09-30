@@ -1,8 +1,12 @@
 # -*- mode: python -*-
+import importlib.metadata
 import os.path
 from pathlib import Path
 import shutil
 import subprocess
+import sys
+
+import pkg_resources
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
@@ -126,6 +130,31 @@ def move_silx_view_exe():
     shutil.rmtree(dist / 'silx-view')
 
 move_silx_view_exe()
+
+# Generate license file from current Python env
+def create_license_file(filename: str):
+    import PyQt5.QtCore
+
+    with open(filename, 'w') as f:
+        f.write(f"""
+This is free software.
+
+This distribution of silx is provided under the
+GNU General Public License v3 (https://www.gnu.org/licenses/gpl-3.0.en.html) since it includes PyQt5.
+
+It includes mainy software packages with different licenses:
+
+- Python ({sys.version}): PSF license, https://www.python.org/
+- Qt ({PyQt5.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
+""")
+
+        for dist in sorted(pkg_resources.working_set, key=lambda d: d.key):
+            license = importlib.metadata.metadata(dist.key).get('License')
+            homepage = importlib.metadata.metadata(dist.key).get('Home-page')
+            info = ", ".join(info for info in (license, homepage) if info)
+            f.write(f"- {dist.project_name} ({importlib.metadata.version(dist.key)}): {info}\n")
+
+create_license_file('LICENSE')
 
 # Run innosetup
 def innosetup():

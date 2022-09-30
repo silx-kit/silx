@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +26,6 @@
 __license__ = "MIT"
 __date__ = "08/06/2020"
 
-import unittest
-
 from silx.gui import qt
 from silx.gui.widgets.ElidedLabel import ElidedLabel
 from silx.gui.utils import testutils
@@ -47,11 +44,18 @@ class TestElidedLabel(testutils.TestCaseQt):
         del self.label
         self.qapp.processEvents()
 
+    def testQLabelApi(self):
+        """Test overrided API from QLabel"""
+        self.label.setText("a")
+        assert self.label.text() == "a"
+        self.label.setToolTip("b")
+        assert self.label.toolTip() == "b"
+
     def testElidedValue(self):
         """Test elided text"""
         raw = "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
         self.label.setText(raw)
-        self.label.setFixedWidth(30)
+        self.label.setFixedWidth(40)
         displayedText = qt.QLabel.text(self.label)
         self.assertNotEqual(raw, displayedText)
         self.assertIn("…", displayedText)
@@ -98,3 +102,21 @@ class TestElidedLabel(testutils.TestCaseQt):
         displayedTooltip = qt.QLabel.toolTip(self.label)
         self.assertNotIn(raw1, displayedTooltip)
         self.assertIn(raw2, displayedTooltip)
+
+    def testTooltip(self):
+        """Test tooltip when elided"""
+        self.label.setToolTip("Fooo")
+        assert self.label.toolTip() == "Fooo"
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        assert displayedTooltip == "Fooo"
+
+    def testElidedTextAndTooltip(self):
+        """Test tooltip when elided"""
+        raw1 = "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+        self.label.setText(raw1)
+        self.label.setFixedWidth(30)
+        self.label.setToolTip("Fooo")
+        displayedTooltip = qt.QLabel.toolTip(self.label)
+        assert self.label.toolTip() == "Fooo"
+        assert "Fooo" in displayedTooltip
+        assert raw1 in displayedTooltip

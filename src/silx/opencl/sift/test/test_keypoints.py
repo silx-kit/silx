@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
@@ -33,8 +32,6 @@ Test suite for image kernels
 For Python implementation of tested functions, see "test_image_functions.py"
 
 """
-
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"

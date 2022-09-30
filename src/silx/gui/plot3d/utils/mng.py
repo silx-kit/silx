@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2020 European Synchrotron Radiation Facility
@@ -27,8 +26,6 @@
 It only supports RGB888 images of the same shape stored as
 MNG-VLC (very low complexity) format.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

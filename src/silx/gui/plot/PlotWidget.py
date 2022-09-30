@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +25,6 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
-from __future__ import division
-
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -42,6 +38,7 @@ from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
 import datetime as dt
 import itertools
+import numbers
 import typing
 import warnings
 
@@ -1130,8 +1127,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the curve (default: 1)
@@ -1540,8 +1537,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the scatter (default: 1)
@@ -3261,10 +3258,13 @@ class PlotWidget(qt.QMainWindow):
     def dataToPixel(self, x=None, y=None, axis="left", check=True):
         """Convert a position in data coordinates to a position in pixels.
 
-        :param float x: The X coordinate in data space. If None (default)
-                        the middle position of the displayed data is used.
-        :param float y: The Y coordinate in data space. If None (default)
-                        the middle position of the displayed data is used.
+        :param x: The X coordinate in data space. If None (default)
+            the middle position of the displayed data is used.
+        :type x: float or 1D numpy array of float
+        :param y: The Y coordinate in data space. If None (default)
+            the middle position of the displayed data is used.
+        :type y: float or 1D numpy array of float
+
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :param bool check: True to return None if outside displayed area,
@@ -3272,7 +3272,7 @@ class PlotWidget(qt.QMainWindow):
         :returns: The corresponding position in pixels or
                   None if the data position is not in the displayed area and
                   check is True.
-        :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
+        :rtype: A tuple of 2 floats or 2 arrays of float: (xPixel, yPixel) or None.
         """
         assert axis in ("left", "right")
 
@@ -3285,12 +3285,26 @@ class PlotWidget(qt.QMainWindow):
         if y is None:
             y = 0.5 * (ymax + ymin)
 
-        if check:
-            if x > xmax or x < xmin:
-                return None
+        if isinstance(x, numbers.Real) != isinstance(y, numbers.Real):
+            raise ValueError("x and y must be of the same type")
+        if not isinstance(x, numbers.Real) and (x.shape != y.shape or x.ndim != 1):
+            raise ValueError("x and y must be 1D arrays of the same length")
 
-            if y > ymax or y < ymin:
-                return None
+        if check:
+            isOutside = numpy.logical_or(
+                numpy.logical_or(x > xmax, x < xmin),
+                numpy.logical_or(y > ymax, y < ymin)
+            )
+
+            if numpy.any(isOutside):
+                if isinstance(x, numbers.Real):
+                    return None
+                else:  # Filter-out points that are outside
+                    x = numpy.array(x, copy=True, dtype=numpy.float64)
+                    x[isOutside] = numpy.nan
+
+                    y = numpy.array(y, copy=True, dtype=numpy.float64)
+                    y[isOutside] = numpy.nan
 
         return self._backend.dataToPixel(x, y, axis=axis)
 
@@ -3318,7 +3332,10 @@ class PlotWidget(qt.QMainWindow):
 
         if check:
             left, top, width, height = self.getPlotBoundsInPixels()
-            if not (left <= x <= left + width and top <= y <= top + height):
+            isOutside = numpy.logical_or(
+                numpy.logical_or(x < left, x > left + width),
+                numpy.logical_or(y < top, y > top + height))
+            if numpy.any(isOutside):
                 return None
 
         return self._backend.pixelToData(x, y, axis)
@@ -3603,7 +3620,7 @@ class PlotWidget(qt.QMainWindow):
         qapp = qt.QApplication.instance()
         event = qt.QMouseEvent(
             qt.QEvent.MouseMove,
-            self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+            qt.QPointF(self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())),
             qt.Qt.NoButton,
             qapp.mouseButtons(),
             qapp.keyboardModifiers())

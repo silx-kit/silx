@@ -132,7 +132,7 @@ To test *silx*, open an interactive python console:
 
     python
 
-If you don't have PyQt5, PySide2 or PySide6, run:
+If you don't have PyQt5, PySide6 or PyQt6, run:
 
 .. code-block:: bash
 

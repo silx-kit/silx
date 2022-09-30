@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2019 European Synchrotron Radiation Facility
@@ -28,8 +27,6 @@ The :class:`Viewport` describes a Viewport rendering a scene.
 The attribute :attr:`scene` is the root group of the scene tree.
 :class:`RenderContext` handles the current state during rendering.
 """
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

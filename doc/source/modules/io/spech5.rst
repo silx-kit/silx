@@ -26,14 +26,6 @@ Classes
 .. autoclass:: SpecH5Group
     :show-inheritance:
 
-.. autoclass:: silx.io.commonh5.Group
-    :show-inheritance:
-    :undoc-members:
-    :members: name, basename, file, attrs, h5py_class, parent,
-        get, keys, values, items, visit, visititems
-    :special-members: __getitem__, __len__, __contains__, __iter__
-    :exclude-members: add_node
-
 .. autoclass:: SpecH5Dataset
     :show-inheritance:
 

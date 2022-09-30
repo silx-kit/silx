@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2020 European Synchrotron Radiation Facility
@@ -49,7 +48,6 @@ Thus 2.1.0a3 is hexversion 0x020100a3.
 
 """
 
-from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
