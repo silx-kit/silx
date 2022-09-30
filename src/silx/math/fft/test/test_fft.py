@@ -27,6 +27,7 @@
 import numpy as np
 import unittest
 import logging
+from pkg_resources import parse_version
 import pytest
 try:
     from scipy.misc import ascent
@@ -275,6 +276,10 @@ class TestFFT(ParametricTestCase):
     def test_norms_fftw(self):
         return self._test_norms_with_backend("fftw")
 
+    @unittest.skipIf(
+        parse_version(np.version.version) <= parse_version("1.19.5"),
+        "normalization does not work for numpy <= 1.19.5"
+    )
     def test_norms_numpy(self):
         return self._test_norms_with_backend("numpy")
 
