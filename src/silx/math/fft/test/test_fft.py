@@ -252,7 +252,6 @@ class TestFFT(ParametricTestCase):
         }
     }
 
-
     @staticmethod
     def _compute_numpy_normalized_fft(data, axes, silx_normalization_mode):
         if silx_normalization_mode in ["rescale", "none"]:
@@ -276,25 +275,24 @@ class TestFFT(ParametricTestCase):
         else:
             raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
 
-
     def test_norms_fftw(self):
-        return self._test_norms_with_backend("fftw", self.norms_backends_support["fftw"])
-
+        return self._test_norms_with_backend("fftw")
 
     def test_norms_numpy(self):
-        return self._test_norms_with_backend("numpy", self.norms_backends_support["numpy"])
-
+        return self._test_norms_with_backend("numpy")
 
     def test_norms_opencl(self):
         from silx.opencl.common import ocl
         if ocl is not None:
-            return self._test_norms_with_backend("opencl", self.norms_backends_support["opencl"])
+            return self._test_norms_with_backend("opencl")
 
     def test_norms_cuda(self):
         get_cuda_context()
-        return self._test_norms_with_backend("cuda", self.norms_backends_support["cuda"])
+        return self._test_norms_with_backend("cuda")
 
-    def _test_norms_with_backend(self, backend_name, backend_params):
+    def _test_norms_with_backend(self, backend_name):
+        backend_params = self.norms_backends_support[backend_name]
+
         data = self.test_data.data
         tol = self.tol[np.dtype(data.dtype)]
         if not backend_params["condition"]:
@@ -310,8 +308,6 @@ class TestFFT(ParametricTestCase):
             ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
             # unscaled IFFT yields very large values. Use a relatively high "atol"
             assert np.allclose(res2, ref2, atol=res2.max()/1e6), "Something wrong with I%s norm=%s" % (backend_name, norm)
-
-
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")
