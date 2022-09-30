@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -36,8 +35,6 @@ It provides the following toolbars:
   - Video
   - Print
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

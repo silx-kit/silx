@@ -38,8 +38,6 @@ scour_options=--enable-viewboxing --enable-id-stripping --enable-comment-strippi
 for filename in "$@"
 do
     echo "Optimize $filename"
-    scour -i $filename -o "${filename}__scour" $scour_options
-    rm $filename
-    mv "${filename}__scour" $filename
+    scour -i $filename -o "${filename}__scour" $scour_options && rm $filename && mv "${filename}__scour" $filename
 done
 

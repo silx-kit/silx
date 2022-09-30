@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +24,6 @@
 """This module is a collection of base classes used in modules
 :mod:`.MaskToolsWidget` (images) and :mod:`.ScatterMaskToolsWidget`
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
@@ -632,7 +630,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         invertAction.setText('Invert')
         icon = icons.getQIcon("mask-invert")
         invertAction.setIcon(icon)
-        invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertAction.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_I))
         invertAction.setToolTip('Invert current mask <b>%s</b>' %
                                 invertAction.shortcut().toString())
         invertAction.triggered.connect(self._handleInvertMask)
@@ -1273,10 +1271,3 @@ class BaseMaskToolsDockWidget(qt.QDockWidget):
             self.widget().setDirection(qt.QBoxLayout.LeftToRight)
             self.resize(self.widget().minimumSize())
             self.adjustSize()
-
-    def showEvent(self, event):
-        """Make sure this widget is raised when it is shown
-        (when it is first created as a tab in PlotWindow or when it is shown
-        again after hiding).
-        """
-        self.raise_()

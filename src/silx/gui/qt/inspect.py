@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -68,6 +67,21 @@ elif qt.BINDING == 'PySide2':
 
 elif qt.BINDING == 'PySide6':
     from shiboken6 import isValid, createdByPython, ownedByPython  # noqa
+
+elif qt.BINDING == 'PyQt6':
+    from PyQt6.sip import isdeleted as _isdeleted  # noqa
+    from PyQt6.sip import ispycreated as createdByPython  # noqa
+    from PyQt6.sip import ispyowned as ownedByPython  # noqa
+
+    def isValid(obj):
+        """Returns True if underlying C++ object is valid.
+
+        :param QObject obj:
+        :rtype: bool
+        """
+        return not _isdeleted(obj)
+
+
 
 else:
     raise ImportError("Unsupported Qt binding %s" % qt.BINDING)

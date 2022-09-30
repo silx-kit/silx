@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2018 European Synchrotron Radiation Facility
 #
@@ -22,8 +21,6 @@
 #
 # ############################################################################*/
 """Tests of the calibration module"""
-
-from __future__ import division
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -26,7 +25,6 @@
 This module  define model and widget to display 1D slices from numpy
 array using compound data types or hdf5 databases.
 """
-from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2021 European Synchrotron Radiation Facility
@@ -81,7 +80,6 @@ from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
-from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 from silx.math.histogram import Histogramnd
 from silx.utils import deprecation
 from silx.gui.plot.items.roi import RectangleROI
@@ -930,12 +928,12 @@ class ColormapDialog(qt.QDialog):
         # Place-holder for selected area ROI manager
         self._roiForColormapManager = None
 
-        self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton = qt.QPushButton(self)
+        self._selectedAreaButton.setCheckable(True)
         self._selectedAreaButton.setEnabled(False)
         self._selectedAreaButton.setText("Selection")
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._selectedAreaButton.setCheckable(True)
-        self._selectedAreaButton.setDisabledWhenWaiting(False)
         self._selectedAreaButton.toggled.connect(
             self._handleScaleToSelectionToggled,
             type=qt.Qt.QueuedConnection)
@@ -1041,10 +1039,14 @@ class ColormapDialog(qt.QDialog):
         super(ColormapDialog, self).closeEvent(event)
 
     def hideEvent(self, event):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.visibleChanged.emit(False)
         super(ColormapDialog, self).hideEvent(event)
 
     def close(self):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.accept()
         qt.QDialog.close(self)
 
@@ -1713,7 +1715,6 @@ class ColormapDialog(qt.QDialog):
             self._roiForColormapManager = None
 
         if not checked:  # Reset button status
-            self._selectedAreaButton.setWaiting(False)
             self._selectedAreaButton.setText("Selection")
             return
 
@@ -1727,7 +1728,6 @@ class ColormapDialog(qt.QDialog):
             self._selectedAreaButton.setChecked(False)
             return  # no-op
 
-        self._selectedAreaButton.setWaiting(True)
         self._selectedAreaButton.setText("Draw Area...")
 
         self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
@@ -1743,11 +1743,12 @@ class ColormapDialog(qt.QDialog):
         self._selectedAreaButton.setChecked(False)
 
     def __roiFinalized(self, roi):
-        self._selectedAreaButton.setChecked(False)
         if roi is not None:
             ox, oy = roi.getOrigin()
             width, height = roi.getSize()
             self.setColormapRangeFromDataBounds((ox, ox+width, oy, oy+height))
+            # clear ROI
+            self._roiForColormapManager.removeRoi(roi)
 
     def keyPressEvent(self, event):
         """Override key handling.

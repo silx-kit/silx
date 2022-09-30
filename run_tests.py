@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,12 +34,12 @@ __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
 __date__ = "30/09/2020"
 __license__ = "MIT"
 
-import distutils.util
+import importlib
 import logging
 import os
 import subprocess
 import sys
-import importlib
+import sysconfig
 
 
 # Capture all default warnings
@@ -85,12 +84,6 @@ def get_project_name(root_dir):
 
 def is_debug_python():
     """Returns true if the Python interpreter is in debug mode."""
-    try:
-        import sysconfig
-    except ImportError:  # pragma nocover
-        # Python < 2.7
-        import distutils.sysconfig as sysconfig
-
     if sysconfig.get_config_var("Py_DEBUG"):
         return True
 
@@ -106,7 +99,7 @@ def build_project(name, root_dir):
     :param str root_dir: Root directory of the project
     :return: The path to the directory were build was performed
     """
-    platform = distutils.util.get_platform()
+    platform = sysconfig.get_platform()
     architecture = "lib.%s-%i.%i" % (platform,
                                      sys.version_info[0], sys.version_info[1])
     if is_debug_python():
@@ -121,8 +114,10 @@ def build_project(name, root_dir):
         home = os.path.join(root_dir, "build", architecture)
 
     logger.warning("Building %s to %s", name, home)
-    p = subprocess.Popen([sys.executable, "setup.py", "build"],
-                         shell=False, cwd=root_dir)
+    cmd = [sys.executable, "setup.py", "build"]
+    if home:
+        cmd += ["--build-lib", home]
+    p = subprocess.Popen(cmd, shell=False, cwd=root_dir)
     logger.debug("subprocess ended with rc= %s", p.wait())
 
     if os.path.isdir(home):

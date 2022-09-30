@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module provides a Qt widget embedding an OpenGL scene."""
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -125,7 +122,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         LINEAR = 'linear'
         """Linear fog through the whole scene"""
 
-    def __init__(self, parent=None, f=qt.Qt.WindowFlags()):
+    def __init__(self, parent=None, f=qt.Qt.Widget):
         self._firstRender = True
 
         super(Plot3DWidget, self).__init__(
@@ -380,10 +377,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         return convertArrayToQImage(image)
 
     def wheelEvent(self, event):
-        if qt.BINDING == "PySide6":
-            x, y = event.position().x(), event.position().y()
-        else:
-            x, y = event.x(), event.y()
+        x, y = qt.getMouseEventPosition(event)
         xpixel = x * self.getDevicePixelRatio()
         ypixel = y * self.getDevicePixelRatio()
         angle = event.angleDelta().y() / 8.
@@ -431,11 +425,16 @@ class Plot3DWidget(glu.OpenGLWidget):
         super(Plot3DWidget, self).keyReleaseEvent(event)
 
     # Mouse events #
-    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
+    _MOUSE_BTNS = {
+        qt.Qt.LeftButton: 'left',
+        qt.Qt.RightButton: 'right',
+        qt.Qt.MiddleButton: 'middle',
+    }
 
     def mousePressEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
@@ -444,8 +443,9 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         event.accept()
 
         if self.eventHandler is not None and self.isValid():
@@ -453,8 +453,9 @@ class Plot3DWidget(glu.OpenGLWidget):
             self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
-        xpixel = event.x() * self.getDevicePixelRatio()
-        ypixel = event.y() * self.getDevicePixelRatio()
+        x, y = qt.getMouseEventPosition(event)
+        xpixel = x * self.getDevicePixelRatio()
+        ypixel = y * self.getDevicePixelRatio()
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 

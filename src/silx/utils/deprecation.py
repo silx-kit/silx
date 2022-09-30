@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2017 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """Bunch of useful decorators"""
-
-from __future__ import absolute_import, print_function, division
 
 __authors__ = ["Jerome Kieffer", "H. Payno", "P. Knobel"]
 __license__ = "MIT"

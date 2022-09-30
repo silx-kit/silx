@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -169,7 +168,7 @@ class Viewer(qt.QMainWindow):
 
         # Another shortcut for refresh
         action = qt.QAction(toolbar)
-        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_R))
+        action.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_R))
         treeView.addAction(action)
         action.triggered.connect(self.__refreshSelected)
 
@@ -189,7 +188,7 @@ class Viewer(qt.QMainWindow):
         action.setText("Expand all")
         action.setToolTip("Expand all selected items")
         action.triggered.connect(self.__expandAllSelected)
-        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Plus))
+        action.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_Plus))
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__expandAllAction = action
@@ -199,7 +198,7 @@ class Viewer(qt.QMainWindow):
         action.setText("Collapse all")
         action.setToolTip("Collapse all selected items")
         action.triggered.connect(self.__collapseAllSelected)
-        action.setShortcut(qt.QKeySequence(qt.Qt.ControlModifier + qt.Qt.Key_Minus))
+        action.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_Minus))
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__collapseAllAction = action

@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +95,13 @@ def setUpModule():
 
 def tearDownModule():
     global _tmpDirectory
-    shutil.rmtree(_tmpDirectory)
+    for _ in range(10):
+        try:
+            shutil.rmtree(_tmpDirectory)
+        except PermissionError:  # Might fail on appveyor
+            testutils.TestCaseQt.qWait(500)
+        else:
+            break
     _tmpDirectory = None
 
 
@@ -516,7 +521,7 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         for i in range(model.rowCount(rootIndex)):
             index = model.index(i, 0, rootIndex)
             flags = model.flags(index)
-            isEnabled = (int(flags) & qt.Qt.ItemIsEnabled) != 0
+            isEnabled = flags & qt.Qt.ItemIsEnabled == qt.Qt.ItemIsEnabled
             if isEnabled:
                 selectable += 1
         return selectable

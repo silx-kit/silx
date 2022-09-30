@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2017 European Synchrotron Radiation Facility
@@ -26,9 +25,6 @@
 The class :class:`.PlotAction` help the creation of a qt.QAction associated
 with a :class:`.PlotWidget`.
 """
-
-from __future__ import division
-
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"

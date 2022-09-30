@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """Base class for QAction attached to a Plot3DWidget."""
-
-from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

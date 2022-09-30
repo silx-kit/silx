@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -32,8 +31,6 @@ This is done by adding a custom context menu to the :class:`Plot3DWidget`:
 
 For more information on context menus, see Qt documentation.
 """
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

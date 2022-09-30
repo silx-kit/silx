@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -871,7 +870,7 @@ class StatCOM(StatBase):
 
         values = numpy.ma.array(context.values, mask=context.mask, dtype=numpy.float64)
         sum_ = numpy.sum(values)
-        if sum_ == 0.:
+        if sum_ == 0. or numpy.ma.is_masked(sum_):
             return (numpy.nan,) * len(context.axes)
 
         if context.isStructuredData():

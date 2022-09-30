@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Byte-offset decompression in OpenCL
 #             https://github.com/silx-kit/silx
@@ -30,8 +29,6 @@
 """
 Test suite for byte-offset decompression 
 """
-
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"

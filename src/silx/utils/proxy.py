@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """Module containing proxy objects"""
-
-from __future__ import absolute_import, print_function, division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

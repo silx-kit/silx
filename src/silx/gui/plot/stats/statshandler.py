@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +31,9 @@ __date__ = "05/06/2018"
 
 
 import logging
+import numbers
+
+import numpy
 
 from silx.gui import qt
 from silx.gui.plot import stats as statsmdl
@@ -72,10 +74,13 @@ class StatFormatter(object):
         self.tabWidgetItemClass = qItemClass
 
     def format(self, val):
-        if self.formatter is None or val is None:
-            return str(val)
-        else:
+        if val is None or numpy.ma.is_masked(val):
+            return "--"
+
+        if self.formatter is not None and isinstance(val, numbers.Number):
             return self.formatter.format(val)
+
+        return str(val)
 
 
 class StatsHandler(object):

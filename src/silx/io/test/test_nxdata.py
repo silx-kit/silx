@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +29,13 @@ __date__ = "24/03/2020"
 
 import tempfile
 import unittest
+
 import h5py
 import numpy
+import pytest
 
 from .. import nxdata
+from ..dictdump import dicttoh5
 
 
 text_dtype = h5py.special_dtype(vlen=str)
@@ -561,3 +563,144 @@ class TestSaveNXdata(unittest.TestCase):
         self.assertTrue(numpy.array_equal(nxd.axes[0],
                                           a0))
         h5f.close()
+
+
+class TestGetDefault:
+    """Test silx.io.nxdata.get_default function"""
+
+    @pytest.fixture
+    def hdf5_file(self, tmp_path):
+        with h5py.File(tmp_path / "test_file.h5", "w") as h5f:
+            yield h5f
+
+    def testDirectPath(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "/nxentry/nxprocess/nxdata",
+                "nxentry": {
+                    "nxprocess": {
+                        "nxdata": {
+                            ("", "NX_class"): "NXdata",
+                            ("", "signal"): "data",
+                            "data": (1, 2, 3),
+                        }
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxprocess/nxdata"
+
+    def testAbsolutePath(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "/nxentry",
+                "nxentry": {
+                    ("", "default"): "/nxentry/nxprocess/nxdata",
+                    "nxprocess": {
+                        "nxdata": {
+                            ("", "NX_class"): "NXdata",
+                            ("", "signal"): "data",
+                            "data": (1, 2, 3),
+                        }
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxprocess/nxdata"
+
+    def testRelativePath(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "nxentry",
+                "nxentry": {
+                    ("", "default"): "nxdata",
+                    "nxdata": {
+                        ("", "NX_class"): "NXdata",
+                        ("", "signal"): "data",
+                        "data": (1, 2, 3),
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxdata"
+
+    def testRelativePathSubdir(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "nxentry",
+                "nxentry": {
+                    ("", "default"): "nxprocess/nxdata",
+                    "nxprocess": {
+                        "nxdata": {
+                            ("", "NX_class"): "NXdata",
+                            ("", "signal"): "data",
+                            "data": (1, 2, 3),
+                        }
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxprocess/nxdata"
+
+    def testRecursiveAbsolutePath(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "/nxentry",
+                "nxentry": {
+                    ("", "default"): "/nxentry/nxprocess",
+                    "nxprocess": {
+                        ("", "default"): "/nxentry/nxprocess/nxdata",
+                        "nxdata": {
+                            ("", "NX_class"): "NXdata",
+                            ("", "signal"): "data",
+                            "data": (1, 2, 3),
+                        }
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxprocess/nxdata"
+
+    def testRecursiveRelativePath(self, hdf5_file):
+        dicttoh5(
+            {
+                ("", "default"): "nxentry",
+                "nxentry": {
+                    ("", "default"): "nxprocess",
+                    "nxprocess": {
+                        ("", "default"): "nxdata",
+                        "nxdata": {
+                            ("", "NX_class"): "NXdata",
+                            ("", "signal"): "data",
+                            "data": (1, 2, 3),
+                        }
+                    }
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert isinstance(default, nxdata.NXdata)
+        assert default.group.name == "/nxentry/nxprocess/nxdata"
+
+    def testLoop(self, hdf5_file):
+        """Infinite loop of @default"""
+        dicttoh5(
+            {
+                ("", "default"): "/nxentry",
+                "nxentry": {
+                    ("", "default"): "/nxentry",
+                }
+            },
+            hdf5_file)
+        default = nxdata.get_default(hdf5_file)
+        assert default is None

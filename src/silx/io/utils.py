@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +27,13 @@ __license__ = "MIT"
 __date__ = "03/12/2020"
 
 import enum
+import fnmatch
 import os.path
 import sys
 import time
 import logging
 import collections
+from typing import Generator
 import urllib.parse
 
 import numpy
@@ -821,6 +822,24 @@ def visitall(item):
     :param item: The item to visit.
     """
     yield from _visitall(item, '')
+
+
+
+def match(group, path_pattern: str) -> Generator[str, None, None]:
+    """Generator of paths inside given h5py-like `group` matching `path_pattern`"""
+    if not is_group(group):
+        raise ValueError(f"Not a h5py-like group: {group}")
+
+    path_parts = path_pattern.strip("/").split("/", 1)
+    for matching_path in fnmatch.filter(group.keys(), path_parts[0]):
+        if len(path_parts) == 1:  # No more sub-path, stop recursion
+            yield matching_path
+            continue
+
+        entity = group.get(matching_path)
+        if is_group(entity):
+            for matching_subpath in match(entity, path_parts[1]):
+                yield f"{matching_path}/{matching_subpath}"
 
 
 def get_data(url):

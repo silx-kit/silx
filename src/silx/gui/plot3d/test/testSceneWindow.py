@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2019-2021 European Synchrotron Radiation Facility
@@ -28,7 +27,7 @@ __license__ = "MIT"
 __date__ = "22/03/2019"
 
 
-import unittest
+import pytest
 
 import numpy
 
@@ -39,6 +38,8 @@ from silx.gui import qt
 from silx.gui.plot3d.SceneWindow import SceneWindow
 from silx.gui.plot3d.items import HeightMapData, HeightMapRGBA
 
+
+@pytest.mark.usefixtures("use_opengl")
 class TestSceneWindow(TestCaseQt, ParametricTestCase):
     """Tests SceneWidget picking feature"""
 

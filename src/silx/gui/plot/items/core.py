@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +36,7 @@ except ImportError:  # Python2 support
 from copy import deepcopy
 import logging
 import enum
-from typing import Optional, Tuple
-import warnings
+from typing import Optional, Tuple, Union
 import weakref
 
 import numpy
@@ -1479,6 +1477,31 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
         return x, y, xerror, yerror
 
+    @staticmethod
+    def __minMaxDataWithError(
+        data: numpy.ndarray,
+        error: Optional[Union[float, numpy.ndarray]],
+        positiveOnly: bool
+    ) -> Tuple[float]:
+        if error is None:
+            min_, max_ = min_max(data, finite=True)
+            return min_, max_
+
+        # float, 1D or 2D array
+        dataMinusError = data - numpy.atleast_2d(error)[0]
+        dataMinusError = dataMinusError[numpy.isfinite(dataMinusError)]
+        if positiveOnly:
+            dataMinusError = dataMinusError[dataMinusError > 0]
+        min_ = numpy.nan if dataMinusError.size == 0 else numpy.min(dataMinusError)
+
+        dataPlusError = data + numpy.atleast_2d(error)[-1]
+        dataPlusError = dataPlusError[numpy.isfinite(dataPlusError)]
+        if positiveOnly:
+            dataPlusError = dataPlusError[dataPlusError > 0]
+        max_ = numpy.nan if dataPlusError.size == 0 else numpy.max(dataPlusError)
+
+        return min_, max_
+
     def _getBounds(self):
         if self.getXData(copy=False).size == 0:  # Empty data
             return None
@@ -1491,7 +1514,6 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             xPositive = False
             yPositive = False
 
-        # TODO bounds do not take error bars into account
         if (xPositive, yPositive) not in self._boundsCache:
             # use the getData class method because instance method can be
             # overloaded to return additional arrays
@@ -1500,12 +1522,13 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 # hack to avoid duplicating caching mechanism in Scatter
                 # (happens when cached data is used, caching done using
                 # Scatter._logFilterData)
-                x, y, _xerror, _yerror = data[0], data[1], data[3], data[4]
+                x, y, xerror, yerror = data[0], data[1], data[3], data[4]
             else:
-                x, y, _xerror, _yerror = data
+                x, y, xerror, yerror = data
 
-            xmin, xmax = min_max(x, finite=True)
-            ymin, ymax = min_max(y, finite=True)
+            xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
+            ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
+
             self._boundsCache[(xPositive, yPositive)] = tuple([
                 (bound if bound is not None else numpy.nan)
                 for bound in (xmin, xmax, ymin, ymax)])
@@ -1600,8 +1623,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values.
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param bool copy: True make a copy of the data (default),

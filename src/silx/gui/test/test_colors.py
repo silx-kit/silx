@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2020 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """This module provides the Colormap object
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["H.Payno"]
 __license__ = "MIT"

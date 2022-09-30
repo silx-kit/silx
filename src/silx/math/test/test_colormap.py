@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ############################################################################*/
 """Test for colormap mapping implementation"""
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

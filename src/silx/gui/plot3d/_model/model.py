@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2018 European Synchrotron Radiation Facility
@@ -25,8 +24,6 @@
 """
 This module provides the :class:`SceneWidget` content and parameters model.
 """
-
-from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

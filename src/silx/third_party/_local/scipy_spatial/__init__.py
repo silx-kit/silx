@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017 European Synchrotron Radiation Facility
@@ -27,8 +26,6 @@ Duplicated from scipy.spatial for silx internal use only.
 
 See `SciPy <https://www.scipy.org/>`_
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

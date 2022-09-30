@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -22,8 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-from __future__ import absolute_import
 
 """This module initializes matplotlib and sets-up the backend to use.
 
@@ -143,7 +140,7 @@ def _matplotlib_use(backend, force):
     matplotlib.use(backend, force=force)
 
 
-if qt.BINDING in ("PySide6", "PyQt5", "PySide2"):
+if qt.BINDING in ("PySide6", "PyQt6", "PyQt5", "PySide2"):
     _matplotlib_use("Qt5Agg", force=False)
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 

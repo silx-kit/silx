@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -348,6 +347,8 @@ class TestRoiWidgetSignals(TestCaseQt):
     """Test Signals emitted by the RoiWidgetSignals"""
 
     def setUp(self):
+        super().setUp()
+
         self.plot = Plot1D()
         x = range(20)
         y = range(20)
@@ -368,8 +369,15 @@ class TestRoiWidgetSignals(TestCaseQt):
         self.qWaitForWindowExposed(self.curves_roi_widget)
 
     def tearDown(self):
-        self.plot = None
-        self.curves_roi_widget = None
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+
+        self.curves_roi_widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.curves_roi_widget.close()
+        del self.curves_roi_widget
+
+        super().tearDown()
 
     def testSigROISignalAddRmRois(self):
         """Test SigROISignal when adding and removing ROIS"""

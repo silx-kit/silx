@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +58,7 @@ class TestExternalResources(unittest.TestCase):
             raise unittest.SkipTest("Network or silx website not available")
 
     def setUp(self):
-        self.resources = ExternalResources("toto", "http://www.silx.org/pub/silx/")
+        self.resources = ExternalResources("toto%d" % os.getpid(), "http://www.silx.org/pub/silx/")
 
     def tearDown(self):
         if self.resources.data_home:

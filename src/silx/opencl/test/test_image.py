@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: image manipulation in  OpenCL
 #             https://github.com/silx-kit/silx
@@ -28,8 +27,6 @@
 """
 Simple test of image manipulation
 """
-
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"

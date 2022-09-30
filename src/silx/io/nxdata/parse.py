@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +41,8 @@ Other public functions:
 """
 
 import json
+from typing import Optional
+
 import numpy
 
 from silx.io.utils import is_group, is_file, is_dataset, h5py_read_dataset
@@ -684,8 +685,6 @@ class NXdata(object):
                 return self.group[errors_name]
         # case of uncertainties dataset name provided in @uncertainties
         uncertainties_names = get_attr_as_unicode(self.group, "uncertainties")
-        if uncertainties_names is None:
-            uncertainties_names = get_attr_as_unicode(self.signal, "uncertainties")
         if isinstance(uncertainties_names, str):
             uncertainties_names = [uncertainties_names]
         if uncertainties_names is not None:
@@ -720,15 +719,18 @@ class NXdata(object):
         if not self.is_valid:
             raise InvalidNXdataError("Unable to parse invalid NXdata")
 
-        # case of signal
-        signal_errors = self.signal_dataset_name + "_errors"
-        if "errors" in self.group and is_dataset(self.group["errors"]):
-            errors = "errors"
-        elif signal_errors in self.group and is_dataset(self.group[signal_errors]):
-            errors = signal_errors
-        else:
-            return None
-        return self.group[errors]
+        dataset_names = [
+            # From NXData:
+            "errors",
+            # Not Nexus (VARIABLE_errors is only for axes), but supported anyway
+            self.signal_dataset_name + "_errors",
+        ]
+        for name in dataset_names:
+            entity = self.group.get(name)
+            if entity is not None and is_dataset(entity):
+                return entity
+
+        return None
 
     @property
     def plot_style(self):
@@ -970,35 +972,42 @@ def is_NXroot_with_default_NXdata(group, validate=True):
                                           validate=validate)
 
 
-def get_default(group, validate=True):
-    """Return a :class:`NXdata` object corresponding to the default NXdata group
-    in the group specified as parameter.
-
-    This function can find the NXdata if the group is already a NXdata, or
-    if it is a NXentry defining a default NXdata, or if it is a NXroot
-    defining such a default valid NXentry.
-
-    Return None if no valid NXdata could be found.
-
-    :param group: h5py-like group following the Nexus specification
-        (NXdata, NXentry or NXroot).
-    :param bool validate: Set this to False if you are sure that group
-        is valid NXdata (i.e. :func:`silx.io.nxdata.is_valid_nxdata(group)`
-        returns True). Parameter provided for optimisation purposes.
-    :return: :class:`NXdata` object or None
-    :raise TypeError: if group is not a h5py-like group
-    """
+def _get_default(
+    group,
+    validate: bool,
+    traversed: list,
+) -> Optional[NXdata]:
     if not is_group(group):
         raise TypeError("Provided parameter is not a h5py-like group")
 
-    if is_NXroot_with_default_NXdata(group, validate=validate):
-        default_entry = group[group.attrs["default"]]
-        default_data = default_entry[default_entry.attrs["default"]]
-    elif is_group_with_default_NXdata(group, validate=validate):
-        default_data = group[group.attrs["default"]]
-    elif not validate or is_valid_nxdata(group):
-        default_data = group
-    else:
+    if get_attr_as_unicode(group, "NX_class") == "NXdata":
+        nxdata = NXdata(group, validate=validate)
+        return nxdata if nxdata.is_valid else None
+
+    default_name = get_attr_as_unicode(group, "default")
+    if default_name is None:
         return None
 
-    return NXdata(default_data, validate=False)
+    default_entity = group.get(default_name)
+    if default_entity is None or default_entity in traversed:
+        return None
+
+    try:
+        return _get_default(default_entity, validate, traversed + [default_entity])
+    except TypeError:
+        return None
+
+
+def get_default(group, validate: bool=True) -> Optional[NXdata]:
+    """Find the default :class:`NXdata` group in given group.
+
+    `@default` attributes are recursively followed until finding a group with
+    NX_class="NXdata".
+    Return None if no valid NXdata group could be found.
+
+    :param group: h5py-like group to look for @default NXdata.
+        In cas it is a NXdata group, it is returned.
+    :param validate: False to disable checking the returned NXdata group.
+    :raise TypeError: if group is not a h5py-like group
+    """
+    return _get_default(group, validate, [])

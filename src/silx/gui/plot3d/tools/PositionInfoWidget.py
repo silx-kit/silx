@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 # ###########################################################################*/
 """This module provides a widget that displays data values of a SceneWidget.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

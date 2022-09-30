@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2018 European Synchrotron Radiation Facility
@@ -31,8 +30,6 @@ updated when the scene has changed and not each time Qt is requiring a repaint.
 The :class:`Context` and :class:`ContextGL2` represent the operating system
 OpenGL context and handle OpenGL resources.
 """
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
