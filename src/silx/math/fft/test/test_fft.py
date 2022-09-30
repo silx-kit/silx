@@ -226,6 +226,55 @@ class TestFFT(ParametricTestCase):
             "IFFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
         )
 
+    # silx FFT has three normalization modes:
+    #    - "rescale" (default). FFT is unscaled, IFFT is scaled by 1/N.
+    #      This corresponds to numpy normalize=None i.e normalize="backward"
+    #    - "ortho": FFT/IFFT are both scaled with 1/sqrt(N) so that FFT is unitary.
+    #    - "none": Neither FFT nor IFFT are not scaled, so IFFT(FFT(array)) = N*array
+
+
+    @staticmethod
+    def _compute_numpy_normalized_fft(data, axes, silx_normalization_mode):
+        if silx_normalization_mode in ["rescale", "none"]:
+            return np.fft.rfftn(data, axes=axes, norm=None)
+        elif silx_normalization_mode == "ortho":
+            return np.fft.rfftn(data, axes=axes, norm="ortho")
+        else:
+            raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
+
+    @staticmethod
+    def _compute_numpy_normalized_ifft(data, axes, silx_normalization_mode):
+        if silx_normalization_mode == "rescale":
+            return np.fft.irfftn(data, axes=axes, norm=None)
+        elif silx_normalization_mode == "ortho":
+            return np.fft.irfftn(data, axes=axes, norm="ortho")
+        elif silx_normalization_mode == "none":
+            res =  np.fft.irfftn(data, axes=axes, norm=None)
+            # This assumes a FFT on all the axes, won't work on batched FFT
+            N = res.size
+            return res * N
+        else:
+            raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
+
+    @unittest.skipIf(not __have_fftw__, "fftw back-end requires pyfftw")
+    def test_norm_fftw(self):
+        supported_normalizations = ["rescale", "ortho", "none"]
+
+        data = self.test_data.data
+        tol = self.tol[np.dtype(data.dtype)]
+        for norm in supported_normalizations:
+            fft = FFT(template=data, backend="fftw", normalize=norm)
+            res = fft.fft(data)
+            ref = self._compute_numpy_normalized_fft(data, fft.axes, norm)
+            assert np.allclose(res, ref, atol=tol, rtol=tol), "Something wrong with FFTW norm=%s" % norm
+
+            res2 = fft.ifft(res)
+            ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
+            assert np.allclose(res2, ref2, atol=res2.max()/1e6), "Something wrong with IFFTW norm=%s" % norm
+
+
+
+
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")
 class TestNumpyFFT(ParametricTestCase):
