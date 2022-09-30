@@ -61,7 +61,8 @@ def FFT(
     :param str normalize:
         Whether to normalize FFT and IFFT. Possible values are:
           * "rescale": in this case, Fourier data is divided by "N"
-            before IFFT, so that IFFT(FFT(data)) = data
+            before IFFT, so that IFFT(FFT(data)) = data.
+            This corresponds to numpy norm=None i.e norm="backward".
           * "ortho": in this case, FFT and IFFT are adjoint of eachother,
             the transform is unitary. Both FFT and IFFT are scaled with 1/sqrt(N).
           * "none": no normalizatio is done : IFFT(FFT(data)) = data*N
