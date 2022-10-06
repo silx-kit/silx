@@ -52,8 +52,8 @@ from .utils import concatenate_cl_kernel
 import platform
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
-EventDescription = namedtuple("EventDescription", ["name", "event"])  # Deprecated, please use ProfileDescsription
-ProfileDescsription = namedtuple("ProfileDescsription", ["name", "start", "stop"])
+EventDescription = namedtuple("EventDescription", ["name", "event"])  # Deprecated, please use ProfileDescription
+ProfileDescription = namedtuple("ProfileDescription", ["name", "start", "stop"])
 
 logger = logging.getLogger(__name__)
 
