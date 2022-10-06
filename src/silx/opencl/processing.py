@@ -53,7 +53,7 @@ import platform
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
 EventDescription = namedtuple("EventDescription", ["name", "event"])  # Deprecated, please use ProfileDescsription
-ProfileDescsription = namedtuple("EventDescription", ["name", "start", "stop"])
+ProfileDescsription = namedtuple("ProfileDescsription", ["name", "start", "stop"])
 
 logger = logging.getLogger(__name__)
 
@@ -372,7 +372,7 @@ class OpenclProcessing(object):
                     name = e[0]
                     t0 = e[1]
                     t1 = e[2]
-                elif isinstance(e, ProfileDescsription):
+                elif isinstance(e, EventDescription):
                     name = e[0]
                     pr = e[1].profile
                     t0 = pr.start
