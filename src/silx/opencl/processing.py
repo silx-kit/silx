@@ -332,7 +332,7 @@ class OpenclProcessing(object):
                 if isinstance(event_desc, ProfileDescsription):
                     self.events.append(event_desc)
                 else:
-                    if isinstance(event_desc, EventDescription):
+                    if isinstance(event_desc, EventDescription) or "__len__" in dir(e) and len(e) == 2:
                         desc, event = event_desc
                     else:
                         desc = "?"
@@ -369,7 +369,7 @@ class OpenclProcessing(object):
                     name = e[0]
                     t0 = e[1]
                     t1 = e[2]
-                elif isinstance(e, EventDescription):
+                elif isinstance(e, EventDescription) or "__len__" in dir(e) and len(e) == 2:
                     name = e[0]
                     pr = e[1].profile
                     t0 = pr.start
