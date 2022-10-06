@@ -331,24 +331,21 @@ class OpenclProcessing(object):
             for event_desc in event_lists:
                 if isinstance(event_desc, ProfileDescsription):
                     self.events.append(event_desc)
-
                 else:
                     if isinstance(event_desc, EventDescription):
                         desc, event = event_desc
-                        try:
-                            profile = event.profile
-                            start = profile.start
-                            end = profile.end
-                        except Exception:
-                            continue
                     else:
-                        name = "?"
-                        try:
-                            start = e.profile.start
-                            end = e.profile.end
-                        except Exception:
-                            continue
-                    self.events.append(ProfileDescsription(desc, start, end))
+                        desc = "?"
+                        event = event_desc
+                    try:
+                        profile = event.profile
+                        start = profile.start
+                        end = profile.end
+                    except Exception:
+                        # probably an unfinished job ... use old-style.
+                        self.events.append(event_desc)
+                    else:
+                        self.events.append(ProfileDescsription(desc, start, end))
 
     def log_profile(self, stats=False):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
