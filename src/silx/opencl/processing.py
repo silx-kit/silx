@@ -337,7 +337,7 @@ class OpenclProcessing(object):
                         desc, event = event_desc
                         try:
                             profile = event.profile
-                            start = profile.start,
+                            start = profile.start
                             end = profile.end
                         except Exception:
                             continue
