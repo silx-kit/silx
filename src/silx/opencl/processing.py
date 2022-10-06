@@ -365,7 +365,7 @@ class OpenclProcessing(object):
 
         if self.profile:
             for e in self.events:
-                if isinstance(e, ProfileDescsription):
+                if isinstance(e, ProfileDescription):
                     name = e[0]
                     t0 = e[1]
                     t1 = e[2]
