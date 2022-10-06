@@ -25,8 +25,10 @@
 import numpy as np
 
 from .basefft import BaseFFT, check_version
+
 try:
     import pyfftw
+
     __have_fftw__ = True
 except ImportError:
     __have_fftw__ = False
@@ -52,6 +54,7 @@ class FFTW(BaseFFT):
     :param int num_threads:
         Number of threads for computing FFT.
     """
+
     def __init__(
         self,
         shape=None,
@@ -63,8 +66,11 @@ class FFTW(BaseFFT):
         check_alignment=False,
         num_threads=1,
     ):
-        if not(__have_fftw__):
-            raise ImportError("Please install pyfftw >= %s to use the FFTW back-end" % __required_pyfftw_version__)
+        if not (__have_fftw__):
+            raise ImportError(
+                "Please install pyfftw >= %s to use the FFTW back-end"
+                % __required_pyfftw_version__
+            )
         super().__init__(
             shape=shape,
             dtype=dtype,
@@ -86,17 +92,55 @@ class FFTW(BaseFFT):
             "data_out": self.data_out,
         }
 
+    # About normalization with norm="none", issues about pyfftw version :
+    # --------------- pyfftw 0.12 ---------------
+    # FFT :
+    # normalise_idft --> 1
+    # not normalise_idft --> 1
+    # IFFT :
+    # normalise_idft --> 1 / N
+    # not normalise_idft --> 1
+    # --------------- pyfftw 0.13 ---------------
+    # FFT :
+    # normalise_idft --> 1
+    # not normalise_idft --> 1 / N (this normalization is incorrect, doc says contrary)
+    # IFFT :
+    # normalise_idft --> 1 / N
+    # not normalise_idft --> 1
+
+    # Solution :
+    # select 'normalise_idft' for FFT and 'not normalise_idft' for IFFT
+    # => behavior is the same in both version :)
+
     def set_fftw_flags(self):
-        self.fftw_flags = ('FFTW_MEASURE', ) # TODO
-        self.fftw_planning_timelimit = None # TODO
+        self.fftw_flags = ("FFTW_MEASURE",)  # TODO
+        self.fftw_planning_timelimit = None  # TODO
+
+        # To skip normalization on norm="none", we should
+        # flip 'normalise_idft' to normalize no-where (see comments up):
+        #
+        # and :
+        # ortho (orthogonal normalization)
+        # ortho = True : forward -> 1/sqrt(N), backward -> 1/sqrt(N)
+
         self.fftw_norm_modes = {
-            "rescale": {"ortho": False, "normalize": True},
-            "ortho": {"ortho": True, "normalize": False},
-            "none": {"ortho": False, "normalize": False},
+            "rescale": (
+                {"ortho": False, "normalise_idft": True},  # fft
+                {"ortho": False, "normalise_idft": True},  # ifft
+            ),
+            "ortho": (
+                {"ortho": True, "normalise_idft": False},  # fft
+                {"ortho": True, "normalise_idft": False},  # ifft
+            ),
+            "none": (
+                {"ortho": False, "normalise_idft": True},  # fft
+                {"ortho": False, "normalise_idft": False},  # ifft
+            ),
         }
         if self.normalize not in self.fftw_norm_modes:
-            raise ValueError("Unknown normalization mode %s. Possible values are %s" %
-                (self.normalize, self.fftw_norm_modes.keys())
+            raise ValueError(
+                "Unknown normalization mode %s. Possible values are %s"
+                % (self.normalize, self.fftw_norm_modes.keys())
             )
         self.fftw_norm_mode = self.fftw_norm_modes[self.normalize]
 
@@ -105,12 +149,12 @@ class FFTW(BaseFFT):
 
     def check_array(self, array, shape, dtype, copy=True):
         if array.shape != shape:
-            raise ValueError("Invalid data shape: expected %s, got %s" %
-                (shape, array.shape)
+            raise ValueError(
+                "Invalid data shape: expected %s, got %s" % (shape, array.shape)
             )
         if array.dtype != dtype:
-            raise ValueError("Invalid data type: expected %s, got %s" %
-                (dtype, array.dtype)
+            raise ValueError(
+                "Invalid data type: expected %s, got %s" % (dtype, array.dtype)
             )
 
     def set_data(self, self_array, array, shape, dtype, copy=True, name=None):
@@ -132,7 +176,7 @@ class FFTW(BaseFFT):
         if id(self.refs[name]) == id(array):
             # nothing to do: fft is performed on self.data_in or self.data_out
             arr_to_use = self.refs[name]
-        if self.check_alignment and not(pyfftw.is_byte_aligned(array)):
+        if self.check_alignment and not (pyfftw.is_byte_aligned(array)):
             # If the array is not properly aligned,
             # create a temp. array copy it to self.data_in or self.data_out
             self_array[:] = array[:]
@@ -150,13 +194,10 @@ class FFTW(BaseFFT):
             self.data_in,
             self.data_out,
             axes=self.axes,
-            direction='FFTW_FORWARD',
+            direction="FFTW_FORWARD",
             flags=self.fftw_flags,
             threads=self.num_threads,
             planning_timelimit=self.fftw_planning_timelimit,
-            # the following seems to be taken into account only when using __call__
-            ortho=self.fftw_norm_mode["ortho"],
-            normalise_idft=self.fftw_norm_mode["normalize"],
         )
 
     def compute_inverse_plan(self):
@@ -164,13 +205,10 @@ class FFTW(BaseFFT):
             self.data_out,
             self.data_in,
             axes=self.axes,
-            direction='FFTW_BACKWARD',
+            direction="FFTW_BACKWARD",
             flags=self.fftw_flags,
             threads=self.num_threads,
             planning_timelimit=self.fftw_planning_timelimit,
-            # the following seem to be taken into account only when using __call__
-            ortho=self.fftw_norm_mode["ortho"],
-            normalise_idft=self.fftw_norm_mode["normalize"],
         )
 
     def fft(self, array, output=None):
@@ -186,8 +224,9 @@ class FFTW(BaseFFT):
         data_out = self.set_output_data(output, copy=False)
         self.plan_forward.update_arrays(data_in, data_out)
         # execute.__call__ does both update_arrays() and normalization
-        self.plan_forward(
-            ortho=self.fftw_norm_mode["ortho"],
+        self.plan_forward(  # [0] --> fft
+            ortho=self.fftw_norm_mode[0]["ortho"],
+            normalise_idft=self.fftw_norm_mode[0]["normalise_idft"],
         )
         self.plan_forward.update_arrays(self.refs["data_in"], self.refs["data_out"])
         return data_out
@@ -203,11 +242,13 @@ class FFTW(BaseFFT):
         """
         data_in = self.set_output_data(array, copy=False)
         data_out = self.set_input_data(output, copy=False)
-        self.plan_inverse.update_arrays(data_in, data_out)
+        self.plan_inverse.update_arrays(
+            data_in, data_out
+        )  # TODO why in/out when it is out/in everywhere else in the function
         # execute.__call__ does both update_arrays() and normalization
-        self.plan_inverse(
-            ortho=self.fftw_norm_mode["ortho"],
-            normalise_idft=self.fftw_norm_mode["normalize"]
+        self.plan_inverse(  # [1] --> ifft
+            ortho=self.fftw_norm_mode[1]["ortho"],
+            normalise_idft=self.fftw_norm_mode[1]["normalise_idft"],
         )
         self.plan_inverse.update_arrays(self.refs["data_out"], self.refs["data_in"])
         return data_out
