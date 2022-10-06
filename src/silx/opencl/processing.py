@@ -316,7 +316,7 @@ class OpenclProcessing(object):
         if self.profile:
             try:
                 profile = event.profile
-                self.events.append(ProfileDescsription(desc, profile.start, profile.end))
+                self.events.append(ProfileDescription(desc, profile.start, profile.end))
             except Exception:
                 # Probably the driver does not support profiling
                 pass
