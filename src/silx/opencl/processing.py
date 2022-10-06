@@ -321,6 +321,35 @@ class OpenclProcessing(object):
                 # Probably the driver does not support profiling
                 pass
 
+    def profile_multi(self, event_lists):
+        """
+        Extract profiling info from several OpenCL event, if profiling is enabled.
+
+        :param event_lists: list of ("desc", pyopencl.NanyEvent).
+        """
+        if self.profile:
+            for event_desc in event_lists:
+                if isinstance(event_desc, ProfileDescsription):
+                    self.events.append(event_desc)
+
+                else:
+                    if isinstance(event_desc, EventDescription):
+                        desc, event = event_desc
+                        try:
+                            profile = event.profile
+                            start = profile.start,
+                            end = profile.end
+                        except Exception:
+                            continue
+                    else:
+                        name = "?"
+                        try:
+                            start = e.profile.start
+                            end = e.profile.end
+                        except Exception:
+                            continue
+                    self.events.append(ProfileDescsription(desc, start, end))
+
     def log_profile(self, stats=False):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
         
