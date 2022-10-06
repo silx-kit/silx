@@ -345,7 +345,7 @@ class OpenclProcessing(object):
                         # probably an unfinished job ... use old-style.
                         self.events.append(event_desc)
                     else:
-                        self.events.append(ProfileDescsription(desc, start, end))
+                        self.events.append(ProfileDescription(desc, start, end))
 
     def log_profile(self, stats=False):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
