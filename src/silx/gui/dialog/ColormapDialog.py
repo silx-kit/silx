@@ -699,8 +699,7 @@ class _ColormapHistogram(qt.QWidget):
             if not self._dragging[2]:
                 posRange = posMax - posMin
                 if posRange > 0:
-                    gammaPos = numpy.log(gamma) + 0.5
-                    gammaPos = posMin + (posMax - posMin) * gammaPos
+                    gammaPos = posMin + posRange * 0.5**(1/gamma)
                 else:
                     gammaPos = posMin
                 self._plot.addXMarker(
@@ -1783,12 +1782,18 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setValue(vmax)
         if gammaPos is not None:
             vmin, vmax = self._histoWidget.getFiniteRange()
-            vrange = vmax - vmin
-            if vrange > 0:
-                g = (gammaPos - vmin) / (vmax - vmin)
+            if vmax < vmin:
+                gamma = 1
+            elif gammaPos >= vmax:
+                gamma = self._gammaSpinBox.maximum()
+            elif gammaPos <= vmin:
+                gamma = self._gammaSpinBox.minimum()
             else:
-                g = 0.5
-            gamma = numpy.exp(g - 0.5)
+                gamma = numpy.clip(
+                    numpy.log(0.5)/numpy.log((gammaPos - vmin) / (vmax - vmin)),
+                    self._gammaSpinBox.minimum(),
+                    self._gammaSpinBox.maximum(),
+                )
             with self._colormapChange:
                 colormap.setGammaNormalizationParameter(gamma)
             with utils.blockSignals(self._gammaSpinBox):
