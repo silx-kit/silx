@@ -702,13 +702,17 @@ class _ColormapHistogram(qt.QWidget):
                     gammaPos = posMin + posRange * 0.5**(1/gamma)
                 else:
                     gammaPos = posMin
-                self._plot.addXMarker(
-                    gammaPos,
-                    legend='Gamma',
-                    text='\nGamma',
-                    draggable=True,
-                    color="blue",
-                    constraint=self._plotGammaMarkerConstraint)
+                marker = self._plot._getMarker(
+                    self._plot.addXMarker(
+                        gammaPos,
+                        legend='Gamma',
+                        text='\nGamma',
+                        draggable=True,
+                        color="blue",
+                        constraint=self._plotGammaMarkerConstraint,
+                    )
+                )
+                marker.setZValue(2)
         else:
             try:
                 self._plot.removeMarker('Gamma')
