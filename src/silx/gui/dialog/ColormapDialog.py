@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -231,7 +231,7 @@ class _AutoscaleModeComboBox(qt.QComboBox):
 
     DATA = {
         Colormap.MINMAX: ("Min/max", "Use the data min/max"),
-        Colormap.STDDEV3: ("Mean ± 3 × std", "Use the data mean ± 3 × standard deviation"),
+        Colormap.STDDEV3: ("Mean±3std", "Use the data mean ± 3 × standard deviation"),
     }
 
     def __init__(self, parent: qt.QWidget):
@@ -274,57 +274,20 @@ class _AutoscaleModeComboBox(qt.QComboBox):
         self.setCurrentIndex(self.count() - 1)
 
 
-class _AutoScaleButtons(qt.QWidget):
+class _AutoScaleButton(qt.QPushButton):
 
     autoRangeChanged = qt.Signal(object)
 
     def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent=parent)
-        layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        qt.QPushButton.__init__(self, parent=parent)
+        self.setText("Autoscale")
+        self.setToolTip("Enable/disable the autoscale for both min and max")
+        self.setCheckable(True)
+        self.toggled[bool].connect(self.__toggled)
+        self.setFocusPolicy(qt.Qt.TabFocus)
 
-        self.setFocusPolicy(qt.Qt.NoFocus)
-
-        self._bothAuto = qt.QPushButton(self)
-        self._bothAuto.setText("Autoscale")
-        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
-        self._bothAuto.setCheckable(True)
-        self._bothAuto.toggled[bool].connect(self.__bothToggled)
-        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        self._minAuto = qt.QPushButton(self)
-        self._minAuto.setText("Min")
-        self._minAuto.setToolTip("Enable/disable the autoscale for min")
-        self._minAuto.setCheckable(True)
-        self._minAuto.toggled[bool].connect(self.__minToggled)
-        self._minAuto.setFocusPolicy(qt.Qt.TabFocus)
-        self._minAuto.setVisible(False)
-
-        self._maxAuto = qt.QPushButton(self)
-        self._maxAuto.setText("Max")
-        self._maxAuto.setToolTip("Enable/disable the autoscale for max")
-        self._maxAuto.setCheckable(True)
-        self._maxAuto.toggled[bool].connect(self.__maxToggled)
-        self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
-        self._maxAuto.setVisible(False)
-
-        layout.addWidget(self._minAuto)
-        layout.addWidget(self._maxAuto)
-        layout.addWidget(self._bothAuto)
-
-    def __bothToggled(self, checked):
+    def __toggled(self, checked):
         autoRange = checked, checked
-        self.setAutoRange(autoRange)
-        self.autoRangeChanged.emit(autoRange)
-
-    def __minToggled(self, checked):
-        autoRange = self.getAutoRange()
-        self.setAutoRange(autoRange)
-        self.autoRangeChanged.emit(autoRange)
-
-    def __maxToggled(self, checked):
-        autoRange = self.getAutoRange()
         self.setAutoRange(autoRange)
         self.autoRangeChanged.emit(autoRange)
 
@@ -334,20 +297,8 @@ class _AutoScaleButtons(qt.QWidget):
         self.setAutoRange(autoRange)
 
     def setAutoRange(self, autoRange):
-        if autoRange[0] == autoRange[1]:
-            with utils.blockSignals(self._bothAuto):
-                self._bothAuto.setChecked(autoRange[0])
-        else:
-            with utils.blockSignals(self._bothAuto):
-                self._bothAuto.setChecked(False)
-        with utils.blockSignals(self._minAuto):
-            self._minAuto.setChecked(autoRange[0])
-        with utils.blockSignals(self._maxAuto):
-            self._maxAuto.setChecked(autoRange[1])
-
-    def getAutoRange(self):
-        return self._minAuto.isChecked(), self._maxAuto.isChecked()
-
+        with utils.blockSignals(self):
+            self.setChecked(autoRange[0] if autoRange[0] == autoRange[1] else False)
 
 @enum.unique
 class _DataInPlotMode(enum.Enum):
@@ -699,17 +650,20 @@ class _ColormapHistogram(qt.QWidget):
             if not self._dragging[2]:
                 posRange = posMax - posMin
                 if posRange > 0:
-                    gammaPos = numpy.log(gamma) + 0.5
-                    gammaPos = posMin + (posMax - posMin) * gammaPos
+                    gammaPos = posMin + posRange * 0.5**(1/gamma)
                 else:
                     gammaPos = posMin
-                self._plot.addXMarker(
-                    gammaPos,
-                    legend='Gamma',
-                    text='\nGamma',
-                    draggable=True,
-                    color="blue",
-                    constraint=self._plotGammaMarkerConstraint)
+                marker = self._plot._getMarker(
+                    self._plot.addXMarker(
+                        gammaPos,
+                        legend='Gamma',
+                        text='\nGamma',
+                        draggable=True,
+                        color="blue",
+                        constraint=self._plotGammaMarkerConstraint,
+                    )
+                )
+                marker.setZValue(2)
         else:
             try:
                 self._plot.removeMarker('Gamma')
@@ -954,7 +908,7 @@ class ColormapDialog(qt.QDialog):
 
         self._gammaSpinBox = qt.QDoubleSpinBox(parent=self)
         self._gammaSpinBox.setEnabled(False)
-        self._gammaSpinBox.setRange(0., 1000.)
+        self._gammaSpinBox.setRange(0.01, 100.)
         self._gammaSpinBox.setDecimals(4)
         if hasattr(qt.QDoubleSpinBox, "setStepType"):
             # Introduced in Qt 5.12
@@ -980,7 +934,7 @@ class ColormapDialog(qt.QDialog):
         self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
         self._maxValue.setMinimumWidth(140)
 
-        self._autoButtons = _AutoScaleButtons(self)
+        self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         rangeLayout = qt.QGridLayout()
@@ -1783,12 +1737,18 @@ class ColormapDialog(qt.QDialog):
             self._maxValue.setValue(vmax)
         if gammaPos is not None:
             vmin, vmax = self._histoWidget.getFiniteRange()
-            vrange = vmax - vmin
-            if vrange > 0:
-                g = (gammaPos - vmin) / (vmax - vmin)
+            if vmax < vmin:
+                gamma = 1
+            elif gammaPos >= vmax:
+                gamma = self._gammaSpinBox.maximum()
+            elif gammaPos <= vmin:
+                gamma = self._gammaSpinBox.minimum()
             else:
-                g = 0.5
-            gamma = numpy.exp(g - 0.5)
+                gamma = numpy.clip(
+                    numpy.log(0.5)/numpy.log((gammaPos - vmin) / (vmax - vmin)),
+                    self._gammaSpinBox.minimum(),
+                    self._gammaSpinBox.maximum(),
+                )
             with self._colormapChange:
                 colormap.setGammaNormalizationParameter(gamma)
             with utils.blockSignals(self._gammaSpinBox):
