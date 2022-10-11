@@ -10,6 +10,7 @@ export PYBUILD_AFTER_INSTALL=rm -rf {destdir}/usr/bin/
 export PYBUILD_NAME=silx
 export SPECFILE_USE_GNU_SOURCE=1
 export SILX_FULL_INSTALL_REQUIRES=1
+export SILX_INSTALL_REQUIRES_STRIP=hdf5plugin
 
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
