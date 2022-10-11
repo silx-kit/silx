@@ -53,7 +53,7 @@ def test_datasetslice(temp_h5file, indices):
 
     h5dataset = temp_h5file.create_group("group").create_dataset("dataset", data=data)
 
-    with DatasetSlice(h5dataset, indices) as dset:
+    with DatasetSlice(h5dataset, indices, attrs={}) as dset:
         assert silx.io.is_dataset(dset)
         assert dset.file == temp_h5file
         assert dset.shape == ref_data.shape
@@ -75,7 +75,7 @@ def test_datasetslice_on_external_link(tmp_path):
     with h5py.File(tmp_path / "test.h5", "w") as h5file:
         h5file["group/data"] = h5py.ExternalLink(external_filename, ext_dataset_name)
 
-        with DatasetSlice(h5file["group/data"], slice(None)) as dset:
+        with DatasetSlice(h5file["group/data"], slice(None), attrs={}) as dset:
             assert dset.name == ext_dataset_name
             assert numpy.array_equal(dset[()], data)
 
