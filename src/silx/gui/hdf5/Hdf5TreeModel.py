@@ -39,6 +39,9 @@ from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
 from ... import io as silx_io
 
+import h5py
+
+
 _logger = logging.getLogger(__name__)
 
 
@@ -560,10 +563,25 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         filename = node.obj.filename
         self.insertFileAsync(filename, index.row(), synchronizingNode=node)
 
+    @staticmethod
+    def __areH5pyObjectEqual(obj1, obj2):
+        """Compare commonh5/h5py object without comparing data"""
+        if isinstance(obj1, h5py.HLObject):  # Priority to h5py __eq__
+            return obj1 == obj2
+
+        # else compare commonh5 objects
+        if not isinstance(obj2, type(obj1)):
+            return False
+        def key(item):
+            if item.file is None:
+                return item.name
+            return item.file.filename, item.file.mode, item.name
+        return key(obj1) == key(obj2)
+
     def h5pyObjectRow(self, h5pyObject):
         for row in range(self.__root.childCount()):
             item = self.__root.child(row)
-            if item.obj == h5pyObject:
+            if self.__areH5pyObjectEqual(item.obj, h5pyObject):
                 return row
         return -1
 
@@ -578,7 +596,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj == h5pyObject:
+            if self.__areH5pyObjectEqual(item.obj, h5pyObject):
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.synchronizeIndex(qindex)
             index += 1
@@ -608,7 +626,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         index = 0
         while index < self.__root.childCount():
             item = self.__root.child(index)
-            if item.obj == h5pyObject:
+            if self.__areH5pyObjectEqual(item.obj, h5pyObject):
                 qindex = self.index(index, 0, qt.QModelIndex())
                 self.removeIndex(qindex)
             else:
