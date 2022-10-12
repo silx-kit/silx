@@ -90,6 +90,11 @@ else:  # Then try Qt bindings
 
 if BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')
+    from PyQt5 import QtCore
+    if sys.version_info >= (3, 10) and QtCore.PYQT_VERSION < 0x50e02:
+        raise RuntimeError(
+            "PyQt5 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
+        )
 
     import PyQt5 as QtBinding  # noqa
 
