@@ -448,8 +448,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                     return firstExtSource
 
                 if firstExtSource[0] == ".":
-                    firstExtSource.pop(0)
-                return os.path.join(os.path.dirname(filename), firstExtSource)
+                    return filename + firstExtSource[1:]
+                else:
+                    return os.path.join(os.path.dirname(filename), firstExtSource)
 
             self.__data.addHeaderRow(headerLabel="External sources")
             self.__data.addHeaderValueRow("Type", extType)

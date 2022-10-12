@@ -51,14 +51,15 @@ class _isOpenGLAvailableResult:
         return '<_isOpenGLAvailableResult: %s, "%s">' % (self.status, self.error)
 
 
-def _runtimeOpenGLCheck(version):
+def _runtimeOpenGLCheck(version, shareOpenGLContexts):
     """Run OpenGL check in a subprocess.
 
     This is done by starting a subprocess that displays a Qt OpenGL widget.
 
     :param List[int] version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
-        Default: (2, 1)
+    :param bool shareOpenGLContexts:
+        True to test the `QApplication` with `AA_ShareOpenGLContexts`.
     :return: An error string that is empty if no error occured
     :rtype: str
     """
@@ -68,10 +69,10 @@ def _runtimeOpenGLCheck(version):
         [os.path.abspath(p) for p in sys.path])
 
     try:
-        error = subprocess.check_output(
-            [sys.executable, '-s', '-S', __file__, major, minor],
-            env=env,
-            timeout=2)
+        cmd = [sys.executable, '-s', '-S', __file__, major, minor]
+        if shareOpenGLContexts:
+            cmd.append("--shareOpenGLContexts")
+        error = subprocess.check_output(cmd, env=env, timeout=2)
     except subprocess.TimeoutExpired:
         status = False
         error = "Qt OpenGL widget hang"
@@ -89,7 +90,7 @@ def _runtimeOpenGLCheck(version):
 _runtimeCheckCache = {}  # Cache runtime check results: {version: result}
 
 
-def isOpenGLAvailable(version=(2, 1), runtimeCheck=True):
+def isOpenGLAvailable(version=(2, 1), runtimeCheck=True, shareOpenGLContexts=False):
     """Check if OpenGL is available through Qt and actually working.
 
     After some basic tests, this is done by starting a subprocess that
@@ -98,8 +99,12 @@ def isOpenGLAvailable(version=(2, 1), runtimeCheck=True):
     :param List[int] version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
         Default: (2, 1)
+    :param bool shareOpenGLContexts:
+        True to test the `QApplication` with `AA_ShareOpenGLContexts`.
+        This only can be checked with `runtimeCheck` enabled.
+        Default is false.
     :param bool runtimeCheck:
-        True (default) to run the test creating a Qt OpenGL widgt in a subprocess,
+        True (default) to run the test creating a Qt OpenGL widget in a subprocess,
         False to avoid this check.
     :return: A result object that evaluates to True if successful and
         which has a `status` boolean attribute (True if successful) and
@@ -130,12 +135,13 @@ def isOpenGLAvailable(version=(2, 1), runtimeCheck=True):
 
     result = _isOpenGLAvailableResult(error == '', error)
 
+    keyCache = version, shareOpenGLContexts
     if result:  # No error so far, runtime check
-        if version in _runtimeCheckCache:  # Use cache
-            result = _runtimeCheckCache[version]
+        if keyCache in _runtimeCheckCache:  # Use cache
+            result = _runtimeCheckCache[keyCache]
         elif runtimeCheck:  # Run test in subprocess
-            result = _runtimeOpenGLCheck(version)
-            _runtimeCheckCache[version] = result
+            result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
+            _runtimeCheckCache[keyCache] = result
 
     return result
 
@@ -177,9 +183,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('major')
     parser.add_argument('minor')
+    parser.add_argument('--shareOpenGLContexts', action="store_true")
 
     args = parser.parse_args(args=sys.argv[1:])
 
+    if args.shareOpenGLContexts:
+        qt.QCoreApplication.setAttribute(qt.Qt.AA_ShareOpenGLContexts)
     app = qt.QApplication([])
     window = qt.QMainWindow(flags=
         qt.Qt.Popup |

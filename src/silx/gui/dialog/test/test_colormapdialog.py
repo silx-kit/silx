@@ -217,8 +217,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                         self.assertTrue(self.colormapDiag._minValue.isEnabled())
                         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
                     else:
-                        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
-                        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
+                        self.assertTrue(self.colormapDiag._minValue._numVal.isReadOnly())
+                        self.assertTrue(self.colormapDiag._maxValue._numVal.isReadOnly())
 
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside. For now
@@ -247,13 +247,14 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormap.setVRange(11, 201)
         self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
         self.assertTrue(self.colormapDiag._maxValue.getValue() == 201)
-        self.assertTrue(self.colormapDiag._minValue._numVal.isEnabled())
-        self.assertTrue(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.assertFalse(self.colormapDiag._minValue._numVal.isReadOnly())
+        self.assertFalse(self.colormapDiag._maxValue._numVal.isReadOnly())
         self.assertFalse(self.colormapDiag._minValue.isAutoChecked())
         self.assertFalse(self.colormapDiag._maxValue.isAutoChecked())
         self.colormap.setVRange(None, None)
-        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
-        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.qapp.processEvents()
+        self.assertTrue(self.colormapDiag._minValue._numVal.isReadOnly())
+        self.assertTrue(self.colormapDiag._maxValue._numVal.isReadOnly())
         self.assertTrue(self.colormapDiag._minValue.isAutoChecked())
         self.assertTrue(self.colormapDiag._maxValue.isAutoChecked())
 

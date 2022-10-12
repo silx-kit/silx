@@ -29,26 +29,24 @@ __date__ = "15/01/2020"
 
 
 import logging
-import unittest
+import pytest
+
 from silx.gui.utils.glutils import isOpenGLAvailable
 
 
 _logger = logging.getLogger(__name__)
 
 
-class TestIsOpenGLAvailable(unittest.TestCase):
-    """Test isOpenGLAvailable"""
-
-    def test(self):
-        for version in ((2, 1), (2, 1), (1000, 1)):
-            with self.subTest(version=version):
-                result = isOpenGLAvailable(version=version)
-                _logger.info("isOpenGLAvailable returned: %s", str(result))
-                if version[0] == 1000:
-                    self.assertFalse(result)
-                if not result:
-                    self.assertFalse(result.status)
-                    self.assertTrue(len(result.error) > 0)
-                else:
-                    self.assertTrue(result.status)
-                    self.assertTrue(len(result.error) == 0)
+@pytest.mark.parametrize("params", (((2, 1), False), ((2, 1), False), ((1000, 1), False), ((2, 1), True)))
+def testOpenGLAvailable(params):
+    version, shareOpenGLContexts = params
+    result = isOpenGLAvailable(version=version, shareOpenGLContexts=shareOpenGLContexts)
+    _logger.info("isOpenGLAvailable returned: %s", str(result))
+    if version[0] == 1000:
+        assert not result
+    if not result:
+        assert not result.status
+        assert len(result.error) > 0
+    else:
+        assert result.status
+        assert len(result.error) == 0

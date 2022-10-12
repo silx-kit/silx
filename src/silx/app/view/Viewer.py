@@ -31,6 +31,7 @@ import os
 import collections
 import logging
 import functools
+from typing import Optional
 
 import silx.io.nxdata
 from silx.gui import qt
@@ -261,12 +262,11 @@ class Viewer(qt.QMainWindow):
         indexes = selection.selectedIndexes()
         selectedItems = []
         model = self.__treeview.model()
-        h5files = set([])
+        h5files = []
         while len(indexes) > 0:
             index = indexes.pop(0)
             if index.column() != 0:
                 continue
-            h5 = model.data(index, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
             rootIndex = index
             # Reach the root of the tree
             while rootIndex.parent().isValid():
@@ -274,15 +274,17 @@ class Viewer(qt.QMainWindow):
             rootRow = rootIndex.row()
             relativePath = self.__getRelativePath(model, rootIndex, index)
             selectedItems.append((rootRow, relativePath))
-            h5files.add(h5.file)
+            h5 = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            item = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+            h5files.append((h5, item._openedPath))
 
         if len(h5files) == 0:
             qt.QApplication.restoreOverrideCursor()
             return
 
         model = self.__treeview.findHdf5TreeModel()
-        for h5 in h5files:
-            self.__synchronizeH5pyObject(h5)
+        for h5, filename in h5files:
+            self.__synchronizeH5pyObject(h5, filename)
 
         model = self.__treeview.model()
         itemSelection = qt.QItemSelection()
@@ -297,14 +299,15 @@ class Viewer(qt.QMainWindow):
 
         qt.QApplication.restoreOverrideCursor()
 
-    def __synchronizeH5pyObject(self, h5):
+    def __synchronizeH5pyObject(self, h5, filename: Optional[str] = None):
         model = self.__treeview.findHdf5TreeModel()
         # This is buggy right now while h5py do not allow to close a file
         # while references are still used.
         # FIXME: The architecture have to be reworked to support this feature.
         # model.synchronizeH5pyObject(h5)
 
-        filename = h5.filename
+        if filename is None:
+            filename = f"{h5.file.filename}::{h5.name}"
         row = model.h5pyObjectRow(h5)
         index = self.__treeview.model().index(row, 0, qt.QModelIndex())
         paths = self.__getPathFromExpandedNodes(self.__treeview, index)

@@ -30,8 +30,11 @@ import json
 import logging
 import numpy
 import os.path
-import sys
 import h5py
+try:
+    import pint
+except ImportError:
+    pint = None
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -64,6 +67,8 @@ def _prepare_hdf5_write_value(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
+    if pint is not None and isinstance(array_like, pint.quantity.Quantity):
+        return numpy.array(array_like.magnitude)
     array = numpy.asarray(array_like)
     if numpy.issubdtype(array.dtype, numpy.bytes_):
         return numpy.array(array_like, dtype=vlen_bytes)
@@ -455,6 +460,7 @@ def nexus_to_h5_dict(
                     value = h5py.SoftLink(first)
             elif is_link(value):
                 key = key[1:]
+
         if isinstance(value, Mapping):
             # HDF5 group
             key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
@@ -463,9 +469,15 @@ def nexus_to_h5_dict(
                 parents=parents+(key,),
                 add_nx_class=add_nx_class,
                 has_nx_class=key_has_nx_class)
+
+        elif pint is not None and isinstance(value, pint.quantity.Quantity):
+            copy[key] = value.magnitude
+            copy[(key, "units")] = f"{value.units:~C}"
+
         else:
             # HDF5 dataset or link
             copy[key] = value
+
     if add_nx_class and not has_nx_class:
         _ensure_nx_class(copy, parents)
     return copy

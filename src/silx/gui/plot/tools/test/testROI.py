@@ -576,7 +576,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager.addRoi(item)
         self.qapp.processEvents()
 
-        # Drag the center
+        # Drag the center
         widget = self.plot.getWidgetHandle()
         mx, my = self.plot.dataToPixel(*center)
         self.mouseMove(widget, pos=(mx, my))
