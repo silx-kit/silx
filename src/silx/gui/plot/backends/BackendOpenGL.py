@@ -617,15 +617,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     markerCurve = glutils.GLPlotCurve2D(
                         numpy.array((pixelPos[0],), dtype=numpy.float64),
                         numpy.array((pixelPos[1],), dtype=numpy.float64),
+                        lineStyle=None,
                         marker=item['symbol'],
                         markerColor=item['color'],
                         markerSize=11)
 
-                    context = glutils.RenderContext(
-                        matrix=self.matScreenProj,
-                        isXLog=False,
-                        isYLog=False,
-                        dpi=self.getDotsPerInch())
+                    context.matrix = self.matScreenProj
                     markerCurve.render(context)
                     markerCurve.discard()
 
