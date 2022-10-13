@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,13 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import numpy as np
 
+import os
+from sys import executable as sys_executable
+from socket import gethostname
+from tempfile import gettempdir
+from pathlib import Path
+import numpy as np
 from .basefft import BaseFFT, check_version
 
 try:
@@ -252,3 +257,109 @@ class FFTW(BaseFFT):
         )
         self.plan_inverse.update_arrays(self.refs["data_out"], self.refs["data_in"])
         return data_out
+
+
+
+def get_wisdom_metadata():
+    """
+    Get metadata on the current platform.
+    FFTW wisdom works with varying performance depending on whether the plans are re-used
+    on the same machine/architecture/etc.
+    For more information: https://www.fftw.org/fftw3_doc/Caveats-in-Using-Wisdom.html
+    """
+    return {
+        # "venv"
+        "executable":  sys_executable,
+        # encapsulates sys.platform, platform.machine(), platform.architecture(), platform.libc_ver(), ...
+        "hostname": gethostname(),
+        "available_threads": len(os.sched_getaffinity(0)),
+    }
+
+
+def export_wisdom(fname, on_existing="overwrite"):
+    """
+    Export the current FFTW wisdom to a file.
+
+    :param str fname:
+        Path to the file where the wisdom is to be exported
+    :param str on_existing:
+        What do do when the target file already exists.
+        Possible options are:
+           - raise: raise an error and exit
+           - overwrite: overwrite the file with the current wisdom
+           - append: Import the already existing wisdom, and dump the newly combined wisdom to this file
+    """
+    if os.path.isfile(fname):
+        if on_existing == "raise":
+            raise ValueError("File already exists: %s" % fname)
+        if on_existing == "append":
+            import_wisdom(fname, on_mismatch="ignore") # ?
+    current_wisdom = pyfftw.export_wisdom()
+    res = get_wisdom_metadata()
+    for i, w in enumerate(current_wisdom):
+        res[str(i)] = np.array(w)
+    np.savez_compressed(fname, **res)
+
+
+def import_wisdom(fname, match=["hostname"], on_mismatch="warn"):
+    """
+    Import FFTW wisdom for a .npz file.
+
+    :param str fname:
+        Path to the .npz file containing FFTW wisdom
+    :param list match:
+        List of elements that must match when importing wisdom.
+        If match=["hostname"] (default), this class will only load wisdom that was saved
+        on the current machine, and discard everything else.
+        If match=["hostname", "executable"], wisdom will only be loaded if the file was
+        created on the same machine and by the same python executable.
+    :param str on_mismatch:
+        What to do when the file wisdom does not match the current platform.
+        Available options:
+          - "raise": raise an error (crash)
+          - "warn": print a warning, don't crash
+          - "ignore": do nothing
+    """
+    def handle_mismatch(item, loaded_value, current_value):
+        msg = "Platform configuration mismatch: %s: currently have '%s', loaded '%s'" % (item, current_value, loaded_value)
+        if on_mismatch == "raise":
+            raise ValueError(msg)
+        if on_mismatch == "warn":
+            print(msg)
+
+    wis_metadata = get_wisdom_metadata()
+    loaded_wisdom = np.load(fname)
+    for metadata_name in match:
+        if metadata_name not in wis_metadata:
+            raise ValueError(
+                "Cannot match metadata '%s'. Available are: %s" % (match, str(wis_metadata.keys()))
+            )
+        if loaded_wisdom[metadata_name] != wis_metadata[metadata_name]:
+            handle_mismatch(metadata_name, loaded_wisdom[metadata_name], wis_metadata[metadata_name])
+            return
+    w = tuple(loaded_wisdom[k][()] for k in loaded_wisdom.keys() if k not in wis_metadata.keys())
+    pyfftw.import_wisdom(w)
+
+
+def get_wisdom_file(directory=None, name_template="fftw_wisdom_{whoami}_{hostname}.npz", create_dirs=True):
+    """
+    Get a file path for storing FFTW wisdom.
+
+    :param str directory:
+        Directory where the file is created. By default, files are written in a temporary directory.
+    :param str name_template:
+        File name pattern. The following patterns can be used:
+           - {whoami}: current username
+           - {hostname}: machine name
+    :param bool create_dirs:
+        Whether to create (possibly nested) directories if needed.
+    """
+    directory = directory or gettempdir()
+    file_basename = name_template.format(
+        whoami=os.getlogin(),
+        hostname=gethostname()
+    )
+    out_file = os.path.join(directory, file_basename)
+    if create_dirs:
+        Path(os.path.dirname(out_file)).mkdir(parents=True, exist_ok=True)
+    return out_file
