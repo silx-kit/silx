@@ -901,8 +901,6 @@ class _Points2D(object):
 
         gl.glDrawArrays(gl.GL_POINTS, 0, self.xVboData.size)
 
-        gl.glUseProgram(0)
-
 
 # error bars ##################################################################
 
