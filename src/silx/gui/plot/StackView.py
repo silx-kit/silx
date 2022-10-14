@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -229,7 +229,8 @@ class StackView(qt.QMainWindow):
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
             self._plot.getYAxis().setInverted(True)
 
-        self._addColorBarAction()
+        self._plot.getColorBarAction().setVisible(True)
+        self._plot.getColorBarWidget().setVisible(True)
 
         self._profileToolBar = Profile3DToolBar(parent=self._plot,
                                                 stackview=self)
@@ -281,15 +282,6 @@ class StackView(qt.QMainWindow):
                            nxentry_name=entryPath,
                            signal=self.getStack(copy=False, returnNumpyArray=True)[0],
                            signal_name="image_stack")
-
-    def _addColorBarAction(self):
-        self._plot.getColorBarWidget().setVisible(True)
-        actions = self._plot.toolBar().actions()
-        for index, action in enumerate(actions):
-            if action is self._plot.getColormapAction():
-                break
-        self._colorbarAction = actions_control.ColorBarAction(self._plot, self._plot)
-        self._plot.toolBar().insertAction(actions[index + 1], self._colorbarAction)
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
@@ -1055,7 +1047,7 @@ class StackView(qt.QMainWindow):
 
         :rtype: QAction
         """
-        return self._colorbarAction
+        return self._plot.getColorBarAction()
 
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
