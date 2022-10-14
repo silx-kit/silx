@@ -614,17 +614,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                     # For now simple implementation: using a curve for each marker
                     # Should pack all markers to a single set of points
-                    markerCurve = glutils.GLPlotCurve2D(
-                        numpy.array((pixelPos[0],), dtype=numpy.float64),
-                        numpy.array((pixelPos[1],), dtype=numpy.float64),
-                        lineStyle=None,
+                    marker = glutils.Points2D(
+                        (pixelPos[0],),
+                        (pixelPos[1],),
                         marker=item['symbol'],
-                        markerColor=item['color'],
-                        markerSize=11)
-
+                        color=item['color'],
+                        size=11,
+                    )
                     context.matrix = self.matScreenProj
-                    markerCurve.render(context)
-                    markerCurve.discard()
+                    marker.render(context)
 
             else:
                 _logger.error('Unsupported item: %s', str(item))

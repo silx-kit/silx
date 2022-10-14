@@ -558,7 +558,7 @@ CARET_UP = "caretup"
 CARET_DOWN = "caretdown"
 
 
-class _Points2D(object):
+class Points2D(object):
     """Object rendering curve markers
 
     :param xVboData: X coordinates VBO
@@ -806,8 +806,18 @@ class _Points2D(object):
         self.size = size
         self.offset = offset
 
+        if (xVboData is not None and
+                not isinstance(xVboData, VertexBufferAttrib)):
+            xVboData = numpy.array(xVboData, copy=False, dtype=numpy.float32)
         self.xVboData = xVboData
+
+        if (yVboData is not None and
+                not isinstance(yVboData, VertexBufferAttrib)):
+            yVboData = numpy.array(yVboData, copy=False, dtype=numpy.float32)
         self.yVboData = yVboData
+
+        if colorVboData is not None:
+            assert isinstance(colorVboData, VertexBufferAttrib)
         self.colorVboData = colorVboData
         self.useColorVboData = colorVboData is not None
 
@@ -891,13 +901,30 @@ class _Points2D(object):
             gl.glDisableVertexAttribArray(cAttrib)
             gl.glVertexAttrib4f(cAttrib, *self.color)
 
-        xAttrib = program.attributes['xPos']
-        gl.glEnableVertexAttribArray(xAttrib)
-        self.xVboData.setVertexAttrib(xAttrib)
+        xPosAttrib = program.attributes['xPos']
+        gl.glEnableVertexAttribArray(xPosAttrib)
+        if isinstance(self.xVboData, VertexBufferAttrib):
+            self.xVboData.setVertexAttrib(xPosAttrib)
+        else:
+            gl.glVertexAttribPointer(xPosAttrib,
+                                     1,
+                                     gl.GL_FLOAT,
+                                     False,
+                                     0,
+                                     self.xVboData)
 
-        yAttrib = program.attributes['yPos']
-        gl.glEnableVertexAttribArray(yAttrib)
-        self.yVboData.setVertexAttrib(yAttrib)
+        yPosAttrib = program.attributes['yPos']
+        gl.glEnableVertexAttribArray(yPosAttrib)
+        if isinstance(self.yVboData, VertexBufferAttrib):
+            self.yVboData.setVertexAttrib(yPosAttrib)
+        else:
+            gl.glVertexAttribPointer(yPosAttrib,
+                                     1,
+                                     gl.GL_FLOAT,
+                                     False,
+                                     0,
+                                     self.yVboData)
+
 
         gl.glDrawArrays(gl.GL_POINTS, 0, self.xVboData.size)
 
@@ -954,9 +981,9 @@ class _ErrorBars(object):
 
         self._lines = GLLines2D(
             None, None, color=color, drawMode=gl.GL_LINES, offset=offset)
-        self._xErrPoints = _Points2D(
+        self._xErrPoints = Points2D(
             None, None, color=color, marker=V_LINE, offset=offset)
-        self._yErrPoints = _Points2D(
+        self._yErrPoints = Points2D(
             None, None, color=color, marker=H_LINE, offset=offset)
 
     def _buildVertices(self):
@@ -1188,7 +1215,7 @@ class GLPlotCurve2D(GLPlotItem):
         self.lines.dashPeriod = lineDashPeriod
         self.lines.offset = self.offset
 
-        self.points = _Points2D()
+        self.points = Points2D()
         self.points.marker = marker
         self.points.color = markerColor
         self.points.size = markerSize
@@ -1224,7 +1251,7 @@ class GLPlotCurve2D(GLPlotItem):
     def init(cls):
         """OpenGL context initialization"""
         GLLines2D.init()
-        _Points2D.init()
+        Points2D.init()
 
     def prepare(self):
         """Rendering preparation: build indices and bounding box vertices"""
