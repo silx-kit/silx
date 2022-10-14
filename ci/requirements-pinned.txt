@@ -9,3 +9,6 @@ pybind11  # Required to build pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2020.3.1; sys_platform == 'win32' and python_version < '3.8'
 pyopencl == 2022.1.6; sys_platform == 'win32' and python_version >= '3.8'
+
+# Workaround https://github.com/matplotlib/matplotlib/issues/24155
+PySide6<6.4.0
