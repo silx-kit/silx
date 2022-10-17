@@ -98,6 +98,34 @@ class BandGeometry(NamedTuple):
             )
         )
 
+    @property
+    @functools.lru_cache()
+    def slope(self) -> float:
+        """Slope of the line (begin, end), infinity for a vertical line"""
+        if self.begin.x == self.end.x:
+            return float('inf')
+        return (self.end.y - self.begin.y) / (self.end.x - self.begin.x)
+
+    @property
+    @functools.lru_cache()
+    def intercept(self) -> float:
+        """Intercept of the line (begin, end) or value of x for vertical line"""
+        if self.begin.x == self.end.x:
+            return self.begin.x
+        return self.begin.y - self.slope * self.begin.x
+
+    @property
+    @functools.lru_cache()
+    def edgesIntercept(self) -> Tuple[float, float]:
+        """Intercepts of lines describing band edges"""
+        offset = 0.5 * self.width * self.normal.asarray()
+        if self.begin.x == self.end.x:
+            return self.begin.x - offset[0], self.begin.x + offset[0]
+        return (
+            self.begin.y - offset[1] - self.slope * (self.begin.x - offset[0]),
+            self.begin.y + offset[1] - self.slope * (self.begin.x + offset[0]),
+        )
+
     def contains(self, position: Sequence[float]) -> bool:
         return Polygon(self.corners).is_inside(*position)
 
@@ -120,45 +148,57 @@ class BandROI(HandleBasedROI, items.LineMixIn):
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
-        self._handleBegin = self.addHandle()
-        self._handleEnd = self.addHandle()
-        self._handleCenter = self.addTranslateHandle()
-        self._handleLabel = self.addLabelHandle()
-        self._handleWidthUp = self.addHandle()
-        self._handleWidthUp._setConstraint(self.__handleWidthUpConstraint)
-        self._handleWidthUp.setSymbol("d")
-        self._handleWidthDown = self.addHandle()
-        self._handleWidthDown._setConstraint(self.__handleWidthDownConstraint)
-        self._handleWidthDown.setSymbol("d")
+        self.__isBounded = True
+
+        self.__handleBegin = self.addHandle()
+        self.__handleEnd = self.addHandle()
+        self.__handleCenter = self.addTranslateHandle()
+        self.__handleLabel = self.addLabelHandle()
+        self.__handleWidthUp = self.addHandle()
+        self.__handleWidthUp._setConstraint(self.__handleWidthUpConstraint)
+        self.__handleWidthUp.setSymbol("d")
+        self.__handleWidthDown = self.addHandle()
+        self.__handleWidthDown._setConstraint(self.__handleWidthDownConstraint)
+        self.__handleWidthDown.setSymbol("d")
 
         self.__geometry = BandGeometry.create()
 
+        self.__lineUp = items.Line()
+        self.__lineUp.setVisible(False)
+        self.__lineDown = items.Line()
+        self.__lineDown.setVisible(False)
+
         self.__shape = items.Shape("polygon")
         self.__shape.setPoints(self.__geometry.corners)
-        self.__shape.setColor(rgba(self.getColor()))
         self.__shape.setFill(False)
-        self.__shape.setOverlay(True)
-        self.__shape.setLineStyle(self.getLineStyle())
-        self.__shape.setLineWidth(self.getLineWidth())
-        self.addItem(self.__shape)
+
+        for item in (self.__lineUp, self.__lineDown, self.__shape):
+            item.setColor(rgba(self.getColor()))
+            item.setOverlay(True)
+            item.setLineStyle(self.getLineStyle())
+            item.setLineWidth(self.getLineWidth())
+            self.addItem(item)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
+            self._updateItemProperty(event, self, self.__lineUp)
+            self._updateItemProperty(event, self, self.__lineDown)
             self._updateItemProperty(event, self, self.__shape)
         super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
         super()._updatedStyle(event, style)
-        self.__shape.setColor(style.getColor())
-        self.__shape.setLineStyle(style.getLineStyle())
-        self.__shape.setLineWidth(style.getLineWidth())
+        for item in (self.__lineUp, self.__lineDown, self.__shape):
+            item.setColor(style.getColor())
+            item.setLineStyle(style.getLineStyle())
+            item.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
         self.setGeometry(*points)
 
     def _updateText(self, text):
-        self._handleLabel.setText(text)
+        self.__handleLabel.setText(text)
 
     def getGeometry(self):
         return self.__geometry
@@ -175,24 +215,39 @@ class BandROI(HandleBasedROI, items.LineMixIn):
 
         self.__geometry = geometry
 
-        with utils.blockSignals(self._handleBegin):
-            self._handleBegin.setPosition(*geometry.begin)
-        with utils.blockSignals(self._handleEnd):
-            self._handleEnd.setPosition(*geometry.end)
-        with utils.blockSignals(self._handleCenter):
-            self._handleCenter.setPosition(*geometry.center)
-        with utils.blockSignals(self._handleLabel):
+        with utils.blockSignals(self.__handleBegin):
+            self.__handleBegin.setPosition(*geometry.begin)
+        with utils.blockSignals(self.__handleEnd):
+            self.__handleEnd.setPosition(*geometry.end)
+        with utils.blockSignals(self.__handleCenter):
+            self.__handleCenter.setPosition(*geometry.center)
+        with utils.blockSignals(self.__handleLabel):
             lowerCorner = geometry.corners[numpy.array(geometry.corners)[:, 1].argmin()]
-            self._handleLabel.setPosition(*lowerCorner)
+            self.__handleLabel.setPosition(*lowerCorner)
 
         delta = 0.5 * geometry.width * geometry.normal.asarray()
-        with utils.blockSignals(self._handleWidthUp):
-            self._handleWidthUp.setPosition(*(geometry.center + delta))
-        with utils.blockSignals(self._handleWidthDown):
-            self._handleWidthDown.setPosition(*(geometry.center - delta))
+        with utils.blockSignals(self.__handleWidthUp):
+            self.__handleWidthUp.setPosition(*(geometry.center + delta))
+        with utils.blockSignals(self.__handleWidthDown):
+            self.__handleWidthDown.setPosition(*(geometry.center - delta))
 
+        self.__lineDown.setSlope(geometry.slope)
+        self.__lineDown.setIntercept(geometry.edgesIntercept[0])
+        self.__lineUp.setSlope(geometry.slope)
+        self.__lineUp.setIntercept(geometry.edgesIntercept[1])
         self.__shape.setPoints(geometry.corners)
         self.sigRegionChanged.emit()
+
+    def isBounded(self) -> bool:
+        return self.__isBounded
+
+    def setBounded(self, bounded: bool):
+        bounded = bool(bounded)
+        if self.__isBounded != bounded:
+            self.__isBounded = bounded
+            self.__lineDown.setVisible(not bounded)
+            self.__lineUp.setVisible(not bounded)
+            self.__shape.setVisible(bounded)
 
     def __updateGeometry(
         self,
