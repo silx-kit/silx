@@ -208,27 +208,25 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         )
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        if handle is self._handleBegin:
-            self.__updateGeometry(begin=current)
+        geometry = self.getGeometry()
+        delta = current - previous
+        if handle is self.__handleBegin:
+            self.__updateGeometry(current, geometry.end - delta)
             return
-        if handle is self._handleEnd:
-            self.__updateGeometry(end=current)
+        if handle is self.__handleEnd:
+            self.__updateGeometry(geometry.begin - delta, current)
             return
-        if handle is self._handleCenter:
-            delta = current - previous
-            geometry = self.getGeometry()
+        if handle is self.__handleCenter:
             self.__updateGeometry(geometry.begin + delta, geometry.end + delta)
             return
-        if handle in (self._handleWidthUp, self._handleWidthDown):
-            geometry = self.getGeometry()
-            offset = numpy.dot(geometry.normal, current - previous)
-            delta = 0.5 * offset * geometry.normal.asarray()
-            if handle is self._handleWidthDown:
+        if handle in (self.__handleWidthUp, self.__handleWidthDown):
+            offset = numpy.dot(geometry.normal, delta)
+            if handle is self.__handleWidthDown:
                 offset *= -1
             self.__updateGeometry(
-                geometry.begin + delta,
-                geometry.end + delta,
-                geometry.width + offset,
+                geometry.begin,
+                geometry.end,
+                geometry.width + 2 * offset,
             )
 
     def __handleWidthUpConstraint(self, x: float, y: float) -> Tuple[float, float]:
