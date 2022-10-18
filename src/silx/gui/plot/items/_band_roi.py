@@ -165,6 +165,9 @@ class BandROI(HandleBasedROI, items.LineMixIn):
 
         self.__lineUp = items.Line()
         self.__lineUp.setVisible(False)
+        self.__lineMiddle = items.Line()
+        self.__lineMiddle.setLineWidth(1)
+        self.__lineMiddle.setVisible(False)
         self.__lineDown = items.Line()
         self.__lineDown.setVisible(False)
 
@@ -172,26 +175,29 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(self.__geometry.corners)
         self.__shape.setFill(False)
 
-        for item in (self.__lineUp, self.__lineDown, self.__shape):
+        for item in (self.__lineUp, self.__lineMiddle, self.__lineDown, self.__shape):
             item.setColor(rgba(self.getColor()))
             item.setOverlay(True)
             item.setLineStyle(self.getLineStyle())
-            item.setLineWidth(self.getLineWidth())
+            if item != self.__lineMiddle:
+                item.setLineWidth(self.getLineWidth())
             self.addItem(item)
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
             self._updateItemProperty(event, self, self.__lineUp)
+            self._updateItemProperty(event, self, self.__lineMiddle)
             self._updateItemProperty(event, self, self.__lineDown)
             self._updateItemProperty(event, self, self.__shape)
         super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
         super()._updatedStyle(event, style)
-        for item in (self.__lineUp, self.__lineDown, self.__shape):
+        for item in (self.__lineUp, self.__lineMiddle, self.__lineDown, self.__shape):
             item.setColor(style.getColor())
             item.setLineStyle(style.getLineStyle())
-            item.setLineWidth(style.getLineWidth())
+            if item != self.__lineMiddle:
+                item.setLineWidth(style.getLineWidth())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -233,6 +239,8 @@ class BandROI(HandleBasedROI, items.LineMixIn):
 
         self.__lineDown.setSlope(geometry.slope)
         self.__lineDown.setIntercept(geometry.edgesIntercept[0])
+        self.__lineMiddle.setSlope(geometry.slope)
+        self.__lineMiddle.setIntercept(geometry.intercept)
         self.__lineUp.setSlope(geometry.slope)
         self.__lineUp.setIntercept(geometry.edgesIntercept[1])
         self.__shape.setPoints(geometry.corners)
@@ -246,6 +254,7 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         if self.__isBounded != bounded:
             self.__isBounded = bounded
             self.__lineDown.setVisible(not bounded)
+            self.__lineMiddle.setVisible(not bounded)
             self.__lineUp.setVisible(not bounded)
             self.__shape.setVisible(bounded)
 
