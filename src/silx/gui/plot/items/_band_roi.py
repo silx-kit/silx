@@ -134,7 +134,7 @@ class BandROI(HandleBasedROI, items.LineMixIn):
     in the center to translate the full ROI.
     """
 
-    ICON = "add-shape-diagonal"
+    ICON = "add-shape-rotated-rectangle"
     NAME = "band ROI"
     SHORT_NAME = "band"
     """Metadata for this kind of ROI"""
