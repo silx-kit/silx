@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,17 +34,77 @@ import logging
 import numpy
 
 from ... import colors
+from ..utils.intersections import lines_intersection
 from .core import (
     Item, DataItem,
-    ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn)
+    AlphaMixIn, ColorMixIn, FillMixIn, ItemChangedType, ItemMixInBase, LineMixIn, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)
 
 
+class OverlayMixIn(ItemMixInBase):
+    """Mix-in class for items that can be draw as plot overlays"""
+
+    def __init__(self):
+        self.__overlay = False
+
+    def isOverlay(self) -> bool:
+        """Return true if shape is drawn as an overlay"""
+        return self.__overlay
+
+    def setOverlay(self, overlay: bool):
+        """Set the overlay state of the shape
+
+        :param overlay: True to make it an overlay
+        """
+        overlay = bool(overlay)
+        if overlay != self.__overlay:
+            self.__overlay = overlay
+            self._updated(ItemChangedType.OVERLAY)
+
+
+class _TwoColorsLineMixIn(LineMixIn):
+    """Mix-in class for items with a background color for dashes"""
+
+    def __init__(self):
+        LineMixIn.__init__(self)
+        self.__backgroundColor = None
+
+    def getLineBgColor(self):
+        """Returns the RGBA background color of dash line
+
+        :rtype: 4-tuple of float in [0, 1] or array of colors
+        """
+        return self.__backgroundColor
+
+    def setLineBgColor(self, color, copy: bool=True):
+        """Set dash line background color
+
+        :param color: color(s) to be used
+        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
+            one of the predefined color names defined in colors.py
+        :param copy: True (Default) to get a copy,
+            False to use internal representation (do not modify!)
+        """
+        if color is not None:
+            if isinstance(color, str):
+                color = colors.rgba(color)
+            else:
+                color = numpy.array(color, copy=copy)
+                # TODO more checks + improve color array support
+                if color.ndim == 1:  # Single RGBA color
+                    color = colors.rgba(color)
+                else:  # Array of colors
+                    assert color.ndim == 2
+
+        self.__backgroundColor = color
+        self._updated(ItemChangedType.LINE_BG_COLOR)
+
+
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
-class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
+class Shape(Item, ColorMixIn, FillMixIn, OverlayMixIn, _TwoColorsLineMixIn):
     """Description of a shape item
 
     :param str type_: The type of shape in:
@@ -55,13 +115,11 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         Item.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
-        LineMixIn.__init__(self)
-        self._overlay = False
+        OverlayMixIn.__init__(self)
+        _TwoColorsLineMixIn.__init__(self)
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
         self._type = type_
         self._points = ()
-        self._lineBgColor = None
-
         self._handle = None
 
     def _addBackendRenderer(self, backend):
@@ -77,23 +135,6 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
                                 linestyle=self.getLineStyle(),
                                 linewidth=self.getLineWidth(),
                                 linebgcolor=self.getLineBgColor())
-
-    def isOverlay(self):
-        """Return true if shape is drawn as an overlay
-
-        :rtype: bool
-        """
-        return self._overlay
-
-    def setOverlay(self, overlay):
-        """Set the overlay state of the shape
-
-        :param bool overlay: True to make it an overlay
-        """
-        overlay = bool(overlay)
-        if overlay != self._overlay:
-            self._overlay = overlay
-            self._updated(ItemChangedType.OVERLAY)
 
     def getType(self):
         """Returns the type of shape to draw.
@@ -124,34 +165,6 @@ class Shape(Item, ColorMixIn, FillMixIn, LineMixIn):
         """
         self._points = numpy.array(points, copy=copy)
         self._updated(ItemChangedType.DATA)
-
-    def getLineBgColor(self):
-        """Returns the RGBA color of the item
-        :rtype: 4-tuple of float in [0, 1] or array of colors
-        """
-        return self._lineBgColor
-
-    def setLineBgColor(self, color, copy=True):
-        """Set item color
-        :param color: color(s) to be used
-        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        :param bool copy: True (Default) to get a copy,
-                         False to use internal representation (do not modify!)
-        """
-        if color is not None:
-            if isinstance(color, str):
-                color = colors.rgba(color)
-            else:
-                color = numpy.array(color, copy=copy)
-                # TODO more checks + improve color array support
-                if color.ndim == 1:  # Single RGBA color
-                    color = colors.rgba(color)
-                else:  # Array of colors
-                    assert color.ndim == 2
-
-        self._lineBgColor = color
-        self._updated(ItemChangedType.LINE_BG_COLOR)
 
 
 class BoundingRect(DataItem, YAxisMixIn):
@@ -284,3 +297,109 @@ class YAxisExtent(_BaseExtent, YAxisMixIn):
     def __init__(self):
         _BaseExtent.__init__(self, axis='y')
         YAxisMixIn.__init__(self)
+
+
+class Line(Item, AlphaMixIn, ColorMixIn, OverlayMixIn, _TwoColorsLineMixIn):
+    """Description of a infinite line item as y = slope * x + interecpt
+
+    Warning: If slope is not finite, then the line is x = intercept.
+    """
+
+    def __init__(self, slope: float=0, intercept: float=0):
+        assert numpy.isfinite(intercept)
+
+        Item.__init__(self)
+        AlphaMixIn.__init__(self)
+        ColorMixIn.__init__(self)
+        OverlayMixIn.__init__(self)
+        _TwoColorsLineMixIn.__init__(self)
+        self.__slope = float(slope)
+        self.__intercept = float(intercept)
+        self.__coordinates = None
+        self._setVisibleBoundsTracking(True)
+
+    def __updatePoints(self):
+        if not self.isVisible():
+            return
+
+        plot = self.getPlot()
+        if plot is None or not plot.isVisible():
+            return
+
+        xmin, xmax = plot.getXAxis().getLimits()
+        ymin, ymax = plot.getYAxis().getLimits()
+
+        slope = self.getSlope()
+        intercept = self.getIntercept()
+
+        if not numpy.isfinite(slope):
+            if not xmin <= intercept <= xmax:
+                coordinates = None
+            else:
+                coordinates = (intercept, intercept), (ymin, ymax)
+        else:
+            ycoords = slope * xmin + intercept, slope * xmax + intercept
+
+            if min(ycoords) < ymax and max(ycoords) > ymin:
+                coordinates = (xmin, xmax), ycoords
+            else:
+                coordinates = None
+
+        if coordinates != self.__coordinates:
+            self.__coordinates = coordinates
+            self._updated()
+
+    def _visibleBoundsChanged(self, *args) -> None:
+        """Override method to benefit from bounds tracking"""
+        self.__updatePoints()
+        return super()._visibleBoundsChanged(*args)
+
+    def setSlope(self, slope: float):
+        slope = float(slope)
+        if slope != self.__slope:
+            self.__slope = slope
+            self.__updatePoints()
+            self._updated(ItemChangedType.DATA)
+
+    def getSlope(self) -> float:
+        return self.__slope
+
+    def setIntercept(self, intercept: float):
+        intercept = float(intercept)
+        assert numpy.isfinite(intercept)
+        if intercept != self.__intercept:
+            self.__intercept = intercept
+            self.__updatePoints()
+            self._updated(ItemChangedType.DATA)
+
+    def getIntercept(self) -> float:
+        return self.__intercept
+
+    def setSlopeInterceptFromPoints(self, point0, point1):
+        """Set slope and intercept from 2 (x, y) points"""
+        x0, y0 = point0
+        x1, y1 = point1
+        if x0 == x1: # Special case: vertical line
+            self.setSlope(float("inf"))
+            self.setIntercept(x0)
+            return
+
+        slope = (y1 - y0) / (x1 - x0)
+        self.setSlope(slope)
+        self.setIntercept(y0 - x0 * slope)
+
+    def _addBackendRenderer(self, backend):
+        """Update backend renderer"""
+        if self.__coordinates is None:
+            return None
+
+        return backend.addShape(
+            *self.__coordinates,
+            shape='polylines',
+            color=self.getColor(),
+            fill=False,
+            overlay=self.isOverlay(),
+            linestyle=self.getLineStyle(),
+            linewidth=self.getLineWidth(),
+            linebgcolor=self.getLineBgColor(),
+        )
