@@ -1085,11 +1085,14 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
+
         data = core.ImageProfileData(
             coords=coords,
             profile=profile,
-            title=profileName,
-            xLabel=xLabel,
+            title=_relabelAxes(plot, profileName),
+            xLabel=_relabelAxes(plot, xLabel),
             yLabel="Profile",
             colormap=colormap,
         )
