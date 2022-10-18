@@ -46,9 +46,6 @@ class Point(NamedTuple):
     x: float
     y: float
 
-    def asarray(self) -> numpy.ndarray:
-        return numpy.array((self.x, self.y))
-
 
 class BandGeometry(NamedTuple):
     begin: Point
@@ -64,13 +61,13 @@ class BandGeometry(NamedTuple):
         begin = Point(float(begin[0]), float(begin[1]))
         end = Point(float(end[0]), float(end[1]))
         if width is None:
-            width = 0.1 * numpy.linalg.norm(end.asarray() - begin)
+            width = 0.1 * numpy.linalg.norm(numpy.array(end) - begin)
         return BandGeometry(begin, end, max(0.0, float(width)))
 
     @property
     @functools.lru_cache()
     def normal(self) -> Point:
-        vector = self.end.asarray() - self.begin
+        vector = numpy.array(self.end) - self.begin
         length = numpy.linalg.norm(vector)
         if length == 0:
             return Point(0.0, 0.0)
@@ -79,13 +76,13 @@ class BandGeometry(NamedTuple):
     @property
     @functools.lru_cache()
     def center(self) -> Point:
-        return Point(*(0.5 * (self.begin.asarray() + self.end)))
+        return Point(*(0.5 * (numpy.array(self.begin) + self.end)))
 
     @property
     @functools.lru_cache()
     def corners(self) -> Tuple[Point, Point, Point, Point]:
         """Returns a 4-uple of (x,y) position in float"""
-        offset = 0.5 * self.width * self.normal.asarray()
+        offset = 0.5 * self.width * numpy.array(self.normal)
         return tuple(
             map(
                 lambda p: Point(*p),
@@ -118,7 +115,7 @@ class BandGeometry(NamedTuple):
     @functools.lru_cache()
     def edgesIntercept(self) -> Tuple[float, float]:
         """Intercepts of lines describing band edges"""
-        offset = 0.5 * self.width * self.normal.asarray()
+        offset = 0.5 * self.width * numpy.array(self.normal)
         if self.begin.x == self.end.x:
             return self.begin.x - offset[0], self.begin.x + offset[0]
         return (
@@ -231,7 +228,7 @@ class BandROI(HandleBasedROI, items.LineMixIn):
             lowerCorner = geometry.corners[numpy.array(geometry.corners)[:, 1].argmin()]
             self.__handleLabel.setPosition(*lowerCorner)
 
-        delta = 0.5 * geometry.width * geometry.normal.asarray()
+        delta = 0.5 * geometry.width * numpy.array(geometry.normal)
         with utils.blockSignals(self.__handleWidthUp):
             self.__handleWidthUp.setPosition(*(geometry.center + delta))
         with utils.blockSignals(self.__handleWidthDown):
@@ -295,13 +292,13 @@ class BandROI(HandleBasedROI, items.LineMixIn):
 
     def __handleWidthUpConstraint(self, x: float, y: float) -> Tuple[float, float]:
         geometry = self.getGeometry()
-        offset = max(0, numpy.dot(geometry.normal, (x, y) - geometry.center.asarray()))
-        return tuple(geometry.center + offset * geometry.normal.asarray())
+        offset = max(0, numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center))
+        return tuple(geometry.center + offset * numpy.array(geometry.normal))
 
     def __handleWidthDownConstraint(self, x: float, y: float) -> Tuple[float, float]:
         geometry = self.getGeometry()
-        offset = max(0, -numpy.dot(geometry.normal, (x, y) - geometry.center.asarray()))
-        return tuple(geometry.center - offset * geometry.normal.asarray())
+        offset = max(0, -numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center))
+        return tuple(geometry.center - offset * numpy.array(geometry.normal))
 
     @docstring(_RegionOfInterestBase)
     def contains(self, position):
