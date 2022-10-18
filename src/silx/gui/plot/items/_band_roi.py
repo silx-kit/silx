@@ -203,7 +203,8 @@ class BandROI(HandleBasedROI, items.LineMixIn):
     def _updateText(self, text):
         self.__handleLabel.setText(text)
 
-    def getGeometry(self):
+    def getGeometry(self) -> BandGeometry:
+        """Returns the geometric description of the ROI"""
         return self.__geometry
 
     def setGeometry(
@@ -212,6 +213,12 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         end: Sequence[float],
         width: Optional[float] = None,
     ):
+        """Set the geometry of the ROI
+
+        :param begin: Starting point as (x, y)
+        :paran end: Closing point as (x, y)
+        :param width: Width of the ROI
+        """
         geometry = BandGeometry.create(begin, end, width)
         if self.__geometry == geometry:
             return
@@ -244,9 +251,11 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         self.sigRegionChanged.emit()
 
     def isBounded(self) -> bool:
+        """Returns True for rectangular band, False for unbounded."""
         return self.__isBounded
 
     def setBounded(self, bounded: bool):
+        """Set whether the band is bounded or not."""
         bounded = bool(bounded)
         if self.__isBounded != bounded:
             self.__isBounded = bounded
