@@ -49,6 +49,8 @@ Available icons
      - add-shape-polygon
    * - |add-shape-rectangle|
      - add-shape-rectangle
+   * - |add-shape-rotated-rectangle|
+     - add-shape-rotated-rectangle
    * - |add-shape-unknown|
      - add-shape-unknown
    * - |add-shape-vertical|
@@ -315,6 +317,10 @@ Available icons
      - rotate-3d
    * - |rudder|
      - rudder
+   * - |scale-auto|
+     - scale-auto
+   * - |scale-fixed|
+     - scale-fixed
    * - |selected|
      - selected
    * - |shape-circle-solid|
@@ -421,6 +427,7 @@ Available icons
 .. |add-shape-point| image:: ../../../../src/silx/resources/gui/icons/add-shape-point.png
 .. |add-shape-polygon| image:: ../../../../src/silx/resources/gui/icons/add-shape-polygon.png
 .. |add-shape-rectangle| image:: ../../../../src/silx/resources/gui/icons/add-shape-rectangle.png
+.. |add-shape-rotated-rectangle| image:: ../../../../src/silx/resources/gui/icons/add-shape-rotated-rectangle.png
 .. |add-shape-unknown| image:: ../../../../src/silx/resources/gui/icons/add-shape-unknown.png
 .. |add-shape-vertical| image:: ../../../../src/silx/resources/gui/icons/add-shape-vertical.png
 .. |add| image:: ../../../../src/silx/resources/gui/icons/add.png
@@ -554,6 +561,8 @@ Available icons
 .. |rm| image:: ../../../../src/silx/resources/gui/icons/rm.png
 .. |rotate-3d| image:: ../../../../src/silx/resources/gui/icons/rotate-3d.png
 .. |rudder| image:: ../../../../src/silx/resources/gui/icons/rudder.png
+.. |scale-auto| image:: ../../../../src/silx/resources/gui/icons/scale-auto.png
+.. |scale-fixed| image:: ../../../../src/silx/resources/gui/icons/scale-fixed.png
 .. |selected| image:: ../../../../src/silx/resources/gui/icons/selected.png
 .. |shape-circle-solid| image:: ../../../../src/silx/resources/gui/icons/shape-circle-solid.png
 .. |shape-circle| image:: ../../../../src/silx/resources/gui/icons/shape-circle.png
