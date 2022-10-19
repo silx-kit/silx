@@ -40,14 +40,7 @@ import sys
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 project = u'silx'
-try:
-    import silx
-    project_dir = os.path.abspath(os.path.join(__file__, "..", "..", ".."))
-    build_dir = os.path.abspath(silx.__file__)
-    if not build_dir.startswith(project_dir):
-        raise RuntimeError("%s looks to come from the system. Fix your PYTHONPATH and restart sphinx." % project)
-except ImportError:
-    raise RuntimeError("%s is not on the path. Fix your PYTHONPATH and restart sphinx." % project)
+import silx
 
 # Disable deprecation warnings:
 # It avoid to spam documentation logs with deprecation warnings.
