@@ -278,19 +278,20 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         )
 
     def handleDragUpdated(self, handle, origin, previous, current):
-        geometry = self.getGeometry()
-        delta = current - previous
         if handle is self.__handleBegin:
-            self.__updateGeometry(current, geometry.end - delta)
+            self.__updateGeometry(begin=current)
             return
         if handle is self.__handleEnd:
-            self.__updateGeometry(geometry.begin - delta, current)
+            self.__updateGeometry(end=current)
             return
         if handle is self.__handleCenter:
+            geometry = self.getGeometry()
+            delta = current - previous
             self.__updateGeometry(geometry.begin + delta, geometry.end + delta)
             return
         if handle in (self.__handleWidthUp, self.__handleWidthDown):
-            offset = numpy.dot(geometry.normal, delta)
+            geometry = self.getGeometry()
+            offset = numpy.dot(geometry.normal, current - previous)
             if handle is self.__handleWidthDown:
                 offset *= -1
             self.__updateGeometry(
