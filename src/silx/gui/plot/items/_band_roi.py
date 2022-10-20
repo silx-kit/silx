@@ -25,7 +25,7 @@
 
 import functools
 import logging
-from typing import NamedTuple, Optional, Sequence, Tuple
+from typing import List, NamedTuple, Optional, Sequence, Tuple
 import numpy
 
 from ... import utils
@@ -34,9 +34,9 @@ from ...colors import rgba
 from silx.image.shapes import Polygon
 from ....utils.proxy import docstring
 from ._roi_base import _RegionOfInterestBase
-
-# He following imports have to be exposed by this module
 from ._roi_base import HandleBasedROI
+from ._roi_base import InteractionModeMixIn
+from ._roi_base import RoiInteractionMode
 
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ class BandGeometry(NamedTuple):
         return Polygon(self.corners).is_inside(*position)
 
 
-class BandROI(HandleBasedROI, items.LineMixIn):
+class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -142,10 +142,13 @@ class BandROI(HandleBasedROI, items.LineMixIn):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
+    BoundedMode = RoiInteractionMode("Bounded", "Band is bounded on both sides")
+    UnboundedMode = RoiInteractionMode("Unbounded", "Band is unbounded on both sides")
+
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
-        self.__isBounded = True
+        InteractionModeMixIn.__init__(self)
 
         self.__handleBegin = self.addHandle()
         self.__handleEnd = self.addHandle()
@@ -180,12 +183,37 @@ class BandROI(HandleBasedROI, items.LineMixIn):
                 item.setLineWidth(self.getLineWidth())
             self.addItem(item)
 
+        self._initInteractionMode(self.BoundedMode)
+        self._interactiveModeUpdated(self.BoundedMode)
+
+    def availableInteractionModes(self) -> List[RoiInteractionMode]:
+        """Returns the list of available interaction modes"""
+        return [self.BoundedMode, self.UnboundedMode]
+
+    def _interactiveModeUpdated(self, modeId: RoiInteractionMode):
+        """Set the interaction mode."""
+        if modeId is self.BoundedMode:
+            self.__lineDown.setVisible(False)
+            self.__lineMiddle.setVisible(False)
+            self.__lineUp.setVisible(False)
+            self.__shape.setVisible(True)
+        elif modeId is self.UnboundedMode:
+            self.__lineDown.setVisible(True)
+            self.__lineMiddle.setVisible(True)
+            self.__lineUp.setVisible(True)
+            self.__shape.setVisible(False)
+        else:
+            raise RuntimeError("Unsupported interactive mode")
+
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
-            self._updateItemProperty(event, self, self.__lineUp)
-            self._updateItemProperty(event, self, self.__lineMiddle)
-            self._updateItemProperty(event, self, self.__lineDown)
-            self._updateItemProperty(event, self, self.__shape)
+            if self.isVisible():
+                self._interactiveModeUpdated(self.getInteractionMode())
+            else:
+                self.__lineDown.setVisible(False)
+                self.__lineMiddle.setVisible(False)
+                self.__lineUp.setVisible(False)
+                self.__shape.setVisible(False)
         super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
@@ -249,20 +277,6 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         self.__lineUp.setIntercept(geometry.edgesIntercept[1])
         self.__shape.setPoints(geometry.corners)
         self.sigRegionChanged.emit()
-
-    def isBounded(self) -> bool:
-        """Returns True for rectangular band, False for unbounded."""
-        return self.__isBounded
-
-    def setBounded(self, bounded: bool):
-        """Set whether the band is bounded or not."""
-        bounded = bool(bounded)
-        if self.__isBounded != bounded:
-            self.__isBounded = bounded
-            self.__lineDown.setVisible(not bounded)
-            self.__lineMiddle.setVisible(not bounded)
-            self.__lineUp.setVisible(not bounded)
-            self.__shape.setVisible(bounded)
 
     def __updateGeometry(
         self,
