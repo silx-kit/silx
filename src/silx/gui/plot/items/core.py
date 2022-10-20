@@ -242,6 +242,8 @@ class Item(qt.QObject):
             # When visibility has changed, always mark as dirty
             self._updated(ItemChangedType.VISIBLE,
                           checkVisibility=False)
+            if visible:
+                self._visibleBoundsChanged()
 
     def isOverlay(self):
         """Return true if item is drawn as an overlay.
