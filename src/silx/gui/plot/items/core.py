@@ -492,7 +492,8 @@ class DataItem(Item):
         :param bool checkVisibility:
         """
         if not checkVisibility or self.isVisible():
-            self._visibleBoundsChanged()
+            if self.isVisible():
+                self._visibleBoundsChanged()
 
             # TODO hackish data range implementation
             plot = self.getPlot()
