@@ -707,7 +707,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
         # Initial state
-        self.assertIs(item.getInteractionMode(), roi_items.BandROI.BoundedMode)
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
         self.qWait(500)
 
         # Click on the center
@@ -718,13 +718,23 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.mouseMove(widget, pos=(mx, my))
         self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
         self.qWait(500)
-        self.assertIs(item.getInteractionMode(), roi_items.BandROI.BoundedMode)
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
 
         # Change the mode
         self.mouseMove(widget, pos=(mx, my))
         self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
         self.qWait(500)
-        self.assertIs(item.getInteractionMode(), roi_items.BandROI.UnboundedMode)
+        assert item.getInteractionMode() is roi_items.BandROI.UnboundedMode
+
+        # Set available modes that exclude the current one
+        item.setAvailableInteractionModes([roi_items.BandROI.BoundedMode])
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
+
+        # Clicking does not change the mode since there is only one
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
 
         manager.clear()
         self.qapp.processEvents()
