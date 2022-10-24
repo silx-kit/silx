@@ -25,7 +25,7 @@
 
 import functools
 import logging
-from typing import List, NamedTuple, Optional, Sequence, Tuple
+from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
 import numpy
 
 from ... import utils
@@ -143,11 +143,15 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     """Plot shape which is used for the first interaction"""
 
     BoundedMode = RoiInteractionMode("Bounded", "Band is bounded on both sides")
+    """Interaction mode for a rectangular band ROI"""
+
     UnboundedMode = RoiInteractionMode("Unbounded", "Band is unbounded on both sides")
+    """Interaction mode for unlimited band ROI """
 
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
+        self.__availableInteractionModes = set((self.BoundedMode, self.UnboundedMode))
         InteractionModeMixIn.__init__(self)
 
         self.__handleBegin = self.addHandle()
@@ -188,7 +192,20 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
     def availableInteractionModes(self) -> List[RoiInteractionMode]:
         """Returns the list of available interaction modes"""
-        return [self.BoundedMode, self.UnboundedMode]
+        return list(self.__availableInteractionModes)
+
+    def setAvailableInteractionModes(self, modes: Iterable[RoiInteractionMode]) -> None:
+        """Allows to restrict interaction modes of the ROI.
+
+        :param modes: Subset of BandROI interaction modes:
+            :attr:`BoundedMode` and :attr:`UnboundedMode`.
+        """
+        modes = set(modes)
+        if not modes <= set((self.BoundedMode, self.UnboundedMode)):
+            raise ValueError("Unsupported interaction modes")
+        self.__availableInteractionModes = set(modes)
+        if self.getInteractionMode() not in self.__availableInteractionModes:
+            self.setInteractionMode(self.availableInteractionModes()[0])
 
     def _interactiveModeUpdated(self, modeId: RoiInteractionMode):
         """Set the interaction mode."""
