@@ -28,7 +28,7 @@ import logging
 from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
 import numpy
 
-from ... import utils
+from ... import qt, utils
 from .. import items
 from ...colors import rgba
 from silx.image.shapes import Polygon
@@ -308,20 +308,40 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             geometry.width if width is None else width,
         )
 
+    @staticmethod
+    def __snap(point: Tuple[float, float], fixed: Tuple[float, float]) -> Tuple[float, float]:
+        """Snap point so that vector [point, fixed] snap to direction 0, 45 or 90 degrees
+
+        :return: the snapped point position.
+        """
+        vector = point[0] - fixed[0], point[1] - fixed[1]
+        angle = numpy.arctan2(vector[1], vector[0])
+        snapAngle = numpy.pi/4 * numpy.round(angle / (numpy.pi/4))
+        length = numpy.linalg.norm(vector)
+        return (
+            fixed[0] + length * numpy.cos(snapAngle),
+            fixed[1] + length * numpy.sin(snapAngle)
+        )
+
     def handleDragUpdated(self, handle, origin, previous, current):
+        geometry = self.getGeometry()
         if handle is self.__handleBegin:
+            if qt.QApplication.keyboardModifiers() & qt.Qt.ShiftModifier:
+                self.__updateGeometry(begin=self.__snap(current, geometry.end))
+                return
             self.__updateGeometry(begin=current)
             return
         if handle is self.__handleEnd:
+            if qt.QApplication.keyboardModifiers() & qt.Qt.ShiftModifier:
+                self.__updateGeometry(end=self.__snap(current, geometry.begin))
+                return
             self.__updateGeometry(end=current)
             return
         if handle is self.__handleCenter:
-            geometry = self.getGeometry()
             delta = current - previous
             self.__updateGeometry(geometry.begin + delta, geometry.end + delta)
             return
         if handle in (self.__handleWidthUp, self.__handleWidthDown):
-            geometry = self.getGeometry()
             offset = numpy.dot(geometry.normal, current - previous)
             if handle is self.__handleWidthDown:
                 offset *= -1
