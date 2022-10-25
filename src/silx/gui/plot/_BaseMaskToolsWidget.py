@@ -415,7 +415,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._lastPencilPos = None
         self._multipleMasks = 'exclusive'
 
-        self._maskFileDir = qt.QDir.home().absolutePath()
+        self._maskFileDir = qt.QDir.current().absolutePath()
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
 
@@ -492,7 +492,7 @@ class BaseMaskToolsWidget(qt.QWidget):
     def maskFileDir(self):
         """The directory from which to load/save mask from/to files."""
         if not os.path.isdir(self._maskFileDir):
-            self._maskFileDir = qt.QDir.home().absolutePath()
+            self._maskFileDir = qt.QDir.current().absolutePath()
         return self._maskFileDir
 
     @maskFileDir.setter
