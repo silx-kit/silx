@@ -202,6 +202,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                   f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
 
+        self.__isOpenGLValid = False
+
         self._backgroundColor = 1., 1., 1., 1.
         self._dataBackgroundColor = 1., 1., 1., 1.
 
@@ -288,7 +290,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # OpenGLWidget API
 
     def initializeGL(self):
-        gl.testGL()
+        self.__isOpenGLValid = gl.testGL()
+        if not self.__isOpenGLValid:
+            return
 
         gl.glClearStencil(0)
 
@@ -377,6 +381,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def paintGL(self):
+        if not self.__isOpenGLValid:
+            return
+
         plot = self._plotRef()
         if plot is None:
             return
