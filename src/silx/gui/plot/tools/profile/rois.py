@@ -945,7 +945,7 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         if major_axis:
             # slice in the middle of the scatter
             start = max_grid_second // 2 * max_grid_first
-            vslice = axis[start:start + max_grid_second]
+            vslice = axis[start:start + max_grid_first]
             index = argnearest(vslice, position)
             slicing = slice(index, None, max_grid_first)
         else:
