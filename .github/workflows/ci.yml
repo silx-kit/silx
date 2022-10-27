@@ -23,7 +23,7 @@ jobs:
         include:
           - name-suffix: "PySide2 sdist"
             os: ubuntu-20.04
-            python-version: '3.6'
+            python-version: '3.7'
             BUILD_COMMAND: sdist
             QT_BINDING: PySide2
             RUN_TESTS_OPTIONS: --qt-binding=PySide2 --no-opengl --low-mem

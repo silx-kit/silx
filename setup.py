@@ -776,7 +776,7 @@ def get_project_configuration():
         long_description=get_readme(),
         install_requires=install_requires,
         extras_require=extras_require,
-        python_requires='>=3.5',
+        python_requires='>=3.7',
         cmdclass=cmdclass,
         zip_safe=False,
         entry_points=entry_points,
