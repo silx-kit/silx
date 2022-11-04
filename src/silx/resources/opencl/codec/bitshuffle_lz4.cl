@@ -1,5 +1,5 @@
 /*
- *   Project: SILX: A data analysis tool-kit
+ *   Project: SILX: Bitshuffle LZ4 decompressor
  *
  *   Copyright (C) 2022 European Synchrotron Radiation Facility
  *                           Grenoble, France
@@ -33,8 +33,6 @@
  * - Decompress each block by one workgroup.
  * - bitshuffle the data from one workgroup
  */
-
- // Bitshuffle LZ4 decompressor
 
 #ifndef LZ4_BLOCK_SIZE
 # define LZ4_BLOCK_SIZE 8192
@@ -290,7 +288,7 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
     return dec_idx;
 }
 
-//Perform the bifshuffling
+//Perform the bifshuffling on 32-bits objects
 inline void bitunshuffle32( local uint8_t* inp,
                             local uint8_t* out,
                             const uint32_t buffer_size){ //8k ... or less.
@@ -328,12 +326,12 @@ Param:
 - src: input buffer in global memory
 - size: input buffer size
 - block_position: output buffer in local memory containing the index of the begining of each block
-- max_blocks: allocated memory for block_position array
-- nb_blocks: output buffer with the actual number of blocks in src.
+- max_blocks: allocated memory for block_position array (output)
+- nb_blocks: output buffer with the actual number of blocks in src (output).
 
 Return: Nothing, this is a kernel
 
-Hint on workgroup size: little kernel ...
+Hint on workgroup size: little kernel ... wg=1, 1 wg is enough.
 */
 
 kernel void lz4_unblock(global uint8_t *src,
@@ -358,18 +356,22 @@ kernel void lz4_unblock(global uint8_t *src,
     nb_blocks[0] = block_idx;
 }                    
 
-// decompress a frame blockwise. Needs the block position to be known in advance (block_start).
+// decompress a frame blockwise. 
+// Needs the block position to be known in advance (block_start) calculated from lz4_unblock.
 // one workgroup treats on block.
 
-kernel void bslz4_decompress_block(
-    global uint8_t* comp_src,
-    global uint8_t* dec_dest,
-    global uint64_t* block_start,
-    const uint8_t item_size){
+kernel void bslz4_decompress_block( global uint8_t* comp_src,
+                                    global uint8_t* dec_dest,
+                                    global uint64_t* block_start,
+                                    global uint32_t *nb_blocks,
+                                    const uint8_t item_size){
     
     uint32_t gid = get_group_id(0); // One block is decompressed by one workgroup
     uint32_t lid = get_local_id(0); // This is the thread position in the group...
     uint32_t wg = get_local_size(0); // workgroup size
+    
+    //guard if the number of wg scheduled is too large
+    if (gid >=nb_blocks[0]) return;
     
     // No need to guard, the number of blocks can be calculated in advance.
     uint64_t start_read = block_start[gid];
@@ -438,15 +440,13 @@ kernel void bslz4_decompress_frame(
     
     local uint8_t local_cmp[LZ4_BLOCK_SIZE+LZ4_BLOCK_EXTRA];
     local uint8_t local_dec[LZ4_BLOCK_SIZE];
+    local uint64_t block[2]; // will contain begining and end of the current block
 
     uint64_t start_read, end_read;
     uint32_t cmp_buffer_size;
-    {
-        local uint64_t block[2]; // will contain begining and end of the current block
-        _lz4_unblock(comp_src, src_size, block);
-        start_read = block[0];
-        end_read = block[1];
-    }
+    _lz4_unblock(comp_src, src_size, block);
+    start_read = block[0];
+    end_read = block[1];
     cmp_buffer_size = end_read - start_read; 
     if (cmp_buffer_size == 0){
         if (lid == 0) printf("gid=%u: Empty buffer\n", gid);
