@@ -288,11 +288,65 @@ inline uint32_t lz4_decompress_local_block( local uint8_t* local_cmp,
     return dec_idx;
 }
 
+//Perform the bifshuffling on 8-bits objects
+inline void bitunshuffle8( local uint8_t* inp,
+                            local uint8_t* out,
+                            const uint32_t buffer_size){ //8k ... or less.
+//    uint32_t gid = get_group_id(0);
+    uint32_t lid = get_local_id(0);
+    uint32_t wg = get_local_size(0);
+    uint32_t u8_buffer_size = buffer_size; // /1 -> 8k
+
+    // One thread deals with one or several output data
+    for (uint32_t dpos=lid; dpos<u8_buffer_size; dpos+=wg){
+        uint8_t res = 0;
+        // read bits at several places...
+        for (uint32_t bit=0; bit<8; bit++){
+            uint32_t read_bit = bit*u8_buffer_size + dpos;
+            uint32_t u8_word_pos = read_bit>>3; // /8
+            uint32_t u8_bit_pos = read_bit&7; // %8
+            // if (lid==0) printf("dpos %u bit %u read at %u,%u\n",dpos,bit,u8_word_pos,u8_bit_pos);
+            res |= ((inp[u8_word_pos]>>u8_bit_pos) & 1)<<bit;
+        }
+        // if (lid==0) printf("dpos %u res %u\n",dpos,res);
+        out[dpos] = res;
+    }
+}
+
+
+//Perform the bifshuffling on 16-bits objects
+inline void bitunshuffle16( local uint8_t* inp,
+                            local uint8_t* out,
+                            const uint32_t buffer_size){ //8k ... or less.
+//    uint32_t gid = get_group_id(0);
+    uint32_t lid = get_local_id(0);
+    uint32_t wg = get_local_size(0);
+    uint32_t u16_buffer_size = buffer_size>>1; // /2 -> 4k
+
+    // One thread deals with one or several output data
+    for (uint32_t dpos=lid; dpos<u16_buffer_size; dpos+=wg){
+        uint16_t res = 0;
+        // read bits at several places...
+        for (uint32_t bit=0; bit<16; bit++){
+            uint32_t read_bit = bit*u16_buffer_size + dpos;
+            uint32_t u8_word_pos = read_bit>>3; // /8
+            uint32_t u8_bit_pos = read_bit&7; // %8
+            // if (lid==0) printf("dpos %u bit %u read at %u,%u\n",dpos,bit,u8_word_pos,u8_bit_pos);
+            res |= ((inp[u8_word_pos]>>u8_bit_pos) & 1)<<bit;
+        }
+        // if (lid==0) printf("dpos %u res %u\n",dpos,res);
+        uchar2 tmp = as_uchar2(res);
+        out[2*dpos] = tmp.s0;
+        out[2*dpos+1] = tmp.s1;
+    }
+}
+
+
 //Perform the bifshuffling on 32-bits objects
 inline void bitunshuffle32( local uint8_t* inp,
                             local uint8_t* out,
                             const uint32_t buffer_size){ //8k ... or less.
-    uint32_t gid = get_group_id(0);
+//    uint32_t gid = get_group_id(0);
     uint32_t lid = get_local_id(0);
     uint32_t wg = get_local_size(0);
     uint32_t u32_buffer_size = buffer_size>>2; // /4 -> 2k
@@ -314,6 +368,39 @@ inline void bitunshuffle32( local uint8_t* inp,
         out[4*dpos+1] = tmp.s1;
         out[4*dpos+2] = tmp.s2;
         out[4*dpos+3] = tmp.s3;
+    }
+}
+
+//Perform the bifshuffling on 32-bits objects
+inline void bitunshuffle64( local uint8_t* inp,
+                            local uint8_t* out,
+                            const uint32_t buffer_size){ //8k ... or less.
+//    uint32_t gid = get_group_id(0);
+    uint32_t lid = get_local_id(0);
+    uint32_t wg = get_local_size(0);
+    uint32_t u64_buffer_size = buffer_size>>3; // /8 -> 1k
+
+    // One thread deals with one or several output data
+    for (uint32_t dpos=lid; dpos<u64_buffer_size; dpos+=wg){
+        uint64_t res = 0;
+        // read bits at several places...
+        for (uint32_t bit=0; bit<64; bit++){
+            uint32_t read_bit = bit*u64_buffer_size + dpos;
+            uint32_t u8_word_pos = read_bit>>3; // /8
+            uint32_t u8_bit_pos = read_bit&7; // %8
+            // if (lid==0) printf("dpos %u bit %u read at %u,%u\n",dpos,bit,u8_word_pos,u8_bit_pos);
+            res |= ((inp[u8_word_pos]>>u8_bit_pos) & 1)<<bit;
+        }
+        // if (lid==0) printf("dpos %u res %u\n",dpos,res);
+        uchar8 tmp = as_uchar8(res);
+        out[8*dpos] = tmp.s0;
+        out[8*dpos+1] = tmp.s1;
+        out[8*dpos+2] = tmp.s2;
+        out[8*dpos+3] = tmp.s3;
+        out[8*dpos+4] = tmp.s4;
+        out[8*dpos+5] = tmp.s5;
+        out[8*dpos+6] = tmp.s6;
+        out[8*dpos+7] = tmp.s7;
     }
 }
 
@@ -401,19 +488,34 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
     //All the work is performed here:
     uint32_t dec_size = lz4_decompress_local_block( local_cmp, local_dec, cmp_buffer_size, LZ4_BLOCK_SIZE);
     
-    //Bitshuffle?
     barrier(CLK_LOCAL_MEM_FENCE);
     local uint8_t* local_buffer;
-    //if item_size is 4, perform bit-unshuffle 
-    if (item_size == 4){
-        //32 bits data
-        // if ((lid==0) && (gid+1==get_num_groups(0))) printf("gid %u has %u elements < %u\n",gid, dec_size, LZ4_BLOCK_SIZE);
+    
+    //Perform bit-unshuffle
+    if (item_size == 1){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle8");
+        bitunshuffle8(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+        }
+    else if (item_size == 2){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle16");
+        bitunshuffle16(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+    }
+    else if (item_size == 4){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle32");
         bitunshuffle32(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+    }
+    else if (item_size == 8){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle64");
+        bitunshuffle64(local_dec, local_cmp, dec_size);
         local_buffer=local_cmp;
     }
     else {
         local_buffer = local_dec;
     }
+
         
     //Finally copy the destination data from local to global memory:
     uint64_t start_write = LZ4_BLOCK_SIZE*gid;
@@ -485,14 +587,28 @@ kernel void bslz4_decompress_frame(
     uint32_t dec_size;
     dec_size = lz4_decompress_local_block( local_cmp, local_dec, cmp_buffer_size, LZ4_BLOCK_SIZE);
     
-    //Bitshuffle?
     barrier(CLK_LOCAL_MEM_FENCE);
     local uint8_t* local_buffer;
-    //if item_size is 4, perform bit-unshuffle 
-    if (item_size == 4){
-        //32 bits data
-        // if ((lid==0) && (gid+1==get_num_groups(0))) printf("gid %u has %u elements < %u\n",gid, dec_size, LZ4_BLOCK_SIZE);
+    
+    //Perform bit-unshuffle
+    if (item_size == 1){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle8");
+        bitunshuffle8(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+        }
+    else if (item_size == 2){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle16");
+        bitunshuffle16(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+    }
+    else if (item_size == 4){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle32");
         bitunshuffle32(local_dec, local_cmp, dec_size);
+        local_buffer=local_cmp;
+    }
+    else if (item_size == 8){
+//        if ((gid==0) && (lid==0)) printf("bitunshuffle64");
+        bitunshuffle64(local_dec, local_cmp, dec_size);
         local_buffer=local_cmp;
     }
     else {

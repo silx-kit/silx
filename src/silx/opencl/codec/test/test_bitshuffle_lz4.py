@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 class TestBitshuffle(unittest.TestCase):
 
     @staticmethod
-    def _create_test_data(shape, lam=200, dtype="uint32"):
+    def _create_test_data(shape, lam=100, dtype="uint32"):
         """Create test (image, compressed stream) pair.
 
         :param shape: Shape of test image
@@ -62,19 +62,28 @@ class TestBitshuffle(unittest.TestCase):
         :return: (reference image array, compressed stream)
         """
         ref = numpy.random.poisson(lam, size=shape).astype(dtype)
-        ref.shape = shape
-
         raw = struct.pack(">Q", ref.nbytes) +b"\x00"*4+bitshuffle.compress_lz4(ref).tobytes()
         return ref, raw
 
-    def test_decompress(self):
+    def one_decompression(self, dtype, shape):
         """
         tests the byte offset decompression on GPU
         """
-        dtype = "uint32"
-        shape = (613,587)
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
         res = bs.decompress(raw).get()
         print(numpy.where(res-ref.ravel()))
         self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
+        
+    def test_decompress(self):
+        """
+        tests the byte offset decompression on GPU with various configuration
+        """ 
+        self.one_decompression("uint64", (103,503))
+        self.one_decompression("int64", (101,509))
+        self.one_decompression("uint32", (229,659))
+        self.one_decompression("int32", (233,653))
+        self.one_decompression("uint16", (743,647))
+        self.one_decompression("int16", (751,643))
+        self.one_decompression("uint8", (157,1373))
+        self.one_decompression("int8", (163,1367))
