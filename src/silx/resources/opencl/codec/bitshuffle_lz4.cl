@@ -422,6 +422,18 @@ kernel void bslz4_decompress_block( global uint8_t* comp_src,
         dec_dest[start_write + i] = local_buffer[i];
     }
 
+    if (gid+1==get_num_groups(0)){
+        uint64_t total_nbytes = load64_at(comp_src,0,SWAP_BE);
+        uint64_t end_write = dec_size + start_write;
+        int32_t remaining = total_nbytes - end_write;
+//        if (lid==0) printf("gid %u is last block has %u elements. Writing ends at %u/%lu, copy remaining %d\n",gid, dec_size, end_write, total_nbytes, remaining);
+        if ((remaining>0) && (remaining<item_size*8)){
+            for (uint32_t i=lid; i<remaining; i++){
+                dec_dest[end_write + i] = comp_src[end_read+i];
+            }
+        }
+    }
+
 }
 
 // decompress a frame blockwise. 
