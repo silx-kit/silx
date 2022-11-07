@@ -40,7 +40,7 @@ __status__ = "production"
 
 import os
 import numpy
-from ..common import ocl, pyopencl
+from ..common import ocl, pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
 import logging
@@ -89,6 +89,7 @@ class BitshuffleLz4(OpenclProcessing):
         self.allocate_buffers(buffers, use_array=True)
 
         self.compile_kernels([os.path.join("codec", "bitshuffle_lz4")])
+        self.block_size = min(self.block_size, kernel_workgroup_size(self.program, "bslz4_decompress_block"))
 
     def decompress(self, raw, out=None, wg=None):
         """This function actually performs the decompression by calling the kernels
