@@ -24,17 +24,11 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
-        # Python 3.6
-        - PYTHON_DIR: "C:\\Python36-x64"
+        # Python 3.8
+        - PYTHON_DIR: "C:\\Python38-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
-
-        # Python 3.8
-        - PYTHON_DIR: "C:\\Python38-x64"
-          QT_BINDING: "PySide2"
-          WITH_GL_TEST: True
-          PIP_OPTIONS: "-q"
 
         # Python 3.7
         - PYTHON_DIR: "C:\\Python37-x64"
