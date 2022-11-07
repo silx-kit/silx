@@ -115,6 +115,9 @@ def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRati
     # Remove leading and trailing empty columns/rows but one on each side
     filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
     filled_columns = numpy.nonzero(numpy.sum(array, axis=0))[0]
+    if len(filled_rows) == 0 or len(filled_columns) == 0:
+        return array, image.shape[0] - 1
+
     clipped_array = numpy.ascontiguousarray(
         array[
             max(0, filled_rows[0] - 1) : filled_rows[-1] + 2,

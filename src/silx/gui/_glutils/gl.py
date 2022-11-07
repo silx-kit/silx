@@ -63,7 +63,7 @@ except NameError:
     GLchar = c_char
 
 
-def testGL():
+def testGL() -> bool:
     """Test if required OpenGL version and extensions are available.
 
     This MUST be run with an active OpenGL context.
@@ -71,18 +71,20 @@ def testGL():
     version = glGetString(GL_VERSION).split()[0]  # get version number
     major, minor = int(version[0]), int(version[2])
     if major < 2 or (major == 2 and minor < 1):
-        raise RuntimeError(
-            "Requires at least OpenGL version 2.1, running with %s" % version)
+        _logger.error("OpenGL version >=2.1 required, running with %s" % version)
+        return False
 
     from OpenGL.GL.ARB.framebuffer_object import glInitFramebufferObjectARB
     from OpenGL.GL.ARB.texture_rg import glInitTextureRgARB
 
     if not glInitFramebufferObjectARB():
-        raise RuntimeError(
-            "OpenGL GL_ARB_framebuffer_object extension required !")
+        _logger.error("OpenGL GL_ARB_framebuffer_object extension required!")
+        return False
 
     if not glInitTextureRgARB():
-        raise RuntimeError("OpenGL GL_ARB_texture_rg extension required !")
+        _logger.error("OpenGL GL_ARB_texture_rg extension required!")
+        return False
+    return True
 
 
 # Additional setup
