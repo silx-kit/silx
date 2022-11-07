@@ -34,9 +34,10 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2022 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/11/2022"
+__date__ = "07/11/2022"
 
 import logging
+import struct
 import numpy
 try:
     import bitshuffle
@@ -63,7 +64,7 @@ class TestBitshuffle(unittest.TestCase):
         ref = numpy.random.poisson(lam, size=shape).astype(dtype)
         ref.shape = shape
 
-        raw = b"\x00"*12+bitshuffle.compress_lz4(ref).tobytes()
+        raw = struct.pack(">Q", ref.nbytes) +b"\x00"*4+bitshuffle.compress_lz4(ref).tobytes()
         return ref, raw
 
     def test_decompress(self):
