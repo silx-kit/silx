@@ -34,15 +34,14 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "04/11/2022"
+__date__ = "07/11/2022"
 __status__ = "production"
 
 
-import functools
 import os
 import numpy
 from ..common import ocl, pyopencl
-from ..processing import BufferDescription, EventDescription, OpenclProcessing, ProfileDescription
+from ..processing import BufferDescription, EventDescription, OpenclProcessing
 
 import logging
 logger = logging.getLogger(__name__)
