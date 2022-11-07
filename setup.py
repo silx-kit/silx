@@ -24,7 +24,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/08/2022"
+__date__ = "07/11/2022"
 __license__ = "MIT"
 
 import sys
@@ -517,11 +517,13 @@ def get_project_configuration():
         # extra
         'hdf5plugin',
         'scipy',
-        'Pillow']
+        'Pillow',
+        'bitshuffle']
 
     test_requires = [
         "pytest",
-        "pytest-xvfb"
+        "pytest-xvfb",
+        'bitshuffle'
     ]
 
     extras_require = {
