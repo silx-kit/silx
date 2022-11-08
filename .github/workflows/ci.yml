@@ -21,13 +21,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - name-suffix: "PySide2 sdist"
-            os: ubuntu-20.04
-            python-version: '3.6'
-            BUILD_COMMAND: sdist
-            QT_BINDING: PySide2
-            RUN_TESTS_OPTIONS: --qt-binding=PySide2 --no-opengl --low-mem
-
           - name-suffix: "PyQt5 sdist"
             os: ubuntu-20.04
             python-version: '3.7'
@@ -131,9 +124,6 @@ jobs:
             pip install -r ci/requirements-pinned.txt;
           fi
           pip install --pre -r requirements.txt
-          if [ "${{ matrix.QT_BINDING }}" == "PySide2" ]; then
-            pip install --pre pyside2;
-          fi
           if [ "${{ matrix.QT_BINDING }}" == "PySide6" ]; then
             pip install --pre pyside6;
           fi

@@ -61,7 +61,7 @@ class _ElidedLabel(ElidedLabel):
 
     def sizeHint(self):
         hint = super().sizeHint()
-        nbchar = max(len(self.getText()), 12)
+        nbchar = max(len(self.text()), 12)
         width = self.fontMetrics().boundingRect('#' * nbchar).width()
         return qt.QSize(max(hint.width(), width), hint.height())
 
