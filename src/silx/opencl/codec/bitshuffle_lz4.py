@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "07/11/2022"
+__date__ = "09/11/2022"
 __status__ = "production"
 
 
@@ -66,6 +66,14 @@ class BitshuffleLz4(OpenclProcessing):
                  ctx=None, devicetype="all",
                  platformid=None, deviceid=None,
                  block_size=None, profile=False):
+        """Constructor of the class:
+        
+        :param cmp_size: size of the compressed data buffer (in bytes)
+        :param dec_size: size of the compressed data buffer (in words)
+        :param dtype: data type of one work in decompressed array
+        
+        For the other, see the doc of OpenclProcessing
+        """
         OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
                                   platformid=platformid, deviceid=deviceid,
                                   block_size=block_size, profile=profile)
