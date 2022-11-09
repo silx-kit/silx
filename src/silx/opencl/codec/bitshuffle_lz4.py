@@ -124,13 +124,13 @@ class BitshuffleLz4(OpenclProcessing):
                                         raw,
                                         is_blocking=False)
             dest_size = struct.unpack(">Q", raw[:8])
-            self_dest_nbyte = self.dec_size*self.dtype.itemsize
+            self_dest_nbyte = self.dec_size * self.dec_dtype.itemsize
             if dest_size<self_dest_nbyte:
-                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1)//self.LZ4_BLOCK_SIZE)
+                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
             elif dest_size>self_dest_nbyte:
-                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1)//self.LZ4_BLOCK_SIZE)
-                self.cl_mem["dec"] = pyopencl.array.empty(self.queue,dest_size , self.dtype)
-                self.dec_size = dest_size//self.dtype.itemsize 
+                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
+                self.cl_mem["dec"] = pyopencl.array.empty(self.queue,dest_size , self.dec_dtype)
+                self.dec_size = dest_size // self.dec_dtype.itemsize 
             else:
                 num_blocks = self.num_blocks
                 
