@@ -39,6 +39,7 @@ __status__ = "production"
 
 
 import os
+import struct
 import numpy
 from ..common import ocl, pyopencl, kernel_workgroup_size
 from ..processing import BufferDescription, EventDescription, OpenclProcessing
@@ -122,12 +123,23 @@ class BitshuffleLz4(OpenclProcessing):
                                         self.cl_mem["cmp"].data,
                                         raw,
                                         is_blocking=False)
+            dest_size = struct.unpack(">Q", raw[:8])
+            self_dest_nbyte = self.dec_size*self.dtype.itemsize
+            if dest_size<self_dest_nbyte:
+                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1)//self.LZ4_BLOCK_SIZE)
+            elif dest_size>self_dest_nbyte:
+                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1)//self.LZ4_BLOCK_SIZE)
+                self.cl_mem["dec"] = pyopencl.array.empty(self.queue,dest_size , self.dtype)
+                self.dec_size = dest_size//self.dtype.itemsize 
+            else:
+                num_blocks = self.num_blocks
+                
             events.append(EventDescription("copy raw H -> D", evt))
             evt = self.program.lz4_unblock(self.queue, (1,), (1,), 
                                            self.cl_mem["cmp"].data,
                                            len_raw,
                                            self.cl_mem["block_position"].data,
-                                           self.num_blocks,
+                                           num_blocks,
                                            self.cl_mem["nb_blocks"].data)
             events.append(EventDescription("LZ4 unblock", evt))
 
