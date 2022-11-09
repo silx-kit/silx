@@ -3,7 +3,7 @@
 
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
---only-binary numpy,h5py,scipy,PySide2,PyQt5,PySide6,PyQt6
+--only-binary numpy,h5py,scipy,PyQt5,PySide6,PyQt6
 
 # Required dependencies (from setup.py setup_requires and install_requires)
 numpy >= 1.12

@@ -20,8 +20,6 @@ For a complete description of the API, see :mod:`silx.gui.plot`.
 Use :mod:`silx.gui.plot` from (I)Python console
 -----------------------------------------------
 
-We recommend to use (I)Python >=3.6 and PyQt5.
-
 From a Python or IPython interpreter, the simplest way is to import the :mod:`silx.sx` module:
 
 >>> from silx import sx

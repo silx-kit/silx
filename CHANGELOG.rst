@@ -1,10 +1,137 @@
 Change Log
 ==========
 
+1.1.0: 2022/10/27
+-----------------
+
+This is the last version of `silx` supporting Python 3.6 and `PySide2`.
+Next version will require Python >= 3.7
+
+This is the first version of `silx` supporting `PyQt6` (for `Qt6`).
+Please note that `PyQt6` >= v6.3.0 is required.
+
+* `silx view`:
+
+  * Improved wildcard support in filename and data path (PR #3663)
+  * Enabled plot grid by default for curve plots (PR #3667)
+  * Fixed refresh for content opened as `file.h5::/path` (PR #3665)
+
+* `silx.gui`:
+
+  * Added support of `PyQt6` >= 6.3.0 (PR #3655)
+  * Fixed `matplotlib`>=3.6.0 and `PySide6` support (PR #3639)
+  * Fixed `PySide6` >=6.2.2 support (PR #3581)
+  * Fixed Python 3.10 with `PyQt5` support (PR #3591)
+  * Fixed crashes on exit when deriving `QApplication` (PR #3588)
+  * Deprecated `PySide2` support (PR #3648)
+  * Fixed: raise exception early when using a version of `PyQt5` incompatible with Python 3.10 (PR #3694)
+
+  * `silx.gui.data`:
+
+    * Updated: Do not keep aspect ratio in `NXdata` image views when axes `@units` are different (PR #3660)
+    * `silx.gui.data.ArrayTableWidget`: Updated to edit without clearing previous data (PR #3686)
+    * `silx.gui.data.DataViewer`: Added `selectionChanged` signal (PR #3646)
+    * `silx.gui.data.Hdf5TableView`: Fixed for virtual datasets in the same file (PR #3572)
+
+  * `silx.gui.dialog.ColormapDialog`: Updated layout and presentation of the features (PR #3671, #3609)
+
+  * `silx.gui.hdf5`: Fixed issue with unsupported hdf5 entity (e.g. datatype) (PR #3643)
+
+  * `silx.gui.plot`:
+
+    * `silx.gui.plot.items`:
+
+      * Added `BandROI` item (PR #3680, #3702, #3707)
+      * Updated to take errorbars into account for item bounds (PR #3647)
+      * Fixed `ArcROI` display (PR #3617)
+      * Fixed error logs for scatter triangle visualisation with aligned points (PR #3644)
+
+    * `silx.gui.plot.MaskToolsWidget`: Changed mask load/save default directory (PR #3704)
+
+    * `silx.gui.plot.PlotWidget`:
+
+      * Fixed time axis with values outside of supported range ]0, 10000[ years (PR 3597)
+      * Fixed matplotlib backend replot failure under specific conditions (PR #3590)
+
+      * `silx.gui.PlotWidget`'s OpenGL backend:
+
+        * Added support of LaTex-like math syntax to text display (PR #3600)
+        * Updated text label background to be less transparent (PR #3593)
+        * Fixed dashed curve rendering (PR #3596)
+        * Fixed image rendering of arcsinh colormap for uint8 and uint16 data (PR #3604)
+        * Fixed rendering on some GPU (PR #3695)
+        * Fixed empty text support (PR #3701)
+	* Fixed: Avoid rendering when OpenGL version/extension check fails (PR #3707)
+
+    * `silx.gui.plot.PlotWindow`: Fixed management of DockWidgets when showing/hiding the `PlotWindow` (PR #3631)
+    * `silx.gui.plot.PositionInfo`: Improved picking (PR #3640)
+    * `silx.gui.plot.StackView`: Updated toolbar implementation (PR #3697)
+
+    * `silx.gui.plot.stats`: Fixed warnings when all data is outside the selected stats region (PR #3659)
+    * `silx.gui.plot.tools`:
+
+      * Added snapping to profile curve (PR #3640)
+      * Fixed handling of `disconnect` exception (PR #3692)
+      * Fixed label formatting for 2D profile tool (PR #3698)
+      * Fixed computation of the slice profile (PR #3708)
+
+  * `silx.gui.utils.glutils.isOpenGLAvailable`: Added possibility to check `AA_ShareOpenGLContexts` (PR #3688)
+  * `silx.gui.widgets.ElidedLabel`: Fixed API inherited from `QLabel` (PR #3650, #3707)
+
+* `silx.io`:
+
+  * `silx.io.dictdump`:
+
+    * Added "info" logs when an entity is not copied to the output HDF5 file `dicttoh5` (PR #3664)
+    * Added support of `pint` in `dicttoh5` and `dicttonx` (PR #3683)
+
+  * `silx.io.nxdata`:
+
+    * Updated `get_default` to be more permissive and follow `@default` recursively (PR #3662)
+    * Updated error dataset retrieval (PR #3657, #3672)
+
+  * `silx.io.specfile`:
+
+    * Fixed buffer overflow for too long motor or label (PR #3622)
+    * Fixed missing data if there is a trailing space in the mca array (PR #3612)
+
+  * `silx.io.utils.retry`: Added retry for generator functions (PR #3679)
+
+* `silx.math`:
+
+  * `silx.math.histogram`:
+
+    * Added support of `uint16` weights for LUT histogram (PR #3670)
+    * Fixed `Histogramnd` computation on arrays with more than 2**31-1 samples (PR #3599)
+
+  * `silx.math.fft`:
+
+    * Added `export_wisdom()` and `import_wisdom()` (PR #3623)
+    * Fixed normalization modes, notably account for regression in `pyfftw` normalization (PR #3625)
+    * Fixed avoid creating OpenCL/Cuda contexts when not needed (PR #3587)
+
+  * `silx.math.fit`: Updated documentation (PR #3582)
+
+* `silx.opencl`: Updated OpenCL profiling, fixed memory leak (PR #3690)
+
+* `silx.utils.ExternalResources`: Stored downloaded data checksum (PR #3580)
+
+* Miscellaneous:
+
+  * Added `SILX_INSTALL_REQUIRES_STRIP` build configuration environment variable (PR #3602)
+  * Added optional use of `sphinx_autodoc_typehints` to generate the documentation (PR #3668)
+  * Updated build and development tools to remove dependency to `distutils` and `numpy.distutils` (PR #3583, #3585, #3613, #3649, #3651, #3653, #3658, #3661, #3678)
+  * Updated Windows installer (PR #3642)
+  * Updated documentation (PR #3699, #3709)
+  * Updated after 1.0.0 release (PR #3560, #3569)
+  * Fixed tests and continuous integration (PR #3632, #3637, #3639, #3685)
+  * Fixed Debian/Ubuntu packaging (PR #3693)
+  * Cleaned-up Python 2 compatibility code (PR #3673)
+
 1.0.0: 2021/12/06
 -----------------
 
-This the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pytest` to run the tests.
+This is the first version of `silx` supporting `PySide6` (for `Qt6`) and using `pytest` to run the tests.
 
 * `silx view`:
 

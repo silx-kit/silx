@@ -25,18 +25,18 @@
 
 import functools
 import logging
-from typing import NamedTuple, Optional, Sequence, Tuple
+from typing import Iterable, List, NamedTuple, Optional, Sequence, Tuple
 import numpy
 
-from ... import utils
+from ... import qt, utils
 from .. import items
 from ...colors import rgba
 from silx.image.shapes import Polygon
 from ....utils.proxy import docstring
 from ._roi_base import _RegionOfInterestBase
-
-# He following imports have to be exposed by this module
 from ._roi_base import HandleBasedROI
+from ._roi_base import InteractionModeMixIn
+from ._roi_base import RoiInteractionMode
 
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ class BandGeometry(NamedTuple):
         return Polygon(self.corners).is_inside(*position)
 
 
-class BandROI(HandleBasedROI, items.LineMixIn):
+class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     """A ROI identifying a line in a 2D plot.
 
     This ROI provides 1 anchor for each boundary of the line, plus an center
@@ -142,10 +142,17 @@ class BandROI(HandleBasedROI, items.LineMixIn):
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
+    BoundedMode = RoiInteractionMode("Bounded", "Band is bounded on both sides")
+    """Interaction mode for a rectangular band ROI"""
+
+    UnboundedMode = RoiInteractionMode("Unbounded", "Band is unbounded on both sides")
+    """Interaction mode for unlimited band ROI """
+
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
         items.LineMixIn.__init__(self)
-        self.__isBounded = True
+        self.__availableInteractionModes = set((self.BoundedMode, self.UnboundedMode))
+        InteractionModeMixIn.__init__(self)
 
         self.__handleBegin = self.addHandle()
         self.__handleEnd = self.addHandle()
@@ -180,12 +187,50 @@ class BandROI(HandleBasedROI, items.LineMixIn):
                 item.setLineWidth(self.getLineWidth())
             self.addItem(item)
 
+        self._initInteractionMode(self.BoundedMode)
+        self._interactiveModeUpdated(self.BoundedMode)
+
+    def availableInteractionModes(self) -> List[RoiInteractionMode]:
+        """Returns the list of available interaction modes"""
+        return list(self.__availableInteractionModes)
+
+    def setAvailableInteractionModes(self, modes: Iterable[RoiInteractionMode]) -> None:
+        """Allows to restrict interaction modes of the ROI.
+
+        :param modes: Subset of BandROI interaction modes:
+            :attr:`BoundedMode` and :attr:`UnboundedMode`.
+        """
+        modes = set(modes)
+        if not modes <= set((self.BoundedMode, self.UnboundedMode)):
+            raise ValueError("Unsupported interaction modes")
+        self.__availableInteractionModes = set(modes)
+        if self.getInteractionMode() not in self.__availableInteractionModes:
+            self.setInteractionMode(self.availableInteractionModes()[0])
+
+    def _interactiveModeUpdated(self, modeId: RoiInteractionMode):
+        """Set the interaction mode."""
+        if modeId is self.BoundedMode:
+            self.__lineDown.setVisible(False)
+            self.__lineMiddle.setVisible(False)
+            self.__lineUp.setVisible(False)
+            self.__shape.setVisible(True)
+        elif modeId is self.UnboundedMode:
+            self.__lineDown.setVisible(True)
+            self.__lineMiddle.setVisible(True)
+            self.__lineUp.setVisible(True)
+            self.__shape.setVisible(False)
+        else:
+            raise RuntimeError("Unsupported interactive mode")
+
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
-            self._updateItemProperty(event, self, self.__lineUp)
-            self._updateItemProperty(event, self, self.__lineMiddle)
-            self._updateItemProperty(event, self, self.__lineDown)
-            self._updateItemProperty(event, self, self.__shape)
+            if self.isVisible():
+                self._interactiveModeUpdated(self.getInteractionMode())
+            else:
+                self.__lineDown.setVisible(False)
+                self.__lineMiddle.setVisible(False)
+                self.__lineUp.setVisible(False)
+                self.__shape.setVisible(False)
         super()._updated(event, checkVisibility)
 
     def _updatedStyle(self, event, style):
@@ -250,20 +295,6 @@ class BandROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setPoints(geometry.corners)
         self.sigRegionChanged.emit()
 
-    def isBounded(self) -> bool:
-        """Returns True for rectangular band, False for unbounded."""
-        return self.__isBounded
-
-    def setBounded(self, bounded: bool):
-        """Set whether the band is bounded or not."""
-        bounded = bool(bounded)
-        if self.__isBounded != bounded:
-            self.__isBounded = bounded
-            self.__lineDown.setVisible(not bounded)
-            self.__lineMiddle.setVisible(not bounded)
-            self.__lineUp.setVisible(not bounded)
-            self.__shape.setVisible(bounded)
-
     def __updateGeometry(
         self,
         begin: Optional[Sequence[float]] = None,
@@ -277,20 +308,41 @@ class BandROI(HandleBasedROI, items.LineMixIn):
             geometry.width if width is None else width,
         )
 
+    @staticmethod
+    def __snap(point: Tuple[float, float], fixed: Tuple[float, float]) -> Tuple[float, float]:
+        """Snap point so that vector [point, fixed] snap to direction 0, 45 or 90 degrees
+
+        :return: the snapped point position.
+        """
+        vector = point[0] - fixed[0], point[1] - fixed[1]
+        angle = numpy.arctan2(vector[1], vector[0])
+        snapAngle = numpy.pi/4 * numpy.round(angle / (numpy.pi/4))
+        length = numpy.linalg.norm(vector)
+        return (
+            fixed[0] + length * numpy.cos(snapAngle),
+            fixed[1] + length * numpy.sin(snapAngle)
+        )
+
     def handleDragUpdated(self, handle, origin, previous, current):
         geometry = self.getGeometry()
-        delta = current - previous
         if handle is self.__handleBegin:
-            self.__updateGeometry(current, geometry.end - delta)
+            if qt.QApplication.keyboardModifiers() & qt.Qt.ShiftModifier:
+                self.__updateGeometry(begin=self.__snap(current, geometry.end))
+                return
+            self.__updateGeometry(begin=current)
             return
         if handle is self.__handleEnd:
-            self.__updateGeometry(geometry.begin - delta, current)
+            if qt.QApplication.keyboardModifiers() & qt.Qt.ShiftModifier:
+                self.__updateGeometry(end=self.__snap(current, geometry.begin))
+                return
+            self.__updateGeometry(end=current)
             return
         if handle is self.__handleCenter:
+            delta = current - previous
             self.__updateGeometry(geometry.begin + delta, geometry.end + delta)
             return
         if handle in (self.__handleWidthUp, self.__handleWidthDown):
-            offset = numpy.dot(geometry.normal, delta)
+            offset = numpy.dot(geometry.normal, current - previous)
             if handle is self.__handleWidthDown:
                 offset *= -1
             self.__updateGeometry(

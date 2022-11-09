@@ -43,11 +43,12 @@ from .core import (
 _logger = logging.getLogger(__name__)
 
 
-class OverlayMixIn(ItemMixInBase):
-    """Mix-in class for items that can be draw as plot overlays"""
+class _OverlayItem(Item):
+    """Item with settable overlay"""
 
     def __init__(self):
         self.__overlay = False
+        Item.__init__(self)
 
     def isOverlay(self) -> bool:
         """Return true if shape is drawn as an overlay"""
@@ -104,7 +105,7 @@ class _TwoColorsLineMixIn(LineMixIn):
 
 # TODO probably make one class for each kind of shape
 # TODO check fill:polygon/polyline + fill = duplicated
-class Shape(Item, ColorMixIn, FillMixIn, OverlayMixIn, _TwoColorsLineMixIn):
+class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
     """Description of a shape item
 
     :param str type_: The type of shape in:
@@ -112,10 +113,9 @@ class Shape(Item, ColorMixIn, FillMixIn, OverlayMixIn, _TwoColorsLineMixIn):
     """
 
     def __init__(self, type_):
-        Item.__init__(self)
+        _OverlayItem.__init__(self)
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
-        OverlayMixIn.__init__(self)
         _TwoColorsLineMixIn.__init__(self)
         assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
         self._type = type_
@@ -299,7 +299,7 @@ class YAxisExtent(_BaseExtent, YAxisMixIn):
         YAxisMixIn.__init__(self)
 
 
-class Line(Item, AlphaMixIn, ColorMixIn, OverlayMixIn, _TwoColorsLineMixIn):
+class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
     """Description of a infinite line item as y = slope * x + interecpt
 
     Warning: If slope is not finite, then the line is x = intercept.
@@ -308,10 +308,9 @@ class Line(Item, AlphaMixIn, ColorMixIn, OverlayMixIn, _TwoColorsLineMixIn):
     def __init__(self, slope: float=0, intercept: float=0):
         assert numpy.isfinite(intercept)
 
-        Item.__init__(self)
+        _OverlayItem.__init__(self)
         AlphaMixIn.__init__(self)
         ColorMixIn.__init__(self)
-        OverlayMixIn.__init__(self)
         _TwoColorsLineMixIn.__init__(self)
         self.__slope = float(slope)
         self.__intercept = float(intercept)
