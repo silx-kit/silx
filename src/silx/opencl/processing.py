@@ -37,7 +37,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "06/10/2022"
+__date__ = "09/11/2022"
 __status__ = "stable"
 
 import sys
@@ -305,6 +305,10 @@ class OpenclProcessing(object):
                         properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
+                # Update all memory-objects with the new queue:
+                for obj, cl_obj in list(self.cl_mem.items()):
+                    if isinstance(cl_obj, pyopencl.array.Array):
+                        self.cl_mem[obj] = cl_obj.with_queue(self.queue)
 
     def profile_add(self, event, desc):
         """
@@ -332,7 +336,7 @@ class OpenclProcessing(object):
                 if isinstance(event_desc, ProfileDescription):
                     self.events.append(event_desc)
                 else:
-                    if isinstance(event_desc, EventDescription) or "__len__" in dir(e) and len(e) == 2:
+                    if isinstance(event_desc, EventDescription) or "__len__" in dir(event_desc) and len(event_desc) == 2:
                         desc, event = event_desc
                     else:
                         desc = "?"
