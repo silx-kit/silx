@@ -39,6 +39,7 @@ import numpy
 
 from silx.gui import qt
 import silx.io
+from silx.io import h5link_utils
 from .TextFormatter import TextFormatter
 import silx.gui.hdf5
 from silx.gui.widgets import HierarchicalTableView
@@ -399,23 +400,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 showPhysicalLocation = False
 
         # External data (nothing to do with external links)
-        nExtSources = 0
-        firstExtSource = None
-        extType = None
-        if silx.io.is_dataset(hdf5obj):
-            if hasattr(hdf5obj, "is_virtual"):
-                if hdf5obj.is_virtual:
-                    extSources = hdf5obj.virtual_sources()
-                    if extSources:
-                        firstExtSource = extSources[0].file_name + SEPARATOR + extSources[0].dset_name
-                        extType = "Virtual"
-                        nExtSources = len(extSources)
-            if hasattr(hdf5obj, "external"):
-                extSources = hdf5obj.external
-                if extSources:
-                    firstExtSource = extSources[0][0]
-                    extType = "Raw"
-                    nExtSources = len(extSources)
+        external_dataset_info = h5link_utils.external_dataset_info(hdf5obj)
 
         if showPhysicalLocation:
             def _physical_location(x):
@@ -431,31 +416,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
 
             self.__data.addHeaderValueRow("Physical", _physical_location)
 
-        if extType:
-            def _first_source(x):
-                # Absolute path
-                if os.path.isabs(firstExtSource):
-                    return firstExtSource
-
-                # Relative path with respect to the file directory
-                if isinstance(obj, silx.gui.hdf5.H5Node):
-                    filename = x.physical_filename
-                elif silx.io.is_file(obj):
-                    filename = x.filename
-                elif obj.file is not None:
-                    filename = x.file.filename
-                else:
-                    return firstExtSource
-
-                if firstExtSource[0] == ".":
-                    return filename + firstExtSource[1:]
-                else:
-                    return os.path.join(os.path.dirname(filename), firstExtSource)
-
+        if external_dataset_info is not None:
             self.__data.addHeaderRow(headerLabel="External sources")
-            self.__data.addHeaderValueRow("Type", extType)
-            self.__data.addHeaderValueRow("Count", str(nExtSources))
-            self.__data.addHeaderValueRow("First", _first_source)
+            self.__data.addHeaderValueRow("Type", external_dataset_info.type)
+            self.__data.addHeaderValueRow("Count", external_dataset_info.nfiles)
+            self.__data.addHeaderValueRow("First", external_dataset_info.first_source_url)
 
         if hasattr(obj, "dtype"):
 
