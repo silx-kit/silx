@@ -7,7 +7,6 @@ from silx.io import h5link_utils
 
 
 @pytest.fixture(scope="module")
-@pytest.mark.skipif("VirtualSource" not in dir(h5py), reason="h5py is too old")
 def hdf5_with_external_data(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp("hdf5_with_external_data")
     master = str(tmpdir / "master.h5")
@@ -95,6 +94,7 @@ def hdf5_with_external_data(tmpdir_factory):
     return tmpdir
 
 
+@pytest.mark.skipif("VirtualLayout" not in dir(h5py), reason="h5py is too old")
 def test_external_dataset_info(hdf5_with_external_data):
     tmpdir = hdf5_with_external_data
     master = str(tmpdir / "master.h5")
