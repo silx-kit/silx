@@ -381,7 +381,6 @@ class ArrayImagePlot(qt.QWidget):
 
         # not closable
         self._selector = NumpyAxesSelector(self)
-        self._selector.setNamedAxesSelectorVisibility(False)
         self._selector.selectionChanged.connect(self._updateImage)
 
         self._auxSigSlider = HorizontalSliderWithBrowser(parent=self)
