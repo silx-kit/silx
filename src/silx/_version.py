@@ -70,7 +70,7 @@ PRERELEASE_NORMALIZED_NAME = {"dev": "a",
 
 MAJOR = 1
 MINOR = 1
-MICRO = 0
+MICRO = 1
 RELEV = "final"  # <16
 SERIAL = 0  # <16
 
