@@ -32,9 +32,12 @@ import numpy
 import os.path
 import h5py
 try:
-    import pint
+    from pint import Quantity as PintQuantity
 except ImportError:
-    pint = None
+    try:
+        from pint.quantity import Quantity as PintQuantity
+    except ImportError:
+        PintQuantity = None
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -67,7 +70,7 @@ def _prepare_hdf5_write_value(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
-    if pint is not None and isinstance(array_like, pint.quantity.Quantity):
+    if PintQuantity is not None and isinstance(array_like, PintQuantity):
         return numpy.array(array_like.magnitude)
     array = numpy.asarray(array_like)
     if numpy.issubdtype(array.dtype, numpy.bytes_):
@@ -470,7 +473,7 @@ def nexus_to_h5_dict(
                 add_nx_class=add_nx_class,
                 has_nx_class=key_has_nx_class)
 
-        elif pint is not None and isinstance(value, pint.quantity.Quantity):
+        elif PintQuantity is not None and isinstance(value, PintQuantity):
             copy[key] = value.magnitude
             copy[(key, "units")] = f"{value.units:~C}"
 
