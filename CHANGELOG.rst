@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+1.1.1: 2022/11/30
+-----------------
+
+This is a bug fix version:
+
+* Fixed support of `pint` >= 0.20 (PR #3725, #3728)
+* Fixed continuous integration (PR #3727, #3728)
+* Updated changelog (PR #3729)
+
 1.1.0: 2022/10/27
 -----------------
 
