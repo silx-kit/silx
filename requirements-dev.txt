@@ -13,6 +13,7 @@ pandoc            # For documentation Qt snapshot updates
 pytest            # For testing
 pytest-xvfb       # For GUI testing
 pytest-cov        # For coverage
+pytest-mock
 
 hdf5plugin        # For HDF5 compression filters handling
 

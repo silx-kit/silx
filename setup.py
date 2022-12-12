@@ -521,7 +521,8 @@ def get_project_configuration():
 
     test_requires = [
         "pytest",
-        "pytest-xvfb"
+        "pytest-xvfb",
+        "pytest-mock",
     ]
 
     extras_require = {
