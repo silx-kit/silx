@@ -854,8 +854,8 @@ class Points2D(object):
     @classmethod
     def init(cls):
         """OpenGL context initialization"""
-        version = gl.glGetString(gl.GL_VERSION)
-        majorVersion = int(version[0])
+        version = gl.getVersion()
+        majorVersion = version[0]
         assert majorVersion >= 2
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
