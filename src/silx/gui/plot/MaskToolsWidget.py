@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -416,7 +416,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         if self.isMaskInteractionActivated():
             # Disable drawing tool
-            self.browseAction.trigger()
+            self.plot.resetInteractiveMode()
 
         if self.isItemMaskUpdated():  # No "after-care"
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
