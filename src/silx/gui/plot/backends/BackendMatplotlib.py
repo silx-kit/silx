@@ -1485,6 +1485,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
         This is directly called by matplotlib for widget resize.
         """
+        if self.size().isEmpty():
+            return  # Skip rendering of 0-sized canvas
+
         self.updateZOrder()
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
