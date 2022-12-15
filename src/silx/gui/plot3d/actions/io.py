@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -226,8 +226,8 @@ class VideoAction(Plot3DAction):
         dialog.setModal(True)
         dialog.setNameFilters([self.PNG_SERIE_FILTER,
                                self.MNG_FILTER])
-        dialog.setFileMode(dialog.AnyFile)
-        dialog.setAcceptMode(dialog.AcceptSave)
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
 
         if not dialog.exec():
             return

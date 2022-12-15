@@ -712,7 +712,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Save Mask")
-        dialog.setOption(dialog.DontUseNativeDialog)
+        dialog.setOption(qt.QFileDialog.DontUseNativeDialog)
         dialog.setModal(1)
         hdf5Filter = 'HDF5 (%s)' % _HDF5_EXT_STR
         filters = [
@@ -733,9 +733,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # disable overwrite confirmation for HDF5,
             # because we append the data to existing files
             if filt_ == hdf5Filter:
-                dialog.setOption(dialog.DontConfirmOverwrite)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite)
             else:
-                dialog.setOption(dialog.DontConfirmOverwrite, False)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite, False)
 
         dialog.filterSelected.connect(onFilterSelection)
         if not dialog.exec():
