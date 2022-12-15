@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -287,8 +287,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self.plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
         except (RuntimeError, TypeError):
             _logger.info(sys.exc_info()[1])
-        if not self.browseAction.isChecked():
-            self.browseAction.trigger()  # Disable drawing tool
+
+        if self.isMaskInteractionActivated():
+            # Disable drawing tool
+            self.plot.resetInteractiveMode()
 
         if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveScatterChanged.connect(

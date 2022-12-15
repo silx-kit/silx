@@ -918,8 +918,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         if (event.type() == qt.QEvent.EnabledChange and
                 not self.isEnabled() and
                 self.drawActionGroup.checkedAction()):
-            # Disable drawing tool by setting interaction to zoom
-            self.browseAction.trigger()
+            # Disable drawing tool by reseting interaction to pan or zoom
+            self.plot.resetInteractiveMode()
 
     def save(self, filename, kind):
         """Save current mask in a file
