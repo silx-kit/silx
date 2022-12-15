@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __date__ = "25/07/2016"
 from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
+from typing import Optional
 
 _logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ else:
 
 import OpenGL.GL as _GL
 from OpenGL.GL import *  # noqa
+import OpenGL.platform
 
 # Extentions core in OpenGL 3
 from OpenGL.GL.ARB import framebuffer_object as _FBO
@@ -61,6 +63,19 @@ try:
 except NameError:
     from ctypes import c_char
     GLchar = c_char
+
+
+def getPlatform() -> Optional[str]:
+    """Returns the name of the PyOpenGL class handling the platform.
+
+    E.g., GLXPlatform, EGLPlatform
+    """
+    try:
+        platform = OpenGL.platform.PLATFORM
+    except AttributeError:
+        return None
+    return platform.__class__.__name__
+
 
 
 def getVersion() -> tuple:
