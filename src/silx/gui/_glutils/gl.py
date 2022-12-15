@@ -105,16 +105,18 @@ def testGL() -> bool:
         _logger.error("OpenGL version >=2.1 required, running with %s" % version)
         return False
 
-    from OpenGL.GL.ARB.framebuffer_object import glInitFramebufferObjectARB
-    from OpenGL.GL.ARB.texture_rg import glInitTextureRgARB
+    if major == 2:
+        from OpenGL.GL.ARB.framebuffer_object import glInitFramebufferObjectARB
+        from OpenGL.GL.ARB.texture_rg import glInitTextureRgARB
 
-    if not glInitFramebufferObjectARB():
-        _logger.error("OpenGL GL_ARB_framebuffer_object extension required!")
-        return False
+        if not glInitFramebufferObjectARB():
+            _logger.error("OpenGL GL_ARB_framebuffer_object extension required!")
+            return False
 
-    if not glInitTextureRgARB():
-        _logger.error("OpenGL GL_ARB_texture_rg extension required!")
-        return False
+        if not glInitTextureRgARB():
+            _logger.error("OpenGL GL_ARB_texture_rg extension required!")
+            return False
+
     return True
 
 
