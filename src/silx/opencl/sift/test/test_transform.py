@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -121,7 +121,7 @@ class TestTransform(unittest.TestCase):
         # ---------------
         matrix = numpy.array([[1.0, -0.75], [0.7, 0.5]], dtype=numpy.float32)
         offset_value = numpy.array([250.0, -150.0], dtype=numpy.float32)
-        transformation = lambda img: scipy.ndimage.interpolation.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
+        transformation = lambda img: scipy.ndimage.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
         image_transformed = transformation(self.image)
 
         fill_value = numpy.float32(0.0)
@@ -175,12 +175,12 @@ class TestTransform(unittest.TestCase):
 
         # Reference result
         t1 = time.time()
-        ref = scipy.ndimage.interpolation.affine_transform(image_transformed, correction_matrix,
-                                                           offset=offset_value,
-                                                           output_shape=(output_height, output_width),
-                                                           order=1,
-                                                           mode="constant",
-                                                           cval=fill_value)
+        ref = scipy.ndimage.affine_transform(image_transformed, correction_matrix,
+                                             offset=offset_value,
+                                             output_shape=(output_height, output_width),
+                                             order=1,
+                                             mode="constant",
+                                             cval=fill_value)
         t2 = time.time()
 
         # Compare the implementations
