@@ -66,8 +66,7 @@ except:
             return numpy.random.random((512, 512))
 
 try:
-    from scipy.ndimage import filters
-    median_filter = filters.median_filter
+    from scipy.ndimage import median_filter
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False
