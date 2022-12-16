@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -200,7 +200,7 @@ class TestColormap(ParametricTestCase):
                 with self.subTest(dtype=dtype, normalization=normalization):
                     _logger.info('normalization: %s, dtype: %s',
                                  normalization, dtype)
-                    data = numpy.arange(-5, 15, dtype=dtype).reshape(4, 5)
+                    data = numpy.arange(-5, 15).astype(dtype).reshape(4, 5)
 
                     self._test(data, colors, 1, 10, normalization, None)
 

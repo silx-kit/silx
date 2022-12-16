@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -41,9 +41,14 @@ import time
 import logging
 import numpy
 try:
-    import scipy.misc
+    import scipy
 except ImportError:
     scipy = None
+else:
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 import math
 from silx.opencl import ocl, kernel_workgroup_size
@@ -144,11 +149,7 @@ class TestPreproc(unittest.TestCase):
     def setUp(self):
         if not (ocl and scipy):
             return
-        try:
-            testdata = scipy.misc.ascent()
-        except:
-            # for very old version of scipy
-            testdata = scipy.misc.lena()
+        testdata = ascent()
         self.input = numpy.ascontiguousarray(testdata[:510, :511])
         self.gpudata = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         kernel_src = get_opencl_code(os.path.join("sift", "preprocess"))

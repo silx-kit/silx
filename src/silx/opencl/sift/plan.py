@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -816,11 +816,11 @@ class SiftPlan(OpenclProcessing):
 
 def demo():
     # Prepare debugging
-    import scipy.misc
-    if hasattr(scipy.misc, "ascent"):
-        img = scipy.misc.ascent()
-    else:
-        img = scipy.misc.lena()
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
+    img = ascent()
 
     s = SiftPlan(template=img)
     print(s.keypoints(img))

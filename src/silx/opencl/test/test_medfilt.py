@@ -31,7 +31,7 @@ Simple test of the median filter
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
+__copyright__ = "2013-2022 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "05/07/2018"
 
 
@@ -58,12 +58,15 @@ Result = namedtuple("Result", ["size", "error", "sp_time", "oc_time"])
 try:
     from scipy.misc import ascent
 except:
-    def ascent():
-        """Dummy image from random data"""
-        return numpy.random.random((512, 512))
+    try:
+        from scipy.datasets import ascent
+    except:
+        def ascent():
+            """Dummy image from random data"""
+            return numpy.random.random((512, 512))
+
 try:
-    from scipy.ndimage import filters
-    median_filter = filters.median_filter
+    from scipy.ndimage import median_filter
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False

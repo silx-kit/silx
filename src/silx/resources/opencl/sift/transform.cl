@@ -3,7 +3,7 @@
  *            kernel for maximum and minimum calculation
  *
  *
- *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2022 European Synchrotron Radiation Facility
  *                           Grenoble, France
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
@@ -130,7 +130,7 @@ kernel void transform(
                 }
         }
 
-        //to be coherent with scipy.ndimage.interpolation.affine_transform
+        //to be coherent with scipy.ndimage.affine_transform
         float u = -1.0; //-0.5; //-0.95
         float v = -1.0; //-0.5;
         if (tx >= image_width+u) 
@@ -229,7 +229,7 @@ kernel void transform_RGB(
         }
 
 
-        //to be coherent with scipy.ndimage.interpolation.affine_transform
+        //to be coherent with scipy.ndimage.affine_transform
         float u = -0.5; //-0.95
         float v = -0.5;
         if (tx >= image_width+u) 

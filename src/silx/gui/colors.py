@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,8 +42,13 @@ _logger = logging.getLogger(__name__)
 
 try:
     import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
-    from matplotlib import cm as _matplotlib_cm
-    from matplotlib.pyplot import colormaps as _matplotlib_colormaps
+    try:
+        from matplotlib import colormaps as _matplotlib_colormaps
+    except ImportError:  # For matplotlib < 3.5
+        from matplotlib import cm as _matplotlib_cm
+        from matplotlib.pyplot import colormaps as _matplotlib_colormaps
+    else:
+        _matplotlib_cm = None
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
     _matplotlib_cm = None
@@ -180,7 +185,10 @@ def cursorColorForColormap(colormapName):
 # Colormap loader
 
 def _registerColormapFromMatplotlib(name, cursor_color='black', preferred=False):
-    colormap = _matplotlib_cm.get_cmap(name)
+    if _matplotlib_cm is not None:
+        colormap = _matplotlib_cm.get_cmap(name)
+    else:  # matplotlib >= 3.5
+        colormap = _matplotlib_colormaps[name]
     lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
     colors = _colormap.array_to_rgba8888(lut)
     registerLUT(name, colors, cursor_color, preferred)

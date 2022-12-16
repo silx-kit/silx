@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -42,10 +42,15 @@ import logging
 import numpy
 
 try:
-    import scipy.misc
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 import unittest
 from silx.opencl import ocl
@@ -60,8 +65,8 @@ def my_blur(img, kernel):
     hand made implementation of gaussian blur with OUR kernel
     which differs from Scipy's if ksize is even
     """
-    tmp1 = scipy.ndimage.filters.convolve1d(img, kernel, axis=-1, mode="reflect")
-    return scipy.ndimage.filters.convolve1d(tmp1, kernel, axis=0, mode="reflect")
+    tmp1 = scipy.ndimage.convolve1d(img, kernel, axis=-1, mode="reflect")
+    return scipy.ndimage.convolve1d(tmp1, kernel, axis=0, mode="reflect")
 
 
 @unittest.skipUnless(scipy and ocl, "scipy or opencl not available")
@@ -90,14 +95,10 @@ class TestConvol(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        if scipy and ocl is None:
+        if scipy is None or ocl is None:
             return
 
-        if hasattr(scipy.misc, "ascent"):
-            self.input = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            self.input = scipy.misc.lena().astype(numpy.float32)
-
+        self.input = ascent().astype(numpy.float32)
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)
@@ -137,7 +138,7 @@ class TestConvol(unittest.TestCase):
                                 self.gpu_in.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
             res = self.gpu_out.get()
             t1 = time.time()
-            ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
+            ref = scipy.ndimage.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
@@ -169,7 +170,7 @@ class TestConvol(unittest.TestCase):
                                                    self.IMAGE_W, self.IMAGE_H)
             res = self.gpu_out.get()
             t1 = time.time()
-            ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=0, mode="reflect")
+            ref = scipy.ndimage.convolve1d(self.input, gaussian, axis=0, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
@@ -200,7 +201,7 @@ class TestConvol(unittest.TestCase):
             k2.wait()
             t1 = time.time()
             ref = my_blur(self.input, gaussian)
-            # ref = scipy.ndimage.filters.gaussian_filter(self.input, sigma, mode="reflect")
+            # ref = scipy.ndimage.gaussian_filter(self.input, sigma, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!

@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -39,10 +39,15 @@ __date__ = "06/10/2022"
 
 import numpy
 try:
-    import scipy.ndimage
-    import scipy.misc
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
@@ -76,13 +81,8 @@ def local_maxmin_setup():
     nb_keypoints = 1000  # constant size !
     doubleimsize = 0  # par.DoubleImSize = 0 by default
 
-    if hasattr(scipy.misc, "ascent"):
-        l2 = scipy.misc.ascent().astype(numpy.float32)
-    else:
-        l2 = scipy.misc.lena().astype(numpy.float32)
-
+    l2 = ascent().astype(numpy.float32)
     l2 = numpy.ascontiguousarray(l2[0:507, 0:209])
-    # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
 

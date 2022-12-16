@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, Fr
 __date__ = "14/06/2017"
 
 
-import time
 import logging
 import numpy as np
 import unittest
@@ -42,17 +41,9 @@ from ..common import ocl
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
-    from .. import linalg
 from ..utils import get_opencl_code
-from silx.test.utils import utilstest
 
 logger = logging.getLogger(__name__)
-try:
-    from scipy.ndimage.filters import laplace
-    _has_scipy = True
-except ImportError:
-    _has_scipy = False
-
 
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")

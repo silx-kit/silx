@@ -2,7 +2,7 @@
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
 #
-#    Copyright (C) 2012-2017 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2022 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -249,7 +249,7 @@ class _MedFilt2d(object):
 
         * The filling mode in scipy.signal.medfilt2d is zero-padding
         * This implementation is equivalent to:
-            scipy.ndimage.filters.median_filter(ary, kernel_size, mode="nearest")
+            scipy.ndimage.median_filter(ary, kernel_size, mode="nearest")
 
         """
         image = numpy.atleast_2d(ary)
