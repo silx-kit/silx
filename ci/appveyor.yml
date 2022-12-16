@@ -106,6 +106,7 @@ before_test:
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
     - "pip install %PIP_OPTIONS% pytest-xvfb"
+    - "pip install %PIP_OPTIONS% pytest-mock"
 
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi

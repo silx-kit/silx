@@ -1,6 +1,23 @@
 Change Log
 ==========
 
+1.1.2: 2022/12/16
+.................
+
+This is a bug fix version:
+
+* `silx.gui`:
+
+  * Fixed support of `PySide` 6.4 enums (PR #3737, #3738)
+  * Fixed OpenGL version parsing (PR #3733, #3738)
+
+  * `silx.gui.plot`:
+
+    * Fixed issue when `PlotWidget` has a size of 0 (PR #3736, #3738)
+    * Fixed reset of interaction when closing mask tool (PR #3735, #3738)
+
+* Miscellaneous: Updated Debian packaging (PR #3732, #3738)
+
 1.1.1: 2022/11/30
 -----------------
 

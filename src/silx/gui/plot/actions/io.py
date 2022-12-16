@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -628,21 +628,21 @@ class SaveAction(PlotAction):
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
-        dialog.setOption(dialog.DontUseNativeDialog)
+        dialog.setOption(qt.QFileDialog.DontUseNativeDialog)
         dialog.setWindowTitle("Output File Selection")
         dialog.setModal(1)
         dialog.setNameFilters(list(filters.keys()))
 
-        dialog.setFileMode(dialog.AnyFile)
-        dialog.setAcceptMode(dialog.AcceptSave)
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
 
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
             if filt_ in self._appendFilters:
-                dialog.setOption(dialog.DontConfirmOverwrite)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite)
             else:
-                dialog.setOption(dialog.DontConfirmOverwrite, False)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite, False)
 
         dialog.filterSelected.connect(onFilterSelection)
 

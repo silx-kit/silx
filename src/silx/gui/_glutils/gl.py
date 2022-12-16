@@ -63,13 +63,29 @@ except NameError:
     GLchar = c_char
 
 
+def getVersion() -> tuple:
+    """Returns the GL version as tuple of integers.
+
+    Raises:
+        ValueError: If the version returned by the driver is not supported
+    """
+    try:
+        desc = glGetString(GL_VERSION)
+        if isinstance(desc, bytes):
+            desc = desc.decode("ascii")
+        version = desc.split(" ", 1)[0]
+        return tuple([int(i) for i in version.split('.')])
+    except Exception as e:
+        raise ValueError("GL version not properly formatted") from e
+
+
 def testGL() -> bool:
     """Test if required OpenGL version and extensions are available.
 
     This MUST be run with an active OpenGL context.
     """
-    version = glGetString(GL_VERSION).split()[0]  # get version number
-    major, minor = int(version[0]), int(version[2])
+    version = getVersion()
+    major, minor = version[0], version[1]
     if major < 2 or (major == 2 and minor < 1):
         _logger.error("OpenGL version >=2.1 required, running with %s" % version)
         return False
