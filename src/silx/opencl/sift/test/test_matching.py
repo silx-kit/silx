@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -41,9 +41,14 @@ import time
 import logging
 import numpy
 try:
-    import scipy.misc
+    import scipy
 except ImportError:
     scipy = None
+else:
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 
 # for Python implementation of tested functions
@@ -105,10 +110,7 @@ class TestMatching(unittest.TestCase):
         '''
         tests keypoints matching kernel
         '''
-        if hasattr(scipy.misc, "ascent"):
-            image = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            image = scipy.misc.lena().astype(numpy.float32)
+        image = ascent().astype(numpy.float32)
 
         if (feature is not None):
             # get the struct keypoints : (x,y,s,angle,[descriptors])

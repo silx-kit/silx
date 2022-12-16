@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -45,9 +45,14 @@ import time
 import logging
 import numpy
 try:
-    import scipy.misc
+    import scipy
 except ImportError:
     scipy = None
+else:
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 # for Python implementation of tested functions
 from .test_image_functions import my_compact, my_orientation, keypoints_compare, my_descriptor, descriptors_compare
@@ -93,11 +98,7 @@ class _TestKeypoints(unittest.TestCase):
         self.abort = False
         if scipy and ocl is None:
             return
-        try:
-            self.testdata = scipy.misc.ascent()
-        except Exception:
-            # for very old versions of scipy
-            self.testdata = scipy.misc.lena()
+        self.testdata = ascent()
         kernel_base = get_opencl_code(os.path.join("sift", "sift"))
         if self.orientation_script is None:
             self.skipTest("Uninitialized parametric class")

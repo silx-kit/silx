@@ -42,10 +42,15 @@ import logging
 import numpy
 
 try:
-    import scipy.misc
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 import unittest
 from silx.opencl import ocl
@@ -90,14 +95,10 @@ class TestConvol(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        if scipy and ocl is None:
+        if scipy is None or ocl is None:
             return
 
-        if hasattr(scipy.misc, "ascent"):
-            self.input = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            self.input = scipy.misc.lena().astype(numpy.float32)
-
+        self.input = ascent().astype(numpy.float32)
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)

@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -286,12 +286,12 @@ def match_py(nkp1, nkp2, raw_results=False):
 
 
 def demo():
-    import scipy.misc
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
     from .plan import SiftPlan
-    if hasattr(scipy.misc, "ascent"):
-        img1 = scipy.misc.ascent()
-    else:
-        img1 = scipy.misc.lena()
+    img1 = ascent()
 
     splan = SiftPlan(template=img1)
     kp1 = splan(img1)

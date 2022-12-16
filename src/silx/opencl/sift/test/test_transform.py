@@ -44,10 +44,15 @@ import logging
 import numpy
 import pytest
 try:
-    import scipy.misc
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
@@ -90,10 +95,7 @@ class TestTransform(unittest.TestCase):
         kernel_src = get_opencl_code(os.path.join("sift", "transform"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
-        if hasattr(scipy.misc, "ascent"):
-            self.image = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            self.image = scipy.misc.lena().astype(numpy.float32)
+        self.image = ascent().astype(numpy.float32)
 
     def tearDown(self):
         self.program = None
