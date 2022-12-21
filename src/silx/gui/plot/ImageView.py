@@ -604,7 +604,7 @@ class ImageView(PlotWindow):
 
     def isSideHistogramDisplayed(self):
         """True if the side histograms are displayed"""
-        return self._histoHPlot.isVisible()
+        return self._histoHPlot.isVisibleTo(self)
 
     def _updateHistograms(self):
         """Update histograms content using current active image."""
