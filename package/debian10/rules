@@ -63,14 +63,14 @@ override_dh_python3:
 
 # WITH_QT_TEST=False to disable graphical tests
 # SILX_OPENCL=False to disable OpenCL tests
-# SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+# SILX_TEST_LOW_MEM=False to disable tests taking large amount of memory
 # GPU=False to disable the use of a GPU with OpenCL test
 # WITH_GL_TEST=False to disable tests using OpenGL
 # UNACTIVATED UNTIL dh_python from UNSTABLE IS FIXED
 # https://lists.debian.org/debian-python/2017/08/msg00095.html
 override_dh_auto_test:
 	mkdir -p $(POCL_CACHE_DIR) # create POCL cachedir in order to avoid an FTBFS in sbuild
-	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False SILX_TEST_LOW_MEM=True xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} GPU=False WITH_QT_TEST=False SILX_OPENCL=False SILX_TEST_LOW_MEM=False xvfb-run -a --server-args=\"-screen 0 1024x768x24\" {interpreter} run_tests.py -vv --installed"
 
 override_dh_installman:
 	dh_installman -p silx build/man/*.1
