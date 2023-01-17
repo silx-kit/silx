@@ -651,7 +651,8 @@ def h5todict(h5file,
                                       exclude_names=exclude_names,
                                       asarray=asarray,
                                       dereference_links=dereference_links,
-                                      include_attributes=include_attributes)
+                                      include_attributes=include_attributes,
+                                      errors=errors)
             else:
                 # Child is an HDF5 dataset
                 try:
