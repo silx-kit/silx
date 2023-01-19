@@ -1025,6 +1025,25 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
                                           overwrite=overwrite)
 
 
+def hdf5_to_python_type(value, decode_ascii, encoding):
+    """Convert HDF5 type to proper python type.
+
+    :param value:
+    :param bool decode_ascii:
+    :param encoding str:
+    """
+    if encoding == "ascii":
+        is_bytes = h5py_value_isinstance(value, bytes)
+        if is_bytes and decode_ascii:
+            return h5py_decode_value(value, encoding="utf-8")
+        if not is_bytes and not decode_ascii:
+            return h5py_encode_value(value, encoding="utf-8")
+    elif encoding == "utf-8":
+        if h5py_value_isinstance(value, bytes):
+            return h5py_decode_value(value, encoding="utf-8")
+    return value
+
+
 def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
     """Keep bytes when value cannot be decoded
 
@@ -1034,8 +1053,8 @@ def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
     """
     try:
         if numpy.isscalar(value):
-            return value.decode(encoding, errors=errors)
-        str_item = [b.decode(encoding, errors=errors) for b in value.flat]
+            return _decode_string(value, encoding, errors)
+        str_item = [_decode_string(b, encoding, errors) for b in value.flat]
         return numpy.array(str_item, dtype=object).reshape(value.shape)
     except UnicodeDecodeError:
         return value
@@ -1050,11 +1069,50 @@ def h5py_encode_value(value, encoding="utf-8", errors="surrogateescape"):
     """
     try:
         if numpy.isscalar(value):
-            return value.encode(encoding, errors=errors)
-        bytes_item = [s.encode(encoding, errors=errors) for s in value.flat]
+            return _encode_string(value, encoding, errors)
+        bytes_item = [_encode_string(s, encoding, errors=errors) for s in value.flat]
         return numpy.array(bytes_item, dtype=object).reshape(value.shape)
     except UnicodeEncodeError:
         return value
+
+
+def h5py_value_isinstance(value, vtype):
+    """Keep string when value cannot be encoding
+
+    :param value: string or array of strings
+    :param vtype:
+    :return bool:
+    """
+    if numpy.isscalar(value):
+        try:
+            value = value.item()
+        except AttributeError:
+            pass
+    else:
+        value = value[0]
+    return isinstance(value, vtype)
+
+
+def _decode_string(string, encoding, errors):
+    """
+    :param value: string
+    :param encoding str:
+    :param errors str:
+    """
+    if isinstance(string, str):
+        return string
+    return string.decode(encoding, errors=errors)
+
+
+def _encode_string(string, encoding, errors):
+    """
+    :param value: string
+    :param encoding str:
+    :param errors str:
+    """
+    if isinstance(string, bytes):
+        return string
+    return string.encode(encoding, errors=errors)
 
 
 class H5pyDatasetReadWrapper:
@@ -1066,13 +1124,12 @@ class H5pyDatasetReadWrapper:
     Therefore an H5T_STRING with ASCII encoding is not decoded by default.
     """
 
-    H5PY_AUTODECODE_NONASCII = int(h5py.version.version.split(".")[0]) < 3
-
     def __init__(self, dset, decode_ascii=False):
         """
         :param h5py.Dataset dset:
         :param bool decode_ascii:
         """
+        # Get the string encoding (if a string)
         try:
             string_info = h5py.h5t.check_string_dtype(dset.dtype)
         except AttributeError:
@@ -1091,23 +1148,14 @@ class H5pyDatasetReadWrapper:
             except AttributeError:
                 # Not an H5T_STRING
                 encoding = None
-        if encoding == "ascii" and not decode_ascii:
-            encoding = None
-        if encoding != "ascii" and self.H5PY_AUTODECODE_NONASCII:
-            # Decoding is already done by the h5py library
-            encoding = None
-        if encoding == "ascii":
-            # ASCII can be decoded as UTF-8
-            encoding = "utf-8"
+
         self._encoding = encoding
+        self._decode_ascii = decode_ascii
         self._dset = dset
 
     def __getitem__(self, args):
         value = self._dset[args]
-        if self._encoding:
-            return h5py_decode_value(value, encoding=self._encoding)
-        else:
-            return value
+        return hdf5_to_python_type(value, self._decode_ascii, self._encoding)
 
 
 class H5pyAttributesReadWrapper:
@@ -1118,8 +1166,6 @@ class H5pyAttributesReadWrapper:
     to store `bytes`: dset[()] = b"..."
     Therefore an H5T_STRING with ASCII encoding is not decoded by default.
     """
-
-    H5PY_AUTODECODE = int(h5py.version.version.split(".")[0]) >= 3
 
     def __init__(self, attrs, decode_ascii=False):
         """
@@ -1153,17 +1199,7 @@ class H5pyAttributesReadWrapper:
                 # Not an H5T_STRING
                 return value
 
-        if self.H5PY_AUTODECODE:
-            if encoding == "ascii" and not self._decode_ascii:
-                # Undo decoding by the h5py library
-                return h5py_encode_value(value, encoding="utf-8")
-        else:
-            if encoding == "ascii" and self._decode_ascii:
-                # Decode ASCII as UTF-8 for consistency
-                return h5py_decode_value(value, encoding="utf-8")
-
-        # Decoding is already done by the h5py library
-        return value
+        return hdf5_to_python_type(value, self._decode_ascii, encoding)
 
     def items(self):
         for k in self._attrs.keys():
