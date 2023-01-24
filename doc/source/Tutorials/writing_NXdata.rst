@@ -174,10 +174,7 @@ the *h5py* library.
        import sys
 
        # this is needed for writing arrays of utf-8 strings with h5py
-       if sys.version_info < (3,):
-           text_dtype = h5py.special_dtype(vlen=unicode)
-       else:
-           text_dtype = h5py.special_dtype(vlen=str)
+      text_dtype = h5py.special_dtype(vlen=str)
 
        filename = "./myfile.h5"
        h5f = h5py.File(filename, "w")
