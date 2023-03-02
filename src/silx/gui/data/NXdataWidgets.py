@@ -466,12 +466,13 @@ class ArrayImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._axis_scales = xscale, yscale
-        self._updateImage()
-        self._plot.setKeepDataAspectRatio(keep_ratio)
-        self._plot.resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
+
+        self._updateImage()
+        self._plot.setKeepDataAspectRatio(keep_ratio)
+        self._plot.resetZoom()
 
     def _updateImage(self):
         selection = self._selector.selection()
