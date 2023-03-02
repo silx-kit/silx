@@ -722,8 +722,14 @@ class ArrayComplexImagePlot(qt.QWidget):
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
-            xcalib = ArrayCalibration(x_axis)
-            ycalib = ArrayCalibration(y_axis)
+            try:
+                xcalib = ArrayCalibration(x_axis)
+            except ValueError:
+                xcalib = NoCalibration()
+            try:
+                ycalib = ArrayCalibration(y_axis)
+            except ValueError:
+                ycalib = NoCalibration()
 
         self._plot.setData(image)
         if xcalib.is_affine():
