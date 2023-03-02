@@ -131,7 +131,7 @@ class ArrayCalibration(AbstractCalibration):
         raise ValueError("ArrayCalibration must be applied to array of same size "
                          "or to index.")
 
-    @functools.lru_cache
+    @functools.lru_cache()
     def is_affine(self):
         """If all values in the calibration array are regularly spaced,
         return True."""
