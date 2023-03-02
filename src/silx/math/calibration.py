@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2018 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ Classes
 - :class:`ArrayCalibration`
 
 """
+import functools
 import numpy
 
 
@@ -114,7 +115,10 @@ class ArrayCalibration(AbstractCalibration):
             raise TypeError(
                     "The calibration array must be a sequence (list, dataset, array)")
         self.calibration_array = numpy.array(x1)
-        self._is_affine = None
+        if self.calibration_array.ndim != 1:
+            raise ValueError(f"1D array expected, got {self.calibration_array.ndim}D array")
+        if self.calibration_array.size == 0:
+            raise ValueError("Calibration array must not be empty")
 
     def __call__(self, x):
         # calibrate the entire axis
@@ -127,18 +131,16 @@ class ArrayCalibration(AbstractCalibration):
         raise ValueError("ArrayCalibration must be applied to array of same size "
                          "or to index.")
 
+    @functools.lru_cache
     def is_affine(self):
         """If all values in the calibration array are regularly spaced,
         return True."""
-        if self._is_affine is None:
-            delta_x = self.calibration_array[1:] - self.calibration_array[:-1]
-            # use a less strict relative tolerance to account for rounding errors
-            # e.g. when using float64 into float32 (see #1823)
-            if not numpy.isclose(delta_x, delta_x[0], rtol=1e-4).all():
-                self._is_affine = False
-            else:
-                self._is_affine = True
-        return self._is_affine
+        if self.calibration_array.size < 2:
+            return False
+        delta = numpy.diff(self.calibration_array)
+        # use a less strict relative tolerance to account for rounding errors
+        # e.g. when using float64 into float32 (see #1823)
+        return numpy.allclose(delta, delta[0], rtol=1e-4)
 
     def get_slope(self):
         """If the calibration array is regularly spaced, return the spacing."""

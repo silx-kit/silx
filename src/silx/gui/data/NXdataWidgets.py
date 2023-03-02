@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -507,8 +507,14 @@ class ArrayImagePlot(qt.QWidget):
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
-            xcalib = ArrayCalibration(x_axis)
-            ycalib = ArrayCalibration(y_axis)
+            try:
+                xcalib = ArrayCalibration(x_axis)
+            except ValueError:
+                xcalib = NoCalibration()
+            try:
+                ycalib = ArrayCalibration(y_axis)
+            except ValueError:
+                ycalib = NoCalibration()
 
         self._plot.remove(kind=("scatter", "image",))
         if xcalib.is_affine() and ycalib.is_affine():
