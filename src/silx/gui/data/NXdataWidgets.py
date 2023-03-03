@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -466,12 +466,13 @@ class ArrayImagePlot(qt.QWidget):
         self._auxSigSlider.setValue(0)
 
         self._axis_scales = xscale, yscale
-        self._updateImage()
-        self._plot.setKeepDataAspectRatio(keep_ratio)
-        self._plot.resetZoom()
 
         self._selector.selectionChanged.connect(self._updateImage)
         self._auxSigSlider.valueChanged.connect(self._sliderIdxChanged)
+
+        self._updateImage()
+        self._plot.setKeepDataAspectRatio(keep_ratio)
+        self._plot.resetZoom()
 
     def _updateImage(self):
         selection = self._selector.selection()
@@ -506,8 +507,14 @@ class ArrayImagePlot(qt.QWidget):
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
-            xcalib = ArrayCalibration(x_axis)
-            ycalib = ArrayCalibration(y_axis)
+            try:
+                xcalib = ArrayCalibration(x_axis)
+            except ValueError:
+                xcalib = NoCalibration()
+            try:
+                ycalib = ArrayCalibration(y_axis)
+            except ValueError:
+                ycalib = NoCalibration()
 
         self._plot.remove(kind=("scatter", "image",))
         if xcalib.is_affine() and ycalib.is_affine():
@@ -715,8 +722,14 @@ class ArrayComplexImagePlot(qt.QWidget):
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
-            xcalib = ArrayCalibration(x_axis)
-            ycalib = ArrayCalibration(y_axis)
+            try:
+                xcalib = ArrayCalibration(x_axis)
+            except ValueError:
+                xcalib = NoCalibration()
+            try:
+                ycalib = ArrayCalibration(y_axis)
+            except ValueError:
+                ycalib = NoCalibration()
 
         self._plot.setData(image)
         if xcalib.is_affine():
