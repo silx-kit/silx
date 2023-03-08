@@ -63,12 +63,12 @@ project_directory="`( cd \"$project_directory\" && pwd )`" # absolutized
 dist_directory=${project_directory}/dist/${target_system}
 build_directory=${project_directory}/build/${target_system}
 
-# Get version info
-cd ${project_directory}/src/${project}
-version=$(python3 -c"import _version; print(_version.version)")
-strictversion=$(python3 -c"import _version; print(_version.strictversion)")
-debianversion=$(python3 -c"import _version; print(_version.debianversion)")
 cd ${project_directory}
+
+# Get version info
+version=$(python3 -c"import sys; sys.path.insert(0, './src/${project}'); import _version; print(_version.version)")
+strictversion=$(python3 -c"import sys; sys.path.insert(0, './src/${project}'); import _version; print(_version.strictversion)")
+debianversion=$(python3 -c"import sys; sys.path.insert(0, './src/${project}'); import _version; print(_version.debianversion)")
 
 if [ -d /usr/lib/ccache ];
 then
