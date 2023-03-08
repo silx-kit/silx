@@ -1624,7 +1624,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
         :param info: User-defined information associated to the item
-        :param bool replace: True (default) to delete already existing images
+        :param bool replace: True to delete already existing items
+                             (the default is False)
         :param str shape: Type of item to be drawn in
                           hline, polygon (the default), rectangle, vline,
                           polylines
