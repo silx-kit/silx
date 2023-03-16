@@ -117,8 +117,9 @@ def _is_h5py_exception(e):
     :returns bool:
     """
     for frame in traceback.walk_tb(e.__traceback__):
-        if frame[0].f_locals.get("__package__", None) == "h5py":
-            return True
+        for namespace in (frame[0].f_locals, frame[0].f_globals):
+            if namespace.get("__package__", None) == "h5py":
+                return True
     return False
 
 
