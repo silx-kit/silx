@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -345,7 +345,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if chunks is None:
             return ""
         shape = " \u00D7 ".join([str(i) for i in chunks])
-        sizes = numpy.product(chunks)
+        sizes = numpy.prod(chunks)
         text = "%s = %s" % (shape, sizes)
         return text
 
