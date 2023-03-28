@@ -151,7 +151,7 @@ class UiLoader(QUiLoader):
 
         custom_widget_classes = {}
 
-        for custom_widget in custom_widgets.getchildren():
+        for custom_widget in custom_widgets:
 
             cw_class = custom_widget.find('class').text
             cw_header = custom_widget.find('header').text
