@@ -38,10 +38,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The name of the Qt binding in use: PyQt5, PySide2, PySide6, PyQt6."""
+"""The name of the Qt binding in use: PyQt5, PySide6, PyQt6."""
 
 QtBinding = None  # noqa
-"""The Qt binding module in use: PyQt5, PySide2, PySide6, PyQt6."""
+"""The Qt binding module in use: PyQt5, PySide6, PyQt6."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -50,7 +50,7 @@ HAS_OPENGL = False
 """True if Qt provides support for OpenGL (QtOpenGL)."""
 
 # First check for an already loaded wrapper
-for _binding in ('PySide2', 'PyQt5', 'PySide6', 'PyQt6'):
+for _binding in ('PyQt5', 'PySide6', 'PyQt6'):
     if _binding + '.QtCore' in sys.modules:
         BINDING = _binding
         break
@@ -66,22 +66,15 @@ else:  # Then try Qt bindings
             if 'PySide6' in sys.modules:
                 del sys.modules["PySide6"]
             try:
-                import PySide2.QtCore  # noqa
+                import PyQt6.QtCore  # noqa
             except ImportError:
-                if 'PySide2' in sys.modules:
-                    del sys.modules["PySide2"]
-                try:
-                    import PyQt6.QtCore  # noqa
-                except ImportError:
-                    if 'PyQt6' in sys.modules:
-                        del sys.modules["PyQt6"]
+                if 'PyQt6' in sys.modules:
+                    del sys.modules["PyQt6"]
 
-                    raise ImportError(
-                        'No Qt wrapper found. Install PyQt5, PySide2, PySide6, PyQt6.')
-                else:
-                    BINDING = 'PyQt6'
+                raise ImportError(
+                    'No Qt wrapper found. Install PyQt5, PySide6, PyQt6.')
             else:
-                BINDING = 'PySide2'
+                BINDING = 'PyQt6'
         else:
             BINDING = 'PySide6'
     else:
@@ -131,66 +124,6 @@ if BINDING == 'PyQt5':
     # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
     class _Foo(object): pass
     class QObject(QObject, _Foo): pass
-
-
-elif BINDING == 'PySide2':
-    deprecation.deprecated_warning(
-        type_="Qt Binding",
-        name="PySide2",
-        replacement="PySide6",
-        since_version="1.1",
-    )
-
-    import PySide2 as QtBinding  # noqa
-
-    from PySide2.QtCore import *  # noqa
-    from PySide2.QtGui import *  # noqa
-    from PySide2.QtWidgets import *  # noqa
-    from PySide2.QtPrintSupport import *  # noqa
-
-    try:
-        from PySide2.QtOpenGL import *  # noqa
-    except ImportError:
-        _logger.info("PySide2.QtOpenGL not available")
-        HAS_OPENGL = False
-    else:
-        HAS_OPENGL = True
-
-    try:
-        from PySide2.QtSvg import *  # noqa
-    except ImportError:
-        _logger.info("PySide2.QtSvg not available")
-        HAS_SVG = False
-    else:
-        HAS_SVG = True
-
-    pyqtSignal = Signal
-
-    # Qt6 compatibility:
-    # with PySide2 `exec` method has a special behavior
-    class _ExecMixIn:
-        """Mix-in class providind `exec` compatibility"""
-        def exec(self, *args, **kwargs):
-            return super().exec_(*args, **kwargs)
-
-    # QtWidgets
-    QApplication.exec = QApplication.exec_
-    class QColorDialog(_ExecMixIn, QColorDialog): pass
-    class QDialog(_ExecMixIn, QDialog): pass
-    class QErrorMessage(_ExecMixIn, QErrorMessage): pass
-    class QFileDialog(_ExecMixIn, QFileDialog): pass
-    class QFontDialog(_ExecMixIn, QFontDialog): pass
-    class QInputDialog(_ExecMixIn, QInputDialog): pass
-    class QMenu(_ExecMixIn, QMenu): pass
-    class QMessageBox(_ExecMixIn, QMessageBox): pass
-    class QProgressDialog(_ExecMixIn, QProgressDialog): pass
-    #QtCore
-    class QCoreApplication(_ExecMixIn, QCoreApplication): pass
-    class QEventLoop(_ExecMixIn, QEventLoop): pass
-    if hasattr(QTextStreamManipulator, "exec_"):
-        # exec_ only wrapped in PySide2 and NOT in PyQt5
-        class QTextStreamManipulator(_ExecMixIn, QTextStreamManipulator): pass
-    class QThread(_ExecMixIn, QThread): pass
 
 
 elif BINDING == 'PySide6':
@@ -278,7 +211,7 @@ elif BINDING == 'PyQt6':
     class QObject(QObject, _Foo): pass
 
 else:
-    raise ImportError('No Qt wrapper found. Install PyQt5, PySide2, PySide6 or PyQt6')
+    raise ImportError('No Qt wrapper found. Install PyQt5, PySide6 or PyQt6')
 
 
 # provide a exception handler but not implement it by default
