@@ -32,6 +32,7 @@ import logging
 import sys
 
 import numpy
+import pytest
 
 from silx.utils.testutils import ParametricTestCase
 from silx.math import colormap
@@ -264,3 +265,31 @@ def test_apply_colormap():
         vmax=None,
         gamma=1.0)
     assert numpy.array_equal(colors, expected_colors)
+
+
+testdata_normalize = [
+    (numpy.arange(512), numpy.arange(512) // 2, 0, 511),
+    ((numpy.nan, numpy.inf, -numpy.inf), (0, 255, 0), 0, 1),
+    ((numpy.nan, numpy.inf, -numpy.inf, 1), (0, 255, 0, 0), 1, 1),
+]
+
+@pytest.mark.parametrize(
+    "data,expected_data,expected_vmin,expected_vmax",
+    testdata_normalize,
+)
+def test_normalize(data, expected_data, expected_vmin, expected_vmax):
+    """Basic test of silx.math.colormap.normalize"""
+    result = colormap.normalize(
+        numpy.asarray(data),
+        norm="linear",
+        autoscale="minmax",
+        vmin=None,
+        vmax=None,
+        gamma=1.0,
+    )
+    assert result.vmin == expected_vmin
+    assert result.vmax == expected_vmax
+    assert numpy.array_equal(
+        result.data,
+        numpy.asarray(expected_data, dtype=numpy.uint8),
+    )
