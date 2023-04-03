@@ -313,13 +313,6 @@ class NXdata(object):
                     elif axis_len in (1, 2):
                         polynomial_axes_names.append(axis_name)
                     is_scatter = False
-                else:
-                    if not is_scatter:
-                        self.issues.append(
-                                "Axis %s number of elements is equal " % axis_name +
-                                "to the length of the signal, but this does not seem" +
-                                " to be a scatter (other axes have different sizes)")
-                        continue
 
                 # Test individual uncertainties
                 errors_name = axis_name + "_errors"
