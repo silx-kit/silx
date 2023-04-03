@@ -42,9 +42,7 @@ from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
 
 
-if qt.BINDING == 'PySide2':
-    from PySide2.QtTest import QTest
-elif qt.BINDING == 'PyQt5':
+if qt.BINDING == 'PyQt5':
     from PyQt5.QtTest import QTest
 elif qt.BINDING == 'PySide6':
     from PySide6.QtTest import QTest
@@ -85,7 +83,7 @@ class TestCaseQt(unittest.TestCase):
     To allow some widgets to remain alive at the end of a test, set the
     allowedLeakingWidgets attribute to the number of widgets that can remain
     alive at the end of the test.
-    With PySide2, this test is not run for now as it seems PySide2
+    With PySide, this test is not run for now as it seems PySide
     is leaking widgets internally.
 
     All keyboard and mouse event simulation methods call qWait(20) after
@@ -133,7 +131,7 @@ class TestCaseQt(unittest.TestCase):
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
-        if qt.BINDING in ('PySide2', 'PySide6'):
+        if qt.BINDING == 'PySide6':
             self.__previousWidgets = None
         else:
             self.__previousWidgets = self.qapp.allWidgets()
@@ -161,7 +159,7 @@ class TestCaseQt(unittest.TestCase):
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
         if self.__previousWidgets is None:
-            return  # Do not test for leaking widgets with PySide2
+            return  # Do not test for leaking widgets with PySide
 
         gc.collect()
 
@@ -321,8 +319,8 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING in ('PySide2', 'PySide6'):
-            # PySide2 has no qWait, provide a replacement
+        if qt.BINDING == 'PySide6':
+            # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             qapp = qt.QApplication.instance()
@@ -503,7 +501,7 @@ def getQToolButtonFromAction(action):
 
 
 def findChildren(parent, kind, name=None):
-    if qt.BINDING in ("PySide2", "PySide6") and name is not None:
+    if qt.BINDING == "PySide6" and name is not None:
         result = []
         for obj in parent.findChildren(kind):
             if obj.objectName() == name:
