@@ -128,7 +128,7 @@ def isOpenGLAvailable(version=(2, 1), runtimeCheck=True, shareOpenGLContexts=Fal
                 if not qt.HAS_OPENGL:
                     error = '%s.QtOpenGL not available' % qt.BINDING
 
-                elif qt.BINDING in ('PySide2', 'PyQt5') and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+                elif qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
                     # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
                     # so this is only checked if the QApplication is already created
                     error = 'Qt reports OpenGL not available'

@@ -105,7 +105,7 @@ class WaitingPushButton(qt.QPushButton):
 
         contentSize = qt.QSize(w, h)
         sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
-        if qt.BINDING in ('PySide2', 'PyQt5'):  # Qt6: globalStrut not available
+        if qt.BINDING == 'PyQt5':  # Qt6: globalStrut not available
             sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
         return sizeHint
 

@@ -372,13 +372,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                     if userProperty.isValid() and userProperty.hasNotifySignal():
                         notifySignal = userProperty.notifySignal()
                         signature = notifySignal.methodSignature()
-                        if qt.BINDING == 'PySide2':
-                            signature = signature.data()
-                        else:
-                            signature = bytes(signature)
-
-                        if hasattr(signature, 'decode'):  # For PySide with python3
-                            signature = signature.decode('ascii')
+                        signature = bytes(signature).decode('ascii')
                         signalName = signature.split('(')[0]
 
                         signal = getattr(editor, signalName)

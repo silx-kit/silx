@@ -116,7 +116,7 @@ def convertQImageToArray(image):
         ptr.setsize(image.byteCount())
     elif qt.BINDING == 'PyQt6':
         ptr.setsize(image.sizeInBytes())
-    elif qt.BINDING in ('PySide2', 'PySide6'):
+    elif qt.BINDING == 'PySide6':
         ptr = ptr.tobytes()
     else:
         raise RuntimeError("Unsupported Qt binding: %s" % qt.BINDING)

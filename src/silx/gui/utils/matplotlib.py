@@ -128,23 +128,8 @@ def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRati
     return clipped_array, image.shape[0] - 1  # baseline not available
 
 
-def _matplotlib_use(backend, force):
-    """Wrapper of `matplotlib.use` to set-up backend.
-
-    It adds extra initialization for PySide2 with matplotlib < 2.2.
-    """
-    # This is kept for compatibility with matplotlib < 2.2
-    if (
-        parse_version(matplotlib.__version__) < parse_version("2.2")
-        and qt.BINDING == "PySide2"
-    ):
-        matplotlib.rcParams["backend.qt5"] = "PySide2"
-
-    matplotlib.use(backend, force=force)
-
-
-if qt.BINDING in ("PySide6", "PyQt6", "PyQt5", "PySide2"):
-    _matplotlib_use("Qt5Agg", force=False)
+if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
+    matplotlib.use("Qt5Agg", force=False)
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
 else:
