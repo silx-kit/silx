@@ -36,10 +36,10 @@ __license__ = "MIT"
 __copyright__ = "2022 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "07/11/2022"
 
-import logging
 import struct
-import unittest
 import numpy
+import pytest
+
 try:
     import bitshuffle
 except ImportError:
@@ -47,14 +47,25 @@ except ImportError:
 from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec.bitshuffle_lz4 import BitshuffleLz4
 
-logger = logging.getLogger(__name__)
 
-
-@unittest.skipUnless(
-    ocl and pyopencl and bitshuffle,
-    "PyOpenCl or bitshuffle is missing",
+TESTCASES = (  # dtype, shape
+    ("uint64", (103, 503)),
+    ("int64", (101, 509)),
+    ("uint32", (229, 659)),
+    ("int32", (233, 653)),
+    ("uint16", (743, 647)),
+    ("int16", (751, 643)),
+    ("uint8", (157, 1373)),
+    ("int8", (163, 1367)),
 )
-class TestBitshuffle(unittest.TestCase):
+
+
+@pytest.mark.skipif(
+    not ocl or not pyopencl or bitshuffle is None,
+    reason="PyOpenCl or bitshuffle is missing"
+)
+class TestBitshuffleLz4:
+    """Test pyopencl bishuffle+LZ4 decompression"""
 
     @staticmethod
     def _create_test_data(shape, lam=100, dtype="uint32"):
@@ -65,36 +76,22 @@ class TestBitshuffle(unittest.TestCase):
         :return: (reference image array, compressed stream)
         """
         ref = numpy.random.poisson(lam, size=shape).astype(dtype)
-        raw = struct.pack(">Q", ref.nbytes) +b"\x00"*4+bitshuffle.compress_lz4(ref).tobytes()
+        raw = struct.pack(">Q", ref.nbytes) + b"\x00"*4 + bitshuffle.compress_lz4(ref).tobytes()
         return ref, raw
 
-    def one_decompression(self, dtype, shape):
+    @pytest.mark.parametrize("dtype,shape", TESTCASES)
+    def test_decompress(self, dtype, shape):
         """
-        tests the byte offset decompression on GPU
+        Tests the byte offset decompression on GPU with various configuration
         """
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
         res = bs.decompress(raw).get()
-        self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
-        
-    def test_decompress(self):
-        """
-        tests the byte offset decompression on GPU with various configuration
-        """ 
-        self.one_decompression("uint64", (103,503))
-        self.one_decompression("int64", (101,509))
-        self.one_decompression("uint32", (229,659))
-        self.one_decompression("int32", (233,653))
-        self.one_decompression("uint16", (743,647))
-        self.one_decompression("int16", (751,643))
-        self.one_decompression("uint8", (157,1373))
-        self.one_decompression("int8", (163,1367))
+        assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
 
-    def test_decompress_from_buffer(self):
+    @pytest.mark.parametrize("dtype,shape", TESTCASES)
+    def test_decompress_from_buffer(self, dtype, shape):
         """Test reading compressed data from pyopencl Buffer"""
-        shape = 103, 503
-        dtype = "uint32"
-
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
 
         bs = BitshuffleLz4(0, numpy.prod(shape), dtype=dtype)
@@ -105,14 +102,12 @@ class TestBitshuffle(unittest.TestCase):
             hostbuf=raw,
         )
 
-        res = bs.decompress(buffer, nbytes=buffer.size).get()
-        self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
+        res = bs.decompress(buffer).get()
+        assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
 
-    def test_decompress_from_array(self):
+    @pytest.mark.parametrize("dtype,shape", TESTCASES)
+    def test_decompress_from_array(self, dtype, shape):
         """Test reading compressed data from pyopencl Array"""
-        shape = 103, 503
-        dtype = "uint32"
-
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
 
         bs = BitshuffleLz4(0, numpy.prod(shape), dtype=dtype)
@@ -124,4 +119,4 @@ class TestBitshuffle(unittest.TestCase):
         )
 
         res = bs.decompress(array).get()
-        self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
+        assert numpy.array_equal(res, ref.ravel()), "Checks decompression works"
