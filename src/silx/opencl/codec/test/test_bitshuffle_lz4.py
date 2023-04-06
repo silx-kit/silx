@@ -3,7 +3,7 @@
 #    Project: Bitshuffle-LZ4 decompression in OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2022-2022  European Synchrotron Radiation Facility,
+#    Copyright (C) 2022-2023  European Synchrotron Radiation Facility,
 #                             Grenoble, France
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -38,19 +38,22 @@ __date__ = "07/11/2022"
 
 import logging
 import struct
+import unittest
 import numpy
 try:
     import bitshuffle
-except:
-    bitshuffle=None
+except ImportError:
+    bitshuffle = None
 from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec.bitshuffle_lz4 import BitshuffleLz4
-import unittest
+
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and pyopencl and bitshuffle,
-                     "PyOpenCl or bitshuffle is missing")
+@unittest.skipUnless(
+    ocl and pyopencl and bitshuffle,
+    "PyOpenCl or bitshuffle is missing",
+)
 class TestBitshuffle(unittest.TestCase):
 
     @staticmethod
@@ -72,7 +75,6 @@ class TestBitshuffle(unittest.TestCase):
         ref, raw = self._create_test_data(shape=shape, dtype=dtype)
         bs = BitshuffleLz4(len(raw), numpy.prod(shape), dtype=dtype)
         res = bs.decompress(raw).get()
-        print(numpy.where(res-ref.ravel()))
         self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
         
     def test_decompress(self):
@@ -87,3 +89,39 @@ class TestBitshuffle(unittest.TestCase):
         self.one_decompression("int16", (751,643))
         self.one_decompression("uint8", (157,1373))
         self.one_decompression("int8", (163,1367))
+
+    def test_decompress_from_buffer(self):
+        """Test reading compressed data from pyopencl Buffer"""
+        shape = 103, 503
+        dtype = "uint32"
+
+        ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+
+        bs = BitshuffleLz4(0, numpy.prod(shape), dtype=dtype)
+
+        buffer = pyopencl.Buffer(
+            bs.ctx,
+            flags=pyopencl.mem_flags.COPY_HOST_PTR | pyopencl.mem_flags.READ_ONLY,
+            hostbuf=raw,
+        )
+
+        res = bs.decompress(buffer, nbytes=buffer.size).get()
+        self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
+
+    def test_decompress_from_array(self):
+        """Test reading compressed data from pyopencl Array"""
+        shape = 103, 503
+        dtype = "uint32"
+
+        ref, raw = self._create_test_data(shape=shape, dtype=dtype)
+
+        bs = BitshuffleLz4(0, numpy.prod(shape), dtype=dtype)
+
+        array = pyopencl.array.to_device(
+            bs.queue,
+            numpy.frombuffer(raw, dtype=numpy.uint8),
+            array_queue=bs.queue,
+        )
+
+        res = bs.decompress(array).get()
+        self.assertEqual(numpy.all(res==ref.ravel()), True, "Checks decompression works")
