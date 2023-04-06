@@ -113,6 +113,8 @@ class BitshuffleLz4(OpenclProcessing):
             if nbytes is not None:
                 assert nbytes <= raw.size
                 len_raw = numpy.uint64(nbytes)
+            elif  isinstance(raw, pyopencl.Buffer):
+                len_raw = numpy.uint64(raw.size)
             else:
                 len_raw = numpy.uint64(len(raw))
 
