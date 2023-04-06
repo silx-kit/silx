@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2022-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2022-2023  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -50,9 +50,7 @@ logger = logging.getLogger(__name__)
 
 class BitshuffleLz4(OpenclProcessing):
     """Perform the bitshuffle-lz4 decompression on the GPU
-
         See :class:`OpenclProcessing` for optional arguments description.
-
         :param int cmp_size:
             Size of the raw stream for decompression.
             It can be (slightly) larger than the array.
@@ -100,43 +98,59 @@ class BitshuffleLz4(OpenclProcessing):
         self.compile_kernels([os.path.join("codec", "bitshuffle_lz4")])
         self.block_size = min(self.block_size, kernel_workgroup_size(self.program, "bslz4_decompress_block"))
 
-    def decompress(self, raw, out=None, wg=None):
+    def decompress(self, raw, out=None, wg=None, nbytes=None):
         """This function actually performs the decompression by calling the kernels
-
         :param numpy.ndarray raw: The compressed data as a 1D numpy array of char or string
         :param pyopencl.array out: pyopencl array in which to place the result.
         :param wg: tuneable parameter with the workgroup size. 
+        :param int nbytes: (Optional) Number of bytes occupied by the chunk in raw.
         :return: The decompressed image as an pyopencl array.
         :rtype: pyopencl.array
         """
 
         events = []
         with self.sem:
-            len_raw = numpy.uint64(len(raw))
-            if len_raw > self.cmp_size:
-                self.cmp_size = len_raw
-                logger.info("increase cmp buffer size to %s", self.cmp_size)
-                self.cl_mem["cmp"] = pyopencl.array.empty(self.queue, self.cmp_size, dtype=numpy.uint8)
+            if nbytes is not None:
+                assert nbytes <= raw.size
+                len_raw = numpy.uint64(nbytes)
+            elif  isinstance(raw, pyopencl.Buffer):
+                len_raw = numpy.uint64(raw.size)
+            else:
+                len_raw = numpy.uint64(len(raw))
+
+            if isinstance(raw, pyopencl.array.Array):
+                cmp_buffer = raw.data
+                num_blocks = self.num_blocks
+            elif  isinstance(raw, pyopencl.Buffer):
+                cmp_buffer = raw
+                num_blocks = self.num_blocks
+            else:
+                if len_raw > self.cmp_size:
+                    self.cmp_size = len_raw
+                    logger.info("increase cmp buffer size to %s", self.cmp_size)
+                    self.cl_mem["cmp"] = pyopencl.array.empty(self.queue, self.cmp_size, dtype=numpy.uint8)
+                evt = pyopencl.enqueue_copy(self.queue,
+                                            self.cl_mem["cmp"].data,
+                                            raw,
+                                            is_blocking=False)
+                events.append(EventDescription("copy raw H -> D", evt))
+                cmp_buffer = self.cl_mem["cmp"].data
+
+                dest_size = struct.unpack(">Q", raw[:8])
+                self_dest_nbyte = self.dec_size * self.dec_dtype.itemsize
+                if dest_size<self_dest_nbyte:
+                    num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
+                elif dest_size>self_dest_nbyte:
+                    num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
+                    self.cl_mem["dec"] = pyopencl.array.empty(self.queue,dest_size , self.dec_dtype)
+                    self.dec_size = dest_size // self.dec_dtype.itemsize
+                else:
+                    num_blocks = self.num_blocks
+
             wg = int(wg or self.block_size)
 
-            evt = pyopencl.enqueue_copy(self.queue, 
-                                        self.cl_mem["cmp"].data,
-                                        raw,
-                                        is_blocking=False)
-            dest_size = struct.unpack(">Q", raw[:8])
-            self_dest_nbyte = self.dec_size * self.dec_dtype.itemsize
-            if dest_size<self_dest_nbyte:
-                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
-            elif dest_size>self_dest_nbyte:
-                num_blocks = numpy.uint32((dest_size+self.LZ4_BLOCK_SIZE-1) // self.LZ4_BLOCK_SIZE)
-                self.cl_mem["dec"] = pyopencl.array.empty(self.queue,dest_size , self.dec_dtype)
-                self.dec_size = dest_size // self.dec_dtype.itemsize 
-            else:
-                num_blocks = self.num_blocks
-                
-            events.append(EventDescription("copy raw H -> D", evt))
             evt = self.program.lz4_unblock(self.queue, (1,), (1,), 
-                                           self.cl_mem["cmp"].data,
+                                           cmp_buffer,
                                            len_raw,
                                            self.cl_mem["block_position"].data,
                                            num_blocks,
@@ -148,9 +162,9 @@ class BitshuffleLz4(OpenclProcessing):
             else:
                 assert out.dtype == self.dec_dtype
                 assert out.size == self.dec_size
-             
+
             evt = self.program.bslz4_decompress_block(self.queue, (self.num_blocks*wg,), (wg,),
-                                                      self.cl_mem["cmp"].data,
+                                                      cmp_buffer,
                                                       out.data,
                                                       self.cl_mem["block_position"].data,
                                                       self.cl_mem["nb_blocks"].data,
