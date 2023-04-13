@@ -172,13 +172,13 @@ class UrlSelectionTable(TableWidget):
                 self._checkBoxes[radioUrl][img].setChecked(False)
                 self._checkBoxes[radioUrl][img].blockSignals(False)
 
-        self._checkBoxes[radioUrl][img].blockSignals(True)
+        self._checkBoxes[url_img_a][img].blockSignals(True)
         self._checkBoxes[url_img_a]['img A'].setChecked(True)
-        self._checkBoxes[radioUrl][img].blockSignals(False)
+        self._checkBoxes[url_img_a][img].blockSignals(False)
 
-        self._checkBoxes[radioUrl][img].blockSignals(True)
+        self._checkBoxes[url_img_b][img].blockSignals(True)
         self._checkBoxes[url_img_b]['img B'].setChecked(True)
-        self._checkBoxes[radioUrl][img].blockSignals(False)
+        self._checkBoxes[url_img_b][img].blockSignals(False)
         self.sigImageAChanged.emit(url_img_a)
         self.sigImageBChanged.emit(url_img_b)
 
