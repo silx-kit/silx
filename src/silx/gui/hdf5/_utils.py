@@ -33,7 +33,7 @@ __date__ = "17/01/2019"
 from html import escape
 import logging
 import os.path
-
+from silx.gui import constants
 import silx.io.utils
 import silx.io.url
 from .. import qt
@@ -109,7 +109,8 @@ class Hdf5DatasetMimeData(qt.QMimeData):
 
     MIME_TYPE = "application/x-internal-h5py-dataset"
 
-    SILX_URI_TYPE = "application/x-silx-uri"
+    SILX_URI_TYPE = constants.SILX_URI_TYPE
+    """For compatibility with silx <= 1.1"""
 
     def __init__(self, node=None, dataset=None, isRoot=False):
         qt.QMimeData.__init__(self)
@@ -121,7 +122,7 @@ class Hdf5DatasetMimeData(qt.QMimeData):
             h5Node = H5Node(node)
             silxUrl = h5Node.url
             self.setText(silxUrl)
-            self.setData(self.SILX_URI_TYPE, silxUrl.encode(encoding='utf-8'))
+            self.setData(constants.SILX_URI_TYPE, silxUrl.encode(encoding='utf-8'))
 
     def isRoot(self):
         return self.__isRoot
