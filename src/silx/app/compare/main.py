@@ -28,6 +28,7 @@ import sys
 import logging
 import argparse
 from silx.gui import qt
+from silx.app.utils import parseutils
 from silx.app.compare.CompareImagesWindow import CompareImagesWindow
 
 _logger = logging.getLogger(__name__)
@@ -74,7 +75,10 @@ def mainQt(options):
 
     app = qt.QApplication([])
     window = CompareImagesWindow(backend=backend)
-    window.setFiles(options.files)
+
+    urls = list(parseutils.filenames_to_dataurls(options.files))
+    window.setUrls(urls)
+
     window.setVisible(True)
     app.exec()
 
