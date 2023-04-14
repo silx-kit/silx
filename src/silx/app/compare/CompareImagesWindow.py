@@ -60,6 +60,7 @@ class CompareImagesWindow(qt.QMainWindow):
         self._selectionTable.sigImageBChanged.connect(self._updateImageB)
 
     def setUrls(self, urls):
+        self.clear()
         for url in urls:
             self._selectionTable.addUrl(url)
 

@@ -856,6 +856,9 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
+    def clear(self):
+        self.setData(None, None)
+
     def setData(self, image1, image2, updateColormap=True):
         """Set images to compare.
 
