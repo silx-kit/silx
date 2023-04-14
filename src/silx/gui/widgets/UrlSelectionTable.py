@@ -29,14 +29,15 @@ __author__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "19/03/2018"
 
-from silx.gui import qt
+import os
+import functools
+import logging
 from collections import OrderedDict
+from silx.gui import qt
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.io.url import DataUrl
 from silx.utils.deprecation import deprecated, deprecated_warning
-import functools
-import logging
-import os
+from silx.gui import constants
 
 logger = logging.getLogger(__name__)
 
@@ -187,3 +188,21 @@ class UrlSelectionTable(TableWidget):
 
     def removeUrl(self, url):
         raise NotImplementedError("")
+
+    def supportedDropActions(self):
+        """Inherited method to redefine supported drop actions."""
+        return qt.Qt.CopyAction | qt.Qt.MoveAction
+
+    def mimeTypes(self):
+        """Inherited method to redefine draggable mime types."""
+        return [constants.SILX_URI_MIMETYPE]
+
+    def dropMimeData(self, row: int, column: int, mimedata: qt.QMimeType, action: qt.Qt.DropAction):
+        """Inherited method to handle a drop operation to this model."""
+        if action == qt.Qt.IgnoreAction:
+            return True
+        if mimedata.hasFormat(constants.SILX_URI_MIMETYPE):
+            url = DataUrl(mimedata.text())
+            self.addUrl(url)
+            return True
+        return False
