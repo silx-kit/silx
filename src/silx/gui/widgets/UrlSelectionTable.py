@@ -105,7 +105,7 @@ class UrlSelectionTable(TableWidget):
         widgetImgA.toggled.connect(callbackImgA)
 
         widgetImgB = qt.QRadioButton(parent=self)
-        widgetImgA.setAutoExclusive(False)
+        widgetImgB.setAutoExclusive(False)
         self.setCellWidget(row, self.COLUMS_INDEX['img B'], widgetImgB)
         callbackImgB = functools.partial(self._activeImgBChanged, url.path())
         widgetImgB.toggled.connect(callbackImgB)
