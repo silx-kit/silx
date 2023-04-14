@@ -40,7 +40,7 @@ import silx.gui.hdf5
 from .ApplicationContext import ApplicationContext
 from .CustomNxdataWidget import CustomNxdataWidget
 from .CustomNxdataWidget import CustomNxDataToolBar
-from . import utils
+from ..utils import parseutils
 from silx.gui.utils import projecturl
 from .DataPanel import DataPanel
 
@@ -523,7 +523,7 @@ class Viewer(qt.QMainWindow):
         isFullScreen = settings.value("full-screen", False)
         try:
             if not isinstance(isFullScreen, bool):
-                isFullScreen = utils.stringToBool(isFullScreen)
+                isFullScreen = parseutils.string_to_bool(isFullScreen)
         except ValueError:
             isFullScreen = False
         settings.endGroup()
@@ -544,7 +544,7 @@ class Viewer(qt.QMainWindow):
         isVisible = settings.value("custom-nxdata-window-visible", False)
         try:
             if not isinstance(isVisible, bool):
-                isVisible = utils.stringToBool(isVisible)
+                isVisible = parseutils.string_to_bool(isVisible)
         except ValueError:
             isVisible = False
         self.__customNxdataWindow.setVisible(isVisible)
@@ -556,7 +556,7 @@ class Viewer(qt.QMainWindow):
         isSorted = settings.value("is-sorted", True)
         try:
             if not isinstance(isSorted, bool):
-                isSorted = utils.stringToBool(isSorted)
+                isSorted = parseutils.string_to_bool(isSorted)
         except ValueError:
             isSorted = True
         self.setContentSorted(isSorted)
