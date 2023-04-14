@@ -47,6 +47,7 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot = CompareImages(parent=self, backend=backend)
 
         self._selectionTable = UrlSelectionTable(parent=self)
+        self._selectionTable.setAcceptDrops(True)
         self._dockWidgetMenu = qt.QDockWidget(parent=self)
         self._dockWidgetMenu.layout().setContentsMargins(0, 0, 0, 0)
         self._dockWidgetMenu.setFeatures(qt.QDockWidget.DockWidgetMovable)
