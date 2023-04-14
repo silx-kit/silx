@@ -26,7 +26,13 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "28/05/2018"
 
-from typing import Any
+import glob
+import logging
+from typing import Generator, Iterable, Any, Optional
+
+
+_logger = logging.getLogger(__name__)
+"""Module logger"""
 
 
 _trueStrings = {"yes", "true", "1"}
@@ -60,3 +66,37 @@ def to_bool(thing: Any, default: Optional[bool]=None) -> bool:
         if default is not None:
             return default
         raise
+
+
+def filenames_to_dataurls(filenames: Iterable[str]) -> Generator[object, None, None]:
+    """Expand filenames and HDF5 data path in files input argument"""
+    # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
+    import silx.io
+    from silx.io.utils import match
+    from silx.io.url import DataUrl
+    import silx.utils.files
+
+    for filename in filenames:
+        url = DataUrl(filename)
+
+        for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
+            if url.data_path() is not None and glob.has_magic(url.data_path()):
+                try:
+                    with silx.io.open(file_path) as f:
+                        data_paths = list(match(f, url.data_path()))
+                except BaseException as e:
+                    _logger.error(
+                        f"Error searching HDF5 path pattern '{url.data_path()}' in file '{file_path}': Ignored")
+                    _logger.error(e.args[0])
+                    _logger.debug("Backtrace", exc_info=True)
+                    continue
+            else:
+                data_paths = [url.data_path()]
+
+            for data_path in data_paths:
+                yield DataUrl(
+                    file_path=file_path,
+                    data_path=data_path,
+                    data_slice=url.data_slice(),
+                    scheme=url.scheme(),
+                )
