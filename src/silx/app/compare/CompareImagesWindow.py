@@ -44,6 +44,8 @@ _logger = logging.getLogger(__name__)
 class CompareImagesWindow(qt.QMainWindow):
     def __init__(self, backend=None):
         qt.QMainWindow.__init__(self, parent=None)
+        self.setWindowTitle("Silx compare")
+
         self._plot = CompareImages(parent=self, backend=backend)
 
         self._selectionTable = UrlSelectionTable(parent=self)
