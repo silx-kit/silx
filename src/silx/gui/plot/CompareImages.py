@@ -160,7 +160,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action = qt.QAction(icon, "Yellow/cyan compare mode (subtractive mode)", self)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Y))
         action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
         menu.addAction(action)
         self.__ycChannelModeAction = action
