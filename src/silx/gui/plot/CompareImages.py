@@ -931,8 +931,12 @@ class CompareImages(qt.QMainWindow):
         vertical/horizontal separators moves.
         """
         raw1, raw2 = self.__raw1, self.__raw2
-        if raw1 is None or raw2 is None:
-            return
+        if raw1 is None:
+            raw1 = numpy.empty((1, 1))
+            raw1[0, 0] = numpy.nan
+        if raw2 is None:
+            raw2 = numpy.empty((1, 1))
+            raw2[0, 0] = numpy.nan
 
         alignmentMode = self.getAlignmentMode()
         self.__transformation = None
