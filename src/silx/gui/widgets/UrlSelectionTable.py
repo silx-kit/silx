@@ -185,6 +185,29 @@ class UrlSelectionTable(TableWidget):
         self.resizeColumnsToContents()
         return row
 
+    def _getItemFromUrlPath(self, urlPath: str) -> _DataUrlItem:
+        """Returns the Qt item storing this urlPath, else None"""
+        for r in range(self.rowCount()):
+            item = self.item(r, self.URL_COLUMN)
+            url = item.dataUrl()
+            if url.path() == urlPath:
+                return item
+        return None
+
+    def setError(self, urlPath: str, message: str):
+        """Flag this urlPath with an error in the UI."""
+        item = self._getItemFromUrlPath(urlPath)
+        if item is None:
+            return
+        if message == "":
+            item.setIcon(qt.QIcon())
+            item.setToolTip("")
+        else:
+            style = qt.QApplication.style()
+            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            item.setIcon(icon)
+            item.setToolTip(f"Error: {message}")
+
     def _activeImgAChanged(self, row):
         if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
             self._updateCheckBoxes(self.IMG_A_COLUMN, row)
