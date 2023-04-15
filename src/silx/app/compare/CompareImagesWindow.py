@@ -76,30 +76,62 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.clear()
         self._selectionTable.clear()
 
-    def _updateImageA(self, urlpath):
-        self._updateImage(urlpath, self._plot.setImage1)
+    def _updateImageA(self, urlPath):
+        try:
+            data = self.readData(urlPath)
+        except Exception as e:
+            _logger.error("Error while loading URL %s", urlPath, exc_info=True)
+            self._selectionTable.setError(urlPath, e.args[0])
+            data = None
+        self._plot.setImage1(data)
 
-    def _updateImage(self, urlpath, fctptr):
-        def getData():
-            _url = silx.io.url.DataUrl(path=urlpath)
-            for scheme in ('silx', 'fabio'):
-                try:
-                    dataImg = silx.io.utils.get_data(
-                        silx.io.url.DataUrl(file_path=_url.file_path(),
-                                            data_slice=_url.data_slice(),
-                                            data_path=_url.data_path(),
-                                            scheme=scheme))
-                except:
-                    _logger.debug("Error while loading image with %s" % scheme,
-                                  exc_info=True)
-                else:
-                    # TODO: check is an image
-                    return dataImg
+    def _updateImageB(self, urlPath):
+        try:
+            data = self.readData(urlPath)
+        except Exception as e:
+            _logger.error("Error while loading URL %s", urlPath, exc_info=True)
+            self._selectionTable.setError(urlPath, e.args[0])
+            data = None
+        self._plot.setImage2(data)
+
+    def readData(self, urlPath: str):
+        """Read an URL as an image
+        """
+        if urlPath in ("", None):
             return None
 
-        data = getData()
-        if data is not None:
-            fctptr(data)
+        url = silx.io.url.DataUrl(path=urlPath)
+        if url.scheme() is None:
+            for scheme in ('silx', 'fabio'):
+                specificUrl = DataUrl(
+                    file_path=url.file_path(),
+                    data_slice=url.data_slice(),
+                    data_path=url.data_path(),
+                    scheme=scheme
+                )
+                try:
+                    data = silx.io.utils.get_data(specificUrl)
+                except Exception:
+                    _logger.debug("Error while trying to loading %s as %s",
+                                  urlPath, scheme, exc_info=True)
+                else:
+                    break
+            else:
+                raise ValueError(f"Data from '{urlPath}' is not readable as silx nor fabio")
+        else:
+            try:
+                data = silx.io.utils.get_data(url)
+            except Exception:
+                raise ValueError(f"Data from '{urlPath}' is not readable")
 
-    def _updateImageB(self, urlpath):
-        self._updateImage(urlpath, self._plot.setImage2)
+        if not isinstance(data, numpy.ndarray):
+            raise ValueError(f"URL '{urlPath}' does not link to a numpy array")
+        if data.dtype.kind not in set(["f", "u", "i", "b"]):
+            raise ValueError(f"URL '{urlPath}' does not link to a numeric numpy array")
+
+        if data.ndim == 2:
+            return data
+        if data.ndim == 3 and data.shape[0] in set(3, 4):
+            return data
+
+        raise ValueError(f"URL '{urlPath}' does not link to an numpy image")
