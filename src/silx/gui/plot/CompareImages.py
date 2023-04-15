@@ -43,6 +43,7 @@ from silx.gui import icons
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
 from silx.utils.weakref import WeakMethodProxy
+from silx.math.combo import min_max
 
 _logger = logging.getLogger(__name__)
 
@@ -1015,15 +1016,27 @@ class CompareImages(qt.QMainWindow):
         mode1 = self.__getImageMode(self.__data1)
         mode2 = self.__getImageMode(self.__data2)
         if mode1 == "intensity" and mode1 == mode2:
-            if self.__data1.size == 0:
-                vmin = self.__data2.min()
-                vmax = self.__data2.max()
-            elif self.__data2.size == 0:
-                vmin = self.__data1.min()
-                vmax = self.__data1.max()
-            else:
-                vmin = min(self.__data1.min(), self.__data2.min())
-                vmax = max(self.__data1.max(), self.__data2.max())
+            def merge_min_max(data1, data2):
+                if data1.size == 0:
+                    data1 = numpy.empty((1, 1))
+                    data1[0, 0] = numpy.nan
+                if data2.size == 0:
+                    data2 = numpy.empty((1, 1))
+                    data2[0, 0] = numpy.nan
+                range1 = min_max(data1, finite=True)
+                range2 = min_max(data2, finite=True)
+                def vreduce(vmin, vmax, func):
+                    if vmin is None:
+                        return vmax
+                    if vmax is None:
+                        return vmin
+                    return func(vmin, vmax)
+                vmin = vreduce(range1.minimum, range2.minimum, min)
+                vmax = vreduce(range1.maximum, range2.maximum, max)
+                if vmin is None or vmax is None:
+                    return 0, 1
+                return vmin, vmax
+            vmin, vmax = merge_min_max(self.__data1, self.__data2)
             colormap = self.getColormap()
             colormap.setVRange(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
