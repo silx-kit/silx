@@ -459,8 +459,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
         """Update the content of the status bar"""
         widget = self.getCompareWidget()
         if widget is None:
-            self._label1.setText("Image1: NA")
-            self._label2.setText("Image2: NA")
+            self._label1.setText("ImageA: NA")
+            self._label2.setText("ImageB: NA")
             self._transform.setVisible(False)
         else:
             transform = widget.getTransformation()
@@ -511,8 +511,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 self._transform.setToolTip(text)
 
             if self._pos is None:
-                self._label1.setText("Image1: NA")
-                self._label2.setText("Image2: NA")
+                self._label1.setText("ImageA: NA")
+                self._label2.setText("ImageB: NA")
             else:
                 data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
                 if isinstance(data1, str):
@@ -527,8 +527,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 else:
                     self._label2.setToolTip("")
                     text2 = self._formatData(data2)
-                self._label1.setText("Image1: %s" % text1)
-                self._label2.setText("Image2: %s" % text2)
+                self._label1.setText("ImageA: %s" % text1)
+                self._label2.setText("ImageB: %s" % text2)
 
 
 class CompareImages(qt.QMainWindow):
