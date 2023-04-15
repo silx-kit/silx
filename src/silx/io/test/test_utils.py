@@ -989,3 +989,15 @@ def test_match_commonh5():
         result = list(utils.match(fobj, "/entry_*/*"))
 
         assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
+
+
+def test_recursive_match_commonh5():
+    """Test match function with commonh5 objects"""
+    with commonh5.File("filename.file", mode="w") as fobj:
+        fobj["entry_0000/bar/data"] = 0
+        fobj["entry_0001/foo/data"] = 1
+        fobj["entry_0001/foo/data1"] = 2
+        fobj["entry_0003"] = 3
+
+        result = list(utils.match(fobj, "**/data"))
+        assert result == ['entry_0000/bar/data', 'entry_0001/foo/data']

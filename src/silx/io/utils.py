@@ -825,6 +825,15 @@ def visitall(item):
     yield from _visitall(item, '')
 
 
+def iter_groups(group, _root=None):
+    """Pythonic implementation of h5py.Group visit()"""
+    for name in group.keys():
+        entity = group.get(name)
+        if is_group(entity):
+            yield name
+            for subgroup in iter_groups(entity, _root=name):
+                yield f"{name}/{subgroup}"
+
 
 def match(group, path_pattern: str) -> Generator[str, None, None]:
     """Generator of paths inside given h5py-like `group` matching `path_pattern`"""
@@ -832,6 +841,14 @@ def match(group, path_pattern: str) -> Generator[str, None, None]:
         raise ValueError(f"Not a h5py-like group: {group}")
 
     path_parts = path_pattern.strip("/").split("/", 1)
+    if path_parts[0] == "**":
+        # recursive match
+        for subpath in iter_groups(group):
+            sub = group.get(subpath)
+            for groupname in match(sub, path_parts[1]):
+                yield f"{subpath}/{groupname}"
+        return
+
     for matching_path in fnmatch.filter(group.keys(), path_parts[0]):
         if len(path_parts) == 1:  # No more sub-path, stop recursion
             yield matching_path
