@@ -668,6 +668,12 @@ class Colormap(qt.QObject):
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
+
+        if (vmin is not None and not numpy.isfinite(vmin)) or (vmax is not None and not numpy.isfinite(vmax)):
+            err = "Can't set vmin and vmax because vmin or vmax are not finite " \
+                    "vmin = %s, vmax = %s" % (vmin, vmax)
+            raise ValueError(err)
+
         if vmin is not None and vmax is not None:
             if vmin > vmax:
                 err = "Can't set vmin and vmax because vmin >= vmax " \
