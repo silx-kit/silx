@@ -28,7 +28,8 @@ __date__ = "28/05/2018"
 
 import glob
 import logging
-from typing import Generator, Iterable, Any, Optional
+from typing import Generator, Iterable, Union, Any, Optional
+from pathlib import Path
 
 
 _logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ def to_bool(thing: Any, default: Optional[bool]=None) -> bool:
         raise
 
 
-def filenames_to_dataurls(filenames: Iterable[str]) -> Generator[object, None, None]:
+def filenames_to_dataurls(filenames: Iterable[Union[str, Path]]) -> Generator[object, None, None]:
     """Expand filenames and HDF5 data path in files input argument"""
     # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
     import silx.io
