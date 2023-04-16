@@ -37,26 +37,34 @@ import silx.test.utils
 from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
+from ..utils import parseutils
 
 _logger = logging.getLogger(__name__)
 
 
 class CompareImagesWindow(qt.QMainWindow):
-    def __init__(self, backend=None):
+    def __init__(self, backend=None, settings=None):
         qt.QMainWindow.__init__(self, parent=None)
         self.setWindowTitle("Silx compare")
+
+        self.__settings = settings
+        if settings:
+            self.restoreSettings(settings)
 
         self._plot = CompareImages(parent=self, backend=backend)
 
         self._selectionTable = UrlSelectionTable(parent=self)
         self._selectionTable.setAcceptDrops(True)
-        self._dockWidgetMenu = qt.QDockWidget(parent=self)
-        self._dockWidgetMenu.layout().setContentsMargins(0, 0, 0, 0)
-        self._dockWidgetMenu.setFeatures(qt.QDockWidget.DockWidgetMovable)
-        self._dockWidgetMenu.setWidget(self._selectionTable)
-        self.addDockWidget(qt.Qt.LeftDockWidgetArea, self._dockWidgetMenu)
 
-        self.setCentralWidget(self._plot)
+        spliter = qt.QSplitter(self)
+        spliter.addWidget(self._selectionTable)
+        spliter.addWidget(self._plot)
+        spliter.setStretchFactor(1, 1)
+        spliter.setCollapsible(0, False)
+        spliter.setCollapsible(1, False)
+        self.__splitter = spliter
+
+        self.setCentralWidget(spliter)
 
         self._selectionTable.sigImageAChanged.connect(self._updateImageA)
         self._selectionTable.sigImageBChanged.connect(self._updateImageB)
@@ -135,3 +143,54 @@ class CompareImagesWindow(qt.QMainWindow):
             return data
 
         raise ValueError(f"URL '{urlPath}' does not link to an numpy image")
+
+    def closeEvent(self, event):
+        settings = self.__settings
+        if settings:
+            self.saveSettings(self.__settings)
+
+    def saveSettings(self, settings):
+        """Save the window settings to this settings object
+
+        :param qt.QSettings settings: Initialized settings
+        """
+        isFullScreen = bool(self.windowState() & qt.Qt.WindowFullScreen)
+        if isFullScreen:
+            # show in normal to catch the normal geometry
+            self.showNormal()
+
+        settings.beginGroup("comparewindow")
+        settings.setValue("size", self.size())
+        settings.setValue("pos", self.pos())
+        settings.setValue("full-screen", isFullScreen)
+        settings.setValue("spliter", self.__splitter.sizes())
+        settings.endGroup()
+
+        if isFullScreen:
+            self.showFullScreen()
+
+    def restoreSettings(self, settings):
+        """Restore the window settings using this settings object
+
+        :param qt.QSettings settings: Initialized settings
+        """
+        settings.beginGroup("comparewindow")
+        size = settings.value("size", qt.QSize(640, 480))
+        pos = settings.value("pos", qt.QPoint())
+        isFullScreen = settings.value("full-screen", False)
+        isFullScreen = parseutils.to_bool(isFullScreen, False)
+
+        try:
+            data = settings.value("spliter")
+            data = [int(d) for d in data]
+            self.__splitter.setSizes(data)
+        except Exception:
+            _logger.debug("Backtrace", exc_info=True)
+        settings.endGroup()
+
+        if not pos.isNull():
+            self.move(pos)
+        if not size.isNull():
+            self.resize(size)
+        if isFullScreen:
+            self.showFullScreen()

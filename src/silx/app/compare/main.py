@@ -73,10 +73,21 @@ def mainQt(options):
     else:
         backend = "mpl"
 
-    app = qt.QApplication([])
-    window = CompareImagesWindow(backend=backend)
+    settings = qt.QSettings(qt.QSettings.IniFormat,
+                            qt.QSettings.UserScope,
+                            "silx",
+                            "silx-compare",
+                            None)
 
     urls = list(parseutils.filenames_to_dataurls(options.files))
+
+    if options.use_opengl_plot:
+        # It have to be done after the settings (after the Viewer creation)
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
+
+    app = qt.QApplication([])
+    window = CompareImagesWindow(backend=backend, settings=settings)
+    window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
     window.setUrls(urls)
 
     window.setVisible(True)
