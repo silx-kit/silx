@@ -26,12 +26,14 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "28/05/2018"
 
+from typing import Any
+
 
 _trueStrings = {"yes", "true", "1"}
 _falseStrings = {"no", "false", "0"}
 
 
-def string_to_bool(string: str) -> bool:
+def _string_to_bool(string: str) -> bool:
     """Returns a boolean from a string.
 
     :raise ValueError: If the string do not contains a boolean information.
@@ -42,3 +44,19 @@ def string_to_bool(string: str) -> bool:
     if lower in _falseStrings:
         return False
     raise ValueError("'%s' is not a valid boolean" % string)
+
+
+def to_bool(thing: Any, default: Optional[bool]=None) -> bool:
+    """Returns a boolean from an object.
+
+    :raise ValueError: If the thing can't be interpreted as a boolean and
+                       no default is set
+    """
+    if isinstance(thing, bool):
+        return thing
+    try:
+        return _string_to_bool(thing)
+    except ValueError:
+        if default is not None:
+            return default
+        raise
