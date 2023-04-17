@@ -25,15 +25,11 @@
 """Main window used to compare images
 """
 
-import sys
 import logging
 import numpy
-import argparse
-import os
 
 import silx.io
 from silx.gui import qt
-import silx.test.utils
 from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
