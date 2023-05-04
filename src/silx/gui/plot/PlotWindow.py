@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -997,10 +997,6 @@ class Plot2D(PlotWindow):
         See :class:`silx.gui.plot.Profile.ProfileToolBar`
         """
         return self.profile
-
-    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
-    def getProfileWindow(self):
-        return self.getProfilePlot()
 
     def getProfilePlot(self):
         """Return plot window used to display profile curve.

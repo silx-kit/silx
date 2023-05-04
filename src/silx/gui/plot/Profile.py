@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -225,11 +225,6 @@ class ProfileToolBar(qt.QToolBar):
     @deprecated(since_version="0.6.0")
     def browseAction(self):
         return self._browseAction
-
-    @property
-    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
-    def profileWindow(self):
-        return self.getProfilePlot()
 
     def getProfileManager(self):
         """Return the manager of the profiles.
