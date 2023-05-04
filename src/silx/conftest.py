@@ -1,6 +1,9 @@
 import pytest
 import logging
 import os
+from io import BytesIO
+
+import h5py
 
 
 logger = logging.getLogger(__name__)
@@ -131,3 +134,10 @@ def qapp_utils(qapp):
     yield utils
     utils.tearDown()
     utils.tearDownClass()
+
+
+@pytest.fixture
+def tmp_h5py_file():
+    with BytesIO() as buffer:
+        with h5py.File(buffer, mode="w") as h5file:
+            yield h5file

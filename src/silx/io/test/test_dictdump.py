@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __date__ = "17/01/2018"
 
 from collections import defaultdict, OrderedDict
 from copy import deepcopy
-from io import BytesIO
 import os
 import tempfile
 import unittest
@@ -51,13 +50,6 @@ from ..dictdump import h5todict, load
 from ..dictdump import logger as dictdump_logger
 from ..utils import is_link
 from ..utils import h5py_read_dataset
-
-
-@pytest.fixture
-def tmp_h5py_file():
-    with BytesIO() as buffer:
-        with h5py.File(buffer, mode="w") as h5file:
-            yield h5file
 
 
 def tree():
