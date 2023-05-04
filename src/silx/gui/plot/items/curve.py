@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import logging
 
 import numpy
 
+from ....utils.deprecation import deprecated_warning
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
                    FillMixIn, LineMixIn, SymbolMixIn,
@@ -208,6 +209,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use Curve methods")
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
