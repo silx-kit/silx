@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2023 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -33,6 +33,7 @@ from silx.gui import qt
 from collections import OrderedDict
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.io.url import DataUrl
+from silx.utils.deprecation import deprecated, deprecated_warning
 import functools
 import logging
 import os
@@ -131,7 +132,23 @@ class UrlSelectionTable(TableWidget):
                     self._checkBoxes[radioUrl][whichImg].setChecked(False)
                     self._checkBoxes[radioUrl][whichImg].blockSignals(False)
 
+    @deprecated(replacement="getUrlSelection", since_version="2.0", reason="Conflict with Qt API")
     def getSelection(self):
+        return self.getUrlSelection()
+
+    def setSelection(self, url_img_a, url_img_b):
+        if isinstance(url_img_a, qt.QRect):
+            return super().setSelection(url_img_a, url_img_b)
+        deprecated_warning(
+            'Function',
+            'setSelection',
+            replacement="setUrlSelection",
+            since_version="2.0",
+            reason="Conflict with Qt API",
+        )
+        return self.setUrlSelection(url_img_a, url_img_b)
+
+    def getUrlSelection(self):
         """
 
         :return: url selected for img A and img B.
@@ -144,7 +161,7 @@ class UrlSelectionTable(TableWidget):
                 imgB = radioUrl
         return imgA, imgB
 
-    def setSelection(self, url_img_a, url_img_b):
+    def setUrlSelection(self, url_img_a, url_img_b):
         """
 
         :param ddict: key: image url, values: list of active channels
