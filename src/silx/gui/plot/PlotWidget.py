@@ -2123,27 +2123,6 @@ class PlotWidget(qt.QMainWindow):
         if curve is not None:
             curve.setHighlightedStyle(self.getActiveCurveStyle())
 
-    @deprecated(replacement="getActiveCurveStyle", since_version="0.9")
-    def getActiveCurveColor(self):
-        """Get the color used to display the currently active curve.
-
-        See :meth:`setActiveCurveColor`.
-        """
-        return self._activeCurveStyle.getColor()
-
-    @deprecated(replacement="setActiveCurveStyle", since_version="0.9")
-    def setActiveCurveColor(self, color="#000000"):
-        """Set the color to use to display the currently active curve.
-
-        :param str color: Color of the active curve,
-                          e.g., 'blue', 'b', '#FF0000' (Default: 'black')
-        """
-        if color is None:
-            color = "black"
-        if color in self.colorDict:
-            color = self.colorDict[color]
-        self.setActiveCurveStyle(color=color)
-
     def getActiveCurve(self, just_legend=False):
         """Return the currently active curve.
 
