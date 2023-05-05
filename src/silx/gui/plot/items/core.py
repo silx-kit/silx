@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,6 @@ import weakref
 
 import numpy
 
-from ....utils.deprecation import deprecated
 from ....utils.proxy import docstring
 from ....utils.enum import Enum as _Enum
 from ....math.combo import min_max
@@ -276,11 +275,6 @@ class Item(qt.QObject):
 
     def getLegend(self):  # Replaced by getName for API consistency
         return self.getName()
-
-    @deprecated(replacement='setName', since_version='0.13')
-    def _setLegend(self, legend):
-        legend = str(legend) if legend is not None else ''
-        self.setName(legend)
 
     def isSelectable(self):
         """Returns true if item is selectable (bool)"""

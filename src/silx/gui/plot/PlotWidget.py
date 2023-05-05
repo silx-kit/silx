@@ -46,7 +46,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
     import silx.gui.utils.matplotlib  # noqa
@@ -916,24 +915,15 @@ class PlotWidget(qt.QMainWindow):
         self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
-    def addItem(self, item=None, *args, **kwargs):
+    def addItem(self, item):
         """Add an item to the plot content.
 
         :param ~silx.gui.plot.items.Item item: The item to add.
         :raises ValueError: If item is already in the plot.
         """
         if not isinstance(item, items.Item):
-            deprecated_warning(
-                'Function',
-                'addItem',
-                replacement='addShape',
-                since_version='0.13')
-            if item is None and not args:  # Only kwargs
-                return self.addShape(**kwargs)
-            else:
-                return self.addShape(item, *args, **kwargs)
+            raise ValueError(f"argument must be a subclass of Item")
 
-        assert not args and not kwargs
         if item in self.getItems():
             raise ValueError('Item already in the plot')
 
@@ -953,16 +943,8 @@ class PlotWidget(qt.QMainWindow):
         :param ~silx.gui.plot.items.Item item: Item to remove from the plot.
         :raises ValueError: If item is not in the plot.
         """
-        if not isinstance(item, items.Item):  # Previous method usage
-            deprecated_warning(
-                'Function',
-                'removeItem',
-                replacement='remove(legend, kind="item")',
-                since_version='0.13')
-            if item is None:
-                return
-            self.remove(item, kind='item')
-            return
+        if not isinstance(item, items.Item):
+            raise ValueError("argument must be an Item")
 
         if item not in self.getItems():
             raise ValueError('Item not in the plot')
@@ -1010,14 +992,6 @@ class PlotWidget(qt.QMainWindow):
             return False
         else:
             return True
-
-    @deprecated(replacement='addItem', since_version='0.13')
-    def _add(self, item):
-        return self.addItem(item)
-
-    @deprecated(replacement='removeItem', since_version='0.13')
-    def _remove(self, item):
-        return self.removeItem(item)
 
     def getItems(self):
         """Returns the list of items in the plot
@@ -2433,37 +2407,6 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._getItem(kind='histogram', legend=legend)
 
-    @deprecated(replacement='getItems', since_version='0.13')
-    def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
-        """Retrieve all items of a kind in the plot
-
-        :param kind: The kind of elements to retrieve from the plot.
-                     See :attr:`ITEM_KINDS`.
-                     By default, it removes all kind of elements.
-        :type kind: str or tuple of str to specify multiple kinds.
-        :param str kind: Type of item: 'curve' or 'image'
-        :param bool just_legend: True to get the legend of the curves,
-                                 False (the default) to get the curves' data
-                                 and info.
-        :param bool withhidden: False (default) to skip hidden curves.
-        :return: list of legends or item objects
-        """
-        if kind == 'all':  # Replace all by tuple of all kinds
-            kind = self.ITEM_KINDS
-
-        if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
-            kind = (kind,)
-
-        for aKind in kind:
-            assert aKind in self.ITEM_KINDS
-
-        output = []
-        for item in self.getItems():
-            type_ = self._itemKind(item)
-            if type_ in kind and (withhidden or item.isVisible()):
-                output.append(item.getName() if just_legend else item)
-        return output
-
     def _getItem(self, kind, legend=None):
         """Get an item from the plot: either an image or a curve.
 
@@ -3324,14 +3267,6 @@ class PlotWidget(qt.QMainWindow):
         """
         self.__graphCursorShape = cursor
         self._backend.setGraphCursorShape(cursor)
-
-    @deprecated(replacement='getItems', since_version='0.13')
-    def _getAllMarkers(self, just_legend=False):
-        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
-        if just_legend:
-            return [marker.getName() for marker in markers]
-        else:
-            return markers
 
     def _getMarkerAt(self, x, y):
         """Return the most interactive marker at a location, else None

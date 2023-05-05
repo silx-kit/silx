@@ -40,15 +40,8 @@ from .tools.profile import rois
 from silx.gui.widgets.MultiModeAction import MultiModeAction
 
 from silx.utils.deprecation import deprecated
-from silx.utils.deprecation import deprecated_warning
 from .tools import roi as roi_mdl
 from silx.gui.plot import items
-
-
-@deprecated(replacement="silx.gui.plot.tools.profile.createProfile", since_version="0.13.0")
-def createProfile(roiInfo, currentData, origin, scale, lineWidth, method):
-    return core.createProfile(roiInfo, currentData, origin,
-                              scale, lineWidth, method)
 
 
 class _CustomProfileManager(manager.ProfileManager):
@@ -121,22 +114,12 @@ class ProfileToolBar(qt.QToolBar):
     :param plot: :class:`PlotWindow` instance on which to operate.
     :param profileWindow: Plot widget instance where to
                           display the profile curve or None to create one.
-    :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
 
-    def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title=None):
-        super(ProfileToolBar, self).__init__(title, parent)
+    def __init__(self, parent=None, plot=None, profileWindow=None):
+        super(ProfileToolBar, self).__init__(parent)
         assert plot is not None
-
-        if title is not None:
-            deprecated_warning("Attribute",
-                               name="title",
-                               reason="removed",
-                               since_version="0.13.0",
-                               only_once=True,
-                               skip_backtrace_count=1)
 
         self._plotRef = weakref.ref(plot)
 
@@ -196,11 +179,6 @@ class ProfileToolBar(qt.QToolBar):
         """The :class:`.PlotWidget` associated to the toolbar."""
         return self._plotRef()
 
-    @property
-    @deprecated(since_version="0.13.0", replacement="getPlotWidget()")
-    def plot(self):
-        return self.getPlotWidget()
-
     def _setRoiActionEnabled(self, itemKind, enabled):
         for action in self.__multiAction.getMenu().actions():
             if not isinstance(action, roi_mdl.CreateRoiModeAction):
@@ -228,107 +206,22 @@ class ProfileToolBar(qt.QToolBar):
         """
         return self._manager
 
-    @deprecated(since_version="0.13.0")
-    def getProfilePlot(self):
-        """Return plot widget in which the profile curve or the
-        profile image is plotted.
-        """
-        window = self.getProfileMainWindow()
-        if window is None:
-            return None
-        return window.getCurrentPlotWidget()
-
-    @deprecated(replacement="getProfileManager().getCurrentRoi().getProfileWindow()", since_version="0.13.0")
-    def getProfileMainWindow(self):
-        """Return window containing the profile curve widget.
-
-        This can return None if no profile was computed.
-        """
-        roi = self._manager.getCurrentRoi()
-        if roi is None:
-            return None
-        return roi.getProfileWindow()
-
-    @property
-    @deprecated(since_version="0.13.0")
-    def overlayColor(self):
-        """This method does nothing anymore. But could be implemented if needed.
-
-        It was used to set color to use for the ROI.
-
-        If set to None (the default), the overlay color is adapted to the
-        active image colormap and changes if the active image colormap changes.
-        """
-        pass
-
-    @overlayColor.setter
-    @deprecated(since_version="0.13.0")
-    def overlayColor(self, color):
-        """This method does nothing anymore. But could be implemented if needed.
-        """
-        pass
-
     def clearProfile(self):
         """Remove profile curve and profile area."""
         self._manager.clearProfile()
 
-    @deprecated(since_version="0.13.0")
-    def updateProfile(self):
-        """This method does nothing anymore. But could be implemented if needed.
-
-        It was used to update the displayed profile and profile ROI.
-
-        This uses the current active image of the plot and the current ROI.
-        """
-        pass
-
-    @deprecated(replacement="clearProfile()", since_version="0.13.0")
-    def hideProfileWindow(self):
-        """Hide profile window.
-        """
-        self.clearProfile()
-
-    @deprecated(since_version="0.13.0")
-    def setProfileMethod(self, method):
-        assert method in ('sum', 'mean')
-        roi = self._manager.getCurrentRoi()
-        if roi is None:
-            raise RuntimeError("No profile ROI selected")
-        roi.setProfileMethod(method)
-
-    @deprecated(since_version="0.13.0")
-    def getProfileMethod(self):
-        roi = self._manager.getCurrentRoi()
-        if roi is None:
-            raise RuntimeError("No profile ROI selected")
-        return roi.getProfileMethod()
-
-    @deprecated(since_version="0.13.0")
-    def getProfileOptionToolAction(self):
-        return self._editor
-
 
 class Profile3DToolBar(ProfileToolBar):
-    def __init__(self, parent=None, stackview=None,
-                 title=None):
+    def __init__(self, parent=None, stackview=None):
         """QToolBar providing profile tools for an image or a stack of images.
 
         :param parent: the parent QWidget
         :param stackview: :class:`StackView` instance on which to operate.
-        :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
         super(Profile3DToolBar, self).__init__(parent=parent,
                                                plot=stackview.getPlotWidget())
-
-        if title is not None:
-            deprecated_warning("Attribute",
-                               name="title",
-                               reason="removed",
-                               since_version="0.13.0",
-                               only_once=True,
-                               skip_backtrace_count=1)
 
         self.stackView = stackview
         """:class:`StackView` instance"""

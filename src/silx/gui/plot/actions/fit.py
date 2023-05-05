@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,6 @@ import numpy
 
 from .PlotToolAction import PlotToolAction
 from .. import items
-from ....utils.deprecation import deprecated
 from silx.gui import qt
 from silx.gui.plot.ItemsSelectionDialog import ItemsSelectionDialog
 
@@ -191,42 +190,6 @@ class FitAction(PlotToolAction):
         self.__fitItemSelector = _FitItemSelector()
         self.__fitItemSelector.sigCurrentItemChanged.connect(
             self._setFittedItem)
-
-
-    @property
-    @deprecated(replacement='getXRange()[0]', since_version='0.13.0')
-    def xmin(self):
-        return self.getXRange()[0]
-
-    @property
-    @deprecated(replacement='getXRange()[1]', since_version='0.13.0')
-    def xmax(self):
-        return self.getXRange()[1]
-
-    @property
-    @deprecated(replacement='getXData()', since_version='0.13.0')
-    def x(self):
-        return self.getXData()
-
-    @property
-    @deprecated(replacement='getYData()', since_version='0.13.0')
-    def y(self):
-        return self.getYData()
-
-    @property
-    @deprecated(since_version='0.13.0')
-    def xlabel(self):
-        return self.__curveParams.get('xlabel', None)
-
-    @property
-    @deprecated(since_version='0.13.0')
-    def ylabel(self):
-        return self.__curveParams.get('ylabel', None)
-
-    @property
-    @deprecated(since_version='0.13.0')
-    def legend(self):
-        return self.__legend
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import

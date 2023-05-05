@@ -82,7 +82,6 @@ from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
 from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
-from silx.utils import deprecation
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 
@@ -1338,14 +1337,6 @@ class ColormapDialog(qt.QDialog):
         """Callback when the data weakref is about to be finalized."""
         if self._item is weakref and qtinspect.isValid(self):
             self.setItem(None)
-
-    @deprecation.deprecated(reason="It is private data", since_version="0.13")
-    def getHistogram(self):
-        histo = self._getHistogram()
-        if histo is None:
-            return None
-        counts, bin_edges = histo
-        return numpy.array(counts, copy=True), numpy.array(bin_edges, copy=True)
 
     def _getHistogram(self):
         """Returns the histogram defined by the dialog as metadata

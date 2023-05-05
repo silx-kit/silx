@@ -90,7 +90,6 @@ from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
 from silx.utils.deprecation import deprecated_warning
-from silx.utils.deprecation import deprecated
 
 import h5py
 from silx.io.utils import is_dataset
@@ -847,10 +846,6 @@ class StackView(qt.QMainWindow):
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
 
-    @deprecated(replacement="getPlotWidget", since_version="0.13")
-    def getPlot(self):
-        return self.getPlotWidget()
-
     def getPlotWidget(self):
         """Return the :class:`PlotWidget`.
 
@@ -1021,10 +1016,6 @@ class StackView(qt.QMainWindow):
         See :meth:`Plot.Plot.setInteractiveMode`
         """
         self._plot.setInteractiveMode(*args, **kwargs)
-
-    @deprecated(replacement="addShape", since_version="0.13")
-    def addItem(self, *args, **kwargs):
-        self.addShape(*args, **kwargs)
 
     def addShape(self, *args, **kwargs):
         """
