@@ -23,5 +23,5 @@
 # ###########################################################################*/
 """Constants related to silx GUI"""
 
-SILX_URI_TYPE = "application/x-silx-uri"
+SILX_URI_MIMETYPE = "application/x-silx-uri"
 """Used by silx to share data URL between application"""
