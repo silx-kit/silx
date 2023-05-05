@@ -122,7 +122,7 @@ class Hdf5DatasetMimeData(qt.QMimeData):
             h5Node = H5Node(node)
             silxUrl = h5Node.url
             self.setText(silxUrl)
-            self.setData(constants.SILX_URI_TYPE, silxUrl.encode(encoding='utf-8'))
+            self.setData(constants.SILX_URI_MIMETYPE, silxUrl.encode(encoding='utf-8'))
 
     def isRoot(self):
         return self.__isRoot
