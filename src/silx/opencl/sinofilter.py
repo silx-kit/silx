@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,6 @@ from .processing import OpenclProcessing
 from ..math.fft.clfft import CLFFT, __have_clfft__
 from ..math.fft.npfft import NPFFT
 from ..image.tomography import generate_powers, get_next_power, compute_fourier_filter
-from ..utils.deprecation import deprecated
-
 
 
 class SinoFilter(OpenclProcessing):
@@ -376,57 +374,3 @@ class SinoFilter(OpenclProcessing):
         # ~ return output
 
     __call__ = filter_sino
-
-
-
-
-# -------------------
-# - Compatibility  -
-# -------------------
-
-
-def nextpow2(N):
-    p = 1
-    while p < N:
-        p *= 2
-    return p
-
-
-@deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
-def fourier_filter(sino, filter_=None, fft_size=None):
-    """Simple np based implementation of fourier space filter.
-    This function is deprecated, please use silx.opencl.sinofilter.SinoFilter.
-
-    :param sino: of shape shape = (num_projs, num_bins)
-    :param filter: filter function to apply in fourier space
-    :fft_size: size on which perform the fft. May be larger than the sino array
-    :return: filtered sinogram
-    """
-    assert sino.ndim == 2
-    num_projs, num_bins = sino.shape
-    if fft_size is None:
-        fft_size = nextpow2(num_bins * 2 - 1)
-    else:
-        assert fft_size >= num_bins
-    if fft_size == num_bins:
-        sino_zeropadded = sino.astype(np.float32)
-    else:
-        sino_zeropadded = np.zeros((num_projs, fft_size),
-                                      dtype=np.complex64)
-        sino_zeropadded[:, :num_bins] = sino.astype(np.float32)
-
-    if filter_ is None:
-        h = np.zeros(fft_size, dtype=np.float32)
-        L2 = fft_size // 2 + 1
-        h[0] = 1 / 4.
-        j = np.linspace(1, L2, L2 // 2, False)
-        h[1:L2:2] = -1. / (np.pi ** 2 * j ** 2)
-        h[L2:] = np.copy(h[1:L2 - 1][::-1])
-        filter_ = np.fft.fft(h).astype(np.complex64)
-
-    # Linear convolution
-    sino_f = np.fft.fft(sino, fft_size)
-    sino_f = sino_f * filter_
-    sino_filtered = np.fft.ifft(sino_f)[:, :num_bins].real
-
-    return np.ascontiguousarray(sino_filtered.real, dtype=np.float32)

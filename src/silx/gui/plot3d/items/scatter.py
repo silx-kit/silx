@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ except ImportError:  # Python2 support
 import logging
 import numpy
 
-from ....utils.deprecation import deprecated
 from ... import _glutils as glu
 from ...plot._utils.delaunay import delaunay
 from ..scene import function, primitives, utils
@@ -151,11 +150,6 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :rtype: numpy.ndarray
         """
         return self._scatter.getAttribute('value', copy=copy).reshape(-1)
-
-    @deprecated(reason="Consistency with PlotWidget items",
-                replacement="getValueData", since_version="0.10.0")
-    def getValues(self, copy=True):
-        return self.getValueData(copy)
 
     def _pickFull(self, context, threshold=0., sort='depth'):
         """Perform picking in this item at given widget position.
@@ -409,11 +403,6 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         :rtype: numpy.ndarray
         """
         return numpy.array(self._value, copy=copy)
-
-    @deprecated(reason="Consistency with PlotWidget items",
-                replacement="getValueData", since_version="0.10.0")
-    def getValues(self, copy=True):
-        return self.getValueData(copy)
 
     def _pickPoints(self, context, points, threshold=1., sort='depth'):
         """Perform picking while in 'points' visualization mode
