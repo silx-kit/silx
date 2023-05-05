@@ -221,11 +221,6 @@ class ProfileToolBar(qt.QToolBar):
             enabled = image.getData(copy=False).size > 0
             self._setRoiActionEnabled(type(image), enabled)
 
-    @property
-    @deprecated(since_version="0.6.0")
-    def browseAction(self):
-        return self._browseAction
-
     def getProfileManager(self):
         """Return the manager of the profiles.
 

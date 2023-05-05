@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -839,18 +839,7 @@ class StackView(qt.QMainWindow):
             assert vmax is None, errmsg
             assert colors is None, errmsg
 
-            if isinstance(colormap, dict):
-                reason = 'colormap parameter should now be an object'
-                replacement = 'Colormap()'
-                since_version = '0.6'
-                deprecated_warning(type_='function',
-                                   name='setColormap',
-                                   reason=reason,
-                                   replacement=replacement,
-                                   since_version=since_version)
-                _colormap = Colormap._fromDict(colormap)
-            else:
-                _colormap = colormap
+            _colormap = colormap
         else:
             norm = normalization if normalization is not None else 'linear'
             name = colormap if colormap is not None else 'gray'
