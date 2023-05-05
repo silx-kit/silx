@@ -352,11 +352,6 @@ class PlotWindow(PlotWidget):
         """
         return self._outputToolBar
 
-    @property
-    @deprecated(replacement="getPositionInfoWidget()", since_version="0.8.0")
-    def positionWidget(self):
-        return self.getPositionInfoWidget()
-
     def getPositionInfoWidget(self):
         """Returns the widget displaying current cursor position information
 
@@ -611,17 +606,6 @@ class PlotWindow(PlotWidget):
         return self._statsDockWidget.widget()
 
     # getters for actions
-    @property
-    @deprecated(replacement="getInteractiveModeToolBar().getZoomModeAction()",
-                since_version="0.8.0")
-    def zoomModeAction(self):
-        return self.getInteractiveModeToolBar().getZoomModeAction()
-
-    @property
-    @deprecated(replacement="getInteractiveModeToolBar().getPanModeAction()",
-                since_version="0.8.0")
-    def panModeAction(self):
-        return self.getInteractiveModeToolBar().getPanModeAction()
 
     def getConsoleAction(self):
         """QAction handling the IPython console activation.

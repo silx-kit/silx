@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -61,5 +61,5 @@ Functions
 """
 from .parse import NXdata, get_default, is_valid_nxdata, InvalidNXdataError, \
     is_NXentry_with_default_NXdata, is_NXroot_with_default_NXdata, is_group_with_default_NXdata
-from ._utils import get_attr_as_unicode, get_attr_as_string, nxdata_logger
+from ._utils import get_attr_as_unicode, nxdata_logger
 from .write import save_NXdata

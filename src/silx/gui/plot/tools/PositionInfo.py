@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ import weakref
 
 import numpy
 
-from ....utils.deprecation import deprecated
 from ... import qt
 from .. import items
 from ...widgets.ElidedLabel import ElidedLabel
@@ -145,11 +144,6 @@ class PositionInfo(qt.QWidget):
         :rtype: Union[~silx.gui.plot.PlotWidget,None]
         """
         return self._plotRef()
-
-    @property
-    @deprecated(replacement='getPlotWidget', since_version='0.8.0')
-    def plot(self):
-        return self.getPlotWidget()
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
@@ -353,21 +347,3 @@ class PositionInfo(qt.QWidget):
         :rtype: int
         """
         return self._snappingMode
-
-    _SNAPPING_LEGACY = (SNAPPING_CROSSHAIR |
-                        SNAPPING_ACTIVE_ONLY |
-                        SNAPPING_SYMBOLS_ONLY |
-                        SNAPPING_CURVE |
-                        SNAPPING_SCATTER)
-    """Legacy snapping mode"""
-
-    @property
-    @deprecated(replacement="getSnappingMode", since_version="0.8")
-    def autoSnapToActiveCurve(self):
-        return self.getSnappingMode() == self._SNAPPING_LEGACY
-
-    @autoSnapToActiveCurve.setter
-    @deprecated(replacement="setSnappingMode", since_version="0.8")
-    def autoSnapToActiveCurve(self, flag):
-        self.setSnappingMode(
-            self._SNAPPING_LEGACY if flag else self.SNAPPING_DISABLED)

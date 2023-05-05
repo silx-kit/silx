@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
@@ -259,13 +258,6 @@ class PlotWidget(qt.QMainWindow):
                     or a :class:`BackendBase.BackendBase` class
     :type backend: str or :class:`BackendBase.BackendBase`
     """
-
-    # TODO: Can be removed for silx 0.10
-    @classproperty
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def DEFAULT_BACKEND(self):
-        """Class attribute setting the default backend for all instances."""
-        return silx.config.DEFAULT_PLOT_BACKEND
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -539,20 +531,6 @@ class PlotWidget(qt.QMainWindow):
         if self.__selection is None:  # Lazy initialization
             self.__selection = _PlotWidgetSelection(parent=self)
         return self.__selection
-
-    # TODO: Can be removed for silx 0.10
-    @staticmethod
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def setDefaultBackend(backend):
-        """Set system wide default plot backend.
-
-        .. versionadded:: 0.6
-
-        :param backend: The backend to use, in:
-                        'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
-                        or a :class:`BackendBase.BackendBase` class
-        """
-        silx.config.DEFAULT_PLOT_BACKEND = backend
 
     def setBackend(self, backend):
         """Set the backend to use for rendering.
