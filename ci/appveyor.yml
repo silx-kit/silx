@@ -45,7 +45,7 @@ environment:
 
 branches:
     only:
-        - master
+        - main
         - /\d*\.\d*/
 
 install:
