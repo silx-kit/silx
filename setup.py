@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -747,26 +747,6 @@ def get_project_configuration():
         ),
     ]
 
-    # silx.third_party
-
-    if os.path.exists(os.path.join(
-        os.path.dirname(__file__), "src", "silx", "third_party", "_local")
-    ):
-        ext_modules.append(
-            Extension(
-                name='silx.third_party._local.scipy_spatial.qhull',
-                sources=[
-                    'src/silx/third_party/_local/scipy_spatial/qhull/src/' + fname for fname in (
-                        'geom2_r.c', 'geom_r.c', 'global_r.c', 'io_r.c', 'libqhull_r.c', 'mem_r.c',
-                        'merge_r.c', 'poly2_r.c', 'poly_r.c', 'qset_r.c', 'random_r.c', 'rboxlib_r.c',
-                        'stat_r.c', 'usermem_r.c', 'userprintf_rbox_r.c', 'userprintf_r.c', 'user_r.c'
-                )] + [
-                    'src/silx/third_party/_local/scipy_spatial/qhull.pyx',
-                ],
-                include_dirs=[numpy.get_include()],
-            )
-        )
-
     return dict(
         name=PROJECT,
         version=get_version(),
@@ -790,9 +770,6 @@ def get_project_configuration():
         },
         ext_modules=ext_modules,
         package_data=package_data,
-        data_files=[
-            ('silx/third_party/_local/scipy_spatial/qhull', ['src/silx/third_party/_local/scipy_spatial/qhull/COPYING.txt'])
-        ],
     )
 
 
