@@ -109,7 +109,7 @@ class Hdf5DatasetMimeData(qt.QMimeData):
 
     MIME_TYPE = "application/x-internal-h5py-dataset"
 
-    SILX_URI_TYPE = constants.SILX_URI_TYPE
+    SILX_URI_TYPE = constants.SILX_URI_MIMETYPE
     """For compatibility with silx <= 1.1"""
 
     def __init__(self, node=None, dataset=None, isRoot=False):
