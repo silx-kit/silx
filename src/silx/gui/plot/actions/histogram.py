@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,6 @@ from silx.gui import qt
 from silx.gui.plot import items
 from silx.gui.widgets.ElidedLabel import ElidedLabel
 from silx.gui.widgets.RangeSlider import RangeSlider
-from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -514,18 +513,9 @@ class PixelIntensitiesHistoAction(PlotToolAction):
         if self._isWindowInUse():
             self._updateSelectedItem()
 
-    @deprecated(since_version='0.15.0')
-    def computeIntensityDistribution(self):
-        self.getHistogramWidget()._updateFromItem()
-
     def getHistogramWidget(self):
         """Returns the widget displaying the histogram"""
         return self._getToolWindow()
-
-    @deprecated(since_version='0.15.0',
-                replacement='getHistogramWidget().getPlotWidget()')
-    def getHistogramPlotWidget(self):
-        return self._getToolWindow().getPlotWidget()
 
     def _createToolWindow(self):
         return HistogramWidget(self.plot, qt.Qt.Window)
