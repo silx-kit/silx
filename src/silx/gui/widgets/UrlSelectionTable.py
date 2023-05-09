@@ -152,8 +152,9 @@ class UrlSelectionTable(TableWidget):
         for url in urls:
             self.addUrl(url=url)
 
-    def addUrl(self, url, **kwargs):
+    def addUrl(self, url: DataUrl, **kwargs):
         """
+        Append this DataUrl to the end of the list of URLs.
 
         :param url: 
         :param args: 
