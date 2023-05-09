@@ -171,23 +171,6 @@ class TestDictToH5(H5DictTestCase):
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
 
-    def testH5OverwriteDeprecatedApi(self):
-        dd = ConfigDict({'t': True})
-
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
-        dd = ConfigDict({'t': False})
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
-                 overwrite_data=False)
-
-        res = h5todict(self.h5_fname)
-        assert(res['t'] == True)
-
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
-                 overwrite_data=True)
-
-        res = h5todict(self.h5_fname)
-        assert(res['t'] == False)
-
     def testAttributes(self):
         """Any kind of attribute can be described"""
         ddict = {
