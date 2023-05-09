@@ -112,7 +112,7 @@ class TestMedianFilter(unittest.TestCase):
             logger.info("test_medfilt: size: %s: skipped")
         else:
             logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
-            if self.medianfilter.device.platform.name != 'Portable Computing Language':
+            if self.medianfilter.device.platform.name.lower() != 'portable computing language':
                 #Known broken
                 self.assertEqual(r.error, 0, 'Results are correct')
 
