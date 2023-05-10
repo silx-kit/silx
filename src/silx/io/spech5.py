@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -155,32 +155,6 @@ You can test for existence of data or groups::
     True
     >>> "spam" in sfh5["1.1"]
     False
-
-.. note::
-
-    Text used to be stored with a dtype ``numpy.string_`` in silx versions
-    prior to *0.7.0*. The type ``numpy.string_`` is a byte-string format.
-    The consequence of this is that you had to decode strings before using
-    them in **Python 3**::
-
-        >>> from silx.io.spech5 import SpecH5
-        >>> sfh5 = SpecH5("31oct98.dat")
-        >>> sfh5["/68.1/title"]
-        b'68  ascan  tx3 -28.5 -24.5  20 0.5'
-        >>> sfh5["/68.1/title"].decode()
-        '68  ascan  tx3 -28.5 -24.5  20 0.5'
-
-    From silx version *0.7.0* onwards, text is now stored as unicode. This
-    corresponds to the default text type in python 3, and to the *unicode*
-    type in Python 2.
-
-    To be on the safe side, you can test for the presence of a *decode*
-    attribute, to ensure that you always work with unicode text::
-
-        >>> title = sfh5["/68.1/title"]
-        >>> if hasattr(title, "decode"):
-        ...     title = title.decode()
-
 """
 
 import datetime

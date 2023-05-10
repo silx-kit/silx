@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@ import weakref
 from . import qt
 import silx.resources
 from silx.utils import weakref as silxweakref
-from silx.utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -92,7 +91,7 @@ class AbstractAnimatedIcon(qt.QObject):
     """Signal sent with a QIcon everytime the animation changed."""
 
     def register(self, obj):
-        """Register an object to the AnimatedIcon.
+        """Register an object to the AbstractAnimatedIcon.
         If no object are registred, the animation is paused.
         Object are stored in a weaked list.
 
@@ -120,7 +119,7 @@ class AbstractAnimatedIcon(qt.QObject):
         return len(self.__targets)
 
     def isRegistered(self, obj):
-        """Returns true if the object is registred in the AnimatedIcon.
+        """Returns true if the object is registred in the AbstractAnimatedIcon.
 
         :param object obj: An object
         :rtype: bool
@@ -191,7 +190,7 @@ class MovieAnimatedIcon(AbstractAnimatedIcon):
 
     def _updateState(self):
         """Update the movie play according to internal stat of the
-        AnimatedIcon."""
+        MovieAnimatedIcon."""
         self.__movie.setPaused(not self.hasRegistredObjects())
 
 
@@ -255,22 +254,6 @@ class MultiImageAnimatedIcon(AbstractAnimatedIcon):
         else:
             if self.__timer.isActive():
                 self.__timer.stop()
-
-
-class AnimatedIcon(MovieAnimatedIcon):
-    """Store a looping QMovie to provide icons for each frames.
-    Provides an event with the new icon everytime the movie frame
-    is updated.
-
-    It may not be available anymore for the silx release 0.6.
-
-    .. deprecated:: 0.5
-       Use :class:`MovieAnimatedIcon` instead.
-    """
-
-    @deprecated
-    def __init__(self, filename, parent=None):
-        MovieAnimatedIcon.__init__(self, filename, parent=parent)
 
 
 def getWaitIcon():

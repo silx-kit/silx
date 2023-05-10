@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -348,12 +348,6 @@ class CurvesROIWidget(qt.QWidget):
     def setHeader(self, text='ROIs'):
         """Set the header text of this widget"""
         self.headerLabel.setText("<b>%s<\b>" % text)
-
-    @deprecation.deprecated(replacement="calculateRois",
-                            reason="CamelCase convention",
-                            since_version="0.7")
-    def calculateROIs(self, *args, **kw):
-        self.calculateRois(*args, **kw)
 
     def calculateRois(self, roiList=None, roiDict=None):
         """Compute ROI information"""
