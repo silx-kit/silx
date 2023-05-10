@@ -1,0 +1,15 @@
+Test-Command: set -efu
+ ; for py in $(py3versions -r 2>/dev/null)
+ ; do cd "$AUTOPKGTEST_TMP"
+ ; echo "Testing with $py:"
+ ; xvfb-run -a --server-args="-screen 0 1024x768x24" $py -c "import silx.test; silx.test.run_tests()" 2>&1
+ ; done
+Depends: python3-all, python3-silx, xauth, xvfb
+
+Test-Command: set -efu
+ ; for py in $(py3versions -r 2>/dev/null)
+ ; do cd "$AUTOPKGTEST_TMP"
+ ; echo "Testing with $py-dbg:"
+ ; xvfb-run -a --server-args="-screen 0 1024x768x24" $py-dbg -c "import silx.test; silx.test.run_tests()" 2>&1
+ ; done
+Depends: python3-all-dbg, python3-silx-dbg, xauth, xvfb
