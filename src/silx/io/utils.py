@@ -840,7 +840,7 @@ def match(group, path_pattern: str) -> Generator[str, None, None]:
     if not is_group(group):
         raise ValueError(f"Not a h5py-like group: {group}")
 
-    path_parts = path_pattern.strip("/").split("/", 1)
+    path_parts = path_pattern.replace("\\", "/").strip("/").split("/", 1)
     if path_parts[0] == "**":
         # recursive match
         for subpath in iter_groups(group):

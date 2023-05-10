@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,8 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""Browse a data file with a GUI"""
+"""Package containing utils related to applications"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/05/2018"
-
-
-_trueStrings = set(["yes", "true", "1"])
-_falseStrings = set(["no", "false", "0"])
-
-
-def stringToBool(string):
-    """Returns a boolean from a string.
-
-    :raise ValueError: If the string do not contains a boolean information.
-    """
-    lower = string.lower()
-    if lower in _trueStrings:
-        return True
-    if lower in _falseStrings:
-        return False
-    raise ValueError("'%s' is not a valid boolean" % string)
+__date__ = "07/06/2023"
