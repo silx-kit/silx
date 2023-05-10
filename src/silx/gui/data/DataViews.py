@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import numpy
 import os
 
 import silx.io
-from silx.utils import deprecation
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
@@ -529,10 +528,6 @@ class _CompositeDataView(DataView):
         :rtype: List[DataView]
         """
         raise NotImplementedError()
-
-    @deprecation.deprecated(replacement="getReachableViews", since_version="0.10")
-    def availableViews(self):
-        return self.getViews()
 
     def isSupportedData(self, data, info):
         """If true, the composite view allow sub views to access to this data.

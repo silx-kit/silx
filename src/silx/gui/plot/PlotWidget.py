@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.property import classproperty
 from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
@@ -259,13 +258,6 @@ class PlotWidget(qt.QMainWindow):
                     or a :class:`BackendBase.BackendBase` class
     :type backend: str or :class:`BackendBase.BackendBase`
     """
-
-    # TODO: Can be removed for silx 0.10
-    @classproperty
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def DEFAULT_BACKEND(self):
-        """Class attribute setting the default backend for all instances."""
-        return silx.config.DEFAULT_PLOT_BACKEND
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -539,20 +531,6 @@ class PlotWidget(qt.QMainWindow):
         if self.__selection is None:  # Lazy initialization
             self.__selection = _PlotWidgetSelection(parent=self)
         return self.__selection
-
-    # TODO: Can be removed for silx 0.10
-    @staticmethod
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def setDefaultBackend(backend):
-        """Set system wide default plot backend.
-
-        .. versionadded:: 0.6
-
-        :param backend: The backend to use, in:
-                        'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
-                        or a :class:`BackendBase.BackendBase` class
-        """
-        silx.config.DEFAULT_PLOT_BACKEND = backend
 
     def setBackend(self, backend):
         """Set the backend to use for rendering.
@@ -2144,27 +2122,6 @@ class PlotWidget(qt.QMainWindow):
         curve = self.getActiveCurve()
         if curve is not None:
             curve.setHighlightedStyle(self.getActiveCurveStyle())
-
-    @deprecated(replacement="getActiveCurveStyle", since_version="0.9")
-    def getActiveCurveColor(self):
-        """Get the color used to display the currently active curve.
-
-        See :meth:`setActiveCurveColor`.
-        """
-        return self._activeCurveStyle.getColor()
-
-    @deprecated(replacement="setActiveCurveStyle", since_version="0.9")
-    def setActiveCurveColor(self, color="#000000"):
-        """Set the color to use to display the currently active curve.
-
-        :param str color: Color of the active curve,
-                          e.g., 'blue', 'b', '#FF0000' (Default: 'black')
-        """
-        if color is None:
-            color = "black"
-        if color in self.colorDict:
-            color = self.colorDict[color]
-        self.setActiveCurveStyle(color=color)
 
     def getActiveCurve(self, just_legend=False):
         """Return the currently active curve.

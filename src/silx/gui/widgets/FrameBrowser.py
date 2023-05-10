@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,6 @@
 """
 from silx.gui import qt
 from silx.gui import icons
-from silx.utils import deprecation
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -182,11 +181,6 @@ class FrameBrowser(qt.QWidget):
         # Update limits
         self._label.setText(" limits: %d, %d " % (bottom, top))
 
-    @deprecation.deprecated(replacement="FrameBrowser.setRange",
-                            since_version="0.8")
-    def setLimits(self, first, last):
-        return self.setRange(first, last)
-
     def setNFrames(self, nframes):
         """Set minimum=0 and maximum=nframes-1 frame numbers.
 
@@ -198,11 +192,6 @@ class FrameBrowser(qt.QWidget):
         self.setRange(0, top)
         # display 1-based index in label
         self._label.setText(" of %d " % top)
-
-    @deprecation.deprecated(replacement="FrameBrowser.getValue",
-                            since_version="0.8")
-    def getCurrentIndex(self):
-        return self._index
 
     def getValue(self):
         """Return current frame index"""

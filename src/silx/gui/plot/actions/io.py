@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,6 @@ import os.path
 from collections import OrderedDict
 import traceback
 import numpy
-from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
 from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
@@ -716,11 +715,6 @@ class PrintAction(PlotAction):
         :rtype: QPrinter
         """
         return printer.getDefaultPrinter()
-
-    @property
-    @deprecated(replacement="getPrinter()", since_version="0.8.0")
-    def printer(self):
-        return self.getPrinter()
 
     def printPlotAsWidget(self):
         """Open the print dialog and print the plot.

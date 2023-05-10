@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
-from silx.utils import deprecation
 
 
 _logger = logging.getLogger(__name__)
@@ -291,13 +290,7 @@ class Colormap(qt.QObject):
         self._colors = None
 
         if colors is not None and name is not None:
-            deprecation.deprecated_warning("Argument",
-                                           name="silx.gui.plot.Colors",
-                                           reason="name and colors can't be used at the same time",
-                                           since_version="0.10.0",
-                                           skip_backtrace_count=1)
-
-            colors = None
+            raise ValueError("name and colors arguments can't be set at the same time")
 
         if name is not None:
             self.setName(name)  # And resets colormap LUT

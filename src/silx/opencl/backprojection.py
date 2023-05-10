@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .sinofilter import SinoFilter
 from .sinofilter import fourier_filter as fourier_filter_
-from ..utils.deprecation import deprecated
 
 if pyopencl:
     mf = pyopencl.mem_flags
@@ -379,16 +378,5 @@ class Backprojection(OpenclProcessing):
     __call__ = filtered_backprojection
 
 
-    # -------------------
-    # - Compatibility  -
-    # -------------------
-
-    @deprecated(replacement="Backprojection.sino_filter", since_version="0.10")
-    def filter_projections(self, sino, rescale=True):
-        self.sino_filter(sino, output=self.d_sino)
-
-
-
 def fourier_filter(sino, filter_=None, fft_size=None):
     return fourier_filter_(sino, filter_=filter_, fft_size=fft_size)
-

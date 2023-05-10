@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -109,7 +109,6 @@ from .. import icons
 from . import PlotWidget
 from ..widgets.PrintPreview import PrintPreviewDialog, SingletonPrintPreviewDialog
 from ..widgets.PrintGeometryDialog import PrintGeometryDialog
-from silx.utils.deprecation import deprecated
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -188,12 +187,6 @@ class PrintPreviewToolButton(qt.QToolButton):
         :rtype: (str, str) or (None, None)
         """
         return None, None
-
-    @property
-    @deprecated(since_version="0.10",
-                replacement="getPlot()")
-    def plot(self):
-        return self._plot
 
     def getPlot(self):
         """Return the :class:`.PlotWidget` associated with this tool button.

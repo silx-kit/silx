@@ -815,34 +815,9 @@ class ROITable(TableWidget):
             self._markersHandler.updateAllMarkers()
         qt.QTableWidget.currentChanged(self, current, previous)
 
-    @deprecation.deprecated(reason="Removed",
-                            replacement="roidict and roidict.values()",
-                            since_version="0.10.0")
-    def getROIListAndDict(self):
+    def calculateRois(self):
+        """Update values of all registred rois (raw and net counts in particular)
         """
-
-        :return: the list of roi objects and the dictionary of roi name to roi
-                 object.
-        """
-        roidict = self._roiDict
-        return list(roidict.values()), roidict
-
-    def calculateRois(self, roiList=None, roiDict=None):
-        """
-        Update values of all registred rois (raw and net counts in particular)
-
-        :param roiList: deprecated parameter
-        :param roiDict: deprecated parameter
-        """
-        if roiDict:
-            deprecation.deprecated_warning(name='roiDict', type_='Parameter',
-                                           reason='Unused parameter',
-                                           since_version="0.10.0")
-        if roiList:
-            deprecation.deprecated_warning(name='roiList', type_='Parameter',
-                                           reason='Unused parameter',
-                                           since_version="0.10.0")
-
         for roiID in self._roiDict:
             self._updateRoiInfo(roiID)
 
