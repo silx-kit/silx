@@ -56,7 +56,7 @@ Example::
 
 
     sv = StackViewMainWindow()
-    sv.setColormap("viridis", vmin=numpy.min(mystack), vmax=numpy.max(mystack))
+    sv.setColormap("viridis", vmin=-4, vmax=4)
     sv.setStack(mystack)
     sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
                   "3rd dim (0-299)"])
