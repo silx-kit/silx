@@ -27,8 +27,8 @@ __license__ = "MIT"
 __date__ = "28/05/2018"
 
 
-_trueStrings = set(["yes", "true", "1"])
-_falseStrings = set(["no", "false", "0"])
+_trueStrings = {"yes", "true", "1"}
+_falseStrings = {"no", "false", "0"}
 
 
 def string_to_bool(string: str) -> bool:
