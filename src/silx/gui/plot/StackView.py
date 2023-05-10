@@ -56,7 +56,7 @@ Example::
 
 
     sv = StackViewMainWindow()
-    sv.setColormap("jet", autoscale=True)
+    sv.setColormap("viridis", vmin=-4, vmax=4)
     sv.setStack(mystack)
     sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
                   "3rd dim (0-299)"])
@@ -191,9 +191,6 @@ class StackView(qt.QMainWindow):
         imageLegend = '__StackView__image' + str(id(self))
         self._stackItem.setName(imageLegend)
 
-        self.__autoscaleCmap = False
-        """Flag to disable/enable colormap auto-scaling
-        based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
                                    "Dimension 2"]
         """These labels are displayed on the X and Y axes.
@@ -539,9 +536,6 @@ class StackView(qt.QMainWindow):
             perspective_changed = True
             self.setPerspective(perspective)
 
-        if self.__autoscaleCmap:
-            self.scaleColormapRangeToStack()
-
         # init plot
         self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
         self._stackItem.setColormap(self.getColormap())
@@ -792,7 +786,7 @@ class StackView(qt.QMainWindow):
         colormap.setVRange(vmin=vmin, vmax=vmax)
 
     def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=None):
+                    vmin=None, vmax=None, colors=None):
         """Set the colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -818,13 +812,8 @@ class StackView(qt.QMainWindow):
             Or a :class`.Colormap` object.
         :type colormap: dict or str.
         :param str normalization: Colormap mapping: 'linear' or 'log'.
-        :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
-            Default value of autoscale is False. This option is not compatible
-            with h5py datasets.
-        :param float vmin: The minimum value of the range to use if
-                           'autoscale' is False.
-        :param float vmax: The maximum value of the range to use if
-                           'autoscale' is False.
+        :param float vmin: The minimum value of the range to use.
+        :param float vmax: The maximum value of the range to use.
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
@@ -834,7 +823,6 @@ class StackView(qt.QMainWindow):
             errmsg = "If colormap is provided as a Colormap object, all other parameters"
             errmsg += " must not be specified when calling setColormap"
             assert normalization is None, errmsg
-            assert autoscale is None, errmsg
             assert vmin is None, errmsg
             assert vmax is None, errmsg
             assert colors is None, errmsg
@@ -849,15 +837,6 @@ class StackView(qt.QMainWindow):
                                  vmax=vmax,
                                  colors=colors)
 
-            if autoscale is not None:
-                deprecated_warning(
-                    type_='function',
-                    name='setColormap',
-                    reason='autoscale argument is replaced by a method',
-                    replacement='scaleColormapRangeToStack',
-                    since_version='0.14')
-            self.__autoscaleCmap = bool(autoscale)
-
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
 
@@ -867,12 +846,6 @@ class StackView(qt.QMainWindow):
         activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
-
-        if self.__autoscaleCmap:
-            # scaleColormapRangeToStack needs to be called **after**
-            # setDefaultColormap so getColormap returns the right colormap
-            self.scaleColormapRangeToStack()
-
 
     @deprecated(replacement="getPlotWidget", since_version="0.13")
     def getPlot(self):
