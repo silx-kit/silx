@@ -29,26 +29,82 @@ __author__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "19/03/2018"
 
+import os
+import functools
+import logging
 from silx.gui import qt
-from collections import OrderedDict
+from silx.gui import utils as qtutils
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.io.url import DataUrl
 from silx.utils.deprecation import deprecated, deprecated_warning
-import functools
-import logging
-import os
+from silx.gui import constants
 
 logger = logging.getLogger(__name__)
+
+
+class _IntegratedRadioButton(qt.QWidget):
+    """RadioButton integrated in the QTableWidget as a centered widget"""
+
+    toggled = qt.Signal()
+
+    def __init__(self, parent=None):
+        qt.QWidget.__init__(self, parent=parent)
+        self.setContentsMargins(1, 1, 1, 1)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(1)
+
+        self._radio = qt.QRadioButton(parent=self)
+        self._radio.setObjectName("radio")
+        self._radio.setAutoExclusive(False)
+        self._radio.setMinimumSize(self._radio.minimumSizeHint())
+        self._radio.setMaximumSize(self._radio.minimumSizeHint())
+        self._radio.toggled.connect(self.toggled.emit)
+        layout.addWidget(self._radio)
+        self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+
+    def setChecked(self, checked: bool):
+        self._radio.setChecked(checked)
+
+    def isChecked(self) -> bool:
+        return self._radio.isChecked()
+
+
+class _DataUrlItem(qt.QTableWidgetItem):
+    def __init__(self, url):
+        qt.QTableWidgetItem.__init__(self)
+        self._url = url
+
+        def slice_to_string(data_slice):
+            if data_slice == Ellipsis:
+                return "..."
+            elif data_slice == slice(None):
+                return ":"
+            elif isinstance(data_slice, int):
+                return str(data_slice)
+            else:
+                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
+
+        text = os.path.basename(url.file_path())
+        if url.data_path() is not None:
+            text += f" {url.data_path()}"
+        if url.data_slice() is not None:
+            text += f" [{slice_to_string(url.data_slice())}]"
+
+        self.setText(text)
+        self.setToolTip(url.path())
+
+    def dataUrl(self):
+        return self._url
 
 
 class UrlSelectionTable(TableWidget):
     """Table used to select the color channel to be displayed for each"""
 
-    COLUMS_INDEX = OrderedDict([
-        ('url', 0),
-        ('img A', 1),
-        ('img B', 2),
-    ])
+    URL_COLUMN = 0
+    IMG_A_COLUMN = 1
+    IMG_B_COLUMN = 2
+    NB_COLUMNS = 3
 
     sigImageAChanged = qt.Signal(str)
     """Signal emitted when the image A change. Param is the image url path"""
@@ -63,12 +119,28 @@ class UrlSelectionTable(TableWidget):
     def clear(self):
         qt.QTableWidget.clear(self)
         self.setRowCount(0)
-        self.setColumnCount(len(self.COLUMS_INDEX))
-        self.setHorizontalHeaderLabels(list(self.COLUMS_INDEX.keys()))
-        self.verticalHeader().hide()
-        self.horizontalHeader().setSectionResizeMode(0,
-                                                     qt.QHeaderView.Stretch)
+        self.setColumnCount(self.NB_COLUMNS)
+        self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
+        item = qt.QTableWidgetItem()
+        item.setText("Url")
+        item.setToolTip("Silx URL to the data")
+        self.setHorizontalHeaderItem(self.URL_COLUMN, item)
+        item = qt.QTableWidgetItem()
+        item.setText("A")
+        item.setToolTip("Selected image as A")
+        self.setHorizontalHeaderItem(self.IMG_A_COLUMN, item)
+        item = qt.QTableWidgetItem()
+        item.setText("B")
+        item.setToolTip("Selected image as B")
+        self.setHorizontalHeaderItem(self.IMG_B_COLUMN, item)
+
+        self.verticalHeader().hide()
+        setSectionResizeMode = self.horizontalHeader().setSectionResizeMode
+        setSectionResizeMode(self.URL_COLUMN, qt.QHeaderView.Stretch)
+        setSectionResizeMode(self.IMG_A_COLUMN, qt.QHeaderView.ResizeToContents)
+        setSectionResizeMode(self.IMG_B_COLUMN, qt.QHeaderView.ResizeToContents)
         self.setSortingEnabled(True)
         self._checkBoxes = {}
 
@@ -80,8 +152,9 @@ class UrlSelectionTable(TableWidget):
         for url in urls:
             self.addUrl(url=url)
 
-    def addUrl(self, url, **kwargs):
+    def addUrl(self, url: DataUrl, **kwargs):
         """
+        Append this DataUrl to the end of the list of URLs.
 
         :param url: 
         :param args: 
@@ -92,45 +165,73 @@ class UrlSelectionTable(TableWidget):
         row = self.rowCount()
         self.setRowCount(row + 1)
 
-        _item = qt.QTableWidgetItem()
-        _item.setText(os.path.basename(url.path()))
-        _item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
-        self.setItem(row, self.COLUMS_INDEX['url'], _item)
+        item = _DataUrlItem(url)
+        item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+        self.setItem(row, self.URL_COLUMN, item)
 
-        widgetImgA = qt.QRadioButton(parent=self)
-        widgetImgA.setAutoExclusive(False)
-        self.setCellWidget(row, self.COLUMS_INDEX['img A'], widgetImgA)
-        callbackImgA = functools.partial(self._activeImgAChanged, url.path())
+        widgetImgA = _IntegratedRadioButton(parent=self)
+        self.setCellWidget(row, self.IMG_A_COLUMN, widgetImgA)
+        callbackImgA = functools.partial(self._activeImgAChanged, row)
         widgetImgA.toggled.connect(callbackImgA)
 
-        widgetImgB = qt.QRadioButton(parent=self)
-        widgetImgA.setAutoExclusive(False)
-        self.setCellWidget(row, self.COLUMS_INDEX['img B'], widgetImgB)
-        callbackImgB = functools.partial(self._activeImgBChanged, url.path())
+        widgetImgB = _IntegratedRadioButton(parent=self)
+        self.setCellWidget(row, self.IMG_B_COLUMN, widgetImgB)
+        callbackImgB = functools.partial(self._activeImgBChanged, row)
         widgetImgB.toggled.connect(callbackImgB)
 
-        self._checkBoxes[url.path()] = {'img A': widgetImgA,
-                                        'img B': widgetImgB}
+        self._checkBoxes[row] = {
+            self.IMG_A_COLUMN: widgetImgA,
+            self.IMG_B_COLUMN: widgetImgB
+        }
         self.resizeColumnsToContents()
         return row
 
-    def _activeImgAChanged(self, name):
-        self._updatecheckBoxes('img A', name)
-        self.sigImageAChanged.emit(name)
+    def _getItemFromUrlPath(self, urlPath: str) -> _DataUrlItem:
+        """Returns the Qt item storing this urlPath, else None"""
+        for r in range(self.rowCount()):
+            item = self.item(r, self.URL_COLUMN)
+            url = item.dataUrl()
+            if url.path() == urlPath:
+                return item
+        return None
 
-    def _activeImgBChanged(self, name):
-        self._updatecheckBoxes('img B', name)
-        self.sigImageBChanged.emit(name)
+    def setError(self, urlPath: str, message: str):
+        """Flag this urlPath with an error in the UI."""
+        item = self._getItemFromUrlPath(urlPath)
+        if item is None:
+            return
+        if message == "":
+            item.setIcon(qt.QIcon())
+            item.setToolTip("")
+        else:
+            style = qt.QApplication.style()
+            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            item.setIcon(icon)
+            item.setToolTip(f"Error: {message}")
 
-    def _updatecheckBoxes(self, whichImg, name):
-        assert name in self._checkBoxes
-        assert whichImg in self._checkBoxes[name]
-        if self._checkBoxes[name][whichImg].isChecked():
-            for radioUrl in self._checkBoxes:
-                if radioUrl != name:
-                    self._checkBoxes[radioUrl][whichImg].blockSignals(True)
-                    self._checkBoxes[radioUrl][whichImg].setChecked(False)
-                    self._checkBoxes[radioUrl][whichImg].blockSignals(False)
+    def _activeImgAChanged(self, row):
+        if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
+            self._updateCheckBoxes(self.IMG_A_COLUMN, row)
+            url = self.item(row, self.URL_COLUMN).dataUrl()
+            self.sigImageAChanged.emit(url.path())
+        else:
+            self.sigImageAChanged.emit(None)
+
+    def _activeImgBChanged(self, row):
+        if self._checkBoxes[row][self.IMG_B_COLUMN].isChecked():
+            self._updateCheckBoxes(self.IMG_B_COLUMN, row)
+            url = self.item(row, self.URL_COLUMN).dataUrl()
+            self.sigImageBChanged.emit(url.path())
+        else:
+            self.sigImageBChanged.emit(None)
+
+    def _updateCheckBoxes(self, column, row):
+        for r in range(self.rowCount()):
+            if r == row:
+                continue
+            c = self._checkBoxes[r][column]
+            with qtutils.blockSignals(c):
+                c.setChecked(False)
 
     @deprecated(replacement="getUrlSelection", since_version="2.0", reason="Conflict with Qt API")
     def getSelection(self):
@@ -154,11 +255,12 @@ class UrlSelectionTable(TableWidget):
         :return: url selected for img A and img B.
         """
         imgA = imgB = None
-        for radioUrl in self._checkBoxes:
-            if self._checkBoxes[radioUrl]['img A'].isChecked():
-                imgA = radioUrl
-            if self._checkBoxes[radioUrl]['img B'].isChecked():
-                imgB = radioUrl
+        for row in range(self.rowCount()):
+            url = self.item(row, self.URL_COLUMN).dataUrl()
+            if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
+                imgA = url
+            if self._checkBoxes[row][self.IMG_B_COLUMN].isChecked():
+                imgB = url
         return imgA, imgB
 
     def setUrlSelection(self, url_img_a, url_img_b):
@@ -166,21 +268,50 @@ class UrlSelectionTable(TableWidget):
 
         :param ddict: key: image url, values: list of active channels
         """
-        for radioUrl in self._checkBoxes:
-            for img in ('img A', 'img B'):
-                self._checkBoxes[radioUrl][img].blockSignals(True)
-                self._checkBoxes[radioUrl][img].setChecked(False)
-                self._checkBoxes[radioUrl][img].blockSignals(False)
+        rowA = None
+        rowB = None
+        for row in range(self.rowCount()):
+            for img in (self.IMG_A_COLUMN, self.IMG_B_COLUMN):
+                c = self._checkBoxes[row][img]
+                with qtutils.blockSignals(c):
+                    c.setChecked(False)
+            url = self.item(row, self.URL_COLUMN).dataUrl()
+            if url.path() == url_img_a:
+                rowA = row
+            if url.path() == url_img_b:
+                rowB = row
 
-        self._checkBoxes[radioUrl][img].blockSignals(True)
-        self._checkBoxes[url_img_a]['img A'].setChecked(True)
-        self._checkBoxes[radioUrl][img].blockSignals(False)
 
-        self._checkBoxes[radioUrl][img].blockSignals(True)
-        self._checkBoxes[url_img_b]['img B'].setChecked(True)
-        self._checkBoxes[radioUrl][img].blockSignals(False)
+        if rowA is not None:
+            c = self._checkBoxes[rowA][self.IMG_A_COLUMN]
+            with qtutils.blockSignals(c):
+                c.setChecked(True)
+
+        if rowB is not None:
+            c = self._checkBoxes[rowB][self.IMG_B_COLUMN]
+            with qtutils.blockSignals(c):
+                c.setChecked(True)
+
         self.sigImageAChanged.emit(url_img_a)
         self.sigImageBChanged.emit(url_img_b)
 
     def removeUrl(self, url):
         raise NotImplementedError("")
+
+    def supportedDropActions(self):
+        """Inherited method to redefine supported drop actions."""
+        return qt.Qt.CopyAction | qt.Qt.MoveAction
+
+    def mimeTypes(self):
+        """Inherited method to redefine draggable mime types."""
+        return [constants.SILX_URI_MIMETYPE]
+
+    def dropMimeData(self, row: int, column: int, mimedata: qt.QMimeType, action: qt.Qt.DropAction):
+        """Inherited method to handle a drop operation to this model."""
+        if action == qt.Qt.IgnoreAction:
+            return True
+        if mimedata.hasFormat(constants.SILX_URI_MIMETYPE):
+            url = DataUrl(mimedata.text())
+            self.addUrl(url)
+            return True
+        return False
