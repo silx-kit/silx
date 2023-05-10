@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -424,59 +424,6 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                 roiManager = manager.getRoiManager()
                 roiManager.removeRoi(roi)
                 self.qWait(100)
-
-
-class TestDeprecatedProfileToolBar(TestCaseQt):
-    """Tests old features of the ProfileToolBar widget."""
-
-    def setUp(self):
-        self.plot = None
-        super(TestDeprecatedProfileToolBar, self).setUp()
-
-    def tearDown(self):
-        if self.plot is not None:
-            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-            self.plot.close()
-            self.plot = None
-            self.qWait()
-
-        super(TestDeprecatedProfileToolBar, self).tearDown()
-
-    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
-    def testCustomProfileWindow(self):
-        from silx.gui.plot import ProfileMainWindow
-
-        self.plot = PlotWindow()
-        profileWindow = ProfileMainWindow.ProfileMainWindow(self.plot)
-        toolBar = Profile.ProfileToolBar(parent=self.plot,
-                                         plot=self.plot,
-                                         profileWindow=profileWindow)
-
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        profileWindow.show()
-        self.qWaitForWindowExposed(profileWindow)
-        self.qapp.processEvents()
-
-        self.plot.addImage(numpy.arange(10 * 10).reshape(10, -1))
-        profile = rois.ProfileImageHorizontalLineROI()
-        profile.setPosition(5)
-        toolBar.getProfileManager().getRoiManager().addRoi(profile)
-        toolBar.getProfileManager().getRoiManager().setCurrentRoi(profile)
-
-        for _ in range(20):
-            self.qWait(200)
-            if not toolBar.getProfileManager().hasPendingOperations():
-                break
-
-        # There is a displayed profile
-        self.assertIsNotNone(profileWindow.getProfile())
-        self.assertIs(toolBar.getProfileMainWindow(), profileWindow)
-
-        # There is nothing anymore but the window is still there
-        toolBar.getProfileManager().clearProfile()
-        self.qapp.processEvents()
-        self.assertIsNone(profileWindow.getProfile())
 
 
 class TestProfile3DToolBar(TestCaseQt):
