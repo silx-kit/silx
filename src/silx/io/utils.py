@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,6 @@ class H5Type(enum.Enum):
 _CLASSES_TYPE = None
 """Store mapping between classes and types"""
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 builtin_open = open
 
@@ -199,7 +198,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabel if isinstance(ylabel, string_types) else "y%d" % i
+        ylabels = [ylabel if isinstance(ylabel, str) else "y%d" % i
                    for ylabel in ylabels]
 
     if filetype.lower() == "spec":
@@ -291,18 +290,14 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
         ffile = fname
 
     if header:
-        if sys.version_info[0] >= 3:
-            header = header.encode("utf-8")
-        ffile.write(header)
+        ffile.write(header.encode("utf-8"))
 
     numpy.savetxt(ffile, X, fmt, delimiter, newline)
 
     if footer:
         footer = (comments + footer.replace(newline, newline + comments) +
                   newline)
-        if sys.version_info[0] >= 3:
-            footer = footer.encode("utf-8")
-        ffile.write(footer)
+        ffile.write(footer.encode("utf-8"))
 
     if not hasattr(fname, "name"):
         ffile.close()
@@ -366,7 +361,7 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     assert len(labels) == ncol
 
     print(xlabel, ylabel, fmt, ncol, x_array, y_array)
-    if isinstance(fmt, string_types) and fmt.count("%") == 1:
+    if isinstance(fmt, str) and fmt.count("%") == 1:
         full_fmt_string = "  ".join([fmt] * ncol)
     elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
         full_fmt_string = "  ".join(fmt)
@@ -432,7 +427,7 @@ def h5ls(h5group, lvl=0):
     h5repr = ''
     if is_group(h5group):
         h5f = h5group
-    elif isinstance(h5group, string_types):
+    elif isinstance(h5group, str):
         h5f = open(h5group)  # silx.io.open
     else:
         raise TypeError("h5group must be a hdf5-like group object or a file name.")
@@ -449,7 +444,7 @@ def h5ls(h5group, lvl=0):
             h5repr += str(h5f[key])
             h5repr += '\n'
 
-    if isinstance(h5group, string_types):
+    if isinstance(h5group, str):
         h5f.close()
 
     return h5repr

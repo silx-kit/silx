@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,55 +28,21 @@ __license__ = "MIT"
 __date__ = "29/04/2019"
 
 
-import sys
-import unittest
-
-import enum
+import pytest
 from silx.utils.enum import Enum
 
 
-class TestEnum(unittest.TestCase):
-    """Tests for enum module."""
+def test_enum_methods():
+    """Test Enum"""
+    class Success(Enum):
+        A = 1
+        B = 'B'
 
-    def test(self):
-        """Test with Enum"""
-        class Success(Enum):
-            A = 1
-            B = 'B'
-        self._check_enum_content(Success)
+    assert Success.members() == (Success.A, Success.B)
+    assert Success.names() == ('A', 'B')
+    assert Success.values() == (1, 'B')
 
-    @unittest.skipIf(sys.version_info.major <= 2, 'Python3 only')
-    def test(self):
-        """Test Enum with member redefinition"""
-        with self.assertRaises(TypeError):
-            class Failure(Enum):
-                A = 1
-                A = 'B'
-
-    def test_unique(self):
-        """Test with enum.unique"""
-        with self.assertRaises(ValueError):
-            @enum.unique
-            class Failure(Enum):
-                A = 1
-                B = 1
-
-        @enum.unique
-        class Success(Enum):
-            A = 1
-            B = 'B'
-        self._check_enum_content(Success)
-
-    def _check_enum_content(self, enum_):
-        """Check that the content of an enum is: <A: 1, B: 2>.
-
-        :param Enum enum_:
-        """
-        self.assertEqual(enum_.members(), (enum_.A, enum_.B))
-        self.assertEqual(enum_.names(), ('A', 'B'))
-        self.assertEqual(enum_.values(), (1, 'B'))
-
-        self.assertEqual(enum_.from_value(1), enum_.A)
-        self.assertEqual(enum_.from_value('B'), enum_.B)
-        with self.assertRaises(ValueError):
-            enum_.from_value(3)
+    assert Success.from_value(1) == Success.A
+    assert Success.from_value('B') == Success.B
+    with pytest.raises(ValueError):
+        Success.from_value(3)

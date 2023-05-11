@@ -50,11 +50,7 @@ from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from ...utils.image import convertArrayToQImage
-if sys.version_info[0] == 3:
-    from io import BytesIO
-else:
-    import cStringIO as _StringIO
-    BytesIO = _StringIO.StringIO
+from io import BytesIO
 
 _logger = logging.getLogger(__name__)
 

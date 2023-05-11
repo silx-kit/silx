@@ -25,10 +25,7 @@ This module contains generic objects, emulating *h5py* groups, datasets and
 files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 """
 import collections
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import weakref
 
 import h5py

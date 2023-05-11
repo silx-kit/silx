@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -91,14 +91,7 @@ __date__ = "15/09/2016"
 from collections import OrderedDict
 import numpy
 import re
-import sys
-if sys.version_info < (3, ):
-    import ConfigParser as configparser
-else:
-    import configparser
-
-
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+import configparser
 
 
 def _boolean(sstr):
@@ -475,9 +468,8 @@ class ConfigDict(OrderedDict):
         # Escape commas
         sstr = sstr.replace(",", r"\,")
 
-        if sys.version_info >= (3, ):
-            # Escape % characters except in "%%" and "%("
-            sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
+        # Escape % characters except in "%%" and "%("
+        sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
 
         return sstr
 
@@ -502,7 +494,7 @@ class ConfigDict(OrderedDict):
                 for item in ddict[key]:
                     if isinstance(item, list):
                         if len(item) == 1:
-                            if isinstance(item[0], string_types):
+                            if isinstance(item[0], str):
                                 self._escape_str(item[0])
                                 llist.append('%s,' % self._escape_str(item[0]))
                             else:
@@ -510,17 +502,17 @@ class ConfigDict(OrderedDict):
                         else:
                             item2 = []
                             for val in item:
-                                if isinstance(val, string_types):
+                                if isinstance(val, str):
                                     val = self._escape_str(val)
                                 item2.append(val)
                             llist.append(', '.join([str(val) for val in item2]))
                         sep = '\n\t'
-                    elif isinstance(item, string_types):
+                    elif isinstance(item, str):
                         llist.append(self._escape_str(item))
                     else:
                         llist.append(str(item))
                 fp.write('%s\n' % (sep.join(llist)))
-            elif isinstance(ddict[key], string_types):
+            elif isinstance(ddict[key], str):
                 fp.write('%s = %s\n' % (key, self._escape_str(ddict[key])))
             else:
                 if isinstance(ddict[key], numpy.ndarray):

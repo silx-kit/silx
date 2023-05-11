@@ -28,10 +28,7 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/11/2017"
 
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import logging
 import numpy
 

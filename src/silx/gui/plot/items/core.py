@@ -29,10 +29,7 @@ __license__ = "MIT"
 __date__ = "08/12/2020"
 
 import collections
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 from copy import deepcopy
 import logging
 import enum
