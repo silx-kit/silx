@@ -1261,6 +1261,11 @@ class CompareImages(qt.QMainWindow):
         self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
 
+    def resetZoom(self, dataMargins=None):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+        """
+        self.__plot.resetZoom(dataMargins)
+
     def setAutoResetZoom(self, activate=True):
         """
 

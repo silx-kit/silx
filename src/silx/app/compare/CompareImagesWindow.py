@@ -52,6 +52,7 @@ class CompareImagesWindow(qt.QMainWindow):
             self.restoreSettings(settings)
 
         self._plot = CompareImages(parent=self, backend=backend)
+        self._plot.setAutoResetZoom(False)
 
         self._selectionTable = UrlSelectionTable(parent=self)
         self._selectionTable.setAcceptDrops(True)
@@ -79,6 +80,7 @@ class CompareImagesWindow(qt.QMainWindow):
             url_img_a=url1,
             url_img_b=url2
         )
+        self._plot.resetZoom()
 
     def clear(self):
         self._plot.clear()
