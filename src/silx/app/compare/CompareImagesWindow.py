@@ -29,6 +29,7 @@ import logging
 import numpy
 
 import silx.io
+from silx.gui import icons
 from silx.gui import qt
 from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
@@ -42,6 +43,9 @@ class CompareImagesWindow(qt.QMainWindow):
     def __init__(self, backend=None, settings=None):
         qt.QMainWindow.__init__(self, parent=None)
         self.setWindowTitle("Silx compare")
+
+        silxIcon = icons.getQIcon("silx")
+        self.setWindowIcon(silxIcon)
 
         self.__settings = settings
         if settings:
