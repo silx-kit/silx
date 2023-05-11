@@ -32,6 +32,7 @@ __date__ = "23/07/2018"
 import logging
 import numpy
 import math
+from typing import Optional
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -39,7 +40,6 @@ from silx.gui import plot
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
 from silx.utils.weakref import WeakMethodProxy
-from silx.math.combo import min_max
 from silx.gui.plot.items import Scatter
 
 from .tools.compare.core import sift
@@ -52,6 +52,48 @@ from .tools.compare.core import _CompareImageItem
 
 
 _logger = logging.getLogger(__name__)
+
+
+class ColormapWithPinnedData(Colormap):
+    """
+    Colormap which allow to compute statistics on a specified pinned data.
+
+    This can be used to normalize multiple image item together, with a consistent
+    auto scale.
+
+    It supports for now up to 2 data at the same time.
+    """
+
+    def __init__(self, name=None, colors=None, normalization=Colormap.LINEAR, vmin=None, vmax=None, autoscaleMode=Colormap.MINMAX):
+        super().__init__(name=name, colors=colors, normalization=normalization, vmin=vmin, vmax=vmax, autoscaleMode=autoscaleMode)
+        self.__data1 = None
+        self.__data2 = None
+        self.__cacheColormapRange = {}  # Store {normalization: range}
+
+    def setPinnedData(self, data1: Optional[numpy.array], data2: Optional[numpy.array]):
+        self.__data1 = data1
+        self.__data2 = data2
+        self.__cacheColormapRange = {}
+
+    def _computeAutoscaleRange(self, data):
+        if self.__data1 is None:
+            return super()._computeAutoscaleRange(self.__data2)
+        if self.__data2 is None:
+            return super()._computeAutoscaleRange(self.__data1)
+
+        normalization = self.getNormalization()
+        autoscaleMode = self.getAutoscaleMode()
+        key = normalization, autoscaleMode
+        vRange = self.__cacheColormapRange.get(key, None)
+        if vRange is None:
+            # Filter out nan and inf
+            d1 = self.__data1[numpy.isfinite(self.__data1)]
+            d2 = self.__data2[numpy.isfinite(self.__data2)]
+            data = numpy.concatenate((d1, d2))
+            vRange = self._getNormalizer().autoscale(
+                data, mode=self.getAutoscaleMode())
+            self.__cacheColormapRange[key] = vRange
+        return vRange
 
 
 class CompareImages(qt.QMainWindow):
@@ -74,12 +116,12 @@ class CompareImages(qt.QMainWindow):
 
     sigConfigurationChanged = qt.Signal()
     """Emitted when the configuration of the widget (visualization mode,
-    alignement mode...) have changed."""
+    alignment mode...) have changed."""
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
         self._resetZoomActive = True
-        self._colormap = Colormap()
+        self._colormap = ColormapWithPinnedData()
         """Colormap shared by all modes, except the compose images (rgb image)"""
         self._colormapKeyPoints = Colormap('spring')
         """Colormap used for sift keypoints"""
@@ -437,13 +479,14 @@ class CompareImages(qt.QMainWindow):
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image1: The first image
         :param numpy.ndarray image2: The second image
         """
         self.__raw1 = image1
         self.__raw2 = image2
+        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -455,11 +498,12 @@ class CompareImages(qt.QMainWindow):
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image1: The first image
         """
         self.__raw1 = image1
+        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -471,11 +515,12 @@ class CompareImages(qt.QMainWindow):
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image2: The second image
         """
         self.__raw2 = image2
+        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData(updateColormap=updateColormap)
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -582,10 +627,23 @@ class CompareImages(qt.QMainWindow):
             data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
-        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False)
+
+        colormap = self.getColormap()
+        mode1 = self.__getImageMode(self.__data1)
+        if mode1 == "intensity":
+            colormap1 = colormap
+        else:
+            colormap1 = None
+        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False, colormap=colormap1)
         self.__image1 = self.__plot.getImage("image1")
+
         if data2 is not None:
-            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
+            mode2 = self.__getImageMode(data2)
+            if mode2 == "intensity":
+                colormap2 = colormap
+            else:
+                colormap2 = None
+            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False, colormap=colormap2)
             self.__image2 = self.__plot.getImage("image2")
         else:
             self.__image2 = None
@@ -599,40 +657,6 @@ class CompareImages(qt.QMainWindow):
             value = self.__data1.shape[0] // 2
             self.__hline.setPosition(0, value)
         self.__updateSeparators()
-        if updateColormap:
-            self.__updateColormap()
-
-    def __updateColormap(self):
-        # TODO: The colormap histogram will still be wrong
-        mode1 = self.__getImageMode(self.__data1)
-        mode2 = self.__getImageMode(self.__data2)
-        if mode1 == "intensity" and mode1 == mode2:
-            def merge_min_max(data1, data2):
-                if data1.size == 0:
-                    data1 = numpy.empty((1, 1))
-                    data1[0, 0] = numpy.nan
-                if data2.size == 0:
-                    data2 = numpy.empty((1, 1))
-                    data2[0, 0] = numpy.nan
-                range1 = min_max(data1, finite=True)
-                range2 = min_max(data2, finite=True)
-                def vreduce(vmin, vmax, func):
-                    if vmin is None:
-                        return vmax
-                    if vmax is None:
-                        return vmin
-                    return func(vmin, vmax)
-                vmin = vreduce(range1.minimum, range2.minimum, min)
-                vmax = vreduce(range1.maximum, range2.maximum, max)
-                if vmin is None or vmax is None:
-                    return 0, 1
-                return vmin, vmax
-            vmin, vmax = merge_min_max(self.__data1, self.__data2)
-            colormap = self.getColormap()
-            colormap.setVRange(vmin=vmin, vmax=vmax)
-            self.__image1.setColormap(colormap)
-            if self.__image2 is not None:
-                self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
         """Returns a value identifying the way the image is stored in the
@@ -820,7 +844,7 @@ class CompareImages(qt.QMainWindow):
         return AffineTransformation(tx, ty, sx, sy, rot)
 
     def getTransformation(self):
-        """Retuns the affine transformation applied to the second image to align
+        """Returns the affine transformation applied to the second image to align
         it to the first image.
 
         This result is only valid for sift alignment.
