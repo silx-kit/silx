@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "01/08/2019"
 
 import numpy as np
-from copy import copy  # python2
 from .common import pyopencl as cl
 import pyopencl.array as parray
 from .processing import OpenclProcessing, EventDescription
@@ -133,8 +132,7 @@ class Convolution(OpenclProcessing):
             if axes in convol_infos.allowed_axes[uc_name]:
                 self.use_case_name = uc_name
                 self.use_case_desc = uc_params["name"]
-                #~ self.use_case_kernels = uc_params["kernels"].copy()
-                self.use_case_kernels = copy(uc_params["kernels"]) # TODO use the above line once we get rid of python2
+                self.use_case_kernels = uc_params["kernels"].copy()
         if self.use_case_name is None:
             raise ValueError(
                 "Cannot find a use case for data ndim = %d, kernel ndim = %d and axes=%s"
