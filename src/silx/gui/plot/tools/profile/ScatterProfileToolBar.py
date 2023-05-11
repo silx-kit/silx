@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-from silx.utils import deprecation
 from . import toolbar
 
 
@@ -38,16 +37,8 @@ class ScatterProfileToolBar(toolbar.ProfileToolBar):
 
     :param parent: See :class:`QToolBar`.
     :param plot: :class:`~silx.gui.plot.PlotWidget` on which to operate.
-    :param str title: See :class:`QToolBar`.
     """
 
-    def __init__(self, parent=None, plot=None, title=None):
+    def __init__(self, parent=None, plot=None):
         super(ScatterProfileToolBar, self).__init__(parent, plot)
-        if title is not None:
-            deprecation.deprecated_warning("Attribute",
-                                          name="title",
-                                          reason="removed",
-                                          since_version="0.13.0",
-                                          only_once=True,
-                                          skip_backtrace_count=1)
         self.setScheme("scatter")
