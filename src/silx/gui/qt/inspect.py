@@ -55,16 +55,6 @@ if qt.BINDING == 'PyQt5':
         """
         return not _isdeleted(obj)
 
-elif qt.BINDING == 'PySide2':
-    try:
-        from PySide2.shiboken2 import isValid  # noqa
-        from PySide2.shiboken2 import createdByPython  # noqa
-        from PySide2.shiboken2 import ownedByPython  # noqa
-    except ImportError:
-        from shiboken2 import isValid  # noqa
-        from shiboken2 import createdByPython  # noqa
-        from shiboken2 import ownedByPython  # noqa
-
 elif qt.BINDING == 'PySide6':
     from shiboken6 import isValid, createdByPython, ownedByPython  # noqa
 

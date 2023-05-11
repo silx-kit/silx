@@ -185,8 +185,8 @@ class TestQtInspect(unittest.TestCase):
         self.assertFalse(qt_inspect.isValid(obj))
 
 
-@pytest.mark.skipif(qt.BINDING not in ("PyQt5", "PySide2"),
-                    reason="PyQt5/PySide2 only test")
+@pytest.mark.skipif(qt.BINDING != "PyQt5",
+                    reason="PyQt5 only test")
 def test_exec_():
     """Test the exec_ is still useable with Qt5 bindings"""
     klasses = [

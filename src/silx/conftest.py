@@ -15,9 +15,6 @@ def _set_qt_binding(binding):
         if binding == "pyqt5":
             logger.info("Force using PyQt5")
             import PyQt5.QtCore  # noqa
-        elif binding == "pyside2":
-            logger.info("Force using PySide2")
-            import PySide2.QtCore  # noqa
         elif binding == "pyside6":
             logger.info("Force using PySide6")
             import PySide6.QtCore  # noqa
@@ -30,7 +27,7 @@ def _set_qt_binding(binding):
 
 def pytest_addoption(parser):
     parser.addoption("--qt-binding", type=str, default=None, dest="qt_binding",
-                     help="Force using a Qt binding: 'PyQt5', 'PySide2', 'PySide6', 'PyQt6'")
+                     help="Force using a Qt binding: 'PyQt5', 'PySide6', 'PyQt6'")
     parser.addoption("--no-gui", dest="gui", default=True,
                      action="store_false",
                      help="Disable the test of the graphical use interface")

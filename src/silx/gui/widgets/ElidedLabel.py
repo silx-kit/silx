@@ -62,7 +62,7 @@ class ElidedLabel(qt.QLabel):
 
     def __updateMinimumSize(self):
         metrics = self.fontMetrics()
-        if qt.BINDING in ('PySide2', 'PyQt5'):
+        if qt.BINDING == 'PyQt5':
             width = metrics.width("...")
         else:  # Qt6
             width = metrics.horizontalAdvance("...")

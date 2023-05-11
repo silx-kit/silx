@@ -101,7 +101,7 @@ class PositionInfoWidget(qt.QWidget):
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 
         metrics = widget.fontMetrics()
-        if qt.BINDING in ('PySide2', 'PyQt5'):
+        if qt.BINDING == 'PyQt5':
             width = metrics.width("#######")
         else:  # Qt6
             width = metrics.horizontalAdvance("#######")

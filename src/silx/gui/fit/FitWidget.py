@@ -206,7 +206,7 @@ class FitWidget(qt.QWidget):
                     self.fitconfig.get("WeightFlag", False))
             self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            if qt.BINDING in ('PySide2', 'PyQt5'):
+            if qt.BINDING == 'PyQt5':
                 self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
                 self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
             else:  # Qt6

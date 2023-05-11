@@ -38,7 +38,7 @@ def getMouseEventPosition(event):
     :param QMouseEvent event:
     :returns: (x, y) as a tuple of float
     """
-    if _qt.BINDING in ("PyQt5", "PySide2"):
+    if _qt.BINDING == "PyQt5":
         return float(event.x()), float(event.y())
     # Qt6
     position = event.position()
@@ -48,13 +48,8 @@ def getMouseEventPosition(event):
 def supportedImageFormats():
     """Return a set of string of file format extensions supported by the
     Qt runtime."""
-    if _qt.BINDING == 'PySide2':
-        def convert(data):
-            return str(data.data(), 'ascii')
-    else:
-        convert = lambda data: str(data, 'ascii')
     formats = _qt.QImageReader.supportedImageFormats()
-    return set([convert(data) for data in formats])
+    return set([str(data, 'ascii') for data in formats])
 
 
 __globalThreadPoolInstance = None
