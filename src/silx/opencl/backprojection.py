@@ -34,7 +34,6 @@ import numpy as np
 from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing, BufferDescription
 from .sinofilter import SinoFilter
-from .sinofilter import fourier_filter as fourier_filter_
 
 if pyopencl:
     mf = pyopencl.mem_flags
@@ -376,7 +375,3 @@ class Backprojection(OpenclProcessing):
         return res
 
     __call__ = filtered_backprojection
-
-
-def fourier_filter(sino, filter_=None, fft_size=None):
-    return fourier_filter_(sino, filter_=filter_, fft_size=fft_size)
