@@ -29,8 +29,6 @@ __date__ = "09/03/2018"
 
 
 import threading
-import unittest
-
 
 from concurrent.futures import wait
 from silx.gui import qt

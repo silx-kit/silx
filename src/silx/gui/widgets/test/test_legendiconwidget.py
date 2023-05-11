@@ -27,8 +27,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "23/10/2020"
 
-import unittest
-
 from silx.gui import qt
 from silx.gui.widgets.LegendIconWidget import LegendIconWidget
 from silx.gui.utils.testutils import TestCaseQt

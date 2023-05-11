@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "19/07/2017"
 
 
-import unittest
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.widgets.PrintPreview import PrintPreviewDialog
 from silx.gui import qt

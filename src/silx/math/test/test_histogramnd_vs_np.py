@@ -25,7 +25,6 @@ Tests for the histogramnd function.
 Results are compared to numpy's histogramdd.
 """
 
-import os
 import unittest
 import operator
 import pytest

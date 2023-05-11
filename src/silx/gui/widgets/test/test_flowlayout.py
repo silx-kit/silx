@@ -27,8 +27,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "02/08/2018"
 
-import unittest
-
 from silx.gui.widgets.FlowLayout import FlowLayout
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt

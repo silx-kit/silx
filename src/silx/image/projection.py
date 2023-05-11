@@ -21,4 +21,4 @@
 #
 # ############################################################################*/
 
-from silx.opencl.projection import *
+from silx.opencl.projection import *  # noqa

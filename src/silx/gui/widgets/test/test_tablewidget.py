@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
-import unittest
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.widgets.TableWidget import TableWidget
 

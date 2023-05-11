@@ -26,8 +26,6 @@ __license__ = "MIT"
 __date__ = "02/08/2018"
 
 
-import unittest
-
 from silx.gui import qt
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import TestCaseQt

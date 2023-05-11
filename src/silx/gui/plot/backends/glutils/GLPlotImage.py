@@ -33,8 +33,6 @@ __date__ = "03/04/2017"
 import math
 import numpy
 
-from silx.math.combo import min_max
-
 from ...._glutils import gl, Program, Texture
 from ..._utils import FLOAT32_MINPOS
 from .GLSupport import mat4Translate, mat4Scale

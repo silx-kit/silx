@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "15/01/2020"
 
 
-import unittest
 import tempfile
 import numpy
 import h5py

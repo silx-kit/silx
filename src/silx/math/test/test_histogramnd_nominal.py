@@ -25,7 +25,6 @@ Nominal tests of the histogramnd function.
 """
 
 import unittest
-import pytest
 
 import numpy as np
 

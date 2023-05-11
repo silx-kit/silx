@@ -21,4 +21,4 @@
 #
 # ############################################################################*/
 
-from silx.opencl.sift import *
+from silx.opencl.sift import *  # noqa

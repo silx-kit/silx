@@ -26,7 +26,6 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-import unittest
 import numpy
 
 from silx.gui import qt

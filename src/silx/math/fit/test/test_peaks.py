@@ -26,7 +26,6 @@ Tests for peaks module
 
 import unittest
 import numpy
-import math
 
 from silx.math.fit import functions
 from silx.math.fit import peaks

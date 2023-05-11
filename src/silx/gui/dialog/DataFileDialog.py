@@ -36,8 +36,6 @@ from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
 
-import fabio
-
 
 _logger = logging.getLogger(__name__)
 

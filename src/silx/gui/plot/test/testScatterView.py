@@ -28,8 +28,6 @@ __license__ = "MIT"
 __date__ = "06/03/2018"
 
 
-import unittest
-
 import numpy
 
 from silx.gui.plot.items import Axis, Scatter

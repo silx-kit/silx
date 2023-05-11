@@ -63,7 +63,6 @@ from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
 from . import _utils
-from .tools.profile import manager
 from .tools.profile import rois
 from .actions import PlotAction
 

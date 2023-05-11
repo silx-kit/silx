@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import unittest
 import time
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt

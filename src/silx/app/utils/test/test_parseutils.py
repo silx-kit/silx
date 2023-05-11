@@ -21,8 +21,6 @@
 #
 # ############################################################################*/
 
-import glob
-import logging
 import pytest
 import h5py
 from ..parseutils import filenames_to_dataurls

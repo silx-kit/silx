@@ -28,7 +28,6 @@ __date__ = "05/06/2018"
 
 import logging
 import numpy
-import unittest
 import pkg_resources
 from silx.utils import number
 from silx.utils import testutils

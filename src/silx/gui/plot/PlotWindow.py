@@ -39,7 +39,6 @@ import weakref
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.deprecation import deprecated
 from silx.utils.proxy import docstring
 
 from . import PlotWidget

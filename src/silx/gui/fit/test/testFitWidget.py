@@ -23,8 +23,6 @@
 # ###########################################################################*/
 """Basic tests for :class:`FitWidget`"""
 
-import unittest
-
 from silx.gui.utils.testutils import TestCaseQt
 
 from ... import qt

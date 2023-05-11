@@ -27,7 +27,6 @@ __date__ = "29/01/2018"
 
 import os
 import tempfile
-import unittest
 from contextlib import contextmanager
 
 import numpy

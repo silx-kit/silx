@@ -23,19 +23,11 @@
 """Tests for fioh5"""
 import numpy
 import os
-import io
-import sys
 import tempfile
 import unittest
-import datetime
-import logging
 
-from silx.utils import testutils
+from ..fioh5 import FioH5, is_fiofile, logger1, dtypeConverter
 
-from .. import fioh5
-from ..fioh5 import (FioH5, FioH5NodeDataset, is_fiofile, logger1, dtypeConverter)
-
-import h5py
 
 __authors__ = ["T. Fuchs"]
 __license__ = "MIT"

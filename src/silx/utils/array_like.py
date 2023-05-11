@@ -46,8 +46,6 @@ Functions:
 
 """
 
-import sys
-
 import numpy
 import numbers
 

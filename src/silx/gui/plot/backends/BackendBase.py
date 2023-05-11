@@ -33,7 +33,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import weakref
-from ... import qt
 
 
 # Names for setCursor

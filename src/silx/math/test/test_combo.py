@@ -27,8 +27,6 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import unittest
-
 import numpy
 
 from silx.utils.testutils import ParametricTestCase
