@@ -335,9 +335,11 @@ class ImageDataBase(ImageBase, ColormapMixIn):
     def _getColormapForRendering(self):
         colormap = self.getColormap()
         if colormap.isAutoscale():
+            # NOTE: Make sure getColormapRange comes from the original object
+            vrange = colormap.getColormapRange(self)
             # Avoid backend to compute autoscale: use item cache
             colormap = colormap.copy()
-            colormap.setVRange(*colormap.getColormapRange(self))
+            colormap.setVRange(*vrange)
         return colormap
 
     def getRgbaImageData(self, copy=True):
