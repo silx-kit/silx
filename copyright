@@ -16,9 +16,10 @@ Copyright: Nathaniel J. Smith, Stefan van der Walt, Eric Firing
 License: CC0
 
 Files: silx/gui/_pyside_dynamic.py
-Copyright: 2011 Sebastian Wiesner <lunaryorn@gmail.com>
+Copyright: 2015 Chris Beaumont and Thomas Robitaille
+           2011 Sebastian Wiesner <lunaryorn@gmail.com>
            Modifications by Charl Botha <cpbotha@vxlabs.com>
-License: MIT
+License: BSD-3
 
 Files: silx/third_party/modest_image.py
 Copyright: 2013 Chris Beaumont
