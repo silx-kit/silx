@@ -30,10 +30,7 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "12/04/2019"
 
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import logging
 import weakref
 
