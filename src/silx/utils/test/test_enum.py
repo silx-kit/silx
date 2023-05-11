@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "29/04/2019"
 
 
-import sys
 import unittest
 
 import enum
@@ -45,8 +44,7 @@ class TestEnum(unittest.TestCase):
             B = 'B'
         self._check_enum_content(Success)
 
-    @unittest.skipIf(sys.version_info.major <= 2, 'Python3 only')
-    def test(self):
+    def test_redefined(self):
         """Test Enum with member redefinition"""
         with self.assertRaises(TypeError):
             class Failure(Enum):

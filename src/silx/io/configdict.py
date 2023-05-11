@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -91,7 +91,6 @@ __date__ = "15/09/2016"
 from collections import OrderedDict
 import numpy
 import re
-import sys
 import configparser
 
 
@@ -469,9 +468,8 @@ class ConfigDict(OrderedDict):
         # Escape commas
         sstr = sstr.replace(",", r"\,")
 
-        if sys.version_info >= (3, ):
-            # Escape % characters except in "%%" and "%("
-            sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
+        # Escape % characters except in "%%" and "%("
+        sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
 
         return sstr
 

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __date__ = "17/01/2018"
 
 
 import os
-import sys
 import tempfile
 import unittest
 import io
@@ -120,10 +119,7 @@ class TestConvertCommand(unittest.TestCase):
         # write a temporary SPEC file
         specname = os.path.join(tempdir, "input.dat")
         with io.open(specname, "wb") as fd:
-            if sys.version_info < (3, ):
-                fd.write(sftext)
-            else:
-                fd.write(bytes(sftext, 'ascii'))
+            fd.write(bytes(sftext, 'ascii'))
 
         # convert it
         h5name = os.path.join(tempdir, "output.h5")
@@ -137,15 +133,11 @@ class TestConvertCommand(unittest.TestCase):
 
         with h5py.File(h5name, "r") as h5f:
             title12 = h5py_read_dataset(h5f["/1.2/title"])
-            if sys.version_info < (3, ):
-                title12 = title12.encode("utf-8")
             self.assertEqual(title12,
                              "aaaaaa")
 
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")
-            if sys.version_info < (3, ):
-                creator = creator.encode("utf-8")
             self.assertIn("silx convert (v%s)" % silx.version, creator)
 
         # delete input file
