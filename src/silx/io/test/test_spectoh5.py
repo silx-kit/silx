@@ -24,7 +24,6 @@
 
 from numpy import array_equal
 import os
-import sys
 import tempfile
 import unittest
 

@@ -27,7 +27,6 @@ __date__ = "05/12/2016"
 
 import os
 import tempfile
-import unittest
 
 import numpy
 

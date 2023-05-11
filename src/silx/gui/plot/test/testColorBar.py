@@ -27,7 +27,6 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "24/04/2018"
 
-import unittest
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.plot.ColorBar import _ColorScale
 from silx.gui.plot.ColorBar import ColorBarWidget

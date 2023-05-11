@@ -34,10 +34,9 @@ import logging
 import numpy
 
 from ... import colors
-from ..utils.intersections import lines_intersection
 from .core import (
     Item, DataItem,
-    AlphaMixIn, ColorMixIn, FillMixIn, ItemChangedType, ItemMixInBase, LineMixIn, YAxisMixIn)
+    AlphaMixIn, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn)
 
 
 _logger = logging.getLogger(__name__)

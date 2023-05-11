@@ -21,4 +21,4 @@
 #
 # ############################################################################*/
 
-from silx.opencl.reconstruction import *
+from silx.opencl.reconstruction import *  # noqa

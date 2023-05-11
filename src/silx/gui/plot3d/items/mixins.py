@@ -32,8 +32,6 @@ __date__ = "24/04/2018"
 import collections
 import numpy
 
-from silx.math.combo import min_max
-
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn
 from ...plot.items.core import SymbolMixIn as _SymbolMixIn

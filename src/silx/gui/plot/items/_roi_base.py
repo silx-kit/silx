@@ -44,7 +44,6 @@ from .. import items
 from ..items import core
 from ...colors import rgba
 import silx.utils.deprecation
-from ....utils.proxy import docstring
 
 
 logger = logging.getLogger(__name__)

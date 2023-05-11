@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "08/03/2019"
 
 
-import unittest
 import tempfile
 import numpy
 import shutil

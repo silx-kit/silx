@@ -27,8 +27,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/08/2018"
 
-import unittest
-
 from silx.gui import qt, colors
 from silx.gui.widgets.RangeSlider import RangeSlider
 from silx.gui.utils.testutils import TestCaseQt

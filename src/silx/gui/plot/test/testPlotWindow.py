@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
-import unittest
 import numpy
 import pytest
 

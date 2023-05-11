@@ -84,14 +84,11 @@ from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
-from silx.gui.plot.actions import control as actions_control
 from silx.gui.plot.actions import io as silx_io
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
-from silx.utils.deprecation import deprecated_warning
 
-import h5py
 from silx.io.utils import is_dataset
 
 _logger = logging.getLogger(__name__)

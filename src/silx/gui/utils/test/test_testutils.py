@@ -30,7 +30,6 @@ __date__ = "16/01/2017"
 import unittest
 import sys
 
-from silx.gui import qt
 from ..testutils import TestCaseQt
 
 

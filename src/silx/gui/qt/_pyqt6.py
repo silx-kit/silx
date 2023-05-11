@@ -32,7 +32,6 @@ import enum
 import logging
 
 import PyQt6.sip
-from PyQt6.QtCore import Qt
 
 
 _logger = logging.getLogger(__name__)

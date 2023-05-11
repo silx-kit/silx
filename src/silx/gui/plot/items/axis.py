@@ -33,7 +33,6 @@ import enum
 import logging
 
 import dateutil.tz
-import numpy
 
 from ... import qt
 from .. import _utils

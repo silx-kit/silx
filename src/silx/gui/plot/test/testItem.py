@@ -28,8 +28,6 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 
-import unittest
-
 import numpy
 
 from silx.gui.utils.testutils import SignalListener

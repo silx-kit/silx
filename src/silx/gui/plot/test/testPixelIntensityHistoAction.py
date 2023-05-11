@@ -29,7 +29,6 @@ __date__ = "02/03/2018"
 
 
 import numpy
-import unittest
 
 from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import TestCaseQt, getQToolButtonFromAction

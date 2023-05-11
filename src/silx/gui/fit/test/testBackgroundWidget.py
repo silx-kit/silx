@@ -21,8 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
 from silx.gui.utils.testutils import TestCaseQt
 
 from .. import BackgroundWidget

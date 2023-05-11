@@ -26,7 +26,6 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/05/2017"
 
-import locale
 import logging
 import numpy
 import os

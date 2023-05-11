@@ -35,7 +35,7 @@ import numpy
 
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
+                   FillMixIn, LineMixIn, SymbolMixIn,
                    BaselineMixIn, HighlightedMixIn, _Style)
 
 

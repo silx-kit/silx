@@ -32,7 +32,6 @@ import logging
 import typing
 
 import numpy
-from collections import OrderedDict, namedtuple
 try:
     from collections import abc
 except ImportError:  # Python2 support
@@ -40,7 +39,7 @@ except ImportError:  # Python2 support
 
 from ....utils.proxy import docstring
 from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, YAxisMixIn, ItemChangedType, Item)
+                   LineMixIn, YAxisMixIn, ItemChangedType)
 from ._pick import PickingResult
 
 _logger = logging.getLogger(__name__)

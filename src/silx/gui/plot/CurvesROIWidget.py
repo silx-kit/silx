@@ -39,7 +39,6 @@ import sys
 import functools
 import numpy
 from silx.io import dictdump
-from silx.utils import deprecation
 from silx.utils.weakref import WeakMethodProxy
 from silx.utils.proxy import docstring
 from .. import icons, qt

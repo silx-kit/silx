@@ -34,12 +34,10 @@ import weakref
 
 from .. import qt
 from . import actions
-from .tools.profile import core
 from .tools.profile import manager
 from .tools.profile import rois
 from silx.gui.widgets.MultiModeAction import MultiModeAction
 
-from silx.utils.deprecation import deprecated
 from .tools import roi as roi_mdl
 from silx.gui.plot import items
 

@@ -30,7 +30,6 @@ __date__ = "16/11/2017"
 
 import logging
 import os.path
-import pytest
 from collections import OrderedDict
 import numpy
 
@@ -40,9 +39,7 @@ from silx.gui.plot import Plot1D
 from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import PlotWindow, CurvesROIWidget
-from silx.gui.plot.CurvesROIWidget import ROITable
 from silx.gui.utils.testutils import getQToolButtonFromAction
-from silx.gui.plot.PlotInteraction import ItemsInteraction
 
 _logger = logging.getLogger(__name__)
 

@@ -30,7 +30,6 @@ __date__ = "12/03/2019"
 
 import time
 import os
-import unittest
 import tempfile
 import numpy
 from pkg_resources import parse_version

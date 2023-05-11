@@ -29,11 +29,9 @@ __date__ = "02/03/2018"
 
 
 import functools
-import unittest
 import numpy
 
 from silx.utils.testutils import LoggingValidator
-from silx.gui.utils.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot import tools

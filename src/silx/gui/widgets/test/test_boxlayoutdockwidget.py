@@ -27,8 +27,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "06/03/2018"
 
-import unittest
-
 from silx.gui.widgets.BoxLayoutDockWidget import BoxLayoutDockWidget
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt

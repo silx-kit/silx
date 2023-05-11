@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "28/03/2017"
 
 import numpy
-import unittest
 
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt

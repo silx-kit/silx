@@ -28,7 +28,6 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 
-import unittest
 from silx.gui import qt
 from .utils import PlotWidgetTestCase
 
