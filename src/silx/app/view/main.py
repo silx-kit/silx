@@ -28,11 +28,12 @@ __date__ = "17/01/2019"
 
 import argparse
 import logging
+import glob
 import os
 import signal
 import sys
 from typing import Generator, Iterable, Sequence
-from silx.app.utils import parseutils
+from ..utils.parseutils import filenames_to_dataurls
 
 
 _logger = logging.getLogger(__name__)
@@ -78,53 +79,6 @@ def createParser():
         default=False,
         help='Start the application with HDF5 file locking enabled (it is disabled by default)')
     return parser
-
-
-def filesArgToUrls(
-    filenames: Iterable[str],
-    slices:  Sequence[int],
-) -> Generator[object, None, None]:
-    """Expand filenames and HDF5 data path in files input argument"""
-    # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
-    import silx.io
-    from silx.io.utils import match
-    from silx.io.url import DataUrl
-    import silx.utils.files
-
-    extra_slices = tuple(slices)
-
-    for filename in filenames:
-        url = DataUrl(filename)
-
-        for file_path in sorted(silx.utils.files.expand_filenames([url.file_path()])):
-            if url.data_path() is not None and glob.has_magic(url.data_path()):
-                try:
-                    with silx.io.open(file_path) as f:
-                        data_paths = list(match(f, url.data_path()))
-                except BaseException as e:
-                    _logger.error(
-                        f"Error searching HDF5 path pattern '{url.data_path()}' in file '{file_path}': Ignored")
-                    _logger.error(e.args[0])
-                    _logger.debug("Backtrace", exc_info=True)
-                    continue
-            else:
-                data_paths = [url.data_path()]
-
-            if not extra_slices:
-                data_slices = (url.data_slice(),)
-            elif not url.data_slice():
-                data_slices = extra_slices
-            else:
-                data_slices = [tuple(url.data_slice()) + (s,) for s in extra_slices]
-
-            for data_path in data_paths:
-                for data_slice in data_slices:
-                    yield DataUrl(
-                        file_path=file_path,
-                        data_path=data_path,
-                        data_slice=data_slice,
-                        scheme=url.scheme(),
-                    )
 
 
 def createWindow(parent, settings):
@@ -207,7 +161,7 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
-    for url in filesArgToUrls(options.files, options.slices):
+    for url in filenames_to_dataurls(options.files, options.slices):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(url.path())
