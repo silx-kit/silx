@@ -343,6 +343,10 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
 
        In this example a thread calls submitToQtMainThread to update the curve
        of a plot.
+   * - :download:`plotUpdateImageFromGevent.py <../../../examples/plotUpdateImageFromGevent.py>`
+     - .. image:: img/plotUpdateImageFromGevent.png
+         :width: 150px
+     - This script illustrates the update of a :class:`~silx.gui.plot.Plot2D` widget from a gevent coroutine.
    * - :download:`plotUpdateImageFromThread.py <../../../examples/plotUpdateImageFromThread.py>`
      - .. image:: img/plotUpdateImageFromThread.png
          :width: 150px

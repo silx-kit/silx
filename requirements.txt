@@ -3,7 +3,7 @@
 
 --trusted-host www.silx.org
 --find-links http://www.silx.org/pub/wheelhouse/
---only-binary numpy,h5py,scipy,PySide2,PyQt5,PySide6
+--only-binary numpy,h5py,scipy,PyQt5,PySide6,PyQt6
 
 # Required dependencies (from setup.py setup_requires and install_requires)
 numpy >= 1.12
@@ -21,4 +21,5 @@ PyOpenGL                  # For silx.gui.plot3d
 python-dateutil           # For silx.gui.plot
 scipy                     # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 Pillow                    # For silx.opencl.image.test
-PyQt5  # PySide2, PySide6 # For silx.gui
+pint                      # For silx.io.dictdump
+PyQt5  # PySide6, PyQt6>=6.3 # For silx.gui

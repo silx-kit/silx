@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -1041,7 +1040,7 @@ class ProfileManager(qt.QObject):
 
         window = self.getPlotWidget().window()
         winGeom = window.frameGeometry()
-        if qt.BINDING in ("PySide2", "PyQt5"):
+        if qt.BINDING == "PyQt5":
             qapp = qt.QApplication.instance()
             desktop = qapp.desktop()
             screenGeom = desktop.availableGeometry(window)

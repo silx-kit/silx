@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
@@ -23,21 +22,16 @@
 # ############################################################################*/
 """Benchmarks of the combo module"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
 import logging
-import os.path
 import time
-import unittest
 
 import numpy
 
-from silx.test.utils import temp_dir
 from silx.utils.testutils import ParametricTestCase
 
 from silx.math import combo

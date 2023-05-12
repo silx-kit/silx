@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +31,7 @@ __date__ = "25/07/2016"
 from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
+from typing import Optional
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +49,7 @@ else:
 
 import OpenGL.GL as _GL
 from OpenGL.GL import *  # noqa
+import OpenGL.platform
 
 # Extentions core in OpenGL 3
 from OpenGL.GL.ARB import framebuffer_object as _FBO
@@ -64,26 +65,59 @@ except NameError:
     GLchar = c_char
 
 
-def testGL():
+def getPlatform() -> Optional[str]:
+    """Returns the name of the PyOpenGL class handling the platform.
+
+    E.g., GLXPlatform, EGLPlatform
+    """
+    try:
+        platform = OpenGL.platform.PLATFORM
+    except AttributeError:
+        return None
+    return platform.__class__.__name__
+
+
+
+def getVersion() -> tuple:
+    """Returns the GL version as tuple of integers.
+
+    Raises:
+        ValueError: If the version returned by the driver is not supported
+    """
+    try:
+        desc = glGetString(GL_VERSION)
+        if isinstance(desc, bytes):
+            desc = desc.decode("ascii")
+        version = desc.split(" ", 1)[0]
+        return tuple([int(i) for i in version.split('.')])
+    except Exception as e:
+        raise ValueError("GL version not properly formatted") from e
+
+
+def testGL() -> bool:
     """Test if required OpenGL version and extensions are available.
 
     This MUST be run with an active OpenGL context.
     """
-    version = glGetString(GL_VERSION).split()[0]  # get version number
-    major, minor = int(version[0]), int(version[2])
+    version = getVersion()
+    major, minor = version[0], version[1]
     if major < 2 or (major == 2 and minor < 1):
-        raise RuntimeError(
-            "Requires at least OpenGL version 2.1, running with %s" % version)
+        _logger.error("OpenGL version >=2.1 required, running with %s" % version)
+        return False
 
-    from OpenGL.GL.ARB.framebuffer_object import glInitFramebufferObjectARB
-    from OpenGL.GL.ARB.texture_rg import glInitTextureRgARB
+    if major == 2:
+        from OpenGL.GL.ARB.framebuffer_object import glInitFramebufferObjectARB
+        from OpenGL.GL.ARB.texture_rg import glInitTextureRgARB
 
-    if not glInitFramebufferObjectARB():
-        raise RuntimeError(
-            "OpenGL GL_ARB_framebuffer_object extension required !")
+        if not glInitFramebufferObjectARB():
+            _logger.error("OpenGL GL_ARB_framebuffer_object extension required!")
+            return False
 
-    if not glInitTextureRgARB():
-        raise RuntimeError("OpenGL GL_ARB_texture_rg extension required !")
+        if not glInitTextureRgARB():
+            _logger.error("OpenGL GL_ARB_texture_rg extension required!")
+            return False
+
+    return True
 
 
 # Additional setup

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2020 European Synchrotron Radiation Facility
@@ -252,7 +251,10 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
             return
         layout = widget.layout()
         if previousEditor is not None:
-            previousEditor.sigDataCommited.disconnect(self._editorDataCommited)
+            try:
+                previousEditor.sigDataCommited.disconnect(self._editorDataCommited)
+            except (RuntimeError, TypeError):
+                pass
             layout.removeWidget(previousEditor)
             previousEditor.deleteLater()
         if editor is not None:

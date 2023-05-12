@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 #
 #    Project: Azimuthal integration
 #             https://github.com/silx-kit/pyFAI
 #
-#    Copyright (C) 2012-2017 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2022 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -31,8 +30,6 @@ The target is to mimic the signature of scipy.signal.medfilt and scipy.medfilt2
 
 The first implementation targets 2D implementation where this operation is costly (~10s/2kx2k image)
 """
-from __future__ import absolute_import, print_function, with_statement, division
-
 
 __author__ = "Jerome Kieffer"
 __license__ = "MIT"
@@ -252,7 +249,7 @@ class _MedFilt2d(object):
 
         * The filling mode in scipy.signal.medfilt2d is zero-padding
         * This implementation is equivalent to:
-            scipy.ndimage.filters.median_filter(ary, kernel_size, mode="nearest")
+            scipy.ndimage.median_filter(ary, kernel_size, mode="nearest")
 
         """
         image = numpy.atleast_2d(ary)

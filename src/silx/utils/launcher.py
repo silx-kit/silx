@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2017 European Synchrotron Radiation Facility
@@ -88,9 +87,9 @@ class LauncherCommand(object):
 
             # reach the 'main' function
             if not hasattr(module, "main"):
-                raise TypeError("Module expect to have a 'main' function")
-            else:
-                main = getattr(module, "main")
+                raise TypeError(f"Module {module.__name__} must have a 'main' function")
+
+            main = getattr(module, "main")
             return main
 
     @contextlib.contextmanager

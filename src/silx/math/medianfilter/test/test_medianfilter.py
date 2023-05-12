@@ -1,6 +1,5 @@
-# coding: utf-8
 # ##########################################################################
-# Copyright (C) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +34,13 @@ from silx.math.medianfilter.medianfilter import MODES as silx_mf_modes
 from silx.utils.testutils import ParametricTestCase
 try:
     import scipy
-    import scipy.misc
 except:
     scipy = None
 else:
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
     import scipy.ndimage
 
 import logging
@@ -697,12 +699,9 @@ class TestVsScipy(ParametricTestCase):
 
                     self.assertTrue(numpy.array_equal(resScipy, resSilx))
 
-    def testAscentOrLena(self):
+    def testAscent(self):
         """Test vs scipy with """
-        if hasattr(scipy.misc, 'ascent'):
-            img = scipy.misc.ascent()
-        else:
-            img = scipy.misc.lena()
+        img = ascent()
 
         kernels = [(3, 1), (3, 5), (5, 9), (9, 3)]
         modesToTest = _getScipyAndSilxCommonModes()

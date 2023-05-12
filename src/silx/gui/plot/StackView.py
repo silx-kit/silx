@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +56,7 @@ Example::
 
 
     sv = StackViewMainWindow()
-    sv.setColormap("jet", autoscale=True)
+    sv.setColormap("viridis", vmin=-4, vmax=4)
     sv.setStack(mystack)
     sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
                   "3rd dim (0-299)"])
@@ -85,15 +84,11 @@ from .tools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
-from silx.gui.plot.actions import control as actions_control
 from silx.gui.plot.actions import io as silx_io
 from silx.io.nxdata import save_NXdata
 from silx.utils.array_like import DatasetView, ListOfImages
 from silx.math import calibration
-from silx.utils.deprecation import deprecated_warning
-from silx.utils.deprecation import deprecated
 
-import h5py
 from silx.io.utils import is_dataset
 
 _logger = logging.getLogger(__name__)
@@ -192,9 +187,6 @@ class StackView(qt.QMainWindow):
         imageLegend = '__StackView__image' + str(id(self))
         self._stackItem.setName(imageLegend)
 
-        self.__autoscaleCmap = False
-        """Flag to disable/enable colormap auto-scaling
-        based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
                                    "Dimension 2"]
         """These labels are displayed on the X and Y axes.
@@ -230,7 +222,8 @@ class StackView(qt.QMainWindow):
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
             self._plot.getYAxis().setInverted(True)
 
-        self._addColorBarAction()
+        self._plot.getColorBarAction().setVisible(True)
+        self._plot.getColorBarWidget().setVisible(True)
 
         self._profileToolBar = Profile3DToolBar(parent=self._plot,
                                                 stackview=self)
@@ -282,15 +275,6 @@ class StackView(qt.QMainWindow):
                            nxentry_name=entryPath,
                            signal=self.getStack(copy=False, returnNumpyArray=True)[0],
                            signal_name="image_stack")
-
-    def _addColorBarAction(self):
-        self._plot.getColorBarWidget().setVisible(True)
-        actions = self._plot.toolBar().actions()
-        for index, action in enumerate(actions):
-            if action is self._plot.getColormapAction():
-                break
-        self._colorbarAction = actions_control.ColorBarAction(self._plot, self._plot)
-        self._plot.toolBar().insertAction(actions[index + 1], self._colorbarAction)
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
@@ -548,9 +532,6 @@ class StackView(qt.QMainWindow):
             perspective_changed = True
             self.setPerspective(perspective)
 
-        if self.__autoscaleCmap:
-            self.scaleColormapRangeToStack()
-
         # init plot
         self._stackItem.setStackData(self.__transposed_view, 0, copy=False)
         self._stackItem.setColormap(self.getColormap())
@@ -801,7 +782,7 @@ class StackView(qt.QMainWindow):
         colormap.setVRange(vmin=vmin, vmax=vmax)
 
     def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=None):
+                    vmin=None, vmax=None, colors=None):
         """Set the colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -827,13 +808,8 @@ class StackView(qt.QMainWindow):
             Or a :class`.Colormap` object.
         :type colormap: dict or str.
         :param str normalization: Colormap mapping: 'linear' or 'log'.
-        :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
-            Default value of autoscale is False. This option is not compatible
-            with h5py datasets.
-        :param float vmin: The minimum value of the range to use if
-                           'autoscale' is False.
-        :param float vmax: The maximum value of the range to use if
-                           'autoscale' is False.
+        :param float vmin: The minimum value of the range to use.
+        :param float vmax: The maximum value of the range to use.
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
@@ -843,23 +819,11 @@ class StackView(qt.QMainWindow):
             errmsg = "If colormap is provided as a Colormap object, all other parameters"
             errmsg += " must not be specified when calling setColormap"
             assert normalization is None, errmsg
-            assert autoscale is None, errmsg
             assert vmin is None, errmsg
             assert vmax is None, errmsg
             assert colors is None, errmsg
 
-            if isinstance(colormap, dict):
-                reason = 'colormap parameter should now be an object'
-                replacement = 'Colormap()'
-                since_version = '0.6'
-                deprecated_warning(type_='function',
-                                   name='setColormap',
-                                   reason=reason,
-                                   replacement=replacement,
-                                   since_version=since_version)
-                _colormap = Colormap._fromDict(colormap)
-            else:
-                _colormap = colormap
+            _colormap = colormap
         else:
             norm = normalization if normalization is not None else 'linear'
             name = colormap if colormap is not None else 'gray'
@@ -868,15 +832,6 @@ class StackView(qt.QMainWindow):
                                  vmin=vmin,
                                  vmax=vmax,
                                  colors=colors)
-
-            if autoscale is not None:
-                deprecated_warning(
-                    type_='function',
-                    name='setColormap',
-                    reason='autoscale argument is replaced by a method',
-                    replacement='scaleColormapRangeToStack',
-                    since_version='0.14')
-            self.__autoscaleCmap = bool(autoscale)
 
         cursorColor = cursorColorForColormap(_colormap.getName())
         self._plot.setInteractiveMode('zoom', color=cursorColor)
@@ -887,16 +842,6 @@ class StackView(qt.QMainWindow):
         activeImage = self.getActiveImage()
         if isinstance(activeImage, items.ColormapMixIn):
             activeImage.setColormap(self.getColormap())
-
-        if self.__autoscaleCmap:
-            # scaleColormapRangeToStack needs to be called **after**
-            # setDefaultColormap so getColormap returns the right colormap
-            self.scaleColormapRangeToStack()
-
-
-    @deprecated(replacement="getPlotWidget", since_version="0.13")
-    def getPlot(self):
-        return self.getPlotWidget()
 
     def getPlotWidget(self):
         """Return the :class:`PlotWidget`.
@@ -1056,7 +1001,7 @@ class StackView(qt.QMainWindow):
 
         :rtype: QAction
         """
-        return self._colorbarAction
+        return self._plot.getColorBarAction()
 
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
@@ -1068,10 +1013,6 @@ class StackView(qt.QMainWindow):
         See :meth:`Plot.Plot.setInteractiveMode`
         """
         self._plot.setInteractiveMode(*args, **kwargs)
-
-    @deprecated(replacement="addShape", since_version="0.13")
-    def addItem(self, *args, **kwargs):
-        self.addShape(*args, **kwargs)
 
     def addShape(self, *args, **kwargs):
         """

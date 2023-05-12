@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +32,6 @@ The following QAction are available:
 - :class:`SaveAction`
 """
 
-from __future__ import division
-
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "25/09/2020"
@@ -48,17 +45,12 @@ import os.path
 from collections import OrderedDict
 import traceback
 import numpy
-from silx.utils.deprecation import deprecated
 from silx.gui import qt, printer
 from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from ...utils.image import convertArrayToQImage
-if sys.version_info[0] == 3:
-    from io import BytesIO
-else:
-    import cStringIO as _StringIO
-    BytesIO = _StringIO.StringIO
+from io import BytesIO
 
 _logger = logging.getLogger(__name__)
 
@@ -631,21 +623,21 @@ class SaveAction(PlotAction):
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
-        dialog.setOption(dialog.DontUseNativeDialog)
+        dialog.setOption(qt.QFileDialog.DontUseNativeDialog)
         dialog.setWindowTitle("Output File Selection")
         dialog.setModal(1)
         dialog.setNameFilters(list(filters.keys()))
 
-        dialog.setFileMode(dialog.AnyFile)
-        dialog.setAcceptMode(dialog.AcceptSave)
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
 
         def onFilterSelection(filt_):
             # disable overwrite confirmation for NXdata types,
             # because we append the data to existing files
             if filt_ in self._appendFilters:
-                dialog.setOption(dialog.DontConfirmOverwrite)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite)
             else:
-                dialog.setOption(dialog.DontConfirmOverwrite, False)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite, False)
 
         dialog.filterSelected.connect(onFilterSelection)
 
@@ -719,11 +711,6 @@ class PrintAction(PlotAction):
         :rtype: QPrinter
         """
         return printer.getDefaultPrinter()
-
-    @property
-    @deprecated(replacement="getPrinter()", since_version="0.8.0")
-    def printer(self):
-        return self.getPrinter()
 
     def printPlotAsWidget(self):
         """Open the print dialog and print the plot.

@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -136,25 +135,16 @@ class TestSpecFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd, sftext)
-        else:
-            os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
         fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd2, sftext[370:923])
-        else:
-            os.write(fd2, bytes(sftext[370:923], 'ascii'))
+        os.write(fd2, bytes(sftext[370:923], 'ascii'))
         os.close(fd2)
 
         fd3, cls.fname3 = tempfile.mkstemp(text=False)
         txt = sftext[371:923]
-        if sys.version_info < (3, ):
-            os.write(fd3, txt)
-        else:
-            os.write(fd3, bytes(txt, 'ascii'))
+        os.write(fd3, bytes(txt, 'ascii'))
         os.close(fd3)
 
     @classmethod
@@ -187,24 +177,14 @@ class TestSpecFile(unittest.TestCase):
             SpecFile("doesnt_exist.dat")
 
         # test filename types unicode and bytes
-        if sys.version_info[0] < 3:
-            try:
-                SpecFile(self.fname1)
-            except TypeError:
-                self.fail("failed to handle filename as python2 str")
-            try:
-                SpecFile(unicode(self.fname1))
-            except TypeError:
-                self.fail("failed to handle filename as python2 unicode")
-        else:
-            try:
-                SpecFile(self.fname1)
-            except TypeError:
-                self.fail("failed to handle filename as python3 str")
-            try:
-                SpecFile(bytes(self.fname1, 'utf-8'))
-            except TypeError:
-                self.fail("failed to handle filename as python3 bytes")
+        try:
+            SpecFile(self.fname1)
+        except TypeError:
+            self.fail("failed to handle filename as python3 str")
+        try:
+            SpecFile(bytes(self.fname1, 'utf-8'))
+        except TypeError:
+            self.fail("failed to handle filename as python3 bytes")
 
     def test_number_of_scans(self):
         self.assertEqual(4, len(self.sf))
@@ -225,11 +205,7 @@ class TestSpecFile(unittest.TestCase):
             self.sf.index(99)
 
     def assertRaisesRegex(self, *args, **kwargs):
-        # Python 2 compatibility
-        if sys.version_info.major >= 3:
-            return super(TestSpecFile, self).assertRaisesRegex(*args, **kwargs)
-        else:
-            return self.assertRaisesRegexp(*args, **kwargs)
+        return super(TestSpecFile, self).assertRaisesRegex(*args, **kwargs)
 
     def test_getitem(self):
         self.assertIsInstance(self.sf[2], Scan)
@@ -389,10 +365,7 @@ class TestSFLocale(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd, sftext)
-        else:
-            os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
     @classmethod

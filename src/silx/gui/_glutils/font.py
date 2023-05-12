@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -148,8 +147,11 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
 
     # Remove leading and trailing empty columns/rows but one on each side
     filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
-    min_row = max(0, filled_rows[0] - 1)
     filled_columns = numpy.nonzero(numpy.sum(array, axis=0))[0]
+    if len(filled_rows) == 0 or len(filled_columns) == 0:
+        return array, metrics.ascent()
+
+    min_row = max(0, filled_rows[0] - 1)
     array = array[
         min_row : filled_rows[-1] + 2,
         max(0, filled_columns[0] - 1) : filled_columns[-1] + 2,

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -36,8 +35,6 @@ from silx.gui import qt
 from silx.gui.hdf5.Hdf5Formatter import Hdf5Formatter
 import silx.io
 from .AbstractDataFileDialog import AbstractDataFileDialog
-
-import fabio
 
 
 _logger = logging.getLogger(__name__)

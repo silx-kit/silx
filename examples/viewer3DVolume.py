@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2020 European Synchrotron Radiation Facility
@@ -28,8 +27,6 @@ It loads a 3D scalar data set from a file and displays iso-surfaces and
 an interactive cutting plane.
 It can also be started without providing a file.
 """
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2021 European Synchrotron Radiation Facility
+# Copyright (c) 2021-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +31,7 @@ __date__ = "07/07/2021"
 import enum
 import logging
 from typing import Tuple, Union
+import warnings
 
 import numpy
 
@@ -116,12 +116,14 @@ class ImageDataAggregated(ImageDataBase):
 
             if (lodx, lody) not in self.__cacheLODData:
                 height, width = data.shape
-                self.__cacheLODData[(lodx, lody)] = aggregator(
-                    data[: (height // lody) * lody, : (width // lodx) * lodx].reshape(
-                        height // lody, lody, width // lodx, lodx
-                    ),
-                    axis=(1, 3),
-                )
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    self.__cacheLODData[(lodx, lody)] = aggregator(
+                        data[: (height // lody) * lody, : (width // lodx) * lodx].reshape(
+                            height // lody, lody, width // lodx, lodx
+                        ),
+                        axis=(1, 3),
+                    )
 
             self.__currentLOD = lodx, lody
             displayedData = self.__cacheLODData[self.__currentLOD]

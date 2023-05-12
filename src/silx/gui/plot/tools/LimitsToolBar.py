@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2018 European Synchrotron Radiation Facility
@@ -24,9 +23,6 @@
 # ###########################################################################*/
 """A toolbar to display and edit limits of a PlotWidget
 """
-
-
-from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"

@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,15 +29,13 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
 
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import logging
 
 import numpy
 
 from ....utils.proxy import docstring
+from ....utils.deprecation import deprecated_warning
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
 
@@ -106,6 +103,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageBase methods")
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
@@ -409,6 +407,7 @@ class ImageData(ImageDataBase):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageData methods")
         if item == 3:
             return self.getAlternativeImageData(copy=False)
 

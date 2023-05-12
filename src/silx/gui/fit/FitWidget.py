@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -51,7 +50,6 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
-from ...utils.deprecation import deprecated
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)
@@ -208,7 +206,7 @@ class FitWidget(qt.QWidget):
                     self.fitconfig.get("WeightFlag", False))
             self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            if qt.BINDING in ('PySide2', 'PyQt5'):
+            if qt.BINDING == 'PyQt5':
                 self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
                 self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
             else:  # Qt6
@@ -319,10 +317,6 @@ class FitWidget(qt.QWidget):
             self.bkgEvent(self.fitmanager.selectedbg)
 
         configuration.update(self.configure())
-
-    @deprecated(replacement='setData', since_version='0.3.0')
-    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        self.setData(x, y, sigmay, xmin, xmax)
 
     def setData(self, x=None, y=None, sigmay=None, xmin=None, xmax=None):
         """Set data to be fitted.
@@ -544,10 +538,6 @@ class FitWidget(qt.QWidget):
             'event': 'EstimateFinished',
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
-
-    @deprecated(replacement='startFit', since_version='0.3.0')
-    def startfit(self):
-        self.startFit()
 
     def startFit(self):
         """Run fit, then emit :attr:`sigFitWidgetSignal` with a dictionary

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2021 European Synchrotron Radiation Facility
 #
@@ -31,7 +30,6 @@ from silx.io import spech5
 from silx.io.convert import write_to_h5
 from silx.io.dictdump import h5todict
 from silx.io import commonh5
-from silx.io.spech5 import SpecH5
 
 
 def test_with_commonh5(tmp_path):

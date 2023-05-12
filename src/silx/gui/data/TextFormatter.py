@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -234,6 +233,8 @@ class TextFormatter(qt.QObject):
         :param data: A binary string of char expected in ASCII
         :rtype: str
         """
+        if isinstance(data, str):
+            return self.__formatText(data)
         try:
             text = "%s" % data.decode("ascii")
             return self.__formatText(text)

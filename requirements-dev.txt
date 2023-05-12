@@ -1,9 +1,11 @@
 # List of silx development dependencies
-# Those ARE NOT required for installation, at runtime or to build from source (except for the doc)
+# Those ARE NOT required for installation or at runtime
 
 -r requirements.txt
+build             # To build the project
 wheel             # To build wheels
 Sphinx            # To build the documentation in doc/
+sphinx-autodoc-typehints  # For leveraging Python type hints from Sphinx
 pillow            # For loading images in documentation generation
 nbsphinx          # For converting ipynb in documentation
 pandoc            # For documentation Qt snapshot updates
@@ -11,6 +13,7 @@ pandoc            # For documentation Qt snapshot updates
 pytest            # For testing
 pytest-xvfb       # For GUI testing
 pytest-cov        # For coverage
+pytest-mock
 
 hdf5plugin        # For HDF5 compression filters handling
 

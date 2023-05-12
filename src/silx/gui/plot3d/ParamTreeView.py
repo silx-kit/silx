@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -32,8 +31,6 @@ This module contains:
   :class:`FloatEditor`, :class:`Vector3DEditor`,
   :class:`Vector4DEditor`, :class:`IntSliderEditor`, :class:`BooleanEditor`
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -375,13 +372,7 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                     if userProperty.isValid() and userProperty.hasNotifySignal():
                         notifySignal = userProperty.notifySignal()
                         signature = notifySignal.methodSignature()
-                        if qt.BINDING == 'PySide2':
-                            signature = signature.data()
-                        else:
-                            signature = bytes(signature)
-
-                        if hasattr(signature, 'decode'):  # For PySide with python3
-                            signature = signature.decode('ascii')
+                        signature = bytes(signature).decode('ascii')
                         signalName = signature.split('(')[0]
 
                         signal = getattr(editor, signalName)

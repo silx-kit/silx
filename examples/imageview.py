@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -33,7 +32,6 @@ To view an image file with the current installed silx library:
 To get help:
 ``python examples/imageview.py -h``
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

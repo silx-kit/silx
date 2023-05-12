@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -31,8 +30,6 @@
 Test suite for transformation kernel
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
@@ -47,10 +44,15 @@ import logging
 import numpy
 import pytest
 try:
-    import scipy.misc
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
@@ -93,10 +95,7 @@ class TestTransform(unittest.TestCase):
         kernel_src = get_opencl_code(os.path.join("sift", "transform"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
-        if hasattr(scipy.misc, "ascent"):
-            self.image = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            self.image = scipy.misc.lena().astype(numpy.float32)
+        self.image = ascent().astype(numpy.float32)
 
     def tearDown(self):
         self.program = None
@@ -124,7 +123,7 @@ class TestTransform(unittest.TestCase):
         # ---------------
         matrix = numpy.array([[1.0, -0.75], [0.7, 0.5]], dtype=numpy.float32)
         offset_value = numpy.array([250.0, -150.0], dtype=numpy.float32)
-        transformation = lambda img: scipy.ndimage.interpolation.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
+        transformation = lambda img: scipy.ndimage.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
         image_transformed = transformation(self.image)
 
         fill_value = numpy.float32(0.0)
@@ -178,12 +177,12 @@ class TestTransform(unittest.TestCase):
 
         # Reference result
         t1 = time.time()
-        ref = scipy.ndimage.interpolation.affine_transform(image_transformed, correction_matrix,
-                                                           offset=offset_value,
-                                                           output_shape=(output_height, output_width),
-                                                           order=1,
-                                                           mode="constant",
-                                                           cval=fill_value)
+        ref = scipy.ndimage.affine_transform(image_transformed, correction_matrix,
+                                             offset=offset_value,
+                                             output_shape=(output_height, output_width),
+                                             order=1,
+                                             mode="constant",
+                                             cval=fill_value)
         t2 = time.time()
 
         # Compare the implementations

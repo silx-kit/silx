@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +25,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "12/12/2017"
 
-import unittest
 import shutil
 import tempfile
 
@@ -35,9 +33,9 @@ import numpy
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui.utils.testutils import SignalListener
 from ..TextFormatter import TextFormatter
-from silx.io.utils import h5py_read_dataset
 
 import h5py
+import pytest
 
 
 class TestTextFormatter(TestCaseQt):
@@ -197,3 +195,17 @@ class TestTextFormatterWithH5py(TestCaseQt):
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
         self.assertEqual(result, '[REF NULL_REF]')
+
+
+@pytest.mark.parametrize("data, expected", [
+    (b"bytes", '"bytes"'),
+    ("unicode", '"unicode"'),
+    ((b'elem0', b'elem1'), '["elem0" "elem1"]'),
+    (('elem0', 'elem1'), '["elem0" "elem1"]'),
+])
+def test_formatter_h5py_attr(tmp_h5py_file, data, expected):
+    """Test formatter with h5py attributes"""
+    tmp_h5py_file.attrs['attr'] = data
+    formatter = TextFormatter()
+    result = formatter.toString(tmp_h5py_file.attrs['attr'])
+    assert result == expected

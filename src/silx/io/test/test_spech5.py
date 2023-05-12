@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +24,6 @@
 import numpy
 import os
 import io
-import sys
 import tempfile
 import unittest
 import datetime
@@ -211,10 +209,7 @@ class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version_info < (3, ):
-            os.write(fd, sftext)
-        else:
-            os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
     @classmethod
@@ -273,11 +268,7 @@ class TestSpecH5(unittest.TestCase):
                          u"2015-03-14T03:53:50")
 
     def assertRaisesRegex(self, *args, **kwargs):
-        # Python 2 compatibility
-        if sys.version_info.major >= 3:
-            return super(TestSpecH5, self).assertRaisesRegex(*args, **kwargs)
-        else:
-            return self.assertRaisesRegexp(*args, **kwargs)
+        return super(TestSpecH5, self).assertRaisesRegex(*args, **kwargs)
 
     def testDatasetInstanceAttr(self):
         """The SpecH5Dataset objects must implement some dummy attributes
@@ -610,10 +601,7 @@ class TestSpecH5MultiMca(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd, sftext_multi_mca_headers)
-        else:
-            os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
+        os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
         os.close(fd)
 
     @classmethod
@@ -740,10 +728,7 @@ class TestSpecH5NoDataCols(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version_info < (3, ):
-            os.write(fd, sftext_no_cols)
-        else:
-            os.write(fd, bytes(sftext_no_cols, 'ascii'))
+        os.write(fd, bytes(sftext_no_cols, 'ascii'))
         os.close(fd)
 
     @classmethod
@@ -811,10 +796,7 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        if sys.version_info < (3, ):
-            os.write(fd, sf_text_slash)
-        else:
-            os.write(fd, bytes(sf_text_slash, 'ascii'))
+        os.write(fd, bytes(sf_text_slash, 'ascii'))
         os.close(fd)
 
     @classmethod

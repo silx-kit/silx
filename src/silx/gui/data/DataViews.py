@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +31,6 @@ import numpy
 import os
 
 import silx.io
-from silx.utils import deprecation
 from silx.gui import qt, icons
 from silx.gui.data.TextFormatter import TextFormatter
 from silx.io import nxdata
@@ -531,10 +529,6 @@ class _CompositeDataView(DataView):
         """
         raise NotImplementedError()
 
-    @deprecation.deprecated(replacement="getReachableViews", since_version="0.10")
-    def availableViews(self):
-        return self.getViews()
-
     def isSupportedData(self, data, info):
         """If true, the composite view allow sub views to access to this data.
         Else this this data is considered as not supported by any of sub views
@@ -876,7 +870,9 @@ class _Plot1dView(DataView):
 
     def createWidget(self, parent):
         from silx.gui import plot
-        return plot.Plot1D(parent=parent)
+        widget = plot.Plot1D(parent=parent)
+        widget.setGraphGrid(True)
+        return widget
 
     def clear(self):
         self.getWidget().clear()
@@ -1636,18 +1632,6 @@ class _NXdataCurveView(_NXdataBaseDataView):
         else:
             x_errors = None
 
-        # this fix is necessary until the next release of PyMca (5.2.3 or 5.3.0)
-        # see https://github.com/vasole/pymca/issues/144 and https://github.com/vasole/pymca/pull/145
-        if not hasattr(self.getWidget(), "setCurvesData") and \
-                hasattr(self.getWidget(), "setCurveData"):
-            _logger.warning("Using deprecated ArrayCurvePlot API, "
-                            "without support of auxiliary signals")
-            self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
-                                          yerror=nxd.errors, xerror=x_errors,
-                                          ylabel=nxd.signal_name, xlabel=nxd.axes_names[-1],
-                                          title=nxd.title or nxd.signal_name)
-            return
-
         self.getWidget().setCurvesData([nxd.signal] + nxd.auxiliary_signals, nxd.axes[-1],
                                        yerror=nxd.errors, xerror=x_errors,
                                        ylabels=signals_names, xlabel=nxd.axes_names[-1],
@@ -1759,6 +1743,8 @@ class _NXdataImageView(_NXdataBaseDataView):
         y_axis, x_axis = nxd.axes[img_slicing]
         y_label, x_label = nxd.axes_names[img_slicing]
         y_scale, x_scale = nxd.plot_style.axes_scale_types[img_slicing]
+        x_units = get_attr_as_unicode(x_axis, 'units') if x_axis else None
+        y_units = get_attr_as_unicode(y_axis, 'units') if y_axis else None
 
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
@@ -1766,7 +1752,9 @@ class _NXdataImageView(_NXdataBaseDataView):
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
             title=nxd.title, isRgba=isRgba,
-            xscale=x_scale, yscale=y_scale)
+            xscale=x_scale, yscale=y_scale,
+            keep_ratio=(x_units == y_units),
+        )
 
     def getDataPriority(self, data, info):
         data = self.normalizeData(data)
@@ -1804,13 +1792,17 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
         img_slicing = slice(-2, None)
         y_axis, x_axis = nxd.axes[img_slicing]
         y_label, x_label = nxd.axes_names[img_slicing]
+        x_units = get_attr_as_unicode(x_axis, 'units') if x_axis else None
+        y_units = get_attr_as_unicode(y_axis, 'units') if y_axis else None
 
         self.getWidget().setImageData(
             [nxd.signal] + nxd.auxiliary_signals,
             x_axis=x_axis, y_axis=y_axis,
             signals_names=[nxd.signal_name] + nxd.auxiliary_signals_names,
             xlabel=x_label, ylabel=y_label,
-            title=nxd.title)
+            title=nxd.title,
+            keep_ratio=(x_units == y_units),
+        )
 
     def axesNames(self, data, info):
         # disabled (used by default axis selector widget in Hdf5Viewer)

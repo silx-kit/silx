@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +26,11 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-import unittest
 import contextlib
 import numpy
 import logging
 
 from silx.gui import qt
-from silx.utils import deprecation
-from silx.utils import testutils
 
 from silx.gui.utils.testutils import TestCaseQt
 from silx.utils.testutils import ParametricTestCase
@@ -320,10 +316,8 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
         self.mouseMove(self.plot)  # Move to center
         self.qapp.processEvents()
-        deprecation.FORCE = True
 
     def tearDown(self):
-        deprecation.FORCE = False
         self.qapp.processEvents()
         profileManager = self.toolBar.getProfileManager()
         profileManager.clearProfile()
@@ -369,7 +363,6 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                             if not manager.hasPendingOperations():
                                 break
 
-    @testutils.validate_logging(deprecation.depreclog.name, warning=4)
     def testDiagonalProfile(self):
         """Test diagonal profile, without and with image"""
         # Use Plot backend widget to submit mouse events
@@ -415,7 +408,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                     if not manager.hasPendingOperations():
                         break
 
-                curveItem = self.toolBar.getProfilePlot().getAllCurves()[0]
+                curveItem = roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
                 if method == 'sum':
                     self.assertTrue(curveItem.getData()[1].max() > 10000)
                 elif method == 'mean':
@@ -425,59 +418,6 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                 roiManager = manager.getRoiManager()
                 roiManager.removeRoi(roi)
                 self.qWait(100)
-
-
-class TestDeprecatedProfileToolBar(TestCaseQt):
-    """Tests old features of the ProfileToolBar widget."""
-
-    def setUp(self):
-        self.plot = None
-        super(TestDeprecatedProfileToolBar, self).setUp()
-
-    def tearDown(self):
-        if self.plot is not None:
-            self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-            self.plot.close()
-            self.plot = None
-            self.qWait()
-
-        super(TestDeprecatedProfileToolBar, self).tearDown()
-
-    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
-    def testCustomProfileWindow(self):
-        from silx.gui.plot import ProfileMainWindow
-
-        self.plot = PlotWindow()
-        profileWindow = ProfileMainWindow.ProfileMainWindow(self.plot)
-        toolBar = Profile.ProfileToolBar(parent=self.plot,
-                                         plot=self.plot,
-                                         profileWindow=profileWindow)
-
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        profileWindow.show()
-        self.qWaitForWindowExposed(profileWindow)
-        self.qapp.processEvents()
-
-        self.plot.addImage(numpy.arange(10 * 10).reshape(10, -1))
-        profile = rois.ProfileImageHorizontalLineROI()
-        profile.setPosition(5)
-        toolBar.getProfileManager().getRoiManager().addRoi(profile)
-        toolBar.getProfileManager().getRoiManager().setCurrentRoi(profile)
-
-        for _ in range(20):
-            self.qWait(200)
-            if not toolBar.getProfileManager().hasPendingOperations():
-                break
-
-        # There is a displayed profile
-        self.assertIsNotNone(profileWindow.getProfile())
-        self.assertIs(toolBar.getProfileMainWindow(), profileWindow)
-
-        # There is nothing anymore but the window is still there
-        toolBar.getProfileManager().clearProfile()
-        self.qapp.processEvents()
-        self.assertIsNone(profileWindow.getProfile())
 
 
 class TestProfile3DToolBar(TestCaseQt):
@@ -494,10 +434,8 @@ class TestProfile3DToolBar(TestCaseQt):
             [[6, 7, 8], [9, 10, 11]],
             [[12, 13, 14], [15, 16, 17]]
         ]))
-        deprecation.FORCE = True
 
     def tearDown(self):
-        deprecation.FORCE = False
         profileManager = self.plot.getProfileToolbar().getProfileManager()
         profileManager.clearProfile()
         profileManager = None
@@ -507,7 +445,6 @@ class TestProfile3DToolBar(TestCaseQt):
 
         super(TestProfile3DToolBar, self).tearDown()
 
-    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
     def testMethodProfile2D(self):
         """Test that the profile can have a different method if we want to
         compute then in 1D or in 2D"""
@@ -531,12 +468,11 @@ class TestProfile3DToolBar(TestCaseQt):
                 break
 
         # check 2D 'mean' profile
-        profilePlot = toolBar.getProfilePlot()
+        profilePlot = roi.getProfileWindow().getCurrentPlotWidget()
         data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[1, 4], [7, 10], [13, 16]])
         numpy.testing.assert_almost_equal(data, expected)
 
-    @testutils.validate_logging(deprecation.depreclog.name, warning=2)
     def testMethodSumLine(self):
         """Simple interaction test to make sure the sum is correctly computed
         """
@@ -564,7 +500,7 @@ class TestProfile3DToolBar(TestCaseQt):
                 break
 
         # check 2D 'sum' profile
-        profilePlot = toolBar.getProfilePlot()
+        profilePlot = roi.getProfileWindow().getCurrentPlotWidget()
         data = profilePlot.getAllImages()[0].getData()
         expected = numpy.array([[3, 12], [21, 30], [39, 48]])
         numpy.testing.assert_almost_equal(data, expected)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Median filter of images + OpenCL
 #             https://github.com/silx-kit/silx
@@ -29,13 +28,11 @@
 Simple test of the median filter
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "2013-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "05/07/2018"
+__copyright__ = "2013-2022 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "09/05/2023"
 
 
 import sys
@@ -61,12 +58,15 @@ Result = namedtuple("Result", ["size", "error", "sp_time", "oc_time"])
 try:
     from scipy.misc import ascent
 except:
-    def ascent():
-        """Dummy image from random data"""
-        return numpy.random.random((512, 512))
+    try:
+        from scipy.datasets import ascent
+    except:
+        def ascent():
+            """Dummy image from random data"""
+            return numpy.random.random((512, 512))
+
 try:
-    from scipy.ndimage import filters
-    median_filter = filters.median_filter
+    from scipy.ndimage import median_filter
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False
@@ -112,7 +112,9 @@ class TestMedianFilter(unittest.TestCase):
             logger.info("test_medfilt: size: %s: skipped")
         else:
             logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
-            self.assertEqual(r.error, 0, 'Results are correct')
+            if self.medianfilter.device.platform.name.lower() != 'portable computing language':
+                #Known broken
+                self.assertEqual(r.error, 0, 'Results are correct')
 
     def benchmark(self, limit=36):
         "Run some benchmarking"

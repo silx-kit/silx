@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +30,14 @@ import json
 import logging
 import numpy
 import os.path
-import sys
 import h5py
+try:
+    from pint import Quantity as PintQuantity
+except ImportError:
+    try:
+        from pint.quantity import Quantity as PintQuantity
+    except ImportError:
+        PintQuantity = None
 
 from .configdict import ConfigDict
 from .utils import is_group
@@ -44,7 +49,6 @@ from .utils import is_file as is_h5_file_like
 from .utils import open as h5open
 from .utils import h5py_read_dataset
 from .utils import H5pyAttributesReadWrapper
-from silx.utils.deprecation import deprecated_warning
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -65,6 +69,8 @@ def _prepare_hdf5_write_value(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
+    if PintQuantity is not None and isinstance(array_like, PintQuantity):
+        return numpy.array(array_like.magnitude)
     array = numpy.asarray(array_like)
     if numpy.issubdtype(array.dtype, numpy.bytes_):
         return numpy.array(array_like, dtype=vlen_bytes)
@@ -170,9 +176,14 @@ def _normalize_h5_path(h5root, h5path):
     return h5file, h5path
 
 
-def dicttoh5(treedict, h5file, h5path='/',
-             mode="w", overwrite_data=None,
-             create_dataset_args=None, update_mode=None):
+def dicttoh5(
+    treedict,
+    h5file,
+    h5path='/',
+    mode="w",
+    create_dataset_args=None,
+    update_mode=None,
+):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
     If a dictionary value is a sub-dictionary, a group is created. If it is
@@ -202,9 +213,6 @@ def dicttoh5(treedict, h5file, h5path='/',
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
         exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
-    :param overwrite_data: Deprecated. ``True`` is approximately equivalent
-        to ``update_mode="modify"`` and ``False`` is equivalent to
-        ``update_mode="add"``.
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5f.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
@@ -246,32 +254,14 @@ def dicttoh5(treedict, h5file, h5path='/',
                  create_dataset_args=create_ds_args)
     """
 
-    if overwrite_data is not None:
-        reason = (
-            "`overwrite_data=True` becomes `update_mode='modify'` and "
-            "`overwrite_data=False` becomes `update_mode='add'`"
-        )
-        deprecated_warning(
-            type_="argument",
-            name="overwrite_data",
-            reason=reason,
-            replacement="update_mode",
-            since_version="0.15",
-        )
-
     if update_mode is None:
-        if overwrite_data:
-            update_mode = "modify"
-        else:
-            update_mode = "add"
-    else:
-        if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
-            raise ValueError((
-                "Argument 'update_mode' can only have values: {}"
-                "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
-            ))
-        if overwrite_data is not None:
-            logger.warning("The argument `overwrite_data` is ignored")
+        update_mode = "add"
+
+    if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
+        raise ValueError((
+            "Argument 'update_mode' can only have values: {}"
+            "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
+        ))
 
     if not isinstance(treedict, Mapping):
         raise TypeError("'treedict' must be a dictionary")
@@ -456,6 +446,7 @@ def nexus_to_h5_dict(
                     value = h5py.SoftLink(first)
             elif is_link(value):
                 key = key[1:]
+
         if isinstance(value, Mapping):
             # HDF5 group
             key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
@@ -464,9 +455,15 @@ def nexus_to_h5_dict(
                 parents=parents+(key,),
                 add_nx_class=add_nx_class,
                 has_nx_class=key_has_nx_class)
+
+        elif PintQuantity is not None and isinstance(value, PintQuantity):
+            copy[key] = value.magnitude
+            copy[(key, "units")] = f"{value.units:~C}"
+
         else:
             # HDF5 dataset or link
             copy[key] = value
+
     if add_nx_class and not has_nx_class:
         _ensure_nx_class(copy, parents)
     return copy
@@ -637,7 +634,8 @@ def h5todict(h5file,
                                       exclude_names=exclude_names,
                                       asarray=asarray,
                                       dereference_links=dereference_links,
-                                      include_attributes=include_attributes)
+                                      include_attributes=include_attributes,
+                                      errors=errors)
             else:
                 # Child is an HDF5 dataset
                 try:

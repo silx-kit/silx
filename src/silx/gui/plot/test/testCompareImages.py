@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2017 European Synchrotron Radiation Facility
@@ -28,7 +27,6 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "23/07/2018"
 
-import unittest
 import numpy
 import weakref
 

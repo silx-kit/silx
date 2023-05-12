@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -111,7 +110,6 @@ import os.path
 import logging
 import numpy
 import re
-import sys
 
 _logger = logging.getLogger(__name__)
 
@@ -600,7 +598,7 @@ class Scan(object):
 
 def _string_to_char_star(string_):
     """Convert a string to ASCII encoded bytes when using python3"""
-    if sys.version_info[0] >= 3 and not isinstance(string_, bytes):
+    if not isinstance(string_, bytes):
         return bytes(string_, "ascii")
     return string_
 

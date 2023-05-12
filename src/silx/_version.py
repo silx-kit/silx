@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +48,6 @@ Thus 2.1.0a3 is hexversion 0x020100a3.
 
 """
 
-from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
@@ -71,7 +69,7 @@ PRERELEASE_NORMALIZED_NAME = {"dev": "a",
                               "candidate": "rc"}
 
 MAJOR = 1
-MINOR = 1
+MINOR = 2
 MICRO = 0
 RELEV = "dev"  # <16
 SERIAL = 0  # <16

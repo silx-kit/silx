@@ -1,4 +1,3 @@
-# coding: utf-8
 #/*##########################################################################
 # Copyright (C) 2016-2020 European Synchrotron Radiation Facility
 #
@@ -426,7 +425,7 @@ def sum_splitpvoigt(x, *params):
     profile using a linear combination of a Gaussian curve ``G(x)`` and a
     Lorentzian curve ``L(x)`` instead of their convolution.
 
-        - *height* is the peak amplitudefor G(x) and L(x)
+        - *height* is the peak amplitude for G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm1* is the full-width at half maximum of both functions
           when ``x < centroid``
@@ -798,9 +797,9 @@ def sum_ahypermet(x, *params,
         *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
         lt_slope_r1, step_height_r1...)*
     :param gaussian_term: If ``True``, enable gaussian term. Default ``True``
-    :param st_term: If ``True``, enable gaussian term. Default ``True``
-    :param lt_term: If ``True``, enable gaussian term. Default ``True``
-    :param step_term: If ``True``, enable gaussian term. Default ``True``
+    :param st_term: If ``True``, enable short tail term. Default ``True``
+    :param lt_term: If ``True``, enable long tail term. Default ``True``
+    :param step_term: If ``True``, enable step term. Default ``True``
     :return: Array of sum of hypermet functions at each ``x`` coordinate
     """
     cdef:
@@ -884,9 +883,9 @@ def sum_fastahypermet(x, *params,
         *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
         lt_slope_r1, step_height_r1...)*
     :param gaussian_term: If ``True``, enable gaussian term. Default ``True``
-    :param st_term: If ``True``, enable gaussian term. Default ``True``
-    :param lt_term: If ``True``, enable gaussian term. Default ``True``
-    :param step_term: If ``True``, enable gaussian term. Default ``True``
+    :param st_term: If ``True``, enable short tail term. Default ``True``
+    :param lt_term: If ``True``, enable long tail term. Default ``True``
+    :param step_term: If ``True``, enable step term. Default ``True``
     :return: Array of sum of hypermet functions at each ``x`` coordinate
     """
     cdef:

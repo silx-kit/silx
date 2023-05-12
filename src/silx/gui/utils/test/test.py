@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2019-2021 European Synchrotron Radiation Facility
@@ -24,14 +23,11 @@
 # ###########################################################################*/
 """Test of functions available in silx.gui.utils module."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/08/2019"
 
 
-import unittest
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 

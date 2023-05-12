@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -29,11 +28,42 @@ __license__ = "MIT"
 __date__ = "29/01/2018"
 
 import logging
+from typing import Union, Tuple
 from collections.abc import Iterable
 import urllib.parse
+from pathlib import Path
 
 
 _logger = logging.getLogger(__name__)
+
+
+def _slice_to_string(s):
+    """Convert a Python slice into a string"""
+    if s == Ellipsis:
+        return "..."
+    elif isinstance(s, slice):
+        result = ""
+        if s.start is None:
+            result += ":"
+        else:
+            result += f"{s.start}:"
+        if s.stop is not None:
+            result += f"{s.stop}"
+        if s.step is not None:
+            result += f":{s.step}"
+        return result
+    elif isinstance(s, int):
+        return str(s)
+    else:
+        raise TypeError("Unexpected slicing type. Found %s" % type(s))
+
+
+def slice_sequence_to_string(data_slice):
+    """Convert a Python slice sequence or a slice into a string"""
+    if isinstance(data_slice, Iterable):
+        return ",".join([_slice_to_string(s) for s in data_slice])
+    else:
+        return _slice_to_string(data_slice)
 
 
 class DataUrl(object):
@@ -89,16 +119,23 @@ class DataUrl(object):
         is supported. Other strings can be provided, but :meth:`is_valid` will
         be false.
     """
-    def __init__(self, path=None, file_path=None, data_path=None, data_slice=None, scheme=None):
+    def __init__(
+            self,
+            path: Union[str, Path, None]=None,
+            file_path: Union[str, Path, None]=None,
+            data_path: Union[str, None]=None,
+            data_slice: Union[Tuple[Union[int], ...], None]=None,
+            scheme: Union[str, None]=None,
+        ):
         self.__is_valid = False
         if path is not None:
             assert(file_path is None)
             assert(data_path is None)
             assert(data_slice is None)
             assert(scheme is None)
-            self.__parse_from_path(path)
+            self.__parse_from_path(str(path))
         else:
-            self.__file_path = file_path
+            self.__file_path = str(file_path)
             self.__data_path = data_path
             self.__data_slice = data_slice
             self.__scheme = scheme
@@ -320,7 +357,8 @@ class DataUrl(object):
             if self.__data_path is not None:
                 queries.append("path=" + self.__data_path)
             if self.__data_slice is not None:
-                queries.append("slice=" + self.data_slice_string())
+                data_slice = slice_sequence_to_string(self.__data_slice)
+                queries.append("slice=" + data_slice)
             query = "&".join(queries)
 
         path = ""

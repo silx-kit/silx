@@ -20,8 +20,6 @@ For a complete description of the API, see :mod:`silx.gui.plot`.
 Use :mod:`silx.gui.plot` from (I)Python console
 -----------------------------------------------
 
-We recommend to use (I)Python >=3.6 and PyQt5.
-
 From a Python or IPython interpreter, the simplest way is to import the :mod:`silx.sx` module:
 
 >>> from silx import sx
@@ -89,7 +87,7 @@ A Qt GUI script must have a QApplication initialised before creating widgets:
        [...]
        qapp.exec()
 
-Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt bindings (PyQt5, PySide2, PySide6).
+Unless a Qt binding has already been loaded, :mod:`silx.gui.qt` uses one of the supported Qt bindings (PyQt5, PySide6, PyQt6).
 If you prefer to choose the Qt binding yourself, import it before importing
 a module from :mod:`silx.gui`:
 

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -46,10 +45,6 @@ Functions:
     - :func:`get_concatenated_dtype`
 
 """
-
-from __future__ import absolute_import, print_function, division
-
-import sys
 
 import numpy
 import numbers

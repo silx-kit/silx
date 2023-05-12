@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +70,6 @@ class H5Type(enum.Enum):
 _CLASSES_TYPE = None
 """Store mapping between classes and types"""
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 builtin_open = open
 
@@ -200,7 +198,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabel if isinstance(ylabel, string_types) else "y%d" % i
+        ylabels = [ylabel if isinstance(ylabel, str) else "y%d" % i
                    for ylabel in ylabels]
 
     if filetype.lower() == "spec":
@@ -292,18 +290,14 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
         ffile = fname
 
     if header:
-        if sys.version_info[0] >= 3:
-            header = header.encode("utf-8")
-        ffile.write(header)
+        ffile.write(header.encode("utf-8"))
 
     numpy.savetxt(ffile, X, fmt, delimiter, newline)
 
     if footer:
         footer = (comments + footer.replace(newline, newline + comments) +
                   newline)
-        if sys.version_info[0] >= 3:
-            footer = footer.encode("utf-8")
-        ffile.write(footer)
+        ffile.write(footer.encode("utf-8"))
 
     if not hasattr(fname, "name"):
         ffile.close()
@@ -367,7 +361,7 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     assert len(labels) == ncol
 
     print(xlabel, ylabel, fmt, ncol, x_array, y_array)
-    if isinstance(fmt, string_types) and fmt.count("%") == 1:
+    if isinstance(fmt, str) and fmt.count("%") == 1:
         full_fmt_string = "  ".join([fmt] * ncol)
     elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
         full_fmt_string = "  ".join(fmt)
@@ -433,7 +427,7 @@ def h5ls(h5group, lvl=0):
     h5repr = ''
     if is_group(h5group):
         h5f = h5group
-    elif isinstance(h5group, string_types):
+    elif isinstance(h5group, str):
         h5f = open(h5group)  # silx.io.open
     else:
         raise TypeError("h5group must be a hdf5-like group object or a file name.")
@@ -450,7 +444,7 @@ def h5ls(h5group, lvl=0):
             h5repr += str(h5f[key])
             h5repr += '\n'
 
-    if isinstance(h5group, string_types):
+    if isinstance(h5group, str):
         h5f.close()
 
     return h5repr
@@ -838,13 +832,30 @@ def visitall(item):
     yield from _visitall(item, '')
 
 
+def iter_groups(group, _root=None):
+    """Pythonic implementation of h5py.Group visit()"""
+    for name in group.keys():
+        entity = group.get(name)
+        if is_group(entity):
+            yield name
+            for subgroup in iter_groups(entity, _root=name):
+                yield f"{name}/{subgroup}"
+
 
 def match(group, path_pattern: str) -> Generator[str, None, None]:
     """Generator of paths inside given h5py-like `group` matching `path_pattern`"""
     if not is_group(group):
         raise ValueError(f"Not a h5py-like group: {group}")
 
-    path_parts = path_pattern.strip("/").split("/", 1)
+    path_parts = path_pattern.replace("\\", "/").strip("/").split("/", 1)
+    if path_parts[0] == "**":
+        # recursive match
+        for subpath in iter_groups(group):
+            sub = group.get(subpath)
+            for groupname in match(sub, path_parts[1]):
+                yield f"{subpath}/{groupname}"
+        return
+
     for matching_path in fnmatch.filter(group.keys(), path_parts[0]):
         if len(path_parts) == 1:  # No more sub-path, stop recursion
             yield matching_path
@@ -1038,6 +1049,25 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
                                           overwrite=overwrite)
 
 
+def hdf5_to_python_type(value, decode_ascii, encoding):
+    """Convert HDF5 type to proper python type.
+
+    :param value:
+    :param bool decode_ascii:
+    :param encoding str:
+    """
+    if encoding == "ascii":
+        is_bytes = h5py_value_isinstance(value, bytes)
+        if is_bytes and decode_ascii:
+            return h5py_decode_value(value, encoding="utf-8")
+        if not is_bytes and not decode_ascii:
+            return h5py_encode_value(value, encoding="utf-8")
+    elif encoding == "utf-8":
+        if h5py_value_isinstance(value, bytes):
+            return h5py_decode_value(value, encoding="utf-8")
+    return value
+
+
 def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
     """Keep bytes when value cannot be decoded
 
@@ -1047,8 +1077,8 @@ def h5py_decode_value(value, encoding="utf-8", errors="surrogateescape"):
     """
     try:
         if numpy.isscalar(value):
-            return value.decode(encoding, errors=errors)
-        str_item = [b.decode(encoding, errors=errors) for b in value.flat]
+            return _decode_string(value, encoding, errors)
+        str_item = [_decode_string(b, encoding, errors) for b in value.flat]
         return numpy.array(str_item, dtype=object).reshape(value.shape)
     except UnicodeDecodeError:
         return value
@@ -1063,11 +1093,50 @@ def h5py_encode_value(value, encoding="utf-8", errors="surrogateescape"):
     """
     try:
         if numpy.isscalar(value):
-            return value.encode(encoding, errors=errors)
-        bytes_item = [s.encode(encoding, errors=errors) for s in value.flat]
+            return _encode_string(value, encoding, errors)
+        bytes_item = [_encode_string(s, encoding, errors=errors) for s in value.flat]
         return numpy.array(bytes_item, dtype=object).reshape(value.shape)
     except UnicodeEncodeError:
         return value
+
+
+def h5py_value_isinstance(value, vtype):
+    """Keep string when value cannot be encoding
+
+    :param value: string or array of strings
+    :param vtype:
+    :return bool:
+    """
+    if numpy.isscalar(value):
+        try:
+            value = value.item()
+        except AttributeError:
+            pass
+    else:
+        value = value[0]
+    return isinstance(value, vtype)
+
+
+def _decode_string(string, encoding, errors):
+    """
+    :param value: string
+    :param encoding str:
+    :param errors str:
+    """
+    if isinstance(string, str):
+        return string
+    return string.decode(encoding, errors=errors)
+
+
+def _encode_string(string, encoding, errors):
+    """
+    :param value: string
+    :param encoding str:
+    :param errors str:
+    """
+    if isinstance(string, bytes):
+        return string
+    return string.encode(encoding, errors=errors)
 
 
 class H5pyDatasetReadWrapper:
@@ -1079,13 +1148,12 @@ class H5pyDatasetReadWrapper:
     Therefore an H5T_STRING with ASCII encoding is not decoded by default.
     """
 
-    H5PY_AUTODECODE_NONASCII = int(h5py.version.version.split(".")[0]) < 3
-
     def __init__(self, dset, decode_ascii=False):
         """
         :param h5py.Dataset dset:
         :param bool decode_ascii:
         """
+        # Get the string encoding (if a string)
         try:
             string_info = h5py.h5t.check_string_dtype(dset.dtype)
         except AttributeError:
@@ -1104,23 +1172,14 @@ class H5pyDatasetReadWrapper:
             except AttributeError:
                 # Not an H5T_STRING
                 encoding = None
-        if encoding == "ascii" and not decode_ascii:
-            encoding = None
-        if encoding != "ascii" and self.H5PY_AUTODECODE_NONASCII:
-            # Decoding is already done by the h5py library
-            encoding = None
-        if encoding == "ascii":
-            # ASCII can be decoded as UTF-8
-            encoding = "utf-8"
+
         self._encoding = encoding
+        self._decode_ascii = decode_ascii
         self._dset = dset
 
     def __getitem__(self, args):
         value = self._dset[args]
-        if self._encoding:
-            return h5py_decode_value(value, encoding=self._encoding)
-        else:
-            return value
+        return hdf5_to_python_type(value, self._decode_ascii, self._encoding)
 
 
 class H5pyAttributesReadWrapper:
@@ -1131,8 +1190,6 @@ class H5pyAttributesReadWrapper:
     to store `bytes`: dset[()] = b"..."
     Therefore an H5T_STRING with ASCII encoding is not decoded by default.
     """
-
-    H5PY_AUTODECODE = int(h5py.version.version.split(".")[0]) >= 3
 
     def __init__(self, attrs, decode_ascii=False):
         """
@@ -1166,17 +1223,7 @@ class H5pyAttributesReadWrapper:
                 # Not an H5T_STRING
                 return value
 
-        if self.H5PY_AUTODECODE:
-            if encoding == "ascii" and not self._decode_ascii:
-                # Undo decoding by the h5py library
-                return h5py_encode_value(value, encoding="utf-8")
-        else:
-            if encoding == "ascii" and self._decode_ascii:
-                # Decode ASCII as UTF-8 for consistency
-                return h5py_decode_value(value, encoding="utf-8")
-
-        # Decoding is already done by the h5py library
-        return value
+        return hdf5_to_python_type(value, self._decode_ascii, encoding)
 
     def items(self):
         for k in self._attrs.keys():

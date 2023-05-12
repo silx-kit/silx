@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -31,8 +30,6 @@
 Test suite for alignment module
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
@@ -43,10 +40,15 @@ import unittest
 import logging
 import numpy
 try:
-    import scipy.misc
-    import scipy.ndimage
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 from ...common import ocl
 if ocl:
@@ -80,21 +82,18 @@ class TestLinalign(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        if scipy and ocl is None:
+        if scipy is None or ocl is None:
             return
 
-        if hasattr(scipy.misc, "ascent"):
-            self.lena = scipy.misc.ascent().astype(numpy.float32)
-        else:
-            self.lena = scipy.misc.lena().astype(numpy.float32)
+        self.ascent = ascent().astype(numpy.float32)
 
-        self.shape = self.lena.shape
+        self.shape = self.ascent.shape
         self.extra = (10, 11)
-        self.img = scipy.ndimage.affine_transform(self.lena, [[1.1, -0.1], [0.05, 0.9]], [7, 5])
-        self.align = LinearAlign(self.lena, ctx=self.ctx)
+        self.img = scipy.ndimage.affine_transform(self.ascent, [[1.1, -0.1], [0.05, 0.9]], [7, 5])
+        self.align = LinearAlign(self.ascent, ctx=self.ctx)
 
     def tearDown(self):
-        self.img = self.lena = None
+        self.img = self.ascent = None
 
     @unittest.skipUnless(scipy and ocl, "scipy or pyopencl are missing")
     def test_align(self):
@@ -106,5 +105,5 @@ class TestLinalign(unittest.TestCase):
         out = out["result"]
 
         if self.PROFILE and (out is not None):
-            delta = (out - self.lena)[100:400, 100:400]
+            delta = (out - self.ascent)[100:400, 100:400]
             logger.info({"min": delta.min(), "max:": delta.max(), "mean": delta.mean(), "std:": delta.std()})

@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +24,18 @@
 # ###########################################################################*/
 """Test of the FFT module"""
 
+from os import path
+import logging
 import numpy as np
 import unittest
-import logging
+from pkg_resources import parse_version
 import pytest
+from tempfile import TemporaryDirectory
 try:
-    from scipy.misc import ascent
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
     __have_scipy = True
 except ImportError:
     __have_scipy = False
@@ -38,7 +43,7 @@ from silx.utils.testutils import ParametricTestCase
 from silx.math.fft.fft import FFT
 from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
-from silx.math.fft.fftw import __have_fftw__
+from silx.math.fft.fftw import __have_fftw__, import_wisdom, export_wisdom, get_wisdom_file
 
 if __have_cufft__:
     import atexit
@@ -228,6 +233,90 @@ class TestFFT(ParametricTestCase):
         )
 
 
+    # Test normalizations. silx FFT has three normalization modes:
+    #    - "rescale" (default). FFT is unscaled, IFFT is scaled by 1/N.
+    #      This corresponds to numpy normalize=None i.e normalize="backward"
+    #    - "ortho": FFT/IFFT are both scaled with 1/sqrt(N) so that FFT is unitary.
+    #    - "none": Neither FFT nor IFFT are not scaled, so IFFT(FFT(array)) = N*array
+
+    norms_backends_support = {
+        "numpy": {
+            "supported_normalizations": ["rescale", "ortho", "none"],
+        },
+        "fftw": {
+            "supported_normalizations": ["rescale", "ortho", "none"],
+        },
+        "opencl": {
+            "supported_normalizations": ["rescale"],
+        },
+        "cuda": {
+            "supported_normalizations": ["rescale", "none"],
+        }
+    }
+
+    @staticmethod
+    def _compute_numpy_normalized_fft(data, axes, silx_normalization_mode):
+        if silx_normalization_mode in ["rescale", "none"]:
+            return np.fft.rfftn(data, axes=axes, norm=None)
+        elif silx_normalization_mode == "ortho":
+            return np.fft.rfftn(data, axes=axes, norm="ortho")
+        else:
+            raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
+
+    @staticmethod
+    def _compute_numpy_normalized_ifft(data, axes, silx_normalization_mode):
+        if silx_normalization_mode == "rescale":
+            return np.fft.irfftn(data, axes=axes, norm=None)
+        elif silx_normalization_mode == "ortho":
+            return np.fft.irfftn(data, axes=axes, norm="ortho")
+        elif silx_normalization_mode == "none":
+            res =  np.fft.irfftn(data, axes=axes, norm=None)
+            # This assumes a FFT on all the axes, won't work on batched FFT
+            N = res.size
+            return res * N
+        else:
+            raise ValueError("Unknown normalization mode %s" % silx_normalization_mode)
+
+    @unittest.skipIf(not __have_fftw__, "fftw back-end requires pyfftw")
+    def test_norms_fftw(self):
+        return self._test_norms_with_backend("fftw")
+
+    @unittest.skipIf(
+        parse_version(np.version.version) <= parse_version("1.19.5"),
+        "normalization does not work for numpy <= 1.19.5"
+    )
+    def test_norms_numpy(self):
+        return self._test_norms_with_backend("numpy")
+
+    @unittest.skipIf(not __have_clfft__, "opencl back-end requires pyopencl and gpyfft")
+    def test_norms_opencl(self):
+        from silx.opencl.common import ocl
+        if ocl is not None:
+            return self._test_norms_with_backend("opencl")
+
+    @unittest.skipIf(not __have_cufft__, "cuda back-end requires pycuda and scikit-cuda")
+    def test_norms_cuda(self):
+        get_cuda_context()
+        return self._test_norms_with_backend("cuda")
+
+    def _test_norms_with_backend(self, backend_name):
+        backend_params = self.norms_backends_support[backend_name]
+
+        data = self.test_data.data
+        tol = self.tol[np.dtype(data.dtype)]
+
+        for norm in backend_params["supported_normalizations"]:
+            fft = FFT(template=data, backend=backend_name, normalize=norm)
+            res = fft.fft(data)
+            ref = self._compute_numpy_normalized_fft(data, fft.axes, norm)
+            assert np.allclose(res, ref, atol=tol, rtol=tol), "Something wrong with %s norm=%s" % (backend_name, norm)
+
+            res2 = fft.ifft(res)
+            ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
+            # unscaled IFFT yields very large values. Use a relatively high "atol"
+            assert np.allclose(res2, ref2, atol=res2.max()/1e6), "Something wrong with I%s norm=%s" % (backend_name, norm)
+
+
 @unittest.skipUnless(__have_scipy, "scipy is missing")
 class TestNumpyFFT(ParametricTestCase):
     """
@@ -287,3 +376,23 @@ class TestNumpyFFT(ParametricTestCase):
         res2 = F.ifft(res)
         ref2 = np_ifft(ref)
         self.assertTrue(np.allclose(res2, ref2))
+
+
+@pytest.mark.skipif(not(__have_fftw__), reason="Need fftw/pyfftw for this test")
+def test_fftw_wisdom():
+    """
+    Test FFTW wisdom import/export mechanism
+    """
+
+    assert path.isdir(path.dirname(get_wisdom_file())) # Default: tempdir.gettempdir()
+
+    with TemporaryDirectory(prefix="test_fftw_wisdom") as dname:
+        subdir = path.join(dname, "subdir")
+        get_wisdom_file(directory=subdir, create_dirs=False)
+        assert not(path.isdir(subdir))
+        fname = get_wisdom_file(directory=subdir, create_dirs=True)
+        assert path.isdir(subdir)
+        export_wisdom(fname)
+        assert path.isfile(fname)
+        import_wisdom(fname)
+

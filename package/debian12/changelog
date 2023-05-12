@@ -1,0 +1,156 @@
+silx (0.11.0+dfsg-3) unstable; urgency=medium
+
+  * d/control: Build-Depends on python3-qtconsole(Closes: #946571).
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Wed, 11 Dec 2019 09:10:31 +0100
+
+silx (0.11.0+dfsg-2) unstable; urgency=medium
+
+  * Use debhelper-compat instead of debian/compat.
+  * remove Python2 modules (Closes: #938481).
+  * Switched to compat level 12
+    - d/rules: Used --doc-main-package python3-silx.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 19 Oct 2019 13:19:44 +0200
+
+silx (0.11.0+dfsg-1) unstable; urgency=medium
+
+  [ Alexandre Marie ]
+  * Added test on openCL's use
+  * New upstream version 0.11.0+dfsg
+  * d/patches
+    - 0004-fix-missing-import.patches (Removed)
+    - 0005-fix-problem-with-sift-import (Removed)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 09 Jul 2019 15:26:55 +0200
+
+silx (0.10.1+dfsg-1~exp2) experimental; urgency=medium
+
+  * d/patchs
+    + 0005-fix-problem-with-sift-import.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@synchrotron-soleil.fr>  Tue, 28 May 2019 11:17:46 +0200
+
+silx (0.10.1+dfsg-1~exp1) experimental; urgency=medium
+
+  * New upstream version 0.10.1+dfsg
+  * d/patches
+    + 0004-fix-missing-import.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 28 May 2019 08:20:44 +0200
+
+silx (0.9.0+dfsg-3) unstable; urgency=medium
+
+  * d/rules: Do not run Qt test for now.
+  * d/t/control.autodep8: Fixed to run test for real.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Thu, 21 Feb 2019 11:22:03 +0100
+
+silx (0.9.0+dfsg-2) unstable; urgency=medium
+
+  * d/patches:
+    + 0004-fix-FTBFS-with-numpy-0.16.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Thu, 20 Dec 2018 16:21:18 +0100
+
+silx (0.9.0+dfsg-1) unstable; urgency=medium
+
+  [ Picca Frédéric-Emmanuel ]
+  * Fixed autopkgtests and use control.autodep8
+  * Used salsa-ci for continuous integration.
+  * Run autopkgtests via xvfb-run
+  * d/control: Removed Build-Depends: python-lxml[-dbg], python-enum34.
+
+  [ Alexandre Marie ]
+  * New upstream version 0.9.0+dfsg
+  * d/watch: uversionmangling to deal with rc|alpha|beta versions.
+
+ -- Alexandre Marie <alexandre.marie@synchrotron-soleil.fr>  Mon, 17 Dec 2018 13:25:52 +0100
+
+silx (0.8.0+dfsg-1) unstable; urgency=medium
+
+  * New upstream version 0.8.0+dfsg
+  * Added the pub 4096R/26F8E116 key to keyring
+      2016-04-11 Thomas Vincent <thomas.vincent@esrf.fr>
+  * d/control
+    - Build-Depends
+      + Added pandoc
+    - Removed obsolete X-Python[3]-Version
+  * d/rules
+    - Installed the QtDesgigner files only for Qt5.
+    - Override dh_python3 to deal with qtdesigner files.
+    - Run sphinx with xvfb in order to have the right silx.sx documentation.
+    - Avoid QT warnings by setting XDG_RUNTIME_DIR
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 31 Jul 2018 16:24:57 +0200
+
+silx (0.7.0+dfsg-2) unstable; urgency=medium
+
+  * d/rules
+    - use py3versions to get the python3 default interpreter version.
+      This makes the package backportable.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 13 Mar 2018 20:04:20 +0100
+
+silx (0.7.0+dfsg-1) unstable; urgency=medium
+
+  * New upstream version 0.7.0+dfsg
+  * Bumped Strandards-Versions to 4.1.3 (nothing to do)
+  * d/control
+    - Build-Depends
+     + Added python[3]-nbsphinx, python-concurrent.futures
+  * d/copyright
+    remove the third_party _local files.
+  * d/patches
+     + 0003-do-not-modify-PYTHONPATH-from-setup.py.patch (added)
+     - 0005-slocale.h-is-removed-in-GLIBC-2.26.patch (obsolete)
+     - 0006-prefer-pyqt5-over-pyside.patch (obsolete)
+  * d/rules
+    - removed the jessie backports specific code
+    - compile extensions only once per interpreter.
+    - unactive for now the build time tests.
+    - build the doc only with python3.
+  * d/watch
+    - check the pgp signature
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Tue, 13 Mar 2018 07:32:00 +0100
+
+silx (0.6.1+dfsg-2) unstable; urgency=medium
+
+  * d/control
+    - Bump Standrad-Version 4.1.1 (nothing to do)
+  * fixed glibc 2.26 FTBFS with upstream patch glib2.26 (Closes: #882881)
+  * d/patches
+    + 0005-slocale.h-is-removed-in-GLIBC-2.26.patch (Added)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sun, 21 Jan 2018 09:32:38 +0100
+
+silx (0.6.1+dfsg-1) unstable; urgency=medium
+
+  * New upstream version 0.6.1+dfsg
+  * update watch file
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 25 Nov 2017 17:02:19 +0100
+
+silx (0.6.0+dfsg-1) unstable; urgency=medium
+
+  * New upstream version 0.6.0+dfsg
+  * d/patches
+    - 0001-fix-the-build_man-target.patch (deleted)
+    - 0004-test-unactive-ressource-for-now.patch (deleted)
+    - 0005-fix-the-sift-removal.patch (deleted)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Sat, 07 Oct 2017 08:08:56 +0200
+
+silx (0.5.0+dfsg-2) unstable; urgency=medium
+
+  * d/control
+    - Added all the -dbg dependencies for the -dbg packages.
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Fri, 01 Sep 2017 15:10:44 +0200
+
+silx (0.5.0+dfsg-1) unstable; urgency=medium
+
+  * Initial release (Closes: #871637)
+
+ -- Picca Frédéric-Emmanuel <picca@debian.org>  Wed, 02 Aug 2017 11:00:20 +0100

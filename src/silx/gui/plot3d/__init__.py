@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2017 European Synchrotron Radiation Facility
@@ -27,7 +26,6 @@ This package provides widgets displaying 3D content based on OpenGL.
 
 It depends on PyOpenGL and PyQtx.QtOpenGL or PyQt>=5.4.
 """
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

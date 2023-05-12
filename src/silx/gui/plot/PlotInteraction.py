@@ -1,4 +1,3 @@
-#  coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2021 European Synchrotron Radiation Facility
@@ -35,7 +34,6 @@ import time
 import weakref
 
 from .. import colors
-from .. import qt
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN, MIDDLE_BTN,
                           State, StateMachine)

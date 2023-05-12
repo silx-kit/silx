@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -35,13 +34,11 @@ from silx.gui.plot import StatsWidget
 from silx.gui.plot.stats import statshandler
 from silx.gui.utils.testutils import TestCaseQt, SignalListener
 from silx.gui.plot import Plot1D, Plot2D
-from silx.gui.plot3d.SceneWidget import SceneWidget
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.tools.roi import  RegionOfInterestManager
 from silx.gui.plot.stats.stats import Stats
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.utils.testutils import ParametricTestCase
-import unittest
 import logging
 import numpy
 

@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +44,6 @@ from ..items.roi import RegionOfInterest
 
 from ....math.combo import min_max
 from silx.utils.proxy import docstring
-from ....utils.deprecation import deprecated
 
 logger = logging.getLogger(__name__)
 
@@ -234,13 +232,6 @@ class _StatsContext(object):
         :type roi: Union[None,:class:`_RegionOfInterestBase`]
         """
         raise NotImplementedError("Base class")
-
-    @deprecated(reason="context are now stored and keep during stats life."
-                       "So this function will be called only once",
-                replacement="clipData", since_version="0.13.0")
-    def createContext(self, item, plot, onlimits, roi):
-        return self.clipData(item=item, plot=plot, onlimits=onlimits,
-                             roi=roi)
 
     def isStructuredData(self):
         """Returns True if data as an array-like structure.

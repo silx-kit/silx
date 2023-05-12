@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility
@@ -37,9 +36,6 @@ Basic usage of :class:`ImageView` is through the following methods:
 For an example of use, see `imageview.py` in :ref:`sample-code`.
 """
 
-from __future__ import division
-
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "26/04/2018"
@@ -67,7 +63,6 @@ from .tools.RadarView import RadarView
 from .utils.axis import SyncAxes
 from ..utils import blockSignals
 from . import _utils
-from .tools.profile import manager
 from .tools.profile import rois
 from .actions import PlotAction
 
@@ -608,7 +603,7 @@ class ImageView(PlotWindow):
 
     def isSideHistogramDisplayed(self):
         """True if the side histograms are displayed"""
-        return self._histoHPlot.isVisible()
+        return self._histoHPlot.isVisibleTo(self)
 
     def _updateHistograms(self):
         """Update histograms content using current active image."""

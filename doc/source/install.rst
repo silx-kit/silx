@@ -7,15 +7,15 @@ programming language.
 
 This table summarizes the support matrix of silx:
 
-+------------+--------------+----------------------------+
-| System     | Python vers. | Qt and its bindings        |
-+------------+--------------+----------------------------+
-| `Windows`_ | 3.6-3.9      | PyQt5.6+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
-| `MacOS`_   | 3.6-3.9      | PyQt5.6+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
-| `Linux`_   | 3.6-3.9      | PyQt5.3+, PySide2, PySide6 |
-+------------+--------------+----------------------------+
++------------+--------------+-----------------------------+
+| System     | Python vers. | Qt and its bindings         |
++------------+--------------+-----------------------------+
+| `Windows`_ | 3.7-3.10     | PyQt5.6+, PySide6, PyQt6.3+ |
++------------+--------------+-----------------------------+
+| `MacOS`_   | 3.7-3.10     | PyQt5.6+, PySide6, PyQt6.3+ |
++------------+--------------+-----------------------------+
+| `Linux`_   | 3.7-3.10     | PyQt5.3+, PySide6, PyQt6.3+ |
++------------+--------------+-----------------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
 
@@ -66,8 +66,8 @@ The mandatory dependencies are:
 The GUI widgets depend on the following extra packages:
 
 * A Qt binding: either `PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_,
-  `PySide2 <https://pypi.org/project/PySide2/>`_, or
-  `PySide6 <https://pypi.org/project/PySide6/>`_
+  `PySide6 <https://pypi.org/project/PySide6/>`_ or
+  `PyQt6 <https://pypi.org/project/PyQt6/>`_
 * `matplotlib <http://matplotlib.org/>`_
 * `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `qt_console <https://pypi.org/project/qtconsole>`_
@@ -289,32 +289,46 @@ To set the environment variables, type on the command line:
 Advanced build options
 ++++++++++++++++++++++
 
-In case you want more control over the build procedure, the build command is:
+Advanced options can be set through the following environment variables:
+
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
+
+   * - Environment variable
+     - Description
+   * - ``SILX_WITH_OPENMP``
+     - Whether or not to compile Cython code with OpenMP support (default: ``True`` except on macOS where it is ``False``)
+   * - ``SILX_FORCE_CYTHON``
+     - Whether or not to force re-generating the C/C++ source code from Cython files (default: ``False``).
+   * - ``SPECFILE_USE_GNU_SOURCE``
+     - Whether or not to use a cleaner locale independent implementation of :mod:`silx.io.specfile` by using `_GNU_SOURCE=1`
+       (default: ``False``; POSIX operating system only).
+   * - ``SILX_FULL_INSTALL_REQUIRES``
+     - Set it to put all dependencies as ``install_requires`` (For packaging purpose).
+   * - ``SILX_INSTALL_REQUIRES_STRIP``
+     - Comma-separated list of package names to remove from ``install_requires`` (For packaging purpose).
+.. note:: Boolean options are passed as ``True`` or ``False``.
+
+
+Package the build into a wheel and install it (this requires to install the `build <https://pypa-build.readthedocs.io>`_ package):
 
 .. code-block:: bash 
 
-    python setup.py build
-
-There are few advanced options to ``setup.py build``:
-
-* ``--no-cython``: Prevent Cython (even if installed) from re-generating the C source code.
-  Use the one provided by the development team.
-* ``--no-openmp``: Recompiles the Cython code without OpenMP support (default for MacOSX).
-* ``--openmp``: Recompiles the Cython code with OpenMP support (default for Windows and Linux).
-
-Package the build into a wheel and install it:
-
-.. code-block:: bash 
-
-    python setup.py bdist_wheel
+    python -m build --wheel
     pip install dist/silx*.whl 
 
 To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
 
 .. code-block:: bash 
 
-    python setup.py build build_doc
+    pip install .  # Make sure to install the same version as the source
+    sphinx-build doc/source/ build/html
 
+.. note::
+
+    To re-generate the example script screenshots, build the documentation with the
+    environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
 
 Testing
 +++++++

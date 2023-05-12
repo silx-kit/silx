@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2017 European Synchrotron Radiation Facility
 #
@@ -22,4 +21,4 @@
 #
 # ############################################################################*/
 
-from silx.opencl.sift import *
+from silx.opencl.sift import *  # noqa

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2021 European Synchrotron Radiation Facility
@@ -25,8 +24,6 @@
 """
 This module provides a tree widget to set/view parameters of a ScalarFieldView.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"

@@ -11,6 +11,7 @@ Tutorials and cookbooks:
    modules/gui/designer.rst
    Tutorials/Image
    Tutorials/Sift/sift
+   Tutorials/codec/Bitshuffle-LZ4.ipynb
    Tutorials/io.rst
    Tutorials/convert.rst
    Tutorials/specfile_to_hdf5.rst

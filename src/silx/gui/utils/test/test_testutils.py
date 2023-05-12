@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +28,13 @@ __license__ = "MIT"
 __date__ = "16/01/2017"
 
 import unittest
-import sys
 
-from silx.gui import qt
 from ..testutils import TestCaseQt
 
 
 class TestOutcome(unittest.TestCase):
     """Tests conversion of QImage to/from numpy array."""
 
-    @unittest.skipIf(sys.version_info.major <= 2, 'Python3 only')
     def testNoneOutcome(self):
         test = TestCaseQt()
         test._currentTestSucceeded()

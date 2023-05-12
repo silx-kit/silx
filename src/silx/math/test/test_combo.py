@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +22,10 @@
 # ############################################################################*/
 """Tests of the combo module"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/01/2018"
 
-
-import unittest
 
 import numpy
 
@@ -140,7 +135,7 @@ class TestMinMax(ParametricTestCase):
                                       min_positive=min_positive,
                                       data=name):
                         data = numpy.arange(
-                            start, start + step * size, step, dtype=dtype)
+                            start, start + step * size, step).astype(dtype)
 
                         self._test_min_max(data, min_positive)
 

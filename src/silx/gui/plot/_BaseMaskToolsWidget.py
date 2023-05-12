@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2022 European Synchrotron Radiation Facility
@@ -25,7 +24,6 @@
 """This module is a collection of base classes used in modules
 :mod:`.MaskToolsWidget` (images) and :mod:`.ScatterMaskToolsWidget`
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
@@ -417,7 +415,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         self._lastPencilPos = None
         self._multipleMasks = 'exclusive'
 
-        self._maskFileDir = qt.QDir.home().absolutePath()
+        self._maskFileDir = qt.QDir.current().absolutePath()
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
 
@@ -494,7 +492,7 @@ class BaseMaskToolsWidget(qt.QWidget):
     def maskFileDir(self):
         """The directory from which to load/save mask from/to files."""
         if not os.path.isdir(self._maskFileDir):
-            self._maskFileDir = qt.QDir.home().absolutePath()
+            self._maskFileDir = qt.QDir.current().absolutePath()
         return self._maskFileDir
 
     @maskFileDir.setter
@@ -632,7 +630,7 @@ class BaseMaskToolsWidget(qt.QWidget):
         invertAction.setText('Invert')
         icon = icons.getQIcon("mask-invert")
         invertAction.setIcon(icon)
-        invertAction.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertAction.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_I))
         invertAction.setToolTip('Invert current mask <b>%s</b>' %
                                 invertAction.shortcut().toString())
         invertAction.triggered.connect(self._handleInvertMask)
@@ -920,8 +918,8 @@ class BaseMaskToolsWidget(qt.QWidget):
         if (event.type() == qt.QEvent.EnabledChange and
                 not self.isEnabled() and
                 self.drawActionGroup.checkedAction()):
-            # Disable drawing tool by setting interaction to zoom
-            self.browseAction.trigger()
+            # Disable drawing tool by reseting interaction to pan or zoom
+            self.plot.resetInteractiveMode()
 
     def save(self, filename, kind):
         """Save current mask in a file

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2021 European Synchrotron Radiation Facility
@@ -28,8 +27,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/09/2017"
 
-
-import unittest
 
 import numpy
 

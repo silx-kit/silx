@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016 European Synchrotron Radiation Facility
@@ -22,8 +21,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
 from silx.gui.utils.testutils import TestCaseQt
 
 from .. import BackgroundWidget

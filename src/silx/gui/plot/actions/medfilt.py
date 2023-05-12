@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2020 European Synchrotron Radiation Facility
@@ -33,8 +32,6 @@ The following QAction are available:
 - :class:`MedianFilter2DAction`
 
 """
-
-from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"

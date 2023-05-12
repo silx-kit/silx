@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2022 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ############################################################################*/
 """OpenGL Plot backend."""
-
-from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -196,7 +193,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     So, the caller should not modify these arrays afterwards.
     """
 
-    def __init__(self, plot, parent=None, f=qt.Qt.WindowFlags()):
+    def __init__(self, plot, parent=None, f=qt.Qt.Widget):
         glu.OpenGLWidget.__init__(self, parent,
                                   alphaBufferSize=8,
                                   depthBufferSize=0,
@@ -204,6 +201,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                   version=(2, 1),
                                   f=f)
         BackendBase.BackendBase.__init__(self, plot, parent)
+
+        self.__isOpenGLValid = False
 
         self._backgroundColor = 1., 1., 1., 1.
         self._dataBackgroundColor = 1., 1., 1., 1.
@@ -236,7 +235,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     # QWidget
 
-    _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
+    _MOUSE_BTNS = {
+        qt.Qt.LeftButton: 'left',
+        qt.Qt.RightButton: 'right',
+        qt.Qt.MiddleButton: 'middle',
+    }
 
     def sizeHint(self):
         return qt.QSize(8 * 80, 6 * 80)  # Mimic MatplotlibBackend
@@ -244,12 +247,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def mousePressEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mousePressEvent(event)
-        self._plot.onMousePress(
-            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
+        x, y = qt.getMouseEventPosition(event)
+        self._plot.onMousePress(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def mouseMoveEvent(self, event):
-        qtPos = event.x(), event.y()
+        qtPos = qt.getMouseEventPosition(event)
 
         previousMousePosInPixels = self._mousePosInPixels
         if qtPos == self._mouseInPlotArea(*qtPos):
@@ -270,17 +273,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def mouseReleaseEvent(self, event):
         if event.button() not in self._MOUSE_BTNS:
             return super(BackendOpenGL, self).mouseReleaseEvent(event)
-        self._plot.onMouseRelease(
-            event.x(), event.y(), self._MOUSE_BTNS[event.button()])
+        x, y = qt.getMouseEventPosition(event)
+        self._plot.onMouseRelease(x, y, self._MOUSE_BTNS[event.button()])
         event.accept()
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
         angleInDegrees = delta / 8.
-        if qt.BINDING == "PySide6":
-            x, y = event.position().x(), event.position().y()
-        else:
-            x, y = event.x(), event.y()
+        x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseWheel(x, y, angleInDegrees)
         event.accept()
 
@@ -290,7 +290,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # OpenGLWidget API
 
     def initializeGL(self):
-        gl.testGL()
+        self.__isOpenGLValid = gl.testGL()
+        if not self.__isOpenGLValid:
+            return
 
         gl.glClearStencil(0)
 
@@ -379,6 +381,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._renderOverlayGL()
 
     def paintGL(self):
+        if not self.__isOpenGLValid:
+            return
+
         plot = self._plotRef()
         if plot is None:
             return
@@ -616,20 +621,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                     # For now simple implementation: using a curve for each marker
                     # Should pack all markers to a single set of points
-                    markerCurve = glutils.GLPlotCurve2D(
-                        numpy.array((pixelPos[0],), dtype=numpy.float64),
-                        numpy.array((pixelPos[1],), dtype=numpy.float64),
+                    marker = glutils.Points2D(
+                        (pixelPos[0],),
+                        (pixelPos[1],),
                         marker=item['symbol'],
-                        markerColor=item['color'],
-                        markerSize=11)
-
-                    context = glutils.RenderContext(
-                        matrix=self.matScreenProj,
-                        isXLog=False,
-                        isYLog=False,
-                        dpi=self.getDotsPerInch())
-                    markerCurve.render(context)
-                    markerCurve.discard()
+                        color=item['color'],
+                        size=11,
+                    )
+                    context.matrix = self.matScreenProj
+                    marker.render(context)
 
             else:
                 _logger.error('Unsupported item: %s', str(item))

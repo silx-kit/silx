@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2019 European Synchrotron Radiation Facility
+# Copyright (c) 2019-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +27,6 @@
 Test of the Convolution class.
 """
 
-from __future__ import division, print_function
-
 __authors__ = ["Pierre Paleo"]
 __contact__ = "pierre.paleo@esrf.fr"
 __license__ = "MIT"
@@ -44,7 +41,10 @@ from silx.image.utils import gaussian_kernel
 
 try:
     from scipy.ndimage import convolve, convolve1d
-    from scipy.misc import ascent
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
     scipy_convolve = convolve
     scipy_convolve1d = convolve1d

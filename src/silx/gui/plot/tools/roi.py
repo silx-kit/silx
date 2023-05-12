@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -381,6 +380,7 @@ class RegionOfInterestManager(qt.QObject):
         roi_items.VerticalLineROI,
         roi_items.ArcROI,
         roi_items.HorizontalRangeROI,
+        roi_items.BandROI,
     )
 
     def __init__(self, parent):

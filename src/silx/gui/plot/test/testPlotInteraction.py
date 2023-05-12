@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016=2017 European Synchrotron Radiation Facility
@@ -29,7 +28,6 @@ __license__ = "MIT"
 __date__ = "01/09/2017"
 
 
-import unittest
 from silx.gui import qt
 from .utils import PlotWidgetTestCase
 

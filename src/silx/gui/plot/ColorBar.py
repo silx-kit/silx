@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -590,7 +589,7 @@ class _ColorScale(qt.QWidget):
 
     def mouseMoveEvent(self, event):
         tooltip = str(self.getValueFromRelativePosition(
-            self._getRelativePosition(event.y())))
+            self._getRelativePosition(qt.getMouseEventPosition(event)[1])))
         qt.QToolTip.showText(event.globalPos(), tooltip, self)
         super(_ColorScale, self).mouseMoveEvent(event)
 

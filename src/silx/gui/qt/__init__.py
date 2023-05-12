@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2021 European Synchrotron Radiation Facility
@@ -25,11 +24,11 @@
 """Common wrapper over Python Qt bindings:
 
 - `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_
-- `PySide2 <https://pypi.org/project/PySide2/>`_
 - `PySide6 <https://pypi.org/project/PySide6/>`_
+- `PyQt6 <https://pypi.org/project/PyQt6/>`_
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt5, PySide2, PySide6.
+Qt bindings are tried in this order: PyQt5, PySide6, PyQt6.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
@@ -48,7 +47,7 @@ see `qtpy <https://pypi.org/project/QtPy/>`_.
 """
 
 from ._qt import *  # noqa
-if BINDING in ('PySide2', 'PySide6'):
+if BINDING == 'PySide6':
     # Import loadUi wrapper
     from ._pyside_dynamic import loadUi # noqa
 from ._utils import *  # noqa

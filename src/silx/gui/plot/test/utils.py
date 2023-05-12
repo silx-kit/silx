@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -31,7 +30,6 @@ __date__ = "26/01/2018"
 
 import logging
 import pytest
-import unittest
 
 from silx.gui.utils.testutils import TestCaseQt
 

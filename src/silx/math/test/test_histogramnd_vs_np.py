@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2021 European Synchrotron Radiation Facility
 #
@@ -26,7 +25,6 @@ Tests for the histogramnd function.
 Results are compared to numpy's histogramdd.
 """
 
-import os
 import unittest
 import operator
 import pytest

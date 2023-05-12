@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +29,6 @@ import logging
 import numpy
 
 from silx.io import is_dataset
-from silx.utils.deprecation import deprecated
 
 
 __authors__ = ["P. Knobel"]
@@ -49,11 +47,6 @@ INTERPDIM = {"scalar": 0,
 """Number of signal dimensions associated to each possible @interpretation
 attribute.
 """
-
-
-@deprecated(since_version="0.8.0", replacement="get_attr_as_unicode")
-def get_attr_as_string(*args, **kwargs):
-    return get_attr_as_unicode(*args, **kwargs)
 
 
 def get_attr_as_unicode(item, attr_name, default=None):

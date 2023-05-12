@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -33,7 +32,6 @@ from silx.gui.plot.ROIStatsWidget import ROIStatsWidget
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot.items.roi import RectangleROI, PolygonROI
 from silx.gui.plot.StatsWidget import UpdateMode
-import unittest
 import numpy
 
 

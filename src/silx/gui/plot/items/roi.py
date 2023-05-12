@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +49,7 @@ from ._roi_base import _RegionOfInterestBase
 from ._roi_base import RegionOfInterest
 from ._roi_base import HandleBasedROI
 from ._arc_roi import ArcROI  # noqa
+from ._band_roi import BandROI  # noqa
 from ._roi_base import InteractionModeMixIn  # noqa
 from ._roi_base import RoiInteractionMode  # noqa
 

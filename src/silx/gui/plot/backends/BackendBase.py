@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2004-2021 European Synchrotron Radiation Facility
@@ -34,7 +33,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 import weakref
-from ... import qt
 
 
 # Names for setCursor

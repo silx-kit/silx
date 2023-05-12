@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2020 European Synchrotron Radiation Facility
@@ -29,7 +28,6 @@ __license__ = "MIT"
 __date__ = "15/01/2020"
 
 
-import unittest
 import tempfile
 import numpy
 import h5py

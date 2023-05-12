@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2017 European Synchrotron Radiation Facility
@@ -31,7 +30,6 @@ __date__ = "17/01/2018"
 
 import logging
 import os.path
-import unittest
 
 import numpy
 
@@ -41,8 +39,6 @@ from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
 from .utils import PlotWidgetTestCase
-
-import fabio
 
 
 _logger = logging.getLogger(__name__)

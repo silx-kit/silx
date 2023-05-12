@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,16 +30,12 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "12/04/2019"
 
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import logging
 import weakref
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.deprecation import deprecated
 from silx.utils.proxy import docstring
 
 from . import PlotWidget
@@ -353,11 +348,6 @@ class PlotWindow(PlotWidget):
         """
         return self._outputToolBar
 
-    @property
-    @deprecated(replacement="getPositionInfoWidget()", since_version="0.8.0")
-    def positionWidget(self):
-        return self.getPositionInfoWidget()
-
     def getPositionInfoWidget(self):
         """Returns the widget displaying current cursor position information
 
@@ -612,17 +602,6 @@ class PlotWindow(PlotWidget):
         return self._statsDockWidget.widget()
 
     # getters for actions
-    @property
-    @deprecated(replacement="getInteractiveModeToolBar().getZoomModeAction()",
-                since_version="0.8.0")
-    def zoomModeAction(self):
-        return self.getInteractiveModeToolBar().getZoomModeAction()
-
-    @property
-    @deprecated(replacement="getInteractiveModeToolBar().getPanModeAction()",
-                since_version="0.8.0")
-    def panModeAction(self):
-        return self.getInteractiveModeToolBar().getPanModeAction()
 
     def getConsoleAction(self):
         """QAction handling the IPython console activation.
@@ -998,10 +977,6 @@ class Plot2D(PlotWindow):
         See :class:`silx.gui.plot.Profile.ProfileToolBar`
         """
         return self.profile
-
-    @deprecated(replacement="getProfilePlot", since_version="0.5.0")
-    def getProfileWindow(self):
-        return self.getProfilePlot()
 
     def getProfilePlot(self):
         """Return plot window used to display profile curve.

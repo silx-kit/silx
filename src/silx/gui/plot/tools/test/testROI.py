@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2020 European Synchrotron Radiation Facility
@@ -27,7 +26,6 @@ __license__ = "MIT"
 __date__ = "28/06/2018"
 
 
-import unittest
 import numpy.testing
 
 from silx.gui import qt
@@ -267,6 +265,12 @@ class TestRoiItems(TestCaseQt):
         self.assertAlmostEqual(item.getMin(), vmin)
         self.assertAlmostEqual(item.getMax(), vmax)
         self.assertAlmostEqual(item.getCenter(), 2)
+
+    def testBand_getToSetGeometry(self):
+        """Test that we can use getGeometry as input to setGeometry"""
+        item = roi_items.BandROI()
+        item.setFirstShapePoints(numpy.array([[5, 10], [50, 100]]))
+        item.setGeometry(*item.getGeometry())
 
 
 class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
@@ -577,7 +581,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         manager.addRoi(item)
         self.qapp.processEvents()
 
-        # Drag the center
+        # Drag the center
         widget = self.plot.getWidgetHandle()
         mx, my = self.plot.dataToPixel(*center)
         self.mouseMove(widget, pos=(mx, my))
@@ -677,6 +681,59 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
         self.qWait(500)
         self.assertIs(item.getInteractionMode(), roi_items.ArcROI.PolarMode)
+
+        manager.clear()
+        self.qapp.processEvents()
+
+    def testBandRoiSwitchMode(self):
+        """Make sure we can switch mode by clicking on the ROI"""
+        xlimit = self.plot.getXAxis().getLimits()
+        ylimit = self.plot.getYAxis().getLimits()
+        xcenter = 0.5 * (xlimit[0] + xlimit[1])
+        ycenter = 0.5 * (ylimit[0] + ylimit[1])
+
+        # Create the line
+        manager = roi.RegionOfInterestManager(self.plot)
+        item = roi_items.BandROI()
+        item.setGeometry(
+            (xlimit[0], ycenter),
+            (xlimit[1], ycenter),
+            20,
+        )
+        item.setEditable(True)
+        item.setSelectable(True)
+        manager.addRoi(item)
+        self.qapp.processEvents()
+
+        # Initial state
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
+        self.qWait(500)
+
+        # Click on the center
+        widget = self.plot.getWidgetHandle()
+        mx, my = self.plot.dataToPixel(xcenter, ycenter)
+
+        # Select the ROI
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
+
+        # Change the mode
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        assert item.getInteractionMode() is roi_items.BandROI.UnboundedMode
+
+        # Set available modes that exclude the current one
+        item.setAvailableInteractionModes([roi_items.BandROI.BoundedMode])
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
+
+        # Clicking does not change the mode since there is only one
+        self.mouseMove(widget, pos=(mx, my))
+        self.mouseClick(widget, qt.Qt.LeftButton, pos=(mx, my))
+        self.qWait(500)
+        assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
 
         manager.clear()
         self.qapp.processEvents()

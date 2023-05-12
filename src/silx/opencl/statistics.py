@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 #    Project: SILX
 #             https://github.com/silx-kit/silx

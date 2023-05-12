@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +33,6 @@ from ... import qt
 from .. import actions
 from ..PlotWidget import PlotWidget
 from .. import PlotToolButtons
-from ....utils.deprecation import deprecated
 
 
 class InteractiveModeToolBar(qt.QToolBar):
@@ -355,8 +353,3 @@ class ScatterToolBar(qt.QToolBar):
         :rtype: ScatterVisualizationToolButton
         """
         return self._visualizationToolButton
-
-    @deprecated(replacement='getScatterVisualizationToolButton',
-                since_version='0.11.0')
-    def getSymbolToolButton(self):
-        return self.getScatterVisualizationToolButton()

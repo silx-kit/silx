@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +26,20 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/01/2018"
 
-from collections import OrderedDict
-import numpy
+
+from collections import defaultdict, OrderedDict
+from copy import deepcopy
 import os
 import tempfile
 import unittest
-import h5py
-from copy import deepcopy
 
-from collections import defaultdict
+import h5py
+import numpy
+try:
+    import pint
+except ImportError:
+    pint = None
+import pytest
 
 from silx.utils.testutils import LoggingValidator
 
@@ -166,23 +170,6 @@ class TestDictToH5(H5DictTestCase):
         self.assertAlmostEqual(
                 min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
                 5.7196)
-
-    def testH5OverwriteDeprecatedApi(self):
-        dd = ConfigDict({'t': True})
-
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a')
-        dd = ConfigDict({'t': False})
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
-                 overwrite_data=False)
-
-        res = h5todict(self.h5_fname)
-        assert(res['t'] == True)
-
-        dicttoh5(h5file=self.h5_fname, treedict=dd, mode='a',
-                 overwrite_data=True)
-
-        res = h5todict(self.h5_fname)
-        assert(res['t'] == False)
 
     def testAttributes(self):
         """Any kind of attribute can be described"""
@@ -512,6 +499,22 @@ class TestDictToH5(H5DictTestCase):
         assert_append("replace")
 
 
+@pytest.mark.skipif(pint is None, reason="Require pint")
+def test_dicttoh5_pint(tmp_h5py_file):
+    ureg = pint.UnitRegistry()
+    treedict = {
+        "array_mm": pint.Quantity([1, 2, 3], ureg.mm),
+        "value_kg": 3 * ureg.kg,
+    }
+
+    dicttoh5(treedict, tmp_h5py_file)
+
+    result = h5todict(tmp_h5py_file)
+    assert set(treedict.keys()) == set(result.keys())
+    for key, value in treedict.items():
+        assert numpy.array_equal(result[key], value.magnitude)
+
+
 class TestH5ToDict(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -798,6 +801,22 @@ class TestDictToNx(H5DictTestCase):
         del esubtree["group2"]["dataset4@units"]
         esubtree["group3"] = {"@NX_class": "NXcollection"}
         assert_append("replace", add_nx_class=True)
+
+
+@pytest.mark.skipif(pint is None, reason="Require pint")
+def test_dicttonx_pint(tmp_h5py_file):
+    ureg = pint.UnitRegistry()
+    treedict = {
+        "array_mm": pint.Quantity([1, 2, 3], ureg.mm),
+        "value_kg": 3 * ureg.kg,
+    }
+
+    dictdump.dicttonx(treedict, tmp_h5py_file)
+
+    result = dictdump.nxtodict(tmp_h5py_file)
+    for key, value in treedict.items():
+        assert numpy.array_equal(result[key], value.magnitude)
+        assert result[f"{key}@units"] == f"{value.units:~C}"
 
 
 class TestNxToDict(H5DictTestCase):

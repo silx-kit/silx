@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
@@ -23,13 +22,9 @@
 # ############################################################################*/
 """Tests of the marchingcubes module"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/01/2018"
-
-import unittest
 
 import numpy
 

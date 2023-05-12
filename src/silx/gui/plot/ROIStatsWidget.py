@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -35,8 +34,8 @@ __date__ = "22/07/2019"
 from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui import icons
-from silx.gui.plot.StatsWidget import _StatsWidgetBase, StatsTable, _Container
-from silx.gui.plot.StatsWidget import UpdateModeWidget, UpdateMode
+from silx.gui.plot.StatsWidget import _StatsWidgetBase, _Container
+from silx.gui.plot.StatsWidget import UpdateMode
 from silx.gui.widgets.TableWidget import TableWidget
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot import items as plotitems

@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -81,9 +80,8 @@ from silx.gui.plot import items
 from silx.gui import icons
 from silx.gui.qt import inspect as qtinspect
 from silx.gui.widgets.ColormapNameComboBox import ColormapNameComboBox
-from silx.gui.widgets.WaitingPushButton import WaitingPushButton
+from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
-from silx.utils import deprecation
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 
@@ -128,6 +126,20 @@ class _BoundaryWidget(qt.QWidget):
         self.setLayout(qt.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._numVal = FloatEdit(parent=self, value=value)
+
+        self._iconAuto = icons.getQIcon('scale-auto')
+        self._iconFixed = icons.getQIcon('scale-fixed')
+
+        self._autoToggleAction = qt.QAction(self)
+        self._autoToggleAction.setText("Auto scale")
+        self._autoToggleAction.setToolTip("Toggle auto scale")
+        self._autoToggleAction.setCheckable(True)
+        self._autoToggleAction.setIcon(self._iconFixed)
+        self._autoToggleAction.setChecked(False)
+        self._autoToggleAction.toggled.connect(self._autoToggled)
+
+        self._numVal.addAction(self._autoToggleAction, qt.QLineEdit.LeadingPosition)
+
         self.layout().addWidget(self._numVal)
         self._autoCB = qt.QCheckBox('auto', parent=self)
         self.layout().addWidget(self._autoCB)
@@ -174,7 +186,7 @@ class _BoundaryWidget(qt.QWidget):
         return self._numVal.value()
 
     def _autoToggled(self, enabled):
-        self._numVal.setEnabled(not enabled)
+        self._updateAutoScaleState(enabled)
         self._updateDisplayedText()
         self.sigAutoScaleChanged.emit(enabled)
 
@@ -198,14 +210,27 @@ class _BoundaryWidget(qt.QWidget):
                 if not self.__textWasEdited:
                     self._numVal.setValue(value)
             self.__realValue = value
-            self._numVal.setEnabled(not isAuto)
+            self._updateAutoScaleState(isAuto)
+
+    def _updateAutoScaleState(self, isAutoScale):
+        self._numVal.setReadOnly(isAutoScale)
+        palette = qt.QPalette()
+        if isAutoScale:
+            color = palette.color(qt.QPalette.Disabled, qt.QPalette.Base)
+            icon = self._iconAuto
+        else:
+            color = palette.color(qt.QPalette.Normal, qt.QPalette.Base)
+            icon = self._iconFixed
+        palette.setColor(qt.QPalette.Base, color)
+        self._numVal.setPalette(palette)
+        self._autoToggleAction.setIcon(icon)
 
 
 class _AutoscaleModeComboBox(qt.QComboBox):
 
     DATA = {
         Colormap.MINMAX: ("Min/max", "Use the data min/max"),
-        Colormap.STDDEV3: ("Mean ± 3 × stddev", "Use the data mean ± 3 × standard deviation"),
+        Colormap.STDDEV3: ("Mean±3std", "Use the data mean ± 3 × standard deviation"),
     }
 
     def __init__(self, parent: qt.QWidget):
@@ -248,57 +273,20 @@ class _AutoscaleModeComboBox(qt.QComboBox):
         self.setCurrentIndex(self.count() - 1)
 
 
-class _AutoScaleButtons(qt.QWidget):
+class _AutoScaleButton(qt.QPushButton):
 
     autoRangeChanged = qt.Signal(object)
 
     def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent=parent)
-        layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        qt.QPushButton.__init__(self, parent=parent)
+        self.setText("Autoscale")
+        self.setToolTip("Enable/disable the autoscale for both min and max")
+        self.setCheckable(True)
+        self.toggled[bool].connect(self.__toggled)
+        self.setFocusPolicy(qt.Qt.TabFocus)
 
-        self.setFocusPolicy(qt.Qt.NoFocus)
-
-        self._bothAuto = qt.QPushButton(self)
-        self._bothAuto.setText("Autoscale")
-        self._bothAuto.setToolTip("Enable/disable the autoscale for both min and max")
-        self._bothAuto.setCheckable(True)
-        self._bothAuto.toggled[bool].connect(self.__bothToggled)
-        self._bothAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        self._minAuto = qt.QCheckBox(self)
-        self._minAuto.setText("")
-        self._minAuto.setToolTip("Enable/disable the autoscale for min")
-        self._minAuto.toggled[bool].connect(self.__minToggled)
-        self._minAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        self._maxAuto = qt.QCheckBox(self)
-        self._maxAuto.setText("")
-        self._maxAuto.setToolTip("Enable/disable the autoscale for max")
-        self._maxAuto.toggled[bool].connect(self.__maxToggled)
-        self._maxAuto.setFocusPolicy(qt.Qt.TabFocus)
-
-        layout.addStretch(1)
-        layout.addWidget(self._minAuto)
-        layout.addSpacing(20)
-        layout.addWidget(self._bothAuto)
-        layout.addSpacing(20)
-        layout.addWidget(self._maxAuto)
-        layout.addStretch(1)
-
-    def __bothToggled(self, checked):
+    def __toggled(self, checked):
         autoRange = checked, checked
-        self.setAutoRange(autoRange)
-        self.autoRangeChanged.emit(autoRange)
-
-    def __minToggled(self, checked):
-        autoRange = self.getAutoRange()
-        self.setAutoRange(autoRange)
-        self.autoRangeChanged.emit(autoRange)
-
-    def __maxToggled(self, checked):
-        autoRange = self.getAutoRange()
         self.setAutoRange(autoRange)
         self.autoRangeChanged.emit(autoRange)
 
@@ -308,20 +296,8 @@ class _AutoScaleButtons(qt.QWidget):
         self.setAutoRange(autoRange)
 
     def setAutoRange(self, autoRange):
-        if autoRange[0] == autoRange[1]:
-            with utils.blockSignals(self._bothAuto):
-                self._bothAuto.setChecked(autoRange[0])
-        else:
-            with utils.blockSignals(self._bothAuto):
-                self._bothAuto.setChecked(False)
-        with utils.blockSignals(self._minAuto):
-            self._minAuto.setChecked(autoRange[0])
-        with utils.blockSignals(self._maxAuto):
-            self._maxAuto.setChecked(autoRange[1])
-
-    def getAutoRange(self):
-        return self._minAuto.isChecked(), self._maxAuto.isChecked()
-
+        with utils.blockSignals(self):
+            self.setChecked(autoRange[0] if autoRange[0] == autoRange[1] else False)
 
 @enum.unique
 class _DataInPlotMode(enum.Enum):
@@ -333,7 +309,7 @@ class _DataInPlotMode(enum.Enum):
 class _ColormapHistogram(qt.QWidget):
     """Display the colormap and the data as a plot."""
 
-    sigRangeMoving = qt.Signal(object, object)
+    sigRangeMoving = qt.Signal(object, object, object)
     """Emitted when a mouse interaction moves the location
     of the colormap range in the plot.
 
@@ -341,15 +317,17 @@ class _ColormapHistogram(qt.QWidget):
 
     - vmin: A float value if this range was moved, else None
     - vmax: A float value if this range was moved, else None
+    - gammaPos: A float value if this range was moved, else None
     """
 
-    sigRangeMoved = qt.Signal(object, object)
+    sigRangeMoved = qt.Signal(object, object, object)
     """Emitted when a mouse interaction stop.
 
     This signal contains 2 elements:
 
     - vmin: A float value if this range was moved, else None
     - vmax: A float value if this range was moved, else None
+    - gammaPos: A float value if this range was moved, else None
     """
 
     def __init__(self, parent):
@@ -361,7 +339,7 @@ class _ColormapHistogram(qt.QWidget):
         self._histogramData = {}
         """Histogram displayed in the plot"""
 
-        self._dragging = False, False
+        self._dragging = False, False, False
         """True, if the min or the max handle is dragging"""
 
         self._dataRange = {}
@@ -528,7 +506,8 @@ class _ColormapHistogram(qt.QWidget):
     def _initPlot(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget(self)
-        self._plot.setDataMargins(0.125, 0.125, 0.125, 0.125)
+        self._plot.setAxesDisplayed(False)
+        self._plot.setDataMargins(0.125, 0.125, 0.01, 0.01)
         self._plot.getXAxis().setLabel("Data Values")
         self._plot.getYAxis().setLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
@@ -600,20 +579,26 @@ class _ColormapHistogram(qt.QWidget):
         if kind == 'markerMoving':
             value = event['xdata']
             if event['label'] == 'Min':
-                self._dragging = True, False
+                self._dragging = True, False, False
                 self._finiteRange = value, self._finiteRange[1]
-                self._last = value, None
+                self._last = value, None, None
+                self._updateGammaPosition()
                 self.sigRangeMoving.emit(*self._last)
             elif event['label'] == 'Max':
-                self._dragging = False, True
+                self._dragging = False, True, False
                 self._finiteRange = self._finiteRange[0], value
-                self._last = None, value
+                self._last = None, value, None
+                self._updateGammaPosition()
+                self.sigRangeMoving.emit(*self._last)
+            elif event['label'] == 'Gamma':
+                self._dragging = False, False, True
+                self._last = None, None, value
                 self.sigRangeMoving.emit(*self._last)
             self._updateLutItem(self._finiteRange)
         elif kind == 'markerMoved':
             self.sigRangeMoved.emit(*self._last)
             self._plot.resetZoom()
-            self._dragging = False, False
+            self._dragging = False, False, False
         else:
             pass
 
@@ -635,17 +620,54 @@ class _ColormapHistogram(qt.QWidget):
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMinMarkerConstraint)
+            self._updateGammaPosition()
             if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
                     legend='Max',
-                    text='Max',
+                    text='\n\nMax',
                     draggable=isDraggable,
                     color="blue",
                     constraint=self._plotMaxMarkerConstraint)
 
         self._updateLutItem((posMin, posMax))
         self._plot.resetZoom()
+
+    def _updateGammaPosition(self):
+        colormap = self.getColormap()
+        posMin, posMax = self._getDisplayableRange()
+
+        if colormap is None:
+            gamma = None
+        else:
+            if colormap.getNormalization() == Colormap.GAMMA:
+                gamma = colormap.getGammaNormalizationParameter()
+            else:
+                gamma = None
+
+        if gamma is not None:
+            if not self._dragging[2]:
+                posRange = posMax - posMin
+                if posRange > 0:
+                    gammaPos = posMin + posRange * 0.5**(1/gamma)
+                else:
+                    gammaPos = posMin
+                marker = self._plot._getMarker(
+                    self._plot.addXMarker(
+                        gammaPos,
+                        legend='Gamma',
+                        text='\nGamma',
+                        draggable=True,
+                        color="blue",
+                        constraint=self._plotGammaMarkerConstraint,
+                    )
+                )
+                marker.setZValue(2)
+        else:
+            try:
+                self._plot.removeMarker('Gamma')
+            except Exception:
+                pass
 
     def _updateLutItem(self, vRange):
         colormap = self.getColormap()
@@ -717,6 +739,15 @@ class _ColormapHistogram(qt.QWidget):
         if vmin is None:
             return x, y
         return max(x, vmin), y
+
+    def _plotGammaMarkerConstraint(self, x, y):
+        """Constraint of the gamma marker"""
+        vmin, vmax = self.getFiniteRange()
+        if vmin is not None:
+            x = max(x, vmin)
+        if vmax is not None:
+            x = min(x, vmax)
+        return x, y
 
     def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
@@ -829,6 +860,9 @@ class ColormapDialog(qt.QDialog):
         self._item = None
         """Weak ref to an external item"""
 
+        self._colormapped = None
+        """Weak ref to reduce data update"""
+
         self._colormapChange = utils.LockReentrant()
         """Used as a semaphore to avoid editing the colormap object when we are
         only attempt to display it.
@@ -873,7 +907,7 @@ class ColormapDialog(qt.QDialog):
 
         self._gammaSpinBox = qt.QDoubleSpinBox(parent=self)
         self._gammaSpinBox.setEnabled(False)
-        self._gammaSpinBox.setRange(0., 1000.)
+        self._gammaSpinBox.setRange(0.01, 100.)
         self._gammaSpinBox.setDecimals(4)
         if hasattr(qt.QDoubleSpinBox, "setStepType"):
             # Introduced in Qt 5.12
@@ -891,13 +925,15 @@ class ColormapDialog(qt.QDialog):
         self._minValue = _BoundaryWidget(parent=self, value=1.0)
         self._minValue.sigAutoScaleChanged.connect(self._minAutoscaleUpdated)
         self._minValue.sigValueChanged.connect(self._minValueUpdated)
+        self._minValue.setMinimumWidth(140)
 
         # Max row
         self._maxValue = _BoundaryWidget(parent=self, value=10.0)
         self._maxValue.sigAutoScaleChanged.connect(self._maxAutoscaleUpdated)
         self._maxValue.sigValueChanged.connect(self._maxValueUpdated)
+        self._maxValue.setMinimumWidth(140)
 
-        self._autoButtons = _AutoScaleButtons(self)
+        self._autoButtons = _AutoScaleButton(self)
         self._autoButtons.autoRangeChanged.connect(self._autoRangeButtonsUpdated)
 
         rangeLayout = qt.QGridLayout()
@@ -909,15 +945,20 @@ class ColormapDialog(qt.QDialog):
         labelMax = qt.QLabel("Max", self)
         labelMax.setAlignment(qt.Qt.AlignHCenter)
         labelMax.setFont(miniFont)
-        rangeLayout.addWidget(labelMin, 0, 0)
-        rangeLayout.addWidget(labelMax, 0, 1)
-        rangeLayout.addWidget(self._minValue, 1, 0)
-        rangeLayout.addWidget(self._maxValue, 1, 1)
-        rangeLayout.addWidget(self._autoButtons, 2, 0, 1, -1, qt.Qt.AlignCenter)
+        rangeLayout.addWidget(labelMin, 0, 1)
+        rangeLayout.addWidget(labelMax, 0, 3)
+        rangeLayout.addWidget(self._minValue, 1, 1)
+        rangeLayout.addWidget(self._maxValue, 1, 3)
+        rangeLayout.setColumnStretch(0, 1)
+        rangeLayout.setColumnStretch(1, 2)
+        rangeLayout.setColumnStretch(2, 1)
+        rangeLayout.setColumnStretch(3, 2)
+        rangeLayout.setColumnStretch(4, 1)
 
         self._histoWidget = _ColormapHistogram(self)
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
         self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
+        self._histoWidget.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
         # Scale to buttons
         self._visibleAreaButton = qt.QPushButton(self)
@@ -930,12 +971,12 @@ class ColormapDialog(qt.QDialog):
         # Place-holder for selected area ROI manager
         self._roiForColormapManager = None
 
-        self._selectedAreaButton = WaitingPushButton(self)
+        self._selectedAreaButton = qt.QPushButton(self)
+        self._selectedAreaButton.setCheckable(True)
         self._selectedAreaButton.setEnabled(False)
         self._selectedAreaButton.setText("Selection")
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._selectedAreaButton.setCheckable(True)
-        self._selectedAreaButton.setDisabledWhenWaiting(False)
         self._selectedAreaButton.toggled.connect(
             self._handleScaleToSelectionToggled,
             type=qt.Qt.QueuedConnection)
@@ -966,31 +1007,39 @@ class ColormapDialog(qt.QDialog):
 
         self.setModal(self.isModal())
 
-        formLayout = qt.QFormLayout(self)
-        formLayout.setContentsMargins(10, 10, 10, 10)
-        formLayout.addRow('Colormap:', self._comboBoxColormap)
-        formLayout.addRow('Normalization:', self._comboBoxNormalization)
-        formLayout.addRow('Gamma:', self._gammaSpinBox)
-        formLayout.addRow(self._histoWidget)
-        formLayout.addRow(rangeLayout)
-        label = qt.QLabel('Mode:', self)
-        self._autoscaleModeLabel = label
-        label.setToolTip("Mode for autoscale. Algorithm used to find range in auto scale.")
-        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
-        formLayout.addRow(label, autoScaleCombo)
-
         layout = qt.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._visibleAreaButton)
         layout.addWidget(self._selectedAreaButton)
-        self._scaleToAreaGroup = qt.QGroupBox('Scale to:', self)
+        layout.addStretch()
+        self._scaleToAreaGroup = qt.QWidget(self)
         self._scaleToAreaGroup.setLayout(layout)
         self._scaleToAreaGroup.setVisible(False)
-        formLayout.addRow(self._scaleToAreaGroup)
 
+        layoutScale = qt.QHBoxLayout()
+        layoutScale.setContentsMargins(0, 0, 0, 0)
+        layoutScale.addWidget(self._autoButtons)
+        layoutScale.addWidget(self._autoScaleCombo)
+        layoutScale.addStretch()
+
+
+        formLayout = FormGridLayout(self)
+        formLayout.setContentsMargins(10, 10, 10, 10)
+
+        formLayout.addRow('Colormap:', self._comboBoxColormap)
+        formLayout.addRow('Normalization:', self._comboBoxNormalization)
+        formLayout.addRow('Gamma:', self._gammaSpinBox)
+
+        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
+        formLayout.addRow(self._histoWidget)
+        formLayout.setRowStretch(formLayout.rowCount() -1, 1)
+        formLayout.addRow(rangeLayout)
+        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
+        formLayout.addRow('Scale:', layoutScale)
+        formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
-        formLayout.setSizeConstraint(qt.QLayout.SetMinimumSize)
+        formLayout.setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
 
         self.setTabOrder(self._comboBoxColormap, self._comboBoxNormalization)
         self.setTabOrder(self._comboBoxNormalization, self._gammaSpinBox)
@@ -1003,7 +1052,6 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._selectedAreaButton, self._buttonsModal)
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
-        self.setFixedSize(self.sizeHint())
         self._applyColormap()
 
     def _invalidateColormap(self):
@@ -1041,10 +1089,14 @@ class ColormapDialog(qt.QDialog):
         super(ColormapDialog, self).closeEvent(event)
 
     def hideEvent(self, event):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.visibleChanged.emit(False)
         super(ColormapDialog, self).hideEvent(event)
 
     def close(self):
+        if self._selectedAreaButton.isChecked():
+            self._selectedAreaButton.setChecked(False)
         self.accept()
         qt.QDialog.close(self)
 
@@ -1196,10 +1248,21 @@ class ColormapDialog(qt.QDialog):
         the data range or the histogram of the data using :meth:`setDataRange`
         and :meth:`setHistogram`
         """
-        # While event from items are not supported, we can't ignore dup items
-        # old = self._getItem()
-        # if old is item:
-        #     return
+        old = self._getItem()
+        if old is item:
+            # While event from items are not supported, we can't ignore dup items
+            if item is not None:
+                array = item.getColormappedData(copy=False)
+            else:
+                array = None
+            colormapped = self._colormapped
+            if colormapped is not None:
+                oldArray = colormapped()
+            else:
+                oldArray = None
+            if oldArray is array:
+                return
+
         self._data = None
         self._itemHolder = None
         try:
@@ -1252,7 +1315,12 @@ class ColormapDialog(qt.QDialog):
             return data
         item = self._getItem()
         if item is not None:
-            return item.getColormappedData(copy=False)
+            colormapped = item.getColormappedData(copy=False)
+            if colormapped is not None:
+                self._colormapped = weakref.ref(colormapped)
+            else:
+                self._colormapped = None
+            return colormapped
         return None
 
     def _colormapAboutToFinalize(self, weakrefColormap):
@@ -1269,14 +1337,6 @@ class ColormapDialog(qt.QDialog):
         """Callback when the data weakref is about to be finalized."""
         if self._item is weakref and qtinspect.isValid(self):
             self.setItem(None)
-
-    @deprecation.deprecated(reason="It is private data", since_version="0.13")
-    def getHistogram(self):
-        histo = self._getHistogram()
-        if histo is None:
-            return None
-        counts, bin_edges = histo
-        return numpy.array(counts, copy=True), numpy.array(bin_edges, copy=True)
 
     def _getHistogram(self):
         """Returns the histogram defined by the dialog as metadata
@@ -1418,7 +1478,6 @@ class ColormapDialog(qt.QDialog):
             self._histoWidget.setFiniteRange((xmin, xmax))
         with utils.blockSignals(self._autoButtons):
             self._autoButtons.setAutoRange((autoMin, autoMax))
-        self._autoscaleModeLabel.setEnabled(autoMin or autoMax)
 
     def accept(self):
         self.storeCurrentState()
@@ -1487,7 +1546,6 @@ class ColormapDialog(qt.QDialog):
             self._minValue.setEnabled(False)
             self._maxValue.setEnabled(False)
             self._autoButtons.setEnabled(False)
-            self._autoscaleModeLabel.setEnabled(False)
             self._histoWidget.setVisible(False)
             self._histoWidget.setFiniteRange((None, None))
         else:
@@ -1508,7 +1566,7 @@ class ColormapDialog(qt.QDialog):
                 self._gammaSpinBox.setValue(
                     colormap.getGammaNormalizationParameter())
                 self._gammaSpinBox.setEnabled(
-                    colormap.getNormalization() == 'gamma' and
+                    colormap.getNormalization() == Colormap.GAMMA and
                     colormap.isEditable())
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
@@ -1530,7 +1588,6 @@ class ColormapDialog(qt.QDialog):
             with utils.blockSignals(self._maxValue):
                 self._maxValue.setValue(vmax or dataRange[1], isAuto=vmax is None)
                 self._maxValue.setEnabled(colormap.isEditable())
-            self._autoscaleModeLabel.setEnabled(vmin is None or vmax is None)
 
             with utils.blockSignals(self._histoWidget):
                 self._histoWidget.setVisible(True)
@@ -1653,12 +1710,13 @@ class ColormapDialog(qt.QDialog):
                 self._maxValue.setValue(xmax)
         self._setColormapRange(xmin, xmax)
 
-    def _histogramRangeMoving(self, vmin, vmax):
+    def _histogramRangeMoving(self, vmin, vmax, gammaPos):
         """Callback executed when for colormap range displayed in
         the histogram widget is moving.
 
         :param vmin: Update of the minimum range, else None
         :param vmax: Update of the maximum range, else None
+        :param gammaPos: Update of the gamma location, else None
         """
         colormap = self.getColormap()
         if vmin is not None:
@@ -1669,11 +1727,31 @@ class ColormapDialog(qt.QDialog):
             with self._colormapChange:
                 colormap.setVMax(vmax)
             self._maxValue.setValue(vmax)
+        if gammaPos is not None:
+            vmin, vmax = self._histoWidget.getFiniteRange()
+            if vmax < vmin:
+                gamma = 1
+            elif gammaPos >= vmax:
+                gamma = self._gammaSpinBox.maximum()
+            elif gammaPos <= vmin:
+                gamma = self._gammaSpinBox.minimum()
+            else:
+                gamma = numpy.clip(
+                    numpy.log(0.5)/numpy.log((gammaPos - vmin) / (vmax - vmin)),
+                    self._gammaSpinBox.minimum(),
+                    self._gammaSpinBox.maximum(),
+                )
+            with self._colormapChange:
+                colormap.setGammaNormalizationParameter(gamma)
+            with utils.blockSignals(self._gammaSpinBox):
+                self._gammaSpinBox.setValue(gamma)
 
-    def _histogramRangeMoved(self, vmin, vmax):
+    def _histogramRangeMoved(self, vmin, vmax, gammaPos):
         """Callback executed when for colormap range displayed in
         the histogram widget has finished to move
         """
+        if vmin is None and vmax is None:
+            return
         xmin = self._minValue.getValue()
         xmax = self._maxValue.getValue()
         if vmin is None:
@@ -1713,7 +1791,6 @@ class ColormapDialog(qt.QDialog):
             self._roiForColormapManager = None
 
         if not checked:  # Reset button status
-            self._selectedAreaButton.setWaiting(False)
             self._selectedAreaButton.setText("Selection")
             return
 
@@ -1727,7 +1804,6 @@ class ColormapDialog(qt.QDialog):
             self._selectedAreaButton.setChecked(False)
             return  # no-op
 
-        self._selectedAreaButton.setWaiting(True)
         self._selectedAreaButton.setText("Draw Area...")
 
         self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
@@ -1743,11 +1819,12 @@ class ColormapDialog(qt.QDialog):
         self._selectedAreaButton.setChecked(False)
 
     def __roiFinalized(self, roi):
-        self._selectedAreaButton.setChecked(False)
         if roi is not None:
             ox, oy = roi.getOrigin()
             width, height = roi.getSize()
             self.setColormapRangeFromDataBounds((ox, ox+width, oy, oy+height))
+            # clear ROI
+            self._roiForColormapManager.removeRoi(roi)
 
     def keyPressEvent(self, event):
         """Override key handling.

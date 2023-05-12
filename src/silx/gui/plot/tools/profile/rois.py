@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -945,13 +944,19 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
         if major_axis:
             # slice in the middle of the scatter
-            start = max_grid_second // 2 * max_grid_first
-            vslice = axis[start:start + max_grid_second]
+            actual_size_grid_second = len(axis) // max_grid_first
+            start = actual_size_grid_second // 2 * max_grid_first
+            vslice = axis[start:start + max_grid_first]
+            if len(vslice) == 0:
+                return None
             index = argnearest(vslice, position)
             slicing = slice(index, None, max_grid_first)
         else:
             # slice in the middle of the scatter
-            vslice = axis[max_grid_second // 2::max_grid_second]
+            actual_size_grid_second = len(axis) // max_grid_first
+            vslice = axis[actual_size_grid_second // 2::max_grid_second]
+            if len(vslice) == 0:
+                return None
             index = argnearest(vslice, position)
             start = index * max_grid_second
             slicing = slice(start, start + max_grid_second)
@@ -1086,11 +1091,14 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
+        profileManager = self.getProfileManager()
+        plot = profileManager.getPlotWidget()
+
         data = core.ImageProfileData(
             coords=coords,
             profile=profile,
-            title=profileName,
-            xLabel=xLabel,
+            title=_relabelAxes(plot, profileName),
+            xLabel=_relabelAxes(plot, xLabel),
             yLabel="Profile",
             colormap=colormap,
         )

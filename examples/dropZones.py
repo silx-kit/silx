@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2020 European Synchrotron Radiation Facility
@@ -30,8 +29,6 @@ This example illustrates the support of drag&drop of silx URLs.
 It provides 2 URLs (corresponding to 2 datasets) that can be dragged to
 either a :class:`PlotWidget` or a QLable displaying the URL information.
 """
-
-from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"

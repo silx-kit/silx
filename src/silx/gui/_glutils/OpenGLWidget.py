@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +44,7 @@ _logger = logging.getLogger(__name__)
 
 
 if not hasattr(qt, 'QOpenGLWidget') and not hasattr(qt, 'QGLWidget'):
-    OpenGLWidget = None
+    _OpenGLWidget = None
 
 else:
     if hasattr(qt, 'QOpenGLWidget'):  # PyQt>=5.4
@@ -70,7 +69,7 @@ else:
                      depthBufferSize=24,
                      stencilBufferSize=8,
                      version=(2, 0),
-                     f=qt.Qt.WindowFlags()):
+                     f=qt.Qt.Widget):
             # True if using QGLWidget, False if using QOpenGLWidget
             self.__legacy = not hasattr(qt, 'QOpenGLWidget')
 
@@ -262,7 +261,7 @@ class OpenGLWidget(qt.QWidget):
                  depthBufferSize=24,
                  stencilBufferSize=8,
                  version=(2, 0),
-                 f=qt.Qt.WindowFlags()):
+                 f=qt.Qt.Widget):
         super(OpenGLWidget, self).__init__(parent, f)
 
         layout = qt.QHBoxLayout(self)
@@ -277,20 +276,29 @@ class OpenGLWidget(qt.QWidget):
             self.__openGLWidget = None
             label = self._createErrorQLabel(_check.error)
             self.layout().addWidget(label)
+            return
 
-        else:
-            self.__openGLWidget = _OpenGLWidget(
-                parent=self,
-                alphaBufferSize=alphaBufferSize,
-                depthBufferSize=depthBufferSize,
-                stencilBufferSize=stencilBufferSize,
-                version=version,
-                f=f)
-            # Async connection need, otherwise issue when hiding OpenGL
-            # widget while doing the rendering..
-            self.__openGLWidget.sigOpenGLContextError.connect(
-                self._handleOpenGLInitError, qt.Qt.QueuedConnection)
-            self.layout().addWidget(self.__openGLWidget)
+        qt_qpa_platform = qt.QGuiApplication.platformName()
+        pyopengl_platform = gl.getPlatform()
+        if (
+            (qt_qpa_platform == 'wayland' and pyopengl_platform != 'EGLPlatform')
+            or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
+        ):
+            _logger.warning(
+                f"Qt/PyOpenGL possible incompatibility: Qt QPA platform '{qt_qpa_platform}', PyOpenGL platform '{pyopengl_platform}'")
+
+        self.__openGLWidget = _OpenGLWidget(
+            parent=self,
+            alphaBufferSize=alphaBufferSize,
+            depthBufferSize=depthBufferSize,
+            stencilBufferSize=stencilBufferSize,
+            version=version,
+            f=f)
+        # Async connection need, otherwise issue when hiding OpenGL
+        # widget while doing the rendering..
+        self.__openGLWidget.sigOpenGLContextError.connect(
+            self._handleOpenGLInitError, qt.Qt.QueuedConnection)
+        self.layout().addWidget(self.__openGLWidget)
 
     @staticmethod
     def _createErrorQLabel(error):

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 """Print information about python."""
 
 __authors__ = ["Jérôme Kieffer"]
@@ -20,10 +19,7 @@ print("Platform: " + platform.platform())
 print("- Machine: " + platform.machine())
 print(" ")
 
-try:
-    from distutils.sysconfig import get_config_vars
-except ImportError:
-    from sysconfig import get_config_vars
+from sysconfig import get_config_vars
 print("Config: " + str(get_config_vars("CONFIG_ARGS")))
 print("")
 
@@ -64,7 +60,7 @@ else:
                 print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
 
 
-for binding_name in ("PyQt5", "PySide2", "PySide6"):
+for binding_name in ("PyQt5", "PySide6", "PyQt6"):
     # Check Qt version in subprocess to avoid issues with importing multiple Qt bindins
     cmd = [
         sys.executable,

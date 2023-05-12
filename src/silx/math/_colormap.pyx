@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +34,7 @@ cimport cython
 from cython.parallel import prange
 cimport numpy as cnumpy
 from libc.math cimport frexp, sinh, sqrt
+from libc.math cimport pow as c_pow
 from .math_compatibility cimport asinh, isnan, isfinite, lrint, INFINITY, NAN
 
 import logging
@@ -228,7 +228,7 @@ cdef class LogarithmicNormalization(Normalization):
         return result
 
     cdef double revert_double(self, double value, double vmin, double vmax) nogil:
-        return 10**value
+        return c_pow(10, value)
 
 
 cdef class ArcsinhNormalization(Normalization):
@@ -248,7 +248,7 @@ cdef class SqrtNormalization(Normalization):
         return sqrt(value)
 
     cdef double revert_double(self, double value, double vmin, double vmax) nogil:
-        return value**2
+        return value*value
 
 
 cdef class PowerNormalization(Normalization):
@@ -269,6 +269,7 @@ cdef class PowerNormalization(Normalization):
         # Needed for multiple inheritance to work
         pass
 
+    @cython.cdivision(True)
     cdef double apply_double(self, double value, double vmin, double vmax) nogil:
         if vmin == vmax:
             return 0.
@@ -277,15 +278,16 @@ cdef class PowerNormalization(Normalization):
         elif value >= vmax:
             return 1.
         else:
-            return ((value - vmin) / (vmax - vmin))**self.gamma
+            return c_pow(((value - vmin) / (vmax - vmin)), self.gamma)
 
+    @cython.cdivision(True)
     cdef double revert_double(self, double value, double vmin, double vmax) nogil:
         if value <= 0.:
             return vmin
         elif value >= 1.:
             return vmax
         else:
-            return vmin + (vmax - vmin) * value**(1.0/self.gamma)
+            return vmin + (vmax - vmin) * c_pow(value, (1.0/self.gamma))
 
 
 # Colormap

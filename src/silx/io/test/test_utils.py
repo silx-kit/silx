@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
@@ -726,12 +725,6 @@ class TestH5Strings(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tempdir = tempfile.mkdtemp()
-        cls.vlenstr = h5py.special_dtype(vlen=str)
-        cls.vlenbytes = h5py.special_dtype(vlen=bytes)
-        try:
-            cls.unicode = unicode
-        except NameError:
-            cls.unicode = str
 
     @classmethod
     def tearDownClass(cls):
@@ -744,68 +737,113 @@ class TestH5Strings(unittest.TestCase):
         self.file.close()
 
     @classmethod
-    def _make_array(cls, value, n):
+    def _make_array(cls, value, n, vlen=True):
         if isinstance(value, bytes):
-            dtype = cls.vlenbytes
-        elif isinstance(value, cls.unicode):
-            dtype = cls.vlenstr
+            if vlen:
+                dtype = h5py.special_dtype(vlen=bytes)
+            else:
+                if hasattr(h5py, "string_dtype"):
+                    dtype = h5py.string_dtype("ascii", len(value))
+                else:
+                    dtype = f"|S{len(value)}"
+        elif isinstance(value, str):
+            if vlen:
+                dtype = h5py.special_dtype(vlen=str)
+            else:
+                value = value.encode("utf-8")
+                if hasattr(h5py, "string_dtype"):
+                    dtype = h5py.string_dtype("utf-8", len(value))
+                else:
+                    dtype = f"|S{len(value)}"
         else:
-            return numpy.array([value] * n)
+            dtype = None
         return numpy.array([value] * n, dtype=dtype)
 
     @classmethod
     def _get_charset(cls, value):
         if isinstance(value, bytes):
             return h5py.h5t.CSET_ASCII
-        elif isinstance(value, cls.unicode):
+        elif isinstance(value, str):
             return h5py.h5t.CSET_UTF8
         else:
             return None
 
     def _check_dataset(self, value, result=None):
-        # Write+read scalar
-        if result:
+        if result is not None:
             decode_ascii = True
         else:
             decode_ascii = False
             result = value
+
+        # Write+read scalar
         charset = self._get_charset(value)
         self.file["data"] = value
         data = utils.h5py_read_dataset(self.file["data"], decode_ascii=decode_ascii)
-        assert type(data) == type(result), data
+        assert isinstance(data, type(result)), data
         assert data == result, data
-        if charset:
+        if charset is not None:
             assert self.file["data"].id.get_type().get_cset() == charset
 
         # Write+read variable length
+        no_unicode_support = isinstance(value, str) and not hasattr(h5py, "string_dtype")
+        if no_unicode_support:
+            decode_ascii = True
         self.file["vlen_data"] = self._make_array(value, 2)
         data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii, index=0)
-        assert type(data) == type(result), data
+        assert isinstance(data, type(result)), data
         assert data == result, data
         data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii)
         numpy.testing.assert_array_equal(data, [result] * 2)
-        if charset:
+        if charset is not None:
             assert self.file["vlen_data"].id.get_type().get_cset() == charset
 
+        # Write+read fixed length
+        self.file["flen_data"] = self._make_array(value, 2, vlen=False)
+        data = utils.h5py_read_dataset(self.file["flen_data"], decode_ascii=decode_ascii, index=0)
+        assert isinstance(data, type(result)), data
+        assert data == result, data
+        data = utils.h5py_read_dataset(self.file["flen_data"], decode_ascii=decode_ascii)
+        numpy.testing.assert_array_equal(data, [result] * 2)
+        if charset is not None and not no_unicode_support:
+            assert self.file["flen_data"].id.get_type().get_cset() == charset
+
     def _check_attribute(self, value, result=None):
-        if result:
+        if result is not None:
             decode_ascii = True
         else:
             decode_ascii = False
             result = value
+
+        # Write+read scalar
         self.file.attrs["data"] = value
         data = utils.h5py_read_attribute(self.file.attrs, "data", decode_ascii=decode_ascii)
-        assert type(data) == type(result), data
+        assert isinstance(data, type(result)), data
         assert data == result, data
 
+        # Write+read variable length
+        no_unicode_support = isinstance(value, str) and not hasattr(h5py, "string_dtype")
+        if no_unicode_support:
+            decode_ascii = True
         self.file.attrs["vlen_data"] = self._make_array(value, 2)
         data = utils.h5py_read_attribute(self.file.attrs, "vlen_data", decode_ascii=decode_ascii)
-        assert type(data[0]) == type(result), data[0]
+        assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
 
         data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["vlen_data"]
-        assert type(data[0]) == type(result), data[0]
+        assert isinstance(data[0], type(result)), data[0]
+        assert data[0] == result, data[0]
+        numpy.testing.assert_array_equal(data, [result] * 2)
+
+        # Write+read fixed length
+        self.file.attrs["flen_data"] = self._make_array(value, 2, vlen=False)
+        data = utils.h5py_read_attribute(self.file.attrs, "flen_data", decode_ascii=decode_ascii)
+        assert isinstance(data[0], type(result)), data[0]
+        assert data[0] == result, data[0]
+        numpy.testing.assert_array_equal(data, [result] * 2)
+
+        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["flen_data"]
+        assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
 
@@ -951,3 +989,15 @@ def test_match_commonh5():
         result = list(utils.match(fobj, "/entry_*/*"))
 
         assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
+
+
+def test_recursive_match_commonh5():
+    """Test match function with commonh5 objects"""
+    with commonh5.File("filename.file", mode="w") as fobj:
+        fobj["entry_0000/bar/data"] = 0
+        fobj["entry_0001/foo/data"] = 1
+        fobj["entry_0001/foo/data1"] = 2
+        fobj["entry_0003"] = 3
+
+        result = list(utils.match(fobj, "**/data"))
+        assert result == ['entry_0000/bar/data', 'entry_0001/foo/data']

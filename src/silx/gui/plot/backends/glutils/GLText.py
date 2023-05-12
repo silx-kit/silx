@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2020 European Synchrotron Radiation Facility
@@ -241,7 +240,7 @@ class Text2D(object):
         return vertices
 
     def render(self, matrix):
-        if not self.text:
+        if not self.text.strip():
             return
 
         prog = self._program

@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018-2021 European Synchrotron Radiation Facility
@@ -30,6 +29,8 @@ __date__ = "25/08/2021"
 
 
 import collections
+import numbers
+from typing import NamedTuple
 import warnings
 import numpy
 
@@ -405,7 +406,27 @@ _BASIC_NORMALIZATIONS = {
     "arcsinh": ArcsinhNormalization(),
 }
 
+
+def _get_normalizer(norm, gamma):
+    """Returns corresponding Normalization instance"""
+    if norm == "gamma":
+        return GammaNormalization(gamma)
+    return _BASIC_NORMALIZATIONS[norm]
+
+
+def _get_range(normalizer, data, autoscale, vmin, vmax):
+    """Returns effective range"""
+    if vmin is None or vmax is None:
+        auto_vmin, auto_vmax = normalizer.autoscale(data, autoscale)
+        if vmin is None:  # Set vmin respecting provided vmax
+            vmin = auto_vmin if vmax is None else min(auto_vmin, vmax)
+        if vmax is None:
+            vmax = max(auto_vmax, vmin)  # Handle max_ <= 0 for log scale
+    return vmin, vmax
+
+
 _DEFAULT_NAN_COLOR = 255, 255, 255, 0
+
 
 def apply_colormap(data,
                    colormap: str,
@@ -427,19 +448,8 @@ def apply_colormap(data,
     :returns: Array of colors
     """
     colors = get_colormap_lut(colormap)
-
-    if norm == "gamma":
-        normalizer = GammaNormalization(gamma)
-    else:
-        normalizer = _BASIC_NORMALIZATIONS[norm]
-
-    if vmin is None or vmax is None:
-        auto_vmin, auto_vmax = normalizer.autoscale(data, autoscale)
-        if vmin is None:  # Set vmin respecting provided vmax
-            vmin = auto_vmin if vmax is None else min(auto_vmin, vmax)
-        if vmax is None:
-            vmax = max(auto_vmax, vmin)  # Handle max_ <= 0 for log scale
-
+    normalizer = _get_normalizer(norm, gamma)
+    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
     return _colormap.cmap(
         data,
         colors,
@@ -448,3 +458,45 @@ def apply_colormap(data,
         normalizer,
         _DEFAULT_NAN_COLOR,
     )
+
+
+_UINT8_LUT = numpy.arange(256, dtype=numpy.uint8).reshape(-1, 1)
+
+
+class NormalizeResult(NamedTuple):
+    data: numpy.ndarray
+    vmin: numbers.Number
+    vmax: numbers.Number
+
+
+def normalize(
+    data,
+    norm: str = "linear",
+    autoscale: str = "minmax",
+    vmin=None,
+    vmax=None,
+    gamma=1.0,
+):
+    """Normalize data to an array of uint8.
+
+    :param numpy.ndarray data: Data to normalize
+    :param str norm: Normalization to apply
+    :param str autoscale: Autoscale mode: "minmax" (default) or "stddev3"
+    :param vmin: Lower bound, None (default) to autoscale
+    :param vmax: Upper bound, None (default) to autoscale
+    :param float gamma:
+        Gamma correction parameter (used only for "gamma" normalization)
+    :returns: Array of normalized values, vmin, vmax
+    """
+    normalizer = _get_normalizer(norm, gamma)
+    vmin, vmax = _get_range(normalizer, data, autoscale, vmin, vmax)
+    norm_data = _colormap.cmap(
+        data,
+        _UINT8_LUT,
+        vmin,
+        vmax,
+        normalizer,
+        nan_color=_UINT8_LUT[0],
+    )
+    norm_data.shape = data.shape
+    return NormalizeResult(norm_data, vmin, vmax)

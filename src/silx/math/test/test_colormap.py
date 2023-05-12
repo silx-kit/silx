@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +23,6 @@
 # ############################################################################*/
 """Test for colormap mapping implementation"""
 
-from __future__ import division
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/05/2018"
@@ -35,6 +32,7 @@ import logging
 import sys
 
 import numpy
+import pytest
 
 from silx.utils.testutils import ParametricTestCase
 from silx.math import colormap
@@ -203,7 +201,7 @@ class TestColormap(ParametricTestCase):
                 with self.subTest(dtype=dtype, normalization=normalization):
                     _logger.info('normalization: %s, dtype: %s',
                                  normalization, dtype)
-                    data = numpy.arange(-5, 15, dtype=dtype).reshape(4, 5)
+                    data = numpy.arange(-5, 15).astype(dtype).reshape(4, 5)
 
                     self._test(data, colors, 1, 10, normalization, None)
 
@@ -267,3 +265,31 @@ def test_apply_colormap():
         vmax=None,
         gamma=1.0)
     assert numpy.array_equal(colors, expected_colors)
+
+
+testdata_normalize = [
+    (numpy.arange(512), numpy.arange(512) // 2, 0, 511),
+    ((numpy.nan, numpy.inf, -numpy.inf), (0, 255, 0), 0, 1),
+    ((numpy.nan, numpy.inf, -numpy.inf, 1), (0, 255, 0, 0), 1, 1),
+]
+
+@pytest.mark.parametrize(
+    "data,expected_data,expected_vmin,expected_vmax",
+    testdata_normalize,
+)
+def test_normalize(data, expected_data, expected_vmin, expected_vmax):
+    """Basic test of silx.math.colormap.normalize"""
+    result = colormap.normalize(
+        numpy.asarray(data),
+        norm="linear",
+        autoscale="minmax",
+        vmin=None,
+        vmax=None,
+        gamma=1.0,
+    )
+    assert result.vmin == expected_vmin
+    assert result.vmax == expected_vmax
+    assert numpy.array_equal(
+        result.data,
+        numpy.asarray(expected_data, dtype=numpy.uint8),
+    )

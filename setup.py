@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding: utf8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2022 European Synchrotron Radiation Facility
@@ -25,41 +24,33 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "06/05/2020"
+__date__ = "07/11/2022"
 __license__ = "MIT"
 
 import sys
 import os
 import platform
-import shutil
 import logging
-import glob
 
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
 
-from distutils.command.clean import clean as Clean
-from distutils.command.build import build as _build
-from setuptools import Command
+try:  # setuptools >=62.4.0
+    from setuptools.command.build import build as _build
+except ImportError:
+    from distutils.command.build import build as _build
+from setuptools import Command, Extension, find_packages
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
 
 try:
     import numpy
-    from numpy.distutils.misc_util import Configuration
 except ImportError:
     raise ImportError(
         "To install this package, you must install numpy first\n"
         "(See https://pypi.org/project/numpy)")
 
-try:
-    import sphinx
-    import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda: False
-    from sphinx.setup_command import BuildDoc
-except ImportError:
-    sphinx = None
 
 PROJECT = "silx"
 if sys.version_info.major < 3:
@@ -110,51 +101,6 @@ classifiers = ["Development Status :: 5 - Production/Stable",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
-
-########
-# Test #
-########
-
-
-class PyTest(Command):
-    """Command to start tests running the script: run_tests.py"""
-    user_options = []
-
-    description = "Execute the unittests"
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-        errno = subprocess.call([sys.executable, 'run_tests.py'])
-        if errno != 0:
-            raise SystemExit(errno)
-
-# ################### #
-# build_doc command   #
-# ################### #
-
-
-if sphinx is None:
-
-    class SphinxExpectedCommand(Command):
-        """Command to inform that sphinx is missing"""
-        user_options = []
-
-        def initialize_options(self):
-            pass
-
-        def finalize_options(self):
-            pass
-
-        def run(self):
-            raise RuntimeError(
-                'Sphinx is required to build or test the documentation.\n'
-                'Please install Sphinx (http://www.sphinx-doc.org).')
 
 
 class BuildMan(Command):
@@ -329,109 +275,6 @@ class BuildMan(Command):
                     os.remove(script_name)
         os.rmdir(workdir)
 
-
-if sphinx is not None:
-
-    class BuildDocCommand(BuildDoc):
-        """Command to build documentation using sphinx.
-
-        Project should have already be built.
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # # Copy .ui files to the path:
-            # dst = os.path.join(
-            #     os.path.abspath(build.build_lib), "silx", "gui")
-            # if not os.path.isdir(dst):
-            #     os.makedirs(dst)
-            # for i in os.listdir("gui"):
-            #     if i.endswith(".ui"):
-            #         src = os.path.join("gui", i)
-            #         idst = os.path.join(dst, i)
-            #         if not os.path.exists(idst):
-            #             shutil.copy(src, idst)
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['html', 'latex']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-    class BuildDocAndGenerateScreenshotCommand(BuildDocCommand):
-
-        def run(self):
-            old = os.environ.get('DIRECTIVE_SNAPSHOT_QT')
-            os.environ['DIRECTIVE_SNAPSHOT_QT'] = 'True'
-            BuildDocCommand.run(self)
-            if old is not None:
-                os.environ['DIRECTIVE_SNAPSHOT_QT'] = old
-            else:
-                del os.environ['DIRECTIVE_SNAPSHOT_QT']
-
-else:
-    BuildDocCommand = SphinxExpectedCommand
-    BuildDocAndGenerateScreenshotCommand = SphinxExpectedCommand
-
-# ################### #
-# test_doc command    #
-# ################### #
-
-if sphinx is not None:
-
-    class TestDocCommand(BuildDoc):
-        """Command to test the documentation using sphynx doctest.
-
-        http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
-        """
-
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-
-            # Build the Users Guide in HTML and TeX format
-            for builder in ['doctest']:
-                self.builder = builder
-                self.builder_target_dir = os.path.join(self.build_dir, builder)
-                self.mkpath(self.builder_target_dir)
-                BuildDoc.run(self)
-            sys.path.pop(0)
-
-else:
-    TestDocCommand = SphinxExpectedCommand
-
-# ############################# #
-# numpy.distutils Configuration #
-# ############################# #
-
-def configuration(parent_package='', top_path=None):
-    """Recursive construction of package info to be used in setup().
-
-    See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(
-        ignore_setup_xxx_py=True,
-        assume_default_configuration=True,
-        delegate_options_to_subpackages=True,
-        quiet=True)
-    config.add_subpackage(
-        PROJECT, subpackage_path=os.path.join(
-            os.path.abspath(os.path.dirname(__file__)), 'src', PROJECT))
-    return config
-
 # ############## #
 # Compiler flags #
 # ############## #
@@ -442,11 +285,11 @@ class Build(_build):
 
     user_options = [
         ('no-openmp', None,
-         "do not use OpenMP for compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to False"),
         ('openmp', None,
-         "use OpenMP for the compiled extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to True"),
         ('force-cython', None,
-         "recompile all Cython extension modules"),
+         "DEPRECATED: Instead, set the environment variable SILX_FORCE_CYTHON to True"),
     ]
     user_options.extend(_build.user_options)
 
@@ -461,8 +304,14 @@ class Build(_build):
 
     def finalize_options(self):
         _build.finalize_options(self)
+        if self.no_openmp is not None:
+            logger.warning("--no-openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to False")
+        if self.openmp is not None:
+            logger.warning("--openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to True")
+        if self.force_cython is not None:
+            logger.warning("--force-cython is deprecated: Instead, set the environment variable SILX_FORCE_CYTHON to True")
         if not self.force_cython:
-            self.force_cython = self._parse_env_as_bool("FORCE_CYTHON") is True
+            self.force_cython = self._parse_env_as_bool("SILX_FORCE_CYTHON") is True
         self.finalize_openmp_options()
 
     def _parse_env_as_bool(self, key):
@@ -489,20 +338,16 @@ class Build(_build):
         elif self.no_openmp:
             use_openmp = False
         else:
-            env_with_openmp = self._parse_env_as_bool("WITH_OPENMP")
+            env_with_openmp = self._parse_env_as_bool("SILX_WITH_OPENMP")
             if env_with_openmp is not None:
                 use_openmp = env_with_openmp
             else:
                 # Use it by default
                 use_openmp = True
 
-        if use_openmp:
-            if platform.system() == "Darwin":
-                # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
-                osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
-                if osx >= (10, 8):
-                    logger.warning("OpenMP support ignored. Your platform does not support it.")
-                    use_openmp = False
+        if use_openmp and platform.system() == "Darwin":
+            logger.warning("OpenMP support ignored. Your platform does not support it.")
+            use_openmp = False
 
         # Remove attributes used by distutils parsing
         # use 'use_openmp' instead
@@ -568,137 +413,11 @@ class BuildExt(build_ext):
             # Avoid empty arg
             ext.extra_link_args = [arg for arg in extra_link_args if arg]
 
-        elif self.compiler.compiler_type == 'unix':
-            # Avoids runtime symbol collision for manylinux1 platform
-            # See issue #1070
-            extern = 'extern "C" ' if ext.language == 'c++' else ''
-            return_type = 'PyObject*'
-
-            ext.extra_compile_args.append('-fvisibility=hidden')
-
-            numpy_version = [int(i) for i in numpy.version.full_version.split(".", 2)[:2]]
-            if numpy_version < [1, 16]:
-                ext.extra_compile_args.append(
-                    '''-D'PyMODINIT_FUNC=%s__attribute__((visibility("default"))) %s ' ''' % (extern, return_type))
-            else:
-                ext.define_macros.append(
-                    ('PyMODINIT_FUNC',
-                     '%s__attribute__((visibility("default"))) %s ' % (extern, return_type)))
-
-    def is_debug_interpreter(self):
-        """
-        Returns true if the script is executed with a debug interpreter.
-
-        It looks to be a non-standard code. It is not working for Windows and
-        Mac. But it have to work at least for Debian interpreters.
-
-        :rtype: bool
-        """
-        # sys.abiflags not available on Windows CPython, return False by default
-        return "d" in getattr(sys, "abiflags", "")
-
-    def patch_compiler(self):
-        """
-        Patch the compiler to:
-        - always compile extensions with debug symboles (-g)
-        - only compile asserts in debug mode (-DNDEBUG)
-
-        Plus numpy.distutils/setuptools/distutils inject a lot of duplicated
-        flags. This function tries to clean up default debug options.
-        """
-        build_obj = self.distribution.get_command_obj("build")
-        if build_obj.debug:
-            debug_mode = build_obj.debug
-        else:
-            # Force debug_mode also when it uses python-dbg
-            # It is needed for Debian packaging
-            debug_mode = self.is_debug_interpreter()
-
-        if self.compiler.compiler_type == "unix":
-            args = list(self.compiler.compiler_so)
-            # clean up debug flags -g is included later in another way
-            must_be_cleaned = ["-DNDEBUG", "-g"]
-            args = filter(lambda x: x not in must_be_cleaned, args)
-            args = list(args)
-
-            # always insert symbols
-            args.append("-g")
-            # only strip asserts in release mode
-            if not debug_mode:
-                args.append('-DNDEBUG')
-            # patch options
-            self.compiler.compiler_so = list(args)
-
     def build_extensions(self):
-        self.patch_compiler()
         for ext in self.extensions:
             self.patch_extension(ext)
         build_ext.build_extensions(self)
 
-################################################################################
-# Clean command
-################################################################################
-
-
-class CleanCommand(Clean):
-    description = "Remove build artifacts from the source tree"
-
-    def expand(self, path_list):
-        """Expand a list of path using glob magic.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        path_list2 = []
-        for path in path_list:
-            if glob.has_magic(path):
-                iterator = glob.iglob(path)
-                path_list2.extend(iterator)
-            else:
-                path_list2.append(path)
-        return path_list2
-
-    def find(self, path_list):
-        """Find a file pattern if directories.
-
-        Could be done using "**/*.c" but it is only supported in Python 3.5.
-
-        :param list[str] path_list: A list of path which may contains magic
-        :rtype: list[str]
-        :returns: A list of path without magic
-        """
-        import fnmatch
-        path_list2 = []
-        for pattern in path_list:
-            for root, _, filenames in os.walk('.'):
-                for filename in fnmatch.filter(filenames, pattern):
-                    path_list2.append(os.path.join(root, filename))
-        return path_list2
-
-    def run(self):
-        Clean.run(self)
-
-        cython_files = self.find(["*.pyx"])
-        cythonized_files = [path.replace(".pyx", ".c") for path in cython_files]
-        cythonized_files += [path.replace(".pyx", ".cpp") for path in cython_files]
-
-        # really remove the directories
-        # and not only if they are empty
-        to_remove = [self.build_base]
-        to_remove = self.expand(to_remove)
-        to_remove += cythonized_files
-
-        if not self.dry_run:
-            for path in to_remove:
-                try:
-                    if os.path.isdir(path):
-                        shutil.rmtree(path)
-                    else:
-                        os.remove(path)
-                    logger.info("removing '%s'", path)
-                except OSError:
-                    pass
 
 ################################################################################
 # Debian source tree
@@ -798,11 +517,14 @@ def get_project_configuration():
         # extra
         'hdf5plugin',
         'scipy',
-        'Pillow']
+        'Pillow',
+        'bitshuffle']
 
     test_requires = [
         "pytest",
-        "pytest-xvfb"
+        "pytest-xvfb",
+        "pytest-mock",
+        'bitshuffle'
     ]
 
     extras_require = {
@@ -849,33 +571,229 @@ def get_project_configuration():
 
     cmdclass = dict(
         build=Build,
-        test=PyTest,
-        build_screenshots=BuildDocAndGenerateScreenshotCommand,
-        build_doc=BuildDocCommand,
-        test_doc=TestDocCommand,
         build_ext=BuildExt,
         build_man=BuildMan,
-        clean=CleanCommand,
         debian_src=sdist_debian)
 
-    setup_kwargs = configuration().todict()
-    setup_kwargs.update(name=PROJECT,
-                        version=get_version(),
-                        url="http://www.silx.org/",
-                        author="data analysis unit",
-                        author_email="silx@esrf.fr",
-                        classifiers=classifiers,
-                        description="Software library for X-ray data analysis",
-                        long_description=get_readme(),
-                        install_requires=install_requires,
-                        extras_require=extras_require,
-                        cmdclass=cmdclass,
-                        package_data=package_data,
-                        zip_safe=False,
-                        entry_points=entry_points,
-                        python_requires='>=3.5',
-                        )
-    return setup_kwargs
+    def silx_io_specfile_define_macros():
+        # Locale and platform management
+        if sys.platform == "win32":
+            return [('WIN32', None), ('SPECFILE_POSIX', None)]
+        elif os.name.lower().startswith('posix'):
+            # the best choice is to have _GNU_SOURCE defined
+            # as a compilation flag because that allows the
+            # use of strtod_l
+            use_gnu_source = os.environ.get("SPECFILE_USE_GNU_SOURCE", "False")
+            if use_gnu_source in ("True", "1"):  # 1 was the initially supported value
+                return [('_GNU_SOURCE', 1)]
+            return [('SPECFILE_POSIX', None)]
+        else:
+            return []
+
+    ext_modules = [
+
+        # silx.image
+
+        Extension(
+            name='silx.image.bilinear',
+            sources=["src/silx/image/bilinear.pyx"],
+            language='c',
+        ),
+        Extension(
+            name='silx.image.marchingsquares._mergeimpl',
+            sources=['src/silx/image/marchingsquares/_mergeimpl.pyx'],
+            include_dirs=[
+                numpy.get_include(),
+                os.path.join(os.path.dirname(__file__), "src", "silx", "utils", "include")
+            ],
+            language='c++',
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.image.shapes',
+            sources=["src/silx/image/shapes.pyx"],
+            language='c',
+        ),
+
+        # silx.io
+
+        Extension(
+            name='silx.io.specfile',
+            sources=[
+                'src/silx/io/specfile/src/sfheader.c',
+                'src/silx/io/specfile/src/sfinit.c',
+                'src/silx/io/specfile/src/sflists.c',
+                'src/silx/io/specfile/src/sfdata.c',
+                'src/silx/io/specfile/src/sfindex.c',
+                'src/silx/io/specfile/src/sflabel.c',
+                'src/silx/io/specfile/src/sfmca.c',
+                'src/silx/io/specfile/src/sftools.c',
+                'src/silx/io/specfile/src/locale_management.c',
+                'src/silx/io/specfile.pyx',
+            ],
+            define_macros=silx_io_specfile_define_macros(),
+            include_dirs=['src/silx/io/specfile/include'],
+            language='c',
+        ),
+
+        # silx.math
+
+        Extension(
+            name='silx.math._colormap',
+            sources=["src/silx/math/_colormap.pyx"],
+            language='c',
+            include_dirs=[
+                'src/silx/math/include',
+                numpy.get_include(),
+            ],
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.math.chistogramnd',
+            sources=[
+                'src/silx/math/histogramnd/src/histogramnd_c.c',
+                'src/silx/math/chistogramnd.pyx',
+            ],
+            include_dirs=[
+                'src/silx/math/histogramnd/include',
+                numpy.get_include(),
+            ],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.chistogramnd_lut',
+            sources=['src/silx/math/chistogramnd_lut.pyx'],
+            include_dirs=[
+                'src/silx/math/histogramnd/include',
+                numpy.get_include(),
+            ],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.combo',
+            sources=['src/silx/math/combo.pyx'],
+            include_dirs=['src/silx/math/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.interpolate',
+            sources=["src/silx/math/interpolate.pyx"],
+            language='c',
+            include_dirs=[
+                'src/silx/math/include',
+                numpy.get_include(),
+            ],
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+        Extension(
+            name='silx.math.marchingcubes',
+            sources=[
+                'src/silx/math/marchingcubes/mc_lut.cpp',
+                'src/silx/math/marchingcubes.pyx',
+            ],
+            include_dirs=[
+                'src/silx/math/marchingcubes',
+                numpy.get_include(),
+            ],
+            language='c++',
+        ),
+        Extension(
+            name='silx.math.medianfilter.medianfilter',
+            sources=['src/silx/math/medianfilter/medianfilter.pyx'],
+            include_dirs=[
+                'src/silx/math/medianfilter/include',
+                numpy.get_include(),
+            ],
+            language='c++',
+            extra_link_args=['-fopenmp'],
+            extra_compile_args=['-fopenmp'],
+        ),
+
+        # silx.math.fit
+
+        Extension(
+            name='silx.math.fit.filters',
+            sources=[
+                'src/silx/math/fit/filters/src/smoothnd.c',
+                'src/silx/math/fit/filters/src/snip1d.c',
+                'src/silx/math/fit/filters/src/snip2d.c',
+                'src/silx/math/fit/filters/src/snip3d.c',
+                'src/silx/math/fit/filters/src/strip.c',
+                'src/silx/math/fit/filters.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/filters/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.fit.functions',
+            sources=[
+                'src/silx/math/fit/functions/src/funs.c',
+                'src/silx/math/fit/functions.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/functions/include'],
+            language='c',
+        ),
+        Extension(
+            name='silx.math.fit.peaks',
+            sources=[
+                'src/silx/math/fit/peaks/src/peaks.c',
+                'src/silx/math/fit/peaks.pyx',
+            ],
+            include_dirs=['src/silx/math/fit/peaks/include'],
+            language='c',
+        ),
+    ]
+
+    # silx.third_party
+
+    if os.path.exists(os.path.join(
+        os.path.dirname(__file__), "src", "silx", "third_party", "_local")
+    ):
+        ext_modules.append(
+            Extension(
+                name='silx.third_party._local.scipy_spatial.qhull',
+                sources=[
+                    'src/silx/third_party/_local/scipy_spatial/qhull/src/' + fname for fname in (
+                        'geom2_r.c', 'geom_r.c', 'global_r.c', 'io_r.c', 'libqhull_r.c', 'mem_r.c',
+                        'merge_r.c', 'poly2_r.c', 'poly_r.c', 'qset_r.c', 'random_r.c', 'rboxlib_r.c',
+                        'stat_r.c', 'usermem_r.c', 'userprintf_rbox_r.c', 'userprintf_r.c', 'user_r.c'
+                )] + [
+                    'src/silx/third_party/_local/scipy_spatial/qhull.pyx',
+                ],
+                include_dirs=[numpy.get_include()],
+            )
+        )
+
+    return dict(
+        name=PROJECT,
+        version=get_version(),
+        license="MIT",
+        url="http://www.silx.org/",
+        author="data analysis unit",
+        author_email="silx@esrf.fr",
+        classifiers=classifiers,
+        description="Software library for X-ray data analysis",
+        long_description=get_readme(),
+        install_requires=install_requires,
+        extras_require=extras_require,
+        python_requires='>=3.7',
+        cmdclass=cmdclass,
+        zip_safe=False,
+        entry_points=entry_points,
+        packages=find_packages(where='src', include=['silx*']) + ['silx.examples'],
+        package_dir={
+            "": "src",
+            "silx.examples": "examples",
+        },
+        ext_modules=ext_modules,
+        package_data=package_data,
+        data_files=[
+            ('silx/third_party/_local/scipy_spatial/qhull', ['src/silx/third_party/_local/scipy_spatial/qhull/COPYING.txt'])
+        ],
+    )
 
 
 if __name__ == "__main__":

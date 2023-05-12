@@ -1,4 +1,4 @@
-version: 1.0-dev{build}
+version: 1.2-dev{build}
 
 # fetch repository as zip archive
 shallow_clone: true
@@ -24,17 +24,11 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
-        # Python 3.6
-        - PYTHON_DIR: "C:\\Python36-x64"
+        # Python 3.8
+        - PYTHON_DIR: "C:\\Python38-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
-
-        # Python 3.8
-        - PYTHON_DIR: "C:\\Python38-x64"
-          QT_BINDING: "PySide2"
-          WITH_GL_TEST: True
-          PIP_OPTIONS: "-q"
 
         # Python 3.7
         - PYTHON_DIR: "C:\\Python37-x64"
@@ -42,9 +36,16 @@ environment:
           WITH_GL_TEST: False  # OpenGL not working
           PIP_OPTIONS: "-q --pre"
 
+        # Python 3.10
+        - PYTHON_DIR: "C:\\Python310-x64"
+          QT_BINDING: "PyQt6"
+          WITH_GL_TEST: False  # OpenGL not working
+          PIP_OPTIONS: "-q"
+
+
 branches:
     only:
-        - master
+        - main
         - /\d*\.\d*/
 
 install:
@@ -95,12 +96,11 @@ before_test:
 
     # Install selected Qt binding
     - "pip install %PIP_OPTIONS% %QT_BINDING%"
-    # qtconsole does not support PySide6 yet
-    - IF %QT_BINDING%=="PySide6" pip uninstall -y qtconsole
 
     # Install pytest
     - "pip install %PIP_OPTIONS% pytest"
     - "pip install %PIP_OPTIONS% pytest-xvfb"
+    - "pip install %PIP_OPTIONS% pytest-mock"
 
     # Install the generated wheel package to test it
     # Make sure silx does not come from cache or pypi

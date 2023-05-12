@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2022 European Synchrotron Radiation Facility
 #
@@ -28,12 +27,12 @@ __license__ = "MIT"
 __date__ = "17/01/2019"
 
 import argparse
-import glob
 import logging
 import os
 import signal
 import sys
 from typing import Generator, Iterable, Sequence
+from silx.app.utils import parseutils
 
 
 _logger = logging.getLogger(__name__)

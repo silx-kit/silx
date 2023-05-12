@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2020 European Synchrotron Radiation Facility
@@ -29,7 +28,6 @@ __license__ = "MIT"
 __date__ = "27/06/2017"
 
 
-import unittest
 import numpy
 import pytest
 
@@ -104,11 +102,11 @@ class TestPlotWindow(TestCaseQt):
         self.plot.addTabbedDockWidget(dock2)
         self.qapp.processEvents()
 
-        if qt.BINDING != 'PySide2':
-            # Weird bug with PySide2 later upon gc.collect() when getting the layout
-            self.assertNotEqual(self.plot.layout().indexOf(dock2),
-                                -1,
-                                "dock2 not properly displayed")
+        self.assertNotEqual(
+            self.plot.layout().indexOf(dock2),
+            -1,
+            "dock2 not properly displayed",
+        )
 
     def testToolAspectRatio(self):
         self.plot.toolBar()

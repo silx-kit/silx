@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +50,7 @@ def colormap():
 
 
 @pytest.fixture
-def colormapDialog(qapp, qapp_utils):
+def colormapDialog(qapp):
     dialog = ColormapDialog.ColormapDialog()
     dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
     yield weakref.proxy(dialog)
@@ -59,6 +58,7 @@ def colormapDialog(qapp, qapp_utils):
     from silx.gui.qt import inspect
     if inspect.isValid(dialog):
         dialog.close()
+        del dialog
         qapp.processEvents()
 
 
@@ -85,6 +85,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         modification are correctly updated if an other colormapdialog is
         editing the same colormap"""
         colormapDiag2 = ColormapDialog.ColormapDialog()
+        colormapDiag2.setAttribute(qt.Qt.WA_DeleteOnClose)
         colormapDiag2.setColormap(self.colormap)
         colormapDiag2.show()
         self.colormapDiag.setColormap(self.colormap)
@@ -106,6 +107,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(int(colormapDiag2._minValue.getValue()) == 10)
         self.assertTrue(int(colormapDiag2._maxValue.getValue()) == 20)
         colormapDiag2.close()
+        del colormapDiag2
+        self.qapp.processEvents()
 
     def testGUIModalOk(self):
         """Make sure the colormap is modified if gone through accept"""
@@ -214,8 +217,8 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                         self.assertTrue(self.colormapDiag._minValue.isEnabled())
                         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
                     else:
-                        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
-                        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
+                        self.assertTrue(self.colormapDiag._minValue._numVal.isReadOnly())
+                        self.assertTrue(self.colormapDiag._maxValue._numVal.isReadOnly())
 
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside. For now
@@ -244,13 +247,14 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormap.setVRange(11, 201)
         self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
         self.assertTrue(self.colormapDiag._maxValue.getValue() == 201)
-        self.assertTrue(self.colormapDiag._minValue._numVal.isEnabled())
-        self.assertTrue(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.assertFalse(self.colormapDiag._minValue._numVal.isReadOnly())
+        self.assertFalse(self.colormapDiag._maxValue._numVal.isReadOnly())
         self.assertFalse(self.colormapDiag._minValue.isAutoChecked())
         self.assertFalse(self.colormapDiag._maxValue.isAutoChecked())
         self.colormap.setVRange(None, None)
-        self.assertFalse(self.colormapDiag._minValue._numVal.isEnabled())
-        self.assertFalse(self.colormapDiag._maxValue._numVal.isEnabled())
+        self.qapp.processEvents()
+        self.assertTrue(self.colormapDiag._minValue._numVal.isReadOnly())
+        self.assertTrue(self.colormapDiag._maxValue._numVal.isReadOnly())
         self.assertTrue(self.colormapDiag._minValue.isAutoChecked())
         self.assertTrue(self.colormapDiag._maxValue.isAutoChecked())
 

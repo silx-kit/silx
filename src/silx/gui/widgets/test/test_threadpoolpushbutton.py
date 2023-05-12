@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -29,7 +28,6 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import unittest
 import time
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2018  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -47,8 +46,6 @@ This algorithm is patented: U.S. Patent 6,711,293:
 David Lowe's patent for the SIFT algorithm,  Mar. 8, 1999. 
 It is due to expire in March 2019. 
 """
-
-from __future__ import division, print_function, with_statement
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
@@ -819,11 +816,11 @@ class SiftPlan(OpenclProcessing):
 
 def demo():
     # Prepare debugging
-    import scipy.misc
-    if hasattr(scipy.misc, "ascent"):
-        img = scipy.misc.ascent()
-    else:
-        img = scipy.misc.lena()
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
+    img = ascent()
 
     s = SiftPlan(template=img)
     print(s.keypoints(img))

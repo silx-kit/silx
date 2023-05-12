@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2018 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +21,6 @@
 #
 # ############################################################################*/
 """Tests of the calibration module"""
-
-from __future__ import division
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -116,6 +113,14 @@ class TestArrayCalibration(unittest.TestCase):
 
         for idx, value in enumerate(self.arr):
             self.assertEqual(self.calib(idx), value)
+
+    def testEmptyArray(self):
+        with self.assertRaises(ValueError):
+            ArrayCalibration(numpy.array([]))
+
+    def testOneElementArray(self):
+        calib = ArrayCalibration(numpy.array([1]))
+        self.assertFalse(calib.is_affine())
 
 
 class TestFunctionCalibration(unittest.TestCase):

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2021 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2023 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -34,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/09/2021"
+__date__ = "09/05/2023"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -112,7 +111,8 @@ class Device(object):
 
     def __init__(self, name="None", dtype=None, version=None, driver_version=None,
                  extensions="", memory=None, available=None,
-                 cores=None, frequency=None, flop_core=None, idx=0, workgroup=1):
+                 cores=None, frequency=None, flop_core=None, idx=0, workgroup=1,
+                 platform=None):
         """
         Simple container with some important data for the OpenCL device description.
 
@@ -128,6 +128,7 @@ class Device(object):
         :param flop_core: Flopating Point operation per core per cycle
         :param idx: index of the device within the platform
         :param workgroup: max workgroup size
+        :param platform: the platform to which this device is attached
         """
         self.name = name.strip()
         self.type = dtype
@@ -146,6 +147,7 @@ class Device(object):
             self.flops = cores * frequency * flop_core
         else:
             self.flops = flop_core
+        self.platform = platform 
 
     def __repr__(self):
         return "%s" % self.name
@@ -203,6 +205,7 @@ class Platform(object):
 
         :param device: Device instance
         """
+        device.platform = self
         self.devices.append(device)
 
     def get_device(self, key):
@@ -437,7 +440,7 @@ class OpenCL(object):
         # Nothing found
         return None
 
-    def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
+    def create_context(self, devicetype="ALL", platformid=None,
                        deviceid=None, cached=True, memory=None, extensions=None):
         """
         Choose a device and initiate a context.
@@ -448,7 +451,6 @@ class OpenCL(object):
         E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail.
               The AMD SDK kit is required for CPU via OpenCL.
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
-        :param useFp64: boolean specifying if double precision will be used: deprecated use extensions=["cl_khr_fp64"]
         :param platformid: integer
         :param deviceid: integer
         :param cached: True if we want to cache the context
@@ -458,9 +460,6 @@ class OpenCL(object):
         """
         if extensions is None:
             extensions = []
-        if useFp64:
-            logger.warning("Deprecation: please select your device using the extension name!, i.e. extensions=['cl_khr_fp64']")
-            extensions.append('cl_khr_fp64')
 
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)

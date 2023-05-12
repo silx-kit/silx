@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +29,6 @@ This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 - :class:`MaskToolsWidget`: GUI for :class:`Mask`
 - :class:`MaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
-from __future__ import division
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
@@ -418,7 +416,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         if self.isMaskInteractionActivated():
             # Disable drawing tool
-            self.browseAction.trigger()
+            self.plot.resetInteractiveMode()
 
         if self.isItemMaskUpdated():  # No "after-care"
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
@@ -714,7 +712,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Save Mask")
-        dialog.setOption(dialog.DontUseNativeDialog)
+        dialog.setOption(qt.QFileDialog.DontUseNativeDialog)
         dialog.setModal(1)
         hdf5Filter = 'HDF5 (%s)' % _HDF5_EXT_STR
         filters = [
@@ -735,9 +733,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             # disable overwrite confirmation for HDF5,
             # because we append the data to existing files
             if filt_ == hdf5Filter:
-                dialog.setOption(dialog.DontConfirmOverwrite)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite)
             else:
-                dialog.setOption(dialog.DontConfirmOverwrite, False)
+                dialog.setOption(qt.QFileDialog.DontConfirmOverwrite, False)
 
         dialog.filterSelected.connect(onFilterSelection)
         if not dialog.exec():

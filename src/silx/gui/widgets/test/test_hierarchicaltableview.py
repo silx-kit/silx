@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -25,8 +24,6 @@
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "07/04/2017"
-
-import unittest
 
 from .. import HierarchicalTableView
 from silx.gui.utils.testutils import TestCaseQt

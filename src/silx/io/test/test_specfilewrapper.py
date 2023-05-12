@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +26,6 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/05/2017"
 
-import locale
 import logging
 import numpy
 import os
@@ -113,10 +111,7 @@ class TestSpecfilewrapper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        if sys.version_info < (3, ):
-            os.write(fd, sftext)
-        else:
-            os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
 
     @classmethod

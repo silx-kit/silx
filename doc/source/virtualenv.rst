@@ -12,7 +12,7 @@ Prerequisites
 
 This guide assumes that your system meets the following requirements:
 
-   - a version of python compatible with *silx* is installed (Python >= 3.5)
+   - a version of python compatible with *silx* is installed
    - the *pip* installer for python packages is installed
 
 Installation procedure
@@ -54,11 +54,11 @@ Virtual environments are created using a builtin standard library, ``venv`` (Pyt
     ``--system-site-packages``
 
 To use a different python interpreter, use it to create the virtual environment.
-For example, to use python 3.5:
+For example, to use python 3.10:
 
 .. code-block:: bash
 
-    /usr/bin/python3.5 -m venv silx_venv
+    /usr/bin/python3.10 -m venv silx_venv
 
 
 Activate a virtualenv
@@ -132,7 +132,7 @@ To test *silx*, open an interactive python console:
 
     python
 
-If you don't have PyQt5, PySide2 or PySide6, run:
+If you don't have PyQt5, PySide6 or PyQt6, run:
 
 .. code-block:: bash
 

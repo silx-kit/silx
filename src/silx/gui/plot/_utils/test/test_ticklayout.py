@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2015-2017 European Synchrotron Radiation Facility
@@ -23,14 +22,11 @@
 #
 # ###########################################################################*/
 
-from __future__ import absolute_import, division, unicode_literals
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import unittest
 import numpy
 
 from silx.utils.testutils import ParametricTestCase

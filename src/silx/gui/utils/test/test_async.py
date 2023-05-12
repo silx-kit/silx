@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2018 European Synchrotron Radiation Facility
@@ -24,16 +23,12 @@
 # ###########################################################################*/
 """Test of async module."""
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "09/03/2018"
 
 
 import threading
-import unittest
-
 
 from concurrent.futures import wait
 from silx.gui import qt

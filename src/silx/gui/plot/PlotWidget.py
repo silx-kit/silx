@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +25,6 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
-from __future__ import division
-
-
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -50,8 +46,6 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
-from silx.utils.property import classproperty
-from silx.utils.deprecation import deprecated, deprecated_warning
 try:
     # Import matplotlib now to init matplotlib our way
     import silx.gui.utils.matplotlib  # noqa
@@ -263,13 +257,6 @@ class PlotWidget(qt.QMainWindow):
                     or a :class:`BackendBase.BackendBase` class
     :type backend: str or :class:`BackendBase.BackendBase`
     """
-
-    # TODO: Can be removed for silx 0.10
-    @classproperty
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def DEFAULT_BACKEND(self):
-        """Class attribute setting the default backend for all instances."""
-        return silx.config.DEFAULT_PLOT_BACKEND
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -543,20 +530,6 @@ class PlotWidget(qt.QMainWindow):
         if self.__selection is None:  # Lazy initialization
             self.__selection = _PlotWidgetSelection(parent=self)
         return self.__selection
-
-    # TODO: Can be removed for silx 0.10
-    @staticmethod
-    @deprecated(replacement="silx.config.DEFAULT_PLOT_BACKEND", since_version="0.8", skip_backtrace_count=2)
-    def setDefaultBackend(backend):
-        """Set system wide default plot backend.
-
-        .. versionadded:: 0.6
-
-        :param backend: The backend to use, in:
-                        'matplotlib' (default), 'mpl', 'opengl', 'gl', 'none'
-                        or a :class:`BackendBase.BackendBase` class
-        """
-        silx.config.DEFAULT_PLOT_BACKEND = backend
 
     def setBackend(self, backend):
         """Set the backend to use for rendering.
@@ -903,10 +876,13 @@ class PlotWidget(qt.QMainWindow):
         'image': (items.ImageBase,),
         'scatter': (items.Scatter,),
         'marker': (items.MarkerBase,),
-        'item': (items.Shape,
-                 items.BoundingRect,
-                 items.XAxisExtent,
-                 items.YAxisExtent),
+        'item': (
+            items.Line,
+            items.Shape,
+            items.BoundingRect,
+            items.XAxisExtent,
+            items.YAxisExtent,
+        ),
         'histogram': (items.Histogram,),
         }
     """Mapping kind to item classes of this kind"""
@@ -939,24 +915,15 @@ class PlotWidget(qt.QMainWindow):
         self._contentToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
-    def addItem(self, item=None, *args, **kwargs):
+    def addItem(self, item):
         """Add an item to the plot content.
 
         :param ~silx.gui.plot.items.Item item: The item to add.
         :raises ValueError: If item is already in the plot.
         """
         if not isinstance(item, items.Item):
-            deprecated_warning(
-                'Function',
-                'addItem',
-                replacement='addShape',
-                since_version='0.13')
-            if item is None and not args:  # Only kwargs
-                return self.addShape(**kwargs)
-            else:
-                return self.addShape(item, *args, **kwargs)
+            raise ValueError(f"argument must be a subclass of Item")
 
-        assert not args and not kwargs
         if item in self.getItems():
             raise ValueError('Item already in the plot')
 
@@ -976,16 +943,8 @@ class PlotWidget(qt.QMainWindow):
         :param ~silx.gui.plot.items.Item item: Item to remove from the plot.
         :raises ValueError: If item is not in the plot.
         """
-        if not isinstance(item, items.Item):  # Previous method usage
-            deprecated_warning(
-                'Function',
-                'removeItem',
-                replacement='remove(legend, kind="item")',
-                since_version='0.13')
-            if item is None:
-                return
-            self.remove(item, kind='item')
-            return
+        if not isinstance(item, items.Item):
+            raise ValueError("argument must be an Item")
 
         if item not in self.getItems():
             raise ValueError('Item not in the plot')
@@ -1033,14 +992,6 @@ class PlotWidget(qt.QMainWindow):
             return False
         else:
             return True
-
-    @deprecated(replacement='addItem', since_version='0.13')
-    def _add(self, item):
-        return self.addItem(item)
-
-    @deprecated(replacement='removeItem', since_version='0.13')
-    def _remove(self, item):
-        return self.removeItem(item)
 
     def getItems(self):
         """Returns the list of items in the plot
@@ -1131,8 +1082,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the curve (default: 1)
@@ -1541,8 +1492,8 @@ class PlotWidget(qt.QMainWindow):
         :type xerror: A float, or a numpy.ndarray of float32.
                       If it is an array, it can either be a 1D array of
                       same length as the data or a 2D array with 2 rows
-                      of same length as the data: row 0 for positive errors,
-                      row 1 for negative errors.
+                      of same length as the data: row 0 for lower errors,
+                      row 1 for upper errors.
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param int z: Layer on which to draw the scatter (default: 1)
@@ -1625,7 +1576,8 @@ class PlotWidget(qt.QMainWindow):
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
         :param info: User-defined information associated to the item
-        :param bool replace: True (default) to delete already existing images
+        :param bool replace: True to delete already existing items
+                             (the default is False)
         :param str shape: Type of item to be drawn in
                           hline, polygon (the default), rectangle, vline,
                           polylines
@@ -2145,27 +2097,6 @@ class PlotWidget(qt.QMainWindow):
         if curve is not None:
             curve.setHighlightedStyle(self.getActiveCurveStyle())
 
-    @deprecated(replacement="getActiveCurveStyle", since_version="0.9")
-    def getActiveCurveColor(self):
-        """Get the color used to display the currently active curve.
-
-        See :meth:`setActiveCurveColor`.
-        """
-        return self._activeCurveStyle.getColor()
-
-    @deprecated(replacement="setActiveCurveStyle", since_version="0.9")
-    def setActiveCurveColor(self, color="#000000"):
-        """Set the color to use to display the currently active curve.
-
-        :param str color: Color of the active curve,
-                          e.g., 'blue', 'b', '#FF0000' (Default: 'black')
-        """
-        if color is None:
-            color = "black"
-        if color in self.colorDict:
-            color = self.colorDict[color]
-        self.setActiveCurveStyle(color=color)
-
     def getActiveCurve(self, just_legend=False):
         """Return the currently active curve.
 
@@ -2475,37 +2406,6 @@ class PlotWidget(qt.QMainWindow):
         :return: None or :class:`.items.Histogram` object
         """
         return self._getItem(kind='histogram', legend=legend)
-
-    @deprecated(replacement='getItems', since_version='0.13')
-    def _getItems(self, kind=ITEM_KINDS, just_legend=False, withhidden=False):
-        """Retrieve all items of a kind in the plot
-
-        :param kind: The kind of elements to retrieve from the plot.
-                     See :attr:`ITEM_KINDS`.
-                     By default, it removes all kind of elements.
-        :type kind: str or tuple of str to specify multiple kinds.
-        :param str kind: Type of item: 'curve' or 'image'
-        :param bool just_legend: True to get the legend of the curves,
-                                 False (the default) to get the curves' data
-                                 and info.
-        :param bool withhidden: False (default) to skip hidden curves.
-        :return: list of legends or item objects
-        """
-        if kind == 'all':  # Replace all by tuple of all kinds
-            kind = self.ITEM_KINDS
-
-        if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
-            kind = (kind,)
-
-        for aKind in kind:
-            assert aKind in self.ITEM_KINDS
-
-        output = []
-        for item in self.getItems():
-            type_ = self._itemKind(item)
-            if type_ in kind and (withhidden or item.isVisible()):
-                output.append(item.getName() if just_legend else item)
-        return output
 
     def _getItem(self, kind, legend=None):
         """Get an item from the plot: either an image or a curve.
@@ -3368,14 +3268,6 @@ class PlotWidget(qt.QMainWindow):
         self.__graphCursorShape = cursor
         self._backend.setGraphCursorShape(cursor)
 
-    @deprecated(replacement='getItems', since_version='0.13')
-    def _getAllMarkers(self, just_legend=False):
-        markers = [item for item in self.getItems() if isinstance(item, items.MarkerBase)]
-        if just_legend:
-            return [marker.getName() for marker in markers]
-        else:
-            return markers
-
     def _getMarkerAt(self, x, y):
         """Return the most interactive marker at a location, else None
 
@@ -3624,7 +3516,7 @@ class PlotWidget(qt.QMainWindow):
         qapp = qt.QApplication.instance()
         event = qt.QMouseEvent(
             qt.QEvent.MouseMove,
-            self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
+            qt.QPointF(self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())),
             qt.Qt.NoButton,
             qapp.mouseButtons(),
             qapp.keyboardModifiers())

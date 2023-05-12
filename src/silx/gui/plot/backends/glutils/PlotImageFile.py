@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -93,14 +92,11 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     assert fileFormat in ('png', 'ppm', 'svg', 'tiff')
 
     if not hasattr(fileNameOrObj, 'write'):
-        if sys.version_info < (3, ):
-            fileObj = open(fileNameOrObj, "wb")
+        if fileFormat in ('png', 'ppm', 'tiff'):
+            # Open in binary mode
+            fileObj = open(fileNameOrObj, 'wb')
         else:
-            if fileFormat in ('png', 'ppm', 'tiff'):
-                # Open in binary mode
-                fileObj = open(fileNameOrObj, 'wb')
-            else:
-                fileObj = open(fileNameOrObj, 'w', newline='')
+            fileObj = open(fileNameOrObj, 'w', newline='')
     else:  # Use as a file-like object
         fileObj = fileNameOrObj
 

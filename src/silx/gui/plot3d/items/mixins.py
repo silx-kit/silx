@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2017-2020 European Synchrotron Radiation Facility
@@ -32,8 +31,6 @@ __date__ = "24/04/2018"
 
 import collections
 import numpy
-
-from silx.math.combo import min_max
 
 from ...plot.items.core import ItemMixInBase
 from ...plot.items.core import ColormapMixIn as _ColormapMixIn

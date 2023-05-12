@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,26 +28,6 @@ Read the documentation of :mod:`silx.io.spech5`, :mod:`silx.io.fioh5` and :mod:`
 information on the structure of the output HDF5 files.
 
 Text strings are written to the HDF5 datasets as variable-length utf-8.
-
-.. warning::
-
-    The output format for text strings changed in silx version 0.7.0.
-    Prior to that, text was output as fixed-length ASCII.
-
-    To be on the safe side, when reading back a HDF5 file written with an
-    older version of silx, you can test for the presence of a *decode*
-    attribute. To ensure that you always work with unicode text::
-
-        >>> import h5py
-        >>> h5f = h5py.File("my_scans.h5", "r")
-        >>> title = h5f["/68.1/title"]
-        >>> if hasattr(title, "decode"):
-        ...     title = title.decode()
-
-
-.. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
-    library, which is not a mandatory dependency for `silx`. You might need
-    to install it if you don't already have it.
 """
 
 __authors__ = ["P. Knobel"]

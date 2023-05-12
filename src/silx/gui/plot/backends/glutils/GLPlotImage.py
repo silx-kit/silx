@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,8 +32,6 @@ __date__ = "03/04/2017"
 
 import math
 import numpy
-
-from silx.math.combo import min_max
 
 from ...._glutils import gl, Program, Texture
 from ..._utils import FLOAT32_MINPOS

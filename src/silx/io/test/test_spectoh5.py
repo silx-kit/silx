@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 # Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
@@ -25,7 +24,6 @@
 
 from numpy import array_equal
 import os
-import sys
 import tempfile
 import unittest
 

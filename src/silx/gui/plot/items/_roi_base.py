@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,8 +43,6 @@ from ... import qt
 from .. import items
 from ..items import core
 from ...colors import rgba
-import silx.utils.deprecation
-from ....utils.proxy import docstring
 
 
 logger = logging.getLogger(__name__)
@@ -352,26 +349,6 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         if color != self._color:
             self._color = color
             self._updated(items.ItemChangedType.COLOR)
-
-    @silx.utils.deprecation.deprecated(reason='API modification',
-                                       replacement='getName()',
-                                       since_version=0.12)
-    def getLabel(self):
-        """Returns the label displayed for this ROI.
-
-        :rtype: str
-        """
-        return self.getName()
-
-    @silx.utils.deprecation.deprecated(reason='API modification',
-                                       replacement='setName(name)',
-                                       since_version=0.12)
-    def setLabel(self, label):
-        """Set the label displayed with this ROI.
-
-        :param str label: The text label to display
-        """
-        self.setName(name=label)
 
     def isEditable(self):
         """Returns whether the ROI is editable by the user or not.

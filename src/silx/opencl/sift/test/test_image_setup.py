@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -31,20 +30,24 @@
 Unit tests become more and more difficult as we progress in the global SIFT algorithm
 For a better code visibility, the setups required by kernels will be put here
 '''
-from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/06/2018"
+__date__ = "06/10/2022"
 
 import numpy
 try:
-    import scipy.ndimage
-    import scipy.misc
+    import scipy
 except ImportError:
     scipy = None
+else:
+    import scipy.ndimage
+    try:
+        from scipy.misc import ascent
+    except:
+        from scipy.datasets import ascent
 
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
@@ -61,8 +64,8 @@ def my_blur(img, sigma):
     x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
     gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
     gaussian /= gaussian.sum(dtype=numpy.float32)
-    tmp1 = scipy.ndimage.filters.convolve1d(img, gaussian, axis=-1, mode="reflect")
-    return scipy.ndimage.filters.convolve1d(tmp1, gaussian, axis=0, mode="reflect")
+    tmp1 = scipy.ndimage.convolve1d(img, gaussian, axis=-1, mode="reflect")
+    return scipy.ndimage.convolve1d(tmp1, gaussian, axis=0, mode="reflect")
 
 
 def local_maxmin_setup():
@@ -78,13 +81,8 @@ def local_maxmin_setup():
     nb_keypoints = 1000  # constant size !
     doubleimsize = 0  # par.DoubleImSize = 0 by default
 
-    if hasattr(scipy.misc, "ascent"):
-        l2 = scipy.misc.ascent().astype(numpy.float32)
-    else:
-        l2 = scipy.misc.lena().astype(numpy.float32)
-
+    l2 = ascent().astype(numpy.float32)
     l2 = numpy.ascontiguousarray(l2[0:507, 0:209])
-    # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
 
@@ -94,7 +92,7 @@ def local_maxmin_setup():
         # Blurs and DoGs pre-allocating
         g = (numpy.zeros(6 * height * width).astype(numpy.float32)).reshape(6, height, width)  # vector of 6 blurs
         DOGS = numpy.zeros((5, height, width), dtype=numpy.float32)  # vector of 5 DoGs
-        g[0, :, :] = numpy.copy(l)
+        g[0,:,:] = numpy.copy(l)
         '''
         sift.cpp pre-process
         '''
@@ -107,9 +105,9 @@ def local_maxmin_setup():
             # Convolving initial image to achieve std = initsigma = 1.6
             if (initsigma > cursigma):
                 sigma = numpy.sqrt(initsigma ** 2 - cursigma ** 2)
-                g[0, :, :] = my_blur(l, sigma)
+                g[0,:,:] = my_blur(l, sigma)
         else:
-            g[0, :, :] = numpy.copy(l)
+            g[0,:,:] = numpy.copy(l)
         '''
         Blurs and DoGs
         '''
@@ -154,7 +152,7 @@ def orientation_setup():
     # actual_nb_keypoints = numpy.int32(len((keypoints_prev[:,0])[keypoints_prev[:,1] != -1]))
     ref = numpy.copy(keypoints_prev)
     # There are actually less than "actual_nb_keypoints" keypoints ("holes" in the vector), but we can use it as a boundary
-    for i, k in enumerate(ref[:actual_nb_keypoints, :]):
+    for i, k in enumerate(ref[:actual_nb_keypoints,:]):
         ref[i] = my_interp_keypoint(DOGS, s, k[1], k[2], 5, peakthresh, width, height)
 
     grad, ori = my_gradient(blur)  # gradient is applied on blur[s]

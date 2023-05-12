@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2020 European Synchrotron Radiation Facility
@@ -27,8 +26,6 @@
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "23/10/2020"
-
-import unittest
 
 from silx.gui import qt
 from silx.gui.widgets.LegendIconWidget import LegendIconWidget

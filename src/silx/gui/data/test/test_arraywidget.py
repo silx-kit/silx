@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2021 European Synchrotron Radiation Facility
@@ -28,7 +27,6 @@ __date__ = "05/12/2016"
 
 import os
 import tempfile
-import unittest
 
 import numpy
 

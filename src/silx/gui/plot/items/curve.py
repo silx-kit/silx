@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +33,10 @@ import logging
 
 import numpy
 
-from ....utils.deprecation import deprecated
+from ....utils.deprecation import deprecated_warning
 from ... import colors
 from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, SymbolMixIn, ItemChangedType,
+                   FillMixIn, LineMixIn, SymbolMixIn,
                    BaselineMixIn, HighlightedMixIn, _Style)
 
 
@@ -210,6 +209,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use Curve methods")
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
@@ -241,26 +241,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         else:
             raise IndexError("Index out of range: %s", str(item))
 
-    @deprecated(replacement='Curve.getHighlightedStyle().getColor()',
-                since_version='0.9.0')
-    def getHighlightedColor(self):
-        """Returns the RGBA highlight color of the item
-
-        :rtype: 4-tuple of float in [0, 1]
-        """
-        return self.getHighlightedStyle().getColor()
-
-    @deprecated(replacement='Curve.setHighlightedStyle()',
-                since_version='0.9.0')
-    def setHighlightedColor(self, color):
-        """Set the color to use when highlighted
-
-        :param color: color(s) to be used for highlight
-        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-                     one of the predefined color names defined in colors.py
-        """
-        self.setHighlightedStyle(CurveStyle(color))
-
     def getCurrentStyle(self):
         """Returns the current curve style.
 
@@ -289,18 +269,6 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
                               linewidth=self.getLineWidth(),
                               symbol=self.getSymbol(),
                               symbolsize=self.getSymbolSize())
-
-    @deprecated(replacement='Curve.getCurrentStyle()',
-                since_version='0.9.0')
-    def getCurrentColor(self):
-        """Returns the current color of the curve.
-
-        This color is either the color of the curve or the highlighted color,
-        depending on the highlight state.
-
-        :rtype: 4-tuple of float in [0, 1]
-        """
-        return self.getCurrentStyle().getColor()
 
     def setData(self, x, y, xerror=None, yerror=None, baseline=None, copy=True):
         """Set the data of the curve.

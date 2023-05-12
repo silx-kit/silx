@@ -1,6 +1,5 @@
-# coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +25,7 @@ This module contains generic objects, emulating *h5py* groups, datasets and
 files. They are used in :mod:`spech5` and :mod:`fabioh5`.
 """
 import collections
-try:
-    from collections import abc
-except ImportError:  # Python2 support
-    import collections as abc
+from collections import abc
 import weakref
 
 import h5py
@@ -397,7 +393,7 @@ class Dataset(Node):
 
     def __array__(self, dtype=None):
         # Special case for (0,)*-shape datasets
-        if numpy.product(self.shape) == 0:
+        if numpy.prod(self.shape) == 0:
             return self[()]
         else:
             return numpy.array(self[...], dtype=self.dtype if dtype is None else dtype)

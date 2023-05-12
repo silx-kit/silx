@@ -1,27 +1,58 @@
-# -*- coding: utf-8 -*-
-
-# Taken from: https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
-# Plus: https://github.com/spyder-ide/qtpy/commit/001a862c401d757feb63025f88dbb4601d353c84
-
+# Adapted from https://github.com/spyder-ide/qtpy/blob/296dee3da8aba381b3cf17da34a6d17626e50357/qtpy/uic.py
+# In PySide, loadUi does not exist, so we define it using QUiLoader, and
+# then make sure we expose that function. This is adapted from qt-helpers
+# which was released under a 3-clause BSD license:
+# qt-helpers - a common front-end to various Qt modules
+#
+# Copyright (c) 2015, Chris Beaumont and Thomas Robitaille
+#
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the
+#    distribution.
+#  * Neither the name of the Glue project nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Which itself was based on the solution at
+#
+# https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
+#
+# which was released under the MIT license:
+#
 # Copyright (c) 2011 Sebastian Wiesner <lunaryorn@gmail.com>
 # Modifications by Charl Botha <cpbotha@vxlabs.com>
-# * customWidgets support (registerCustomWidget() causes segfault in
-#   pyside 1.1.2 on Ubuntu 12.04 x86_64)
-# * workingDirectory support in loadUi
-
-# found this here:
-# https://github.com/lunaryorn/snippets/blob/master/qt4/designer/pyside_dynamic.py
-
+#
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -30,144 +61,23 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-"""
-    How to load a user interface dynamically with PySide.
-
-    .. moduleauthor::  Sebastian Wiesner  <lunaryorn@gmail.com>
-"""
+"""How to load a user interface dynamically with PySide6"""
 
 import logging
 
 from ._qt import BINDING
-if BINDING == 'PySide2':
-    from PySide2.QtCore import QMetaObject, Property, Qt
-    from PySide2.QtWidgets import QFrame
-    from PySide2.QtUiTools import QUiLoader
-elif BINDING == 'PySide6':
-    from PySide6.QtCore import QMetaObject, Property, Qt
-    from PySide6.QtWidgets import QFrame
-    from PySide6.QtUiTools import QUiLoader
-else:
+if BINDING != 'PySide6':
     raise RuntimeError("Unsupported Qt binding: %s", BINDING)
+
+from PySide6.QtCore import QMetaObject, Property, Qt
+from PySide6.QtWidgets import QFrame
+from PySide6.QtUiTools import QUiLoader
 
 
 _logger = logging.getLogger(__name__)
 
 
-class UiLoader(QUiLoader):
-    """
-    Subclass :class:`~PySide.QtUiTools.QUiLoader` to create the user interface
-    in a base instance.
-
-    Unlike :class:`~PySide.QtUiTools.QUiLoader` itself this class does not
-    create a new instance of the top-level widget, but creates the user
-    interface in an existing instance of the top-level class.
-
-    This mimics the behaviour of :func:`PyQt*.uic.loadUi`.
-    """
-
-    def __init__(self, baseinstance, customWidgets=None):
-        """
-        Create a loader for the given ``baseinstance``.
-
-        The user interface is created in ``baseinstance``, which must be an
-        instance of the top-level class in the user interface to load, or a
-        subclass thereof.
-
-        ``customWidgets`` is a dictionary mapping from class name to class
-        object for widgets that you've promoted in the Qt Designer
-        interface. Usually, this should be done by calling
-        registerCustomWidget on the QUiLoader, but
-        with PySide 1.1.2 on Ubuntu 12.04 x86_64 this causes a segfault.
-
-        ``parent`` is the parent object of this loader.
-        """
-
-        QUiLoader.__init__(self, baseinstance)
-        self.baseinstance = baseinstance
-        self.customWidgets = {}
-        self.uifile = None
-        self.customWidgets.update(customWidgets)
-
-    def createWidget(self, class_name, parent=None, name=''):
-        """
-        Function that is called for each widget defined in ui file,
-        overridden here to populate baseinstance instead.
-        """
-
-        if parent is None and self.baseinstance:
-            # supposed to create the top-level widget, return the base instance
-            # instead
-            return self.baseinstance
-
-        else:
-            if class_name in self.availableWidgets():
-                # create a new widget for child widgets
-                widget = QUiLoader.createWidget(self, class_name, parent, name)
-
-            else:
-                # if not in the list of availableWidgets,
-                # must be a custom widget
-                # this will raise KeyError if the user has not supplied the
-                # relevant class_name in the dictionary, or TypeError, if
-                # customWidgets is None
-                if class_name not in self.customWidgets:
-                    raise Exception('No custom widget ' + class_name +
-                                    ' found in customWidgets param of' +
-                                    'UiFile %s.' % self.uifile)
-                try:
-                    widget = self.customWidgets[class_name](parent)
-                except Exception:
-                    _logger.error("Fail to instanciate widget %s from file %s", class_name, self.uifile)
-                    raise
-
-            if self.baseinstance:
-                # set an attribute for the new child widget on the base
-                # instance, just like PyQt*.uic.loadUi does.
-                setattr(self.baseinstance, name, widget)
-
-                # this outputs the various widget names, e.g.
-                # sampleGraphicsView, dockWidget, samplesTableView etc.
-                # print(name)
-
-            return widget
-
-    def _parse_custom_widgets(self, ui_file):
-        """
-        This function is used to parse a ui file and look for the <customwidgets>
-        section, then automatically load all the custom widget classes.
-        """
-        import importlib
-        from xml.etree.ElementTree import ElementTree
-
-        # Parse the UI file
-        etree = ElementTree()
-        ui = etree.parse(ui_file)
-
-        # Get the customwidgets section
-        custom_widgets = ui.find('customwidgets')
-
-        if custom_widgets is None:
-            return
-
-        custom_widget_classes = {}
-
-        for custom_widget in custom_widgets.getchildren():
-
-            cw_class = custom_widget.find('class').text
-            cw_header = custom_widget.find('header').text
-
-            module = importlib.import_module(cw_header)
-
-            custom_widget_classes[cw_class] = getattr(module, cw_class)
-
-        self.customWidgets.update(custom_widget_classes)
-
-    def load(self, uifile):
-        self._parse_custom_widgets(uifile)
-        self.uifile = uifile
-        return QUiLoader.load(self, uifile)
-
+# Specific custom widgets
 
 class _Line(QFrame):
     """Widget to use as 'Line' Qt designer"""
@@ -200,24 +110,134 @@ CUSTOM_WIDGETS = {"Line": _Line}
 """Default custom widgets for `loadUi`"""
 
 
+class UiLoader(QUiLoader):
+    """
+    Subclass of :class:`~PySide.QtUiTools.QUiLoader` to create the user
+    interface in a base instance.
+
+    Unlike :class:`~PySide.QtUiTools.QUiLoader` itself this class does not
+    create a new instance of the top-level widget, but creates the user
+    interface in an existing instance of the top-level class if needed.
+
+    This mimics the behaviour of :func:`PyQt4.uic.loadUi`.
+    """
+
+    def __init__(self, baseinstance, customWidgets=None):
+        """
+        Create a loader for the given ``baseinstance``.
+
+        The user interface is created in ``baseinstance``, which must be an
+        instance of the top-level class in the user interface to load, or a
+        subclass thereof.
+
+        ``customWidgets`` is a dictionary mapping from class name to class
+        object for custom widgets. Usually, this should be done by calling
+        registerCustomWidget on the QUiLoader, but with PySide 1.1.2 on
+        Ubuntu 12.04 x86_64 this causes a segfault.
+
+        ``parent`` is the parent object of this loader.
+        """
+
+        QUiLoader.__init__(self, baseinstance)
+
+        self.baseinstance = baseinstance
+
+        if customWidgets is None:
+            self.customWidgets = {}
+        else:
+            self.customWidgets = customWidgets
+
+    def createWidget(self, class_name, parent=None, name=''):
+        """
+        Function that is called for each widget defined in ui file,
+        overridden here to populate baseinstance instead.
+        """
+
+        if parent is None and self.baseinstance:
+            # supposed to create the top-level widget, return the base
+            # instance instead
+            return self.baseinstance
+
+        else:
+
+            # For some reason, Line is not in the list of available
+            # widgets, but works fine, so we have to special case it here.
+            if class_name in self.availableWidgets() or class_name == 'Line':
+                # create a new widget for child widgets
+                widget = QUiLoader.createWidget(self, class_name, parent, name)
+
+            else:
+                # If not in the list of availableWidgets, must be a custom
+                # widget. This will raise KeyError if the user has not
+                # supplied the relevant class_name in the dictionary or if
+                # customWidgets is empty.
+                try:
+                    widget = self.customWidgets[class_name](parent)
+                except KeyError as error:
+                    raise Exception(
+                        f'No custom widget {class_name} '
+                        'found in customWidgets'
+                        ) from error
+
+            if self.baseinstance:
+                # set an attribute for the new child widget on the base
+                # instance, just like PyQt4.uic.loadUi does.
+                setattr(self.baseinstance, name, widget)
+
+            return widget
+
+def _get_custom_widgets(ui_file):
+    """
+    This function is used to parse a ui file and look for the <customwidgets>
+    section, then automatically load all the custom widget classes.
+    """
+
+    import sys
+    import importlib
+    from xml.etree.ElementTree import ElementTree
+
+    # Parse the UI file
+    etree = ElementTree()
+    ui = etree.parse(ui_file)
+
+    # Get the customwidgets section
+    custom_widgets = ui.find('customwidgets')
+
+    if custom_widgets is None:
+        return {}
+
+    custom_widget_classes = {}
+
+    for custom_widget in list(custom_widgets):
+
+        cw_class = custom_widget.find('class').text
+        cw_header = custom_widget.find('header').text
+
+        module = importlib.import_module(cw_header)
+
+        custom_widget_classes[cw_class] = getattr(module, cw_class)
+
+    return custom_widget_classes
+
+
 def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
     """
     Dynamically load a user interface from the given ``uifile``.
 
     ``uifile`` is a string containing a file name of the UI file to load.
 
-    If ``baseinstance`` is ``None``, the a new instance of the top-level widget
-    will be created.  Otherwise, the user interface is created within the given
-    ``baseinstance``.  In this case ``baseinstance`` must be an instance of the
-    top-level widget class in the UI file to load, or a subclass thereof.  In
-    other words, if you've created a ``QMainWindow`` interface in the designer,
-    ``baseinstance`` must be a ``QMainWindow`` or a subclass thereof, too.  You
-    cannot load a ``QMainWindow`` UI file with a plain
-    :class:`~PySide.QtGui.QWidget` as ``baseinstance``.
+    If ``baseinstance`` is ``None``, the a new instance of the top-level
+    widget will be created. Otherwise, the user interface is created within
+    the given ``baseinstance``. In this case ``baseinstance`` must be an
+    instance of the top-level widget class in the UI file to load, or a
+    subclass thereof. In other words, if you've created a ``QMainWindow``
+    interface in the designer, ``baseinstance`` must be a ``QMainWindow``
+    or a subclass thereof, too. You cannot load a ``QMainWindow`` UI file
+    with a plain :class:`~PySide.QtGui.QWidget` as ``baseinstance``.
 
-    :method:`~PySide.QtCore.QMetaObject.connectSlotsByName()` is called on the
-    created user interface, so you can implemented your slots according to its
-    conventions in your widget class.
+    :method:`~PySide.QtCore.QMetaObject.connectSlotsByName()` is called on
+    the created user interface, so you can implemented your slots according
+    to its conventions in your widget class.
 
     Return ``baseinstance``, if ``baseinstance`` is not ``None``. Otherwise
     return the newly created instance of the user interface.
@@ -229,7 +249,15 @@ def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
         _logger.warning(
             "loadUi resource_suffix parameter not implemented with PySide")
 
-    loader = UiLoader(baseinstance, customWidgets=CUSTOM_WIDGETS)
+    # We parse the UI file and import any required custom widgets
+    customWidgets = _get_custom_widgets(uifile)
+
+    # Add CUSTOM_WIDGETS
+    for name, klass in CUSTOM_WIDGETS.items():
+        customWidgets.setdefault(name, klass)
+
+    loader = UiLoader(baseinstance, customWidgets)
+
     widget = loader.load(uifile)
     QMetaObject.connectSlotsByName(widget)
     return widget

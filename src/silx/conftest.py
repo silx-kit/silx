@@ -1,6 +1,9 @@
 import pytest
 import logging
 import os
+from io import BytesIO
+
+import h5py
 
 
 logger = logging.getLogger(__name__)
@@ -12,19 +15,19 @@ def _set_qt_binding(binding):
         if binding == "pyqt5":
             logger.info("Force using PyQt5")
             import PyQt5.QtCore  # noqa
-        elif binding == "pyside2":
-            logger.info("Force using PySide2")
-            import PySide2.QtCore  # noqa
         elif binding == "pyside6":
             logger.info("Force using PySide6")
             import PySide6.QtCore  # noqa
+        elif binding == "pyqt6":
+            logger.info("Force using PyQt6")
+            import PyQt6.QtCore  # noqa
         else:
             raise ValueError("Qt binding '%s' is unknown" % binding)
 
 
 def pytest_addoption(parser):
     parser.addoption("--qt-binding", type=str, default=None, dest="qt_binding",
-                     help="Force using a Qt binding: 'PyQt5', 'PySide2', 'PySide6'")
+                     help="Force using a Qt binding: 'PyQt5', 'PySide6', 'PyQt6'")
     parser.addoption("--no-gui", dest="gui", default=True,
                      action="store_false",
                      help="Disable the test of the graphical use interface")
@@ -128,3 +131,10 @@ def qapp_utils(qapp):
     yield utils
     utils.tearDown()
     utils.tearDownClass()
+
+
+@pytest.fixture
+def tmp_h5py_file():
+    with BytesIO() as buffer:
+        with h5py.File(buffer, mode="w") as h5file:
+            yield h5file

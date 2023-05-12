@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2022 European Synchrotron Radiation Facility
@@ -26,7 +25,6 @@
 This module defines a data model for displaying and editing arrays of any
 number of dimensions in a table view.
 """
-from __future__ import division
 import numpy
 import logging
 from silx.gui import qt
@@ -235,7 +233,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
             selection = self._getIndexTuple(row, column)
 
-            if role == qt.Qt.DisplayRole:
+            if role == qt.Qt.DisplayRole or role == qt.Qt.EditRole:
                 return self._formatter.toString(self._array[selection], self._array.dtype)
 
             if role == qt.Qt.BackgroundRole and self._bgcolors is not None:

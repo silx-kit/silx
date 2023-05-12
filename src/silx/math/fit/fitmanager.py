@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*#########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -600,8 +599,7 @@ class FitManager(object):
             theories_module = theories
         else:
             # if theories is not a module, it must be a string
-            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
-            if not isinstance(theories, string_types):
+            if not isinstance(theories, str):
                 raise ImportError("theory must be a python module, a module" +
                                   "name or a python filename")
             # if theories is a filename
@@ -659,8 +657,7 @@ class FitManager(object):
             theories_module = theories
         else:
             # if theories is not a module, it must be a string
-            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
-            if not isinstance(theories, string_types):
+            if not isinstance(theories, str):
                 raise ImportError("theory must be a python module, a module" +
                                   "name or a python filename")
             # if theories is a filename

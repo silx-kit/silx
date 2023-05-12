@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module provides interaction to plug on the scene graph."""
-
-from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -61,8 +58,6 @@ class ClickOrDrag(StateMachine):
         def enterState(self, x, y):
             self.initPos = x, y
 
-        enter = enterState  # silx v.0.3 support, remove when 0.4 out
-
         def onMove(self, x, y):
             dx = (x - self.initPos[0]) ** 2
             dy = (y - self.initPos[1]) ** 2
@@ -79,8 +74,6 @@ class ClickOrDrag(StateMachine):
             self.initPos = initPos
             self.machine.beginDrag(*initPos)
             self.machine.drag(*curPos)
-
-        enter = enterState  # silx v.0.3 support, remove when 0.4 out
 
         def onMove(self, x, y):
             self.machine.drag(x, y)
@@ -406,8 +399,6 @@ class FocusManager(StateMachine):
         def enterState(self, eventHandler, btn):
             self.eventHandler = eventHandler
             self.focusBtns = {btn}  # Set
-
-        enter = enterState  # silx v.0.3 support, remove when 0.4 out
 
         def onPress(self, x, y, btn):
             self.focusBtns.add(btn)

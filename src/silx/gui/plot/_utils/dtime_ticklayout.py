@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2014-2022 European Synchrotron Radiation Facility
@@ -23,8 +22,6 @@
 #
 # ###########################################################################*/
 """This module implements date-time labels layout on graph axes."""
-
-from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["P. Kenter"]
 __license__ = "MIT"

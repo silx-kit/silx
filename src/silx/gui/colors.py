@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +24,6 @@
 """This module provides API to manage colors.
 """
 
-from __future__ import absolute_import
-
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "29/01/2019"
@@ -38,15 +35,19 @@ from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
 from silx.utils.exceptions import NotEditableError
-from silx.utils import deprecation
 
 
 _logger = logging.getLogger(__name__)
 
 try:
     import silx.gui.utils.matplotlib  # noqa  Initalize matplotlib
-    from matplotlib import cm as _matplotlib_cm
-    from matplotlib.pyplot import colormaps as _matplotlib_colormaps
+    try:
+        from matplotlib import colormaps as _matplotlib_colormaps
+    except ImportError:  # For matplotlib < 3.5
+        from matplotlib import cm as _matplotlib_cm
+        from matplotlib.pyplot import colormaps as _matplotlib_colormaps
+    else:
+        _matplotlib_cm = None
 except ImportError:
     _logger.info("matplotlib not available, only embedded colormaps available")
     _matplotlib_cm = None
@@ -183,7 +184,10 @@ def cursorColorForColormap(colormapName):
 # Colormap loader
 
 def _registerColormapFromMatplotlib(name, cursor_color='black', preferred=False):
-    colormap = _matplotlib_cm.get_cmap(name)
+    if _matplotlib_cm is not None:
+        colormap = _matplotlib_cm.get_cmap(name)
+    else:  # matplotlib >= 3.5
+        colormap = _matplotlib_colormaps[name]
     lut = colormap(numpy.linspace(0, 1, colormap.N, endpoint=True))
     colors = _colormap.array_to_rgba8888(lut)
     registerLUT(name, colors, cursor_color, preferred)
@@ -286,13 +290,7 @@ class Colormap(qt.QObject):
         self._colors = None
 
         if colors is not None and name is not None:
-            deprecation.deprecated_warning("Argument",
-                                           name="silx.gui.plot.Colors",
-                                           reason="name and colors can't be used at the same time",
-                                           since_version="0.10.0",
-                                           skip_backtrace_count=1)
-
-            colors = None
+            raise ValueError("name and colors arguments can't be set at the same time")
 
         if name is not None:
             self.setName(name)  # And resets colormap LUT
@@ -663,6 +661,12 @@ class Colormap(qt.QObject):
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
+
+        if (vmin is not None and not numpy.isfinite(vmin)) or (vmax is not None and not numpy.isfinite(vmax)):
+            err = "Can't set vmin and vmax because vmin or vmax are not finite " \
+                    "vmin = %s, vmax = %s" % (vmin, vmax)
+            raise ValueError(err)
+
         if vmin is not None and vmax is not None:
             if vmin > vmax:
                 err = "Can't set vmin and vmax because vmin >= vmax " \

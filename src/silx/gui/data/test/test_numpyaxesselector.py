@@ -1,4 +1,3 @@
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2019 European Synchrotron Radiation Facility
@@ -28,7 +27,6 @@ __date__ = "29/01/2018"
 
 import os
 import tempfile
-import unittest
 from contextlib import contextmanager
 
 import numpy

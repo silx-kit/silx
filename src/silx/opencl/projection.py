@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 # /*##########################################################################
 #
 # Copyright (c) 2016-2020 European Synchrotron Radiation Facility
@@ -24,8 +23,6 @@
 #
 # ###########################################################################*/
 """Module for tomographic projector on the GPU"""
-
-from __future__ import absolute_import, print_function, with_statement, division
 
 __authors__ = ["A. Mirone, P. Paleo"]
 __license__ = "MIT"
