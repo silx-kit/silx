@@ -35,6 +35,7 @@ import logging
 import numpy
 
 from ....utils.proxy import docstring
+from ....utils.deprecation import deprecated_warning
 from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
                    AlphaMixIn, ItemChangedType)
 
@@ -102,6 +103,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageBase methods")
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
@@ -405,6 +407,7 @@ class ImageData(ImageDataBase):
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
+        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageData methods")
         if item == 3:
             return self.getAlternativeImageData(copy=False)
 
