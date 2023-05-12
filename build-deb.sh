@@ -50,6 +50,9 @@ then
             bullseye)
                 debian_version=11
                 ;;
+            bookworm)
+                debian_version=12
+                ;;
         esac
     fi
 
@@ -91,6 +94,7 @@ optional arguments:
     --debian9       Simulate a debian 9 Stretch system
     --debian10      Simulate a debian 10 Buster system
     --debian11      Simulate a debian 11 Bullseye system
+    --debian12      Simulate a debian 12 Bookworm system
 "
 
 install=0
@@ -134,6 +138,13 @@ do
           ;;
       --debian11)
           debian_version=11
+          target_system=debian${debian_version}
+          dist_directory=${project_directory}/dist/${target_system}
+          build_directory=${project_directory}/build/${target_system}
+          shift
+          ;;
+      --debian12)
+          debian_version=12
           target_system=debian${debian_version}
           dist_directory=${project_directory}/dist/${target_system}
           build_directory=${project_directory}/build/${target_system}
