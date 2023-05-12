@@ -677,10 +677,15 @@ class CompareImages(qt.QMainWindow):
             It also could be a string containing information is some cases.
         :rtype: Tuple(Union[int,float,numpy.ndarray,str],Union[int,float,numpy.ndarray,str])
         """
-        data2 = None
         alignmentMode = self.__alignmentMode
         raw1, raw2 = self.__raw1, self.__raw2
-        if alignmentMode == AlignmentMode.ORIGIN:
+
+        if raw1 is None or raw2 is None:
+            x1 = x
+            y1 = y
+            x2 = x
+            y2 = y
+        elif alignmentMode == AlignmentMode.ORIGIN:
             x1 = x
             y1 = y
             x2 = x
@@ -701,22 +706,29 @@ class CompareImages(qt.QMainWindow):
             x1 = x
             y1 = y
             # Not implemented
-            data2 = "Not implemented with sift"
+            x2 = -1
+            y2 = -1
         else:
             assert(False)
 
         x1, y1 = int(x1), int(y1)
-        if raw1 is None or y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
-            data1 = None
+        x2, y2 = int(x2), int(y2)
+
+        if raw1 is None:
+            data1 = "No image A"
+        elif y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
+            data1 = ""
         else:
             data1 = raw1[y1, x1]
 
-        if data2 is None:
-            x2, y2 = int(x2), int(y2)
-            if raw2 is None or y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
-                data2 = None
-            else:
-                data2 = raw2[y2, x2]
+        if raw2 is None:
+            data2 = "No image B"
+        elif alignmentMode == AlignmentMode.AUTO:
+            data2 = "Not implemented with sift"
+        elif y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
+            data2 = None
+        else:
+            data2 = raw2[y2, x2]
 
         return data1, data2
 

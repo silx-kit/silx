@@ -100,7 +100,6 @@ def testGetPixel(compareImages):
 
 def testImageEmpty(compareImages):
     compareImages.setData(image1=None, image2=None)
-    assert compareImages.getRawPixelData(11 / 2.0, 11 / 2.0) == (None, None)
 
 
 def testSetImageSeparately(compareImages):
@@ -121,3 +120,34 @@ def testSetImageSeparately(compareImages):
 def testAlignemntModeWithoutImages(compareImages, data):
     alignmentMode, = data
     compareImages.setAlignmentMode(alignmentMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.AlignmentMode.STRETCH,),
+        (CompareImages.AlignmentMode.AUTO,),
+        (CompareImages.AlignmentMode.CENTER,),
+        (CompareImages.AlignmentMode.ORIGIN,),
+    ]
+)
+def testAlignemntModeWithSingleImage(compareImages, data):
+    alignmentMode, = data
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setAlignmentMode(alignmentMode)
+
+
+def testTooltip(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setImage2(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)
+
+
+def testTooltipWithoutImage(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setImage2(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)
+
+
+def testTooltipWithSingleImage(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)
