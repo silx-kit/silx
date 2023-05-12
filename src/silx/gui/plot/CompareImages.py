@@ -947,17 +947,17 @@ class CompareImages(qt.QMainWindow):
         alignmentMode = self.getAlignmentMode()
         self.__transformation = None
 
-        if self.__raw1 is None or self.__raw2 is None:
+        if raw1 is None or raw2 is None:
             # No need to realign the 2 images
             # But create a dummy image when there is None for simplification
             if raw1 is None:
-                raw1 = numpy.empty((1, 1))
-                raw1[0, 0] = numpy.nan
+                data1 = numpy.empty((0, 0))
+            else:
+                data1 = raw1
             if raw2 is None:
-                raw2 = numpy.empty((1, 1))
-                raw2[0, 0] = numpy.nan
-            data1 = raw1
-            data2 = raw2
+                data2 = numpy.empty((0, 0))
+            else:
+                data2 = raw2
             self.__matching_keypoints = None
         else:
             if alignmentMode == AlignmentMode.ORIGIN:
@@ -1004,14 +1004,22 @@ class CompareImages(qt.QMainWindow):
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
-            data1 = data1.astype(numpy.float64) - data2.astype(numpy.float64)
+            data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            data1 = self.__composeImage(data1, data2, mode)
-            data2 = numpy.empty((0, 0))
+            data1 = self.__asIntensityImage(data1)
+            data2 = self.__asIntensityImage(data2)
+            if raw1 is None:
+                data1 = data2
+                data2 = numpy.empty((0, 0))
+            elif raw2 is None:
+                data2 = numpy.empty((0, 0))
+            else:
+                data1 = data1.astype(numpy.float32) - data2.astype(numpy.float32)
+                data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_B:
@@ -1103,30 +1111,43 @@ class CompareImages(qt.QMainWindow):
         """Returns an RBG image containing composition of data1 and data2 in 2
         different channels
 
+        A data image of a size of 0 is considered as missing. This does not
+        interrupt the processing.
+
         :param numpy.ndarray data1: First image
         :param numpy.ndarray data1: Second image
         :param VisualizationMode mode: Composition mode.
         :rtype: numpy.ndarray
         """
-        assert(data1.shape[0:2] == data2.shape[0:2])
-        mode1 = self.__getImageMode(data1)
-        if mode1 in ["rgb", "rgba"]:
-            intensity1 = self.__luminosityImage(data1)
+        if data1.size != 0 and data2.size != 0:
+            assert(data1.shape[0:2] == data2.shape[0:2])
+
+        if data1.size == 0:
+            intensity1 = numpy.zeros(data2.shape[0:2])
             vmin1, vmax1 = 0.0, 1.0
         else:
-            intensity1 = data1
-            vmin1, vmax1 = data1.min(), data1.max()
+            mode1 = self.__getImageMode(data1)
+            if mode1 in ["rgb", "rgba"]:
+                intensity1 = self.__luminosityImage(data1)
+                vmin1, vmax1 = 0.0, 1.0
+            else:
+                intensity1 = data1
+                vmin1, vmax1 = data1.min(), data1.max()
 
-        mode2 = self.__getImageMode(data2)
-        if mode2 in ["rgb", "rgba"]:
-            intensity2 = self.__luminosityImage(data2)
+        if data2.size == 0:
+            intensity2 = numpy.zeros(data1.shape[0:2])
             vmin2, vmax2 = 0.0, 1.0
         else:
-            intensity2 = data2
-            vmin2, vmax2 = data2.min(), data2.max()
+            mode2 = self.__getImageMode(data2)
+            if mode2 in ["rgb", "rgba"]:
+                intensity2 = self.__luminosityImage(data2)
+                vmin2, vmax2 = 0.0, 1.0
+            else:
+                intensity2 = data2
+                vmin2, vmax2 = data2.min(), data2.max()
 
         vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
-        shape = data1.shape
+        shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
         a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
@@ -1140,8 +1161,24 @@ class CompareImages(qt.QMainWindow):
             result[:, :, 2] = 255 - a
         return result
 
-    def __luminosityImage(self, image):
+    def __asIntensityImage(self, image: numpy.ndarray):
+        """Returns an intensity image.
+
+        If the image use a single channel, it will be returned as it is.
+
+        If the image is an RBG(A) image, the luminosity (0..1) is extracted and
+        returned. The alpha channel is ignored.
+
+        :rtype: numpy.ndarray
+        """
+        mode = self.__getImageMode(image)
+        if mode in ["rgb", "rgba"]:
+            return self.__luminosityImage(image)
+        return image
+
+    def __luminosityImage(self, image: numpy.ndarray):
         """Returns the luminosity channel from an RBG(A) image.
+
         The alpha channel is ignored.
 
         :rtype: numpy.ndarray
