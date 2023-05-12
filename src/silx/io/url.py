@@ -37,6 +37,35 @@ from pathlib import Path
 _logger = logging.getLogger(__name__)
 
 
+def _slice_to_string(s):
+    """Convert a Python slice into a string"""
+    if s == Ellipsis:
+        return "..."
+    elif isinstance(s, slice):
+        result = ""
+        if s.start is None:
+            result += ":"
+        else:
+            result += f"{s.start}:"
+        if s.stop is not None:
+            result += f"{s.stop}"
+        if s.step is not None:
+            result += f":{s.step}"
+        return result
+    elif isinstance(s, int):
+        return str(s)
+    else:
+        raise TypeError("Unexpected slicing type. Found %s" % type(s))
+
+
+def slice_sequence_to_string(data_slice):
+    """Convert a Python slice sequence or a slice into a string"""
+    if isinstance(data_slice, Iterable):
+        return ",".join([_slice_to_string(s) for s in data_slice])
+    else:
+        return _slice_to_string(data_slice)
+
+
 class DataUrl(object):
     """Non-mutable object to parse a string representing a resource data
     locator.
@@ -302,16 +331,6 @@ class DataUrl(object):
         if self.__path is not None:
             return self.__path
 
-        def slice_to_string(data_slice):
-            if data_slice == Ellipsis:
-                return "..."
-            elif data_slice == slice(None):
-                return ":"
-            elif isinstance(data_slice, int):
-                return str(data_slice)
-            else:
-                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
-
         if self.__data_path is not None and self.__data_slice is None:
             query = self.__data_path
         else:
@@ -319,10 +338,7 @@ class DataUrl(object):
             if self.__data_path is not None:
                 queries.append("path=" + self.__data_path)
             if self.__data_slice is not None:
-                if isinstance(self.__data_slice, Iterable):
-                    data_slice = ",".join([slice_to_string(s) for s in self.__data_slice])
-                else:
-                    data_slice = slice_to_string(self.__data_slice)
+                data_slice = slice_sequence_to_string(self.__data_slice)
                 queries.append("slice=" + data_slice)
             query = "&".join(queries)
 

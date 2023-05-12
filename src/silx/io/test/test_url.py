@@ -242,6 +242,14 @@ def test_wrong_url():
     [
         (1, "silx:///foo.h5?slice=1"),
         ((1,), "silx:///foo.h5?slice=1"),
+        (slice(None), "silx:///foo.h5?slice=:"),
+        (slice(1, None), "silx:///foo.h5?slice=1:"),
+        (slice(None, -2), "silx:///foo.h5?slice=:-2"),
+        (slice(1, None, 3), "silx:///foo.h5?slice=1::3"),
+        (slice(None, 2, 3), "silx:///foo.h5?slice=:2:3"),
+        (slice(None, None, 3), "silx:///foo.h5?slice=::3"),
+        (slice(1, 2, 3), "silx:///foo.h5?slice=1:2:3"),
+        ((1,slice(1,2)), "silx:///foo.h5?slice=1,1:2"),
     ]
 )
 def test_path_creation(data):
