@@ -1632,18 +1632,6 @@ class _NXdataCurveView(_NXdataBaseDataView):
         else:
             x_errors = None
 
-        # this fix is necessary until the next release of PyMca (5.2.3 or 5.3.0)
-        # see https://github.com/vasole/pymca/issues/144 and https://github.com/vasole/pymca/pull/145
-        if not hasattr(self.getWidget(), "setCurvesData") and \
-                hasattr(self.getWidget(), "setCurveData"):
-            _logger.warning("Using deprecated ArrayCurvePlot API, "
-                            "without support of auxiliary signals")
-            self.getWidget().setCurveData(nxd.signal, nxd.axes[-1],
-                                          yerror=nxd.errors, xerror=x_errors,
-                                          ylabel=nxd.signal_name, xlabel=nxd.axes_names[-1],
-                                          title=nxd.title or nxd.signal_name)
-            return
-
         self.getWidget().setCurvesData([nxd.signal] + nxd.auxiliary_signals, nxd.axes[-1],
                                        yerror=nxd.errors, xerror=x_errors,
                                        ylabels=signals_names, xlabel=nxd.axes_names[-1],
