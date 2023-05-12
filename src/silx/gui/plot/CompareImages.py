@@ -1004,7 +1004,7 @@ class CompareImages(qt.QMainWindow):
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
-            data1 = self.__composeImage(data1, data2, mode)
+            data1 = data1.astype(numpy.float64) - data2.astype(numpy.float64)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
@@ -1109,13 +1109,6 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         assert(data1.shape[0:2] == data2.shape[0:2])
-        if mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            # TODO: this calculation has no interest of generating a 'composed'
-            # rgb image, this could be moved in an other function or doc
-            # should be modified
-            _type = data1.dtype
-            result = data1.astype(numpy.float64) - data2.astype(numpy.float64)
-            return result
         mode1 = self.__getImageMode(data1)
         if mode1 in ["rgb", "rgba"]:
             intensity1 = self.__luminosityImage(data1)
