@@ -35,7 +35,7 @@ import logging
 from silx.gui import qt
 from silx.gui import utils as qtutils
 from silx.gui.widgets.TableWidget import TableWidget
-from silx.io.url import DataUrl
+from silx.io.url import DataUrl, slice_sequence_to_string
 from silx.utils.deprecation import deprecated, deprecated_warning
 from silx.gui import constants
 
@@ -71,28 +71,33 @@ class _IntegratedRadioButton(qt.QWidget):
 
 
 class _DataUrlItem(qt.QTableWidgetItem):
-    def __init__(self, url):
+
+    FILENAME = 0
+    DATAPATH = 1
+    SLICE = 2
+
+    def __init__(self, url, display: int):
         qt.QTableWidgetItem.__init__(self)
         self._url = url
+        self._display = display
 
-        def slice_to_string(data_slice):
-            if data_slice == Ellipsis:
-                return "..."
-            elif data_slice == slice(None):
-                return ":"
-            elif isinstance(data_slice, int):
-                return str(data_slice)
+        if self._display == self.FILENAME:
+            text = os.path.basename(self._url.file_path())
+        elif self._display == self.DATAPATH:
+            text = self._url.data_path()
+        elif self._display == self.SLICE:
+            s = self._url.data_slice()
+            if s is not None:
+                text = slice_sequence_to_string(self._url.data_slice())
             else:
-                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
+                text = ""
+        else:
+            raise RuntimeError(f"Unsupported display node: {self._display}")
 
-        text = os.path.basename(url.file_path())
-        if url.data_path() is not None:
-            text += f" {url.data_path()}"
-        if url.data_slice() is not None:
-            text += f" [{slice_to_string(url.data_slice())}]"
+        toolTip = self._url.path()
 
         self.setText(text)
-        self.setToolTip(url.path())
+        self.setToolTip(toolTip)
 
     def dataUrl(self):
         return self._url
@@ -101,10 +106,12 @@ class _DataUrlItem(qt.QTableWidgetItem):
 class UrlSelectionTable(TableWidget):
     """Table used to select the color channel to be displayed for each"""
 
-    URL_COLUMN = 0
-    IMG_A_COLUMN = 1
-    IMG_B_COLUMN = 2
-    NB_COLUMNS = 3
+    FILENAME_COLUMN = 0
+    DATAPATH_COLUMN = 1
+    SLICE_COLUMN = 2
+    IMG_A_COLUMN = 3
+    IMG_B_COLUMN = 4
+    NB_COLUMNS = 5
 
     sigImageAChanged = qt.Signal(str)
     """Signal emitted when the image A change. Param is the image url path"""
@@ -124,9 +131,17 @@ class UrlSelectionTable(TableWidget):
         self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         item = qt.QTableWidgetItem()
-        item.setText("Url")
-        item.setToolTip("Silx URL to the data")
-        self.setHorizontalHeaderItem(self.URL_COLUMN, item)
+        item.setText("Filename")
+        item.setToolTip("Filename to the data")
+        self.setHorizontalHeaderItem(self.FILENAME_COLUMN, item)
+        item = qt.QTableWidgetItem()
+        item.setText("Datapath")
+        item.setToolTip("Data path to the dataset")
+        self.setHorizontalHeaderItem(self.DATAPATH_COLUMN, item)
+        item = qt.QTableWidgetItem()
+        item.setText("Slice")
+        item.setToolTip("Slice applied to the dataset")
+        self.setHorizontalHeaderItem(self.SLICE_COLUMN, item)
         item = qt.QTableWidgetItem()
         item.setText("A")
         item.setToolTip("Selected image as A")
@@ -138,7 +153,9 @@ class UrlSelectionTable(TableWidget):
 
         self.verticalHeader().hide()
         setSectionResizeMode = self.horizontalHeader().setSectionResizeMode
-        setSectionResizeMode(self.URL_COLUMN, qt.QHeaderView.Stretch)
+        setSectionResizeMode(self.FILENAME_COLUMN, qt.QHeaderView.ResizeToContents)
+        setSectionResizeMode(self.DATAPATH_COLUMN, qt.QHeaderView.Stretch)
+        setSectionResizeMode(self.SLICE_COLUMN, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(self.IMG_A_COLUMN, qt.QHeaderView.ResizeToContents)
         setSectionResizeMode(self.IMG_B_COLUMN, qt.QHeaderView.ResizeToContents)
         self.setSortingEnabled(True)
@@ -165,9 +182,17 @@ class UrlSelectionTable(TableWidget):
         row = self.rowCount()
         self.setRowCount(row + 1)
 
-        item = _DataUrlItem(url)
+        item = _DataUrlItem(url, _DataUrlItem.FILENAME)
         item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
-        self.setItem(row, self.URL_COLUMN, item)
+        self.setItem(row, self.FILENAME_COLUMN, item)
+
+        item = _DataUrlItem(url, _DataUrlItem.DATAPATH)
+        item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+        self.setItem(row, self.DATAPATH_COLUMN, item)
+
+        item = _DataUrlItem(url, _DataUrlItem.SLICE)
+        item.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+        self.setItem(row, self.SLICE_COLUMN, item)
 
         widgetImgA = _IntegratedRadioButton(parent=self)
         self.setCellWidget(row, self.IMG_A_COLUMN, widgetImgA)
@@ -189,7 +214,7 @@ class UrlSelectionTable(TableWidget):
     def _getItemFromUrlPath(self, urlPath: str) -> _DataUrlItem:
         """Returns the Qt item storing this urlPath, else None"""
         for r in range(self.rowCount()):
-            item = self.item(r, self.URL_COLUMN)
+            item = self.item(r, self.FILENAME_COLUMN)
             url = item.dataUrl()
             if url.path() == urlPath:
                 return item
@@ -212,7 +237,7 @@ class UrlSelectionTable(TableWidget):
     def _activeImgAChanged(self, row):
         if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
             self._updateCheckBoxes(self.IMG_A_COLUMN, row)
-            url = self.item(row, self.URL_COLUMN).dataUrl()
+            url = self.item(row, self.FILENAME_COLUMN).dataUrl()
             self.sigImageAChanged.emit(url.path())
         else:
             self.sigImageAChanged.emit(None)
@@ -220,7 +245,7 @@ class UrlSelectionTable(TableWidget):
     def _activeImgBChanged(self, row):
         if self._checkBoxes[row][self.IMG_B_COLUMN].isChecked():
             self._updateCheckBoxes(self.IMG_B_COLUMN, row)
-            url = self.item(row, self.URL_COLUMN).dataUrl()
+            url = self.item(row, self.FILENAME_COLUMN).dataUrl()
             self.sigImageBChanged.emit(url.path())
         else:
             self.sigImageBChanged.emit(None)
@@ -256,7 +281,7 @@ class UrlSelectionTable(TableWidget):
         """
         imgA = imgB = None
         for row in range(self.rowCount()):
-            url = self.item(row, self.URL_COLUMN).dataUrl()
+            url = self.item(row, self.FILENAME_COLUMN).dataUrl()
             if self._checkBoxes[row][self.IMG_A_COLUMN].isChecked():
                 imgA = url
             if self._checkBoxes[row][self.IMG_B_COLUMN].isChecked():
@@ -275,7 +300,7 @@ class UrlSelectionTable(TableWidget):
                 c = self._checkBoxes[row][img]
                 with qtutils.blockSignals(c):
                     c.setChecked(False)
-            url = self.item(row, self.URL_COLUMN).dataUrl()
+            url = self.item(row, self.FILENAME_COLUMN).dataUrl()
             if url.path() == url_img_a:
                 rowA = row
             if url.path() == url_img_b:
