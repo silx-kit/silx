@@ -108,3 +108,16 @@ def testSetImageSeparately(compareImages):
     compareImages.setImage2(numpy.random.rand(10, 10))
     for mode in CompareImages.VisualizationMode:
         compareImages.setVisualizationMode(mode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.AlignmentMode.STRETCH,),
+        (CompareImages.AlignmentMode.AUTO,),
+        (CompareImages.AlignmentMode.CENTER,),
+        (CompareImages.AlignmentMode.ORIGIN,),
+    ]
+)
+def testAlignemntModeWithoutImages(compareImages, data):
+    alignmentMode, = data
+    compareImages.setAlignmentMode(alignmentMode)

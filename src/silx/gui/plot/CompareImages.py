@@ -913,7 +913,7 @@ class CompareImages(qt.QMainWindow):
     def __updateKeyPoints(self):
         """Update the displayed keypoints using cached keypoints.
         """
-        if self.__keypointsVisible:
+        if self.__keypointsVisible and self.__matching_keypoints:
             data = self.__matching_keypoints
         else:
             data = [], [], []
@@ -931,57 +931,64 @@ class CompareImages(qt.QMainWindow):
         vertical/horizontal separators moves.
         """
         raw1, raw2 = self.__raw1, self.__raw2
-        if raw1 is None:
-            raw1 = numpy.empty((1, 1))
-            raw1[0, 0] = numpy.nan
-        if raw2 is None:
-            raw2 = numpy.empty((1, 1))
-            raw2[0, 0] = numpy.nan
 
         alignmentMode = self.getAlignmentMode()
         self.__transformation = None
 
-        if alignmentMode == AlignmentMode.ORIGIN:
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size, transparent=True)
-            data2 = self.__createMarginImage(raw2, size, transparent=True)
-            self.__matching_keypoints = [0.0], [0.0], [1.0]
-        elif alignmentMode == AlignmentMode.CENTER:
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
-            data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
-            self.__matching_keypoints = ([data1.shape[1] // 2],
-                                         [data1.shape[0] // 2],
-                                         [1.0])
-        elif alignmentMode == AlignmentMode.STRETCH:
+        if self.__raw1 is None or self.__raw2 is None:
+            # No need to realign the 2 images
+            # But create a dummy image when there is None for simplification
+            if raw1 is None:
+                raw1 = numpy.empty((1, 1))
+                raw1[0, 0] = numpy.nan
+            if raw2 is None:
+                raw2 = numpy.empty((1, 1))
+                raw2[0, 0] = numpy.nan
             data1 = raw1
-            data2 = self.__rescaleImage(raw2, data1.shape)
-            self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
-                                         [0, 0, data1.shape[0], data1.shape[0]],
-                                         [1.0, 1.0, 1.0, 1.0])
-        elif alignmentMode == AlignmentMode.AUTO:
-            # TODO: sift implementation do not support RGBA images
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size)
-            data2 = self.__createMarginImage(raw2, size)
-            self.__matching_keypoints = [0.0], [0.0], [1.0]
-            try:
-                data1, data2 = self.__createSiftData(data1, data2)
-                if data2 is None:
-                    raise ValueError("Unexpected None value")
-            except Exception as e:
-                # TODO: Display it on the GUI
-                _logger.error(e)
-                self.__setDefaultAlignmentMode()
-                return
+            data2 = raw2
+            self.__matching_keypoints = None
         else:
-            assert(False)
+            if alignmentMode == AlignmentMode.ORIGIN:
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size, transparent=True)
+                data2 = self.__createMarginImage(raw2, size, transparent=True)
+                self.__matching_keypoints = [0.0], [0.0], [1.0]
+            elif alignmentMode == AlignmentMode.CENTER:
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
+                data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
+                self.__matching_keypoints = ([data1.shape[1] // 2],
+                                             [data1.shape[0] // 2],
+                                             [1.0])
+            elif alignmentMode == AlignmentMode.STRETCH:
+                data1 = raw1
+                data2 = self.__rescaleImage(raw2, data1.shape)
+                self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
+                                             [0, 0, data1.shape[0], data1.shape[0]],
+                                             [1.0, 1.0, 1.0, 1.0])
+            elif alignmentMode == AlignmentMode.AUTO:
+                # TODO: sift implementation do not support RGBA images
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size)
+                data2 = self.__createMarginImage(raw2, size)
+                self.__matching_keypoints = [0.0], [0.0], [1.0]
+                try:
+                    data1, data2 = self.__createSiftData(data1, data2)
+                    if data2 is None:
+                        raise ValueError("Unexpected None value")
+                except Exception as e:
+                    # TODO: Display it on the GUI
+                    _logger.error(e)
+                    self.__setDefaultAlignmentMode()
+                    return
+            else:
+                assert(False)
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
