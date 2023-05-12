@@ -35,7 +35,7 @@ import logging
 from silx.gui import qt
 from silx.gui import utils as qtutils
 from silx.gui.widgets.TableWidget import TableWidget
-from silx.io.url import DataUrl
+from silx.io.url import DataUrl, slice_sequence_to_string
 from silx.utils.deprecation import deprecated, deprecated_warning
 from silx.gui import constants
 
@@ -74,22 +74,11 @@ class _DataUrlItem(qt.QTableWidgetItem):
     def __init__(self, url):
         qt.QTableWidgetItem.__init__(self)
         self._url = url
-
-        def slice_to_string(data_slice):
-            if data_slice == Ellipsis:
-                return "..."
-            elif data_slice == slice(None):
-                return ":"
-            elif isinstance(data_slice, int):
-                return str(data_slice)
-            else:
-                raise TypeError("Unexpected slicing type. Found %s" % type(data_slice))
-
         text = os.path.basename(url.file_path())
         if url.data_path() is not None:
             text += f" {url.data_path()}"
         if url.data_slice() is not None:
-            text += f" [{slice_to_string(url.data_slice())}]"
+            text += f" [{slice_sequence_to_string(url.data_slice())}]"
 
         self.setText(text)
         self.setToolTip(url.path())
