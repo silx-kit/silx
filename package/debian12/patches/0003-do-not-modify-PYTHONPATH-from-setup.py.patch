@@ -1,0 +1,22 @@
+From: =?utf-8?q?Picca_Fr=C3=A9d=C3=A9ric-Emmanuel?= <picca@debian.org>
+Date: Sun, 4 Mar 2018 16:36:35 +0100
+Subject: do not modify PYTHONPATH from setup.py
+
+---
+ setup.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/setup.py b/setup.py
+index 1029bf0..46d0bdf 100644
+--- a/setup.py
++++ b/setup.py
+@@ -260,7 +260,8 @@ class BuildMan(Command):
+         path.insert(0, os.path.abspath(build.build_lib))
+ 
+         env = dict((str(k), str(v)) for k, v in os.environ.items())
+-        env["PYTHONPATH"] = os.pathsep.join(path)
++
++        # env["PYTHONPATH"] = os.pathsep.join(path)
+         if not os.path.isdir("build/man"):
+             os.makedirs("build/man")
+         import subprocess
