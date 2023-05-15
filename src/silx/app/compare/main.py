@@ -89,9 +89,12 @@ def mainQt(options):
     app = qt.QApplication([])
     window = CompareImagesWindow(backend=backend, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
+
+    # Note: Have to be before setUrls to have a proper resetZoom
+    window.setVisible(True)
+
     window.setUrls(urls)
 
-    window.setVisible(True)
     app.exec()
 
 
