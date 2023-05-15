@@ -44,6 +44,7 @@ from silx.gui.colors import Colormap
 from silx.gui.plot import tools
 from silx.utils.weakref import WeakMethodProxy
 from silx.math.combo import min_max
+from silx.gui.plot.items import Scatter
 
 _logger = logging.getLogger(__name__)
 
@@ -630,6 +631,11 @@ class CompareImages(qt.QMainWindow):
         self.__plot.sigPlotSignal.connect(self.__plotSlot)
         self.__plot.setAxesDisplayed(False)
 
+        self.__scatter = Scatter()
+        self.__scatter.setZValue(1)
+        self.__scatter.setColormap(self._colormapKeyPoints)
+        self.__plot.addItem(self.__scatter)
+
         self.setCentralWidget(self.__plot)
 
         legend = VisualizationMode.VERTICAL_LINE.name
@@ -998,12 +1004,7 @@ class CompareImages(qt.QMainWindow):
             data = self.__matching_keypoints
         else:
             data = [], [], []
-        self.__plot.addScatter(x=data[0],
-                               y=data[1],
-                               z=1,
-                               value=data[2],
-                               colormap=self._colormapKeyPoints,
-                               legend="keypoints")
+        self.__scatter.setData(x=data[0], y=data[1], value=data[2])
 
     def __updateData(self, updateColormap):
         """Compute aligned image when the alignment mode changes.
