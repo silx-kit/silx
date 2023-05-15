@@ -28,7 +28,7 @@ __date__ = "28/05/2018"
 
 import glob
 import logging
-from typing import Generator, Iterable, Union, Any, Optional
+from typing import Generator, Iterable, Union, Any, Optional, Sequence
 from pathlib import Path
 
 
@@ -69,13 +69,18 @@ def to_bool(thing: Any, default: Optional[bool]=None) -> bool:
         raise
 
 
-def filenames_to_dataurls(filenames: Iterable[Union[str, Path]]) -> Generator[object, None, None]:
+def filenames_to_dataurls(
+    filenames: Iterable[Union[str, Path]],
+    slices: Sequence[int]=tuple(),
+) -> Generator[object, None, None]:
     """Expand filenames and HDF5 data path in files input argument"""
     # Imports here so they are performed after setting HDF5_USE_FILE_LOCKING and logging level
     import silx.io
     from silx.io.utils import match
     from silx.io.url import DataUrl
     import silx.utils.files
+
+    extra_slices = tuple(slices)
 
     for filename in filenames:
         url = DataUrl(filename)
@@ -94,10 +99,18 @@ def filenames_to_dataurls(filenames: Iterable[Union[str, Path]]) -> Generator[ob
             else:
                 data_paths = [url.data_path()]
 
+            if not extra_slices:
+                data_slices = (url.data_slice(),)
+            elif not url.data_slice():
+                data_slices = extra_slices
+            else:
+                data_slices = [tuple(url.data_slice()) + (s,) for s in extra_slices]
+
             for data_path in data_paths:
-                yield DataUrl(
-                    file_path=file_path,
-                    data_path=data_path,
-                    data_slice=url.data_slice(),
-                    scheme=url.scheme(),
-                )
+                for data_slice in data_slices:
+                    yield DataUrl(
+                        file_path=file_path,
+                        data_path=data_path,
+                        scheme=url.scheme(),
+                        data_slice=data_slice,
+                    )
