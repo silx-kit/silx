@@ -35,6 +35,7 @@ import numpy
 import weakref
 import collections
 import math
+from typing import Optional, List
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -85,13 +86,13 @@ AffineTransformation = collections.namedtuple("AffineTransformation",
 """Contains a 2D affine transformation: translation, scale and rotation"""
 
 
-class _VisualizationModeToolButton(qt.QToolButton):
+class VisualizationModeToolButton(qt.QToolButton):
     """ToolButton to select a VisualisationMode"""
 
     sigSelected = qt.Signal(VisualizationMode)
 
     def __init__(self, parent=None):
-        super(_VisualizationModeToolButton, self).__init__(parent=parent)
+        super(VisualizationModeToolButton, self).__init__(parent=parent)
 
         menu = qt.QMenu(self)
         self.setMenu(menu)
@@ -170,6 +171,24 @@ class _VisualizationModeToolButton(qt.QToolButton):
         self.__ycChannelModeAction = action
         self.__group.addAction(action)
 
+    def getActionFromMode(self, mode: VisualizationMode) -> Optional[qt.QAction]:
+        """Returns an action from it's mode"""
+        for action in self.__group.actions():
+            actionMode = action.property("enum")
+            if mode == actionMode:
+                return action
+        return None
+
+    def setVisibleModes(self, modes: List[VisualizationMode]):
+        """Make visible only a set of modes.
+
+        The order does not matter.
+        """
+        modes = set(modes)
+        for action in self.__group.actions():
+            mode = action.property("enum")
+            action.setVisible(mode in modes)
+
     def __selectionChanged(self, selectedAction: qt.QAction):
         """Called when user requesting changes of the visualization mode.
         """
@@ -197,12 +216,7 @@ class _VisualizationModeToolButton(qt.QToolButton):
         return action.property("enum")
 
     def setSelected(self, mode: VisualizationMode):
-        action = None
-        for a in self.__group.actions():
-            actionMode = a.property("enum")
-            if mode == actionMode:
-                action = a
-                break
+        action = self.getActionFromMode(mode)
         old = self.__group.blockSignals(True)
         if action is not None:
             # Check this action
@@ -216,13 +230,13 @@ class _VisualizationModeToolButton(qt.QToolButton):
         self.__group.blockSignals(old)
 
 
-class _AlignmentModeToolButton(qt.QToolButton):
+class AlignmentModeToolButton(qt.QToolButton):
     """ToolButton to select a AlignmentMode"""
 
     sigSelected = qt.Signal(AlignmentMode)
 
     def __init__(self, parent=None):
-        super(_AlignmentModeToolButton, self).__init__(parent=parent)
+        super(AlignmentModeToolButton, self).__init__(parent=parent)
 
         menu = qt.QMenu(self)
         self.setMenu(menu)
@@ -270,6 +284,24 @@ class _AlignmentModeToolButton(qt.QToolButton):
             action.setToolTip("Sift module is not available")
         self.__group.addAction(action)
 
+    def getActionFromMode(self, mode: AlignmentMode) -> Optional[qt.QAction]:
+        """Returns an action from it's mode"""
+        for action in self.__group.actions():
+            actionMode = action.property("enum")
+            if mode == actionMode:
+                return action
+        return None
+
+    def setVisibleModes(self, modes: List[AlignmentMode]):
+        """Make visible only a set of modes.
+
+        The order does not matter.
+        """
+        modes = set(modes)
+        for action in self.__group.actions():
+            mode = action.property("enum")
+            action.setVisible(mode in modes)
+
     def __selectionChanged(self, selectedAction: qt.QAction):
         """Called when user requesting changes of the alignment mode.
         """
@@ -297,12 +329,7 @@ class _AlignmentModeToolButton(qt.QToolButton):
         return action.property("enum")
 
     def setSelected(self, mode: AlignmentMode):
-        action = None
-        for a in self.__group.actions():
-            actionMode = a.property("enum")
-            if mode == actionMode:
-                action = a
-                break
+        action = self.getActionFromMode(mode)
         old = self.__group.blockSignals(True)
         if action is not None:
             # Check this action
@@ -330,12 +357,12 @@ class CompareImagesToolBar(qt.QToolBar):
 
         self.__compareWidget = None
 
-        self.__visualizationToolButton = _VisualizationModeToolButton(self)
+        self.__visualizationToolButton = VisualizationModeToolButton(self)
         self.__visualizationToolButton.setPopupMode(qt.QToolButton.InstantPopup)
         self.__visualizationToolButton.sigSelected.connect(self.__visualizationChanged)
         self.addWidget(self.__visualizationToolButton)
 
-        self.__alignmentToolButton = _AlignmentModeToolButton(self)
+        self.__alignmentToolButton = AlignmentModeToolButton(self)
         self.__alignmentToolButton.setPopupMode(qt.QToolButton.InstantPopup)
         self.__alignmentToolButton.sigSelected.connect(self.__alignmentChanged)
         self.addWidget(self.__alignmentToolButton)
