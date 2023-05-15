@@ -76,7 +76,7 @@ class CompareImagesWindow(qt.QMainWindow):
             self._selectionTable.addUrl(url)
         url1 = urls[0].path() if len(urls) >= 1 else None
         url2 = urls[1].path() if len(urls) >= 2 else None
-        self._selectionTable.setSelection(
+        self._selectionTable.setUrlSelection(
             url_img_a=url1,
             url_img_b=url2
         )
