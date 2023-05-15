@@ -81,6 +81,7 @@ class CompareImagesWindow(qt.QMainWindow):
             url_img_b=url2
         )
         self._plot.resetZoom()
+        self._plot.centerLines()
 
     def clear(self):
         self._plot.clear()

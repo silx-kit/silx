@@ -799,6 +799,25 @@ class CompareImages(qt.QMainWindow):
         self.__updateData(updateColormap=updateColormap)
         self.sigConfigurationChanged.emit()
 
+    def centerLines(self):
+        """Center the line used to compare the 2 images.
+        """
+        if self.__image1 is None:
+            return
+        data_range = self.__plot.getDataRange()
+
+        if data_range[0] is not None:
+            cx = (data_range[0][0] + data_range[0][1]) * 0.5
+        else:
+            cx = 0
+        if data_range[1] is not None:
+            cy = (data_range[1][0] + data_range[1][1]) * 0.5
+        else:
+            cy = 0
+        self.__vline.setPosition(cx, cy)
+        self.__hline.setPosition(cx, cy)
+        self.__updateSeparators()
+
     def getVisualizationMode(self):
         """Returns the current interaction mode."""
         return self.__visualizationMode
