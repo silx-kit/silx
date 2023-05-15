@@ -818,6 +818,10 @@ class CompareImages(qt.QMainWindow):
         """Returns the current selected alignemnt mode."""
         return self.__alignmentMode
 
+    def getKeypointsVisible(self):
+        """Returns true if the keypoints are displayed"""
+        return self.__keypointsVisible
+
     def setKeypointsVisible(self, isVisible):
         """Set keypoints visibility.
 
