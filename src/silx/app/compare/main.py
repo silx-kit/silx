@@ -27,6 +27,7 @@
 import sys
 import logging
 import argparse
+import silx
 from silx.gui import qt
 from silx.app.utils import parseutils
 from silx.app.compare.CompareImagesWindow import CompareImagesWindow
