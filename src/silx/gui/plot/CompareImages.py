@@ -84,6 +84,237 @@ AffineTransformation = collections.namedtuple("AffineTransformation",
 """Contains a 2D affine transformation: translation, scale and rotation"""
 
 
+class _VisualizationModeToolButton(qt.QToolButton):
+    """ToolButton to select a VisualisationMode"""
+
+    sigSelected = qt.Signal(VisualizationMode)
+
+    def __init__(self, parent=None):
+        super(_VisualizationModeToolButton, self).__init__(parent=parent)
+
+        menu = qt.QMenu(self)
+        self.setMenu(menu)
+
+        self.__group = qt.QActionGroup(self)
+        self.__group.setExclusive(True)
+        self.__group.triggered.connect(self.__selectionChanged)
+
+        icon = icons.getQIcon("compare-mode-a")
+        action = qt.QAction(icon, "Display the first image only", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
+        action.setProperty("enum", VisualizationMode.ONLY_A)
+        menu.addAction(action)
+        self.__aModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-b")
+        action = qt.QAction(icon, "Display the second image only", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
+        action.setProperty("enum", VisualizationMode.ONLY_B)
+        menu.addAction(action)
+        self.__bModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-vline")
+        action = qt.QAction(icon, "Vertical compare mode", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
+        action.setProperty("enum", VisualizationMode.VERTICAL_LINE)
+        menu.addAction(action)
+        self.__vlineModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-hline")
+        action = qt.QAction(icon, "Horizontal compare mode", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
+        action.setProperty("enum", VisualizationMode.HORIZONTAL_LINE)
+        menu.addAction(action)
+        self.__hlineModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-rb-channel")
+        action = qt.QAction(icon, "Blue/red compare mode (additive mode)", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
+        action.setProperty("enum", VisualizationMode.COMPOSITE_RED_BLUE_GRAY)
+        menu.addAction(action)
+        self.__brChannelModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-rbneg-channel")
+        action = qt.QAction(icon, "Yellow/cyan compare mode (subtractive mode)", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Y))
+        action.setProperty("enum", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
+        menu.addAction(action)
+        self.__ycChannelModeAction = action
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-mode-a-minus-b")
+        action = qt.QAction(icon, "Raw A minus B compare mode", self)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setProperty("enum", VisualizationMode.COMPOSITE_A_MINUS_B)
+        menu.addAction(action)
+        self.__ycChannelModeAction = action
+        self.__group.addAction(action)
+
+    def __selectionChanged(self, selectedAction: qt.QAction):
+        """Called when user requesting changes of the visualization mode.
+        """
+        self.__updateMenu()
+        mode = self.getSelected()
+        self.sigSelected.emit(mode)
+
+    def __updateMenu(self):
+        """Update the state of the action containing visualization menu.
+        """
+        selectedAction = self.__group.checkedAction()
+        if selectedAction is not None:
+            self.setText(selectedAction.text())
+            self.setIcon(selectedAction.icon())
+            self.setToolTip(selectedAction.toolTip())
+        else:
+            self.setText("")
+            self.setIcon(qt.QIcon())
+            self.setToolTip("")
+
+    def getSelected(self) -> VisualizationMode:
+        action = self.__group.checkedAction()
+        if action is None:
+            return None
+        return action.property("enum")
+
+    def setSelected(self, mode: VisualizationMode):
+        action = None
+        for a in self.__group.actions():
+            actionMode = a.property("enum")
+            if mode == actionMode:
+                action = a
+                break
+        old = self.__group.blockSignals(True)
+        if action is not None:
+            # Check this action
+            action.setChecked(True)
+        else:
+            action = self.__group.checkedAction()
+            if action is not None:
+                # Uncheck this action
+                action.setChecked(False)
+        self.__updateMenu()
+        self.__group.blockSignals(old)
+
+
+class _AlignmentModeToolButton(qt.QToolButton):
+    """ToolButton to select a AlignmentMode"""
+
+    sigSelected = qt.Signal(AlignmentMode)
+
+    def __init__(self, parent=None):
+        super(_AlignmentModeToolButton, self).__init__(parent=parent)
+
+        menu = qt.QMenu(self)
+        self.setMenu(menu)
+
+        self.__group = qt.QActionGroup(self)
+        self.__group.setExclusive(True)
+        self.__group.triggered.connect(self.__selectionChanged)
+
+        icon = icons.getQIcon("compare-align-origin")
+        action = qt.QAction(icon, "Align images on their upper-left pixel", self)
+        action.setProperty("enum", AlignmentMode.ORIGIN)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        self.__originAlignAction = action
+        menu.addAction(action)
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-align-center")
+        action = qt.QAction(icon, "Center images", self)
+        action.setProperty("enum", AlignmentMode.CENTER)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        self.__centerAlignAction = action
+        menu.addAction(action)
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-align-stretch")
+        action = qt.QAction(icon, "Stretch the second image on the first one", self)
+        action.setProperty("enum", AlignmentMode.STRETCH)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        self.__stretchAlignAction = action
+        menu.addAction(action)
+        self.__group.addAction(action)
+
+        icon = icons.getQIcon("compare-align-auto")
+        action = qt.QAction(icon, "Auto-alignment of the second image", self)
+        action.setProperty("enum", AlignmentMode.AUTO)
+        action.setIconVisibleInMenu(True)
+        action.setCheckable(True)
+        self.__autoAlignAction = action
+        menu.addAction(action)
+        if sift is None:
+            action.setEnabled(False)
+            action.setToolTip("Sift module is not available")
+        self.__group.addAction(action)
+
+    def __selectionChanged(self, selectedAction: qt.QAction):
+        """Called when user requesting changes of the alignment mode.
+        """
+        self.__updateMenu()
+        mode = self.getSelected()
+        self.sigSelected.emit(mode)
+
+    def __updateMenu(self):
+        """Update the state of the action containing alignment menu.
+        """
+        selectedAction = self.__group.checkedAction()
+        if selectedAction is not None:
+            self.setText(selectedAction.text())
+            self.setIcon(selectedAction.icon())
+            self.setToolTip(selectedAction.toolTip())
+        else:
+            self.setText("")
+            self.setIcon(qt.QIcon())
+            self.setToolTip("")
+
+    def getSelected(self) -> AlignmentMode:
+        action = self.__group.checkedAction()
+        if action is None:
+            return None
+        return action.property("enum")
+
+    def setSelected(self, mode: AlignmentMode):
+        action = None
+        for a in self.__group.actions():
+            actionMode = a.property("enum")
+            if mode == actionMode:
+                action = a
+                break
+        old = self.__group.blockSignals(True)
+        if action is not None:
+            # Check this action
+            action.setChecked(True)
+        else:
+            action = self.__group.checkedAction()
+            if action is not None:
+                # Uncheck this action
+                action.setChecked(False)
+        self.__updateMenu()
+        self.__group.blockSignals(old)
+
+
 class CompareImagesToolBar(qt.QToolBar):
     """ToolBar containing specific tools to custom the configuration of a
     :class:`CompareImages` widget
@@ -98,132 +329,15 @@ class CompareImagesToolBar(qt.QToolBar):
 
         self.__compareWidget = None
 
-        menu = qt.QMenu(self)
-        self.__visualizationToolButton = qt.QToolButton(self)
-        self.__visualizationToolButton.setMenu(menu)
+        self.__visualizationToolButton = _VisualizationModeToolButton(self)
         self.__visualizationToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.__visualizationToolButton.sigSelected.connect(self.__visualizationChanged)
         self.addWidget(self.__visualizationToolButton)
-        self.__visualizationGroup = qt.QActionGroup(self)
-        self.__visualizationGroup.setExclusive(True)
-        self.__visualizationGroup.triggered.connect(self.__visualizationModeChanged)
 
-        icon = icons.getQIcon("compare-mode-a")
-        action = qt.QAction(icon, "Display the first image only", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_A))
-        action.setProperty("mode", VisualizationMode.ONLY_A)
-        menu.addAction(action)
-        self.__aModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-b")
-        action = qt.QAction(icon, "Display the second image only", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
-        action.setProperty("mode", VisualizationMode.ONLY_B)
-        menu.addAction(action)
-        self.__bModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-vline")
-        action = qt.QAction(icon, "Vertical compare mode", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_V))
-        action.setProperty("mode", VisualizationMode.VERTICAL_LINE)
-        menu.addAction(action)
-        self.__vlineModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-hline")
-        action = qt.QAction(icon, "Horizontal compare mode", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_H))
-        action.setProperty("mode", VisualizationMode.HORIZONTAL_LINE)
-        menu.addAction(action)
-        self.__hlineModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-rb-channel")
-        action = qt.QAction(icon, "Blue/red compare mode (additive mode)", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_C))
-        action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY)
-        menu.addAction(action)
-        self.__brChannelModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-rbneg-channel")
-        action = qt.QAction(icon, "Yellow/cyan compare mode (subtractive mode)", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Y))
-        action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
-        menu.addAction(action)
-        self.__ycChannelModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-mode-a-minus-b")
-        action = qt.QAction(icon, "Raw A minus B compare mode", self)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
-        action.setProperty("mode", VisualizationMode.COMPOSITE_A_MINUS_B)
-        menu.addAction(action)
-        self.__ycChannelModeAction = action
-        self.__visualizationGroup.addAction(action)
-
-        menu = qt.QMenu(self)
-        self.__alignmentToolButton = qt.QToolButton(self)
-        self.__alignmentToolButton.setMenu(menu)
+        self.__alignmentToolButton = _AlignmentModeToolButton(self)
         self.__alignmentToolButton.setPopupMode(qt.QToolButton.InstantPopup)
+        self.__alignmentToolButton.sigSelected.connect(self.__alignmentChanged)
         self.addWidget(self.__alignmentToolButton)
-        self.__alignmentGroup = qt.QActionGroup(self)
-        self.__alignmentGroup.setExclusive(True)
-        self.__alignmentGroup.triggered.connect(self.__alignmentModeChanged)
-
-        icon = icons.getQIcon("compare-align-origin")
-        action = qt.QAction(icon, "Align images on their upper-left pixel", self)
-        action.setProperty("mode", AlignmentMode.ORIGIN)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        self.__originAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-center")
-        action = qt.QAction(icon, "Center images", self)
-        action.setProperty("mode", AlignmentMode.CENTER)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        self.__centerAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-stretch")
-        action = qt.QAction(icon, "Stretch the second image on the first one", self)
-        action.setProperty("mode", AlignmentMode.STRETCH)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        self.__stretchAlignAction = action
-        menu.addAction(action)
-        self.__alignmentGroup.addAction(action)
-
-        icon = icons.getQIcon("compare-align-auto")
-        action = qt.QAction(icon, "Auto-alignment of the second image", self)
-        action.setProperty("mode", AlignmentMode.AUTO)
-        action.setIconVisibleInMenu(True)
-        action.setCheckable(True)
-        self.__autoAlignAction = action
-        menu.addAction(action)
-        if sift is None:
-            action.setEnabled(False)
-            action.setToolTip("Sift module is not available")
-        self.__alignmentGroup.addAction(action)
 
         icon = icons.getQIcon("compare-keypoints")
         action = qt.QAction(icon, "Display/hide alignment keypoints", self)
@@ -231,6 +345,16 @@ class CompareImagesToolBar(qt.QToolBar):
         action.triggered.connect(self.__keypointVisibilityChanged)
         self.addAction(action)
         self.__displayKeypoints = action
+
+    def __visualizationChanged(self, mode: VisualizationMode):
+        widget = self.getCompareWidget()
+        if widget is not None:
+            widget.setVisualizationMode(mode)
+
+    def __alignmentChanged(self, mode: AlignmentMode):
+        widget = self.getCompareWidget()
+        if widget is not None:
+            widget.setAlignmentMode(mode)
 
     def setCompareWidget(self, widget):
         """
@@ -242,6 +366,7 @@ class CompareImagesToolBar(qt.QToolBar):
         if compareWidget is not None:
             compareWidget.sigConfigurationChanged.disconnect(self.__updateSelectedActions)
         compareWidget = widget
+        self.setEnabled(compareWidget is not None)
         if compareWidget is None:
             self.__compareWidget = None
         else:
@@ -268,88 +393,9 @@ class CompareImagesToolBar(qt.QToolBar):
         widget = self.getCompareWidget()
         if widget is None:
             return
-
-        mode = widget.getVisualizationMode()
-        action = None
-        for a in self.__visualizationGroup.actions():
-            actionMode = a.property("mode")
-            if mode == actionMode:
-                action = a
-                break
-        old = self.__visualizationGroup.blockSignals(True)
-        if action is not None:
-            # Check this action
-            action.setChecked(True)
-        else:
-            action = self.__visualizationGroup.checkedAction()
-            if action is not None:
-                # Uncheck this action
-                action.setChecked(False)
-        self.__updateVisualizationMenu()
-        self.__visualizationGroup.blockSignals(old)
-
-        mode = widget.getAlignmentMode()
-        action = None
-        for a in self.__alignmentGroup.actions():
-            actionMode = a.property("mode")
-            if mode == actionMode:
-                action = a
-                break
-        old = self.__alignmentGroup.blockSignals(True)
-        if action is not None:
-            # Check this action
-            action.setChecked(True)
-        else:
-            action = self.__alignmentGroup.checkedAction()
-            if action is not None:
-                # Uncheck this action
-                action.setChecked(False)
-        self.__updateAlignmentMenu()
-        self.__alignmentGroup.blockSignals(old)
-
-    def __visualizationModeChanged(self, selectedAction):
-        """Called when user requesting changes of the visualization mode.
-        """
-        self.__updateVisualizationMenu()
-        widget = self.getCompareWidget()
-        if widget is not None:
-            mode = selectedAction.property("mode")
-            widget.setVisualizationMode(mode)
-
-    def __updateVisualizationMenu(self):
-        """Update the state of the action containing visualization menu.
-        """
-        selectedAction = self.__visualizationGroup.checkedAction()
-        if selectedAction is not None:
-            self.__visualizationToolButton.setText(selectedAction.text())
-            self.__visualizationToolButton.setIcon(selectedAction.icon())
-            self.__visualizationToolButton.setToolTip(selectedAction.toolTip())
-        else:
-            self.__visualizationToolButton.setText("")
-            self.__visualizationToolButton.setIcon(qt.QIcon())
-            self.__visualizationToolButton.setToolTip("")
-
-    def __alignmentModeChanged(self, selectedAction):
-        """Called when user requesting changes of the alignment mode.
-        """
-        self.__updateAlignmentMenu()
-        widget = self.getCompareWidget()
-        if widget is not None:
-            mode = selectedAction.property("mode")
-            widget.setAlignmentMode(mode)
-
-    def __updateAlignmentMenu(self):
-        """Update the state of the action containing alignment menu.
-        """
-        selectedAction = self.__alignmentGroup.checkedAction()
-        if selectedAction is not None:
-            self.__alignmentToolButton.setText(selectedAction.text())
-            self.__alignmentToolButton.setIcon(selectedAction.icon())
-            self.__alignmentToolButton.setToolTip(selectedAction.toolTip())
-        else:
-            self.__alignmentToolButton.setText("")
-            self.__alignmentToolButton.setIcon(qt.QIcon())
-            self.__alignmentToolButton.setToolTip("")
+        self.__visualizationToolButton.setSelected(widget.getVisualizationMode())
+        self.__alignmentToolButton.setSelected(widget.getAlignmentMode())
+        self.__displayKeypoints.setChecked(widget.getKeypointsVisible())
 
     def __keypointVisibilityChanged(self):
         """Called when action managing keypoints visibility changes"""
