@@ -35,7 +35,7 @@ import numpy
 import weakref
 import collections
 import math
-from typing import Optional, List
+from typing import Optional, List, NamedTuple
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -81,9 +81,15 @@ class AlignmentMode(enum.Enum):
     AUTO = 'auto'
 
 
-AffineTransformation = collections.namedtuple("AffineTransformation",
-                                              ["tx", "ty", "sx", "sy", "rot"])
-"""Contains a 2D affine transformation: translation, scale and rotation"""
+class AffineTransformation(NamedTuple):
+    """Description of a 2D affine transformation: translation, scale and
+    rotation.
+    """
+    tx: float
+    ty: float
+    sx: float
+    sy: float
+    rot: float
 
 
 class VisualizationModeToolButton(qt.QToolButton):
