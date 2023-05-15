@@ -27,78 +27,192 @@ __authors__ = ["H. Payno"]
 __license__ = "MIT"
 __date__ = "23/07/2018"
 
+import pytest
 import numpy
 import weakref
 
-from silx.gui.utils.testutils import TestCaseQt
+from silx.gui import qt
 from silx.gui.plot.CompareImages import CompareImages
 
 
-class TestCompareImages(TestCaseQt):
-    """Test that CompareImages widget is working in some cases"""
+@pytest.fixture
+def compareImages(qapp, qapp_utils):
+    widget = CompareImages()
+    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    yield widget
+    widget.close()
+    ref = weakref.ref(widget)
+    widget = None
+    qapp_utils.qWaitForDestroy(ref)
 
-    def setUp(self):
-        super(TestCompareImages, self).setUp()
-        self.widget = CompareImages()
 
-    def tearDown(self):
-        ref = weakref.ref(self.widget)
-        self.widget = None
-        self.qWaitForDestroy(ref)
-        super(TestCompareImages, self).tearDown()
+def testIntensityImage(compareImages):
+    image1 = numpy.random.rand(10, 10)
+    image2 = numpy.random.rand(10, 10)
+    compareImages.setData(image1, image2)
 
-    def testIntensityImage(self):
-        image1 = numpy.random.rand(10, 10)
-        image2 = numpy.random.rand(10, 10)
-        self.widget.setData(image1, image2)
 
-    def testRgbImage(self):
-        image1 = numpy.random.randint(0, 255, size=(10, 10, 3))
-        image2 = numpy.random.randint(0, 255, size=(10, 10, 3))
-        self.widget.setData(image1, image2)
+def testRgbImage(compareImages):
+    image1 = numpy.random.randint(0, 255, size=(10, 10, 3))
+    image2 = numpy.random.randint(0, 255, size=(10, 10, 3))
+    compareImages.setData(image1, image2)
 
-    def testRgbaImage(self):
-        image1 = numpy.random.randint(0, 255, size=(10, 10, 4))
-        image2 = numpy.random.randint(0, 255, size=(10, 10, 4))
-        self.widget.setData(image1, image2)
 
-    def testVizualisations(self):
-        image1 = numpy.random.rand(10, 10)
-        image2 = numpy.random.rand(10, 10)
-        self.widget.setData(image1, image2)
-        for mode in CompareImages.VisualizationMode:
-            self.widget.setVisualizationMode(mode)
+def testRgbaImage(compareImages):
+    image1 = numpy.random.randint(0, 255, size=(10, 10, 4))
+    image2 = numpy.random.randint(0, 255, size=(10, 10, 4))
+    compareImages.setData(image1, image2)
 
-    def testAlignemnt(self):
-        image1 = numpy.random.rand(10, 10)
-        image2 = numpy.random.rand(5, 5)
-        self.widget.setData(image1, image2)
-        for mode in CompareImages.AlignmentMode:
-            self.widget.setAlignmentMode(mode)
 
-    def testGetPixel(self):
-        image1 = numpy.random.rand(11, 11)
-        image2 = numpy.random.rand(5, 5)
-        image1[5, 5] = 111.111
-        image2[2, 2] = 222.222
-        self.widget.setData(image1, image2)
-        expectedValue = {}
-        expectedValue[CompareImages.AlignmentMode.CENTER] = 222.222
-        expectedValue[CompareImages.AlignmentMode.STRETCH] = 222.222
-        expectedValue[CompareImages.AlignmentMode.ORIGIN] = None
-        for mode in expectedValue.keys():
-            self.widget.setAlignmentMode(mode)
-            data = self.widget.getRawPixelData(11 / 2.0, 11 / 2.0)
-            data1, data2 = data
-            self.assertEqual(data1, 111.111)
-            self.assertEqual(data2, expectedValue[mode])
+def testVizualisations(compareImages):
+    image1 = numpy.random.rand(10, 10)
+    image2 = numpy.random.rand(10, 10)
+    compareImages.setData(image1, image2)
+    for mode in CompareImages.VisualizationMode:
+        compareImages.setVisualizationMode(mode)
 
-    def testImageEmpty(self):
-        self.widget.setData(image1=None, image2=None)
-        self.assertTrue(self.widget.getRawPixelData(11 / 2.0, 11 / 2.0) == (None, None))
 
-    def testSetImageSeparately(self):
-        self.widget.setImage1(numpy.random.rand(10, 10))
-        self.widget.setImage2(numpy.random.rand(10, 10))
-        for mode in CompareImages.VisualizationMode:
-            self.widget.setVisualizationMode(mode)
+def testAlignemnt(compareImages):
+    image1 = numpy.random.rand(10, 10)
+    image2 = numpy.random.rand(5, 5)
+    compareImages.setData(image1, image2)
+    for mode in CompareImages.AlignmentMode:
+        compareImages.setAlignmentMode(mode)
+
+
+def testGetPixel(compareImages):
+    image1 = numpy.random.rand(11, 11)
+    image2 = numpy.random.rand(5, 5)
+    image1[5, 5] = 111.111
+    image2[2, 2] = 222.222
+    compareImages.setData(image1, image2)
+    expectedValue = {}
+    expectedValue[CompareImages.AlignmentMode.CENTER] = 222.222
+    expectedValue[CompareImages.AlignmentMode.STRETCH] = 222.222
+    expectedValue[CompareImages.AlignmentMode.ORIGIN] = None
+    for mode in expectedValue.keys():
+        compareImages.setAlignmentMode(mode)
+        data = compareImages.getRawPixelData(11 / 2.0, 11 / 2.0)
+        data1, data2 = data
+        assert data1 == 111.111
+        assert data2 == expectedValue[mode]
+
+
+def testImageEmpty(compareImages):
+    compareImages.setData(image1=None, image2=None)
+
+
+def testSetImageSeparately(compareImages):
+    compareImages.setImage1(numpy.random.rand(10, 10))
+    compareImages.setImage2(numpy.random.rand(10, 10))
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
+        (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
+        (CompareImages.VisualizationMode.HORIZONTAL_LINE,),
+        (CompareImages.VisualizationMode.VERTICAL_LINE,),
+        (CompareImages.VisualizationMode.ONLY_A,),
+        (CompareImages.VisualizationMode.ONLY_B,),
+    ]
+)
+def testVisualizationMode(compareImages, data):
+    visualizationMode, = data
+    compareImages.setImage1(numpy.random.rand(10, 10))
+    compareImages.setImage2(numpy.random.rand(10, 10))
+    compareImages.setVisualizationMode(visualizationMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
+        (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
+        (CompareImages.VisualizationMode.HORIZONTAL_LINE,),
+        (CompareImages.VisualizationMode.VERTICAL_LINE,),
+        (CompareImages.VisualizationMode.ONLY_A,),
+        (CompareImages.VisualizationMode.ONLY_B,),
+    ]
+)
+def testVisualizationModeWithoutImage(compareImages, data):
+    visualizationMode, = data
+    compareImages.setImage1(None)
+    compareImages.setImage2(None)
+    compareImages.setVisualizationMode(visualizationMode)
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
+        (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
+        (CompareImages.VisualizationMode.HORIZONTAL_LINE,),
+        (CompareImages.VisualizationMode.VERTICAL_LINE,),
+        (CompareImages.VisualizationMode.ONLY_A,),
+        (CompareImages.VisualizationMode.ONLY_B,),
+    ]
+)
+def testVisualizationModeWithOnlyImage1(compareImages, data):
+    visualizationMode, = data
+    compareImages.setImage1(numpy.random.rand(10, 10))
+    compareImages.setImage2(None)
+    compareImages.setVisualizationMode(visualizationMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
+        (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
+        (CompareImages.VisualizationMode.HORIZONTAL_LINE,),
+        (CompareImages.VisualizationMode.VERTICAL_LINE,),
+        (CompareImages.VisualizationMode.ONLY_A,),
+        (CompareImages.VisualizationMode.ONLY_B,),
+    ]
+)
+def testVisualizationModeWithOnlyImage2(compareImages, data):
+    visualizationMode, = data
+    compareImages.setImage1(None)
+    compareImages.setImage2(numpy.random.rand(10, 10))
+    compareImages.setVisualizationMode(visualizationMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.AlignmentMode.STRETCH,),
+        (CompareImages.AlignmentMode.AUTO,),
+        (CompareImages.AlignmentMode.CENTER,),
+        (CompareImages.AlignmentMode.ORIGIN,),
+    ]
+)
+def testAlignemntModeWithoutImages(compareImages, data):
+    alignmentMode, = data
+    compareImages.setAlignmentMode(alignmentMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.AlignmentMode.STRETCH,),
+        (CompareImages.AlignmentMode.AUTO,),
+        (CompareImages.AlignmentMode.CENTER,),
+        (CompareImages.AlignmentMode.ORIGIN,),
+    ]
+)
+def testAlignemntModeWithSingleImage(compareImages, data):
+    alignmentMode, = data
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setAlignmentMode(alignmentMode)
+
+
+def testTooltip(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setImage2(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)
+
+
+def testTooltipWithoutImage(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.setImage2(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)
+
+
+def testTooltipWithSingleImage(compareImages):
+    compareImages.setImage1(numpy.arange(9).reshape(3, 3))
+    compareImages.getRawPixelData(1.5, 1.5)

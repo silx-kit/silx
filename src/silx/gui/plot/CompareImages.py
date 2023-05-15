@@ -43,6 +43,7 @@ from silx.gui import icons
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
 from silx.utils.weakref import WeakMethodProxy
+from silx.math.combo import min_max
 
 _logger = logging.getLogger(__name__)
 
@@ -160,7 +161,7 @@ class CompareImagesToolBar(qt.QToolBar):
         action = qt.QAction(icon, "Yellow/cyan compare mode (subtractive mode)", self)
         action.setIconVisibleInMenu(True)
         action.setCheckable(True)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_W))
+        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Y))
         action.setProperty("mode", VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG)
         menu.addAction(action)
         self.__ycChannelModeAction = action
@@ -458,8 +459,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
         """Update the content of the status bar"""
         widget = self.getCompareWidget()
         if widget is None:
-            self._label1.setText("Image1: NA")
-            self._label2.setText("Image2: NA")
+            self._label1.setText("ImageA: NA")
+            self._label2.setText("ImageB: NA")
             self._transform.setVisible(False)
         else:
             transform = widget.getTransformation()
@@ -510,8 +511,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 self._transform.setToolTip(text)
 
             if self._pos is None:
-                self._label1.setText("Image1: NA")
-                self._label2.setText("Image2: NA")
+                self._label1.setText("ImageA: NA")
+                self._label2.setText("ImageB: NA")
             else:
                 data1, data2 = widget.getRawPixelData(self._pos[0], self._pos[1])
                 if isinstance(data1, str):
@@ -526,8 +527,8 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 else:
                     self._label2.setToolTip("")
                     text2 = self._formatData(data2)
-                self._label1.setText("Image1: %s" % text1)
-                self._label2.setText("Image2: %s" % text2)
+                self._label1.setText("ImageA: %s" % text1)
+                self._label2.setText("ImageB: %s" % text2)
 
 
 class CompareImages(qt.QMainWindow):
@@ -676,10 +677,15 @@ class CompareImages(qt.QMainWindow):
             It also could be a string containing information is some cases.
         :rtype: Tuple(Union[int,float,numpy.ndarray,str],Union[int,float,numpy.ndarray,str])
         """
-        data2 = None
         alignmentMode = self.__alignmentMode
         raw1, raw2 = self.__raw1, self.__raw2
-        if alignmentMode == AlignmentMode.ORIGIN:
+
+        if raw1 is None or raw2 is None:
+            x1 = x
+            y1 = y
+            x2 = x
+            y2 = y
+        elif alignmentMode == AlignmentMode.ORIGIN:
             x1 = x
             y1 = y
             x2 = x
@@ -700,22 +706,29 @@ class CompareImages(qt.QMainWindow):
             x1 = x
             y1 = y
             # Not implemented
-            data2 = "Not implemented with sift"
+            x2 = -1
+            y2 = -1
         else:
             assert(False)
 
         x1, y1 = int(x1), int(y1)
-        if raw1 is None or y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
-            data1 = None
+        x2, y2 = int(x2), int(y2)
+
+        if raw1 is None:
+            data1 = "No image A"
+        elif y1 < 0 or y1 >= raw1.shape[0] or x1 < 0 or x1 >= raw1.shape[1]:
+            data1 = ""
         else:
             data1 = raw1[y1, x1]
 
-        if data2 is None:
-            x2, y2 = int(x2), int(y2)
-            if raw2 is None or y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
-                data2 = None
-            else:
-                data2 = raw2[y2, x2]
+        if raw2 is None:
+            data2 = "No image B"
+        elif alignmentMode == AlignmentMode.AUTO:
+            data2 = "Not implemented with sift"
+        elif y2 < 0 or y2 >= raw2.shape[0] or x2 < 0 or x2 >= raw2.shape[1]:
+            data2 = None
+        else:
+            data2 = raw2[y2, x2]
 
         return data1, data2
 
@@ -856,6 +869,9 @@ class CompareImages(qt.QMainWindow):
         else:
             assert(False)
 
+    def clear(self):
+        self.setData(None, None)
+
     def setData(self, image1, image2, updateColormap=True):
         """Set images to compare.
 
@@ -909,7 +925,7 @@ class CompareImages(qt.QMainWindow):
     def __updateKeyPoints(self):
         """Update the displayed keypoints using cached keypoints.
         """
-        if self.__keypointsVisible:
+        if self.__keypointsVisible and self.__matching_keypoints:
             data = self.__matching_keypoints
         else:
             data = [], [], []
@@ -927,53 +943,64 @@ class CompareImages(qt.QMainWindow):
         vertical/horizontal separators moves.
         """
         raw1, raw2 = self.__raw1, self.__raw2
-        if raw1 is None or raw2 is None:
-            return
 
         alignmentMode = self.getAlignmentMode()
         self.__transformation = None
 
-        if alignmentMode == AlignmentMode.ORIGIN:
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size, transparent=True)
-            data2 = self.__createMarginImage(raw2, size, transparent=True)
-            self.__matching_keypoints = [0.0], [0.0], [1.0]
-        elif alignmentMode == AlignmentMode.CENTER:
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
-            data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
-            self.__matching_keypoints = ([data1.shape[1] // 2],
-                                         [data1.shape[0] // 2],
-                                         [1.0])
-        elif alignmentMode == AlignmentMode.STRETCH:
-            data1 = raw1
-            data2 = self.__rescaleImage(raw2, data1.shape)
-            self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
-                                         [0, 0, data1.shape[0], data1.shape[0]],
-                                         [1.0, 1.0, 1.0, 1.0])
-        elif alignmentMode == AlignmentMode.AUTO:
-            # TODO: sift implementation do not support RGBA images
-            yy = max(raw1.shape[0], raw2.shape[0])
-            xx = max(raw1.shape[1], raw2.shape[1])
-            size = yy, xx
-            data1 = self.__createMarginImage(raw1, size)
-            data2 = self.__createMarginImage(raw2, size)
-            self.__matching_keypoints = [0.0], [0.0], [1.0]
-            try:
-                data1, data2 = self.__createSiftData(data1, data2)
-                if data2 is None:
-                    raise ValueError("Unexpected None value")
-            except Exception as e:
-                # TODO: Display it on the GUI
-                _logger.error(e)
-                self.__setDefaultAlignmentMode()
-                return
+        if raw1 is None or raw2 is None:
+            # No need to realign the 2 images
+            # But create a dummy image when there is None for simplification
+            if raw1 is None:
+                data1 = numpy.empty((0, 0))
+            else:
+                data1 = raw1
+            if raw2 is None:
+                data2 = numpy.empty((0, 0))
+            else:
+                data2 = raw2
+            self.__matching_keypoints = None
         else:
-            assert(False)
+            if alignmentMode == AlignmentMode.ORIGIN:
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size, transparent=True)
+                data2 = self.__createMarginImage(raw2, size, transparent=True)
+                self.__matching_keypoints = [0.0], [0.0], [1.0]
+            elif alignmentMode == AlignmentMode.CENTER:
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
+                data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
+                self.__matching_keypoints = ([data1.shape[1] // 2],
+                                             [data1.shape[0] // 2],
+                                             [1.0])
+            elif alignmentMode == AlignmentMode.STRETCH:
+                data1 = raw1
+                data2 = self.__rescaleImage(raw2, data1.shape)
+                self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
+                                             [0, 0, data1.shape[0], data1.shape[0]],
+                                             [1.0, 1.0, 1.0, 1.0])
+            elif alignmentMode == AlignmentMode.AUTO:
+                # TODO: sift implementation do not support RGBA images
+                yy = max(raw1.shape[0], raw2.shape[0])
+                xx = max(raw1.shape[1], raw2.shape[1])
+                size = yy, xx
+                data1 = self.__createMarginImage(raw1, size)
+                data2 = self.__createMarginImage(raw2, size)
+                self.__matching_keypoints = [0.0], [0.0], [1.0]
+                try:
+                    data1, data2 = self.__createSiftData(data1, data2)
+                    if data2 is None:
+                        raise ValueError("Unexpected None value")
+                except Exception as e:
+                    # TODO: Display it on the GUI
+                    _logger.error(e)
+                    self.__setDefaultAlignmentMode()
+                    return
+            else:
+                assert(False)
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
@@ -983,8 +1010,16 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__composeImage(data1, data2, mode)
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            data1 = self.__composeImage(data1, data2, mode)
-            data2 = numpy.empty((0, 0))
+            data1 = self.__asIntensityImage(data1)
+            data2 = self.__asIntensityImage(data2)
+            if raw1 is None:
+                data1 = data2
+                data2 = numpy.empty((0, 0))
+            elif raw2 is None:
+                data2 = numpy.empty((0, 0))
+            else:
+                data1 = data1.astype(numpy.float32) - data2.astype(numpy.float32)
+                data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_A:
             data2 = numpy.empty((0, 0))
         elif mode == VisualizationMode.ONLY_B:
@@ -1012,15 +1047,27 @@ class CompareImages(qt.QMainWindow):
         mode1 = self.__getImageMode(self.__data1)
         mode2 = self.__getImageMode(self.__data2)
         if mode1 == "intensity" and mode1 == mode2:
-            if self.__data1.size == 0:
-                vmin = self.__data2.min()
-                vmax = self.__data2.max()
-            elif self.__data2.size == 0:
-                vmin = self.__data1.min()
-                vmax = self.__data1.max()
-            else:
-                vmin = min(self.__data1.min(), self.__data2.min())
-                vmax = max(self.__data1.max(), self.__data2.max())
+            def merge_min_max(data1, data2):
+                if data1.size == 0:
+                    data1 = numpy.empty((1, 1))
+                    data1[0, 0] = numpy.nan
+                if data2.size == 0:
+                    data2 = numpy.empty((1, 1))
+                    data2[0, 0] = numpy.nan
+                range1 = min_max(data1, finite=True)
+                range2 = min_max(data2, finite=True)
+                def vreduce(vmin, vmax, func):
+                    if vmin is None:
+                        return vmax
+                    if vmax is None:
+                        return vmin
+                    return func(vmin, vmax)
+                vmin = vreduce(range1.minimum, range2.minimum, min)
+                vmax = vreduce(range1.maximum, range2.maximum, max)
+                if vmin is None or vmax is None:
+                    return 0, 1
+                return vmin, vmax
+            vmin, vmax = merge_min_max(self.__data1, self.__data2)
             colormap = self.getColormap()
             colormap.setVRange(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
@@ -1064,37 +1111,43 @@ class CompareImages(qt.QMainWindow):
         """Returns an RBG image containing composition of data1 and data2 in 2
         different channels
 
+        A data image of a size of 0 is considered as missing. This does not
+        interrupt the processing.
+
         :param numpy.ndarray data1: First image
         :param numpy.ndarray data1: Second image
         :param VisualizationMode mode: Composition mode.
         :rtype: numpy.ndarray
         """
-        assert(data1.shape[0:2] == data2.shape[0:2])
-        if mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            # TODO: this calculation has no interest of generating a 'composed'
-            # rgb image, this could be moved in an other function or doc
-            # should be modified
-            _type = data1.dtype
-            result = data1.astype(numpy.float64) - data2.astype(numpy.float64)
-            return result
-        mode1 = self.__getImageMode(data1)
-        if mode1 in ["rgb", "rgba"]:
-            intensity1 = self.__luminosityImage(data1)
+        if data1.size != 0 and data2.size != 0:
+            assert(data1.shape[0:2] == data2.shape[0:2])
+
+        if data1.size == 0:
+            intensity1 = numpy.zeros(data2.shape[0:2])
             vmin1, vmax1 = 0.0, 1.0
         else:
-            intensity1 = data1
-            vmin1, vmax1 = data1.min(), data1.max()
+            mode1 = self.__getImageMode(data1)
+            if mode1 in ["rgb", "rgba"]:
+                intensity1 = self.__luminosityImage(data1)
+                vmin1, vmax1 = 0.0, 1.0
+            else:
+                intensity1 = data1
+                vmin1, vmax1 = data1.min(), data1.max()
 
-        mode2 = self.__getImageMode(data2)
-        if mode2 in ["rgb", "rgba"]:
-            intensity2 = self.__luminosityImage(data2)
+        if data2.size == 0:
+            intensity2 = numpy.zeros(data1.shape[0:2])
             vmin2, vmax2 = 0.0, 1.0
         else:
-            intensity2 = data2
-            vmin2, vmax2 = data2.min(), data2.max()
+            mode2 = self.__getImageMode(data2)
+            if mode2 in ["rgb", "rgba"]:
+                intensity2 = self.__luminosityImage(data2)
+                vmin2, vmax2 = 0.0, 1.0
+            else:
+                intensity2 = data2
+                vmin2, vmax2 = data2.min(), data2.max()
 
         vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
-        shape = data1.shape
+        shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
         a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
         b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
@@ -1108,8 +1161,24 @@ class CompareImages(qt.QMainWindow):
             result[:, :, 2] = 255 - a
         return result
 
-    def __luminosityImage(self, image):
+    def __asIntensityImage(self, image: numpy.ndarray):
+        """Returns an intensity image.
+
+        If the image use a single channel, it will be returned as it is.
+
+        If the image is an RBG(A) image, the luminosity (0..1) is extracted and
+        returned. The alpha channel is ignored.
+
+        :rtype: numpy.ndarray
+        """
+        mode = self.__getImageMode(image)
+        if mode in ["rgb", "rgba"]:
+            return self.__luminosityImage(image)
+        return image
+
+    def __luminosityImage(self, image: numpy.ndarray):
         """Returns the luminosity channel from an RBG(A) image.
+
         The alpha channel is ignored.
 
         :rtype: numpy.ndarray
@@ -1240,6 +1309,11 @@ class CompareImages(qt.QMainWindow):
         data2 = result["result"]
         self.__transformation = self.__toAffineTransformation(result)
         return data1, data2
+
+    def resetZoom(self, dataMargins=None):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+        """
+        self.__plot.resetZoom(dataMargins)
 
     def setAutoResetZoom(self, activate=True):
         """

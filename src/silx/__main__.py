@@ -61,6 +61,9 @@ def main():
     launcher.add_command("convert",
                          module_name="silx.app.convert",
                          description="Convert and concatenate files into a HDF5 file")
+    launcher.add_command("compare",
+                         module_name="silx.app.compare.main",
+                         description="Compare images with a GUI")
     launcher.add_command("test",
                          module_name="silx.app.test_",
                          description="Launch silx unittest")
