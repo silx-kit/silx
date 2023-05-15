@@ -908,7 +908,8 @@ class CompareImages(qt.QMainWindow):
             self.__previousSeparatorPosition = pos
         else:
             self.__image1.setOrigin((0, 0))
-            self.__image2.setOrigin((0, 0))
+            if self.__image2 is not None:
+                self.__image2.setOrigin((0, 0))
 
     def __separatorMoved(self, pos):
         """Called when vertical or horizontal separators have moved.
@@ -928,8 +929,9 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__data1[:, 0:pos]
             data2 = self.__data2[:, pos:]
             self.__image1.setData(data1, copy=False)
-            self.__image2.setData(data2, copy=False)
-            self.__image2.setOrigin((pos, 0))
+            if self.__image2 is not None:
+                self.__image2.setData(data2, copy=False)
+                self.__image2.setOrigin((pos, 0))
         elif mode == VisualizationMode.HORIZONTAL_LINE:
             pos = int(pos)
             if pos <= 0:
@@ -939,8 +941,9 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__data1[0:pos, :]
             data2 = self.__data2[pos:, :]
             self.__image1.setData(data1, copy=False)
-            self.__image2.setData(data2, copy=False)
-            self.__image2.setOrigin((0, pos))
+            if self.__image2 is not None:
+                self.__image2.setData(data2, copy=False)
+                self.__image2.setOrigin((0, pos))
         else:
             assert(False)
 
@@ -1075,31 +1078,35 @@ class CompareImages(qt.QMainWindow):
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
             data1 = self.__composeImage(data1, data2, mode)
-            data2 = numpy.empty((0, 0))
+            data2 = None
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             data1 = self.__composeImage(data1, data2, mode)
-            data2 = numpy.empty((0, 0))
+            data2 = None
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
             data1 = self.__asIntensityImage(data1)
             data2 = self.__asIntensityImage(data2)
             if raw1 is None:
                 data1 = data2
-                data2 = numpy.empty((0, 0))
+                data2 = None
             elif raw2 is None:
-                data2 = numpy.empty((0, 0))
+                data2 = None
             else:
                 data1 = data1.astype(numpy.float32) - data2.astype(numpy.float32)
-                data2 = numpy.empty((0, 0))
+                data2 = None
         elif mode == VisualizationMode.ONLY_A:
-            data2 = numpy.empty((0, 0))
+            data2 = None
         elif mode == VisualizationMode.ONLY_B:
             data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
         self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False)
-        self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
         self.__image1 = self.__plot.getImage("image1")
-        self.__image2 = self.__plot.getImage("image2")
+        if data2 is not None:
+            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
+            self.__image2 = self.__plot.getImage("image2")
+        else:
+            self.__image2 = None
+            self.__data2 = numpy.empty((0, 0))
         self.__updateKeyPoints()
 
         # Set the separator into the middle
@@ -1141,7 +1148,8 @@ class CompareImages(qt.QMainWindow):
             colormap = self.getColormap()
             colormap.setVRange(vmin=vmin, vmax=vmax)
             self.__image1.setColormap(colormap)
-            self.__image2.setColormap(colormap)
+            if self.__image2 is not None:
+                self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
         """Returns a value identifying the way the image is stored in the
