@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ from collections import namedtuple
 import logging
 import threading
 import numpy
+from matplotlib.tri import LinearTriInterpolator, Triangulation
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, CancelledError
@@ -41,7 +42,6 @@ from ....utils.proxy import docstring
 from ....math.combo import min_max
 from ....math.histogram import Histogramnd
 from ....utils.weakref import WeakList
-from .._utils.delaunay import delaunay
 from .core import PointsBase, ColormapMixIn, ScatterVisualizationMixIn
 from .axis import Axis
 from ._pick import PickingResult
@@ -288,7 +288,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         self._value = ()
         self.__alpha = None
         # Cache Delaunay triangulation future object
-        self.__delaunayFuture = None
+        self.__triangulationFuture = None
         # Cache interpolator future object
         self.__interpolatorFuture = None
         self.__executor = None
@@ -552,14 +552,15 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 return None
 
             if visualization is self.Visualization.SOLID:
-                triangulation = self._getDelaunay().result()
-                if triangulation is None:
+                try:
+                    triangulation = self._getTriangulationFuture().result()
+                except (RuntimeError, ValueError):
                     _logger.warning(
                         'Cannot get a triangulation: Cannot display as solid surface')
                     return None
                 else:
                     rgbacolors = self.__applyColormapToData()
-                    triangles = triangulation.simplices.astype(numpy.int32)
+                    triangles = triangulation.triangles.astype(numpy.int32)
                     return backend.addTriangles(xFiltered,
                                                 yFiltered,
                                                 triangles,
@@ -784,69 +785,42 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             self.__executor = _GreedyThreadPoolExecutor(max_workers=2)
         return self.__executor
 
-    def _getDelaunay(self):
-        """Returns a :class:`Future` which result is the Delaunay object.
+    def _getTriangulationFuture(self):
+        """Returns a :class:`Future` which result is the Triangulation object.
 
         :rtype: concurrent.futures.Future
         """
-        if self.__delaunayFuture is None or self.__delaunayFuture.cancelled():
+        if self.__triangulationFuture is None or self.__triangulationFuture.cancelled():
             # Need to init a new delaunay
             x, y = self.getData(copy=False)[:2]
             # Remove not finite points
             mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
 
-            self.__delaunayFuture = self.__getExecutor().submit_greedy(
-                'delaunay', delaunay, x[mask], y[mask])
+            self.__triangulationFuture = self.__getExecutor().submit_greedy(
+                'Triangulation', Triangulation, x[mask], y[mask])
 
-        return self.__delaunayFuture
+        return self.__triangulationFuture
 
     @staticmethod
-    def __initInterpolator(delaunayFuture, values):
+    def __initInterpolator(triangulationFuture, values):
         """Returns an interpolator for the given data points
 
-        :param concurrent.futures.Future delaunayFuture:
-            Future object which result is a Delaunay object
+        :param concurrent.futures.Future triangulationFuture:
+            Future object which result is a Triangulation object
         :param numpy.ndarray values: The data value of valid points.
         :rtype: Union[callable,None]
         """
-        # Wait for Delaunay to complete
+        # Wait for Triangulation to complete
         try:
-            triangulation = delaunayFuture.result()
+            triangulation = triangulationFuture.result()
+        except (RuntimeError, ValueError):
+            return None  # triangulation failed
         except CancelledError:
-            triangulation = None
+            return None
 
-        if triangulation is None:
-            interpolator = None  # Error case
-        else:
-            # Lazy-loading of interpolator
-            try:
-                from scipy.interpolate import LinearNDInterpolator
-            except ImportError:
-                LinearNDInterpolator = None
+        return LinearTriInterpolator(triangulation, values)
 
-            if LinearNDInterpolator is not None:
-                interpolator = LinearNDInterpolator(triangulation, values)
-
-                # First call takes a while, do it here
-                interpolator([(0., 0.)])
-
-            else:
-                # Fallback using matplotlib interpolator
-                import matplotlib.tri
-
-                x, y = triangulation.points.T
-                tri = matplotlib.tri.Triangulation(
-                    x, y, triangles=triangulation.simplices)
-                mplInterpolator = matplotlib.tri.LinearTriInterpolator(
-                    tri, values)
-
-                # Wrap interpolator to have same API as scipy's one
-                def interpolator(points):
-                    return mplInterpolator(*points.T)
-
-        return interpolator
-
-    def _getInterpolator(self):
+    def _getInterpolatorFuture(self):
         """Returns a :class:`Future` which result is the interpolator.
 
         The interpolator is a callable taking an array Nx2 of points
@@ -866,7 +840,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
             self.__interpolatorFuture = self.__getExecutor().submit_greedy(
                 'interpolator',
-                self.__initInterpolator, self._getDelaunay(), values)
+                self.__initInterpolator, self._getTriangulationFuture(), values)
         return self.__interpolatorFuture
 
     def _logFilterData(self, xPositive, yPositive):
@@ -966,9 +940,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             value = numpy.absolute(value)
 
         # Reset triangulation and interpolator
-        if self.__delaunayFuture is not None:
-            self.__delaunayFuture.cancel()
-            self.__delaunayFuture = None
+        if self.__triangulationFuture is not None:
+            self.__triangulationFuture.cancel()
+            self.__triangulationFuture = None
         if self.__interpolatorFuture is not None:
             self.__interpolatorFuture.cancel()
             self.__interpolatorFuture = None
