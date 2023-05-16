@@ -36,10 +36,10 @@ _logger = logging.getLogger(__name__)
 
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
+from typing import Optional, Tuple
 import datetime as dt
 import itertools
 import numbers
-import typing
 import warnings
 
 import numpy
@@ -113,11 +113,11 @@ class _PlotWidgetSelection(qt.QObject):
         parent.sigActiveCurveChanged.connect(self._activeCurveChanged)
         parent.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
-    def __mostRecentActiveItem(self) -> typing.Optional[items.Item]:
+    def __mostRecentActiveItem(self) -> Optional[items.Item]:
         """Returns most recent active item."""
         return self.__history[0] if len(self.__history) >= 1 else None
 
-    def getSelectedItems(self) -> typing.Tuple[items.Item]:
+    def getSelectedItems(self) -> Tuple[items.Item]:
         """Returns the list of currently selected items in the :class:`PlotWidget`.
 
         The list is given from most recently current item to oldest one."""
@@ -134,11 +134,11 @@ class _PlotWidgetSelection(qt.QObject):
 
         return active
 
-    def getCurrentItem(self) -> typing.Optional[items.Item]:
+    def getCurrentItem(self) -> Optional[items.Item]:
         """Returns the current item in the :class:`PlotWidget` or None. """
         return self.__current
 
-    def setCurrentItem(self, item: typing.Optional[items.Item]):
+    def setCurrentItem(self, item: Optional[items.Item]):
         """Set the current item in the :class:`PlotWidget`.
 
         :param item:
@@ -188,8 +188,8 @@ class _PlotWidgetSelection(qt.QObject):
 
     def __activeItemChanged(self,
                             kind: str,
-                            previous: typing.Optional[str],
-                            legend: typing.Optional[str]):
+                            previous: Optional[str],
+                            legend: Optional[str]):
         """Set current item from kind and legend"""
         if previous == legend:
             return  # No-op for update of item
