@@ -36,7 +36,7 @@ _logger = logging.getLogger(__name__)
 
 from collections import OrderedDict, namedtuple
 from contextlib import contextmanager
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 import datetime as dt
 import itertools
 import numbers
@@ -2491,36 +2491,78 @@ class PlotWidget(qt.QMainWindow):
         yAxis = self._yAxis if axis == 'left' else self._yRightAxis
         return yAxis.setLimits(ymin, ymax)
 
-    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
+    def setLimits(
+        self,
+        xmin: float,
+        xmax: float,
+        ymin: float,
+        ymax: float,
+        y2min: Optional[float]=None,
+        y2max: Optional[float]=None,
+        margins: Union[bool, Tuple[float, float, float, float]]=False,
+    ):
         """Set the limits of the X and Y axes at once.
 
         If y2min or y2max is None, the right Y axis limits are not updated.
 
-        :param float xmin: minimum bottom axis value
-        :param float xmax: maximum bottom axis value
-        :param float ymin: minimum left axis value
-        :param float ymax: maximum left axis value
-        :param float y2min: minimum right axis value or None (the default)
-        :param float y2max: maximum right axis value or None (the default)
+        :param xmin: minimum bottom axis value
+        :param xmax: maximum bottom axis value
+        :param ymin: minimum left axis value
+        :param ymax: maximum left axis value
+        :param y2min: minimum right axis value or None (the default)
+        :param y2max: maximum right axis value or None (the default)
+        :param margins:
+            Data margins to add to the limits or a boolean telling
+            whether or not to add margins from :meth:`getDataMargins`.
         """
-        # Deal with incorrect values
-        axis = self.getXAxis()
-        xmin, xmax = axis._checkLimits(xmin, xmax)
-        axis = self.getYAxis()
-        ymin, ymax = axis._checkLimits(ymin, ymax)
+        limits = [
+            *self.getXAxis()._checkLimits(xmin, xmax),
+            *self.getYAxis()._checkLimits(ymin, ymax),
+        ]
 
-        if y2min is None or y2max is None:
-            # if one limit is None, both are ignored
-            y2min, y2max = None, None
-        else:
-            axis = self.getYAxis(axis="right")
-            y2min, y2max = axis._checkLimits(y2min, y2max)
+        # Only consider y2 axis if both limits are not None
+        if None not in (y2min, y2max):
+            limits.extend(
+                self.getYAxis(axis="right")._checkLimits(y2min, y2max)
+            )
+
+        if margins:  # Add margins around limits inside the plot area
+            limits = list(
+                _utils.addMarginsToLimits(
+                    self.getDataMargins() if margins is True else margins,
+                    self.getXAxis()._isLogarithmic(),
+                    self.getYAxis()._isLogarithmic(),
+                    *limits,
+                )
+            )
+
+        if self.isKeepDataAspectRatio():
+            # Use limits with margins to keep ratio
+            xmin, xmax, ymin, ymax = limits[:4]
+
+            # Compute bbox wth figure aspect ratio
+            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
+            if plotWidth > 0 and plotHeight > 0:
+                plotRatio = plotHeight / plotWidth
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < plotRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (ymax + ymin)
+                    yrange = (xmax - xmin) * plotRatio
+                    limits[2] = ycenter - 0.5 * yrange
+                    limits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > plotRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (xmax + xmin)
+                    xrange_ = (ymax - ymin) / plotRatio
+                    limits[0] = xcenter - 0.5 * xrange_
+                    limits[1] = xcenter + 0.5 * xrange_
 
         if self._viewConstrains:
-            view = self._viewConstrains.normalize(xmin, xmax, ymin, ymax)
-            xmin, xmax, ymin, ymax = view
+            limits[:4] = self._viewConstrains.normalize(*limits[:4])
 
-        self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+        self._backend.setLimits(*limits)
         self._setDirtyPlot()
         self._notifyLimitsChanged()
 
@@ -3067,51 +3109,26 @@ class PlotWidget(qt.QMainWindow):
             Ratios of margins to add around the data inside the plot area for each side.
             If None (the default), use margins from :meth:`getDataMargins`.
         """
-        if dataMargins is None:
-            dataMargins = self._defaultDataMargins
-
         # Get data range
         ranges = self.getDataRange()
         xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
         ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
         if ranges.yright is None:
-            ymin2, ymax2 = ymin, ymax
+            y2min, y2max = ymin, ymax
         else:
-            ymin2, ymax2 = ranges.yright
+            y2min, y2max = ranges.yright
             if ranges.y is None:
                 ymin, ymax = ranges.yright
 
-        # Add margins around data inside the plot area
-        newLimits = list(_utils.addMarginsToLimits(
-            dataMargins,
-            self._xAxis._isLogarithmic(),
-            self._yAxis._isLogarithmic(),
-            xmin, xmax, ymin, ymax, ymin2, ymax2))
-
-        if self.isKeepDataAspectRatio():
-            # Use limits with margins to keep ratio
-            xmin, xmax, ymin, ymax = newLimits[:4]
-
-            # Compute bbox wth figure aspect ratio
-            plotWidth, plotHeight = self.getPlotBoundsInPixels()[2:]
-            if plotWidth > 0 and plotHeight > 0:
-                plotRatio = plotHeight / plotWidth
-                dataRatio = (ymax - ymin) / (xmax - xmin)
-                if dataRatio < plotRatio:
-                    # Increase y range
-                    ycenter = 0.5 * (ymax + ymin)
-                    yrange = (xmax - xmin) * plotRatio
-                    newLimits[2] = ycenter - 0.5 * yrange
-                    newLimits[3] = ycenter + 0.5 * yrange
-
-                elif dataRatio > plotRatio:
-                    # Increase x range
-                    xcenter = 0.5 * (xmax + xmin)
-                    xrange_ = (ymax - ymin) / plotRatio
-                    newLimits[0] = xcenter - 0.5 * xrange_
-                    newLimits[1] = xcenter + 0.5 * xrange_
-
-        self.setLimits(*newLimits)
+        self.setLimits(
+            xmin,
+            xmax,
+            ymin,
+            ymax,
+            y2min,
+            y2max,
+            margins=dataMargins if dataMargins is not None else True,
+        )
 
     def resetZoom(self, dataMargins=None):
         """Reset the plot limits to the bounds of the data and redraw the plot.
