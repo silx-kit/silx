@@ -2986,19 +2986,23 @@ class PlotWidget(qt.QMainWindow):
                                     dpi=dpi)
             return True
 
-    def getDataMargins(self):
+    def getDataMargins(self) -> Tuple[float, float, float, float]:
         """Get the default data margin ratios, see :meth:`setDataMargins`.
 
         :return: The margin ratios for each side (xMin, xMax, yMin, yMax).
-        :rtype: A 4-tuple of floats.
         """
         return self._defaultDataMargins
 
-    def setDataMargins(self, xMinMargin=0., xMaxMargin=0.,
-                       yMinMargin=0., yMaxMargin=0.):
+    def setDataMargins(
+        self,
+        xMinMargin: float=0.,
+        xMaxMargin: float=0.,
+        yMinMargin: float=0.,
+        yMaxMargin: float=0.,
+    ):
         """Set the default data margins to use in :meth:`resetZoom`.
 
-        Set the default ratios of margins (as floats) to add around the data
+        Set the default ratios of margins to add around the data
         inside the plot area for each side.
         """
         self._defaultDataMargins = (xMinMargin, xMaxMargin,
@@ -3045,7 +3049,10 @@ class PlotWidget(qt.QMainWindow):
         """Request to draw the plot."""
         self._backend.replot()
 
-    def _forceResetZoom(self, dataMargins=None):
+    def _forceResetZoom(
+        self,
+        dataMargins: Optional[Tuple[float, float, float, float]]=None,
+    ):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
         This method forces a reset zoom and does not check axis autoscale.
@@ -3056,9 +3063,9 @@ class PlotWidget(qt.QMainWindow):
         data (xMin, xMax, yMin and yMax limits).
         For log scale, extra margins are applied in log10 of the data.
 
-        :param dataMargins: Ratios of margins to add around the data inside
-                            the plot area for each side (default: no margins).
-        :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
+        :param dataMargins:
+            Ratios of margins to add around the data inside the plot area for each side.
+            If None (the default), use margins from :meth:`getDataMargins`.
         """
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
