@@ -31,6 +31,7 @@ import sys
 import os
 import platform
 import logging
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 
@@ -276,7 +277,11 @@ class BuildMan(Command):
 # ############## #
 
 
-def parse_env_as_bool(key):
+def parse_env_as_bool(key: str, default: Optional[bool]=None) -> Optional[bool]:
+    """Parse `key` env. var. and convert its value to a boolean or None.
+
+    If it cannot parse it or if None, `default` is returned.
+    """
     content = os.environ.get(key, "")
     value = content.lower()
     if value in ["1", "true", "yes", "y"]:
@@ -284,30 +289,24 @@ def parse_env_as_bool(key):
     if value in ["0", "false", "no", "n"]:
         return False
     if value in ["none", ""]:
-        return None
+        return default
     msg = "Env variable '%s' contains '%s'. But a boolean or an empty \
         string was expected. Variable ignored."
     logger.warning(msg, key, content)
-    return None
+    return default
 
 
-FORCE_CYTHON = parse_env_as_bool("SILX_FORCE_CYTHON") is True
-
-
-def get_use_openmp():
-    env_with_openmp = parse_env_as_bool("SILX_WITH_OPENMP")
-    if env_with_openmp is not None:
-        use_openmp = env_with_openmp
-    else:
-        # Use it by default
-        use_openmp = True
-
+def get_use_openmp_from_env_var() -> bool:
+    """Returns whether or not to build with OpenMP"""
+    use_openmp = parse_env_as_bool("SILX_WITH_OPENMP", default=True)
     if use_openmp and platform.system() == "Darwin":
         logger.warning("OpenMP support ignored. Your platform does not support it.")
-        use_openmp = False
+        return False
     return use_openmp
 
-USE_OPENMP = get_use_openmp()
+
+USE_OPENMP = get_use_openmp_from_env_var()
+FORCE_CYTHON = parse_env_as_bool("SILX_FORCE_CYTHON", default=False)
 
 
 class BuildExt(build_ext):
