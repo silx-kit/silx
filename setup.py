@@ -312,11 +312,9 @@ FORCE_CYTHON = parse_env_as_bool("SILX_FORCE_CYTHON", default=False)
 class BuildExt(build_ext):
     """Handle extension compilation.
 
-    Command-line argument and environment can custom:
+    Environment variables can custom the build of extensions, see the install documentation.
 
-    - The use of cython to cythonize files, else a default version is used
-    - Build extension with support of OpenMP (by default it is enabled)
-    - If building with MSVC, compiler flags are converted from gcc flags.
+    If building with MSVC, compiler flags are converted from gcc flags.
     """
 
     COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
@@ -325,13 +323,9 @@ class BuildExt(build_ext):
 
     description = 'Build extensions'
 
-    def patch_extension(self, ext):
+    def patch_extension(self, ext: Extension):
+        """Patch an extension according to requested Cython and OpenMP usage.
         """
-        Patch an extension according to requested Cython and OpenMP usage.
-
-        :param Extension ext: An extension
-        """
-        # Cytonize
         from Cython.Build import cythonize
         patched_exts = cythonize(
                                  [ext],
