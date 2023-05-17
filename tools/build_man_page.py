@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,14 +35,27 @@ import subprocess
 import sys
 from typing import Iterator, Tuple
 
-import pkg_resources
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 PROJECT = "silx"
+ENTRY_POINTS = {
+    "console_scripts": ["silx = silx.__main__:main"],
+    # 'gui_scripts': [],
+}
+
+
+def entry_points(config: dict) -> Iterator[Tuple[str, str, str]]:
+    for group in ("console_scripts", "gui_scripts"):
+        for entry in config.get(group, ()):
+            match = re.fullmatch(
+                r"(?Pname:\w*)\s*=\s*(?Pmodule_name:\w*):(?Pobject:\w*)\s*",
+                entry,
+            )
+            if match is not None:
+                yield match["name"], match["module_name"], match["object"]
 
 
 def get_synopsis(module_name: str) -> str:
@@ -66,16 +79,10 @@ def get_synopsis(module_name: str) -> str:
     return synopsis
 
 
-def entry_points(name: str) -> Iterator[Tuple[str, str, str]]:
-    for group in ("console_scripts", "gui_scripts"):
-        for entry_point in pkg_resources.iter_entry_points(group, name):
-            yield entry_point.name, entry_point.module_name, entry_point.attrs[0]
-
-
 def main(name: str, out_path: Path):
     out_path.mkdir(parents=True, exist_ok=True)
 
-    eps = tuple(entry_points(name))
+    eps = tuple(entry_points(ENTRY_POINTS))
     if not eps:
         raise RuntimeError("No entry points found!")
 
