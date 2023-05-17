@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -401,10 +401,7 @@ class FabioReader(object):
         may fail.
         """
         if self.__must_be_closed:
-            # Make sure the API of fabio provide it a 'close' method
-            # TODO the test can be removed if fabio version >= 0.8
-            if hasattr(self.__fabio_file, "close"):
-                self.__fabio_file.close()
+            self.__fabio_file.close()
         self.__fabio_file = None
 
     def fabio_file(self):

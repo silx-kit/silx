@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,8 @@ __license__ = "MIT"
 __date__ = "17/01/2019"
 
 import fabio
+from fabio import fabioutils
+
 import silx.io
 from silx.gui import qt
 
@@ -134,20 +136,13 @@ class FileTypeComboBox(qt.QComboBox):
     def __insertFabioFormats(self):
         formats = fabio.fabioformats.get_classes(reader=True)
 
-        from fabio import fabioutils
-        if hasattr(fabioutils, "COMPRESSED_EXTENSIONS"):
-            compressedExtensions = fabioutils.COMPRESSED_EXTENSIONS
-        else:
-            # Support for fabio < 0.9
-            compressedExtensions = set(["gz", "bz2"])
-
         extensions = []
         allExtensions = set([])
 
         def extensionsIterator(reader):
             for extension in reader.DEFAULT_EXTENSIONS:
                 yield "*.%s" % extension
-            for compressedExtension in compressedExtensions:
+            for compressedExtension in fabioutils.COMPRESSED_EXTENSIONS:
                 for extension in reader.DEFAULT_EXTENSIONS:
                     yield "*.%s.%s" % (extension, compressedExtension)
 
