@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
 
-from setuptools import Extension, find_packages
+from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 
 try:
@@ -58,45 +58,6 @@ an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError
 export LANG=en_US.utf-8
 export LC_ALL=en_US.utf-8
 """)
-
-
-def get_version():
-    """Returns current version number from _version.py file"""
-    dirname = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "src", PROJECT)
-    sys.path.insert(0, dirname)
-    import _version
-    sys.path = sys.path[1:]
-    return _version.strictversion
-
-
-def get_readme():
-    """Returns content of README.rst file"""
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    filename = os.path.join(dirname, "README.rst")
-    with open(filename, "r", encoding="utf-8") as fp:
-        long_description = fp.read()
-    return long_description
-
-
-classifiers = ["Development Status :: 5 - Production/Stable",
-               "Environment :: Console",
-               "Environment :: MacOS X",
-               "Environment :: Win32 (MS Windows)",
-               "Environment :: X11 Applications :: Qt",
-               "Intended Audience :: Education",
-               "Intended Audience :: Science/Research",
-               "License :: OSI Approved :: MIT License",
-               "Natural Language :: English",
-               "Operating System :: MacOS",
-               "Operating System :: Microsoft :: Windows",
-               "Operating System :: POSIX",
-               "Programming Language :: Cython",
-               "Programming Language :: Python :: 3",
-               "Programming Language :: Python :: Implementation :: CPython",
-               "Topic :: Scientific/Engineering :: Physics",
-               "Topic :: Software Development :: Libraries :: Python Modules",
-               ]
 
 
 # ############## #
@@ -250,31 +211,6 @@ def get_project_configuration():
     if install_requires_strip is not None:
         for package_name in install_requires_strip.split(','):
             install_requires.remove(package_name)
-
-
-    package_data = {
-        # Resources files for silx
-        'silx.resources': [
-            'gui/logo/*.png',
-            'gui/logo/*.svg',
-            'gui/icons/*.png',
-            'gui/icons/*.svg',
-            'gui/icons/*.mng',
-            'gui/icons/*.gif',
-            'gui/icons/*/*.png',
-            'opencl/*.cl',
-            'opencl/image/*.cl',
-            'opencl/sift/*.cl',
-            'opencl/codec/*.cl',
-            'gui/colormaps/*.npy'],
-        'silx.examples': ['*.png'],
-    }
-
-    entry_points = {
-        'console_scripts': ['silx = silx.__main__:main'],
-        # 'gui_scripts': [],
-    }
-
 
     def silx_io_specfile_define_macros():
         # Locale and platform management
@@ -449,28 +385,10 @@ def get_project_configuration():
     ]
 
     return dict(
-        name=PROJECT,
-        version=get_version(),
-        license="MIT",
-        url="http://www.silx.org/",
-        author="data analysis unit",
-        author_email="silx@esrf.fr",
-        classifiers=classifiers,
-        description="Software library for X-ray data analysis",
-        long_description=get_readme(),
         install_requires=install_requires,
         extras_require=extras_require,
-        python_requires='>=3.7',
         cmdclass=dict(build_ext=BuildExt),
-        zip_safe=False,
-        entry_points=entry_points,
-        packages=find_packages(where='src', include=['silx*']) + ['silx.examples'],
-        package_dir={
-            "": "src",
-            "silx.examples": "examples",
-        },
         ext_modules=ext_modules,
-        package_data=package_data,
     )
 
 
