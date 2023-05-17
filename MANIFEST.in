@@ -17,4 +17,4 @@ recursive-include qtdesigner_plugins *.py *.rst
 recursive-include src/silx/resources *
 recursive-include examples *
 recursive-include package *
-
+recursive-include tools *
