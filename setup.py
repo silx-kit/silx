@@ -36,10 +36,6 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger("silx.setup")
 
-try:  # setuptools >=62.4.0
-    from setuptools.command.build import build as _build
-except ImportError:
-    from distutils.command.build import build as _build
 from setuptools import Command, Extension, find_packages
 from setuptools.command.sdist import sdist
 from setuptools.command.build_ext import build_ext
@@ -280,80 +276,38 @@ class BuildMan(Command):
 # ############## #
 
 
-class Build(_build):
-    """Command to support more user options for the build."""
-
-    user_options = [
-        ('no-openmp', None,
-         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to False"),
-        ('openmp', None,
-         "DEPRECATED: Instead, set the environment variable SILX_WITH_OPENMP to True"),
-        ('force-cython', None,
-         "DEPRECATED: Instead, set the environment variable SILX_FORCE_CYTHON to True"),
-    ]
-    user_options.extend(_build.user_options)
-
-    boolean_options = ['no-openmp', 'openmp', 'force-cython']
-    boolean_options.extend(_build.boolean_options)
-
-    def initialize_options(self):
-        _build.initialize_options(self)
-        self.no_openmp = None
-        self.openmp = None
-        self.force_cython = None
-
-    def finalize_options(self):
-        _build.finalize_options(self)
-        if self.no_openmp is not None:
-            logger.warning("--no-openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to False")
-        if self.openmp is not None:
-            logger.warning("--openmp is deprecated: Instead, set the environment variable SILX_WITH_OPENMP to True")
-        if self.force_cython is not None:
-            logger.warning("--force-cython is deprecated: Instead, set the environment variable SILX_FORCE_CYTHON to True")
-        if not self.force_cython:
-            self.force_cython = self._parse_env_as_bool("SILX_FORCE_CYTHON") is True
-        self.finalize_openmp_options()
-
-    def _parse_env_as_bool(self, key):
-        content = os.environ.get(key, "")
-        value = content.lower()
-        if value in ["1", "true", "yes", "y"]:
-            return True
-        if value in ["0", "false", "no", "n"]:
-            return False
-        if value in ["none", ""]:
-            return None
-        msg = "Env variable '%s' contains '%s'. But a boolean or an empty \
-            string was expected. Variable ignored."
-        logger.warning(msg, key, content)
+def parse_env_as_bool(key):
+    content = os.environ.get(key, "")
+    value = content.lower()
+    if value in ["1", "true", "yes", "y"]:
+        return True
+    if value in ["0", "false", "no", "n"]:
+        return False
+    if value in ["none", ""]:
         return None
+    msg = "Env variable '%s' contains '%s'. But a boolean or an empty \
+        string was expected. Variable ignored."
+    logger.warning(msg, key, content)
+    return None
 
-    def finalize_openmp_options(self):
-        """Check if extensions must be compiled with OpenMP.
 
-        The result is stored into the object.
-        """
-        if self.openmp:
-            use_openmp = True
-        elif self.no_openmp:
-            use_openmp = False
-        else:
-            env_with_openmp = self._parse_env_as_bool("SILX_WITH_OPENMP")
-            if env_with_openmp is not None:
-                use_openmp = env_with_openmp
-            else:
-                # Use it by default
-                use_openmp = True
+FORCE_CYTHON = parse_env_as_bool("SILX_FORCE_CYTHON") is True
 
-        if use_openmp and platform.system() == "Darwin":
-            logger.warning("OpenMP support ignored. Your platform does not support it.")
-            use_openmp = False
 
-        # Remove attributes used by distutils parsing
-        # use 'use_openmp' instead
-        del self.no_openmp
-        del self.openmp
-        self.use_openmp = use_openmp
+def get_use_openmp():
+    env_with_openmp = parse_env_as_bool("SILX_WITH_OPENMP")
+    if env_with_openmp is not None:
+        use_openmp = env_with_openmp
+    else:
+        # Use it by default
+        use_openmp = True
+
+    if use_openmp and platform.system() == "Darwin":
+        logger.warning("OpenMP support ignored. Your platform does not support it.")
+        use_openmp = False
+    return use_openmp
+
+USE_OPENMP = get_use_openmp()
 
 
 class BuildExt(build_ext):
@@ -372,12 +326,6 @@ class BuildExt(build_ext):
 
     description = 'Build extensions'
 
-    def finalize_options(self):
-        build_ext.finalize_options(self)
-        build_obj = self.distribution.get_command_obj("build")
-        self.use_openmp = build_obj.use_openmp
-        self.force_cython = build_obj.force_cython
-
     def patch_extension(self, ext):
         """
         Patch an extension according to requested Cython and OpenMP usage.
@@ -390,12 +338,12 @@ class BuildExt(build_ext):
                                  [ext],
                                  compiler_directives={'embedsignature': True,
                                  'language_level': 3},
-                                 force=self.force_cython
+                                 force=FORCE_CYTHON,
         )
         ext.sources = patched_exts[0].sources
 
         # Remove OpenMP flags if OpenMP is disabled
-        if not self.use_openmp:
+        if not USE_OPENMP:
             ext.extra_compile_args = [
                 f for f in ext.extra_compile_args if f != '-fopenmp']
             ext.extra_link_args = [
@@ -570,7 +518,6 @@ def get_project_configuration():
     }
 
     cmdclass = dict(
-        build=Build,
         build_ext=BuildExt,
         build_man=BuildMan,
         debian_src=sdist_debian)
