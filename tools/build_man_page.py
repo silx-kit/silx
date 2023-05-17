@@ -35,27 +35,30 @@ import subprocess
 import sys
 from typing import Iterator, Tuple
 
+from setuptools.config import read_configuration
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-PROJECT = "silx"
-ENTRY_POINTS = {
-    "console_scripts": ["silx = silx.__main__:main"],
-    # 'gui_scripts': [],
-}
+PROJECT_PATH = Path(__file__).parent.parent
 
 
-def entry_points(config: dict) -> Iterator[Tuple[str, str, str]]:
+def entry_points(project_path: Path) -> Iterator[Tuple[str, str, str]]:
+    config = read_configuration(project_path / "setup.cfg")
+    entry_points_config = config.get("options", {}).get("entry_points", {})
+    print(entry_points_config)
+
     for group in ("console_scripts", "gui_scripts"):
-        for entry in config.get(group, ()):
+        for entry in entry_points_config.get(group, ()):
+            print(entry)
             match = re.fullmatch(
-                r"(?Pname:\w*)\s*=\s*(?Pmodule_name:\w*):(?Pobject:\w*)\s*",
+                r"(?P<name>\w+)\s*=\s*(?P<module>[^:]+):(?P<object>\w*)",
                 entry,
             )
             if match is not None:
-                yield match["name"], match["module_name"], match["object"]
+                yield match["name"], match["module"], match["object"]
 
 
 def get_synopsis(module_name: str) -> str:
@@ -79,10 +82,10 @@ def get_synopsis(module_name: str) -> str:
     return synopsis
 
 
-def main(name: str, out_path: Path):
+def main(project_path: Path, out_path: Path):
     out_path.mkdir(parents=True, exist_ok=True)
 
-    eps = tuple(entry_points(ENTRY_POINTS))
+    eps = tuple(entry_points(project_path))
     if not eps:
         raise RuntimeError("No entry points found!")
 
@@ -118,4 +121,4 @@ def main(name: str, out_path: Path):
 
 
 if __name__ == "__main__":
-    main(PROJECT, out_path=Path(__file__).parent.parent / "build" / "man")
+    main(project_path=PROJECT_PATH, out_path=PROJECT_PATH / "build" / "man")
