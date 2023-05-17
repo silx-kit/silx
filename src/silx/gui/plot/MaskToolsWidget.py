@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,6 @@ import os
 import sys
 import numpy
 import logging
-import collections
 import h5py
 
 from silx.image import shapes
@@ -646,7 +645,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
 
-        extensions = collections.OrderedDict()
+        extensions = {}
         extensions["EDF files"] = "*.edf"
         extensions["TIFF files"] = "*.tif *.tiff"
         extensions["NumPy binary files"] = "*.npy"

@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,6 @@
 # ######################################################################### */
 """Collection of widgets used to build
 :class:`silx.gui.fit.FitWidget.FitWidget`"""
-
-from collections import OrderedDict
 
 from silx.gui import qt
 from silx.gui.fit.Parameters import Parameters
@@ -281,7 +279,7 @@ class ParametersTab(qt.QTabWidget):
         self.setWindowTitle(name)
         self.setContentsMargins(0, 0, 0, 0)
 
-        self.views = OrderedDict()
+        self.views = {}
         """Dictionary of views. Keys are view names,
          items are :class:`Parameters` widgets"""
 

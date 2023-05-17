@@ -39,7 +39,6 @@ This module deals with:
     - providing different background models
 
 """
-from collections import OrderedDict
 import logging
 import numpy
 from numpy.linalg.linalg import LinAlgError
@@ -109,7 +108,7 @@ class FitManager(object):
               algorithm (:func:`silx.math.fit.peak_search`)
         """
 
-        self.theories = OrderedDict()
+        self.theories = {}
         """Dictionary of fit theories, defining functions to be fitted
         to individual peaks.
 
@@ -134,7 +133,7 @@ class FitManager(object):
         """Name of currently selected theory. This name matches a key in
         :attr:`theories`."""
 
-        self.bgtheories = OrderedDict()
+        self.bgtheories = {}
         """Dictionary of background theories.
 
         See :attr:`theories` for documentation on theories.

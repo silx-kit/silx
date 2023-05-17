@@ -1,6 +1,6 @@
 #/*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -59,10 +59,7 @@ a dictionary :const:`THEORY`: with the following structure::
 
 .. note::
 
-    Consider using an OrderedDict instead of a regular dictionary, when
-    defining your own theory dictionary, if the order matters to you.
-    This will likely be the case if you intend to load a selection of
-    functions in a GUI such as :class:`silx.gui.fit.FitManager`.
+    The order of the provided dictionary is taken into account.
 
 Theory names can be customized (e.g. ``gauss, lorentz, splitgauss``…).
 
@@ -79,7 +76,6 @@ Module members:
 ---------------
 """
 import numpy
-from collections import OrderedDict
 import logging
 
 from silx.math.fit import functions
@@ -1210,7 +1206,7 @@ class FitTheories(object):
 
 fitfuns = FitTheories()
 
-THEORY = OrderedDict((
+THEORY = dict((
     ('Gaussians',
         FitTheory(description='Gaussian functions',
                   function=functions.sum_gauss,

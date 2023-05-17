@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ _LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor
 """Description of a LUT for internal purpose."""
 
 
-_AVAILABLE_LUTS = collections.OrderedDict([
+_AVAILABLE_LUTS = dict([
     ('gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
     ('reversed gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
     ('red', _LUT_DESCRIPTION('builtin', '#00ff00')),

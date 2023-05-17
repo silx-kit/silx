@@ -27,7 +27,7 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from copy import deepcopy
 import os
 import tempfile
@@ -1000,17 +1000,17 @@ class TestDictToIni(DictTestCase):
         written to file and read back."""
         test_dict = {'banana': 3, 'apple': 4, 'pear': 1, 'orange': 2}
         # sort by key
-        test_ordered_dict1 = OrderedDict(sorted(test_dict.items(),
-                                                key=lambda t: t[0]))
+        test_ordered_dict1 = dict(sorted(test_dict.items(),
+                                         key=lambda t: t[0]))
         # sort by value
-        test_ordered_dict2 = OrderedDict(sorted(test_dict.items(),
-                                                key=lambda t: t[1]))
+        test_ordered_dict2 = dict(sorted(test_dict.items(),
+                                         key=lambda t: t[1]))
         # add the two ordered dict as sections of a third ordered dict
-        test_ordered_dict3 = OrderedDict()
+        test_ordered_dict3 = {}
         test_ordered_dict3["section1"] = test_ordered_dict1
         test_ordered_dict3["section2"] = test_ordered_dict2
 
-        # write to ini and read back as a ConfigDict (inherits OrderedDict)
+        # write to ini and read back as a ConfigDict
         dump(test_ordered_dict3,
              self.ini_fname, fmat="ini")
         read_instance = ConfigDict()

@@ -1,6 +1,6 @@
 #/*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,6 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "16/01/2017"
 
-from collections import OrderedDict
 import numpy
 from silx.math.fit.filters import strip, snip1d,\
     savitsky_golay
@@ -359,7 +358,7 @@ def configure(**kw):
     return CONFIG
 
 
-THEORY = OrderedDict(
+THEORY = dict(
         (('No Background',
           FitTheory(
                 description="No background function",

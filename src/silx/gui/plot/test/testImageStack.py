@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2020 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.io.url import DataUrl
 from silx.gui.plot.ImageStack import ImageStack
 from silx.gui.utils.testutils import SignalListener
-from collections import OrderedDict
 import os
 import time
 import shutil
@@ -48,7 +47,7 @@ class TestImageStack(TestCaseQt):
 
     def setUp(self):
         TestCaseQt.setUp(self)
-        self.urls = OrderedDict()
+        self.urls = {}
         self._raw_data = {}
         self._folder = tempfile.mkdtemp()
         self._n_urls = 10

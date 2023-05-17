@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,6 @@ from silx.gui.plot import Plot2D
 from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
-from collections import OrderedDict
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import time
 import threading
@@ -353,7 +352,7 @@ class ImageStack(qt.QMainWindow):
         self._freeLoadingThreads()
         self._urls = None
         self._urlIndexes = None
-        self._urlData = OrderedDict({})
+        self._urlData = {}
         self._current_url = None
         self._plot.clear()
         self._urlsTable.clear()
@@ -430,7 +429,7 @@ class ImageStack(qt.QMainWindow):
         :type: list
         """
         def createUrlIndexes():
-            indexes = OrderedDict()
+            indexes = {}
             for index, url in enumerate(urls):
                 indexes[index] = url
             return indexes
