@@ -496,6 +496,9 @@ class Hdf5Item(Hdf5Node):
         'NXmirror': (
             (DescriptionType.DESCRIPTION, 'description'),
         ),
+        'NXnote': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
         'NXpositioner': (
             (DescriptionType.NAME, 'name'),
         ),
