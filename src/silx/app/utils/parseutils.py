@@ -101,3 +101,16 @@ def filenames_to_dataurls(filenames: Iterable[Union[str, Path]]) -> Generator[ob
                     data_slice=url.data_slice(),
                     scheme=url.scheme(),
                 )
+
+
+def to_enum(thing: Any, enum_type, default: Optional[object]=None):
+    """Parse this string as this enum_type."""
+    try:
+        v = getattr(enum_type, str(thing))
+        if isinstance(v, enum_type):
+            return v
+        raise ValueError(f"{thing} is not a {enum_type.__name__}")
+    except (AttributeError, ValueError) as e:
+        if default is not None:
+            return default
+        raise

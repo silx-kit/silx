@@ -47,15 +47,15 @@ class CompareImagesWindow(qt.QMainWindow):
         silxIcon = icons.getQIcon("silx")
         self.setWindowIcon(silxIcon)
 
-        self.__settings = settings
-        if settings:
-            self.restoreSettings(settings)
-
         self._plot = CompareImages(parent=self, backend=backend)
         self._plot.setAutoResetZoom(False)
 
         self._selectionTable = UrlSelectionTable(parent=self)
         self._selectionTable.setAcceptDrops(True)
+
+        self.__settings = settings
+        if settings:
+            self.restoreSettings(settings)
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(self._selectionTable)
@@ -76,11 +76,12 @@ class CompareImagesWindow(qt.QMainWindow):
             self._selectionTable.addUrl(url)
         url1 = urls[0].path() if len(urls) >= 1 else None
         url2 = urls[1].path() if len(urls) >= 2 else None
-        self._selectionTable.setSelection(
+        self._selectionTable.setUrlSelection(
             url_img_a=url1,
             url_img_b=url2
         )
         self._plot.resetZoom()
+        self._plot.centerLines()
 
     def clear(self):
         self._plot.clear()
@@ -166,6 +167,17 @@ class CompareImagesWindow(qt.QMainWindow):
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
         settings.setValue("spliter", self.__splitter.sizes())
+
+        settings.setValue("visualization-mode", self._plot.getVisualizationMode().name)
+        settings.setValue("alignment-mode", self._plot.getAlignmentMode().name)
+        settings.setValue("display-keypoints", self._plot.getKeypointsVisible())
+
+        displayKeypoints = settings.value("display-keypoints", False)
+        displayKeypoints = parseutils.to_bool(displayKeypoints, False)
+
+        # self._plot.getAlignmentMode()
+        # self._plot.getVisualizationMode()
+        # self._plot.getKeypointsVisible()
         settings.endGroup()
 
         if isFullScreen:
@@ -182,6 +194,19 @@ class CompareImagesWindow(qt.QMainWindow):
         isFullScreen = settings.value("full-screen", False)
         isFullScreen = parseutils.to_bool(isFullScreen, False)
 
+        visualizationMode = settings.value("visualization-mode", "")
+        visualizationMode = parseutils.to_enum(
+            visualizationMode,
+            CompareImages.VisualizationMode,
+            CompareImages.VisualizationMode.VERTICAL_LINE)
+        alignmentMode = settings.value("alignment-mode", "")
+        alignmentMode = parseutils.to_enum(
+            alignmentMode,
+            CompareImages.AlignmentMode,
+            CompareImages.AlignmentMode.ORIGIN)
+        displayKeypoints = settings.value("display-keypoints", False)
+        displayKeypoints = parseutils.to_bool(displayKeypoints, False)
+
         try:
             data = settings.value("spliter")
             data = [int(d) for d in data]
@@ -196,3 +221,6 @@ class CompareImagesWindow(qt.QMainWindow):
             self.resize(size)
         if isFullScreen:
             self.showFullScreen()
+        self._plot.setVisualizationMode(visualizationMode)
+        self._plot.setAlignmentMode(alignmentMode)
+        self._plot.setKeypointsVisible(displayKeypoints)
