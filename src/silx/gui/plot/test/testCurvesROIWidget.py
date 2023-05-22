@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __date__ = "16/11/2017"
 
 import logging
 import os.path
-from collections import OrderedDict
 import numpy
 
 from silx.gui import qt
@@ -210,11 +209,11 @@ class TestCurvesROIWidget(TestCaseQt):
         x = numpy.arange(100.)
         y = numpy.arange(100.)
         self.plot.addCurve(x=x, y=y, legend="name", replace="True")
-        roisDefs = OrderedDict([
+        roisDefs = dict([
             ["range1",
-             OrderedDict([["from", 20], ["to", 200], ["type", "energy"]])],
+             dict([["from", 20], ["to", 200], ["type", "energy"]])],
             ["range2",
-             OrderedDict([["from", 300], ["to", 500], ["type", "energy"]])]
+             dict([["from", 300], ["to", 500], ["type", "energy"]])]
         ])
 
         roiWidget = self.plot.getCurvesRoiDockWidget().roiWidget

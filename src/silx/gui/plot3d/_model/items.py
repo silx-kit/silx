@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
-from collections import OrderedDict
 import functools
 import logging
 import weakref
@@ -1057,10 +1056,14 @@ class PlaneRow(ItemProxyRow):
     :param Item3D item: Scene item with plane equation property
     """
 
-    _PLANES = OrderedDict((('Plane 0', (1., 0., 0.)),
-                           ('Plane 1', (0., 1., 0.)),
-                           ('Plane 2', (0., 0., 1.)),
-                           ('-', None)))
+    _PLANES = dict(
+        (
+            ('Plane 0', (1., 0., 0.)),
+            ('Plane 1', (0., 1., 0.)),
+            ('Plane 2', (0., 0., 1.)),
+            ('-', None),
+        )
+    )
     """Mapping of plane names to normals"""
 
     _PLANE_ICONS = {'Plane 0': '3d-plane-normal-x',

@@ -4,7 +4,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2022  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2023  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -60,7 +60,6 @@ import math
 import logging
 import gc
 import numpy
-from collections import OrderedDict
 from .param import par
 from silx.opencl import ocl, pyopencl, kernel_workgroup_size
 from silx.opencl.utils import get_opencl_code, nextpower

@@ -30,7 +30,6 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "12/02/2019"
 
-import collections
 import functools
 import os.path
 import logging
@@ -320,7 +319,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         return self.__hdf5Formatter.humanReadableHdf5Type(dataset)
 
     def __attributeTooltip(self, attribute):
-        attributeDict = collections.OrderedDict()
+        attributeDict = {}
         if hasattr(attribute, "shape"):
             attributeDict["Shape"] = self.__hdf5Formatter.humanReadableShape(attribute)
         attributeDict["Data type"] = self.__hdf5Formatter.humanReadableType(attribute, full=True)

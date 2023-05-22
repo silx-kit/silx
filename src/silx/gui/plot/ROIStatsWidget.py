@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ from silx.gui.plot.items.core import ItemChangedType
 from silx.gui.plot3d import items as plot3ditems
 from silx.gui.plot.CurvesROIWidget import ROI
 from silx.gui.plot import stats as statsmdl
-from collections import OrderedDict
 from silx.utils.proxy import docstring
 import silx.gui.plot.items.marker
 import silx.gui.plot.items.shape
@@ -473,9 +472,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         :param item: The plot item
         :return: An ordered dict of column name to QTableWidgetItem mapping
             for the given plot item.
-        :rtype: OrderedDict
+        :rtype: dict
         """
-        result = OrderedDict()
+        result = {}
         row = self._itemToRow(item)
         if row is not None:
             for column in range(self.columnCount()):

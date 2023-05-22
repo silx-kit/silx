@@ -2,7 +2,7 @@
 #    Project: SILX
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2019 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2023 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -36,7 +36,7 @@ __contact__ = "jerome.kieffer@esrf.fr"
 
 import logging
 import numpy
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from math import sqrt
 
 from .common import pyopencl
@@ -116,7 +116,7 @@ class Statistics(OpenclProcessing):
     def set_kernel_arguments(self):
         """Parametrize all kernel arguments"""
         for val in self.mapping.values():
-            self.cl_kernel_args[val] = OrderedDict(((i, self.cl_mem[i]) for i in ("raw", "converted")))
+            self.cl_kernel_args[val] = dict(((i, self.cl_mem[i]) for i in ("raw", "converted")))
 
     def compile_kernels(self):
         """Compile the kernel"""

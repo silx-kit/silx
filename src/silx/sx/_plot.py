@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "06/11/2018"
 
 
-import collections
 from collections import abc
 import logging
 import weakref
@@ -448,7 +447,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         super(_GInputHandler, self).__init__(plot)
 
         self._timeout = timeout
-        self.__selections = collections.OrderedDict()
+        self.__selections = {}
 
         window = plot.window()  # Retrieve window containing PlotWidget
         statusBar = window.statusBar()

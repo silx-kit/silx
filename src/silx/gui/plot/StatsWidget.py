@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ __license__ = "MIT"
 __date__ = "24/07/2018"
 
 
-from collections import OrderedDict
 from contextlib import contextmanager
 import logging
 import weakref
@@ -722,9 +721,9 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         :param item: The plot item
         :return: An ordered dict of column name to QTableWidgetItem mapping
             for the given plot item.
-        :rtype: OrderedDict
+        :rtype: dict
         """
-        result = OrderedDict()
+        result = {}
         row = self._itemToRow(item)
         if row is not None:
             for column in range(self.columnCount()):

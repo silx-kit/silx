@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ class _Cache(object):
     def __init__(self, maxsize=128, callback=None):
         self._maxsize = int(maxsize)
         self._callback = callback
-        self._cache = OrderedDict()
+        self._cache = OrderedDict()  # Needed for popitem(last=False)
 
     def __contains__(self, item):
         return item in self._cache

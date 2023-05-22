@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -136,7 +136,6 @@ __authors__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/01/2017"
 
-from collections import OrderedDict
 import logging
 from silx.gui import qt
 
@@ -576,7 +575,7 @@ class PeriodicTable(qt.QWidget):
         self._eltCurrent = None
         """Current :class:`_ElementButton` (last clicked)"""
 
-        self._eltButtons = OrderedDict()
+        self._eltButtons = {}
         """Dictionary of all :class:`_ElementButton`. Keys are the symbols
         ("H", "He", "Li"...)"""
 

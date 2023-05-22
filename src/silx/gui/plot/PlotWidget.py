@@ -34,7 +34,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from contextlib import contextmanager
 import datetime as dt
 import itertools
@@ -381,7 +381,7 @@ class PlotWidget(qt.QMainWindow):
         self.setCallback()  # set _callback
 
         # Items handling
-        self._content = OrderedDict()
+        self._content = {}
         self._contentToUpdate = []  # Used as an OrderedSet
 
         self._dataRange = None

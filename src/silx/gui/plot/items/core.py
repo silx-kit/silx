@@ -696,7 +696,7 @@ class SymbolMixIn(ItemMixInBase):
     _DEFAULT_SYMBOL_SIZE = config.DEFAULT_PLOT_SYMBOL_SIZE
     """Default marker size of the item"""
 
-    _SUPPORTED_SYMBOLS = collections.OrderedDict((
+    _SUPPORTED_SYMBOLS = dict((
         ('o', 'Circle'),
         ('d', 'Diamond'),
         ('s', 'Square'),

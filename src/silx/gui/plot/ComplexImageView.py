@@ -33,7 +33,6 @@ __date__ = "24/04/2018"
 
 
 import logging
-import collections
 import numpy
 
 from .. import qt, icons
@@ -166,7 +165,7 @@ class _ComplexDataToolButton(qt.QToolButton):
     :param plot: The :class:`ComplexImageView` to control
     """
 
-    _MODES = collections.OrderedDict([
+    _MODES = dict([
         (ImageComplexData.ComplexMode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
         (ImageComplexData.ComplexMode.SQUARE_AMPLITUDE,
          ('math-square-amplitude', 'Square amplitude')),
