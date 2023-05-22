@@ -77,19 +77,6 @@ def supported_extensions():
     return _fabio_extensions
 
 
-class _FileSeries(fabio.file_series.file_series):
-    """
-    .. note:: Overwrite a function to fix an issue in fabio.
-    """
-    def jump(self, num):
-        """
-        Goto a position in sequence
-        """
-        assert num < len(self) and num >= 0, "num out of range"
-        self._current = num
-        return self[self._current]
-
-
 class FrameData(commonh5.LazyLoadableDataset):
     """Expose a cube of image from a Fabio file using `FabioReader` as
     cache."""
@@ -385,7 +372,7 @@ class FabioReader(object):
                 raise TypeError("FabioImage expected but %s found.", fabio_image.__class__)
         elif file_series is not None:
             if isinstance(file_series, list):
-                self.__fabio_file = _FileSeries(file_series)
+                self.__fabio_file = fabio.file_series.file_series(file_series)
             elif isinstance(file_series, fabio.file_series.file_series):
                 self.__fabio_file = file_series
             else:
