@@ -1263,8 +1263,7 @@ class ColormapDialog(qt.QDialog):
             if oldArray is array:
                 return
 
-        self._data = None
-        self._itemHolder = None
+        self.__resetItem()
         try:
             if item is None:
                 self._item = None
@@ -1272,11 +1271,26 @@ class ColormapDialog(qt.QDialog):
                 if not isinstance(item, items.ColormapMixIn):
                     self._item = None
                     raise ValueError("Item %s is not supported" % item)
+                item.sigItemChanged.connect(self.__itemChanged)
                 self._item = weakref.ref(item, self._itemAboutToFinalize)
         finally:
             self._syncScaleToButtonsEnabled()
             self._dataRange = None
             self._histogramData = None
+            self._invalidateData()
+
+    def __resetItem(self):
+        """Reset item and data used by the dialog"""
+        self._data = None
+        self._itemHolder = None
+        if self._item is not None:
+            item = self._item()
+            self._item = None
+            if item is not None:
+                item.sigItemChanged.disconnect(self.__itemChanged)
+
+    def __itemChanged(self, event):
+        if event == items.ItemChangedType.DATA:
             self._invalidateData()
 
     def _getData(self):
@@ -1295,12 +1309,9 @@ class ColormapDialog(qt.QDialog):
         if oldData is data:
             return
 
-        self._item = None
+        self.__resetItem()
         self._syncScaleToButtonsEnabled()
-        if data is None:
-            self._data = None
-            self._itemHolder = None
-        else:
+        if data is not None:
             self._data = weakref.ref(data, self._dataAboutToFinalize)
             self._itemHolder = _DataRefHolder(self._data)
 
