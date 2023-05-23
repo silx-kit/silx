@@ -68,10 +68,6 @@ from ._utils.panzoom import ViewConstraints
 from ...gui.plot._utils.dtime_ticklayout import timestamp
 
 
-
-_COLORDICT = colors.COLORDICT
-_COLORLIST = silx.config.DEFAULT_PLOT_CURVE_COLORS
-
 """
 Object returned when requesting the data range.
 """
@@ -258,8 +254,10 @@ class PlotWidget(qt.QMainWindow):
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    colorList = _COLORLIST
-    colorDict = _COLORDICT
+    # The following 2 class attributes are no longer used
+    # but there is no way to warn about deprecation
+    colorList = silx.config.DEFAULT_PLOT_CURVE_COLORS
+    colorDict = colors.COLORDICT
 
     sigPlotSignal = qt.Signal(object)
     """Signal for all events of the plot.
@@ -387,6 +385,7 @@ class PlotWidget(qt.QMainWindow):
         self._dataRange = None
 
         # line types
+        self._defaultColors = None
         self._styleList = ['-', '--', '-.', ':']
         self._colorIndex = 0
         self._styleIndex = 0
@@ -2891,17 +2890,35 @@ class PlotWidget(qt.QMainWindow):
         """
         return Colormap.getSupportedColormaps()
 
+    def setDefaultColors(self, colors: Optional[Tuple[str, ...]]):
+        """Set the list of colors to use as default for curves and histograms.
+
+        Set to None to use `silx.config.DEFAULT_PLOT_CURVE_COLORS`.
+        """
+        self._defaultColors = None if colors is None else tuple(colors)
+        self._resetColorAndStyle()
+
+    def getDefaultColors(self) -> Tuple[str, ...]:
+        """Returns the list of default colors for curves and histograms"""
+        if self._defaultColors is None:
+            return tuple(silx.config.DEFAULT_PLOT_CURVE_COLORS)
+        return self._defaultColors
+
     def _resetColorAndStyle(self):
         self._colorIndex = 0
         self._styleIndex = 0
 
-    def _getColorAndStyle(self):
-        color = self.colorList[self._colorIndex]
+    def _getColorAndStyle(self) -> Tuple[str, str]:
+        defaultColors = self.getDefaultColors()
+        if self._colorIndex >= len(defaultColors):  # Handle list length updated
+            self._colorIndex = 0
+
+        color = defaultColors[self._colorIndex]
         style = self._styleList[self._styleIndex]
 
         # Loop over color and then styles
         self._colorIndex += 1
-        if self._colorIndex >= len(self.colorList):
+        if self._colorIndex >= len(defaultColors):
             self._colorIndex = 0
             self._styleIndex = (self._styleIndex + 1) % len(self._styleList)
 
