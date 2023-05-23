@@ -1168,7 +1168,10 @@ class PlotWidget(qt.QMainWindow):
             # Override previous/default values with provided ones
             curve.setInfo(info)
             if color is not None:
-                curve.setColor(color)
+                curve.setColor(
+                    colors.rgba(color, colors=self.getDefaultColors())
+                    if isinstance(color, str) else color
+                )
             if symbol is not None:
                 curve.setSymbol(symbol)
             if linewidth is not None:
@@ -1292,7 +1295,10 @@ class PlotWidget(qt.QMainWindow):
 
         # Override previous/default values with provided ones
         if color is not None:
-            histo.setColor(color)
+            histo.setColor(
+                colors.rgba(color, colors=self.getDefaultColors())
+                if isinstance(color, str) else color
+            )
         if fill is not None:
             histo.setFill(fill)
         if z is not None:
