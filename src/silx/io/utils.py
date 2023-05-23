@@ -32,7 +32,6 @@ import os.path
 import sys
 import time
 import logging
-import collections
 from typing import Generator
 import urllib.parse
 
@@ -85,7 +84,7 @@ def supported_extensions(flat_formats=True):
         extensions (an extension is a string like "\\*.ext").
     :rtype: Dict[str, Set[str]]
     """
-    formats = collections.OrderedDict()
+    formats = {}
     formats["HDF5 files"] = set(["*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus files"] = set(["*.nx", "*.nxs", "*.h5", "*.hdf", "*.hdf5"])
     formats["NeXus layout from spec files"] = set(["*.dat", "*.spec", "*.mca"])
@@ -649,7 +648,7 @@ def _get_classes_type():
     if _CLASSES_TYPE is not None:
         return _CLASSES_TYPE
 
-    _CLASSES_TYPE = collections.OrderedDict()
+    _CLASSES_TYPE = {}
 
     _CLASSES_TYPE[commonh5.Dataset] = H5Type.DATASET
     _CLASSES_TYPE[commonh5.File] = H5Type.FILE

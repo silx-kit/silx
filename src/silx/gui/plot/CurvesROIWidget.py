@@ -32,7 +32,6 @@ __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
 __date__ = "13/03/2018"
 
-from collections import OrderedDict
 import logging
 import os
 import sys
@@ -457,7 +456,7 @@ class ROITable(TableWidget):
     """Signal emitted when the active roi changed or when the value of the
     active roi are changing"""
 
-    COLUMNS_INDEX = OrderedDict([
+    COLUMNS_INDEX = dict([
         ('ID', 0),
         ('ROI', 1),
         ('Type', 2),
@@ -558,7 +557,7 @@ class ROITable(TableWidget):
         :param str order: Field used for ordering the ROIs.
              One of "from", "to", "type".
              None (default) for no ordering, or same order as specified
-             in parameter ``roidict`` if provided as an OrderedDict.
+             in parameter ``rois`` if provided as a dict.
         """
         assert order in [None, "from", "to", "type"]
         self.clear()
@@ -852,12 +851,12 @@ class ROITable(TableWidget):
 
         if order is None or order.lower() == "none":
             ordered_roilist = list(self._roiDict.values())
-            res = OrderedDict([(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist])
+            res = dict([(roi.getName(), self._roiDict[roi.getID()]) for roi in ordered_roilist])
         else:
             assert order in ["from", "to", "type", "netcounts", "rawcounts"]
             ordered_roilist = sorted(self._roiDict.keys(),
                                      key=lambda roi_id: self._roiDict[roi_id].get(order))
-            res = OrderedDict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
+            res = dict([(roi.getName(), self._roiDict[id]) for id in ordered_roilist])
 
         return res
 

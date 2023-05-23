@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@
 
 """
 
-import collections
 import datetime
 import logging
 import numbers
@@ -818,7 +817,7 @@ class EdfFabioReader(FabioReader):
         pos_values = header.get(pos_values_key, "")
         pos_values = pos_values.split()
 
-        result = collections.OrderedDict()
+        result = {}
         nbitems = max(len(mnemonic_values), len(pos_values))
         for i in range(nbitems):
             if i < len(mnemonic_values):

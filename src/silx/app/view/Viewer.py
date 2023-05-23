@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ __date__ = "15/01/2019"
 
 
 import os
-import collections
 import logging
 import functools
 from typing import Optional
@@ -771,7 +770,7 @@ class Viewer(qt.QMainWindow):
         dialog.setModal(True)
 
         # NOTE: hdf5plugin have to be loaded before
-        extensions = collections.OrderedDict()
+        extensions = {}
         for description, ext in silx.io.supported_extensions().items():
             extensions[description] = " ".join(sorted(list(ext)))
 

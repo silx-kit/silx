@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ __license__ = "MIT"
 __date__ = "25/11/2016"
 
 import sys
-from collections import OrderedDict
 
 from silx.gui import qt
 from silx.gui.widgets.TableWidget import TableWidget
@@ -148,7 +147,7 @@ class Parameters(TableWidget):
 
         # Initialize the table with one line per supplied parameter
         paramlist = paramlist if paramlist is not None else []
-        self.parameters = OrderedDict()
+        self.parameters = {}
         """This attribute stores all the data in an ordered dictionary.
         New data can be added using :meth:`newParameterLine`.
         Existing data can be modified using :meth:`configureLine`
@@ -210,25 +209,29 @@ class Parameters(TableWidget):
             self.setRowCount(line + 1)
 
         # default configuration for fit parameters
-        self.parameters[param] = OrderedDict((('line', line),
-                                              ('estimation', '0'),
-                                              ('fitresult', ''),
-                                              ('sigma', ''),
-                                              ('code', 'FREE'),
-                                              ('val1', ''),
-                                              ('val2', ''),
-                                              ('cons1', 0),
-                                              ('cons2', 0),
-                                              ('vmin', '0'),
-                                              ('vmax', '1'),
-                                              ('relatedto', ''),
-                                              ('factor', '1.0'),
-                                              ('delta', '0.0'),
-                                              ('sum', '0.0'),
-                                              ('group', ''),
-                                              ('name', param),
-                                              ('xmin', None),
-                                              ('xmax', None)))
+        self.parameters[param] = dict(
+            (
+                ('line', line),
+                ('estimation', '0'),
+                ('fitresult', ''),
+                ('sigma', ''),
+                ('code', 'FREE'),
+                ('val1', ''),
+                ('val2', ''),
+                ('cons1', 0),
+                ('cons2', 0),
+                ('vmin', '0'),
+                ('vmax', '1'),
+                ('relatedto', ''),
+                ('factor', '1.0'),
+                ('delta', '0.0'),
+                ('sum', '0.0'),
+                ('group', ''),
+                ('name', param),
+                ('xmin', None),
+                ('xmax', None),
+            )
+        )
         self.setReadWrite(param, 'estimation')
         self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
 
@@ -268,7 +271,7 @@ class Parameters(TableWidget):
         self.setRowCount(len(fitresults))
 
         # Reinitialize and fill self.parameters
-        self.parameters = OrderedDict()
+        self.parameters = {}
         for (line, param) in enumerate(fitresults):
             self.newParameterLine(param['name'], line)
 

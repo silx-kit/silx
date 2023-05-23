@@ -24,7 +24,6 @@
 """This module defines a views used by :class:`silx.gui.data.DataViewer`.
 """
 
-from collections import OrderedDict
 import logging
 import numbers
 import numpy
@@ -551,7 +550,7 @@ class SelectOneDataView(_CompositeDataView):
         :param qt.QWidget parent: Parent of the hold widget
         """
         super(SelectOneDataView, self).__init__(parent, modeId, icon, label)
-        self.__views = OrderedDict()
+        self.__views = {}
         self.__currentView = None
 
     def setHooks(self, hooks):
@@ -706,7 +705,7 @@ class SelectOneDataView(_CompositeDataView):
             return False
 
         # replace oldView with new view in dict
-        self.__views = OrderedDict(
+        self.__views = dict(
                 (newView, None) if view is oldView else (view, idx) for
                 view, idx in self.__views.items())
         return True

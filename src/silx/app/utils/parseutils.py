@@ -108,9 +108,23 @@ def filenames_to_dataurls(
 
             for data_path in data_paths:
                 for data_slice in data_slices:
+
                     yield DataUrl(
                         file_path=file_path,
                         data_path=data_path,
-                        scheme=url.scheme(),
                         data_slice=data_slice,
+                        scheme=url.scheme(),
                     )
+
+
+def to_enum(thing: Any, enum_type, default: Optional[object]=None):
+    """Parse this string as this enum_type."""
+    try:
+        v = getattr(enum_type, str(thing))
+        if isinstance(v, enum_type):
+            return v
+        raise ValueError(f"{thing} is not a {enum_type.__name__}")
+    except (AttributeError, ValueError) as e:
+        if default is not None:
+            return default
+        raise

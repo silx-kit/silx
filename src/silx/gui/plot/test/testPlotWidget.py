@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1815,7 +1815,7 @@ class TestPlotImageLog(PlotWidgetTestCase):
 
         rgb = numpy.array(
             (((0, 0, 0), (128, 0, 0), (255, 0, 0)),
-             ((0, 128, 0), (0, 128, 128), (0, 128, 256))),
+             ((0, 128, 0), (0, 128, 128), (0, 128, 255))),
             dtype=numpy.uint8)
 
         self.plot.addImage(rgb, legend="rgb",

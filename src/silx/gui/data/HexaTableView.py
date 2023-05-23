@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,6 @@ This module defines model and widget to display raw data using an
 hexadecimal viewer.
 """
 
-import collections
-
 import numpy
 
 from silx.gui import qt
@@ -46,7 +44,7 @@ class _VoidConnector(object):
     """
 
     def __init__(self, data):
-        self.__cache = collections.OrderedDict()
+        self.__cache = {}
         self.__len = data.itemsize
         self.__data = data
 

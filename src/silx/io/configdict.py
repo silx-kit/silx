@@ -88,7 +88,6 @@ __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "15/09/2016"
 
-from collections import OrderedDict
 import numpy
 import re
 import configparser
@@ -281,7 +280,7 @@ class OptionStr(str):
             return _parse_simple_types(self)
 
 
-class ConfigDict(OrderedDict):
+class ConfigDict(dict):
     """Store configuration parameters as an ordered dictionary.
 
     Parameters can be grouped into sections, by storing them as
@@ -312,8 +311,8 @@ class ConfigDict(OrderedDict):
         dict after ``defaultdict`` and ``initdict``
     """
     def __init__(self, defaultdict=None, initdict=None, filelist=None):
-        self.default = defaultdict if defaultdict is not None else OrderedDict()
-        OrderedDict.__init__(self, self.default)
+        self.default = defaultdict if defaultdict is not None else {}
+        super().__init__(self.default)
         self.filelist = []
 
         if initdict is not None:
@@ -330,7 +329,7 @@ class ConfigDict(OrderedDict):
     def clear(self):
         """ Clear dictionnary
         """
-        OrderedDict.clear(self)
+        super().clear()
         self.filelist = []
 
     def __tolist(self, mylist):
@@ -407,7 +406,7 @@ class ConfigDict(OrderedDict):
             for subsectw in sect.split('.'):
                 subsect = subsectw.replace("_|_", ".")
                 if not subsect in ddict:
-                    ddict[subsect] = OrderedDict()
+                    ddict[subsect] = {}
                 ddict = ddict[subsect]
             for opt in cfg.options(sect):
                 ddict[opt] = self.__parse_data(cfg.get(sect, opt))

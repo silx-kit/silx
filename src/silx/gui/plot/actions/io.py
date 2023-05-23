@@ -42,7 +42,6 @@ from silx.io.nxdata import save_NXdata
 import logging
 import sys
 import os.path
-from collections import OrderedDict
 import traceback
 import numpy
 from silx.gui import qt, printer
@@ -90,7 +89,7 @@ class SaveAction(PlotAction):
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
-    CURVE_FILTERS_TXT = OrderedDict((
+    CURVE_FILTERS_TXT = dict((
         ('Curve as Raw ASCII (*.txt)',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
         ('Curve as ";"-separated CSV (*.csv)',
@@ -143,11 +142,12 @@ class SaveAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         self._filters = {
-            'all': OrderedDict(),
-            'curve': OrderedDict(),
-            'curves': OrderedDict(),
-            'image': OrderedDict(),
-            'scatter': OrderedDict()}
+            'all': {},
+            'curve': {},
+            'curves': {},
+            'image': {},
+            'scatter': {},
+        }
 
         self._appendFilters = list(self.DEFAULT_APPEND_FILTERS)
 
@@ -577,7 +577,7 @@ class SaveAction(PlotAction):
         keyList.insert(index, nameFilter)
 
         # build the new filters
-        newFilters = OrderedDict()
+        newFilters = {}
         for key in keyList:
             newFilters[key] = self._filters[dataKind][key]
 
@@ -592,7 +592,7 @@ class SaveAction(PlotAction):
             The kind of data for which the provided filter is valid.
             On of: 'all', 'curve', 'curves', 'image', 'scatter'
         :return: {nameFilter: function} associations.
-        :rtype: collections.OrderedDict
+        :rtype: dict
         """
         assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
 
@@ -601,7 +601,7 @@ class SaveAction(PlotAction):
     def _actionTriggered(self, checked=False):
         """Handle save action."""
         # Set-up filters
-        filters = OrderedDict()
+        filters = {}
 
         # Add image filters if there is an active image
         if self.plot.getActiveImage() is not None:

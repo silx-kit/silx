@@ -24,7 +24,6 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
-from collections import OrderedDict
 from collections.abc import Mapping
 import json
 import logging
@@ -807,7 +806,7 @@ def dump(ddict, ffile, mode="w", fmat=None):
 def load(ffile, fmat=None):
     """Load dictionary from a file
 
-    When loading from a JSON or INI file, an OrderedDict is returned to
+    When loading from a JSON or INI file, the returned dict
     preserve the values' insertion order.
 
     :param ffile: File name or file-like object with a ``read`` method
@@ -815,7 +814,7 @@ def load(ffile, fmat=None):
         When None (the default), it uses the filename extension as the format.
         Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
-    :return: Dictionary (ordered dictionary for JSON and INI)
+    :return: Dictionary
     :raises IOError: if file format is not supported
     """
     must_be_closed = False
@@ -833,7 +832,7 @@ def load(ffile, fmat=None):
         fmat = fmat.lower()
 
         if fmat == "json":
-            return json.load(f, object_pairs_hook=OrderedDict)
+            return json.load(f)
         if fmat in ["hdf5", "h5"]:
             return h5todict(fname)
         elif fmat in ["ini", "cfg"]:

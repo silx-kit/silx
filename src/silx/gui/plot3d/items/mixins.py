@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ __license__ = "MIT"
 __date__ = "24/04/2018"
 
 
-import collections
 import numpy
 
 from ...plot.items.core import ItemMixInBase
@@ -156,7 +155,7 @@ class ComplexMixIn(_ComplexMixIn):
 class SymbolMixIn(_SymbolMixIn):
     """Mix-in class for symbol and symbolSize properties for Item3D"""
 
-    _SUPPORTED_SYMBOLS = collections.OrderedDict((
+    _SUPPORTED_SYMBOLS = dict((
         ('o', 'Circle'),
         ('d', 'Diamond'),
         ('s', 'Square'),
@@ -166,7 +165,8 @@ class SymbolMixIn(_SymbolMixIn):
         ('|', 'Vertical Line'),
         ('_', 'Horizontal Line'),
         ('.', 'Point'),
-        (',', 'Pixel')))
+        (',', 'Pixel'),
+    ))
 
     def _getSceneSymbol(self):
         """Returns a symbol name and size suitable for scene primitives.

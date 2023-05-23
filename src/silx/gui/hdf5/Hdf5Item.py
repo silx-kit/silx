@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ __date__ = "17/01/2019"
 
 
 import logging
-import collections
 import enum
 from typing import Optional
 
@@ -330,7 +329,7 @@ class Hdf5Item(Hdf5Node):
 
         :param Dict[str,str] attributeDict: Key/value attributes
         """
-        attributeDict = collections.OrderedDict()
+        attributeDict = {}
 
         if self.h5Class == silx.io.utils.H5Type.DATASET:
             attributeDict["#Title"] = "HDF5 Dataset"
@@ -494,6 +493,9 @@ class Hdf5Item(Hdf5Node):
             (DescriptionType.DESCRIPTION, 'description'),
         ),
         'NXmirror': (
+            (DescriptionType.DESCRIPTION, 'description'),
+        ),
+        'NXnote': (
             (DescriptionType.DESCRIPTION, 'description'),
         ),
         'NXpositioner': (

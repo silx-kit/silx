@@ -3,7 +3,7 @@
 #    Project: S I L X project
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2018 European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2023 European Synchrotron Radiation Facility, Grenoble, France
 #
 #    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
@@ -44,7 +44,7 @@ import sys
 import os
 import logging
 import gc
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import numpy
 import threading
 from .common import ocl, pyopencl, release_cl_buffers, query_kernel_info, allocate_texture, check_textures_availability
@@ -360,7 +360,7 @@ class OpenclProcessing(object):
         total_time = 0.0
         out = [""]
         if stats:
-            stats = OrderedDict()
+            stats = {}
             out.append(f"OpenCL kernel profiling statistics in milliseconds for: {self.__class__.__name__}")
             out.append(f"{'Kernel name':>50} (count):      min   median      max     mean      std")
         else:

@@ -31,7 +31,6 @@ __license__ = "MIT"
 __date__ = "06/06/2018"
 
 
-from collections import OrderedDict
 from functools import lru_cache
 import logging
 
@@ -48,7 +47,7 @@ from silx.utils.proxy import docstring
 logger = logging.getLogger(__name__)
 
 
-class Stats(OrderedDict):
+class Stats(dict):
     """Class to define a set of statistic relative to a dataset
     (image, curve...).
 
@@ -60,7 +59,7 @@ class Stats(OrderedDict):
     :param List statslist: List of the :class:`Stat` object to be computed.
     """
     def __init__(self, statslist=None):
-        OrderedDict.__init__(self)
+        super().__init__()
         _statslist = statslist if not None else []
         if statslist is not None:
             for stat in _statslist:
@@ -106,7 +105,7 @@ class Stats(OrderedDict):
 
     def __setitem__(self, key, value):
         assert isinstance(value, StatBase)
-        OrderedDict.__setitem__(self, key, value)
+        super().__setitem__(key, value)
 
     def add(self, stat):
         """Add a :class:`Stat` to the set
