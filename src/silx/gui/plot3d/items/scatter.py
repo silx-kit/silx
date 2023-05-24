@@ -30,10 +30,11 @@ __date__ = "15/11/2017"
 
 from collections import abc
 import logging
+import sys
 import numpy
+from matplotlib.tri import Triangulation
 
 from ... import _glutils as glu
-from ...plot._utils.delaunay import delaunay
 from ..scene import function, primitives, utils
 
 from ...plot.items import ScatterVisualizationMixIn
@@ -541,11 +542,13 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
             # TODO run delaunay in a thread
             # Compute lines/triangles indices if not cached
             if self._cachedTrianglesIndices is None:
-                triangulation = delaunay(x, y)
-                if triangulation is None:
+                try:
+                    triangulation = Triangulation(x, y)
+                except (RuntimeError, ValueError):
+                    _logger.debug("Delaunay tesselation failed: %s", sys.exc_info()[1])
                     return None
                 self._cachedTrianglesIndices = numpy.ravel(
-                    triangulation.simplices.astype(numpy.uint32))
+                    triangulation.triangles.astype(numpy.uint32))
 
             if (mode is self.Visualization.LINES and
                     self._cachedLinesIndices is None):

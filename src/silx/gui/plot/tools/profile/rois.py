@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -736,7 +736,7 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         :param float y1: Profile end point Y coord
         :return: (points, values) profile data or None
         """
-        future = scatter._getInterpolator()
+        future = scatter._getInterpolatorFuture()
         try:
             interpolator = future.result()
         except CancelledError:
@@ -745,15 +745,14 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
             return None  # Cannot init an interpolator
 
         nPoints = self.getNPoints()
-        points = numpy.transpose((
-            numpy.linspace(x0, x1, nPoints, endpoint=True),
-            numpy.linspace(y0, y1, nPoints, endpoint=True)))
+        x = numpy.linspace(x0, x1, nPoints, endpoint=True)
+        y = numpy.linspace(y0, y1, nPoints, endpoint=True)
 
-        values = interpolator(points)
-
+        values = interpolator(x, y)
         if not numpy.any(numpy.isfinite(values)):
             return None  # Profile outside convex hull
 
+        points = numpy.transpose((x, y))
         return points, values
 
     def computeProfile(self, item):
