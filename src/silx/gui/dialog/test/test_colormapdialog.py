@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -397,3 +397,20 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         qt.QTimer.singleShot(1000, colormapDiag.deleteLater)
         result = colormapDiag.exec()
         self.assertEqual(result, 0)
+
+
+def testUpdateImageData(qapp, qWidgetFactory):
+    """Test that range/histogram takes into account item updates"""
+    dialog = qWidgetFactory(ColormapDialog.ColormapDialog)
+
+    item = ImageData()
+    item.setColormap(Colormap())
+    dialog.setItem(item)
+    dialog.setColormap(item.getColormap())
+    qapp.processEvents()
+
+    assert dialog._histoWidget.getFiniteRange() == (0, 1)
+
+    item.setData([(1, 2), (3, 4)])
+
+    assert dialog._histoWidget.getFiniteRange() == (1, 4)
