@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import shutil
 _logger = logging.getLogger(__name__)
 
 import fabio
+import fabio.file_series
 import h5py
 
 from .. import commonh5
@@ -602,12 +603,12 @@ class TestFabioH5WithFileSeries(unittest.TestCase):
         self._testH5Image(h5_image)
 
     def testFileSeries(self):
-        file_series = fabioh5._FileSeries(self.edf_filenames)
+        file_series = fabio.file_series.file_series(self.edf_filenames)
         h5_image = fabioh5.File(file_series=file_series)
         self._testH5Image(h5_image)
 
     def testFrameDataCache(self):
-        file_series = fabioh5._FileSeries(self.edf_filenames)
+        file_series = fabio.file_series.file_series(self.edf_filenames)
         reader = fabioh5.FabioReader(file_series=file_series)
         frameData = _TestableFrameData("foo", reader)
         self.assertEqual(frameData.dtype.kind, "i")
