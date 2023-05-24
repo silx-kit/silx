@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Functions to apply pan and zoom on a Plot"""
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent", "V. Valls"]
 __license__ = "MIT"
 __date__ = "08/08/2017"
@@ -30,6 +32,7 @@ __date__ = "08/08/2017"
 
 import logging
 import math
+from typing import NamedTuple
 import numpy
 
 
@@ -116,16 +119,33 @@ def scale1DRange(min_, max_, center, scale, isLog):
     return newMin, newMax
 
 
-def applyZoomToPlot(plot, scaleF, center=None):
+class ZoomOnAxes(NamedTuple):
+    """Toggle zoom for each axis"""
+    xaxis: bool = True
+    yaxis: bool = True
+    y2axis: bool = True
+
+    def isDisabled(self) -> bool:
+        """True only if all axes are disabled"""
+        return not (self.xaxis or self.yaxis or self.y2axis)
+
+
+def applyZoomToPlot(
+    plot,
+    scale: float,
+    center: tuple[float, float]=None,
+    enabled: ZoomOnAxes=ZoomOnAxes(),
+):
     """Zoom in/out plot given a scale and a center point.
 
     :param plot: The plot on which to apply zoom.
-    :param float scaleF: Scale factor of zoom.
+    :param scale: Scale factor of zoom.
     :param center: (x, y) coords in pixel coordinates of the zoom center.
-    :type center: 2-tuple of float
+    :param enabled: Toggle zoom for each axis independently
     """
     xMin, xMax = plot.getXAxis().getLimits()
     yMin, yMax = plot.getYAxis().getLimits()
+    y2Min, y2Max = plot.getYAxis(axis="right").getLimits()
 
     if center is None:
         left, top, width, height = plot.getPlotBoundsInPixels()
@@ -136,18 +156,20 @@ def applyZoomToPlot(plot, scaleF, center=None):
     dataCenterPos = plot.pixelToData(cx, cy)
     assert dataCenterPos is not None
 
-    xMin, xMax = scale1DRange(xMin, xMax, dataCenterPos[0], scaleF,
-                              plot.getXAxis()._isLogarithmic())
+    if enabled.xaxis:
+        xMin, xMax = scale1DRange(xMin, xMax, dataCenterPos[0], scale,
+                                  plot.getXAxis()._isLogarithmic())
 
-    yMin, yMax = scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
-                              plot.getYAxis()._isLogarithmic())
+    if enabled.yaxis:
+        yMin, yMax = scale1DRange(yMin, yMax, dataCenterPos[1], scale,
+                                  plot.getYAxis()._isLogarithmic())
 
-    dataPos = plot.pixelToData(cx, cy, axis="right")
-    assert dataPos is not None
-    y2Center = dataPos[1]
-    y2Min, y2Max = plot.getYAxis(axis="right").getLimits()
-    y2Min, y2Max = scale1DRange(y2Min, y2Max, y2Center, scaleF,
-                                plot.getYAxis()._isLogarithmic())
+    if enabled.y2axis:
+        dataPos = plot.pixelToData(cx, cy, axis="right")
+        assert dataPos is not None
+        y2Center = dataPos[1]
+        y2Min, y2Max = scale1DRange(y2Min, y2Max, y2Center, scale,
+                                    plot.getYAxis()._isLogarithmic())
 
     plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
