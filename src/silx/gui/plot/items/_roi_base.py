@@ -118,10 +118,12 @@ class RoiInteractionMode(object):
 
     @property
     def label(self):
+        """Short name"""
         return self._label
 
     @property
     def description(self):
+        """Longer description of the interaction mode"""
         return self._description
 
 

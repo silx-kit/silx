@@ -118,3 +118,34 @@ Axis
 
 .. automodule:: silx.gui.plot.items.roi
    :members:
+   :show-inheritance:
+
+   .. autoclass:: silx.gui.plot.items.roi.ArcROI
+      :members:
+      :show-inheritance:
+
+   .. autoclass:: silx.gui.plot.items.roi.BandROI
+      :members:
+      :show-inheritance:
+
+
+Base class for regions of interest
+++++++++++++++++++++++++++++++++++
+
+.. autoclass:: silx.gui.plot.items._roi_base._RegionOfInterestBase
+   :members:
+   :show-inheritance:
+
+.. autoclass:: silx.gui.plot.items.roi.RegionOfInterest
+   :members:
+   :show-inheritance:
+
+.. autoclass:: silx.gui.plot.items.roi.HandleBasedROI
+   :members:
+   :show-inheritance:
+
+.. autoclass:: silx.gui.plot.items.roi.InteractionModeMixIn
+   :members:
+
+.. autoclass:: silx.gui.plot.items.roi.RoiInteractionMode
+   :members:
