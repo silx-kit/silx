@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
-                     applyZoomToPlot)
+                     applyZoomToPlot, ZoomOnAxes)
 
 
 # Base class ##################################################################
@@ -1657,12 +1657,27 @@ class PlotInteraction(object):
 
     def __init__(self, plot):
         self._plot = weakref.ref(plot)  # Avoid cyclic-ref
-
-        self.zoomOnWheel = True
-        """True to enable zoom on wheel, False otherwise."""
+        self.__zoomOnWheel = True
+        self.__zoomOnAxes = ZoomOnAxes()
 
         # Default event handler
         self._eventHandler = ItemsInteraction(plot)
+
+    def isZoomOnWheelEnabled(self) -> bool:
+        """Returns whether or not wheel interaction performs zoom"""
+        return self.__zoomOnWheel
+
+    def setZoomOnWheelEnabled(self, enabled: bool):
+        """Toggle zoom on wheel interaction"""
+        self.__zoomOnWheel = enabled
+
+    def setZoomOnAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
+        """Toggle zoom on wheel for each axis"""
+        self.__zoomOnAxes = ZoomOnAxes(xaxis, yaxis, y2axis)
+
+    def getZoomOnAxes(self) -> ZoomOnAxes:
+        """Returns status of enabled zoom on wheel"""
+        return self.__zoomOnAxes
 
     def getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
@@ -1739,6 +1754,22 @@ class PlotInteraction(object):
 
     def handleEvent(self, event, *args, **kwargs):
         """Forward event to current interactive mode state machine."""
-        if not self.zoomOnWheel and event == 'wheel':
-            return  # Discard wheel events
+        if event == 'wheel':  # Handle wheel events directly
+            self._onWheel(*args, **kwargs)
+            return
+
         self._eventHandler.handleEvent(event, *args, **kwargs)
+
+    def _onWheel(self, x: float, y: float, angle: float):
+        """Handle wheel events"""
+        if not self.isZoomOnWheelEnabled():
+            return
+        zoomOnAxes = self.getZoomOnAxes()
+        if zoomOnAxes.isDisabled():
+            return
+
+        plotWidget = self._plot()
+        if plotWidget is None:
+            return
+        scale = 1.1 if angle > 0 else 1. / 1.1
+        applyZoomToPlot(plotWidget, scale, (x, y), zoomOnAxes)

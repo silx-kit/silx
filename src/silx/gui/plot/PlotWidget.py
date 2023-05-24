@@ -25,6 +25,8 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -35,6 +37,7 @@ _logger = logging.getLogger(__name__)
 
 
 from collections import namedtuple
+from collections.abc import Sequence
 from contextlib import contextmanager
 from typing import Optional, Tuple, Union
 import datetime as dt
@@ -3491,28 +3494,35 @@ class PlotWidget(qt.QMainWindow):
         mode, zoomOnWheel = self._previousDefaultMode
         self.setInteractiveMode(mode=mode, zoomOnWheel=zoomOnWheel)
 
-    def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None,
-                           zoomOnWheel=True, source=None, width=None):
+    def setInteractiveMode(
+        self,
+        mode: str,
+        color: Union[str, Sequence[numbers.Real]]='black',
+        shape: str='polygon',
+        label: Optional[str]=None,
+        zoomOnWheel: bool=True,
+        source=None,
+        width: Optional[float]=None
+    ):
         """Switch the interactive mode.
 
-        :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
+        :param mode: The name of the interactive mode.
+                     In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
         :type color: Color description: The name as a str or
                      a tuple of 4 floats.
-        :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
-                          'freeline'.
-                          Default is 'polygon'.
-        :param str label: Only for 'draw' mode, sent in drawing events.
-        :param bool zoomOnWheel: Toggle zoom on wheel support
+        :param shape: Only for 'draw' mode. The kind of shape to draw.
+                      In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                      'freeline'.
+                      Default is 'polygon'.
+        :param label: Only for 'draw' mode, sent in drawing events.
+        :param zoomOnWheel: Toggle zoom on wheel support
         :param source: A user-defined object (typically the caller object)
                        that will be send in the interactiveModeChanged event,
                        to identify which object required a mode change.
                        Default: None
-        :param float width: Width of the pencil. Only for draw pencil mode.
+        :param width: Width of the pencil. Only for draw pencil mode.
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
