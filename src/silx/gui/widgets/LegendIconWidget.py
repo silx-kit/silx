@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ _logger = logging.getLogger(__name__)
 # Courtesy of the pyqtgraph project
 
 _Symbols = None
-""""Cache supported symbols as Qt paths"""
+"""Cache supported symbols as Qt paths"""
 
 
 _NoSymbols = (None, 'None', 'none', '', ' ')

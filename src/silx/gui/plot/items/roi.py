@@ -1156,7 +1156,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.setPoints(points)
 
     def creationStarted(self):
-        """"Called when the ROI creation interaction was started.
+        """Called when the ROI creation interaction was started.
         """
         # Handle to see where to close the polygon
         self._handleClose = self.addUserHandle()
@@ -1178,7 +1178,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         return self._handleClose is not None
 
     def creationFinalized(self):
-        """"Called when the ROI creation interaction was finalized.
+        """Called when the ROI creation interaction was finalized.
         """
         self.removeHandle(self._handleClose)
         self._handleClose = None

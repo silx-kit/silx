@@ -456,7 +456,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         return cls._plotShape
 
     def setFirstShapePoints(self, points):
-        """"Initialize the ROI using the points from the first interaction.
+        """Initialize the ROI using the points from the first interaction.
 
         This interaction is constrained by the plot API and only supports few
         shapes.
@@ -464,12 +464,12 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         raise NotImplementedError()
 
     def creationStarted(self):
-        """"Called when the ROI creation interaction was started.
+        """Called when the ROI creation interaction was started.
         """
         pass
 
     def creationFinalized(self):
-        """"Called when the ROI creation interaction was finalized.
+        """Called when the ROI creation interaction was finalized.
         """
         pass
 

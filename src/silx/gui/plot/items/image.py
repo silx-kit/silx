@@ -349,7 +349,7 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         return self.getColormap().applyToData(self)
 
     def setData(self, data, copy=True):
-        """"Set the image data
+        """Set the image data
 
         :param numpy.ndarray data: Data array with 2 dimensions (h, w)
         :param bool copy: True (Default) to get a copy,
@@ -459,7 +459,7 @@ class ImageData(ImageDataBase):
             return numpy.array(self.__alpha, copy=copy)
 
     def setData(self, data, alternative=None, alpha=None, copy=True):
-        """"Set the image data and optionally an alternative RGB(A) representation
+        """Set the image data and optionally an alternative RGB(A) representation
 
         :param numpy.ndarray data: Data array with 2 dimensions (h, w)
         :param alternative: RGB(A) image to display instead of data,

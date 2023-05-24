@@ -3,7 +3,7 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2013-2020  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2013-2023  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
@@ -114,7 +114,7 @@ class ByteOffset(OpenclProcessing):
                                  self._init_compression_scan())
 
     def _init_double_scan(self):
-        """"generates a double scan on indexes and values in one operation"""
+        """generates a double scan on indexes and values in one operation"""
         arguments = "__global int *value", "__global int *index"
         int2 = pyopencl.tools.get_or_register_dtype("int2")
         input_expr = "index[i]>0 ? (int2)(0, 0) : (int2)(value[i], 1)"

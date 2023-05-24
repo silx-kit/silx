@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -539,7 +539,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         return index.internalPointer() if index.isValid() else self.__root
 
     def _closeFileIfOwned(self, node):
-        """"Close the file if it was loaded from a filename or a
+        """Close the file if it was loaded from a filename or a
         drag-and-drop"""
         obj = node.obj
         for f in self.__openedFiles:
