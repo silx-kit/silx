@@ -131,10 +131,14 @@ class PlotWindow(PlotWidget):
         self.resetZoomAction.setVisible(resetzoom)
         self.addAction(self.resetZoomAction)
 
-        self.zoomInAction = actions.control.ZoomInAction(self, parent=self)
+        self.zoomInAction = self.group.addAction(
+            actions.control.ZoomInAction(self, parent=self))
+        self.zoomInAction.setVisible(False)
         self.addAction(self.zoomInAction)
 
-        self.zoomOutAction = actions.control.ZoomOutAction(self, parent=self)
+        self.zoomOutAction = self.group.addAction(
+            actions.control.ZoomOutAction(self, parent=self))
+        self.zoomOutAction.setVisible(False)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
