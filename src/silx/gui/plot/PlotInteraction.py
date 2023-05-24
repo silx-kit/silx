@@ -117,18 +117,13 @@ class _PlotInteraction(object):
 
 # Zoom/Pan ####################################################################
 
-class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
-    """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
+class _PlotInteractionWithClickEvents(ClickOrDrag, _PlotInteraction):
+    """:class:`ClickOrDrag` state machine emitting click and double click events.
 
     Base class for :class:`Pan` and :class:`Zoom`
     """
 
     _DOUBLE_CLICK_TIMEOUT = 0.4
-
-    class Idle(ClickOrDrag.Idle):
-        def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1. / 1.1
-            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def click(self, x, y, btn):
         """Handle clicks by sending events
@@ -181,7 +176,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
 # Pan #########################################################################
 
-class Pan(_ZoomOnWheel):
+class Pan(_PlotInteractionWithClickEvents):
     """Pan plot content and zoom on wheel state machine."""
 
     def _pixelToData(self, x, y):
@@ -266,7 +261,7 @@ class Pan(_ZoomOnWheel):
 
 # Zoom ########################################################################
 
-class Zoom(_ZoomOnWheel):
+class Zoom(_PlotInteractionWithClickEvents):
     """Zoom-in/out state machine.
 
     Zoom-in on selected area, zoom-out on right click,
@@ -410,10 +405,6 @@ class Select(StateMachine, _PlotInteraction):
         _PlotInteraction.__init__(self, plot)
         self.parameters = parameters
         StateMachine.__init__(self, states, state)
-
-    def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
     def color(self):
@@ -1009,10 +1000,6 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         _PlotInteraction.__init__(self, plot)
         self.parameters = parameters
 
-    def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(self.plot, scaleF, (x, y))
-
     @property
     def color(self):
         return self.parameters.get('color', None)
@@ -1071,10 +1058,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
-
-        def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1. / 1.1
-            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onMove(self, x, y):
             marker = self.machine.plot._getMarkerAt(x, y)
