@@ -100,6 +100,9 @@ DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
 
 
+_INDEXED_COLOR_PATTERN = re.compile(r"color(?P<index>[0-9]+)")
+
+
 def rgba(
         color: Union[str, Sequence[numbers.Real], qt.QColor],
         colorDict: Optional[dict[str, str]]=None,
@@ -126,7 +129,7 @@ def rgba(
             return rgba(colorFromDict, colorDict, colors)
 
         # From indexed color name: color{index}
-        match = re.fullmatch(r"color(?P<index>[0-9]+)", color)
+        match = _INDEXED_COLOR_PATTERN.fullmatch(color)
         if match is not None:
             if colors is None:
                 colors = silx.config.DEFAULT_PLOT_CURVE_COLORS
