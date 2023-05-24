@@ -1,5 +1,5 @@
 /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,7 @@
 #ifndef HISTOGRAMND_C_H
 #define HISTOGRAMND_C_H
 
-/* checking for MSVC version because VS 2008 doesnt fully support C99
-   so inttypes.h and stdint.h are not provided with the compiler. */
-#if defined(_MSC_VER) && _MSC_VER < 1600
-    #include "msvc/stdint.h"
-#else
-    #include <inttypes.h>
-#endif
+#include <inttypes.h>
 #include <stddef.h>
 #include "templates.h"
 
