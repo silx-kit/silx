@@ -49,11 +49,11 @@ FLOAT32_SAFE_MAX = 1e37
 # TODO double support
 
 
-def checkAxisLimits(vmin, vmax, isLog: bool=False, name: str=""):
+def checkAxisLimits(vmin: float, vmax: float, isLog: bool=False, name: str=""):
     """Makes sure axis range is not empty and within supported range.
 
-    :param float vmin: Min axis value
-    :param float vmax: Max axis value
+    :param vmin: Min axis value
+    :param vmax: Max axis value
     :return: (min, max) making sure min < max
     :rtype: 2-tuple of float
     """
@@ -78,18 +78,19 @@ def checkAxisLimits(vmin, vmax, isLog: bool=False, name: str=""):
     return vmin, vmax
 
 
-def scale1DRange(min_, max_, center, scale, isLog):
+def scale1DRange(
+    min_: float, max_: float, center: float, scale: float, isLog: bool
+) -> tuple[float, float]:
     """Scale a 1D range given a scale factor and an center point.
 
     Keeps the values in a smaller range than float32.
 
-    :param float min_: The current min value of the range.
-    :param float max_: The current max value of the range.
-    :param float center: The center of the zoom (i.e., invariant point).
-    :param float scale: The scale to use for zoom
-    :param bool isLog: Whether using log scale or not.
-    :return: The zoomed range.
-    :rtype: tuple of 2 floats: (min, max)
+    :param min_: The current min value of the range.
+    :param max_: The current max value of the range.
+    :param center: The center of the zoom (i.e., invariant point).
+    :param scale: The scale to use for zoom
+    :param isLog: Whether using log scale or not.
+    :return: The zoomed range (min, max)
     """
     if isLog:
         # Min and center can be < 0 when

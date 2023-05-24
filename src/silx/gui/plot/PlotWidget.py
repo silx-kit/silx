@@ -39,7 +39,7 @@ _logger = logging.getLogger(__name__)
 from collections import namedtuple
 from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 import datetime as dt
 import itertools
 import numbers
@@ -116,7 +116,7 @@ class _PlotWidgetSelection(qt.QObject):
         """Returns most recent active item."""
         return self.__history[0] if len(self.__history) >= 1 else None
 
-    def getSelectedItems(self) -> Tuple[items.Item]:
+    def getSelectedItems(self) -> tuple[items.Item]:
         """Returns the list of currently selected items in the :class:`PlotWidget`.
 
         The list is given from most recently current item to oldest one."""
@@ -2507,7 +2507,7 @@ class PlotWidget(qt.QMainWindow):
         ymax: float,
         y2min: Optional[float]=None,
         y2max: Optional[float]=None,
-        margins: Union[bool, Tuple[float, float, float, float]]=False,
+        margins: Union[bool, tuple[float, float, float, float]]=False,
     ):
         """Set the limits of the X and Y axes at once.
 
@@ -3054,7 +3054,7 @@ class PlotWidget(qt.QMainWindow):
                                     dpi=dpi)
             return True
 
-    def getDataMargins(self) -> Tuple[float, float, float, float]:
+    def getDataMargins(self) -> tuple[float, float, float, float]:
         """Get the default data margin ratios, see :meth:`setDataMargins`.
 
         :return: The margin ratios for each side (xMin, xMax, yMin, yMax).
@@ -3119,7 +3119,7 @@ class PlotWidget(qt.QMainWindow):
 
     def _forceResetZoom(
         self,
-        dataMargins: Optional[Tuple[float, float, float, float]]=None,
+        dataMargins: Optional[tuple[float, float, float, float]]=None,
     ):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
