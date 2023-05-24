@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ from silx.utils.testutils import ParametricTestCase
 
 import numpy
 
+import silx
+from silx.gui.colors import rgba
 from silx.gui.plot.PlotWidget import PlotWidget
 from silx.gui.plot.items.histogram import _getHistogramCurve, _computeEdges
 
@@ -615,3 +617,59 @@ class TestPlotHistogram(unittest.TestCase):
         xHisto, yHisto = _getHistogramCurve(y, edges)
         numpy.testing.assert_array_equal(
             yHisto, numpy.array([-3, -3, 2, 2, 5, 5, 0, 0]))
+
+
+def testSetDefaultColors(qWidgetFactory):
+    """Basic test of PlotWidget.get|setDefaultColors"""
+    plot = qWidgetFactory(PlotWidget)
+
+    # By default using config
+    assert numpy.array_equal(plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS)
+
+    # Use own colors
+    colors = 'red', 'green', 'blue'
+    plot.setDefaultColors(colors)
+    assert plot.getDefaultColors() == colors
+
+    # Reset to default
+    plot.setDefaultColors(None)
+    assert numpy.array_equal(plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS)
+
+
+def testSetDefaultColorsAddCurve(qWidgetFactory):
+    """Test that PlotWidget.setDefaultColors reset color index"""
+    plot = qWidgetFactory(PlotWidget)
+
+    plot.addCurve((0, 1), (0, 0), legend="curve0")
+    plot.addCurve((0, 1), (1, 1), legend="curve1")
+    plot.addCurve((0, 1), (2, 2), legend="curve2")
+
+    colors = '#123456', '#abcdef'
+    plot.setDefaultColors(colors)
+    assert plot.getDefaultColors() == colors
+
+    # Check that the color index is reset
+    curve = plot.getCurve(plot.addCurve((1, 2), (0, 1), legend="newcurve"))
+    assert curve.getColor() == rgba(colors[0])
+
+
+def testDefaultColorsUpdateConfig(qWidgetFactory):
+    """Test that color index is reset if needed when default colors config is updated"""
+    plot = qWidgetFactory(PlotWidget)
+
+    plot.addCurve((0, 1), (0, 0), legend="curve0")
+    plot.addCurve((0, 1), (1, 1), legend="curve1")
+    plot.addCurve((0, 1), (2, 2), legend="curve2")
+
+    previous_colors = silx.config.DEFAULT_PLOT_CURVE_COLORS
+    try:
+        colors = '#123456', '#abcdef'
+        silx.config.DEFAULT_PLOT_CURVE_COLORS = colors
+        assert plot.getDefaultColors() == colors
+
+        # Check that the color index is reset
+        curve = plot.getCurve(plot.addCurve((1, 2), (0, 1), legend="newcurve"))
+        assert curve.getColor() == rgba(colors[0])
+
+    finally:
+        silx.config.DEFAULT_PLOT_CURVE_COLORS = previous_colors
