@@ -24,13 +24,21 @@
 """This module provides API to manage colors.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent", "H.Payno"]
 __license__ = "MIT"
 __date__ = "29/01/2019"
 
+
 import numpy
 import logging
+import numbers
+import re
+from collections.abc import Sequence
+from typing import Optional, Union
 
+import silx
 from silx.gui import qt
 from silx.gui.utils import blockSignals
 from silx.math import colormap as _colormap
@@ -92,53 +100,69 @@ DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
 
 
-def rgba(color, colorDict=None):
-    """Convert color code '#RRGGBB' and '#RRGGBBAA' to a tuple (R, G, B, A)
-    of floats.
+_INDEXED_COLOR_PATTERN = re.compile(r"color(?P<index>[0-9]+)")
 
-    It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
-    QColor as color argument.
 
-    :param str color: The color to convert
-    :param dict colorDict: A dictionary of color name conversion to color code
+def rgba(
+        color: Union[str, Sequence[numbers.Real], qt.QColor],
+        colorDict: Optional[dict[str, str]]=None,
+        colors: Optional[Sequence[str]]=None,
+    ) -> tuple[float, float, float, float]:
+    """Convert different kind of color definition to a tuple (R, G, B, A) of floats.
+
+    It supports:
+    - color names: e.g., 'green'
+    - color codes: '#RRGGBB' and '#RRGGBBAA'
+    - indexed color names: e.g., 'color0'
+    - RGB(A) sequence of uint8 in [0, 255] or float in [0, 1]
+    - QColor
+
+    :param color: The color to convert
+    :param colorDict: A dictionary of color name conversion to color code
+    :param colors: Sequence of colors to use for `
     :returns: RGBA colors as floats in [0., 1.]
-    :rtype: tuple
     """
-    if colorDict is None:
-        colorDict = _COLORDICT
+    if isinstance(color, str):
+        # From name
+        colorFromDict = (_COLORDICT if colorDict is None else colorDict).get(color)
+        if colorFromDict is not None:
+            return rgba(colorFromDict, colorDict, colors)
 
-    if hasattr(color, 'getRgb'):  # QColor support
-        color = color.getRgb()
+        # From indexed color name: color{index}
+        match = _INDEXED_COLOR_PATTERN.fullmatch(color)
+        if match is not None:
+            if colors is None:
+                colors = silx.config.DEFAULT_PLOT_CURVE_COLORS
+            index = int(match['index']) % len(colors)
+            return rgba(colors[index], colorDict, colors)
 
+        # From #code
+        assert len(color) in (7, 9) and color[0] == '#'
+        r = int(color[1:3], 16) / 255.
+        g = int(color[3:5], 16) / 255.
+        b = int(color[5:7], 16) / 255.
+        a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
+        return r, g, b, a
+
+    # From QColor
+    if isinstance(color, qt.QColor):
+        return rgba(color.getRgb(), colorDict, colors)
+
+    # From array
     values = numpy.asarray(color).ravel()
 
-    if values.dtype.kind in 'iuf':  # integer or float
-        # Color is an array
-        assert len(values) in (3, 4)
+    assert values.dtype.kind in 'iuf'  # integer or float
+    assert len(values) in (3, 4)
 
-        # Convert from integers in [0, 255] to float in [0, 1]
-        if values.dtype.kind in 'iu':
-            values = values / 255.
+    # Convert from integers in [0, 255] to float in [0, 1]
+    if values.dtype.kind in 'iu':
+        values = values / 255.
 
-        # Clip to [0, 1]
-        values[values < 0.] = 0.
-        values[values > 1.] = 1.
+    values = numpy.clip(values, 0., 1.)
 
-        if len(values) == 3:
-            return values[0], values[1], values[2], 1.
-        else:
-            return tuple(values)
-
-    # We assume color is a string
-    if not color.startswith('#'):
-        color = colorDict[color]
-
-    assert len(color) in (7, 9) and color[0] == '#'
-    r = int(color[1:3], 16) / 255.
-    g = int(color[3:5], 16) / 255.
-    b = int(color[5:7], 16) / 255.
-    a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
-    return r, g, b, a
+    if len(values) == 3:
+        return values[0], values[1], values[2], 1.
+    return tuple(values)
 
 
 def greyed(color, colorDict=None):
