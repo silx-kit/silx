@@ -235,7 +235,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self._toggleButton.setIcon(icon)
 
     def urlSelectionTableIsVisible(self):
-        return self._urlsTable.isVisible()
+        return self._urlsTable.isVisibleTo(self)
 
     def _propagateSignal(self, url):
         self.sigCurrentUrlChanged.emit(url)
