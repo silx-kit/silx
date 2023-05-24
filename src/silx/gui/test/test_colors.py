@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,9 @@ __date__ = "09/11/2018"
 
 import unittest
 import numpy
+import pytest
+
+import silx
 from silx.utils.testutils import ParametricTestCase
 from silx.gui import qt
 from silx.gui import colors
@@ -38,38 +41,39 @@ from silx.gui.plot import items
 from silx.utils.exceptions import NotEditableError
 
 
-class TestColor(ParametricTestCase):
-    """Basic tests of rgba function"""
+RGBA_TEST_CASES = (
+    # name
+    ('blue', (0., 0., 1., 1.)),
+    # code
+    ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
+    ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
+    # index name
+    ('color0', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[0])),
+    ('color2', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[2])),
+    # 3 uint
+    (numpy.array((1, 255, 0), dtype=numpy.uint8), (1 / 255., 1., 0., 1.)),
+    # 4 uint
+    (numpy.array((1, 255, 0, 1), dtype=numpy.uint8), (1 / 255., 1., 0., 1 / 255.)),
+    # float with overflow
+    ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
+)
 
-    TEST_COLORS = {  # name: (colors, expected values)
-        'blue': ('blue', (0., 0., 1., 1.)),
-        '#010203': ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
-        '#01020304': ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
-        '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
-                      (1 / 255., 1., 0., 1.)),
-        '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
-                      (1 / 255., 1., 0., 1 / 255.)),
-        '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
-    }
 
-    def testRGBA(self):
-        """"Test rgba function with accepted values"""
-        for name, test in self.TEST_COLORS.items():
-            color, expected = test
-            with self.subTest(msg=name):
-                result = colors.rgba(color)
-                self.assertEqual(result, expected)
+@pytest.mark.parametrize("input, expected", RGBA_TEST_CASES)
+def testRgba(input, expected):
+    """"Test rgba function with accepted values"""
+    result = colors.rgba(input)
+    assert result == expected
 
-    def testQColor(self):
-        """"Test getQColor function with accepted values"""
-        for name, test in self.TEST_COLORS.items():
-            color, expected = test
-            with self.subTest(msg=name):
-                result = colors.asQColor(color)
-                self.assertAlmostEqual(result.redF(), expected[0], places=4)
-                self.assertAlmostEqual(result.greenF(), expected[1], places=4)
-                self.assertAlmostEqual(result.blueF(), expected[2], places=4)
-                self.assertAlmostEqual(result.alphaF(), expected[3], places=4)
+
+@pytest.mark.parametrize("input, expected", RGBA_TEST_CASES)
+def testAsQColor(input, expected):
+    """"Test asQColor function with accepted values"""
+    result = colors.asQColor(input)
+    assert result.redF() == pytest.approx(expected[0], abs=1e-5)
+    assert result.greenF() == pytest.approx(expected[1], abs=1e-5)
+    assert result.blueF() == pytest.approx(expected[2], abs=1e-5)
+    assert result.alphaF() == pytest.approx(expected[3], abs=1e-5)
 
 
 class TestApplyColormapToData(ParametricTestCase):
