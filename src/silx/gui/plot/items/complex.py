@@ -246,7 +246,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         return self._colormaps[mode]
 
     def setData(self, data, copy=True):
-        """"Set the image complex data
+        """Set the image complex data
 
         :param numpy.ndarray data: 2D array of complex with 2 dimensions (h, w)
         :param bool copy: True (Default) to get a copy,

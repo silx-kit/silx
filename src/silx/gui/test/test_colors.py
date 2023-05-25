@@ -61,14 +61,14 @@ RGBA_TEST_CASES = (
 
 @pytest.mark.parametrize("input, expected", RGBA_TEST_CASES)
 def testRgba(input, expected):
-    """"Test rgba function with accepted values"""
+    """Test rgba function with accepted values"""
     result = colors.rgba(input)
     assert result == expected
 
 
 @pytest.mark.parametrize("input, expected", RGBA_TEST_CASES)
 def testAsQColor(input, expected):
-    """"Test asQColor function with accepted values"""
+    """Test asQColor function with accepted values"""
     result = colors.asQColor(input)
     assert result.redF() == pytest.approx(expected[0], abs=1e-5)
     assert result.greenF() == pytest.approx(expected[1], abs=1e-5)

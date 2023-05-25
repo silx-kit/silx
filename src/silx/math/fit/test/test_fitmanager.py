@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -293,11 +293,11 @@ class TestFitmanager(ParametricTestCase):
         CONFIG = {'d': 1.}
 
         def myfun(x_, a_, b_, c_):
-            """"Model function"""
+            """Model function"""
             return (a_ * x_**2 + b_ * x_ + c_) / CONFIG['d']
 
         def myesti(x_, y_):
-            """"Initial parameters for iterative fit:
+            """Initial parameters for iterative fit:
                  (a, b, c) = (1, 1, 1)
             Constraints all set to 0 (FREE)"""
             return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
