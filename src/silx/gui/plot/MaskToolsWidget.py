@@ -602,15 +602,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
                 raise RuntimeError('File "%s" is not a numpy file.', filename)
-        elif extension in ["tif", "tiff"]:
-            try:
-                image = TiffIO(filename, mode="r")
-                mask = image.getImage(0)
-            except Exception as e:
-                _logger.error("Can't load filename %s", filename)
-                _logger.debug("Backtrace", exc_info=True)
-                raise e
-        elif extension in ("edf", "msk"):
+        elif extension in ("edf", "msk", "tif", "tiff"):
             try:
                 mask = fabio.open(filename).data
             except Exception as e:
