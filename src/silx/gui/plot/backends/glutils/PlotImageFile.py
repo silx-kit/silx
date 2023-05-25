@@ -90,7 +90,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     """
     assert len(data.shape) == 3
     assert data.shape[2] == 3
-    assert fileFormat in ('png', 'ppm', 'svg', 'tiff')
+    assert fileFormat in ('png', 'ppm', 'svg', 'tif', 'tiff')
 
     if not hasattr(fileNameOrObj, 'write'):
         if fileFormat in ('png', 'ppm', 'tiff'):
@@ -136,7 +136,7 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     elif fileFormat == 'png':
         fileObj.write(convertRGBDataToPNG(data))
 
-    elif fileFormat == 'tiff':
+    elif fileFormat in ('tif', 'tiff'):
         if fileObj == fileNameOrObj:
             raise NotImplementedError(
                 'Save TIFF to a file-like object not implemented')
