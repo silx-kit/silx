@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -119,9 +119,9 @@ def main(argv=None):
     :raises IOError: if no image can be loaded from the file
     """
     import argparse
-    import os.path
 
-    from silx.third_party.EdfFile import EdfFile
+    import fabio
+    from fabio.fabioimage import FabioImage
 
     # Command-line arguments
     parser = argparse.ArgumentParser(
@@ -147,58 +147,52 @@ def main(argv=None):
         help='Live update of a generated image')
     args = parser.parse_args(args=argv)
 
-    # Open the input file
-    edfFile = None
-    if args.live:
-        data = None
-    elif not args.filename:
-        logger.warning('No image file provided, displaying dummy data')
-        size = 512
-        xx, yy = numpy.ogrid[-size:size, -size:size]
-        data = numpy.cos(xx / (size//5)) + numpy.cos(yy / (size//5))
-        data = numpy.random.poisson(numpy.abs(data))
-        nbFrames = 1
-
-    else:
-        if not os.path.isfile(args.filename):
-            raise IOError('No input file: %s' % args.filename)
-
-        else:
-            edfFile = EdfFile(args.filename)
-            data = edfFile.GetData(0)
-
-            nbFrames = edfFile.GetNumImages()
-            if nbFrames == 0:
-                raise IOError(
-                    'Cannot read image(s) from file: %s' % args.filename)
-
     global app  # QApplication must be global to avoid seg fault on quit
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler
 
     mainWindow = ImageViewMainWindow()
     mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
+    mainWindow.setFocus(qt.Qt.OtherFocusReason)
 
     if args.log:  # Use log normalization by default
         colormap = mainWindow.getDefaultColormap()
         colormap.setNormalization(colormap.LOGARITHM)
 
-    if data is not None:
-        mainWindow.setImage(data,
-                            origin=args.origin,
-                            scale=args.scale)
+    if args.live:
+        # Start updating the plot
+        updateThread = UpdateThread(mainWindow)
+        updateThread.start()
+        mainWindow.show()
+        return app.exec()
 
-    if edfFile is not None and nbFrames > 1:
+    # Open/create input image data
+    if args.filename:
+        image = fabio.open(args.filename)
+
+    else:
+        logger.warning('No image file provided, displaying dummy data')
+        size = 512
+        xx, yy = numpy.ogrid[-size:size, -size:size]
+        data = numpy.cos(xx / (size//5)) + numpy.cos(yy / (size//5))
+        data = numpy.random.poisson(numpy.abs(data))
+        image = FabioImage(data)
+
+    mainWindow.setImage(image.data,
+                        origin=args.origin,
+                        scale=args.scale)
+
+    if image.nframes > 1:
         # Add a toolbar for multi-frame EDF support
         multiFrameToolbar = qt.QToolBar('Multi-frame')
         multiFrameToolbar.addWidget(qt.QLabel(
-            'Frame [0-%d]:' % (nbFrames - 1)))
+            'Frame [0-%d]:' % (image.nframes - 1)))
 
         spinBox = qt.QSpinBox()
-        spinBox.setRange(0, nbFrames - 1)
+        spinBox.setRange(0, image.nframes - 1)
 
         def updateImage(index):
-            mainWindow.setImage(edfFile.GetData(index),
+            mainWindow.setImage(image.get_frame(index).data,
                                 origin=args.origin,
                                 scale=args.scale,
                                 reset=False)
@@ -208,13 +202,6 @@ def main(argv=None):
         mainWindow.addToolBar(multiFrameToolbar)
 
     mainWindow.show()
-    mainWindow.setFocus(qt.Qt.OtherFocusReason)
-
-    if args.live:
-        # Start updating the plot
-        updateThread = UpdateThread(mainWindow)
-        updateThread.start()
-
     return app.exec()
 
 
