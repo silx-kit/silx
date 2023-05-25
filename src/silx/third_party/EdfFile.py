@@ -113,6 +113,15 @@ CAN_USE_FASTEDF = False
 from fabio import TiffIO
 TIFF_SUPPORT = True
 
+from silx.utils.deprecation import deprecated_warning
+
+deprecated_warning(
+    "Module",
+    "silx.third_party.EdfFile",
+    since_version="2.0.0",
+    replacement="fabio.open and fabio.edfimage.EdfImage",
+)
+
 # Constants
 
 HEADER_BLOCK_SIZE = 1024
