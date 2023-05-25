@@ -40,6 +40,8 @@ import numpy
 import logging
 import h5py
 
+from fabio.TiffIO import TiffIO
+
 from silx.image import shapes
 from silx.io.utils import NEXUS_HDF5_EXT, is_dataset
 from silx.gui.dialog.DatasetDialog import DatasetDialog
@@ -51,7 +53,6 @@ from .. import qt
 from ..utils import LockReentrant
 
 from silx.third_party.EdfFile import EdfFile
-from silx.third_party.TiffIO import TiffIO
 
 import fabio
 

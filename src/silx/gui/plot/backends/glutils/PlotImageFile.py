@@ -30,8 +30,9 @@ __date__ = "03/04/2017"
 
 import base64
 import struct
-import sys
 import zlib
+
+from fabio.TiffIO import TiffIO
 
 
 # Image writer ################################################################
@@ -139,8 +140,6 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
         if fileObj == fileNameOrObj:
             raise NotImplementedError(
                 'Save TIFF to a file-like object not implemented')
-
-        from silx.third_party.TiffIO import TiffIO
 
         tif = TiffIO(fileNameOrObj, mode='wb+')
         tif.writeImage(data, info={'Title': 'OpenGL Plot Snapshot'})

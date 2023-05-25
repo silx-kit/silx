@@ -44,10 +44,10 @@ import sys
 import os.path
 import traceback
 import numpy
+from fabio.TiffIO import TiffIO
 from silx.gui import qt, printer
 from silx.gui.dialog.GroupDialog import GroupDialog
 from silx.third_party.EdfFile import EdfFile
-from silx.third_party.TiffIO import TiffIO
 from ...utils.image import convertArrayToQImage
 from io import BytesIO
 
