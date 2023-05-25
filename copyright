@@ -3,29 +3,21 @@ Upstream-Name: silx
 Source: https://github.com/silx-kit/silx
 
 Files: *
-Copyright: 2004-2018 European Synchrotron Radiation Facility
-           Data analysis unit (silx@esrf.fr) 
+Copyright: 2004-2023 European Synchrotron Radiation Facility
+           ADA group and DAU unit (silx@esrf.fr)
 License: MIT
 
-Files: silx/math/histogramnd/include/msvc/stdint.h
-Copyright: 2006-2008 Alexander Chemeris
-License: BSD-3
-
-Files: silx/resources/gui/colormaps/inferno.npy silx/resources/gui/colormaps/magma.npy silx/resources/gui/colormaps/plasma.npy silx/resources/gui/colormaps/viridis.npy
+Files: src/silx/resources/gui/colormaps/inferno.npy src/silx/resources/gui/colormaps/magma.npy src/silx/resources/gui/colormaps/plasma.npy src/silx/resources/gui/colormaps/viridis.npy
 Copyright: Nathaniel J. Smith, Stefan van der Walt, Eric Firing
 License: CC0
 
-Files: silx/gui/_pyside_dynamic.py
+Files: src/silx/gui/_pyside_dynamic.py
 Copyright: 2015 Chris Beaumont and Thomas Robitaille
            2011 Sebastian Wiesner <lunaryorn@gmail.com>
            Modifications by Charl Botha <cpbotha@vxlabs.com>
 License: BSD-3
 
-Files: silx/third_party/modest_image.py
-Copyright: 2013 Chris Beaumont
-License: MIT
-
-Files: silx/gui/utils/signal.py
+Files: src/silx/gui/utils/signal.py
 Copyright: 2012 University of North Carolina at Chapel Hill, Luke Campagnola
 License: MIT
 
