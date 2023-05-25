@@ -65,35 +65,39 @@ class UpdateThread(threading.Thread):
         self.future_result = None
         super(UpdateThread, self).__init__()
 
+    def createImage(self, x0: float=0., y0: float=0.):
+        # width of peak
+        sigma_x = 0.15
+        sigma_y = 0.25
+        # x and y positions
+        x = numpy.linspace(-1.5, 1.5, Nx)
+        y = numpy.linspace(-1.0, 1.0, Ny)
+        xv, yv = numpy.meshgrid(x, y)
+        signal = numpy.exp(- ((xv - x0) ** 2 / sigma_x ** 2
+                                + (yv - y0) ** 2 / sigma_y ** 2))
+        # add noise
+        signal += 0.3 * numpy.random.random(size=signal.shape)
+        return signal
+
     def start(self):
         """Start the update thread"""
         self.running = True
         super(UpdateThread, self).start()
 
-    def run(self, pos={'x0': 0, 'y0': 0}):
+    def run(self):
         """Method implementing thread loop that updates the plot
 
         It produces an image every 10 ms or so, and
         either updates the plot or skip the image
         """
+        x0, y0 = 0., 0.
+
         while self.running:
             time.sleep(0.01)
 
-            # Create image
-            # width of peak
-            sigma_x = 0.15
-            sigma_y = 0.25
-            # x and y positions
-            x = numpy.linspace(-1.5, 1.5, Nx)
-            y = numpy.linspace(-1.0, 1.0, Ny)
-            xv, yv = numpy.meshgrid(x, y)
-            signal = numpy.exp(- ((xv - pos['x0']) ** 2 / sigma_x ** 2
-                                  + (yv - pos['y0']) ** 2 / sigma_y ** 2))
-            # add noise
-            signal += 0.3 * numpy.random.random(size=signal.shape)
-            # random walk of center of peak ('drift')
-            pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
-            pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
+            signal = self.createImage(x0, y0)
+            x0 += 0.05 * (numpy.random.random() - 0.5)
+            y0 += 0.05 * (numpy.random.random() - 0.5)
 
             # If previous frame was not added to the plot yet, skip this one
             if self.future_result is None or self.future_result.done():
@@ -141,7 +145,7 @@ def main(argv=None):
         help="Use logarithm normalization for colormap, default: Linear.")
     parser.add_argument(
         'filename', nargs='?',
-        help='EDF filename of the image to open')
+        help='Filename of the image to open')
     parser.add_argument(
         '--live', action='store_true',
         help='Live update of a generated image')
@@ -154,6 +158,7 @@ def main(argv=None):
     mainWindow = ImageViewMainWindow()
     mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
     mainWindow.setFocus(qt.Qt.OtherFocusReason)
+    mainWindow.setKeepDataAspectRatio(True)
 
     if args.log:  # Use log normalization by default
         colormap = mainWindow.getDefaultColormap()
@@ -163,8 +168,12 @@ def main(argv=None):
         # Start updating the plot
         updateThread = UpdateThread(mainWindow)
         updateThread.start()
+        mainWindow.setImage(updateThread.createImage())
         mainWindow.show()
-        return app.exec()
+        try:
+            return app.exec()
+        finally:
+            updateThread.stop()
 
     # Open/create input image data
     if args.filename:
