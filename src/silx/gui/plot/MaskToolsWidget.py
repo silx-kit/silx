@@ -40,6 +40,8 @@ import numpy
 import logging
 import h5py
 
+import fabio
+from fabio.edfimage import EdfImage
 from fabio.TiffIO import TiffIO
 
 from silx.image import shapes
@@ -52,9 +54,6 @@ from ..colors import cursorColorForColormap, rgba
 from .. import qt
 from ..utils import LockReentrant
 
-from silx.third_party.EdfFile import EdfFile
-
-import fabio
 
 _logger = logging.getLogger(__name__)
 
@@ -111,9 +110,10 @@ class ImageMask(BaseMask):
         :raise Exception: Raised if the file writing fail
         """
         if kind == 'edf':
-            edfFile = EdfFile(filename, access="w+")
-            header = {"program_name": "silx-mask", "masked_value": "nonzero"}
-            edfFile.WriteImage(header, self.getMask(copy=False), Append=0)
+            EdfImage(
+                data=self.getMask(),
+                header={"program_name": "silx-mask", "masked_value": "nonzero"},
+            ).write(filename)
 
         elif kind == 'tif':
             tiffFile = TiffIO(filename, mode='w')
@@ -610,18 +610,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 _logger.error("Can't load filename %s", filename)
                 _logger.debug("Backtrace", exc_info=True)
                 raise e
-        elif extension == "edf":
-            try:
-                mask = EdfFile(filename, access='r').GetData(0)
-            except Exception as e:
-                _logger.error("Can't load filename %s", filename)
-                _logger.debug("Backtrace", exc_info=True)
-                raise e
-        elif extension == "msk":
+        elif extension in ("edf", "msk"):
             try:
                 mask = fabio.open(filename).data
             except Exception as e:
-                _logger.error("Can't load fit2d mask file")
+                _logger.error(f"Can't load filename {filename}")
                 _logger.debug("Backtrace", exc_info=True)
                 raise e
         elif ("." + extension) in NEXUS_HDF5_EXT:
