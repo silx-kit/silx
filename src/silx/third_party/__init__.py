@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,3 +30,12 @@ This is meant for internal use.
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __date__ = "09/10/2015"
+
+from silx.utils.deprecation import deprecated_warning
+
+deprecated_warning(
+    "Module",
+    "silx.third_party",
+    since_version="2.0.0",
+    replacement="fabio",
+)

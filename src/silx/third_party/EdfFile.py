@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -110,9 +110,17 @@ MARCCD_SUPPORT = False
 PILATUS_CBF_SUPPORT = False
 CAN_USE_FASTEDF = False
 
-# Using local TiffIO
-from . import TiffIO
+from fabio import TiffIO
 TIFF_SUPPORT = True
+
+from silx.utils.deprecation import deprecated_warning
+
+deprecated_warning(
+    "Module",
+    "silx.third_party.EdfFile",
+    since_version="2.0.0",
+    replacement="fabio.open and fabio.edfimage.EdfImage",
+)
 
 # Constants
 

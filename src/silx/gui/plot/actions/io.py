@@ -36,20 +36,23 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "25/09/2020"
 
-from . import PlotAction
-from silx.io.utils import save1D, savespec, NEXUS_HDF5_EXT
-from silx.io.nxdata import save_NXdata
+from io import BytesIO
 import logging
 import sys
 import os.path
 import traceback
 import numpy
+from fabio.TiffIO import TiffIO
+from fabio.edfimage import EdfImage
+
 from silx.gui import qt, printer
 from silx.gui.dialog.GroupDialog import GroupDialog
-from silx.third_party.EdfFile import EdfFile
-from silx.third_party.TiffIO import TiffIO
+from silx.io.utils import save1D, savespec, NEXUS_HDF5_EXT
+from silx.io.nxdata import save_NXdata
+
+from . import PlotAction
 from ...utils.image import convertArrayToQImage
-from io import BytesIO
+
 
 _logger = logging.getLogger(__name__)
 
@@ -406,8 +409,7 @@ class SaveAction(PlotAction):
 
         # TODO Use silx.io for writing files
         if nameFilter == self.IMAGE_FILTER_EDF:
-            edfFile = EdfFile(filename, access="w+")
-            edfFile.WriteImage({}, data, Append=0)
+            EdfImage(data=data, header={}).write(filename)
             return True
 
         elif nameFilter == self.IMAGE_FILTER_TIFF:

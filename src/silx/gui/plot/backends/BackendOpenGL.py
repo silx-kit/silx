@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1177,7 +1177,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if dpi is not None:
             _logger.warning("saveGraph ignores dpi parameter")
 
-        if fileFormat not in ['png', 'ppm', 'svg', 'tiff']:
+        if fileFormat not in ['png', 'ppm', 'svg', 'tif', 'tiff']:
             raise NotImplementedError('Unsupported format: %s' % fileFormat)
 
         if not self.isValid():
