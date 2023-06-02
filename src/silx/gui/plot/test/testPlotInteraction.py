@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016=2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,10 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "01/09/2017"
 
+import pytest
 
 from silx.gui import qt
+from silx.gui.plot import PlotWidget
 from .utils import PlotWidgetTestCase
 
 
@@ -156,3 +158,74 @@ class TestSelectPolygon(PlotWidgetTestCase):
                       if event['event'].startswith('drawing')]
         self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
         self.assertEqual(len(drawEvents[-1]['points']), 3)
+
+
+@pytest.mark.parametrize("scale", ["linear", "log"])
+@pytest.mark.parametrize("xaxis", [True, False])
+@pytest.mark.parametrize("yaxis", [True, False])
+@pytest.mark.parametrize("y2axis", [True, False])
+def testZoomOnAxesEnabled(qapp, qWidgetFactory, scale, xaxis, yaxis, y2axis):
+    """Test PlotInteraction.setZoomOnAxesEnabled effect on zoom interaction"""
+    plotWidget = qWidgetFactory(PlotWidget)
+    plotWidget.getXAxis().setScale(scale)
+    plotWidget.getYAxis("left").setScale(scale)
+    plotWidget.getYAxis("right").setScale(scale)
+    qapp.processEvents()
+
+    xLimits = plotWidget.getXAxis().getLimits()
+    yLimits = plotWidget.getYAxis("left").getLimits()
+    y2Limits = plotWidget.getYAxis("right").getLimits()
+
+    interaction = plotWidget.interaction()
+
+    assert interaction.getZoomOnAxes() == (True, True, True)
+
+    zoomOnAxes = xaxis, yaxis, y2axis
+    interaction.setZoomOnAxes(*zoomOnAxes)
+    assert interaction.getZoomOnAxes() == zoomOnAxes
+
+    cx, cy = plotWidget.width() // 2, plotWidget.height() // 2
+    plotWidget.onMouseWheel(cx, cy, 10)
+    qapp.processEvents()
+
+    xZoomed = plotWidget.getXAxis().getLimits() != xLimits
+    yZoomed = plotWidget.getYAxis("left").getLimits() != yLimits
+    y2Zoomed = plotWidget.getYAxis("right").getLimits() != y2Limits
+
+    assert xZoomed == zoomOnAxes[0]
+    assert yZoomed == zoomOnAxes[1]
+    assert y2Zoomed == zoomOnAxes[2]
+
+
+@pytest.mark.parametrize("scale", ["linear", "log"])
+@pytest.mark.parametrize("zoomOnWheel", [True, False])
+def testZoomOnWheelEnabled(qapp, qWidgetFactory, zoomOnWheel, scale):
+    """Test PlotInteraction.setZoomOnWheelEnabled"""
+    plotWidget = qWidgetFactory(PlotWidget)
+    plotWidget.getXAxis().setScale(scale)
+    plotWidget.getYAxis("left").setScale(scale)
+    plotWidget.getYAxis("right").setScale(scale)
+    qapp.processEvents()
+
+    xLimits = plotWidget.getXAxis().getLimits()
+    yLimits = plotWidget.getYAxis("left").getLimits()
+    y2Limits = plotWidget.getYAxis("right").getLimits()
+
+    interaction = plotWidget.interaction()
+
+    assert interaction.isZoomOnWheelEnabled()
+
+    interaction.setZoomOnWheelEnabled(zoomOnWheel)
+    assert interaction.isZoomOnWheelEnabled() == zoomOnWheel
+
+    cx, cy = plotWidget.width() // 2, plotWidget.height() // 2
+    plotWidget.onMouseWheel(cx, cy, 10)
+    qapp.processEvents()
+
+    xZoomed = plotWidget.getXAxis().getLimits() != xLimits
+    yZoomed = plotWidget.getYAxis("left").getLimits() != yLimits
+    y2Zoomed = plotWidget.getYAxis("right").getLimits() != y2Limits
+
+    assert xZoomed == zoomOnWheel
+    assert yZoomed == zoomOnWheel
+    assert y2Zoomed == zoomOnWheel
