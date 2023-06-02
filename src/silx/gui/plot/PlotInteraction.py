@@ -33,6 +33,7 @@ import numpy
 import time
 import weakref
 
+from silx.gui import qt
 from .. import colors
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN, MIDDLE_BTN,
@@ -1619,13 +1620,14 @@ class DrawSelectMode(FocusManager):
         return params
 
 
-class PlotInteraction(object):
-    """Proxy to currently use state machine for interaction.
+class PlotInteraction(qt.QObject):
+    """PlotWidget user interaction handler.
 
-    This allows to switch interactive mode.
-
-    :param plot: The :class:`Plot` to apply interaction to
+    :param plot: The :class:`PlotWidget` to apply interaction to
     """
+
+    sigChanged = qt.Signal()
+    """Signal emitted when the interaction configuration has changed"""
 
     _DRAW_MODES = {
         'polygon': SelectPolygon,
@@ -1638,37 +1640,42 @@ class PlotInteraction(object):
         'pencil': DrawFreeHand,
     }
 
-    def __init__(self, plot):
-        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+    def __init__(self, parent):
+        super().__init__(parent)
         self.__zoomOnWheel = True
         self.__zoomOnAxes = ZoomOnAxes()
 
         # Default event handler
-        self._eventHandler = ItemsInteraction(plot)
+        self._eventHandler = ItemsInteraction(parent)
 
     def isZoomOnWheelEnabled(self) -> bool:
-        """Returns whether or not wheel interaction performs zoom"""
+        """Returns whether or not wheel interaction triggers zoom"""
         return self.__zoomOnWheel
 
     def setZoomOnWheelEnabled(self, enabled: bool):
         """Toggle zoom on wheel interaction"""
-        self.__zoomOnWheel = enabled
+        if enabled != self.__zoomOnWheel:
+            self.__zoomOnWheel = enabled
+            self.sigChanged.emit()
 
     def setZoomOnAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
-        """Toggle zoom on wheel for each axis"""
-        self.__zoomOnAxes = ZoomOnAxes(xaxis, yaxis, y2axis)
+        """Toggle zoom interaction for each axis"""
+        zoomOnAxes = ZoomOnAxes(xaxis, yaxis, y2axis)
+        if zoomOnAxes != self.__zoomOnAxes:
+            self.__zoomOnAxes = zoomOnAxes
+            self.sigChanged.emit()
 
     def getZoomOnAxes(self) -> ZoomOnAxes:
-        """Returns status of enabled zoom on wheel"""
+        """Returns axes for which zoom is enabled"""
         return self.__zoomOnAxes
 
-    def getInteractiveMode(self):
+    def _getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
         Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
-        as provided to :meth:`setInteractiveMode`.
+        as provided to :meth:`_setInteractiveMode`.
         """
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
@@ -1682,15 +1689,15 @@ class PlotInteraction(object):
         else:
             return {'mode': 'select'}
 
-    def validate(self):
+    def _validate(self):
         """Validate the current interaction if possible
 
         If was designed to close the polygon interaction.
         """
         self._eventHandler.validate()
 
-    def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None, width=None):
+    def _setInteractiveMode(self, mode, color='black',
+                            shape='polygon', label=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -1709,8 +1716,8 @@ class PlotInteraction(object):
         """
         assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
-        plot = self._plot()
-        assert plot is not None
+        plotWidget = self.parent()
+        assert plotWidget is not None
 
         if isinstance(color, numpy.ndarray) or color not in (None, 'video inverted'):
             color = colors.rgba(color)
@@ -1718,22 +1725,24 @@ class PlotInteraction(object):
         if mode in ('draw', 'select-draw'):
             self._eventHandler.cancel()
             handlerClass = DrawMode if mode == 'draw' else DrawSelectMode
-            self._eventHandler = handlerClass(plot, shape, label, color, width)
+            self._eventHandler = handlerClass(plotWidget, shape, label, color, width)
 
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = PanAndSelect(plot)
+            self._eventHandler = PanAndSelect(plotWidget)
 
         elif mode == 'zoom':
             # Ignores shape and label
             self._eventHandler.cancel()
-            self._eventHandler = ZoomAndSelect(plot, color)
+            self._eventHandler = ZoomAndSelect(plotWidget, color)
 
         else:  # Default mode: interaction with plot objects
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = ItemsInteraction(plot)
+            self._eventHandler = ItemsInteraction(plotWidget)
+
+        self.sigChanged.emit()
 
     def handleEvent(self, event, *args, **kwargs):
         """Forward event to current interactive mode state machine."""
@@ -1751,7 +1760,7 @@ class PlotInteraction(object):
         if zoomOnAxes.isDisabled():
             return
 
-        plotWidget = self._plot()
+        plotWidget = self.parent()
         if plotWidget is None:
             return
         scale = 1.1 if angle > 0 else 1. / 1.1

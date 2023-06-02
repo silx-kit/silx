@@ -433,7 +433,9 @@ class PlotWidget(qt.QMainWindow):
         self._limitsHistory = LimitsHistory(self)
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
-        self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._eventHandler._setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._eventHandler.sigChanged.connect(self.__interactionChanged)
+        self.__isInteractionSignalForwarded = True
         self._previousDefaultMode = "zoom", True
 
         self._pressedButtons = []  # Currently pressed mouse buttons
@@ -3475,6 +3477,15 @@ class PlotWidget(qt.QMainWindow):
 
     # Interaction modes #
 
+    def interaction(self) -> PlotInteraction:
+        """Returns the interaction handler for this PlotWidget"""
+        return self._eventHandler
+
+    def __interactionChanged(self):
+        """Handle PlotInteraction updates"""
+        if self.__isInteractionSignalForwarded:
+            self.sigInteractiveModeChanged.emit(None)
+
     def getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
 
@@ -3483,7 +3494,7 @@ class PlotWidget(qt.QMainWindow):
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
-        return self._eventHandler.getInteractiveMode()
+        return self.interaction()._getInteractiveMode()
 
     def resetInteractiveMode(self):
         """Reset the interactive mode to use the previous basic interactive
@@ -3524,8 +3535,13 @@ class PlotWidget(qt.QMainWindow):
                        Default: None
         :param width: Width of the pencil. Only for draw pencil mode.
         """
-        self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
-        self._eventHandler.zoomOnWheel = zoomOnWheel
+        self.__isInteractionSignalForwarded = False
+        try:
+            self._eventHandler._setInteractiveMode(mode, color, shape, label, width)
+            self._eventHandler.setZoomOnWheelEnabled(zoomOnWheel)
+        finally:
+            self.__isInteractionSignalForwarded = True
+
         if mode in ["pan", "zoom"]:
             self._previousDefaultMode = mode, zoomOnWheel
 

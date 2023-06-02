@@ -115,6 +115,7 @@ Interaction
 Those methods allow to change the interaction mode (e.g., drawing mode)
 of the plot and to toggle the use of a crosshair cursor:
 
+.. automethod:: PlotWidget.interaction
 .. automethod:: PlotWidget.getInteractiveMode
 .. automethod:: PlotWidget.setInteractiveMode
 

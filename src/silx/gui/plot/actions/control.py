@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -615,7 +615,7 @@ class ClosePolygonInteractionAction(PlotAction):
         self.setEnabled(enabled)
 
     def _actionTriggered(self, checked=False):
-        self.plot._eventHandler.validate()
+        self.plot.interaction()._validate()
 
 
 class OpenGLAction(PlotAction):
