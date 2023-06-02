@@ -308,7 +308,8 @@ class Zoom(_PlotInteractionWithClickEvents):
         y2_0, y2_1 = y0, y1
         left, top, width, height = self.plot.getPlotBoundsInPixels()
 
-        if not all(enabledAxes):  # Handle axes disabled for zoom
+        if not all(enabledAxes) and not self.plot.isKeepDataAspectRatio():
+            # Handle axes disabled for zoom if plot is not keeping aspec ratio
             if not enabledAxes.xaxis:
                 x0, x1 = left, left + width
             if not enabledAxes.yaxis:
@@ -330,13 +331,12 @@ class Zoom(_PlotInteractionWithClickEvents):
                     center = 0.5 * (x0 + x1)
                     x0 = center - numpy.sign(x1 - x0) * 0.5 * areaWidth
                     x1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
-            # TODO apply aspect ratio to y2?
 
         # Convert to data space
         x0, y0 = self.plot.pixelToData(x0, y0, check=False)
         x1, y1 = self.plot.pixelToData(x1, y1, check=False)
-        y2_0 = self.plot.pixelToData(x0, y2_0, axis="right", check=False)[1]
-        y2_1 = self.plot.pixelToData(x0, y2_1, axis="right", check=False)[1]
+        y2_0 = self.plot.pixelToData(None, y2_0, axis="right", check=False)[1]
+        y2_1 = self.plot.pixelToData(None, y2_1, axis="right", check=False)[1]
 
         return AxesExtent(
             min(x0, x1),
@@ -1705,8 +1705,11 @@ class PlotInteraction(qt.QObject):
             self.sigChanged.emit()
 
     def setZoomEnabledAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
-        """Toggle zoom interaction for each axis"""
-        zoomEnabledAxes = EnabledAxes(xaxis, yaxis, y2axis)
+        """Toggle zoom interaction for each axis
+
+        This is taken into account only if the plot does not keep aspect ratio.
+        """
+        zoomEnabledAxes = ZoomEnabledAxes(xaxis, yaxis, y2axis)
         if zoomEnabledAxes != self.__zoomEnabledAxes:
             self.__zoomEnabledAxes = zoomEnabledAxes
             if isinstance(self._eventHandler, ZoomAndSelect):
@@ -1805,12 +1808,15 @@ class PlotInteraction(qt.QObject):
         """Handle wheel events"""
         if not self.isZoomOnWheelEnabled():
             return
-        zoomEnabledAxes = self.getZoomEnabledAxes()
-        if zoomEnabledAxes.isDisabled():
-            return
 
         plotWidget = self.parent()
         if plotWidget is None:
             return
+
+        # All axes are enabled if keep aspect ratio is on
+        enabledAxes = EnabledAxes() if plotWidget.isKeepDataAspectRatio() else self.getZoomEnabledAxes()
+        if enabledAxes.isDisabled():
+            return
+
         scale = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(plotWidget, scale, (x, y), zoomEnabledAxes)
+        applyZoomToPlot(plotWidget, scale, (x, y), enabledAxes)
