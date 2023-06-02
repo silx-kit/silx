@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -170,6 +170,10 @@ class Axis(qt.QObject):
         if isInverted == self.isInverted():
             return
         raise NotImplementedError()
+
+    def isVisible(self) -> bool:
+        """Returns whether the axis is displayed or not"""
+        return True
 
     def getLabel(self):
         """Return the current displayed label of this axis.
@@ -503,6 +507,10 @@ class YRightAxis(Axis):
     def isInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
         return self.__mainAxis.isInverted()
+
+    def isVisible(self) -> bool:
+        """Returns whether the axis is displayed or not"""
+        return self._getBackend().isYRightAxisVisible()
 
     def getScale(self):
         """Return the name of the scale used by this axis.
