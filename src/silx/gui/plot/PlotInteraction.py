@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Implementation of the interaction for the :class:`Plot`."""
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/02/2019"
@@ -32,6 +34,7 @@ import math
 import numpy
 import time
 import weakref
+from typing import NamedTuple, Optional
 
 from silx.gui import qt
 from .. import colors
@@ -262,6 +265,15 @@ class Pan(_PlotInteractionWithClickEvents):
 
 # Zoom ########################################################################
 
+class AxesExtent(NamedTuple):
+    xmin: float
+    xmax: float
+    ymin: float
+    ymax: float
+    y2min: float
+    y2max: float
+
+
 class Zoom(_PlotInteractionWithClickEvents):
     """Zoom-in/out state machine.
 
@@ -273,34 +285,67 @@ class Zoom(_PlotInteractionWithClickEvents):
 
     def __init__(self, plot, color):
         self.color = color
+        self.enabledAxes = EnabledAxes()
 
         super(Zoom, self).__init__(plot)
         self.plot.getLimitsHistory().clear()
 
-    def _areaWithAspectRatio(self, x0, y0, x1, y1):
-        _plotLeft, _plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
+    def _getAxesExtent(
+        self,
+        x0: float,
+        y0: float,
+        x1: float,
+        y1: float,
+        enabledAxes: Optional[EnabledAxes] = None,
+    ) -> AxesExtent:
+        """Convert selection coordinates (pixels) to axes coordinates (data)
 
-        areaX0, areaY0, areaX1, areaY1 = x0, y0, x1, y1
+        This takes into account axes selected for zoom and aspect ratio.
+        """
+        if enabledAxes is None:
+            enabledAxes = self.enabledAxes
 
-        if plotH != 0.:
-            plotRatio = plotW / float(plotH)
-            width, height = math.fabs(x1 - x0), math.fabs(y1 - y0)
+        y2_0, y2_1 = y0, y1
+        left, top, width, height = self.plot.getPlotBoundsInPixels()
 
-            if height != 0. and width != 0.:
-                if width / height > plotRatio:
-                    areaHeight = width / plotRatio
-                    areaX0, areaX1 = x0, x1
+        if not all(enabledAxes):  # Handle axes disabled for zoom
+            if not enabledAxes.xaxis:
+                x0, x1 = left, left + width
+            if not enabledAxes.yaxis:
+                y0, y1 = top, top + height
+            if not enabledAxes.y2axis:
+                y2_0, y2_1 = top, top + height
+
+        if self.plot.isKeepDataAspectRatio() and height != 0 and width != 0:
+            ratio = width / height
+            xextent, yextent = math.fabs(x1 - x0), math.fabs(y1 - y0)
+            if xextent != 0 and yextent != 0:
+                if xextent / yextent > ratio:
+                    areaHeight = xextent / ratio
                     center = 0.5 * (y0 + y1)
-                    areaY0 = center - numpy.sign(y1 - y0) * 0.5 * areaHeight
-                    areaY1 = center + numpy.sign(y1 - y0) * 0.5 * areaHeight
+                    y0 = center - numpy.sign(y1 - y0) * 0.5 * areaHeight
+                    y1 = center + numpy.sign(y1 - y0) * 0.5 * areaHeight
                 else:
-                    areaWidth = height * plotRatio
-                    areaY0, areaY1 = y0, y1
+                    areaWidth = yextent * ratio
                     center = 0.5 * (x0 + x1)
-                    areaX0 = center - numpy.sign(x1 - x0) * 0.5 * areaWidth
-                    areaX1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
+                    x0 = center - numpy.sign(x1 - x0) * 0.5 * areaWidth
+                    x1 = center + numpy.sign(x1 - x0) * 0.5 * areaWidth
+            # TODO apply aspect ratio to y2?
 
-        return areaX0, areaY0, areaX1, areaY1
+        # Convert to data space
+        x0, y0 = self.plot.pixelToData(x0, y0, check=False)
+        x1, y1 = self.plot.pixelToData(x1, y1, check=False)
+        y2_0 = self.plot.pixelToData(x0, y2_0, axis="right", check=False)[1]
+        y2_1 = self.plot.pixelToData(x0, y2_1, axis="right", check=False)[1]
+
+        return AxesExtent(
+            min(x0, x1),
+            max(x0, x1),
+            min(y0, y1),
+            max(y0, y1),
+            min(y2_0, y2_1),
+            max(y2_0, y2_1),
+        )
 
     def beginDrag(self, x, y, btn):
         dataPos = self.plot.pixelToData(x, y)
@@ -314,15 +359,22 @@ class Zoom(_PlotInteractionWithClickEvents):
         dataPos = self.plot.pixelToData(x1, y1)
         assert dataPos is not None
 
-        if self.plot.isKeepDataAspectRatio():
-            area = self._areaWithAspectRatio(self.x0, self.y0, x1, y1)
-            areaX0, areaY0, areaX1, areaY1 = area
-            areaPoints = ((areaX0, areaY0),
-                          (areaX1, areaY0),
-                          (areaX1, areaY1),
-                          (areaX0, areaY1))
-            areaPoints = numpy.array([self.plot.pixelToData(
-                x, y, check=False) for (x, y) in areaPoints])
+        if self.plot.isKeepDataAspectRatio() or not all(self.enabledAxes):
+            # Patch enabledAxes to display the right Y axis area on the left Y axis
+            # since the selection area is always displayed on the left Y axis
+            isY2Visible = self.plot.getYAxis("right").isVisible()
+            areaZoomOnAxes = EnabledAxes(
+                self.enabledAxes.xaxis,
+                self.enabledAxes.yaxis and (not isY2Visible or self.enabledAxes.y2axis),
+                self.enabledAxes.y2axis,
+            )
+            extents = self._getAxesExtent(self.x0, self.y0, x1, y1, areaZoomOnAxes)
+            areaCorners = (
+                (extents.xmin, extents.ymin),
+                (extents.xmax, extents.ymin),
+                (extents.xmax, extents.ymax),
+                (extents.xmin, extents.ymax),
+            )
 
             if self.color != 'video inverted':
                 areaColor = list(self.color)
@@ -330,7 +382,7 @@ class Zoom(_PlotInteractionWithClickEvents):
             else:
                 areaColor = [1., 1., 1., 1.]
 
-            self.setSelectionArea(areaPoints,
+            self.setSelectionArea(areaCorners,
                                   fill='none',
                                   color=areaColor,
                                   name="zoomedArea")
@@ -347,33 +399,18 @@ class Zoom(_PlotInteractionWithClickEvents):
     def _zoom(self, x0, y0, x1, y1):
         """Zoom to the rectangle view x0,y0 x1,y1.
         """
-        startPos = x0, y0
-        endPos = x1, y1
-
         # Store current zoom state in stack
         self.plot.getLimitsHistory().push()
 
-        if self.plot.isKeepDataAspectRatio():
-            x0, y0, x1, y1 = self._areaWithAspectRatio(x0, y0, x1, y1)
-
-        # Convert to data space and set limits
-        x0, y0 = self.plot.pixelToData(x0, y0, check=False)
-
-        dataPos = self.plot.pixelToData(
-            startPos[0], startPos[1], axis="right", check=False)
-        y2_0 = dataPos[1]
-
-        x1, y1 = self.plot.pixelToData(x1, y1, check=False)
-
-        dataPos = self.plot.pixelToData(
-            endPos[0], endPos[1], axis="right", check=False)
-        y2_1 = dataPos[1]
-
-        xMin, xMax = min(x0, x1), max(x0, x1)
-        yMin, yMax = min(y0, y1), max(y0, y1)
-        y2Min, y2Max = min(y2_0, y2_1), max(y2_0, y2_1)
-
-        self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
+        extents = self._getAxesExtent(x0, y0, x1, y1)
+        self.plot.setLimits(
+            extents.xmin,
+            extents.xmax,
+            extents.ymin,
+            extents.ymax,
+            extents.y2min,
+            extents.y2max,
+        )
 
     def endDrag(self, startPos, endPos, btn):
         x0, y0 = startPos
@@ -1411,6 +1448,15 @@ class ZoomAndSelect(ItemsInteraction):
         """Color of the zoom area"""
         return self._zoom.color
 
+    @property
+    def zoomEnabledAxes(self) -> EnabledAxes:
+        """Whether or not to apply zoom for each axis"""
+        return self._zoom.enabledAxes
+
+    @zoomEnabledAxes.setter
+    def zoomEnableAxes(self, enabledAxes: EnabledAxes):
+        self._zoom.enabledAxes = enabledAxes
+
     def click(self, x, y, btn):
         """Handle mouse click
 
@@ -1663,6 +1709,8 @@ class PlotInteraction(qt.QObject):
         zoomEnabledAxes = EnabledAxes(xaxis, yaxis, y2axis)
         if zoomEnabledAxes != self.__zoomEnabledAxes:
             self.__zoomEnabledAxes = zoomEnabledAxes
+            if isinstance(self._eventHandler, ZoomAndSelect):
+                self._eventHandler.zoomEnabledAxes = zoomEnabledAxes
             self.sigChanged.emit()
 
     def getZoomEnabledAxes(self) -> EnabledAxes:
@@ -1736,6 +1784,7 @@ class PlotInteraction(qt.QObject):
             # Ignores shape and label
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plotWidget, color)
+            self._eventHandler.zoomEnabledAxes = self.getZoomEnabledAxes()
 
         else:  # Default mode: interaction with plot objects
             # Ignores color, shape and label
