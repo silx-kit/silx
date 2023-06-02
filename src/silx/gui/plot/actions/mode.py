@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -35,10 +35,10 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "16/08/2017"
 
-from . import PlotAction
-import logging
 
-_logger = logging.getLogger(__name__)
+from silx.gui import qt
+
+from . import PlotAction
 
 
 class ZoomModeAction(PlotAction):
@@ -51,24 +51,77 @@ class ZoomModeAction(PlotAction):
     def __init__(self, plot, parent=None):
         super(ZoomModeAction, self).__init__(
             plot, icon='zoom', text='Zoom mode',
-            tooltip='Zoom in or out',
+            tooltip='Zoom-in on mouse selection',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
-        # Listen to mode change
-        self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
-        # Init the state
-        self._modeChanged(None)
 
-    def _modeChanged(self, source):
-        modeDict = self.plot.getInteractiveMode()
-        old = self.blockSignals(True)
-        self.setChecked(modeDict["mode"] == "zoom")
-        self.blockSignals(old)
+        self.__menu = qt.QMenu(self.plot)
+        self.__menu.addSection("Enabled axes")
+
+        self.__xAxisAction = qt.QAction("X axis", parent=self.__menu)
+        self.__yAxisAction = qt.QAction("Y left axis", parent=self.__menu)
+        self.__y2AxisAction = qt.QAction("Y right axis", parent=self.__menu)
+
+        for action in (self.__xAxisAction, self.__yAxisAction, self.__y2AxisAction):
+            action.setCheckable(True)
+            action.setChecked(True)
+            action.triggered.connect(self._axesActionTriggered)
+            self.__menu.addAction(action)
+
+        # Listen to interaction configuration change
+        self.plot.interaction().sigChanged.connect(self._interactionChanged)
+        # Init the state
+        self._interactionChanged()
+
+    def isAxesMenuEnabled(self) -> bool:
+        """Returns whether the axes selection menu is enabled or not (default: False)"""
+        return self.menu() is self.__menu
+
+    def setAxesMenuEnabled(self, enabled: bool):
+        """Toggle the availability of the axes selection menu (default: False)"""
+        if enabled == self.isAxesMenuEnabled():
+            return
+
+        self.setMenu(self.__menu if enabled else None)
+
+        # Update associated QToolButton's popupMode if any, this is not done at least with Qt5
+        parent = self.parent()
+        if not isinstance(parent, qt.QToolBar):
+            return
+        widget = parent.widgetForAction(self)
+        if not isinstance(widget, qt.QToolButton):
+            return
+        widget.setPopupMode(qt.QToolButton.MenuButtonPopup if enabled else qt.QToolButton.DelayedPopup)
+        widget.update()
+
+    def _interactionChanged(self):
+        plot = self.plot
+        if plot is None:
+            return
+
+        self.setChecked(plot.getInteractiveMode()["mode"] == "zoom")
+        zoomOnAxes = plot.interaction().getZoomOnAxes()
+        self.__xAxisAction.setChecked(zoomOnAxes.xaxis)
+        self.__yAxisAction.setChecked(zoomOnAxes.yaxis)
+        self.__y2AxisAction.setChecked(zoomOnAxes.y2axis)
 
     def _actionTriggered(self, checked=False):
         plot = self.plot
-        if plot is not None:
-            plot.setInteractiveMode('zoom', source=self)
+        if plot is None:
+            return
+
+        plot.setInteractiveMode('zoom', source=self)
+
+    def _axesActionTriggered(self, checked=False):
+        plot = self.plot
+        if plot is None:
+            return
+
+        plot.interaction().setZoomOnAxes(
+            self.__xAxisAction.isChecked(),
+            self.__yAxisAction.isChecked(),
+            self.__y2AxisAction.isChecked(),
+        )
 
 
 class PanModeAction(PlotAction):
