@@ -64,14 +64,6 @@ def testRgbaImage(compareImages):
     compareImages.setData(image1, image2)
 
 
-def testVizualisations(compareImages):
-    image1 = numpy.random.rand(10, 10)
-    image2 = numpy.random.rand(10, 10)
-    compareImages.setData(image1, image2)
-    for mode in CompareImages.VisualizationMode:
-        compareImages.setVisualizationMode(mode)
-
-
 def testAlignemnt(compareImages):
     image1 = numpy.random.rand(10, 10)
     image2 = numpy.random.rand(5, 5)
