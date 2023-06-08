@@ -29,6 +29,10 @@ __license__ = "MIT"
 __date__ = "09/06/2023"
 
 
+from silx.gui.plot.items.image import ImageBase
+from silx.gui.plot.items.core import ItemChangedType
+
+
 import enum
 from typing import NamedTuple
 
@@ -74,3 +78,32 @@ class AffineTransformation(NamedTuple):
     sx: float
     sy: float
     rot: float
+
+
+class CompareImageItem(ImageBase):
+    """Description of a virtual item of images to compare, in order to share
+    to other places.
+    """
+
+    def __init__(self):
+        super(CompareImageItem, self).__init__()
+        self.__image1 = None
+        self.__image2 = None
+
+    def getImageData1(self):
+        return self.__image1
+
+    def getImageData2(self):
+        return self.__image2
+
+    def setImageData1(self, image1):
+        if self.__image1 is image1:
+            return
+        self.__image1 = image1
+        self._updated(ItemChangedType.DATA)
+
+    def setImageData2(self, image2):
+        if self.__image2 is image2:
+            return
+        self.__image2 = image2
+        self._updated(ItemChangedType.DATA)

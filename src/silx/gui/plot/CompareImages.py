@@ -48,6 +48,7 @@ from .tools.compare.core import AlignmentMode
 from .tools.compare.core import AffineTransformation
 from .tools.compare.toolbar import CompareImagesToolBar
 from .tools.compare.statusbar import CompareImagesStatusBar
+from .tools.compare.core import CompareImageItem
 
 
 _logger = logging.getLogger(__name__)
@@ -89,6 +90,7 @@ class CompareImages(qt.QMainWindow):
             self.setWindowFlags(qt.Qt.Widget)
 
         self.__transformation = None
+        self.__item = CompareImageItem()
         self.__raw1 = None
         self.__raw2 = None
         self.__data1 = None
@@ -171,6 +173,9 @@ class CompareImages(qt.QMainWindow):
         toolBar = CompareImagesToolBar(self)
         toolBar.setCompareWidget(self)
         self._compareToolBar = toolBar
+
+    def getVirtualPlotItem(self):
+        return self.__item
 
     def getPlot(self):
         """Returns the plot which is used to display the images.
@@ -549,6 +554,9 @@ class CompareImages(qt.QMainWindow):
                     return
             else:
                 assert(False)
+
+        self.__item.setImageData1(data1)
+        self.__item.setImageData2(data2)
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
