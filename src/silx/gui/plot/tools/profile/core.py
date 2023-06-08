@@ -28,45 +28,42 @@ __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno", "V. Valls"]
 __license__ = "MIT"
 __date__ = "17/04/2020"
 
-import collections
+import typing
 import numpy
 import weakref
 
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
+from silx.gui import colors
 
 
-CurveProfileData = collections.namedtuple(
-    'CurveProfileData', [
-        "coords",
-        "profile",
-        "title",
-        "xLabel",
-        "yLabel",
-    ])
+class CurveProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
 
-RgbaProfileData = collections.namedtuple(
-    'RgbaProfileData', [
-        "coords",
-        "profile",
-        "profile_r",
-        "profile_g",
-        "profile_b",
-        "profile_a",
-        "title",
-        "xLabel",
-        "yLabel",
-    ])
 
-ImageProfileData = collections.namedtuple(
-    'ImageProfileData', [
-        'coords',
-        'profile',
-        'title',
-        'xLabel',
-        'yLabel',
-        'colormap',
-    ])
+class RgbaProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    profile_r: numpy.ndarray
+    profile_g: numpy.ndarray
+    profile_b: numpy.ndarray
+    profile_a: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
+
+
+class ImageProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
+    colormap: colors.Colormap
 
 
 class ProfileRoiMixIn:
