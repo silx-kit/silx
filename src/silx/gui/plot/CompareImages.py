@@ -360,6 +360,7 @@ class CompareImagesToolBar(qt.QToolBar):
     """
     def __init__(self, parent=None):
         qt.QToolBar.__init__(self, parent)
+        self.setWindowTitle("Compare images")
 
         self.__compareWidget = None
 
