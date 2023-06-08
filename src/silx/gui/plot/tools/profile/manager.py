@@ -241,12 +241,12 @@ class ProfileWindow(qt.QMainWindow):
             return
         self.__color = colors.rgba(roi.getColor())
 
-    def _setImageProfile(self, data):
+    def _setImageProfile(self, data: core.ImageProfileData):
         """
         Setup the window to display a new profile data which is represented
         by an image.
 
-        :param core.ImageProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot2D()
 
@@ -267,12 +267,12 @@ class ProfileWindow(qt.QMainWindow):
 
         self._showPlot2D()
 
-    def _setCurveProfile(self, data):
+    def _setCurveProfile(self, data: core.CurveProfileData):
         """
         Setup the window to display a new profile data which is represented
         by a curve.
 
-        :param core.CurveProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot1D()
 
@@ -288,12 +288,12 @@ class ProfileWindow(qt.QMainWindow):
 
         self._showPlot1D()
 
-    def _setRgbaProfile(self, data):
+    def _setRgbaProfile(self, data: core.RgbaProfileData):
         """
         Setup the window to display a new profile data which is represented
         by a curve.
 
-        :param core.RgbaProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot1D()
 
