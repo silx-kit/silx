@@ -24,6 +24,8 @@
 """This module define core objects for profile tools.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno", "V. Valls"]
 __license__ = "MIT"
 __date__ = "17/04/2020"
@@ -64,6 +66,20 @@ class ImageProfileData(typing.NamedTuple):
     xLabel: str
     yLabel: str
     colormap: colors.Colormap
+
+
+class CurveProfileDesc(typing.NamedTuple):
+    profile: numpy.ndarray
+    name: typing.Optional[str] = None
+    color: typing.Optional[str] = None
+
+
+class CurvesProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profiles: typing.List[CurveProfileDesc]
+    title: str
+    xLabel: str
+    yLabel: str
 
 
 class ProfileRoiMixIn:
@@ -168,15 +184,14 @@ class ProfileRoiMixIn:
         except ValueError:
             pass
 
-    def computeProfile(self, item):
+    def computeProfile(self, item: silx.gui.plot.items.Item) -> typing.Union[CurveProfileData, ImageProfileData, RgbaProfileData, CurvesProfileData]:
         """
         Compute the profile which will be displayed.
 
         This method is not called from the main Qt thread, but from a thread
         pool.
 
-        :param ~silx.gui.plot.items.Item item: A plot item
-        :rtype: Union[CurveProfileData,ImageProfileData]
+        :param item: A plot item
         """
         raise NotImplementedError()
 
