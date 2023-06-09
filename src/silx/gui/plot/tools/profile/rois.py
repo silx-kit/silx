@@ -1072,6 +1072,12 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
 
         assert kind == "2D"
 
+        currentData = numpy.array(item.getStackData(copy=False))
+        origin = item.getOrigin()
+        scale = item.getScale()
+        colormap = item.getColormap()
+        method = self.getProfileMethod()
+
         def createProfile2(currentData):
             coords, profile, _area, profileName, xLabel = core.createProfile(
                 roiInfo=self._getRoiInfo(),
@@ -1081,12 +1087,6 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
                 lineWidth=self.getProfileLineWidth(),
                 method=method)
             return coords, profile, profileName, xLabel
-
-        currentData = numpy.array(item.getStackData(copy=False))
-        origin = item.getOrigin()
-        scale = item.getScale()
-        colormap = item.getColormap()
-        method = self.getProfileMethod()
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
 
