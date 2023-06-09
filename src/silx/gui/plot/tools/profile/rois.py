@@ -294,10 +294,11 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         scale = item.getScale()
         method = self.getProfileMethod()
         lineWidth = self.getProfileLineWidth()
+        roiInfo = self._getRoiInfo()
 
         def createProfile2(currentData):
             coords, profile, _area, profileName, xLabel = core.createProfile(
-                roiInfo=self._getRoiInfo(),
+                roiInfo=roiInfo,
                 currentData=currentData,
                 origin=origin,
                 scale=scale,
@@ -1077,10 +1078,11 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
         scale = item.getScale()
         colormap = item.getColormap()
         method = self.getProfileMethod()
+        roiInfo = self._getRoiInfo()
 
         def createProfile2(currentData):
             coords, profile, _area, profileName, xLabel = core.createProfile(
-                roiInfo=self._getRoiInfo(),
+                roiInfo=roiInfo,
                 currentData=currentData,
                 origin=origin,
                 scale=scale,
