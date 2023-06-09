@@ -66,7 +66,9 @@ class _RegionOfInterestBase(qt.QObject):
     """
 
     def __init__(self, parent=None):
-        qt.QObject.__init__(self, parent=parent)
+        qt.QObject.__init__(self)
+        if parent is not None:
+            self.setParent(parent)
         self.__name = ''
 
     def getName(self):
