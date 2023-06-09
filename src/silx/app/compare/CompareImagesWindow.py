@@ -35,6 +35,9 @@ from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 from ..utils import parseutils
+from silx.gui.plot.tools.profile.manager import ProfileManager
+from silx.gui.plot.tools.compare.profile import ProfileImageDirectedLineROI
+
 
 _logger = logging.getLogger(__name__)
 
@@ -49,6 +52,18 @@ class CompareImagesWindow(qt.QMainWindow):
 
         self._plot = CompareImages(parent=self, backend=backend)
         self._plot.setAutoResetZoom(False)
+
+        self.__manager = ProfileManager(self, self._plot.getPlot())
+        virtualItem = self._plot.getVirtualPlotItem()
+        self.__manager.setPlotItem(virtualItem)
+
+        directedLineAction = self.__manager.createProfileAction(ProfileImageDirectedLineROI, self)
+
+        profileToolBar = qt.QToolBar(self)
+        profileToolBar.setWindowTitle("Profile")
+        profileToolBar.addAction(directedLineAction)
+        self.__profileToolBar = profileToolBar
+        self._plot.addToolBar(profileToolBar)
 
         self._selectionTable = UrlSelectionTable(parent=self)
         self._selectionTable.setAcceptDrops(True)
