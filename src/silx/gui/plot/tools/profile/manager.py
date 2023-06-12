@@ -241,12 +241,12 @@ class ProfileWindow(qt.QMainWindow):
             return
         self.__color = colors.rgba(roi.getColor())
 
-    def _setImageProfile(self, data):
+    def _setImageProfile(self, data: core.ImageProfileData):
         """
         Setup the window to display a new profile data which is represented
         by an image.
 
-        :param core.ImageProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot2D()
 
@@ -267,12 +267,12 @@ class ProfileWindow(qt.QMainWindow):
 
         self._showPlot2D()
 
-    def _setCurveProfile(self, data):
+    def _setCurveProfile(self, data: core.CurveProfileData):
         """
         Setup the window to display a new profile data which is represented
         by a curve.
 
-        :param core.CurveProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot1D()
 
@@ -288,12 +288,12 @@ class ProfileWindow(qt.QMainWindow):
 
         self._showPlot1D()
 
-    def _setRgbaProfile(self, data):
+    def _setRgbaProfile(self, data: core.RgbaProfileData):
         """
         Setup the window to display a new profile data which is represented
         by a curve.
 
-        :param core.RgbaProfileData data: Computed data profile
+        :param data: Computed data profile
         """
         plot = self.getPlot1D()
 
@@ -314,6 +314,30 @@ class ProfileWindow(qt.QMainWindow):
                       legend="blue", color="blue")
         if data.profile_a is not None:
             plot.addCurve(data.coords, data.profile_a, legend="alpha", color="gray")
+
+    def _setCurvesProfile(self, data: core.CurvesProfileData):
+        """
+        Setup the window to display a new profile data which is represented
+        by multiple curves.
+
+        :param data: Computed data profile
+        """
+        plot = self.getPlot1D()
+
+        plot.clear()
+        plot.setGraphTitle(data.title)
+        plot.getXAxis().setLabel(data.xLabel)
+        plot.getYAxis().setLabel(data.yLabel)
+
+        self._showPlot1D()
+
+        for i, desc in enumerate(data.profiles):
+            name = desc.name if desc.name is not None else f"profile{i}"
+            plot.addCurve(
+                data.coords,
+                desc.profile,
+                legend=name,
+                color=desc.color)
 
     def clear(self):
         """Clear the window profile"""
@@ -346,6 +370,8 @@ class ProfileWindow(qt.QMainWindow):
             self._setRgbaProfile(data)
         elif isinstance(data, core.CurveProfileData):
             self._setCurveProfile(data)
+        elif isinstance(data, core.CurvesProfileData):
+            self._setCurvesProfile(data)
         else:
             raise TypeError("Unsupported type %s" % type(data))
 

@@ -64,14 +64,6 @@ def testRgbaImage(compareImages):
     compareImages.setData(image1, image2)
 
 
-def testVizualisations(compareImages):
-    image1 = numpy.random.rand(10, 10)
-    image2 = numpy.random.rand(10, 10)
-    compareImages.setData(image1, image2)
-    for mode in CompareImages.VisualizationMode:
-        compareImages.setVisualizationMode(mode)
-
-
 def testAlignemnt(compareImages):
     image1 = numpy.random.rand(10, 10)
     image2 = numpy.random.rand(5, 5)
@@ -171,6 +163,24 @@ def testVisualizationModeWithOnlyImage2(compareImages, data):
     visualizationMode, = data
     compareImages.setImage1(None)
     compareImages.setImage2(numpy.random.rand(10, 10))
+    compareImages.setVisualizationMode(visualizationMode)
+
+
+@pytest.mark.parametrize("data",
+    [
+        (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
+        (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
+        (CompareImages.VisualizationMode.HORIZONTAL_LINE,),
+        (CompareImages.VisualizationMode.VERTICAL_LINE,),
+        (CompareImages.VisualizationMode.ONLY_A,),
+        (CompareImages.VisualizationMode.ONLY_B,),
+    ]
+)
+def testVisualizationModeWithRGBImage(compareImages, data):
+    visualizationMode, = data
+    image1 = numpy.random.rand(10, 10)
+    image2 = numpy.random.randint(0, 255, size=(10, 10, 3))
+    compareImages.setData(image1, image2)
     compareImages.setVisualizationMode(visualizationMode)
 
 

@@ -24,49 +24,62 @@
 """This module define core objects for profile tools.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno", "V. Valls"]
 __license__ = "MIT"
 __date__ = "17/04/2020"
 
-import collections
+import typing
 import numpy
 import weakref
 
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
+from silx.gui import colors
 
 
-CurveProfileData = collections.namedtuple(
-    'CurveProfileData', [
-        "coords",
-        "profile",
-        "title",
-        "xLabel",
-        "yLabel",
-    ])
+class CurveProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
 
-RgbaProfileData = collections.namedtuple(
-    'RgbaProfileData', [
-        "coords",
-        "profile",
-        "profile_r",
-        "profile_g",
-        "profile_b",
-        "profile_a",
-        "title",
-        "xLabel",
-        "yLabel",
-    ])
 
-ImageProfileData = collections.namedtuple(
-    'ImageProfileData', [
-        'coords',
-        'profile',
-        'title',
-        'xLabel',
-        'yLabel',
-        'colormap',
-    ])
+class RgbaProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    profile_r: numpy.ndarray
+    profile_g: numpy.ndarray
+    profile_b: numpy.ndarray
+    profile_a: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
+
+
+class ImageProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profile: numpy.ndarray
+    title: str
+    xLabel: str
+    yLabel: str
+    colormap: colors.Colormap
+
+
+class CurveProfileDesc(typing.NamedTuple):
+    profile: numpy.ndarray
+    name: typing.Optional[str] = None
+    color: typing.Optional[str] = None
+
+
+class CurvesProfileData(typing.NamedTuple):
+    coords: numpy.ndarray
+    profiles: typing.List[CurveProfileDesc]
+    title: str
+    xLabel: str
+    yLabel: str
 
 
 class ProfileRoiMixIn:
@@ -171,15 +184,14 @@ class ProfileRoiMixIn:
         except ValueError:
             pass
 
-    def computeProfile(self, item):
+    def computeProfile(self, item: silx.gui.plot.items.Item) -> typing.Union[CurveProfileData, ImageProfileData, RgbaProfileData, CurvesProfileData]:
         """
         Compute the profile which will be displayed.
 
         This method is not called from the main Qt thread, but from a thread
         pool.
 
-        :param ~silx.gui.plot.items.Item item: A plot item
-        :rtype: Union[CurveProfileData,ImageProfileData]
+        :param item: A plot item
         """
         raise NotImplementedError()
 
