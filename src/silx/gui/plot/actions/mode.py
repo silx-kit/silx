@@ -38,6 +38,7 @@ __date__ = "16/08/2017"
 
 from silx.gui import qt
 
+from ..tools.menus import ZoomEnabledAxesMenu
 from . import PlotAction
 
 
@@ -55,18 +56,7 @@ class ZoomModeAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
 
-        self.__menu = qt.QMenu(self.plot)
-        self.__menu.addSection("Enabled axes")
-
-        self.__xAxisAction = qt.QAction("X axis", parent=self.__menu)
-        self.__yAxisAction = qt.QAction("Y left axis", parent=self.__menu)
-        self.__y2AxisAction = qt.QAction("Y right axis", parent=self.__menu)
-
-        for action in (self.__xAxisAction, self.__yAxisAction, self.__y2AxisAction):
-            action.setCheckable(True)
-            action.setChecked(True)
-            action.triggered.connect(self._axesActionTriggered)
-            self.__menu.addAction(action)
+        self.__menu = ZoomEnabledAxesMenu(self.plot, self.plot)
 
         # Listen to interaction configuration change
         self.plot.interaction().sigChanged.connect(self._interactionChanged)
@@ -100,10 +90,6 @@ class ZoomModeAction(PlotAction):
             return
 
         self.setChecked(plot.getInteractiveMode()["mode"] == "zoom")
-        enabledAxes = plot.interaction().getZoomEnabledAxes()
-        self.__xAxisAction.setChecked(enabledAxes.xaxis)
-        self.__yAxisAction.setChecked(enabledAxes.yaxis)
-        self.__y2AxisAction.setChecked(enabledAxes.y2axis)
 
     def _actionTriggered(self, checked=False):
         plot = self.plot
@@ -111,17 +97,6 @@ class ZoomModeAction(PlotAction):
             return
 
         plot.setInteractiveMode('zoom', source=self)
-
-    def _axesActionTriggered(self, checked=False):
-        plot = self.plot
-        if plot is None:
-            return
-
-        plot.interaction().setZoomEnabledAxes(
-            self.__xAxisAction.isChecked(),
-            self.__yAxisAction.isChecked(),
-            self.__y2AxisAction.isChecked(),
-        )
 
 
 class PanModeAction(PlotAction):
