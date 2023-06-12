@@ -164,8 +164,8 @@ class TestSelectPolygon(PlotWidgetTestCase):
 @pytest.mark.parametrize("xaxis", [True, False])
 @pytest.mark.parametrize("yaxis", [True, False])
 @pytest.mark.parametrize("y2axis", [True, False])
-def testZoomOnAxesEnabled(qapp, qWidgetFactory, scale, xaxis, yaxis, y2axis):
-    """Test PlotInteraction.setZoomOnAxesEnabled effect on zoom interaction"""
+def testZoomEnabledAxes(qapp, qWidgetFactory, scale, xaxis, yaxis, y2axis):
+    """Test PlotInteraction.setZoomEnabledAxes effect on zoom interaction"""
     plotWidget = qWidgetFactory(PlotWidget)
     plotWidget.getXAxis().setScale(scale)
     plotWidget.getYAxis("left").setScale(scale)
@@ -178,11 +178,11 @@ def testZoomOnAxesEnabled(qapp, qWidgetFactory, scale, xaxis, yaxis, y2axis):
 
     interaction = plotWidget.interaction()
 
-    assert interaction.getZoomOnAxes() == (True, True, True)
+    assert interaction.getZoomEnabledAxes() == (True, True, True)
 
-    zoomOnAxes = xaxis, yaxis, y2axis
-    interaction.setZoomOnAxes(*zoomOnAxes)
-    assert interaction.getZoomOnAxes() == zoomOnAxes
+    enabledAxes = xaxis, yaxis, y2axis
+    interaction.setZoomEnabledAxes(*enabledAxes)
+    assert interaction.getZoomEnabledAxes() == enabledAxes
 
     cx, cy = plotWidget.width() // 2, plotWidget.height() // 2
     plotWidget.onMouseWheel(cx, cy, 10)
@@ -192,9 +192,9 @@ def testZoomOnAxesEnabled(qapp, qWidgetFactory, scale, xaxis, yaxis, y2axis):
     yZoomed = plotWidget.getYAxis("left").getLimits() != yLimits
     y2Zoomed = plotWidget.getYAxis("right").getLimits() != y2Limits
 
-    assert xZoomed == zoomOnAxes[0]
-    assert yZoomed == zoomOnAxes[1]
-    assert y2Zoomed == zoomOnAxes[2]
+    assert xZoomed == enabledAxes[0]
+    assert yZoomed == enabledAxes[1]
+    assert y2Zoomed == enabledAxes[2]
 
 
 @pytest.mark.parametrize("scale", ["linear", "log"])

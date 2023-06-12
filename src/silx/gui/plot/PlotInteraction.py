@@ -363,12 +363,12 @@ class Zoom(_PlotInteractionWithClickEvents):
             # Patch enabledAxes to display the right Y axis area on the left Y axis
             # since the selection area is always displayed on the left Y axis
             isY2Visible = self.plot.getYAxis("right").isVisible()
-            areaZoomOnAxes = EnabledAxes(
+            areaZoomEnabledAxes = EnabledAxes(
                 self.enabledAxes.xaxis,
                 self.enabledAxes.yaxis and (not isY2Visible or self.enabledAxes.y2axis),
                 self.enabledAxes.y2axis,
             )
-            extents = self._getAxesExtent(self.x0, self.y0, x1, y1, areaZoomOnAxes)
+            extents = self._getAxesExtent(self.x0, self.y0, x1, y1, areaZoomEnabledAxes)
             areaCorners = (
                 (extents.xmin, extents.ymin),
                 (extents.xmax, extents.ymin),
@@ -1454,7 +1454,7 @@ class ZoomAndSelect(ItemsInteraction):
         return self._zoom.enabledAxes
 
     @zoomEnabledAxes.setter
-    def zoomEnableAxes(self, enabledAxes: EnabledAxes):
+    def zoomEnabledAxes(self, enabledAxes: EnabledAxes):
         self._zoom.enabledAxes = enabledAxes
 
     def click(self, x, y, btn):
@@ -1709,7 +1709,7 @@ class PlotInteraction(qt.QObject):
 
         This is taken into account only if the plot does not keep aspect ratio.
         """
-        zoomEnabledAxes = ZoomEnabledAxes(xaxis, yaxis, y2axis)
+        zoomEnabledAxes = EnabledAxes(xaxis, yaxis, y2axis)
         if zoomEnabledAxes != self.__zoomEnabledAxes:
             self.__zoomEnabledAxes = zoomEnabledAxes
             if isinstance(self._eventHandler, ZoomAndSelect):

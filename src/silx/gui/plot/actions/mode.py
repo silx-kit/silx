@@ -100,10 +100,10 @@ class ZoomModeAction(PlotAction):
             return
 
         self.setChecked(plot.getInteractiveMode()["mode"] == "zoom")
-        zoomOnAxes = plot.interaction().getZoomOnAxes()
-        self.__xAxisAction.setChecked(zoomOnAxes.xaxis)
-        self.__yAxisAction.setChecked(zoomOnAxes.yaxis)
-        self.__y2AxisAction.setChecked(zoomOnAxes.y2axis)
+        enabledAxes = plot.interaction().getZoomEnabledAxes()
+        self.__xAxisAction.setChecked(enabledAxes.xaxis)
+        self.__yAxisAction.setChecked(enabledAxes.yaxis)
+        self.__y2AxisAction.setChecked(enabledAxes.y2axis)
 
     def _actionTriggered(self, checked=False):
         plot = self.plot
@@ -117,7 +117,7 @@ class ZoomModeAction(PlotAction):
         if plot is None:
             return
 
-        plot.interaction().setZoomOnAxes(
+        plot.interaction().setZoomEnabledAxes(
             self.__xAxisAction.isChecked(),
             self.__yAxisAction.isChecked(),
             self.__y2AxisAction.isChecked(),
