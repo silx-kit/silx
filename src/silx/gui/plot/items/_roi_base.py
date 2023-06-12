@@ -37,6 +37,7 @@ __date__ = "28/06/2018"
 import logging
 import numpy
 import weakref
+from typing import Optional
 
 from ....utils.weakref import WeakList
 from ... import qt
@@ -66,7 +67,9 @@ class _RegionOfInterestBase(qt.QObject):
     """
 
     def __init__(self, parent=None):
-        qt.QObject.__init__(self, parent=parent)
+        qt.QObject.__init__(self)
+        if parent is not None:
+            self.setParent(parent)
         self.__name = ''
 
     def getName(self):
@@ -228,6 +231,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent)
         core.HighlightedMixIn.__init__(self)
+        self.__text = None
         self._color = rgba('red')
         self._editable = False
         self._selectable = False
@@ -437,6 +441,26 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             self._visible = visible
             self._updated(items.ItemChangedType.VISIBLE)
 
+    def getText(self) -> str:
+        """Returns the currently displayed text for this ROI"""
+        return self.getName() if self.__text is None else self.__text
+
+    def setText(self, text: Optional[str] = None) -> None:
+        """Set the displayed text for this ROI.
+
+        If None (the default), the ROI name is used.
+        """
+        if self.__text != text:
+            self.__text = text
+            self._updated(items.ItemChangedType.TEXT)
+
+    def _updateText(self, text: str) -> None:
+        """Update the text displayed by this ROI
+
+        Override in subclass to custom text display
+        """
+        pass
+
     @classmethod
     def showFirstInteractionShape(cls):
         """Returns True if the shape created by the first interaction and
@@ -524,7 +548,9 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             assert False
 
     def _updated(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.HIGHLIGHTED:
+        if event == items.ItemChangedType.TEXT:
+            self._updateText(self.getText())
+        elif event == items.ItemChangedType.HIGHLIGHTED:
             style = self.getCurrentStyle()
             self._updatedStyle(event, style)
         else:
@@ -541,6 +567,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
                 self._updatedStyle(event, style)
 
         super(RegionOfInterest, self)._updated(event, checkVisibility)
+
+        # Displayed text has changed, send a text event
+        if event == items.ItemChangedType.NAME and self.__text is None:
+            self._updated(items.ItemChangedType.TEXT, checkVisibility)
 
     def _updatedStyle(self, event, style):
         """Called when the current displayed style of the ROI was changed.
@@ -710,9 +740,7 @@ class HandleBasedROI(RegionOfInterest):
 
         See :class:`~silx.gui.plot.items.Item._updated`
         """
-        if event == items.ItemChangedType.NAME:
-            self._updateText(self.getName())
-        elif event == items.ItemChangedType.VISIBLE:
+        if event == items.ItemChangedType.VISIBLE:
             for item, role in self._handles:
                 visible = self.isVisible()
                 editionVisible = visible and self.isEditable()
@@ -805,10 +833,3 @@ class HandleBasedROI(RegionOfInterest):
         :rtype: Union[numpy.array,Tuple,List]
         """
         return color[:3] + (0.5,)
-
-    def _updateText(self, text):
-        """Update the text displayed by this ROI
-
-        :param str text: A text
-        """
-        pass

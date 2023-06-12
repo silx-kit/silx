@@ -88,15 +88,15 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self.setPosition(points[0])
 
     def _updated(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.NAME:
-            label = self.getName()
-            self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
+        if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(PointROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self, text: str):
+        self._marker.setText(text)
 
     def _updatedStyle(self, event, style):
         self._marker.setColor(style.getColor())
@@ -366,15 +366,15 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._marker)
 
     def _updated(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.NAME:
-            label = self.getName()
-            self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
+        if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(HorizontalLineROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self, text: str):
+        self._marker.setText(text)
 
     def _updatedStyle(self, event, style):
         self._marker.setColor(style.getColor())
@@ -437,15 +437,15 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self.addItem(self._marker)
 
     def _updated(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.NAME:
-            label = self.getName()
-            self._marker.setText(label)
-        elif event == items.ItemChangedType.EDITABLE:
+        if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
         elif event in [items.ItemChangedType.VISIBLE,
                        items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(VerticalLineROI, self)._updated(event, checkVisibility)
+
+    def _updateText(self, text: str):
+        self._marker.setText(text)
 
     def _updatedStyle(self, event, style):
         self._marker.setColor(style.getColor())
@@ -1333,11 +1333,9 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         self._updatePos(vmin, vmax)
 
     def _updated(self, event=None, checkVisibility=True):
-        if event == items.ItemChangedType.NAME:
-            self._updateText()
-        elif event == items.ItemChangedType.EDITABLE:
+        if event == items.ItemChangedType.EDITABLE:
             self._updateEditable()
-            self._updateText()
+            self._updateText(self.getText())
         elif event == items.ItemChangedType.LINE_STYLE:
             markers = [self._markerMin, self._markerMax]
             self._updateItemProperty(event, self, markers)
@@ -1353,8 +1351,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             m.setColor(style.getColor())
             m.setLineWidth(style.getLineWidth())
 
-    def _updateText(self):
-        text = self.getName()
+    def _updateText(self, text: str):
         if self.isEditable():
             self._markerMin.setText("")
             self._markerCen.setText(text)

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ __date__ = "01/09/2017"
 import numpy
 
 from silx.gui.utils.testutils import SignalListener
+from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.items import ItemChangedType
 from silx.gui.plot import items
 from .utils import PlotWidgetTestCase
@@ -355,3 +356,33 @@ class TestImageDataAggregated(PlotWidgetTestCase):
                         ymax + (ymax - ymin)/2,
                     )
                     self.qapp.processEvents()
+
+
+def testRegionOfInterestText():
+    roi = RegionOfInterest()
+
+    listener = SignalListener()
+    roi.sigItemChanged.connect(listener)
+
+    assert roi.getName() == roi.getText()
+
+    roi.setText("some text")
+    assert listener.arguments(argumentIndex=0) == [ItemChangedType.TEXT]
+    listener.clear()
+    assert roi.getText() == "some text"
+
+    roi.setName("new_name")
+    assert listener.arguments(argumentIndex=0) == [ItemChangedType.NAME]
+    listener.clear()
+    assert roi.getText() == "some text"
+
+    roi.setText(None)
+    assert listener.arguments(argumentIndex=0) == [ItemChangedType.TEXT]
+    listener.clear()
+    assert roi.getText() == "new_name"
+
+    roi.setName("even_newer_name")
+    assert listener.arguments(argumentIndex=0) == [
+        ItemChangedType.NAME, ItemChangedType.TEXT
+    ]
+    assert roi.getText() == "even_newer_name"
