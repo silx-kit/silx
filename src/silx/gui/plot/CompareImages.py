@@ -54,48 +54,6 @@ from .tools.compare.core import _CompareImageItem
 _logger = logging.getLogger(__name__)
 
 
-class ColormapWithPinnedData(Colormap):
-    """
-    Colormap which allow to compute statistics on a specified pinned data.
-
-    This can be used to normalize multiple image item together, with a consistent
-    auto scale.
-
-    It supports for now up to 2 data at the same time.
-    """
-
-    def __init__(self, name=None, colors=None, normalization=Colormap.LINEAR, vmin=None, vmax=None, autoscaleMode=Colormap.MINMAX):
-        super().__init__(name=name, colors=colors, normalization=normalization, vmin=vmin, vmax=vmax, autoscaleMode=autoscaleMode)
-        self.__data1 = None
-        self.__data2 = None
-        self.__cacheColormapRange = {}  # Store {normalization: range}
-
-    def setPinnedData(self, data1: Optional[numpy.array], data2: Optional[numpy.array]):
-        self.__data1 = data1
-        self.__data2 = data2
-        self.__cacheColormapRange = {}
-
-    def _computeAutoscaleRange(self, data):
-        if self.__data1 is None:
-            return super()._computeAutoscaleRange(self.__data2)
-        if self.__data2 is None:
-            return super()._computeAutoscaleRange(self.__data1)
-
-        normalization = self.getNormalization()
-        autoscaleMode = self.getAutoscaleMode()
-        key = normalization, autoscaleMode
-        vRange = self.__cacheColormapRange.get(key, None)
-        if vRange is None:
-            # Filter out nan and inf
-            d1 = self.__data1[numpy.isfinite(self.__data1)]
-            d2 = self.__data2[numpy.isfinite(self.__data2)]
-            data = numpy.concatenate((d1, d2))
-            vRange = self._getNormalizer().autoscale(
-                data, mode=self.getAutoscaleMode())
-            self.__cacheColormapRange[key] = vRange
-        return vRange
-
-
 class CompareImages(qt.QMainWindow):
     """Widget providing tools to compare 2 images.
 
@@ -121,10 +79,12 @@ class CompareImages(qt.QMainWindow):
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
         self._resetZoomActive = True
-        self._colormap = ColormapWithPinnedData()
+        self._colormap = Colormap()
         """Colormap shared by all modes, except the compose images (rgb image)"""
         self._colormapKeyPoints = Colormap('spring')
         """Colormap used for sift keypoints"""
+
+        self._colormap.sigChanged.connect(self.__colormapChanged)
 
         if parent is None:
             self.setWindowTitle('Compare images')
@@ -133,6 +93,9 @@ class CompareImages(qt.QMainWindow):
 
         self.__transformation = None
         self.__item = _CompareImageItem()
+        self.__item.setName("_virtual")
+        self.__item.setColormap(self._colormap)
+
         self.__raw1 = None
         self.__raw2 = None
         self.__data1 = None
@@ -145,6 +108,8 @@ class CompareImages(qt.QMainWindow):
         self.__plot.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
             self.__plot.getYAxis().setInverted(True)
+        self.__plot.addItem(self.__item)
+        self.__plot.setActiveImage("_virtual")
 
         self.__plot.setKeepDataAspectRatio(True)
         self.__plot.sigPlotSignal.connect(self.__plotSlot)
@@ -201,6 +166,21 @@ class CompareImages(qt.QMainWindow):
         self._createStatusBar(self.__plot)
         if self._statusBar is not None:
             self.setStatusBar(self._statusBar)
+
+    def __getSealedColormap(self):
+        vrange = self._colormap.getColormapRange(self.__item.getColormappedData(copy=False))
+        sealed = self._colormap.copy()
+        sealed.setVRange(*vrange)
+        return sealed
+
+    def __colormapChanged(self):
+        sealed = self.__getSealedColormap()
+        if self.__image1 is not None:
+            if self.__getImageMode(self.__image1.getData(copy=False)) == "intensity":
+                self.__image1.setColormap(sealed)
+        if self.__image2 is not None:
+            if self.__getImageMode(self.__image2.getData(copy=False)) == "intensity":
+                self.__image2.setColormap(sealed)
 
     def _createStatusBar(self, plot):
         self._statusBar = CompareImagesStatusBar(self)
@@ -479,7 +459,6 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self.__raw2 = image2
-        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -496,7 +475,6 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image1: The first image
         """
         self.__raw1 = image1
-        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -513,7 +491,6 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         self.__raw2 = image2
-        self._colormap.setPinnedData(self.__raw1, self.__raw2)
         self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
@@ -621,7 +598,7 @@ class CompareImages(qt.QMainWindow):
 
         self.__data1, self.__data2 = data1, data2
 
-        colormap = self.getColormap()
+        colormap = self.__getSealedColormap()
         mode1 = self.__getImageMode(self.__data1)
         if mode1 == "intensity":
             colormap1 = colormap

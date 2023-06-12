@@ -29,13 +29,12 @@ __license__ = "MIT"
 __date__ = "09/06/2023"
 
 
-from silx.gui.plot.items.image import ImageBase
-from silx.gui.plot.items.core import ItemChangedType
-
-
+import numpy
 import enum
 from typing import NamedTuple
 
+from silx.gui.plot.items.image import ImageBase
+from silx.gui.plot.items.core import ItemChangedType, ColormapMixIn
 
 from silx.opencl import ocl
 if ocl is not None:
@@ -80,13 +79,14 @@ class AffineTransformation(NamedTuple):
     rot: float
 
 
-class _CompareImageItem(ImageBase):
+class _CompareImageItem(ImageBase, ColormapMixIn):
     """Description of a virtual item of images to compare, in order to share
-    to other places.
+    the data through the silx components.
     """
 
     def __init__(self):
-        super(_CompareImageItem, self).__init__()
+        ImageBase.__init__(self)
+        ColormapMixIn.__init__(self)
         self.__image1 = None
         self.__image2 = None
 
@@ -107,3 +107,30 @@ class _CompareImageItem(ImageBase):
             return
         self.__image2 = image2
         self._updated(ItemChangedType.DATA)
+
+    def _getConcatenatedData(self, copy=True):
+        if self.__image1 is None and self.__image2 is None:
+            return None
+        if self.__image1 is None:
+            return numpy.array(self.__image2, copy=copy)
+        if self.__image2 is None:
+            return numpy.array(self.__image1, copy=copy)
+
+        d1 = self.__image1[numpy.isfinite(self.__image1)]
+        d2 = self.__image2[numpy.isfinite(self.__image2)]
+        return numpy.concatenate((d1, d2))
+
+    def _updated(self, event=None, checkVisibility=True):
+        # Synchronizes colormapped data if changed
+        if event in (ItemChangedType.DATA, ItemChangedType.MASK):
+            data = self._getConcatenatedData(copy=False)
+            return self._setColormappedData(data, copy=False)
+        super()._updated(event=event, checkVisibility=checkVisibility)
+
+    def getColormappedData(self, copy=True):
+        """
+        Reimplementation of the `ColormapMixIn.getColormappedData` method.
+
+        This is used to provide a consistent auto scale on the compared images.
+        """
+        return self._getConcatenatedData(copy=copy)
