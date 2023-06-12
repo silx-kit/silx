@@ -31,7 +31,7 @@ __date__ = "21/03/2017"
 import numpy
 
 from .panzoom import FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX
-from .panzoom import applyZoomToPlot, applyPan, checkAxisLimits, ZoomOnAxes
+from .panzoom import applyZoomToPlot, applyPan, checkAxisLimits, EnabledAxes
 
 
 def addMarginsToLimits(margins, isXLog, isYLog,

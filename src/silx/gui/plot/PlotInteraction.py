@@ -46,7 +46,7 @@ from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
-                     applyZoomToPlot, ZoomOnAxes)
+                     applyZoomToPlot, EnabledAxes)
 
 
 # Base class ##################################################################
@@ -1643,7 +1643,7 @@ class PlotInteraction(qt.QObject):
     def __init__(self, parent):
         super().__init__(parent)
         self.__zoomOnWheel = True
-        self.__zoomOnAxes = ZoomOnAxes()
+        self.__zoomEnabledAxes = EnabledAxes()
 
         # Default event handler
         self._eventHandler = ItemsInteraction(parent)
@@ -1658,16 +1658,16 @@ class PlotInteraction(qt.QObject):
             self.__zoomOnWheel = enabled
             self.sigChanged.emit()
 
-    def setZoomOnAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
+    def setZoomEnabledAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
         """Toggle zoom interaction for each axis"""
-        zoomOnAxes = ZoomOnAxes(xaxis, yaxis, y2axis)
-        if zoomOnAxes != self.__zoomOnAxes:
-            self.__zoomOnAxes = zoomOnAxes
+        zoomEnabledAxes = EnabledAxes(xaxis, yaxis, y2axis)
+        if zoomEnabledAxes != self.__zoomEnabledAxes:
+            self.__zoomEnabledAxes = zoomEnabledAxes
             self.sigChanged.emit()
 
-    def getZoomOnAxes(self) -> ZoomOnAxes:
+    def getZoomEnabledAxes(self) -> EnabledAxes:
         """Returns axes for which zoom is enabled"""
-        return self.__zoomOnAxes
+        return self.__zoomEnabledAxes
 
     def _getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
@@ -1756,12 +1756,12 @@ class PlotInteraction(qt.QObject):
         """Handle wheel events"""
         if not self.isZoomOnWheelEnabled():
             return
-        zoomOnAxes = self.getZoomOnAxes()
-        if zoomOnAxes.isDisabled():
+        zoomEnabledAxes = self.getZoomEnabledAxes()
+        if zoomEnabledAxes.isDisabled():
             return
 
         plotWidget = self.parent()
         if plotWidget is None:
             return
         scale = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(plotWidget, scale, (x, y), zoomOnAxes)
+        applyZoomToPlot(plotWidget, scale, (x, y), zoomEnabledAxes)

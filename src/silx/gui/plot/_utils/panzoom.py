@@ -120,7 +120,7 @@ def scale1DRange(
     return newMin, newMax
 
 
-class ZoomOnAxes(NamedTuple):
+class EnabledAxes(NamedTuple):
     """Toggle zoom for each axis"""
     xaxis: bool = True
     yaxis: bool = True
@@ -135,7 +135,7 @@ def applyZoomToPlot(
     plot,
     scale: float,
     center: tuple[float, float]=None,
-    enabled: ZoomOnAxes=ZoomOnAxes(),
+    enabled: EnabledAxes=EnabledAxes(),
 ):
     """Zoom in/out plot given a scale and a center point.
 
