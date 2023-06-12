@@ -33,7 +33,7 @@ import numpy
 
 from silx.gui.plot.tools.profile import rois
 from silx.gui.plot.tools.profile import core
-from .core import CompareImageItem
+from .core import _CompareImageItem
 
 
 COLOR_A = "#0080FF"  # azure
@@ -48,7 +48,7 @@ class ProfileImageLineROI(rois.ProfileImageLineROI):
     """
 
     def computeProfile(self, item):
-        if not isinstance(item, CompareImageItem):
+        if not isinstance(item, _CompareImageItem):
             raise TypeError("Unexpected class %s" % type(item))
 
         origin = item.getOrigin()
@@ -103,7 +103,7 @@ class ProfileImageDirectedLineROI(rois.ProfileImageDirectedLineROI):
     """
 
     def computeProfile(self, item):
-        if not isinstance(item, CompareImageItem):
+        if not isinstance(item, _CompareImageItem):
             raise TypeError("Unexpected class %s" % type(item))
 
         from silx.image.bilinear import BilinearImage

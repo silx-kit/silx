@@ -54,7 +54,7 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.setAutoResetZoom(False)
 
         self.__manager = ProfileManager(self, self._plot.getPlot())
-        virtualItem = self._plot.getVirtualPlotItem()
+        virtualItem = self._plot._getVirtualPlotItem()
         self.__manager.setPlotItem(virtualItem)
 
         directedLineAction = self.__manager.createProfileAction(ProfileImageDirectedLineROI, self)

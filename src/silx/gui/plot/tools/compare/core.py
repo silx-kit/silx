@@ -80,13 +80,13 @@ class AffineTransformation(NamedTuple):
     rot: float
 
 
-class CompareImageItem(ImageBase):
+class _CompareImageItem(ImageBase):
     """Description of a virtual item of images to compare, in order to share
     to other places.
     """
 
     def __init__(self):
-        super(CompareImageItem, self).__init__()
+        super(_CompareImageItem, self).__init__()
         self.__image1 = None
         self.__image2 = None
 
