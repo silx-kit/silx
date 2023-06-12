@@ -854,6 +854,8 @@ class Plot1D(PlotWindow):
         action.setXRangeUpdatedOnZoom(True)
         action.setFittedItemUpdatedFromActiveCurve(True)
 
+        self.getInteractiveModeToolBar().getZoomModeAction().setAxesMenuEnabled(True)
+
 
 class Plot2D(PlotWindow):
     """PlotWindow with a toolbar specific for images.
