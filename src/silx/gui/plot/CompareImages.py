@@ -615,7 +615,10 @@ class CompareImages(qt.QMainWindow):
                 colormap2 = None
             self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False, colormap=colormap2)
             self.__image2 = self.__plot.getImage("image2")
+            self.__image2.setVisible(True)
         else:
+            if self.__image2 is not None:
+                self.__image2.setVisible(False)
             self.__image2 = None
             self.__data2 = numpy.empty((0, 0))
         self.__updateKeyPoints()
