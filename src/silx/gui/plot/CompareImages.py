@@ -313,18 +313,11 @@ class CompareImages(qt.QMainWindow):
         """
         if self.__visualizationMode == mode:
             return
-        previousMode = self.getVisualizationMode()
         self.__visualizationMode = mode
         mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
-        visModeRawDisplay = (VisualizationMode.ONLY_A,
-                             VisualizationMode.ONLY_B,
-                             VisualizationMode.VERTICAL_LINE,
-                             VisualizationMode.HORIZONTAL_LINE)
-        updateColormap = not(previousMode in visModeRawDisplay and
-                             mode in visModeRawDisplay)
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def centerLines(self):
@@ -358,7 +351,7 @@ class CompareImages(qt.QMainWindow):
         if self.__alignmentMode == mode:
             return
         self.__alignmentMode = mode
-        self.__updateData(updateColormap=False)
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def getAlignmentMode(self):
@@ -472,7 +465,7 @@ class CompareImages(qt.QMainWindow):
     def clear(self):
         self.setData(None, None)
 
-    def setData(self, image1, image2, updateColormap=True):
+    def setData(self, image1, image2):
         """Set images to compare.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -487,11 +480,11 @@ class CompareImages(qt.QMainWindow):
         self.__raw1 = image1
         self.__raw2 = image2
         self._colormap.setPinnedData(self.__raw1, self.__raw2)
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage1(self, image1, updateColormap=True):
+    def setImage1(self, image1):
         """Set image1 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -504,11 +497,11 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw1 = image1
         self._colormap.setPinnedData(self.__raw1, self.__raw2)
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage2(self, image2, updateColormap=True):
+    def setImage2(self, image2):
         """Set image2 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -521,7 +514,7 @@ class CompareImages(qt.QMainWindow):
         """
         self.__raw2 = image2
         self._colormap.setPinnedData(self.__raw1, self.__raw2)
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
@@ -534,7 +527,7 @@ class CompareImages(qt.QMainWindow):
             data = [], [], []
         self.__scatter.setData(x=data[0], y=data[1], value=data[2])
 
-    def __updateData(self, updateColormap):
+    def __updateData(self):
         """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
