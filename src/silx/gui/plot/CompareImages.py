@@ -183,6 +183,9 @@ class CompareImages(qt.QMainWindow):
             if self.__getImageMode(self.__image2.getData(copy=False)) == "intensity":
                 self.__image2.setColormap(sealed)
 
+        if "COMPOSITE" in self.__visualizationMode.name:
+            self.__updateData()
+
     def _createStatusBar(self, plot):
         self._statusBar = CompareImagesStatusBar(self)
         self._statusBar.setCompareWidget(self)
@@ -591,16 +594,8 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__composeImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            data1 = self.__asIntensityImage(data1)
-            data2 = self.__asIntensityImage(data2)
-            if raw1 is None:
-                data1 = data2
-                data2 = None
-            elif raw2 is None:
-                data2 = None
-            else:
-                data1 = data1.astype(numpy.float32) - data2.astype(numpy.float32)
-                data2 = None
+            data1 = self.__composeAMinusBImage(data1, data2)
+            data2 = None
         elif mode == VisualizationMode.ONLY_A:
             data2 = None
         elif mode == VisualizationMode.ONLY_B:
@@ -690,35 +685,35 @@ class CompareImages(qt.QMainWindow):
         if data1.size != 0 and data2.size != 0:
             assert(data1.shape[0:2] == data2.shape[0:2])
 
+        sealed = self.__getSealedColormap()
+        vmin, vmax = sealed.getVRange()
+
         if data1.size == 0:
             intensity1 = numpy.zeros(data2.shape[0:2])
-            vmin1, vmax1 = 0.0, 1.0
         else:
             mode1 = self.__getImageMode(data1)
             if mode1 in ["rgb", "rgba"]:
                 intensity1 = self.__luminosityImage(data1)
-                vmin1, vmax1 = 0.0, 1.0
             else:
                 intensity1 = data1
-                vmin1, vmax1 = data1.min(), data1.max()
 
         if data2.size == 0:
             intensity2 = numpy.zeros(data1.shape[0:2])
-            vmin2, vmax2 = 0.0, 1.0
         else:
             mode2 = self.__getImageMode(data2)
             if mode2 in ["rgb", "rgba"]:
                 intensity2 = self.__luminosityImage(data2)
-                vmin2, vmax2 = 0.0, 1.0
             else:
                 intensity2 = data2
-                vmin2, vmax2 = data2.min(), data2.max()
 
-        vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
         shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        a = (intensity1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        a[a < 0] = 0
+        a[a > 255] = 255
+        b = (intensity2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        b[b < 0] = 0
+        b[b > 255] = 255
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
             result[:, :, 1] = (a + b) / 2
@@ -727,6 +722,42 @@ class CompareImages(qt.QMainWindow):
             result[:, :, 0] = 255 - b
             result[:, :, 1] = 255 - (a + b) / 2
             result[:, :, 2] = 255 - a
+        return result
+
+    def __composeAMinusBImage(self, data1, data2):
+        """Returns an intensity image containing the composition of `A-B`.
+
+        The result is returned as an image array of float normalized into the
+        colormap range.
+
+        A data image of a size of 0 is considered as missing. This does not
+        interrupt the processing.
+
+        :param numpy.ndarray data1: First image
+        :param numpy.ndarray data1: Second image
+        :rtype: numpy.ndarray
+        """
+        if data1.size != 0 and data2.size != 0:
+            assert(data1.shape[0:2] == data2.shape[0:2])
+
+        sealed = self.__getSealedColormap()
+        vmin, vmax = sealed.getVRange()
+
+        data1 = self.__asIntensityImage(data1)
+        data2 = self.__asIntensityImage(data2)
+        if data1.size == 0:
+            result = data2
+        elif data2.size == 0:
+            result = data1
+        else:
+            a = (data1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
+            a[a < 0] = 0
+            a[a > 1] = 1
+            b = (data2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
+            b[b < 0] = 0
+            b[b > 1] = 1
+            r = a - b
+            result = vmin + (r - r.min()) * ((vmax - vmin) / (r.max() - r.min()))
         return result
 
     def __asIntensityImage(self, image: numpy.ndarray):
