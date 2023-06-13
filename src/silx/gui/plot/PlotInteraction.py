@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import numpy
 import time
 import weakref
 
+from silx.gui import qt
 from .. import colors
 from . import items
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN, MIDDLE_BTN,
@@ -45,7 +46,7 @@ from .backends.BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                                    CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
-                     applyZoomToPlot)
+                     applyZoomToPlot, EnabledAxes)
 
 
 # Base class ##################################################################
@@ -117,18 +118,13 @@ class _PlotInteraction(object):
 
 # Zoom/Pan ####################################################################
 
-class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
-    """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
+class _PlotInteractionWithClickEvents(ClickOrDrag, _PlotInteraction):
+    """:class:`ClickOrDrag` state machine emitting click and double click events.
 
     Base class for :class:`Pan` and :class:`Zoom`
     """
 
     _DOUBLE_CLICK_TIMEOUT = 0.4
-
-    class Idle(ClickOrDrag.Idle):
-        def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1. / 1.1
-            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def click(self, x, y, btn):
         """Handle clicks by sending events
@@ -181,7 +177,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
 
 # Pan #########################################################################
 
-class Pan(_ZoomOnWheel):
+class Pan(_PlotInteractionWithClickEvents):
     """Pan plot content and zoom on wheel state machine."""
 
     def _pixelToData(self, x, y):
@@ -266,7 +262,7 @@ class Pan(_ZoomOnWheel):
 
 # Zoom ########################################################################
 
-class Zoom(_ZoomOnWheel):
+class Zoom(_PlotInteractionWithClickEvents):
     """Zoom-in/out state machine.
 
     Zoom-in on selected area, zoom-out on right click,
@@ -410,10 +406,6 @@ class Select(StateMachine, _PlotInteraction):
         _PlotInteraction.__init__(self, plot)
         self.parameters = parameters
         StateMachine.__init__(self, states, state)
-
-    def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
     def color(self):
@@ -1009,10 +1001,6 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         _PlotInteraction.__init__(self, plot)
         self.parameters = parameters
 
-    def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1. / 1.1
-        applyZoomToPlot(self.plot, scaleF, (x, y))
-
     @property
     def color(self):
         return self.parameters.get('color', None)
@@ -1071,10 +1059,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
-
-        def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1. / 1.1
-            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onMove(self, x, y):
             marker = self.machine.plot._getMarkerAt(x, y)
@@ -1636,13 +1620,14 @@ class DrawSelectMode(FocusManager):
         return params
 
 
-class PlotInteraction(object):
-    """Proxy to currently use state machine for interaction.
+class PlotInteraction(qt.QObject):
+    """PlotWidget user interaction handler.
 
-    This allows to switch interactive mode.
-
-    :param plot: The :class:`Plot` to apply interaction to
+    :param plot: The :class:`PlotWidget` to apply interaction to
     """
+
+    sigChanged = qt.Signal()
+    """Signal emitted when the interaction configuration has changed"""
 
     _DRAW_MODES = {
         'polygon': SelectPolygon,
@@ -1655,22 +1640,42 @@ class PlotInteraction(object):
         'pencil': DrawFreeHand,
     }
 
-    def __init__(self, plot):
-        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
-
-        self.zoomOnWheel = True
-        """True to enable zoom on wheel, False otherwise."""
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.__zoomOnWheel = True
+        self.__zoomEnabledAxes = EnabledAxes()
 
         # Default event handler
-        self._eventHandler = ItemsInteraction(plot)
+        self._eventHandler = ItemsInteraction(parent)
 
-    def getInteractiveMode(self):
+    def isZoomOnWheelEnabled(self) -> bool:
+        """Returns whether or not wheel interaction triggers zoom"""
+        return self.__zoomOnWheel
+
+    def setZoomOnWheelEnabled(self, enabled: bool):
+        """Toggle zoom on wheel interaction"""
+        if enabled != self.__zoomOnWheel:
+            self.__zoomOnWheel = enabled
+            self.sigChanged.emit()
+
+    def setZoomEnabledAxes(self, xaxis: bool, yaxis: bool, y2axis: bool):
+        """Toggle zoom interaction for each axis"""
+        zoomEnabledAxes = EnabledAxes(xaxis, yaxis, y2axis)
+        if zoomEnabledAxes != self.__zoomEnabledAxes:
+            self.__zoomEnabledAxes = zoomEnabledAxes
+            self.sigChanged.emit()
+
+    def getZoomEnabledAxes(self) -> EnabledAxes:
+        """Returns axes for which zoom is enabled"""
+        return self.__zoomEnabledAxes
+
+    def _getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
 
         The returned dict contains at least the key 'mode'.
         Mode can be: 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         It can also contains extra keys (e.g., 'color') specific to a mode
-        as provided to :meth:`setInteractiveMode`.
+        as provided to :meth:`_setInteractiveMode`.
         """
         if isinstance(self._eventHandler, ZoomAndSelect):
             return {'mode': 'zoom', 'color': self._eventHandler.color}
@@ -1684,15 +1689,15 @@ class PlotInteraction(object):
         else:
             return {'mode': 'select'}
 
-    def validate(self):
+    def _validate(self):
         """Validate the current interaction if possible
 
         If was designed to close the polygon interaction.
         """
         self._eventHandler.validate()
 
-    def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None, width=None):
+    def _setInteractiveMode(self, mode, color='black',
+                            shape='polygon', label=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -1711,8 +1716,8 @@ class PlotInteraction(object):
         """
         assert mode in ('draw', 'pan', 'select', 'select-draw', 'zoom')
 
-        plot = self._plot()
-        assert plot is not None
+        plotWidget = self.parent()
+        assert plotWidget is not None
 
         if isinstance(color, numpy.ndarray) or color not in (None, 'video inverted'):
             color = colors.rgba(color)
@@ -1720,25 +1725,43 @@ class PlotInteraction(object):
         if mode in ('draw', 'select-draw'):
             self._eventHandler.cancel()
             handlerClass = DrawMode if mode == 'draw' else DrawSelectMode
-            self._eventHandler = handlerClass(plot, shape, label, color, width)
+            self._eventHandler = handlerClass(plotWidget, shape, label, color, width)
 
         elif mode == 'pan':
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = PanAndSelect(plot)
+            self._eventHandler = PanAndSelect(plotWidget)
 
         elif mode == 'zoom':
             # Ignores shape and label
             self._eventHandler.cancel()
-            self._eventHandler = ZoomAndSelect(plot, color)
+            self._eventHandler = ZoomAndSelect(plotWidget, color)
 
         else:  # Default mode: interaction with plot objects
             # Ignores color, shape and label
             self._eventHandler.cancel()
-            self._eventHandler = ItemsInteraction(plot)
+            self._eventHandler = ItemsInteraction(plotWidget)
+
+        self.sigChanged.emit()
 
     def handleEvent(self, event, *args, **kwargs):
         """Forward event to current interactive mode state machine."""
-        if not self.zoomOnWheel and event == 'wheel':
-            return  # Discard wheel events
+        if event == 'wheel':  # Handle wheel events directly
+            self._onWheel(*args, **kwargs)
+            return
+
         self._eventHandler.handleEvent(event, *args, **kwargs)
+
+    def _onWheel(self, x: float, y: float, angle: float):
+        """Handle wheel events"""
+        if not self.isZoomOnWheelEnabled():
+            return
+        zoomEnabledAxes = self.getZoomEnabledAxes()
+        if zoomEnabledAxes.isDisabled():
+            return
+
+        plotWidget = self.parent()
+        if plotWidget is None:
+            return
+        scale = 1.1 if angle > 0 else 1. / 1.1
+        applyZoomToPlot(plotWidget, scale, (x, y), zoomEnabledAxes)

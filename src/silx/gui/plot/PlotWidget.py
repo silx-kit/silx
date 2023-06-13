@@ -25,6 +25,8 @@
 The :class:`PlotWidget` implements the plot API initially provided in PyMca.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -35,8 +37,9 @@ _logger = logging.getLogger(__name__)
 
 
 from collections import namedtuple
+from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 import datetime as dt
 import itertools
 import numbers
@@ -113,7 +116,7 @@ class _PlotWidgetSelection(qt.QObject):
         """Returns most recent active item."""
         return self.__history[0] if len(self.__history) >= 1 else None
 
-    def getSelectedItems(self) -> Tuple[items.Item]:
+    def getSelectedItems(self) -> tuple[items.Item]:
         """Returns the list of currently selected items in the :class:`PlotWidget`.
 
         The list is given from most recently current item to oldest one."""
@@ -430,7 +433,9 @@ class PlotWidget(qt.QMainWindow):
         self._limitsHistory = LimitsHistory(self)
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
-        self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._eventHandler._setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._eventHandler.sigChanged.connect(self.__interactionChanged)
+        self.__isInteractionSignalForwarded = True
         self._previousDefaultMode = "zoom", True
 
         self._pressedButtons = []  # Currently pressed mouse buttons
@@ -2504,7 +2509,7 @@ class PlotWidget(qt.QMainWindow):
         ymax: float,
         y2min: Optional[float]=None,
         y2max: Optional[float]=None,
-        margins: Union[bool, Tuple[float, float, float, float]]=False,
+        margins: Union[bool, tuple[float, float, float, float]]=False,
     ):
         """Set the limits of the X and Y axes at once.
 
@@ -3051,7 +3056,7 @@ class PlotWidget(qt.QMainWindow):
                                     dpi=dpi)
             return True
 
-    def getDataMargins(self) -> Tuple[float, float, float, float]:
+    def getDataMargins(self) -> tuple[float, float, float, float]:
         """Get the default data margin ratios, see :meth:`setDataMargins`.
 
         :return: The margin ratios for each side (xMin, xMax, yMin, yMax).
@@ -3116,7 +3121,7 @@ class PlotWidget(qt.QMainWindow):
 
     def _forceResetZoom(
         self,
-        dataMargins: Optional[Tuple[float, float, float, float]]=None,
+        dataMargins: Optional[tuple[float, float, float, float]]=None,
     ):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
@@ -3472,6 +3477,15 @@ class PlotWidget(qt.QMainWindow):
 
     # Interaction modes #
 
+    def interaction(self) -> PlotInteraction:
+        """Returns the interaction handler for this PlotWidget"""
+        return self._eventHandler
+
+    def __interactionChanged(self):
+        """Handle PlotInteraction updates"""
+        if self.__isInteractionSignalForwarded:
+            self.sigInteractiveModeChanged.emit(None)
+
     def getInteractiveMode(self):
         """Returns the current interactive mode as a dict.
 
@@ -3480,7 +3494,7 @@ class PlotWidget(qt.QMainWindow):
         It can also contains extra keys (e.g., 'color') specific to a mode
         as provided to :meth:`setInteractiveMode`.
         """
-        return self._eventHandler.getInteractiveMode()
+        return self.interaction()._getInteractiveMode()
 
     def resetInteractiveMode(self):
         """Reset the interactive mode to use the previous basic interactive
@@ -3491,31 +3505,43 @@ class PlotWidget(qt.QMainWindow):
         mode, zoomOnWheel = self._previousDefaultMode
         self.setInteractiveMode(mode=mode, zoomOnWheel=zoomOnWheel)
 
-    def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None,
-                           zoomOnWheel=True, source=None, width=None):
+    def setInteractiveMode(
+        self,
+        mode: str,
+        color: Union[str, Sequence[numbers.Real]]='black',
+        shape: str='polygon',
+        label: Optional[str]=None,
+        zoomOnWheel: bool=True,
+        source=None,
+        width: Optional[float]=None
+    ):
         """Switch the interactive mode.
 
-        :param str mode: The name of the interactive mode.
-                         In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
+        :param mode: The name of the interactive mode.
+                     In 'draw', 'pan', 'select', 'select-draw', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
         :type color: Color description: The name as a str or
                      a tuple of 4 floats.
-        :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
-                          'freeline'.
-                          Default is 'polygon'.
-        :param str label: Only for 'draw' mode, sent in drawing events.
-        :param bool zoomOnWheel: Toggle zoom on wheel support
+        :param shape: Only for 'draw' mode. The kind of shape to draw.
+                      In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                      'freeline'.
+                      Default is 'polygon'.
+        :param label: Only for 'draw' mode, sent in drawing events.
+        :param zoomOnWheel: Toggle zoom on wheel support
         :param source: A user-defined object (typically the caller object)
                        that will be send in the interactiveModeChanged event,
                        to identify which object required a mode change.
                        Default: None
-        :param float width: Width of the pencil. Only for draw pencil mode.
+        :param width: Width of the pencil. Only for draw pencil mode.
         """
-        self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
-        self._eventHandler.zoomOnWheel = zoomOnWheel
+        self.__isInteractionSignalForwarded = False
+        try:
+            self._eventHandler._setInteractiveMode(mode, color, shape, label, width)
+            self._eventHandler.setZoomOnWheelEnabled(zoomOnWheel)
+        finally:
+            self.__isInteractionSignalForwarded = True
+
         if mode in ["pan", "zoom"]:
             self._previousDefaultMode = mode, zoomOnWheel
 
