@@ -39,6 +39,7 @@ from silx.gui import qt
 from silx.gui import plot
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
+from silx.utils.deprecation import deprecated_warning
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui.plot.items import Scatter
 
@@ -445,7 +446,7 @@ class CompareImages(qt.QMainWindow):
     def clear(self):
         self.setData(None, None)
 
-    def setData(self, image1, image2):
+    def setData(self, image1, image2, updateColormap="deprecated"):
         """Set images to compare.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -457,13 +458,16 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image1: The first image
         :param numpy.ndarray image2: The second image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setData's updateColormap argument", since_version="2.0.0")
+
         self.__raw1 = image1
         self.__raw2 = image2
         self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage1(self, image1):
+    def setImage1(self, image1, updateColormap="deprecated"):
         """Set image1 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -474,12 +478,15 @@ class CompareImages(qt.QMainWindow):
 
         :param numpy.ndarray image1: The first image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setImage1's updateColormap argument", since_version="2.0.0")
+
         self.__raw1 = image1
         self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage2(self, image2):
+    def setImage2(self, image2, updateColormap="deprecated"):
         """Set image2 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
@@ -490,6 +497,9 @@ class CompareImages(qt.QMainWindow):
 
         :param numpy.ndarray image2: The second image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setImage2's updateColormap argument", since_version="2.0.0")
+
         self.__raw2 = image2
         self.__updateData()
         if self.isAutoResetZoom():
