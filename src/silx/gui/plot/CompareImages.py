@@ -298,6 +298,7 @@ class CompareImages(qt.QMainWindow):
         if self.__visualizationMode == mode:
             return
         self.__visualizationMode = mode
+        self.__item.setVizualisationMode(mode)
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
         self.__updateData()
@@ -732,9 +733,6 @@ class CompareImages(qt.QMainWindow):
     def __composeAMinusBImage(self, data1, data2):
         """Returns an intensity image containing the composition of `A-B`.
 
-        The result is returned as an image array of float normalized into the
-        colormap range.
-
         A data image of a size of 0 is considered as missing. This does not
         interrupt the processing.
 
@@ -745,9 +743,6 @@ class CompareImages(qt.QMainWindow):
         if data1.size != 0 and data2.size != 0:
             assert(data1.shape[0:2] == data2.shape[0:2])
 
-        sealed = self.__getSealedColormap()
-        vmin, vmax = sealed.getVRange()
-
         data1 = self.__asIntensityImage(data1)
         data2 = self.__asIntensityImage(data2)
         if data1.size == 0:
@@ -755,14 +750,7 @@ class CompareImages(qt.QMainWindow):
         elif data2.size == 0:
             result = data1
         else:
-            a = (data1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
-            a[a < 0] = 0
-            a[a > 1] = 1
-            b = (data2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
-            b[b < 0] = 0
-            b[b > 1] = 1
-            r = a - b
-            result = vmin + (r - r.min()) * ((vmax - vmin) / (r.max() - r.min()))
+            result = data1.astype(numpy.float32) - data2.astype(numpy.float32)
         return result
 
     def __asIntensityImage(self, image: numpy.ndarray):
