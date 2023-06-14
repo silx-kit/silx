@@ -125,7 +125,7 @@ class Config(object):
     It will have an influence on PlotWidget items
 
     Supported symbols:
-    
+
         - 'o', 'Circle'
         - 'd', 'Diamond'
         - 's', 'Square'
