@@ -32,14 +32,15 @@ __date__ = "23/07/2018"
 import logging
 import numpy
 import math
+from typing import Optional
 
 import silx.image.bilinear
 from silx.gui import qt
 from silx.gui import plot
 from silx.gui.colors import Colormap
 from silx.gui.plot import tools
+from silx.utils.deprecation import deprecated_warning
 from silx.utils.weakref import WeakMethodProxy
-from silx.math.combo import min_max
 from silx.gui.plot.items import Scatter
 
 from .tools.compare.core import sift
@@ -74,7 +75,7 @@ class CompareImages(qt.QMainWindow):
 
     sigConfigurationChanged = qt.Signal()
     """Emitted when the configuration of the widget (visualization mode,
-    alignement mode...) have changed."""
+    alignment mode...) have changed."""
 
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent)
@@ -84,6 +85,8 @@ class CompareImages(qt.QMainWindow):
         self._colormapKeyPoints = Colormap('spring')
         """Colormap used for sift keypoints"""
 
+        self._colormap.sigChanged.connect(self.__colormapChanged)
+
         if parent is None:
             self.setWindowTitle('Compare images')
         else:
@@ -91,6 +94,9 @@ class CompareImages(qt.QMainWindow):
 
         self.__transformation = None
         self.__item = _CompareImageItem()
+        self.__item.setName("_virtual")
+        self.__item.setColormap(self._colormap)
+
         self.__raw1 = None
         self.__raw2 = None
         self.__data1 = None
@@ -103,6 +109,8 @@ class CompareImages(qt.QMainWindow):
         self.__plot.getYAxis().setLabel('Rows')
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
             self.__plot.getYAxis().setInverted(True)
+        self.__plot.addItem(self.__item)
+        self.__plot.setActiveImage("_virtual")
 
         self.__plot.setKeepDataAspectRatio(True)
         self.__plot.sigPlotSignal.connect(self.__plotSlot)
@@ -159,6 +167,24 @@ class CompareImages(qt.QMainWindow):
         self._createStatusBar(self.__plot)
         if self._statusBar is not None:
             self.setStatusBar(self._statusBar)
+
+    def __getSealedColormap(self):
+        vrange = self._colormap.getColormapRange(self.__item.getColormappedData(copy=False))
+        sealed = self._colormap.copy()
+        sealed.setVRange(*vrange)
+        return sealed
+
+    def __colormapChanged(self):
+        sealed = self.__getSealedColormap()
+        if self.__image1 is not None:
+            if self.__getImageMode(self.__image1.getData(copy=False)) == "intensity":
+                self.__image1.setColormap(sealed)
+        if self.__image2 is not None:
+            if self.__getImageMode(self.__image2.getData(copy=False)) == "intensity":
+                self.__image2.setColormap(sealed)
+
+        if "COMPOSITE" in self.__visualizationMode.name:
+            self.__updateData()
 
     def _createStatusBar(self, plot):
         self._statusBar = CompareImagesStatusBar(self)
@@ -271,18 +297,11 @@ class CompareImages(qt.QMainWindow):
         """
         if self.__visualizationMode == mode:
             return
-        previousMode = self.getVisualizationMode()
         self.__visualizationMode = mode
         mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
-        visModeRawDisplay = (VisualizationMode.ONLY_A,
-                             VisualizationMode.ONLY_B,
-                             VisualizationMode.VERTICAL_LINE,
-                             VisualizationMode.HORIZONTAL_LINE)
-        updateColormap = not(previousMode in visModeRawDisplay and
-                             mode in visModeRawDisplay)
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def centerLines(self):
@@ -316,7 +335,7 @@ class CompareImages(qt.QMainWindow):
         if self.__alignmentMode == mode:
             return
         self.__alignmentMode = mode
-        self.__updateData(updateColormap=False)
+        self.__updateData()
         self.sigConfigurationChanged.emit()
 
     def getAlignmentMode(self):
@@ -430,53 +449,62 @@ class CompareImages(qt.QMainWindow):
     def clear(self):
         self.setData(None, None)
 
-    def setData(self, image1, image2, updateColormap=True):
+    def setData(self, image1, image2, updateColormap="deprecated"):
         """Set images to compare.
 
         Images can contains floating-point or integer values, or RGB and RGBA
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image1: The first image
         :param numpy.ndarray image2: The second image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setData's updateColormap argument", since_version="2.0.0")
+
         self.__raw1 = image1
         self.__raw2 = image2
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage1(self, image1, updateColormap=True):
+    def setImage1(self, image1, updateColormap="deprecated"):
         """Set image1 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image1: The first image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setImage1's updateColormap argument", since_version="2.0.0")
+
         self.__raw1 = image1
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
-    def setImage2(self, image2, updateColormap=True):
+    def setImage2(self, image2, updateColormap="deprecated"):
         """Set image2 to be compared.
 
         Images can contains floating-point or integer values, or RGB and RGBA
         values, but should have comparable intensities.
 
         RGB and RGBA images are provided as an array as `[width,height,channels]`
-        of usigned integer 8-bits or floating-points between 0.0 to 1.0.
+        of unsigned integer 8-bits or floating-points between 0.0 to 1.0.
 
         :param numpy.ndarray image2: The second image
         """
+        if updateColormap != "deprecated":
+            deprecated_warning("Argument", "setImage2's updateColormap argument", since_version="2.0.0")
+
         self.__raw2 = image2
-        self.__updateData(updateColormap=updateColormap)
+        self.__updateData()
         if self.isAutoResetZoom():
             self.__plot.resetZoom()
 
@@ -489,7 +517,7 @@ class CompareImages(qt.QMainWindow):
             data = [], [], []
         self.__scatter.setData(x=data[0], y=data[1], value=data[2])
 
-    def __updateData(self, updateColormap):
+    def __updateData(self):
         """Compute aligned image when the alignment mode changes.
 
         This function cache input images which are used when
@@ -566,28 +594,36 @@ class CompareImages(qt.QMainWindow):
             data1 = self.__composeImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
-            data1 = self.__asIntensityImage(data1)
-            data2 = self.__asIntensityImage(data2)
-            if raw1 is None:
-                data1 = data2
-                data2 = None
-            elif raw2 is None:
-                data2 = None
-            else:
-                data1 = data1.astype(numpy.float32) - data2.astype(numpy.float32)
-                data2 = None
+            data1 = self.__composeAMinusBImage(data1, data2)
+            data2 = None
         elif mode == VisualizationMode.ONLY_A:
             data2 = None
         elif mode == VisualizationMode.ONLY_B:
             data1 = numpy.empty((0, 0))
 
         self.__data1, self.__data2 = data1, data2
-        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False)
-        self.__image1 = self.__plot.getImage("image1")
-        if data2 is not None:
-            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False)
-            self.__image2 = self.__plot.getImage("image2")
+
+        colormap = self.__getSealedColormap()
+        mode1 = self.__getImageMode(self.__data1)
+        if mode1 == "intensity":
+            colormap1 = colormap
         else:
+            colormap1 = None
+        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False, colormap=colormap1)
+        self.__image1 = self.__plot.getImage("image1")
+
+        if data2 is not None:
+            mode2 = self.__getImageMode(data2)
+            if mode2 == "intensity":
+                colormap2 = colormap
+            else:
+                colormap2 = None
+            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False, colormap=colormap2)
+            self.__image2 = self.__plot.getImage("image2")
+            self.__image2.setVisible(True)
+        else:
+            if self.__image2 is not None:
+                self.__image2.setVisible(False)
             self.__image2 = None
             self.__data2 = numpy.empty((0, 0))
         self.__updateKeyPoints()
@@ -599,40 +635,6 @@ class CompareImages(qt.QMainWindow):
             value = self.__data1.shape[0] // 2
             self.__hline.setPosition(0, value)
         self.__updateSeparators()
-        if updateColormap:
-            self.__updateColormap()
-
-    def __updateColormap(self):
-        # TODO: The colormap histogram will still be wrong
-        mode1 = self.__getImageMode(self.__data1)
-        mode2 = self.__getImageMode(self.__data2)
-        if mode1 == "intensity" and mode1 == mode2:
-            def merge_min_max(data1, data2):
-                if data1.size == 0:
-                    data1 = numpy.empty((1, 1))
-                    data1[0, 0] = numpy.nan
-                if data2.size == 0:
-                    data2 = numpy.empty((1, 1))
-                    data2[0, 0] = numpy.nan
-                range1 = min_max(data1, finite=True)
-                range2 = min_max(data2, finite=True)
-                def vreduce(vmin, vmax, func):
-                    if vmin is None:
-                        return vmax
-                    if vmax is None:
-                        return vmin
-                    return func(vmin, vmax)
-                vmin = vreduce(range1.minimum, range2.minimum, min)
-                vmax = vreduce(range1.maximum, range2.maximum, max)
-                if vmin is None or vmax is None:
-                    return 0, 1
-                return vmin, vmax
-            vmin, vmax = merge_min_max(self.__data1, self.__data2)
-            colormap = self.getColormap()
-            colormap.setVRange(vmin=vmin, vmax=vmax)
-            self.__image1.setColormap(colormap)
-            if self.__image2 is not None:
-                self.__image2.setColormap(colormap)
 
     def __getImageMode(self, image):
         """Returns a value identifying the way the image is stored in the
@@ -683,35 +685,35 @@ class CompareImages(qt.QMainWindow):
         if data1.size != 0 and data2.size != 0:
             assert(data1.shape[0:2] == data2.shape[0:2])
 
+        sealed = self.__getSealedColormap()
+        vmin, vmax = sealed.getVRange()
+
         if data1.size == 0:
             intensity1 = numpy.zeros(data2.shape[0:2])
-            vmin1, vmax1 = 0.0, 1.0
         else:
             mode1 = self.__getImageMode(data1)
             if mode1 in ["rgb", "rgba"]:
                 intensity1 = self.__luminosityImage(data1)
-                vmin1, vmax1 = 0.0, 1.0
             else:
                 intensity1 = data1
-                vmin1, vmax1 = data1.min(), data1.max()
 
         if data2.size == 0:
             intensity2 = numpy.zeros(data1.shape[0:2])
-            vmin2, vmax2 = 0.0, 1.0
         else:
             mode2 = self.__getImageMode(data2)
             if mode2 in ["rgb", "rgba"]:
                 intensity2 = self.__luminosityImage(data2)
-                vmin2, vmax2 = 0.0, 1.0
             else:
                 intensity2 = data2
-                vmin2, vmax2 = data2.min(), data2.max()
 
-        vmin, vmax = min(vmin1, vmin2) * 1.0, max(vmax1, vmax2) * 1.0
         shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        a = (intensity1 - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        b = (intensity2 - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        a = (intensity1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        a[a < 0] = 0
+        a[a > 255] = 255
+        b = (intensity2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
+        b[b < 0] = 0
+        b[b > 255] = 255
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
             result[:, :, 1] = (a + b) / 2
@@ -720,6 +722,42 @@ class CompareImages(qt.QMainWindow):
             result[:, :, 0] = 255 - b
             result[:, :, 1] = 255 - (a + b) / 2
             result[:, :, 2] = 255 - a
+        return result
+
+    def __composeAMinusBImage(self, data1, data2):
+        """Returns an intensity image containing the composition of `A-B`.
+
+        The result is returned as an image array of float normalized into the
+        colormap range.
+
+        A data image of a size of 0 is considered as missing. This does not
+        interrupt the processing.
+
+        :param numpy.ndarray data1: First image
+        :param numpy.ndarray data1: Second image
+        :rtype: numpy.ndarray
+        """
+        if data1.size != 0 and data2.size != 0:
+            assert(data1.shape[0:2] == data2.shape[0:2])
+
+        sealed = self.__getSealedColormap()
+        vmin, vmax = sealed.getVRange()
+
+        data1 = self.__asIntensityImage(data1)
+        data2 = self.__asIntensityImage(data2)
+        if data1.size == 0:
+            result = data2
+        elif data2.size == 0:
+            result = data1
+        else:
+            a = (data1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
+            a[a < 0] = 0
+            a[a > 1] = 1
+            b = (data2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
+            b[b < 0] = 0
+            b[b > 1] = 1
+            r = a - b
+            result = vmin + (r - r.min()) * ((vmax - vmin) / (r.max() - r.min()))
         return result
 
     def __asIntensityImage(self, image: numpy.ndarray):
@@ -820,7 +858,7 @@ class CompareImages(qt.QMainWindow):
         return AffineTransformation(tx, ty, sx, sy, rot)
 
     def getTransformation(self):
-        """Retuns the affine transformation applied to the second image to align
+        """Returns the affine transformation applied to the second image to align
         it to the first image.
 
         This result is only valid for sift alignment.
