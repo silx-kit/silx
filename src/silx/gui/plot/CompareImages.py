@@ -298,7 +298,6 @@ class CompareImages(qt.QMainWindow):
         if self.__visualizationMode == mode:
             return
         self.__visualizationMode = mode
-        mode = self.getVisualizationMode()
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
         self.__updateData()
