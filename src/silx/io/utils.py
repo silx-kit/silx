@@ -32,7 +32,7 @@ import os.path
 import sys
 import time
 import logging
-from typing import Generator
+from typing import Generator, Union
 import urllib.parse
 
 import numpy
@@ -854,7 +854,7 @@ def match(group, path_pattern: str) -> Generator[str, None, None]:
                 yield f"{matching_path}/{matching_subpath}"
 
 
-def get_data(url):
+def get_data(url: Union[str, silx.io.url.DataUrl]):
     """Returns a numpy data from an URL.
 
     Examples:
@@ -879,7 +879,7 @@ def get_data(url):
 
     .. seealso:: :class:`silx.io.url.DataUrl`
 
-    :param Union[str,silx.io.url.DataUrl]: A data URL
+    :param url: A data URL
     :rtype: Union[numpy.ndarray, numpy.generic]
     :raises ImportError: If the mandatory library to read the file is not
         available.
@@ -942,6 +942,23 @@ def get_data(url):
         # There is no explicit close
         fabio_file = None
 
+    elif url.scheme() is None:
+        for scheme in ('silx', 'fabio'):
+            specificUrl = silx.io.url.DataUrl(
+                file_path=url.file_path(),
+                data_slice=url.data_slice(),
+                data_path=url.data_path(),
+                scheme=scheme
+            )
+            try:
+                data = get_data(specificUrl)
+            except Exception:
+                logger.debug("Error while trying to loading %s as %s",
+                             url, scheme, exc_info=True)
+            else:
+                break
+        else:
+            raise ValueError(f"Data from '{url}' is not readable as silx nor fabio")
     else:
         raise ValueError("Scheme '%s' not supported" % url.scheme())
 
