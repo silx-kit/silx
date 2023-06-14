@@ -587,10 +587,10 @@ class CompareImages(qt.QMainWindow):
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
-            data1 = self.__composeImage(data1, data2, mode)
+            data1 = self.__composeRgbImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
-            data1 = self.__composeImage(data1, data2, mode)
+            data1 = self.__composeRgbImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
             data1 = self.__composeAMinusBImage(data1, data2)
@@ -669,7 +669,7 @@ class CompareImages(qt.QMainWindow):
                 data[:, :, c] = self.__rescaleArray(image[:, :, c], shape)
         return data
 
-    def __composeImage(self, data1, data2, mode):
+    def __composeRgbImage(self, data1, data2, mode):
         """Returns an RBG image containing composition of data1 and data2 in 2
         different channels
 
