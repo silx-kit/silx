@@ -1443,10 +1443,12 @@ class ColormapDialog(qt.QDialog):
             return  # no-op
 
         data = item.getColormappedData(copy=False)
-
         xmin, xmax, ymin, ymax = bounds
 
         if isinstance(item, items.ImageBase):
+            if data.ndim != 2:
+                return  # no-op
+
             ox, oy = item.getOrigin()
             sx, sy = item.getScale()
 
