@@ -1432,7 +1432,7 @@ class ColormapDialog(qt.QDialog):
             (xmin, xmax, ymin, ymax) Rectangular region in data space
         """
         if bounds is None:
-            return None  # no-op
+            return  # no-op
 
         colormap = self.getColormap()
         if colormap is None:
@@ -1440,7 +1440,7 @@ class ColormapDialog(qt.QDialog):
 
         item = self._getItem()
         if not isinstance(item, items.ColormapMixIn):
-            return None  # no-op
+            return  # no-op
 
         data = item.getColormappedData(copy=False)
 
