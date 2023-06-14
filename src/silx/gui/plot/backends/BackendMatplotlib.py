@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1204,6 +1204,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def isYAxisInverted(self):
         return self.ax.yaxis_inverted()
+
+    def isYRightAxisVisible(self):
+        return self.ax2.yaxis.get_visible()
 
     def isKeepDataAspectRatio(self):
         return self.ax.get_aspect() in (1.0, 'equal')

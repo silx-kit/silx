@@ -33,7 +33,7 @@ import numpy
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.items import ItemChangedType
-from silx.gui.plot import items
+from silx.gui.plot import PlotWidget, items
 from .utils import PlotWidgetTestCase
 
 
@@ -386,3 +386,38 @@ def testRegionOfInterestText():
         ItemChangedType.NAME, ItemChangedType.TEXT
     ]
     assert roi.getText() == "even_newer_name"
+
+
+def testAxisIsVisible(qapp, qWidgetFactory):
+    """Test Axis.isVisible method"""
+    plotWidget = qWidgetFactory(PlotWidget)
+
+    assert plotWidget.getXAxis().isVisible()
+    assert plotWidget.getYAxis().isVisible()
+    assert not plotWidget.getYAxis("right").isVisible()
+
+    # Add curve on right axis
+    plotWidget.addCurve((0, 1, 2), (1, 2, 3), yaxis="right")
+    qapp.processEvents()
+
+    assert plotWidget.getYAxis("right").isVisible()
+
+    # hide curve on right axis
+    curve = plotWidget.getItems()[0]
+    curve.setVisible(False)
+    qapp.processEvents()
+
+    assert not plotWidget.getYAxis("right").isVisible()
+
+    # show curve on right axis
+    curve.setVisible(True)
+    qapp.processEvents()
+
+    assert plotWidget.getYAxis("right").isVisible()
+
+    # Move curve to left axis
+    curve.setYAxis("left")
+    qapp.processEvents()
+
+    assert not plotWidget.getYAxis("right").isVisible()
+

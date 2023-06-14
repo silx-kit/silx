@@ -1375,6 +1375,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def isYAxisInverted(self):
         return self._plotFrame.isYAxisInverted
 
+    def isYRightAxisVisible(self):
+        return self._plotFrame.isY2Axis
+
     def isKeepDataAspectRatio(self):
         if self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog:
             return False

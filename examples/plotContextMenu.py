@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2017-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.actions.control import ZoomBackAction, CrosshairAction
 from silx.gui.plot.actions.io import SaveAction, PrintAction
-
+from silx.gui.plot.tools.menus import ZoomEnabledAxesMenu
 
 class PlotWidgetWithContextMenu(PlotWidget):
     """This class adds a custom context menu to PlotWidget's plot area."""
@@ -58,6 +58,8 @@ class PlotWidgetWithContextMenu(PlotWidget):
         self._crosshairAction = CrosshairAction(plot=self, parent=self)
         self._saveAction = SaveAction(plot=self, parent=self)
         self._printAction = PrintAction(plot=self, parent=self)
+
+        self._zoomEnabledAxesMenu = ZoomEnabledAxesMenu(plot=self, parent=self)
 
         # Retrieve PlotWidget's plot area widget
         plotArea = self.getWidgetHandle()
@@ -74,6 +76,7 @@ class PlotWidgetWithContextMenu(PlotWidget):
         # Create the context menu
         menu = qt.QMenu(self)
         menu.addAction(self._zoomBackAction)
+        menu.addMenu(self._zoomEnabledAxesMenu)
         menu.addSeparator()
         menu.addAction(self._crosshairAction)
         menu.addSeparator()
