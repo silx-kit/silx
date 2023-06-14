@@ -41,6 +41,7 @@ from silx.gui.plot import tools
 from silx.utils.deprecation import deprecated_warning
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui.plot.items import Scatter
+from silx.math.colormap import normalize
 
 from .tools.compare.core import sift
 from .tools.compare.core import VisualizationMode
@@ -707,19 +708,25 @@ class CompareImages(qt.QMainWindow):
 
         shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        a = (intensity1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        a[a < 0] = 0
-        a[a > 255] = 255
-        b = (intensity2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        b[b < 0] = 0
-        b[b > 255] = 255
+        a, _, _ = normalize(intensity1,
+                            norm=sealed.getNormalization(),
+                            autoscale=sealed.getAutoscaleMode(),
+                            vmin=sealed.getVMin(),
+                            vmax=sealed.getVMax(),
+                            gamma=sealed.getGammaNormalizationParameter())
+        b, _, _ = normalize(intensity2,
+                            norm=sealed.getNormalization(),
+                            autoscale=sealed.getAutoscaleMode(),
+                            vmin=sealed.getVMin(),
+                            vmax=sealed.getVMax(),
+                            gamma=sealed.getGammaNormalizationParameter())
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
-            result[:, :, 1] = (a + b) / 2
+            result[:, :, 1] = a // 2 + b // 2
             result[:, :, 2] = b
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
             result[:, :, 0] = 255 - b
-            result[:, :, 1] = 255 - (a + b) / 2
+            result[:, :, 1] = 255 - (a // 2 + b // 2)
             result[:, :, 2] = 255 - a
         return result
 
