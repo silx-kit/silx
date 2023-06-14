@@ -376,9 +376,9 @@ class OpenCL(object):
     def __repr__(self):
         out = ["OpenCL devices:"]
         for platformid, platform in enumerate(self.platforms):
-            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name)
+            deviceids = [f"({platformid},{deviceid}) {dev.name}"
                          for deviceid, dev in enumerate(platform.devices)]
-            out.append("[%s] %s: " % (platformid, platform.name) + ", ".join(deviceids))
+            out.append(f"[{platformid}] {platform.name}: " + ", ".join(deviceids))
         return os.linesep.join(out)
 
     def get_platform(self, key):
