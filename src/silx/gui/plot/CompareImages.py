@@ -32,7 +32,6 @@ __date__ = "23/07/2018"
 import logging
 import numpy
 import math
-from typing import Optional
 
 import silx.image.bilinear
 from silx.gui import qt
