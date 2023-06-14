@@ -33,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/05/2023"
+__date__ = "14/06/2023"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -65,6 +65,7 @@ else:
         else:
             import pyopencl.array as array
             mf = pyopencl.mem_flags
+            from .atomic import check_atomic32, check_atomic64
 
 if pyopencl is None:
 
@@ -112,7 +113,7 @@ class Device(object):
     def __init__(self, name="None", dtype=None, version=None, driver_version=None,
                  extensions="", memory=None, available=None,
                  cores=None, frequency=None, flop_core=None, idx=0, workgroup=1,
-                 platform=None):
+                 atomic32=None, atomic64=None, platform=None):
         """
         Simple container with some important data for the OpenCL device description.
 
@@ -141,6 +142,8 @@ class Device(object):
         self.frequency = frequency
         self.id = idx
         self.max_work_group_size = workgroup
+        self.atomic32 = atomic32
+        self.atomic64 = atomic64
         if not flop_core:
             flop_core = FLOP_PER_CORE.get(dtype, 1)
         if cores and frequency:
@@ -363,7 +366,8 @@ class OpenCL(object):
                     continue
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
-                               device.max_clock_frequency, flop_core, idd, workgroup)
+                               device.max_clock_frequency, flop_core, idd, workgroup, 
+                               check_atomic32(device)[0], check_atomic64(device)[0])
                 pypl.add_device(pydev)
                 nb_devices += 1
             platforms.append(pypl)
