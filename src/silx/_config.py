@@ -145,3 +145,19 @@ class Config(object):
 
     .. versionadded:: 0.10
     """
+
+    DEFAULT_PLOT_ACTIVE_CURVE_COLOR = "#000000"
+    """Default color for the active curve.
+
+    It will have an influence on PlotWidget curve items
+
+    .. versionadded:: 2.0
+    """
+
+    DEFAULT_PLOT_ACTIVE_CURVE_LINEWIDTH = None
+    """Default line width for the active curve.
+
+    It will have an influence on PlotWidget curve items
+
+    .. versionadded:: 2.0
+    """

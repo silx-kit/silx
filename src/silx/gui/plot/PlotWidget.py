@@ -394,7 +394,10 @@ class PlotWidget(qt.QMainWindow):
         self._styleIndex = 0
 
         self._activeCurveSelectionMode = "atmostone"
-        self._activeCurveStyle = CurveStyle(color='#000000')
+        self._activeCurveStyle = CurveStyle(
+            color=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_COLOR,
+            linewidth=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_LINEWIDTH,
+        )
         self._activeLegend = {'curve': None, 'image': None,
                               'scatter': None}
 
