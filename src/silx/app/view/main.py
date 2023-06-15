@@ -45,6 +45,14 @@ def createParser():
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
     parser.add_argument(
+        '--slice',
+        dest='slices',
+        default=tuple(),
+        type=int,
+        nargs='+',
+        help='List of slice indices to open (Only for dataset)',
+    )
+    parser.add_argument(
         '--debug',
         dest="debug",
         action="store_true",
@@ -151,7 +159,7 @@ def mainQt(options):
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
-    for url in parseutils.filenames_to_dataurls(options.files):
+    for url in parseutils.filenames_to_dataurls(options.files, options.slices):
         # TODO: Would be nice to add a process widget and a cancel button
         try:
             window.appendFile(url.path())
