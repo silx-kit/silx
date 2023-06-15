@@ -83,26 +83,22 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_PLOT_CURVE_COLORS = ['#000000',  # black
-                                 '#0000ff',  # blue
-                                 '#ff0000',  # red
-                                 '#00ff00',  # green
-                                 '#ff66ff',  # pink
-                                 '#ffff00',  # yellow
-                                 '#a52a2a',  # brown
-                                 '#00ffff',  # cyan
-                                 '#ff00ff',  # magenta
-                                 '#ff9900',  # orange
-                                 '#6600ff',  # violet
-                                 '#a0a0a4',  # grey
-                                 '#000080',  # darkBlue
-                                 '#800000',  # darkRed
-                                 '#008000',  # darkGreen
-                                 '#008080',  # darkCyan
-                                 '#800080',  # darkMagenta
-                                 '#808000',  # darkYellow
-                                 '#660000']  # darkBrown
+    DEFAULT_PLOT_CURVE_COLORS = [
+        '#1f77b4', # tab:blue
+        '#ff7f0e', # tab:orange
+        '#2ca02c', # tab:green
+        '#d62728', # tab:red
+        '#9467bd', # tab:purple
+        '#8c564b', # tab:brown
+        '#e377c2', # tab:pink
+        '#7f7f7f', # tab:gray
+        '#bcbd22', # tab:olive
+        '#17becf', # tab:cyan
+    ]
     """Default list of colors for plot widget displaying curves.
+
+    It is based on the color cycle of matplotlib 2.0.
+    See https://github.com/matplotlib/matplotlib/blob/main/lib/matplotlib/_color_data.py#L14
 
     It will have an influence on:
 
@@ -125,7 +121,7 @@ class Config(object):
     It will have an influence on PlotWidget items
 
     Supported symbols:
-    
+
         - 'o', 'Circle'
         - 'd', 'Diamond'
         - 's', 'Square'
