@@ -513,6 +513,8 @@ class ImageView(PlotWindow):
         widgetHandle = self._histoVPlot.getWidgetHandle()
         widgetHandle.setMinimumWidth(self.HISTOGRAMS_HEIGHT)
         widgetHandle.setMaximumWidth(self.HISTOGRAMS_HEIGHT)
+        # Trick to align the histogram to the main plot
+        self._histoVPlot.setGraphTitle(" ")
         self._histoVPlot.setInteractiveMode('zoom')
         self._histoVPlot.setDataMargins(0.1, 0.1, 0., 0.)
         self._histoVPlot.sigMouseMoved.connect(self._mouseMovedOnHistoV)

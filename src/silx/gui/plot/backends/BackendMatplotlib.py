@@ -62,6 +62,7 @@ from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
 from ...qt import inspect as qt_inspect
+from .... import config
 
 _PATCH_LINESTYLE = {
     "-": 'solid',
@@ -496,10 +497,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._axesDisplayed = True
         self._matplotlibVersion = Version(matplotlib.__version__)
 
-        self.fig = Figure()
+        self.fig = Figure(
+            tight_layout=config.MPL_TIGHT_LAYOUT,
+        )
         self.fig.set_facecolor("w")
 
-        self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
+        if config.MPL_TIGHT_LAYOUT:
+            self.ax = self.fig.add_subplot(label="left")
+        else:
+            self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
         # Make sure background of Axes is displayed
@@ -1276,6 +1282,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         width, height = 1. - left - right, 1. - top - bottom
         position = left, bottom, width, height
+
+        if left == 0 and top == 0 and right == 0 and bottom == 0:
+            self.fig.set_tight_layout(None)
+        else:
+            self.fig.set_tight_layout(config.MPL_TIGHT_LAYOUT)
 
         # Toggle display of axes and viewbox rect
         isFrameOn = position != (0., 0., 1., 1.)
