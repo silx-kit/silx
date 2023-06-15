@@ -126,29 +126,10 @@ class CompareImagesWindow(qt.QMainWindow):
         if urlPath in ("", None):
             return None
 
-        url = silx.io.url.DataUrl(path=urlPath)
-        if url.scheme() is None:
-            for scheme in ('silx', 'fabio'):
-                specificUrl = DataUrl(
-                    file_path=url.file_path(),
-                    data_slice=url.data_slice(),
-                    data_path=url.data_path(),
-                    scheme=scheme
-                )
-                try:
-                    data = silx.io.utils.get_data(specificUrl)
-                except Exception:
-                    _logger.debug("Error while trying to loading %s as %s",
-                                  urlPath, scheme, exc_info=True)
-                else:
-                    break
-            else:
-                raise ValueError(f"Data from '{urlPath}' is not readable as silx nor fabio")
-        else:
-            try:
-                data = silx.io.utils.get_data(url)
-            except Exception:
-                raise ValueError(f"Data from '{urlPath}' is not readable")
+        try:
+            data = silx.io.utils.get_data(urlPath)
+        except Exception:
+            raise ValueError(f"Data from '{urlPath}' is not readable")
 
         if not isinstance(data, numpy.ndarray):
             raise ValueError(f"URL '{urlPath}' does not link to a numpy array")
