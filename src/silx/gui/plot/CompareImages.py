@@ -32,7 +32,6 @@ __date__ = "23/07/2018"
 import logging
 import numpy
 import math
-from typing import Optional
 
 import silx.image.bilinear
 from silx.gui import qt
@@ -42,6 +41,7 @@ from silx.gui.plot import tools
 from silx.utils.deprecation import deprecated_warning
 from silx.utils.weakref import WeakMethodProxy
 from silx.gui.plot.items import Scatter
+from silx.math.colormap import normalize
 
 from .tools.compare.core import sift
 from .tools.compare.core import VisualizationMode
@@ -298,7 +298,7 @@ class CompareImages(qt.QMainWindow):
         if self.__visualizationMode == mode:
             return
         self.__visualizationMode = mode
-        mode = self.getVisualizationMode()
+        self.__item.setVizualisationMode(mode)
         self.__vline.setVisible(mode == VisualizationMode.VERTICAL_LINE)
         self.__hline.setVisible(mode == VisualizationMode.HORIZONTAL_LINE)
         self.__updateData()
@@ -588,10 +588,10 @@ class CompareImages(qt.QMainWindow):
 
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
-            data1 = self.__composeImage(data1, data2, mode)
+            data1 = self.__composeRgbImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
-            data1 = self.__composeImage(data1, data2, mode)
+            data1 = self.__composeRgbImage(data1, data2, mode)
             data2 = None
         elif mode == VisualizationMode.COMPOSITE_A_MINUS_B:
             data1 = self.__composeAMinusBImage(data1, data2)
@@ -670,7 +670,7 @@ class CompareImages(qt.QMainWindow):
                 data[:, :, c] = self.__rescaleArray(image[:, :, c], shape)
         return data
 
-    def __composeImage(self, data1, data2, mode):
+    def __composeRgbImage(self, data1, data2, mode):
         """Returns an RBG image containing composition of data1 and data2 in 2
         different channels
 
@@ -708,27 +708,30 @@ class CompareImages(qt.QMainWindow):
 
         shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        a = (intensity1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        a[a < 0] = 0
-        a[a > 255] = 255
-        b = (intensity2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin)) * 255.0
-        b[b < 0] = 0
-        b[b > 255] = 255
+        a, _, _ = normalize(intensity1,
+                            norm=sealed.getNormalization(),
+                            autoscale=sealed.getAutoscaleMode(),
+                            vmin=sealed.getVMin(),
+                            vmax=sealed.getVMax(),
+                            gamma=sealed.getGammaNormalizationParameter())
+        b, _, _ = normalize(intensity2,
+                            norm=sealed.getNormalization(),
+                            autoscale=sealed.getAutoscaleMode(),
+                            vmin=sealed.getVMin(),
+                            vmax=sealed.getVMax(),
+                            gamma=sealed.getGammaNormalizationParameter())
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
-            result[:, :, 1] = (a + b) / 2
+            result[:, :, 1] = a // 2 + b // 2
             result[:, :, 2] = b
         elif mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY_NEG:
             result[:, :, 0] = 255 - b
-            result[:, :, 1] = 255 - (a + b) / 2
+            result[:, :, 1] = 255 - (a // 2 + b // 2)
             result[:, :, 2] = 255 - a
         return result
 
     def __composeAMinusBImage(self, data1, data2):
         """Returns an intensity image containing the composition of `A-B`.
-
-        The result is returned as an image array of float normalized into the
-        colormap range.
 
         A data image of a size of 0 is considered as missing. This does not
         interrupt the processing.
@@ -740,9 +743,6 @@ class CompareImages(qt.QMainWindow):
         if data1.size != 0 and data2.size != 0:
             assert(data1.shape[0:2] == data2.shape[0:2])
 
-        sealed = self.__getSealedColormap()
-        vmin, vmax = sealed.getVRange()
-
         data1 = self.__asIntensityImage(data1)
         data2 = self.__asIntensityImage(data2)
         if data1.size == 0:
@@ -750,14 +750,7 @@ class CompareImages(qt.QMainWindow):
         elif data2.size == 0:
             result = data1
         else:
-            a = (data1.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
-            a[a < 0] = 0
-            a[a > 1] = 1
-            b = (data2.astype(numpy.float32) - vmin) * (1.0 / (vmax - vmin))
-            b[b < 0] = 0
-            b[b > 1] = 1
-            r = a - b
-            result = vmin + (r - r.min()) * ((vmax - vmin) / (r.max() - r.min()))
+            result = data1.astype(numpy.float32) - data2.astype(numpy.float32)
         return result
 
     def __asIntensityImage(self, image: numpy.ndarray):
