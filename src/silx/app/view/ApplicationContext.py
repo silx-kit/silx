@@ -70,6 +70,7 @@ class ApplicationContext(DataViewHooks):
         if settings is None:
             return
         settings.beginGroup("library")
+        mplTightLayout = settings.value("mpl.tight_layout", False, bool)
         plotBackend = settings.value("plot.backend", "")
         plotImageYAxisOrientation = settings.value("plot-image.y-axis-orientation", "")
         settings.endGroup()
@@ -79,6 +80,7 @@ class ApplicationContext(DataViewHooks):
             ("opengl", "matplotlib") if plotBackend == "opengl" else "matplotlib"
         if plotImageYAxisOrientation != "":
             silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = plotImageYAxisOrientation
+        silx.config.MPL_TIGHT_LAYOUT = mplTightLayout
 
     def restoreSettings(self):
         """Restore the settings of all the application"""
@@ -124,6 +126,7 @@ class ApplicationContext(DataViewHooks):
         settings.beginGroup("library")
         settings.setValue("plot.backend", self.getDefaultPlotBackend())
         settings.setValue("plot-image.y-axis-orientation", silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION)
+        settings.setValue("mpl.tight_layout", silx.config.MPL_TIGHT_LAYOUT)
         settings.endGroup()
 
         settings.beginGroup("recent-files")
