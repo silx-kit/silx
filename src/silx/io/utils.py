@@ -608,11 +608,9 @@ def open(filename):  # pylint:disable=redefined-builtin
             path = path[1:]
         return h5pyd.File(path, 'r', endpoint=endpoint)
 
-    if url.data_slice():
-        raise IOError("URL '%s' containing slicing is not supported" % filename)
-
-    if url.data_path() in [None, "/", ""]:
-        # The full file is requested
+    if url.data_path() in [None, "/", ""]:  # The full file is requested
+        if url.data_slice():
+            raise IOError(f"URL '{filename}' containing slicing is not supported")
         return h5_file
     else:
         # Only a children is requested
@@ -620,6 +618,14 @@ def open(filename):  # pylint:disable=redefined-builtin
             msg = "File '%s' does not contain path '%s'." % (filename, url.data_path())
             raise IOError(msg)
         node = h5_file[url.data_path()]
+
+        if url.data_slice() is not None:
+            from . import _sliceh5  # Lazy-import to avoid circular dependency
+            try:
+                return _sliceh5.DatasetSlice(node, url.data_slice(), attrs=node.attrs)
+            except ValueError:
+                raise IOError(f"URL {filename} contains slicing, but it is not a dataset")
+
         proxy = _MainNode(node, h5_file)
         return proxy
 
