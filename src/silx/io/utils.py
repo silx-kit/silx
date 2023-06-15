@@ -32,13 +32,13 @@ import os.path
 import sys
 import time
 import logging
-from typing import Generator, Union
+from typing import Generator, Union, Optional
 import urllib.parse
 
 import numpy
 
 from silx.utils.proxy import Proxy
-import silx.io.url
+from .url import DataUrl
 from .._version import calc_hexversion
 
 import h5py
@@ -588,7 +588,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     :raises: IOError if the file can't be loaded or path can't be found
     :rtype: h5py-like node
     """
-    url = silx.io.url.DataUrl(filename)
+    url = DataUrl(filename)
 
     if url.scheme() in [None, "file", "silx"]:
         # That's a local file
@@ -854,7 +854,7 @@ def match(group, path_pattern: str) -> Generator[str, None, None]:
                 yield f"{matching_path}/{matching_subpath}"
 
 
-def get_data(url: Union[str, silx.io.url.DataUrl]):
+def get_data(url: Union[str, DataUrl]):
     """Returns a numpy data from an URL.
 
     Examples:
@@ -888,8 +888,8 @@ def get_data(url: Union[str, silx.io.url.DataUrl]):
         :meth:`fabio.open` or :meth:`silx.io.open`. In this last case more
         informations are displayed in debug mode.
     """
-    if not isinstance(url, silx.io.url.DataUrl):
-        url = silx.io.url.DataUrl(url)
+    if not isinstance(url, DataUrl):
+        url = DataUrl(url)
 
     if not url.is_valid():
         raise ValueError("URL '%s' is not valid" % url.path())
@@ -906,7 +906,7 @@ def get_data(url: Union[str, silx.io.url.DataUrl]):
                 raise ValueError("Data path from URL '%s' not found" % url.path())
             data = h5[data_path]
 
-            if not silx.io.is_dataset(data):
+            if not is_dataset(data):
                 raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
 
             if data_slice is not None:
@@ -944,7 +944,7 @@ def get_data(url: Union[str, silx.io.url.DataUrl]):
 
     elif url.scheme() is None:
         for scheme in ('silx', 'fabio'):
-            specificUrl = silx.io.url.DataUrl(
+            specificUrl = DataUrl(
                 file_path=url.file_path(),
                 data_slice=url.data_slice(),
                 data_path=url.data_path(),
@@ -978,7 +978,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
     :param numpy.dtype dtype: Data type of the volume elements (default: float32)
     :param bool overwrite: True to allow overwriting (default: False).
     """
-    assert isinstance(output_url, silx.io.url.DataUrl)
+    assert isinstance(output_url, DataUrl)
     assert isinstance(shape, (tuple, list))
     v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
     if calc_hexversion(v_majeur, v_mineur, v_micro)< calc_hexversion(2,9,0):
@@ -999,7 +999,7 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
                                 external=external)
 
 
-def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
+def vol_to_h5_external_dataset(vol_file, output_url: DataUrl, info_file: Optional[str]=None,
                                vol_dtype=numpy.float32, overwrite=False):
     """
     Create a HDF5 dataset at `output_url` pointing to the given vol_file.
@@ -1008,8 +1008,8 @@ def vol_to_h5_external_dataset(vol_file, output_url, info_file=None,
      vol-file then you should specify her location.
 
     :param str vol_file: Path to the .vol file
-    :param DataUrl output_url: HDF5 URL where to save the external dataset
-    :param Union[str,None] info_file:
+    :param output_url: HDF5 URL where to save the external dataset
+    :param info_file:
         .vol.info file name written by pyhst and containing the shape information
     :param numpy.dtype vol_dtype: Data type of the volume elements (default: float32)
     :param bool overwrite: True to allow overwriting (default: False).
