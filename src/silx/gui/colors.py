@@ -100,7 +100,7 @@ DEFAULT_MAX_LIN = 1
 """Default max value if in linear normalization"""
 
 
-_INDEXED_COLOR_PATTERN = re.compile(r"color(?P<index>[0-9]+)")
+_INDEXED_COLOR_PATTERN = re.compile(r"C(?P<index>[0-9]+)")
 
 
 def rgba(
@@ -113,7 +113,7 @@ def rgba(
     It supports:
     - color names: e.g., 'green'
     - color codes: '#RRGGBB' and '#RRGGBBAA'
-    - indexed color names: e.g., 'color0'
+    - indexed color names: e.g., 'C0'
     - RGB(A) sequence of uint8 in [0, 255] or float in [0, 1]
     - QColor
 

@@ -48,8 +48,8 @@ RGBA_TEST_CASES = (
     ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
     ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
     # index name
-    ('color0', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[0])),
-    ('color2', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[2])),
+    ('C0', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[0])),
+    ('C2', colors.rgba(silx.config.DEFAULT_PLOT_CURVE_COLORS[2])),
     # 3 uint
     (numpy.array((1, 255, 0), dtype=numpy.uint8), (1 / 255., 1., 0., 1.)),
     # 4 uint
