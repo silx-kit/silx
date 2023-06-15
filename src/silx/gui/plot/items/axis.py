@@ -234,7 +234,7 @@ class Axis(qt.QObject):
 
         self._scale = scale
 
-        vmin, _ = self.getLimits()
+        vmin, vmax = self.getLimits()
 
         # TODO hackish way of forcing update of curves and images
         plot = self._getPlot()
@@ -246,10 +246,13 @@ class Axis(qt.QObject):
             self._internalSetLogarithmic(True)
             if vmin <= 0:
                 dataRange = self._getDataRange()
-                if dataRange is not None:
-                    self.setLimits(*dataRange)
-                else:
+                if dataRange is None:
                     self.setLimits(1., 100.)
+                else:
+                    if vmax > 0 and dataRange[0] < vmax:
+                        self.setLimits(dataRange[0], vmax)
+                    else:
+                        self.setLimits(*dataRange)
         elif scale == self.LINEAR:
             self._internalSetLogarithmic(False)
         else:
