@@ -121,6 +121,7 @@ def rgba(
     :param colorDict: A dictionary of color name conversion to color code
     :param colors: Sequence of colors to use for `
     :returns: RGBA colors as floats in [0., 1.]
+    :raises ValueError: if the input is not a valid color
     """
     if isinstance(color, str):
         # From name
@@ -137,12 +138,14 @@ def rgba(
             return rgba(colors[index], colorDict, colors)
 
         # From #code
-        assert len(color) in (7, 9) and color[0] == '#'
-        r = int(color[1:3], 16) / 255.
-        g = int(color[3:5], 16) / 255.
-        b = int(color[5:7], 16) / 255.
-        a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
-        return r, g, b, a
+        if len(color) in (7, 9) and color[0] == '#':
+            r = int(color[1:3], 16) / 255.
+            g = int(color[3:5], 16) / 255.
+            b = int(color[5:7], 16) / 255.
+            a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
+            return r, g, b, a
+
+        raise ValueError(f"The string '{color}' is not a valid color")
 
     # From QColor
     if isinstance(color, qt.QColor):
@@ -151,8 +154,10 @@ def rgba(
     # From array
     values = numpy.asarray(color).ravel()
 
-    assert values.dtype.kind in 'iuf'  # integer or float
-    assert len(values) in (3, 4)
+    if values.dtype.kind not in 'iuf':
+        raise ValueError(f"The array color must be integer/unsigned or float. Found '{values.dtype.kind}'")
+    if len(values) not in (3, 4):
+        raise ValueError(f"The array color must have 3 or 4 compound. Found '{len(values)}'")
 
     # Convert from integers in [0, 255] to float in [0, 1]
     if values.dtype.kind in 'iu':
