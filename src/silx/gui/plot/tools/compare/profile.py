@@ -36,8 +36,8 @@ from silx.gui.plot.tools.profile import core
 from .core import _CompareImageItem
 
 
-COLOR_A = "#0080FF"  # azure
-COLOR_B = "#702963"  # byzantine
+COLOR_A = "C0"
+COLOR_B = "C8"
 
 
 class ProfileImageLineROI(rois.ProfileImageLineROI):
