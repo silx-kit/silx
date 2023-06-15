@@ -24,21 +24,21 @@
 """This module provides the class for axes of the :class:`PlotWidget`.
 """
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "22/11/2018"
 
 import datetime as dt
 import enum
-import logging
+from typing import Optional
 
 import dateutil.tz
 
+from ....utils.proxy import docstring
 from ... import qt
 from .. import _utils
-
-
-_logger = logging.getLogger(__name__)
 
 
 class TickMode(enum.Enum):
@@ -151,6 +151,10 @@ class Axis(qt.QObject):
         return _utils.checkAxisLimits(
             vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel)
 
+    def _getDataRange(self) -> Optional[tuple[float, float]]:
+        """Returns the range of data items over this axis as (vmin, vmax)"""
+        raise NotImplementedError()
+
     def isInverted(self):
         """Return True if the axis is inverted (top to bottom for the y-axis),
         False otherwise. It is always False for the X axis.
@@ -230,6 +234,8 @@ class Axis(qt.QObject):
 
         self._scale = scale
 
+        vmin, _ = self.getLimits()
+
         # TODO hackish way of forcing update of curves and images
         plot = self._getPlot()
         for item in plot.getItems():
@@ -238,12 +244,16 @@ class Axis(qt.QObject):
 
         if scale == self.LOGARITHMIC:
             self._internalSetLogarithmic(True)
+            if vmin <= 0:
+                dataRange = self._getDataRange()
+                if dataRange is not None:
+                    self.setLimits(*dataRange)
+                else:
+                    self.setLimits(1., 100.)
         elif scale == self.LINEAR:
             self._internalSetLogarithmic(False)
         else:
             raise ValueError("Scale %s unsupported" % scale)
-
-        plot._forceResetZoom()
 
         self.sigScaleChanged.emit(self._scale)
         if emitLog:
@@ -413,6 +423,11 @@ class XAxis(Axis):
         updated = constrains.update(minXRange=minRange, maxXRange=maxRange)
         return updated
 
+    @docstring(Axis)
+    def _getDataRange(self) -> Optional[tuple[float, float]]:
+        ranges = self._getPlot().getDataRange()
+        return ranges.x
+
 
 class YAxis(Axis):
     """Axis class defining primitives for the Y axis"""
@@ -464,6 +479,11 @@ class YAxis(Axis):
         constrains = self._getPlot()._getViewConstraints()
         updated = constrains.update(minYRange=minRange, maxYRange=maxRange)
         return updated
+
+    @docstring(Axis)
+    def _getDataRange(self) -> Optional[tuple[float, float]]:
+        ranges = self._getPlot().getDataRange()
+        return ranges.y
 
 
 class YRightAxis(Axis):
@@ -548,3 +568,8 @@ class YRightAxis(Axis):
                           False to disable it.
         """
         return self.__mainAxis.setAutoScale(flag)
+
+    @docstring(Axis)
+    def _getDataRange(self) -> Optional[tuple[float, float]]:
+        ranges = self._getPlot().getDataRange()
+        return ranges.y2
