@@ -1707,52 +1707,57 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                 if numpy.any(positives):
                     self.assertTrue(numpy.allclose(
                         xLim, (min(xData[positives]), max(xData[positives]))))
-                    self.assertEqual(
-                        yLim, (min(yData[positives]), max(yData[positives])))
                 else:  # No positive x in the curve
                     self.assertEqual(xLim, (1., 100.))
-                    self.assertEqual(yLim, (1., 100.))
+                self.assertEqual(yLim, (min(yData), max(yData)))
 
                 # x axis and y axis log
+                previousXLim = self.plot.getXAxis().getLimits()
+                previousYLim = self.plot.getYAxis().getLimits()
                 self.plot.getYAxis()._setLogarithmic(True)
                 self.qapp.processEvents()
 
                 xLim = self.plot.getXAxis().getLimits()
                 yLim = self.plot.getYAxis().getLimits()
+
+                self.assertEqual(xLim, previousXLim)
                 positives = numpy.logical_and(xData > 0, yData > 0)
-                if numpy.any(positives):
-                    self.assertTrue(numpy.allclose(
-                        xLim, (min(xData[positives]), max(xData[positives]))))
-                    self.assertTrue(numpy.allclose(
-                        yLim, (min(yData[positives]), max(yData[positives]))))
+                if previousYLim[0] > 0:
+                    self.assertEqual(yLim, previousYLim)
+                elif numpy.any(positives):
+                    expectedLimits = min(yData[positives]), max(yData[positives])
+                    self.assertTrue(
+                        numpy.allclose(yLim, expectedLimits),
+                        f"{yLim} != {expectedLimits}",
+                    )
                 else:  # No positive x and y in the curve
-                    self.assertEqual(xLim, (1., 100.))
                     self.assertEqual(yLim, (1., 100.))
 
                 # y axis log
+                previousXLim = self.plot.getXAxis().getLimits()
                 self.plot.getXAxis()._setLogarithmic(False)
                 self.qapp.processEvents()
 
                 xLim = self.plot.getXAxis().getLimits()
                 yLim = self.plot.getYAxis().getLimits()
+                self.assertEqual(xLim, previousXLim)
                 positives = yData > 0
                 if numpy.any(positives):
-                    self.assertEqual(
-                        xLim, (min(xData[positives]), max(xData[positives])))
                     self.assertTrue(numpy.allclose(
                         yLim, (min(yData[positives]), max(yData[positives]))))
                 else:  # No positive y in the curve
-                    self.assertEqual(xLim, (1., 100.))
                     self.assertEqual(yLim, (1., 100.))
 
                 # no log axis
+                previousXLim = self.plot.getXAxis().getLimits()
+                previousYLim = self.plot.getYAxis().getLimits()
                 self.plot.getYAxis()._setLogarithmic(False)
                 self.qapp.processEvents()
 
                 xLim = self.plot.getXAxis().getLimits()
-                self.assertEqual(xLim, (min(xData), max(xData)))
+                self.assertEqual(xLim, previousXLim)
                 yLim = self.plot.getYAxis().getLimits()
-                self.assertEqual(yLim, (min(yData), max(yData)))
+                self.assertEqual(yLim, previousYLim)
 
                 self.plot.clear()
                 self.plot.resetZoom()
