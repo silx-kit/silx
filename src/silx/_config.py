@@ -158,7 +158,7 @@ class Config(object):
     .. versionadded:: 2.0
     """
 
-    MPL_TIGHT_LAYOUT = False
+    MPL_TIGHT_LAYOUT = True
     """If true the matplotlib backend will use the
     experimental tight layout.
 
