@@ -161,23 +161,22 @@ class Viewer(qt.QMainWindow):
         action.setText("Refresh")
         action.setToolTip("Refresh all selected items")
         action.triggered.connect(self.__refreshSelected)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_F5))
+        action.setShortcuts(
+            [
+                qt.QKeySequence(qt.Qt.Key_F5),
+                qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_R),
+            ]
+        )
         toolbar.addAction(action)
         treeView.addAction(action)
         self.__refreshAction = action
-
-        # Another shortcut for refresh
-        action = qt.QAction(toolbar)
-        action.setShortcut(qt.QKeySequence(qt.Qt.CTRL | qt.Qt.Key_R))
-        treeView.addAction(action)
-        action.triggered.connect(self.__refreshSelected)
 
         action = qt.QAction(toolbar)
         # action.setIcon(icons.getQIcon("view-refresh"))
         action.setText("Close")
         action.setToolTip("Close selected item")
         action.triggered.connect(self.__removeSelected)
-        action.setShortcut(qt.QKeySequence(qt.Qt.Key_Delete))
+        action.setShortcut(qt.QKeySequence.Delete)
         treeView.addAction(action)
         self.__closeAction = action
 
@@ -557,12 +556,13 @@ class Viewer(qt.QMainWindow):
 
     def createActions(self):
         action = qt.QAction("E&xit", self)
-        action.setShortcuts(qt.QKeySequence.Quit)
+        action.setShortcut(qt.QKeySequence.Quit)
         action.setStatusTip("Exit the application")
         action.triggered.connect(self.close)
         self._exitAction = action
 
         action = qt.QAction("&Open...", self)
+        action.setShortcut(qt.QKeySequence.Open)
         action.setStatusTip("Open a file")
         action.triggered.connect(self.open)
         self._openAction = action
@@ -572,6 +572,7 @@ class Viewer(qt.QMainWindow):
         self._openRecentMenu = menu
 
         action = qt.QAction("Close All", self)
+        action.setShortcut(qt.QKeySequence.Close)
         action.setStatusTip("Close all opened files")
         action.triggered.connect(self.closeAll)
         self._closeAllAction = action
