@@ -269,11 +269,11 @@ class TestH5Ls(unittest.TestCase):
         self.assertIn("+foo", lines)
         self.assertIn("\t+bar", lines)
 
-        match = r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">'
+        match = r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "[<>]i[48]">'
         self.assertMatchAnyStringInList(match, lines)
-        match = r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">'
+        match = r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "[<>]i[48]">'
         self.assertMatchAnyStringInList(match, lines)
-        match = r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">'
+        match = r'\t<HDF5 dataset "data": shape \(1,\), type "[<>]f[48]">'
         self.assertMatchAnyStringInList(match, lines)
 
         os.unlink(self.h5_fname)
