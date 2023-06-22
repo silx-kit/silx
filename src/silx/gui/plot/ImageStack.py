@@ -28,68 +28,32 @@ __license__ = "MIT"
 __date__ = "04/03/2019"
 
 
+from PyQt5 import QtGui
 from silx.gui import icons, qt
 from silx.gui.plot import Plot2D
 from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
-import time
-import threading
 import typing
 import logging
+from silx.utils.deprecation import deprecated
+from silx.gui.utils.waiteroverlay import WaiterOverlay
 
 _logger = logging.getLogger(__name__)
 
 
-class _PlotWithWaitingLabel(qt.QWidget):
+class _PlotWithWaitingLabel(Plot2D):
     """Image plot widget with an overlay 'waiting' status.
     """
 
-    class AnimationThread(threading.Thread):
-        def __init__(self, label):
-            self.running = True
-            self._label = label
-            self.animated_icon = icons.getWaitIcon()
-            self.animated_icon.register(self._label)
-            super(_PlotWithWaitingLabel.AnimationThread, self).__init__()
-
-        def run(self):
-            while self.running:
-                time.sleep(0.05)
-                icon = self.animated_icon.currentIcon()
-                self.future_result = concurrent.submitToQtMainThread(
-                    self._label.setPixmap, icon.pixmap(30, state=qt.QIcon.On))
-
-        def stop(self):
-            """Stop the update thread"""
-            if self.running:
-                self.animated_icon.unregister(self._label)
-                self.running = False
-                self.join(2)
-
+    @deprecated(replacement='WaiterOverlay', since_version='1.2')
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
+        self._waitingComponent = WaiterOverlay(
+            underlying_widget=self,
+        )
         self._autoResetZoom = True
-        layout = qt.QStackedLayout(self)
-        layout.setStackingMode(qt.QStackedLayout.StackAll)
-
-        self._waiting_label = qt.QLabel(parent=self)
-        self._waiting_label.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-        layout.addWidget(self._waiting_label)
-
-        self._plot = Plot2D(parent=self)
-        layout.addWidget(self._plot)
-
-        self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
-        self.updateThread.start()
-
-    def close(self) -> bool:
-        super(_PlotWithWaitingLabel, self).close()
-        self.stopUpdateThread()
-
-    def stopUpdateThread(self):
-        self.updateThread.stop()
 
     def setAutoResetZoom(self, reset):
         """
@@ -99,7 +63,7 @@ class _PlotWithWaitingLabel(qt.QWidget):
         """
         self._autoResetZoom = reset
         if self._autoResetZoom:
-            self._plot.resetZoom()
+            self.resetZoom()
 
     def isAutoResetZoom(self):
         """
@@ -110,22 +74,19 @@ class _PlotWithWaitingLabel(qt.QWidget):
         return self._autoResetZoom
 
     def setWaiting(self, activate=True):
-        if activate is True:
-            self._plot.clear()
-            self._waiting_label.show()
-        else:
-            self._waiting_label.hide()
+        self._waitingComponent.setWaiting(activate=activate)
 
     def setData(self, data):
         self.setWaiting(activate=False)
-        self._plot.addImage(data=data, resetzoom=self._autoResetZoom)
+        self.addImage(data=data, resetzoom=self._autoResetZoom)
 
     def clear(self):
-        self._plot.clear()
         self.setWaiting(False)
+        super().clear()
 
-    def getPlotWidget(self):
-        return self._plot
+    def resizeEvent(self, a0:qt.QResizeEvent) -> None:
+        self._waitingComponent.resize()
+        return super().resizeEvent(a0)
 
 
 class _HorizontalSlider(HorizontalSliderWithBrowser):
@@ -345,7 +306,7 @@ class ImageStack(qt.QMainWindow):
         :return: PlotWidget contained in this window
         :rtype: Plot2D
         """
-        return self._plot.getPlotWidget()
+        return self._plot
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
@@ -583,6 +544,7 @@ class ImageStack(qt.QMainWindow):
             if self._current_url.path() in self._urlData:
                 self._plot.setData(self._urlData[url.path()])
             else:
+                self._plot.clear()
                 self._load(url)
                 self._notifyLoading()
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
