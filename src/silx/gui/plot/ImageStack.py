@@ -37,7 +37,6 @@ from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import typing
 import logging
-from silx.utils.deprecation import deprecated
 from silx.gui.utils.waiteroverlay import WaiterOverlay
 
 _logger = logging.getLogger(__name__)
@@ -47,7 +46,6 @@ class _PlotWithWaitingLabel(Plot2D):
     """Image plot widget with an overlay 'waiting' status.
     """
 
-    @deprecated(replacement='WaiterOverlay', since_version='1.2')
     def __init__(self, parent):
         super(_PlotWithWaitingLabel, self).__init__(parent=parent)
         self._waitingComponent = WaiterOverlay(
