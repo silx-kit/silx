@@ -29,6 +29,7 @@ __license__ = "MIT"
 __date__ = "02/10/2017"
 
 from .. import qt
+from ..utils import validators
 
 
 class FloatEdit(qt.QLineEdit):
@@ -48,7 +49,12 @@ class FloatEdit(qt.QLineEdit):
     def value(self):
         """Return the QLineEdit current value as a float."""
         text = self.text()
-        value, validated = self.validator().locale().toDouble(text)
+
+        validator = self.validator()
+        if isinstance(validator, validators.CustomValidator):
+            value, validated = validator.toValue(text)
+        else:
+            value, validated = validator.locale().toDouble(text)
         if not validated:
             self.setValue(value)
         return value
@@ -58,11 +64,15 @@ class FloatEdit(qt.QLineEdit):
 
         :param float value: The value to set the QLineEdit to.
         """
-        locale = self.validator().locale()
-        if qt.BINDING == "PySide6":
-            # Fix for PySide6 not selecting the right method
-            text = locale.toString(float(value), 'g')
+        validator = self.validator()
+        if isinstance(validator, validators.CustomValidator):
+            text = validator.toText(value)
         else:
-            text = locale.toString(float(value))
+            locale = validator.locale()
+            if qt.BINDING == "PySide6":
+                # Fix for PySide6 not selecting the right method
+                text = locale.toString(float(value), 'g')
+            else:
+                text = locale.toString(float(value))
 
         self.setText(text)

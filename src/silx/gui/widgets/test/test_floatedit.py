@@ -31,6 +31,7 @@ import pytest
 import weakref
 from silx.gui import qt
 from silx.gui.widgets.FloatEdit import FloatEdit
+from silx.gui.utils import validators
 
 
 @pytest.fixture
@@ -51,3 +52,13 @@ def test_show(qapp_utils, floatEdit):
 def test_value(floatEdit):
     floatEdit.setValue(1.5)
     assert floatEdit.value() == 1.5
+
+
+def test_none_value(floatEdit):
+    v = validators.AdvancedDoubleValidator()
+    v.setAllowEmpty(True)
+    floatEdit.setValidator(v)
+    floatEdit.setValue(None)
+    assert floatEdit.value() is None
+    floatEdit.setText("")
+    assert floatEdit.value() is None
