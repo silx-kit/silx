@@ -443,13 +443,8 @@ class _Browser(qt.QStackedWidget):
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__detailView.header().saveState())
         viewMode = self.viewMode()
-        if qt.BINDING == 'PyQt6':
+        if qt.BINDING in ('PyQt6', 'PySide6'):
             viewMode = viewMode.value
-        if qt.BINDING == 'PySide6':  # No auto conversion to int
-            from PySide6 import __version__ as pyside6_version
-            from pkg_resources import parse_version as _parse_version
-            if parse_version(__version__) >= parse_version('6.4'):
-                viewMode = viewMode.value
         stream.writeInt32(viewMode)
 
         return data
@@ -1728,13 +1723,8 @@ class AbstractDataFileDialog(qt.QDialog):
         stream.writeQString(u"%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
         viewMode = self.viewMode()
-        if qt.BINDING == 'PyQt6':
+        if qt.BINDING in ('PyQt6', 'PySide6'):
             viewMode = viewMode.value
-        if qt.BINDING == 'PySide6':  # No auto conversion to int
-            from PySide6 import __version__ as pyside6_version
-            from pkg_resources import parse_version as _parse_version
-            if parse_version(__version__) >= parse_version('6.4'):
-                viewMode = viewMode.value
         stream.writeInt32(viewMode)
         colormap = self.colormap()
         if colormap is not None:

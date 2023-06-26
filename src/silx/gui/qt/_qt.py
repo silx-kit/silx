@@ -135,6 +135,10 @@ elif BINDING == 'PySide6':
     from PySide6.QtGui import *  # noqa
     from PySide6.QtWidgets import *  # noqa
     from PySide6.QtPrintSupport import *  # noqa
+    from PySide6 import __version__ as pyside6_version
+    from pkg_resources import parse_version as _parse_version
+    if _parse_version(__version__) < _parse_version('6.4'):
+        raise ValueError(f"PySide6 compatibility requires version >= 6.4. Get version {__version__}")
 
     try:
         from PySide6.QtOpenGL import *  # noqa
