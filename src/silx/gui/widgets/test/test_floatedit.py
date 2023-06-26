@@ -62,3 +62,28 @@ def test_none_value(floatEdit):
     assert floatEdit.value() is None
     floatEdit.setText("")
     assert floatEdit.value() is None
+
+
+def test_original_value(floatEdit):
+    """
+    Check that we can retrieve the original value while it was not edited by the user.
+    """
+    floatEdit.setValue(0.123456789)
+    assert floatEdit.value() == 0.123456789
+    floatEdit.setCursorPosition(2)
+    floatEdit.insert("1")
+    assert floatEdit.value() == pytest.approx(0.1123456)
+
+
+def test_quantity_value(floatEdit):
+    """
+    Check that the widget supports quantity validator.
+    """
+    v = validators.DoublePintValidator()
+    floatEdit.setValidator(v)
+
+    floatEdit.setValue((0.12, "mm"))
+    assert floatEdit.value() == (0.12, "mm")
+    floatEdit.setCursorPosition(3)
+    floatEdit.insert("1")
+    assert floatEdit.value() == (0.112, "mm")

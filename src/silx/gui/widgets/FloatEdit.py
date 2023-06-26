@@ -35,19 +35,35 @@ from ..utils import validators
 class FloatEdit(qt.QLineEdit):
     """Field to edit a float value.
 
+    A value can be accessed with :meth:`value` and :meth:`setValue`. Will the
+    user do not modify the text, the original value is returned.
+
+    The widget supports validators from :class:`validators.CustomValidator`, which
+    not only allow to manage float value.
+
     :param parent: See :class:`QLineEdit`
     :param float value: The value to set the QLineEdit to.
     """
-    def __init__(self, parent=None, value=None):
+    def __init__(self, parent: qt.QWidget=None, value: object=None):
         qt.QLineEdit.__init__(self, parent)
         validator = qt.QDoubleValidator(self)
         self.setValidator(validator)
         self.setAlignment(qt.Qt.AlignRight)
+        self.__value = None
         if value is not None:
             self.setValue(value)
 
-    def value(self):
+    def keyPressEvent(self, event: qt.QEvent):
+        result = super(FloatEdit, self).keyPressEvent(event)
+        if event.isAccepted():
+            self.__wasModified = True
+        return result
+
+    def value(self) -> object:
         """Return the QLineEdit current value as a float."""
+        if not self.isModified():
+            return self.__value
+
         text = self.text()
 
         validator = self.validator()
@@ -59,11 +75,12 @@ class FloatEdit(qt.QLineEdit):
             self.setValue(value)
         return value
 
-    def setValue(self, value):
+    def setValue(self, value: object):
         """Set the current value of the LineEdit
 
         :param float value: The value to set the QLineEdit to.
         """
+        self.__value = value
         validator = self.validator()
         if isinstance(validator, validators.CustomValidator):
             text = validator.toText(value)
