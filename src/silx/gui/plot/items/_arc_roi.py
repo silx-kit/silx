@@ -265,22 +265,28 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         :param RoiInteractionMode modeId:
         """
         if modeId is self.ThreePointMode:
+            self._handleStart.setVisible(True)
+            self._handleEnd.setVisible(True)
+            self._handleWeight.setVisible(True)
             self._handleStart.setSymbol("s")
             self._handleMid.setSymbol("s")
             self._handleEnd.setSymbol("s")
             self._handleWeight.setSymbol("d")
             self._handleMove.setSymbol("+")
         elif modeId is self.PolarMode:
+            self._handleStart.setVisible(True)
+            self._handleEnd.setVisible(True)
+            self._handleWeight.setVisible(True)
             self._handleStart.setSymbol("o")
             self._handleMid.setSymbol("o")
             self._handleEnd.setSymbol("o")
             self._handleWeight.setSymbol("d")
             self._handleMove.setSymbol("+")
         elif modeId is self.MoveMode:
-            self._handleStart.setSymbol("")
+            self._handleStart.setVisible(False)
+            self._handleEnd.setVisible(False)
+            self._handleWeight.setVisible(False)
             self._handleMid.setSymbol("+")
-            self._handleEnd.setSymbol("")
-            self._handleWeight.setSymbol("")
             self._handleMove.setSymbol("+")
         else:
             assert False
