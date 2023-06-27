@@ -393,6 +393,7 @@ class RegionOfInterestManager(qt.QObject):
 
         self._roiClass = None
         self._source = None
+        self._lastHoveredMarkerLabel = None
         self._color = rgba('red')
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
@@ -568,6 +569,8 @@ class RegionOfInterestManager(qt.QObject):
             plot = self.parent()
             marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
+        elif event["event"] == "hover":
+            self._lastHoveredMarkerLabel = event["label"]
         else:
             return
 
@@ -598,14 +601,26 @@ class RegionOfInterestManager(qt.QObject):
         roi = self.getCurrentRoi()
         if roi is not None:
             if roi.isEditable():
-                # Filter by data position
-                # FIXME: It would be better to use GUI coords for it
-                plot = self.parent()
-                pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
-                data = plot.pixelToData(pos.x(), pos.y())
-                if roi.contains(data):
+                if self._isMouseHoverRoi(roi):
                     roiMenu = self._createMenuForRoi(menu, roi)
                     menu.addMenu(roiMenu)
+
+    def _isMouseHoverRoi(self, roi: RegionOfInterest):
+        """Check that the mouse hover this roi"""
+        plot = self.parent()
+
+        if self._lastHoveredMarkerLabel is not None:
+            marker = plot._getMarker(self._lastHoveredMarkerLabel)
+            if marker is not None:
+                r = self.__getRoiFromMarker(marker)
+                if roi is r:
+                    return True
+
+        # Filter by data position
+        # FIXME: It would be better to use GUI coords for it
+        pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+        data = plot.pixelToData(pos.x(), pos.y())
+        return roi.contains(data)
 
     def _createMenuForRoi(self, parent: qt.QWidget, roi: RegionOfInterest):
         """Create a """
