@@ -37,6 +37,7 @@ __date__ = "28/06/2018"
 import logging
 import numpy
 import weakref
+import functools
 from typing import Optional
 
 from ....utils.weakref import WeakList
@@ -190,6 +191,28 @@ class InteractionModeMixIn(object):
         :rtype: RoiInteractionMode
         """
         return self.__modeId
+
+    def createMenuForInteractionMode(self, parent: qt.QWidget) -> qt.QMenu:
+        """Create a menu providing access to the different interaction modes"""
+        availableModes = self.availableInteractionModes()
+        currentMode = self.getInteractionMode()
+        submenu = qt.QMenu(parent)
+        modeGroup = qt.QActionGroup(parent)
+        modeGroup.setExclusive(True)
+        for mode in availableModes:
+            action = qt.QAction(parent)
+            action.setText(mode.label)
+            action.setToolTip(mode.description)
+            action.setCheckable(True)
+            if mode is currentMode:
+                action.setChecked(True)
+            else:
+                callback = functools.partial(self.setInteractionMode, mode)
+                action.triggered.connect(callback)
+            modeGroup.addAction(action)
+            submenu.addAction(action)
+        submenu.setTitle("Interaction mode")
+        return submenu
 
 
 class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
