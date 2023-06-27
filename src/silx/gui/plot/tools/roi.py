@@ -622,6 +622,8 @@ class RegionOfInterestManager(qt.QObject):
         removeAction.triggered.connect(callback)
         roiMenu.addAction(removeAction)
 
+        roi.populateContextMenu(roiMenu)
+
         return roiMenu
 
     # RegionOfInterest API

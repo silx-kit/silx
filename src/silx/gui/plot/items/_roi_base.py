@@ -652,6 +652,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     def _editingFinished(self):
         self.sigEditingFinished.emit()
 
+    def populateContextMenu(self, menu: qt.QMenu):
+        """Populate a menu used as a context menu"""
+        ...
+
 
 class HandleBasedROI(RegionOfInterest):
     """Manage a ROI based on a set of handles"""
