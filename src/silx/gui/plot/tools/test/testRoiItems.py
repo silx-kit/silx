@@ -275,6 +275,18 @@ def testArc_anticlockwiseGeometry(qapp):
     assert not item.isClosed()
 
 
+def testArc_position_role(qapp):
+    """Test validity of getPositionRole"""
+    item = roi_items.ArcROI()
+    center = numpy.array([10, 20])
+    innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
+    item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
+    assert item.getPositionRole(roi_items.ArcROI.Role.START) == pytest.approx((10.0, 70.5))
+    assert item.getPositionRole(roi_items.ArcROI.Role.STOP) == pytest.approx((-40.5, 20.0))
+    assert item.getPositionRole(roi_items.ArcROI.Role.MIDDLE) == pytest.approx((-25.71, 55.71), abs=0.1)
+    assert item.getPositionRole(roi_items.ArcROI.Role.CENTER) == pytest.approx((10.0, 20), abs=0.1)
+
+
 def testHRange_geometry(qapp):
     item = roi_items.HorizontalRangeROI()
     vmin = 1
