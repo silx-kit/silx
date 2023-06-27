@@ -1084,6 +1084,8 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
 
 # ItemInteraction #############################################################
 
+PREVIOUS_HOVERED_MARKER = None
+
 class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     """Interaction with items (markers, curves and images).
 
@@ -1093,9 +1095,35 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     """
 
     class Idle(ClickOrDrag.Idle):
+
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
+
+        def enterState(self):
+            global PREVIOUS_HOVERED_MARKER
+            x, y = self._getMousePos()
+            if PREVIOUS_HOVERED_MARKER:
+                previous = PREVIOUS_HOVERED_MARKER
+                self.PREVIOUS_HOVERED_MARKER = None
+                if self._isMarkerAtPos(x, y, previous):
+                    self._setMarker(previous)
+                    return
+            self.onMove(x, y)
+
+        def _getMousePos(self):
+            plot = self.machine.plot
+            p = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+            return p.x(), p.y()
+
+        def _isMarkerAtPos(self, x, y, marker):
+            """Check if the mouse houver a specific marker"""
+            def checkThisMarker(item):
+                return item is marker
+
+            plot = self.machine.plot
+            result = plot._pickTopMost(x, y, checkThisMarker)
+            return bool(result)
 
         def onMove(self, x, y):
             marker = self.machine.plot._getMarkerAt(x, y)
@@ -1109,7 +1137,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     marker.isDraggable(),
                     marker.isSelectable())
                 self.machine.plot.notify(**eventDict)
+            self._setMarker(marker)
+            return True
 
+        def _setMarker(self, marker):
             if marker != self._hoverMarker:
                 self._hoverMarker = marker
 
@@ -1129,7 +1160,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 else:
                     self.machine.plot.setGraphCursorShape()
 
-            return True
+        def leaveState(self):
+            global PREVIOUS_HOVERED_MARKER
+            PREVIOUS_HOVERED_MARKER = self._hoverMarker
 
     def __init__(self, plot):
         self._pan = Pan(plot)
