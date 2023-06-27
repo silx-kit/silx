@@ -360,6 +360,9 @@ class PlotWidget(qt.QMainWindow):
     It provides the menu which will be displayed.
     """
 
+    sigBackendChanged = qt.Signal()
+    """Signal emitted when the backend have changed."""
+
     def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
@@ -622,6 +625,8 @@ class PlotWidget(qt.QMainWindow):
         # Mark all items for update with new backend
         for item in self.getItems():
             item._updated()
+
+        self.sigBackendChanged.emit()
 
     def getBackend(self):
         """Returns the backend currently used by :class:`PlotWidget`.
