@@ -649,6 +649,7 @@ class OpenGLAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=True,
             parent=parent)
+        plot.sigBackendChanged.connect(self._backendUpdated)
 
     def _backendUpdated(self):
         name = self._getBackendName(self.plot)
@@ -671,21 +672,12 @@ class OpenGLAction(PlotAction):
     def _actionTriggered(self, checked=False):
         plot = self.plot
         name = self._getBackendName(self.plot)
-        if self.__state != name:
-            # THere is no event to know the backend was updated
-            # So here we check if there is a mismatch between the displayed state
-            # and the real state of the widget
-            self._backendUpdated()
-            return
         if name != "opengl":
             from silx.gui.utils import glutils
             result = glutils.isOpenGLAvailable()
             if not result:
-                qt.QMessageBox.critical(plot, "OpenGL rendering not available", result.error)
-                # Uncheck if needed
-                self._backendUpdated()
+                qt.QMessageBox.critical(plot, "OpenGL rendering is not available", result.error)
                 return
             plot.setBackend("opengl")
         else:
             plot.setBackend("matplotlib")
-        self._backendUpdated()
