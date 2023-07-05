@@ -28,9 +28,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// define the min and the max of the absolute value
-#define MAXA(a,b) (abs(a)>abs(b))?a:b;
-#define MINA(a,b) (abs(a)>abs(b))?b:a;
+// define the min and the max based on the first element 
+#define MAXA(a,b) (a.s0>b.s0)?a:b;
+#define MINA(a,b) (a.s0>b.s0)?b:a;
 
 /* Function is called at the end by the last running wg to compact the output
  * 
@@ -64,7 +64,7 @@ inline void compact_output(global uchar *output_buffer,
  */
 inline void sort_odd_even(int start,
                           int stop,
-                          volatile local short *lbuffer){
+                          volatile local short4 *lbuffer){
     int size = stop - start;
     if (size <2){
         return;
@@ -134,11 +134,230 @@ inline void sort_odd_even(int start,
     }
 }
 
+/* compact segments
+ * After the scan, begining of litterals and of match are noted and stored in segments.
+ * In this function one takes 2 segments, starting with a litteral and concatenate the subsequent match  
+ * as a consequence, the number of segments is divided by 2 !
+ */
+inline int compact_segments(local volatile short4 segments,
+                            int nb){
+    int tid = get_local_id(0); // thread id
+    short4 merge
+    if (2*tid<nb){
+        short4 lit = segments[2*tid];
+        short4 mat = segments[2*tid+1];        
+        if ((lit.s1 == 0) && (lit.s2 == 0) && (mat.s2 !=0)){
+            merge = (short4)(lit.s0, mat.s0-lit.s0, mat.s2, 0);
+        }
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (2*tid<nb){
+        segments[tid] = merge;
+    }
+    return nb/2;
+}
+
+/* This function scans the input data searching for litterals and matches.
+ */
+inline int scan4match(  local uchar *buffer,       // buffer with input data in it, as large as possible, limited by shared memory space.
+                        int start,
+                        int stop,
+                        local short *match_buffer, // size of the wg is enough
+                        local int* cnt             // size 2 is enough
+                       ){
+    
+    int wg = get_local_size(0);// workgroup size
+    int tid = get_local_id(0); // thread id
+    int size = stop-start;
+    cnt[0] = min(wg, size);
+    cnt[1] = 0;
+    
+    // memset match_buffer
+    match_buffer[tid] = 0;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    
+    pid = tid + start;
+    uchar here = (pid < stop)?buffer[pid]:255;
+    int match = 1;
+    uchar valid = 1;
+    for (size_t i=pid+1; i<stop; i++){
+        if (valid && (buffer[i] == here)){
+            match++;
+        }
+        else{
+            valid = 0;
+            atomic_dec(cnt);
+            match_buffer[tid] = match;
+            atomic_max(&cnt[1], i);
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (cnt[0] == 0){
+            break;
+        }
+    }
+    return cnt[1];
+}
+
+// segment over one wg size. returns the number of segments found
+inline int segmentation(int start, //index where scan4match did start
+                        int stop,
+                        local short *match_buffer,      // size of the workgroup
+                        local volatile short4 segments, // size of the workgroup
+                        local int* cnt                  // size 1 is enough 
+                        ){
+    cnt[0] = 1;
+    segments[0] = (short4)(start, 0, 0, 0);
+    barrier(CLK_LOCAL_MEM_FENCE);
+         
+    if ((tid>0) && (pid<stop)){
+        short here = match_buffer[tid],
+              there= match_buffer[tid-1];
+        if ((here > there) && (there==0) && (here>4){
+            segments[atomic_inc(cnt)] = (short4)(start, 0, here, 0);
+        } else
+        if ((here==0) && (there>0){
+            segments[atomic_inc(cnt)] = (short4)(start, 0, 0, 0);
+        }
+    }
+    if (cnt[0] == 1){
+        // noting occured, just complete segment
+        segments[0] = (short4)(start, stop-start, 0, 0);
+    }else{
+        // sort segments
+        if (tid == 0){
+            cnt[0] += 1;
+            
+        }
+        sort_odd_even(0, cnt[0], segments);
+        // compact segments  TODO       
+    }
+    return end_of_scan;
+}
+
+
+//  Build token, concatenation of a litteral and a match 
+inline uchar build_token(short4 segment){
+    int lit = segment.s1;
+    int mat = segment.s2;
+    int token = ((lit & 15)<<4)|((mat-4)&15);
+    return token;
+}
+
+// copy collaborative, return the position in output stream.
+inline int copy(global uchar* dest,
+                 const int dest_position,
+                 local uchar* source,
+                 const int src_position,
+                 const int length){
+    for (int i=get_local_id(0); i<length; i+=get_local_size(0)) {
+        dest[dest_position+i] = source[src_position+i];
+    }
+    return dest_position+length;
+}
+
+/*
+ * Perform the actual compression by copying
+ * 
+ * return the end-position in the output stream 
+ */
+inline int write_lz4(local uchar *buffer,
+                     local volatile short4 segments, // size of the workgroup
+                     int nb_segments,
+                     int start_cmp,
+                     global uchar *output_buffer,
+                     int stop
+                    )
+{
+    for (int i=0; i<nb_segments; i++){
+        short4 segment = segments[i];
+        
+        //write token
+        output_buffer[start_cmp] = build_token(segment);
+        start_cmp++;
+        
+        //write litteral overflow
+        if (segment.s1>=15){
+            int rem = segment.s1-15;
+            while (rem>=255){
+                output_buffer[start_cmp] = 255;
+                start_cmp++;
+                rem -=255;
+            }
+            output_buffer[start_cmp] = rem;
+            start_cmp++;
+        }
+        
+        //copy litteral. This is collaborative.
+        start_cmp = copy(output_buffer, start_cmp,
+                         buffer, segment.s0, segment.s1);
+        
+        //write offset, here always 1 in 16 bits little endian !
+        output_buffer[start_cmp] = 1;
+        output_buffer[start_cmp+1] = 0;
+        start_cmp+=2;
+        
+        //write match overflow
+        if (segment.s2>=19){
+            int rem = segment.s2-19;
+            while (rem>=255){
+                output_buffer[start_cmp] = 255;
+                start_cmp++;
+                rem -=255;
+            }
+            output_buffer[start_cmp] = rem;
+            start_cmp++;            
+        }
+    }//loop over segments
+}
+
+/* Main kernel for lz4 compression
+ */
+kernel void lz4_cmp(   global uchar *input_buffer,
+                       int input_size,
+                       global uchar *output_buffer,
+                       int output_size,
+                       global uchar *output_ptr, // Length of all output from different wg
+                       global int *running_grp,  // counter with the number of wg still running
+                       local uchar *buffer,
+                       int buffer_size,
+                       local short *match_buffer, // size of the buffer
+                       local short4 segments      // contains: start of segment (uncompressed), number of litterals, number of match (offset is enforced to 1) and start of segment (compressed) 
+                      )
+{
+    int tid = get_local_id(0); // thread id
+    int gid = get_group_id(0); // group id
+    int wg = get_local_size(0);// workgroup size
+    
+    //copy input data to buffer
+    int actual_buffer_size = min(buffer_size, input_size - ((gid+1) * buffer_size));
+    int start_block = gid * buffer_size;
+    for (int i=tid; i<actual_buffer_size; i+=wg){
+        buffer[i] = input_buffer[start_block+i];
+    }
+    local int cnt[2]; // small counters
+    
+    /// divide the work in parts, one wg has enough threads
+    int start = 0;
+    while (start<actual_buffer_size){
+        //scan for matching
+        int next_start = scan4match(buffer, start, actual_buffer_size, match_buffer);
+        // extract from matching the sequence
+        
+        
+        start = next_start;
+    }
+    
+    
+    
+    
+    
+}
+
 // test kernel to ensure `sort_odd_even` works
-kernel void test_sort(global short *buffer,
+kernel void test_sort(global short4 *buffer,
                       int start,
                       int stop,
-                      volatile local short *lbuffer){
+                      volatile local short4 *lbuffer){
     int tid = get_local_id(0); // thread id
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
@@ -151,63 +370,3 @@ kernel void test_sort(global short *buffer,
         buffer[i] = lbuffer[i];
     }
 }                       
-
-/* Main kernel for lz4 compression
- */
-kernel void lz4_cmp(   global uchar *input_buffer,
-                       int input_size,
-                       global uchar *output_buffer,
-                       int output_size,
-                       global uchar *output_ptr, // Length of all output from different wg
-                       global int *running_grp,  // counter with the number of wg still running
-                       local uchar *buffer,
-                       int buffer_size,
-                       local short *match_buffer // size of the workgroup
-                      )
-{
-    int tid = get_local_id(0); // thread id
-    int gid = get_group_id(0); // group id
-    int wg = get_local_size(0);// workgroup size
-    //copy input data to buffer
-    int actual_buffer_size = min(buffer_size, input_size - ((gid+1) * buffer_size));
-    int start_block = gid * buffer_size;
-    for (int i=tid; i<actual_buffer_size; i+=wg){
-        buffer[i] = input_buffer[start_block+i];
-    }
-    
-    local int running[1];
-    running[0] = wg;
-    barrier(CLK_LOCAL_MEM_FENCE);
-    
-    uchar here = buffer[tid];
-    int match = 1;
-    uchar valid = 1;
-    for (size_t i=tid+1; i<buffer_size; i++){
-        if (valid && (buffer[i] == here)){
-            match++;
-        }
-        else{
-            valid = 0;
-            atomic_dec(running);
-            if (match>4){
-                match_buffer[tid] = match;
-            }
-            else{
-                match_buffer[tid] = 0;
-            }
-            
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-        if (running[0] == 0){
-            break;
-        }
-    }
-    // retrieve the match_buffer
-    int out_block = (int) ceil(buffer_size * 1.2);
-    int write_block = gid * out_block;
-    for (size_t i=tid; i<actual_buffer_size; i+=wg){
-        output_buffer[write_block+i] = buffer[i];
-        }
-    
-    return;
-}
