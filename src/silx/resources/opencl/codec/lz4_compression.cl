@@ -72,7 +72,7 @@ inline void sort_odd_even(int start,
     int cycle = (int)(size/2.0+0.5);
     int tid = get_local_id(0); // thread id
     int wg = get_local_size(0);// workgroup size
-    short here, there;
+    short4 here, there;
     int pid = start + tid;
     for (int i=0; i<cycle; i++){ 
         //loop over the number of cycle to perform:
@@ -139,10 +139,10 @@ inline void sort_odd_even(int start,
  * In this function one takes 2 segments, starting with a litteral and concatenate the subsequent match  
  * as a consequence, the number of segments is divided by 2 !
  */
-inline int compact_segments(local volatile short4 segments,
+inline int compact_segments(local volatile short4 *segments,
                             int nb){
     int tid = get_local_id(0); // thread id
-    short4 merge
+    short4 merge;
     if (2*tid<nb){
         short4 lit = segments[2*tid];
         short4 mat = segments[2*tid+1];        
@@ -176,7 +176,7 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
     match_buffer[tid] = 0;
     barrier(CLK_LOCAL_MEM_FENCE);
     
-    pid = tid + start;
+    int pid = tid + start;
     uchar here = (pid < stop)?buffer[pid]:255;
     int match = 1;
     uchar valid = 1;
@@ -202,9 +202,12 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
 inline int segmentation(int start, //index where scan4match did start
                         int stop,
                         local short *match_buffer,      // size of the workgroup
-                        local volatile short4 segments, // size of the workgroup
+                        local volatile short4 *segments,// size of the workgroup
                         local int* cnt                  // size 1 is enough 
                         ){
+    int wg = get_local_size(0);// workgroup size
+    int tid = get_local_id(0); // thread id
+    int pid = tid + start;
     cnt[0] = 1;
     segments[0] = (short4)(start, 0, 0, 0);
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -212,10 +215,10 @@ inline int segmentation(int start, //index where scan4match did start
     if ((tid>0) && (pid<stop)){
         short here = match_buffer[tid],
               there= match_buffer[tid-1];
-        if ((here > there) && (there==0) && (here>4){
+        if ((here > there) && (there==0) && (here>4)){
             segments[atomic_inc(cnt)] = (short4)(start, 0, here, 0);
         } else
-        if ((here==0) && (there>0){
+        if ((here==0) && (there>0)){
             segments[atomic_inc(cnt)] = (short4)(start, 0, 0, 0);
         }
     }
@@ -231,7 +234,7 @@ inline int segmentation(int start, //index where scan4match did start
         sort_odd_even(0, cnt[0], segments);
         // compact segments  TODO       
     }
-    return end_of_scan;
+    return cnt[0];
 }
 
 
@@ -261,7 +264,7 @@ inline int copy(global uchar* dest,
  * return the end-position in the output stream 
  */
 inline int write_lz4(local uchar *buffer,
-                     local volatile short4 segments, // size of the workgroup
+                     local volatile short4 *segments, // size of the workgroup
                      int nb_segments,
                      int start_cmp,
                      global uchar *output_buffer,
@@ -308,6 +311,7 @@ inline int write_lz4(local uchar *buffer,
             start_cmp++;            
         }
     }//loop over segments
+    return start_cmp;
 }
 
 /* Main kernel for lz4 compression
@@ -321,9 +325,8 @@ kernel void lz4_cmp(   global uchar *input_buffer,
                        local uchar *buffer,
                        int buffer_size,
                        local short *match_buffer, // size of the buffer
-                       local short4 segments      // contains: start of segment (uncompressed), number of litterals, number of match (offset is enforced to 1) and start of segment (compressed) 
-                      )
-{
+                       local volatile short4 *segments      // contains: start of segment (uncompressed), number of litterals, number of match (offset is enforced to 1) and start of segment (compressed) 
+                      ){
     int tid = get_local_id(0); // thread id
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
@@ -338,14 +341,14 @@ kernel void lz4_cmp(   global uchar *input_buffer,
     
     /// divide the work in parts, one wg has enough threads
     int start = 0;
-    while (start<actual_buffer_size){
+//    while (start<actual_buffer_size){
         //scan for matching
-        int next_start = scan4match(buffer, start, actual_buffer_size, match_buffer);
+//        int next_start = scan4match(buffer, start, actual_buffer_size, match_buffer);
         // extract from matching the sequence
         
         
-        start = next_start;
-    }
+//        start = next_start;
+//    }
     
     
     
