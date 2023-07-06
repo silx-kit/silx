@@ -28,10 +28,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// define the min and the max based on the first element 
-#define MAXA(a,b) (a.s0>b.s0)?a:b;
-#define MINA(a,b) (a.s0>b.s0)?b:a;
-
 /* Function is called at the end by the last running wg to compact the output
  * 
  * Maybe would be more efficient to call another kernel to do this in parallel ?
@@ -57,6 +53,10 @@ inline void compact_output(global uchar *output_buffer,
     }
 }
 
+// short compare and swap function used in sort_odd_even
+inline short8 _order_short4(short4 a, short4 b){
+    return (a.s0<b.s0)?(short8)(a,b):(short8)(b,a);
+}
 
 /* Odd–even parallel sort on the magnitude of values in shared memory
  * Not the fastest algorithm but it is parallel and inplace.
@@ -69,66 +69,25 @@ inline void sort_odd_even(int start,
     if (size <2){
         return;
     }
-    int cycle = (int)(size/2.0+0.5);
+    int cycle = (int)ceil(size/2.0);
     int tid = get_local_id(0); // thread id
     int wg = get_local_size(0);// workgroup size
-    short4 here, there;
-    int pid = start + tid;
+    short8 swapped;
+    int pid = start + tid + tid;
     for (int i=0; i<cycle; i++){ 
         //loop over the number of cycle to perform:
         // first case: even test above, odd test below
-        if (tid<size){
-            here = lbuffer[pid];
-            if (tid%2){
-                // odd tid test above
-                if (tid+1 == size)
-                   there = here;
-                else
-                   there = lbuffer[pid+1];
-            }else{
-                // even tid test below
-                if (tid==0)
-                    there = here;
-                else
-                    there = lbuffer[pid-1];
-            }
+        
+        if (pid+1<stop){
+            swapped = _order_short4(lbuffer[pid], lbuffer[pid+1]);
+            lbuffer[pid] = (short4)(swapped.s0, swapped.s1, swapped.s2, swapped.s3);
+            lbuffer[pid+1] = (short4)(swapped.s4, swapped.s5, swapped.s6, swapped.s7);
         }
         barrier(CLK_LOCAL_MEM_FENCE);
-        if (tid<size){
-            if (tid%2){
-                lbuffer[pid] = MINA(here, there);
-            }              
-            else{
-                lbuffer[pid] = MAXA(here, there);
-            }
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-        // second case: odd test above, even test below
-        if (tid<size){
-            here = lbuffer[pid];
-            if (tid%2){
-                // odd tid test below
-                if (tid == 0)
-                   there = here;
-                else
-                   there = lbuffer[pid-1];
-            }
-            else{
-                // even tid test above
-                if (tid+1==size)
-                    there = here;
-                else
-                    there = lbuffer[pid+1];
-            }
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-        if (tid<size){
-            if (tid%2){
-                lbuffer[pid] = MAXA(here, there);
-            }
-            else{
-                lbuffer[pid] = MINA(here, there);
-            }
+        if (pid+2<stop){
+            swapped = _order_short4(lbuffer[pid+1], lbuffer[pid+2]);
+            lbuffer[pid+1] = (short4)(swapped.s0, swapped.s1, swapped.s2, swapped.s3);
+            lbuffer[pid+2] = (short4)(swapped.s4, swapped.s5, swapped.s6, swapped.s7);
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
@@ -163,7 +122,7 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
                         int start,
                         int stop,
                         local short *match_buffer, // size of the wg is enough
-                        local int* cnt             // size 2 is enough
+                        volatile local int* cnt             // size 2 is enough
                        ){
     
     int wg = get_local_size(0);// workgroup size
@@ -180,21 +139,24 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
     uchar here = (pid < stop)?buffer[pid]:255;
     int match = 1;
     uchar valid = 1;
-    for (size_t i=pid+1; i<stop; i++){
-        if (valid && (buffer[i] == here)){
-            match++;
+    for (int i=pid+1; i<stop; i++){
+        if (valid){
+            if (buffer[i] == here){
+                match++;
+            }
+            else{
+//                printf("thread %d starting at %d found match %d up to position %d max is %d still running %d\n", tid, pid, match, i, cnt[1], cnt[0]);
+                valid = 0;
+                atomic_dec(cnt);
+                match_buffer[tid] = match;
+                atomic_max(&cnt[1], i);
+            }            
         }
-        else{
-            valid = 0;
-            atomic_dec(cnt);
-            match_buffer[tid] = match;
-            atomic_max(&cnt[1], i);
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
         if (cnt[0] == 0){
             break;
         }
     }
+    barrier(CLK_LOCAL_MEM_FENCE);
     return cnt[1];
 }
 
@@ -203,7 +165,7 @@ inline int segmentation(int start, //index where scan4match did start
                         int stop,
                         local short *match_buffer,      // size of the workgroup
                         local volatile short4 *segments,// size of the workgroup
-                        local int* cnt                  // size 1 is enough 
+                        local volatile int* cnt                  // size 1 is enough 
                         ){
     int wg = get_local_size(0);// workgroup size
     int tid = get_local_id(0); // thread id
@@ -215,25 +177,26 @@ inline int segmentation(int start, //index where scan4match did start
     if ((tid>0) && (pid<stop)){
         short here = match_buffer[tid],
               there= match_buffer[tid-1];
-        if ((here > there) && (there==0) && (here>4)){
-            segments[atomic_inc(cnt)] = (short4)(start, 0, here, 0);
+        if ((there==1) && (here>4)){
+            segments[atomic_inc(cnt)] = (short4)(pid, 0, here, 0);
         } else
-        if ((here==0) && (there>0)){
-            segments[atomic_inc(cnt)] = (short4)(start, 0, 0, 0);
+        if ((here==1) && (there>1)){
+            segments[atomic_inc(cnt)] = (short4)(pid, 0, 0, 0);
         }
     }
-    if (cnt[0] == 1){
-        // noting occured, just complete segment
-        segments[0] = (short4)(start, stop-start, 0, 0);
-    }else{
-        // sort segments
-        if (tid == 0){
-            cnt[0] += 1;
-            
-        }
-        sort_odd_even(0, cnt[0], segments);
-        // compact segments  TODO       
-    }
+//    if (cnt[0] == 1){
+//        // noting occured, just complete segment
+//        segments[0] = (short4)(start, stop-start, 0, 0);
+//    }else{
+//        // sort segments
+//        if (tid == 0){
+//            cnt[0] += 1;
+//            
+//        }
+//        sort_odd_even(0, cnt[0], segments);
+//        // compact segments  TODO       
+//    }
+    barrier(CLK_LOCAL_MEM_FENCE);
     return cnt[0];
 }
 
@@ -373,3 +336,63 @@ kernel void test_sort(global short4 *buffer,
         buffer[i] = lbuffer[i];
     }
 }                       
+// test kernel to ensure `scan4match` works
+kernel void test_scan4match(
+        global uchar *buffer,       // buffer with input data in it, as large as possible, limited by shared memory space.
+        global short *match,        // buffer with output data in it, matches the buffer array
+        int start,
+        int stop,
+        global int *end,
+        local uchar *lbuffer,
+        local short *lmatch){
+    local volatile int cnt[2];    
+    int tid = get_local_id(0); // thread id
+    int gid = get_group_id(0); // group id
+    int wg = get_local_size(0);// workgroup size
+    for (int i=tid; i<stop; i+=wg){
+            lbuffer[i] = buffer[i];
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    int res = scan4match(lbuffer,
+                  start, stop,
+                  lmatch,
+                  cnt);
+    if ((tid==0) && (gid==0))printf("scanned up to %d\n", res);
+    //copy back
+    if (tid<stop-start){
+        match[tid] = lmatch[tid];
+    }
+    end[0] = res;
+    
+}
+
+// kernel to test scan4match+segmentation works
+kernel void test_segmentation(global uchar *buffer,
+                              int start, //index where scan should start
+                              int stop,
+                              global int *nbsegment,
+                              global short4 *segments // size of the workgroup
+){
+    local volatile int cnt[2];    
+    local volatile short4 lsegments[64];
+    local uchar lbuffer[1024];
+    local short lmatch[64];
+    
+    int tid = get_local_id(0); // thread id
+    int gid = get_group_id(0); // group id
+    int wg = get_local_size(0);// workgroup size
+    for (int i=tid; i<stop; i+=wg){
+            lbuffer[i] = buffer[i];
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    int res = scan4match(lbuffer,
+                  start, stop,
+                  lmatch,
+                  cnt);
+    if ((tid==0) && (gid==0))printf("scanned up to %d\n", res);
+    int res2 = segmentation(start, stop, lmatch, lsegments, cnt);
+    nbsegment[0] = res2;
+    if (tid<res2){
+        segments[tid] = lsegments[tid];
+    }
+}
