@@ -69,7 +69,7 @@ inline void sort_odd_even(int start,
     if (size <2){
         return;
     }
-    int cycle = (int)ceil(size/2.0);
+    int cycle = (size+1)/2;
     int tid = get_local_id(0); // thread id
     int wg = get_local_size(0);// workgroup size
     short8 swapped;
@@ -80,14 +80,14 @@ inline void sort_odd_even(int start,
         
         if (pid+1<stop){
             swapped = _order_short4(lbuffer[pid], lbuffer[pid+1]);
-            lbuffer[pid] = (short4)(swapped.s0, swapped.s1, swapped.s2, swapped.s3);
-            lbuffer[pid+1] = (short4)(swapped.s4, swapped.s5, swapped.s6, swapped.s7);
+            lbuffer[pid] = swapped.lo;
+            lbuffer[pid+1] = swapped.hi;
         }
         barrier(CLK_LOCAL_MEM_FENCE);
         if (pid+2<stop){
             swapped = _order_short4(lbuffer[pid+1], lbuffer[pid+2]);
-            lbuffer[pid+1] = (short4)(swapped.s0, swapped.s1, swapped.s2, swapped.s3);
-            lbuffer[pid+2] = (short4)(swapped.s4, swapped.s5, swapped.s6, swapped.s7);
+            lbuffer[pid+1] = swapped.lo;
+            lbuffer[pid+2] = swapped.hi;
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
@@ -105,9 +105,9 @@ inline int compact_segments(local volatile short4 *segments,
     if (2*tid<nb){
         short4 lit = segments[2*tid];
         short4 mat = segments[2*tid+1];        
-        if ((lit.s1 == 0) && (lit.s2 == 0) && (mat.s2 !=0)){
+        if ((lit.s1 == 0) && (lit.s2 == 0)){
             merge = (short4)(lit.s0, mat.s0-lit.s0, mat.s2, 0);
-        }
+        }            
     }
     barrier(CLK_LOCAL_MEM_FENCE);
     if (2*tid<nb){
@@ -132,12 +132,12 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
     cnt[1] = 0;
     
     // memset match_buffer
-    match_buffer[tid] = 0;
+    match_buffer[tid] = -1;
     barrier(CLK_LOCAL_MEM_FENCE);
     
     int pid = tid + start;
     uchar here = (pid < stop)?buffer[pid]:255;
-    int match = 1;
+    int match = 0;
     uchar valid = 1;
     for (int i=pid+1; i<stop; i++){
         if (valid){
@@ -162,7 +162,8 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
 
 // segment over one wg size. returns the number of segments found
 inline int segmentation(int start, //index where scan4match did start
-                        int stop,
+                        int stop,  //size of the buffer
+                        int end,   //index where scan4match did stop
                         local short *match_buffer,      // size of the workgroup
                         local volatile short4 *segments,// size of the workgroup
                         local volatile int* cnt                  // size 1 is enough 
@@ -177,25 +178,29 @@ inline int segmentation(int start, //index where scan4match did start
     if ((tid>0) && (pid<stop)){
         short here = match_buffer[tid],
               there= match_buffer[tid-1];
-        if ((there==1) && (here>4)){
-            segments[atomic_inc(cnt)] = (short4)(pid, 0, here, 0);
+        if ((there==0) && (here>4)){
+            segments[atomic_inc(cnt)] = (short4)(pid+1, 0, here, 0);
         } else
-        if ((here==1) && (there>1)){
-            segments[atomic_inc(cnt)] = (short4)(pid, 0, 0, 0);
+        if ((here==0) && (there>0)){
+            segments[atomic_inc(cnt)] = (short4)(pid+1, 0, 0, 0);
         }
     }
-//    if (cnt[0] == 1){
-//        // noting occured, just complete segment
-//        segments[0] = (short4)(start, stop-start, 0, 0);
-//    }else{
-//        // sort segments
-//        if (tid == 0){
-//            cnt[0] += 1;
-//            
-//        }
-//        sort_odd_even(0, cnt[0], segments);
-//        // compact segments  TODO       
-//    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (cnt[0] == 1){
+        // noting occured, just complete segment
+        segments[0] = (short4)(start, end-start, 0, 0);
+    }else{
+        // sort segments
+        sort_odd_even(0, cnt[0], segments);
+        //add end position as a litteral
+        if (tid==0){
+            segments[cnt[0]] = (short4)(end, 0, 0, 0);
+            cnt[0]++;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        // compact segments
+        cnt[0] = compact_segments(segments,cnt[0]);
+    }
     barrier(CLK_LOCAL_MEM_FENCE);
     return cnt[0];
 }
@@ -390,7 +395,7 @@ kernel void test_segmentation(global uchar *buffer,
                   lmatch,
                   cnt);
     if ((tid==0) && (gid==0))printf("scanned up to %d\n", res);
-    int res2 = segmentation(start, stop, lmatch, lsegments, cnt);
+    int res2 = segmentation(start, stop, res, lmatch, lsegments, cnt);
     nbsegment[0] = res2;
     if (tid<res2){
         segments[tid] = lsegments[tid];
