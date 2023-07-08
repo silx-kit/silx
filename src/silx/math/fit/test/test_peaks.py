@@ -64,6 +64,13 @@ class Test_peak_search(unittest.TestCase):
                                   50, 2250, 110, 99, 0.7,
                                   40, 3000, 99, 110, 0.8,
                                   23, 4980, 80, 80, 0.3,)
+        # (height1, center1, fwhm11, fwhm21, eta11, eta21 ...)
+        self.h_c_fwhm_fwhm_eta_eta = (50, 500, 100, 85, 0.4, 0.7,
+                                  50, 600, 80, 110, 0.5, 0.3,
+                                  20, 2000, 100, 100, 0.6, 0.4,
+                                  50, 2250, 110, 99, 0.7, 1,
+                                  40, 3000, 99, 110, 0.8, 0,
+                                  23, 4980, 80, 80, 0.3, 0.5,)
         # (area1, center1, fwhm1, ...)
         self.a_c_fwhm = (2550, 500, 100,
                          2000, 600, 80,
@@ -111,6 +118,7 @@ class Test_peak_search(unittest.TestCase):
                (functions.sum_splitgauss, self.h_c_fwhm_fwhm),
                (functions.sum_splitlorentz, self.h_c_fwhm_fwhm),
                (functions.sum_splitpvoigt, self.h_c_fwhm_fwhm_eta),
+               (functions.sum_splitpvoigt2, self.h_c_fwhm_fwhm_eta_eta),
                (functions.sum_agauss, self.a_c_fwhm),
                (functions.sum_fastagauss, self.a_c_fwhm),
                (functions.sum_alorentz, self.a_c_fwhm),

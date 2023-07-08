@@ -694,6 +694,97 @@ class FitTheories(object):
                 newcons[5 * i + 4, 2] = 1.0
         return newpar, newcons
 
+    def estimate_splitpvoigt2(self, x, y):
+        """Estimation of *Height, Position, FWHM1, FWHM2, eta1, eta2* of peaks, for
+        asymmetric pseudo-Voigt curves.
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        adds an identical FWHM2 parameter and a constant estimation of
+        *eta1* and *eta2* (0.5) to the fit parameters for each peak, and the corresponding
+        constraints.
+
+        Constraint for the eta parameter can be set to QUOTED (0.--1.)
+        by setting :attr:`config`['QuotedEtaFlag'] to ``True``.
+        If this is not the case, the constraint code is set to FREE.
+
+        :param x: Array of abscissa values
+        :param y: Array of ordinate values (``y = f(x)``)
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Height, Position, FWHM1, FWHM2, eta1, eta2*.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y)
+        npeaks = len(fittedpar) // 3
+        newpar = []
+        newcons = numpy.zeros((5 * npeaks, 3), numpy.float64)
+        # find out related parameters proper index
+        if not self.config['NoConstraintsFlag']:
+            if self.config['SameFwhmFlag']:
+                j = 0
+                # get the index of the free FWHM
+                for i in range(npeaks):
+                    if cons[3 * i + 2, 0] != 4:
+                        j = i
+                for i in range(npeaks):
+                    if i != j:
+                        cons[3 * i + 2, 1] = 4 * j + 2
+        for i in range(npeaks):
+            # height
+            newpar.append(fittedpar[3 * i])
+            # position
+            newpar.append(fittedpar[3 * i + 1])
+            # fwhm1
+            newpar.append(fittedpar[3 * i + 2])
+            # fwhm2 estimate equal to fwhm1
+            newpar.append(fittedpar[3 * i + 2])
+            # eta1
+            newpar.append(0.5)
+            # eta2
+            newpar.append(0.5)
+            # constraint codes
+            # ----------------
+            # height
+            newcons[6 * i, 0] = cons[3 * i, 0]
+            # position
+            newcons[6 * i + 1, 0] = cons[3 * i + 1, 0]
+            # fwhm1
+            newcons[6 * i + 2, 0] = cons[3 * i + 2, 0]
+            # fwhm2
+            newcons[6 * i + 3, 0] = cons[3 * i + 2, 0]
+            # cons 1
+            # ------
+            newcons[6 * i, 1] = cons[3 * i, 1]
+            newcons[6 * i + 1, 1] = cons[3 * i + 1, 1]
+            newcons[6 * i + 2, 1] = cons[3 * i + 2, 1]
+            newcons[6 * i + 3, 1] = cons[3 * i + 2, 1]
+            # cons 2
+            # ------
+            newcons[6 * i, 2] = cons[3 * i, 2]
+            newcons[6 * i + 1, 2] = cons[3 * i + 1, 2]
+            newcons[6 * i + 2, 2] = cons[3 * i + 2, 2]
+            newcons[6 * i + 3, 2] = cons[3 * i + 2, 2]
+
+            if cons[3 * i + 2, 0] == CFACTOR:
+                # fwhm2 constraint depends on fwhm1
+                newcons[6 * i + 3, 1] = newcons[6 * i + 2, 1] + 1
+            # eta1 constraints
+            newcons[6 * i + 4, 0] = CFREE
+            newcons[6 * i + 4, 1] = 0
+            newcons[6 * i + 4, 2] = 0
+            if self.config['QuotedEtaFlag']:
+                newcons[6 * i + 4, 0] = CQUOTED
+                newcons[6 * i + 4, 1] = 0.0
+                newcons[6 * i + 4, 2] = 1.0
+            # eta2 constraints
+            newcons[6 * i + 5, 0] = CFREE
+            newcons[6 * i + 5, 1] = 0
+            newcons[6 * i + 5, 2] = 0
+            if self.config['QuotedEtaFlag']:
+                newcons[6 * i + 5, 0] = CQUOTED
+                newcons[6 * i + 5, 1] = 0.0
+                newcons[6 * i + 5, 2] = 1.0
+        return newpar, newcons
+
     def estimate_apvoigt(self, x, y):
         """Estimation of *Area, Position, FWHM1, eta* of peaks, for
         pseudo-Voigt curves.
@@ -1262,6 +1353,13 @@ THEORY = dict((
                   parameters=('Height', 'Position', 'LowFWHM',
                               'HighFWHM', 'Eta'),
                   estimate=fitfuns.estimate_splitpvoigt,
+                  configure=fitfuns.configure)),
+    ('Split Pseudo-Voigt 2',
+        FitTheory(description='Asymmetric pseudo-Voigt functions',
+                  function=functions.sum_splitpvoigt2,
+                  parameters=('Height', 'Position', 'LowFWHM',
+                              'HighFWHM', 'LowEta', 'HighEta'),
+                  estimate=fitfuns.estimate_splitpvoigt2,
                   configure=fitfuns.configure)),
     ('Step Down',
         FitTheory(description='Step down function',

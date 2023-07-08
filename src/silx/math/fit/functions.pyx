@@ -33,6 +33,7 @@ List of fit functions:
     - :func:`sum_apvoigt`
     - :func:`sum_pvoigt`
     - :func:`sum_splitpvoigt`
+    - :func:`sum_splitpvoigt2`
 
     - :func:`sum_lorentz`
     - :func:`sum_alorentz`
@@ -327,7 +328,7 @@ def sum_apvoigt(x, *params):
         - *area* is the area underneath both G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum of both functions
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -377,7 +378,7 @@ def sum_pvoigt(x, *params):
         - *height* is the peak amplitude of G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum of both functions
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -431,7 +432,7 @@ def sum_splitpvoigt(x, *params):
           when ``x < centroid``
         - *fwhm2* is the full-width at half maximum of both functions
           when ``x > centroid``
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -462,6 +463,62 @@ def sum_splitpvoigt(x, *params):
                       dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitpvoigt(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_splitpvoigt2(x, *params):
+    """Return a sum of split pseudo-Voigt functions, defined by *(height,
+    centroid, fwhm1, fwhm2, eta1, eta2)*.
+
+    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
+    profile using a linear combination of a Gaussian curve ``G(x)`` and a
+    Lorentzian curve ``L(x)`` instead of their convolution.
+
+        - *height* is the peak amplitude for G(x) and L(x)
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm1* is the full-width at half maximum of both functions
+          when ``x < centroid``
+        - *fwhm2* is the full-width at half maximum of both functions
+          when ``x > centroid``
+        - *eta1* is the Lorentzian fraction when ``x < centroid``
+        - *eta2* is the Lorentzian fraction when ``x > centroid``
+
+    :param x: Independent variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of pseudo-Voigt parameters (length must be a multiple
+        of 6):
+        *(height1, centroid1, fwhm11, fwhm21, eta11, eta21,...)*
+    :return: Array of sum of split pseudo-Voigt functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 6 parameters are required.")
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = functions_wrapper.sum_splitpvoigt2(
                      &x_c[0], x.size,
                      &params_c[0], params_c.size,
                      &y_c[0])

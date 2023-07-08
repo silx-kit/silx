@@ -21,6 +21,7 @@ Fit functions
 .. autofunction:: silx.math.fit.sum_splitgauss
 .. autofunction:: silx.math.fit.sum_splitlorentz
 .. autofunction:: silx.math.fit.sum_splitpvoigt
+.. autofunction:: silx.math.fit.sum_splitpvoigt2
 .. autofunction:: silx.math.fit.sum_stepdown
 .. autofunction:: silx.math.fit.sum_stepup
 
