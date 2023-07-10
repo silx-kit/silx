@@ -11,7 +11,7 @@ def test_show(qapp_utils):
     plot.show()
     waitingOverlay.setWaiting(False)
 
-    assert waitingOverlay.getBaseWidget() is plot
+    assert waitingOverlay.parent() is plot
 
     plot.close()
     waitingOverlay.close()
