@@ -144,9 +144,8 @@ def sum_gauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     # ensure float64 (double) type and 1D contiguous data layout in memory
     x_c = numpy.array(x,
@@ -192,9 +191,8 @@ def sum_agauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -242,9 +240,8 @@ def sum_fastagauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -291,9 +288,8 @@ def sum_splitgauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 4 parameters are required.")
+    if len(params) < 4:
+        raise IndexError("At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -342,9 +338,9 @@ def sum_apvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    if len(params) < 4:
+        raise IndexError("At least 4 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -392,9 +388,8 @@ def sum_pvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    if len(params) < 4:
+        raise IndexError("At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -447,9 +442,8 @@ def sum_splitpvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 5 parameters are required.")
+    if len(params) < 5:
+        raise IndexError("At least 5 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -503,9 +497,8 @@ def sum_splitpvoigt2(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 6 parameters are required.")
+    if len(params) < 6:
+        raise IndexError("At least 6 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -550,9 +543,8 @@ def sum_lorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -597,9 +589,8 @@ def sum_alorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -645,9 +636,8 @@ def sum_splitlorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    if len(params) < 4:
+        raise IndexError("At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -693,9 +683,9 @@ def sum_stepdown(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -741,9 +731,8 @@ def sum_stepup(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    if len(params) < 3:
+        raise IndexError("At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -792,9 +781,8 @@ def sum_slit(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    if len(params) < 4:
+        raise IndexError("At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -864,9 +852,8 @@ def sum_ahypermet(x, *params,
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 8 parameters are required.")
+    if len(params) < 8:
+        raise IndexError("At least 8 parameters are required.")
 
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
@@ -950,9 +937,8 @@ def sum_fastahypermet(x, *params,
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 8 parameters are required.")
+    if len(params) < 8:
+        raise IndexError("At least 8 parameters are required.")
 
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
@@ -1012,7 +998,7 @@ def atan_stepup(x, a, b, c):
     return a * (0.5 + (numpy.arctan((1.0 * x - b) / c) / numpy.pi))
 
 
-def periodic_gauss(x, *pars):
+def periodic_gauss(x, *params):
     """
     Return a sum of gaussian functions defined by
     *(npeaks, delta, height, centroid, fwhm)*,
@@ -1025,17 +1011,16 @@ def periodic_gauss(x, *pars):
     - *fwhm* is the full-width at half maximum for all the gaussians
 
     :param x: Independent variable where the function is calculated
-    :param pars: *(npeaks, delta, height, centroid, fwhm)*
+    :param params: *(npeaks, delta, height, centroid, fwhm)*
     :return: Sum of ``npeaks`` gaussians
     """
 
-    if not len(pars):
-        raise IndexError("No parameters specified. " +
-                         "At least 5 parameters are required.")
+    if len(params) < 5:
+        raise IndexError("At least 5 parameters are required.")
 
-    newpars = numpy.zeros((pars[0], 3), numpy.float64)
-    for i in range(int(pars[0])):
-        newpars[i, 0] = pars[2]
-        newpars[i, 1] = pars[3] + i * pars[1]
-        newpars[:, 2] = pars[4]
+    newpars = numpy.zeros((params[0], 3), numpy.float64)
+    for i in range(int(params[0])):
+        newpars[i, 0] = params[2]
+        newpars[i, 1] = params[3] + i * params[1]
+        newpars[:, 2] = params[4]
     return sum_gauss(x, newpars)
