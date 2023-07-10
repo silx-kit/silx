@@ -33,6 +33,10 @@ class WaiterOverlay(qt.QObject):
     def setText(self, text: str):
         self._waitingButton.setText(text)
     
+    def close(self):
+        self._waitingButton.setWaiting(False)
+        super().close()
+
     def getBaseWidget(self) -> Optional[qt.QWidget]:
         return self._baseWidget()
     
