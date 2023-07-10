@@ -40,51 +40,6 @@ from silx.gui.utils.waiteroverlay import WaiterOverlay
 _logger = logging.getLogger(__name__)
 
 
-class _PlotWithWaitingLabel(Plot2D):
-    """Image plot widget with an overlay 'waiting' status.
-    """
-
-    def __init__(self, parent):
-        super(_PlotWithWaitingLabel, self).__init__(parent=parent)
-        self._waitingComponent = WaiterOverlay(
-            underlying_widget=self,
-        )
-        self._autoResetZoom = True
-
-    def setAutoResetZoom(self, reset):
-        """
-        Should we reset the zoom when adding an image (eq. when browsing)
-
-        :param bool reset:
-        """
-        self._autoResetZoom = reset
-        if self._autoResetZoom:
-            self.resetZoom()
-
-    def isAutoResetZoom(self):
-        """
-
-        :return: True if a reset is done when the image change
-        :rtype: bool
-        """
-        return self._autoResetZoom
-
-    def setWaiting(self, activate=True):
-        self._waitingComponent.setWaiting(activate=activate)
-
-    def setData(self, data):
-        self.setWaiting(activate=False)
-        self.addImage(data=data, resetzoom=self._autoResetZoom)
-
-    def clear(self):
-        self.setWaiting(False)
-        super().clear()
-
-    def resizeEvent(self, a0:qt.QResizeEvent) -> None:
-        self._waitingComponent.resize()
-        return super().resizeEvent(a0)
-
-
 class _HorizontalSlider(HorizontalSliderWithBrowser):
 
     sigCurrentUrlIndexChanged = qt.Signal(int)
@@ -240,10 +195,12 @@ class ImageStack(qt.QMainWindow):
         self._current_url = None
         self._url_loader = UrlLoader
         "class to instantiate for loading urls"
+        self._autoResetZoom = True
 
         # main widget
-        self._plot = _PlotWithWaitingLabel(parent=self)
+        self._plot = Plot2D(parent=self)
         self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
+        self._waiterOverlay = WaiterOverlay(self._plot)
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
@@ -268,6 +225,7 @@ class ImageStack(qt.QMainWindow):
 
     def close(self) -> bool:
         self._freeLoadingThreads()
+        self._waiterOverlay.close()
         self._plot.close()
         super(ImageStack, self).close()
 
@@ -352,7 +310,8 @@ class ImageStack(qt.QMainWindow):
         if url in self._urlIndexes:
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
-                self._plot.setData(self._urlData[url])
+                self._plot.setWaiting(False)
+                self._plot.addImage(self._urlData[url], resetzoom=self._autoResetZoom)
             if sender in self._loadingThreads:
                 self._loadingThreads.remove(sender)
             self.sigLoaded.emit(url)
@@ -538,11 +497,12 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self._plot.setData(self._urlData[url.path()])
+                self.setWaiting(activate=False)
+                self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
             else:
                 self._plot.clear()
                 self._load(url)
-                self._notifyLoading()
+                self.setWaiting(True)
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
@@ -575,17 +535,15 @@ class ImageStack(qt.QMainWindow):
             res[url.path()] = index
         return res
 
-    def _notifyLoading(self):
-        """display a simple image of loading..."""
-        self._plot.setWaiting(activate=True)
-
     def setAutoResetZoom(self, reset):
         """
         Should we reset the zoom when adding an image (eq. when browsing)
 
         :param bool reset:
         """
-        self._plot.setAutoResetZoom(reset)
+        self._autoResetZoom = reset
+        if self._autoResetZoom:
+            self._plot.resetZoom()
 
     def isAutoResetZoom(self) -> bool:
         """
