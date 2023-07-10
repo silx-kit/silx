@@ -62,13 +62,12 @@ else:
         except pyopencl.LogicError:
             logger.warning("The module pyOpenCL has been imported but can't be used here")
             pyopencl = None
-        else:
-            import pyopencl.array as array
-            mf = pyopencl.mem_flags
-            from .atomic import check_atomic32, check_atomic64
 
-if pyopencl is None:
-
+if pyopencl is not None:
+    import pyopencl.array as array
+    mf = pyopencl.mem_flags
+    from .atomic import check_atomic32, check_atomic64
+else:
     # Define default mem flags
     class mf(object):
         WRITE_ONLY = 1
