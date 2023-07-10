@@ -639,7 +639,6 @@ class OpenGLAction(PlotAction):
         }
 
         name = self._getBackendName(plot)
-        self.__state = name
         icon, tooltip = self._states[name]
         super(OpenGLAction, self).__init__(
             plot,
@@ -653,7 +652,6 @@ class OpenGLAction(PlotAction):
 
     def _backendUpdated(self):
         name = self._getBackendName(self.plot)
-        self.__state = name
         icon, tooltip = self._states[name]
         self.setIcon(icon)
         self.setToolTip(tooltip)
