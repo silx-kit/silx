@@ -28,10 +28,8 @@ __license__ = "MIT"
 __date__ = "04/03/2019"
 
 
-from PyQt5 import QtGui
-from silx.gui import icons, qt
+from silx.gui import qt
 from silx.gui.plot import Plot2D
-from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
