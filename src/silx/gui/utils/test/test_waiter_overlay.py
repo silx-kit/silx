@@ -12,3 +12,6 @@ def test_show(qapp_utils):
     waitingOverlay.setWaiting(False)
 
     assert waitingOverlay.getBaseWidget() is plot
+
+    plot.close()
+    waitingOverlay.close()
