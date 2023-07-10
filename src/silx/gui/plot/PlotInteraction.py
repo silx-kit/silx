@@ -1098,8 +1098,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             self._hoverMarker = None
 
         def enterState(self):
-            plot = self.machine.plot
-            position = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+            widget = self.machine.plot.getWidgetHandle()
+            if widget is None or not widget.isVisible():
+                return
+            position = widget.mapFromGlobal(qt.QCursor.pos())
             self.onMove(position.x(), position.y())
 
         def onMove(self, x, y):
@@ -1342,7 +1344,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
     def cancel(self):
         self._pan.cancel()
-        position = self.plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+        widget = self.plot.getWidgetHandle()
+        if widget is None or not widget.isVisible():
+            return
+        position = widget.mapFromGlobal(qt.QCursor.pos())
         self.__terminateDrag(position.x(), position.y())
 
 
