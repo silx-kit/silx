@@ -1097,6 +1097,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
             self._hoverMarker = None
 
+        def enterState(self):
+            plot = self.machine.plot
+            position = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+            self.onMove(position.x(), position.y())
+
         def onMove(self, x, y):
             marker = self.machine.plot._getMarkerAt(x, y)
 
@@ -1112,22 +1117,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
             if marker != self._hoverMarker:
                 self._hoverMarker = marker
-
-                if marker is None:
-                    self.machine.plot.setGraphCursorShape()
-
-                elif marker.isDraggable():
-                    if isinstance(marker, items.YMarker):
-                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
-                    elif isinstance(marker, items.XMarker):
-                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
-                    else:
-                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
-
-                elif marker.isSelectable():
-                    self.machine.plot.setGraphCursorShape(CURSOR_POINTING)
-                else:
-                    self.machine.plot.setGraphCursorShape()
+                self.machine._setCursorForMarker(marker)
 
             return True
 
@@ -1138,6 +1128,27 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         ClickOrDrag.__init__(self,
                              clickButtons=(LEFT_BTN, RIGHT_BTN),
                              dragButtons=(LEFT_BTN, MIDDLE_BTN))
+
+    def _setCursorForMarker(self, marker: Optional[items.MarkerBase] = None):
+        """Set mouse cursor for given marker"""
+        if marker is None:
+            cursor = None
+
+        elif marker.isDraggable():
+            if isinstance(marker, items.YMarker):
+                cursor = CURSOR_SIZE_VER
+            elif isinstance(marker, items.XMarker):
+                cursor = CURSOR_SIZE_HOR
+            else:
+                cursor = CURSOR_SIZE_ALL
+
+        elif marker.isSelectable():
+            cursor = CURSOR_POINTING
+
+        else:
+            cursor = None
+
+        self.plot.setGraphCursorShape(cursor)
 
     def click(self, x, y, btn):
         """Handle mouse click
@@ -1253,9 +1264,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     def __isDraggableItem(item):
         return isinstance(item, items.DraggableMixIn) and item.isDraggable()
 
-    def __terminateDrag(self):
+    def __terminateDrag(self, x, y):
         """Finalize a drag operation by reseting to initial state"""
-        self.plot.setGraphCursorShape()
+        self._setCursorForMarker(self.plot._getMarkerAt(x, y))
         self.draggedItemRef = None
 
     def beginDrag(self, x, y, btn):
@@ -1276,7 +1287,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             self.draggedItemRef = None if item is None else weakref.ref(item)
 
             if item is None:
-                self.__terminateDrag()
+                self.__terminateDrag(x, y)
                 return False
 
             if isinstance(item, items.MarkerBase):
@@ -1325,13 +1336,14 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 self.plot.notify(**eventDict)
                 item._endDrag()
 
-            self.__terminateDrag()
+            self.__terminateDrag(*endPos)
         elif btn == MIDDLE_BTN:
             self._pan.endDrag(startPos, endPos, btn)
 
     def cancel(self):
         self._pan.cancel()
-        self.__terminateDrag()
+        position = self.plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+        self.__terminateDrag(position.x(), position.y())
 
 
 class ItemsInteractionForCombo(ItemsInteraction):
