@@ -31,6 +31,16 @@ class WaiterOverlay(qt.QWidget):
     def setText(self, text: str):
         self._waitingButton.setText(text)
     
+    def setParent(self, parent: qt.QWidget):
+        if isinstance(parent, PlotWidget):
+            parent = parent.getWidgetHandle()
+
+        if self.parent() is not None:
+            self.parent().removeEventFilter(self)
+        super().setParent(parent)
+        self._waitingButton.setParent(parent)
+        parent.installEventFilter(self)
+
     def close(self):
         self._waitingButton.setWaiting(False)
         super().close()
