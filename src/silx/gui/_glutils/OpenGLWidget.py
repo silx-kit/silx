@@ -278,15 +278,6 @@ class OpenGLWidget(qt.QWidget):
             self.layout().addWidget(label)
             return
 
-        qt_qpa_platform = qt.QGuiApplication.platformName()
-        pyopengl_platform = gl.getPlatform()
-        if (
-            (qt_qpa_platform == 'wayland' and pyopengl_platform != 'EGLPlatform')
-            or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
-        ):
-            _logger.warning(
-                f"Qt/PyOpenGL possible incompatibility: Qt QPA platform '{qt_qpa_platform}', PyOpenGL platform '{pyopengl_platform}'")
-
         self.__openGLWidget = _OpenGLWidget(
             parent=self,
             alphaBufferSize=alphaBufferSize,
