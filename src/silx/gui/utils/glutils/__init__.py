@@ -148,7 +148,7 @@ def isOpenGLAvailable(
         or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
     ):
         return _isOpenGLAvailableResult(
-            f"Qt and PyOpenGL use incompatible platforms: Qt QPA platform '{qt_qpa_platform}', PyOpenGL platform '{pyopengl_platform}'"
+            f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
         )
 
     keyCache = version, shareOpenGLContexts
