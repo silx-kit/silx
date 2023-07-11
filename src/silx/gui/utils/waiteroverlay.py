@@ -43,11 +43,21 @@ class WaiterOverlay(qt.QWidget):
         parent = self.parent()
         if parent is None:
             return
-        
-        position = parent.size()
+
         size = self._waitingButton.sizeHint()
-        position = (position - size) / 2
-        rect = qt.QRect(qt.QPoint(position.width(), position.height()), size)
+        if isinstance(parent, PlotWidget):
+            left, top, width, height = parent.getPlotBoundsInPixels()
+            rect = qt.QRect(
+                qt.QPoint(
+                    left + width / 2 - size.width() / 2,
+                    top - height / 2 + size.height() / 2,
+                ),
+                size,
+            )
+        else:
+            position = parent.size()
+            position = (position - size) / 2
+            rect = qt.QRect(qt.QPoint(position.width(), position.height()), size)
         self._waitingButton.setGeometry(rect)
 
     def eventFilter(self, watched: qt.QWidget, event: qt.QEvent):
