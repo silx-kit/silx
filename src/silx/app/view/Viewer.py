@@ -683,17 +683,18 @@ class Viewer(qt.QMainWindow):
         # plot backend
 
         title = self._plotBackendMenu.title().split(": ", 1)[0]
-        self._plotBackendMenu.setTitle("%s: %s" % (title, silx.config.DEFAULT_PLOT_BACKEND))
+        backend = self.__context.getDefaultPlotBackend()
+        self._plotBackendMenu.setTitle(f"{title}: {backend}")
 
         action = self._usePlotWithMatplotlib
-        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["matplotlib", "mpl"])
+        action.setChecked(backend in ["matplotlib", "mpl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
 
         action = self._usePlotWithOpengl
-        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["opengl", "gl"])
+        action.setChecked(backend in ["opengl", "gl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
@@ -851,7 +852,7 @@ class Viewer(qt.QMainWindow):
         silx.config.DEFAULT_PLOT_BACKEND = "matplotlib"
 
     def __forceOpenglBackend(self):
-        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl", "matplotlib"
 
     def appendFile(self, filename):
         if self.__displayIt is None:
