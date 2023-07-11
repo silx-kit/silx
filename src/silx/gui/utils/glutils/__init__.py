@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,10 @@ import os
 import sys
 import subprocess
 from silx.gui import qt
+try:
+    from silx.gui._glutils import gl
+except ImportError:
+    gl = None
 
 
 class _isOpenGLAvailableResult:
@@ -68,23 +72,22 @@ def _runtimeOpenGLCheck(version, shareOpenGLContexts):
     env['PYTHONPATH'] = os.pathsep.join(
         [os.path.abspath(p) for p in sys.path])
 
+    cmd = [sys.executable, '-s', '-S', __file__, major, minor]
+    if shareOpenGLContexts:
+        cmd.append("--shareOpenGLContexts")
+
     try:
-        cmd = [sys.executable, '-s', '-S', __file__, major, minor]
-        if shareOpenGLContexts:
-            cmd.append("--shareOpenGLContexts")
-        error = subprocess.check_output(cmd, env=env, timeout=2)
+        output = subprocess.check_output(cmd, env=env, timeout=2)
     except subprocess.TimeoutExpired:
-        status = False
         error = "Qt OpenGL widget hang"
         if sys.platform.startswith('linux'):
             error += ':\nIf connected remotely, GLX forwarding might be disabled.'
+        return _isOpenGLAvailableResult(error)
     except subprocess.CalledProcessError as e:
-        status = False
-        error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-    else:
-        status = True
-        error = error.decode()
-    return _isOpenGLAvailableResult(status, error)
+        return _isOpenGLAvailableResult(
+            f"Qt OpenGL widget error: retcode={e.returncode}, error={e.output}")
+
+    return _isOpenGLAvailableResult(output.decode(), status=True)
 
 
 _runtimeCheckCache = {}  # Cache runtime check results: {version: result}
@@ -110,45 +113,51 @@ def isOpenGLAvailable(version=(2, 1), runtimeCheck=True, shareOpenGLContexts=Fal
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
     """
-    error = ''
-
     if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
         # On Linux and no DISPLAY available (e.g., ssh without -X)
-        error = 'DISPLAY environment variable not set'
+        return _isOpenGLAvailableResult('DISPLAY environment variable not set')
 
-    else:
-        # Check pyopengl availability
-        try:
-            import silx.gui._glutils.gl  # noqa
-        except ImportError:
-            error = "Cannot import OpenGL wrapper: pyopengl is not installed"
-        else:
-            # Pre checks for Qt < 5.4
-            if not hasattr(qt, 'QOpenGLWidget'):
-                if not qt.HAS_OPENGL:
-                    error = '%s.QtOpenGL not available' % qt.BINDING
+    # Check pyopengl availability
+    if gl is None:
+        return _isOpenGLAvailableResult(
+            "Cannot import OpenGL wrapper: pyopengl is not installed")
 
-                elif qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
-                    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
-                    # so this is only checked if the QApplication is already created
-                    error = 'Qt reports OpenGL not available'
+    # Pre checks for Qt < 5.4
+    if not hasattr(qt, 'QOpenGLWidget'):
+        if not qt.HAS_OPENGL:
+            return _isOpenGLAvailableResult(f'{qt.BINDING}.QtOpenGL not available')
 
-    result = _isOpenGLAvailableResult(error == '', error)
+        if qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+            # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
+            # so this is only checked if the QApplication is already created
+            return _isOpenGLAvailableResult('Qt reports OpenGL not available')
+
+    # Check compatibility between Qt platform and pyopengl selected platform
+    qt_qpa_platform = qt.QGuiApplication.platformName()
+    pyopengl_platform = gl.getPlatform()
+    if (
+        (qt_qpa_platform == 'wayland' and pyopengl_platform != 'EGLPlatform')
+        or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
+    ):
+        return _isOpenGLAvailableResult(
+            f"Qt and PyOpenGL use incompatible platforms: Qt QPA platform '{qt_qpa_platform}', PyOpenGL platform '{pyopengl_platform}'"
+        )
 
     keyCache = version, shareOpenGLContexts
-    if result:  # No error so far, runtime check
-        if keyCache in _runtimeCheckCache:  # Use cache
-            result = _runtimeCheckCache[keyCache]
-        elif runtimeCheck:  # Run test in subprocess
-            result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
-            _runtimeCheckCache[keyCache] = result
+    if keyCache in _runtimeCheckCache:  # Use cache
+        return _runtimeCheckCache[keyCache]
 
+    if not runtimeCheck:
+        return _isOpenGLAvailableResult(status=True)
+
+    # Run test in subprocess
+    result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
+    _runtimeCheckCache[keyCache] = result
     return result
 
 
 if __name__ == "__main__":
     from silx.gui._glutils import OpenGLWidget
-    from silx.gui._glutils import gl
     import argparse
 
     class _TestOpenGLWidget(OpenGLWidget):
