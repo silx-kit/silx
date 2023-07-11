@@ -30,10 +30,6 @@ import os
 import sys
 import subprocess
 from silx.gui import qt
-try:
-    from silx.gui._glutils import gl
-except ImportError:
-    gl = None
 
 
 class _isOpenGLAvailableResult:
@@ -126,7 +122,9 @@ def isOpenGLAvailable(
         return _isOpenGLAvailableResult('DISPLAY environment variable not set')
 
     # Check pyopengl availability
-    if gl is None:
+    try:
+        from silx.gui._glutils import gl
+    except ImportError:
         return _isOpenGLAvailableResult(
             "Cannot import OpenGL wrapper: pyopengl is not installed")
 
@@ -166,6 +164,7 @@ def isOpenGLAvailable(
 
 if __name__ == "__main__":
     from silx.gui._glutils import OpenGLWidget
+    from silx.gui._glutils import gl
     import argparse
 
     class _TestOpenGLWidget(OpenGLWidget):
