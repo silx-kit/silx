@@ -5,7 +5,7 @@ from silx.gui import qt
 from silx.gui.plot import PlotWidget
 
 
-class WaiterOverlay(qt.QObject):
+class WaiterOverlay(qt.QWidget):
     def __init__(self, parent: qt.QWidget) -> None:
         """
         :param qt.QWidget underlying_widget: widget on top of which we want to displat the "processing/waiting wheel"
