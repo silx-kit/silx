@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """This module provides the :func:`isOpenGLAvailable` utility function.
 """
+from __future__ import annotations
+
 
 import os
 import sys
@@ -41,9 +43,9 @@ class _isOpenGLAvailableResult:
     an `error` string attribute storting the possible error message.
     """
 
-    def __init__(self, status=True, error=''):
-        self.__status = bool(status)
+    def __init__(self, error: str = '', status: bool = False):
         self.__error = str(error)
+        self.__status = bool(status)
 
     status = property(lambda self: self.__status, doc="True if OpenGL is working")
     error = property(lambda self: self.__error, doc="Error message")
@@ -52,20 +54,22 @@ class _isOpenGLAvailableResult:
         return self.status
 
     def __repr__(self):
-        return '<_isOpenGLAvailableResult: %s, "%s">' % (self.status, self.error)
+        return f'<_isOpenGLAvailableResult: {self.status}, "{self.error}">'
 
 
-def _runtimeOpenGLCheck(version, shareOpenGLContexts):
+def _runtimeOpenGLCheck(
+    version: tuple[int, int],
+    shareOpenGLContexts: bool,
+) -> _isOpenGLAvailableResult:
     """Run OpenGL check in a subprocess.
 
     This is done by starting a subprocess that displays a Qt OpenGL widget.
 
-    :param List[int] version:
+    :param version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
-    :param bool shareOpenGLContexts:
+    :param shareOpenGLContexts:
         True to test the `QApplication` with `AA_ShareOpenGLContexts`.
-    :return: An error string that is empty if no error occured
-    :rtype: str
+    :return: Result status and error message
     """
     major, minor = str(version[0]), str(version[1])
     env = os.environ.copy()
@@ -93,22 +97,26 @@ def _runtimeOpenGLCheck(version, shareOpenGLContexts):
 _runtimeCheckCache = {}  # Cache runtime check results: {version: result}
 
 
-def isOpenGLAvailable(version=(2, 1), runtimeCheck=True, shareOpenGLContexts=False):
+def isOpenGLAvailable(
+    version: tuple[int, int] = (2, 1),
+    runtimeCheck: bool = True,
+    shareOpenGLContexts: bool = False,
+) -> _isOpenGLAvailableResult:
     """Check if OpenGL is available through Qt and actually working.
 
     After some basic tests, this is done by starting a subprocess that
     displays a Qt OpenGL widget.
 
-    :param List[int] version:
+    :param version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
         Default: (2, 1)
-    :param bool shareOpenGLContexts:
+    :param runtimeCheck:
+        True (default) to run the test creating a Qt OpenGL widget in a subprocess,
+        False to avoid this check.
+    :param shareOpenGLContexts:
         True to test the `QApplication` with `AA_ShareOpenGLContexts`.
         This only can be checked with `runtimeCheck` enabled.
         Default is false.
-    :param bool runtimeCheck:
-        True (default) to run the test creating a Qt OpenGL widget in a subprocess,
-        False to avoid this check.
     :return: A result object that evaluates to True if successful and
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
@@ -163,10 +171,10 @@ if __name__ == "__main__":
     class _TestOpenGLWidget(OpenGLWidget):
         """Widget checking that OpenGL is indeed available
 
-        :param List[int] version: (major, minor) minimum OpenGL version
+        :param version: (major, minor) minimum OpenGL version
         """
 
-        def __init__(self, version):
+        def __init__(self, version: tuple[int, int]):
             super(_TestOpenGLWidget, self).__init__(
                 alphaBufferSize=0,
                 depthBufferSize=0,
