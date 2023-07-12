@@ -393,42 +393,47 @@ class _MarkerContainer(_PickableContainer):
         return self.line.contains(mouseevent)
 
 
-class _DoubleColoredLinePatch(matplotlib.patches.Patch):
-    """Matplotlib patch to display any patch using double color."""
+class SecondEdgeColorPatchMixIn:
+    """Mix-in class to add a second color for patches with dashed lines"""
 
-    def __init__(self, patch):
-        super(_DoubleColoredLinePatch, self).__init__()
-        self.__patch = patch
-        self.linebgcolor = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._second_edgecolor = None
 
-    def __getattr__(self, name):
-        return getattr(self.__patch, name)
+    def set_second_edgecolor(self, color):
+        """Set the second color used to fill dashed edges"""
+        self._second_edgecolor = color
+
+    def get_second_edgecolor(self):
+        """Returns the second color used to fill dashed edges"""
+        return self._second_edgecolor
 
     def draw(self, renderer):
-        oldLineStype = self.__patch.get_linestyle()
-        if self.linebgcolor is not None and oldLineStype != "solid":
-            oldLineColor = self.__patch.get_edgecolor()
-            oldHatch = self.__patch.get_hatch()
-            self.__patch.set_linestyle("solid")
-            self.__patch.set_edgecolor(self.linebgcolor)
-            self.__patch.set_hatch(None)
-            self.__patch.draw(renderer)
-            self.__patch.set_linestyle(oldLineStype)
-            self.__patch.set_edgecolor(oldLineColor)
-            self.__patch.set_hatch(oldHatch)
-        self.__patch.draw(renderer)
+        linestyle = self.get_linestyle()
+        if linestyle == "solid" or self.get_second_edgecolor() is None:
+            super().draw(renderer)
+            return
 
-    def set_transform(self, transform):
-        self.__patch.set_transform(transform)
+        edgecolor = self.get_edgecolor()
+        hatch = self.get_hatch()
 
-    def get_path(self):
-        return self.__patch.get_path()
+        self.set_linestyle("solid")
+        self.set_edgecolor(self.get_second_edgecolor())
+        self.set_hatch(None)
+        super().draw(renderer)
 
-    def contains(self, mouseevent, radius=None):
-        return self.__patch.contains(mouseevent, radius)
+        self.set_linestyle(linestyle)
+        self.set_edgecolor(edgecolor)
+        self.set_hatch(hatch)
+        super().draw(renderer)
 
-    def contains_point(self, point, radius=None):
-        return self.__patch.contains_point(point, radius)
+
+class Rectangle2EdgeColor(SecondEdgeColorPatchMixIn, Rectangle):
+    """Rectangle patch with a second edge color for dashed line"""
+
+
+class Polygon2EdgeColor(SecondEdgeColorPatchMixIn, Polygon):
+    """Polygon patch with a second edge color for dashed line"""
 
 
 class Image(AxesImage):
@@ -805,19 +810,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
             yMax = numpy.nanmax(yView)
             w = xMax - xMin
             h = yMax - yMin
-            item = Rectangle(xy=(xMin, yMin),
-                             width=w,
-                             height=h,
-                             fill=False,
-                             color=color,
-                             linestyle=linestyle,
-                             linewidth=linewidth)
+            item = Rectangle2EdgeColor(
+                xy=(xMin, yMin),
+                width=w,
+                height=h,
+                fill=False,
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+            )
+            item.set_second_edgecolor(linebgcolor)
+
             if fill:
                 item.set_hatch('.')
 
-            if linestyle != "solid" and linebgcolor is not None:
-                item = _DoubleColoredLinePatch(item)
-                item.linebgcolor = linebgcolor
 
             self.ax.add_patch(item)
 
@@ -827,18 +833,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 closed = True
             else:  # shape == 'polylines'
                 closed = numpy.all(numpy.equal(points[0], points[-1]))
-            item = Polygon(points,
-                           closed=closed,
-                           fill=False,
-                           color=color,
-                           linestyle=linestyle,
-                           linewidth=linewidth)
+            item = Polygon2EdgeColor(
+                points,
+                closed=closed,
+                fill=False,
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+            )
+            item.set_second_edgecolor(linebgcolor)
+
             if fill and shape == 'polygon':
                 item.set_hatch('/')
-
-            if linestyle != "solid" and linebgcolor is not None:
-                item = _DoubleColoredLinePatch(item)
-                item.linebgcolor = linebgcolor
 
             self.ax.add_patch(item)
 
