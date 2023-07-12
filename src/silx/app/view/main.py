@@ -149,8 +149,7 @@ def mainQt(options):
 
     if options.use_opengl_plot:
         # It have to be done after the settings (after the Viewer creation)
-        silx.config.DEFAULT_PLOT_BACKEND = "opengl", "matplotlib"
-
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     for url in parseutils.filenames_to_dataurls(options.files):
         # TODO: Would be nice to add a process widget and a cancel button
