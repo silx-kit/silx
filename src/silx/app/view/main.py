@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -150,7 +150,6 @@ def mainQt(options):
     if options.use_opengl_plot:
         # It have to be done after the settings (after the Viewer creation)
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
-
 
     for url in parseutils.filenames_to_dataurls(options.files):
         # TODO: Would be nice to add a process widget and a cancel button

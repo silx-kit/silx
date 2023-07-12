@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ __date__ = "23/05/2018"
 
 import weakref
 import logging
+from collections.abc import Sequence
 
 import silx
 from silx.gui.data.DataViews import DataViewHooks
@@ -75,7 +76,7 @@ class ApplicationContext(DataViewHooks):
 
         # Use matplotlib backend by default
         silx.config.DEFAULT_PLOT_BACKEND = \
-            "opengl" if plotBackend == "opengl" else "matplotlib"
+            ("opengl", "matplotlib") if plotBackend == "opengl" else "matplotlib"
         if plotImageYAxisOrientation != "":
             silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = plotImageYAxisOrientation
 
@@ -121,7 +122,7 @@ class ApplicationContext(DataViewHooks):
             settings.endGroup()
 
         settings.beginGroup("library")
-        settings.setValue("plot.backend", silx.config.DEFAULT_PLOT_BACKEND)
+        settings.setValue("plot.backend", self.getDefaultPlotBackend())
         settings.setValue("plot-image.y-axis-orientation", silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION)
         settings.endGroup()
 
@@ -192,3 +193,13 @@ class ApplicationContext(DataViewHooks):
             dialog.setModal(False)
             self.__defaultColormapDialog = dialog
         return self.__defaultColormapDialog
+
+    @staticmethod
+    def getDefaultPlotBackend() -> str:
+        """Returns default plot backend as a str from current config"""
+        backend = silx.config.DEFAULT_PLOT_BACKEND
+        if isinstance(backend, str):
+            return backend
+        if isinstance(backend, Sequence) and len(backend) and isinstance(backend[0], str):
+            return backend[0]
+        return "matplotlib"  # fallback

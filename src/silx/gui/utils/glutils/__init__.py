@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2020-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2020-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """This module provides the :func:`isOpenGLAvailable` utility function.
 """
+from __future__ import annotations
+
 
 import os
 import sys
@@ -37,9 +39,9 @@ class _isOpenGLAvailableResult:
     an `error` string attribute storting the possible error message.
     """
 
-    def __init__(self, status=True, error=''):
-        self.__status = bool(status)
+    def __init__(self, error: str = '', status: bool = False):
         self.__error = str(error)
+        self.__status = bool(status)
 
     status = property(lambda self: self.__status, doc="True if OpenGL is working")
     error = property(lambda self: self.__error, doc="Error message")
@@ -48,101 +50,115 @@ class _isOpenGLAvailableResult:
         return self.status
 
     def __repr__(self):
-        return '<_isOpenGLAvailableResult: %s, "%s">' % (self.status, self.error)
+        return f'<_isOpenGLAvailableResult: {self.status}, "{self.error}">'
 
 
-def _runtimeOpenGLCheck(version, shareOpenGLContexts):
+def _runtimeOpenGLCheck(
+    version: tuple[int, int],
+    shareOpenGLContexts: bool,
+) -> _isOpenGLAvailableResult:
     """Run OpenGL check in a subprocess.
 
     This is done by starting a subprocess that displays a Qt OpenGL widget.
 
-    :param List[int] version:
+    :param version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
-    :param bool shareOpenGLContexts:
+    :param shareOpenGLContexts:
         True to test the `QApplication` with `AA_ShareOpenGLContexts`.
-    :return: An error string that is empty if no error occured
-    :rtype: str
+    :return: Result status and error message
     """
     major, minor = str(version[0]), str(version[1])
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(
         [os.path.abspath(p) for p in sys.path])
 
+    cmd = [sys.executable, '-s', '-S', __file__, major, minor]
+    if shareOpenGLContexts:
+        cmd.append("--shareOpenGLContexts")
+
     try:
-        cmd = [sys.executable, '-s', '-S', __file__, major, minor]
-        if shareOpenGLContexts:
-            cmd.append("--shareOpenGLContexts")
-        error = subprocess.check_output(cmd, env=env, timeout=2)
+        output = subprocess.check_output(cmd, env=env, timeout=2)
     except subprocess.TimeoutExpired:
-        status = False
         error = "Qt OpenGL widget hang"
         if sys.platform.startswith('linux'):
             error += ':\nIf connected remotely, GLX forwarding might be disabled.'
+        return _isOpenGLAvailableResult(error)
     except subprocess.CalledProcessError as e:
-        status = False
-        error = "Qt OpenGL widget error: retcode=%d, error=%s" % (e.returncode, e.output)
-    else:
-        status = True
-        error = error.decode()
-    return _isOpenGLAvailableResult(status, error)
+        return _isOpenGLAvailableResult(
+            f"Qt OpenGL widget error: retcode={e.returncode}, error={e.output}")
+
+    return _isOpenGLAvailableResult(output.decode(), status=True)
 
 
 _runtimeCheckCache = {}  # Cache runtime check results: {version: result}
 
 
-def isOpenGLAvailable(version=(2, 1), runtimeCheck=True, shareOpenGLContexts=False):
+def isOpenGLAvailable(
+    version: tuple[int, int] = (2, 1),
+    runtimeCheck: bool = True,
+    shareOpenGLContexts: bool = False,
+) -> _isOpenGLAvailableResult:
     """Check if OpenGL is available through Qt and actually working.
 
     After some basic tests, this is done by starting a subprocess that
     displays a Qt OpenGL widget.
 
-    :param List[int] version:
+    :param version:
         The minimal required OpenGL version as a 2-tuple (major, minor).
         Default: (2, 1)
-    :param bool shareOpenGLContexts:
+    :param runtimeCheck:
+        True (default) to run the test creating a Qt OpenGL widget in a subprocess,
+        False to avoid this check.
+    :param shareOpenGLContexts:
         True to test the `QApplication` with `AA_ShareOpenGLContexts`.
         This only can be checked with `runtimeCheck` enabled.
         Default is false.
-    :param bool runtimeCheck:
-        True (default) to run the test creating a Qt OpenGL widget in a subprocess,
-        False to avoid this check.
     :return: A result object that evaluates to True if successful and
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
     """
-    error = ''
-
     if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
         # On Linux and no DISPLAY available (e.g., ssh without -X)
-        error = 'DISPLAY environment variable not set'
+        return _isOpenGLAvailableResult('DISPLAY environment variable not set')
 
-    else:
-        # Check pyopengl availability
-        try:
-            import silx.gui._glutils.gl  # noqa
-        except ImportError:
-            error = "Cannot import OpenGL wrapper: pyopengl is not installed"
-        else:
-            # Pre checks for Qt < 5.4
-            if not hasattr(qt, 'QOpenGLWidget'):
-                if not qt.HAS_OPENGL:
-                    error = '%s.QtOpenGL not available' % qt.BINDING
+    # Check pyopengl availability
+    try:
+        from silx.gui._glutils import gl
+    except ImportError:
+        return _isOpenGLAvailableResult(
+            "Cannot import OpenGL wrapper: pyopengl is not installed")
 
-                elif qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
-                    # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
-                    # so this is only checked if the QApplication is already created
-                    error = 'Qt reports OpenGL not available'
+    # Pre checks for Qt < 5.4
+    if not hasattr(qt, 'QOpenGLWidget'):
+        if not qt.HAS_OPENGL:
+            return _isOpenGLAvailableResult(f'{qt.BINDING}.QtOpenGL not available')
 
-    result = _isOpenGLAvailableResult(error == '', error)
+        if qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+            # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
+            # so this is only checked if the QApplication is already created
+            return _isOpenGLAvailableResult('Qt reports OpenGL not available')
+
+    # Check compatibility between Qt platform and pyopengl selected platform
+    qt_qpa_platform = qt.QGuiApplication.platformName()
+    pyopengl_platform = gl.getPlatform()
+    if (
+        (qt_qpa_platform == 'wayland' and pyopengl_platform != 'EGLPlatform')
+        or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
+    ):
+        return _isOpenGLAvailableResult(
+            f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
+        )
 
     keyCache = version, shareOpenGLContexts
-    if result:  # No error so far, runtime check
-        if keyCache in _runtimeCheckCache:  # Use cache
-            result = _runtimeCheckCache[keyCache]
-        elif runtimeCheck:  # Run test in subprocess
-            result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
-            _runtimeCheckCache[keyCache] = result
+    if keyCache in _runtimeCheckCache:  # Use cache
+        return _runtimeCheckCache[keyCache]
 
+    if not runtimeCheck:
+        return _isOpenGLAvailableResult(status=True)
+
+    # Run test in subprocess
+    result = _runtimeOpenGLCheck(version, shareOpenGLContexts)
+    _runtimeCheckCache[keyCache] = result
     return result
 
 
@@ -154,10 +170,10 @@ if __name__ == "__main__":
     class _TestOpenGLWidget(OpenGLWidget):
         """Widget checking that OpenGL is indeed available
 
-        :param List[int] version: (major, minor) minimum OpenGL version
+        :param version: (major, minor) minimum OpenGL version
         """
 
-        def __init__(self, version):
+        def __init__(self, version: tuple[int, int]):
             super(_TestOpenGLWidget, self).__init__(
                 alphaBufferSize=0,
                 depthBufferSize=0,
