@@ -6,10 +6,9 @@ silx compare
 Purpose
 -------
 
-The *silx compare* command is provided to compare 2D data from files
-in a graphical user interface.
+The *silx compare* command provides a graphical user interface to compare 2D data from files.
 
-A list of datasets is displayed, and allow to open multiple datasets.
+It displays a list of datasets, and allows to open multiple datasets.
 This list can be updated with drag and drop from silx view.
 
 
