@@ -45,7 +45,7 @@ def createParser():
         nargs=argparse.ZERO_OR_MORE,
         help='Data file to show (h5 file, edf files, spec files)')
     parser.add_argument(
-        '--slice',
+        '--slices',
         dest='slices',
         default=tuple(),
         type=int,
