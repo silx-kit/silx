@@ -909,7 +909,7 @@ class PlotWidget(qt.QMainWindow):
         for kind, itemClasses in cls._KIND_TO_CLASSES.items():
             if isinstance(item, itemClasses):
                 return kind
-        raise ValueError('Unsupported item type %s' % type(item))
+        return 'other'
 
     def _notifyContentChanged(self, item):
         self.notify('contentChanged', action='add',
