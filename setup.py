@@ -163,7 +163,9 @@ def get_project_configuration():
     install_requires = [
         # for most of the computation
         "numpy%s" % numpy_requested_version,
-        # for the script launcher and pkg_resources
+        # for version parsing
+        "packaging",
+        # for the script launcher
         "setuptools",
         # for io support
         "h5py",
