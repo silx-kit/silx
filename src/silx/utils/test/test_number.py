@@ -28,7 +28,7 @@ __date__ = "05/06/2018"
 
 import logging
 import numpy
-import pkg_resources
+from packaging.version import Version
 from silx.utils import number
 from silx.utils import testutils
 
@@ -115,7 +115,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.skipIfFloat80NotSupported()
         dtype = number.min_numerical_convertible_type("1000000000.00001013")
 
-        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+        if Version(numpy.version.version) <= Version("1.10.4"):
             # numpy 1.8.2 -> Debian 8
             # Checking a float128 precision with numpy 1.8.2 using abs(diff) is not working.
             # It looks like the difference is done using float64 (diff == 0.0)
@@ -148,7 +148,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
 
     def testLosePrecisionUsingFloat80(self):
         self.skipIfFloat80NotSupported()
-        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+        if Version(numpy.version.version) <= Version("1.10.4"):
             self.skipTest("numpy > 1.10.4 expected")
         # value does not fit even in a 128 bits mantissa
         value = "1.0340282366920938463463374607431768211456"

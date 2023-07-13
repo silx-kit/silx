@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 import numpy as np
-from pkg_resources import parse_version
+from packaging.version import Version
 
 
 def check_version(package, required_version):
@@ -37,8 +37,8 @@ def check_version(package, required_version):
             ver = getattr(package, "version")
         except Exception:
             return False
-    req_v = parse_version(required_version)
-    ver_v = parse_version(ver)
+    req_v = Version(required_version)
+    ver_v = Version(ver)
     return ver_v >= req_v
 
 

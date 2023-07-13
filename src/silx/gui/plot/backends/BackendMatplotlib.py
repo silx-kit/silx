@@ -33,7 +33,7 @@ import datetime as dt
 from typing import Tuple, Union
 import numpy
 
-from pkg_resources import parse_version as _parse_version
+from packaging.version import Version
 
 
 _logger = logging.getLogger(__name__)
@@ -494,7 +494,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
-        self._matplotlibVersion = _parse_version(matplotlib.__version__)
+        self._matplotlibVersion = Version(matplotlib.__version__)
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -527,7 +527,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(True)
 
         # this works but the figure color is left
-        if self._matplotlibVersion < _parse_version('2'):
+        if self._matplotlibVersion < Version('2'):
             self.ax.set_axis_bgcolor('none')
         else:
             self.ax.set_facecolor('none')
@@ -1175,7 +1175,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
-        if flag and self._matplotlibVersion >= _parse_version('2.1.0'):
+        if flag and self._matplotlibVersion >= Version('2.1.0'):
             xlim = self.ax.get_xlim()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self.ax.set_xlim(1, 10)
@@ -1187,7 +1187,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
         # before switching to log scale
-        if flag and self._matplotlibVersion >= _parse_version('2.0.0'):
+        if flag and self._matplotlibVersion >= Version('2.0.0'):
             redraw = False
             for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
@@ -1300,7 +1300,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if self.ax.get_frame_on():
             self.fig.patch.set_facecolor(backgroundColor)
-            if self._matplotlibVersion < _parse_version('2'):
+            if self._matplotlibVersion < Version('2'):
                 self.ax.set_axis_bgcolor(dataBackgroundColor)
             else:
                 self.ax.set_facecolor(dataBackgroundColor)
@@ -1501,7 +1501,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
-        if self._matplotlibVersion >= _parse_version("2.0.0"):
+        if self._matplotlibVersion >= Version("2.0.0"):
             try:
                 FigureCanvasQTAgg.draw(self)
             except ValueError as err:
@@ -1557,7 +1557,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
                 self.draw()
 
             # Workaround issue of rendering overlays with some matplotlib versions
-            if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
+            if (Version('1.5') <= self._matplotlibVersion < Version('2.1') and
                     not hasattr(self, '_firstReplot')):
                 self._firstReplot = False
                 if self._hasOverlays():
