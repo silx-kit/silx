@@ -32,6 +32,7 @@ import logging
 import sys
 import traceback
 
+from packaging.version import Version
 from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
@@ -130,6 +131,10 @@ elif BINDING == 'PySide6':
     _logger.debug('Using PySide6 bindings')
 
     import PySide6 as QtBinding  # noqa
+    if Version(QtBinding.__version__) < Version("6.4"):
+        raise RuntimeError(
+            f"PySide6 v{QtBinding.__version__} is not supported, please upgrade it."
+        )
 
     from PySide6.QtCore import *  # noqa
     from PySide6.QtGui import *  # noqa
