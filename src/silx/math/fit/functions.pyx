@@ -33,6 +33,7 @@ List of fit functions:
     - :func:`sum_apvoigt`
     - :func:`sum_pvoigt`
     - :func:`sum_splitpvoigt`
+    - :func:`sum_splitpvoigt2`
 
     - :func:`sum_lorentz`
     - :func:`sum_alorentz`
@@ -143,9 +144,7 @@ def sum_gauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     # ensure float64 (double) type and 1D contiguous data layout in memory
     x_c = numpy.array(x,
@@ -191,9 +190,7 @@ def sum_agauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -241,9 +238,7 @@ def sum_fastagauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -290,9 +285,7 @@ def sum_splitgauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No gaussian parameters specified. " +
-                         "At least 4 parameters are required.")
+    _validate_parameters(params, 4)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -327,7 +320,7 @@ def sum_apvoigt(x, *params):
         - *area* is the area underneath both G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum of both functions
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -341,9 +334,8 @@ def sum_apvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    _validate_parameters(params, 4)
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -377,7 +369,7 @@ def sum_pvoigt(x, *params):
         - *height* is the peak amplitude of G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum of both functions
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -391,9 +383,7 @@ def sum_pvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    _validate_parameters(params, 4)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -431,7 +421,7 @@ def sum_splitpvoigt(x, *params):
           when ``x < centroid``
         - *fwhm2* is the full-width at half maximum of both functions
           when ``x > centroid``
-        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+        - *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independent variable where the gaussians are calculated
     :type x: numpy.ndarray
@@ -446,9 +436,7 @@ def sum_splitpvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 5 parameters are required.")
+    _validate_parameters(params, 5)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -462,6 +450,60 @@ def sum_splitpvoigt(x, *params):
                       dtype=numpy.float64)
 
     status = functions_wrapper.sum_splitpvoigt(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_splitpvoigt2(x, *params):
+    """Return a sum of split pseudo-Voigt functions, defined by *(height,
+    centroid, fwhm1, fwhm2, eta1, eta2)*.
+
+    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
+    profile using a linear combination of a Gaussian curve ``G(x)`` and a
+    Lorentzian curve ``L(x)`` instead of their convolution.
+
+        - *height* is the peak amplitude for G(x) and L(x)
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm1* is the full-width at half maximum of both functions
+          when ``x < centroid``
+        - *fwhm2* is the full-width at half maximum of both functions
+          when ``x > centroid``
+        - *eta1* is the Lorentzian fraction when ``x < centroid``
+        - *eta2* is the Lorentzian fraction when ``x > centroid``
+
+    :param x: Independent variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of pseudo-Voigt parameters (length must be a multiple
+        of 6):
+        *(height1, centroid1, fwhm11, fwhm21, eta11, eta21,...)*
+    :return: Array of sum of split pseudo-Voigt functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    _validate_parameters(params, 6)
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = functions_wrapper.sum_splitpvoigt2(
                      &x_c[0], x.size,
                      &params_c[0], params_c.size,
                      &y_c[0])
@@ -493,9 +535,7 @@ def sum_lorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -540,9 +580,7 @@ def sum_alorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -588,9 +626,7 @@ def sum_splitlorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    _validate_parameters(params, 4)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -636,9 +672,8 @@ def sum_stepdown(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -684,9 +719,7 @@ def sum_stepup(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 3 parameters are required.")
+    _validate_parameters(params, 3)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -735,9 +768,7 @@ def sum_slit(x, *params):
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 4 parameters are required.")
+    _validate_parameters(params, 4)
 
     x_c = numpy.array(x,
                       copy=False,
@@ -807,9 +838,7 @@ def sum_ahypermet(x, *params,
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 8 parameters are required.")
+    _validate_parameters(params, 8)
 
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
@@ -893,9 +922,7 @@ def sum_fastahypermet(x, *params,
         double[::1] params_c
         double[::1] y_c
 
-    if not len(params):
-        raise IndexError("No parameters specified. " +
-                         "At least 8 parameters are required.")
+    _validate_parameters(params, 8)
 
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
@@ -955,7 +982,7 @@ def atan_stepup(x, a, b, c):
     return a * (0.5 + (numpy.arctan((1.0 * x - b) / c) / numpy.pi))
 
 
-def periodic_gauss(x, *pars):
+def periodic_gauss(x, *params):
     """
     Return a sum of gaussian functions defined by
     *(npeaks, delta, height, centroid, fwhm)*,
@@ -968,17 +995,22 @@ def periodic_gauss(x, *pars):
     - *fwhm* is the full-width at half maximum for all the gaussians
 
     :param x: Independent variable where the function is calculated
-    :param pars: *(npeaks, delta, height, centroid, fwhm)*
+    :param params: *(npeaks, delta, height, centroid, fwhm)*
     :return: Sum of ``npeaks`` gaussians
     """
 
-    if not len(pars):
-        raise IndexError("No parameters specified. " +
-                         "At least 5 parameters are required.")
+    _validate_parameters(params, 5)
 
-    newpars = numpy.zeros((pars[0], 3), numpy.float64)
-    for i in range(int(pars[0])):
-        newpars[i, 0] = pars[2]
-        newpars[i, 1] = pars[3] + i * pars[1]
-        newpars[:, 2] = pars[4]
+    newpars = numpy.zeros((params[0], 3), numpy.float64)
+    for i in range(int(params[0])):
+        newpars[i, 0] = params[2]
+        newpars[i, 1] = params[3] + i * params[1]
+        newpars[:, 2] = params[4]
     return sum_gauss(x, newpars)
+
+
+def _validate_parameters(params, multiple):
+    if len(params) == 0:
+        raise IndexError("No parameters specified.")
+    if len(params) % multiple:
+        raise IndexError(f"The number of parameters should be a multiple of {multiple}.")
