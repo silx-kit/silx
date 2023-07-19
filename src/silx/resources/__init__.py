@@ -72,11 +72,6 @@ from typing import NamedTuple, Optional
 logger = logging.getLogger(__name__)
 
 
-# Manage resource files life-cycle
-_FILE_MANAGER = contextlib.ExitStack()
-atexit.register(_FILE_MANAGER.close)
-
-
 # For packaging purpose, patch this variable to use an alternative directory
 # E.g., replace with _RESOURCES_DIR = '/usr/share/silx/data'
 _RESOURCES_DIR = None
@@ -229,6 +224,14 @@ def resource_filename(resource: str) -> str:
     return _resource_filename(resource, default_directory=None)
 
 
+# Manage resource files life-cycle
+_file_manager = contextlib.ExitStack()
+atexit.register(_file_manager.close)
+
+# Store already accessed resource files
+_file_cache = {}
+
+
 def _resource_filename(
     resource: str, default_directory: Optional[str] = None
 ) -> str:
@@ -258,9 +261,17 @@ def _resource_filename(
         return resource_path
 
     package_name = resource_directory.package_name
+
+    cache_key = package_name, resource_name
+    cached_path = _file_cache.get(cache_key, None)
+    if cached_path is not None:
+        return cached_path
+
     ref = importlib.resources.files(package_name) / resource_name
-    path = _FILE_MANAGER.enter_context(importlib.resources.as_file(ref))
-    return str(path.absolute())
+    path = _file_manager.enter_context(importlib.resources.as_file(ref))
+    path_string = str(path.absolute())
+    _file_cache[cache_key] = path_string
+    return path_string
 
 
 # Expose ExternalResources for compatibility (since silx 0.11)
