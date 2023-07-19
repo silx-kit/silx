@@ -152,8 +152,9 @@ def list_dir(resource: str) -> list[str]:
         path = resource_filename(resource)
         return os.listdir(path)
 
-    # Preferred way to get resources as it supports zipfile package
     package_name = '.'.join([resource_directory.package_name] + resource_name.split('/'))
+    if sys.version_info < (3, 9):
+        return [entry.name for entry in importlib.resources.contents(package_name)]
     return [entry.name for entry in importlib.resources.files(package_name).iterdir()]
 
 
@@ -267,8 +268,13 @@ def _resource_filename(
     if cached_path is not None:
         return cached_path
 
-    ref = importlib.resources.files(package_name) / resource_name
-    path = _file_manager.enter_context(importlib.resources.as_file(ref))
+    if sys.version_info < (3, 9):
+        file_context = importlib.resources.path(package_name, resource_name)
+    else:
+        file_context = importlib.resources.as_file(
+            importlib.resources.files(package_name) / resource_name)
+
+    path = _file_manager.enter_context(file_context)
     path_string = str(path.absolute())
     _file_cache[cache_key] = path_string
     return path_string
