@@ -259,7 +259,8 @@ def _resource_filename(
 
     package_name = resource_directory.package_name
     ref = importlib.resources.files(package_name) / resource_name
-    return _FILE_MANAGER.enter_context(importlib.resources.as_file(ref))
+    path = _FILE_MANAGER.enter_context(importlib.resources.as_file(ref))
+    return str(path.absolute())
 
 
 # Expose ExternalResources for compatibility (since silx 0.11)
