@@ -203,7 +203,7 @@ def _get_package_and_resource(
     else:
         prefix = "silx"
         if default_directory is not None:
-            resource = os.path.join(default_directory, resource)
+            resource = f"{default_directory}/{resource}"
     if prefix not in _RESOURCE_DIRECTORIES:
         raise ValueError("Resource '%s' uses an unregistred prefix", resource)
     resource_directory = _RESOURCE_DIRECTORIES[prefix]
