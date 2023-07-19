@@ -70,14 +70,6 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-# pkg_resources is useful when this package is stored in a zip
-# When pkg_resources is not available, the resources dir defaults to the
-# directory containing this module.
-try:
-    import pkg_resources
-except ImportError:
-    pkg_resources = None
-
 # Manage resource files life-cycle
 _FILE_MANAGER = contextlib.ExitStack()
 atexit.register(_FILE_MANAGER.close)
@@ -109,11 +101,10 @@ class _ResourceDirectory(object):
     def __init__(self, package_name, package_path=None, forced_path=None):
         if forced_path is None:
             if package_path is None:
-                if pkg_resources is None:
-                    # In this case we have to compute the package path
-                    # Else it will not be used
-                    module = importlib.import_module(package_name)
-                    package_path = os.path.abspath(os.path.dirname(module.__file__))
+                # In this case we have to compute the package path
+                # Else it will not be used
+                module = importlib.import_module(package_name)
+                package_path = os.path.abspath(os.path.dirname(module.__file__))
         self.package_name = package_name
         self.package_path = package_path
         self.forced_path = forced_path

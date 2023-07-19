@@ -155,21 +155,6 @@ class TestResources(unittest.TestCase):
         self.assertTrue(os.path.exists(path2))
 
 
-class TestResourcesWithoutPkgResources(TestResources):
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestResourcesWithoutPkgResources, cls).setUpClass()
-        cls._old = silx.resources.pkg_resources
-        silx.resources.pkg_resources = None
-
-    @classmethod
-    def tearDownClass(cls):
-        silx.resources.pkg_resources = cls._old
-        del cls._old
-        super(TestResourcesWithoutPkgResources, cls).tearDownClass()
-
-
 class TestResourcesWithCustomDirectory(TestResources):
 
     @classmethod
