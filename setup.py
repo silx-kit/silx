@@ -165,8 +165,6 @@ def get_project_configuration():
         "numpy%s" % numpy_requested_version,
         # for version parsing
         "packaging",
-        # for the script launcher
-        "setuptools",
         # for io support
         "h5py",
         "fabio>=0.9",
