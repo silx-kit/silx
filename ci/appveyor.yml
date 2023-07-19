@@ -53,7 +53,6 @@ install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
     # Upgrade/install distribution modules
-    - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # Download Mesa OpenGL in Python directory when testing OpenGL
@@ -65,7 +64,8 @@ build_script:
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
-    - "pip install %PIP_OPTIONS% --upgrade setuptools<60.0.0"
+    - "pip install %PIP_OPTIONS% --upgrade build"
+    - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "pip install %PIP_OPTIONS% --upgrade wheel"
     - "pip install %PIP_OPTIONS% --upgrade numpy"
     - "pip install %PIP_OPTIONS% --upgrade cython"
@@ -75,7 +75,7 @@ build_script:
     - "pip list --format=columns"
 
     # Build
-    - "python setup.py bdist_wheel"
+    - "python -m build --no-isolation --wheel"
     - ps: "ls dist"
 
     # Leave build virtualenv
