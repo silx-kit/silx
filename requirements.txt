@@ -7,7 +7,7 @@
 
 # Required dependencies (from setup.py setup_requires and install_requires)
 numpy >= 1.12
-setuptools < 60.0.0
+setuptools
 Cython >= 0.21.1
 h5py
 fabio >= 0.9
