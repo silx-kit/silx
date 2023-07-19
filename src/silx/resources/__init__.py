@@ -58,11 +58,13 @@ __license__ = "MIT"
 __date__ = "08/03/2019"
 
 
-import os
-import sys
-import logging
+import atexit
+import contextlib
 import importlib
 import importlib.resources
+import logging
+import os
+import sys
 
 
 logger = logging.getLogger(__name__)
@@ -75,6 +77,10 @@ try:
     import pkg_resources
 except ImportError:
     pkg_resources = None
+
+# Manage resource files life-cycle
+_FILE_MANAGER = contextlib.ExitStack()
+atexit.register(_FILE_MANAGER.close)
 
 
 # For packaging purpose, patch this variable to use an alternative directory
@@ -267,15 +273,10 @@ def _resource_filename(resource, default_directory=None):
         base_dir = resource_directory.forced_path
         resource_path = os.path.join(base_dir, *resource_name.split('/'))
         return resource_path
-    elif pkg_resources is None:
-        # Fallback if pkg_resources is not available
-        base_dir = resource_directory.package_path
-        resource_path = os.path.join(base_dir, *resource_name.split('/'))
-        return resource_path
-    else:
-        # Preferred way to get resources as it supports zipfile package
-        package_name = resource_directory.package_name
-        return pkg_resources.resource_filename(package_name, resource_name)
+
+    package_name = resource_directory.package_name
+    ref = importlib.resources.files(package_name) / resource_name
+    return _FILE_MANAGER.enter_context(importlib.resources.as_file(ref))
 
 
 # Expose ExternalResources for compatibility (since silx 0.11)
