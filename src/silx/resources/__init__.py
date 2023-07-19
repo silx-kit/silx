@@ -65,6 +65,7 @@ import importlib.resources
 import logging
 import os
 import sys
+from typing import NamedTuple, Optional
 
 
 logger = logging.getLogger(__name__)
@@ -95,24 +96,14 @@ if getattr(sys, 'frozen', False):
         _RESOURCES_DIR = _dir
 
 
-class _ResourceDirectory(object):
+class _ResourceDirectory(NamedTuple):
     """Store a source of resources"""
-
-    def __init__(self, package_name, package_path=None, forced_path=None):
-        if forced_path is None:
-            if package_path is None:
-                # In this case we have to compute the package path
-                # Else it will not be used
-                module = importlib.import_module(package_name)
-                package_path = os.path.abspath(os.path.dirname(module.__file__))
-        self.package_name = package_name
-        self.package_path = package_path
-        self.forced_path = forced_path
+    package_name : str
+    forced_path : Optional[str] = None
 
 
 _SILX_DIRECTORY = _ResourceDirectory(
     package_name=__name__,
-    package_path=os.path.abspath(os.path.dirname(__file__)),
     forced_path=_RESOURCES_DIR)
 
 _RESOURCE_DIRECTORIES = {}
