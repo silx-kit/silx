@@ -62,6 +62,7 @@ import os
 import sys
 import logging
 import importlib
+import importlib.resources
 
 
 logger = logging.getLogger(__name__)
@@ -165,14 +166,10 @@ def list_dir(resource):
         # if set, use this directory
         path = resource_filename(resource)
         return os.listdir(path)
-    elif pkg_resources is None:
-        # Fallback if pkg_resources is not available
-        path = resource_filename(resource)
-        return os.listdir(path)
-    else:
-        # Preferred way to get resources as it supports zipfile package
-        package_name = resource_directory.package_name
-        return pkg_resources.resource_listdir(package_name, resource_name)
+
+    # Preferred way to get resources as it supports zipfile package
+    package_name = '.'.join([resource_directory.package_name] + resource_name.split('/'))
+    return [entry.name for entry in importlib.resources.files(package_name).iterdir()]
 
 
 def is_dir(resource):
