@@ -158,8 +158,8 @@ def list_dir(resource: str) -> list[str]:
     if sys.version_info < (3, 9):
         return pkg_resources.resource_listdir(resource_directory.package_name, resource_name)
 
-    package_name = '.'.join([resource_directory.package_name] + resource_name.split('/'))
-    return [entry.name for entry in importlib.resources.files(package_name).iterdir()]
+    path = importlib.resources.files(resource_directory.package_name) / resource_name
+    return [entry.name for entry in path.iterdir()]
 
 
 def is_dir(resource: str) -> bool:
