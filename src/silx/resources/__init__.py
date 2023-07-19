@@ -68,6 +68,9 @@ import os
 import sys
 from typing import NamedTuple, Optional
 
+if sys.version_info < (3, 9):
+    import pkg_resources
+
 
 logger = logging.getLogger(__name__)
 
@@ -152,9 +155,10 @@ def list_dir(resource: str) -> list[str]:
         path = resource_filename(resource)
         return os.listdir(path)
 
-    package_name = '.'.join([resource_directory.package_name] + resource_name.split('/'))
     if sys.version_info < (3, 9):
-        return [entry.name for entry in importlib.resources.contents(package_name)]
+        return pkg_resources.resource_listdir(resource_directory.package_name, resource_name)
+
+    package_name = '.'.join([resource_directory.package_name] + resource_name.split('/'))
     return [entry.name for entry in importlib.resources.files(package_name).iterdir()]
 
 
@@ -269,11 +273,10 @@ def _resource_filename(
         return cached_path
 
     if sys.version_info < (3, 9):
-        file_context = importlib.resources.path(package_name, resource_name)
-    else:
-        file_context = importlib.resources.as_file(
-            importlib.resources.files(package_name) / resource_name)
+        return pkg_resources.resource_filename(package_name, resource_name)
 
+    file_context = importlib.resources.as_file(
+        importlib.resources.files(package_name) / resource_name)
     path = _file_manager.enter_context(file_context)
     path_string = str(path.absolute())
     _file_cache[cache_key] = path_string

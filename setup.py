@@ -169,6 +169,8 @@ def get_project_configuration():
         "h5py",
         "fabio>=0.9",
         ]
+    if sys.version_info < (3, 9):
+        install_requires.append("setuptools")  # For pkg_resources
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
