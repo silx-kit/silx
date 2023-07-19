@@ -27,7 +27,7 @@ All access to data and documentation files MUST be made through the functions
 of this modules to ensure access across different distribution schemes:
 
 - Installing from source or from wheel
-- Installing package as a zip (through the use of pkg_resources)
+- Installing package as a zip
 - Linux packaging willing to install data files (and doc files) in
   alternative folders. In this case, this file must be patched.
 - Frozen fat binary application using silx (frozen with cx_Freeze or py2app).
@@ -132,7 +132,7 @@ def register_resource_directory(name, package_name, forced_path=None):
     :param str package_name: Python name of the package containing resources.
         For example "silx.resources".
     :param str forced_path: Path containing the resources. If specified
-        `pkg_resources` nor `package_name` will be used
+        neither `importlib` nor `package_name` will be used
         For example "silx.resources".
     :raises ValueError: If the resource directory name already exists.
     """
