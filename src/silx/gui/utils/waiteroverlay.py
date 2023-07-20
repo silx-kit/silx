@@ -11,13 +11,13 @@ class WaiterOverlay(qt.QWidget):
         :param qt.QWidget underlying_widget: widget on top of which we want to displat the "processing/waiting wheel"
         :param str waiting_text: text to apply near the processing wheel
         """
-        super().__init__()
-
+        super().__init__(parent)
         if isinstance(parent, PlotWidget):
             parent = parent.getWidgetHandle()
 
         if not isinstance(parent, qt.QWidget):
             raise TypeError(f"underlying_widget is expected to be an instance of QWidget. {type(parent)} provided.")
+
         self._waitingButton = WaitingPushButton(
             parent=parent,
         )
