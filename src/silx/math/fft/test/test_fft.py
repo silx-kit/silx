@@ -28,7 +28,7 @@ from os import path
 import logging
 import numpy as np
 import unittest
-from pkg_resources import parse_version
+from packaging.version import Version
 import pytest
 from tempfile import TemporaryDirectory
 try:
@@ -282,7 +282,7 @@ class TestFFT(ParametricTestCase):
         return self._test_norms_with_backend("fftw")
 
     @unittest.skipIf(
-        parse_version(np.version.version) <= parse_version("1.19.5"),
+        Version(np.version.version) <= Version("1.19.5"),
         "normalization does not work for numpy <= 1.19.5"
     )
     def test_norms_numpy(self):

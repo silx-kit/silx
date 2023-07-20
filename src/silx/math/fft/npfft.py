@@ -24,7 +24,7 @@
 # ###########################################################################*/
 import numpy as np
 import warnings
-from pkg_resources import parse_version
+from packaging.version import Version
 
 from .basefft import BaseFFT
 
@@ -76,7 +76,7 @@ class NPFFT(BaseFFT):
             self.numpy_args_ifft = {"norm": "ortho"}
 
         elif self.normalize == "none":  # no normalisation on both fft & ifft
-            if parse_version(np.version.version) < parse_version("1.20"):
+            if Version(np.version.version) < Version("1.20"):
                 # "backward" & "forward" keywords were introduced in 1.20 and we support numpy >= 1.8
                 warnings.warn(
                     "Numpy version %s does not allow to non-normalization. Effective normalization will be 'rescale'"

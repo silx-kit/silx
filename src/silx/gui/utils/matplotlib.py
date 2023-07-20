@@ -36,7 +36,6 @@ __date__ = "02/05/2018"
 
 
 import io
-from pkg_resources import parse_version
 import matplotlib
 import numpy
 

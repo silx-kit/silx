@@ -163,12 +163,14 @@ def get_project_configuration():
     install_requires = [
         # for most of the computation
         "numpy%s" % numpy_requested_version,
-        # for the script launcher and pkg_resources
-        "setuptools",
+        # for version parsing
+        "packaging",
         # for io support
         "h5py",
         "fabio>=0.9",
         ]
+    if sys.version_info < (3, 9):
+        install_requires.append("setuptools")  # For pkg_resources
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [

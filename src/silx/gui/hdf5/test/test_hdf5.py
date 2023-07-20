@@ -32,7 +32,7 @@ import time
 import os
 import tempfile
 import numpy
-from pkg_resources import parse_version
+from packaging.version import Version
 from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
@@ -45,7 +45,7 @@ import h5py
 import pytest
 
 
-h5py2_9 = parse_version(h5py.version.version) >= parse_version('2.9.0')
+h5py2_9 = Version(h5py.version.version) >= Version('2.9.0')
 
 
 @pytest.fixture(scope="class")

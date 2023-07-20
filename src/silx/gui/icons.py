@@ -399,7 +399,7 @@ def getQFile(name):
     for format_ in _supported_formats:
         format_ = str(format_)
         filename = silx.resources._resource_filename('%s.%s' % (name, format_),
-                                                     default_directory=os.path.join('gui', 'icons'))
+                                                     default_directory='gui/icons')
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile
