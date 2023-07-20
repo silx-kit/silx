@@ -605,8 +605,8 @@ class RegionOfInterestManager(qt.QObject):
                     roiMenu = self._createMenuForRoi(menu, roi)
                     menu.addMenu(roiMenu)
 
-    def _isMouseHoverRoi(self, roi: RegionOfInterest):
-        """Check that the mouse hover this roi"""
+    def _isMouseHoverRoi(self, roi: RegionOfInterest) -> bool:
+        """Check that the mouse hovers this roi"""
         plot = self.parent()
 
         if self._lastHoveredMarkerLabel is not None:
@@ -622,8 +622,8 @@ class RegionOfInterestManager(qt.QObject):
         data = plot.pixelToData(pos.x(), pos.y())
         return roi.contains(data)
 
-    def _createMenuForRoi(self, parent: qt.QWidget, roi: RegionOfInterest):
-        """Create a """
+    def _createMenuForRoi(self, parent: qt.QWidget, roi: RegionOfInterest) -> qt.QMenu:
+        """Create a QMenu for the given RegionOfInterest"""
         roiMenu = qt.QMenu(parent)
         roiMenu.setTitle(roi.getName())
 

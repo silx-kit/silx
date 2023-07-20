@@ -654,7 +654,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
 
     def populateContextMenu(self, menu: qt.QMenu):
         """Populate a menu used as a context menu"""
-        ...
+        pass
 
 
 class HandleBasedROI(RegionOfInterest):
