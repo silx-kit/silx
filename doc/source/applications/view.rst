@@ -41,25 +41,59 @@ and to view this data in plot widgets or in simple table views.
 Usage
 -----
 
-::
+.. code-block:: none
 
-    silx view [-h] [--debug] [--use-opengl-plot] [files [files ...]]
+    silx view [-h] [--slices SLICES [SLICES ...]] [--debug] [--use-opengl-plot] [-f] [--hdf5-file-locking] [files ...]
 
 
 Options
 -------
 
-  -h, --help           Show this help message and exit
-  --debug              Set logging system in debug mode
-  --use-opengl-plot    Use OpenGL for plots (instead of matplotlib)
-  -f, --fresh          Start the application using new fresh user preferences
-  --hdf5-file-locking  Start the application with HDF5 file locking enabled (it is disabled by default)
+.. code-block:: none
+
+  -h, --help            show this help message and exit
+  --slices SLICES [SLICES ...]
+                        List of slice indices to open (Only for dataset)
+  --debug               Set logging system in debug mode
+  --use-opengl-plot     Use OpenGL for plots (instead of matplotlib)
+  -f, --fresh           Start the application using new fresh user preferences
+  --hdf5-file-locking   Start the application with HDF5 file locking enabled (it is disabled by
+                        default)
 
 Examples of usage
 -----------------
 
-::
+Open file(s)
+............
+
+.. code-block:: none
 
     silx view 31oct98.dat
     silx view *.edf
     silx view myfile.h5
+
+
+Open HDF5 dataset(s)
+....................
+
+Using the HDF5 path to the dataset:
+
+.. code-block:: none
+
+    silx view my_hdf5_file.h5::entry/instrument/detector/data
+
+Using wildcard:
+
+.. code-block:: none
+
+   silx view my_hdf5_file.h5::entry/*/data
+
+
+Open HDF5 dataset slices
+........................
+
+Open first and last slices of datasets:
+
+.. code-block:: none
+
+    silx view my_hdf5_file.h5::entry/*/data --slices 0 -1

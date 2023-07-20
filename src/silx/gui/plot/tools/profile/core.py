@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import weakref
 from silx.image.bilinear import BilinearImage
 from silx.gui import qt
 from silx.gui import colors
+import silx.gui.plot.items
 
 
 class CurveProfileData(typing.NamedTuple):
@@ -120,7 +121,7 @@ class ProfileRoiMixIn:
     def _setPlotItem(self, plotItem):
         """Specify the plot item to use with this profile
 
-        :param `~silx.gui.plot.items.item.Item` plotItem: A plot item
+        :param `~silx.gui.plot.items.Item` plotItem: A plot item
         """
         previousPlotItem = self.getPlotItem()
         if previousPlotItem is plotItem:
@@ -131,7 +132,7 @@ class ProfileRoiMixIn:
     def getPlotItem(self):
         """Returns the plot item used by this profile
 
-        :rtype: `~silx.gui.plot.items.item.Item`
+        :rtype: `~silx.gui.plot.items.Item`
         """
         if self.__plotItem is None:
             return None

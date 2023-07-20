@@ -286,6 +286,10 @@ class DataViewer(qt.QFrame):
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
         self.__currentView.setDataSelection(self.__displayedSelection)
+
+        if self.__displayedSelection is None:
+            return
+
         # Emit signal only when selection has changed
         if (self.__previousSelection.slice != self.__displayedSelection.slice or
             self.__previousSelection.permutation != self.__displayedSelection.permutation

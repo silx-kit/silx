@@ -38,6 +38,7 @@ from .Hdf5Item import Hdf5Item
 from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
 from ... import io as silx_io
+from ...io._sliceh5 import DatasetSlice
 
 import h5py
 
@@ -61,6 +62,8 @@ def _createRootLabel(h5obj):
         if path.startswith("/"):
             path = path[1:]
         label = "%s::%s" % (filename, path)
+        if isinstance(h5obj, DatasetSlice):
+            label += str(list(h5obj.indices))
     return label
 
 
@@ -573,9 +576,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if not isinstance(obj2, type(obj1)):
             return False
         def key(item):
-            if item.file is None:
-                return item.name
-            return item.file.filename, item.file.mode, item.name
+            info = [item.name]
+            if item.file is not None:
+                info += [item.file.filename, item.file.mode]
+            if isinstance(item, DatasetSlice):
+                info.append(item.indices)
+            return tuple(info)
         return key(obj1) == key(obj2)
 
     def h5pyObjectRow(self, h5pyObject):
