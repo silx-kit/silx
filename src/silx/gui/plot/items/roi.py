@@ -35,6 +35,7 @@ __date__ = "28/06/2018"
 
 import logging
 import numpy
+from typing import Tuple
 
 from ... import utils
 from .. import items
@@ -101,17 +102,15 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _updatedStyle(self, event, style):
         self._marker.setColor(style.getColor())
 
-    def getPosition(self):
+    def getPosition(self) -> Tuple[float, float]:
         """Returns the position of this ROI
-
-        :rtype: numpy.ndarray
         """
         return self._marker.getPosition()
 
     def setPosition(self, pos):
         """Set the position of this ROI
 
-        :param numpy.ndarray pos: 2d-coordinate of this point
+        :param pos: 2d-coordinate of this point
         """
         self._marker.setPosition(*pos)
 
@@ -177,17 +176,15 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         pos = points[0]
         self.setPosition(pos)
 
-    def getPosition(self):
+    def getPosition(self) -> Tuple[float, float]:
         """Returns the position of this ROI
-
-        :rtype: numpy.ndarray
         """
         return self._handle.getPosition()
 
-    def setPosition(self, pos):
+    def setPosition(self, pos: Tuple[float, float]):
         """Set the position of this ROI
 
-        :param numpy.ndarray pos: 2d-coordinate of this point
+        :param pos: 2d-coordinate of this point
         """
         self._handle.setPosition(*pos)
 
@@ -387,18 +384,16 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             return
         self.setPosition(pos)
 
-    def getPosition(self):
+    def getPosition(self) -> float:
         """Returns the position of this line if the horizontal axis
-
-        :rtype: float
         """
         pos = self._marker.getPosition()
         return pos[1]
 
-    def setPosition(self, pos):
+    def setPosition(self, pos: float):
         """Set the position of this ROI
 
-        :param float pos: Horizontal position of this line
+        :param pos: Horizontal position of this line
         """
         self._marker.setPosition(0, pos)
 
@@ -456,15 +451,13 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         pos = points[0, 0]
         self.setPosition(pos)
 
-    def getPosition(self):
+    def getPosition(self) -> float:
         """Returns the position of this line if the horizontal axis
-
-        :rtype: float
         """
         pos = self._marker.getPosition()
         return pos[0]
 
-    def setPosition(self, pos):
+    def setPosition(self, pos: float):
         """Set the position of this ROI
 
         :param float pos: Horizontal position of this line
