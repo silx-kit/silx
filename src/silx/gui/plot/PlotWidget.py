@@ -3171,6 +3171,11 @@ class PlotWidget(qt.QMainWindow):
             if ranges.y is None:
                 ymin, ymax = ranges.yright
 
+        if ymin is None and ymax is None:
+            # FIXME: Workaround y1 can be None if y2 contains something
+            ymin = 0
+            ymax = 1
+
         self.setLimits(
             xmin,
             xmax,
