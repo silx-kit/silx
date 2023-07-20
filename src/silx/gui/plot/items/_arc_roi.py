@@ -733,7 +733,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             raise ValueError("This ROI can't be represented as a section of circle")
         return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
 
-    def getPositionRole(self, role: Role) -> Tuple[float, float]:
+    def getPosition(self, role: Role) -> Tuple[float, float]:
         """Returns a position by it's role.
         """
         if role == self.Role.START:
