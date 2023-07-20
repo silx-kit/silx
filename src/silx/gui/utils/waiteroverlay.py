@@ -59,8 +59,8 @@ class WaiterOverlay(qt.QWidget):
             left, top, width, height = parent.getPlotBoundsInPixels()
             rect = qt.QRect(
                 qt.QPoint(
-                    left + width / 2 - size.width() / 2,
-                    top - height / 2 + size.height() / 2,
+                    int(left + width / 2 - size.width() / 2),
+                    int(top - height / 2 + size.height() / 2),
                 ),
                 size,
             )
