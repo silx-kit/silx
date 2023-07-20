@@ -61,6 +61,7 @@ __date__ = "08/03/2019"
 
 import atexit
 import contextlib
+import functools
 import importlib
 import importlib.resources
 import logging
@@ -233,8 +234,23 @@ def resource_filename(resource: str) -> str:
 _file_manager = contextlib.ExitStack()
 atexit.register(_file_manager.close)
 
-# Store already accessed resource files
-_file_cache = {}
+
+@functools.lru_cache(maxsize=None)
+def _get_resource_filename(package: str, resource: str) -> str:
+    """Returns path to requested resource in package
+
+    :param package: Name of the package in which to look for the resource
+    :param resource: Resource path relative to package using '/' path separator
+    :return: Abolute resource path in the file system
+    """
+    if sys.version_info < (3, 9):
+        return pkg_resources.resource_filename(package, resource)
+
+    # Caching prevents extracting the resource twice
+    file_context = importlib.resources.as_file(
+        importlib.resources.files(package) / resource)
+    path = _file_manager.enter_context(file_context)
+    return str(path.absolute())
 
 
 def _resource_filename(
@@ -265,22 +281,7 @@ def _resource_filename(
         resource_path = os.path.join(base_dir, *resource_name.split('/'))
         return resource_path
 
-    package_name = resource_directory.package_name
-
-    cache_key = package_name, resource_name
-    cached_path = _file_cache.get(cache_key, None)
-    if cached_path is not None:
-        return cached_path
-
-    if sys.version_info < (3, 9):
-        return pkg_resources.resource_filename(package_name, resource_name)
-
-    file_context = importlib.resources.as_file(
-        importlib.resources.files(package_name) / resource_name)
-    path = _file_manager.enter_context(file_context)
-    path_string = str(path.absolute())
-    _file_cache[cache_key] = path_string
-    return path_string
+    return _get_resource_filename(resource_directory.package_name, resource_name)
 
 
 # Expose ExternalResources for compatibility (since silx 0.11)
