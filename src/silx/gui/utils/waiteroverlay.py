@@ -17,7 +17,7 @@ class WaiterOverlay(qt.QWidget):
             parent = parent.getWidgetHandle()
 
         if not isinstance(parent, qt.QWidget):
-            raise TypeError(f"underlying_widget is expected to be an instance of QWidget. {type(parent)} provided.")
+            raise TypeError(f"parent must be an instance of QWidget. {type(parent)} provided.")
 
         self._waitingButton = WaitingPushButton(
             parent=parent,
