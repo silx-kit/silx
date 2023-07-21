@@ -502,7 +502,7 @@ class ImageStack(qt.QMainWindow):
             else:
                 self._plot.clear()
                 self._load(url)
-                self.setWaiting(True)
+                self._waiterOverlay.setWaiting(True)
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
