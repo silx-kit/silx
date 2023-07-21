@@ -551,4 +551,4 @@ class ImageStack(qt.QMainWindow):
         :return: True if a reset is done when the image change
         :rtype: bool
         """
-        return self._plot.isAutoResetZoom()
+        return self._autoResetZoom
