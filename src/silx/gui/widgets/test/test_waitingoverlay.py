@@ -18,6 +18,11 @@ def test_show(qapp, qapp_utils, widget_parent):
     qapp_utils.qWaitForWindowExposed(widget)
     assert waitingOverlay._waitingButton.isWaiting()
 
+    waitingOverlay.setText("test")
+    qapp.processEvents()
+    assert waitingOverlay.text() == "test"
+    qapp_utils.qWait(1000)
+
     waitingOverlay.hide()
     qapp.processEvents()
     assert not waitingOverlay._waitingButton.isWaiting()
