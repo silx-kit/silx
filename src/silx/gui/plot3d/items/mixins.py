@@ -61,10 +61,8 @@ class InterpolationMixIn(ItemMixInBase):
 
     def __init__(self, mode=NEAREST_INTERPOLATION, primitive=None):
         self.__primitive = primitive
+        self.__interpolationMode = mode
         self._syncPrimitiveInterpolation()
-
-        self.__interpolationMode = None
-        self.setInterpolation(mode)
 
     def _setPrimitive(self, primitive):
 

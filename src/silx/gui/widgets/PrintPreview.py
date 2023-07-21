@@ -561,7 +561,7 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         pen.setStyle(qt.Qt.NoPen)
         self.setPen(pen)
         self.setBrush(color)
-        self.setFlag(self.ItemIsMovable, True)
+        self.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         self.show()
 
     def hoverEnterEvent(self, event):
