@@ -46,7 +46,7 @@ class WaiterOverlay(qt.QWidget):
         self._waitingButton.setWaiting(False)
         super().close()
 
-    def setWaiting(self, activate=True):
+    def setWaiting(self, activate: bool = True):
         self._waitingButton.setWaiting(activate)
         self._waitingButton.setVisible(activate)
     
