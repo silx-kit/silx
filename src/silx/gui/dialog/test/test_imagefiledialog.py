@@ -200,6 +200,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnShortcut(self):
+        if qt.BINDING == "PySide6":
+            self.skipTest("Avoid segmentation fault with PySide6")
+
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
