@@ -1,6 +1,6 @@
 import pytest
 from silx.gui import qt
-from silx.gui.utils.waiteroverlay import WaiterOverlay
+from silx.gui.widgets.waiteroverlay import WaiterOverlay
 from silx.gui.plot import Plot2D
 from silx.gui.plot.PlotWidget import PlotWidget
 
