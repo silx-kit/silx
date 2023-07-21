@@ -1,18 +1,24 @@
+import pytest
+from silx.gui import qt
 from silx.gui.utils.waiteroverlay import WaiterOverlay
 from silx.gui.plot import Plot2D
-from silx.gui import qt
+from silx.gui.plot.PlotWidget import PlotWidget
 
 
-def test_show(qapp_utils):
+@pytest.mark.parametrize("widget_parent", (Plot2D, qt.QFrame))
+def test_show(widget_parent):
     # simple test of the WaiterOverlay component
-    plot = Plot2D()
-    waitingOverlay = WaiterOverlay(plot)
+    widget = widget_parent()
+    waitingOverlay = WaiterOverlay(widget)
     waitingOverlay.setWaiting(True)
-    plot.show()
+    widget.show()
     waitingOverlay.setWaiting(False)
 
-    assert waitingOverlay.parent() is plot
-    assert waitingOverlay._waitingButton.parent() is plot.getWidgetHandle()
+    assert waitingOverlay.parent() is widget
+    if isinstance(widget, PlotWidget):
+        assert waitingOverlay._waitingButton.parent() is widget.getWidgetHandle()
+    else:
+        assert waitingOverlay._waitingButton.parent() is widget
 
-    plot.close()
+    widget.close()
     waitingOverlay.close()
