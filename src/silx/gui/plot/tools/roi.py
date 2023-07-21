@@ -34,6 +34,7 @@ import logging
 import time
 import weakref
 import functools
+from typing import Optional
 
 import numpy
 
@@ -42,6 +43,7 @@ from ...utils import blockSignals
 from ...utils import LockReentrant
 from .. import PlotWidget
 from ..items import roi as roi_items
+from ..items.roi import RegionOfInterest
 
 from ...colors import rgba
 
@@ -391,6 +393,7 @@ class RegionOfInterestManager(qt.QObject):
 
         self._roiClass = None
         self._source = None
+        self._lastHoveredMarkerLabel = None
         self._color = rgba('red')
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
@@ -521,7 +524,7 @@ class RegionOfInterestManager(qt.QObject):
                         return roi
         return None
 
-    def setCurrentRoi(self, roi):
+    def setCurrentRoi(self, roi: Optional[RegionOfInterest]):
         """Set the currently selected ROI, and emit a signal.
 
         :param Union[RegionOfInterest,None] roi: The ROI to select
@@ -545,10 +548,8 @@ class RegionOfInterestManager(qt.QObject):
             self._currentRoi.setHighlighted(True)
         self.sigCurrentRoiChanged.emit(roi)
 
-    def getCurrentRoi(self):
+    def getCurrentRoi(self) -> Optional[RegionOfInterest]:
         """Returns the currently selected ROI, else None.
-
-        :rtype: Union[RegionOfInterest,None]
         """
         return self._currentRoi
 
@@ -568,6 +569,8 @@ class RegionOfInterestManager(qt.QObject):
             plot = self.parent()
             marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
+        elif event["event"] == "hover":
+            self._lastHoveredMarkerLabel = event["label"]
         else:
             return
 
@@ -585,7 +588,7 @@ class RegionOfInterestManager(qt.QObject):
         else:
             self.setCurrentRoi(None)
 
-    def __updateMode(self, roi):
+    def __updateMode(self, roi: RegionOfInterest):
         if isinstance(roi, roi_items.InteractionModeMixIn):
             available = roi.availableInteractionModes()
             mode = roi.getInteractionMode()
@@ -593,46 +596,50 @@ class RegionOfInterestManager(qt.QObject):
             mode = available[(imode + 1) % len(available)]
             roi.setInteractionMode(mode)
 
-    def _feedContextMenu(self, menu):
+    def _feedContextMenu(self, menu: qt.QMenu):
         """Called when the default plot context menu is about to be displayed"""
         roi = self.getCurrentRoi()
         if roi is not None:
             if roi.isEditable():
-                # Filter by data position
-                # FIXME: It would be better to use GUI coords for it
-                plot = self.parent()
-                pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
-                data = plot.pixelToData(pos.x(), pos.y())
-                if roi.contains(data):
-                    if isinstance(roi, roi_items.InteractionModeMixIn):
-                        self._contextMenuForInteractionMode(menu, roi)
+                if self._isMouseHoverRoi(roi):
+                    roiMenu = self._createMenuForRoi(menu, roi)
+                    menu.addMenu(roiMenu)
 
-                removeAction = qt.QAction(menu)
-                removeAction.setText("Remove %s" % roi.getName())
-                callback = functools.partial(self.removeRoi, roi)
-                removeAction.triggered.connect(callback)
-                menu.addAction(removeAction)
+    def _isMouseHoverRoi(self, roi: RegionOfInterest) -> bool:
+        """Check that the mouse hovers this roi"""
+        plot = self.parent()
 
-    def _contextMenuForInteractionMode(self, menu, roi):
-        availableModes = roi.availableInteractionModes()
-        currentMode = roi.getInteractionMode()
-        submenu = qt.QMenu(menu)
-        modeGroup = qt.QActionGroup(menu)
-        modeGroup.setExclusive(True)
-        for mode in availableModes:
-            action = qt.QAction(menu)
-            action.setText(mode.label)
-            action.setToolTip(mode.description)
-            action.setCheckable(True)
-            if mode is currentMode:
-                action.setChecked(True)
-            else:
-                callback = functools.partial(roi.setInteractionMode, mode)
-                action.triggered.connect(callback)
-            modeGroup.addAction(action)
-            submenu.addAction(action)
-        submenu.setTitle("%s interaction mode" % roi.getName())
-        menu.addMenu(submenu)
+        if self._lastHoveredMarkerLabel is not None:
+            marker = plot._getMarker(self._lastHoveredMarkerLabel)
+            if marker is not None:
+                r = self.__getRoiFromMarker(marker)
+                if roi is r:
+                    return True
+
+        # Filter by data position
+        # FIXME: It would be better to use GUI coords for it
+        pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+        data = plot.pixelToData(pos.x(), pos.y())
+        return roi.contains(data)
+
+    def _createMenuForRoi(self, parent: qt.QWidget, roi: RegionOfInterest) -> qt.QMenu:
+        """Create a QMenu for the given RegionOfInterest"""
+        roiMenu = qt.QMenu(parent)
+        roiMenu.setTitle(roi.getName())
+
+        if isinstance(roi, roi_items.InteractionModeMixIn):
+            interactionMenu = roi.createMenuForInteractionMode(roiMenu)
+            roiMenu.addMenu(interactionMenu)
+
+        removeAction = qt.QAction(roiMenu)
+        removeAction.setText("Remove")
+        callback = functools.partial(self.removeRoi, roi)
+        removeAction.triggered.connect(callback)
+        roiMenu.addAction(removeAction)
+
+        roi.populateContextMenu(roiMenu)
+
+        return roiMenu
 
     # RegionOfInterest API
 
