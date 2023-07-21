@@ -30,6 +30,7 @@ __date__ = "06/03/2017"
 
 
 import logging
+from typing import Tuple, Optional
 
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
@@ -122,14 +123,14 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         """
         return self._y
 
-    def getPosition(self):
+    def getPosition(self) -> Tuple[Optional[float], Optional[float]]:
         """Returns the (x, y) position of the marker in data coordinates
 
         :rtype: 2-tuple of float or None
         """
         return self._x, self._y
 
-    def setPosition(self, x, y):
+    def setPosition(self, x: float, y: float):
         """Set marker position in data coordinates
 
         Constraint are applied if any.
