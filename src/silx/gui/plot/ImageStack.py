@@ -497,7 +497,7 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self.setWaiting(activate=False)
+                self._waiterOverlay.setWaiting(activate=False)
                 self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
             else:
                 self._plot.clear()
