@@ -6,11 +6,12 @@ from silx.gui.plot import PlotWidget
 
 
 class WaiterOverlay(qt.QWidget):
+    """Widget overlaying another widget with a processing wheel icon.
+
+    :param parent: widget on top of which to display the "processing/waiting wheel"
+    """
+
     def __init__(self, parent: qt.QWidget) -> None:
-        """
-        :param qt.QWidget underlying_widget: widget on top of which we want to displat the "processing/waiting wheel"
-        :param str waiting_text: text to apply near the processing wheel
-        """
         super().__init__(parent)
         if isinstance(parent, PlotWidget):
             parent = parent.getWidgetHandle()
