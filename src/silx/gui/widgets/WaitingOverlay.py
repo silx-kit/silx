@@ -6,7 +6,7 @@ from silx.gui.qt import inspect as qt_inspect
 from silx.gui.plot import PlotWidget
 
 
-class WaiterOverlay(qt.QWidget):
+class WaitingOverlay(qt.QWidget):
     """Widget overlaying another widget with a processing wheel icon.
 
     :param parent: widget on top of which to display the "processing/waiting wheel"
