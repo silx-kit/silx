@@ -21,8 +21,14 @@ class WaitingOverlay(qt.QWidget):
         self._waitingButton.setStyleSheet("QPushButton { background-color: rgba(150, 150, 150, 40); border: 0px; border-radius: 10px; }")
         self._registerParent(parent)
 
+    def text(self) -> str:
+        """Returns displayed text"""
+        return self._waitingButton.text()
+
     def setText(self, text: str):
+        """Set displayed text"""
         self._waitingButton.setText(text)
+        self._resize()
 
     def _listenedWidget(self, parent: qt.QWidget) -> qt.QWidget:
         """Returns widget to register event filter to according to parent"""
