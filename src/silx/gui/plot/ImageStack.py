@@ -35,7 +35,7 @@ from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import typing
 import logging
-from silx.gui.utils.waiteroverlay import WaiterOverlay
+from silx.gui.widgets.waiteroverlay import WaiterOverlay
 
 _logger = logging.getLogger(__name__)
 
