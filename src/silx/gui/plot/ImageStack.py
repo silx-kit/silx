@@ -57,30 +57,22 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
         self.sigCurrentUrlIndexChanged.emit(value)
 
 
-class UrlList(qt.QWidget):
+class UrlList(qt.QListWidget):
     """List of URLs the user to select an URL"""
 
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
 
     def __init__(self, parent=None):
-        super(UrlList, self).__init__(parent)
-        self.setLayout(qt.QVBoxLayout())
-        self.layout().setSpacing(0)
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self._listWidget = qt.QListWidget(parent=self)
-        self.layout().addWidget(self._listWidget)
+        super().__init__(parent)
 
         # connect signal / Slot
-        self._listWidget.currentItemChanged.connect(self._notifyCurrentUrlChanged)
-
-        # expose API
-        self.currentItem = self._listWidget.currentItem
+        self.currentItemChanged.connect(self._notifyCurrentUrlChanged)
 
     def setUrls(self, urls: list) -> None:
         url_names = []
         [url_names.append(url.path()) for url in urls]
-        self._listWidget.addItems(url_names)
+        self.addItems(url_names)
 
     def _notifyCurrentUrlChanged(self, current, previous):
         if current is None:
@@ -90,16 +82,14 @@ class UrlList(qt.QWidget):
 
     def setUrl(self, url: DataUrl) -> None:
         assert isinstance(url, DataUrl)
-        sel_items = self._listWidget.findItems(url.path(), qt.Qt.MatchExactly)
+        sel_items = self.findItems(url.path(), qt.Qt.MatchExactly)
         if sel_items is None:
             _logger.warning(url.path(), ' is not registered in the list.')
         elif len(sel_items) > 0:
             item = sel_items[0]
-            self._listWidget.setCurrentItem(item)
+            self.setCurrentItem(item)
             self.sigCurrentUrlChanged.emit(item.text())
 
-    def clear(self):
-        self._listWidget.clear()
 
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
