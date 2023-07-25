@@ -123,7 +123,7 @@ class UrlList(qt.QListWidget):
     def contextMenuEvent(self, event):
         if self._editable:
             menu = qt.QMenu()
-            removeAction = qt.QAction(text="remove",
+            removeAction = qt.QAction(text="Remove",
                                     parent=menu)
             removeAction.triggered.connect(self._removeSelectedItems)
             menu.addAction(removeAction)
