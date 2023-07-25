@@ -71,6 +71,21 @@ class UrlList(qt.QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._editable = False
+        # are we in 'editable' mode: for now if true then we can remove some item from the list
+
+        # menu to be triggered when in edition from right-click
+        self._menu = qt.QMenu()
+        self._removeAction = qt.QAction(
+            text="Remove",
+            parent=self
+        )
+        self._removeAction.setShortcuts(
+            [
+                # qt.Qt.Key_Delete,
+                qt.QKeySequence.Delete,
+            ]
+        )
+        self._menu.addAction(self._removeAction)
 
         # connect signal / Slot
         self.currentItemChanged.connect(self._notifyCurrentUrlChanged)
@@ -82,8 +97,12 @@ class UrlList(qt.QListWidget):
             # to be in ExtendedSelection if we are not in editable mode. But does it has more
             # meaning to change the selection mode ?
             if editable:
+                self._removeAction.triggered.connect(self._removeSelectedItems)
+                self.addAction(self._removeAction)
                 self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
             else:
+                self._removeAction.triggered.disconnect(self._removeSelectedItems)
+                self.removeAction(self._removeAction)
                 self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
     def setUrls(self, urls: list) -> None:
@@ -122,13 +141,8 @@ class UrlList(qt.QListWidget):
 
     def contextMenuEvent(self, event):
         if self._editable:
-            menu = qt.QMenu()
-            removeAction = qt.QAction(text="Remove",
-                                    parent=menu)
-            removeAction.triggered.connect(self._removeSelectedItems)
-            menu.addAction(removeAction)
             globalPos = self.mapToGlobal(event.pos())
-            menu.exec_(globalPos)
+            self._menu.exec_(globalPos)
 
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
