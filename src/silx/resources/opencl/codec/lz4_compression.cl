@@ -158,41 +158,41 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
                         int start,
                         int stop,
                         local short *match_buffer, // size of the wg is enough
-                        volatile local int* cnt             // size 2 is enough
+                        volatile local int* cnt    // size 1 is enough, idx0: largest index value found
                        ){
     
     int wg = get_local_size(0);// workgroup size
     int tid = get_local_id(0); // thread id
     int size = stop-start;
-    cnt[0] = min(wg, size);
-    cnt[1] = 0;
+    cnt[0] = 0;
     
     // memset match_buffer
     match_buffer[tid] = -1;
     barrier(CLK_LOCAL_MEM_FENCE);
-    
+    int i; // position index
     int pid = tid + start;
     uchar here = (pid < stop)?buffer[pid]:255;
     int match = 0;
     uchar valid = 1;
-    for (int i=pid+1; i<stop; i++){
+    for (i=pid+1; i<stop; i++){
         if (valid){
             if (buffer[i] == here){
                 match++;
             }
             else{
-                atomic_max(&cnt[1], i);
+                atomic_max(cnt, i);
                 match_buffer[tid] = match;
                 valid = 0;
-                atomic_dec(cnt);
-            }            
-        }
-        if (cnt[0] == 0){
-            break;
+            }
         }
     }
+    if ((valid) &&(i==stop)){ // we reached the end of the block: stop anyway
+        atomic_max(cnt, stop);
+        match_buffer[tid] = match;
+        valid = 0;
+    }
     barrier(CLK_LOCAL_MEM_FENCE);
-    return cnt[1];
+    return cnt[0];
 }
 
 // segment over one wg size. returns the number of segments found
@@ -406,7 +406,7 @@ kernel void test_scan4match(
         global int *end,
         local uchar *lbuffer,
         local short *lmatch){
-    local volatile int cnt[2];    
+    local volatile int cnt[1];    
     int tid = get_local_id(0); // thread id
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
@@ -468,7 +468,7 @@ kernel void test_multi(global uchar *buffer,
                               global short4 *segments // size of the workgroup
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
-    local volatile int cnt[2];    
+    local volatile int cnt[1]; // end position of the scan   
     local volatile short4 lsegments[TEST_WG];
     local uchar lbuffer[TEST_BUFFER];
     local short lmatch[TEST_WG];
@@ -478,6 +478,7 @@ kernel void test_multi(global uchar *buffer,
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
     int actual_buffer_size = min(TEST_BUFFER, stop);
+    int watchdog = (stop-start+wg-1)/wg; //prevent code from running way !
     int res, res2;
     //copy input to local buffer
     for (int i=tid; i<stop; i+=wg){
@@ -488,7 +489,11 @@ kernel void test_multi(global uchar *buffer,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
     
-    while (start+1<actual_buffer_size){
+    while ((watchdog)&&(start+1<actual_buffer_size)){
+        if ((tid==0) && (gid==0)) printf("watchdog: %d start: %d buffer_size %d\n", watchdog, start, actual_buffer_size);
+        watchdog--;
+        
+        
         //scan for matching
         res = scan4match(lbuffer, start, stop, lmatch, cnt);
         if ((tid==0) && (gid==0))printf("### scanned input buffer at position  %d-%d\n", start, res);
