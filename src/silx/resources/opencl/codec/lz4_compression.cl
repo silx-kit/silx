@@ -35,6 +35,10 @@
 #ifndef TEST_BUFFER
 #define TEST_BUFFER 1024
 #endif
+#ifndef MIN_MATCH
+#define MIN_MATCH 4
+#endif
+
 // TODO generalize test methods to use this 
 
 
@@ -186,8 +190,8 @@ inline int scan4match(  local uchar *buffer,       // buffer with input data in 
             }
         }
     }
-    if ((valid) &&(i==stop)){ // we reached the end of the block: stop anyway
-        atomic_max(cnt, stop);
+    if ((valid) && (i==stop)){ // we reached the end of the block: stop anyway
+        cnt[0] = stop;
         match_buffer[tid] = match;
         valid = 0;
     }
@@ -217,10 +221,11 @@ inline int segmentation(int start, //index where scan4match did start
     if ((tid>0) && (pid<stop)){
         short here = match_buffer[tid],
               there= match_buffer[tid-1];
-        if ((there==0) && (here>4)){
+        if ((there==0) && (here>=MIN_MATCH)){
             segments[atomic_inc(cnt)] = (short4)(pid+1, 0, here, 1);
         } else
-        if ((here==0) && (there>0) && (tid>5) && match_buffer[tid-5]>4){
+//        if ((here==0) && (there>0) && (tid>5) && match_buffer[tid-5]>4){
+        if ((here==0) && (there>0) && (tid>=MIN_MATCH) && match_buffer[tid-MIN_MATCH]>=MIN_MATCH){
             segments[atomic_inc(cnt)] = (short4)(pid+1, 0, 0, 0);
         }
     }
