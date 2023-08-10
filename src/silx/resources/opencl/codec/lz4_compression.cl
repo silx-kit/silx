@@ -373,34 +373,48 @@ inline int len_segment(int4 segment){
 }
 
 // store several local segments into the global memory starting at position. return the position in the output stream
-inline int store_segments(local  short4 *local_segments,
+inline int store_segments(local volatile short4 *local_segments,
                                  int nb_segments,
                           global int4 *global_segments,
+                                 int max_idx, // last position achievable in global segment array
                                  int global_idx,
                                  int input_stream_idx,
                                  int output_stream_idx,
+                                 int block_size, // size of the block under analysis 
                                  int last, // set to true to concatenate the match and the litteral for last block
                           local volatile int* cnt //size=1 is eough  
                           ){
     cnt[0] = output_stream_idx;
     barrier(CLK_LOCAL_MEM_FENCE);
-    //this is serial for conviniance !    
-    if (get_local_id(0)==0){
-        for (int i=0; i<nb_segments; i++){
-            int4 segment = convert_int4(local_segments[i]);
-            if (last){
-                segment.s1+=segment.s2;
-                segment.s2 = 0;
+    if (global_idx!=max_idx){
+        //this is serial for conviniance !    
+        if (get_local_id(0)==0){
+            for (int i=0; i<nb_segments; i++){
+                int4 segment = convert_int4(local_segments[i]);
+                
+                // manage too few space in segment storage
+                int emergency = (global_idx+1 == max_idx); 
+                if (emergency){ // store all the remaining of the block in current segment
+                    printf("gid %d emergency %d %d, segment starts at %d -> %d\n", get_group_id(0), global_idx, max_idx, segment.s0, block_size);
+                    segment.s1 = block_size - segment.s0;
+                    segment.s2 = 0;
+                }
+                // manage last segment in block
+                if (last){
+                    segment.s1+=segment.s2;
+                    segment.s2 = 0;
+                }
+                segment.s0 += input_stream_idx;
+                segment.s3 = output_stream_idx;
+                
+                output_stream_idx += len_segment(segment);
+                global_segments[global_idx++]=segment;
+                if (emergency) break;
             }
-            segment.s0 += input_stream_idx;
-            segment.s3 = output_stream_idx;
-            
-            output_stream_idx += len_segment(segment);
-            global_segments[global_idx++]=segment;
+            cnt[0] = output_stream_idx;
         }
-        cnt[0] = output_stream_idx;
+        barrier(CLK_LOCAL_MEM_FENCE);        
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
     return cnt[0];
 }
 
@@ -690,8 +704,8 @@ kernel void test_write(global uchar *buffer,
 // segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: position in output buffer
 kernel void test_multiblock(global uchar *buffer,
                                    int input_size,
-                            global int *nbsegment,   // size = number of workgroup launched 
-                            global int4 *segments,   // size of the workgroup * number of workgroup / 4 
+                            global int *nbsegment,   // size = number of workgroup launched +1, initially contains the index where to store segments
+                            global int4 *segments,   // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
                             global uchar *output,    // output buffer
                             global int *output_size  // output buffer size, max in input, actual value in output
 ){
@@ -710,16 +724,17 @@ kernel void test_multiblock(global uchar *buffer,
     int output_block_size = 0;//TEST_BUFFER*1.1;
     int output_idx = output_block_size*gid;
     int segment_idx = nbsegment[gid];
-    if (tid==0)printf("gid %d starts writing segments at %d\n", gid, segment_idx);
+    int segment_max = nbsegment[gid+1];
+    if (tid==0)printf("gid %d writes segments in range %d-%d\n", gid, segment_idx, segment_max);
     int local_start = 0; 
     int global_start = TEST_BUFFER*gid;
-    int local_stop = input_size - global_start;
+    int local_stop = min(TEST_BUFFER, input_size - global_start);
     if (local_stop<=0){
         if (tid==0)printf("gid %d local_stop: %d \n",gid, local_stop);
             return;
     }
     
-    int actual_buffer_size = min(TEST_BUFFER, local_stop) ;
+//    int actual_buffer_size = min(TEST_BUFFER, local_stop) ;
         
     int watchdog = (local_stop + wg-1)/wg; //prevent code from running way !
     int res, res2, out_ptr=0, max_out=output_size[0];
@@ -733,7 +748,7 @@ kernel void test_multiblock(global uchar *buffer,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
     
-    while ((watchdog--) && (local_start+1<actual_buffer_size)){
+    while ((watchdog--) && (local_start+1<local_stop)){
         //scan for matching
         res = scan4match(lbuffer, local_start, local_stop, lmatch, cnt);
         res2 = segmentation(local_start, local_stop, res, lmatch, lsegments, seg);
@@ -741,7 +756,7 @@ kernel void test_multiblock(global uchar *buffer,
         int segment_to_copy = res2 - 1;
         if (tid==0)printf("gid %d store %d segments at %d\n",gid, segment_to_copy, segment_idx);
         output_idx = store_segments(lsegments, segment_to_copy, // last segment is kept for the future ...
-                                    segments, segment_idx, global_start, output_idx, 0, cnt);
+                                    segments, segment_max, segment_idx, global_start, output_idx,  local_stop, 0, cnt);
         segment_idx += segment_to_copy;
                 
         barrier(CLK_GLOBAL_MEM_FENCE);
@@ -759,7 +774,7 @@ kernel void test_multiblock(global uchar *buffer,
     barrier(CLK_GLOBAL_MEM_FENCE);
     if (tid==0)printf("gid %d store final segments\n",gid);
     output_idx = store_segments(lsegments, 1, // last segment is treated here
-                                segments, segment_idx, global_start, output_idx, gid+1==ng, cnt);
+                                segments, segment_max, segment_idx, global_start, output_idx, local_stop, gid+1==ng, cnt);
     output_size[gid] =  output_idx;   
    
 }
