@@ -29,43 +29,22 @@
  */
 
 // This is used in tests to simplify the signature of those test kernels. 
-#ifndef TEST_WG
-#define TEST_WG 64
+#ifndef WORKGROUP_SIZE
+#define WORKGROUP_SIZE 64
 #endif
-#ifndef TEST_BUFFER
-#define TEST_BUFFER 1024
+//segment size should be buffer_size/4
+#ifndef SEGMENT_SIZE
+#define SEGMENT_SIZE 256
+#endif
+
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE 1024
 #endif
 #ifndef MIN_MATCH
 #define MIN_MATCH 4
 #endif
 
-// TODO generalize test methods to use this 
 
-
-/* Function is called at the end by the last running wg to compact the output
- * 
- * Maybe would be more efficient to call another kernel to do this in parallel ?
- */
-inline void compact_output(global uchar *output_buffer,
-                           int output_size,
-                           global uchar *output_ptr, // Length of all output from different wg
-                           int buffer_size // 1.2x the input buffer size!
-                           ){
-    int tid = get_local_id(0); // thread id
-    int wg = get_local_size(0);// workgroup size
-    int start_read = 0;
-    int start_write = output_ptr[0];
-    int to_copy;
-    for (int i=1; i<get_num_groups(0); i++){
-        start_read += buffer_size;
-        to_copy = output_ptr[i];
-        for (int t=tid; t<to_copy; t+=wg){
-            output_buffer[start_write+t] = output_buffer[start_read+t];
-        }
-        start_write += to_copy;
-        barrier(CLK_GLOBAL_MEM_FENCE);
-    }
-}
 
 // short compare and swap function used in sort_odd_even
 inline short8 _order_short4(short4 a, short4 b){
@@ -107,7 +86,8 @@ inline void sort_odd_even(int start,
     }
 }
 
-/* compact segments
+/* Compact litterals and matches into segments containing a litteral and a match section (non null)
+ * 
  * After the scan, begining of litterals and of match are noted and stored in segments.
  * In this function one takes 2 segments, starting with a litteral and concatenate the subsequent match  
  * as a consequence, the number of segments is divided by 2 !
@@ -234,7 +214,7 @@ inline int segmentation(int start, //index where scan4match did start
     if (cnt[0] == 1){
         // nothing occured in considered 
         if (tid == 0){
-            // noting occured, just complete former segment
+            // nothing occured, just complete former segment
             short4 seg=segments[0];
             if (seg.s2 == 0){ //there was no match, just complete the former segment
                 seg.s1 += end-start;
@@ -372,7 +352,9 @@ inline int len_segment(int4 segment){
     return size;
 }
 
-// store several local segments into the global memory starting at position. return the position in the output stream
+/* store several local segments into the global memory starting at position. 
+ * return the position in the output stream
+ */
 inline int store_segments(local volatile short4 *local_segments,
                                  int nb_segments,
                           global int4 *global_segments,
@@ -395,7 +377,7 @@ inline int store_segments(local volatile short4 *local_segments,
                 // manage too few space in segment storage
                 int emergency = (global_idx+1 == max_idx); 
                 if (emergency){ // store all the remaining of the block in current segment
-                    printf("gid %d emergency %d %d, segment starts at %d -> %d\n", get_group_id(0), global_idx, max_idx, segment.s0, block_size);
+                    printf("gid %lu emergency %d %d, segment starts at %d -> %d\n", get_group_id(0), global_idx, max_idx, segment.s0, block_size);
                     segment.s1 = block_size - segment.s0;
                     segment.s2 = 0;
                 }
@@ -416,6 +398,92 @@ inline int store_segments(local volatile short4 *local_segments,
         barrier(CLK_LOCAL_MEM_FENCE);        
     }
     return cnt[0];
+}
+
+/* concatenate all segments (stored in global memory) in such a way that they are adjacent.
+ * This function is to be called by the latest workgroup running.
+ * 
+ * There are tons of synchro since data are read and written from same buffer. 
+ */  
+inline int concatenate_segments(
+        global int2 *segment_ptr,        // size = number of workgroup launched, contains start and stop position
+        global int4 *segments,           // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+
+        global int *output_size,         // output buffer size, max in input, actual value in output
+        local volatile int *lsegment_idx, // index of segment offset, shared
+        local volatile int4 *last_segment // shared memory with the last segment to share between threads
+        ){
+    
+    int tid = get_local_id(0); // thread id
+    int gid = get_group_id(0); // group id
+    int wg = get_local_size(0);// workgroup size
+    int ng = get_num_groups(0);// number of groups
+    
+//    if (tid==0) printf("gid %d, running concat_segments \n", gid);
+    int4 segment;
+    barrier(CLK_GLOBAL_MEM_FENCE);
+    int output_idx = output_size[0];
+    lsegment_idx[0] = segment_ptr[0].s1;
+    segment = segments[max(0, lsegment_idx[0]-1)];
+    if ((tid==0) && (segment.s0>0) && (segment.s2==0) && (ng>1)){
+        last_segment[0] = segment;
+        lsegment_idx[0] -= 1;
+    }
+    
+    last_segment[0] = (int4)(0,0,0,0);
+    barrier(CLK_LOCAL_MEM_FENCE);
+//    if (tid==0) printf("groups range from 1 to %d. segment_idx=%d, output_ptr=%d\n",ng, lsegment_idx[0], output_idx); 
+    for (int grp=1; grp<ng; grp++){
+        int2 seg_ptr = segment_ptr[grp];
+        int low = seg_ptr.s0 + tid;
+        int high = (seg_ptr.s1+wg-1)&~(wg-1);
+//        if (tid==0) printf("grp %d read from %d to %d and writes to %d to %d\n",grp, low, high, lsegment_idx[0], lsegment_idx[0]+seg_ptr.s1-seg_ptr.s0);
+        // concatenate last segment with first one if needed
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if ((tid == 0) && (last_segment[0].s0>0) && (last_segment[0].s2==0)){
+            segment = segments[seg_ptr.s0];
+            segment.s0 = last_segment[0].s0;
+            segment.s1 = segment.s0+segment.s1-last_segment[0].s0;
+            output_idx += len_segment(segment)-len_segment(last_segment[0]);
+            last_segment[0] = (int4)(0,0,0,0);
+            segments[seg_ptr.s0] = segment;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        for (int i=low; i<high;i+=wg){
+            
+            if (i<seg_ptr.s1){
+                segment = segments[i];
+            }
+            else
+                segment = (int4)(0,0,0,0);
+            barrier(CLK_GLOBAL_MEM_FENCE);                
+            segment.s3+=output_idx;
+            
+            if (i<seg_ptr.s1){
+//                printf("tid %d read at %d write at %d (%d, %d, %d, %d)\n",tid, i, lsegment_idx[0]+i-seg_ptr.s0, segment.s0, segment.s1, segment.s2, segment.s3);
+                segments[lsegment_idx[0]+i-seg_ptr.s0] = segment;
+                //segments[i] = (int4)(0,0,0,0);
+            }
+            barrier(CLK_GLOBAL_MEM_FENCE);
+            // if last block has match==0, concatenate with next one
+            if ((i+1==seg_ptr.s1) &&  (segment.s0>0) && (segment.s2==0)&&(grp+1<ng)){
+                last_segment[0] = segment;
+                lsegment_idx[0] -= 1;
+            }
+            barrier(CLK_LOCAL_MEM_FENCE);
+            barrier(CLK_GLOBAL_MEM_FENCE);
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (tid==0){
+            lsegment_idx[0]+=seg_ptr.s1-seg_ptr.s0;
+        }
+        segment_ptr[grp] = (int2)(0,0);
+        output_idx += output_size[grp];
+        output_size[grp] = 0;
+    }
+    
+    barrier(CLK_LOCAL_MEM_FENCE);    
+    return lsegment_idx[0];
 }
 
 /* Main kernel for lz4 compression
@@ -516,9 +584,9 @@ kernel void test_segmentation(global uchar *buffer,
 ){
     local volatile int cnt[2];
     local volatile int seg[1];
-    local volatile short4 lsegments[TEST_WG];
-    local uchar lbuffer[TEST_BUFFER];
-    local short lmatch[TEST_WG];
+    local volatile short4 lsegments[SEGMENT_SIZE];
+    local uchar lbuffer[BUFFER_SIZE];
+    local short lmatch[WORKGROUP_SIZE];
     seg[0] = 0;
     
     int tid = get_local_id(0); // thread id
@@ -549,15 +617,15 @@ kernel void test_multi(global uchar *buffer,
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
     local volatile int cnt[1]; // end position of the scan   
-    local volatile short4 lsegments[TEST_WG];
-    local uchar lbuffer[TEST_BUFFER];
-    local short lmatch[TEST_WG];
+    local volatile short4 lsegments[SEGMENT_SIZE];
+    local uchar lbuffer[BUFFER_SIZE];
+    local short lmatch[WORKGROUP_SIZE];
     
     
     int tid = get_local_id(0); // thread id
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
-    int actual_buffer_size = min(TEST_BUFFER, stop);
+    int actual_buffer_size = min(BUFFER_SIZE, stop);
     int watchdog = (stop-start+wg-1)/wg; //prevent code from running way !
     int res, res2;
     //copy input to local buffer
@@ -592,7 +660,7 @@ kernel void test_multi(global uchar *buffer,
                 segments[seg[1] + tid] = lsegments[tid];
         }
         if (tid==0)printf("copy segments -> %d to memory %d-%d\n",res2-1,seg[1], seg[1]+res2-1);
-        barrier(CLK_GLOBAL_MEM_FENCE);
+        barrier(CLK_LOCAL_MEM_FENCE);
         if (tid == 0){
             seg[1] += res2-1;
             lsegments[0] = lsegments[res2-1];
@@ -607,7 +675,7 @@ kernel void test_multi(global uchar *buffer,
         start = res;
         if (tid==5)printf("end of loop, start=%d res=%d size=%d\n\n", start, res, actual_buffer_size);
     }
-    barrier(CLK_GLOBAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
     if (tid == 0){
         segments[seg[1]++] = lsegments[0];
         nbsegment[0] = seg[1];
@@ -626,15 +694,15 @@ kernel void test_write(global uchar *buffer,
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
     local volatile int cnt[1]; // end position of the scan   
-    local volatile short4 lsegments[TEST_WG];
-    local uchar lbuffer[TEST_BUFFER];
-    local short lmatch[TEST_WG];
+    local volatile short4 lsegments[SEGMENT_SIZE];
+    local uchar lbuffer[BUFFER_SIZE];
+    local short lmatch[WORKGROUP_SIZE];
     
     
     int tid = get_local_id(0); // thread id
     int gid = get_group_id(0); // group id
     int wg = get_local_size(0);// workgroup size
-    int actual_buffer_size = min(TEST_BUFFER, stop);
+    int actual_buffer_size = min(BUFFER_SIZE, stop);
     int watchdog = (stop-start+wg-1)/wg; //prevent code from running way !
     int res, res2, out_ptr=0, max_out=output_size[0];
     
@@ -666,7 +734,7 @@ kernel void test_write(global uchar *buffer,
                                 res2-1, // -1? to keep the last for concatenation
                                 out_ptr, output,max_out, 1);
                 
-        barrier(CLK_GLOBAL_MEM_FENCE);
+        barrier(CLK_LOCAL_MEM_FENCE);
         if (tid == 0){
             seg[1] += res2-1;
             lsegments[0] = lsegments[res2-1];
@@ -679,7 +747,7 @@ kernel void test_write(global uchar *buffer,
         barrier(CLK_LOCAL_MEM_FENCE);
         start = res;
     }
-    barrier(CLK_GLOBAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
     if (tid == 0){
         short4 segment = lsegments[0];
         segment.s1 += segment.s2;
@@ -704,16 +772,18 @@ kernel void test_write(global uchar *buffer,
 // segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: position in output buffer
 kernel void test_multiblock(global uchar *buffer,
                                    int input_size,
-                            global int *nbsegment,   // size = number of workgroup launched +1, initially contains the index where to store segments
-                            global int4 *segments,   // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-                            global uchar *output,    // output buffer
-                            global int *output_size  // output buffer size, max in input, actual value in output
+                            global int2 *segment_ptr, // size = number of workgroup launched, contains start and stop position
+                            global int4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+                            global uchar *output,     // output buffer
+                            global int *output_size,  // output buffer size, max in input, actual value in output
+                            global int *wgcnt         // counter with workgroups still running
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
     local volatile int cnt[1]; // end position of the scan   
-    local volatile short4 lsegments[TEST_WG];
-    local uchar lbuffer[TEST_BUFFER];
-    local short lmatch[TEST_WG];
+    local volatile short4 lsegments[SEGMENT_SIZE];
+    local uchar lbuffer[BUFFER_SIZE];
+    local short lmatch[WORKGROUP_SIZE];
+    local volatile int4 last_segment[1];
     
     
     int tid = get_local_id(0); // thread id
@@ -721,20 +791,21 @@ kernel void test_multiblock(global uchar *buffer,
     int wg = get_local_size(0);// workgroup size
     int ng = get_num_groups(0);// number of groups
     
-    int output_block_size = 0;//TEST_BUFFER*1.1;
+    int output_block_size = 0;
     int output_idx = output_block_size*gid;
-    int segment_idx = nbsegment[gid];
-    int segment_max = nbsegment[gid+1];
-    if (tid==0)printf("gid %d writes segments in range %d-%d\n", gid, segment_idx, segment_max);
+    int2 seg_ptr = segment_ptr[gid];
+    int segment_idx = seg_ptr.s0;
+    int segment_max = seg_ptr.s1;
+//    if (tid==0)printf("gid %d writes segments in range %d-%d\n", gid, segment_idx, segment_max);
     int local_start = 0; 
-    int global_start = TEST_BUFFER*gid;
-    int local_stop = min(TEST_BUFFER, input_size - global_start);
+    int global_start = BUFFER_SIZE*gid;
+    int local_stop = min(BUFFER_SIZE, input_size - global_start);
     if (local_stop<=0){
         if (tid==0)printf("gid %d local_stop: %d \n",gid, local_stop);
             return;
     }
     
-//    int actual_buffer_size = min(TEST_BUFFER, local_stop) ;
+//    int actual_buffer_size = min(BUFFER_SIZE, local_stop) ;
         
     int watchdog = (local_stop + wg-1)/wg; //prevent code from running way !
     int res, res2, out_ptr=0, max_out=output_size[0];
@@ -754,12 +825,12 @@ kernel void test_multiblock(global uchar *buffer,
         res2 = segmentation(local_start, local_stop, res, lmatch, lsegments, seg);
         // copy segments to global memory:
         int segment_to_copy = res2 - 1;
-        if (tid==0)printf("gid %d store %d segments at %d\n",gid, segment_to_copy, segment_idx);
+//        if (tid==0)printf("gid %d store %d segments at %d\n",gid, segment_to_copy, segment_idx);
         output_idx = store_segments(lsegments, segment_to_copy, // last segment is kept for the future ...
                                     segments, segment_max, segment_idx, global_start, output_idx,  local_stop, 0, cnt);
         segment_idx += segment_to_copy;
                 
-        barrier(CLK_GLOBAL_MEM_FENCE);
+        barrier(CLK_LOCAL_MEM_FENCE);
         if (tid == 0){
             seg[1] += segment_to_copy;
             lsegments[0] = lsegments[segment_to_copy];
@@ -771,10 +842,28 @@ kernel void test_multiblock(global uchar *buffer,
         barrier(CLK_LOCAL_MEM_FENCE);
         local_start = res;
     }
-    barrier(CLK_GLOBAL_MEM_FENCE);
-    if (tid==0)printf("gid %d store final segments\n",gid);
+    barrier(CLK_LOCAL_MEM_FENCE);
+//    if (tid==0)printf("gid %d store final segments\n",gid);
     output_idx = store_segments(lsegments, 1, // last segment is treated here
                                 segments, segment_max, segment_idx, global_start, output_idx, local_stop, gid+1==ng, cnt);
-    output_size[gid] =  output_idx;   
-   
+    output_size[gid] =  output_idx;
+    seg_ptr.s1 = ++segment_idx;
+    segment_ptr[gid] = seg_ptr; 
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_GLOBAL_MEM_FENCE);
+    // last group running performs the cumsum and compaction of indices
+    if (tid==0){
+        cnt[0] = (atomic_dec(wgcnt)==1);
+    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (cnt[0]){
+        int end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
+                                           segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+                                           output_size,         // output buffer size, max in input, actual value in output
+                                           cnt,                 // index of segment offset, shared
+                                           last_segment         // shared memory with the last segment to share between threads
+                                           );
+        segment_ptr[0] = (int2)(0, end_ptr);        
+    }
 }
