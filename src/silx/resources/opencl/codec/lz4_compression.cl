@@ -770,12 +770,12 @@ kernel void test_write(global uchar *buffer,
 
 // kernel to test multiple blocks in parallel with last to finish who concatenates segments WG<64 buffer<1024.
 // segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: position in output buffer
-kernel void test_multiblock(global uchar *buffer,
+kernel void LZ4_cmp_stage1(global uchar *buffer,
                                    int input_size,
                             global int2 *segment_ptr, // size = number of workgroup launched, contains start and stop position
                             global int4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-                            global uchar *output,     // output buffer
-                            global int *output_size,  // output buffer size, max in input, actual value in output
+                            int final_compaction,     // set to 0 to prevent the final compaction. allows the analysis of intermediate results
+                            global int *output_size,  // output buffer size, max in input, actual value in output, size should be at least the 
                             global int *wgcnt         // counter with workgroups still running
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
@@ -857,7 +857,7 @@ kernel void test_multiblock(global uchar *buffer,
         cnt[0] = (atomic_dec(wgcnt)==1);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
-    if (cnt[0]){
+    if (cnt[0] && final_compaction){
         int end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
                                            segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
                                            output_size,         // output buffer size, max in input, actual value in output
