@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "16/08/2023"
+__date__ = "17/08/2023"
 __status__ = "production"
 
 import time
@@ -322,3 +322,70 @@ def _repack_segments(segments):
     repacked3 = repacked2[numpy.where(repacked2[:,1:3].sum(axis=-1)!=0)[0]]
     return repacked3
     
+
+def test_lz4_writing(data, segments, workgroup_size=32, prepend_header=False,
+                     profile=True):
+    """Function that tests LZ4 writing of a segmented dataset
+    
+    :param data: some data to play with
+    :param segments: array on int[:,4]
+    :param workgroup_size: size of the workgroup
+    :param profile: tune on profiling for OpenCL
+    :return: a comperssed datablock
+    
+    Prints out performance (measured from Python) in ms
+    """
+    t0 = time.perf_counter_ns()
+    performances = {}
+    if isinstance(data, bytes):
+        data = numpy.frombuffer(data, "uint8")
+    else:
+        data = data.view("uint8")
+    
+    segments = segments.astype("int32")
+    
+    data_size = data.size
+    num_workgroup = segments.shape[0]
+    segment_pos = numpy.zeros(2, "int32")
+    segment_pos[1] = num_workgroup
+    
+    
+    # Opencl setup
+    t1 = time.perf_counter_ns()
+    ctx = pyopencl.create_some_context()
+    src_file = os.path.abspath(os.path.join(os.path.abspath(__file__),"../../../resources/opencl/codec/lz4_compression.cl"))
+    src = open(src_file).read()
+    prg = pyopencl.Program(ctx, src).build()
+    t1a = time.perf_counter_ns()
+    if profile:
+        queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+    else:
+        queue = pyopencl.CommandQueue(ctx)
+    
+    data_d = cla.to_device(queue, data)
+    segment_posd = cla.to_device(queue, segment_pos)
+    segments_d = cla.to_device(queue, segments)
+    output_d = cla.zeros(queue, int(1.1*data.nbytes), "uint8")
+    output_size_d = cla.to_device(queue, numpy.array([output_d.nbytes, 0], "int32"))
+    
+    t2 = time.perf_counter_ns()
+    prg.LZ4_cmp_stage2(queue, (workgroup_size*num_workgroup,), (workgroup_size,), 
+                    data_d.data, numpy.int32(data_size), 
+                    segment_posd.data,
+                    segments_d.data, 
+                    output_d.data,
+                    output_size_d.data,
+                    numpy.int32(prepend_header)
+                    ).wait()
+    t3 = time.perf_counter_ns()
+    buffer_size = output_size_d.get()[1]
+    compressed = output_d.get()[:buffer_size]
+    t4 = time.perf_counter_ns()
+    if 1: #profile:
+        performances["python_setup"] = (t1-t0)*1e-6
+        performances["opencl_compilation"] = (t1a-t1)*1e-6
+        performances["opencl_setup"] = (t2-t1a)*1e-6
+        performances["opencl_run"] = (t3-t2)*1e-6
+        performances["opencl_retrieve"] = (t4-t3)*1e-6
+        print(json.dumps(performances, indent=2))
+    return compressed

@@ -248,23 +248,109 @@ inline int segmentation(int start, //index where scan4match did start
 
 
 //  Build token, concatenation of a litteral and a match 
-inline uchar build_token(short4 segment){
+inline uchar build_token(int4 segment){
     int lit = segment.s1;
     int mat = segment.s2;
     int token = ((lit & 15)<<4)|((mat-4)&15);
     return token;
 }
 
+
 // copy collaborative, return the position in output stream.
-inline int copy(global uchar* dest,
-                 const int dest_position,
-                 local uchar* source,
-                 const int src_position,
-                 const int length){
+inline int copy_local(global uchar* dest,
+                      const int dest_position,
+                      local uchar* source,
+                      const int src_position,
+                      const int length){
     for (int i=get_local_id(0); i<length; i+=get_local_size(0)) {
         dest[dest_position+i] = source[src_position+i];
     }
     return dest_position+length;
+}
+// copy collaborative, return the position in output stream.
+inline int copy_global(global uchar* dest,
+                       const int dest_position,
+                       global uchar* source,
+                       const int src_position,
+                       const int length){
+    for (int i=get_local_id(0); i<length; i+=get_local_size(0)) {
+        dest[dest_position+i] = source[src_position+i];
+    }
+    return dest_position+length;
+}
+
+
+/*
+ * Perform the actual compression by copying a single segment
+ * 
+ * return the end-position in the output stream 
+ */
+
+inline int write_segment(global uchar *input_buffer, // buffer with input uncompressed data
+                                int input_size,      // size of the  data to be compressed 
+                                int4 segment,        // segment to be compressed
+                         global uchar *output_buffer,// destination buffer for compressed data
+                                int output_size,     //  
+                                int last_segment     // set to 1 to indicate this is the last segment
+){
+
+    int rem;
+    int start_dec = segment.s0;
+    int litter = segment.s1;
+    int match = segment.s2;
+    int start_cmp = segment.s3;
+    
+    if ((litter==0) && (match==0)){// this was the last segment
+        return -1;
+    }
+    if ((start_dec>=input_size) || (start_cmp>=output_size)){// this segment read/write outsize boundaries
+        return -1;
+    }
+    
+    if (last_segment){
+        litter += match;
+        match = 0;
+        segment.s1 = litter;
+        segment.s2 = match;
+//        if(tid==0)printf("last segment %d %d %d %d\n", segment.s0, segment.s1, segment.s2, segment.s3);
+    }
+    
+    //write token
+    int token_idx = start_cmp++;
+    if (litter >= 15){
+        segment.s1 = 15;  
+        rem = litter - 15;
+        while (rem>=255){
+            output_buffer[start_cmp++] = 255;
+            rem -= 255;
+        }
+        output_buffer[start_cmp++] = rem;
+    }
+    if (match >= 19){
+        segment.s2 = 19; 
+    }
+    output_buffer[token_idx] = build_token(segment);
+
+    //copy litteral. This is collaborative.
+    start_cmp = copy_global(output_buffer, start_cmp,
+                            input_buffer, start_dec, litter);
+    
+    if (!last_segment){ // last block has no offset, nor match
+        //write offset, here always 1 in 16 bits little endian !
+        output_buffer[start_cmp++] = 1;
+        output_buffer[start_cmp++] = 0;
+        
+        //write match overflow
+        if (match>=19){
+            rem = match-19;
+            while (rem>=255){
+                output_buffer[start_cmp++] = 255;
+                rem -= 255;
+            }
+            output_buffer[start_cmp++] = rem;
+        }
+    }
+    return start_cmp;    
 }
 
 /*
@@ -303,10 +389,10 @@ inline int write_lz4(local uchar *buffer,
         if (match >= 19){
             segment.s2 = 19; 
         }
-        output_buffer[token_idx] = build_token(segment);
+        output_buffer[token_idx] = build_token((int4)(segment.s0, segment.s1, segment.s2, segment.s3));
 
         //copy litteral. This is collaborative.
-        start_cmp = copy(output_buffer, start_cmp,
+        start_cmp = copy_local(output_buffer, start_cmp,
                          buffer, segment.s0, litter);
         
         if ((continuation)||(i+1<nb_segments)){ // last block has no offset, nor match
@@ -865,5 +951,52 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
                                            last_segment         // shared memory with the last segment to share between threads
                                            );
         segment_ptr[0] = (int2)(0, end_ptr);        
+    }
+}
+
+// kernel launched with one segment per workgroup. If the segment has large litterals, having many threads per group is interesting. 
+
+kernel void LZ4_cmp_stage2(global uchar *input_buffer, // bufffer with data to be compressed
+                                  int input_size,      // size of the  daa to be compressed 
+                           global int2 *segment_ptr,   // size = 1 (often more) contains start and stop position of segment
+                           global int4 *segments,      //  size defined by segment_ptr
+                           global uchar *output_buffer,// destination buffer for compressed data
+                           global int *output_size,    // output buffer size, pre-filled (not updated if prefix_header), size should be at least 2 
+                                  int prefix_header    // if set, put in header the input buffer size (increases the output_size[0] by 4)
+){
+    int gid = get_group_id(0);
+    int tid = get_local_id(0);
+    int wg = get_local_size(0);
+    int r_size = output_size[0];
+    int2 segment_range =  segment_ptr[0];
+    if ((gid<segment_range.s0)||(gid>=segment_range.s1)) // out of range segment, should not occure !
+        return;
+    int4 segment = segments[gid];    
+    if (prefix_header!=0){
+        segment.s3 += 4;
+        if ((gid == 0) && (tid==0)){//write 
+            output_buffer[0] = input_size & 0xFF;
+            output_buffer[1] = (input_size>>8) & 0xFF;
+            output_buffer[2] = (input_size>>16) & 0xFF;
+            output_buffer[3] = (input_size>>24) & 0xFF;
+        }
+    }
+    
+    if (gid+1==segment_range.s1){//last segment
+        r_size = write_segment(input_buffer,  // buffer with input uncompressed data
+                               input_size,    // size of the  data to be compressed 
+                               segment,       // segment to be compressed
+                               output_buffer, // destination buffer for compressed data
+                               r_size,        //  
+                               1);
+        if (tid==0) output_size[1] = r_size;
+    }
+    else{
+        write_segment(input_buffer,  // buffer with input uncompressed data
+                      input_size,    // size of the  data to be compressed 
+                      segment,       // segment to be compressed
+                      output_buffer, // destination buffer for compressed data
+                      r_size,        //  
+                      0);
     }
 }
