@@ -489,14 +489,15 @@ inline int store_segments(local volatile short4 *local_segments,
 /* concatenate all segments (stored in global memory) in such a way that they are adjacent.
  * This function is to be called by the latest workgroup running.
  * 
+ * Returns the number of segments and the number of bytes to be written.
+ * 
  * There are tons of synchro since data are read and written from same buffer. 
  */  
-inline int concatenate_segments(
+inline int2 concatenate_segments(
         global int2 *segment_ptr,        // size = number of workgroup launched, contains start and stop position
         global int4 *segments,           // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-
         global int *output_size,         // output buffer size, max in input, actual value in output
-        local volatile int *lsegment_idx, // index of segment offset, shared
+        local volatile int *shared_idx, // shared indexes with segment offset(0), output_idx(1)
         local volatile int4 *last_segment // shared memory with the last segment to share between threads
         ){
     
@@ -508,29 +509,32 @@ inline int concatenate_segments(
 //    if (tid==0) printf("gid %d, running concat_segments \n", gid);
     int4 segment;
     barrier(CLK_GLOBAL_MEM_FENCE);
-    int output_idx = output_size[0];
-    lsegment_idx[0] = segment_ptr[0].s1;
-    segment = segments[max(0, lsegment_idx[0]-1)];
-    if ((tid==0) && (segment.s0>0) && (segment.s2==0) && (ng>1)){
-        last_segment[0] = segment;
-        lsegment_idx[0] -= 1;
+    if (tid==0){ 
+        shared_idx[0] = segment_ptr[0].s1;
+        shared_idx[1] = output_size[0];
+        segment = segments[max(0, shared_idx[0]-1)];
+        if ((segment.s0>0) && (segment.s2==0) && (ng>1)){
+            last_segment[0] = segment;
+            shared_idx[0] -= 1;
+        }
+        else{
+            last_segment[0] = (int4)(0,0,0,0);
+        }
     }
-    
-    last_segment[0] = (int4)(0,0,0,0);
     barrier(CLK_LOCAL_MEM_FENCE);
-//    if (tid==0) printf("groups range from 1 to %d. segment_idx=%d, output_ptr=%d\n",ng, lsegment_idx[0], output_idx); 
+//    if (tid==0) printf("groups range from 1 to %d. segment_idx=%d, output_ptr=%d\n",ng, shared_idx[0], shared_idx[1]); 
     for (int grp=1; grp<ng; grp++){
         int2 seg_ptr = segment_ptr[grp];
         int low = seg_ptr.s0 + tid;
         int high = (seg_ptr.s1+wg-1)&~(wg-1);
-//        if (tid==0) printf("grp %d read from %d to %d and writes to %d to %d\n",grp, low, high, lsegment_idx[0], lsegment_idx[0]+seg_ptr.s1-seg_ptr.s0);
+//        if (tid==0) printf("grp %d read from %d to %d and writes to %d to %d\n",grp, low, high, shared_idx[0], shared_idx[0]+seg_ptr.s1-seg_ptr.s0);
         // concatenate last segment with first one if needed
         barrier(CLK_LOCAL_MEM_FENCE);
         if ((tid == 0) && (last_segment[0].s0>0) && (last_segment[0].s2==0)){
             segment = segments[seg_ptr.s0];
             segment.s0 = last_segment[0].s0;
             segment.s1 = segment.s0+segment.s1-last_segment[0].s0;
-            output_idx += len_segment(segment)-len_segment(last_segment[0]);
+            shared_idx[1] += len_segment(segment)-len_segment(last_segment[0]);
             last_segment[0] = (int4)(0,0,0,0);
             segments[seg_ptr.s0] = segment;
         }
@@ -543,34 +547,40 @@ inline int concatenate_segments(
             else
                 segment = (int4)(0,0,0,0);
             barrier(CLK_GLOBAL_MEM_FENCE);                
-            segment.s3+=output_idx;
+            segment.s3+=shared_idx[1];
             
             if (i<seg_ptr.s1){
-//                printf("tid %d read at %d write at %d (%d, %d, %d, %d)\n",tid, i, lsegment_idx[0]+i-seg_ptr.s0, segment.s0, segment.s1, segment.s2, segment.s3);
-                segments[lsegment_idx[0]+i-seg_ptr.s0] = segment;
+//                printf("tid %d read at %d write at %d (%d, %d, %d, %d)\n",tid, i, shared_idx[0]+i-seg_ptr.s0, segment.s0, segment.s1, segment.s2, segment.s3);
+                segments[shared_idx[0]+i-seg_ptr.s0] = segment;
                 //segments[i] = (int4)(0,0,0,0);
             }
             barrier(CLK_GLOBAL_MEM_FENCE);
             // if last block has match==0, concatenate with next one
-            if ((i+1==seg_ptr.s1) &&  (segment.s0>0) && (segment.s2==0)&&(grp+1<ng)){
+            if ((i+1==seg_ptr.s1) && (segment.s0>0) && (segment.s2==0) && (grp+1<ng)){
                 last_segment[0] = segment;
-                lsegment_idx[0] -= 1;
+                shared_idx[0] -= 1;
             }
             barrier(CLK_LOCAL_MEM_FENCE);
             barrier(CLK_GLOBAL_MEM_FENCE);
         }
         barrier(CLK_LOCAL_MEM_FENCE);
         if (tid==0){
-            lsegment_idx[0]+=seg_ptr.s1-seg_ptr.s0;
+            shared_idx[0]+=seg_ptr.s1-seg_ptr.s0;
+            segment_ptr[grp] = (int2)(0,0);
+            shared_idx[1] += output_size[grp];
+            output_size[grp] = 0;
         }
-        segment_ptr[grp] = (int2)(0,0);
-        output_idx += output_size[grp];
-        output_size[grp] = 0;
+        barrier(CLK_GLOBAL_MEM_FENCE);
     }
     
-    barrier(CLK_LOCAL_MEM_FENCE);    
-    return lsegment_idx[0];
-}
+    barrier(CLK_LOCAL_MEM_FENCE);  
+    if (tid==0){
+        segment_ptr[0] = (int2)(0, shared_idx[0]);
+        output_size[0] = shared_idx[1];
+    }
+
+    return (int2) (shared_idx[0], shared_idx[1]);
+} // end concatenate_segments
 
 /* Main kernel for lz4 compression
  */
@@ -854,6 +864,27 @@ kernel void test_write(global uchar *buffer,
     
 }
 
+// kernel to test the function `concatenate_segments`, run on only one workgroup
+kernel void test_concatenate_segments(                            
+        global int2 *segment_ptr, // size = number of workgroup launched, contains start and stop position
+        global int4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+        global int *output_size  // output buffer size, max in input, actual value in output, size should be at least the 
+        ){
+    local volatile int cnt[2]; //0:segment_ptr, 1:output_ptr
+    local volatile int4 last_segment[1];
+    
+    int gid = get_group_id(0); // group id
+    int tid = get_local_id(0); // thread id
+    if (gid == 0){
+        int2 end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
+                                           segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+                                           output_size,         // output buffer size, max in input, actual value in output
+                                           cnt,                 // index of segment offset, shared
+                                           last_segment         // shared memory with the last segment to share between threads
+                                           );
+    }
+}
+
 // kernel to test multiple blocks in parallel with last to finish who concatenates segments WG<64 buffer<1024.
 // segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: position in output buffer
 kernel void LZ4_cmp_stage1(global uchar *buffer,
@@ -865,7 +896,7 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
                             global int *wgcnt         // counter with workgroups still running
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
-    local volatile int cnt[1]; // end position of the scan   
+    local volatile int cnt[2]; // end position of the scan   
     local volatile short4 lsegments[SEGMENT_SIZE];
     local uchar lbuffer[BUFFER_SIZE];
     local short lmatch[WORKGROUP_SIZE];
@@ -944,13 +975,12 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     }
     barrier(CLK_LOCAL_MEM_FENCE);
     if (cnt[0] && final_compaction){
-        int end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
-                                           segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-                                           output_size,         // output buffer size, max in input, actual value in output
-                                           cnt,                 // index of segment offset, shared
-                                           last_segment         // shared memory with the last segment to share between threads
-                                           );
-        segment_ptr[0] = (int2)(0, end_ptr);        
+        int2 end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
+                                            segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+                                            output_size,         // output buffer size, max in input, actual value in output
+                                            cnt,                 // index of segment offset, shared
+                                            last_segment         // shared memory with the last segment to share between threads
+                                            );
     }
 }
 
