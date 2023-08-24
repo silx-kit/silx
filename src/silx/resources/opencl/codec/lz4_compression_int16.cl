@@ -33,9 +33,9 @@
 #define WORKGROUP_SIZE 1024
 #endif
 //segment size should be buffer_size/4
-#ifndef SEGMENT_SIZE
-#define SEGMENT_SIZE 512
-#endif
+//#ifndef SEGMENT_SIZE
+//#define SEGMENT_SIZE 512
+//#endif
 
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 16384
@@ -97,6 +97,7 @@ inline void cumsum_short(local volatile short *array,
                                        int   size){
     int oid, tid = get_local_id(0);
     short here, there;
+    barrier(CLK_LOCAL_MEM_FENCE);
     for (int offset = 1; offset < size; offset *= 2){
         here = (tid < size) ? array[tid] : 0;
         oid = tid-offset;
@@ -208,6 +209,47 @@ inline int scan4match(local uchar *buffer,       // buffer with input data in it
     return cnt[0];
 }
 
+
+// calculate the length of a segment in compressed form
+inline short length_segment(short4 segment){
+    short lit = segment.s1;
+    short mat = segment.s2-4;    
+    if ((lit==0) && (mat==-4)) 
+        return 0;
+            
+    short size = 3+lit;
+    if (lit>=15){
+        size++;
+        lit -= 15;
+    }
+    while (lit>255){
+        size++;
+        lit-=255;
+    }
+    if (mat>=15){
+        size++;
+        mat -= 15;
+    }
+    while (mat>255){
+        size++;
+        mat-=255;
+    }
+    return size;
+}
+
+
+// fill the s3 index with the compressed size of each segment
+inline void calculate_output_size(local volatile short4 *segments,// size of the workgroup
+                                  int start, int stop){
+    int tid = get_local_id(0);
+    if ((tid>=start) && (tid<stop)){
+        short4 seg = segments[tid];
+        seg.s3 = length_segment(seg);
+        segments[tid] = seg;                              
+    }
+}
+
+
 // segment over one wg size. returns the number of segments found
 inline int segmentation(int start, //index where scan4match did start
                         int stop,  //size of the buffer
@@ -272,6 +314,8 @@ inline int segmentation(int start, //index where scan4match did start
         cnt[0] = compact_segments(segments, cnt);
     }
     barrier(CLK_LOCAL_MEM_FENCE);
+    // update the segment with the compressed size:
+    calculate_output_size(segments, 0, cnt[0]);
     return cnt[0];
 }
 
@@ -412,47 +456,56 @@ inline int len_segment(int4 segment){
  */
 inline int store_segments(local volatile short4 *local_segments,
                                  int nb_segments,
-                          global int4 *global_segments,
+                          global short4 *global_segments,
                                  int max_idx, // last position achievable in global segment array
                                  int global_idx,
                                  int input_stream_idx,
                                  int output_stream_idx,
-                                 int block_size, // size of the block under analysis 
-                                 int last, // set to true to concatenate the match and the litteral for last block
-                          local volatile int* cnt //size=1 is eough  
+                                 int block_size,   // size of the block under analysis 
+                                 int last,         // set to true to concatenate the match and the litteral for last block
+                          local volatile int* cnt, //size=2 is needed, index 0 for size, index 1 for emergency   
+                          local short* tmparray    // size: workgroup size
                           ){
+    int tid = get_local_id(0);
     cnt[0] = output_stream_idx;
+    cnt[1] = 0;
+    short4 segment;
     barrier(CLK_LOCAL_MEM_FENCE);
-    if (global_idx!=max_idx){
-        //this is serial for conviniance ! TODO: can be partially parallelized.
-        if (get_local_id(0)==0){
-            for (int i=0; i<nb_segments; i++){
-                int4 segment = convert_int4(local_segments[i]);
-                
-                // manage too few space in segment storage
-                int emergency = (global_idx+1 == max_idx); 
-                if (emergency){ // store all the remaining of the block in current segment
-                    printf("gid %lu emergency %d %d, segment starts at %d -> %d\n", get_group_id(0), global_idx, max_idx, segment.s0, block_size);
-                    segment.s1 = block_size - segment.s0;
-                    segment.s2 = 0;
-                }
-                // manage last segment in block
-                if (last){
-                    segment.s1+=segment.s2;
-                    segment.s2 = 0;
-                }
-                segment.s0 += input_stream_idx;
-                segment.s3 = output_stream_idx;
-                
-                output_stream_idx += len_segment(segment);
-                global_segments[global_idx++]=segment;
-                if (emergency) break;
+    if (global_idx<max_idx){
+        if (tid<nb_segments){
+            segment = local_segments[tid];
+            // manage too few space in segment storage
+            int emergency = (global_idx+1+tid == max_idx); 
+            if (emergency){ // store all the remaining of the block in current segment
+                cnt[1] = tid+1;
+                printf("gid %lu emergency %d %d, segment starts at %d -> %d\n", get_group_id(0), global_idx, max_idx, segment.s0, block_size);
+                segment.s1 = block_size - segment.s0;
+                segment.s2 = 0;
+                segment.s3 = length_segment(segment);
             }
-            cnt[0] = output_stream_idx;
+            // manage last segment in block, i.e. transform match in litteral.
+            if ((last) && (tid+1==nb_segments)){
+                segment.s1+=segment.s2;
+                segment.s2 = 0;
+                segment.s3 = length_segment(segment);
+            }
+            tmparray[tid] = segment.s3;
         }
-        barrier(CLK_LOCAL_MEM_FENCE);        
+        else tmparray[tid] = 0;
+        cumsum_short(tmparray, nb_segments);
+        nb_segments = cnt[1]?cnt[1]:nb_segments;
+        if (tid==0){
+            segment.s3 = output_stream_idx;
+        } 
+        else if (tid<nb_segments) {
+            segment.s3 = output_stream_idx + tmparray[tid-1];            
+        }
+        if (tid<nb_segments)
+            global_segments[global_idx+tid]=segment;
+        output_stream_idx += tmparray[nb_segments-1];
     }
-    return cnt[0];
+                                      
+    return output_stream_idx;
 }
 
 /* concatenate all segments (stored in global memory) in such a way that they are adjacent.
@@ -618,7 +671,7 @@ kernel void test_segmentation(global uchar *buffer,
 ){
     local volatile int cnt[2];
     local volatile int seg[1];
-    local volatile short4 lsegments[SEGMENT_SIZE];
+    local volatile short4 lsegments[WORKGROUP_SIZE];
     local uchar lbuffer[BUFFER_SIZE];
     local short lmatch[WORKGROUP_SIZE];
     seg[0] = 0;
@@ -651,7 +704,7 @@ kernel void test_multi(global uchar *buffer,
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
     local volatile int cnt[1]; // end position of the scan   
-    local volatile short4 lsegments[SEGMENT_SIZE];
+    local volatile short4 lsegments[WORKGROUP_SIZE];
     local uchar lbuffer[BUFFER_SIZE];
     local short lmatch[WORKGROUP_SIZE];
     
@@ -739,24 +792,23 @@ kernel void test_concatenate_segments(
     }
 }
 
-// kernel to test multiple blocks in parallel with last to finish who concatenates segments WG<64 buffer<1024.
-// segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: position in output buffer
+// kernel to test multiple blocks in parallel with last to finish which manages the junction between blocks
+// segment description: s0: position in input buffer s1: number of litterals, s2: number of match, s3: size/position in output buffer
 kernel void LZ4_cmp_stage1(global uchar *buffer,
                                    int input_size,
                            local  uchar *lbuffer,     // local buffer of size block_size for caching buffer.
                                    int block_size,    // size of the block
-                            global int2 *segment_ptr, // size = number of workgroup launched, contains start and stop position
-                            global int4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+                            global int4 *block_ptr,   // size = number of workgroup launched, i.e. number of LZ4-blocks. contains, start+end segment, start+end write 
+                            global short4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
                             int final_compaction,     // set to 0 to prevent the final compaction. allows the analysis of intermediate results
                             global int *output_size,  // output buffer size, max in input, actual value in output, size should be at least the 
                             global int *wgcnt         // counter with workgroups still running
 ){
     local volatile int seg[2]; // #0:number of segments in local mem, #1 in global mem
     local volatile int cnt[2]; // end position of the scan   
-    local volatile short4 lsegments[SEGMENT_SIZE];
-//    local uchar lbuffer[BUFFER_SIZE];
+    local volatile short4 lsegments[WORKGROUP_SIZE];
     local short lmatch[WORKGROUP_SIZE];
-    local volatile int4 last_segment[1];
+    local volatile short4 last_segment[1];
     
     
     int tid = get_local_id(0); // thread id
@@ -764,17 +816,11 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     int wg = get_local_size(0);// workgroup size
     int ng = get_num_groups(0);// number of groups
     
-//    if (BUFFER_SIZE<block_size){
-//        if (get_global_id(0)==0)
-//            printf("block_size (%d) > BUFFER_SIZE (%d): Aborting!!!\n",block_size, BUFFER_SIZE);
-//    }
-    
     int output_block_size = 0;
     int output_idx = output_block_size*gid;
-    int2 seg_ptr = segment_ptr[gid];
+    int4 seg_ptr = block_ptr[gid];
     int segment_idx = seg_ptr.s0;
     int segment_max = seg_ptr.s1;
-//    if (tid==0)printf("gid %d writes segments in range %d-%d\n", gid, segment_idx, segment_max);
     int local_start = 0; 
     int global_start = block_size * gid;
     int local_stop = min(block_size, input_size - global_start);
@@ -798,12 +844,15 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     while ((watchdog--) && (local_start+1<local_stop)){
         //scan for matching
         res = scan4match(lbuffer, local_start, local_stop, lmatch, cnt);
+        if (tid==0) printf("gid %d watchdog %d scan4match gave %d\n",gid, watchdog, res);
         res2 = segmentation(local_start, local_stop, res, lmatch, lsegments, seg);
+        if (tid==0) printf("gid %d watchdog %d segmentation gave %d\n",gid, watchdog, res2);
+
         // copy segments to global memory:
         int segment_to_copy = res2 - 1;
-//        if (tid==0)printf("gid %d store %d segments at %d\n",gid, segment_to_copy, segment_idx);
+        if (tid==0) printf("gid %d watchdog %d about to save %d segments\n",gid, watchdog, segment_to_copy);
         output_idx = store_segments(lsegments, segment_to_copy, // last segment is kept for the future ...
-                                    segments, segment_max, segment_idx, global_start, output_idx,  local_stop, 0, cnt);
+                                    segments, segment_max, segment_idx, global_start, output_idx,  local_stop, 0, cnt, lmatch);
         segment_idx += segment_to_copy;
                 
         barrier(CLK_LOCAL_MEM_FENCE);
@@ -817,14 +866,16 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
         if (tid>1) lsegments[tid] = (short4)(0,0,0,0);
         barrier(CLK_LOCAL_MEM_FENCE);
         local_start = res;
+        
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 //    if (tid==0)printf("gid %d store final segments\n",gid);
     output_idx = store_segments(lsegments, 1, // last segment is treated here
-                                segments, segment_max, segment_idx, global_start, output_idx, local_stop, gid+1==ng, cnt);
+                                segments, segment_max, segment_idx, global_start, output_idx, local_stop, gid+1==ng, cnt, lmatch);
     output_size[gid] =  output_idx;
     seg_ptr.s1 = ++segment_idx;
-    segment_ptr[gid] = seg_ptr; 
+    seg_ptr.s3 = output_idx;
+    block_ptr[gid] = seg_ptr; 
 
     barrier(CLK_LOCAL_MEM_FENCE);
     barrier(CLK_GLOBAL_MEM_FENCE);
@@ -832,37 +883,42 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     if (tid==0){
         cnt[0] = (atomic_dec(wgcnt)==1);
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
-    if (cnt[0] && final_compaction){
-        int2 end_ptr = concatenate_segments(segment_ptr,         // size = number of workgroup launched, contains start and stop position
-                                            segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-                                            output_size,         // output buffer size, max in input, actual value in output
-                                            cnt,                 // index of segment offset, shared
-                                            last_segment         // shared memory with the last segment to share between threads
-                                            );
-    }
+//    barrier(CLK_LOCAL_MEM_FENCE);
+//    if (cnt[0] && final_compaction){//TODO: redo
+//        int2 end_ptr = concatenate_segments(block_ptr,         // size = number of workgroup launched, contains start and stop position
+//                                            segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
+//                                            output_size,         // output buffer size, max in input, actual value in output
+//                                            cnt,                 // index of segment offset, shared
+//                                            last_segment         // shared memory with the last segment to share between threads
+//                                            );
+//    }
 }
 
-// kernel launched with one segment per workgroup. If the segment has large litterals, having many threads per group is interesting. 
 
-kernel void LZ4_cmp_stage2(global uchar *input_buffer, // bufffer with data to be compressed
-                                  int input_size,      // size of the  daa to be compressed 
-                           global int2 *segment_ptr,   // size = 1 (often more) contains start and stop position of segment
-                           global int4 *segments,      //  size defined by segment_ptr
-                           global uchar *output_buffer,// destination buffer for compressed data
-                           global int *output_size,    // output buffer size, pre-filled (not updated if prefix_header), size should be at least 2 
-                                  int prefix_header    // if set, put in header the input buffer size (increases the output_size[0] by 4)
+// kernel launched with one block per workgroup. 
+//If the segment has large litterals, having many threads per group is interesting. 
+
+kernel void LZ4_cmp_stage2(global uchar *input_buffer,   // bufffer with data to be compressed
+                                     int input_size,        // size of the  data to be compressed 
+                                     int block_size,        // size of each block
+                              global int4 *block_ptr,       // size = numblocks, contains contains the start and end index in segment array and start and end position in the output array 
+                              global short4 *segments,      // size defined by segment_ptr, constains segments relative to the begining on the block
+                              global uchar *output_buffer,  // destination buffer for compressed data
+                              global  int *output_size,       // size of the destination buffer                              
+                                     int prefix_header      // if set, put in header the input buffer size (increases the output_size[0] by 4)
 ){
     int gid = get_group_id(0);
     int tid = get_local_id(0);
     int wg = get_local_size(0);
+    int ng = get_num_groups(0);
+    int4 segment_range =  block_ptr[gid];
+    int input_offset = block_size*gid;
+    int output_offset = segment_range.s2 + (prefix_header) ? 4 : 0;
+    short4 short_segment;
+    int4   int_segment; 
     int r_size = output_size[0];
-    int2 segment_range =  segment_ptr[0];
-    if ((gid<segment_range.s0)||(gid>=segment_range.s1)) // out of range segment, should not occure !
-        return;
-    int4 segment = segments[gid];    
-    if (prefix_header!=0){
-        segment.s3 += 4;
+
+    if (prefix_header){
         if ((gid == 0) && (tid==0)){//write 
             output_buffer[0] = input_size & 0xFF;
             output_buffer[1] = (input_size>>8) & 0xFF;
@@ -871,21 +927,29 @@ kernel void LZ4_cmp_stage2(global uchar *input_buffer, // bufffer with data to b
         }
     }
     
-    if (gid+1==segment_range.s1){//last segment
-        r_size = write_segment(input_buffer,  // buffer with input uncompressed data
-                               input_size,    // size of the  data to be compressed 
-                               segment,       // segment to be compressed
-                               output_buffer, // destination buffer for compressed data
-                               r_size,        //  
-                               1);
-        if (tid==0) output_size[1] = r_size;
-    }
-    else{
-        write_segment(input_buffer,  // buffer with input uncompressed data
-                      input_size,    // size of the  data to be compressed 
-                      segment,       // segment to be compressed
-                      output_buffer, // destination buffer for compressed data
-                      r_size,        //  
-                      0);
-    }
+    for (int i=segment_range.s0; i<segment_range.s1; i++){
+        short_segment = segments[i];
+        int_segment = (int4)(short_segment.s0+input_offset,
+                             short_segment.s1,
+                             short_segment.s2,
+                             short_segment.s3+output_offset);
+        if ((gid+1==segment_range.s1)&&(gid+1==ng)){//last segment
+            int actual_size = write_segment(input_buffer,  // buffer with input uncompressed data
+                                   input_size,    // size of the  data to be compressed 
+                                   int_segment,   // segment to be compressed
+                                   output_buffer, // destination buffer for compressed data
+                                   r_size,   // size of the output buffer  
+                                   1);
+            if (tid==0) output_size[0] = actual_size;
+        }
+        else{
+            write_segment(input_buffer,  // buffer with input uncompressed data
+                          input_size,    // size of the  data to be compressed 
+                          int_segment,   // segment to be compressed
+                          output_buffer, // destination buffer for compressed data
+                          r_size,   //  size of the output buffer
+                          0);
+        }
+        
+    }//loop over all segments in a block.
 }
