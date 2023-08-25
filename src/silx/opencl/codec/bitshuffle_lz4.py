@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/08/2023"
+__date__ = "22/08/2023"
 __status__ = "production"
 
 import time
@@ -371,14 +371,15 @@ def test_lz4_writing(data, segments, workgroup_size=32, prepend_header=False,
     output_size_d = cla.to_device(queue, numpy.array([output_d.nbytes, 0], "int32"))
 
     t2 = time.perf_counter_ns()
-    prg.LZ4_cmp_stage2(queue, (workgroup_size * num_workgroup,), (workgroup_size,),
+    evt = prg.LZ4_cmp_stage2(queue, (workgroup_size * num_workgroup,), (workgroup_size,),
                     data_d.data, numpy.int32(data_size),
                     segment_posd.data,
                     segments_d.data,
                     output_d.data,
                     output_size_d.data,
                     numpy.int32(prepend_header)
-                    ).wait()
+                    )
+    evt.wait()
     t3 = time.perf_counter_ns()
     buffer_size = output_size_d.get()[1]
     compressed = output_d.get()[:buffer_size]
@@ -388,6 +389,8 @@ def test_lz4_writing(data, segments, workgroup_size=32, prepend_header=False,
         performances["opencl_compilation"] = (t1a - t1) * 1e-6
         performances["opencl_setup"] = (t2 - t1a) * 1e-6
         performances["opencl_run"] = (t3 - t2) * 1e-6
+        if profile: 
+            performances["opencl_run_profile"] = 1e-6 * (evt.profile.end - evt.profile.start)
         performances["opencl_retrieve"] = (t4 - t3) * 1e-6
         print(json.dumps(performances, indent=2))
     return compressed
