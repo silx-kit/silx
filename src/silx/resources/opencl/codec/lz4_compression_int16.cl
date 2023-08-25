@@ -113,6 +113,27 @@ inline void cumsum_short(local volatile short *array,
     }
 }
 
+// calculate the cumulative sum of element in the array inplace.
+inline void cumsum_int(local volatile  int *array,
+                                       int   size){
+    int oid, tid = get_local_id(0);
+    int here, there;
+    barrier(CLK_LOCAL_MEM_FENCE);
+    for (int offset = 1; offset < size; offset *= 2){
+        here = (tid < size) ? array[tid] : 0;
+        oid = tid-offset;
+        there = ((tid < size)&&(oid>=0)) ? array[oid] : 0;
+        barrier(CLK_LOCAL_MEM_FENCE);
+        if (tid<size){
+            if (tid >= offset)
+                array[tid] = here+there;
+            else
+                array[tid] = here;
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+}
+
 
 /* *****************************************************************************************************
  * Compact litterals and matches into segments containing a litteral and a match section (non null)
@@ -604,6 +625,30 @@ inline int2 concatenate_segments(
     return (int2) (shared_idx[0], shared_idx[1]);
 } // end concatenate_segments
 
+
+/* function to perform the cumsum at the end:
+ * - make the cumulative sum of start-stop indexes for outgoing buffer position in block_ptr
+ */
+inline void wrap_up(global int *output_size,   // size = number of workgroup launched, i.e. number of LZ4-blocks. contains, start+end segment, start+end write
+                    local  int *temp
+        ){
+    int tid = get_local_id(0);
+    int ng  = get_num_groups(0);
+    int wg  = get_local_size(0);
+    int max_iter = (ng+wg-1)/wg;
+    int prefix = 0;
+    int pos = tid;
+    for (int i=0; i<max_iter;i++){
+        
+        temp[tid] = (pos<ng) ?  output_size[pos] : 0;
+        cumsum_int(temp, wg);
+        if (pos<ng){
+            output_size[pos] = prefix + temp[tid];
+        }
+        pos += wg;
+        prefix += temp[wg-1];
+    }   
+}
     
 // test kernel to ensure `sort_odd_even` works
 kernel void test_sort(global short4 *buffer,
@@ -798,7 +843,7 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
                                    int input_size,
                            local  uchar *lbuffer,     // local buffer of size block_size for caching buffer.
                                    int block_size,    // size of the block
-                            global int4 *block_ptr,   // size = number of workgroup launched, i.e. number of LZ4-blocks. contains, start+end segment, start+end write 
+                            global int2 *block_ptr,   // size = number of workgroup launched, i.e. number of LZ4-blocks. contains, start+end segment, start+end write 
                             global short4 *segments,    // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
                             int final_compaction,     // set to 0 to prevent the final compaction. allows the analysis of intermediate results
                             global int *output_size,  // output buffer size, max in input, actual value in output, size should be at least the 
@@ -809,6 +854,7 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     local volatile short4 lsegments[WORKGROUP_SIZE];
     local short lmatch[WORKGROUP_SIZE];
     local volatile short4 last_segment[1];
+    local int lsizes[WORKGROUP_SIZE];
     
     
     int tid = get_local_id(0); // thread id
@@ -818,7 +864,7 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     
     int output_block_size = 0;
     int output_idx = output_block_size*gid;
-    int4 seg_ptr = block_ptr[gid];
+    int2 seg_ptr = block_ptr[gid];
     int segment_idx = seg_ptr.s0;
     int segment_max = seg_ptr.s1;
     int local_start = 0; 
@@ -844,13 +890,13 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     while ((watchdog--) && (local_start+1<local_stop)){
         //scan for matching
         res = scan4match(lbuffer, local_start, local_stop, lmatch, cnt);
-        if (tid==0) printf("gid %d watchdog %d scan4match gave %d\n",gid, watchdog, res);
+//        if (tid==0) printf("gid %d watchdog %d scan4match scanned up to  %d\n",gid, watchdog, res);
         res2 = segmentation(local_start, local_stop, res, lmatch, lsegments, seg);
-        if (tid==0) printf("gid %d watchdog %d segmentation gave %d\n",gid, watchdog, res2);
+//        if (tid==0) printf("gid %d watchdog %d segmentation found %d segments\n",gid, watchdog, res2);
 
         // copy segments to global memory:
         int segment_to_copy = res2 - 1;
-        if (tid==0) printf("gid %d watchdog %d about to save %d segments\n",gid, watchdog, segment_to_copy);
+//        if (tid==0) printf("gid %d watchdog %d about to save %d segments\n",gid, watchdog, segment_to_copy);
         output_idx = store_segments(lsegments, segment_to_copy, // last segment is kept for the future ...
                                     segments, segment_max, segment_idx, global_start, output_idx,  local_stop, 0, cnt, lmatch);
         segment_idx += segment_to_copy;
@@ -874,7 +920,6 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
                                 segments, segment_max, segment_idx, global_start, output_idx, local_stop, gid+1==ng, cnt, lmatch);
     output_size[gid] =  output_idx;
     seg_ptr.s1 = ++segment_idx;
-    seg_ptr.s3 = output_idx;
     block_ptr[gid] = seg_ptr; 
 
     barrier(CLK_LOCAL_MEM_FENCE);
@@ -883,25 +928,20 @@ kernel void LZ4_cmp_stage1(global uchar *buffer,
     if (tid==0){
         cnt[0] = (atomic_dec(wgcnt)==1);
     }
-//    barrier(CLK_LOCAL_MEM_FENCE);
-//    if (cnt[0] && final_compaction){//TODO: redo
-//        int2 end_ptr = concatenate_segments(block_ptr,         // size = number of workgroup launched, contains start and stop position
-//                                            segments,            // size of the block-size (i.e. 1-8k !wg) / 4 * number of workgroup  
-//                                            output_size,         // output buffer size, max in input, actual value in output
-//                                            cnt,                 // index of segment offset, shared
-//                                            last_segment         // shared memory with the last segment to share between threads
-//                                            );
-//    }
+    barrier(CLK_LOCAL_MEM_FENCE);
+    if (cnt[0] && final_compaction){
+        wrap_up(output_size, lsizes);
+    }
 }
 
 
 // kernel launched with one block per workgroup. 
-//If the segment has large litterals, having many threads per group is interesting. 
+//If the segment has large litterals, having many threads per group is interesting. 128 is likely to be optimal. 
 
 kernel void LZ4_cmp_stage2(global uchar *input_buffer,   // bufffer with data to be compressed
                                      int input_size,        // size of the  data to be compressed 
                                      int block_size,        // size of each block
-                              global int4 *block_ptr,       // size = numblocks, contains contains the start and end index in segment array and start and end position in the output array 
+                              global int2 *block_ptr,       // size = numblocks, contains contains the start and end index in segment array and start and end position in the output array 
                               global short4 *segments,      // size defined by segment_ptr, constains segments relative to the begining on the block
                               global uchar *output_buffer,  // destination buffer for compressed data
                               global  int *output_size,       // size of the destination buffer                              
@@ -911,12 +951,14 @@ kernel void LZ4_cmp_stage2(global uchar *input_buffer,   // bufffer with data to
     int tid = get_local_id(0);
     int wg = get_local_size(0);
     int ng = get_num_groups(0);
-    int4 segment_range =  block_ptr[gid];
+    int2 segment_range =  block_ptr[gid];
     int input_offset = block_size*gid;
-    int output_offset = segment_range.s2 + (prefix_header) ? 4 : 0;
+    int output_offset = ((gid==0)? 0: output_size[gid-1]) + (prefix_header) ? 4 : 0;
+    int max_output = output_size[gid];
+    
     short4 short_segment;
     int4   int_segment; 
-    int r_size = output_size[0];
+    int r_size;
 
     if (prefix_header){
         if ((gid == 0) && (tid==0)){//write 
@@ -935,21 +977,19 @@ kernel void LZ4_cmp_stage2(global uchar *input_buffer,   // bufffer with data to
                              short_segment.s3+output_offset);
         if ((gid+1==segment_range.s1)&&(gid+1==ng)){//last segment
             int actual_size = write_segment(input_buffer,  // buffer with input uncompressed data
-                                   input_size,    // size of the  data to be compressed 
-                                   int_segment,   // segment to be compressed
-                                   output_buffer, // destination buffer for compressed data
-                                   r_size,   // size of the output buffer  
-                                   1);
-            if (tid==0) output_size[0] = actual_size;
+                                            input_size,    // size of the  data to be compressed 
+                                            int_segment,   // segment to be compressed
+                                            output_buffer, // destination buffer for compressed data
+                                            max_output,    // size of the output buffer  
+                                            1);
         }
         else{
             write_segment(input_buffer,  // buffer with input uncompressed data
                           input_size,    // size of the  data to be compressed 
                           int_segment,   // segment to be compressed
                           output_buffer, // destination buffer for compressed data
-                          r_size,   //  size of the output buffer
+                          max_output,    //  size of the output buffer
                           0);
-        }
-        
+        }       
     }//loop over all segments in a block.
 }
