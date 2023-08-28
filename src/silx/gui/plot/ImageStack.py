@@ -35,7 +35,7 @@ from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 import typing
 import logging
-from silx.gui.widgets.waiteroverlay import WaiterOverlay
+from silx.gui.widgets.WaitingOverlay import WaitingOverlay
 
 _logger = logging.getLogger(__name__)
 
@@ -200,7 +200,7 @@ class ImageStack(qt.QMainWindow):
         # main widget
         self._plot = Plot2D(parent=self)
         self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
-        self._waiterOverlay = WaiterOverlay(self._plot)
+        self._waitingOverlay = WaitingOverlay(self._plot)
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
@@ -225,7 +225,7 @@ class ImageStack(qt.QMainWindow):
 
     def close(self) -> bool:
         self._freeLoadingThreads()
-        self._waiterOverlay.close()
+        self._waitingOverlay.close()
         self._plot.close()
         super(ImageStack, self).close()
 
@@ -497,12 +497,12 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self._waiterOverlay.setWaiting(activate=False)
+                self._waitingOverlay.setWaiting(activate=False)
                 self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
             else:
                 self._plot.clear()
                 self._load(url)
-                self._waiterOverlay.setWaiting(True)
+                self._waitingOverlay.setWaiting(True)
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
