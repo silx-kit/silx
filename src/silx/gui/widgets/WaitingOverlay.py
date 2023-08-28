@@ -62,11 +62,11 @@ class WaitingOverlay(qt.QWidget):
 
     def showEvent(self, event: qt.QShowEvent):
         super().showEvent(event)
-        self._waitingButton.setWaiting(True)
+        self._waitingButton.setVisible(True)
 
     def hideEvent(self, event: qt.QHideEvent):
         super().hideEvent(event)
-        self._waitingButton.setWaiting(False)
+        self._waitingButton.setVisible(False)
 
     def _resize(self):
         if not qt_inspect.isValid(self):

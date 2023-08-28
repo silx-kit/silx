@@ -310,7 +310,7 @@ class ImageStack(qt.QMainWindow):
         if url in self._urlIndexes:
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
-                self._plot.setWaiting(False)
+                self._waitingOverlay.setVisible(False)
                 self._plot.addImage(self._urlData[url], resetzoom=self._autoResetZoom)
             if sender in self._loadingThreads:
                 self._loadingThreads.remove(sender)
@@ -497,12 +497,12 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self._waitingOverlay.setWaiting(activate=False)
+                self._waitingOverlay.setVisible(False)
                 self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
             else:
                 self._plot.clear()
                 self._load(url)
-                self._waitingOverlay.setWaiting(True)
+                self._waitingOverlay.setVisible(True)
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
