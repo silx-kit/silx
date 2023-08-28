@@ -25,7 +25,6 @@ def test_show(qapp, qapp_utils, widget_parent):
 
     waitingOverlay.hide()
     qapp.processEvents()
-    assert not waitingOverlay._waitingButton.isWaiting()
 
     widget.close()
     waitingOverlay.close()

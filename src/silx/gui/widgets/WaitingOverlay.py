@@ -18,6 +18,7 @@ class WaitingOverlay(qt.QWidget):
 
         self._waitingButton = WaitingPushButton(self)
         self._waitingButton.setDown(True)
+        self._waitingButton.setWaiting(True)
         self._waitingButton.setStyleSheet("QPushButton { background-color: rgba(150, 150, 150, 40); border: 0px; border-radius: 10px; }")
         self._registerParent(parent)
 
