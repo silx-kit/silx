@@ -49,7 +49,7 @@ from silx.gui.plot3d.SceneWindow import SceneWindow
 from silx.gui.plot3d import items
 
 
-MAX_NUMBER_OF_POINTS = int(10**6)
+MAX_NUMBER_OF_POINTS = 10**6
 
 
 class UpdateScatterThread(threading.Thread):
