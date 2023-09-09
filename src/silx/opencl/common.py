@@ -475,7 +475,6 @@ class OpenCL(object):
             device = ctx.devices[0]
             platforms = [i for i, p in enumerate(ocl.platforms) if device.platform.name == p.name]
             if platforms:
-                print(platforms)
                 platformid = platforms[0]
                 devices = [i for i, d in enumerate(ocl.platforms[platformid].devices) if device.name == d.name]
                 if devices:
