@@ -33,7 +33,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "14/06/2023"
+__date__ = "09/09/2023"
 __status__ = "stable"
 __all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
            "measure_workgroup_size", "kernel_workgroup_size"]
@@ -68,6 +68,7 @@ if pyopencl is not None:
     mf = pyopencl.mem_flags
     from .atomic import check_atomic32, check_atomic64
 else:
+
     # Define default mem flags
     class mf(object):
         WRITE_ONLY = 1
@@ -79,12 +80,12 @@ FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/mu
                  "ACC": 8}  # ACC: the Xeon-phi (MIC) appears to be able to process 8 Flops per hyperthreaded-core
 
 # Sources : https://en.wikipedia.org/wiki/CUDA
-NVIDIA_FLOP_PER_CORE = {(1, 0): 24,   # Guessed !
-                        (1, 1): 24,   # Measured on G98 [Quadro NVS 295]
-                        (1, 2): 24,   # Guessed !
-                        (1, 3): 24,   # measured on a GT285 (GT200)
-                        (2, 0): 64,   # Measured on a 580 (GF110)
-                        (2, 1): 96,   # Measured on Quadro2000 GF106GL
+NVIDIA_FLOP_PER_CORE = {(1, 0): 24,  # Guessed !
+                        (1, 1): 24,  # Measured on G98 [Quadro NVS 295]
+                        (1, 2): 24,  # Guessed !
+                        (1, 3): 24,  # measured on a GT285 (GT200)
+                        (2, 0): 64,  # Measured on a 580 (GF110)
+                        (2, 1): 96,  # Measured on Quadro2000 GF106GL
                         (3, 0): 384,  # Guessed!
                         (3, 5): 384,  # Measured on K20
                         (3, 7): 384,  # K80: Guessed!
@@ -95,7 +96,7 @@ NVIDIA_FLOP_PER_CORE = {(1, 0): 24,   # Guessed !
                         (6, 1): 128,  # GP104
                         (6, 2): 128,  # ?
                         (7, 0): 128,  # Volta  # measured on Telsa V100
-                        (7, 2): 128,  # Volta  ? 
+                        (7, 2): 128,  # Volta  ?
                         (7, 5): 128,  # Turing # measured on RTX 6000
                         (8, 0): 128,  # Ampere # measured on Tesla A100
                         (8, 6): 256,  # Ampere # measured on RTX A5000
@@ -149,7 +150,7 @@ class Device(object):
             self.flops = cores * frequency * flop_core
         else:
             self.flops = flop_core
-        self.platform = platform 
+        self.platform = platform
 
     def __repr__(self):
         return "%s" % self.name
@@ -365,7 +366,7 @@ class OpenCL(object):
                     continue
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
-                               device.max_clock_frequency, flop_core, idd, workgroup, 
+                               device.max_clock_frequency, flop_core, idd, workgroup,
                                check_atomic32(device)[0], check_atomic64(device)[0])
                 pypl.add_device(pydev)
                 nb_devices += 1
@@ -464,19 +465,29 @@ class OpenCL(object):
         if extensions is None:
             extensions = []
 
+        ctx = None
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)
             deviceid = int(deviceid)
         elif "PYOPENCL_CTX" in os.environ:
-            pyopencl_ctx = [int(i) if i.isdigit() else 0 for i in os.environ["PYOPENCL_CTX"].split(":")]
-            pyopencl_ctx += [0] * (2 - len(pyopencl_ctx))  # pad with 0
-            platformid, deviceid = pyopencl_ctx
+            ctx = pyopencl.create_some_context()
+            # try:
+            device = ctx.devices[0]
+            platforms = [i for i, p in enumerate(ocl.platforms) if device.platform.name == p.name]
+            if platforms:
+                print(platforms)
+                platformid = platforms[0]
+                devices = [i for i, d in enumerate(ocl.platforms[platformid].devices) if device.name == d.name]
+                if devices:
+                    deviceid = devices[0]
+                    if cached:
+                        self.context_cache[(platformid, deviceid)] = ctx
         else:
             ids = ocl.select_device(type=devicetype, extensions=extensions)
             if ids:
                 platformid, deviceid = ids
-        ctx = None
-        if (platformid is not None) and (deviceid is not None):
+
+        if (ctx is None) and (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
             else:
