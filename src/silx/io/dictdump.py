@@ -366,8 +366,8 @@ def dicttoh5(
                         dtype = f"numpy.ndarray-{data.dtype}"
                     else:
                         dtype = type(data)
-                    raise RuntimeError(
-                        f"Failed to create dataset {h5f.name}/{h5name} with data ({dtype}) = {data}"
+                    raise ValueError(
+                        f"Failed to create dataset '{h5name}' with data ({dtype}) = {data}"
                     )
                 if attrs_backup:
                     h5f[h5name].attrs.update(attrs_backup)

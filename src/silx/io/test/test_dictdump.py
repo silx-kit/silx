@@ -30,6 +30,7 @@ __date__ = "17/01/2018"
 from collections import defaultdict
 from copy import deepcopy
 import os
+import re
 import tempfile
 import unittest
 
@@ -513,6 +514,13 @@ def test_dicttoh5_pint(tmp_h5py_file):
     assert set(treedict.keys()) == set(result.keys())
     for key, value in treedict.items():
         assert numpy.array_equal(result[key], value.magnitude)
+
+
+def test_dicttoh5_not_serializable(tmp_h5py_file):
+    treedict = {"group": {"dset": [{"a": 1}]}}
+    err_msg = "Failed to create dataset '/group/dset' with data (numpy.ndarray-object) = [{'a': 1}]"
+    with pytest.raises(ValueError, match=re.escape(err_msg)):
+        dicttoh5(treedict, tmp_h5py_file)
 
 
 class TestH5ToDict(H5DictTestCase):
