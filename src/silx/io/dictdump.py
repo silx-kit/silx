@@ -341,13 +341,20 @@ def dicttoh5(
 
                 # Create dataset
                 # can't apply filters on scalars (datasets with shape == ())
-                if data.shape == () or create_dataset_args is None:
-                    h5f.create_dataset(h5name,
-                                       data=data)
-                else:
-                    h5f.create_dataset(h5name,
-                                       data=data,
-                                       **create_dataset_args)
+                try:
+                    if data.shape == () or create_dataset_args is None:
+                        h5f.create_dataset(h5name,
+                                        data=data)
+                    else:
+                        h5f.create_dataset(h5name,
+                                        data=data,
+                                        **create_dataset_args)
+                except Exception:
+                    if isinstance(data, numpy.ndarray):
+                        dtype = f"numpy.ndarray-{data.dtype}"
+                    else:
+                        dtype = type(data)
+                    raise RuntimeError(f"Failed to create dataset {h5f.name}/{h5name} with data ({dtype}) = {data}")
                 if attrs_backup:
                     h5f[h5name].attrs.update(attrs_backup)
 
