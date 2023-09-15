@@ -361,12 +361,12 @@ def dicttoh5(
                         h5f.create_dataset(h5name, data=data)
                     else:
                         h5f.create_dataset(h5name, data=data, **create_dataset_args)
-                except Exception as e:
+                except TypeError as e:
                     if isinstance(data, numpy.ndarray):
                         dtype = f"numpy.ndarray-{data.dtype}"
                     else:
                         dtype = type(data)
-                    raise ValueError(
+                    raise TypeError(
                         f"Failed to create dataset '{h5name}' with data ({dtype}) = {data}"
                     ) from e
                 if attrs_backup:
