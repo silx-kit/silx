@@ -138,7 +138,7 @@ class CompareImagesWindow(qt.QMainWindow):
 
         if data.ndim == 2:
             return data
-        if data.ndim == 3 and data.shape[0] in set([3, 4]):
+        if data.ndim == 3 and data.shape[2] in {3, 4}:
             return data
 
         raise ValueError(f"URL '{urlPath}' does not link to an numpy image")
