@@ -163,6 +163,8 @@ class CompareImagesWindow(qt.QMainWindow):
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
         settings.setValue("spliter", self.__splitter.sizes())
+        # NOTE: isInverted returns a numpy bool
+        settings.setValue("y-axis-inverted", bool(self._plot.getPlot().getYAxis().isInverted()))
 
         settings.setValue("visualization-mode", self._plot.getVisualizationMode().name)
         settings.setValue("alignment-mode", self._plot.getAlignmentMode().name)
@@ -189,6 +191,8 @@ class CompareImagesWindow(qt.QMainWindow):
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
         isFullScreen = parseutils.to_bool(isFullScreen, False)
+        yAxisInverted = settings.value("y-axis-inverted", False)
+        yAxisInverted = parseutils.to_bool(yAxisInverted, False)
 
         visualizationMode = settings.value("visualization-mode", "")
         visualizationMode = parseutils.to_enum(
@@ -220,3 +224,4 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.setVisualizationMode(visualizationMode)
         self._plot.setAlignmentMode(alignmentMode)
         self._plot.setKeypointsVisible(displayKeypoints)
+        self._plot.getPlot().getYAxis().setInverted(yAxisInverted)
