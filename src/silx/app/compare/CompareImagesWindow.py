@@ -31,7 +31,6 @@ import numpy
 import silx.io
 from silx.gui import icons
 from silx.gui import qt
-from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 from ..utils import parseutils
