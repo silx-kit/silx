@@ -117,6 +117,7 @@ def _is_h5py_exception(e):
     :returns bool:
     """
     for frame in traceback.walk_tb(e.__traceback__):
+        # to my understanding something should be done here to catch the "Unable to synchronously open file" exception
         for namespace in (frame[0].f_locals, frame[0].f_globals):
             if namespace.get("__package__", None) == "h5py":
                 return True
@@ -136,6 +137,9 @@ def _retry_h5py_error(e):
             # KeyError: 'Unable to open object (bad object header version number)'
             return "Unable to open object" in str(e)
     elif isinstance(e, retry_mod.RetryError):
+        return True
+    elif isinstance(e, FileNotFoundError):
+        # handles "Unable to synchronously open file" for example. Which is raised since h5py
         return True
     return False
 
