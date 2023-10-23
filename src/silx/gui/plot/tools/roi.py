@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ from ...utils import blockSignals
 from ...utils import LockReentrant
 from .. import PlotWidget
 from ..items import roi as roi_items
+from ..items import ItemChangedType
 from ..items.roi import RegionOfInterest
 
 from ...colors import rgba
@@ -1259,6 +1260,9 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
 class RegionOfInterestTableWidget(qt.QTableWidget):
     """Widget displaying the ROIs of a :class:`RegionOfInterestManager`"""
 
+    # Columns indices of the different displayed information
+    (_LABEL_VISIBLE_COL,_EDITABLE_COL, _KIND_COL, _COORDINATES_COL, _DELETE_COL) = range(5)
+
     def __init__(self, parent=None):
         super(RegionOfInterestTableWidget, self).__init__(parent)
         self._roiManagerRef = None
@@ -1285,21 +1289,17 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         self.itemChanged.connect(self.__itemChanged)
 
     def __itemChanged(self, item):
-        """Handle item updates"""
+        """Handle QTableWidget item updates"""
         column = item.column()
-        index = item.data(qt.Qt.UserRole)
-
-        if index is not None:
-            manager = self.getRegionOfInterestManager()
-            roi = manager.getRois()[index]
-        else:
+        roi = item.data(qt.Qt.UserRole)
+        if roi is None:
             return
 
         if column == 0:
             # First collect information from item, then update ROI
-            # Otherwise, this causes issues issues
+            # Otherwise, this causes issues
             checked = item.checkState() == qt.Qt.Checked
-            text= item.text()
+            text = item.text()
             roi.setVisible(checked)
             roi.setName(text)
         elif column == 1:
@@ -1319,7 +1319,11 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         previousManager = self.getRegionOfInterestManager()
 
         if previousManager is not None:
-            previousManager.sigRoiChanged.disconnect(self._sync)
+            previousManager.sigRoiAdded.disconnect(self.__roiAdded)
+            previousManager.sigRoiAboutToBeRemoved.disconnect(self.__roiAboutToBeRemoved)
+            for roi in previousManager.getRois():
+                self.__disconnectRoi(roi)
+
         self.setRowCount(0)
 
         self._roiManagerRef = weakref.ref(manager)
@@ -1327,7 +1331,10 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         self._sync()
 
         if manager is not None:
-            manager.sigRoiChanged.connect(self._sync)
+            for roi in manager.getRois():
+                self.__connectRoi(roi)
+            manager.sigRoiAdded.connect(self.__roiAdded)
+            manager.sigRoiAboutToBeRemoved.connect(self.__roiAboutToBeRemoved)
 
     def _getReadableRoiDescription(self, roi):
         """Returns modelisation of a ROI as a readable sequence of values.
@@ -1352,6 +1359,75 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             logger.debug("Backtrace", exc_info=True)
         return text
 
+    def __connectRoi(self, roi: RegionOfInterest):
+        """Start listening ROI signals"""
+        roi.sigItemChanged.connect(self.__roiItemChanged)
+        roi.sigRegionChanged.connect(self.__roiRegionChanged)
+
+    def __disconnectRoi(self, roi: RegionOfInterest):
+        """Stop listening ROI signals"""
+        roi.sigItemChanged.disconnect(self.__roiItemChanged)
+        roi.sigRegionChanged.disconnect(self.__roiRegionChanged)
+
+    def __getRoiRow(self, roi: RegionOfInterest) -> int:
+        """Returns row index of given region of interest
+
+        :raises ValueError: If region of interest is not in the list
+        """
+        manager = self.getRegionOfInterestManager()
+        if manager is None:
+            return
+        return manager.getRois().index(roi)
+
+    def __roiAdded(self, roi: RegionOfInterest):
+        """Handle new ROI added to the manager"""
+        self.__connectRoi(roi)
+        self._sync()
+
+    def __roiAboutToBeRemoved(self, roi: RegionOfInterest):
+        """Handle removing a ROI from the manager"""
+        self.__disconnectRoi(roi)
+        self.removeRow(self.__getRoiRow(roi))
+
+    def __roiItemChanged(self, event: ItemChangedType):
+        """Handle ROI sigItemChanged events"""
+        roi = self.sender()
+        if roi is None:
+            return
+
+        try:
+            row = self.__getRoiRow(roi)
+        except ValueError:
+            return
+
+        if event == ItemChangedType.VISIBLE:
+            item = self.item(row, self._LABEL_VISIBLE_COL)
+            item.setCheckState(qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
+            return
+
+        if event == ItemChangedType.NAME:
+            item = self.item(row, self._LABEL_VISIBLE_COL)
+            item.setText(roi.getName())
+            return
+
+        if event == ItemChangedType.EDITABLE:
+            item = self.item(row, self._EDITABLE_COL)
+            item.setCheckState(qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
+            return
+
+    def __roiRegionChanged(self):
+        """Handle change of ROI coordinates"""
+        roi = self.sender()
+        if roi is None:
+            return
+
+        item = self.item(self.__getRoiRow(roi), self._COORDINATES_COL)
+        if item is None:
+            return
+
+        text = self._getReadableRoiDescription(roi)
+        item.setText(text)
+
     def _sync(self):
         """Update widget content according to ROI manger"""
         manager = self.getRegionOfInterestManager()
@@ -1367,21 +1443,21 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
             # Label and visible
-            label = roi.getName()
-            item = qt.QTableWidgetItem(label)
+            item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, index)
+            item.setData(qt.Qt.UserRole, roi)
+            item.setText(roi.getName())
             item.setCheckState(
                 qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
-            self.setItem(index, 0, item)
+            self.setItem(index, self._LABEL_VISIBLE_COL, item)
 
             # Editable
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, index)
+            item.setData(qt.Qt.UserRole, roi)
             item.setCheckState(
                 qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
-            self.setItem(index, 1, item)
+            self.setItem(index, self._EDITABLE_COL, item)
             item.setTextAlignment(qt.Qt.AlignCenter)
             item.setText(None)
 
@@ -1392,19 +1468,18 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
                 label = roi.__class__.__name__
             item = qt.QTableWidgetItem(label.capitalize())
             item.setFlags(baseFlags)
-            self.setItem(index, 2, item)
-
-            item = qt.QTableWidgetItem()
-            item.setFlags(baseFlags)
+            self.setItem(index, self._KIND_COL, item)
 
             # Coordinates
+            item = qt.QTableWidgetItem()
+            item.setFlags(baseFlags)
             text = self._getReadableRoiDescription(roi)
             item.setText(text)
-            self.setItem(index, 3, item)
+            self.setItem(index, self._COORDINATES_COL, item)
 
             # Delete
-            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
             widget = qt.QWidget(self)
+            delBtn = _DeleteRegionOfInterestToolButton(widget, roi)
             layout = qt.QHBoxLayout()
             layout.setContentsMargins(2, 2, 2, 2)
             layout.setSpacing(0)
@@ -1412,7 +1487,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             layout.addStretch(1)
             layout.addWidget(delBtn)
             layout.addStretch(1)
-            self.setCellWidget(index, 4, widget)
+            self.setCellWidget(index, self._DELETE_COL, widget)
 
     def getRegionOfInterestManager(self):
         """Returns the :class:`RegionOfInterestManager` this widget supervise.
