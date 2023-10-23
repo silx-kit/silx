@@ -77,7 +77,7 @@ class UrlList(qt.QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._editable = False
-        # are we in 'editable' mode: for now if true then we can remove some item from the list
+        # are we in 'editable' mode: for now if true then we can remove some items from the list
 
         # menu to be triggered when in edition from right-click
         self._menu = qt.QMenu()
