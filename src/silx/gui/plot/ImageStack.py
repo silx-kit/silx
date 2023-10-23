@@ -63,7 +63,10 @@ class UrlList(qt.QListWidget):
     """List of URLs the user to select an URL"""
 
     sigCurrentUrlChanged = qt.Signal(str)
-    """Signal emitted when the active/current url change. If url == '' consider it as there is not data to be displayed"""
+    """Signal emitted when the active/current URL has changed.
+
+    This signal emits the empty string when there is no longer an active URL.
+    """
 
     sigUrlsRemoved = qt.Signal(tuple)
     """Signal emit when some URLs have been removed from the URL list.
