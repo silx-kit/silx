@@ -250,7 +250,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """Static method to close explicit references to internal objects."""
         _logger.debug("Clear Hdf5TreeModel")
         for obj in fileList:
-            _logger.debug("Close file %s", obj.filename)
             obj.close()
         fileList[:] = []
 
