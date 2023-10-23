@@ -66,7 +66,10 @@ class UrlList(qt.QListWidget):
     """Signal emitted when the active/current url change. If url == '' consider it as there is not data to be displayed"""
 
     sigUrlsRemoved = qt.Signal(tuple)
-    """signal emit when some url have been removed from the URL list. Provided as a tuple of url as strings"""
+    """Signal emit when some URLs have been removed from the URL list.
+
+    Provided as a tuple of url as strings.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
