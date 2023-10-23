@@ -441,9 +441,9 @@ class ImageStack(qt.QMainWindow):
 
     def _urlsRemoved(self, urls: tuple) -> None:
         """
-        remove provided urls from the given one and reset urls
+        Remove provided URLs from the given one and reset URLs
 
-        :param tuple urls: urls as str
+        :param urls: URLs as str
         """
         # remove the given urls from self._urls and self._urlIndexes
         for url in urls:
