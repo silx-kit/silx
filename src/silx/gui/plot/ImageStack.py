@@ -182,8 +182,8 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
         # Signal / slot connection
         self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
-        self._urlsTable.sigCurrentUrlChanged.connect(self._propagateCurrentUrlChangedSignal)
-        self._urlsTable.sigUrlsRemoved.connect(self._propageUrlsRemovedSignal)
+        self._urlsTable.sigCurrentUrlChanged.connect(self.sigCurrentUrlChanged)
+        self._urlsTable.sigUrlsRemoved.connect(self.sigUrlsRemoved)
 
         # expose API
         self.setUrls = self._urlsTable.setUrls
