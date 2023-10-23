@@ -97,6 +97,7 @@ class UrlList(qt.QListWidget):
         self.currentItemChanged.connect(self._notifyCurrentUrlChanged)
 
     def setEditable(self, editable: bool):
+    """Toggle whether the user can remove some URLs from the list"""
         if editable != self._editable:
             self._editable = editable
             # discusable choice: should we change the selection mode ? No much meaning
