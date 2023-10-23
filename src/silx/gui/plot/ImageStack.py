@@ -124,6 +124,10 @@ class UrlList(qt.QListWidget):
             self.sigCurrentUrlChanged.emit(current.text())
 
     def setUrl(self, url: typing.Optional[DataUrl]) -> None:
+    """Set the current URL.
+
+    :param url: The new selected URL. Use `None` to clear the selection.
+    """
         if url is None:
             self.clearSelection()
             self.sigCurrentUrlChanged.emit("")
