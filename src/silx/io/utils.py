@@ -39,6 +39,7 @@ import numpy
 
 from silx.utils.proxy import Proxy
 from .url import DataUrl
+from . import h5py_utils
 from .._version import calc_hexversion
 
 import h5py
@@ -482,10 +483,7 @@ def _open_local_file(filename):
                                       "File '%s' can't be read as a numpy file." % filename))
 
         if h5py.is_hdf5(filename):
-            try:
-                return h5py.File(filename, "r")
-            except OSError:
-                return h5py.File(filename, "r", libver='latest', swmr=True)
+            return h5py_utils.File(filename, "r")
 
         try:
             from . import fabioh5
