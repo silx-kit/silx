@@ -106,11 +106,9 @@ class UrlList(qt.QListWidget):
             if editable:
                 self._removeAction.triggered.connect(self._removeSelectedItems)
                 self.addAction(self._removeAction)
-                self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
             else:
                 self._removeAction.triggered.disconnect(self._removeSelectedItems)
                 self.removeAction(self._removeAction)
-                self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
     def setUrls(self, urls: list) -> None:
         url_names = []
@@ -401,6 +399,11 @@ class ImageStack(qt.QMainWindow):
 
     def setUrlsEditable(self, editable: bool):
         self._urlsTable._urlsTable.setEditable(editable)
+        if editable:
+            selection_mode = qt.QAbstractItemView.ExtendedSelection
+        else:
+            selection_mode = qt.QAbstractItemView.SingleSelection
+        self._urlsTable._urlsTable.setSelectionMode(selection_mode)
 
     def setUrls(self, urls: list) -> None:
         """list of urls within an index. Warning: urls should contain an image
