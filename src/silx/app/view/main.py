@@ -159,12 +159,7 @@ def mainQt(options):
         _logger.error("An error occured in silx view:")
         _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
         try:
-            label = qt.QLabel()
-            label.setText('<font color="#e60000"><b>⚠ Error</b></font>')
-            label.setToolTip("An error occured:\nCheck error messages in the console")
-
-            statusBar = window.statusBar()
-            statusBar.addPermanentWidget(label)
+            window.setErrorFromException(type_, value, trace)
         except Exception:
             pass
     sys.excepthook = exceptHook
