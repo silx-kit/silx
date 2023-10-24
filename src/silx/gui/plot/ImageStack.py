@@ -205,12 +205,6 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
     def urlSelectionTableIsVisible(self):
         return self._urlsTable.isVisibleTo(self)
 
-    def _propagateCurrentUrlChangedSignal(self, url):
-        self.sigCurrentUrlChanged.emit(url)
-
-    def _propageUrlsRemovedSignal(self, urls):
-        self.sigUrlsRemoved.emit(urls)
-
     def clear(self):
         self._urlsTable.clear()
 
