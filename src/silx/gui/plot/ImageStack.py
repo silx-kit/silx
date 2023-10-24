@@ -68,10 +68,10 @@ class UrlList(qt.QListWidget):
     This signal emits the empty string when there is no longer an active URL.
     """
 
-    sigUrlsRemoved = qt.Signal(tuple)
-    """Signal emit when some URLs have been removed from the URL list.
+    sigUrlRemoved = qt.Signal(str)
+    """Signal emit when an url is removed from the URL list.
 
-    Provided as a tuple of url as strings.
+    Provides the url (DataUrl) as a string
     """
 
     def __init__(self, parent=None):
@@ -144,9 +144,12 @@ class UrlList(qt.QListWidget):
             raise ValueError("UrlList is not set as 'editable'")
         urls = []
         for item in self.selectedItems():
-            urls.append(item.text())
+            url = item.text()
             self.takeItem(self.row(item))
-        self.sigUrlsRemoved.emit(tuple(urls))
+            urls.append(url)
+        # as the connected slot of 'sigUrlRemoved' can modify the items, better handling all at the end
+        for url in urls:
+            self.sigUrlRemoved.emit(url)
 
     def contextMenuEvent(self, event):
         if self._editable:
@@ -161,7 +164,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
 
-    sigUrlsRemoved = qt.Signal(tuple)
+    sigUrlRemoved = qt.Signal(str)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -181,7 +184,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         # Signal / slot connection
         self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
         self._urlsTable.sigCurrentUrlChanged.connect(self.sigCurrentUrlChanged)
-        self._urlsTable.sigUrlsRemoved.connect(self.sigUrlsRemoved)
+        self._urlsTable.sigUrlRemoved.connect(self.sigUrlRemoved)
 
         # expose API
         self.setUrls = self._urlsTable.setUrls
@@ -275,7 +278,7 @@ class ImageStack(qt.QMainWindow):
 
         # connect signal / slot
         self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
-        self._urlsTable.sigUrlsRemoved.connect(self._urlsRemoved)
+        self._urlsTable.sigUrlRemoved.connect(self._urlRemoved)
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def close(self) -> bool:
@@ -436,22 +439,26 @@ class ImageStack(qt.QMainWindow):
                 first_url = self._urls[list(self._urls.keys())[0]]
                 self.setCurrentUrl(first_url)
 
-    def _urlsRemoved(self, urls: tuple) -> None:
+    def _urlRemoved(self, url: str) -> None:
         """
         Remove provided URLs from the given one and reset URLs
 
         :param urls: URLs as str
         """
         # remove the given urls from self._urls and self._urlIndexes
-        for url in urls:
-            assert isinstance(url, str), "url is expected to be the str representation of the url"
+        if not isinstance(url, str):
+            raise TypeError("url is expected to be the str representation of the url")
 
         remaining_urls = dict(
             filter(
-                lambda a: a[1].path() not in urls,
+                lambda a: a[1].path() != url,
                 self._urls.items(),
             )
         )
+
+        # avoid set of urls if none removed
+        if len(remaining_urls) == len(self._urls):
+            return
 
         # try to get reset the url displayed
         current_url = self.getCurrentUrl()
