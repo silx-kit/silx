@@ -103,3 +103,7 @@ class WaitingOverlay(qt.QWidget):
             self._resize()
             self._resizeLater()  # Defer resize for the receiver to have handled it
         return super().eventFilter(watched, event)
+
+    # expose Waiting push button API
+    def setIconSize(self, size):
+        self._waitingButton.setIconSize(size)
