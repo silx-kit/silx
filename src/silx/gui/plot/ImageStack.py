@@ -115,6 +115,12 @@ class UrlList(qt.QListWidget):
         [url_names.append(url.path()) for url in urls]
         self.addItems(url_names)
 
+    def removeUrl(self, url: str):
+        sel_items = self.findItems(url, qt.Qt.MatchExactly)
+        if len(sel_items) > 0:
+            assert len(sel_items) == 0, "at most one item expected"
+            self.removeItemWidget(sel_items[0])
+
     def _notifyCurrentUrlChanged(self, current, previous):
         if current is None:
             self.sigCurrentUrlChanged.emit("")
@@ -189,6 +195,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         # expose API
         self.setUrls = self._urlsTable.setUrls
         self.setUrl = self._urlsTable.setUrl
+        self.removeUrl = self._urlsTable.removeUrl
         self.currentItem = self._urlsTable.currentItem
 
     def toggleUrlSelectionTable(self):
@@ -278,7 +285,7 @@ class ImageStack(qt.QMainWindow):
 
         # connect signal / slot
         self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
-        self._urlsTable.sigUrlRemoved.connect(self._urlRemoved)
+        self._urlsTable.sigUrlRemoved.connect(self.removeUrl)
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def close(self) -> bool:
@@ -402,6 +409,19 @@ class ImageStack(qt.QMainWindow):
             selection_mode = qt.QAbstractItemView.SingleSelection
         self._urlsTable._urlsTable.setSelectionMode(selection_mode)
 
+    @staticmethod
+    def createUrlIndexes(urls: tuple):
+        indexes = {}
+        for index, url in enumerate(urls):
+            assert isinstance(url, DataUrl), f"url is expected to be a DataUrl. Get {type(url)}"
+            indexes[index] = url
+        return indexes
+
+    def _resetSlider(self):
+        with blockSignals(self._slider):
+            self._slider.setMinimum(0)
+            self._slider.setMaximum(len(self._urls) - 1)
+
     def setUrls(self, urls: list) -> None:
         """list of urls within an index. Warning: urls should contain an image
         compatible with the silx.gui.plot.Plot class
@@ -410,27 +430,16 @@ class ImageStack(qt.QMainWindow):
                      (position in the stack), value is the DataUrl
         :type: list
         """
-        def createUrlIndexes():
-            indexes = {}
-            for index, url in enumerate(urls):
-                assert isinstance(url, DataUrl), f"url is expected to be a DataUrl. Get {type(url)}"
-                indexes[index] = url
-            return indexes
-
-        urls_with_indexes = createUrlIndexes()
+        urls_with_indexes = self.createUrlIndexes(urls=urls)
         urlsToIndex = self._urlsToIndex(urls_with_indexes)
         self.reset()
         self._urls = urls_with_indexes
         self._urlIndexes = urlsToIndex
 
-        old_url_table = self._urlsTable.blockSignals(True)
-        self._urlsTable.setUrls(urls=list(self._urls.values()))
-        self._urlsTable.blockSignals(old_url_table)
+        with blockSignals(self._urlsTable):
+            self._urlsTable.setUrls(urls=list(self._urls.values()))
 
-        old_slider = self._slider.blockSignals(True)
-        self._slider.setMinimum(0)
-        self._slider.setMaximum(len(self._urls) - 1)
-        self._slider.blockSignals(old_slider)
+        self._resetSlider()
 
         if self.getCurrentUrl() in self._urls:
             self.setCurrentUrl(self.getCurrentUrl())
@@ -439,7 +448,7 @@ class ImageStack(qt.QMainWindow):
                 first_url = self._urls[list(self._urls.keys())[0]]
                 self.setCurrentUrl(first_url)
 
-    def _urlRemoved(self, url: str) -> None:
+    def removeUrl(self, url: str) -> None:
         """
         Remove provided URLs from the given one and reset URLs
 
@@ -449,26 +458,24 @@ class ImageStack(qt.QMainWindow):
         if not isinstance(url, str):
             raise TypeError("url is expected to be the str representation of the url")
 
-        remaining_urls = dict(
-            filter(
-                lambda a: a[1].path() != url,
-                self._urls.items(),
-            )
-        )
-
-        # avoid set of urls if none removed
-        if len(remaining_urls) == len(self._urls):
-            return
-
         # try to get reset the url displayed
         current_url = self.getCurrentUrl()
-        self.setUrls(remaining_urls.values())
-        if current_url is not None:
-            try:
-                self.setCurrentUrl(current_url)
-            except KeyError:
-                # if the url has been removed for example
-                pass
+        with blockSignals(self._urlsTable):
+            self._urlsTable.removeUrl(url)
+        # update urls
+        urls_with_indexes = self.createUrlIndexes(
+            filter(
+                lambda a: a.path() != url,
+                self._urls.values(),
+            )
+        )
+        urlsToIndex = self._urlsToIndex(urls_with_indexes)
+        self._urls = urls_with_indexes
+        self._urlIndexes = urlsToIndex
+        self._resetSlider()
+
+        if current_url != url:
+            self.setCurrentUrl(current_url)
 
     def getUrls(self) -> tuple:
         """
