@@ -72,7 +72,7 @@ class LoadingItemRunnable(qt.QRunnable):
 
     class __Signals(qt.QObject):
         """Signal holder"""
-        itemReady = qt.Signal(object, object, object)
+        itemReady = qt.Signal(object, object, object, str)
         runnerFinished = qt.Signal(object)
 
     def __init__(self, filename, item):
@@ -129,7 +129,7 @@ class LoadingItemRunnable(qt.QRunnable):
             if h5file is not None:
                 h5file.close()
 
-        self.itemReady.emit(self.oldItem, newItem, error)
+        self.itemReady.emit(self.oldItem, newItem, error, self.filename)
         self.runnerFinished.emit(self)
 
     def autoDelete(self):
@@ -184,7 +184,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     ]
     """List of logical columns available"""
 
-    sigH5pyObjectLoaded = qt.Signal(object)
+    sigH5pyObjectLoaded = qt.Signal(object, str)
     """Emitted when a new root item was loaded and inserted to the model."""
 
     sigH5pyObjectRemoved = qt.Signal(object)
@@ -250,7 +250,6 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         """Static method to close explicit references to internal objects."""
         _logger.debug("Clear Hdf5TreeModel")
         for obj in fileList:
-            _logger.debug("Close file %s", obj.filename)
             obj.close()
         fileList[:] = []
 
@@ -269,14 +268,21 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 index2 = self.index(i, self.columnCount() - 1, qt.QModelIndex())
                 self.dataChanged.emit(index1, index2)
 
-    def __itemReady(self, oldItem, newItem, error):
+    def __itemReady(
+            self,
+            oldItem: Hdf5Node,
+            newItem: Optional[Hdf5Node],
+            error: Optional[Exception],
+            filename: str,
+        ):
         """Called at the end of a concurent file loading, when the loading
         item is ready. AN error is defined if an exception occured when
         loading the newItem .
 
-        :param Hdf5Node oldItem: current displayed item
-        :param Hdf5Node newItem: item loaded, or None if error is defined
-        :param Exception error: An exception, or None if newItem is defined
+        :param oldItem: current displayed item
+        :param newItem: item loaded, or None if error is defined
+        :param error: An exception, or None if newItem is defined
+        :param filename: The filename used to load the new item
         """
         row = self.__root.indexOfChild(oldItem)
 
@@ -294,7 +300,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             self.endInsertRows()
 
             if isinstance(oldItem, Hdf5LoadingItem):
-                self.sigH5pyObjectLoaded.emit(newItem.obj)
+                self.sigH5pyObjectLoaded.emit(newItem.obj, filename)
             else:
                 self.sigH5pyObjectSynchronized.emit(oldItem.obj, newItem.obj)
 
@@ -703,7 +709,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             h5file = silx_io.open(filename)
             if self.__ownFiles:
                 self.__openedFiles.append(h5file)
-            self.sigH5pyObjectLoaded.emit(h5file)
+            self.sigH5pyObjectLoaded.emit(h5file, filename)
             self.insertH5pyObject(h5file, row=row, filename=filename)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)

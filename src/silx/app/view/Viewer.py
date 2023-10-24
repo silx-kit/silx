@@ -453,9 +453,9 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(customNxdataWidget)
         return widget
 
-    def __h5FileLoaded(self, loadedH5):
+    def __h5FileLoaded(self, loadedH5, filename):
         self.__context.pushRecentFile(loadedH5.file.filename)
-        if loadedH5.file.filename == self.__displayIt:
+        if filename == self.__displayIt:
             self.__displayIt = None
             self.displayData(loadedH5)
 

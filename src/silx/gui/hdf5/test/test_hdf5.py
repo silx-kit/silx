@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ from silx.gui import hdf5
 from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
 from silx.io import h5py_utils
+from silx.io.url import DataUrl
 import weakref
 
 import h5py
@@ -400,11 +401,17 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
-        self.model.insertFile(self.filename)
-        self.assertEqual(self.listener.callCount(), 1)
-        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
-        self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
-        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, self.filename)
+        for data_path in [None, "/arrays/scalar"]:
+            with self.subTest(data_path=data_path):
+                url = DataUrl(file_path=self.filename, data_path=data_path)
+                insertedFilename = url.path()
+                self.model.insertFile(insertedFilename)
+                self.assertEqual(self.listener.callCount(), 1)
+                self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
+                self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
+                self.assertEqual(self.listener.arguments(callIndex=0)[0].file.filename, self.filename)
+                self.assertEqual(self.listener.arguments(callIndex=0)[1], insertedFilename)
+                self.listener.clear()
 
     def testRemoved(self):
         self.model.removeH5pyObject(self.h5)
