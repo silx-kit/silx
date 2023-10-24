@@ -51,7 +51,7 @@ _logger = logging.getLogger(__name__)
 def _get_image_from_file(urlPath: str) -> typing.Optional[numpy.ndarray]:
     """Returns a dataset from an image file.
 
-    The returned layout shape is supposed to be `y,x,rgb[a]`.
+    The returned layout shape is supposed to be `rows, columns, channels (rgb[a])`.
     """
     if PIL is None:
         return None
