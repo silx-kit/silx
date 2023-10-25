@@ -347,9 +347,9 @@ class ImageStack(qt.QMainWindow):
 
     def removeUrl(self, url: str) -> None:
         """
-        Remove provided URLs from the given one and reset URLs
+        Remove provided URL from the table
 
-        :param urls: URLs as str
+        :param url: URL as str
         """
         # remove the given urls from self._urls and self._urlIndexes
         if not isinstance(url, str):
