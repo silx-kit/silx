@@ -4,7 +4,7 @@ from silx.gui import qt
 
 
 class UrlList(qt.QListWidget):
-    """List of URLs the user to select an URL"""
+    """List of URLs with user selection"""
 
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current URL has changed.
