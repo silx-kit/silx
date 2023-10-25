@@ -81,7 +81,8 @@ class UrlList(qt.QListWidget):
                 self._removeAction.triggered.disconnect(self._removeSelectedItems)
                 self.removeAction(self._removeAction)
 
-    def setUrls(self, urls: list) -> None:
+    def setUrls(self, urls: Iterable[DataUrl]) -> None:
+    """Append multiple DataUrl to the list"""
         url_names = []
         [url_names.append(url.path()) for url in urls]
         self.addItems(url_names)
