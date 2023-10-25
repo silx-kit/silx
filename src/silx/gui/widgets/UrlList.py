@@ -83,9 +83,7 @@ class UrlList(qt.QListWidget):
 
     def setUrls(self, urls: Iterable[DataUrl]) -> None:
     """Append multiple DataUrl to the list"""
-        url_names = []
-        [url_names.append(url.path()) for url in urls]
-        self.addItems(url_names)
+        self.addItems([url.path() for url in urls])
 
     def removeUrl(self, url: str):
     """Remove given URL from the list"""
