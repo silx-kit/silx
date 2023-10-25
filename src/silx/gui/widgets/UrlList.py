@@ -90,7 +90,6 @@ class UrlList(qt.QListWidget):
         self.addUrls(urls)
 
     def addUrls(self, urls: Iterable[DataUrl]) -> None:
-
         """Append multiple DataUrl to the list"""
         self.addItems([url.path() for url in urls])
 
