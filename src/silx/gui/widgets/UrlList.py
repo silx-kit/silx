@@ -85,11 +85,11 @@ class UrlList(qt.QListWidget):
                 self.removeAction(self._removeAction)
 
     def setUrls(self, urls: Iterable[DataUrl]) -> None:
-    """Append multiple DataUrl to the list"""
+        """Append multiple DataUrl to the list"""
         self.addItems([url.path() for url in urls])
 
     def removeUrl(self, url: str):
-    """Remove given URL from the list"""
+        """Remove given URL from the list"""
         sel_items = self.findItems(url, qt.Qt.MatchExactly)
         if len(sel_items) > 0:
             assert len(sel_items) == 0, "at most one item expected"
