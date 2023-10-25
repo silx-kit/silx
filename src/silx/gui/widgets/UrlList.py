@@ -88,6 +88,7 @@ class UrlList(qt.QListWidget):
         self.addItems(url_names)
 
     def removeUrl(self, url: str):
+    """Remove given URL from the list"""
         sel_items = self.findItems(url, qt.Qt.MatchExactly)
         if len(sel_items) > 0:
             assert len(sel_items) == 0, "at most one item expected"
