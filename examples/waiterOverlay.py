@@ -58,7 +58,7 @@ class MyMainWindow(qt.QMainWindow):
         self._waitingOverlay.hide()
         self._waitingOverlay.setIconSize(qt.QSize(60, 60))
         # connect signal / slot
-        self._button.released.connect(self._triggerImageCalculation)
+        self._button.clicked.connect(self._triggerImageCalculation)
 
     def _generateRandomData(self):
         self.setData(numpy.random.random(1000 * 500).reshape((1000, 500)))
