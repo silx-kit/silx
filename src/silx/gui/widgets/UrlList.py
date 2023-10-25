@@ -29,6 +29,7 @@ import logging
 from collections.abc import Iterable
 from silx.io.url import DataUrl
 from silx.gui import qt
+from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -84,7 +85,12 @@ class UrlList(qt.QListWidget):
                 self._removeAction.triggered.disconnect(self._removeSelectedItems)
                 self.removeAction(self._removeAction)
 
+    @deprecated(replacement="addUrls", since_version="2.0")
     def setUrls(self, urls: Iterable[DataUrl]) -> None:
+        self.addUrls(urls)
+
+    def addUrls(self, urls: Iterable[DataUrl]) -> None:
+
         """Append multiple DataUrl to the list"""
         self.addItems([url.path() for url in urls])
 
