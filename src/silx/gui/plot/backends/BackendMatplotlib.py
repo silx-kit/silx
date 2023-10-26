@@ -42,7 +42,7 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ...utils.matplotlib import FigureCanvasQTAgg
+from ...utils.matplotlib import FigureCanvasQTAgg, qFontToFontProperties
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -857,7 +857,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return item
 
     def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
+                  symbol, linestyle, linewidth, constraint, yaxis, font):
         textArtist = None
 
         xmin, xmax = self.getGraphXLimits()
@@ -881,7 +881,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if text is not None:
                 textArtist = _TextWithOffset(x, y, text,
                                              color=color,
-                                             horizontalalignment='left')
+                                             horizontalalignment='left',
+                                             fontproperties=qFontToFontProperties(font))
                 if symbol is not None:
                     textArtist.pixel_offset = 10, 3
         elif x is not None:
@@ -894,7 +895,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 textArtist = _TextWithOffset(x, 1., text,
                                              color=color,
                                              horizontalalignment='left',
-                                             verticalalignment='top')
+                                             verticalalignment='top',
+                                             fontproperties=qFontToFontProperties(font))
                 textArtist.pixel_offset = 5, 3
         elif y is not None:
             line = ax.axhline(y,
@@ -907,7 +909,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 textArtist = _TextWithOffset(1., y, text,
                                              color=color,
                                              horizontalalignment='right',
-                                             verticalalignment='top')
+                                             verticalalignment='top',
+                                             fontproperties=qFontToFontProperties(font))
                 textArtist.pixel_offset = 5, 3
         else:
             raise RuntimeError('A marker must at least have one coordinate')
