@@ -101,7 +101,7 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
         font = qt.QFont(font, size, weight, italic)
 
     # get text size
-    image = qt.QImage(1, 1, qt.QImage.Format_RGB888)
+    image = qt.QImage(1, 1, qt.QImage.Format_Grayscale8)
     painter = qt.QPainter()
     painter.begin(image)
     painter.setPen(qt.Qt.white)
@@ -125,11 +125,11 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     # align line size to 32 bits to ease conversion to numpy array
     width = 4 * ((width + 3) // 4)
     image = qt.QImage(
-        int(width), int(bounds.height() * devicePixelRatio + 2), qt.QImage.Format_RGB888
+        int(width),
+        int(bounds.height() * devicePixelRatio + 2),
+        qt.QImage.Format_Grayscale8,
     )
     image.setDevicePixelRatio(devicePixelRatio)
-
-    # TODO if Qt5 use Format_Grayscale8 instead
     image.fill(0)
 
     # Raster text
@@ -141,9 +141,6 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     painter.end()
 
     array = convertQImageToArray(image)
-
-    # RGB to R
-    array = numpy.ascontiguousarray(array[:, :, 0])
 
     # Remove leading and trailing empty columns/rows but one on each side
     filled_rows = numpy.nonzero(numpy.sum(array, axis=1))[0]
