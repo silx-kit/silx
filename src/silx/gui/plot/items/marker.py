@@ -35,6 +35,7 @@ from typing import Tuple, Optional
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType, YAxisMixIn)
+from silx import config
 from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         YAxisMixIn.__init__(self)
 
         self._text = ''
-        self._font = None
+        self._font = config.DEFAULT_PLOT_MARKER_TEXT_FONT
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
