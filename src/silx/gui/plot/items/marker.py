@@ -58,7 +58,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         YAxisMixIn.__init__(self)
 
         self._text = ''
-        self._font = qt.QFont(qt.QApplication.instance().font())
+        self._font = None
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
@@ -112,20 +112,20 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             self._text = text
             self._updated(ItemChangedType.TEXT)
 
-    def getFont(self) -> qt.QFont:
+    def getFont(self) -> Optional[qt.QFont]:
         """Returns a copy of the QFont used to render text.
 
         To modify the text font, use :meth:`setFont`.
         """
-        return qt.QFont(self._font)
+        return None if self._font is None else qt.QFont(self._font)
 
-    def setFont(self, font: qt.QFont):
-        """Set the QFont used to render text.
+    def setFont(self, font: Optional[qt.QFont]):
+        """Set the QFont used to render text, use None for default.
 
         A copy is stored, so further modification of the provided font are not taken into account.
         """
         if font != self._font:
-            self._font = qt.QFont(font)
+            self._font = None if font is None else qt.QFont(font)
             self._updated(ItemChangedType.FONT)
 
     def getXPosition(self):

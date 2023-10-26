@@ -985,6 +985,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def addMarker(self, x, y, text, color,
                   symbol, linestyle, linewidth, constraint, yaxis, font):
+        font = qt.QApplication.instance().font() if font is None else font
         return _MarkerItem(x, y, text, color,
                            symbol, linestyle, linewidth, constraint, yaxis, font)
 

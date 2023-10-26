@@ -859,6 +859,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addMarker(self, x, y, text, color,
                   symbol, linestyle, linewidth, constraint, yaxis, font):
         textArtist = None
+        fontProperties = None if font is None else qFontToFontProperties(font)
 
         xmin, xmax = self.getGraphXLimits()
         ymin, ymax = self.getGraphYLimits(axis=yaxis)
@@ -882,7 +883,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 textArtist = _TextWithOffset(x, y, text,
                                              color=color,
                                              horizontalalignment='left',
-                                             fontproperties=qFontToFontProperties(font))
+                                             fontproperties=fontProperties)
                 if symbol is not None:
                     textArtist.pixel_offset = 10, 3
         elif x is not None:
@@ -896,7 +897,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                              color=color,
                                              horizontalalignment='left',
                                              verticalalignment='top',
-                                             fontproperties=qFontToFontProperties(font))
+                                             fontproperties=fontProperties)
                 textArtist.pixel_offset = 5, 3
         elif y is not None:
             line = ax.axhline(y,
@@ -910,7 +911,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                              color=color,
                                              horizontalalignment='right',
                                              verticalalignment='top',
-                                             fontproperties=qFontToFontProperties(font))
+                                             fontproperties=fontProperties)
                 textArtist.pixel_offset = 5, 3
         else:
             raise RuntimeError('A marker must at least have one coordinate')
