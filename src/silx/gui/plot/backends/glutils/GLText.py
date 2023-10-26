@@ -34,6 +34,7 @@ __date__ = "03/04/2017"
 
 
 from collections import OrderedDict
+from typing import Optional
 import weakref
 
 import numpy
@@ -43,10 +44,7 @@ from ...._glutils import font, gl, Context, Program, Texture
 from .GLSupport import mat4Translate
 
 
-# TODO: Font should be configurable by the main program: using mpl.rcParams?
-
-
-class _Cache(object):
+class _Cache:
     """LRU (Least Recent Used) cache.
 
     :param int maxsize: Maximum number of (key, value) pairs in the cache
@@ -92,7 +90,7 @@ TOP, BASELINE, BOTTOM = 'top', 'baseline', 'bottom'
 ROTATE_90, ROTATE_180, ROTATE_270 = 90, 180, 270
 
 
-class Text2D(object):
+class Text2D:
 
     _SHADERS = {
         'vertex': """
@@ -138,12 +136,19 @@ class Text2D(object):
     _sizes = _Cache()
     """Cache already computed sizes"""
 
-    def __init__(self, text, font, x=0, y=0,
-                 color=(0., 0., 0., 1.),
-                 bgColor=None,
-                 align=LEFT, valign=BASELINE,
-                 rotate=0,
-                 devicePixelRatio= 1.):
+    def __init__(
+        self,
+        text: str,
+        font: qt.QFont,
+        x: float = 0.,
+        y: float = 0.,
+        color: tuple[float, float, float, float] = (0., 0., 0., 1.),
+        bgColor: Optional[tuple[float, float, float, float]] = None,
+        align: str = LEFT,
+        valign: str = BASELINE,
+        rotate: float = 0.,
+        devicePixelRatio: float = 1.,
+    ):
         self.devicePixelRatio = devicePixelRatio
         self.font = font
         self._vertices = None
@@ -169,7 +174,7 @@ class Text2D(object):
         """Returns the current texture key"""
         return self.text, self.font.key(), self.devicePixelRatio
 
-    def _getTexture(self):
+    def _getTexture(self) -> tuple[Texture, int]:
         # Retrieve/initialize texture cache for current context
         textureKey = self._textureKey()
 
@@ -200,11 +205,11 @@ class Text2D(object):
         return textures[textureKey]
 
     @property
-    def text(self):
+    def text(self) -> str:
         return self._text
 
     @property
-    def size(self):
+    def size(self) -> tuple[int, int]:
         textureKey = self._textureKey()
         if textureKey not in self._sizes:
             image, offset = font.rasterText(
@@ -214,7 +219,7 @@ class Text2D(object):
             self._sizes[textureKey] = image.shape[1], image.shape[0]
         return self._sizes[textureKey]
 
-    def getVertices(self, offset, shape):
+    def getVertices(self, offset: int, shape: tuple[int, int]) -> numpy.ndarray:
         height, width = shape
 
         if self._align == LEFT:
@@ -247,7 +252,7 @@ class Text2D(object):
 
         return vertices
 
-    def render(self, matrix):
+    def render(self, matrix: numpy.ndarray):
         if not self.text.strip():
             return
 

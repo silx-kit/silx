@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,15 @@
 # ###########################################################################*/
 """Text rasterisation feature leveraging Qt font and text layout support."""
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "13/10/2016"
 
 
 import logging
+from typing import Union
 import numpy
 
 from .. import qt
@@ -42,7 +45,7 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-def getDefaultFontFamily():
+def getDefaultFontFamily() -> str:
     """Returns the default font family of the application"""
     return qt.QApplication.instance().font().family()
 
@@ -70,24 +73,30 @@ ULTRA_BLACK = 99
 """Thickest characters: Maximum font weight"""
 
 
-def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+def rasterTextQt(
+    text: str,
+    font: Union[str, qt.QFont],
+    size: int = -1,
+    weight: int = -1,
+    italic: bool = False,
+    devicePixelRatio: float = 1.0,
+) -> tuple[numpy.ndarray, int]:
     """Raster text using Qt.
 
     It supports multiple lines.
 
-    :param str text: The text to raster
+    :param text: The text to raster
     :param font: Font name or QFont to use
-    :type font: str or :class:`QFont`
-    :param int size:
+    :param size:
         Font size in points
         Used only if font is given as name.
-    :param int weight:
+    :param weight:
         Font weight in [0, 99], see QFont.Weight.
         Used only if font is given as name.
-    :param bool italic:
+    :param italic:
         True for italic font (default: False).
         Used only if font is given as name.
-    :param float devicePixelRatio:
+    :param devicePixelRatio:
         The current ratio between device and device-independent pixel
         (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top
@@ -160,24 +169,30 @@ def rasterTextQt(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=
     return array, metrics.ascent() - min_row
 
 
-def rasterText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+def rasterText(
+    text: str,
+    font: Union[str, qt.QFont],
+    size: int = -1,
+    weight = -1,
+    italic: bool = False,
+    devicePixelRatio=1.0,
+) -> tuple[numpy.ndarray, int]:
     """Raster text using Qt or matplotlib if there may be math syntax.
 
     It supports multiple lines.
 
-    :param str text: The text to raster
+    :param text: The text to raster
     :param font: Font name or QFont to use
-    :type font: str or :class:`QFont`
-    :param int size:
+    :param size:
         Font size in points
         Used only if font is given as name.
-    :param int weight:
+    :param weight:
         Font weight in [0, 99], see QFont.Weight.
         Used only if font is given as name.
-    :param bool italic:
+    :param italic:
         True for italic font (default: False).
         Used only if font is given as name.
-    :param float devicePixelRatio:
+    :param devicePixelRatio:
         The current ratio between device and device-independent pixel
         (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top
