@@ -26,6 +26,8 @@ This module provides minimalistic text support for OpenGL.
 It provides Latin-1 (ISO8859-1) characters for one monospace font at one size.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -36,6 +38,7 @@ import weakref
 
 import numpy
 
+from .... import qt
 from ...._glutils import font, gl, Context, Program, Texture
 from .GLSupport import mat4Translate
 
@@ -135,13 +138,14 @@ class Text2D(object):
     _sizes = _Cache()
     """Cache already computed sizes"""
 
-    def __init__(self, text, x=0, y=0,
+    def __init__(self, text, font, x=0, y=0,
                  color=(0., 0., 0., 1.),
                  bgColor=None,
                  align=LEFT, valign=BASELINE,
                  rotate=0,
                  devicePixelRatio= 1.):
         self.devicePixelRatio = devicePixelRatio
+        self.font = font
         self._vertices = None
         self._text = text
         self.x = x
@@ -161,9 +165,13 @@ class Text2D(object):
 
         self._rotate = numpy.radians(rotate)
 
-    def _getTexture(self, text, devicePixelRatio):
+    def _textureKey(self) -> tuple[str, str, float]:
+        """Returns the current texture key"""
+        return self.text, self.font.key(), self.devicePixelRatio
+
+    def _getTexture(self):
         # Retrieve/initialize texture cache for current context
-        textureKey = text, devicePixelRatio
+        textureKey = self._textureKey()
 
         context = Context.getCurrent()
         if context not in self._textures:
@@ -173,8 +181,8 @@ class Text2D(object):
 
         if textureKey not in textures:
             image, offset = font.rasterText(
-                text,
-                font.getDefaultFontFamily(),
+                self.text,
+                self.font,
                 devicePixelRatio=self.devicePixelRatio)
             if textureKey not in self._sizes:
                 self._sizes[textureKey] = image.shape[1], image.shape[0]
@@ -197,11 +205,11 @@ class Text2D(object):
 
     @property
     def size(self):
-        textureKey = self.text, self.devicePixelRatio
+        textureKey = self._textureKey()
         if textureKey not in self._sizes:
             image, offset = font.rasterText(
                 self.text,
-                font.getDefaultFontFamily(),
+                self.font,
                 devicePixelRatio=self.devicePixelRatio)
             self._sizes[textureKey] = image.shape[1], image.shape[0]
         return self._sizes[textureKey]
@@ -247,7 +255,7 @@ class Text2D(object):
         prog.use()
 
         texUnit = 0
-        texture, offset = self._getTexture(self.text, self.devicePixelRatio)
+        texture, offset = self._getTexture()
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 
