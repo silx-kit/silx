@@ -189,7 +189,7 @@ class BackendBase(object):
         return object()
 
     def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
+                  symbol, linestyle, linewidth, constraint, yaxis, font):
         """Add a point, vertical line or horizontal line marker to the plot.
 
         :param float x: Horizontal position of the marker in graph coordinates.
@@ -228,6 +228,7 @@ class BackendBase(object):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
+        :param font: QFont to use to render text
         :return: Handle used by the backend to univocally access the marker
         """
         return object()
