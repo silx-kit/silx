@@ -29,6 +29,8 @@ It MUST be imported prior to any other import of matplotlib.
 It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
 to the used backend.
 """
+from __future__ import annotations
+
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -72,24 +74,30 @@ def qFontToFontProperties(font: qt.QFont):
     )
 
 
-def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+def rasterMathText(
+    text: str,
+    font: str | qt.QFont,
+    size: int = -1,
+    weight: int = -1,
+    italic: bool = False,
+    devicePixelRatio: float = 1.0,
+) -> tuple[numpy.ndarray, int]:
     """Raster text using matplotlib supporting latex-like math syntax.
 
     It supports multiple lines.
 
-    :param str text: The text to raster
+    :param text: The text to raster
     :param font: Font name or QFont to use
-    :type font: str or :class:`QFont`
-    :param int size:
+    :param size:
         Font size in points
         Used only if font is given as name.
-    :param int weight:
+    :param weight:
         Font weight in [0, 99], see QFont.Weight.
         Used only if font is given as name.
-    :param bool italic:
+    :param italic:
         True for italic font (default: False).
         Used only if font is given as name.
-    :param float devicePixelRatio:
+    :param devicePixelRatio:
         The current ratio between device and device-independent pixel
         (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top

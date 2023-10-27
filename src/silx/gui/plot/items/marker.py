@@ -23,6 +23,7 @@
 # ###########################################################################*/
 """This module provides markers item of the :class:`Plot`.
 """
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -30,7 +31,6 @@ __date__ = "06/03/2017"
 
 
 import logging
-from typing import Tuple, Optional
 
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
@@ -119,14 +119,14 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             self._text = text
             self._updated(ItemChangedType.TEXT)
 
-    def getFont(self) -> Optional[qt.QFont]:
+    def getFont(self) -> qt.QFont | None:
         """Returns a copy of the QFont used to render text.
 
         To modify the text font, use :meth:`setFont`.
         """
         return None if self._font is None else qt.QFont(self._font)
 
-    def setFont(self, font: Optional[qt.QFont]):
+    def setFont(self, font: qt.QFont | None):
         """Set the QFont used to render text, use None for default.
 
         A copy is stored, so further modification of the provided font are not taken into account.
@@ -149,7 +149,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         """
         return self._y
 
-    def getPosition(self) -> Tuple[Optional[float], Optional[float]]:
+    def getPosition(self) -> tuple[float | None, float | None]:
         """Returns the (x, y) position of the marker in data coordinates
 
         :rtype: 2-tuple of float or None
