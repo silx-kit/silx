@@ -31,7 +31,6 @@ __date__ = "13/10/2016"
 
 
 import logging
-from typing import Union
 import numpy
 
 from .. import qt
@@ -75,7 +74,7 @@ ULTRA_BLACK = 99
 
 def rasterTextQt(
     text: str,
-    font: Union[str, qt.QFont],
+    font: str | qt.QFont,
     size: int = -1,
     weight: int = -1,
     italic: bool = False,
@@ -171,7 +170,7 @@ def rasterTextQt(
 
 def rasterText(
     text: str,
-    font: Union[str, qt.QFont],
+    font: str | qt.QFont,
     size: int = -1,
     weight = -1,
     italic: bool = False,

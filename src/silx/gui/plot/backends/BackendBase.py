@@ -36,7 +36,6 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 from collections.abc import Callable
-from typing import Optional
 import weakref
 
 from ... import qt
@@ -197,14 +196,14 @@ class BackendBase(object):
 
     def addMarker(
         self,
-        x: Optional[float],
-        y: Optional[float],
-        text: Optional[str],
+        x: float | None,
+        y: float | None,
+        text: str | None,
         color: str,
-        symbol: Optional[str],
+        symbol: str | None,
         linestyle: str,
         linewidth: float,
-        constraint: Optional[Callable[[float, float], tuple[float, float]]],
+        constraint: Callable[[float, float], tuple[float, float]] | None,
         yaxis: str,
         font: qt.QFont,
     ) -> object:

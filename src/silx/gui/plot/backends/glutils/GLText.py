@@ -34,7 +34,6 @@ __date__ = "03/04/2017"
 
 
 from collections import OrderedDict
-from typing import Optional
 import weakref
 
 import numpy
@@ -143,7 +142,7 @@ class Text2D:
         x: float = 0.,
         y: float = 0.,
         color: tuple[float, float, float, float] = (0., 0., 0., 1.),
-        bgColor: Optional[tuple[float, float, float, float]] = None,
+        bgColor: tuple[float, float, float, float] | None = None,
         align: str = LEFT,
         valign: str = BASELINE,
         rotate: float = 0.,

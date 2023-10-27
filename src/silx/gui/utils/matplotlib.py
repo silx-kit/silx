@@ -38,7 +38,6 @@ __date__ = "02/05/2018"
 
 
 import io
-from typing import Union
 import matplotlib
 import numpy
 
@@ -77,7 +76,7 @@ def qFontToFontProperties(font: qt.QFont):
 
 def rasterMathText(
     text: str,
-    font: Union[str, qt.QFont],
+    font: str | qt.QFont,
     size: int = -1,
     weight: int = -1,
     italic: bool = False,
