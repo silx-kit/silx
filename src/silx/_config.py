@@ -158,8 +158,8 @@ class Config(object):
     .. versionadded:: 2.0
     """
 
-    DEFAULT_PLOT_MARKER_TEXT_FONT = None
-    """Default Qt's QFont for marker text.
+    DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE = None
+    """Default font size for marker text.
 
     It will have an influence on PlotWidget marker items
 

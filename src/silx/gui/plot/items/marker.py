@@ -59,7 +59,13 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         YAxisMixIn.__init__(self)
 
         self._text = ''
-        self._font = config.DEFAULT_PLOT_MARKER_TEXT_FONT
+        self._font = None
+        if config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE is not None:
+            self._font = qt.QFont(
+                qt.QApplication.instance().font().family(),
+                config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE,
+            )
+
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
