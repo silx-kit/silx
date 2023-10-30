@@ -41,12 +41,15 @@ __date__ = "27/06/2017"
 import functools
 import logging
 import weakref
+import numpy
 
 from .. import icons
 from .. import qt
 from ... import config
 
 from .items import SymbolMixIn, Scatter
+from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.gui.plot.items.roi import LineROI
 
 
 _logger = logging.getLogger(__name__)
@@ -589,3 +592,76 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                     Scatter.VisualizationParameter.BINNED_STATISTIC_SHAPE,
                     (value, value))
                 item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)
+
+
+class TapeMeasureToolButton(PlotToolButton):
+    """Button to active measurement between two point of the plot"""
+
+    class TapeMeasureROI(LineROI):
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self._handleStart = self.addLabelHandle()
+            self._handleEnd = self.addLabelHandle()
+
+        def setEndPoints(self, startPoint, endPoint):
+            distance = numpy.linalg.norm(endPoint - startPoint)
+            self._handleStart.setText(f"{startPoint[0] :.1f}, {startPoint[1] :.1f}")
+            self._handleEnd.setText(f"{endPoint[0] :.1f}, {endPoint[1] :.1f}")
+            super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
+            self._updateText(f"{distance :.1f}px")
+
+    def __init__(self, parent=None, plot=None):
+        super().__init__(parent=parent, plot=plot)
+        self._roiManager = None
+        self._lastRoiCreated = None
+        self.setIcon(
+            icons.getQIcon("tape-measure")
+        )
+        self.toggled.connect(self._callback)
+        self._connectPlot(plot)
+    
+    def setPlot(self, plot):
+        return super().setPlot(plot)
+    
+    def _callback(self, toggled):
+        if not self._roiManager:
+            return
+        if self._lastRoiCreated is not None:
+                self._lastRoiCreated.setVisible(self.isChecked())
+        if self.isChecked():
+            self._roiManager.start(
+                self.TapeMeasureROI, self
+            )
+            self.__interactiveModeStarted(self._roiManager)
+        else:
+            source = self._roiManager.getInteractionSource()
+            if source is self:
+                self._roiManager.stop()
+
+    def __interactiveModeStarted(self, roiManager):
+        roiManager.sigInteractiveModeFinished.connect(self.__interactiveModeFinished)
+
+    def __interactiveModeFinished(self):
+        roiManager = self._roiManager
+        if roiManager is not None:
+            roiManager.sigInteractiveModeFinished.disconnect(self.__interactiveModeFinished)
+        self.setChecked(False)
+
+    def _connectPlot(self, plot):
+        """
+        Called when the plot is connected to the widget
+
+        :param plot: :class:`.PlotWidget` instance
+        """
+        if plot is None:
+            return
+        self._roiManager = RegionOfInterestManager(plot)
+        self._roiManager.setColor("yellow")  # Set the color of ROI
+        self._roiManager.sigRoiAdded.connect(self._registerCurrentROI)
+    
+    def _registerCurrentROI(self, currentRoi):
+        if self._lastRoiCreated is None:
+            self._lastRoiCreated = currentRoi
+        elif currentRoi != self._lastRoiCreated and self._roiManager is not None:
+            self._roiManager.removeRoi(self._lastRoiCreated)
+            self._lastRoiCreated = currentRoi

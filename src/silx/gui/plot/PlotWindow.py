@@ -105,7 +105,7 @@ class PlotWindow(PlotWidget):
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  control=False, position=False,
-                 roi=True, mask=True, fit=False):
+                 roi=True, mask=True, fit=False, tapemeasure=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -211,6 +211,10 @@ class PlotWindow(PlotWidget):
         self.fitAction = self.group.addAction(actions_fit.FitAction(self, parent=self))
         self.fitAction.setVisible(fit)
         self.addAction(self.fitAction)
+
+        self.tapeMeasureButton = PlotToolButtons.TapeMeasureToolButton(parent=self, plot=self)
+        self.tapeMeasureButton.setVisible(tapemeasure)
+        self.tapeMeasureButton.setCheckable(True)
 
         # lazy loaded actions needed by the controlButton menu
         self._consoleAction = None
@@ -423,6 +427,7 @@ class PlotWindow(PlotWidget):
         index = objects.index(self.colormapAction)
         objects.insert(index + 1, self.keepDataAspectRatioButton)
         objects.insert(index + 2, self.yAxisInvertedButton)
+        objects.insert(index + 3, self.tapeMeasureButton)
 
         for obj in objects:
             if isinstance(obj, qt.QAction):
@@ -434,8 +439,10 @@ class PlotWindow(PlotWidget):
                     self.keepDataAspectRatioAction = toolbar.addWidget(obj)
                 elif obj is self.yAxisInvertedButton:
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
+                elif obj is self.tapeMeasureButton:
+                    self.tapeMeasureAction = toolbar.addWidget(obj)
                 else:
-                    raise RuntimeError()
+                    raise RuntimeError("unknow action to be defined")
         return toolbar
 
     def toolBar(self):
