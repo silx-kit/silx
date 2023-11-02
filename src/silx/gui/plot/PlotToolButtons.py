@@ -594,28 +594,32 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                 item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)
 
 
-class TapeMeasureToolButton(PlotToolButton):
+class RulerToolButton(PlotToolButton):
     """Button to active measurement between two point of the plot"""
 
-    class TapeMeasureROI(LineROI):
-        def __init__(self, parent=None):
+    class RulerROI(LineROI):
+        def __init__(self, parent=None, formatter: str="{:.1f}"):
             super().__init__(parent)
-            self._handleStart = self.addLabelHandle()
-            self._handleEnd = self.addLabelHandle()
+            self._formatter = formatter
 
         def setEndPoints(self, startPoint, endPoint):
             distance = numpy.linalg.norm(endPoint - startPoint)
-            self._handleStart.setText(f"{startPoint[0] :.1f}, {startPoint[1] :.1f}")
-            self._handleEnd.setText(f"{endPoint[0] :.1f}, {endPoint[1] :.1f}")
             super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
-            self._updateText(f"{distance :.1f}px")
+            self._updateText(RulerToolButton.format_distance(distance))
 
-    def __init__(self, parent=None, plot=None):
+    def __init__(
+            self,
+            parent=None,
+            plot=None,
+            color: str="yellow",
+    ):
+        self.__color = color
         super().__init__(parent=parent, plot=plot)
+        self.setCheckable(True)
         self._roiManager = None
         self._lastRoiCreated = None
         self.setIcon(
-            icons.getQIcon("tape-measure")
+            icons.getQIcon("ruler")
         )
         self.toggled.connect(self._callback)
         self._connectPlot(plot)
@@ -623,14 +627,15 @@ class TapeMeasureToolButton(PlotToolButton):
     def setPlot(self, plot):
         return super().setPlot(plot)
     
-    def _callback(self, toggled):
+    def _callback(self, *args, **kwargs):
         if not self._roiManager:
             return
         if self._lastRoiCreated is not None:
                 self._lastRoiCreated.setVisible(self.isChecked())
         if self.isChecked():
             self._roiManager.start(
-                self.TapeMeasureROI, self
+                self.RulerROI,
+                self,
             )
             self.__interactiveModeStarted(self._roiManager)
         else:
@@ -656,12 +661,23 @@ class TapeMeasureToolButton(PlotToolButton):
         if plot is None:
             return
         self._roiManager = RegionOfInterestManager(plot)
-        self._roiManager.setColor("yellow")  # Set the color of ROI
+        self._roiManager.setColor(self.__color)  # Set the color of ROI
         self._roiManager.sigRoiAdded.connect(self._registerCurrentROI)
-    
+
+    def _disconnectPlot(self, plot):
+        if plot and self._lastRoiCreated is not None:
+            self._roiManager.removeRoi(self._lastRoiCreated)
+            self._lastRoiCreated = None
+        return super()._disconnectPlot(plot)
+
+
     def _registerCurrentROI(self, currentRoi):
         if self._lastRoiCreated is None:
             self._lastRoiCreated = currentRoi
         elif currentRoi != self._lastRoiCreated and self._roiManager is not None:
             self._roiManager.removeRoi(self._lastRoiCreated)
             self._lastRoiCreated = currentRoi
+
+    @staticmethod
+    def format_distance(distance: float):
+        return f"{distance: .1f}px"
