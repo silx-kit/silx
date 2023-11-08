@@ -401,11 +401,12 @@ class HistogramWidget(qt.QWidget):
         self.__rangeSlider.setRange(*range_)
         self.__rangeSlider.setPositions(*previousPositions)
 
+        data = array.ravel().astype(numpy.float32)
         histogram = Histogramnd(
-            array.ravel().astype(numpy.float32),
+            data,
             n_bins=max(2, self.__nbinsLineEdit.getValue()),
             histo_range=self.__rangeSlider.getValues(),
-            weights=array.ravel().astype(numpy.float32),
+            weights=data,
         )
         if len(histogram.edges) != 1:
             _logger.error("Error while computing the histogram")
