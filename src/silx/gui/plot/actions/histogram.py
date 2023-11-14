@@ -277,7 +277,7 @@ class HistogramWidget(qt.QWidget):
         controlsLayout.addWidget(self.__rangeSlider)
         self.__weightCheckBox = qt.QCheckBox(self)
         self.__weightCheckBox.setText("Use weights")
-        self.__weightCheckBox.stateChanged[int].connect(self.__weightChanged)
+        self.__weightCheckBox.clicked.connect(self.__weightChanged)
         controlsLayout.addWidget(self.__weightCheckBox)
         controlsLayout.addStretch(1)
 
