@@ -122,12 +122,12 @@ class RangeSlider(qt.QWidget):
     def event(self, event):
         t = event.type()
         if t == qt.QEvent.HoverEnter or t == qt.QEvent.HoverLeave or t == qt.QEvent.HoverMove:
-            if hasattr(event, "position"):
-               # qt-6
-               return self.__updateHoverControl(event.position().toPoint())
-            else:
+            if qt.BINDING in ("PyQt5",):
                # qt-5
                return self.__updateHoverControl(event.pos())
+            else:
+               # qt-6
+               return self.__updateHoverControl(event.position().toPoint())
         else:
             return super(RangeSlider, self).event(event)
 
