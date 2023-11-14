@@ -506,12 +506,12 @@ class RangeSlider(qt.QWidget):
 
     # Handle interaction
     def _mouseEventPosition(self, event):
-        if hasattr(event, "position"):
-            # qt-6 returns QPointF
-            position = event.position()
-        else:
+        if qt.BINDING in ("PyQt5",):
             # qt-5 returns QPoint
             position = event.pos()
+        else:
+            # qt-6 returns QPointF
+            position = event.position()
         return position
 
     def mousePressEvent(self, event):
