@@ -755,7 +755,7 @@ class _ColormapHistogram(qt.QWidget):
             x = min(x, vmax)
         return x, y
 
-    def setDataInPlotMode(self, mode: Union[str, DataInPlotMode]):
+    def setDataInPlotMode(self, mode: str | DataInPlotMode):
         mode = DataInPlotMode.from_value(mode)
         if mode is DataInPlotMode.HISTOGRAM:
             action = self._dataHistogramAction
