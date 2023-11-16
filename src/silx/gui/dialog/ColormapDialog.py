@@ -547,7 +547,7 @@ class _ColormapHistogram(qt.QWidget):
 
         group = qt.QActionGroup(self._plotToolbar)
         group.setExclusive(True)
-
+        # data range mode
         action = qt.QAction("Data range", self)
         action.setToolTip("Display the data range within the colormap range. A fast data processing have to be done.")
         action.setIcon(icons.getQIcon('colormap-range'))
@@ -556,6 +556,8 @@ class _ColormapHistogram(qt.QWidget):
         action.setChecked(action.data() == self._dataInPlotMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
+        self._dataRangeAction = action
+        # histogram mode
         action = qt.QAction("Histogram", self)
         action.setToolTip("Display the data histogram within the colormap range. A slow data processing have to be done. ")
         action.setIcon(icons.getQIcon('colormap-histogram'))
@@ -564,6 +566,7 @@ class _ColormapHistogram(qt.QWidget):
         action.setChecked(action.data() == self._dataInPlotMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
+        self._dataHistogramAction = action
         group.triggered.connect(self._displayDataInPlotModeChanged)
 
         plotBoxLayout = qt.QHBoxLayout()
