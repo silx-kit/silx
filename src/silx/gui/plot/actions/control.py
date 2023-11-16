@@ -333,9 +333,11 @@ class ColormapAction(PlotAction):
     def setColormapDialog(self, colorDialog):
         """Set a specific color dialog instead of using the default dialog."""
         assert(colorDialog is not None)
-        assert(self._dialog is None)
+        if self._dialog is not None:
+            self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
+
         self._dialog = colorDialog
-        self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
         self.setChecked(self._dialog.isVisible())
 
     def getColormapDialog(self):
