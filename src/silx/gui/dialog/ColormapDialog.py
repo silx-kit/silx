@@ -85,6 +85,7 @@ from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.utils.enum import Enum as _Enum
 
 _logger = logging.getLogger(__name__)
 
@@ -301,7 +302,7 @@ class _AutoScaleButton(qt.QPushButton):
             self.setChecked(autoRange[0] if autoRange[0] == autoRange[1] else False)
 
 @enum.unique
-class DataInPlotMode(enum.Enum):
+class DataInPlotMode(_Enum):
     """Enum for each mode of display of the data in the plot."""
     RANGE = 'range'
     HISTOGRAM = 'histogram'
