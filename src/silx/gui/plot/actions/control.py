@@ -333,7 +333,7 @@ class ColormapAction(PlotAction):
 
     def setColormapDialog(self, dialog):
         """Set a specific colormap dialog instead of using the default one."""
-        assert(colormapDialog is not None)
+        assert colormapDialog is not None
         if self._dialog is not None:
             self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
 
