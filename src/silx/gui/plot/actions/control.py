@@ -55,6 +55,7 @@ from silx.gui.plot import items
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.gui import qt
 from silx.gui import icons
+from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -339,6 +340,10 @@ class ColormapAction(PlotAction):
         self._dialog = colormapDialog
         self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
         self.setChecked(self._dialog.isVisible())
+
+    @deprecated(replacement="setColormapDialog", since_version="2.0")
+    def setColorDialog(self, colorDialog):
+        self.setColormapDialog(colormapDialog=colorDialog)
 
     def getColormapDialog(self):
         if self._dialog is None:
