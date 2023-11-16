@@ -330,7 +330,7 @@ class ColormapAction(PlotAction):
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
         self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
-    def setColorDialog(self, colorDialog):
+    def setColormapDialog(self, colorDialog):
         """Set a specific color dialog instead of using the default dialog."""
         assert(colorDialog is not None)
         assert(self._dialog is None)
