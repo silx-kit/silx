@@ -567,6 +567,7 @@ class _ColormapHistogram(qt.QWidget):
         self._plotToolbar.addAction(action)
         group.addAction(action)
         self._dataHistogramAction = action
+        group.setExclusive(True)
         group.triggered.connect(self._displayDataInPlotModeChanged)
 
         plotBoxLayout = qt.QHBoxLayout()
