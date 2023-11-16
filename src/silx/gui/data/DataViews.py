@@ -1032,7 +1032,7 @@ class _Plot2dView(DataView):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
         widget.setDefaultColormap(self.defaultColormap())
-        widget.getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getIntensityHistogramAction().setVisible(True)
         widget.setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
@@ -1148,7 +1148,7 @@ class _ComplexImageView(DataView):
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.SQUARE_AMPLITUDE)
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.REAL)
         widget.setColormap(self.defaultColormap(), mode=ComplexImageView.ComplexMode.IMAGINARY)
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlot().getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.getPlot().getIntensityHistogramAction().setVisible(True)
         widget.getPlot().setKeepDataAspectRatio(True)
         widget.getXAxis().setLabel('X')
@@ -1248,7 +1248,7 @@ class _StackView(DataView):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
         widget.setColormap(self.defaultColormap())
-        widget.getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlotWidget().getColormapAction().setColormapDialog(self.defaultColorDialog())
         widget.setKeepDataAspectRatio(True)
         widget.setLabels(self.axesNames(None, None))
         # hide default option panel
@@ -1720,7 +1720,7 @@ class _NXdataImageView(_NXdataBaseDataView):
         from silx.gui.data.NXdataWidgets import ArrayImagePlot
         widget = ArrayImagePlot(parent)
         widget.getPlot().setDefaultColormap(self.defaultColormap())
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlot().getColormapAction().setColormapDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
@@ -1775,7 +1775,7 @@ class _NXdataComplexImageView(_NXdataBaseDataView):
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
         widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlot().getColormapAction().setColormapDialog(self.defaultColorDialog())
         return widget
 
     def clear(self):
@@ -1827,7 +1827,7 @@ class _NXdataStackView(_NXdataBaseDataView):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
         widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getStackView().getPlotWidget().getColormapAction().setColormapDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
@@ -1932,7 +1932,7 @@ class _NXdataVolumeAsStackView(_NXdataBaseDataView):
         from silx.gui.data.NXdataWidgets import ArrayStackPlot
         widget = ArrayStackPlot(parent)
         widget.getStackView().setColormap(self.defaultColormap())
-        widget.getStackView().getPlotWidget().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getStackView().getPlotWidget().getColormapAction().setColormapDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
@@ -1983,7 +1983,7 @@ class _NXdataComplexVolumeAsStackView(_NXdataBaseDataView):
     def createWidget(self, parent):
         from silx.gui.data.NXdataWidgets import ArrayComplexImagePlot
         widget = ArrayComplexImagePlot(parent, colormap=self.defaultColormap())
-        widget.getPlot().getColormapAction().setColorDialog(self.defaultColorDialog())
+        widget.getPlot().getColormapAction().setColormapDialog(self.defaultColorDialog())
         return widget
 
     def axesNames(self, data, info):
