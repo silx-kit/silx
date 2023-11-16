@@ -330,13 +330,13 @@ class ColormapAction(PlotAction):
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
         self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
-    def setColormapDialog(self, colorDialog):
+    def setColormapDialog(self, colormapDialog):
         """Set a specific color dialog instead of using the default dialog."""
-        assert(colorDialog is not None)
+        assert(colormapDialog is not None)
         if self._dialog is not None:
             self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
 
-        self._dialog = colorDialog
+        self._dialog = colormapDialog
         self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
         self.setChecked(self._dialog.isVisible())
 
