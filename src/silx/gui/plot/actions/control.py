@@ -338,6 +338,12 @@ class ColormapAction(PlotAction):
         self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
         self.setChecked(self._dialog.isVisible())
 
+    def getColormapDialog(self):
+        if self._dialog is None:
+            self._dialog = self._createDialog(self.plot)
+            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        return self._dialog
+
     @staticmethod
     def _createDialog(parent):
         """Create the dialog if not already existing
