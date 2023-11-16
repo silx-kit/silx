@@ -66,7 +66,7 @@ import enum
 import logging
 
 import numpy
-from typing import Union
+from future import __annotations__
 
 from .. import qt
 from .. import utils
