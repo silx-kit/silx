@@ -358,16 +358,13 @@ class ColormapAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
-        if self._dialog is None:
-            self._dialog = self._createDialog(self.plot)
-            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
-
+        dialog = self.getColormapDialog()
         # Run the dialog listening to colormap change
         if checked is True:
             self._updateColormap()
-            self._dialog.show()
+            dialog.show()
         else:
-            self._dialog.hide()
+            dialog.hide()
 
     def _dialogVisibleChanged(self, isVisible):
         self.setChecked(isVisible)
