@@ -757,6 +757,16 @@ class _ColormapHistogram(qt.QWidget):
 
     def setDataInPlotMode(self, mode: Union[str, DataInPlotMode]):
         mode = DataInPlotMode.from_value(mode)
+        if mode is DataInPlotMode.HISTOGRAM:
+            action = self._dataHistogramAction
+        elif mode is DataInPlotMode.RANGE:
+            action = self._dataRangeAction
+        else:
+            raise NotImplementedError
+        action.setChecked(True)
+        self._displayDataInPlotModeChanged(action)
+
+    def _setDataInPlotMode(self, mode):
         if self._dataInPlotMode == mode:
             return
         self._dataInPlotMode = mode
@@ -767,7 +777,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def _displayDataInPlotModeChanged(self, action):
         mode = action.data()
-        self.setDataInPlotMode(mode)
+        self._setDataInPlotMode(mode)
 
     def invalidateData(self):
         self._histogramData = {}
