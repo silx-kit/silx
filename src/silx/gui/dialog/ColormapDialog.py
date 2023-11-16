@@ -1060,6 +1060,9 @@ class ColormapDialog(qt.QDialog):
 
         self._applyColormap()
 
+    def getHistoWidget(self):
+        return self._histoWidget
+
     def _invalidateColormap(self):
         if self.isVisible():
             self._applyColormap()
