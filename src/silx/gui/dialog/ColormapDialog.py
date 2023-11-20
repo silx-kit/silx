@@ -762,7 +762,7 @@ class _ColormapHistogram(qt.QWidget):
         elif mode is DataInPlotMode.RANGE:
             action = self._dataRangeAction
         else:
-            raise NotImplementedError
+            raise ValueError("Mode not supported")
         action.setChecked(True)
         self._displayDataInPlotModeChanged(action)
 
