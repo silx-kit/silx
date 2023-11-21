@@ -229,7 +229,7 @@ class BooleanEditor(qt.QCheckBox):
 
     def __init__(self, parent=None):
         super(BooleanEditor, self).__init__(parent)
-        self.setStyleSheet("background: white;")
+        self.setBackgroundRole(qt.QPalette.Base)
 
 
 class ParameterTreeDelegate(qt.QStyledItemDelegate):
