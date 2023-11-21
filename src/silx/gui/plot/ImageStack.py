@@ -28,104 +28,16 @@ __license__ = "MIT"
 __date__ = "04/03/2019"
 
 
-from silx.gui import icons, qt
+from silx.gui import qt
 from silx.gui.plot import Plot2D
-from silx.gui.utils import concurrent
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
-import time
-import threading
 import typing
 import logging
+from silx.gui.widgets.WaitingOverlay import WaitingOverlay
 
 _logger = logging.getLogger(__name__)
-
-
-class _PlotWithWaitingLabel(qt.QWidget):
-    """Image plot widget with an overlay 'waiting' status.
-    """
-
-    class AnimationThread(threading.Thread):
-        def __init__(self, label):
-            self.running = True
-            self._label = label
-            self.animated_icon = icons.getWaitIcon()
-            self.animated_icon.register(self._label)
-            super(_PlotWithWaitingLabel.AnimationThread, self).__init__()
-
-        def run(self):
-            while self.running:
-                time.sleep(0.05)
-                icon = self.animated_icon.currentIcon()
-                self.future_result = concurrent.submitToQtMainThread(
-                    self._label.setPixmap, icon.pixmap(30, state=qt.QIcon.On))
-
-        def stop(self):
-            """Stop the update thread"""
-            if self.running:
-                self.animated_icon.unregister(self._label)
-                self.running = False
-                self.join(2)
-
-    def __init__(self, parent):
-        super(_PlotWithWaitingLabel, self).__init__(parent=parent)
-        self._autoResetZoom = True
-        layout = qt.QStackedLayout(self)
-        layout.setStackingMode(qt.QStackedLayout.StackAll)
-
-        self._waiting_label = qt.QLabel(parent=self)
-        self._waiting_label.setAlignment(qt.Qt.AlignHCenter | qt.Qt.AlignVCenter)
-        layout.addWidget(self._waiting_label)
-
-        self._plot = Plot2D(parent=self)
-        layout.addWidget(self._plot)
-
-        self.updateThread = _PlotWithWaitingLabel.AnimationThread(self._waiting_label)
-        self.updateThread.start()
-
-    def close(self) -> bool:
-        super(_PlotWithWaitingLabel, self).close()
-        self.stopUpdateThread()
-
-    def stopUpdateThread(self):
-        self.updateThread.stop()
-
-    def setAutoResetZoom(self, reset):
-        """
-        Should we reset the zoom when adding an image (eq. when browsing)
-
-        :param bool reset:
-        """
-        self._autoResetZoom = reset
-        if self._autoResetZoom:
-            self._plot.resetZoom()
-
-    def isAutoResetZoom(self):
-        """
-
-        :return: True if a reset is done when the image change
-        :rtype: bool
-        """
-        return self._autoResetZoom
-
-    def setWaiting(self, activate=True):
-        if activate is True:
-            self._plot.clear()
-            self._waiting_label.show()
-        else:
-            self._waiting_label.hide()
-
-    def setData(self, data):
-        self.setWaiting(activate=False)
-        self._plot.addImage(data=data, resetzoom=self._autoResetZoom)
-
-    def clear(self):
-        self._plot.clear()
-        self.setWaiting(False)
-
-    def getPlotWidget(self):
-        return self._plot
 
 
 class _HorizontalSlider(HorizontalSliderWithBrowser):
@@ -283,10 +195,13 @@ class ImageStack(qt.QMainWindow):
         self._current_url = None
         self._url_loader = UrlLoader
         "class to instantiate for loading urls"
+        self._autoResetZoom = True
 
         # main widget
-        self._plot = _PlotWithWaitingLabel(parent=self)
+        self._plot = Plot2D(parent=self)
         self._plot.setAttribute(qt.Qt.WA_DeleteOnClose, True)
+        self._waitingOverlay = WaitingOverlay(self._plot)
+        self._waitingOverlay.setIconSize(qt.QSize(30, 30))
         self.setWindowTitle("Image stack")
         self.setCentralWidget(self._plot)
 
@@ -311,6 +226,7 @@ class ImageStack(qt.QMainWindow):
 
     def close(self) -> bool:
         self._freeLoadingThreads()
+        self._waitingOverlay.close()
         self._plot.close()
         super(ImageStack, self).close()
 
@@ -345,7 +261,7 @@ class ImageStack(qt.QMainWindow):
         :return: PlotWidget contained in this window
         :rtype: Plot2D
         """
-        return self._plot.getPlotWidget()
+        return self._plot
 
     def reset(self) -> None:
         """Clear the plot and remove any link to url"""
@@ -395,7 +311,8 @@ class ImageStack(qt.QMainWindow):
         if url in self._urlIndexes:
             self._urlData[url] = sender.data
             if self.getCurrentUrl().path() == url:
-                self._plot.setData(self._urlData[url])
+                self._waitingOverlay.setVisible(False)
+                self._plot.addImage(self._urlData[url], resetzoom=self._autoResetZoom)
             if sender in self._loadingThreads:
                 self._loadingThreads.remove(sender)
             self.sigLoaded.emit(url)
@@ -581,10 +498,12 @@ class ImageStack(qt.QMainWindow):
             self._plot.clear()
         else:
             if self._current_url.path() in self._urlData:
-                self._plot.setData(self._urlData[url.path()])
+                self._waitingOverlay.setVisible(False)
+                self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
             else:
+                self._plot.clear()
                 self._load(url)
-                self._notifyLoading()
+                self._waitingOverlay.setVisible(True)
             self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
             self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
         self._urlsTable.blockSignals(old_url_table)
@@ -617,17 +536,15 @@ class ImageStack(qt.QMainWindow):
             res[url.path()] = index
         return res
 
-    def _notifyLoading(self):
-        """display a simple image of loading..."""
-        self._plot.setWaiting(activate=True)
-
     def setAutoResetZoom(self, reset):
         """
         Should we reset the zoom when adding an image (eq. when browsing)
 
         :param bool reset:
         """
-        self._plot.setAutoResetZoom(reset)
+        self._autoResetZoom = reset
+        if self._autoResetZoom:
+            self._plot.resetZoom()
 
     def isAutoResetZoom(self) -> bool:
         """
@@ -635,4 +552,4 @@ class ImageStack(qt.QMainWindow):
         :return: True if a reset is done when the image change
         :rtype: bool
         """
-        return self._plot.isAutoResetZoom()
+        return self._autoResetZoom
