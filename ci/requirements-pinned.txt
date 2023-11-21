@@ -8,4 +8,4 @@ pybind11  # Required to build pyopencl
 # downloaded from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
 # Anyway, we don't test OpenCL on appveyor
 pyopencl == 2020.3.1; sys_platform == 'win32' and python_version < '3.8'
-pyopencl == 2022.1.6; sys_platform == 'win32' and python_version >= '3.8'
+pyopencl == 2023.1.4; sys_platform == 'win32' and python_version >= '3.8'
