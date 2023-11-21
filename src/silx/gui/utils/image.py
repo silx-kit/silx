@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ from numpy.lib.stride_tricks import as_strided as _as_strided
 from .. import qt
 
 
-def convertArrayToQImage(array):
+def convertArrayToQImage(array: numpy.ndarray) -> qt.QImage:
     """Convert an array-like image to a QImage.
 
     The created QImage is using a copy of the array data.
@@ -50,7 +50,6 @@ def convertArrayToQImage(array):
        Channels are expected to be either RGB or RGBA.
     :type array: numpy.ndarray of uint8
     :return: Corresponding Qt image with RGB888 or ARGB32 format.
-    :rtype: QImage
     """
     array = numpy.array(array, copy=False, order='C', dtype=numpy.uint8)
 
@@ -82,7 +81,7 @@ def convertArrayToQImage(array):
     return qimage.copy()  # Making a copy of the image and its data
 
 
-def convertQImageToArray(image):
+def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
     """Convert a QImage to a numpy array.
 
     If QImage format is not one of:

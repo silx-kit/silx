@@ -87,7 +87,7 @@ class _ShapeItem(dict):
 
 class _MarkerItem(dict):
     def __init__(self, x, y, text, color,
-                 symbol, linestyle, linewidth, constraint, yaxis):
+                 symbol, linestyle, linewidth, constraint, yaxis, font):
         super(_MarkerItem, self).__init__()
 
         if symbol is None:
@@ -109,6 +109,7 @@ class _MarkerItem(dict):
             'linestyle': linestyle,
             'linewidth': linewidth,
             'yaxis': yaxis,
+            'font': font,
         })
 
 
@@ -548,12 +549,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                 self._plotFrame.margins.right - pixelOffset
                             y = pixelPos[1] - pixelOffset
                             label = glutils.Text2D(
-                                item['text'], x, y,
+                                item['text'], item['font'], x, y,
                                 color=item['color'],
                                 bgColor=bgColor,
                                 align=glutils.RIGHT,
                                 valign=glutils.BOTTOM,
-                                devicePixelRatio=self.getDevicePixelRatio())
+                                devicePixelRatio=self.getDevicePixelRatio(),
+                            )
                             labels.append(label)
 
                         width = self._plotFrame.size[0]
@@ -574,12 +576,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             x = pixelPos[0] + pixelOffset
                             y = self._plotFrame.margins.top + pixelOffset
                             label = glutils.Text2D(
-                                item['text'], x, y,
+                                item['text'], item['font'], x, y,
                                 color=item['color'],
                                 bgColor=bgColor,
                                 align=glutils.LEFT,
                                 valign=glutils.TOP,
-                                devicePixelRatio=self.getDevicePixelRatio())
+                                devicePixelRatio=self.getDevicePixelRatio(),
+                            )
                             labels.append(label)
 
                         height = self._plotFrame.size[1]
@@ -611,12 +614,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         x = pixelPos[0] + pixelOffset
                         y = pixelPos[1] + vPixelOffset
                         label = glutils.Text2D(
-                            item['text'], x, y,
+                            item['text'], item['font'], x, y,
                             color=item['color'],
                             bgColor=bgColor,
                             align=glutils.LEFT,
                             valign=valign,
-                            devicePixelRatio=self.getDevicePixelRatio())
+                            devicePixelRatio=self.getDevicePixelRatio(),
+                        )
                         labels.append(label)
 
                     # For now simple implementation: using a curve for each marker
@@ -980,9 +984,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                           linestyle, linewidth, linebgcolor)
 
     def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
+                  symbol, linestyle, linewidth, constraint, yaxis, font):
+        font = qt.QApplication.instance().font() if font is None else font
         return _MarkerItem(x, y, text, color,
-                           symbol, linestyle, linewidth, constraint, yaxis)
+                           symbol, linestyle, linewidth, constraint, yaxis, font)
 
     # Remove methods
 

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,8 @@ It MUST be imported prior to any other import of matplotlib.
 It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
 to the used backend.
 """
+from __future__ import annotations
+
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -41,25 +43,61 @@ import numpy
 
 from .. import qt
 
+# This must be performed before any import from matplotlib
+if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
+    matplotlib.use("Qt5Agg", force=False)
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
 
-def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRatio=1.0):
+else:
+    raise ImportError("Unsupported Qt binding: %s" % qt.BINDING)
+
+
+from matplotlib.font_manager import FontProperties
+from matplotlib.mathtext import MathTextParser
+from matplotlib import figure
+
+
+_FONT_STYLES = {
+    qt.QFont.StyleNormal: "normal",
+    qt.QFont.StyleItalic: "italic",
+    qt.QFont.StyleOblique: "oblique",
+}
+
+def qFontToFontProperties(font: qt.QFont):
+    """Convert a QFont to a matplotlib FontProperties"""
+    weightFactor = 10 if qt.BINDING == "PyQt5" else 1
+    return FontProperties(
+        family=[font.family(), font.defaultFamily()],
+        style=_FONT_STYLES[font.style()],
+        weight=weightFactor * font.weight(),
+        size=font.pointSizeF(),
+    )
+
+
+def rasterMathText(
+    text: str,
+    font: str | qt.QFont,
+    size: int = -1,
+    weight: int = -1,
+    italic: bool = False,
+    devicePixelRatio: float = 1.0,
+) -> tuple[numpy.ndarray, int]:
     """Raster text using matplotlib supporting latex-like math syntax.
 
     It supports multiple lines.
 
-    :param str text: The text to raster
+    :param text: The text to raster
     :param font: Font name or QFont to use
-    :type font: str or :class:`QFont`
-    :param int size:
+    :param size:
         Font size in points
         Used only if font is given as name.
-    :param int weight:
+    :param weight:
         Font weight in [0, 99], see QFont.Weight.
         Used only if font is given as name.
-    :param bool italic:
+    :param italic:
         True for italic font (default: False).
         Used only if font is given as name.
-    :param float devicePixelRatio:
+    :param devicePixelRatio:
         The current ratio between device and device-independent pixel
         (default: 1.0)
     :return: Corresponding image in gray scale and baseline offset from top
@@ -67,12 +105,6 @@ def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRati
     """
     # Implementation adapted from:
     # https://github.com/matplotlib/matplotlib/blob/d624571a19aec7c7d4a24123643288fc27db17e7/lib/matplotlib/mathtext.py#L264
-
-    # Lazy import to avoid imports before setting matplotlib's rcParams
-    from matplotlib.font_manager import FontProperties
-    from matplotlib.mathtext import MathTextParser
-    from matplotlib import figure
-
     dpi = 96  # default
     qapp = qt.QApplication.instance()
     if qapp:
@@ -92,15 +124,14 @@ def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRati
 
     if not isinstance(font, qt.QFont):
         font = qt.QFont(font, size, weight, italic)
-    prop = FontProperties(
-        family=font.family(),
-        style="italic" if font.italic() else "normal",
-        weight=10 * font.weight(),
-        size=font.pointSize(),
-    )
 
     fig = figure.Figure(figsize=(width / dpi, height / dpi))
-    fig.text(0, depth / height, stripped_text, fontproperties=prop)
+    fig.text(
+        0,
+        depth / height,
+        stripped_text,
+        fontproperties=qFontToFontProperties(font),
+    )
     with io.BytesIO() as buffer:
         fig.savefig(buffer, dpi=dpi, format="raw")
         buffer.seek(0)
@@ -125,11 +156,3 @@ def rasterMathText(text, font, size=-1, weight=-1, italic=False, devicePixelRati
     )
 
     return clipped_array, image.shape[0] - 1  # baseline not available
-
-
-if qt.BINDING in ("PySide6", "PyQt6", "PyQt5"):
-    matplotlib.use("Qt5Agg", force=False)
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
-
-else:
-    raise ImportError("Unsupported Qt binding: %s" % qt.BINDING)

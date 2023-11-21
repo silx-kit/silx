@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ from collections import namedtuple
 
 import numpy
 
+from .... import qt
 from ...._glutils import gl, Program
 from ..._utils import checkAxisLimits, FLOAT32_MINPOS
 from .GLSupport import mat4Ortho
@@ -215,6 +216,8 @@ class PlotAxis(object):
         labels = []
         tickLabelsSize = [0., 0.]
 
+        font = qt.QApplication.instance().font()
+
         xTickLength, yTickLength = self._tickLength
         xTickLength *= self.devicePixelRatio
         yTickLength *= self.devicePixelRatio
@@ -225,6 +228,7 @@ class PlotAxis(object):
                 tickScale = 1.
 
                 label = Text2D(text=text,
+                               font=font,
                                color=self._foregroundColor,
                                x=xPixel - xTickLength,
                                y=yPixel - yTickLength,
@@ -258,6 +262,7 @@ class PlotAxis(object):
         # yOffset -= 3 * yTickLength
 
         axisTitle = Text2D(text=self.title,
+                           font=font,
                            color=self._foregroundColor,
                            x=xAxisCenter + xOffset,
                            y=yAxisCenter + yOffset,
@@ -630,6 +635,7 @@ class GLPlotFrame(object):
                   self.margins.right) // 2
         yTitle = self.margins.top - self._TICK_LENGTH_IN_PIXELS
         labels.append(Text2D(text=self.title,
+                             font=qt.QApplication.instance().font(),
                              color=self._foregroundColor,
                              x=xTitle,
                              y=yTitle,

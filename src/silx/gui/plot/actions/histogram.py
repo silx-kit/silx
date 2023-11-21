@@ -31,7 +31,7 @@ The following QAction are available:
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
-__date__ = "01/12/2020"
+__date__ = "07/11/2023"
 __license__ = "MIT"
 
 from typing import Optional, Tuple
@@ -275,6 +275,10 @@ class HistogramWidget(qt.QWidget):
             self.__updateHistogramFromControls)
         self.__rangeSlider.sigValueChanged.connect(self.__rangeChanged)
         controlsLayout.addWidget(self.__rangeSlider)
+        self.__weightCheckBox = qt.QCheckBox(self)
+        self.__weightCheckBox.setText("Use weights")
+        self.__weightCheckBox.clicked.connect(self.__weightChanged)
+        controlsLayout.addWidget(self.__weightCheckBox)
         controlsLayout.addStretch(1)
 
         # Stats display
@@ -347,6 +351,9 @@ class HistogramWidget(qt.QWidget):
         self.__rangeSlider.setToolTip(tooltip)
         self.__rangeLabel.setToolTip(tooltip)
 
+    def __weightChanged(self, value):
+        self._updateFromItem()
+
     def _updateFromItem(self):
         """Update histogram and stats from the item"""
         item = self.getItem()
@@ -394,17 +401,24 @@ class HistogramWidget(qt.QWidget):
         self.__rangeSlider.setRange(*range_)
         self.__rangeSlider.setPositions(*previousPositions)
 
+        data = array.ravel().astype(numpy.float32)
         histogram = Histogramnd(
-            array.ravel().astype(numpy.float32),
+            data,
             n_bins=max(2, self.__nbinsLineEdit.getValue()),
             histo_range=self.__rangeSlider.getValues(),
+            weights=data,
         )
         if len(histogram.edges) != 1:
             _logger.error("Error while computing the histogram")
             self.reset()
             return
 
-        self.setHistogram(histogram.histo, histogram.edges[0])
+        if self.__weightCheckBox.isChecked():
+            self.setHistogram(histogram.weighted_histo, histogram.edges[0])
+            self.__plot.getYAxis().setLabel("Count * Value")
+        else:
+            self.setHistogram(histogram.histo, histogram.edges[0])
+            self.__plot.getYAxis().setLabel("Count")
         self.resetZoom()
         self.setStatistics(
             min_=xmin,
