@@ -24,20 +24,20 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
-        # Python 3.8
-        - PYTHON_DIR: "C:\\Python38-x64"
+        # Python 3.9
+        - PYTHON_DIR: "C:\\Python39-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
 
-        # Python 3.9
-        - PYTHON_DIR: "C:\\Python39-x64"
+        # Python 3.12
+        - PYTHON_DIR: "C:\\Python312-x64"
           QT_BINDING: "PySide6"
           WITH_GL_TEST: False  # OpenGL not working
           PIP_OPTIONS: "-q --pre"
 
-        # Python 3.10
-        - PYTHON_DIR: "C:\\Python310-x64"
+        # Python 3.11
+        - PYTHON_DIR: "C:\\Python311-x64"
           QT_BINDING: "PyQt6"
           WITH_GL_TEST: False  # OpenGL not working
           PIP_OPTIONS: "-q"
