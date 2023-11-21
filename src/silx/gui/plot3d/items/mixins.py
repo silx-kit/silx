@@ -59,9 +59,9 @@ class InterpolationMixIn(ItemMixInBase):
     INTERPOLATION_MODES = NEAREST_INTERPOLATION, LINEAR_INTERPOLATION
     """Supported interpolation modes for :meth:`setInterpolation`"""
 
-    def __init__(self, mode=NEAREST_INTERPOLATION, primitive=None):
-        self.__primitive = primitive
-        self.__interpolationMode = mode
+    def __init__(self):
+        self.__primitive = None
+        self.__interpolationMode = self.NEAREST_INTERPOLATION
         self._syncPrimitiveInterpolation()
 
     def _setPrimitive(self, primitive):
@@ -185,18 +185,24 @@ class SymbolMixIn(_SymbolMixIn):
 class PlaneMixIn(ItemMixInBase):
     """Mix-in class for plane items (based on PlaneInGroup primitive)"""
 
-    def __init__(self, plane):
+    def __init__(self):
+        self.__plane = None
+        self._setPlane(primitives.PlaneInGroup())
+
+    def _setPlane(self, plane: primitives.PlaneInGroup):
+        """Set plane primitive"""
+        if self.__plane is not None:
+            self.__plane.removeListener(self._planeChanged)
+            self.__plane.plane.removeListener(self._planePositionChanged)
+
         assert isinstance(plane, primitives.PlaneInGroup)
         self.__plane = plane
         self.__plane.alpha = 1.
         self.__plane.addListener(self._planeChanged)
         self.__plane.plane.addListener(self._planePositionChanged)
 
-    def _getPlane(self):
-        """Returns plane primitive
-
-        :rtype: primitives.PlaneInGroup
-        """
+    def _getPlane(self) -> primitives.PlaneInGroup:
+        """Returns plane primitive"""
         return self.__plane
 
     def _planeChanged(self, source, *args, **kwargs):
