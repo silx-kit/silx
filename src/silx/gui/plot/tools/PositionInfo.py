@@ -187,7 +187,7 @@ class PositionInfo(qt.QWidget):
         if plot is None:
             return
 
-        styleSheet = "color: rgb(0, 0, 0);"  # Default style
+        styleSheet = ""  # Default style
         xData, yData = x, y
 
         snappingMode = self.getSnappingMode()
@@ -250,7 +250,7 @@ class PositionInfo(qt.QWidget):
                         yData = item.getValueData(copy=False)[index]
 
                         # Update label style sheet
-                        styleSheet = "color: rgb(0, 0, 0);"
+                        styleSheet = ""
                         break
 
                 else:  # Curve, Scatter
@@ -279,7 +279,7 @@ class PositionInfo(qt.QWidget):
 
                     if closestSqDistInPixels <= sqDistInPixels:
                         # Update label style sheet
-                        styleSheet = "color: rgb(0, 0, 0);"
+                        styleSheet = ""
 
                         # if close enough, snap to data point coord
                         xData, yData = xArray[closestIndex], yArray[closestIndex]
