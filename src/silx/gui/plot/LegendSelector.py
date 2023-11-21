@@ -194,7 +194,7 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
             if isActive:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.Highlight)
+                brush = self._palette.brush(qt.QPalette.Active, qt.QPalette.Highlight)
             elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
@@ -203,9 +203,9 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
             if isActive:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.HighlightedText)
+                brush = self._palette.brush(qt.QPalette.Active, qt.QPalette.HighlightedText)
             else:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.WindowText)
+                brush = self._palette.brush(qt.QPalette.Active, qt.QPalette.WindowText)
             return brush
         elif role == qt.Qt.CheckStateRole:
             return bool(item[2])  # item[2] == True
