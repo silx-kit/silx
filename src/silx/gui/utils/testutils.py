@@ -147,7 +147,9 @@ class TestCaseQt(unittest.TestCase):
             # Python 3.11+
             result = self._outcome.result
 
-        if hasattr(self._outcome, "success"):
+        if self._outcome is None:
+            return True
+        elif hasattr(self._outcome, "success"):
             # using pytest
             return self._outcome.success
         else:
