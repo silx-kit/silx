@@ -138,12 +138,13 @@ class TestCaseQt(unittest.TestCase):
         self.__class__._exceptions = []
 
     def _currentTestSucceeded(self):
+        result = None
         if hasattr(self, '_feedErrorsToResult'):
             # Python 3.4 - 3.10  (These two methods have no side effects)
             result = self.defaultTestResult()
             if hasattr(self._outcome, 'errors'):
                 self._feedErrorsToResult(result, self._outcome.errors)
-        else:
+        elif hasattr(self._outcome, "result"):
             # Python 3.11+
             result = self._outcome.result
         if 'pytest' in "%s" % type(result):
