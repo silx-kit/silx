@@ -146,19 +146,12 @@ class TestCaseQt(unittest.TestCase):
         else:
             # Python 3.11+
             result = self._outcome.result
-        ok = all(test != self for test, text in result.errors + result.failures)
-
-        # Demo output:  (print short info immediately - not important)
-        if ok:
-            print('\nOK: %s' % (self.id(),))
-        for typ, errors in (('ERROR', result.errors), ('FAIL', result.failures)):
-            for test, text in errors:
-                if test is self:
-                    #  the full traceback is in the variable `text`
-                    msg = [x for x in text.split('\n')[1:]
-                           if not x.startswith(' ')][0]
-                    print("\n\n%s: %s\n     %s" % (typ, self.id(), msg))
-        return ok
+        if 'pytest' in "%s" % type(result):
+            # using pytest
+            return self._outcome.success
+        else:
+            # using unittest
+            return all(test != self for test, text in result.errors + result.failures)
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
