@@ -815,7 +815,7 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
     def setData(self, column, value, role):
         if column == 0 and role == qt.Qt.CheckStateRole:
             if self._colormap is not None:
-                bound = self._getBound() if value == qt.Qt.Checked else None
+                bound = self._getBound() if qt.Qt.CheckState(value) == qt.Qt.Checked else None
                 self._setBound(bound)
                 return True
             else:
