@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,25 @@
 # ###########################################################################*/
 """URL module"""
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "29/01/2018"
 
 import logging
-from typing import Union, Tuple
 from collections.abc import Iterable
+from typing import Union
 import urllib.parse
 from pathlib import Path
 
 
 _logger = logging.getLogger(__name__)
 
+SliceLike = Union[slice, int, type(Ellipsis)]
 
-def _slice_to_string(s):
+
+def _slice_to_string(s: SliceLike) -> str:
     """Convert a Python slice into a string"""
     if s == Ellipsis:
         return "..."
@@ -58,7 +62,7 @@ def _slice_to_string(s):
         raise TypeError("Unexpected slicing type. Found %s" % type(s))
 
 
-def slice_sequence_to_string(data_slice):
+def slice_sequence_to_string(data_slice: Iterable[SliceLike] | SliceLike) -> str:
     """Convert a Python slice sequence or a slice into a string"""
     if isinstance(data_slice, Iterable):
         return ",".join([_slice_to_string(s) for s in data_slice])
@@ -86,7 +90,7 @@ class DataUrl(object):
     >>> DataUrl("silx:///data/image.edf?path=/scan_0/detector/data")
     >>> DataUrl("silx:///C:/data/image.edf?path=/scan_0/detector/data")
 
-    >>> # `path=` can be omited if there is no other query keys
+    >>> # `path=` can be omitted if there are no other query keys
     >>> DataUrl("silx:///data/image.h5?/data/dataset")
     >>> # is the same as
     >>> DataUrl("silx:///data/image.h5?path=/data/dataset")
@@ -103,36 +107,37 @@ class DataUrl(object):
     >>> DataUrl("silx:image.h5")
     >>> DataUrl("fabio:image.edf")
 
-    >>> # Is also support parsing of file access for convenience
+    >>> # It also supports parsing of file access for convenience
     >>> DataUrl("./foo/bar/image.edf")
     >>> DataUrl("C:/data/")
 
-    :param str path: Path representing a link to a data. If specified, other
-        arguments are not used.
-    :param str file_path: Link to the file containing the the data.
+    :param path: Path representing a link to a data. If specified, other
+        arguments must not be provided.
+    :param file_path: Link to the file containing the the data.
         None if there is no data selection.
-    :param str data_path: Data selection applyed to the data file selected.
+    :param data_path: Data selection applied to the data file selected.
         None if there is no data selection.
-    :param Tuple[int,slice,Ellipse] data_slice: Slicing applyed of the selected
-        data. None if no slicing applyed.
-    :param Union[str,None] scheme: Scheme of the URL. "silx", "fabio"
+    :param data_slice: Slicing applied of the selected
+        data. None if no slicing applied.
+    :param scheme: Scheme of the URL. "silx", "fabio"
         is supported. Other strings can be provided, but :meth:`is_valid` will
         be false.
     """
+
     def __init__(
-            self,
-            path: Union[str, Path, None]=None,
-            file_path: Union[str, Path, None]=None,
-            data_path: Union[str, None]=None,
-            data_slice: Union[Tuple[Union[int], ...], None]=None,
-            scheme: Union[str, None]=None,
-        ):
+        self,
+        path: str | Path | None = None,
+        file_path: str | Path | None = None,
+        data_path: str | None = None,
+        data_slice: tuple[SliceLike, ...] | None = None,
+        scheme: str | None = None,
+    ):
         self.__is_valid = False
         if path is not None:
-            assert(file_path is None)
-            assert(data_path is None)
-            assert(data_slice is None)
-            assert(scheme is None)
+            assert file_path is None
+            assert data_path is None
+            assert data_slice is None
+            assert scheme is None
             self.__parse_from_path(str(path))
         else:
             self.__file_path = str(file_path)
@@ -168,6 +173,7 @@ class DataUrl(object):
 
     def __str__(self):
         if self.is_valid() or self.__path is None:
+
             def quote_string(string):
                 if isinstance(string, str):
                     return "'%s'" % string
@@ -175,11 +181,13 @@ class DataUrl(object):
                     return string
 
             template = "DataUrl(valid=%s, scheme=%s, file_path=%s, data_path=%s, data_slice=%s)"
-            return template % (self.__is_valid,
-                               quote_string(self.__scheme),
-                               quote_string(self.__file_path),
-                               quote_string(self.__data_path),
-                               self.__data_slice)
+            return template % (
+                self.__is_valid,
+                quote_string(self.__scheme),
+                quote_string(self.__file_path),
+                quote_string(self.__data_path),
+                self.__data_slice,
+            )
         else:
             template = "DataUrl(valid=%s, string=%s)"
             return template % (self.__is_valid, self.__path)
@@ -197,32 +205,36 @@ class DataUrl(object):
         elif self.__scheme == "silx":
             # If there is a slice you must have a data path
             # But you can have a data path without slice
-            slice_implies_data = (self.__data_path is None and self.__data_slice is None) or self.__data_path is not None
+            slice_implies_data = (
+                self.__data_path is None and self.__data_slice is None
+            ) or self.__data_path is not None
             self.__is_valid = slice_implies_data
         else:
             self.__is_valid = False
 
     @staticmethod
-    def _parse_slice(slice_string):
+    def _parse_slice(slice_string: str) -> tuple[SliceLike, ...]:
         """Parse a slicing sequence and return an associated tuple.
 
         It supports a sequence of `...`, `:`, and integers separated by a coma.
-
-        :rtype: tuple
         """
-        def str_to_slice(string):
+
+        def string_to_slice(string: str) -> SliceLike:
+            """Convert a string to a Python slice"""
             if string == "...":
                 return Ellipsis
-            elif ':' in string:
+            elif ":" in string:
                 if string == ":":
                     return slice(None)
                 else:
+
                     def get_value(my_str):
-                        if my_str in ('', None):
+                        if my_str in ("", None):
                             return None
                         else:
                             return int(my_str)
-                    sss = string.split(':')
+
+                    sss = string.split(":")
                     start = get_value(sss[0])
                     stop = get_value(sss[1] if len(sss) > 1 else None)
                     step = get_value(sss[2] if len(sss) > 2 else None)
@@ -234,23 +246,23 @@ class DataUrl(object):
             raise ValueError("An empty slice is not valid")
 
         tokens = slice_string.split(",")
-        data_slice = []
+        data_slice: list[SliceLike] = []
         for t in tokens:
             try:
-                data_slice.append(str_to_slice(t))
+                data_slice.append(string_to_slice(t))
             except ValueError:
                 raise ValueError("'%s' is not a valid slicing" % t)
         return tuple(data_slice)
 
-    def __parse_from_path(self, path):
+    def __parse_from_path(self, path: str):
         """Parse the path and initialize attributes.
 
-        :param str path: Path representing the URL.
+        :param path: Path representing the URL.
         """
         self.__path = path
         # only replace if ? not here already. Otherwise can mess sith
         # data_slice if == ::2 for example
-        if '?' not in path:
+        if "?" not in path:
             path = path.replace("::", "?", 1)
         url = urllib.parse.urlparse(path)
 
@@ -266,7 +278,7 @@ class DataUrl(object):
             file_path = url.path
 
             # Check absolute windows path
-            if len(file_path) > 2 and file_path[0] == '/':
+            if len(file_path) > 2 and file_path[0] == "/":
                 if file_path[1] == ":" or file_path[2] == ":":
                     file_path = file_path[1:]
 
@@ -290,7 +302,10 @@ class DataUrl(object):
                 if name in merged_query:
                     values = merged_query.pop(name)
                     if len(values) > 1:
-                        _logger.warning("More than one query key named '%s'. The last one is used.", name)
+                        _logger.warning(
+                            "More than one query key named '%s'. The last one is used.",
+                            name,
+                        )
                     value = values[-1]
                 else:
                     value = None
@@ -316,18 +331,12 @@ class DataUrl(object):
         else:
             self.__is_valid = False
 
-    def is_valid(self):
-        """Returns true if the URL is valid. Else attributes can be None.
-
-        :rtype: bool
-        """
+    def is_valid(self) -> bool:
+        """Returns true if the URL is valid. Else attributes can be None."""
         return self.__is_valid
 
-    def path(self):
-        """Returns the string representing the URL.
-
-        :rtype: str
-        """
+    def path(self) -> str:
+        """Returns the string representing the URL."""
         if self.__path is not None:
             return self.__path
 
@@ -360,11 +369,8 @@ class DataUrl(object):
 
         return path
 
-    def is_absolute(self):
-        """Returns true if the file path is an absolute path.
-
-        :rtype: bool
-        """
+    def is_absolute(self) -> bool:
+        """Returns true if the file path is an absolute path."""
         file_path = self.file_path()
         if file_path is None:
             return False
@@ -381,32 +387,21 @@ class DataUrl(object):
                 return True
         return False
 
-    def file_path(self):
-        """Returns the path to the file containing the data.
-
-        :rtype: str
-        """
+    def file_path(self) -> str:
+        """Returns the path to the file containing the data."""
         return self.__file_path
 
-    def data_path(self):
-        """Returns the path inside the file to the data.
-
-        :rtype: str
-        """
+    def data_path(self) -> str | None:
+        """Returns the path inside the file to the data."""
         return self.__data_path
 
-    def data_slice(self):
+    def data_slice(self) -> tuple[SliceLike, ...] | None:
         """Returns the slicing applied to the data.
 
         It is a tuple containing numbers, slice or ellipses.
-
-        :rtype: Tuple[int, slice, Ellipse]
         """
         return self.__data_slice
 
-    def scheme(self):
-        """Returns the scheme. It can be None if no scheme is specified.
-
-        :rtype: Union[str, None]
-        """
+    def scheme(self) -> str | None:
+        """Returns the scheme. It can be None if no scheme is specified."""
         return self.__scheme
