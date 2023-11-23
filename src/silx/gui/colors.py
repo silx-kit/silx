@@ -35,8 +35,8 @@ import numpy
 import logging
 import numbers
 import re
-from collections.abc import Sequence
-from typing import Optional, Union
+from collections.abc import Iterable
+from typing import Any, Sequence, Tuple, Union
 
 import silx
 from silx.gui import qt
@@ -103,11 +103,19 @@ DEFAULT_MAX_LIN = 1
 _INDEXED_COLOR_PATTERN = re.compile(r"C(?P<index>[0-9]+)")
 
 
+ColorType = Union[str, Sequence[numbers.Real], qt.QColor]
+"""Type of :func:`rgba`'s color argument"""
+
+
+RGBAColorType = Tuple[float, float, float, float]
+"""Type of :func:`rgba` return value"""
+
+
 def rgba(
-        color: Union[str, Sequence[numbers.Real], qt.QColor],
-        colorDict: Optional[dict[str, str]]=None,
-        colors: Optional[Sequence[str]]=None,
-    ) -> tuple[float, float, float, float]:
+    color: ColorType,
+    colorDict: dict[str, str] | None = None,
+    colors: Sequence[str] | None = None,
+) -> RGBAColorType:
     """Convert different kind of color definition to a tuple (R, G, B, A) of floats.
 
     It supports:
@@ -170,49 +178,53 @@ def rgba(
     return tuple(values)
 
 
-def greyed(color, colorDict=None):
+def greyed(
+    color: ColorType,
+    colorDict: dict[str, str] | None = None,
+) -> RGBAColorType:
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to a grey color
     (R, G, B, A).
 
     It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
     QColor as color argument.
 
-    :param str color: The color to convert
-    :param dict colorDict: A dictionary of color name conversion to color code
+    :param color: The color to convert
+    :param colorDict: A dictionary of color name conversion to color code
     :returns: RGBA colors as floats in [0., 1.]
-    :rtype: tuple
     """
     r, g, b, a = rgba(color=color, colorDict=colorDict)
     g = 0.21 * r + 0.72 * g + 0.07 * b
     return g, g, g, a
 
 
-def asQColor(color):
+def asQColor(color: ColorType) -> qt.QColor:
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to a `qt.QColor`.
 
     It also supports RGB(A) from uint8 in [0, 255], float in [0, 1], and
     QColor as color argument.
 
-    :param str color: The color to convert
-    :rtype: qt.QColor
+    :param color: The color to convert
     """
     color = rgba(color)
     return qt.QColor.fromRgbF(*color)
 
 
-def cursorColorForColormap(colormapName):
+def cursorColorForColormap(colormapName: str) -> str:
     """Get a color suitable for overlay over a colormap.
 
-    :param str colormapName: The name of the colormap.
+    :param colormapName: The name of the colormap.
     :return: Name of the color.
-    :rtype: str
     """
     return _colormap.get_colormap_cursor_color(colormapName)
 
 
 # Colormap loader
 
-def _registerColormapFromMatplotlib(name, cursor_color='black', preferred=False):
+def _registerColormapFromMatplotlib(
+    name: str,
+    cursor_color: str = 'black',
+    preferred: bool = False,
+):
     if _matplotlib_cm is not None:
         colormap = _matplotlib_cm.get_cmap(name)
     else:  # matplotlib >= 3.5
@@ -222,11 +234,10 @@ def _registerColormapFromMatplotlib(name, cursor_color='black', preferred=False)
     registerLUT(name, colors, cursor_color, preferred)
 
 
-def _getColormap(name):
+def _getColormap(name: str) -> numpy.ndarray:
     """Returns the color LUT corresponding to a colormap name
-    :param str name: Name of the colormap to load
+    :param name: Name of the colormap to load
     :returns: Corresponding table of colors
-    :rtype: numpy.ndarray
     :raise ValueError: If no colormap corresponds to name
     """
     name = str(name)
@@ -243,16 +254,14 @@ class Colormap(qt.QObject):
 
     If no `name` nor `colors` are provided, a default gray LUT is used.
 
-    :param str name: Name of the colormap
-    :param tuple colors: optional, custom colormap.
+    :param name: Name of the colormap
+    :param colors: optional, custom colormap.
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
             If 'name' is None, then this array is used as the colormap.
-    :param str normalization: Normalization: 'linear' (default) or 'log'
+    :param normalization: Normalization: 'linear' (default) or 'log'
     :param vmin: Lower bound of the colormap or None for autoscale (default)
-    :type vmin: Union[None, float]
     :param vmax: Upper bounds of the colormap or None for autoscale (default)
-    :type vmax: Union[None, float]
     """
 
     LINEAR = 'linear'
@@ -296,7 +305,15 @@ class Colormap(qt.QObject):
 
     _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
-    def __init__(self, name=None, colors=None, normalization=LINEAR, vmin=None, vmax=None, autoscaleMode=MINMAX):
+    def __init__(
+        self,
+        name: str | None = None,
+        colors: numpy.ndarray | None = None,
+        normalization: str = LINEAR,
+        vmin: float | None = None,
+        vmax: float | None = None,
+        autoscaleMode: str = MINMAX,
+    ):
         qt.QObject.__init__(self)
         self._editable = True
         self.__gamma = 2.0
@@ -336,10 +353,10 @@ class Colormap(qt.QObject):
         self.__warnBadVmin = True
         self.__warnBadVmax = True
 
-    def setFromColormap(self, other):
+    def setFromColormap(self, other: Colormap):
         """Set this colormap using information from the `other` colormap.
 
-        :param ~silx.gui.colors.Colormap other: Colormap to use as reference.
+        :param other: Colormap to use as reference.
         """
         if not self.isEditable():
             raise NotEditableError('Colormap is not editable')
@@ -360,15 +377,13 @@ class Colormap(qt.QObject):
             self.setEditable(other.isEditable())
         self.sigChanged.emit()
 
-    def getNColors(self, nbColors=None):
+    def getNColors(self, nbColors: int | None = None) -> numpy.ndarray:
         """Returns N colors computed by sampling the colormap regularly.
 
         :param nbColors:
             The number of colors in the returned array or None for the default value.
             The default value is the size of the colormap LUT.
-        :type nbColors: int or None
         :return: 2D array of uint8 of shape (nbColors, 4)
-        :rtype: numpy.ndarray
         """
         # Handle default value for nbColors
         if nbColors is None:
@@ -382,16 +397,14 @@ class Colormap(qt.QObject):
                 numpy.arange(nbColors, dtype=numpy.int32))
             return colors
 
-    def getName(self):
-        """Return the name of the colormap
-        :rtype: str
-        """
+    def getName(self) -> str | None:
+        """Return the name of the colormap"""
         return self._name
 
-    def setName(self, name):
+    def setName(self, name: str):
         """Set the name of the colormap to use.
 
-        :param str name: The name of the colormap.
+        :param name: The name of the colormap.
             At least the following names are supported: 'gray',
             'reversed gray', 'temperature', 'red', 'green', 'blue', 'jet',
             'viridis', 'magma', 'inferno', 'plasma'.
@@ -407,25 +420,23 @@ class Colormap(qt.QObject):
         self._colors = _getColormap(self._name)
         self.sigChanged.emit()
 
-    def getColormapLUT(self, copy=True):
+    def getColormapLUT(self, copy: bool = True) -> numpy.ndarray | None:
         """Return the list of colors for the colormap or None if not set.
 
         This returns None if the colormap was set with :meth:`setName`.
         Use :meth:`getNColors` to get the colormap LUT for any colormap.
 
-        :param bool copy: If true a copy of the numpy array is provided
+        :param copy: If true a copy of the numpy array is provided
         :return: the list of colors for the colormap or None if not set
-        :rtype: numpy.ndarray or None
         """
         if self._name is None:
             return numpy.array(self._colors, copy=copy)
-        else:
-            return None
+        return None
 
-    def setColormapLUT(self, colors):
+    def setColormapLUT(self, colors: numpy.ndarray):
         """Set the colors of the colormap.
 
-        :param numpy.ndarray colors: the colors of the LUT.
+        :param colors: the colors of the LUT.
            If float, it is converted from [0, 1] to uint8 range.
            Otherwise it is casted to uint8.
 
@@ -445,40 +456,35 @@ class Colormap(qt.QObject):
         self._name = None
         self.sigChanged.emit()
 
-    def getNaNColor(self):
-        """Returns the color to use for Not-A-Number floating point value.
-
-        :rtype: QColor
-        """
+    def getNaNColor(self) -> qt.QColor:
+        """Returns the color to use for Not-A-Number floating point value."""
         return qt.QColor(*self.__nanColor)
 
-    def setNaNColor(self, color):
+    def setNaNColor(self, color: ColorType):
         """Set the color to use for Not-A-Number floating point value.
 
         :param color: RGB(A) color to use for NaN values
-        :type color: QColor, str, tuple of uint8 or float in [0., 1.]
         """
         color = (numpy.array(rgba(color)) * 255).astype(numpy.uint8)
         if not numpy.array_equal(self.__nanColor, color):
             self.__nanColor = color
             self.sigChanged.emit()
 
-    def getNormalization(self):
+    def getNormalization(self) -> str:
         """Return the normalization of the colormap.
 
         See :meth:`setNormalization` for returned values.
 
         :return: the normalization of the colormap
-        :rtype: str
         """
         return self._normalization
 
-    def setNormalization(self, norm):
+    def setNormalization(self, norm: str):
         """Set the colormap normalization.
 
         Accepted normalizations: 'log', 'linear', 'sqrt'
 
-        :param str norm: the norm to set
+        :param norm: the norm to set
         """
         assert norm in self.NORMALIZATIONS
         if self.isEditable() is False:
@@ -490,12 +496,11 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
-    def setGammaNormalizationParameter(self, gamma: float) -> None:
+    def setGammaNormalizationParameter(self, gamma: float):
         """Set the gamma correction parameter.
 
         Only used for gamma correction normalization.
 
-        :param float gamma:
         :raise ValueError: If gamma is not valid
         """
         if gamma < 0. or not numpy.isfinite(gamma):
@@ -505,23 +510,18 @@ class Colormap(qt.QObject):
             self.sigChanged.emit()
 
     def getGammaNormalizationParameter(self) -> float:
-        """Returns the gamma correction parameter value.
-
-        :rtype: float
-        """
+        """Returns the gamma correction parameter value."""
         return self.__gamma
 
-    def getAutoscaleMode(self):
+    def getAutoscaleMode(self) -> str:
         """Return the autoscale mode of the colormap ('minmax' or 'stddev3')
-
-        :rtype: str
         """
         return self._autoscaleMode
 
-    def setAutoscaleMode(self, mode):
+    def setAutoscaleMode(self, mode: str):
         """Set the autoscale mode: either 'minmax' or 'stddev3'
 
-        :param str mode: the mode to set
+        :param mode: the mode to set
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
@@ -530,24 +530,21 @@ class Colormap(qt.QObject):
             self._autoscaleMode = mode
             self.sigChanged.emit()
 
-    def isAutoscale(self):
+    def isAutoscale(self) -> bool:
         """Return True if both min and max are in autoscale mode"""
         return self._vmin is None and self._vmax is None
 
-    def getVMin(self):
+    def getVMin(self) -> float | None:
         """Return the lower bound of the colormap
 
          :return: the lower bound of the colormap
-         :rtype: float or None
          """
         return self._vmin
 
-    def setVMin(self, vmin):
+    def setVMin(self, vmin: float | None):
         """Set the minimal value of the colormap
 
-        :param float vmin: Lower bound of the colormap or None for autoscale
-            (default)
-            value)
+        :param vmin: Lower bound of the colormap or None for autoscale (initial value)
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
@@ -562,19 +559,17 @@ class Colormap(qt.QObject):
             self.__warnBadVmin = True
             self.sigChanged.emit()
 
-    def getVMax(self):
+    def getVMax(self) -> float | None:
         """Return the upper bounds of the colormap or None
 
         :return: the upper bounds of the colormap or None
-        :rtype: float or None
         """
         return self._vmax
 
-    def setVMax(self, vmax):
+    def setVMax(self, vmax: float | None):
         """Set the maximal value of the colormap
 
-        :param float vmax: Upper bounds of the colormap or None for autoscale
-            (default)
+        :param vmax: Upper bounds of the colormap or None for autoscale (initial value)
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
@@ -589,25 +584,24 @@ class Colormap(qt.QObject):
             self.__warnBadVmax = True
             self.sigChanged.emit()
 
-    def isEditable(self):
+    def isEditable(self) -> bool:
         """ Return if the colormap is editable or not
 
         :return: editable state of the colormap
-         :rtype: bool
         """
         return self._editable
 
-    def setEditable(self, editable):
+    def setEditable(self, editable: bool):
         """
         Set the editable state of the colormap
 
-        :param bool editable: is the colormap editable
+        :param editable: is the colormap editable
         """
         assert type(editable) is bool
         self._editable = editable
         self.sigChanged.emit()
 
-    def _getNormalizer(self):
+    def _getNormalizer(self): # TODO
         """Returns normalizer object"""
         normalization = self.getNormalization()
         if normalization == self.GAMMA:
@@ -615,22 +609,23 @@ class Colormap(qt.QObject):
         else:
             return self._BASIC_NORMALIZATIONS[normalization]
 
-    def _computeAutoscaleRange(self, data):
+    def _computeAutoscaleRange(self, data: numpy.ndarray):
         """Compute the data range which will be used in autoscale mode.
 
-        :param numpy.ndarray data: The data for which to compute the range
+        :param data: The data for which to compute the range
         :return: (vmin, vmax) range
         """
         return self._getNormalizer().autoscale(
             data, mode=self.getAutoscaleMode())
 
-    def getColormapRange(self, data=None):
+    def getColormapRange(
+        self,
+        data: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn' | None = None,
+    ) -> tuple[float, float]:
         """Return (vmin, vmax) the range of the colormap for the given data or item.
 
-        :param Union[numpy.ndarray,~silx.gui.plot.items.ColormapMixIn] data:
-            The data or item to use for autoscale bounds.
+        :param data: The data or item to use for autoscale bounds.
         :return: (vmin, vmax) corresponding to the colormap applied to data if provided.
-        :rtype: tuple
         """
         vmin = self._vmin
         vmax = self._vmax
@@ -671,16 +666,15 @@ class Colormap(qt.QObject):
 
         return vmin, vmax
 
-    def getVRange(self):
+    def getVRange(self) -> tuple[float | None, float | None]:
         """Get the bounds of the colormap
 
-        :rtype: Tuple(Union[float,None],Union[float,None])
         :returns: A tuple of 2 values for min and max. Or None instead of float
             for autoscale
         """
         return self.getVMin(), self.getVMax()
 
-    def setVRange(self, vmin, vmax):
+    def setVRange(self, vmin: float | None, vmax: float | None):
         """Set the bounds of the colormap
 
         :param vmin: Lower bound of the colormap or None for autoscale
@@ -713,7 +707,7 @@ class Colormap(qt.QObject):
         self._vmax = vmax
         self.sigChanged.emit()
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
         if item == 'autoscale':
             return self.isAutoscale()
         elif item == 'name':
@@ -731,12 +725,11 @@ class Colormap(qt.QObject):
         else:
             raise KeyError(item)
 
-    def _toDict(self):
+    def _toDict(self) -> dict:
         """Return the equivalent colormap as a dictionary
         (old colormap representation)
 
         :return: the representation of the Colormap as a dictionary
-        :rtype: dict
         """
         return {
             'name': self._name,
@@ -748,10 +741,10 @@ class Colormap(qt.QObject):
             'autoscaleMode': self.getAutoscaleMode(),
             }
 
-    def _setFromDict(self, dic):
+    def _setFromDict(self, dic: dict):
         """Set values to the colormap from a dictionary
 
-        :param dict dic: the colormap as a dictionary
+        :param dic: the colormap as a dictionary
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
@@ -803,16 +796,13 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
 
     @staticmethod
-    def _fromDict(dic):
+    def _fromDict(dic: dict):
         colormap = Colormap()
         colormap._setFromDict(dic)
         return colormap
 
-    def copy(self):
-        """Return a copy of the Colormap.
-
-        :rtype: silx.gui.colors.Colormap
-        """
+    def copy(self) -> Colormap:
+        """Return a copy of the Colormap."""
         colormap = Colormap(name=self._name,
                         colors=self.getColormapLUT(),
                         vmin=self._vmin,
@@ -825,12 +815,16 @@ class Colormap(qt.QObject):
         colormap.setEditable(self.isEditable())
         return colormap
 
-    def applyToData(self, data, reference=None):
+    def applyToData(
+        self,
+        data: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn',
+        reference: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn' | None = None,
+    ) -> numpy.ndarray:
         """Apply the colormap to the data
 
-        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn] data:
+        :param data:
             The data to convert or the item for which to apply the colormap.
-        :param Union[numpy.ndarray,~silx.gui.plot.item.ColormapMixIn,None] reference:
+        :param reference:
             The data or item to use as reference to compute autoscale
         """
         if reference is None:
@@ -849,15 +843,13 @@ class Colormap(qt.QObject):
             self.__nanColor)
 
     @staticmethod
-    def getSupportedColormaps():
+    def getSupportedColormaps() -> tuple[str, ...]:
         """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
 
          ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue',
          'viridis', 'magma', 'inferno', 'plasma')
-
-        :rtype: tuple
         """
         registered_colormaps = _colormap.get_registered_colormaps()
         colormaps = set(registered_colormaps)
@@ -869,10 +861,10 @@ class Colormap(qt.QObject):
                           if cmap not in registered_colormaps)
         return registered_colormaps + colormaps
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._toDict())
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any):
         """Compare colormap values and not pointers"""
         if other is None:
             return False
@@ -893,13 +885,12 @@ class Colormap(qt.QObject):
 
     _SERIAL_VERSION = 3
 
-    def restoreState(self, byteArray):
+    def restoreState(self, byteArray: qt.QByteArray) -> bool:
         """
         Read the colormap state from a QByteArray.
 
-        :param qt.QByteArray byteArray: Stream containing the state
+        :param byteArray: Stream containing the state
         :return: True if the restoration sussseed
-        :rtype: bool
         """
         if self.isEditable() is False:
             raise NotEditableError('Colormap is not editable')
@@ -958,12 +949,8 @@ class Colormap(qt.QObject):
         self.sigChanged.emit()
         return True
 
-    def saveState(self):
-        """
-        Save state of the colomap into a QDataStream.
-
-        :rtype: qt.QByteArray
-        """
+    def saveState(self) -> qt.QByteArray:
+        """Save state of the colomap into a QDataStream."""
         data = qt.QByteArray()
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
@@ -1002,13 +989,11 @@ _DEFAULT_PREFERRED_COLORMAPS = (
 )
 
 
-def preferredColormaps():
+def preferredColormaps() -> tuple[str, ...]:
     """Returns the name of the preferred colormaps.
 
     This list is used by widgets allowing to change the colormap
     like the :class:`ColormapDialog` as a subset of colormap choices.
-
-    :rtype: tuple of str
     """
     global _PREFERRED_COLORMAPS
     if _PREFERRED_COLORMAPS is None:
@@ -1017,14 +1002,13 @@ def preferredColormaps():
     return tuple(_PREFERRED_COLORMAPS)
 
 
-def setPreferredColormaps(colormaps):
+def setPreferredColormaps(colormaps: Iterable[str]):
     """Set the list of preferred colormap names.
 
     Warning: If a colormap name is not available
     it will be removed from the list.
 
     :param colormaps: Not empty list of colormap names
-    :type colormaps: iterable of str
     :raise ValueError: if the list of available preferred colormaps is empty.
     """
     supportedColormaps = Colormap.getSupportedColormaps()
@@ -1036,18 +1020,23 @@ def setPreferredColormaps(colormaps):
     _PREFERRED_COLORMAPS = colormaps
 
 
-def registerLUT(name, colors, cursor_color='black', preferred=True):
+def registerLUT(
+    name: str,
+    colors: numpy.ndarray,
+    cursor_color: str = 'black',
+    preferred: bool = True,
+):
     """Register a custom LUT to be used with `Colormap` objects.
 
     It can override existing LUT names.
 
-    :param str name: Name of the LUT as defined to configure colormaps
-    :param numpy.ndarray colors: The custom LUT to register.
+    :param name: Name of the LUT as defined to configure colormaps
+    :param colors: The custom LUT to register.
             Nx3 or Nx4 numpy array of RGB(A) colors,
             either uint8 or float in [0, 1].
-    :param bool preferred: If true, this LUT will be displayed as part of the
+    :param preferred: If true, this LUT will be displayed as part of the
         preferred colormaps in dialogs.
-    :param str cursor_color: Color used to display overlay over images using
+    :param cursor_color: Color used to display overlay over images using
         colormap with this LUT.
     """
     _colormap.register_colormap(name, colors, cursor_color)
