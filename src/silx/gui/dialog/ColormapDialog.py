@@ -302,7 +302,7 @@ class _AutoScaleButton(qt.QPushButton):
             self.setChecked(autoRange[0] if autoRange[0] == autoRange[1] else False)
 
 @enum.unique
-class DataInPlotMode(_Enum):
+class DisplayMode(_Enum):
     """Enum for each mode of display of the data in the plot."""
     RANGE = 'range'
     HISTOGRAM = 'histogram'
@@ -334,7 +334,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def __init__(self, parent):
         qt.QWidget.__init__(self, parent=parent)
-        self._dataInPlotMode = DataInPlotMode.RANGE
+        self._displayMode = DisplayMode.RANGE
         self._finiteRange = None, None
         self._initPlot()
 
@@ -351,7 +351,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def paintEvent(self, event):
         if self._invalidated:
-            self._updateDataInPlot()
+            self._updateDisplayMode()
             self._invalidated = False
         self._updateMarkerPosition()
         return super(_ColormapHistogram, self).paintEvent(event)
@@ -552,8 +552,8 @@ class _ColormapHistogram(qt.QWidget):
         action.setToolTip("Display the data range within the colormap range. A fast data processing have to be done.")
         action.setIcon(icons.getQIcon('colormap-range'))
         action.setCheckable(True)
-        action.setData(DataInPlotMode.RANGE)
-        action.setChecked(action.data() == self._dataInPlotMode)
+        action.setData(DisplayMode.RANGE)
+        action.setChecked(action.data() == self._displayMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
         self._dataRangeAction = action
@@ -562,13 +562,13 @@ class _ColormapHistogram(qt.QWidget):
         action.setToolTip("Display the data histogram within the colormap range. A slow data processing have to be done. ")
         action.setIcon(icons.getQIcon('colormap-histogram'))
         action.setCheckable(True)
-        action.setData(DataInPlotMode.HISTOGRAM)
-        action.setChecked(action.data() == self._dataInPlotMode)
+        action.setData(DisplayMode.HISTOGRAM)
+        action.setChecked(action.data() == self._displayMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
         self._dataHistogramAction = action
         group.setExclusive(True)
-        group.triggered.connect(self._displayDataInPlotModeChanged)
+        group.triggered.connect(self._displayModeChanged)
 
         plotBoxLayout = qt.QHBoxLayout()
         plotBoxLayout.setContentsMargins(0, 0, 0, 0)
@@ -755,29 +755,29 @@ class _ColormapHistogram(qt.QWidget):
             x = min(x, vmax)
         return x, y
 
-    def setDataInPlotMode(self, mode: str | DataInPlotMode):
-        mode = DataInPlotMode.from_value(mode)
-        if mode is DataInPlotMode.HISTOGRAM:
+    def setDisplayMode(self, mode: str | DisplayMode):
+        mode = DisplayMode.from_value(mode)
+        if mode is DisplayMode.HISTOGRAM:
             action = self._dataHistogramAction
-        elif mode is DataInPlotMode.RANGE:
+        elif mode is DisplayMode.RANGE:
             action = self._dataRangeAction
         else:
             raise ValueError("Mode not supported")
         action.setChecked(True)
-        self._displayDataInPlotModeChanged(action)
+        self._displayModeChanged(action)
 
-    def _setDataInPlotMode(self, mode):
-        if self._dataInPlotMode == mode:
+    def _setDisplayMode(self, mode):
+        if self._displayMode == mode:
             return
-        self._dataInPlotMode = mode
-        self._updateDataInPlot()
+        self._displayMode = mode
+        self._updateDisplayMode()
 
-    def getDataInPlotMode(self) -> DataInPlotMode:
-        return self._dataInPlotMode
+    def getDsiplayMode(self) -> DisplayMode:
+        return self._displayMode
 
-    def _displayDataInPlotModeChanged(self, action):
+    def _displayModeChanged(self, action):
         mode = action.data()
-        self._setDataInPlotMode(mode)
+        self._setDisplayMode(mode)
 
     def invalidateData(self):
         self._histogramData = {}
@@ -785,8 +785,8 @@ class _ColormapHistogram(qt.QWidget):
         self._invalidated = True
         self.update()
 
-    def _updateDataInPlot(self):
-        mode = self._dataInPlotMode
+    def _updateDisplayMode(self):
+        mode = self._displayMode
 
         norm = self._getNorm()
         if norm == Colormap.LINEAR:
@@ -799,7 +799,7 @@ class _ColormapHistogram(qt.QWidget):
         axis = self._plot.getXAxis()
         axis.setScale(scale)
 
-        if mode == DataInPlotMode.RANGE:
+        if mode == DisplayMode.RANGE:
             dataRange = self._getNormalizedDataRange()
             xmin, xmax = dataRange
             if xmax is None or xmin is None:
@@ -815,7 +815,7 @@ class _ColormapHistogram(qt.QWidget):
                                         fill=True,
                                         z=1)
 
-        elif mode == DataInPlotMode.HISTOGRAM:
+        elif mode == DisplayMode.HISTOGRAM:
             histogram, bin_edges = self._getNormalizedHistogram()
             if histogram is None or bin_edges is None:
                 self._plot.remove(legend='Data', kind='histogram')
@@ -849,7 +849,7 @@ class _ColormapHistogram(qt.QWidget):
             return norm
 
     def updateNormalization(self):
-        self._updateDataInPlot()
+        self._updateDisplayMode()
         self.update()
 
 
