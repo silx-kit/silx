@@ -216,14 +216,39 @@ class IntSliderEditor(qt.QSlider):
 class BooleanEditor(qt.QCheckBox):
     """Checkbox editor for bool.
 
-    This is a QCheckBox with white background.
+    Wrap a QCheckBox to define a different user property with `clicked` signal.
 
     :param parent: The widget's parent
     """
 
+    valueChanged = qt.Signal(bool)
+    """Signal emitted when value is changed by the user"""
+
     def __init__(self, parent=None):
         super(BooleanEditor, self).__init__(parent)
         self.setBackgroundRole(qt.QPalette.Base)
+        self.setAutoFillBackground(True)
+
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.__checkbox = qt.QCheckBox(self)
+        self.__checkbox.clicked.connect(self.valueChanged)
+        layout.addWidget(self.__checkbox)
+
+    def getValue(self) -> bool:
+        return self.__checkbox.isChecked()
+
+    def setValue(self, value: bool):
+        self.__checkbox.setChecked(value)
+
+    value = qt.Property(
+        bool,
+        fget=getValue,
+        fset=setValue,
+        user=True,
+        notify=valueChanged,
+    )
+    """Qt user property of the bool value this widget edits"""
 
 
 class ParameterTreeDelegate(qt.QStyledItemDelegate):
