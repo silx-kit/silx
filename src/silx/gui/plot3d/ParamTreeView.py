@@ -274,51 +274,22 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
         """See :meth:`QStyledItemDelegate.paint`"""
         data = index.data(qt.Qt.DisplayRole)
 
-        if isinstance(data, (qt.QVector3D, qt.QVector4D)):
-            if isinstance(data, qt.QVector3D):
-                text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
-            elif isinstance(data, qt.QVector4D):
-                text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
-            else:
-                text = ''
-
-            painter.save()
-            painter.setRenderHint(qt.QPainter.Antialiasing, True)
-
-            # Select palette color group
-            colorGroup = qt.QPalette.Inactive
-            if option.state & qt.QStyle.State_Active:
-                colorGroup = qt.QPalette.Active
-            if not option.state & qt.QStyle.State_Enabled:
-                colorGroup = qt.QPalette.Disabled
-
-            # Draw background if selected
-            if option.state & qt.QStyle.State_Selected:
-                brush = option.palette.brush(colorGroup,
-                                             qt.QPalette.Highlight)
-                painter.fillRect(option.rect, brush)
-
-            # Draw text
-            if option.state & qt.QStyle.State_Selected:
-                colorRole = qt.QPalette.HighlightedText
-            else:
-                colorRole = qt.QPalette.WindowText
-            color = option.palette.color(colorGroup, colorRole)
-            painter.setPen(qt.QPen(color))
-            painter.drawText(option.rect, qt.Qt.AlignLeft, text)
-
-            painter.restore()
-
-            # The following commented code does the same as QPainter based code
-            # but it does not work with PySide
-            # self.initStyleOption(option, index)
-            # option.text = text
-            # widget = option.widget
-            # style = qt.QApplication.style() if not widget else widget.style()
-            # style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
-
-        else:
+        if not isinstance(data, (qt.QVector3D, qt.QVector4D)):
             super(ParameterTreeDelegate, self).paint(painter, option, index)
+            return
+
+        if isinstance(data, qt.QVector3D):
+            text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
+        elif isinstance(data, qt.QVector4D):
+            text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
+        else:
+            text = ''
+
+        self.initStyleOption(option, index)
+        option.text = text
+        widget = option.widget
+        style = qt.QApplication.style() if not widget else widget.style()
+        style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
 
     def _commit(self, *args):
         """Commit data to the model from editors"""
