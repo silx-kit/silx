@@ -52,22 +52,16 @@ class FloatEditor(_FloatEdit):
     :param float value: The initial editor value
     """
 
-    valueChanged = qt.Signal(float)
-    """Signal emitted when the float value has changed"""
-
     def __init__(self, parent=None, value=None):
         super(FloatEditor, self).__init__(parent, value)
         self.setAlignment(qt.Qt.AlignLeft)
-        self.editingFinished.connect(self._emit)
 
-    def _emit(self):
-        self.valueChanged.emit(self.value)
-
-    value = qt.Property(float,
-                        fget=_FloatEdit.value,
-                        fset=_FloatEdit.setValue,
-                        user=True,
-                        notify=valueChanged)
+    valueProperty = qt.Property(
+        float,
+        fget=_FloatEdit.value,
+        fset=_FloatEdit.setValue,
+        user=True,
+    )
     """Qt user property of the float value this widget edits"""
 
 
