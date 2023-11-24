@@ -47,7 +47,8 @@ class ClipPlane(Item3D, PlaneMixIn):
     def __init__(self, parent=None):
         plane = primitives.ClipPlane()
         Item3D.__init__(self, parent=parent, primitive=plane)
-        PlaneMixIn.__init__(self, plane=plane)
+        PlaneMixIn.__init__(self)
+        self._setPlane(plane)
 
     def __pickPreProcessing(self, context):
         """Common processing for :meth:`_pickPostProcess` and :meth:`_pickFull`

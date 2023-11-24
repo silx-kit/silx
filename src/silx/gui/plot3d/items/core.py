@@ -85,7 +85,9 @@ class Item3D(qt.QObject):
     """
 
     def __init__(self, parent, primitive=None):
-        qt.QObject.__init__(self, parent)
+        qt.QObject.__init__(self)
+        if parent is not None:
+            self.setParent(parent)
 
         if primitive is None:
             primitive = scene.Group()
@@ -99,9 +101,6 @@ class Item3D(qt.QObject):
         if labelIndex != 0:
             self._label += u' %d' % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
-
-        if isinstance(parent, Item3D):
-            parent.sigItemChanged.connect(self.__parentItemChanged)
 
     def setParent(self, parent):
         """Override set parent to handle root item change"""
