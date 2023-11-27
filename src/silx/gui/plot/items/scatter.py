@@ -532,6 +532,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             rgbacolors = self.__applyColormapToData()
             return backend.addCurve(xFiltered, yFiltered,
                                     color=rgbacolors[mask],
+                                    gapcolor=None,
                                     symbol=self.getSymbol(),
                                     linewidth=0,
                                     linestyle="",
@@ -632,6 +633,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     # single point, render as a square points
                     return backend.addCurve(xFiltered, yFiltered,
                                             color=rgbacolors[mask],
+                                            gapcolor=None,
                                             symbol='s',
                                             linewidth=0,
                                             linestyle="",
