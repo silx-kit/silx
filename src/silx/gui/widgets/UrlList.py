@@ -25,9 +25,12 @@
 from __future__ import annotations
 
 import typing
+import logging
 from collections.abc import Iterable
 from silx.io.url import DataUrl
 from silx.gui import qt
+
+_logger = logging.getLogger(__name__)
 
 
 class UrlList(qt.QListWidget):
