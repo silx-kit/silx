@@ -130,6 +130,7 @@ def main():
     widget.setNPrefetch(1)
     urls = create_datasets(folder=dataset_folder)
     widget.setUrls(urls=urls)
+    widget.setUrlsEditable(True)   # allow the user to remove some url from the list
     widget.show()
     qapp.exec()
     widget.close()

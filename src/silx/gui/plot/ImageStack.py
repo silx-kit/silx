@@ -33,6 +33,8 @@ from silx.gui.plot import Plot2D
 from silx.io.url import DataUrl
 from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+from silx.gui.utils import blockSignals
+
 import typing
 import logging
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
@@ -61,13 +63,28 @@ class UrlList(qt.QListWidget):
     """List of URLs the user to select an URL"""
 
     sigCurrentUrlChanged = qt.Signal(str)
-    """Signal emitted when the active/current url change"""
+    """Signal emitted when the active/current url change. If url == '' consider it as there is not data to be displayed"""
+
+    sigUrlsRemoved = qt.Signal(tuple)
+    """signal emit when some url have been removed from the URL list. Provided as a tuple of url as strings"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._editable = False
 
         # connect signal / Slot
         self.currentItemChanged.connect(self._notifyCurrentUrlChanged)
+
+    def setEditable(self, editable: bool):
+        if editable != self._editable:
+            self._editable = editable
+            # discusable choice: should we change the selection mode ? No much meaning
+            # to be in ExtendedSelection if we are not in editable mode. But does it has more
+            # meaning to change the selection mode ?
+            if editable:
+                self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
+            else:
+                self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
 
     def setUrls(self, urls: list) -> None:
         url_names = []
@@ -76,20 +93,42 @@ class UrlList(qt.QListWidget):
 
     def _notifyCurrentUrlChanged(self, current, previous):
         if current is None:
-            pass
+            self.sigCurrentUrlChanged.emit("")
         else:
             self.sigCurrentUrlChanged.emit(current.text())
 
-    def setUrl(self, url: DataUrl) -> None:
-        assert isinstance(url, DataUrl)
-        sel_items = self.findItems(url.path(), qt.Qt.MatchExactly)
-        if sel_items is None:
-            _logger.warning(url.path(), ' is not registered in the list.')
-        elif len(sel_items) > 0:
-            item = sel_items[0]
-            self.setCurrentItem(item)
-            self.sigCurrentUrlChanged.emit(item.text())
+    def setUrl(self, url: typing.Optional[DataUrl]) -> None:
+        if url is None:
+            self.clearSelection()
+            self.sigCurrentUrlChanged.emit("")
+        else:
+            assert isinstance(url, DataUrl)
+            sel_items = self.findItems(url.path(), qt.Qt.MatchExactly)
+            if sel_items is None:
+                _logger.warning(url.path(), ' is not registered in the list.')
+            elif len(sel_items) > 0:
+                item = sel_items[0]
+                self.setCurrentItem(item)
+                self.sigCurrentUrlChanged.emit(item.text())
 
+    def _removeSelectedItems(self):
+        if not self._editable:
+            raise ValueError("UrlList is not set as 'editable'")
+        urls = []
+        for item in self.selectedItems():
+            urls.append(item.text())
+            self.takeItem(self.row(item))
+        self.sigUrlsRemoved.emit(tuple(urls))
+
+    def contextMenuEvent(self, event):
+        if self._editable:
+            menu = qt.QMenu()
+            removeAction = qt.QAction(text="remove",
+                                    parent=menu)
+            removeAction.triggered.connect(self._removeSelectedItems)
+            menu.addAction(removeAction)
+            globalPos = self.mapToGlobal(event.pos())
+            menu.exec_(globalPos)
 
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
@@ -98,6 +137,8 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     sigCurrentUrlChanged = qt.Signal(str)
     """Signal emitted when the active/current url change"""
+
+    sigUrlsRemoved = qt.Signal(tuple)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -108,6 +149,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
                                          qt.QSizePolicy.Fixed)
 
         self._urlsTable = UrlList(parent=self)
+
         self.layout().addWidget(self._urlsTable, 1, 1, 1, 2)
 
         # set up
@@ -115,7 +157,8 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
         # Signal / slot connection
         self._toggleButton.clicked.connect(self.toggleUrlSelectionTable)
-        self._urlsTable.sigCurrentUrlChanged.connect(self._propagateSignal)
+        self._urlsTable.sigCurrentUrlChanged.connect(self._propagateCurrentUrlChangedSignal)
+        self._urlsTable.sigUrlsRemoved.connect(self._propageUrlsRemovedSignal)
 
         # expose API
         self.setUrls = self._urlsTable.setUrls
@@ -139,8 +182,11 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
     def urlSelectionTableIsVisible(self):
         return self._urlsTable.isVisibleTo(self)
 
-    def _propagateSignal(self, url):
+    def _propagateCurrentUrlChangedSignal(self, url):
         self.sigCurrentUrlChanged.emit(url)
+
+    def _propageUrlsRemovedSignal(self, urls):
+        self.sigUrlsRemoved.emit(urls)
 
     def clear(self):
         self._urlsTable.clear()
@@ -212,6 +258,7 @@ class ImageStack(qt.QMainWindow):
 
         # connect signal / slot
         self._urlsTable.sigCurrentUrlChanged.connect(self.setCurrentUrl)
+        self._urlsTable.sigUrlsRemoved.connect(self._urlsRemoved)
         self._slider.sigCurrentUrlIndexChanged.connect(self.setCurrentUrlIndex)
 
     def close(self) -> bool:
@@ -327,6 +374,9 @@ class ImageStack(qt.QMainWindow):
         """
         return self.__n_prefetch
 
+    def setUrlsEditable(self, editable: bool):
+        self._urlsTable._urlsTable.setEditable(editable)
+
     def setUrls(self, urls: list) -> None:
         """list of urls within an index. Warning: urls should contain an image
         compatible with the silx.gui.plot.Plot class
@@ -338,6 +388,7 @@ class ImageStack(qt.QMainWindow):
         def createUrlIndexes():
             indexes = {}
             for index, url in enumerate(urls):
+                assert isinstance(url, DataUrl), f"url is expected to be a DataUrl. Get {type(url)}"
                 indexes[index] = url
             return indexes
 
@@ -362,6 +413,33 @@ class ImageStack(qt.QMainWindow):
             if len(self._urls.keys()) > 0:
                 first_url = self._urls[list(self._urls.keys())[0]]
                 self.setCurrentUrl(first_url)
+
+    def _urlsRemoved(self, urls: tuple) -> None:
+        """
+        remove provided urls from the given one and reset urls
+
+        :param tuple urls: urls as str
+        """
+        # remove the given urls from self._urls and self._urlIndexes
+        for url in urls:
+            assert isinstance(url, str), "url is expected to be the str representation of the url"
+
+        remaining_urls = dict(
+            filter(
+                lambda a: a[1].path() not in urls,
+                self._urls.items(),
+            )
+        )
+
+        # try to get reset the url displayed
+        current_url = self.getCurrentUrl()
+        self.setUrls(remaining_urls.values())
+        if current_url is not None:
+            try:
+                self.setCurrentUrl(current_url)
+            except KeyError:
+                # if the url has been removed for example
+                pass
 
     def getUrls(self) -> tuple:
         """
@@ -465,39 +543,40 @@ class ImageStack(qt.QMainWindow):
         else:
             return self.setCurrentUrl(self._urls[index])
 
-    def setCurrentUrl(self, url: typing.Union[DataUrl, str]) -> None:
+    def setCurrentUrl(self, url: typing.Optional[typing.Union[DataUrl, str]]) -> None:
         """
         Define the url to be displayed
 
         :param url: url to be displayed
         :type: DataUrl
+        :raises KeyError: raised if the url is not know
         """
-        assert isinstance(url, (DataUrl, str))
-        if isinstance(url, str):
+        assert isinstance(url, (DataUrl, str, type(None)))
+        if url == "":
+            url = None
+        elif isinstance(url, str):
             url = DataUrl(path=url)
-        if url != self._current_url:
+        if url is not None and url != self._current_url:
             self._current_url = url
             self.sigCurrentUrlChanged.emit(url.path())
 
-        old_url_table = self._urlsTable.blockSignals(True)
-        old_slider = self._slider.blockSignals(True)
+        with blockSignals(self._urlsTable):
+            with blockSignals(self._slider):
 
-        self._urlsTable.setUrl(url)
-        self._slider.setUrlIndex(self._urlIndexes[url.path()])
-        if self._current_url is None:
-            self._plot.clear()
-        else:
-            if self._current_url.path() in self._urlData:
-                self._waitingOverlay.setVisible(False)
-                self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
-            else:
-                self._plot.clear()
-                self._load(url)
-                self._waitingOverlay.setVisible(True)
-            self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
-            self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
-        self._urlsTable.blockSignals(old_url_table)
-        self._slider.blockSignals(old_slider)
+                self._urlsTable.setUrl(url)
+                self._slider.setUrlIndex(self._urlIndexes[url.path()])
+                if self._current_url is None:
+                    self._plot.clear()
+                else:
+                    if self._current_url.path() in self._urlData:
+                        self._waitingOverlay.setVisible(False)
+                        self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
+                    else:
+                        self._plot.clear()
+                        self._load(url)
+                        self._waitingOverlay.setVisible(True)
+                    self._preFetch(self._getNNextUrls(self.__n_prefetch, url))
+                    self._preFetch(self._getNPreviousUrls(self.__n_prefetch, url))
 
     def getCurrentUrl(self) -> typing.Union[None, DataUrl]:
         """
