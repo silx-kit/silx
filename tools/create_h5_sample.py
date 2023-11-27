@@ -615,6 +615,30 @@ def create_links(h5):
     main_group["external_link_to_soft_recursive"] = h5py.ExternalLink(h5.file.filename, main_group.name + "/soft_link_to_itself")
 
 
+def create_image_types(h5):
+    print("- Creating images...")
+    raw = numpy.arange(10*10).reshape((10,10))
+    u8 = (raw * 255 / raw.max()).astype(numpy.uint8)
+    f32 = (raw / raw.max()).astype(numpy.float32)
+    f64 = (raw / raw.max()).astype(numpy.float64)
+
+    u8_t = numpy.swapaxes(u8, 0, 1)
+    f32_t = numpy.swapaxes(f32, 0, 1)
+    f64_t = numpy.swapaxes(f64, 0, 1)
+
+    main_group = h5.create_group("images")
+
+    main_group["intensity_uint8"] = u8
+    main_group["intensity_float32"] = f32
+    main_group["intensity_float64"] = f64
+    main_group["rgb_uint8"] = numpy.stack((u8, u8_t, numpy.flip(u8, 0))).T
+    main_group["rgb_float32"] = numpy.stack((f32, f32_t, numpy.flip(f32, 0))).T
+    main_group["rgb_float64"] = numpy.stack((f64, f64_t, numpy.flip(f64, 0))).T
+    main_group["rgba_uint8"] = numpy.stack((u8, u8_t, numpy.flip(u8, 0), numpy.flip(u8_t))).T
+    main_group["rgba_float32"] = numpy.stack((f32, f32_t, numpy.flip(f32, 0), numpy.flip(f32_t))).T
+    main_group["rgba_float64"] = numpy.stack((f64, f64_t, numpy.flip(f64, 0), numpy.flip(f64_t))).T
+
+
 def create_file():
     filename = "all_types.h5"
     print("Creating file '%s'..." % filename)
@@ -623,6 +647,7 @@ def create_file():
         create_nxdata_group(h5)
         create_encoded_data(h5)
         create_links(h5)
+        create_image_types(h5)
 
 
 def main():
