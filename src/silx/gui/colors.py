@@ -249,6 +249,33 @@ def _getColormap(name: str) -> numpy.ndarray:
     return _colormap.get_colormap_lut(name)
 
 
+class _Colormappable:
+    """Class for objects that can be colormapped by a :class:`Colormap`
+
+    Used by silx.gui.plot.items.core.ColormapMixIn
+    """
+
+    def _getColormapAutoscaleRange(
+        self,
+        colormap: Colormap | None,
+    ) -> tuple[float | None, float | None]:
+        """Returns the autoscale range for given colormap.
+
+        :param colormap:
+           The colormap for which to compute the autoscale range.
+           If None, the default, the colormap of the item is used
+        :return: (vmin, vmax) range
+        """
+        raise NotImplementedError("This method must be implemented in subclass")
+
+    def getColormappedData(copy: bool = False) -> numpy.ndarray | None:
+        """Returns the data used to compute the displayed colors
+
+        :param copy: True to get a copy, False to get internal data (do not modify!).
+        """
+        raise NotImplementedError("This method must be implemented in subclass")
+
+
 class Colormap(qt.QObject):
     """Description of a colormap
 
@@ -620,7 +647,7 @@ class Colormap(qt.QObject):
 
     def getColormapRange(
         self,
-        data: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn' | None = None,
+        data: numpy.ndarray | _Colormappable | None = None,
     ) -> tuple[float, float]:
         """Return (vmin, vmax) the range of the colormap for the given data or item.
 
@@ -648,8 +675,7 @@ class Colormap(qt.QObject):
             vmax = None
 
         if vmin is None or vmax is None:  # Handle autoscale
-            from .plot.items.core import ColormapMixIn  # avoid cyclic import
-            if isinstance(data, ColormapMixIn):
+            if isinstance(data, _Colormappable):
                 min_, max_ = data._getColormapAutoscaleRange(self)
                 # Make sure min_, max_ are not None
                 min_ = normalizer.DEFAULT_RANGE[0] if min_ is None else min_
@@ -817,8 +843,8 @@ class Colormap(qt.QObject):
 
     def applyToData(
         self,
-        data: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn',
-        reference: numpy.ndarray | 'silx.gui.plot.items.ColormapMixIn' | None = None,
+        data: numpy.ndarray | _Colormappable,
+        reference: numpy.ndarray | _Colormappable | None = None,
     ) -> numpy.ndarray:
         """Apply the colormap to the data
 
@@ -831,7 +857,7 @@ class Colormap(qt.QObject):
             reference = data
         vmin, vmax = self.getColormapRange(reference)
 
-        if hasattr(data, "getColormappedData"):  # Use item's data
+        if isinstance(data, _Colormappable):  # Use item's data
             data = data.getColormappedData(copy=False)
 
         return _colormap.cmap(
