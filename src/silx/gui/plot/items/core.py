@@ -91,6 +91,9 @@ class ItemChangedType(enum.Enum):
     LINE_BG_COLOR = 'lineBgColorChanged'
     """Item's line background color changed flag."""
 
+    LINE_GAP_COLOR = 'lineGapColorChanged'
+    """Item's dashed line gap color changed flag."""
+
     YAXIS = 'yAxisChanged'
     """Item's Y axis binding changed flag."""
 
@@ -933,6 +936,39 @@ class ColorMixIn(ItemMixInBase):
 
         self._color = color
         self._updated(ItemChangedType.COLOR)
+
+
+class LineGapColorMixIn(ItemMixInBase):
+    """Mix-in class for dashed line gap color"""
+
+    _DEFAULT_LINE_GAP_COLOR = None
+    """Default dashed line gap color of the item"""
+
+    def __init__(self):
+        self.__lineGapColor = self._DEFAULT_LINE_GAP_COLOR
+
+    def getLineGapColor(self):
+        """Returns the RGBA color of dashed line gap of the item
+
+        :rtype: 4-tuple of float in [0, 1] or None
+        """
+        return self.__lineGapColor
+
+    def setLineGapColor(self, color):
+        """Set dashed line gap color
+
+        It supports:
+        - color names: e.g., 'green'
+        - color codes: '#RRGGBB' and '#RRGGBBAA'
+        - indexed color names: e.g., 'C0'
+        - RGB(A) sequence of uint8 in [0, 255] or float in [0, 1]
+        - QColor
+
+        :param color: line background color to be used
+        :type color: Union[str, List[int], List[float], QColor, None]
+        """
+        self.__lineGapColor = colors.rgba(color)
+        self._updated(ItemChangedType.LINE_GAP_COLOR)
 
 
 class YAxisMixIn(ItemMixInBase):
