@@ -45,7 +45,7 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
     sigCurrentUrlIndexChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(_HorizontalSlider, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         #  connect signal / slot
         self.valueChanged.connect(self._urlChanged)
 
@@ -110,7 +110,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
     """Signal emitted when the active/current url change"""
 
     def __init__(self, parent=None) -> None:
-        qt.QWidget.__init__(self, parent)
+        super().__init__(parent)
         self.setLayout(qt.QGridLayout())
         self._toggleButton = qt.QPushButton(parent=self)
         self.layout().addWidget(self._toggleButton, 0, 2, 1, 1)
@@ -161,7 +161,7 @@ class UrlLoader(qt.QThread):
     Thread use to load DataUrl
     """
     def __init__(self, parent, url):
-        super(UrlLoader, self).__init__(parent=parent)
+        super().__init__(parent=parent)
         assert isinstance(url, DataUrl)
         self.url = url
         self.data = None
@@ -188,7 +188,7 @@ class ImageStack(qt.QMainWindow):
     """Signal emitted when the current url change"""
 
     def __init__(self, parent=None) -> None:
-        super(ImageStack, self).__init__(parent)
+        super().__init__(parent)
         self.__n_prefetch = ImageStack.N_PRELOAD
         self._loadingThreads = []
         self.setWindowFlags(qt.Qt.Widget)
@@ -228,7 +228,7 @@ class ImageStack(qt.QMainWindow):
         self._freeLoadingThreads()
         self._waitingOverlay.close()
         self._plot.close()
-        super(ImageStack, self).close()
+        super().close()
 
     def setUrlLoaderClass(self, urlLoader: typing.Type[UrlLoader]) -> None:
         """
