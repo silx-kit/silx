@@ -576,6 +576,15 @@ class TestPlotCurve(PlotWidgetTestCase):
         data = numpy.arange(100.) + 1j
         self.plot.addCurve(x=data, y=data, xerror=data, yerror=data)
 
+    def testPlotCurveGapColor(self):
+        """Test dashed curve with gap color"""
+        data = numpy.arange(100)
+        self.plot.addCurve(x=data, y=data, legend='curve1', linestyle='--', color='blue')
+        curve = self.plot.getCurve('curve1')
+        assert curve.getLineGapColor() is None
+        curve.setLineGapColor('red')
+        assert curve.getLineGapColor() == (1., 0., 0., 1.)
+
 
 class TestPlotHistogram(PlotWidgetTestCase):
     """Basic tests for add Histogram"""
@@ -597,6 +606,21 @@ class TestPlotHistogram(PlotWidgetTestCase):
                                baseline=-2,
                                z=2,
                                fill=True)
+
+    def testPlotGapColor(self):
+        """Test dashed histogram with gap color"""
+        data = numpy.arange(100)
+        self.plot.addHistogram(
+            histogram=self.histogram,
+            edges=self.edges,
+            legend='histogram1',
+            color='blue',
+        )
+        histogram = self.plot.getItems()[0]
+        assert histogram.getLineGapColor() is None
+        histogram.setLineGapColor('red')
+        assert histogram.getLineGapColor() == (1., 0., 0., 1.)
+        histogram.setLineStyle(':')
 
 
 class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
