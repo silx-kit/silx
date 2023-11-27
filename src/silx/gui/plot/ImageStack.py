@@ -35,10 +35,12 @@ from silx.io.utils import get_data
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui.widgets.UrlList import UrlList
 from silx.gui.utils import blockSignals
+from silx.utils.deprecation import deprecated
 
 import typing
 import logging
 from silx.gui.widgets.WaitingOverlay import WaitingOverlay
+from collections.abc import Iterable
 
 _logger = logging.getLogger(__name__)
 
@@ -89,12 +91,6 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self._urlsTable.sigCurrentUrlChanged.connect(self.sigCurrentUrlChanged)
         self._urlsTable.sigUrlRemoved.connect(self.sigUrlRemoved)
 
-        # expose API
-        self.setUrls = self._urlsTable.setUrls
-        self.setUrl = self._urlsTable.setUrl
-        self.removeUrl = self._urlsTable.removeUrl
-        self.currentItem = self._urlsTable.currentItem
-
     def toggleUrlSelectionTable(self):
         visible = not self.urlSelectionTableIsVisible()
         self._setButtonIcon(show=visible)
@@ -114,6 +110,23 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
 
     def clear(self):
         self._urlsTable.clear()
+
+    # expose UrlList API
+    @deprecated(replacement="addUrls", since_version="2.0")
+    def setUrls(self, urls: Iterable[DataUrl]):
+        self._urlsTable.addUrls(urls=urls)
+
+    def addUrls(self, urls: Iterable[DataUrl]):
+        self._urlsTable.addUrls(urls=urls)
+
+    def setUrl(self, url: typing.Optional[DataUrl]):
+        self._urlsTable.setUrl(url=url)
+
+    def removeUrl(self, url: str):
+        self._urlsTable.removeUrl(url)
+
+    def currentItem(self):
+        return self._urlsTable.currentItem()
 
 
 class UrlLoader(qt.QThread):
@@ -334,7 +347,7 @@ class ImageStack(qt.QMainWindow):
         self._urlIndexes = urlsToIndex
 
         with blockSignals(self._urlsTable):
-            self._urlsTable.setUrls(urls=list(self._urls.values()))
+            self._urlsTable.addUrls(urls=list(self._urls.values()))
 
         self._resetSlider()
 
