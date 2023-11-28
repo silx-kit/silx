@@ -874,7 +874,7 @@ class RegionOfInterestManager(qt.QObject):
                 color = rgba(self.getColor())
             else:
                 color = None
-            plot.setInteractiveMode(mode='select-draw',
+            plot.setInteractiveMode(mode='draw',
                                     source=self,
                                     shape=firstInteractionShapeKind,
                                     color=color,
