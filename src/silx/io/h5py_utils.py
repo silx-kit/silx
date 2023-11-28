@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ parallel writing and reading.
 
 __authors__ = ["W. de Nolf"]
 __license__ = "MIT"
-__date__ = "27/01/2020"
+__date__ = "28/11/2023"
 
 
 import os
@@ -47,8 +47,11 @@ IS_WINDOWS = sys.platform == "win32"
 H5PY_HEX_VERSION = calc_hexversion(*h5py.version.version_tuple[:3])
 HDF5_HEX_VERSION = calc_hexversion(*h5py.version.hdf5_version_tuple[:3])
 
-HDF5_SWMR_VERSION = calc_hexversion(*h5py.get_config().swmr_min_hdf5_version[:3])
-HAS_SWMR = HDF5_HEX_VERSION >= HDF5_SWMR_VERSION
+if h5py.version.version_tuple > (3, 10):
+    HAS_SWMR = True
+else:
+    HDF5_SWMR_VERSION = calc_hexversion(*h5py.get_config().swmr_min_hdf5_version[:3])
+    HAS_SWMR = HDF5_HEX_VERSION >= HDF5_SWMR_VERSION
 
 HAS_TRACK_ORDER = H5PY_HEX_VERSION >= calc_hexversion(2, 9, 0)
 
