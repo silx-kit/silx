@@ -58,6 +58,8 @@ The updates of the colormap description are also available through the signal:
 :attr:`ColormapDialog.sigColormapChanged`.
 """  # noqa
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
@@ -66,7 +68,6 @@ import enum
 import logging
 
 import numpy
-from future import __annotations__
 
 from .. import qt
 from .. import utils
