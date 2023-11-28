@@ -52,22 +52,16 @@ class FloatEditor(_FloatEdit):
     :param float value: The initial editor value
     """
 
-    valueChanged = qt.Signal(float)
-    """Signal emitted when the float value has changed"""
-
     def __init__(self, parent=None, value=None):
         super(FloatEditor, self).__init__(parent, value)
         self.setAlignment(qt.Qt.AlignLeft)
-        self.editingFinished.connect(self._emit)
 
-    def _emit(self):
-        self.valueChanged.emit(self.value)
-
-    value = qt.Property(float,
-                        fget=_FloatEdit.value,
-                        fset=_FloatEdit.setValue,
-                        user=True,
-                        notify=valueChanged)
+    valueProperty = qt.Property(
+        float,
+        fget=_FloatEdit.value,
+        fset=_FloatEdit.setValue,
+        user=True,
+    )
     """Qt user property of the float value this widget edits"""
 
 
@@ -222,14 +216,39 @@ class IntSliderEditor(qt.QSlider):
 class BooleanEditor(qt.QCheckBox):
     """Checkbox editor for bool.
 
-    This is a QCheckBox with white background.
+    Wrap a QCheckBox to define a different user property with `clicked` signal.
 
     :param parent: The widget's parent
     """
 
+    valueChanged = qt.Signal(bool)
+    """Signal emitted when value is changed by the user"""
+
     def __init__(self, parent=None):
         super(BooleanEditor, self).__init__(parent)
-        self.setStyleSheet("background: white;")
+        self.setBackgroundRole(qt.QPalette.Base)
+        self.setAutoFillBackground(True)
+
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.__checkbox = qt.QCheckBox(self)
+        self.__checkbox.clicked.connect(self.valueChanged)
+        layout.addWidget(self.__checkbox)
+
+    def getValue(self) -> bool:
+        return self.__checkbox.isChecked()
+
+    def setValue(self, value: bool):
+        self.__checkbox.setChecked(value)
+
+    value = qt.Property(
+        bool,
+        fget=getValue,
+        fset=setValue,
+        user=True,
+        notify=valueChanged,
+    )
+    """Qt user property of the bool value this widget edits"""
 
 
 class ParameterTreeDelegate(qt.QStyledItemDelegate):
@@ -255,51 +274,22 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
         """See :meth:`QStyledItemDelegate.paint`"""
         data = index.data(qt.Qt.DisplayRole)
 
-        if isinstance(data, (qt.QVector3D, qt.QVector4D)):
-            if isinstance(data, qt.QVector3D):
-                text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
-            elif isinstance(data, qt.QVector4D):
-                text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
-            else:
-                text = ''
-
-            painter.save()
-            painter.setRenderHint(qt.QPainter.Antialiasing, True)
-
-            # Select palette color group
-            colorGroup = qt.QPalette.Inactive
-            if option.state & qt.QStyle.State_Active:
-                colorGroup = qt.QPalette.Active
-            if not option.state & qt.QStyle.State_Enabled:
-                colorGroup = qt.QPalette.Disabled
-
-            # Draw background if selected
-            if option.state & qt.QStyle.State_Selected:
-                brush = option.palette.brush(colorGroup,
-                                             qt.QPalette.Highlight)
-                painter.fillRect(option.rect, brush)
-
-            # Draw text
-            if option.state & qt.QStyle.State_Selected:
-                colorRole = qt.QPalette.HighlightedText
-            else:
-                colorRole = qt.QPalette.WindowText
-            color = option.palette.color(colorGroup, colorRole)
-            painter.setPen(qt.QPen(color))
-            painter.drawText(option.rect, qt.Qt.AlignLeft, text)
-
-            painter.restore()
-
-            # The following commented code does the same as QPainter based code
-            # but it does not work with PySide
-            # self.initStyleOption(option, index)
-            # option.text = text
-            # widget = option.widget
-            # style = qt.QApplication.style() if not widget else widget.style()
-            # style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
-
-        else:
+        if not isinstance(data, (qt.QVector3D, qt.QVector4D)):
             super(ParameterTreeDelegate, self).paint(painter, option, index)
+            return
+
+        if isinstance(data, qt.QVector3D):
+            text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
+        elif isinstance(data, qt.QVector4D):
+            text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
+        else:
+            text = ''
+
+        self.initStyleOption(option, index)
+        option.text = text
+        widget = option.widget
+        style = qt.QApplication.style() if not widget else widget.style()
+        style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
 
     def _commit(self, *args):
         """Commit data to the model from editors"""
@@ -484,10 +474,7 @@ class ParamTreeView(qt.QTreeView):
 
     def dataChanged(self, topLeft, bottomRight, roles=()):
         """Handle model dataChanged signal eventually closing editors"""
-        if roles:  # Qt 5
-            super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
-        else:  # Qt4 compatibility
-            super(ParamTreeView, self).dataChanged(topLeft, bottomRight)
+        super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
         if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
             for row in range(topLeft.row(), bottomRight.row() + 1):
                 for column in range(topLeft.column(), bottomRight.column() + 1):

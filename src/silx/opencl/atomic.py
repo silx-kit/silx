@@ -69,6 +69,10 @@ def check_atomic64(device):
         return False, f"Unable to create context on {device}"
     else:
         queue = pyopencl.CommandQueue(ctx)
+    if device.platform.name == 'Portable Computing Language' and \
+       "GPU" in pyopencl.device_type.to_string(device.type).upper():
+        # this configuration is known to seg-fault
+        return False, "PoCL + GPU do not support atomic64"
     src = """
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 #pragma OPENCL EXTENSION cl_khr_int64_base_atomics : enable

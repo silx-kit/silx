@@ -58,12 +58,14 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     """
 
     def __init__(self, parent):
-        plane = cutplane.CutPlane(normal=(0, 1, 0))
 
         Item3D.__init__(self, parent=None)
         ColormapMixIn.__init__(self)
         InterpolationMixIn.__init__(self)
-        PlaneMixIn.__init__(self, plane=plane)
+        PlaneMixIn.__init__(self)
+
+        plane = cutplane.CutPlane(normal=(0, 1, 0))
+        self._setPlane(plane)
 
         self._dataRange = None
         self._data = None

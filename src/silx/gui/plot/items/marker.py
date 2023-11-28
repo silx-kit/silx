@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 # ###########################################################################*/
 """This module provides markers item of the :class:`Plot`.
 """
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -34,6 +35,7 @@ import logging
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
                    ItemChangedType, YAxisMixIn)
+from silx import config
 from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
@@ -57,6 +59,13 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         YAxisMixIn.__init__(self)
 
         self._text = ''
+        self._font = None
+        if config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE is not None:
+            self._font = qt.QFont(
+                qt.QApplication.instance().font().family(),
+                config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE,
+            )
+
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
@@ -74,7 +83,9 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             linestyle=linestyle,
             linewidth=linewidth,
             constraint=self.getConstraint(),
-            yaxis=self.getYAxis())
+            yaxis=self.getYAxis(),
+            font=self._font,  # Do not use getFont to spare creating a new QFont
+        )
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -108,6 +119,22 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             self._text = text
             self._updated(ItemChangedType.TEXT)
 
+    def getFont(self) -> qt.QFont | None:
+        """Returns a copy of the QFont used to render text.
+
+        To modify the text font, use :meth:`setFont`.
+        """
+        return None if self._font is None else qt.QFont(self._font)
+
+    def setFont(self, font: qt.QFont | None):
+        """Set the QFont used to render text, use None for default.
+
+        A copy is stored, so further modification of the provided font are not taken into account.
+        """
+        if font != self._font:
+            self._font = None if font is None else qt.QFont(font)
+            self._updated(ItemChangedType.FONT)
+
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates
 
@@ -122,14 +149,14 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         """
         return self._y
 
-    def getPosition(self):
+    def getPosition(self) -> tuple[float | None, float | None]:
         """Returns the (x, y) position of the marker in data coordinates
 
         :rtype: 2-tuple of float or None
         """
         return self._x, self._y
 
-    def setPosition(self, x, y):
+    def setPosition(self, x: float, y: float):
         """Set marker position in data coordinates
 
         Constraint are applied if any.

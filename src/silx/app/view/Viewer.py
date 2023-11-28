@@ -22,6 +22,8 @@
 # ############################################################################*/
 """Browse a data file with a GUI"""
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "15/01/2019"
@@ -30,6 +32,8 @@ __date__ = "15/01/2019"
 import os
 import logging
 import functools
+import traceback
+from types import TracebackType
 from typing import Optional
 
 import silx.io.nxdata
@@ -63,6 +67,8 @@ class Viewer(qt.QMainWindow):
 
         silxIcon = icons.getQIcon("silx")
         self.setWindowIcon(silxIcon)
+
+        self.__error = ""
 
         self.__context = self.createApplicationContext(settings)
         self.__context.restoreLibrarySettings()
@@ -453,9 +459,9 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(customNxdataWidget)
         return widget
 
-    def __h5FileLoaded(self, loadedH5):
+    def __h5FileLoaded(self, loadedH5, filename):
         self.__context.pushRecentFile(loadedH5.file.filename)
-        if loadedH5.file.filename == self.__displayIt:
+        if filename == self.__displayIt:
             self.__displayIt = None
             self.displayData(loadedH5)
 
@@ -756,6 +762,14 @@ class Viewer(qt.QMainWindow):
         helpMenu.addAction(self._aboutAction)
         helpMenu.addAction(self._documentationAction)
 
+        self.__errorButton = qt.QToolButton(self)
+        self.__errorButton.setIcon(
+            self.style().standardIcon(qt.QStyle.SP_MessageBoxWarning))
+        self.__errorButton.setToolTip("An error occured!\nClick to display last error\nor check messages in the console")
+        self.__errorButton.setVisible(False)
+        self.__errorButton.clicked.connect(self.__errorButtonClicked)
+        self.menuBar().setCornerWidget(self.__errorButton)
+
     def open(self):
         dialog = self.createFileDialog()
         if self.__dialogState is None:
@@ -966,3 +980,31 @@ class Viewer(qt.QMainWindow):
                 action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
                 action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
                 menu.addAction(action)
+
+    def __errorButtonClicked(self):
+        button = qt.QMessageBox.warning(
+            self,
+            "Error",
+            self.getError(),
+            qt.QMessageBox.Reset | qt.QMessageBox.Close,
+            qt.QMessageBox.Close,
+        )
+        if button == qt.QMessageBox.Reset:
+            self.setError("")
+
+    def getError(self) -> str:
+        """Returns error information string"""
+        return self.__error
+
+    def setError(self, error: str):
+        """Set error information string"""
+        if error == self.__error:
+            return
+
+        self.__error = error
+        self.__errorButton.setVisible(error != "")
+
+    def setErrorFromException(self, type_: type[BaseException], value: BaseException, trace: TracebackType):
+        """Set information about the last exception that occured"""
+        formattedTrace = '\n'.join(traceback.format_tb(trace))
+        self.setError(f"{type_.__name__}:\n{value}\n\n{formattedTrace}")

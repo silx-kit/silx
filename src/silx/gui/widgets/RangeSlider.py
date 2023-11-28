@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/11/2018"
+__date__ = "03/11/2023"
 
 
 import numpy as numpy
@@ -122,7 +122,12 @@ class RangeSlider(qt.QWidget):
     def event(self, event):
         t = event.type()
         if t == qt.QEvent.HoverEnter or t == qt.QEvent.HoverLeave or t == qt.QEvent.HoverMove:
-            return self.__updateHoverControl(event.pos())
+            if qt.BINDING in ("PyQt5",):
+               # qt-5
+               return self.__updateHoverControl(event.pos())
+            else:
+               # qt-6
+               return self.__updateHoverControl(event.position().toPoint())
         else:
             return super(RangeSlider, self).event(event)
 
@@ -500,6 +505,14 @@ class RangeSlider(qt.QWidget):
         self.setGroovePixmap(qpixmap)
 
     # Handle interaction
+    def _mouseEventPosition(self, event):
+        if qt.BINDING in ("PyQt5",):
+            # qt-5 returns QPoint
+            position = event.pos()
+        else:
+            # qt-6 returns QPointF
+            position = event.position()
+        return position
 
     def mousePressEvent(self, event):
         super(RangeSlider, self).mousePressEvent(event)
@@ -508,7 +521,8 @@ class RangeSlider(qt.QWidget):
             picked = None
             for name in ('first', 'second'):
                 area = self.__sliderRect(name)
-                if area.contains(event.pos()):
+                position = self._mouseEventPosition(event)
+                if area.contains(position):
                     picked = name
                     break
 
@@ -520,12 +534,13 @@ class RangeSlider(qt.QWidget):
         super(RangeSlider, self).mouseMoveEvent(event)
 
         if self.__moving is not None:
+            event_pos = self._mouseEventPosition(event)
             delta = self._SLIDER_WIDTH // 2
             if self.__moving == 'first':
-                position = self.__xPixelToPosition(event.pos().x() + delta)
+                position = self.__xPixelToPosition(event_pos.x() + delta)
                 self.setFirstPosition(position)
             else:
-                position = self.__xPixelToPosition(event.pos().x() - delta)
+                position = self.__xPixelToPosition(event_pos.x() - delta)
                 self.setSecondPosition(position)
 
     def mouseReleaseEvent(self, event):

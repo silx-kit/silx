@@ -58,17 +58,15 @@ def _get_available_scripts(path):
     return res
 
 
-if sys.version_info[0] >= 3:  # Python3
-
-    def execfile(fullpath, globals=None, locals=None):
-        "Python3 implementation for execfile"
-        with open(fullpath) as f:
-            try:
-                data = f.read()
-            except UnicodeDecodeError:
-                raise SyntaxError("Not a Python script")
-            code = compile(data, fullpath, 'exec')
-            exec(code, globals, locals)
+def execfile(fullpath, globals=None, locals=None):
+    "Python3 implementation for execfile"
+    with open(fullpath) as f:
+        try:
+            data = f.read()
+        except UnicodeDecodeError:
+            raise SyntaxError("Not a Python script")
+        code = compile(data, fullpath, 'exec')
+        exec(code, globals, locals)
 
 
 def run_file(filename, argv):

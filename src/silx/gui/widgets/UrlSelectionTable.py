@@ -336,7 +336,8 @@ class UrlSelectionTable(TableWidget):
         if action == qt.Qt.IgnoreAction:
             return True
         if mimedata.hasFormat(constants.SILX_URI_MIMETYPE):
-            url = DataUrl(mimedata.text())
+            urlText = str(mimedata.data(constants.SILX_URI_MIMETYPE), "utf-8")
+            url = DataUrl(urlText)
             self.addUrl(url)
             return True
         return False

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,8 @@ from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import hdf5
 from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
+from silx.io import h5py_utils
+from silx.io.url import DataUrl
 import weakref
 
 import h5py
@@ -53,7 +55,7 @@ def useH5File(request, tmpdir_factory):
     tmp = tmpdir_factory.mktemp("test_hdf5")
     request.cls.filename = os.path.join(tmp, "data.h5")
     # create h5 data
-    with h5py.File(request.cls.filename, "w") as f:
+    with h5py_utils.File(request.cls.filename, "w") as f:
         g = f.create_group("arrays")
         g.create_dataset("scalar", data=10)
     yield
@@ -86,7 +88,7 @@ class TestHdf5TreeModel(TestCaseQt):
         fd, tmp_name = tempfile.mkstemp(suffix=".h5")
         os.close(fd)
         # create h5 data
-        h5file = h5py.File(tmp_name, "w")
+        h5file = h5py_utils.File(tmp_name, "w")
         g = h5file.create_group("arrays")
         g.create_dataset("scalar", data=10)
         h5file.close()
@@ -159,7 +161,7 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
 
     def testSynchronizeObject(self):
-        h5 = h5py.File(self.filename, mode="r")
+        h5 = h5py_utils.File(self.filename, mode="r")
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
@@ -234,7 +236,7 @@ class TestHdf5TreeModel(TestCaseQt):
         """A file inserted as an h5py object is not open (then not closed)
         internally."""
         try:
-            h5File = h5py.File(self.filename, mode="r")
+            h5File = h5py_utils.File(self.filename, mode="r")
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertH5pyObject(h5File)
@@ -368,7 +370,7 @@ class TestHdf5TreeModelSignals(TestCaseQt):
     def setUp(self):
         TestCaseQt.setUp(self)
         self.model = hdf5.Hdf5TreeModel()
-        self.h5 = h5py.File(self.filename, mode='r')
+        self.h5 = h5py_utils.File(self.filename, mode='r')
         self.model.insertH5pyObject(self.h5)
 
         self.listener = SignalListener()
@@ -394,16 +396,22 @@ class TestHdf5TreeModelSignals(TestCaseQt):
             raise RuntimeError("Still waiting for a pending operation")
 
     def testInsert(self):
-        h5 = h5py.File(self.filename, mode='r')
+        h5 = h5py_utils.File(self.filename, mode='r')
         self.model.insertH5pyObject(h5)
         self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
-        self.model.insertFile(self.filename)
-        self.assertEqual(self.listener.callCount(), 1)
-        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
-        self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
-        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, self.filename)
+        for data_path in [None, "/arrays/scalar"]:
+            with self.subTest(data_path=data_path):
+                url = DataUrl(file_path=self.filename, data_path=data_path)
+                insertedFilename = url.path()
+                self.model.insertFile(insertedFilename)
+                self.assertEqual(self.listener.callCount(), 1)
+                self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
+                self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
+                self.assertEqual(self.listener.arguments(callIndex=0)[0].file.filename, self.filename)
+                self.assertEqual(self.listener.arguments(callIndex=0)[1], insertedFilename)
+                self.listener.clear()
 
     def testRemoved(self):
         self.model.removeH5pyObject(self.h5)
@@ -572,7 +580,7 @@ def useH5Model(request, tmpdir_factory):
     extH5FileName = os.path.join(tmp, "base__external.h5")
     extDatFileName = os.path.join(tmp, "base__external.dat")
 
-    externalh5 = h5py.File(extH5FileName, mode="w")
+    externalh5 = h5py_utils.File(extH5FileName, mode="w")
     externalh5["target/dataset"] = 50
     externalh5["target/link"] = h5py.SoftLink("/target/dataset")
     externalh5["/ext/vds0"] = [0, 1]
@@ -581,7 +589,7 @@ def useH5Model(request, tmpdir_factory):
 
     numpy.array([0,1,10,10,2,3]).tofile(extDatFileName)
 
-    h5 = h5py.File(filename, mode="w")
+    h5 = h5py_utils.File(filename, mode="w")
     h5["group/dataset"] = 50
     h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
     h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
@@ -604,7 +612,7 @@ def useH5Model(request, tmpdir_factory):
         h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
         h5.close()
 
-    with h5py.File(filename, mode="r") as h5File:
+    with h5py_utils.File(filename, mode="r") as h5File:
         # Create model
         request.cls.model = hdf5.Hdf5TreeModel()
         request.cls.model.insertH5pyObject(h5File)

@@ -31,6 +31,7 @@ import logging
 import os
 import signal
 import sys
+import traceback
 from silx.app.utils import parseutils
 
 
@@ -136,7 +137,6 @@ def mainQt(options):
         qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sigintHandler)
-    sys.excepthook = qt.exceptionHandler
 
     timer = qt.QTimer()
     timer.start(500)
@@ -154,6 +154,16 @@ def mainQt(options):
 
     window = createWindow(parent=None, settings=settings)
     window.setAttribute(qt.Qt.WA_DeleteOnClose, True)
+
+    def exceptHook(type_, value, trace):
+        _logger.error("An error occured in silx view:")
+        _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
+        try:
+            window.setErrorFromException(type_, value, trace)
+        except Exception:
+            pass
+    sys.excepthook = exceptHook
+
 
     if options.use_opengl_plot:
         # It have to be done after the settings (after the Viewer creation)

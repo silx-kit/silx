@@ -29,6 +29,7 @@
  *
  * We use the trick to declare some variable "volatile" to enforce the actual
  * precision reduction of those variables.
+ * This has to be used in combination with #pragma clang fp contract(on)
 */
 
 #ifndef X87_VOLATILE
@@ -37,6 +38,7 @@
 
 //Algorithm 1, p23, theorem 1.1.12. Requires e_x > e_y, valid if |x| > |y| 
 inline fp2 fast_fp_plus_fp(fp x, fp y){
+    #pragma clang fp contract(on)
     X87_VOLATILE fp s = x + y;
     X87_VOLATILE fp z = s - x;
     fp e = y - z;
@@ -45,6 +47,7 @@ inline fp2 fast_fp_plus_fp(fp x, fp y){
 
 //Algorithm 2, p24, same as fast_fp_plus_fp without the condition on e_x and e_y
 inline fp2 fp_plus_fp(fp x, fp y){
+    #pragma clang fp contract(on)
     X87_VOLATILE fp s = x + y;
     X87_VOLATILE fp xp = s - y;
     X87_VOLATILE fp yp = s - xp;
@@ -62,6 +65,7 @@ inline fp2 fp_times_fp(fp x, fp y){
 
 //Algorithm 7, p38: Addition of a FP to a DW. 10flop bounds:2u²+5u³
 inline fp2 dw_plus_fp(fp2 x, fp y){
+    #pragma clang fp contract(on)
     fp2 s = fp_plus_fp(x.s0, y);
     X87_VOLATILE fp v = x.s1 + s.s1;
     return fast_fp_plus_fp(s.s0, v);
@@ -83,6 +87,7 @@ inline fp2 dw_times_fp(fp2 x, fp y){
 
 //Algorithm 14, p52: Multiplication DW*DW, 8 flops bounds:6u²
 inline fp2 dw_times_dw(fp2 x, fp2 y){
+    #pragma clang fp contract(on)
     fp2 c = fp_times_fp(x.s0, y.s0);
     X87_VOLATILE fp l = fma(x.s1, y.s0, x.s0 * y.s1);
     return fast_fp_plus_fp(c.s0, c.s1 + l);
@@ -90,6 +95,7 @@ inline fp2 dw_times_dw(fp2 x, fp2 y){
 
 //Algorithm 17, p55: Division DW / FP, 10flops bounds: 3.5u²
 inline fp2 dw_div_fp(fp2 x, fp y){
+    #pragma clang fp contract(on)
     X87_VOLATILE fp th = x.s0 / y;
     fp2 pi = fp_times_fp(th, y);
     fp2 d = x - pi;
@@ -100,6 +106,7 @@ inline fp2 dw_div_fp(fp2 x, fp y){
 
 //Derived from algorithm 20, p64: Inversion 1/ DW, 22 flops
 inline fp2 inv_dw(fp2 y){
+    #pragma clang fp contract(on)
     X87_VOLATILE fp th = one/y.s0;
     X87_VOLATILE fp rh = fma(-y.s0, th, one);
     X87_VOLATILE fp rl = -y.s1 * th;

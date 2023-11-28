@@ -30,6 +30,7 @@ import logging
 import numpy
 import os.path
 import h5py
+
 try:
     from pint import Quantity as PintQuantity
 except ImportError:
@@ -93,6 +94,7 @@ class _SafeH5FileWrite:
     function. The object is created in the initial call if a path is provided,
     and it is closed only at the end when all the processing is finished.
     """
+
     def __init__(self, h5file, mode="w"):
         """
         :param h5file:  HDF5 file path or :class:`h5py.File` instance
@@ -126,6 +128,7 @@ class _SafeH5FileRead:
     that SPEC files and all formats supported by fabio can also be opened,
     but in read-only mode.
     """
+
     def __init__(self, h5file):
         """
 
@@ -178,7 +181,7 @@ def _normalize_h5_path(h5root, h5path):
 def dicttoh5(
     treedict,
     h5file,
-    h5path='/',
+    h5path="/",
     mode="w",
     create_dataset_args=None,
     update_mode=None,
@@ -257,10 +260,12 @@ def dicttoh5(
         update_mode = "add"
 
     if update_mode not in UPDATE_MODE_VALID_EXISTING_VALUES:
-        raise ValueError((
-            "Argument 'update_mode' can only have values: {}"
-            "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
-        ))
+        raise ValueError(
+            (
+                "Argument 'update_mode' can only have values: {}"
+                "".format(UPDATE_MODE_VALID_EXISTING_VALUES)
+            )
+        )
 
     if not isinstance(treedict, Mapping):
         raise TypeError("'treedict' must be a dictionary")
@@ -283,7 +288,9 @@ def dicttoh5(
                     del h5f[h5path]
                     h5f.create_group(h5path)
                 else:
-                    logger.info(f'Cannot overwrite {h5f.file.filename}::{h5f[h5path].name} with update_mode="{update_mode}"')
+                    logger.info(
+                        f'Cannot overwrite {h5f.file.filename}::{h5f[h5path].name} with update_mode="{update_mode}"'
+                    )
                     return
         else:
             h5f.create_group(h5path)
@@ -304,9 +311,13 @@ def dicttoh5(
                     del h5f[h5name]
                     exists = False
                 if value:
-                    dicttoh5(value, h5f, h5name,
-                             update_mode=update_mode,
-                             create_dataset_args=create_dataset_args)
+                    dicttoh5(
+                        value,
+                        h5f,
+                        h5name,
+                        update_mode=update_mode,
+                        create_dataset_args=create_dataset_args,
+                    )
                 elif not exists:
                     h5f.create_group(h5name)
             elif is_link(value):
@@ -320,7 +331,9 @@ def dicttoh5(
             else:
                 # HDF5 dataset
                 if exists and not change_allowed:
-                    logger.info(f'Cannot modify dataset {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"')
+                    logger.info(
+                        f'Cannot modify dataset {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"'
+                    )
                     continue
                 data = _prepare_hdf5_write_value(value)
 
@@ -334,20 +347,28 @@ def dicttoh5(
                         # Delete the existing dataset
                         if update_mode != "replace":
                             if not is_dataset(h5f[h5name]):
-                                logger.info(f'Cannot overwrite {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"')
+                                logger.info(
+                                    f'Cannot overwrite {h5f.file.filename}::{h5f[h5name].name} with update_mode="{update_mode}"'
+                                )
                                 continue
                             attrs_backup = dict(h5f[h5name].attrs)
                         del h5f[h5name]
 
                 # Create dataset
                 # can't apply filters on scalars (datasets with shape == ())
-                if data.shape == () or create_dataset_args is None:
-                    h5f.create_dataset(h5name,
-                                       data=data)
-                else:
-                    h5f.create_dataset(h5name,
-                                       data=data,
-                                       **create_dataset_args)
+                try:
+                    if data.shape == () or create_dataset_args is None:
+                        h5f.create_dataset(h5name, data=data)
+                    else:
+                        h5f.create_dataset(h5name, data=data, **create_dataset_args)
+                except Exception as e:
+                    if isinstance(data, numpy.ndarray):
+                        dtype = f"numpy.ndarray-{data.dtype}"
+                    else:
+                        dtype = type(data)
+                    raise ValueError(
+                        f"Failed to create dataset '{h5name}' with data ({dtype}) = {data}"
+                    ) from e
                 if attrs_backup:
                     h5f[h5name].attrs.update(attrs_backup)
 
@@ -373,20 +394,20 @@ def dicttoh5(
             else:
                 # Add/modify HDF5 attribute
                 if exists and not change_allowed:
-                    logger.info(f'Cannot modify attribute {h5f.file.filename}::{h5f[h5name].name}@{attr_name} with update_mode="{update_mode}"')
+                    logger.info(
+                        f'Cannot modify attribute {h5f.file.filename}::{h5f[h5name].name}@{attr_name} with update_mode="{update_mode}"'
+                    )
                     continue
                 data = _prepare_hdf5_write_value(value)
                 h5a[attr_name] = data
 
 
 def _has_nx_class(treedict, key=""):
-    return key + "@NX_class" in treedict or \
-           (key, "NX_class") in treedict
+    return key + "@NX_class" in treedict or (key, "NX_class") in treedict
 
 
 def _ensure_nx_class(treedict, parents=tuple()):
-    """Each group needs an "NX_class" attribute.
-    """
+    """Each group needs an "NX_class" attribute."""
     if _has_nx_class(treedict):
         return
     nparents = len(parents)
@@ -398,13 +419,11 @@ def _ensure_nx_class(treedict, parents=tuple()):
         treedict[("", "NX_class")] = "NXcollection"
 
 
-def nexus_to_h5_dict(
-    treedict, parents=tuple(), add_nx_class=True, has_nx_class=False
-):
+def nexus_to_h5_dict(treedict, parents=tuple(), add_nx_class=True, has_nx_class=False):
     """The following conversions are applied:
         * key with "{name}@{attr_name}" notation: key converted to 2-tuple
         * key with ">{url}" notation: strip ">" and convert value to
-                                      h5py.SoftLink or h5py.ExternalLink 
+                                      h5py.SoftLink or h5py.ExternalLink
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character can be used
@@ -451,9 +470,10 @@ def nexus_to_h5_dict(
             key_has_nx_class = add_nx_class and _has_nx_class(treedict, key)
             copy[key] = nexus_to_h5_dict(
                 value,
-                parents=parents+(key,),
+                parents=parents + (key,),
                 add_nx_class=add_nx_class,
-                has_nx_class=key_has_nx_class)
+                has_nx_class=key_has_nx_class,
+            )
 
         elif PintQuantity is not None and isinstance(value, PintQuantity):
             copy[key] = value.magnitude
@@ -516,23 +536,25 @@ def _handle_error(mode: str, exception, msg: str, *args) -> None:
     :param str msg: Error message template
     :param List[str] args: Arguments for error message template
     """
-    if mode == 'ignore':
+    if mode == "ignore":
         return  # no-op
-    elif mode == 'log':
+    elif mode == "log":
         logger.error(msg, *args)
-    elif mode == 'raise':
+    elif mode == "raise":
         raise exception(msg % args)
     else:
         raise ValueError("Unsupported error handling: %s" % mode)
 
 
-def h5todict(h5file,
-             path="/",
-             exclude_names=None,
-             asarray=True,
-             dereference_links=True,
-             include_attributes=False,
-             errors='raise'):
+def h5todict(
+    h5file,
+    path="/",
+    exclude_names=None,
+    asarray=True,
+    dereference_links=True,
+    include_attributes=False,
+    errors="raise",
+):
     """Read a HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
@@ -581,20 +603,18 @@ def h5todict(h5file,
     with _SafeH5FileRead(h5file) as h5f:
         ddict = {}
         if path not in h5f:
-            _handle_error(
-                errors, KeyError, 'Path "%s" does not exist in file.', path)
+            _handle_error(errors, KeyError, 'Path "%s" does not exist in file.', path)
             return ddict
 
         try:
             root = h5f[path]
         except KeyError as e:
             if not isinstance(h5f.get(path, getlink=True), h5py.HardLink):
-                _handle_error(errors,
-                              KeyError,
-                              'Cannot retrieve path "%s" (broken link)',
-                              path)
+                _handle_error(
+                    errors, KeyError, 'Cannot retrieve path "%s" (broken link)', path
+                )
             else:
-                _handle_error(errors, KeyError, ', '.join(e.args))
+                _handle_error(errors, KeyError, ", ".join(e.args))
             return ddict
 
         # Read the attributes of the group
@@ -618,32 +638,35 @@ def h5todict(h5file,
                 h5obj = h5f[h5name]
             except KeyError as e:
                 if not isinstance(h5f.get(h5name, getlink=True), h5py.HardLink):
-                    _handle_error(errors,
-                                  KeyError,
-                                  'Cannot retrieve path "%s" (broken link)',
-                                  h5name)
+                    _handle_error(
+                        errors,
+                        KeyError,
+                        'Cannot retrieve path "%s" (broken link)',
+                        h5name,
+                    )
                 else:
-                    _handle_error(errors, KeyError, ', '.join(e.args))
+                    _handle_error(errors, KeyError, ", ".join(e.args))
                 continue
 
             if is_group(h5obj):
                 # Child is an HDF5 group
-                ddict[key] = h5todict(h5f,
-                                      h5name,
-                                      exclude_names=exclude_names,
-                                      asarray=asarray,
-                                      dereference_links=dereference_links,
-                                      include_attributes=include_attributes,
-                                      errors=errors)
+                ddict[key] = h5todict(
+                    h5f,
+                    h5name,
+                    exclude_names=exclude_names,
+                    asarray=asarray,
+                    dereference_links=dereference_links,
+                    include_attributes=include_attributes,
+                    errors=errors,
+                )
             else:
                 # Child is an HDF5 dataset
                 try:
                     data = h5py_read_dataset(h5obj)
                 except OSError:
-                    _handle_error(errors,
-                                  OSError,
-                                  'Cannot retrieve dataset "%s"',
-                                  h5name)
+                    _handle_error(
+                        errors, OSError, 'Cannot retrieve dataset "%s"', h5name
+                    )
                 else:
                     if asarray:  # Convert HDF5 dataset to numpy array
                         data = numpy.array(data, copy=False)
@@ -711,9 +734,7 @@ def dicttonx(treedict, h5file, h5path="/", add_nx_class=None, **kw):
     parents = tuple(p for p in h5path.split("/") if p)
     if add_nx_class is None:
         add_nx_class = kw.get("update_mode", None) in (None, "add")
-    nxtreedict = nexus_to_h5_dict(
-        treedict, parents=parents, add_nx_class=add_nx_class
-    )
+    nxtreedict = nexus_to_h5_dict(treedict, parents=parents, add_nx_class=add_nx_class)
     dicttoh5(nxtreedict, h5file, h5path=h5path, **kw)
 
 
@@ -789,7 +810,7 @@ def dump(ddict, ffile, mode="w", fmat=None):
     """
     if fmat is None:
         # If file-like object get its name, else use ffile as filename
-        filename = getattr(ffile, 'name', ffile)
+        filename = getattr(ffile, "name", ffile)
         fmat = os.path.splitext(filename)[1][1:]  # Strip extension leading '.'
     fmat = fmat.lower()
 

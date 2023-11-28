@@ -31,26 +31,36 @@ __license__ = "MIT"
 __date__ = "03/01/2018"
 
 
+from typing import Callable, Optional, Union
 import weakref
 from silx.gui import icons
 from silx.gui import qt
+from silx.gui.plot import PlotWidget
 
 
 class PlotAction(qt.QAction):
     """Base class for QAction that operates on a PlotWidget.
 
     :param plot: :class:`.PlotWidget` instance on which to operate.
-    :param icon: QIcon or str name of icon to use
-    :param str text: The name of this action to be used for menu label
-    :param str tooltip: The text of the tooltip
+    :param icon: QIcon or name of icon to use
+    :param text: The name of this action to be used for menu label
+    :param tooltip: The text of the tooltip
     :param triggered: The callback to connect to the action's triggered
-                      signal or None for no callback.
-    :param bool checkable: True for checkable action, False otherwise (default)
+                      signal. None for no callback (default)
+    :param checkable: True for checkable action, False otherwise (default)
     :param parent: See :class:`QAction`.
     """
 
-    def __init__(self, plot, icon, text, tooltip=None,
-                 triggered=None, checkable=False, parent=None):
+    def __init__(
+        self,
+        plot: PlotWidget,
+        icon: Union[str, qt.QIcon],
+        text: str,
+        tooltip: Optional[str] = None,
+        triggered: Optional[Callable] = None,
+        checkable: bool = False,
+        parent: Optional[qt.QObject] = None,
+    ):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
 

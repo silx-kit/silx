@@ -63,8 +63,8 @@ jobs:
           - name-suffix: "No GUI wheel"
             os: windows-latest
             python-version: '3.9'
-            BUILD_OPTION: --wheel
-            QT_BINDING:
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --no-gui --low-mem
             # No GUI tests on Windows
 
@@ -119,6 +119,10 @@ jobs:
             pip install -r ci/requirements-pinned.txt;
           fi
           pip install --pre -r requirements.txt
+          pip uninstall -y PyQt5 PyQt6 PySide6
+          if [ "${{ matrix.QT_BINDING }}" == "PyQt5" ]; then
+            pip install --pre pyqt5;
+          fi
           if [ "${{ matrix.QT_BINDING }}" == "PySide6" ]; then
             pip install --pre pyside6;
           fi

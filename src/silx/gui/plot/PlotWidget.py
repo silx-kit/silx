@@ -818,7 +818,14 @@ class PlotWidget(qt.QMainWindow):
 
     def hideEvent(self, event):
         super(PlotWidget, self).hideEvent(event)
-        self.sigVisibilityChanged.emit(False)
+        if qt.BINDING == "PySide6":
+            # Workaround RuntimeError: The SignalInstance object was already deleted
+            try:
+                self.sigVisibilityChanged.emit(False)
+            except RuntimeError as e:
+                _logger.error(f"Exception occured: {e}")
+        else:
+            self.sigVisibilityChanged.emit(False)
 
     def _invalidateDataRange(self):
         """

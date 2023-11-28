@@ -56,7 +56,7 @@ def test_wrong_option(qapp):
     try:
         parser = main.createParser()
         parser.parse_args(["compare", "--foo"])
-        self.fail()
+        assert False
     except SystemExit as e:
         result = e.args[0]
     assert result != 0
@@ -123,6 +123,7 @@ def execute_as_script(tmp_path):
             _logger.debug("%s", err)
         assert p.returncode == 0
     return execute_as_script
+
 
 def test_execute_compare_help(qapp, execute_as_script):
     """Test if the main module is well connected.

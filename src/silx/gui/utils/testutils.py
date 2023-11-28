@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/07/2022"
+__date__ = "22/11/2023"
 
 
 import gc
@@ -138,23 +138,23 @@ class TestCaseQt(unittest.TestCase):
         self.__class__._exceptions = []
 
     def _currentTestSucceeded(self):
-        if hasattr(self, '_outcome'):
-            if hasattr(self, '_feedErrorsToResult'):
-                # For Python 3.4 -3.10
-                result = self.defaultTestResult()  # these 2 methods have no side effects
-                if hasattr(self._outcome, 'errors'):
-                    self._feedErrorsToResult(result, self._outcome.errors)
-            else:
-                # Python 3.11+
-                result = self._outcome.result
-        else:
-            # For Python < 3.4
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if hasattr(self, '_feedErrorsToResult'):
+            # Python 3.4 - 3.10  (These two methods have no side effects)
+            result = self.defaultTestResult()
+            if hasattr(self._outcome, 'errors'):
+                self._feedErrorsToResult(result, self._outcome.errors)
+        elif hasattr(self._outcome, "result"):
+            # Python 3.11+
+            result = self._outcome.result
 
-        skipped = self.id() in [case.id() for case, _ in result.skipped]
-        error = self.id() in [case.id() for case, _ in result.errors]
-        failure = self.id() in [case.id() for case, _ in result.failures]
-        return not error and not failure and not skipped
+        if self._outcome is None:
+            return True
+        elif hasattr(self._outcome, "success"):
+            # using pytest
+            return self._outcome.success
+        else:
+            # using unittest
+            return all(test != self for test, text in result.errors + result.failures)
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""

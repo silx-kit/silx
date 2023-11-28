@@ -26,6 +26,8 @@ This module provides minimalistic text support for OpenGL.
 It provides Latin-1 (ISO8859-1) characters for one monospace font at one size.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -36,14 +38,12 @@ import weakref
 
 import numpy
 
+from .... import qt
 from ...._glutils import font, gl, Context, Program, Texture
 from .GLSupport import mat4Translate
 
 
-# TODO: Font should be configurable by the main program: using mpl.rcParams?
-
-
-class _Cache(object):
+class _Cache:
     """LRU (Least Recent Used) cache.
 
     :param int maxsize: Maximum number of (key, value) pairs in the cache
@@ -89,7 +89,7 @@ TOP, BASELINE, BOTTOM = 'top', 'baseline', 'bottom'
 ROTATE_90, ROTATE_180, ROTATE_270 = 90, 180, 270
 
 
-class Text2D(object):
+class Text2D:
 
     _SHADERS = {
         'vertex': """
@@ -135,13 +135,21 @@ class Text2D(object):
     _sizes = _Cache()
     """Cache already computed sizes"""
 
-    def __init__(self, text, x=0, y=0,
-                 color=(0., 0., 0., 1.),
-                 bgColor=None,
-                 align=LEFT, valign=BASELINE,
-                 rotate=0,
-                 devicePixelRatio= 1.):
+    def __init__(
+        self,
+        text: str,
+        font: qt.QFont,
+        x: float = 0.,
+        y: float = 0.,
+        color: tuple[float, float, float, float] = (0., 0., 0., 1.),
+        bgColor: tuple[float, float, float, float] | None = None,
+        align: str = LEFT,
+        valign: str = BASELINE,
+        rotate: float = 0.,
+        devicePixelRatio: float = 1.,
+    ):
         self.devicePixelRatio = devicePixelRatio
+        self.font = font
         self._vertices = None
         self._text = text
         self.x = x
@@ -161,9 +169,13 @@ class Text2D(object):
 
         self._rotate = numpy.radians(rotate)
 
-    def _getTexture(self, text, devicePixelRatio):
+    def _textureKey(self) -> tuple[str, str, float]:
+        """Returns the current texture key"""
+        return self.text, self.font.key(), self.devicePixelRatio
+
+    def _getTexture(self) -> tuple[Texture, int]:
         # Retrieve/initialize texture cache for current context
-        textureKey = text, devicePixelRatio
+        textureKey = self._textureKey()
 
         context = Context.getCurrent()
         if context not in self._textures:
@@ -173,8 +185,8 @@ class Text2D(object):
 
         if textureKey not in textures:
             image, offset = font.rasterText(
-                text,
-                font.getDefaultFontFamily(),
+                self.text,
+                self.font,
                 devicePixelRatio=self.devicePixelRatio)
             if textureKey not in self._sizes:
                 self._sizes[textureKey] = image.shape[1], image.shape[0]
@@ -192,21 +204,21 @@ class Text2D(object):
         return textures[textureKey]
 
     @property
-    def text(self):
+    def text(self) -> str:
         return self._text
 
     @property
-    def size(self):
-        textureKey = self.text, self.devicePixelRatio
+    def size(self) -> tuple[int, int]:
+        textureKey = self._textureKey()
         if textureKey not in self._sizes:
             image, offset = font.rasterText(
                 self.text,
-                font.getDefaultFontFamily(),
+                self.font,
                 devicePixelRatio=self.devicePixelRatio)
             self._sizes[textureKey] = image.shape[1], image.shape[0]
         return self._sizes[textureKey]
 
-    def getVertices(self, offset, shape):
+    def getVertices(self, offset: int, shape: tuple[int, int]) -> numpy.ndarray:
         height, width = shape
 
         if self._align == LEFT:
@@ -239,7 +251,7 @@ class Text2D(object):
 
         return vertices
 
-    def render(self, matrix):
+    def render(self, matrix: numpy.ndarray):
         if not self.text.strip():
             return
 
@@ -247,7 +259,7 @@ class Text2D(object):
         prog.use()
 
         texUnit = 0
-        texture, offset = self._getTexture(self.text, self.devicePixelRatio)
+        texture, offset = self._getTexture()
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 

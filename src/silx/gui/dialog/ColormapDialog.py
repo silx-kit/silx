@@ -219,7 +219,7 @@ class _BoundaryWidget(qt.QWidget):
             color = palette.color(qt.QPalette.Disabled, qt.QPalette.Base)
             icon = self._iconAuto
         else:
-            color = palette.color(qt.QPalette.Normal, qt.QPalette.Base)
+            color = palette.color(qt.QPalette.Active, qt.QPalette.Base)
             icon = self._iconFixed
         palette.setColor(qt.QPalette.Base, color)
         self._numVal.setPalette(palette)
@@ -515,7 +515,7 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotEventReceived)
         palette = self.palette()
-        color = palette.color(qt.QPalette.Normal, qt.QPalette.Window)
+        color = palette.color(qt.QPalette.Active, qt.QPalette.Window)
         self._plot.setBackgroundColor(color)
         self._plot.setDataBackgroundColor("white")
 

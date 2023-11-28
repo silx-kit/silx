@@ -148,7 +148,7 @@ class RecordTableModel(qt.QAbstractTableModel):
     :param numpy.ndarray data: A numpy array or a h5py dataset
     """
 
-    MAX_NUMBER_OF_ROWS = 10e6
+    MAX_NUMBER_OF_ROWS = int(10e6)
     """Maximum number of display values of the dataset"""
 
     def __init__(self, parent=None, data=None):

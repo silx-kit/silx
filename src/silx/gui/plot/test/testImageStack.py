@@ -164,6 +164,50 @@ class TestImageStack(TestCaseQt):
         self.assertEqual(self.widget._getNPreviousUrls(5, urls_values[8]),
                          urls_values[3:8])
 
+    def testRemoveUrlFromList(self):
+        """
+        Test behavior when some item (url) are removed from the list
+        """
+        self.widget.setUrlsEditable(True)
+        self.widget.show()
+        self.widget.setUrls(list(self.urls.values()))
+        self.assertEqual(len(self.widget.getUrls()), len(self.urls))
+
+        # wait for image to be loaded
+        self._waitUntilUrlLoaded()
+        ll_slider = self.widget._slider._slider
+        assert ll_slider.maximum() - ll_slider.minimum() + 1 == len(self.urls)
+
+        # remove some urls from the list (~ simulating behavior with a right click)
+        urlsTable = self.widget._urlsTable._urlsTable
+        urlsTable.clearSelection()
+        urlsTable.item(1).setSelected(True)
+        urlsTable.item(2).setSelected(True)
+        urlsTable._removeSelectedItems()
+        self.qapp.processEvents()
+
+        # make sure slider has been updated
+        assert ll_slider.maximum() - ll_slider.minimum() + 1 == len(self.urls) - 2
+        # as the ImageStack widget
+        assert len(self.widget._urls) == len(self.urls) - 2
+        removed_urls = list(self.urls.values())[1:3]
+
+        existing_urls_as_str = [url.path() for url in self.widget._urls.values()]
+        for removed_url in removed_urls:
+            assert type(removed_url) == type(tuple(self.widget._urls.values())[0])
+            assert removed_url.path() not in existing_urls_as_str
+        # make sure we have some data plot
+        self.widget.getPlotWidget().getActiveImage() is not None
+
+        # test removing remaining urls
+        urlsTable.selectAll()
+        urlsTable._removeSelectedItems()
+        self.qapp.processEvents()
+        assert len(self.widget._urls) == 0
+        assert ll_slider.maximum() - ll_slider.minimum() == 0
+        # make sure if all urls are removed nothing is plot anymore
+        self.widget.getPlotWidget().getActiveImage() is None
+
     def _waitUntilUrlLoaded(self, timeout=2.0):
         """Wait until all image urls are loaded"""
         loop_duration = 0.2

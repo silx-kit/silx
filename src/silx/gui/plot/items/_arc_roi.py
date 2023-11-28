@@ -30,6 +30,8 @@ __date__ = "28/06/2018"
 
 import logging
 import numpy
+import enum
+from typing import Tuple
 
 from ... import utils
 from .. import items
@@ -223,6 +225,17 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     # FIXME: MoveMode was designed cause there is too much anchors
     # FIXME: It would be good replace it by a dnd on the shape
     MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
+
+    class Role(enum.Enum):
+        """Identify a set of roles which can be used for now to reach some positions"""
+        START = 0
+        """Location of the anchor at the start of the arc"""
+        STOP = 1
+        """Location of the anchor at the stop of the arc"""
+        MIDDLE = 2
+        """Location of the anchor at the middle of the arc"""
+        CENTER = 3
+        """Location of the center of the circle"""
 
     def __init__(self, parent=None):
         HandleBasedROI.__init__(self, parent=parent)
@@ -719,6 +732,22 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         if geometry.center is None:
             raise ValueError("This ROI can't be represented as a section of circle")
         return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
+
+    def getPosition(self, role: Role=Role.CENTER) -> Tuple[float, float]:
+        """Returns a position by it's role.
+
+        By default returns the center of the circle of the arc ROI.
+        """
+        if role == self.Role.START:
+            return self._handleStart.getPosition()
+        if role == self.Role.STOP:
+            return self._handleEnd.getPosition()
+        if role == self.Role.MIDDLE:
+            return self._handleMid.getPosition()
+        if role == self.Role.CENTER:
+            p = self.getCenter()
+            return p[0], p[1]
+        raise ValueError(f"{role} is not supported")
 
     def isClosed(self):
         """Returns true if the arc is a closed shape, like a circle or a donut.
