@@ -535,8 +535,10 @@ class ImageRgba(ImageBase):
                           False to use internal representation (do not modify!)
         """
         data = numpy.array(data, copy=copy)
-        assert data.ndim == 3
-        assert data.shape[-1] in (3, 4)
+        if data.ndim != 3:
+            raise ValueError(f"RGB(A) image is expected to be a 3D dataset. Got {data.ndim} dimensions")
+        if data.shape[-1] not in (3, 4):
+            raise ValueError(f"RGB(A) image is expected to have 3 or 4 elements as last dimension. Got {data.shape[-1]}")
         super().setData(data)
 
     def _getValueData(self, copy=True):
