@@ -1283,10 +1283,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         width, height = 1. - left - right, 1. - top - bottom
         position = left, bottom, width, height
 
-        if left == 0 and top == 0 and right == 0 and bottom == 0:
-            self.fig.set_tight_layout(None)
+        istight = config._MPL_TIGHT_LAYOUT and (left, top, right, bottom) != (0, 0, 0, 0)
+        if self._matplotlibVersion >= Version('3.6'):
+            self.fig.set_layout_engine('tight' if istight else None)
         else:
-            self.fig.set_tight_layout(config._MPL_TIGHT_LAYOUT)
+            self.fig.set_tight_layout(True if istight else None)
 
         # Toggle display of axes and viewbox rect
         isFrameOn = position != (0., 0., 1., 1.)
