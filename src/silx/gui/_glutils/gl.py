@@ -31,7 +31,11 @@ __date__ = "25/07/2016"
 from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
+import sys
 from typing import Optional
+
+from packaging.version import Version
+
 
 _logger = logging.getLogger(__name__)
 
@@ -46,6 +50,11 @@ else:
     OpenGL.ERROR_LOGGING = False
     OpenGL.ERROR_CHECKING = False
     OpenGL.ERROR_ON_COPY = False
+
+if sys.version_info >= (3, 12) and Version(OpenGL.__version__) <= Version("3.1.7"):
+    # Python3.12 patch: see https://github.com/mcfletch/pyopengl/pull/100
+    OpenGL.FormatHandler.by_name("ctypesparameter").check.append("_ctypes.CArgObject")
+
 
 import OpenGL.GL as _GL
 from OpenGL.GL import *  # noqa
