@@ -47,11 +47,11 @@ IS_WINDOWS = sys.platform == "win32"
 H5PY_HEX_VERSION = calc_hexversion(*h5py.version.version_tuple[:3])
 HDF5_HEX_VERSION = calc_hexversion(*h5py.version.hdf5_version_tuple[:3])
 
-if h5py.version.version_tuple > (3, 10):
-    HAS_SWMR = True
+if h5py.version.version_tuple >= (3, 10):
+    HDF5_SWMR_VERSION = 1, 9, 178
 else:
-    HDF5_SWMR_VERSION = calc_hexversion(*h5py.get_config().swmr_min_hdf5_version[:3])
-    HAS_SWMR = HDF5_HEX_VERSION >= HDF5_SWMR_VERSION
+    HDF5_SWMR_VERSION = h5py.get_config().swmr_min_hdf5_version[:3]
+HAS_SWMR = HDF5_HEX_VERSION >= calc_hexversion(*HDF5_SWMR_VERSION)
 
 HAS_TRACK_ORDER = H5PY_HEX_VERSION >= calc_hexversion(2, 9, 0)
 
