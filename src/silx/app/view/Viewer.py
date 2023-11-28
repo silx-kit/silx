@@ -645,6 +645,13 @@ class Viewer(qt.QMainWindow):
         self._plotImageOrientationMenu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # mpl layout
+
+        action = qt.QAction("Use MPL tight layout", self)
+        action.setCheckable(True)
+        action.triggered.connect(self.__forceMplTightLayout)
+        self._useMplTightLayout = action
+
         # Windows
 
         action = qt.QAction("Show custom NXdata selector", self)
@@ -728,6 +735,11 @@ class Viewer(qt.QMainWindow):
             title += " (applied after application restart)"
         action.setText(title)
 
+        # mpl
+
+        action = self._useMplTightLayout
+        action.setChecked(silx.config._MPL_TIGHT_LAYOUT)
+
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
         fileMenu.addAction(self._openAction)
@@ -740,6 +752,7 @@ class Viewer(qt.QMainWindow):
         optionMenu = self.menuBar().addMenu("&Options")
         optionMenu.addMenu(self._plotImageOrientationMenu)
         optionMenu.addMenu(self._plotBackendMenu)
+        optionMenu.addAction(self._useMplTightLayout)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
         viewMenu = self.menuBar().addMenu("&Views")
@@ -867,6 +880,9 @@ class Viewer(qt.QMainWindow):
 
     def __forceOpenglBackend(self):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl", "matplotlib"
+
+    def __forceMplTightLayout(self):
+        silx.config._MPL_TIGHT_LAYOUT = self._useMplTightLayout.isChecked()
 
     def appendFile(self, filename):
         if self.__displayIt is None:
