@@ -27,8 +27,10 @@
 - `PySide6 <https://pypi.org/project/PySide6/>`_
 - `PyQt6 <https://pypi.org/project/PyQt6/>`_
 
-If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt5, PySide6, PyQt6.
+If a Qt binding is already loaded, it will be used.
+If the `QT_API` environment variable is set to one of the supported Qt bindings
+(case insensitive), this binding is loaded if available, otherwise the
+different Qt bindings are tried in this order: PyQt5, PySide6, PyQt6.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
