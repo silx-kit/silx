@@ -55,6 +55,7 @@ from silx.gui.plot import items
 from silx.gui.plot._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.gui import qt
 from silx.gui import icons
+from silx.utils.deprecation import deprecated
 
 _logger = logging.getLogger(__name__)
 
@@ -330,13 +331,25 @@ class ColormapAction(PlotAction):
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
         self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
-    def setColorDialog(self, colorDialog):
-        """Set a specific color dialog instead of using the default dialog."""
-        assert(colorDialog is not None)
-        assert(self._dialog is None)
-        self._dialog = colorDialog
-        self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+    def setColormapDialog(self, dialog):
+        """Set a specific colormap dialog instead of using the default one."""
+        assert dialog is not None
+        if self._dialog is not None:
+            self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
+
+        self._dialog = dialog
+        self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
         self.setChecked(self._dialog.isVisible())
+
+    @deprecated(replacement="setColormapDialog", since_version="2.0")
+    def setColorDialog(self, colorDialog):
+        self.setColormapDialog(colorDialog)
+
+    def getColormapDialog(self):
+        if self._dialog is None:
+            self._dialog = self._createDialog(self.plot)
+            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
+        return self._dialog
 
     @staticmethod
     def _createDialog(parent):
@@ -352,16 +365,13 @@ class ColormapAction(PlotAction):
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
-        if self._dialog is None:
-            self._dialog = self._createDialog(self.plot)
-            self._dialog.visibleChanged.connect(self._dialogVisibleChanged)
-
+        dialog = self.getColormapDialog()
         # Run the dialog listening to colormap change
         if checked is True:
             self._updateColormap()
-            self._dialog.show()
+            dialog.show()
         else:
-            self._dialog.hide()
+            dialog.hide()
 
     def _dialogVisibleChanged(self, isVisible):
         self.setChecked(isVisible)
