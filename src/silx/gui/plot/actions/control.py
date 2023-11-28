@@ -333,17 +333,17 @@ class ColormapAction(PlotAction):
 
     def setColormapDialog(self, dialog):
         """Set a specific colormap dialog instead of using the default one."""
-        assert colormapDialog is not None
+        assert dialog is not None
         if self._dialog is not None:
             self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
 
-        self._dialog = colormapDialog
+        self._dialog = dialog
         self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
         self.setChecked(self._dialog.isVisible())
 
     @deprecated(replacement="setColormapDialog", since_version="2.0")
     def setColorDialog(self, colorDialog):
-        self.setColormapDialog(colormapDialog=colorDialog)
+        self.setColormapDialog(colorDialog)
 
     def getColormapDialog(self):
         if self._dialog is None:
