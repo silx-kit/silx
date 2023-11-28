@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,13 @@ no longer fail.
 
 __authors__ = ["W. de Nolf"]
 __license__ = "MIT"
-__date__ = "05/02/2020"
+__date__ = "28/11/2023"
 
 
 import time
 import inspect
 from functools import wraps
 from contextlib import contextmanager
-import multiprocessing
 from queue import Empty
 
 
@@ -252,6 +251,7 @@ def retry_in_subprocess(
     if retry_period is None:
         retry_period = RETRY_PERIOD
 
+    import multiprocessing
     def decorator(method):
         @wraps(method)
         def wrapper(*args, **kw):
