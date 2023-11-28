@@ -732,7 +732,7 @@ class Viewer(qt.QMainWindow):
         # mpl
 
         action = self._useMplTightLayout
-        action.setChecked(silx.config.MPL_TIGHT_LAYOUT)
+        action.setChecked(silx.config._MPL_TIGHT_LAYOUT)
 
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
@@ -868,7 +868,7 @@ class Viewer(qt.QMainWindow):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl", "matplotlib"
 
     def __forceMplTightLayout(self):
-        silx.config.MPL_TIGHT_LAYOUT = self._useMplTightLayout.isChecked()
+        silx.config._MPL_TIGHT_LAYOUT = self._useMplTightLayout.isChecked()
 
     def appendFile(self, filename):
         if self.__displayIt is None:

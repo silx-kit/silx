@@ -498,11 +498,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._matplotlibVersion = Version(matplotlib.__version__)
 
         self.fig = Figure(
-            tight_layout=config.MPL_TIGHT_LAYOUT,
+            tight_layout=config._MPL_TIGHT_LAYOUT,
         )
         self.fig.set_facecolor("w")
 
-        if config.MPL_TIGHT_LAYOUT:
+        if config._MPL_TIGHT_LAYOUT:
             self.ax = self.fig.add_subplot(label="left")
         else:
             self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
@@ -1286,7 +1286,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if left == 0 and top == 0 and right == 0 and bottom == 0:
             self.fig.set_tight_layout(None)
         else:
-            self.fig.set_tight_layout(config.MPL_TIGHT_LAYOUT)
+            self.fig.set_tight_layout(config._MPL_TIGHT_LAYOUT)
 
         # Toggle display of axes and viewbox rect
         isFrameOn = position != (0., 0., 1., 1.)
