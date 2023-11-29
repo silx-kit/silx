@@ -28,7 +28,9 @@ __license__ = "MIT"
 __date__ = "12/01/2022"
 
 
+import importlib
 import logging
+import os
 import sys
 import traceback
 
@@ -50,36 +52,58 @@ HAS_SVG = False
 HAS_OPENGL = False
 """True if Qt provides support for OpenGL (QtOpenGL)."""
 
-# First check for an already loaded wrapper
-for _binding in ('PyQt5', 'PySide6', 'PyQt6'):
-    if _binding + '.QtCore' in sys.modules:
-        BINDING = _binding
-        break
-else:  # Then try Qt bindings
-    try:
-        import PyQt5.QtCore  # noqa
-    except ImportError:
-        if 'PyQt5' in sys.modules:
-            del sys.modules["PyQt5"]
-        try:
-            import PySide6.QtCore  # noqa
-        except ImportError:
-            if 'PySide6' in sys.modules:
-                del sys.modules["PySide6"]
-            try:
-                import PyQt6.QtCore  # noqa
-            except ImportError:
-                if 'PyQt6' in sys.modules:
-                    del sys.modules["PyQt6"]
 
-                raise ImportError(
-                    'No Qt wrapper found. Install PyQt5, PySide6, PyQt6.')
-            else:
-                BINDING = 'PyQt6'
+def _select_binding() -> str:
+    """Select and load a Qt binding
+
+    Qt binding is selected according to:
+    - Already loaded binding
+    - QT_API environment variable
+    - Bindings order of priority
+
+    :raises ImportError:
+    :returns: Loaded binding
+    """
+    bindings = "PyQt5", "PySide6", "PyQt6"
+
+    envvar = os.environ.get("QT_API", "").lower()
+
+    # First check for an already loaded binding
+    for binding in bindings:
+        if f"{binding}.QtCore" in sys.modules:
+            if envvar and envvar != binding.lower():
+                _logger.warning(
+                    f"Cannot satisfy QT_API={envvar} environment variable, {binding} is already loaded")
+            return binding
+
+    # Check if QT_API can be satisfied
+    if envvar:
+        selection = [b for b in bindings if envvar == b.lower()]
+        if not selection:
+            _logger.warning(f"Environment variable QT_API={envvar} is not supported")
         else:
-            BINDING = 'PySide6'
-    else:
-        BINDING = 'PyQt5'
+            binding = selection[0]
+            try:
+                importlib.import_module(f"{binding}.QtCore")
+            except ImportError:
+                _logger.warning(f"Cannot import {binding} specified by QT_API environment variable")
+            else:
+                return binding
+
+    # Try to load binding
+    for binding in bindings:
+        try:
+            importlib.import_module(f"{binding}.QtCore")
+        except ImportError:
+            if binding in sys.modules:
+                del sys.modules[binding]
+        else:
+            return binding
+
+    raise ImportError('No Qt wrapper found. Install PyQt5, PySide6, PyQt6.')
+
+
+BINDING = _select_binding()
 
 
 if BINDING == 'PyQt5':
