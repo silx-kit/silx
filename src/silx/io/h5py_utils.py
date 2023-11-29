@@ -246,7 +246,11 @@ def _top_level_names(filename, include_only=group_has_end_time, **open_options):
 
 
 top_level_names = retry()(_top_level_names)
-safe_top_level_names = retry_in_subprocess()(_top_level_names)
+if hasattr(sys, "frozen") and sys.frozen:
+    # multiprocessing not working on frozen binaries
+    safe_top_level_names = top_level_names
+else:
+    safe_top_level_names = retry_in_subprocess()(_top_level_names)
 
 
 class Hdf5FileLockingManager:
