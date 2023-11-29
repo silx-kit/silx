@@ -43,7 +43,7 @@ from ....utils.enum import Enum as _Enum
 from ....math.combo import min_max
 from ... import qt
 from ... import colors
-from ...colors import Colormap
+from ...colors import Colormap, _Colormappable
 from ._pick import PickingResult
 
 from silx import config
@@ -591,7 +591,7 @@ class DraggableMixIn(ItemMixInBase):
         raise NotImplementedError("Must be implemented in subclass")
 
 
-class ColormapMixIn(ItemMixInBase):
+class ColormapMixIn(_Colormappable, ItemMixInBase):
     """Mix-in class for items with colormap"""
 
     def __init__(self):
