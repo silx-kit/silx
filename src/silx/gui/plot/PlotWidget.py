@@ -385,7 +385,7 @@ class PlotWidget(qt.QMainWindow):
         self.setCallback()  # set _callback
 
         # Items handling
-        self._content = {}
+        self.__items = []
         self._contentToUpdate = []  # Used as an OrderedSet
 
         self._dataRange = None
@@ -947,7 +947,7 @@ class PlotWidget(qt.QMainWindow):
             raise ValueError('Item already in the plot')
 
         # Add item to plot
-        self._content[(item.getName(), self._itemKind(item))] = item
+        self.__items.append(item)
         item._setPlot(self)
         self._itemRequiresUpdate(item)
         if isinstance(item, items.DATA_ITEMS):
@@ -978,7 +978,7 @@ class PlotWidget(qt.QMainWindow):
                 self._setActiveItem(kind, None)
 
         # Remove item from plot
-        self._content.pop((item.getName(), kind))
+        self.__items.remove(item)
         if item in self._contentToUpdate:
             self._contentToUpdate.remove(item)
         if item.isVisible():
@@ -1017,7 +1017,7 @@ class PlotWidget(qt.QMainWindow):
 
         :rtype: List[silx.gui.plot.items.Item]
         """
-        return tuple(self._content.values())
+        return tuple(self.__items)
 
     @contextmanager
     def _muteActiveItemChangedSignal(self):
@@ -2446,17 +2446,20 @@ class PlotWidget(qt.QMainWindow):
         assert kind in self.ITEM_KINDS
 
         if legend is not None:
-            return self._content.get((legend, kind), None)
-        else:
-            if kind in self._ACTIVE_ITEM_KINDS:
-                item = self._getActiveItem(kind=kind)
-                if item is not None:  # Return active item if available
+            for item in self.getItems():
+                if item.getName() == legend and kind == self._itemKind(item):
                     return item
-            # Return last visible item if any
-            itemClasses = self._KIND_TO_CLASSES[kind]
-            allItems = [item for item in self.getItems()
-                        if isinstance(item, itemClasses) and item.isVisible()]
-            return allItems[-1] if allItems else None
+            return None  # No item found
+
+        if kind in self._ACTIVE_ITEM_KINDS:
+            item = self._getActiveItem(kind=kind)
+            if item is not None:  # Return active item if available
+                return item
+        # Return last visible item if any
+        itemClasses = self._KIND_TO_CLASSES[kind]
+        allItems = [item for item in self.getItems()
+                    if isinstance(item, itemClasses) and item.isVisible()]
+        return allItems[-1] if allItems else None
 
     # Limits
 
