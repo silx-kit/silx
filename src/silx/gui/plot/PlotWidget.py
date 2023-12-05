@@ -386,7 +386,7 @@ class PlotWidget(qt.QMainWindow):
 
         # Items handling
         self.__items = []
-        self._contentToUpdate = []  # Used as an OrderedSet
+        self.__itemsToUpdate = []  # Used as an OrderedSet
 
         self._dataRange = None
 
@@ -929,9 +929,9 @@ class PlotWidget(qt.QMainWindow):
         """
         assert item.getPlot() == self
         # Put item at the end of the list
-        if item in self._contentToUpdate:
-            self._contentToUpdate.remove(item)
-        self._contentToUpdate.append(item)
+        if item in self.__itemsToUpdate:
+            self.__itemsToUpdate.remove(item)
+        self.__itemsToUpdate.append(item)
         self._setDirtyPlot(overlayOnly=item.isOverlay())
 
     def addItem(self, item):
@@ -979,8 +979,8 @@ class PlotWidget(qt.QMainWindow):
 
         # Remove item from plot
         self.__items.remove(item)
-        if item in self._contentToUpdate:
-            self._contentToUpdate.remove(item)
+        if item in self.__itemsToUpdate:
+            self.__itemsToUpdate.remove(item)
         if item.isVisible():
             self._setDirtyPlot(overlayOnly=item.isOverlay())
         if item.getBounds() is not None:
@@ -3126,10 +3126,10 @@ class PlotWidget(qt.QMainWindow):
 
         It is in charge of performing required PlotWidget operations
         """
-        for item in self._contentToUpdate:
+        for item in self.__itemsToUpdate:
             item._update(self._backend)
 
-        self._contentToUpdate = []
+        self.__itemsToUpdate = []
         yield
         self._dirty = False  # reset dirty flag
 
