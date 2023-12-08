@@ -605,7 +605,7 @@ class RulerToolButton(PlotToolButton):
         def setEndPoints(self, startPoint, endPoint):
             distance = numpy.linalg.norm(endPoint - startPoint)
             super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
-            self._updateText(RulerToolButton.format_distance(distance))
+            self._updateText(RulerToolButton.formatDistance(distance))
 
     def __init__(
             self,
@@ -679,5 +679,5 @@ class RulerToolButton(PlotToolButton):
             self._lastRoiCreated = currentRoi
 
     @staticmethod
-    def format_distance(distance: float):
+    def formatDistance(distance: float):
         return f"{distance: .1f}px"
