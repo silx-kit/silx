@@ -3135,9 +3135,9 @@ class PlotWidget(qt.QMainWindow):
             ddict = {}
         _logger.debug("Received dict keys = %s", str(ddict.keys()))
         _logger.debug(str(ddict))
-        if ddict["event"] in ["legendClicked", "curveClicked"]:
+        if ddict["event"] == "curveClicked":
             if ddict["button"] == "left":
-                self.setActiveCurve(ddict["label"])
+                self.setActiveCurve(ddict["item"])
                 qt.QToolTip.showText(self.cursor().pos(), ddict["label"])
         elif ddict["event"] == "mouseClicked" and ddict["button"] == "left":
             self.setActiveCurve(None)
