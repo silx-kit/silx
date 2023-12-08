@@ -144,7 +144,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 y=numpy.arange(256),
                 value=numpy.random.random(256),
                 legend='test')
-        self.plot._setActiveItem(kind="scatter", legend="test")
+        self.plot.setActiveScatter("test")
         self.qapp.processEvents()
 
         self.plot.remove('test', kind='scatter')
@@ -155,7 +155,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 y=1000 * (numpy.arange(1000) % 20),
                 value=numpy.random.random(1000),
                 legend='test')
-        self.plot._setActiveItem(kind="scatter", legend="test")
+        self.plot.setActiveScatter("test")
         self.plot.resetZoom()
         self.qapp.processEvents()
 
@@ -233,7 +233,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 y=25 * (numpy.arange(256) % 10),
                 value=numpy.random.random(256),
                 legend='test')
-        self.plot._setActiveItem(kind="scatter", legend="test")
+        self.plot.setActiveScatter("test")
         self.plot.resetZoom()
         self.qapp.processEvents()
 
@@ -271,7 +271,7 @@ class TestScatterMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
                 y=1000 * (numpy.arange(1000) % 20),
                 value=numpy.ones((1000,)),
                 legend='test')
-        self.plot._setActiveItem(kind="scatter", legend="test")
+        self.plot.setActiveScatter("test")
         self.plot.resetZoom()
         self.qapp.processEvents()
 

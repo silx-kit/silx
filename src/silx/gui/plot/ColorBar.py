@@ -129,8 +129,7 @@ class ColorBarWidget(qt.QWidget):
         plot = self.getPlot()
         if plot is not None and not self._isConnected:
             activeImageLegend = plot.getActiveImage(just_legend=True)
-            activeScatterLegend = plot._getActiveItem(
-                kind='scatter', just_legend=True)
+            activeScatterLegend = plot.getActiveScatter(just_legend=True)
             if activeImageLegend is None and activeScatterLegend is None:
                 # Show plot default colormap
                 self._syncWithDefaultColormap()
@@ -220,7 +219,7 @@ class ColorBarWidget(qt.QWidget):
             return
 
         # Sync with active scatter
-        scatter = plot._getActiveItem(kind='scatter')
+        scatter = plot.getActiveScatter()
 
         self.setColormap(colormap=scatter.getColormap(),
                          data=scatter)
@@ -230,8 +229,7 @@ class ColorBarWidget(qt.QWidget):
         plot = self.getPlot()
 
         if legend is None:  # No active image, try with active scatter
-            activeScatterLegend = plot._getActiveItem(
-                kind='scatter', just_legend=True)
+            activeScatterLegend = plot.getActiveScatter(just_legend=True)
             # No more active image, use active scatter if any
             self._activeScatterChanged(None, activeScatterLegend)
         else:
@@ -255,7 +253,7 @@ class ColorBarWidget(qt.QWidget):
             plot = self.getPlot()
             if (plot is not None and
                     plot.getActiveImage() is None and
-                    plot._getActiveItem(kind='scatter') is None):
+                    plot.getActiveScatter() is None):
                 # No active item, take default colormap update into account
                 self._syncWithDefaultColormap()
 

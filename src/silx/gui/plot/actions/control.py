@@ -390,7 +390,7 @@ class ColormapAction(PlotAction):
         else:
             # No active image or active image is RGBA,
             # Check for active scatter plot
-            scatter = self.plot._getActiveItem(kind='scatter')
+            scatter = self.plot.getActiveScatter()
             if scatter is not None:
                 colormap = scatter.getColormap()
                 self._dialog.setItem(scatter)

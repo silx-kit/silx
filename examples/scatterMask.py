@@ -126,8 +126,7 @@ class MaskScatterWidget(qt.QMainWindow):
         self._plot.addScatter(x, y, v, legend=self._activeScatterLegend,
                               info=info, colormap=colormap)
         # the mask is associated with the active scatter
-        self._plot._setActiveItem(kind="scatter",
-                                  legend=self._activeScatterLegend)
+        self._plot.setActiveScatter(self._activeScatterLegend)
 
         self._alphaSlider.setLegend(self._activeScatterLegend)
 

@@ -207,7 +207,7 @@ class PositionInfo(qt.QWidget):
                         selectedItems.append(activeCurve)
 
                 if snappingMode & self.SNAPPING_SCATTER:
-                    activeScatter = plot._getActiveItem(kind='scatter')
+                    activeScatter = plot.getActiveScatter()
                     if activeScatter:
                         selectedItems.append(activeScatter)
 
