@@ -84,30 +84,41 @@ def convertArrayToQImage(array: numpy.ndarray) -> qt.QImage:
 def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
     """Convert a QImage to a numpy array.
 
-    If QImage format is not Format_RGB888, Format_RGBA8888 or Format_ARGB32,
-    it is first converted to one of this format depending on
-    the presence of an alpha channel.
+    If QImage format is not one of:
+        - Format_Grayscale8
+        - Format_RGB888
+        - Format_RGBA8888
+        - Format_ARGB32,
+    it is first converted to one of this format.
 
     The created numpy array is using a copy of the QImage data.
 
     :param QImage image: The QImage to convert.
-    :return: The image array of RGB or RGBA channels of shape
-        (height, width, channels (3 or 4))
+    :return: Image array of uint8 of shape:
+        - (height, width) for grayscale images
+        - (height, width, channels (3 or 4)) for RGB and RGBA images
     """
-    rgba8888 = getattr(qt.QImage, 'Format_RGBA8888', None)  # Only in Qt5
+    supportedFormats = (
+        qt.QImage.Format_Grayscale8,
+        qt.QImage.Format_ARGB32,
+        qt.QImage.Format_RGB888,
+        qt.QImage.Format_RGBA8888,
+    )
 
     # Convert to supported format if needed
-    if image.format() not in (qt.QImage.Format_ARGB32,
-                              qt.QImage.Format_RGB888,
-                              rgba8888):
+    if image.format() not in supportedFormats:
         if image.hasAlphaChannel():
-            image = image.convertToFormat(
-                rgba8888 if rgba8888 is not None else qt.QImage.Format_ARGB32)
+            image = image.convertToFormat(qt.QImage.Format_RGBA8888)
         else:
             image = image.convertToFormat(qt.QImage.Format_RGB888)
 
     format_ = image.format()
-    channels = 3 if format_ == qt.QImage.Format_RGB888 else 4
+    if format_ == qt.QImage.Format_Grayscale8:
+        channels = 1
+    elif format_ == qt.QImage.Format_RGB888:
+        channels = 3
+    else:
+        channels = 4
 
     ptr = image.bits()
     if qt.BINDING == 'PyQt5':
@@ -132,6 +143,9 @@ def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
             view = view[:, :, (2, 1, 0, 3)]
         else:  # big endian: ARGB -> RGBA
             view = view[:, :, (1, 2, 3, 0)]
+
+    if channels == 1:  # Remove channel dimension
+        view = view[:, :, 0]
 
     # Format_RGB888 and Format_RGBA8888 do not need reshuffling channels:
     # They are byte-ordered and already in the right order
