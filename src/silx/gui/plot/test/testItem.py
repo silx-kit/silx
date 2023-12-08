@@ -33,7 +33,7 @@ import numpy
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.items import ItemChangedType
-from silx.gui.plot import items
+from silx.gui.plot import items, PlotWidget
 from .utils import PlotWidgetTestCase
 
 
@@ -386,3 +386,25 @@ def testRegionOfInterestText():
         ItemChangedType.NAME, ItemChangedType.TEXT
     ]
     assert roi.getText() == "even_newer_name"
+
+
+def testPlotAddItemsWithoutLegend(qWidgetFactory):
+    plotWidget = qWidgetFactory(PlotWidget)
+
+    curve1 = items.Curve()
+    curve1.setData([0, 10], [0, 20])
+    plotWidget.addItem(curve1)
+
+    curve2 = items.Curve()
+    curve2.setData([0, -10], [0, -20])
+    plotWidget.addItem(curve2)
+
+    assert plotWidget.getItems() == (curve1, curve2)
+
+    datarange = plotWidget.getDataRange()
+    assert datarange.x == (-10, 10)
+    assert datarange.y == (-20, 20)
+
+    plotWidget.resetZoom()
+    assert plotWidget.getXAxis().getLimits() == (-10, 10)
+    assert plotWidget.getYAxis().getLimits() == (-20, 20)
