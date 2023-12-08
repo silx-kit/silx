@@ -588,7 +588,11 @@ class _ColorScale(qt.QWidget):
     def mouseMoveEvent(self, event):
         tooltip = str(self.getValueFromRelativePosition(
             self._getRelativePosition(qt.getMouseEventPosition(event)[1])))
-        qt.QToolTip.showText(event.globalPos(), tooltip, self)
+        if qt.BINDING == "PyQt5":
+            position = event.globalPos()
+        else:  # Qt6
+            position = event.globalPosition().toPoint()
+        qt.QToolTip.showText(position, tooltip, self)
         super(_ColorScale, self).mouseMoveEvent(event)
 
     def _getRelativePosition(self, yPixel):

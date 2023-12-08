@@ -453,7 +453,11 @@ class LegendListItemWidget(qt.QItemDelegate):
         # Mouse events are sent to editorEvent()
         # even if they don't start editing of the item.
         if event.button() == qt.Qt.RightButton and self.contextMenu:
-            self.contextMenu.exec(event.globalPos(), modelIndex)
+            if qt.BINDING == "PyQt5":
+                position = event.globalPos()
+            else:  # Qt6
+                position = event.globalPosition().toPoint()
+            self.contextMenu.exec(position, modelIndex)
             return True
         elif event.button() == qt.Qt.LeftButton:
             # Check if checkbox was clicked
