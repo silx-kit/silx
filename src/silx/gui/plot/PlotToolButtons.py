@@ -609,14 +609,19 @@ class RulerToolButton(PlotToolButton):
     """
 
     class RulerROI(LineROI):
-        def __init__(self, parent=None, formatter: str="{:.1f}"):
+        def __init__(self, parent=None):
             super().__init__(parent)
-            self._formatter = formatter
+            self._formatFunction = None
+
+        def registerFormatFunction(self, fct):
+            """fct is expected to be a function taking (startPoint, endPoint) as parameter"""
+            self._formatFunction = fct
 
         def setEndPoints(self, startPoint, endPoint):
-            distance = numpy.linalg.norm(endPoint - startPoint)
             super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
-            self._updateText(RulerToolButton.formatDistance(distance))
+            if self._formatFunction is not None:
+                ruler_text = self._formatFunction(startPoint=startPoint, endPoint=endPoint)
+                self._updateText(ruler_text)
 
     def __init__(
             self,
@@ -681,14 +686,20 @@ class RulerToolButton(PlotToolButton):
             self._lastRoiCreated = None
         return super()._disconnectPlot(plot)
 
-
     def _registerCurrentROI(self, currentRoi):
         if self._lastRoiCreated is None:
             self._lastRoiCreated = currentRoi
+            self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
         elif currentRoi != self._lastRoiCreated and self._roiManager is not None:
             self._roiManager.removeRoi(self._lastRoiCreated)
             self._lastRoiCreated = currentRoi
+            self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
 
-    @staticmethod
-    def formatDistance(distance: float):
+    def buildDistanceText(self, startPoint, endPoint):
+        """
+        define the text to be displayed by the ruler.
+        It can be redefine to modify precision or handle other parameters
+        (handling pixel size to display metric distance, display distance on each distance - for non-square pixels...)
+        """
+        distance = numpy.linalg.norm(endPoint - startPoint)
         return f"{distance: .1f}px"
