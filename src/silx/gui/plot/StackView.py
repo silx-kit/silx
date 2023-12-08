@@ -593,7 +593,7 @@ class StackView(qt.QMainWindow):
         if exists is None:
             self._plot.addItem(self._stackItem)
 
-        self._plot.setActiveImage(self._stackItem.getName())
+        self._plot.setActiveImage(self._stackItem)
         self.__updatePlotLabels()
         self._updateTitle()
 
