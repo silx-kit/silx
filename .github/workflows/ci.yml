@@ -49,7 +49,7 @@ jobs:
 
           - name-suffix: "PyQt6 wheel"
             os: ubuntu-latest
-            python-version: '3.7'
+            python-version: '3.11'
             BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opengl --low-mem
