@@ -91,6 +91,7 @@ Both share the following keys:
 
 - 'event': 'curveClicked' or 'imageClicked'
 - 'button': the mouse button that was pressed in 'left', 'middle', 'right'
+- 'item': The plot item object that was clicked
 - 'label': The legend associated with the clicked image or curve
 - 'type': The type of item in 'curve', 'image'
 - 'x' and 'y': The clicked position in data coordinates

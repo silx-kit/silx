@@ -1251,8 +1251,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 indices = result.getIndices(copy=False)
                 eventDict = prepareCurveSignal(
                     "left",
-                    item.getName(),
-                    "curve",
+                    item,
                     xData[indices],
                     yData[indices],
                     dataPos[0],
@@ -1269,15 +1268,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 indices = result.getIndices(copy=False)
                 row, column = indices[0][0], indices[1][0]
                 eventDict = prepareImageSignal(
-                    "left",
-                    item.getName(),
-                    "image",
-                    column,
-                    row,
-                    dataPos[0],
-                    dataPos[1],
-                    x,
-                    y,
+                    "left", item, column, row, dataPos[0], dataPos[1], x, y
                 )
                 return eventDict
 

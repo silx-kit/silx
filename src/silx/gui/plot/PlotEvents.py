@@ -139,13 +139,14 @@ def prepareMarkerSignal(
     return eventDict
 
 
-def prepareImageSignal(button, label, type_, col, row, x, y, xPixel, yPixel):
+def prepareImageSignal(button, item, col, row, x, y, xPixel, yPixel):
     """See Plot documentation for content of events"""
     return {
         "event": "imageClicked",
         "button": button,
-        "label": label,
-        "type": type_,
+        "item": item,
+        "label": item.getName(),
+        "type": "image",
         "col": col,
         "row": row,
         "x": x,
@@ -155,13 +156,14 @@ def prepareImageSignal(button, label, type_, col, row, x, y, xPixel, yPixel):
     }
 
 
-def prepareCurveSignal(button, label, type_, xData, yData, x, y, xPixel, yPixel):
+def prepareCurveSignal(button, item, xData, yData, x, y, xPixel, yPixel):
     """See Plot documentation for content of events"""
     return {
         "event": "curveClicked",
         "button": button,
-        "label": label,
-        "type": type_,
+        "item": item,
+        "label": item.getName(),
+        "type": "curve",
         "xdata": xData,
         "ydata": yData,
         "x": x,
