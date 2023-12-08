@@ -29,6 +29,7 @@ The following QToolButton are available:
 - :class:`.AspectToolButton`
 - :class:`.YAxisOriginToolButton`
 - :class:`.ProfileToolButton`
+- :class:`.RulerToolButton`
 - :class:`.SymbolToolButton`
 
 """
@@ -595,7 +596,17 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
 
 
 class RulerToolButton(PlotToolButton):
-    """Button to active measurement between two point of the plot"""
+    """
+    Button to active measurement between two point of the plot
+
+    An instance of `RulerToolButton` can be added to a plot toolbar like:
+    .. code-block:: python
+
+        plot = Plot2D()
+
+        rulerButton = RulerToolButton(parent=plot, plot=plot)
+        plot.toolBar().addWidget(rulerButton)
+    """
 
     class RulerROI(LineROI):
         def __init__(self, parent=None, formatter: str="{:.1f}"):
