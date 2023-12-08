@@ -541,10 +541,10 @@ class TestPlotAddScatter(unittest.TestCase):
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
         plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
-        plot._setActiveItem('scatter', 'scatter 0')
+        plot.setActiveScatter('scatter 0')
 
         # Active scatter
-        active = plot._getActiveItem(kind='scatter')
+        active = plot.getActiveScatter()
         self.assertEqual(active.getName(), 'scatter 0')
 
         # check default values

@@ -223,7 +223,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         """
         if self._data_scatter is None:
             # this can happen if the mask tools widget has never been shown
-            self._data_scatter = self.plot._getActiveItem(kind="scatter")
+            self._data_scatter = self.plot.getActiveScatter()
             if self._data_scatter is None:
                 return None
             self._adjustColorAndBrushSize(self._data_scatter)
@@ -323,7 +323,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         removed, otherwise it is adjusted to z.
         """
         # check that content changed was the active scatter
-        activeScatter = self.plot._getActiveItem(kind="scatter")
+        activeScatter = self.plot.getActiveScatter()
 
         if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
@@ -352,7 +352,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def _activeScatterChanged(self, previous, next):
         """Update widget and mask according to active scatter changes"""
-        activeScatter = self.plot._getActiveItem(kind="scatter")
+        activeScatter = self.plot.getActiveScatter()
 
         if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
