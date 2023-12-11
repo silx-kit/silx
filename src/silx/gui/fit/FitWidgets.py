@@ -67,17 +67,17 @@ class FitActionsButtons(qt.QWidget):
         self.EstimateButton = qt.QPushButton(self)
         self.EstimateButton.setText("Estimate")
         layout.addWidget(self.EstimateButton)
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Minimum)
+        spacer = qt.QSpacerItem(
+            20, 20, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum
+        )
         layout.addItem(spacer)
 
         self.StartFitButton = qt.QPushButton(self)
         self.StartFitButton.setText("Start Fit")
         layout.addWidget(self.StartFitButton)
-        spacer_2 = qt.QSpacerItem(20, 20,
-                                  qt.QSizePolicy.Expanding,
-                                  qt.QSizePolicy.Minimum)
+        spacer_2 = qt.QSpacerItem(
+            20, 20, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum
+        )
         layout.addItem(spacer_2)
 
         self.DismissButton = qt.QPushButton(self)
@@ -146,6 +146,7 @@ class FitConfigWidget(qt.QWidget):
       - open a dialog for modifying advanced parameters through
         :attr:`FunConfigureButton`
     """
+
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
 
@@ -161,9 +162,11 @@ class FitConfigWidget(qt.QWidget):
 
         self.FunComBox = qt.QComboBox(self)
         self.FunComBox.addItem("Add Function(s)")
-        self.FunComBox.setItemData(self.FunComBox.findText("Add Function(s)"),
-                                   "Load fit theories from a file",
-                                   qt.Qt.ToolTipRole)
+        self.FunComBox.setItemData(
+            self.FunComBox.findText("Add Function(s)"),
+            "Load fit theories from a file",
+            qt.Qt.ToolTipRole,
+        )
         layout.addWidget(self.FunComBox, 0, 1)
 
         self.BkgLabel = qt.QLabel(self)
@@ -172,28 +175,33 @@ class FitConfigWidget(qt.QWidget):
 
         self.BkgComBox = qt.QComboBox(self)
         self.BkgComBox.addItem("Add Background(s)")
-        self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background(s)"),
-                                   "Load background theories from a file",
-                                   qt.Qt.ToolTipRole)
+        self.BkgComBox.setItemData(
+            self.BkgComBox.findText("Add Background(s)"),
+            "Load background theories from a file",
+            qt.Qt.ToolTipRole,
+        )
         layout.addWidget(self.BkgComBox, 1, 1)
 
         self.FunConfigureButton = qt.QPushButton(self)
         self.FunConfigureButton.setText("Configure")
         self.FunConfigureButton.setToolTip(
-                "Open a configuration dialog for the selected function")
+            "Open a configuration dialog for the selected function"
+        )
         layout.addWidget(self.FunConfigureButton, 0, 2)
 
         self.BgConfigureButton = qt.QPushButton(self)
         self.BgConfigureButton.setText("Configure")
         self.BgConfigureButton.setToolTip(
-                "Open a configuration dialog for the selected background")
+            "Open a configuration dialog for the selected background"
+        )
         layout.addWidget(self.BgConfigureButton, 1, 2)
 
         self.WeightCheckBox = qt.QCheckBox(self)
         self.WeightCheckBox.setText("Weighted fit")
         self.WeightCheckBox.setToolTip(
-                "Enable usage of weights in the least-square problem.\n Use" +
-                " the uncertainties (sigma) if provided, else use sqrt(y).")
+            "Enable usage of weights in the least-square problem.\n Use"
+            + " the uncertainties (sigma) if provided, else use sqrt(y)."
+        )
 
         layout.addWidget(self.WeightCheckBox, 0, 3, 2, 1)
 
@@ -308,8 +316,8 @@ class ParametersTab(qt.QTabWidget):
                 view = self.latest_view
             else:
                 raise KeyError(
-                    "No view available. You must specify a view" +
-                    " name the first time you call this method."
+                    "No view available. You must specify a view"
+                    + " name the first time you call this method."
                 )
 
         if view in self.tables.keys():
@@ -401,7 +409,7 @@ class ParametersTab(qt.QTabWidget):
         text += "<tr>"
         ncols = table.columnCount()
         for l in range(ncols):
-            text += ('<td align="left" bgcolor="%s"><b>' % hcolor)
+            text += '<td align="left" bgcolor="%s"><b>' % hcolor
             text += str(table.horizontalHeaderItem(l).text())
             text += "</b></td>"
         text += "</tr>"
@@ -435,11 +443,9 @@ class ParametersTab(qt.QTabWidget):
                 else:
                     finalcolor = "white"
                 if c < 2:
-                    text += ('<td align="left" bgcolor="%s">%s' %
-                             (finalcolor, b))
+                    text += '<td align="left" bgcolor="%s">%s' % (finalcolor, b)
                 else:
-                    text += ('<td align="right" bgcolor="%s">%s' %
-                             (finalcolor, b))
+                    text += '<td align="right" bgcolor="%s">%s' % (finalcolor, b)
                 text += newtext
                 if len(b):
                     text += "</td>"
@@ -503,14 +509,18 @@ def test():
     fit = fitmanager.FitManager(x=x, y=y1)
 
     fitfuns = fittheories.FitTheories()
-    fit.addtheory(name="Gaussian",
-                  function=functions.sum_gauss,
-                  parameters=("height", "peak center", "fwhm"),
-                  estimate=fitfuns.estimate_height_position_fwhm)
-    fit.settheory('Gaussian')
-    fit.configure(PositiveFwhmFlag=True,
-                  PositiveHeightAreaFlag=True,
-                  AutoFwhm=True,)
+    fit.addtheory(
+        name="Gaussian",
+        function=functions.sum_gauss,
+        parameters=("height", "peak center", "fwhm"),
+        estimate=fitfuns.estimate_height_position_fwhm,
+    )
+    fit.settheory("Gaussian")
+    fit.configure(
+        PositiveFwhmFlag=True,
+        PositiveHeightAreaFlag=True,
+        AutoFwhm=True,
+    )
 
     # Fit
     fit.estimate()
@@ -518,26 +528,27 @@ def test():
 
     w = ParametersTab()
     w.show()
-    w.fillFromFit(fit.fit_results, view='Gaussians')
+    w.fillFromFit(fit.fit_results, view="Gaussians")
 
-    y2 = functions.sum_splitgauss(x,
-                                  100, 400, 100, 40,
-                                  10, 600, 50, 500,
-                                  80, 850, 10, 50)
+    y2 = functions.sum_splitgauss(
+        x, 100, 400, 100, 40, 10, 600, 50, 500, 80, 850, 10, 50
+    )
     fit.setdata(x=x, y=y2)
 
     # Define new theory
-    fit.addtheory(name="Asymetric gaussian",
-                  function=functions.sum_splitgauss,
-                  parameters=("height", "peak center", "left fwhm", "right fwhm"),
-                  estimate=fitfuns.estimate_splitgauss)
-    fit.settheory('Asymetric gaussian')
+    fit.addtheory(
+        name="Asymetric gaussian",
+        function=functions.sum_splitgauss,
+        parameters=("height", "peak center", "left fwhm", "right fwhm"),
+        estimate=fitfuns.estimate_splitgauss,
+    )
+    fit.settheory("Asymetric gaussian")
 
     # Fit
     fit.estimate()
     fit.runfit()
 
-    w.fillFromFit(fit.fit_results, view='Asymetric gaussians')
+    w.fillFromFit(fit.fit_results, view="Asymetric gaussians")
 
     # Plot
     pw = PlotWindow(control=True)

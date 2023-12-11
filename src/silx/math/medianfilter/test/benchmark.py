@@ -73,9 +73,7 @@ class BenchmarkMedianFilter(object):
             medfilt2d_silx(self.img, width)
 
         def execScipy():
-            scipy.ndimage.median_filter(input=self.img,
-                                        size=width,
-                                        mode='nearest')
+            scipy.ndimage.median_filter(input=self.img, size=width, mode="nearest")
 
         def execPymca():
             medfilt2d_pymca(self.img, width)
@@ -85,18 +83,21 @@ class BenchmarkMedianFilter(object):
         t = Timer(execSilx)
         execTime["silx"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
         logger.info(
-            'exec time silx (kernel size = %s) is %s' % (width, execTime["silx"]))
+            "exec time silx (kernel size = %s) is %s" % (width, execTime["silx"])
+        )
 
         if scipy is not None:
             t = Timer(execScipy)
             execTime["scipy"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                'exec time scipy (kernel size = %s) is %s' % (width, execTime["scipy"]))
+                "exec time scipy (kernel size = %s) is %s" % (width, execTime["scipy"])
+            )
         if pymca is not None:
             t = Timer(execPymca)
             execTime["pymca"] = t.timeit(BenchmarkMedianFilter.NB_ITER)
             logger.info(
-                'exec time pymca (kernel size = %s) is %s' % (width, execTime["pymca"]))
+                "exec time pymca (kernel size = %s) is %s" % (width, execTime["pymca"])
+            )
 
         return execTime
 
@@ -111,11 +112,11 @@ app = qt.QApplication([])
 kernels = [3, 5, 7, 11, 15]
 benchmark = BenchmarkMedianFilter(imageWidth=1000, kernels=kernels)
 plot = Plot1D()
-plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("silx"), legend='silx')
+plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("silx"), legend="silx")
 if scipy is not None:
-    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("scipy"), legend='scipy')
+    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("scipy"), legend="scipy")
 if pymca is not None:
-    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend='pymca')
+    plot.addCurve(x=kernels, y=benchmark.getExecTimeFor("pymca"), legend="pymca")
 plot.show()
 app.exec()
 del app

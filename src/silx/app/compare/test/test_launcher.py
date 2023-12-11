@@ -87,30 +87,30 @@ def execute_as_script(tmp_path):
 
     Log output as debug in case of bad return code.
     """
+
     def execute_as_script(filename, *args):
         env = _create_test_env()
 
         # Copy file to temporary dir to avoid import from current dir.
-        script = os.path.join(tmp_path, 'launcher.py')
+        script = os.path.join(tmp_path, "launcher.py")
         shutil.copyfile(filename, script)
         command_line = [sys.executable, script] + list(args)
 
         _logger.info("Execute: %s", " ".join(command_line))
-        p = subprocess.Popen(command_line,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
+        p = subprocess.Popen(
+            command_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        )
         out, err = p.communicate()
         _logger.info("Return code: %d", p.returncode)
         try:
-            out = out.decode('utf-8')
+            out = out.decode("utf-8")
         except UnicodeError:
             pass
         try:
-            err = err.decode('utf-8')
+            err = err.decode("utf-8")
         except UnicodeError:
             pass
- 
+
         if p.returncode != 0:
             _logger.error("stdout:")
             _logger.error("%s", out)
@@ -122,6 +122,7 @@ def execute_as_script(tmp_path):
             _logger.debug("stderr:")
             _logger.debug("%s", err)
         assert p.returncode == 0
+
     return execute_as_script
 
 

@@ -34,15 +34,16 @@ from silx.utils.enum import Enum
 
 def test_enum_methods():
     """Test Enum"""
+
     class Success(Enum):
         A = 1
-        B = 'B'
+        B = "B"
 
     assert Success.members() == (Success.A, Success.B)
-    assert Success.names() == ('A', 'B')
-    assert Success.values() == (1, 'B')
+    assert Success.names() == ("A", "B")
+    assert Success.values() == (1, "B")
 
     assert Success.from_value(1) == Success.A
-    assert Success.from_value('B') == Success.B
+    assert Success.from_value("B") == Success.B
     with pytest.raises(ValueError):
         Success.from_value(3)

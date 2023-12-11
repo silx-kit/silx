@@ -39,7 +39,9 @@ class RenderContext:
     :param float dpi: Number of device pixels per inch
     """
 
-    def __init__(self, matrix=None, isXLog=False, isYLog=False, dpi=96., plotFrame=None):
+    def __init__(
+        self, matrix=None, isXLog=False, isYLog=False, dpi=96.0, plotFrame=None
+    ):
         self.matrix = matrix
         """Current transformation matrix"""
 
@@ -73,7 +75,7 @@ class GLPlotItem:
     """Base class for primitives used in the PlotWidget OpenGL backend"""
 
     def __init__(self):
-        self.yaxis = 'left'
+        self.yaxis = "left"
         "YAxis this item is attached to (either 'left' or 'right')"
 
     def pick(self, x, y):
@@ -99,6 +101,5 @@ class GLPlotItem:
         pass
 
     def isInitialized(self) -> bool:
-        """Returns True if resources where initialized and requires `discard`.
-        """
+        """Returns True if resources where initialized and requires `discard`."""
         return True

@@ -62,25 +62,44 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
     def test(self):
         """Test ROI of different shapes"""
         tests = (  # shape, points=[list of (x, y), list of (x, y)]
-            (roi_items.PointROI, numpy.array(([(10., 15.)], [(20., 25.)]))),
-            (roi_items.RectangleROI,
-                numpy.array((((1., 10.), (11., 20.)),
-                            ((2., 3.), (12., 13.))))),
-            (roi_items.PolygonROI,
-                numpy.array((((0., 1.), (0., 10.), (10., 0.)),
-                            ((5., 6.), (5., 16.), (15., 6.))))),
-            (roi_items.LineROI,
-                numpy.array((((10., 20.), (10., 30.)),
-                            ((30., 40.), (30., 50.))))),
-            (roi_items.HorizontalLineROI,
-                numpy.array((((10., 20.), (10., 30.)),
-                            ((30., 40.), (30., 50.))))),
-            (roi_items.VerticalLineROI,
-                numpy.array((((10., 20.), (10., 30.)),
-                            ((30., 40.), (30., 50.))))),
-            (roi_items.HorizontalLineROI,
-                numpy.array((((10., 20.), (10., 30.)),
-                            ((30., 40.), (30., 50.))))),
+            (roi_items.PointROI, numpy.array(([(10.0, 15.0)], [(20.0, 25.0)]))),
+            (
+                roi_items.RectangleROI,
+                numpy.array((((1.0, 10.0), (11.0, 20.0)), ((2.0, 3.0), (12.0, 13.0)))),
+            ),
+            (
+                roi_items.PolygonROI,
+                numpy.array(
+                    (
+                        ((0.0, 1.0), (0.0, 10.0), (10.0, 0.0)),
+                        ((5.0, 6.0), (5.0, 16.0), (15.0, 6.0)),
+                    )
+                ),
+            ),
+            (
+                roi_items.LineROI,
+                numpy.array(
+                    (((10.0, 20.0), (10.0, 30.0)), ((30.0, 40.0), (30.0, 50.0)))
+                ),
+            ),
+            (
+                roi_items.HorizontalLineROI,
+                numpy.array(
+                    (((10.0, 20.0), (10.0, 30.0)), ((30.0, 40.0), (30.0, 50.0)))
+                ),
+            ),
+            (
+                roi_items.VerticalLineROI,
+                numpy.array(
+                    (((10.0, 20.0), (10.0, 30.0)), ((30.0, 40.0), (30.0, 50.0)))
+                ),
+            ),
+            (
+                roi_items.HorizontalLineROI,
+                numpy.array(
+                    (((10.0, 20.0), (10.0, 30.0)), ((30.0, 40.0), (30.0, 50.0)))
+                ),
+            ),
         )
 
         for roiClass, points in tests:
@@ -215,7 +234,12 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         # Arc
         item = roi_items.ArcROI()
         center = numpy.array([10, 20])
-        innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, numpy.pi
+        innerRadius, outerRadius, startAngle, endAngle = (
+            1,
+            100,
+            numpy.pi * 0.5,
+            numpy.pi,
+        )
         item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
         rois.append(item)
         # Horizontal Range
@@ -257,10 +281,10 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
 
     def testMaxROI(self):
         """Test Max ROI"""
-        origin1 = numpy.array([1., 10.])
-        size1 = numpy.array([10., 10.])
-        origin2 = numpy.array([2., 3.])
-        size2 = numpy.array([10., 10.])
+        origin1 = numpy.array([1.0, 10.0])
+        size1 = numpy.array([10.0, 10.0])
+        origin2 = numpy.array([2.0, 3.0])
+        size2 = numpy.array([10.0, 10.0])
 
         manager = roi.InteractiveRegionOfInterestManager(self.plot)
         self.roiTableWidget.setRegionOfInterestManager(manager)
@@ -349,16 +373,17 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         mx, my = self.plot.dataToPixel(*center)
         self.mouseMove(widget, pos=(mx, my))
         self.mousePress(widget, qt.Qt.LeftButton, pos=(mx, my))
-        self.mouseMove(widget, pos=(mx, my+25))
-        self.mouseMove(widget, pos=(mx, my+50))
-        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my+50))
+        self.mouseMove(widget, pos=(mx, my + 25))
+        self.mouseMove(widget, pos=(mx, my + 50))
+        self.mouseRelease(widget, qt.Qt.LeftButton, pos=(mx, my + 50))
 
         result = numpy.array(item.getEndPoints())
         # x location is still the same
         numpy.testing.assert_allclose(points[:, 0], result[:, 0], atol=0.5)
         # size is still the same
-        numpy.testing.assert_allclose(points[1] - points[0],
-                                      result[1] - result[0], atol=0.5)
+        numpy.testing.assert_allclose(
+            points[1] - points[0], result[1] - result[0], atol=0.5
+        )
         # But Y is not the same
         self.assertNotEqual(points[0, 1], result[0, 1])
         self.assertNotEqual(points[1, 1], result[1, 1])
@@ -429,7 +454,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         self.assertIs(item.getInteractionMode(), roi_items.ArcROI.ThreePointMode)
         self.qWait(500)
 
-        # Click on the center
+        # Click on the center
         widget = self.plot.getWidgetHandle()
         mx, my = self.plot.dataToPixel(*center)
 
@@ -472,7 +497,7 @@ class TestRegionOfInterestManager(TestCaseQt, ParametricTestCase):
         assert item.getInteractionMode() is roi_items.BandROI.BoundedMode
         self.qWait(500)
 
-        # Click on the center
+        # Click on the center
         widget = self.plot.getWidgetHandle()
         mx, my = self.plot.dataToPixel(xcenter, ycenter)
 

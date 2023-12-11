@@ -26,4 +26,4 @@ __license__ = "MIT"
 __date__ = "02/05/2017"
 
 
-from .medianfilter import (medfilt, medfilt1d, medfilt2d)
+from .medianfilter import medfilt, medfilt1d, medfilt2d

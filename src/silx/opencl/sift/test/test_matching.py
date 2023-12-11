@@ -40,6 +40,7 @@ import unittest
 import time
 import logging
 import numpy
+
 try:
     import scipy
 except ImportError:
@@ -58,6 +59,7 @@ from ..utils import get_opencl_code
 from ..plan import SiftPlan
 from ..match import match_py
 from silx.opencl import ocl
+
 if ocl:
     import pyopencl.array
 
@@ -66,7 +68,9 @@ logger = logging.getLogger(__name__)
 try:
     import feature
 except ImportError:
-    logger.warning("feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
+    logger.warning(
+        "feature module is not available to compare results with C++ implementation. Matching cannot be tested."
+    )
     feature = None
 
 
@@ -79,7 +83,10 @@ class TestMatching(unittest.TestCase):
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -92,14 +99,17 @@ class TestMatching(unittest.TestCase):
 
     def setUp(self):
         devtype = ocl.device_from_context(self.ctx).type
-        if (devtype == "CPU"):
+        if devtype == "CPU":
             self.use_cpu = True
         else:
             self.use_cpu = False
-        kernel = ("matching_gpu.cl" if not(self.use_cpu) else "matching_cpu.cl")
-        kernel_src = os.linesep.join((get_opencl_code(os.path.join("sift", i))
-                                      for i in ("sift", kernel)))
-        self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
+        kernel = "matching_gpu.cl" if not (self.use_cpu) else "matching_cpu.cl"
+        kernel_src = os.linesep.join(
+            (get_opencl_code(os.path.join("sift", i)) for i in ("sift", kernel))
+        )
+        self.program = pyopencl.Program(
+            self.ctx, kernel_src
+        ).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 
     def tearDown(self):
@@ -107,12 +117,12 @@ class TestMatching(unittest.TestCase):
         self.program = None
 
     def test_matching(self):
-        '''
+        """
         tests keypoints matching kernel
-        '''
+        """
         image = ascent().astype(numpy.float32)
 
-        if (feature is not None):
+        if feature is not None:
             # get the struct keypoints : (x,y,s,angle,[descriptors])
             sc = feature.SiftAlignment()
             ref_sift = sc.sift(image)
@@ -120,50 +130,76 @@ class TestMatching(unittest.TestCase):
             sp = SiftPlan(template=image)
             ref_sift = sp.keypoints(image)
         ref_sift_2 = numpy.recarray((ref_sift.shape), dtype=ref_sift.dtype)
-        ref_sift_2[:] = (ref_sift[::-1])
+        ref_sift_2[:] = ref_sift[::-1]
 
         t0_matching = time.time()
         siftmatch = match_py(ref_sift, ref_sift_2, raw_results=True)
         t1_matching = time.time()
         reference = "NumPy"
 
-        if (self.use_cpu):
-            wg = 1,
+        if self.use_cpu:
+            wg = (1,)
         else:
-            wg = 64,
-        shape = ref_sift.shape[0] * wg[0],
+            wg = (64,)
+        shape = (ref_sift.shape[0] * wg[0],)
 
         ratio_th = numpy.float32(0.5329)  # sift.cpp : 0.73*0.73
         keypoints_start, keypoints_end = 0, min(ref_sift.shape[0], ref_sift_2.shape[0])
 
         gpu_keypoints1 = pyopencl.array.to_device(self.queue, ref_sift)
         gpu_keypoints2 = pyopencl.array.to_device(self.queue, ref_sift_2)
-        gpu_matchings = pyopencl.array.empty(self.queue, (keypoints_end - keypoints_start, 2), dtype=numpy.int32, order="C")
+        gpu_matchings = pyopencl.array.empty(
+            self.queue,
+            (keypoints_end - keypoints_start, 2),
+            dtype=numpy.int32,
+            order="C",
+        )
         gpu_matchings.fill(0)
-        keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
+        keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(
+            keypoints_end
+        )
         nb_keypoints = numpy.int32(10000)
         counter = pyopencl.array.empty(self.queue, (1, 1), dtype=numpy.int32, order="C")
         counter.fill(0)
 
         t0 = time.time()
-        k1 = self.program.matching(self.queue, shape, wg,
-                                   gpu_keypoints1.data, gpu_keypoints2.data, gpu_matchings.data, counter.data,
-                                   nb_keypoints, ratio_th, keypoints_end, keypoints_end)
+        k1 = self.program.matching(
+            self.queue,
+            shape,
+            wg,
+            gpu_keypoints1.data,
+            gpu_keypoints2.data,
+            gpu_matchings.data,
+            counter.data,
+            nb_keypoints,
+            ratio_th,
+            keypoints_end,
+            keypoints_end,
+        )
         res = gpu_matchings.get()
         cnt = counter.get()
         t1 = time.time()
 
         res_sort = res[numpy.argsort(res[:, 0])]
         logger.debug("%s", res_sort[0:20])
-        logger.debug("%s Matching took %.3f ms", reference, 1000.0 * (t1_matching - t0_matching))
-        logger.debug("OpenCL: %d match / %s : %d match", cnt, reference, siftmatch.shape[0])
+        logger.debug(
+            "%s Matching took %.3f ms", reference, 1000.0 * (t1_matching - t0_matching)
+        )
+        logger.debug(
+            "OpenCL: %d match / %s : %d match", cnt, reference, siftmatch.shape[0]
+        )
 
         # sort to compare added keypoints
-        self.assertEqual(cnt, siftmatch.shape[0], "number of matching element is the same")
+        self.assertEqual(
+            cnt, siftmatch.shape[0], "number of matching element is the same"
+        )
         delta = abs(res_sort - siftmatch).max()
         self.assertEqual(delta, 0, "Matching keypoints are actually the same")
         # logger.info("delta=%s" % delta)
 
         if self.PROFILE:
             logger.debug("Global execution time: %.3fms." % (1000.0 * (t1 - t0)))
-            logger.debug("Matching on device took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug(
+                "Matching on device took %.3fms"
+                % (1e-6 * (k1.profile.end - k1.profile.start))
+            )

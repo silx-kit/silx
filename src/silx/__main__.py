@@ -35,6 +35,7 @@ __date__ = "07/06/2018"
 
 
 import logging
+
 logging.basicConfig()
 
 import multiprocessing
@@ -55,18 +56,24 @@ def main():
     multiprocessing.freeze_support()
 
     launcher = Launcher(prog="silx", version=silx._version.version)
-    launcher.add_command("view",
-                         module_name="silx.app.view.main",
-                         description="Browse a data file with a GUI")
-    launcher.add_command("convert",
-                         module_name="silx.app.convert",
-                         description="Convert and concatenate files into a HDF5 file")
-    launcher.add_command("compare",
-                         module_name="silx.app.compare.main",
-                         description="Compare images with a GUI")
-    launcher.add_command("test",
-                         module_name="silx.app.test_",
-                         description="Launch silx unittest")
+    launcher.add_command(
+        "view",
+        module_name="silx.app.view.main",
+        description="Browse a data file with a GUI",
+    )
+    launcher.add_command(
+        "convert",
+        module_name="silx.app.convert",
+        description="Convert and concatenate files into a HDF5 file",
+    )
+    launcher.add_command(
+        "compare",
+        module_name="silx.app.compare.main",
+        description="Compare images with a GUI",
+    )
+    launcher.add_command(
+        "test", module_name="silx.app.test_", description="Launch silx unittest"
+    )
     status = launcher.execute(sys.argv)
     return status
 

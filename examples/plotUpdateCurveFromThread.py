@@ -73,7 +73,8 @@ class UpdateThread(threading.Thread):
                 self.plot1d.addCurve,
                 numpy.arange(1000),
                 numpy.random.random(1000),
-                resetzoom=False)
+                resetzoom=False,
+            )
 
     def stop(self):
         """Stop the update thread"""
@@ -87,7 +88,7 @@ def main():
 
     # Create a Plot1D, set its limits and display it
     plot1d = Plot1D()
-    plot1d.setLimits(0., 1000., 0., 1.)
+    plot1d.setLimits(0.0, 1000.0, 0.0, 1.0)
     plot1d.show()
 
     # Create the thread that calls submitToQtMainThread
@@ -99,5 +100,5 @@ def main():
     updateThread.stop()  # Stop updating the plot
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

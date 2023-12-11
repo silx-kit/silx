@@ -34,6 +34,7 @@ from .. import weakref
 
 class Dummy(object):
     """Dummy class to use it as geanie pig"""
+
     def inc(self, a):
         return a + 1
 
@@ -74,6 +75,7 @@ class TestWeakMethod(unittest.TestCase):
     def testDeadFunction(self):
         def inc(a):
             return a + 1
+
         callable_ = weakref.WeakMethod(inc)
         inc = None
         self.assertIsNone(callable_())
@@ -93,6 +95,7 @@ class TestWeakMethod(unittest.TestCase):
         def callback(ref):
             self.__count += 1
             self.assertIs(callable_, ref)
+
         dummy = Dummy()
         callable_ = weakref.WeakMethod(dummy.inc, callback)
         dummy = None
@@ -104,6 +107,7 @@ class TestWeakMethod(unittest.TestCase):
         def callback(ref):
             self.__count += 1
             self.assertIs(callable_, ref)
+
         dummy = Dummy()
         dummy.inc2 = lambda self, a: a + 1
         callable_ = weakref.WeakMethod(dummy.inc2, callback)
@@ -116,6 +120,7 @@ class TestWeakMethod(unittest.TestCase):
         def callback(ref):
             self.__count += 1
             self.assertIs(callable_, ref)
+
         store = lambda a: a + 1  # noqa: E731
         callable_ = weakref.WeakMethod(store, callback)
         store = None
@@ -143,7 +148,6 @@ class TestWeakMethod(unittest.TestCase):
 
 
 class TestWeakMethodProxy(unittest.TestCase):
-
     def testMethod(self):
         dummy = Dummy()
         callable_ = weakref.WeakMethodProxy(dummy.inc)

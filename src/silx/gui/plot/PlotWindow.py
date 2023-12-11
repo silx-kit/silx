@@ -53,6 +53,7 @@ from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
 from .StatsWidget import BasicStatsWidget
 from .ColorBar import ColorBarWidget
+
 try:
     from ..console import IPythonDockWidget
 except ImportError:
@@ -99,16 +100,30 @@ class PlotWindow(PlotWidget):
     :param bool fit: Toggle visibilty of fit action.
     """
 
-    def __init__(self, parent=None, backend=None,
-                 resetzoom=True, autoScale=True, logScale=True, grid=True,
-                 curveStyle=True, colormap=True,
-                 aspectRatio=True, yInverted=True,
-                 copy=True, save=True, print_=True,
-                 control=False, position=False,
-                 roi=True, mask=True, fit=False):
+    def __init__(
+        self,
+        parent=None,
+        backend=None,
+        resetzoom=True,
+        autoScale=True,
+        logScale=True,
+        grid=True,
+        curveStyle=True,
+        colormap=True,
+        aspectRatio=True,
+        yInverted=True,
+        copy=True,
+        save=True,
+        print_=True,
+        control=False,
+        position=False,
+        roi=True,
+        mask=True,
+        fit=False,
+    ):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
-            self.setWindowTitle('PlotWindow')
+            self.setWindowTitle("PlotWindow")
 
         self._dockWidgets = []
 
@@ -127,67 +142,80 @@ class PlotWindow(PlotWidget):
         self.group.setExclusive(False)
 
         self.resetZoomAction = self.group.addAction(
-            actions.control.ResetZoomAction(self, parent=self))
+            actions.control.ResetZoomAction(self, parent=self)
+        )
         self.resetZoomAction.setVisible(resetzoom)
         self.addAction(self.resetZoomAction)
 
         self.zoomInAction = self.group.addAction(
-            actions.control.ZoomInAction(self, parent=self))
+            actions.control.ZoomInAction(self, parent=self)
+        )
         self.zoomInAction.setVisible(False)
         self.addAction(self.zoomInAction)
 
         self.zoomOutAction = self.group.addAction(
-            actions.control.ZoomOutAction(self, parent=self))
+            actions.control.ZoomOutAction(self, parent=self)
+        )
         self.zoomOutAction.setVisible(False)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
-            actions.control.XAxisAutoScaleAction(self, parent=self))
+            actions.control.XAxisAutoScaleAction(self, parent=self)
+        )
         self.xAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.xAxisAutoScaleAction)
 
         self.yAxisAutoScaleAction = self.group.addAction(
-            actions.control.YAxisAutoScaleAction(self, parent=self))
+            actions.control.YAxisAutoScaleAction(self, parent=self)
+        )
         self.yAxisAutoScaleAction.setVisible(autoScale)
         self.addAction(self.yAxisAutoScaleAction)
 
         self.xAxisLogarithmicAction = self.group.addAction(
-            actions.control.XAxisLogarithmicAction(self, parent=self))
+            actions.control.XAxisLogarithmicAction(self, parent=self)
+        )
         self.xAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.xAxisLogarithmicAction)
 
         self.yAxisLogarithmicAction = self.group.addAction(
-            actions.control.YAxisLogarithmicAction(self, parent=self))
+            actions.control.YAxisLogarithmicAction(self, parent=self)
+        )
         self.yAxisLogarithmicAction.setVisible(logScale)
         self.addAction(self.yAxisLogarithmicAction)
 
         self.gridAction = self.group.addAction(
-            actions.control.GridAction(self, gridMode='both', parent=self))
+            actions.control.GridAction(self, gridMode="both", parent=self)
+        )
         self.gridAction.setVisible(grid)
         self.addAction(self.gridAction)
 
         self.curveStyleAction = self.group.addAction(
-            actions.control.CurveStyleAction(self, parent=self))
+            actions.control.CurveStyleAction(self, parent=self)
+        )
         self.curveStyleAction.setVisible(curveStyle)
         self.addAction(self.curveStyleAction)
 
         self.colormapAction = self.group.addAction(
-            actions.control.ColormapAction(self, parent=self))
+            actions.control.ColormapAction(self, parent=self)
+        )
         self.colormapAction.setVisible(colormap)
         self.addAction(self.colormapAction)
 
         self.colorbarAction = self.group.addAction(
-            actions_control.ColorBarAction(self, parent=self))
+            actions_control.ColorBarAction(self, parent=self)
+        )
         self.colorbarAction.setVisible(False)
         self.addAction(self.colorbarAction)
         self._colorbar.setVisible(False)
 
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=self)
+            parent=self, plot=self
+        )
         self.keepDataAspectRatioButton.setVisible(aspectRatio)
 
         self.yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
-            parent=self, plot=self)
+            parent=self, plot=self
+        )
         self.yAxisInvertedButton.setVisible(yInverted)
 
         self.group.addAction(self.getRoiAction())
@@ -197,15 +225,18 @@ class PlotWindow(PlotWidget):
         self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
-            actions_histogram.PixelIntensitiesHistoAction(self, parent=self))
+            actions_histogram.PixelIntensitiesHistoAction(self, parent=self)
+        )
         self._intensityHistoAction.setVisible(False)
 
         self._medianFilter2DAction = self.group.addAction(
-            actions_medfilt.MedianFilter2DAction(self, parent=self))
+            actions_medfilt.MedianFilter2DAction(self, parent=self)
+        )
         self._medianFilter2DAction.setVisible(False)
 
         self._medianFilter1DAction = self.group.addAction(
-            actions_medfilt.MedianFilter1DAction(self, parent=self))
+            actions_medfilt.MedianFilter1DAction(self, parent=self)
+        )
         self._medianFilter1DAction.setVisible(False)
 
         self.fitAction = self.group.addAction(actions_fit.FitAction(self, parent=self))
@@ -239,24 +270,25 @@ class PlotWindow(PlotWidget):
                 converters = position
             else:
                 converters = None
-            self._positionWidget = tools.PositionInfo(
-                plot=self, converters=converters)
+            self._positionWidget = tools.PositionInfo(plot=self, converters=converters)
             # Set a snapping mode that is consistent with legacy one
             self._positionWidget.setSnappingMode(
-                tools.PositionInfo.SNAPPING_CROSSHAIR |
-                tools.PositionInfo.SNAPPING_ACTIVE_ONLY |
-                tools.PositionInfo.SNAPPING_SYMBOLS_ONLY |
-                tools.PositionInfo.SNAPPING_CURVE |
-                tools.PositionInfo.SNAPPING_SCATTER)
+                tools.PositionInfo.SNAPPING_CROSSHAIR
+                | tools.PositionInfo.SNAPPING_ACTIVE_ONLY
+                | tools.PositionInfo.SNAPPING_SYMBOLS_ONLY
+                | tools.PositionInfo.SNAPPING_CURVE
+                | tools.PositionInfo.SNAPPING_SCATTER
+            )
 
         self.__setCentralWidget()
 
         # Creating the toolbar also create actions for toolbuttons
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
-            parent=self, plot=self)
+            parent=self, plot=self
+        )
         self.addToolBar(self._interactiveModeToolBar)
 
-        self._toolbar = self._createToolBar(title='Plot', parent=self)
+        self._toolbar = self._createToolBar(title="Plot", parent=self)
         self.addToolBar(self._toolbar)
 
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=self)
@@ -390,12 +422,12 @@ class PlotWindow(PlotWidget):
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             self._consoleDockWidget = IPythonDockWidget(
-                available_vars=available_vars,
-                custom_banner=banner,
-                parent=self)
+                available_vars=available_vars, custom_banner=banner, parent=self
+            )
             self.addTabbedDockWidget(self._consoleDockWidget)
             self._consoleDockWidget.toggleViewAction().toggled.connect(
-                self._consoleDockWidgetToggled)
+                self._consoleDockWidgetToggled
+            )
 
         self._consoleDockWidget.setVisible(isChecked)
 
@@ -439,11 +471,10 @@ class PlotWindow(PlotWidget):
         return toolbar
 
     def toolBar(self):
-        """Return a QToolBar from the QAction of the PlotWindow.
-        """
+        """Return a QToolBar from the QAction of the PlotWindow."""
         return self._toolbar
 
-    def menu(self, title='Plot', parent=None):
+    def menu(self, title="Plot", parent=None):
         """Return a QMenu from the QAction of the PlotWindow.
 
         :param str title: The title of the QMenu
@@ -490,8 +521,7 @@ class PlotWindow(PlotWidget):
             self.addDockWidget(area, dock_widget)
         else:
             # Other dock widgets are added as tabs to the same widget area
-            self.tabifyDockWidget(self._dockWidgets[0],
-                                  dock_widget)
+            self.tabifyDockWidget(self._dockWidgets[0], dock_widget)
 
     def removeDockWidget(self, dockwidget):
         """Removes the *dockwidget* from the main window layout and hides it.
@@ -516,8 +546,7 @@ class PlotWindow(PlotWidget):
         """
         if visible:
             dockWidget = self.sender()
-            dockWidget.visibilityChanged.disconnect(
-                self._handleFirstDockWidgetShow)
+            dockWidget.visibilityChanged.disconnect(self._handleFirstDockWidgetShow)
             self.addTabbedDockWidget(dockWidget)
 
     def _handleDockWidgetViewActionTriggered(self, checked):
@@ -546,9 +575,11 @@ class PlotWindow(PlotWidget):
             self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
             self._legendsDockWidget.toggleViewAction().triggered.connect(
-                self._handleDockWidgetViewActionTriggered)
+                self._handleDockWidgetViewActionTriggered
+            )
             self._legendsDockWidget.visibilityChanged.connect(
-                self._handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow
+            )
         return self._legendsDockWidget
 
     def getCurvesRoiDockWidget(self):
@@ -556,12 +587,15 @@ class PlotWindow(PlotWidget):
         # (still used internally for lazy loading)
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
-                plot=self, name='Regions Of Interest')
+                plot=self, name="Regions Of Interest"
+            )
             self._curvesROIDockWidget.hide()
             self._curvesROIDockWidget.toggleViewAction().triggered.connect(
-                self._handleDockWidgetViewActionTriggered)
+                self._handleDockWidgetViewActionTriggered
+            )
             self._curvesROIDockWidget.visibilityChanged.connect(
-                self._handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow
+            )
         return self._curvesROIDockWidget
 
     def getCurvesRoiWidget(self):
@@ -578,13 +612,14 @@ class PlotWindow(PlotWidget):
     def getMaskToolsDockWidget(self):
         """DockWidget with image mask panel (lazy-loaded)."""
         if self._maskToolsDockWidget is None:
-            self._maskToolsDockWidget = MaskToolsDockWidget(
-                plot=self, name='Mask')
+            self._maskToolsDockWidget = MaskToolsDockWidget(plot=self, name="Mask")
             self._maskToolsDockWidget.hide()
             self._maskToolsDockWidget.toggleViewAction().triggered.connect(
-                self._handleDockWidgetViewActionTriggered)
+                self._handleDockWidgetViewActionTriggered
+            )
             self._maskToolsDockWidget.visibilityChanged.connect(
-                self._handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow
+            )
         return self._maskToolsDockWidget
 
     def getStatsWidget(self):
@@ -600,9 +635,11 @@ class PlotWindow(PlotWidget):
             self._statsDockWidget.setWidget(statsWidget)
             self._statsDockWidget.hide()
             self._statsDockWidget.toggleViewAction().triggered.connect(
-                self._handleDockWidgetViewActionTriggered)
+                self._handleDockWidgetViewActionTriggered
+            )
             self._statsDockWidget.visibilityChanged.connect(
-                self._handleFirstDockWidgetShow)
+                self._handleFirstDockWidgetShow
+            )
         return self._statsDockWidget.widget()
 
     # getters for actions
@@ -618,7 +655,7 @@ class PlotWindow(PlotWidget):
         :rtype: QAction
         """
         if self._consoleAction is None:
-            self._consoleAction = qt.QAction('Console', self)
+            self._consoleAction = qt.QAction("Console", self)
             self._consoleAction.setCheckable(True)
             if IPythonDockWidget is not None:
                 self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
@@ -634,7 +671,7 @@ class PlotWindow(PlotWidget):
         :rtype: actions.PlotAction
         """
         if self._crosshairAction is None:
-            self._crosshairAction = actions.control.CrosshairAction(self, color='red')
+            self._crosshairAction = actions.control.CrosshairAction(self, color="red")
         return self._crosshairAction
 
     def getMaskAction(self):
@@ -838,18 +875,30 @@ class Plot1D(PlotWindow):
     """
 
     def __init__(self, parent=None, backend=None):
-        super(Plot1D, self).__init__(parent=parent, backend=backend,
-                                     resetzoom=True, autoScale=True,
-                                     logScale=True, grid=True,
-                                     curveStyle=True, colormap=False,
-                                     aspectRatio=False, yInverted=False,
-                                     copy=True, save=True, print_=True,
-                                     control=True, position=True,
-                                     roi=True, mask=False, fit=True)
+        super(Plot1D, self).__init__(
+            parent=parent,
+            backend=backend,
+            resetzoom=True,
+            autoScale=True,
+            logScale=True,
+            grid=True,
+            curveStyle=True,
+            colormap=False,
+            aspectRatio=False,
+            yInverted=False,
+            copy=True,
+            save=True,
+            print_=True,
+            control=True,
+            position=True,
+            roi=True,
+            mask=False,
+            fit=True,
+        )
         if parent is None:
-            self.setWindowTitle('Plot1D')
-        self.getXAxis().setLabel('X')
-        self.getYAxis().setLabel('Y')
+            self.setWindowTitle("Plot1D")
+        self.getXAxis().setLabel("X")
+        self.getYAxis().setLabel("Y")
         action = self.getFitAction()
         action.setXRangeUpdatedOnZoom(True)
         action.setFittedItemUpdatedFromActiveCurve(True)
@@ -871,26 +920,37 @@ class Plot2D(PlotWindow):
     def __init__(self, parent=None, backend=None):
         # List of information to display at the bottom of the plot
         posInfo = [
-            ('X', lambda x, y: x),
-            ('Y', lambda x, y: y),
-            ('Data', WeakMethodProxy(self._getImageValue)),
-            ('Dims', WeakMethodProxy(self._getImageDims)),
+            ("X", lambda x, y: x),
+            ("Y", lambda x, y: y),
+            ("Data", WeakMethodProxy(self._getImageValue)),
+            ("Dims", WeakMethodProxy(self._getImageDims)),
         ]
 
-        super(Plot2D, self).__init__(parent=parent, backend=backend,
-                                     resetzoom=True, autoScale=False,
-                                     logScale=False, grid=False,
-                                     curveStyle=False, colormap=True,
-                                     aspectRatio=True, yInverted=True,
-                                     copy=True, save=True, print_=True,
-                                     control=False, position=posInfo,
-                                     roi=False, mask=True)
+        super(Plot2D, self).__init__(
+            parent=parent,
+            backend=backend,
+            resetzoom=True,
+            autoScale=False,
+            logScale=False,
+            grid=False,
+            curveStyle=False,
+            colormap=True,
+            aspectRatio=True,
+            yInverted=True,
+            copy=True,
+            save=True,
+            print_=True,
+            control=False,
+            position=posInfo,
+            roi=False,
+            mask=True,
+        )
         if parent is None:
-            self.setWindowTitle('Plot2D')
-        self.getXAxis().setLabel('Columns')
-        self.getYAxis().setLabel('Rows')
+            self.setWindowTitle("Plot2D")
+        self.getXAxis().setLabel("Columns")
+        self.getYAxis().setLabel("Rows")
 
-        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
             self.getYAxis().setInverted(True)
 
         self.profile = ProfileToolBar(plot=self)
@@ -945,8 +1005,9 @@ class Plot2D(PlotWindow):
         """
         pickedMask = None
         for picked in self.pickItems(
-                *self.dataToPixel(x, y, check=False),
-                lambda item: isinstance(item, items.ImageBase)):
+            *self.dataToPixel(x, y, check=False),
+            lambda item: isinstance(item, items.ImageBase),
+        ):
             if isinstance(picked.getItem(), items.MaskImageData):
                 if pickedMask is None:  # Use top-most if many masks
                     pickedMask = picked
@@ -966,16 +1027,15 @@ class Plot2D(PlotWindow):
                             return value, "Masked"
                     return value
 
-        return '-'  # No image picked
+        return "-"  # No image picked
 
     def _getImageDims(self, *args):
         activeImage = self.getActiveImage()
-        if (activeImage is not None and
-                    activeImage.getData(copy=False) is not None):
+        if activeImage is not None and activeImage.getData(copy=False) is not None:
             dims = activeImage.getData(copy=False).shape[1::-1]
-            return 'x'.join(str(dim) for dim in dims)
+            return "x".join(str(dim) for dim in dims)
         else:
-            return '-'
+            return "-"
 
     def getProfileToolbar(self):
         """Profile tools attached to this plot

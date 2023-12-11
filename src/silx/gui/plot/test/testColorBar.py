@@ -39,6 +39,7 @@ import numpy
 
 class TestColorScale(TestCaseQt):
     """Test that interaction with the colorScale is correct"""
+
     def setUp(self):
         super(TestColorScale, self).setUp()
         self.colorScaleWidget = _ColorScale(colormap=None, parent=None)
@@ -58,37 +59,32 @@ class TestColorScale(TestCaseQt):
         self.assertIsNone(colormap)
 
     def testRelativePositionLinear(self):
-        self.colorMapLin1 = Colormap(name='gray',
-                                     normalization=Colormap.LINEAR,
-                                     vmin=0.0,
-                                     vmax=1.0)
+        self.colorMapLin1 = Colormap(
+            name="gray", normalization=Colormap.LINEAR, vmin=0.0, vmax=1.0
+        )
         self.colorScaleWidget.setColormap(self.colorMapLin1)
 
         self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(0.25) == 0.25)
-        self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(0.5) == 0.5)
-        self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(1.0) == 1.0)
+            self.colorScaleWidget.getValueFromRelativePosition(0.25) == 0.25
+        )
+        self.assertTrue(self.colorScaleWidget.getValueFromRelativePosition(0.5) == 0.5)
+        self.assertTrue(self.colorScaleWidget.getValueFromRelativePosition(1.0) == 1.0)
 
-        self.colorMapLin2 = Colormap(name='viridis',
-                                     normalization=Colormap.LINEAR,
-                                     vmin=-10,
-                                     vmax=0)
+        self.colorMapLin2 = Colormap(
+            name="viridis", normalization=Colormap.LINEAR, vmin=-10, vmax=0
+        )
         self.colorScaleWidget.setColormap(self.colorMapLin2)
 
         self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(0.25) == -7.5)
-        self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(0.5) == -5.0)
-        self.assertTrue(
-            self.colorScaleWidget.getValueFromRelativePosition(1.0) == 0.0)
+            self.colorScaleWidget.getValueFromRelativePosition(0.25) == -7.5
+        )
+        self.assertTrue(self.colorScaleWidget.getValueFromRelativePosition(0.5) == -5.0)
+        self.assertTrue(self.colorScaleWidget.getValueFromRelativePosition(1.0) == 0.0)
 
     def testRelativePositionLog(self):
-        self.colorMapLog1 = Colormap(name='temperature',
-                                     normalization=Colormap.LOGARITHM,
-                                     vmin=1.0,
-                                     vmax=100.0)
+        self.colorMapLog1 = Colormap(
+            name="temperature", normalization=Colormap.LOGARITHM, vmin=1.0, vmax=100.0
+        )
 
         self.colorScaleWidget.setColormap(self.colorMapLog1)
 
@@ -129,14 +125,13 @@ class TestNoAutoscale(TestCaseQt):
         super(TestNoAutoscale, self).tearDown()
 
     def testLogNormNoAutoscale(self):
-        colormapLog = Colormap(name='gray',
-                               normalization=Colormap.LOGARITHM,
-                               vmin=1.0,
-                               vmax=100.0)
+        colormapLog = Colormap(
+            name="gray", normalization=Colormap.LOGARITHM, vmin=1.0, vmax=100.0
+        )
 
         data = numpy.linspace(10, 1e10, 9).reshape(3, 3)
-        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=data, colormap=colormapLog, legend="toto")
+        self.plot.setActiveImage("toto")
 
         # test Ticks
         self.tickBar.setTicksNumber(10)
@@ -154,14 +149,13 @@ class TestNoAutoscale(TestCaseQt):
         self.assertTrue(val == 1.0)
 
     def testLinearNormNoAutoscale(self):
-        colormapLog = Colormap(name='gray',
-                               normalization=Colormap.LINEAR,
-                               vmin=-4,
-                               vmax=5)
+        colormapLog = Colormap(
+            name="gray", normalization=Colormap.LINEAR, vmin=-4, vmax=5
+        )
 
         data = numpy.linspace(1, 9, 9).reshape(3, 3)
-        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=data, colormap=colormapLog, legend="toto")
+        self.plot.setActiveImage("toto")
 
         # test Ticks
         self.tickBar.setTicksNumber(10)
@@ -208,15 +202,14 @@ class TestColorBarWidget(TestCaseQt):
 
         Note : colorbar is modified by the Plot directly not ColorBarWidget
         """
-        colormapLog = Colormap(name='gray',
-                               normalization=Colormap.LOGARITHM,
-                               vmin=None,
-                               vmax=None)
+        colormapLog = Colormap(
+            name="gray", normalization=Colormap.LOGARITHM, vmin=None, vmax=None
+        )
 
         data = numpy.array([-5, -4, 0, 2, 3, 5, 10, 20, 30])
         data = data.reshape(3, 3)
-        self.plot.addImage(data=data, colormap=colormapLog, legend='toto')
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=data, colormap=colormapLog, legend="toto")
+        self.plot.setActiveImage("toto")
 
         # default behavior when with log and negative values: should set vmin
         # to 1 and vmax to 10
@@ -225,52 +218,43 @@ class TestColorBarWidget(TestCaseQt):
 
         # if data is positive
         data[data < 1] = data.max()
-        self.plot.addImage(data=data,
-                           colormap=colormapLog,
-                           legend='toto',
-                           replace=True)
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=data, colormap=colormapLog, legend="toto", replace=True)
+        self.plot.setActiveImage("toto")
 
         self.assertTrue(self.colorBar.getColorScaleBar().minVal == data.min())
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == data.max())
 
     def testPlotAssocation(self):
         """Make sure the ColorBarWidget is properly connected with the plot"""
-        colormap = Colormap(name='gray',
-                            normalization=Colormap.LINEAR,
-                            vmin=None,
-                            vmax=None)
+        colormap = Colormap(
+            name="gray", normalization=Colormap.LINEAR, vmin=None, vmax=None
+        )
 
         # make sure that default settings are the same (but a copy of the
         self.colorBar.setPlot(self.plot)
-        self.assertTrue(
-            self.colorBar.getColormap() is self.plot.getDefaultColormap())
+        self.assertTrue(self.colorBar.getColormap() is self.plot.getDefaultColormap())
 
         data = numpy.linspace(0, 10, 100).reshape(10, 10)
-        self.plot.addImage(data=data, colormap=colormap, legend='toto')
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=data, colormap=colormap, legend="toto")
+        self.plot.setActiveImage("toto")
 
         # make sure the modification of the colormap has been done
-        self.assertFalse(
-            self.colorBar.getColormap() is self.plot.getDefaultColormap())
-        self.assertTrue(
-            self.colorBar.getColormap() is colormap)
+        self.assertFalse(self.colorBar.getColormap() is self.plot.getDefaultColormap())
+        self.assertTrue(self.colorBar.getColormap() is colormap)
 
         # test that colorbar is updated when default plot colormap changes
         self.plot.clear()
-        plotColormap = Colormap(name='gray',
-                                normalization=Colormap.LOGARITHM,
-                                vmin=None,
-                                vmax=None)
+        plotColormap = Colormap(
+            name="gray", normalization=Colormap.LOGARITHM, vmin=None, vmax=None
+        )
         self.plot.setDefaultColormap(plotColormap)
         self.assertTrue(self.colorBar.getColormap() is plotColormap)
 
     def testColormapWithoutRange(self):
         """Test with a colormap with vmin==vmax"""
-        colormap = Colormap(name='gray',
-                            normalization=Colormap.LINEAR,
-                            vmin=1.0,
-                            vmax=1.0)
+        colormap = Colormap(
+            name="gray", normalization=Colormap.LINEAR, vmin=1.0, vmax=1.0
+        )
         self.colorBar.setColormap(colormap)
 
 
@@ -299,40 +283,35 @@ class TestColorBarUpdate(TestCaseQt):
         super(TestColorBarUpdate, self).tearDown()
 
     def testUpdateColorMap(self):
-        colormap = Colormap(name='gray',
-                            normalization='linear',
-                            vmin=0,
-                            vmax=1)
+        colormap = Colormap(name="gray", normalization="linear", vmin=0, vmax=1)
 
         # check inital state
-        self.plot.addImage(data=self.data, colormap=colormap, legend='toto')
-        self.plot.setActiveImage('toto')
+        self.plot.addImage(data=self.data, colormap=colormap, legend="toto")
+        self.plot.setActiveImage("toto")
 
         self.assertTrue(self.colorBar.getColorScaleBar().minVal == 0)
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 1)
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmin == 0)
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
+        self.assertTrue(self.colorBar.getColorScaleBar().getTickBar()._vmin == 0)
+        self.assertTrue(self.colorBar.getColorScaleBar().getTickBar()._vmax == 1)
         self.assertIsInstance(
             self.colorBar.getColorScaleBar().getTickBar()._normalizer,
-            LinearNormalization)
+            LinearNormalization,
+        )
 
         # update colormap
         colormap.setVMin(0.5)
         self.assertTrue(self.colorBar.getColorScaleBar().minVal == 0.5)
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmin == 0.5)
+        self.assertTrue(self.colorBar.getColorScaleBar().getTickBar()._vmin == 0.5)
 
         colormap.setVMax(0.8)
         self.assertTrue(self.colorBar.getColorScaleBar().maxVal == 0.8)
-        self.assertTrue(
-            self.colorBar.getColorScaleBar().getTickBar()._vmax == 0.8)
+        self.assertTrue(self.colorBar.getColorScaleBar().getTickBar()._vmax == 0.8)
 
-        colormap.setNormalization('log')
+        colormap.setNormalization("log")
         self.assertIsInstance(
             self.colorBar.getColorScaleBar().getTickBar()._normalizer,
-            LogarithmicNormalization)
+            LogarithmicNormalization,
+        )
 
     # TODO : should also check that if the colormap is changing then values (especially in log scale)
     # should be coherent if in autoscale

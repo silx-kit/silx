@@ -209,10 +209,9 @@ class ListOfImages(object):
     :param images: list of 2D numpy arrays, or :class:`ListOfImages` object
     :param transposition: Tuple of dimension numbers in the wanted order
     """
-    def __init__(self, images, transposition=None):
-        """
 
-        """
+    def __init__(self, images, transposition=None):
+        """ """
         super(ListOfImages, self).__init__()
 
         # if images is a ListOfImages instance, get the underlying data
@@ -221,19 +220,16 @@ class ListOfImages(object):
             images = images.images
 
         # test stack of images is as expected
-        assert is_list_of_arrays(images), \
-            "Image stack must be a list of arrays"
+        assert is_list_of_arrays(images), "Image stack must be a list of arrays"
         image0_shape = images[0].shape
         for image in images:
-            assert image.ndim == 2, \
-                "Images must be 2D numpy arrays"
-            assert image.shape == image0_shape, \
-                "All images must have the same shape"
+            assert image.ndim == 2, "Images must be 2D numpy arrays"
+            assert image.shape == image0_shape, "All images must have the same shape"
 
         self.images = images
         """List of images"""
 
-        self.shape = (len(images), ) + image0_shape
+        self.shape = (len(images),) + image0_shape
         """Tuple of array dimensions"""
         self.dtype = get_concatenated_dtype(images)
         """Data-type of the global array"""
@@ -255,14 +251,14 @@ class ListOfImages(object):
 
         if transposition is not None:
             assert len(transposition) == self.ndim
-            assert set(transposition) == set(list(range(self.ndim))), \
-                "Transposition must be a sequence containing all dimensions"
+            assert set(transposition) == set(
+                list(range(self.ndim))
+            ), "Transposition must be a sequence containing all dimensions"
             self.transposition = transposition
             self.__sort_shape()
 
     def __sort_shape(self):
-        """Sort shape in the order defined in :attr:`transposition`
-        """
+        """Sort shape in the order defined in :attr:`transposition`"""
         new_shape = tuple(self.shape[dim] for dim in self.transposition)
         self.shape = new_shape
 
@@ -275,8 +271,9 @@ class ListOfImages(object):
         :return: Sorted tuple of indices, to access original data
         """
         assert len(indices) == self.ndim
-        sorted_indices = tuple(idx for (_, idx) in
-                               sorted(zip(self.transposition, indices)))
+        sorted_indices = tuple(
+            idx for (_, idx) in sorted(zip(self.transposition, indices))
+        )
         return sorted_indices
 
     def __array__(self, dtype=None):
@@ -284,8 +281,9 @@ class ListOfImages(object):
 
         If a transposition has been done on this images, return
         a transposed view of a numpy array."""
-        return numpy.transpose(numpy.array(self.images, dtype=dtype),
-                               self.transposition)
+        return numpy.transpose(
+            numpy.array(self.images, dtype=dtype), self.transposition
+        )
 
     def __len__(self):
         return self.shape[0]
@@ -311,8 +309,7 @@ class ListOfImages(object):
         elif list(self.transposition) != list(range(self.ndim)):
             transposition = [self.transposition[i] for i in transposition]
 
-        return ListOfImages(self.images,
-                            transposition)
+        return ListOfImages(self.images, transposition)
 
     @property
     def T(self):
@@ -344,8 +341,9 @@ class ListOfImages(object):
         # n-dimensional slicing
         if len(item) != self.ndim:
             raise IndexError(
-                "N-dim slicing requires a tuple of N indices/slices. " +
-                "Needed dimensions: %d" % self.ndim)
+                "N-dim slicing requires a tuple of N indices/slices. "
+                + "Needed dimensions: %d" % self.ndim
+            )
 
         # get list of indices sorted in the original images order
         sorted_indices = self.__sort_indices(item)
@@ -377,8 +375,7 @@ class ListOfImages(object):
 
         # single list elements selected
         if isinstance(images_selection, numpy.ndarray):
-            return numpy.transpose(images_selection[array_idx],
-                                   axes=output_dimensions)
+            return numpy.transpose(images_selection[array_idx], axes=output_dimensions)
         # muliple list elements selected
         else:
             # apply selection first
@@ -386,8 +383,7 @@ class ListOfImages(object):
             for img in images_selection:
                 output_stack.append(img[array_idx])
             # then cast into a numpy array, and transpose
-            return numpy.transpose(numpy.array(output_stack),
-                                   axes=output_dimensions)
+            return numpy.transpose(numpy.array(output_stack), axes=output_dimensions)
 
     def min(self):
         """
@@ -426,10 +422,9 @@ class DatasetView(object):
     :param transposition: List of dimensions sorted in the order of
         transposition (relative to the original h5py dataset)
     """
-    def __init__(self, dataset, transposition=None):
-        """
 
-        """
+    def __init__(self, dataset, transposition=None):
+        """ """
         super(DatasetView, self).__init__()
         self.dataset = dataset
         """original dataset"""
@@ -461,14 +456,14 @@ class DatasetView(object):
 
         if transposition is not None:
             assert len(transposition) == self.ndim
-            assert set(transposition) == set(list(range(self.ndim))), \
-                "Transposition must be a list containing all dimensions"
+            assert set(transposition) == set(
+                list(range(self.ndim))
+            ), "Transposition must be a list containing all dimensions"
             self.transposition = transposition
             self.__sort_shape()
 
     def __sort_shape(self):
-        """Sort shape in the order defined in :attr:`transposition`
-        """
+        """Sort shape in the order defined in :attr:`transposition`"""
         new_shape = tuple(self.shape[dim] for dim in self.transposition)
         self.shape = new_shape
 
@@ -481,8 +476,9 @@ class DatasetView(object):
         :return: Sorted tuple of indices, to access original data
         """
         assert len(indices) == self.ndim
-        sorted_indices = tuple(idx for (_, idx) in
-                               sorted(zip(self.transposition, indices)))
+        sorted_indices = tuple(
+            idx for (_, idx) in sorted(zip(self.transposition, indices))
+        )
         return sorted_indices
 
     def __getitem__(self, item):
@@ -514,8 +510,9 @@ class DatasetView(object):
         # n-dimensional slicing
         if len(item) != self.ndim:
             raise IndexError(
-                "N-dim slicing requires a tuple of N indices/slices. " +
-                "Needed dimensions: %d" % self.ndim)
+                "N-dim slicing requires a tuple of N indices/slices. "
+                + "Needed dimensions: %d" % self.ndim
+            )
 
         # get list of indices sorted in the original dataset order
         sorted_indices = self.__sort_indices(item)
@@ -544,16 +541,16 @@ class DatasetView(object):
         assert (len(output_dimensions) + len(frozen_dimensions)) == self.ndim
         assert set(output_dimensions) == set(range(len(output_dimensions)))
 
-        return numpy.transpose(output_data_not_transposed,
-                               axes=output_dimensions)
+        return numpy.transpose(output_data_not_transposed, axes=output_dimensions)
 
     def __array__(self, dtype=None):
         """Cast the dataset into a numpy array, and return it.
 
         If a transposition has been done on this dataset, return
         a transposed view of a numpy array."""
-        return numpy.transpose(numpy.array(self.dataset, dtype=dtype),
-                               self.transposition)
+        return numpy.transpose(
+            numpy.array(self.dataset, dtype=dtype), self.transposition
+        )
 
     def __len__(self):
         return self.shape[0]
@@ -578,8 +575,7 @@ class DatasetView(object):
         elif list(self.transposition) != list(range(self.ndim)):
             transposition = [self.transposition[i] for i in transposition]
 
-        return DatasetView(self.dataset,
-                           transposition)
+        return DatasetView(self.dataset, transposition)
 
     @property
     def T(self):

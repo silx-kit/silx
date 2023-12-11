@@ -72,6 +72,7 @@ class LoadingItemRunnable(qt.QRunnable):
 
     class __Signals(qt.QObject):
         """Signal holder"""
+
         itemReady = qt.Signal(object, object, object, str)
         runnerFinished = qt.Signal(object)
 
@@ -204,13 +205,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.header_labels = [None] * len(self.COLUMN_IDS)
-        self.header_labels[self.NAME_COLUMN] = 'Name'
-        self.header_labels[self.TYPE_COLUMN] = 'Type'
-        self.header_labels[self.SHAPE_COLUMN] = 'Shape'
-        self.header_labels[self.VALUE_COLUMN] = 'Value'
-        self.header_labels[self.DESCRIPTION_COLUMN] = 'Description'
-        self.header_labels[self.NODE_COLUMN] = 'Node'
-        self.header_labels[self.LINK_COLUMN] = 'Link'
+        self.header_labels[self.NAME_COLUMN] = "Name"
+        self.header_labels[self.TYPE_COLUMN] = "Type"
+        self.header_labels[self.SHAPE_COLUMN] = "Shape"
+        self.header_labels[self.VALUE_COLUMN] = "Value"
+        self.header_labels[self.DESCRIPTION_COLUMN] = "Description"
+        self.header_labels[self.NODE_COLUMN] = "Node"
+        self.header_labels[self.LINK_COLUMN] = "Link"
 
         # Create items
         self.__root = Hdf5Node()
@@ -269,12 +270,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 self.dataChanged.emit(index1, index2)
 
     def __itemReady(
-            self,
-            oldItem: Hdf5Node,
-            newItem: Optional[Hdf5Node],
-            error: Optional[Exception],
-            filename: str,
-        ):
+        self,
+        oldItem: Hdf5Node,
+        newItem: Optional[Hdf5Node],
+        error: Optional[Exception],
+        filename: str,
+    ):
         """Called at the end of a concurent file loading, when the loading
         item is ready. AN error is defined if an exception occured when
         loading the newItem .
@@ -393,7 +394,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if action == qt.Qt.IgnoreAction:
             return True
 
-        if self.__fileMoveEnabled and mimedata.hasFormat(_utils.Hdf5DatasetMimeData.MIME_TYPE):
+        if self.__fileMoveEnabled and mimedata.hasFormat(
+            _utils.Hdf5DatasetMimeData.MIME_TYPE
+        ):
             if mimedata.isRoot():
                 dragNode = mimedata.node()
                 parentNode = self.nodeFromIndex(parentIndex)
@@ -413,10 +416,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 return True
 
         if self.__fileDropEnabled and mimedata.hasFormat("text/uri-list"):
-
             parentNode = self.nodeFromIndex(parentIndex)
             if parentNode is not self.__root:
-                while(parentNode is not self.__root):
+                while parentNode is not self.__root:
                     node = parentNode
                     parentNode = node.parent
                 row = parentNode.indexOfChild(node)
@@ -433,7 +435,10 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                     messages.append(e.args[0])
             if len(messages) > 0:
                 title = "Error occurred when loading files"
-                message = "<html>%s:<ul><li>%s</li><ul></html>" % (title, "</li><li>".join(messages))
+                message = "<html>%s:<ul><li>%s</li><ul></html>" % (
+                    title,
+                    "</li><li>".join(messages),
+                )
                 qt.QMessageBox.critical(None, title, message)
             return True
 
@@ -452,14 +457,31 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__root.insertChild(row, node)
         self.endInsertRows()
 
-    def moveRow(self, sourceParentIndex, sourceRow, destinationParentIndex, destinationRow):
+    def moveRow(
+        self, sourceParentIndex, sourceRow, destinationParentIndex, destinationRow
+    ):
         if sourceRow == destinationRow or sourceRow == destinationRow - 1:
             # abort move, same place
             return
-        return self.moveRows(sourceParentIndex, sourceRow, 1, destinationParentIndex, destinationRow)
+        return self.moveRows(
+            sourceParentIndex, sourceRow, 1, destinationParentIndex, destinationRow
+        )
 
-    def moveRows(self, sourceParentIndex, sourceRow, count, destinationParentIndex, destinationRow):
-        self.beginMoveRows(sourceParentIndex, sourceRow, sourceRow, destinationParentIndex, destinationRow)
+    def moveRows(
+        self,
+        sourceParentIndex,
+        sourceRow,
+        count,
+        destinationParentIndex,
+        destinationRow,
+    ):
+        self.beginMoveRows(
+            sourceParentIndex,
+            sourceRow,
+            sourceRow,
+            destinationParentIndex,
+            destinationRow,
+        )
         sourceNode = self.nodeFromIndex(sourceParentIndex)
         destinationNode = self.nodeFromIndex(destinationParentIndex)
 
@@ -541,7 +563,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             return qt.QModelIndex()
         row = grandparent.indexOfChild(parent)
 
-        assert row != - 1
+        assert row != -1
         return self.createIndex(row, 0, parent)
 
     def nodeFromIndex(self, index):
@@ -581,6 +603,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # else compare commonh5 objects
         if not isinstance(obj2, type(obj1)):
             return False
+
         def key(item):
             info = [item.name]
             if item.file is not None:
@@ -588,6 +611,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             if isinstance(item, DatasetSlice):
                 info.append(item.indices)
             return tuple(info)
+
         return key(obj1) == key(obj2)
 
     def h5pyObjectRow(self, h5pyObject):
@@ -667,7 +691,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 obj=h5pyObject,
                 parent=self.__root,
                 openedPath=filename,
-            )
+            ),
         )
 
     def hasPendingOperations(self):

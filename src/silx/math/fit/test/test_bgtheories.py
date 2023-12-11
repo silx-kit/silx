@@ -30,13 +30,13 @@ from silx.math.fit.functions import sum_gauss
 
 
 class TestBgTheories(unittest.TestCase):
-    """
-    """
+    """ """
+
     def setUp(self):
         self.x = numpy.arange(100)
-        self.y = 10 + 0.05 * self.x + sum_gauss(self.x, 10., 45., 15.)
+        self.y = 10 + 0.05 * self.x + sum_gauss(self.x, 10.0, 45.0, 15.0)
         # add a very narrow high amplitude peak to test strip and snip
-        self.y += sum_gauss(self.x, 100., 75., 2.)
+        self.y += sum_gauss(self.x, 100.0, 75.0, 2.0)
         self.narrow_peak_index = list(self.x).index(75)
         random.seed()
 
@@ -46,46 +46,47 @@ class TestBgTheories(unittest.TestCase):
     def testTheoriesAttrs(self):
         for theory_name in bgtheories.THEORY:
             self.assertIsInstance(theory_name, str)
-            self.assertTrue(hasattr(bgtheories.THEORY[theory_name],
-                                    "function"))
-            self.assertTrue(hasattr(bgtheories.THEORY[theory_name].function,
-                                    "__call__"))
+            self.assertTrue(hasattr(bgtheories.THEORY[theory_name], "function"))
+            self.assertTrue(
+                hasattr(bgtheories.THEORY[theory_name].function, "__call__")
+            )
         # Ensure legacy functions are not renamed accidentally
         self.assertTrue(
-                {"No Background", "Constant", "Linear", "Strip", "Snip"}.issubset(
-                        set(bgtheories.THEORY)))
+            {"No Background", "Constant", "Linear", "Strip", "Snip"}.issubset(
+                set(bgtheories.THEORY)
+            )
+        )
 
     def testNoBg(self):
         nobgfun = bgtheories.THEORY["No Background"].function
-        self.assertTrue(numpy.array_equal(nobgfun(self.x, self.y),
-                                          numpy.zeros_like(self.x)))
+        self.assertTrue(
+            numpy.array_equal(nobgfun(self.x, self.y), numpy.zeros_like(self.x))
+        )
         # default estimate
-        self.assertEqual(bgtheories.THEORY["No Background"].estimate(self.x, self.y),
-                         ([], []))
+        self.assertEqual(
+            bgtheories.THEORY["No Background"].estimate(self.x, self.y), ([], [])
+        )
 
     def testConstant(self):
         consfun = bgtheories.THEORY["Constant"].function
         c = random.random() * 100
-        self.assertTrue(numpy.array_equal(consfun(self.x, self.y, c),
-                                          c * numpy.ones_like(self.x)))
+        self.assertTrue(
+            numpy.array_equal(consfun(self.x, self.y, c), c * numpy.ones_like(self.x))
+        )
         # default estimate
         esti_par, cons = bgtheories.THEORY["Constant"].estimate(self.x, self.y)
-        self.assertEqual(cons,
-                         [[0, 0, 0]])
-        self.assertAlmostEqual(esti_par,
-                               min(self.y))
+        self.assertEqual(cons, [[0, 0, 0]])
+        self.assertAlmostEqual(esti_par, min(self.y))
 
     def testLinear(self):
         linfun = bgtheories.THEORY["Linear"].function
         a = random.random() * 100
         b = random.random() * 100
-        self.assertTrue(numpy.array_equal(linfun(self.x, self.y, a, b),
-                                          a + b * self.x))
+        self.assertTrue(numpy.array_equal(linfun(self.x, self.y, a, b), a + b * self.x))
         # default estimate
         esti_par, cons = bgtheories.THEORY["Linear"].estimate(self.x, self.y)
 
-        self.assertEqual(cons,
-                         [[0, 0, 0], [0, 0, 0]])
+        self.assertEqual(cons, [[0, 0, 0], [0, 0, 0]])
         self.assertAlmostEqual(esti_par[0], 10, places=3)
         self.assertAlmostEqual(esti_par[1], 0.05, places=3)
 
@@ -108,8 +109,7 @@ class TestBgTheories(unittest.TestCase):
         bg = stripfun(self.x, self.y, width, niter)
 
         # assert peak amplitude has been decreased
-        self.assertLess(bg[self.narrow_peak_index],
-                        self.y[self.narrow_peak_index])
+        self.assertLess(bg[self.narrow_peak_index], self.y[self.narrow_peak_index])
 
         # default estimate
         for i in anchors_indices:
@@ -138,9 +138,11 @@ class TestBgTheories(unittest.TestCase):
         bg = snipfun(self.x, self.y, width)
 
         # assert peak amplitude has been decreased
-        self.assertLess(bg[self.narrow_peak_index],
-                        self.y[self.narrow_peak_index],
-                        "Snip didn't decrease the peak amplitude.")
+        self.assertLess(
+            bg[self.narrow_peak_index],
+            self.y[self.narrow_peak_index],
+            "Snip didn't decrease the peak amplitude.",
+        )
 
         # anchored data must remain fixed
         for i in anchors_indices:

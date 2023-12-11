@@ -40,8 +40,7 @@ _logger = logging.getLogger(__name__)
 
 
 class LabelledAxes(primitives.GroupBBox):
-    """A group displaying a bounding box with axes labels around its children.
-    """
+    """A group displaying a bounding box with axes labels around its children."""
 
     def __init__(self):
         super(LabelledAxes, self).__init__()
@@ -54,26 +53,24 @@ class LabelledAxes(primitives.GroupBBox):
         # TODO offset labels from anchor in pixels
 
         self._xlabel = text.Text2D(font=self._font)
-        self._xlabel.align = 'center'
-        self._xlabel.transforms = [self._boxTransforms,
-                                   transform.Translate(tx=0.5)]
+        self._xlabel.align = "center"
+        self._xlabel.transforms = [self._boxTransforms, transform.Translate(tx=0.5)]
         self._children.insert(-1, self._xlabel)
 
         self._ylabel = text.Text2D(font=self._font)
-        self._ylabel.align = 'center'
-        self._ylabel.transforms = [self._boxTransforms,
-                                   transform.Translate(ty=0.5)]
+        self._ylabel.align = "center"
+        self._ylabel.transforms = [self._boxTransforms, transform.Translate(ty=0.5)]
         self._children.insert(-1, self._ylabel)
 
         self._zlabel = text.Text2D(font=self._font)
-        self._zlabel.align = 'center'
-        self._zlabel.transforms = [self._boxTransforms,
-                                   transform.Translate(tz=0.5)]
+        self._zlabel.align = "center"
+        self._zlabel.transforms = [self._boxTransforms, transform.Translate(tz=0.5)]
         self._children.insert(-1, self._zlabel)
 
         # Init tick lines with dummy pos
         self._tickLines = primitives.DashedLines(
-            positions=((0., 0., 0.), (0., 0., 0.)))
+            positions=((0.0, 0.0, 0.0), (0.0, 0.0, 0.0))
+        )
         self._tickLines.dash = 5, 10
         self._tickLines.visible = False
         self._children.insert(-1, self._tickLines)
@@ -82,7 +79,7 @@ class LabelledAxes(primitives.GroupBBox):
         self._children.insert(-1, self._tickLabels)
 
         # Sync color
-        self.tickColor = 1., 1., 1., 1.
+        self.tickColor = 1.0, 1.0, 1.0, 1.0
 
     def _updateBoxAndAxes(self):
         """Update bbox and axes position and size according to children.
@@ -93,7 +90,7 @@ class LabelledAxes(primitives.GroupBBox):
 
         bounds = self._group.bounds(dataBounds=True)
         if bounds is not None:
-            tx, ty, tz = (bounds[1] - bounds[0]) / 2.
+            tx, ty, tz = (bounds[1] - bounds[0]) / 2.0
         else:
             tx, ty, tz = 0.5, 0.5, 0.5
 
@@ -116,7 +113,7 @@ class LabelledAxes(primitives.GroupBBox):
         self._ylabel.foreground = color
         self._zlabel.foreground = color
         transparentColor = color[0], color[1], color[2], color[3] * 0.6
-        self._tickLines.setAttribute('color', transparentColor)
+        self._tickLines.setAttribute("color", transparentColor)
         for label in self._tickLabels.children:
             label.foreground = color
 
@@ -185,8 +182,9 @@ class LabelledAxes(primitives.GroupBBox):
                 self._tickLines.visible = False
                 self._tickLabels.children = []  # Reset previous labels
 
-        elif (self._ticksForBounds is None or
-                not numpy.all(numpy.equal(bounds, self._ticksForBounds))):
+        elif self._ticksForBounds is None or not numpy.all(
+            numpy.equal(bounds, self._ticksForBounds)
+        ):
             self._ticksForBounds = bounds
 
             # Update ticks
@@ -198,21 +196,21 @@ class LabelledAxes(primitives.GroupBBox):
 
             # Update tick lines
             coords = numpy.empty(
-                ((len(xticks) + len(yticks) + len(zticks)), 4, 3),
-                dtype=numpy.float32)
+                ((len(xticks) + len(yticks) + len(zticks)), 4, 3), dtype=numpy.float32
+            )
             coords[:, :, :] = bounds[0, :]  # account for offset from origin
 
-            xcoords = coords[:len(xticks)]
+            xcoords = coords[: len(xticks)]
             xcoords[:, :, 0] = numpy.asarray(xticks)[:, numpy.newaxis]
             xcoords[:, 1, 1] += ticklength[1]  # X ticks on XY plane
             xcoords[:, 3, 2] += ticklength[2]  # X ticks on XZ plane
 
-            ycoords = coords[len(xticks):len(xticks) + len(yticks)]
+            ycoords = coords[len(xticks) : len(xticks) + len(yticks)]
             ycoords[:, :, 1] = numpy.asarray(yticks)[:, numpy.newaxis]
             ycoords[:, 1, 0] += ticklength[0]  # Y ticks on XY plane
             ycoords[:, 3, 2] += ticklength[2]  # Y ticks on YZ plane
 
-            zcoords = coords[len(xticks) + len(yticks):]
+            zcoords = coords[len(xticks) + len(yticks) :]
             zcoords[:, :, 2] = numpy.asarray(zticks)[:, numpy.newaxis]
             zcoords[:, 1, 0] += ticklength[0]  # Z ticks on XZ plane
             zcoords[:, 3, 1] += ticklength[1]  # Z ticks on YZ plane
@@ -222,30 +220,33 @@ class LabelledAxes(primitives.GroupBBox):
 
             # Update labels
             color = self.tickColor
-            offsets = bounds[0] - ticklength / 20.
+            offsets = bounds[0] - ticklength / 20.0
             labels = []
             for tick, label in zip(xticks, xlabels):
                 text2d = text.Text2D(text=label, font=self.font)
-                text2d.align = 'center'
+                text2d.align = "center"
                 text2d.foreground = color
-                text2d.transforms = [transform.Translate(
-                    tx=tick, ty=offsets[1], tz=offsets[2])]
+                text2d.transforms = [
+                    transform.Translate(tx=tick, ty=offsets[1], tz=offsets[2])
+                ]
                 labels.append(text2d)
 
             for tick, label in zip(yticks, ylabels):
                 text2d = text.Text2D(text=label, font=self.font)
-                text2d.align = 'center'
+                text2d.align = "center"
                 text2d.foreground = color
-                text2d.transforms = [transform.Translate(
-                    tx=offsets[0], ty=tick, tz=offsets[2])]
+                text2d.transforms = [
+                    transform.Translate(tx=offsets[0], ty=tick, tz=offsets[2])
+                ]
                 labels.append(text2d)
 
             for tick, label in zip(zticks, zlabels):
                 text2d = text.Text2D(text=label, font=self.font)
-                text2d.align = 'center'
+                text2d.align = "center"
                 text2d.foreground = color
-                text2d.transforms = [transform.Translate(
-                    tx=offsets[0], ty=offsets[1], tz=tick)]
+                text2d.transforms = [
+                    transform.Translate(tx=offsets[0], ty=offsets[1], tz=tick)
+                ]
                 labels.append(text2d)
 
             self._tickLabels.children = labels  # Reset previous labels

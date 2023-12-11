@@ -62,7 +62,8 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         noData = numpy.zeros((0, 1), dtype=numpy.float32)
         symbol, size = self._getSceneSymbol()
         self._scatter = primitives.Points(
-            x=noData, y=noData, z=noData, value=noData, size=size)
+            x=noData, y=noData, z=noData, value=noData, size=size
+        )
         self._scatter.marker = symbol
         self._getScenePrimitive().children.append(self._scatter)
 
@@ -74,7 +75,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         if event in (ItemChangedType.SYMBOL, ItemChangedType.SYMBOL_SIZE):
             symbol, size = self._getSceneSymbol()
             self._scatter.marker = symbol
-            self._scatter.setAttribute('size', size, copy=True)
+            self._scatter.setAttribute("size", size, copy=True)
 
         super(Scatter3D, self)._updated(event)
 
@@ -89,10 +90,10 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
             True (default) to copy the data,
             False to use provided data (do not modify!)
         """
-        self._scatter.setAttribute('x', x, copy=copy)
-        self._scatter.setAttribute('y', y, copy=copy)
-        self._scatter.setAttribute('z', z, copy=copy)
-        self._scatter.setAttribute('value', value, copy=copy)
+        self._scatter.setAttribute("x", x, copy=copy)
+        self._scatter.setAttribute("y", y, copy=copy)
+        self._scatter.setAttribute("z", z, copy=copy)
+        self._scatter.setAttribute("value", value, copy=copy)
 
         self._setColormappedData(self.getValueData(copy=False), copy=False)
         self._updated(ItemChangedType.DATA)
@@ -104,10 +105,12 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
                           False to return internal data (do not modify!)
         :return: (x, y, z, value)
         """
-        return (self.getXData(copy),
-                self.getYData(copy),
-                self.getZData(copy),
-                self.getValueData(copy))
+        return (
+            self.getXData(copy),
+            self.getYData(copy),
+            self.getZData(copy),
+            self.getValueData(copy),
+        )
 
     def getXData(self, copy=True):
         """Returns X data coordinates.
@@ -117,7 +120,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: X coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('x', copy=copy).reshape(-1)
+        return self._scatter.getAttribute("x", copy=copy).reshape(-1)
 
     def getYData(self, copy=True):
         """Returns Y data coordinates.
@@ -127,7 +130,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Y coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('y', copy=copy).reshape(-1)
+        return self._scatter.getAttribute("y", copy=copy).reshape(-1)
 
     def getZData(self, copy=True):
         """Returns Z data coordinates.
@@ -137,7 +140,7 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Z coordinates
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('z', copy=copy).reshape(-1)
+        return self._scatter.getAttribute("z", copy=copy).reshape(-1)
 
     def getValueData(self, copy=True):
         """Returns data values.
@@ -147,9 +150,9 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: data values
         :rtype: numpy.ndarray
         """
-        return self._scatter.getAttribute('value', copy=copy).reshape(-1)
+        return self._scatter.getAttribute("value", copy=copy).reshape(-1)
 
-    def _pickFull(self, context, threshold=0., sort='depth'):
+    def _pickFull(self, context, threshold=0.0, sort="depth"):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
@@ -163,9 +166,9 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ('index', 'depth')
+        assert sort in ("index", "depth")
 
-        rayNdc = context.getPickingSegment(frame='ndc')
+        rayNdc = context.getPickingSegment(frame="ndc")
         if rayNdc is None:  # No picking outside viewport
             return None
 
@@ -176,49 +179,57 @@ class Scatter3D(DataItem3D, ColormapMixIn, SymbolMixIn):
 
         primitive = self._getScenePrimitive()
 
-        dataPoints = numpy.transpose((xData,
-                                      self.getYData(copy=False),
-                                      self.getZData(copy=False),
-                                      numpy.ones_like(xData)))
+        dataPoints = numpy.transpose(
+            (
+                xData,
+                self.getYData(copy=False),
+                self.getZData(copy=False),
+                numpy.ones_like(xData),
+            )
+        )
 
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            dataPoints, perspectiveDivide=True)
+            dataPoints, perspectiveDivide=True
+        )
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
         threshold += self.getSymbolSize()
-        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(numpy.logical_and(
+        thresholdNdc = 2.0 * threshold / numpy.array(primitive.viewport.size)
+        picked = numpy.where(
+            numpy.logical_and(
                 numpy.all(distancesNdc < thresholdNdc, axis=1),
-                numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
-                                  pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
+                numpy.logical_and(
+                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
+                ),
+            )
+        )[0]
 
-        if sort == 'depth':
+        if sort == "depth":
             # Sort picked points from front to back
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
-            return PickingResult(self,
-                                 positions=dataPoints[picked, :3],
-                                 indices=picked,
-                                 fetchdata=self.getValueData)
+            return PickingResult(
+                self,
+                positions=dataPoints[picked, :3],
+                indices=picked,
+                fetchdata=self.getValueData,
+            )
         else:
             return None
 
 
-class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
-                ScatterVisualizationMixIn):
+class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn, ScatterVisualizationMixIn):
     """2D scatter data with settable visualization mode.
 
     :param parent: The View widget this item belongs to.
     """
 
     _VISUALIZATION_PROPERTIES = {
-        ScatterVisualizationMixIn.Visualization.POINTS:
-            ('symbol', 'symbolSize'),
-        ScatterVisualizationMixIn.Visualization.LINES:
-            ('lineWidth',),
+        ScatterVisualizationMixIn.Visualization.POINTS: ("symbol", "symbolSize"),
+        ScatterVisualizationMixIn.Visualization.LINES: ("lineWidth",),
         ScatterVisualizationMixIn.Visualization.SOLID: (),
     }
     """Dict {visualization mode: property names used in this mode}"""
@@ -233,7 +244,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         ScatterVisualizationMixIn.__init__(self)
 
         self._heightMap = False
-        self._lineWidth = 1.
+        self._lineWidth = 1.0
 
         self._x = numpy.zeros((0,), dtype=numpy.float32)
         self._y = numpy.zeros((0,), dtype=numpy.float32)
@@ -252,7 +263,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
             for child in self._getScenePrimitive().children:
                 if isinstance(child, primitives.Points):
                     child.marker = symbol
-                    child.setAttribute('size', size, copy=True)
+                    child.setAttribute("size", size, copy=True)
 
         elif event is ItemChangedType.VISIBLE:
             # TODO smart update?, need dirty flags
@@ -273,7 +284,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
             By default, it is the current visualization mode.
         :return:
         """
-        assert name in ('lineWidth', 'symbol', 'symbolSize')
+        assert name in ("lineWidth", "symbol", "symbolSize")
         if visualization is None:
             visualization = self.getVisualization()
         assert visualization in self.supportedVisualizations()
@@ -314,11 +325,11 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         :param float width: Width in pixels
         """
         width = float(width)
-        assert width >= 1.
+        assert width >= 1.0
         if width != self._lineWidth:
             self._lineWidth = width
             for child in self._getScenePrimitive().children:
-                if hasattr(child, 'lineWidth'):
+                if hasattr(child, "lineWidth"):
                     child.lineWidth = width
             self._updated(ItemChangedType.LINE_WIDTH)
 
@@ -334,15 +345,14 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
             True (default) to make a copy of the data,
             False to avoid copy if possible (do not modify the arrays).
         """
-        x = numpy.array(
-            x, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
-        y = numpy.array(
-            y, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
+        x = numpy.array(x, copy=copy, dtype=numpy.float32, order="C").reshape(-1)
+        y = numpy.array(y, copy=copy, dtype=numpy.float32, order="C").reshape(-1)
         assert len(x) == len(y)
 
         if isinstance(value, abc.Iterable):
             value = numpy.array(
-                value, copy=copy, dtype=numpy.float32, order='C').reshape(-1)
+                value, copy=copy, dtype=numpy.float32, order="C"
+            ).reshape(-1)
             assert len(value) == len(x)
         else:  # Single scalar
             value = numpy.array((float(value),), dtype=numpy.float32)
@@ -368,9 +378,11 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
                           False to return internal data (do not modify!)
         :return: (x, y, value)
         """
-        return (self.getXData(copy=copy),
-                self.getYData(copy=copy),
-                self.getValueData(copy=copy))
+        return (
+            self.getXData(copy=copy),
+            self.getYData(copy=copy),
+            self.getValueData(copy=copy),
+        )
 
     def getXData(self, copy=True):
         """Returns X data coordinates.
@@ -402,7 +414,7 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         """
         return numpy.array(self._value, copy=copy)
 
-    def _pickPoints(self, context, points, threshold=1., sort='depth'):
+    def _pickPoints(self, context, points, threshold=1.0, sort="depth"):
         """Perform picking while in 'points' visualization mode
 
         :param PickContext context: Current picking context
@@ -416,34 +428,41 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ('index', 'depth')
+        assert sort in ("index", "depth")
 
-        rayNdc = context.getPickingSegment(frame='ndc')
+        rayNdc = context.getPickingSegment(frame="ndc")
         if rayNdc is None:  # No picking outside viewport
             return None
 
         # Project data to NDC
         primitive = self._getScenePrimitive()
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            points, perspectiveDivide=True)
+            points, perspectiveDivide=True
+        )
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         thresholdNdc = threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(numpy.logical_and(
-            numpy.all(distancesNdc < thresholdNdc, axis=1),
-            numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
-                              pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
+        picked = numpy.where(
+            numpy.logical_and(
+                numpy.all(distancesNdc < thresholdNdc, axis=1),
+                numpy.logical_and(
+                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
+                ),
+            )
+        )[0]
 
-        if sort == 'depth':
+        if sort == "depth":
             # Sort picked points from front to back
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
-            return PickingResult(self,
-                                 positions=points[picked, :3],
-                                 indices=picked,
-                                 fetchdata=self.getValueData)
+            return PickingResult(
+                self,
+                positions=points[picked, :3],
+                indices=picked,
+                fetchdata=self.getValueData,
+            )
         else:
             return None
 
@@ -464,7 +483,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         trianglesIndices = self._cachedTrianglesIndices.reshape(-1, 3)
         triangles = points[trianglesIndices, :3]
         selectedIndices, t, barycentric = glu.segmentTrianglesIntersection(
-            rayObject, triangles)
+            rayObject, triangles
+        )
         closest = numpy.argmax(barycentric, axis=1)
 
         indices = trianglesIndices.reshape(-1, 3)[selectedIndices, closest]
@@ -475,10 +495,9 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         # Compute intersection points and get closest data point
         positions = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
 
-        return PickingResult(self,
-                             positions=positions,
-                             indices=indices,
-                             fetchdata=self.getValueData)
+        return PickingResult(
+            self, positions=positions, indices=indices, fetchdata=self.getValueData
+        )
 
     def _pickFull(self, context):
         """Perform picking in this item at given widget position.
@@ -496,22 +515,20 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         else:
             zData = numpy.zeros_like(xData)
 
-        points = numpy.transpose((xData,
-                                  self.getYData(copy=False),
-                                  zData,
-                                  numpy.ones_like(xData)))
+        points = numpy.transpose(
+            (xData, self.getYData(copy=False), zData, numpy.ones_like(xData))
+        )
 
         mode = self.getVisualization()
         if mode is self.Visualization.POINTS:
             # TODO issue with symbol size: using pixel instead of points
             # Get "corrected" symbol size
             _, threshold = self._getSceneSymbol()
-            return self._pickPoints(
-                context, points, threshold=max(3., threshold))
+            return self._pickPoints(context, points, threshold=max(3.0, threshold))
 
         elif mode is self.Visualization.LINES:
             # Picking only at point
-            return self._pickPoints(context, points, threshold=5.)
+            return self._pickPoints(context, points, threshold=5.0)
 
         else:  # mode == 'solid'
             return self._pickSolid(context, points)
@@ -530,12 +547,11 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
         heightMap = self.isHeightMap()
 
         if mode is self.Visualization.POINTS:
-            z = value if heightMap else 0.
+            z = value if heightMap else 0.0
             symbol, size = self._getSceneSymbol()
             primitive = primitives.Points(
-                x=x, y=y, z=z, value=value,
-                size=size,
-                colormap=self._getSceneColormap())
+                x=x, y=y, z=z, value=value, size=size, colormap=self._getSceneColormap()
+            )
             primitive.marker = symbol
 
         else:
@@ -548,20 +564,21 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
                     _logger.debug("Delaunay tesselation failed: %s", sys.exc_info()[1])
                     return None
                 self._cachedTrianglesIndices = numpy.ravel(
-                    triangulation.triangles.astype(numpy.uint32))
+                    triangulation.triangles.astype(numpy.uint32)
+                )
 
-            if (mode is self.Visualization.LINES and
-                    self._cachedLinesIndices is None):
+            if mode is self.Visualization.LINES and self._cachedLinesIndices is None:
                 # Compute line indices
                 self._cachedLinesIndices = utils.triangleToLineIndices(
-                    self._cachedTrianglesIndices, unicity=True)
+                    self._cachedTrianglesIndices, unicity=True
+                )
 
             if mode is self.Visualization.LINES:
                 indices = self._cachedLinesIndices
-                renderMode = 'lines'
+                renderMode = "lines"
             else:
                 indices = self._cachedTrianglesIndices
-                renderMode = 'triangles'
+                renderMode = "triangles"
 
             # TODO supports x, y instead of copy
             if heightMap:
@@ -579,14 +596,15 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
                     if len(value) > 1:
                         value = value[indices]
                     triangleNormals = utils.trianglesNormal(coordinates)
-                    normal = numpy.empty((len(triangleNormals) * 3, 3),
-                                         dtype=numpy.float32)
+                    normal = numpy.empty(
+                        (len(triangleNormals) * 3, 3), dtype=numpy.float32
+                    )
                     normal[0::3, :] = triangleNormals
                     normal[1::3, :] = triangleNormals
                     normal[2::3, :] = triangleNormals
                     indices = None
                 else:
-                    normal = (0., 0., 1.)
+                    normal = (0.0, 0.0, 1.0)
             else:
                 normal = None
 
@@ -596,7 +614,8 @@ class Scatter2D(DataItem3D, ColormapMixIn, SymbolMixIn,
                 normal=normal,
                 colormap=self._getSceneColormap(),
                 indices=indices,
-                mode=renderMode)
+                mode=renderMode,
+            )
             primitive.lineWidth = self.getLineWidth()
             primitive.lineSmooth = False
 

@@ -34,14 +34,23 @@ from .common import pyopencl
 from .processing import EventDescription, OpenclProcessing
 
 import pyopencl.array as parray
+
 cl = pyopencl
 
 
 class LinAlg(OpenclProcessing):
-
     kernel_files = ["linalg.cl"]
 
-    def __init__(self, shape, do_checks=False, ctx=None, devicetype="all", platformid=None, deviceid=None, profile=False):
+    def __init__(
+        self,
+        shape,
+        do_checks=False,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+    ):
         """
         Create a "Linear Algebra" plan for a given image shape.
 
@@ -56,32 +65,34 @@ class LinAlg(OpenclProcessing):
                         store profiling elements (makes code slightly slower)
 
         """
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
 
         self.d_gradient = parray.empty(self.queue, shape, np.complex64)
         self.d_gradient.fill(np.complex64(0.0))
         self.d_image = parray.empty(self.queue, shape, np.float32)
         self.d_image.fill(np.float32(0.0))
-        self.add_to_cl_mem({
-            "d_gradient": self.d_gradient,
-            "d_image": self.d_image
-        })
+        self.add_to_cl_mem({"d_gradient": self.d_gradient, "d_image": self.d_image})
 
         self.wg2D = None
         self.shape = shape
-        self.ndrange2D = (
-            int(self.shape[1]),
-            int(self.shape[0])
-        )
+        self.ndrange2D = (int(self.shape[1]), int(self.shape[0]))
         self.do_checks = bool(do_checks)
         OpenclProcessing.compile_kernels(self, self.kernel_files)
 
     @staticmethod
     def check_array(array, dtype, shape, arg_name):
         if array.shape != shape or array.dtype != dtype:
-            raise ValueError("%s should be a %s array of type %s" %(arg_name, str(shape), str(dtype)))
+            raise ValueError(
+                "%s should be a %s array of type %s"
+                % (arg_name, str(shape), str(dtype))
+            )
 
     def get_data_references(self, src, dst, default_src_ref, default_dst_ref):
         """
@@ -97,7 +108,9 @@ class LinAlg(OpenclProcessing):
             elif isinstance(dst, cl.Buffer):
                 dst_ref = dst
             else:
-                raise ValueError("dst should be either pyopencl.array.Array or pyopencl.Buffer")
+                raise ValueError(
+                    "dst should be either pyopencl.array.Array or pyopencl.Buffer"
+                )
         else:
             dst_ref = default_dst_ref
 
@@ -127,21 +140,15 @@ class LinAlg(OpenclProcessing):
             self.check_array(image, np.float32, self.shape, "image")
             if dst is not None:
                 self.check_array(dst, np.complex64, self.shape, "dst")
-        img_ref, grad_ref = self.get_data_references(image, dst, self.d_image.data, self.d_gradient.data)
+        img_ref, grad_ref = self.get_data_references(
+            image, dst, self.d_image.data, self.d_gradient.data
+        )
 
         # Prepare the kernel call
-        kernel_args = [
-            img_ref,
-            grad_ref,
-            n_x,
-            n_y
-        ]
+        kernel_args = [img_ref, grad_ref, n_x, n_y]
         # Call the gradient kernel
         evt = self.kernels.kern_gradient2D(
-            self.queue,
-            self.ndrange2D,
-            self.wg2D,
-            *kernel_args
+            self.queue, self.ndrange2D, self.wg2D, *kernel_args
         )
         self.events.append(EventDescription("gradient2D", evt))
         # TODO: should the wait be done in any case ?
@@ -184,21 +191,15 @@ class LinAlg(OpenclProcessing):
             self.check_array(gradient, np.complex64, self.shape, "gradient")
             if dst is not None:
                 self.check_array(dst, np.float32, self.shape, "dst")
-        grad_ref, img_ref = self.get_data_references(gradient, dst, self.d_gradient.data, self.d_image.data)
+        grad_ref, img_ref = self.get_data_references(
+            gradient, dst, self.d_gradient.data, self.d_image.data
+        )
 
         # Prepare the kernel call
-        kernel_args = [
-            grad_ref,
-            img_ref,
-            n_x,
-            n_y
-        ]
+        kernel_args = [grad_ref, img_ref, n_x, n_y]
         # Call the gradient kernel
         evt = self.kernels.kern_divergence2D(
-            self.queue,
-            self.ndrange2D,
-            self.wg2D,
-            *kernel_args
+            self.queue, self.ndrange2D, self.wg2D, *kernel_args
         )
         self.events.append(EventDescription("divergence2D", evt))
         # TODO: should the wait be done in any case ?

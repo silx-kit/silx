@@ -38,6 +38,7 @@ from .Hdf5Node import Hdf5Node
 import silx.io.utils
 from silx.gui.data.TextFormatter import TextFormatter
 from ..hdf5.Hdf5Formatter import Hdf5Formatter
+
 _logger = logging.getLogger(__name__)
 _formatter = TextFormatter()
 _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
@@ -45,8 +46,8 @@ _hdf5Formatter = Hdf5Formatter(textFormatter=_formatter)
 
 
 class DescriptionType(enum.Enum):
-    """List of available kind of description.
-    """
+    """List of available kind of description."""
+
     ERROR = "error"
     DESCRIPTION = "description"
     TITLE = "title"
@@ -209,9 +210,14 @@ class Hdf5Item(Hdf5Node):
                 class_ = silx.io.utils.get_h5_class(self.__obj)
 
                 if class_ == silx.io.utils.H5Type.EXTERNAL_LINK:
-                    message = "External link broken. Path %s::%s does not exist" % (self.__obj.filename, self.__obj.path)
+                    message = "External link broken. Path %s::%s does not exist" % (
+                        self.__obj.filename,
+                        self.__obj.path,
+                    )
                 elif class_ == silx.io.utils.H5Type.SOFT_LINK:
-                    message = "Soft link broken. Path %s does not exist" % (self.__obj.path)
+                    message = "Soft link broken. Path %s does not exist" % (
+                        self.__obj.path
+                    )
                 else:
                     name = self.__obj.__class__.__name__.split(".")[-1].capitalize()
                     message = "%s broken" % (name)
@@ -219,7 +225,10 @@ class Hdf5Item(Hdf5Node):
                 self.__isBroken = True
             else:
                 self.__obj = obj
-                if silx.io.utils.get_h5_class(obj) not in [silx.io.utils.H5Type.GROUP, silx.io.utils.H5Type.FILE]:
+                if silx.io.utils.get_h5_class(obj) not in [
+                    silx.io.utils.H5Type.GROUP,
+                    silx.io.utils.H5Type.FILE,
+                ]:
                     try:
                         # pre-fetch of the data
                         if obj.shape is None:
@@ -256,7 +265,10 @@ class Hdf5Item(Hdf5Node):
                             keys.append(name)
                     except Exception:
                         lib_name = self.obj.__class__.__module__.split(".")[0]
-                        _logger.error("Internal %s error (second time). The file is corrupted.", lib_name)
+                        _logger.error(
+                            "Internal %s error (second time). The file is corrupted.",
+                            lib_name,
+                        )
                         _logger.debug("Backtrace", exc_info=True)
             for name in keys:
                 try:
@@ -280,7 +292,14 @@ class Hdf5Item(Hdf5Node):
                     h5class = silx.io.utils.get_h5_class(class_=class_)
                     if h5class is None:
                         _logger.error("Class %s unsupported", class_)
-                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5Class=h5class, linkClass=link)
+                item = Hdf5Item(
+                    text=name,
+                    obj=None,
+                    parent=self,
+                    key=name,
+                    h5Class=h5class,
+                    linkClass=link,
+                )
                 self.appendChild(item)
 
     def hasChildren(self):
@@ -337,7 +356,9 @@ class Hdf5Item(Hdf5Node):
             attributeDict["Path"] = self.obj.name
             attributeDict["Shape"] = self._getFormatter().humanReadableShape(self.obj)
             attributeDict["Value"] = self._getFormatter().humanReadableValue(self.obj)
-            attributeDict["Data type"] = self._getFormatter().humanReadableType(self.obj, full=True)
+            attributeDict["Data type"] = self._getFormatter().humanReadableType(
+                self.obj, full=True
+            )
         elif self.h5Class == silx.io.utils.H5Type.GROUP:
             attributeDict["#Title"] = "HDF5 Group"
             if self.nexusClassName:
@@ -394,14 +415,18 @@ class Hdf5Item(Hdf5Node):
                 # Check NX_class formatting
                 lower = text.lower()
                 formatedNX_class = ""
-                if lower.startswith('nx'):
-                    formatedNX_class = 'NX' + lower[2:]
-                if lower == 'nxcansas':
-                    formatedNX_class = 'NXcanSAS'  # That's the only class with capital letters...
+                if lower.startswith("nx"):
+                    formatedNX_class = "NX" + lower[2:]
+                if lower == "nxcansas":
+                    formatedNX_class = (
+                        "NXcanSAS"  # That's the only class with capital letters...
+                    )
                 if text != formatedNX_class:
-                    _logger.error("NX_class: '%s' is malformed (should be '%s')",
-                                  text,
-                                  formatedNX_class)
+                    _logger.error(
+                        "NX_class: '%s' is malformed (should be '%s')",
+                        text,
+                        formatedNX_class,
+                    )
                 text = formatedNX_class
 
             self.__nx_class = text
@@ -468,62 +493,44 @@ class Hdf5Item(Hdf5Node):
         return None
 
     _NEXUS_CLASS_TO_VALUE_CHILDREN = {
-        'NXaperture': (
-            (DescriptionType.DESCRIPTION, 'description'),
+        "NXaperture": ((DescriptionType.DESCRIPTION, "description"),),
+        "NXbeam_stop": ((DescriptionType.DESCRIPTION, "description"),),
+        "NXdetector": (
+            (DescriptionType.NAME, "local_name"),
+            (DescriptionType.DESCRIPTION, "description"),
         ),
-        'NXbeam_stop': (
-            (DescriptionType.DESCRIPTION, 'description'),
+        "NXentry": ((DescriptionType.TITLE, "title"),),
+        "NXenvironment": (
+            (DescriptionType.NAME, "short_name"),
+            (DescriptionType.NAME, "name"),
+            (DescriptionType.DESCRIPTION, "description"),
         ),
-        'NXdetector': (
-            (DescriptionType.NAME, 'local_name'),
-            (DescriptionType.DESCRIPTION, 'description')
+        "NXinstrument": ((DescriptionType.NAME, "name"),),
+        "NXlog": ((DescriptionType.DESCRIPTION, "description"),),
+        "NXmirror": ((DescriptionType.DESCRIPTION, "description"),),
+        "NXnote": ((DescriptionType.DESCRIPTION, "description"),),
+        "NXpositioner": ((DescriptionType.NAME, "name"),),
+        "NXprocess": ((DescriptionType.PROGRAM, "program"),),
+        "NXsample": (
+            (DescriptionType.TITLE, "short_title"),
+            (DescriptionType.NAME, "name"),
+            (DescriptionType.DESCRIPTION, "description"),
         ),
-        'NXentry': (
-            (DescriptionType.TITLE, 'title'),
+        "NXsample_component": (
+            (DescriptionType.NAME, "name"),
+            (DescriptionType.DESCRIPTION, "description"),
         ),
-        'NXenvironment': (
-            (DescriptionType.NAME, 'short_name'),
-            (DescriptionType.NAME, 'name'),
-            (DescriptionType.DESCRIPTION, 'description')
+        "NXsensor": (
+            (DescriptionType.NAME, "short_name"),
+            (DescriptionType.NAME, "name"),
         ),
-        'NXinstrument': (
-            (DescriptionType.NAME, 'name'),
-        ),
-        'NXlog': (
-            (DescriptionType.DESCRIPTION, 'description'),
-        ),
-        'NXmirror': (
-            (DescriptionType.DESCRIPTION, 'description'),
-        ),
-        'NXnote': (
-            (DescriptionType.DESCRIPTION, 'description'),
-        ),
-        'NXpositioner': (
-            (DescriptionType.NAME, 'name'),
-        ),
-        'NXprocess': (
-            (DescriptionType.PROGRAM, 'program'),
-        ),
-        'NXsample': (
-            (DescriptionType.TITLE, 'short_title'),
-            (DescriptionType.NAME, 'name'),
-            (DescriptionType.DESCRIPTION, 'description')
-        ),
-        'NXsample_component': (
-            (DescriptionType.NAME, 'name'),
-            (DescriptionType.DESCRIPTION, 'description')
-        ),
-        'NXsensor': (
-            (DescriptionType.NAME, 'short_name'),
-            (DescriptionType.NAME, 'name')
-        ),
-        'NXsource': (
-            (DescriptionType.NAME, 'name'),
+        "NXsource": (
+            (DescriptionType.NAME, "name"),
         ),  # or its 'short_name' attribute... This is not supported
-        'NXsubentry': (
-            (DescriptionType.DESCRIPTION, 'definition'),
-            (DescriptionType.PROGRAM, 'program_name'),
-            (DescriptionType.TITLE, 'title'),
+        "NXsubentry": (
+            (DescriptionType.DESCRIPTION, "definition"),
+            (DescriptionType.PROGRAM, "program_name"),
+            (DescriptionType.TITLE, "title"),
         ),
     }
     """Mapping from NeXus class to child names containing data to use as value"""
@@ -538,19 +545,25 @@ class Hdf5Item(Hdf5Node):
             return DescriptionType.ERROR, self.__error
 
         if self.h5Class == silx.io.utils.H5Type.DATASET:
-            return DescriptionType.VALUE, self._getFormatter().humanReadableValue(self.obj)
+            return DescriptionType.VALUE, self._getFormatter().humanReadableValue(
+                self.obj
+            )
 
         elif self.isGroupObj() and self.nexusClassName:
             # For NeXus groups, try to find a title or name
             # By default, look for a title (most application definitions should have one)
-            defaultSequence = ((DescriptionType.TITLE, 'title'),)
-            sequence = self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(self.nexusClassName, defaultSequence)
+            defaultSequence = ((DescriptionType.TITLE, "title"),)
+            sequence = self._NEXUS_CLASS_TO_VALUE_CHILDREN.get(
+                self.nexusClassName, defaultSequence
+            )
             for kind, child_name in sequence:
                 for index in range(self.childCount()):
                     child = self.child(index)
-                    if (isinstance(child, Hdf5Item) and
-                            child.h5Class == silx.io.utils.H5Type.DATASET and
-                            child.basename == child_name):
+                    if (
+                        isinstance(child, Hdf5Item)
+                        and child.h5Class == silx.io.utils.H5Type.DATASET
+                        and child.basename == child_name
+                    ):
                         return kind, self._getFormatter().humanReadableValue(child.obj)
 
         description = self.obj.attrs.get("desc", None)

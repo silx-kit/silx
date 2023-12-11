@@ -55,18 +55,19 @@ class PositionInfoWidget(qt.QWidget):
         self.setToolTip("Double-click on a data point to show its value")
         layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight, self)
 
-        self._xLabel = self._addInfoField('X')
-        self._yLabel = self._addInfoField('Y')
-        self._zLabel = self._addInfoField('Z')
-        self._dataLabel = self._addInfoField('Data')
-        self._itemLabel = self._addInfoField('Item')
+        self._xLabel = self._addInfoField("X")
+        self._yLabel = self._addInfoField("Y")
+        self._zLabel = self._addInfoField("Z")
+        self._dataLabel = self._addInfoField("Data")
+        self._itemLabel = self._addInfoField("Item")
 
         layout.addStretch(1)
 
         self._action = actions.mode.PickingModeAction(parent=self)
-        self._action.setText('Selection')
+        self._action.setText("Selection")
         self._action.setToolTip(
-            'Toggle selection information update with left button click')
+            "Toggle selection information update with left button click"
+        )
         self._action.sigSceneClicked.connect(self.pick)
         self._action.changed.connect(self.__actionChanged)
         self._action.setChecked(False)  # Disabled by default
@@ -94,14 +95,14 @@ class PositionInfoWidget(qt.QWidget):
         subLayout = qt.QHBoxLayout()
         subLayout.setContentsMargins(0, 0, 0, 0)
 
-        subLayout.addWidget(qt.QLabel(label + ':'))
+        subLayout.addWidget(qt.QLabel(label + ":"))
 
-        widget = qt.QLabel('-')
+        widget = qt.QLabel("-")
         widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
 
         metrics = widget.fontMetrics()
-        if qt.BINDING == 'PyQt5':
+        if qt.BINDING == "PyQt5":
             width = metrics.width("#######")
         else:  # Qt6
             width = metrics.horizontalAdvance("#######")
@@ -139,22 +140,29 @@ class PositionInfoWidget(qt.QWidget):
 
     def clear(self):
         """Clean-up displayed values"""
-        for widget in (self._xLabel, self._yLabel, self._zLabel,
-                       self._dataLabel, self._itemLabel):
-            widget.setText('-')
+        for widget in (
+            self._xLabel,
+            self._yLabel,
+            self._zLabel,
+            self._dataLabel,
+            self._itemLabel,
+        ):
+            widget.setText("-")
 
-    _SUPPORTED_ITEMS = (items.Scatter3D,
-                        items.Scatter2D,
-                        items.ImageData,
-                        items.ImageRgba,
-                        items.HeightMapData,
-                        items.HeightMapRGBA,
-                        items.Mesh,
-                        items.Box,
-                        items.Cylinder,
-                        items.Hexagon,
-                        volume.CutPlane,
-                        volume.Isosurface)
+    _SUPPORTED_ITEMS = (
+        items.Scatter3D,
+        items.Scatter2D,
+        items.ImageData,
+        items.ImageRgba,
+        items.HeightMapData,
+        items.HeightMapRGBA,
+        items.Mesh,
+        items.Box,
+        items.Cylinder,
+        items.Hexagon,
+        volume.CutPlane,
+        volume.Isosurface,
+    )
     """Type of items that are picked"""
 
     def _isSupportedItem(self, item):
@@ -177,15 +185,14 @@ class PositionInfoWidget(qt.QWidget):
 
         sceneWidget = self.getSceneWidget()
         if sceneWidget is None:  # No associated widget
-            _logger.info('Picking without associated SceneWidget')
+            _logger.info("Picking without associated SceneWidget")
             return
 
         # Find closest (and latest in the tree) supported item
-        closestNdcZ = float('inf')
+        closestNdcZ = float("inf")
         picking = None
-        for result in sceneWidget.pickItems(x, y,
-                                            condition=self._isSupportedItem):
-            ndcZ = result.getPositions('ndc', copy=False)[0, 2]
+        for result in sceneWidget.pickItems(x, y, condition=self._isSupportedItem):
+            ndcZ = result.getPositions("ndc", copy=False)[0, 2]
             if ndcZ <= closestNdcZ:
                 closestNdcZ = ndcZ
                 picking = result
@@ -195,7 +202,7 @@ class PositionInfoWidget(qt.QWidget):
 
         item = picking.getItem()
         self._itemLabel.setText(item.getLabel())
-        positions = picking.getPositions('scene', copy=False)
+        positions = picking.getPositions("scene", copy=False)
         x, y, z = positions[0]
         self._xLabel.setText("%g" % x)
         self._yLabel.setText("%g" % y)
@@ -204,8 +211,8 @@ class PositionInfoWidget(qt.QWidget):
         data = picking.getData(copy=False)
         if data is not None:
             data = data[0]
-            if hasattr(data, '__len__'):
-                text = ' '.join(["%.3g"] * len(data)) % tuple(data)
+            if hasattr(data, "__len__"):
+                text = " ".join(["%.3g"] * len(data)) % tuple(data)
             else:
                 text = "%g" % data
             self._dataLabel.setText(text)
@@ -214,7 +221,7 @@ class PositionInfoWidget(qt.QWidget):
         """Update information according to cursor position"""
         widget = self.getSceneWidget()
         if widget is None:
-            _logger.info('Update without associated SceneWidget')
+            _logger.info("Update without associated SceneWidget")
             self.clear()
             return
 

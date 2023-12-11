@@ -31,7 +31,7 @@ __date__ = "30/05/2016"
 
 from silx.gui import icons, qt
 
-if qt.BINDING == 'PyQt5':
+if qt.BINDING == "PyQt5":
     from PyQt5 import QtDesigner
 else:
     raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)
@@ -40,7 +40,6 @@ from silx.gui.plot import PlotWindow
 
 
 class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
-
     def __init__(self, parent=None):
         super(PlotWindowPlugin, self).__init__(parent)
         self.initialized = False
@@ -66,7 +65,7 @@ class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return "silx"
 
     def icon(self):
-        return icons.getQIcon('plot-window')
+        return icons.getQIcon("plot-window")
 
     def toolTip(self):
         return ""

@@ -39,12 +39,11 @@ from silx.gui.utils.image import convertArrayToQImage, convertQImageToArray
     [
         (qt.QImage.Format_RGB888, 3),  # Native support
         (qt.QImage.Format_ARGB32, 4),  # Native support
-    ]
+    ],
 )
 def testConvertArrayToQImage(format_, channels):
     """Test conversion of numpy array to QImage"""
-    image = numpy.arange(
-        3*3*channels, dtype=numpy.uint8).reshape(3, 3, channels)
+    image = numpy.arange(3 * 3 * channels, dtype=numpy.uint8).reshape(3, 3, channels)
     qimage = convertArrayToQImage(image)
 
     assert (qimage.height(), qimage.width()) == image.shape[:2]
@@ -63,7 +62,7 @@ def testConvertArrayToQImage(format_, channels):
         (qt.QImage.Format_RGB888, 3),  # Native support
         (qt.QImage.Format_ARGB32, 4),  # Native support
         (qt.QImage.Format_RGB32, 3),  # Conversion to RGB
-    ]
+    ],
 )
 def testConvertQImageToArray(format_, channels):
     """Test conversion of QImage to numpy array"""

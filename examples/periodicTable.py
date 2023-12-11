@@ -39,8 +39,8 @@ pt = PeriodicTable.PeriodicTable(w, selectable=True)
 pc = PeriodicTable.PeriodicCombo(w)
 pl = PeriodicTable.PeriodicList(w)
 
-pt.setSelection(['Fe', 'Si', 'Mt'])
-pl.setSelectedElements(['H', 'Be', 'F'])
+pt.setSelection(["Fe", "Si", "Mt"])
+pl.setSelectedElements(["H", "Be", "F"])
 pc.setSelection("Li")
 
 

@@ -180,8 +180,7 @@ def _docstring(dest, origin):
         try:
             origin = getattr(origin, dest.__name__)
         except AttributeError:
-            raise ValueError(
-                "origin class has no %s method" % dest.__name__)
+            raise ValueError("origin class has no %s method" % dest.__name__)
 
     dest.__doc__ = origin.__doc__
     return dest

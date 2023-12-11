@@ -103,7 +103,7 @@ class SimpleWidgetExample(qt.QMainWindow):
 
     def takesTimeToComputePow(self, a, b):
         qt.QThread.sleep(2)
-        return a ** b
+        return a**b
 
     def createThreadPoolPushButton(self):
         widget = ThreadPoolPushButton(text="Compute 2^16")
@@ -116,9 +116,15 @@ class SimpleWidgetExample(qt.QMainWindow):
         widget = RangeSlider(self)
         widget.setRange(0, 500)
         widget.setValues(100, 400)
-        widget.sigValueChanged.connect(functools.partial(self.printEvent, "sigValueChanged"))
-        widget.sigPositionChanged.connect(functools.partial(self.printEvent, "sigPositionChanged"))
-        widget.sigPositionCountChanged.connect(functools.partial(self.printEvent, "sigPositionCountChanged"))
+        widget.sigValueChanged.connect(
+            functools.partial(self.printEvent, "sigValueChanged")
+        )
+        widget.sigPositionChanged.connect(
+            functools.partial(self.printEvent, "sigPositionChanged")
+        )
+        widget.sigPositionCountChanged.connect(
+            functools.partial(self.printEvent, "sigPositionCountChanged")
+        )
         return widget
 
     def createRangeSliderWithBackground(self):

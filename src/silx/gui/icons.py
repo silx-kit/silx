@@ -211,7 +211,7 @@ class MultiImageAnimatedIcon(AbstractAnimatedIcon):
         self.__frames = []
         for i in range(100):
             try:
-                frame_filename = os.sep.join((filename, ("%02d" %i)))
+                frame_filename = os.sep.join((filename, ("%02d" % i)))
                 frame_file = getQFile(frame_filename)
             except ValueError:
                 break
@@ -290,7 +290,6 @@ def getAnimatedIcon(name):
     key = name + "__anim"
     cached_icons = getIconCache()
     if key not in cached_icons:
-
         qtMajorVersion = int(qt.qVersion().split(".")[0])
         icon = None
 
@@ -398,10 +397,11 @@ def getQFile(name):
 
     for format_ in _supported_formats:
         format_ = str(format_)
-        filename = silx.resources._resource_filename('%s.%s' % (name, format_),
-                                                     default_directory='gui/icons')
+        filename = silx.resources._resource_filename(
+            "%s.%s" % (name, format_), default_directory="gui/icons"
+        )
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile
         _logger.debug("File '%s' not found.", filename)
-    raise ValueError('Not an icon name: %s' % name)
+    raise ValueError("Not an icon name: %s" % name)

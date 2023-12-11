@@ -61,15 +61,15 @@ logger = logging.getLogger(__name__)
 class PointROI(RegionOfInterest, items.SymbolMixIn):
     """A ROI identifying a point in a 2D plot."""
 
-    ICON = 'add-shape-point'
-    NAME = 'point markers'
+    ICON = "add-shape-point"
+    NAME = "point markers"
     SHORT_NAME = "point"
     """Metadata for this kind of ROI"""
 
     _plotShape = "point"
     """Plot shape which is used for the first interaction"""
 
-    _DEFAULT_SYMBOL = '+'
+    _DEFAULT_SYMBOL = "+"
     """Default symbol of the PointROI
 
     It overwrite the `SymbolMixIn` class attribte.
@@ -91,8 +91,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
-        elif event in [items.ItemChangedType.VISIBLE,
-                       items.ItemChangedType.SELECTABLE]:
+        elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(PointROI, self)._updated(event, checkVisibility)
 
@@ -103,8 +102,7 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
         self._marker.setColor(style.getColor())
 
     def getPosition(self) -> Tuple[float, float]:
-        """Returns the position of this ROI
-        """
+        """Returns the position of this ROI"""
         return self._marker.getPosition()
 
     def setPosition(self, pos):
@@ -125,16 +123,15 @@ class PointROI(RegionOfInterest, items.SymbolMixIn):
             self.sigRegionChanged.emit()
 
     def __str__(self):
-        params = '%f %f' % self.getPosition()
+        params = "%f %f" % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class CrossROI(HandleBasedROI, items.LineMixIn):
-    """A ROI identifying a point in a 2D plot and displayed as a cross
-    """
+    """A ROI identifying a point in a 2D plot and displayed as a cross"""
 
-    ICON = 'add-shape-cross'
-    NAME = 'cross marker'
+    ICON = "add-shape-cross"
+    NAME = "cross marker"
     SHORT_NAME = "cross"
     """Metadata for this kind of ROI"""
 
@@ -177,8 +174,7 @@ class CrossROI(HandleBasedROI, items.LineMixIn):
         self.setPosition(pos)
 
     def getPosition(self) -> Tuple[float, float]:
-        """Returns the position of this ROI
-        """
+        """Returns the position of this ROI"""
         return self._handle.getPosition()
 
     def setPosition(self, pos: Tuple[float, float]):
@@ -210,8 +206,8 @@ class LineROI(HandleBasedROI, items.LineMixIn):
     in the center to translate the full ROI.
     """
 
-    ICON = 'add-shape-diagonal'
-    NAME = 'line ROI'
+    ICON = "add-shape-diagonal"
+    NAME = "line ROI"
     SHORT_NAME = "line"
     """Metadata for this kind of ROI"""
 
@@ -325,28 +321,44 @@ class LineROI(HandleBasedROI, items.LineMixIn):
             return False
 
         return (
-            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                  seg2_start_pt=bottom_left, seg2_end_pt=bottom_right) or
-            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                  seg2_start_pt=bottom_right, seg2_end_pt=top_right) or
-            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                  seg2_start_pt=top_right, seg2_end_pt=top_left) or
-            segments_intersection(seg1_start_pt=line_pt1, seg1_end_pt=line_pt2,
-                                  seg2_start_pt=top_left, seg2_end_pt=bottom_left)
+            segments_intersection(
+                seg1_start_pt=line_pt1,
+                seg1_end_pt=line_pt2,
+                seg2_start_pt=bottom_left,
+                seg2_end_pt=bottom_right,
+            )
+            or segments_intersection(
+                seg1_start_pt=line_pt1,
+                seg1_end_pt=line_pt2,
+                seg2_start_pt=bottom_right,
+                seg2_end_pt=top_right,
+            )
+            or segments_intersection(
+                seg1_start_pt=line_pt1,
+                seg1_end_pt=line_pt2,
+                seg2_start_pt=top_right,
+                seg2_end_pt=top_left,
+            )
+            or segments_intersection(
+                seg1_start_pt=line_pt1,
+                seg1_end_pt=line_pt2,
+                seg2_start_pt=top_left,
+                seg2_end_pt=bottom_left,
+            )
         ) is not None
 
     def __str__(self):
         start, end = self.getEndPoints()
         params = start[0], start[1], end[0], end[1]
-        params = 'start: %f %f; end: %f %f' % params
+        params = "start: %f %f; end: %f %f" % params
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal line in a 2D plot."""
 
-    ICON = 'add-shape-horizontal'
-    NAME = 'horizontal line ROI'
+    ICON = "add-shape-horizontal"
+    NAME = "horizontal line ROI"
     SHORT_NAME = "hline"
     """Metadata for this kind of ROI"""
 
@@ -365,8 +377,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
-        elif event in [items.ItemChangedType.VISIBLE,
-                       items.ItemChangedType.SELECTABLE]:
+        elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(HorizontalLineROI, self)._updated(event, checkVisibility)
 
@@ -385,8 +396,7 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
         self.setPosition(pos)
 
     def getPosition(self) -> float:
-        """Returns the position of this line if the horizontal axis
-        """
+        """Returns the position of this line if the horizontal axis"""
         pos = self._marker.getPosition()
         return pos[1]
 
@@ -407,15 +417,15 @@ class HorizontalLineROI(RegionOfInterest, items.LineMixIn):
             self.sigRegionChanged.emit()
 
     def __str__(self):
-        params = 'y: %f' % self.getPosition()
+        params = "y: %f" % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
 class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying a vertical line in a 2D plot."""
 
-    ICON = 'add-shape-vertical'
-    NAME = 'vertical line ROI'
+    ICON = "add-shape-vertical"
+    NAME = "vertical line ROI"
     SHORT_NAME = "vline"
     """Metadata for this kind of ROI"""
 
@@ -434,8 +444,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.EDITABLE:
             self._marker._setDraggable(self.isEditable())
-        elif event in [items.ItemChangedType.VISIBLE,
-                       items.ItemChangedType.SELECTABLE]:
+        elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             self._updateItemProperty(event, self, self._marker)
         super(VerticalLineROI, self)._updated(event, checkVisibility)
 
@@ -452,8 +461,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
         self.setPosition(pos)
 
     def getPosition(self) -> float:
-        """Returns the position of this line if the horizontal axis
-        """
+        """Returns the position of this line if the horizontal axis"""
         pos = self._marker.getPosition()
         return pos[0]
 
@@ -474,7 +482,7 @@ class VerticalLineROI(RegionOfInterest, items.LineMixIn):
             self.sigRegionChanged.emit()
 
     def __str__(self):
-        params = 'x: %f' % self.getPosition()
+        params = "x: %f" % self.getPosition()
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
@@ -485,8 +493,8 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
     center to translate the full ROI.
     """
 
-    ICON = 'add-shape-rectangle'
-    NAME = 'rectangle ROI'
+    ICON = "add-shape-rectangle"
+    NAME = "rectangle ROI"
     SHORT_NAME = "rectangle"
     """Metadata for this kind of ROI"""
 
@@ -591,11 +599,12 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.setGeometry(center=position, size=size)
 
     def setGeometry(self, origin=None, size=None, center=None):
-        """Set the geometry of the ROI
-        """
-        if ((origin is None or numpy.array_equal(origin, self.getOrigin())) and
-                (center is None or numpy.array_equal(center, self.getCenter())) and
-                numpy.array_equal(size, self.getSize())):
+        """Set the geometry of the ROI"""
+        if (
+            (origin is None or numpy.array_equal(origin, self.getOrigin()))
+            and (center is None or numpy.array_equal(center, self.getCenter()))
+            and numpy.array_equal(size, self.getSize())
+        ):
             return  # Nothing has changed
 
         self._updateGeometry(origin, size, center)
@@ -654,17 +663,38 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
             points = numpy.array([current, current2])
 
             # Switch handles if they were crossed by interaction
-            if self._handleBottomLeft.getXPosition() > self._handleBottomRight.getXPosition():
-                self._handleBottomLeft, self._handleBottomRight = self._handleBottomRight, self._handleBottomLeft
+            if (
+                self._handleBottomLeft.getXPosition()
+                > self._handleBottomRight.getXPosition()
+            ):
+                self._handleBottomLeft, self._handleBottomRight = (
+                    self._handleBottomRight,
+                    self._handleBottomLeft,
+                )
 
             if self._handleTopLeft.getXPosition() > self._handleTopRight.getXPosition():
-                self._handleTopLeft, self._handleTopRight = self._handleTopRight, self._handleTopLeft
+                self._handleTopLeft, self._handleTopRight = (
+                    self._handleTopRight,
+                    self._handleTopLeft,
+                )
 
-            if self._handleBottomLeft.getYPosition() > self._handleTopLeft.getYPosition():
-                self._handleBottomLeft, self._handleTopLeft = self._handleTopLeft, self._handleBottomLeft
+            if (
+                self._handleBottomLeft.getYPosition()
+                > self._handleTopLeft.getYPosition()
+            ):
+                self._handleBottomLeft, self._handleTopLeft = (
+                    self._handleTopLeft,
+                    self._handleBottomLeft,
+                )
 
-            if self._handleBottomRight.getYPosition() > self._handleTopRight.getYPosition():
-                self._handleBottomRight, self._handleTopRight = self._handleTopRight, self._handleBottomRight
+            if (
+                self._handleBottomRight.getYPosition()
+                > self._handleTopRight.getYPosition()
+            ):
+                self._handleBottomRight, self._handleTopRight = (
+                    self._handleTopRight,
+                    self._handleBottomRight,
+                )
 
             self._setBound(points)
 
@@ -672,7 +702,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         origin = self.getOrigin()
         w, h = self.getSize()
         params = origin[0], origin[1], w, h
-        params = 'origin: %f %f; width: %f; height: %f' % params
+        params = "origin: %f %f; width: %f; height: %f" % params
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
@@ -683,8 +713,8 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
     and one anchor on the perimeter to change the radius.
     """
 
-    ICON = 'add-shape-circle'
-    NAME = 'circle ROI'
+    ICON = "add-shape-circle"
+    NAME = "circle ROI"
     SHORT_NAME = "circle"
     """Metadata for this kind of ROI"""
 
@@ -772,8 +802,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
             self._updateGeometry()
 
     def setGeometry(self, center, radius):
-        """Set the geometry of the ROI
-        """
+        """Set the geometry of the ROI"""
         if numpy.array_equal(center, self.getCenter()):
             self.setRadius(radius)
         else:
@@ -790,8 +819,9 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        circleShape = numpy.array((numpy.cos(angles) * self.__radius,
-                                   numpy.sin(angles) * self.__radius)).T
+        circleShape = numpy.array(
+            (numpy.cos(angles) * self.__radius, numpy.sin(angles) * self.__radius)
+        ).T
         circleShape += center
         self.__shape.setPoints(circleShape)
         self.sigRegionChanged.emit()
@@ -814,7 +844,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         center = self.getCenter()
         radius = self.getRadius()
         params = center[0], center[1], radius
-        params = 'center: %f %f; radius: %f;' % params
+        params = "center: %f %f; radius: %f;" % params
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
@@ -826,8 +856,8 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
     minor-radius. These two anchors also allow to change the orientation.
     """
 
-    ICON = 'add-shape-ellipse'
-    NAME = 'ellipse ROI'
+    ICON = "add-shape-ellipse"
+    NAME = "ellipse ROI"
     SHORT_NAME = "ellipse"
     """Metadata for this kind of ROI"""
 
@@ -853,8 +883,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.__shape = shape
         self.addItem(shape)
 
-        self._radius = 0., 0.
-        self._orientation = 0.  # angle in radians between the X-axis and the _handleAxis0
+        self._radius = 0.0, 0.0
+        self._orientation = (
+            0.0  # angle in radians between the X-axis and the _handleAxis0
+        )
 
     def _updated(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.VISIBLE:
@@ -898,9 +930,9 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         center = points[0]
         radius = numpy.linalg.norm(points[0] - points[1])
         orientation = self._calculateOrientation(points[0], points[1])
-        self.setGeometry(center=center,
-                         radius=(radius, radius),
-                         orientation=orientation)
+        self.setGeometry(
+            center=center, radius=(radius, radius), orientation=orientation
+        )
 
     def _updateText(self, text):
         self._handleLabel.setText(text)
@@ -1000,10 +1032,11 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             # ensure that we store the orientation in range [0, 2*pi
             orientation = numpy.mod(orientation, 2 * numpy.pi)
 
-        if (numpy.array_equal(center, self.getCenter()) or
-                radius != self._radius or
-                orientation != self._orientation):
-
+        if (
+            numpy.array_equal(center, self.getCenter())
+            or radius != self._radius
+            or orientation != self._orientation
+        ):
             # Update parameters directly
             self._radius = radius
             self._orientation = orientation
@@ -1023,10 +1056,18 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
             # _handleAxis1 is the major axis
             orientation -= numpy.pi / 2
 
-        point0 = numpy.array([center[0] + self._radius[0] * numpy.cos(orientation),
-                              center[1] + self._radius[0] * numpy.sin(orientation)])
-        point1 = numpy.array([center[0] - self._radius[1] * numpy.sin(orientation),
-                              center[1] + self._radius[1] * numpy.cos(orientation)])
+        point0 = numpy.array(
+            [
+                center[0] + self._radius[0] * numpy.cos(orientation),
+                center[1] + self._radius[0] * numpy.sin(orientation),
+            ]
+        )
+        point1 = numpy.array(
+            [
+                center[0] - self._radius[1] * numpy.sin(orientation),
+                center[1] + self._radius[1] * numpy.cos(orientation),
+            ]
+        )
         with utils.blockSignals(self._handleAxis0):
             self._handleAxis0.setPosition(*point0)
         with utils.blockSignals(self._handleAxis1):
@@ -1036,10 +1077,12 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
 
         nbpoints = 27
         angles = numpy.arange(nbpoints) * 2.0 * numpy.pi / nbpoints
-        X = (self._radius[0] * numpy.cos(angles) * numpy.cos(orientation)
-             - self._radius[1] * numpy.sin(angles) * numpy.sin(orientation))
-        Y = (self._radius[0] * numpy.cos(angles) * numpy.sin(orientation)
-             + self._radius[1] * numpy.sin(angles) * numpy.cos(orientation))
+        X = self._radius[0] * numpy.cos(angles) * numpy.cos(orientation) - self._radius[
+            1
+        ] * numpy.sin(angles) * numpy.sin(orientation)
+        Y = self._radius[0] * numpy.cos(angles) * numpy.sin(orientation) + self._radius[
+            1
+        ] * numpy.sin(angles) * numpy.cos(orientation)
 
         ellipseShape = numpy.array((X, Y)).T
         ellipseShape += center
@@ -1076,8 +1119,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         major, minor = self.getMajorRadius(), self.getMinorRadius()
         delta = self.getOrientation()
         x, y = position - self.getCenter()
-        return ((x*numpy.cos(delta) + y*numpy.sin(delta))**2/major**2 +
-                (x*numpy.sin(delta) - y*numpy.cos(delta))**2/minor**2) <= 1
+        return (
+            (x * numpy.cos(delta) + y * numpy.sin(delta)) ** 2 / major**2
+            + (x * numpy.sin(delta) - y * numpy.cos(delta)) ** 2 / minor**2
+        ) <= 1
 
     def __str__(self):
         center = self.getCenter()
@@ -1085,7 +1130,10 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         minor = self.getMinorRadius()
         orientation = self.getOrientation()
         params = center[0], center[1], major, minor, orientation
-        params = 'center: %f %f; major radius: %f: minor radius: %f; orientation: %f' % params
+        params = (
+            "center: %f %f; major radius: %f: minor radius: %f; orientation: %f"
+            % params
+        )
         return "%s(%s)" % (self.__class__.__name__, params)
 
 
@@ -1095,8 +1143,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
     This ROI provides 1 anchor for each point of the polygon.
     """
 
-    ICON = 'add-shape-polygon'
-    NAME = 'polygon ROI'
+    ICON = "add-shape-polygon"
+    NAME = "polygon ROI"
     SHORT_NAME = "polygon"
     """Metadata for this kind of ROI"""
 
@@ -1149,8 +1197,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.setPoints(points)
 
     def creationStarted(self):
-        """Called when the ROI creation interaction was started.
-        """
+        """Called when the ROI creation interaction was started."""
         # Handle to see where to close the polygon
         self._handleClose = self.addUserHandle()
         self._handleClose.setSymbol("o")
@@ -1171,8 +1218,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         return self._handleClose is not None
 
     def creationFinalized(self):
-        """Called when the ROI creation interaction was finalized.
-        """
+        """Called when the ROI creation interaction was finalized."""
         self.removeHandle(self._handleClose)
         self._handleClose = None
         self.removeItem(self.__shape)
@@ -1199,7 +1245,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 
         :param numpy.ndarray pos: 2d-coordinate of this point
         """
-        assert(len(points.shape) == 2 and points.shape[1] == 2)
+        assert len(points.shape) == 2 and points.shape[1] == 2
 
         if numpy.array_equal(points, self._points):
             return  # Nothing has changed
@@ -1270,7 +1316,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 
     def __str__(self):
         points = self._points
-        params = '; '.join('%f %f' % (pt[0], pt[1]) for pt in points)
+        params = "; ".join("%f %f" % (pt[0], pt[1]) for pt in points)
         return "%s(%s)" % (self.__class__.__name__, params)
 
     @docstring(HandleBasedROI)
@@ -1293,8 +1339,8 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
 class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
     """A ROI identifying an horizontal range in a 1D plot."""
 
-    ICON = 'add-range-horizontal'
-    NAME = 'horizontal range ROI'
+    ICON = "add-range-horizontal"
+    NAME = "horizontal range ROI"
     SHORT_NAME = "hrange"
 
     _plotShape = "line"
@@ -1332,8 +1378,7 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
         elif event == items.ItemChangedType.LINE_STYLE:
             markers = [self._markerMin, self._markerMax]
             self._updateItemProperty(event, self, markers)
-        elif event in [items.ItemChangedType.VISIBLE,
-                       items.ItemChangedType.SELECTABLE]:
+        elif event in [items.ItemChangedType.VISIBLE, items.ItemChangedType.SELECTABLE]:
             markers = [self._markerMin, self._markerMax, self._markerCen]
             self._updateItemProperty(event, self, markers)
         super(HorizontalRangeROI, self)._updated(event, checkVisibility)
@@ -1399,8 +1444,10 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
             err = "Can't set vmin or vmax to None"
             raise ValueError(err)
         if vmin > vmax:
-            err = "Can't set vmin and vmax because vmin >= vmax " \
-                  "vmin = %s, vmax = %s" % (vmin, vmax)
+            err = (
+                "Can't set vmin and vmax because vmin >= vmax "
+                "vmin = %s, vmax = %s" % (vmin, vmax)
+            )
             raise ValueError(err)
         self._updatePos(vmin, vmax)
 
@@ -1505,5 +1552,5 @@ class HorizontalRangeROI(RegionOfInterest, items.LineMixIn):
 
     def __str__(self):
         vrange = self.getRange()
-        params = 'min: %f; max: %f' % vrange
+        params = "min: %f; max: %f" % vrange
         return "%s(%s)" % (self.__class__.__name__, params)

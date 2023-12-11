@@ -38,6 +38,7 @@ from . import event
 
 # Projections
 
+
 def mat4LookAtDir(position, direction, up):
     """Creates matrix to look in direction from position.
 
@@ -54,24 +55,22 @@ def mat4LookAtDir(position, direction, up):
 
     direction = numpy.array(direction, copy=True, dtype=numpy.float32)
     dirnorm = numpy.linalg.norm(direction)
-    assert dirnorm != 0.
+    assert dirnorm != 0.0
     direction /= dirnorm
 
-    side = numpy.cross(direction,
-                       numpy.array(up, copy=False, dtype=numpy.float32))
+    side = numpy.cross(direction, numpy.array(up, copy=False, dtype=numpy.float32))
     sidenorm = numpy.linalg.norm(side)
-    assert sidenorm != 0.
+    assert sidenorm != 0.0
     up = numpy.cross(side / sidenorm, direction)
     upnorm = numpy.linalg.norm(up)
-    assert upnorm != 0.
+    assert upnorm != 0.0
     up /= upnorm
 
     matrix = numpy.identity(4, dtype=numpy.float32)
     matrix[0, :3] = side
     matrix[1, :3] = up
     matrix[2, :3] = -direction
-    return numpy.dot(matrix,
-                     mat4Translate(-position[0], -position[1], -position[2]))
+    return numpy.dot(matrix, mat4Translate(-position[0], -position[1], -position[2]))
 
 
 def mat4LookAt(position, center, up):
@@ -97,11 +96,15 @@ def mat4Frustum(left, right, bottom, top, near, far):
 
     See glFrustum.
     """
-    return numpy.array((
-        (2.*near / (right-left), 0., (right+left) / (right-left), 0.),
-        (0., 2.*near / (top-bottom), (top+bottom) / (top-bottom), 0.),
-        (0., 0., -(far+near) / (far-near), -2.*far*near / (far-near)),
-        (0., 0., -1., 0.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (2.0 * near / (right - left), 0.0, (right + left) / (right - left), 0.0),
+            (0.0, 2.0 * near / (top - bottom), (top + bottom) / (top - bottom), 0.0),
+            (0.0, 0.0, -(far + near) / (far - near), -2.0 * far * near / (far - near)),
+            (0.0, 0.0, -1.0, 0.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
 def mat4Perspective(fovy, width, height, near, far):
@@ -120,15 +123,19 @@ def mat4Perspective(fovy, width, height, near, far):
     assert fovy != 0
     assert height != 0
     assert width != 0
-    assert near > 0.
+    assert near > 0.0
     assert far > near
     aspectratio = width / height
-    f = 1. / numpy.tan(numpy.radians(fovy) / 2.)
-    return numpy.array((
-        (f / aspectratio, 0., 0., 0.),
-        (0., f, 0., 0.),
-        (0., 0., (far + near) / (near - far), 2. * far * near / (near - far)),
-        (0., 0., -1., 0.)), dtype=numpy.float32)
+    f = 1.0 / numpy.tan(numpy.radians(fovy) / 2.0)
+    return numpy.array(
+        (
+            (f / aspectratio, 0.0, 0.0, 0.0),
+            (0.0, f, 0.0, 0.0),
+            (0.0, 0.0, (far + near) / (near - far), 2.0 * far * near / (near - far)),
+            (0.0, 0.0, -1.0, 0.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
 def mat4Orthographic(left, right, bottom, top, near, far):
@@ -136,34 +143,47 @@ def mat4Orthographic(left, right, bottom, top, near, far):
 
     See glOrtho.
     """
-    return numpy.array((
-        (2. / (right - left), 0., 0., - (right + left) / (right - left)),
-        (0., 2. / (top - bottom), 0., - (top + bottom) / (top - bottom)),
-        (0., 0., -2. / (far - near), - (far + near) / (far - near)),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (2.0 / (right - left), 0.0, 0.0, -(right + left) / (right - left)),
+            (0.0, 2.0 / (top - bottom), 0.0, -(top + bottom) / (top - bottom)),
+            (0.0, 0.0, -2.0 / (far - near), -(far + near) / (far - near)),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
 # Affine
 
+
 def mat4Translate(tx, ty, tz):
     """4x4 translation matrix."""
-    return numpy.array((
-        (1., 0., 0., tx),
-        (0., 1., 0., ty),
-        (0., 0., 1., tz),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (1.0, 0.0, 0.0, tx),
+            (0.0, 1.0, 0.0, ty),
+            (0.0, 0.0, 1.0, tz),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
 def mat4Scale(sx, sy, sz):
     """4x4 scale matrix."""
-    return numpy.array((
-        (sx, 0., 0., 0.),
-        (0., sy, 0., 0.),
-        (0., 0., sz, 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (sx, 0.0, 0.0, 0.0),
+            (0.0, sy, 0.0, 0.0),
+            (0.0, 0.0, sz, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
-def mat4RotateFromAngleAxis(angle, x=0., y=0., z=1.):
+def mat4RotateFromAngleAxis(angle, x=0.0, y=0.0, z=1.0):
     """4x4 rotation matrix from angle and axis.
 
     :param float angle: The rotation angle in radians.
@@ -173,11 +193,30 @@ def mat4RotateFromAngleAxis(angle, x=0., y=0., z=1.):
     """
     ca = numpy.cos(angle)
     sa = numpy.sin(angle)
-    return numpy.array((
-        ((1.-ca) * x*x + ca,   (1.-ca) * x*y - sa*z, (1.-ca) * x*z + sa*y, 0.),
-        ((1.-ca) * x*y + sa*z, (1.-ca) * y*y + ca,   (1.-ca) * y*z - sa*x, 0.),
-        ((1.-ca) * x*z - sa*y, (1.-ca) * y*z + sa*x, (1.-ca) * z*z + ca, 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (
+                (1.0 - ca) * x * x + ca,
+                (1.0 - ca) * x * y - sa * z,
+                (1.0 - ca) * x * z + sa * y,
+                0.0,
+            ),
+            (
+                (1.0 - ca) * x * y + sa * z,
+                (1.0 - ca) * y * y + ca,
+                (1.0 - ca) * y * z - sa * x,
+                0.0,
+            ),
+            (
+                (1.0 - ca) * x * z - sa * y,
+                (1.0 - ca) * y * z + sa * x,
+                (1.0 - ca) * z * z + ca,
+                0.0,
+            ),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
 def mat4RotateFromQuaternion(quaternion):
@@ -189,14 +228,33 @@ def mat4RotateFromQuaternion(quaternion):
     quaternion /= numpy.linalg.norm(quaternion)
 
     qx, qy, qz, qw = quaternion
-    return numpy.array((
-        (1. - 2.*(qy**2 + qz**2), 2.*(qx*qy - qw*qz), 2.*(qx*qz + qw*qy), 0.),
-        (2.*(qx*qy + qw*qz), 1. - 2.*(qx**2 + qz**2), 2.*(qy*qz - qw*qx), 0.),
-        (2.*(qx*qz - qw*qy), 2.*(qy*qz + qw*qx), 1. - 2.*(qx**2 + qy**2), 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float32)
+    return numpy.array(
+        (
+            (
+                1.0 - 2.0 * (qy**2 + qz**2),
+                2.0 * (qx * qy - qw * qz),
+                2.0 * (qx * qz + qw * qy),
+                0.0,
+            ),
+            (
+                2.0 * (qx * qy + qw * qz),
+                1.0 - 2.0 * (qx**2 + qz**2),
+                2.0 * (qy * qz - qw * qx),
+                0.0,
+            ),
+            (
+                2.0 * (qx * qz - qw * qy),
+                2.0 * (qy * qz + qw * qx),
+                1.0 - 2.0 * (qx**2 + qy**2),
+                0.0,
+            ),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
 
-def mat4Shear(axis, sx=0., sy=0., sz=0.):
+def mat4Shear(axis, sx=0.0, sy=0.0, sz=0.0):
     """4x4 shear matrix: Skew two axes relative to a third fixed one.
 
     shearFactor = tan(shearAngle)
@@ -207,22 +265,22 @@ def mat4Shear(axis, sx=0., sy=0., sz=0.):
     :param float sy: The shear factor for the Y axis relative to axis.
     :param float sz: The shear factor for the Z axis relative to axis.
     """
-    assert axis in ('x', 'y', 'z')
+    assert axis in ("x", "y", "z")
 
     matrix = numpy.identity(4, dtype=numpy.float32)
 
     # Make the shear column
-    index = 'xyz'.find(axis)
-    shearcolumn = numpy.array((sx, sy, sz, 0.), dtype=numpy.float32)
-    shearcolumn[index] = 1.
+    index = "xyz".find(axis)
+    shearcolumn = numpy.array((sx, sy, sz, 0.0), dtype=numpy.float32)
+    shearcolumn[index] = 1.0
     matrix[:, index] = shearcolumn
     return matrix
 
 
 # Transforms ##################################################################
 
-class Transform(event.Notifier):
 
+class Transform(event.Notifier):
     def __init__(self, static=False):
         """Base class for (row-major) 4x4 matrix transforms.
 
@@ -236,8 +294,7 @@ class Transform(event.Notifier):
             self.addListener(self._changed)  # Listening self for changes
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__init__,
-                           repr(self.getMatrix(copy=False)))
+        return "%s(%s)" % (self.__class__.__init__, repr(self.getMatrix(copy=False)))
 
     def inverse(self):
         """Return the Transform of the inverse.
@@ -290,8 +347,8 @@ class Transform(event.Notifier):
             return self._inverse
 
     inverseMatrix = property(
-        getInverseMatrix,
-        doc="The 4x4 matrix of the inverse of this transform.")
+        getInverseMatrix, doc="The 4x4 matrix of the inverse of this transform."
+    )
 
     # Listener
 
@@ -328,14 +385,13 @@ class Transform(event.Notifier):
 
         if dimension == 3:  # Add 4th coordinate
             points = numpy.append(
-                points,
-                numpy.ones((1, points.shape[1]), dtype=points.dtype),
-                axis=0)
+                points, numpy.ones((1, points.shape[1]), dtype=points.dtype), axis=0
+            )
 
         result = numpy.transpose(numpy.dot(matrix, points))
 
         if perspectiveDivide:
-            mask = result[:, 3] != 0.
+            mask = result[:, 3] != 0.0
             result[mask] /= result[mask, 3][:, numpy.newaxis]
 
         return result[:, :3] if dimension == 3 else result
@@ -364,9 +420,9 @@ class Transform(event.Notifier):
             matrix = self.getMatrix(copy=False)
         else:
             matrix = self.getInverseMatrix(copy=False)
-        result = numpy.dot(matrix, self._prepareVector(point, 1.))
+        result = numpy.dot(matrix, self._prepareVector(point, 1.0))
 
-        if perspectiveDivide and result[3] != 0.:
+        if perspectiveDivide and result[3] != 0.0:
             result /= result[3]
 
         if len(point) == 3:
@@ -404,8 +460,9 @@ class Transform(event.Notifier):
             matrix = self.getMatrix(copy=False).T
         return numpy.dot(matrix[:3, :3], normal[:3])
 
-    _CUBE_CORNERS = numpy.array(list(itertools.product((0., 1.), repeat=3)),
-                                dtype=numpy.float32)
+    _CUBE_CORNERS = numpy.array(
+        list(itertools.product((0.0, 1.0), repeat=3)), dtype=numpy.float32
+    )
     """Unit cube corners used by :meth:`transformBounds`"""
 
     def transformBounds(self, bounds, direct=True):
@@ -419,8 +476,7 @@ class Transform(event.Notifier):
         :rtype: 2x3 numpy.ndarray of float32
         """
         corners = numpy.ones((8, 4), dtype=numpy.float32)
-        corners[:, :3] = bounds[0] + \
-            self._CUBE_CORNERS * (bounds[1] - bounds[0])
+        corners[:, :3] = bounds[0] + self._CUBE_CORNERS * (bounds[1] - bounds[0])
 
         if direct:
             matrix = self.getMatrix(copy=False)
@@ -502,8 +558,8 @@ class StaticTransformList(Transform):
 
 # Affine ######################################################################
 
-class Matrix(Transform):
 
+class Matrix(Transform):
     def __init__(self, matrix=None):
         """4x4 Matrix.
 
@@ -528,16 +584,17 @@ class Matrix(Transform):
         self.notify()
 
     # Redefined here to add a setter
-    matrix = property(Transform.getMatrix, setMatrix,
-                      doc="The 4x4 matrix of this transform.")
+    matrix = property(
+        Transform.getMatrix, setMatrix, doc="The 4x4 matrix of this transform."
+    )
 
 
 class Translate(Transform):
     """4x4 translation matrix."""
 
-    def __init__(self, tx=0., ty=0., tz=0.):
+    def __init__(self, tx=0.0, ty=0.0, tz=0.0):
         super(Translate, self).__init__()
-        self._tx, self._ty, self._tz = 0., 0., 0.
+        self._tx, self._ty, self._tz = 0.0, 0.0, 0.0
         self.setTranslate(tx, ty, tz)
 
     def _makeMatrix(self):
@@ -592,16 +649,16 @@ class Translate(Transform):
 class Scale(Transform):
     """4x4 scale matrix."""
 
-    def __init__(self, sx=1., sy=1., sz=1.):
+    def __init__(self, sx=1.0, sy=1.0, sz=1.0):
         super(Scale, self).__init__()
-        self._sx, self._sy, self._sz = 0., 0., 0.
+        self._sx, self._sy, self._sz = 0.0, 0.0, 0.0
         self.setScale(sx, sy, sz)
 
     def _makeMatrix(self):
         return mat4Scale(self.sx, self.sy, self.sz)
 
     def _makeInverse(self):
-        return mat4Scale(1. / self.sx, 1. / self.sy, 1. / self.sz)
+        return mat4Scale(1.0 / self.sx, 1.0 / self.sy, 1.0 / self.sz)
 
     @property
     def sx(self):
@@ -638,20 +695,19 @@ class Scale(Transform):
 
     def setScale(self, sx=None, sy=None, sz=None):
         if sx is not None:
-            assert sx != 0.
+            assert sx != 0.0
             self._sx = sx
         if sy is not None:
-            assert sy != 0.
+            assert sy != 0.0
             self._sy = sy
         if sz is not None:
-            assert sz != 0.
+            assert sz != 0.0
             self._sz = sz
         self.notify()
 
 
 class Rotate(Transform):
-
-    def __init__(self, angle=0., ax=0., ay=0., az=1.):
+    def __init__(self, angle=0.0, ax=0.0, ay=0.0, az=1.0):
         """4x4 rotation matrix.
 
         :param float angle: The rotation angle in degrees.
@@ -660,7 +716,7 @@ class Rotate(Transform):
         :param float az: The z coordinate of the rotation axis.
         """
         super(Rotate, self).__init__()
-        self._angle = 0.
+        self._angle = 0.0
         self._axis = None
         self.setAngleAxis(angle, (ax, ay, az))
 
@@ -695,9 +751,9 @@ class Rotate(Transform):
             axis = numpy.array(axis, copy=True, dtype=numpy.float32)
             assert axis.size == 3
             norm = numpy.linalg.norm(axis)
-            if norm == 0.:  # No axis, set rotation angle to 0.
-                self._angle = 0.
-                self._axis = numpy.array((0., 0., 1.), dtype=numpy.float32)
+            if norm == 0.0:  # No axis, set rotation angle to 0.
+                self._angle = 0.0
+                self._axis = numpy.array((0.0, 0.0, 1.0), dtype=numpy.float32)
             else:
                 self._axis = axis / norm
 
@@ -710,8 +766,8 @@ class Rotate(Transform):
 
         Where: ||(x, y, z)|| = sin(angle/2),  w = cos(angle/2).
         """
-        if numpy.linalg.norm(self._axis) == 0.:
-            return numpy.array((0., 0., 0., 1.), dtype=numpy.float32)
+        if numpy.linalg.norm(self._axis) == 0.0:
+            return numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32)
 
         else:
             quaternion = numpy.empty((4,), dtype=numpy.float32)
@@ -731,7 +787,7 @@ class Rotate(Transform):
         # Get angle
         sinhalfangle = numpy.linalg.norm(quaternion[0:3])
         coshalfangle = quaternion[3]
-        angle = 2. * numpy.arctan2(sinhalfangle, coshalfangle)
+        angle = 2.0 * numpy.arctan2(sinhalfangle, coshalfangle)
 
         # Axis will be normalized in setAngleAxis
         self.setAngleAxis(numpy.degrees(angle), quaternion[0:3])
@@ -741,14 +797,16 @@ class Rotate(Transform):
         return mat4RotateFromAngleAxis(angle, *self.axis)
 
     def _makeInverse(self):
-        return numpy.array(self.getMatrix(copy=False).transpose(),
-                           copy=True, order='C',
-                           dtype=numpy.float32)
+        return numpy.array(
+            self.getMatrix(copy=False).transpose(),
+            copy=True,
+            order="C",
+            dtype=numpy.float32,
+        )
 
 
 class Shear(Transform):
-
-    def __init__(self, axis, sx=0., sy=0., sz=0.):
+    def __init__(self, axis, sx=0.0, sy=0.0, sz=0.0):
         """4x4 shear/skew matrix of 2 axes relative to the third one.
 
         :param str axis: The axis to keep fixed, in 'x', 'y', 'z'
@@ -756,7 +814,7 @@ class Shear(Transform):
         :param float sy: The shear factor for the y axis.
         :param float sz: The shear factor for the z axis.
         """
-        assert axis in ('x', 'y', 'z')
+        assert axis in ("x", "y", "z")
         super(Shear, self).__init__()
         self._axis = axis
         self._factors = sx, sy, sz
@@ -781,6 +839,7 @@ class Shear(Transform):
 
 # Projection ##################################################################
 
+
 class _Projection(Transform):
     """Base class for projection matrix.
 
@@ -795,12 +854,12 @@ class _Projection(Transform):
     :type size: 2-tuple of float
     """
 
-    def __init__(self, near, far, checkDepthExtent=False, size=(1., 1.)):
+    def __init__(self, near, far, checkDepthExtent=False, size=(1.0, 1.0)):
         super(_Projection, self).__init__()
         self._checkDepthExtent = checkDepthExtent
         self._depthExtent = 1, 10
         self.setDepthExtent(near, far)  # set _depthExtent
-        self._size = 1., 1.
+        self._size = 1.0, 1.0
         self.size = size  # set _size
 
     def setDepthExtent(self, near=None, far=None):
@@ -813,7 +872,7 @@ class _Projection(Transform):
         far = float(far) if far is not None else self._depthExtent[1]
 
         if self._checkDepthExtent:
-            assert near > 0.
+            assert near > 0.0
             assert far > near
 
         self._depthExtent = near, far
@@ -874,18 +933,27 @@ class Orthographic(_Projection):
         True (default) to keep aspect ratio, False otherwise.
     """
 
-    def __init__(self, left=0., right=1., bottom=1., top=0., near=-1., far=1.,
-                 size=(1., 1.), keepaspect=True):
+    def __init__(
+        self,
+        left=0.0,
+        right=1.0,
+        bottom=1.0,
+        top=0.0,
+        near=-1.0,
+        far=1.0,
+        size=(1.0, 1.0),
+        keepaspect=True,
+    ):
         self._left, self._right = left, right
         self._bottom, self._top = bottom, top
         self._keepaspect = bool(keepaspect)
-        super(Orthographic, self).__init__(near, far, checkDepthExtent=False,
-                                           size=size)
+        super(Orthographic, self).__init__(near, far, checkDepthExtent=False, size=size)
         # _update called when setting size
 
     def _makeMatrix(self):
         return mat4Orthographic(
-            self.left, self.right, self.bottom, self.top, self.near, self.far)
+            self.left, self.right, self.bottom, self.top, self.near, self.far
+        )
 
     def _update(self, left, right, bottom, top):
         if self.keepaspect:
@@ -895,14 +963,12 @@ class Orthographic(_Projection):
             orthoaspect = abs(left - right) / abs(bottom - top)
 
             if orthoaspect >= aspect:  # Keep width, enlarge height
-                newheight = \
-                    numpy.sign(top - bottom) * abs(left - right) / aspect
+                newheight = numpy.sign(top - bottom) * abs(left - right) / aspect
                 bottom = 0.5 * (bottom + top) - 0.5 * newheight
                 top = bottom + newheight
 
             else:  # Keep height, enlarge width
-                newwidth = \
-                    numpy.sign(right - left) * abs(bottom - top) * aspect
+                newwidth = numpy.sign(right - left) * abs(bottom - top) * aspect
                 left = 0.5 * (left + right) - 0.5 * newwidth
                 right = left + newwidth
 
@@ -929,17 +995,15 @@ class Orthographic(_Projection):
         self._update(left, right, bottom, top)
         self.notify()
 
-    left = property(lambda self: self._left,
-                    doc="Coord of the left clipping plane.")
+    left = property(lambda self: self._left, doc="Coord of the left clipping plane.")
 
-    right = property(lambda self: self._right,
-                     doc="Coord of the right clipping plane.")
+    right = property(lambda self: self._right, doc="Coord of the right clipping plane.")
 
-    bottom = property(lambda self: self._bottom,
-                      doc="Coord of the bottom clipping plane.")
+    bottom = property(
+        lambda self: self._bottom, doc="Coord of the bottom clipping plane."
+    )
 
-    top = property(lambda self: self._top,
-                   doc="Coord of the top clipping plane.")
+    top = property(lambda self: self._top, doc="Coord of the top clipping plane.")
 
     @property
     def size(self):
@@ -982,13 +1046,12 @@ class Ortho2DWidget(_Projection):
     :type size: 2-tuple of float
     """
 
-    def __init__(self, near=-1., far=1., size=(1., 1.)):
-
+    def __init__(self, near=-1.0, far=1.0, size=(1.0, 1.0)):
         super(Ortho2DWidget, self).__init__(near, far, size)
 
     def _makeMatrix(self):
         width, height = self.size
-        return mat4Orthographic(0., width, height, 0., self.near, self.far)
+        return mat4Orthographic(0.0, width, height, 0.0, self.near, self.far)
 
 
 class Perspective(_Projection):
@@ -1002,10 +1065,9 @@ class Perspective(_Projection):
     :type size: 2-tuple of float
     """
 
-    def __init__(self, fovy=90., near=0.1, far=1., size=(1., 1.)):
-
+    def __init__(self, fovy=90.0, near=0.1, far=1.0, size=(1.0, 1.0)):
         super(Perspective, self).__init__(near, far, checkDepthExtent=True)
-        self._fovy = 90.
+        self._fovy = 90.0
         self.fovy = fovy  # Set _fovy
         self.size = size  # Set _ size
 

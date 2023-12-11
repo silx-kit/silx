@@ -40,8 +40,7 @@ class TestMedianFilterEngines(unittest.TestCase):
     """Make sure we have access to all the different implementation of
     median filter from image medfilt"""
 
-
-    IMG = numpy.arange(10000.).reshape(100, 100)
+    IMG = numpy.arange(10000.0).reshape(100, 100)
 
     KERNEL = (1, 1)
 
@@ -50,7 +49,8 @@ class TestMedianFilterEngines(unittest.TestCase):
         res = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
-            engine='cpp')
+            engine="cpp",
+        )
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))
 
     @unittest.skipUnless(ocl, "PyOpenCl is missing")
@@ -59,5 +59,6 @@ class TestMedianFilterEngines(unittest.TestCase):
         res = medianfilter.medfilt2d(
             image=TestMedianFilterEngines.IMG,
             kernel_size=TestMedianFilterEngines.KERNEL,
-            engine='opencl')
+            engine="opencl",
+        )
         self.assertTrue(numpy.array_equal(res, TestMedianFilterEngines.IMG))

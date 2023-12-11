@@ -42,10 +42,9 @@ _logger = logging.getLogger(__name__)
 
 
 class PrintPreviewDialog(qt.QDialog):
-    """Print preview dialog widget.
-    """
-    def __init__(self, parent=None, printer=None):
+    """Print preview dialog widget."""
 
+    def __init__(self, parent=None, printer=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Print Preview")
         self.setModal(False)
@@ -108,8 +107,7 @@ class PrintPreviewDialog(qt.QDialog):
         cancelBut.setToolTip("Remove all items")
         cancelBut.clicked.connect(self._clearAll)
 
-        removeBut = qt.QPushButton("Remove",
-                                   toolBar)
+        removeBut = qt.QPushButton("Remove", toolBar)
         removeBut.setToolTip("Remove selected item (use left click to select)")
         removeBut.clicked.connect(self._remove)
 
@@ -160,18 +158,17 @@ class PrintPreviewDialog(qt.QDialog):
             self.targetLabel.setText("Undefined printer")
             return
         if self.printer.outputFileName():
-            self.targetLabel.setText("File:" +
-                                     self.printer.outputFileName())
+            self.targetLabel.setText("File:" + self.printer.outputFileName())
         else:
-            self.targetLabel.setText("Printer:" +
-                                     self.printer.printerName())
+            self.targetLabel.setText("Printer:" + self.printer.printerName())
 
     def _updatePrinter(self):
         """Resize :attr:`page`, :attr:`scene` and :attr:`view` to :attr:`printer`
         width and height."""
         printer = self.printer
-        assert printer is not None, \
-            "_updatePrinter should not be called unless a printer is defined"
+        assert (
+            printer is not None
+        ), "_updatePrinter should not be called unless a printer is defined"
         if self.scene is None:
             self.scene = qt.QGraphicsScene()
             self.scene.setBackgroundBrush(qt.QColor(qt.Qt.lightGray))
@@ -204,9 +201,12 @@ class PrintPreviewDialog(qt.QDialog):
         :param str comment: Comment displayed below the image
         :param commentPosition: "CENTER" or "LEFT"
         """
-        self.addPixmap(qt.QPixmap.fromImage(image),
-                       title=title, comment=comment,
-                       commentPosition=commentPosition)
+        self.addPixmap(
+            qt.QPixmap.fromImage(image),
+            title=title,
+            comment=comment,
+            commentPosition=commentPosition,
+        )
 
     def addPixmap(self, pixmap, title=None, comment=None, commentPosition=None):
         """Add a pixmap to the print preview scene
@@ -223,14 +223,13 @@ class PrintPreviewDialog(qt.QDialog):
             _logger.error("printer is not set, cannot add pixmap to page")
             return
         if title is None:
-            title = ' ' * 88
+            title = " " * 88
         if comment is None:
-            comment = ' ' * 88
+            comment = " " * 88
         if commentPosition is None:
             commentPosition = "CENTER"
         rectItem = qt.QGraphicsRectItem(self.page)
-        rectItem.setRect(qt.QRectF(1, 1,
-                                   pixmap.width(), pixmap.height()))
+        rectItem.setRect(qt.QRectF(1, 1, pixmap.width(), pixmap.height()))
 
         pen = rectItem.pen()
         color = qt.QColor(qt.Qt.red)
@@ -269,9 +268,15 @@ class PrintPreviewDialog(qt.QDialog):
 
         rectItem.moveBy(20, 40)
 
-    def addSvgItem(self, item, title=None,
-                   comment=None, commentPosition=None,
-                   viewBox=None, keepRatio=True):
+    def addSvgItem(
+        self,
+        item,
+        title=None,
+        comment=None,
+        commentPosition=None,
+        viewBox=None,
+        keepRatio=True,
+    ):
         """Add a SVG item to the scene.
 
         :param QSvgRenderer item: SVG item to be added to the scene.
@@ -296,9 +301,9 @@ class PrintPreviewDialog(qt.QDialog):
             return
 
         if title is None:
-            title = 50 * ' '
+            title = 50 * " "
         if comment is None:
-            comment = 80 * ' '
+            comment = 80 * " "
         if commentPosition is None:
             commentPosition = "CENTER"
 
@@ -319,8 +324,9 @@ class PrintPreviewDialog(qt.QDialog):
         svgItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
         svgItem.setFlag(qt.QGraphicsItem.ItemIsFocusable, False)
 
-        rectItemResizeRect = _GraphicsResizeRectItem(svgItem, self.scene,
-                                                     keepratio=keepRatio)
+        rectItemResizeRect = _GraphicsResizeRectItem(
+            svgItem, self.scene, keepratio=keepRatio
+        )
         rectItemResizeRect.setZValue(2)
 
         self._svgItems.append(item)
@@ -357,9 +363,13 @@ class PrintPreviewDialog(qt.QDialog):
         if alignment == qt.Qt.AlignLeft:
             deltax = 0
         else:
-            deltax = (svgItem.boundingRect().width() - commentItem.boundingRect().width()) / 2.
-        commentItem.moveBy(svgItem.boundingRect().x() + deltax,
-                           svgItem.boundingRect().y() + svgItem.boundingRect().height())
+            deltax = (
+                svgItem.boundingRect().width() - commentItem.boundingRect().width()
+            ) / 2.0
+        commentItem.moveBy(
+            svgItem.boundingRect().x() + deltax,
+            svgItem.boundingRect().y() + svgItem.boundingRect().height(),
+        )
 
         # Title
         textItem = qt.QGraphicsTextItem(title, svgItem)
@@ -368,9 +378,12 @@ class PrintPreviewDialog(qt.QDialog):
         textItem.setFlag(qt.QGraphicsItem.ItemIsMovable, True)
 
         title_offset = 0.5 * textItem.boundingRect().width()
-        textItem.moveBy(svgItem.boundingRect().x() +
-                        0.5 * svgItem.boundingRect().width() - title_offset * scale,
-                        svgItem.boundingRect().y())
+        textItem.moveBy(
+            svgItem.boundingRect().x()
+            + 0.5 * svgItem.boundingRect().width()
+            - title_offset * scale,
+            svgItem.boundingRect().y(),
+        )
         textItem.setScale(scale)
 
     def setup(self):
@@ -387,7 +400,9 @@ class PrintPreviewDialog(qt.QDialog):
             if self.printer.width() <= 0 or self.printer.height() <= 0:
                 self.message = qt.QMessageBox(self)
                 self.message.setIcon(qt.QMessageBox.Critical)
-                self.message.setText("Unknown library error \non printer initialization")
+                self.message.setText(
+                    "Unknown library error \non printer initialization"
+                )
                 self.message.setWindowTitle("Library Error")
                 self.message.setModal(0)
                 self.printer = None
@@ -412,8 +427,9 @@ class PrintPreviewDialog(qt.QDialog):
             self.setup()
         if self.printer is None:
             self.hide()
-            _logger.warning("Printer setup failed or was cancelled, " +
-                            "but printer is required.")
+            _logger.warning(
+                "Printer setup failed or was cancelled, " + "but printer is required."
+            )
         return self.printer is not None
 
     def setOutputFileName(self, name):
@@ -461,19 +477,27 @@ class PrintPreviewDialog(qt.QDialog):
             _logger.error("Cannot initialize printer")
             return
         try:
-            self.scene.render(painter, qt.QRectF(0, 0, printer.width(), printer.height()),
-                              qt.QRectF(self.page.rect().x(), self.page.rect().y(),
-                                        self.page.rect().width(), self.page.rect().height()),
-                              qt.Qt.KeepAspectRatio)
+            self.scene.render(
+                painter,
+                qt.QRectF(0, 0, printer.width(), printer.height()),
+                qt.QRectF(
+                    self.page.rect().x(),
+                    self.page.rect().y(),
+                    self.page.rect().width(),
+                    self.page.rect().height(),
+                ),
+                qt.Qt.KeepAspectRatio,
+            )
             painter.end()
             self.hide()
             self.accept()
             self._toBeCleared = True
-        except:              # FIXME
+        except:  # FIXME
             painter.end()
-            qt.QMessageBox.critical(self, "ERROR",
-                                    'Printing problem:\n %s' % sys.exc_info()[1])
-            _logger.error('printing problem:\n %s' % sys.exc_info()[1])
+            qt.QMessageBox.critical(
+                self, "ERROR", "Printing problem:\n %s" % sys.exc_info()[1]
+            )
+            _logger.error("printing problem:\n %s" % sys.exc_info()[1])
             return
 
     def _zoomPlus(self):
@@ -501,8 +525,7 @@ class PrintPreviewDialog(qt.QDialog):
         self._toBeCleared = False
 
     def _remove(self):
-        """Remove selected item in :attr:`scene`.
-        """
+        """Remove selected item in :attr:`scene`."""
         itemlist = self.scene.items()
 
         # this loop is not efficient if there are many items ...
@@ -518,6 +541,7 @@ class SingletonPrintPreviewDialog(PrintPreviewDialog):
     a single print preview dialog. This enables sending
     multiple images to a single page to be printed.
     """
+
     _instance = None
 
     def __new__(self, *var, **kw):
@@ -530,6 +554,7 @@ class _GraphicsSvgRectItem(qt.QGraphicsRectItem):
     """:class:`qt.QGraphicsRectItem` with an attached
     :class:`qt.QSvgRenderer`, and with a painter redefined to render
     the SVG item."""
+
     def setSvgRenderer(self, renderer):
         """
 
@@ -543,6 +568,7 @@ class _GraphicsSvgRectItem(qt.QGraphicsRectItem):
 
 class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
     """Resizable QGraphicsRectItem."""
+
     def __init__(self, parent=None, scene=None, keepratio=True):
         qt.QGraphicsRectItem.__init__(self, parent)
         rect = parent.boundingRect()
@@ -602,10 +628,7 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
         self._h = rect.height()
         self._ratio = self._w / self._h
         self._newRect = qt.QGraphicsRectItem(parent)
-        self._newRect.setRect(qt.QRectF(self._x,
-                                        self._y,
-                                        self._w,
-                                        self._h))
+        self._newRect.setRect(qt.QRectF(self._x, self._y, self._w, self._h))
         qt.QGraphicsRectItem.mousePressEvent(self, event)
 
     def mouseMoveEvent(self, event):
@@ -616,20 +639,27 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
             r1 = (self._w + deltax) / self._w
             r2 = (self._h + deltay) / self._h
             if r1 < r2:
-                self._newRect.setRect(qt.QRectF(self._x,
-                                                self._y,
-                                                self._w + deltax,
-                                                (self._w + deltax) / self._ratio))
+                self._newRect.setRect(
+                    qt.QRectF(
+                        self._x,
+                        self._y,
+                        self._w + deltax,
+                        (self._w + deltax) / self._ratio,
+                    )
+                )
             else:
-                self._newRect.setRect(qt.QRectF(self._x,
-                                                self._y,
-                                                (self._h + deltay) * self._ratio,
-                                                self._h + deltay))
+                self._newRect.setRect(
+                    qt.QRectF(
+                        self._x,
+                        self._y,
+                        (self._h + deltay) * self._ratio,
+                        self._h + deltay,
+                    )
+                )
         else:
-            self._newRect.setRect(qt.QRectF(self._x,
-                                            self._y,
-                                            self._w + deltax,
-                                            self._h + deltay))
+            self._newRect.setRect(
+                qt.QRectF(self._x, self._y, self._w + deltax, self._h + deltay)
+            )
         qt.QGraphicsRectItem.mouseMoveEvent(self, event)
 
     def mouseReleaseEvent(self, event):
@@ -649,8 +679,7 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
 
         # apply the scale to the previous transformation matrix
         previousTransform = parent.transform()
-        parent.setTransform(
-                previousTransform.scale(scalex, scaley))
+        parent.setTransform(previousTransform.scale(scalex, scaley))
 
         self.scene().removeItem(self._newRect)
         self._newRect = None
@@ -658,8 +687,7 @@ class _GraphicsResizeRectItem(qt.QGraphicsRectItem):
 
 
 def main():
-    """
-    """
+    """ """
     if len(sys.argv) < 2:
         print("give an image file as parameter please.")
         sys.exit(1)
@@ -678,19 +706,20 @@ def main():
 
     if filename[-3:] == "svg":
         item = qt.QSvgRenderer(filename, w.page)
-        w.addSvgItem(item, title=filename,
-                     comment=comment, commentPosition="CENTER")
+        w.addSvgItem(item, title=filename, comment=comment, commentPosition="CENTER")
     else:
-        w.addPixmap(qt.QPixmap.fromImage(qt.QImage(filename)),
-                    title=filename,
-                    comment=comment,
-                    commentPosition="CENTER")
+        w.addPixmap(
+            qt.QPixmap.fromImage(qt.QImage(filename)),
+            title=filename,
+            comment=comment,
+            commentPosition="CENTER",
+        )
         w.addImage(qt.QImage(filename), comment=comment, commentPosition="LEFT")
 
     sys.exit(w.exec())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     a = qt.QApplication(sys.argv)
     main()
     a.exec()

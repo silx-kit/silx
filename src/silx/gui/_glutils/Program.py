@@ -55,8 +55,7 @@ class Program(object):
         array attached to it in order for the rendering to occur....
     """
 
-    def __init__(self, vertexShader, fragmentShader,
-                 attrib0='position'):
+    def __init__(self, vertexShader, fragmentShader, attrib0="position"):
         self._vertexShader = vertexShader
         self._fragmentShader = fragmentShader
         self._attrib0 = attrib0
@@ -66,7 +65,7 @@ class Program(object):
     def _compileGL(vertexShader, fragmentShader, attrib0):
         program = gl.glCreateProgram()
 
-        gl.glBindAttribLocation(program, 0, attrib0.encode('ascii'))
+        gl.glBindAttribLocation(program, 0, attrib0.encode("ascii"))
 
         vertex = gl.glCreateShader(gl.GL_VERTEX_SHADER)
         gl.glShaderSource(vertex, vertexShader)
@@ -79,8 +78,7 @@ class Program(object):
         fragment = gl.glCreateShader(gl.GL_FRAGMENT_SHADER)
         gl.glShaderSource(fragment, fragmentShader)
         gl.glCompileShader(fragment)
-        if gl.glGetShaderiv(fragment,
-                            gl.GL_COMPILE_STATUS) != gl.GL_TRUE:
+        if gl.glGetShaderiv(fragment, gl.GL_COMPILE_STATUS) != gl.GL_TRUE:
             raise RuntimeError(gl.glGetShaderInfoLog(fragment))
         gl.glAttachShader(program, fragment)
         gl.glDeleteShader(fragment)
@@ -90,16 +88,15 @@ class Program(object):
             raise RuntimeError(gl.glGetProgramInfoLog(program))
 
         attributes = {}
-        for index in range(gl.glGetProgramiv(program,
-                                             gl.GL_ACTIVE_ATTRIBUTES)):
+        for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_ATTRIBUTES)):
             name = gl.glGetActiveAttrib(program, index)[0]
-            namestr = name.decode('ascii')
+            namestr = name.decode("ascii")
             attributes[namestr] = gl.glGetAttribLocation(program, name)
 
         uniforms = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_UNIFORMS)):
             name = gl.glGetActiveUniform(program, index)[0]
-            namestr = name.decode('ascii')
+            namestr = name.decode("ascii")
             uniforms[namestr] = gl.glGetUniformLocation(program, name)
 
         return program, attributes, uniforms
@@ -107,8 +104,7 @@ class Program(object):
     def _getProgramInfo(self):
         glcontext = Context.getCurrent()
         if glcontext not in self._programs:
-            raise RuntimeError(
-                "Program was not compiled for current OpenGL context.")
+            raise RuntimeError("Program was not compiled for current OpenGL context.")
         return self._programs[glcontext]
 
     @property
@@ -152,16 +148,15 @@ class Program(object):
 
         if glcontext not in self._programs:
             self._programs[glcontext] = self._compileGL(
-                self._vertexShader,
-                self._fragmentShader,
-                self._attrib0)
+                self._vertexShader, self._fragmentShader, self._attrib0
+            )
 
         if _logger.getEffectiveLevel() <= logging.DEBUG:
             gl.glValidateProgram(self.program)
-            if gl.glGetProgramiv(
-                    self.program, gl.GL_VALIDATE_STATUS) != gl.GL_TRUE:
-                _logger.debug('Cannot validate program: %s',
-                              gl.glGetProgramInfoLog(self.program))
+            if gl.glGetProgramiv(self.program, gl.GL_VALIDATE_STATUS) != gl.GL_TRUE:
+                _logger.debug(
+                    "Cannot validate program: %s", gl.glGetProgramInfoLog(self.program)
+                )
 
         gl.glUseProgram(self.program)
 
@@ -198,4 +193,4 @@ class Program(object):
                 gl.glUniformMatrix4fv(location, count, transpose, value)
 
         elif not safe:
-            raise KeyError('No uniform: %s' % name)
+            raise KeyError("No uniform: %s" % name)

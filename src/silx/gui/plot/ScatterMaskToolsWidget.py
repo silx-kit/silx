@@ -54,8 +54,8 @@ _logger = logging.getLogger(__name__)
 
 
 class ScatterMask(BaseMask):
-    """A 1D mask for scatter data.
-    """
+    """A 1D mask for scatter data."""
+
     def __init__(self, scatter=None):
         """
 
@@ -76,7 +76,7 @@ class ScatterMask(BaseMask):
         return self._dataItem.getValueData(copy=False)
 
     def save(self, filename, kind):
-        if kind == 'npy':
+        if kind == "npy":
             try:
                 numpy.save(filename, self.getMask(copy=False))
             except IOError:
@@ -116,8 +116,9 @@ class ScatterMask(BaseMask):
         x, y = self._getXY()
 
         # TODO: this could be optimized if necessary
-        indices_in_polygon = [idx for idx in range(len(x)) if
-                              polygon.is_inside(y[idx], x[idx])]
+        indices_in_polygon = [
+            idx for idx in range(len(x)) if polygon.is_inside(y[idx], x[idx])
+        ]
 
         self.updatePoints(level, indices_in_polygon, mask)
 
@@ -131,10 +132,7 @@ class ScatterMask(BaseMask):
         :param float width:
         :param bool mask: True to mask (default), False to unmask.
         """
-        vertices = [(y, x),
-                    (y + height, x),
-                    (y + height, x + width),
-                    (y, x + width)]
+        vertices = [(y, x), (y + height, x), (y + height, x + width), (y, x + width)]
         self.updatePolygon(level, vertices, mask)
 
     def updateDisk(self, level, cy, cx, radius, mask=True):
@@ -147,7 +145,7 @@ class ScatterMask(BaseMask):
         :param bool mask: True to mask (default), False to unmask.
         """
         x, y = self._getXY()
-        stencil = (y - cy)**2 + (x - cx)**2 < radius**2
+        stencil = (y - cy) ** 2 + (x - cx) ** 2 < radius**2
         self.updateStencil(level, stencil, mask)
 
     def updateEllipse(self, level, crow, ccol, radius_r, radius_c, mask=True):
@@ -160,8 +158,12 @@ class ScatterMask(BaseMask):
         :param float radius_c: Radius of the ellipse in the column
         :param bool mask: True to mask (default), False to unmask.
         """
+
         def is_inside(px, py):
-            return (px - ccol)**2 / radius_c**2 + (py - crow)**2 / radius_r**2 <= 1.0
+            return (px - ccol) ** 2 / radius_c**2 + (
+                py - crow
+            ) ** 2 / radius_r**2 <= 1.0
+
         x, y = self._getXY()
         indices_inside = [idx for idx in range(len(x)) if is_inside(x[idx], y[idx])]
         self.updatePoints(level, indices_inside, mask)
@@ -180,13 +182,15 @@ class ScatterMask(BaseMask):
         """
         # theta is the angle between the horizontal and the line
         theta = math.atan((y1 - y0) / (x1 - x0)) if x1 - x0 else 0
-        w_over_2_sin_theta = width / 2. * math.sin(theta)
-        w_over_2_cos_theta = width / 2. * math.cos(theta)
+        w_over_2_sin_theta = width / 2.0 * math.sin(theta)
+        w_over_2_cos_theta = width / 2.0 * math.cos(theta)
 
-        vertices = [(y0 - w_over_2_cos_theta, x0 + w_over_2_sin_theta),
-                    (y0 + w_over_2_cos_theta, x0 - w_over_2_sin_theta),
-                    (y1 + w_over_2_cos_theta, x1 - w_over_2_sin_theta),
-                    (y1 - w_over_2_cos_theta, x1 + w_over_2_sin_theta)]
+        vertices = [
+            (y0 - w_over_2_cos_theta, x0 + w_over_2_sin_theta),
+            (y0 + w_over_2_cos_theta, x0 - w_over_2_sin_theta),
+            (y1 + w_over_2_cos_theta, x1 - w_over_2_sin_theta),
+            (y1 - w_over_2_cos_theta, x1 + w_over_2_sin_theta),
+        ]
 
         self.updatePolygon(level, vertices, mask)
 
@@ -196,8 +200,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     :class:`PlotWidget`."""
 
     def __init__(self, parent=None, plot=None):
-        super(ScatterMaskToolsWidget, self).__init__(parent, plot,
-                                                     mask=ScatterMask())
+        super(ScatterMaskToolsWidget, self).__init__(parent, plot, mask=ScatterMask())
         self._z = 2  # Mask layer in plot
         self._data_scatter = None
         """plot Scatter item for data"""
@@ -234,8 +237,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
 
-        if self._data_scatter.getXData(copy=False).shape == (0,) \
-                or mask.shape == self._data_scatter.getXData(copy=False).shape:
+        if (
+            self._data_scatter.getXData(copy=False).shape == (0,)
+            or mask.shape == self._data_scatter.getXData(copy=False).shape
+        ):
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
             return mask.shape
@@ -248,25 +253,28 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         """Update mask image in plot"""
         mask = self.getSelectionMask(copy=False)
         if mask is not None:
-            self.plot.addScatter(self._data_scatter.getXData(),
-                                 self._data_scatter.getYData(),
-                                 mask,
-                                 legend=self._maskName,
-                                 colormap=self._colormap,
-                                 z=self._z)
-            self._mask_scatter = self.plot._getItem(kind="scatter",
-                                                    legend=self._maskName)
-            self._mask_scatter.setSymbolSize(
-                self._data_scatter.getSymbolSize() + 2.0)
+            self.plot.addScatter(
+                self._data_scatter.getXData(),
+                self._data_scatter.getYData(),
+                mask,
+                legend=self._maskName,
+                colormap=self._colormap,
+                z=self._z,
+            )
+            self._mask_scatter = self.plot._getItem(
+                kind="scatter", legend=self._maskName
+            )
+            self._mask_scatter.setSymbolSize(self._data_scatter.getSymbolSize() + 2.0)
             self._mask_scatter.sigItemChanged.connect(self.__maskScatterChanged)
-        elif self.plot._getItem(kind="scatter",
-                                legend=self._maskName) is not None:
-            self.plot.remove(self._maskName, kind='scatter')
+        elif self.plot._getItem(kind="scatter", legend=self._maskName) is not None:
+            self.plot.remove(self._maskName, kind="scatter")
 
     def __maskScatterChanged(self, event):
         """Handles update of mask scatter"""
-        if (event is ItemChangedType.VISUALIZATION_MODE and
-                self._mask_scatter is not None):
+        if (
+            event is ItemChangedType.VISUALIZATION_MODE
+            and self._mask_scatter is not None
+        ):
             self._mask_scatter.setVisualization(Scatter.Visualization.POINTS)
 
     # track widget visibility and plot active image changes
@@ -274,10 +282,11 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
     def showEvent(self, event):
         try:
             self.plot.sigActiveScatterChanged.disconnect(
-                self._activeScatterChangedAfterCare)
+                self._activeScatterChangedAfterCare
+            )
         except (RuntimeError, TypeError):
             pass
-        self._activeScatterChanged(None, None)   # Init mask + enable/disable widget
+        self._activeScatterChanged(None, None)  # Init mask + enable/disable widget
         self.plot.sigActiveScatterChanged.connect(self._activeScatterChanged)
 
     def hideEvent(self, event):
@@ -294,14 +303,16 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         if self.getSelectionMask(copy=False) is not None:
             self.plot.sigActiveScatterChanged.connect(
-                self._activeScatterChangedAfterCare)
+                self._activeScatterChangedAfterCare
+            )
 
     def _adjustColorAndBrushSize(self, activeScatter):
         colormap = activeScatter.getColormap()
-        self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
-        self._setMaskColors(self.levelSpinBox.value(),
-                            self.transparencySlider.value() /
-                            self.transparencySlider.maximum())
+        self._defaultOverlayColor = rgba(cursorColorForColormap(colormap["name"]))
+        self._setMaskColors(
+            self.levelSpinBox.value(),
+            self.transparencySlider.value() / self.transparencySlider.maximum(),
+        )
         self._z = activeScatter.getZValue() + 1
         self._data_scatter = activeScatter
 
@@ -328,20 +339,25 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if activeScatter is None or activeScatter.getName() == self._maskName:
             # No active scatter or active scatter is the mask...
             self.plot.sigActiveScatterChanged.disconnect(
-                self._activeScatterChangedAfterCare)
+                self._activeScatterChangedAfterCare
+            )
             self._data_extent = None
             self._data_scatter = None
 
         else:
             self._adjustColorAndBrushSize(activeScatter)
 
-            if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
+            if (
+                self._data_scatter.getXData(copy=False).shape
+                != self._mask.getMask(copy=False).shape
+            ):
                 # scatter has not the same size, remove mask and stop listening
                 if self.plot._getItem(kind="scatter", legend=self._maskName):
-                    self.plot.remove(self._maskName, kind='scatter')
+                    self.plot.remove(self._maskName, kind="scatter")
 
                 self.plot.sigActiveScatterChanged.disconnect(
-                    self._activeScatterChangedAfterCare)
+                    self._activeScatterChangedAfterCare
+                )
                 self._data_extent = None
                 self._data_scatter = None
 
@@ -368,7 +384,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             self._adjustColorAndBrushSize(activeScatter)
 
             self._mask.setDataItem(self._data_scatter)
-            if self._data_scatter.getXData(copy=False).shape != self._mask.getMask(copy=False).shape:
+            if (
+                self._data_scatter.getXData(copy=False).shape
+                != self._mask.getMask(copy=False).shape
+            ):
                 self._mask.reset(self._data_scatter.getXData(copy=False).shape)
                 self._mask.commit()
             else:
@@ -395,16 +414,14 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
             except IOError:
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
-                raise RuntimeError('File "%s" is not a numpy file.',
-                                   filename)
+                raise RuntimeError('File "%s" is not a numpy file.', filename)
         elif extension in ["txt", "csv"]:
             try:
                 mask = numpy.loadtxt(filename)
             except IOError:
                 _logger.error("Can't load filename '%s'", filename)
                 _logger.debug("Backtrace", exc_info=True)
-                raise RuntimeError('File "%s" is not a numpy txt file.',
-                                   filename)
+                raise RuntimeError('File "%s" is not a numpy txt file.', filename)
         else:
             msg = "Extension '%s' is not supported."
             raise RuntimeError(msg % extension)
@@ -417,8 +434,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
         filters = [
-            'NumPy binary file (*.npy)',
-            'CSV text file (*.csv)',
+            "NumPy binary file (*.npy)",
+            "CSV text file (*.csv)",
         ]
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
@@ -454,8 +471,8 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         dialog.setWindowTitle("Save Mask")
         dialog.setModal(1)
         filters = [
-            'NumPy binary file (*.npy)',
-            'CSV text file (*.csv)',
+            "NumPy binary file (*.npy)",
+            "CSV text file (*.csv)",
         ]
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.AnyFile)
@@ -485,8 +502,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                     strerror = e.strerror
                 else:
                     strerror = sys.exc_info()[1]
-                msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % strerror)
+                msg.setText("Cannot save.\n" "Input Output Error: %s" % strerror)
                 msg.exec()
                 return
 
@@ -509,8 +525,7 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def resetSelectionMask(self):
         """Reset the mask"""
-        self._mask.reset(
-                shape=self._data_scatter.getXData(copy=False).shape)
+        self._mask.reset(shape=self._data_scatter.getXData(copy=False).shape)
         self._mask.commit()
 
     def _getPencilWidth(self):
@@ -525,8 +540,10 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
-        if (self._drawingMode is None or
-                event['event'] not in ('drawingProgress', 'drawingFinished')):
+        if self._drawingMode is None or event["event"] not in (
+            "drawingProgress",
+            "drawingFinished",
+        ):
             return
 
         if not len(self._data_scatter.getXData(copy=False)):
@@ -534,40 +551,42 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if self._drawingMode == 'rectangle':
-            if event['event'] == 'drawingFinished':
+        if self._drawingMode == "rectangle":
+            if event["event"] == "drawingFinished":
                 doMask = self._isMasking()
 
                 self._mask.updateRectangle(
                     level,
-                    y=event['y'],
-                    x=event['x'],
-                    height=abs(event['height']),
-                    width=abs(event['width']),
-                    mask=doMask)
+                    y=event["y"],
+                    x=event["x"],
+                    height=abs(event["height"]),
+                    width=abs(event["width"]),
+                    mask=doMask,
+                )
                 self._mask.commit()
 
-        elif self._drawingMode == 'ellipse':
-            if event['event'] == 'drawingFinished':
+        elif self._drawingMode == "ellipse":
+            if event["event"] == "drawingFinished":
                 doMask = self._isMasking()
-                center = event['points'][0]
-                size = event['points'][1]
-                self._mask.updateEllipse(level, center[1], center[0],
-                                         size[1], size[0], doMask)
+                center = event["points"][0]
+                size = event["points"][1]
+                self._mask.updateEllipse(
+                    level, center[1], center[0], size[1], size[0], doMask
+                )
                 self._mask.commit()
 
-        elif self._drawingMode == 'polygon':
-            if event['event'] == 'drawingFinished':
+        elif self._drawingMode == "polygon":
+            if event["event"] == "drawingFinished":
                 doMask = self._isMasking()
-                vertices = event['points']
+                vertices = event["points"]
                 vertices = vertices[:, (1, 0)]  # (y, x)
                 self._mask.updatePolygon(level, vertices, doMask)
                 self._mask.commit()
 
-        elif self._drawingMode == 'pencil':
+        elif self._drawingMode == "pencil":
             doMask = self._isMasking()
             # convert from plot to array coords
-            x, y = event['points'][-1]
+            x, y = event["points"][-1]
 
             brushSize = self._getPencilWidth()
 
@@ -576,15 +595,18 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
                     # Draw the line
                     self._mask.updateLine(
                         level,
-                        self._lastPencilPos[0], self._lastPencilPos[1],
-                        y, x,
+                        self._lastPencilPos[0],
+                        self._lastPencilPos[1],
+                        y,
+                        x,
                         brushSize,
-                        doMask)
+                        doMask,
+                    )
 
                 # Draw the very first, or last point
-                self._mask.updateDisk(level, y, x, brushSize / 2., doMask)
+                self._mask.updateDisk(level, y, x, brushSize / 2.0, doMask)
 
-            if event['event'] == 'drawingFinished':
+            if event["event"] == "drawingFinished":
                 self._mask.commit()
                 self._lastPencilPos = None
             else:
@@ -597,11 +619,11 @@ class ScatterMaskToolsWidget(BaseMaskToolsWidget):
         if self._data_scatter is not None:
             # Update thresholds according to colormap
             colormap = self._data_scatter.getColormap()
-            if colormap['autoscale']:
+            if colormap["autoscale"]:
                 min_ = numpy.nanmin(self._data_scatter.getValueData(copy=False))
                 max_ = numpy.nanmax(self._data_scatter.getValueData(copy=False))
             else:
-                min_, max_ = colormap['vmin'], colormap['vmax']
+                min_, max_ = colormap["vmin"], colormap["vmax"]
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
 
@@ -615,6 +637,7 @@ class ScatterMaskToolsDockWidget(BaseMaskToolsDockWidget):
     :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
     """
-    def __init__(self, parent=None, plot=None, name='Mask'):
+
+    def __init__(self, parent=None, plot=None, name="Mask"):
         widget = ScatterMaskToolsWidget(plot=plot)
         super(ScatterMaskToolsDockWidget, self).__init__(parent, name, widget)

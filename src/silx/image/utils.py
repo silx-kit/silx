@@ -24,6 +24,7 @@
 import numpy as np
 from math import ceil
 
+
 def gaussian_kernel(sigma, cutoff=4, force_odd_size=False):
     """
     Generates a Gaussian convolution kernel.
@@ -47,6 +48,6 @@ def gaussian_kernel(sigma, cutoff=4, force_odd_size=False):
     if force_odd_size and size % 2 == 0:
         size += 1
     x = np.arange(size) - (size - 1.0) / 2.0
-    g = np.exp(-(x / sigma) ** 2 / 2.0)
+    g = np.exp(-((x / sigma) ** 2) / 2.0)
     g /= g.sum()
     return g

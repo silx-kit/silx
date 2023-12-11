@@ -45,7 +45,8 @@ try:
 except ImportError:
     raise ImportError(
         "To install this package, you must install numpy first\n"
-        "(See https://pypi.org/project/numpy)")
+        "(See https://pypi.org/project/numpy)"
+    )
 
 
 PROJECT = "silx"
@@ -53,11 +54,13 @@ if sys.version_info.major < 3:
     logger.error(PROJECT + " no longer supports Python2")
 
 if "LANG" not in os.environ and sys.platform == "darwin":
-    print("""WARNING: the LANG environment variable is not defined,
+    print(
+        """WARNING: the LANG environment variable is not defined,
 an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError.
 export LANG=en_US.utf-8
 export LC_ALL=en_US.utf-8
-""")
+"""
+    )
 
 
 # ############## #
@@ -65,7 +68,7 @@ export LC_ALL=en_US.utf-8
 # ############## #
 
 
-def parse_env_as_bool(key: str, default: Optional[bool]=None) -> Optional[bool]:
+def parse_env_as_bool(key: str, default: Optional[bool] = None) -> Optional[bool]:
     """Parse `key` env. var. and convert its value to a boolean or None.
 
     If it cannot parse it or if None, `default` is returned.
@@ -105,40 +108,41 @@ class BuildExt(build_ext):
     If building with MSVC, compiler flags are converted from gcc flags.
     """
 
-    COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
+    COMPILE_ARGS_CONVERTER = {"-fopenmp": "/openmp"}
 
-    LINK_ARGS_CONVERTER = {'-fopenmp': ''}
+    LINK_ARGS_CONVERTER = {"-fopenmp": ""}
 
-    description = 'Build extensions'
+    description = "Build extensions"
 
     def patch_extension(self, ext: Extension):
-        """Patch an extension according to requested Cython and OpenMP usage.
-        """
+        """Patch an extension according to requested Cython and OpenMP usage."""
         from Cython.Build import cythonize
+
         patched_exts = cythonize(
-                                 [ext],
-                                 compiler_directives={'embedsignature': True,
-                                 'language_level': 3},
-                                 force=FORCE_CYTHON,
+            [ext],
+            compiler_directives={"embedsignature": True, "language_level": 3},
+            force=FORCE_CYTHON,
         )
         ext.sources = patched_exts[0].sources
 
         # Remove OpenMP flags if OpenMP is disabled
         if not USE_OPENMP:
             ext.extra_compile_args = [
-                f for f in ext.extra_compile_args if f != '-fopenmp']
-            ext.extra_link_args = [
-                f for f in ext.extra_link_args if f != '-fopenmp']
+                f for f in ext.extra_compile_args if f != "-fopenmp"
+            ]
+            ext.extra_link_args = [f for f in ext.extra_link_args if f != "-fopenmp"]
 
         # Convert flags from gcc to MSVC if required
-        if self.compiler.compiler_type == 'msvc':
-            extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
-                                  for f in ext.extra_compile_args]
+        if self.compiler.compiler_type == "msvc":
+            extra_compile_args = [
+                self.COMPILE_ARGS_CONVERTER.get(f, f) for f in ext.extra_compile_args
+            ]
             # Avoid empty arg
             ext.extra_compile_args = [arg for arg in extra_compile_args if arg]
 
-            extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
-                               for f in ext.extra_link_args]
+            extra_link_args = [
+                self.LINK_ARGS_CONVERTER.get(f, f) for f in ext.extra_link_args
+            ]
             # Avoid empty arg
             ext.extra_link_args = [arg for arg in extra_link_args if arg]
 
@@ -168,221 +172,211 @@ def get_project_configuration():
         # for io support
         "h5py",
         "fabio>=0.9",
-        ]
+    ]
     if sys.version_info < (3, 9):
         install_requires.append("setuptools")  # For pkg_resources
 
     # extras requirements: target 'full' to install all dependencies at once
     full_requires = [
         # opencl
-        'pyopencl',
-        'Mako',
+        "pyopencl",
+        "Mako",
         # gui
-        'qtconsole',
-        'matplotlib>=1.2.0',
-        'PyOpenGL',
-        'python-dateutil',
-        'PyQt5',
+        "qtconsole",
+        "matplotlib>=1.2.0",
+        "PyOpenGL",
+        "python-dateutil",
+        "PyQt5",
         # extra
-        'hdf5plugin',
-        'scipy',
-        'Pillow',
-        'bitshuffle']
-
-    test_requires = [
-        "pytest",
-        "pytest-xvfb",
-        "pytest-mock",
-        'bitshuffle'
+        "hdf5plugin",
+        "scipy",
+        "Pillow",
+        "bitshuffle",
     ]
 
+    test_requires = ["pytest", "pytest-xvfb", "pytest-mock", "bitshuffle"]
+
     extras_require = {
-        'full': full_requires,
-        'test': test_requires,
+        "full": full_requires,
+        "test": test_requires,
     }
 
     # Here for packaging purpose only
     # Setting the SILX_FULL_INSTALL_REQUIRES environment variable
     # put all dependencies as install_requires
-    if os.environ.get('SILX_FULL_INSTALL_REQUIRES') is not None:
+    if os.environ.get("SILX_FULL_INSTALL_REQUIRES") is not None:
         install_requires += full_requires
 
     # Set the SILX_INSTALL_REQUIRES_STRIP env. var. to a comma-separated
     # list of package names to remove them from install_requires
-    install_requires_strip = os.environ.get('SILX_INSTALL_REQUIRES_STRIP')
+    install_requires_strip = os.environ.get("SILX_INSTALL_REQUIRES_STRIP")
     if install_requires_strip is not None:
-        for package_name in install_requires_strip.split(','):
+        for package_name in install_requires_strip.split(","):
             install_requires.remove(package_name)
 
     def silx_io_specfile_define_macros():
         # Locale and platform management
         if sys.platform == "win32":
-            return [('WIN32', None), ('SPECFILE_POSIX', None)]
-        elif os.name.lower().startswith('posix'):
+            return [("WIN32", None), ("SPECFILE_POSIX", None)]
+        elif os.name.lower().startswith("posix"):
             # the best choice is to have _GNU_SOURCE defined
             # as a compilation flag because that allows the
             # use of strtod_l
             use_gnu_source = os.environ.get("SPECFILE_USE_GNU_SOURCE", "False")
             if use_gnu_source in ("True", "1"):  # 1 was the initially supported value
-                return [('_GNU_SOURCE', 1)]
-            return [('SPECFILE_POSIX', None)]
+                return [("_GNU_SOURCE", 1)]
+            return [("SPECFILE_POSIX", None)]
         else:
             return []
 
     ext_modules = [
-
         # silx.image
-
         Extension(
-            name='silx.image.bilinear',
+            name="silx.image.bilinear",
             sources=["src/silx/image/bilinear.pyx"],
-            language='c',
+            language="c",
         ),
         Extension(
-            name='silx.image.marchingsquares._mergeimpl',
-            sources=['src/silx/image/marchingsquares/_mergeimpl.pyx'],
+            name="silx.image.marchingsquares._mergeimpl",
+            sources=["src/silx/image/marchingsquares/_mergeimpl.pyx"],
             include_dirs=[
                 numpy.get_include(),
-                os.path.join(os.path.dirname(__file__), "src", "silx", "utils", "include")
+                os.path.join(
+                    os.path.dirname(__file__), "src", "silx", "utils", "include"
+                ),
             ],
-            language='c++',
-            extra_link_args=['-fopenmp'],
-            extra_compile_args=['-fopenmp'],
+            language="c++",
+            extra_link_args=["-fopenmp"],
+            extra_compile_args=["-fopenmp"],
         ),
         Extension(
-            name='silx.image.shapes',
+            name="silx.image.shapes",
             sources=["src/silx/image/shapes.pyx"],
-            language='c',
+            language="c",
         ),
-
         # silx.io
-
         Extension(
-            name='silx.io.specfile',
+            name="silx.io.specfile",
             sources=[
-                'src/silx/io/specfile/src/sfheader.c',
-                'src/silx/io/specfile/src/sfinit.c',
-                'src/silx/io/specfile/src/sflists.c',
-                'src/silx/io/specfile/src/sfdata.c',
-                'src/silx/io/specfile/src/sfindex.c',
-                'src/silx/io/specfile/src/sflabel.c',
-                'src/silx/io/specfile/src/sfmca.c',
-                'src/silx/io/specfile/src/sftools.c',
-                'src/silx/io/specfile/src/locale_management.c',
-                'src/silx/io/specfile.pyx',
+                "src/silx/io/specfile/src/sfheader.c",
+                "src/silx/io/specfile/src/sfinit.c",
+                "src/silx/io/specfile/src/sflists.c",
+                "src/silx/io/specfile/src/sfdata.c",
+                "src/silx/io/specfile/src/sfindex.c",
+                "src/silx/io/specfile/src/sflabel.c",
+                "src/silx/io/specfile/src/sfmca.c",
+                "src/silx/io/specfile/src/sftools.c",
+                "src/silx/io/specfile/src/locale_management.c",
+                "src/silx/io/specfile.pyx",
             ],
             define_macros=silx_io_specfile_define_macros(),
-            include_dirs=['src/silx/io/specfile/include'],
-            language='c',
+            include_dirs=["src/silx/io/specfile/include"],
+            language="c",
         ),
-
         # silx.math
-
         Extension(
-            name='silx.math._colormap',
+            name="silx.math._colormap",
             sources=["src/silx/math/_colormap.pyx"],
-            language='c',
+            language="c",
             include_dirs=[
-                'src/silx/math/include',
+                "src/silx/math/include",
                 numpy.get_include(),
             ],
-            extra_link_args=['-fopenmp'],
-            extra_compile_args=['-fopenmp'],
+            extra_link_args=["-fopenmp"],
+            extra_compile_args=["-fopenmp"],
         ),
         Extension(
-            name='silx.math.chistogramnd',
+            name="silx.math.chistogramnd",
             sources=[
-                'src/silx/math/histogramnd/src/histogramnd_c.c',
-                'src/silx/math/chistogramnd.pyx',
+                "src/silx/math/histogramnd/src/histogramnd_c.c",
+                "src/silx/math/chistogramnd.pyx",
             ],
             include_dirs=[
-                'src/silx/math/histogramnd/include',
+                "src/silx/math/histogramnd/include",
                 numpy.get_include(),
             ],
-            language='c',
+            language="c",
         ),
         Extension(
-            name='silx.math.chistogramnd_lut',
-            sources=['src/silx/math/chistogramnd_lut.pyx'],
+            name="silx.math.chistogramnd_lut",
+            sources=["src/silx/math/chistogramnd_lut.pyx"],
             include_dirs=[
-                'src/silx/math/histogramnd/include',
+                "src/silx/math/histogramnd/include",
                 numpy.get_include(),
             ],
-            language='c',
+            language="c",
         ),
         Extension(
-            name='silx.math.combo',
-            sources=['src/silx/math/combo.pyx'],
-            include_dirs=['src/silx/math/include'],
-            language='c',
+            name="silx.math.combo",
+            sources=["src/silx/math/combo.pyx"],
+            include_dirs=["src/silx/math/include"],
+            language="c",
         ),
         Extension(
-            name='silx.math.interpolate',
+            name="silx.math.interpolate",
             sources=["src/silx/math/interpolate.pyx"],
-            language='c',
+            language="c",
             include_dirs=[
-                'src/silx/math/include',
+                "src/silx/math/include",
                 numpy.get_include(),
             ],
-            extra_link_args=['-fopenmp'],
-            extra_compile_args=['-fopenmp'],
+            extra_link_args=["-fopenmp"],
+            extra_compile_args=["-fopenmp"],
         ),
         Extension(
-            name='silx.math.marchingcubes',
+            name="silx.math.marchingcubes",
             sources=[
-                'src/silx/math/marchingcubes/mc_lut.cpp',
-                'src/silx/math/marchingcubes.pyx',
+                "src/silx/math/marchingcubes/mc_lut.cpp",
+                "src/silx/math/marchingcubes.pyx",
             ],
             include_dirs=[
-                'src/silx/math/marchingcubes',
+                "src/silx/math/marchingcubes",
                 numpy.get_include(),
             ],
-            language='c++',
+            language="c++",
         ),
         Extension(
-            name='silx.math.medianfilter.medianfilter',
-            sources=['src/silx/math/medianfilter/medianfilter.pyx'],
+            name="silx.math.medianfilter.medianfilter",
+            sources=["src/silx/math/medianfilter/medianfilter.pyx"],
             include_dirs=[
-                'src/silx/math/medianfilter/include',
+                "src/silx/math/medianfilter/include",
                 numpy.get_include(),
             ],
-            language='c++',
-            extra_link_args=['-fopenmp'],
-            extra_compile_args=['-fopenmp'],
+            language="c++",
+            extra_link_args=["-fopenmp"],
+            extra_compile_args=["-fopenmp"],
         ),
-
         # silx.math.fit
-
         Extension(
-            name='silx.math.fit.filters',
+            name="silx.math.fit.filters",
             sources=[
-                'src/silx/math/fit/filters/src/smoothnd.c',
-                'src/silx/math/fit/filters/src/snip1d.c',
-                'src/silx/math/fit/filters/src/snip2d.c',
-                'src/silx/math/fit/filters/src/snip3d.c',
-                'src/silx/math/fit/filters/src/strip.c',
-                'src/silx/math/fit/filters.pyx',
+                "src/silx/math/fit/filters/src/smoothnd.c",
+                "src/silx/math/fit/filters/src/snip1d.c",
+                "src/silx/math/fit/filters/src/snip2d.c",
+                "src/silx/math/fit/filters/src/snip3d.c",
+                "src/silx/math/fit/filters/src/strip.c",
+                "src/silx/math/fit/filters.pyx",
             ],
-            include_dirs=['src/silx/math/fit/filters/include'],
-            language='c',
+            include_dirs=["src/silx/math/fit/filters/include"],
+            language="c",
         ),
         Extension(
-            name='silx.math.fit.functions',
+            name="silx.math.fit.functions",
             sources=[
-                'src/silx/math/fit/functions/src/funs.c',
-                'src/silx/math/fit/functions.pyx',
+                "src/silx/math/fit/functions/src/funs.c",
+                "src/silx/math/fit/functions.pyx",
             ],
-            include_dirs=['src/silx/math/fit/functions/include'],
-            language='c',
+            include_dirs=["src/silx/math/fit/functions/include"],
+            language="c",
         ),
         Extension(
-            name='silx.math.fit.peaks',
+            name="silx.math.fit.peaks",
             sources=[
-                'src/silx/math/fit/peaks/src/peaks.c',
-                'src/silx/math/fit/peaks.pyx',
+                "src/silx/math/fit/peaks/src/peaks.c",
+                "src/silx/math/fit/peaks.pyx",
             ],
-            include_dirs=['src/silx/math/fit/peaks/include'],
-            language='c',
+            include_dirs=["src/silx/math/fit/peaks/include"],
+            language="c",
         ),
     ]
 

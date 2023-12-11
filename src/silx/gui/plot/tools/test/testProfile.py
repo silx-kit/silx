@@ -46,7 +46,6 @@ _logger = logging.getLogger(__name__)
 
 
 class TestRois(TestCaseQt):
-
     def test_init(self):
         """Check that the constructor is not called twice"""
         roi = rois.ProfileImageVerticalLineROI()
@@ -56,7 +55,6 @@ class TestRois(TestCaseQt):
 
 
 class TestInteractions(TestCaseQt):
-
     @contextlib.contextmanager
     def defaultPlot(self):
         try:
@@ -165,7 +163,7 @@ class TestInteractions(TestCaseQt):
                 self.assertEqual(len(profileRois), 3)
             else:
                 self.assertEqual(len(profileRois), 1)
-            # The first one should be the expected one
+            # The first one should be the expected one
             roi = profileRois[0]
 
             # Test that something was displayed
@@ -224,14 +222,14 @@ class TestInteractions(TestCaseQt):
         if isinstance(editor, editors._NoProfileRoiEditor):
             pass
         elif isinstance(editor, editors._DefaultImageStackProfileRoiEditor):
-            # GUI to ROI
+            # GUI to ROI
             editor._lineWidth.setValue(2)
             self.assertEqual(roi.getProfileLineWidth(), 2)
             editor._methodsButton.setMethod("sum")
             self.assertEqual(roi.getProfileMethod(), "sum")
             editor._profileDim.setDimension(1)
             self.assertEqual(roi.getProfileType(), "1D")
-            # ROI to GUI
+            # ROI to GUI
             roi.setProfileLineWidth(3)
             self.assertEqual(editor._lineWidth.value(), 3)
             roi.setProfileMethod("mean")
@@ -239,21 +237,21 @@ class TestInteractions(TestCaseQt):
             roi.setProfileType("2D")
             self.assertEqual(editor._profileDim.getDimension(), 2)
         elif isinstance(editor, editors._DefaultImageProfileRoiEditor):
-            # GUI to ROI
+            # GUI to ROI
             editor._lineWidth.setValue(2)
             self.assertEqual(roi.getProfileLineWidth(), 2)
             editor._methodsButton.setMethod("sum")
             self.assertEqual(roi.getProfileMethod(), "sum")
-            # ROI to GUI
+            # ROI to GUI
             roi.setProfileLineWidth(3)
             self.assertEqual(editor._lineWidth.value(), 3)
             roi.setProfileMethod("mean")
             self.assertEqual(editor._methodsButton.getMethod(), "mean")
         elif isinstance(editor, editors._DefaultScatterProfileRoiEditor):
-            # GUI to ROI
+            # GUI to ROI
             editor._nPoints.setValue(100)
             self.assertEqual(roi.getNPoints(), 100)
-            # ROI to GUI
+            # ROI to GUI
             roi.setNPoints(200)
             self.assertEqual(editor._nPoints.value(), 200)
         else:
@@ -265,17 +263,32 @@ class TestInteractions(TestCaseQt):
             (rois.ProfileImageVerticalLineROI, editors._DefaultImageProfileRoiEditor),
             (rois.ProfileImageLineROI, editors._DefaultImageProfileRoiEditor),
             (rois.ProfileImageCrossROI, editors._DefaultImageProfileRoiEditor),
-            (rois.ProfileScatterHorizontalLineROI, editors._DefaultScatterProfileRoiEditor),
-            (rois.ProfileScatterVerticalLineROI, editors._DefaultScatterProfileRoiEditor),
+            (
+                rois.ProfileScatterHorizontalLineROI,
+                editors._DefaultScatterProfileRoiEditor,
+            ),
+            (
+                rois.ProfileScatterVerticalLineROI,
+                editors._DefaultScatterProfileRoiEditor,
+            ),
             (rois.ProfileScatterLineROI, editors._DefaultScatterProfileRoiEditor),
             (rois.ProfileScatterCrossROI, editors._DefaultScatterProfileRoiEditor),
             (rois.ProfileScatterHorizontalSliceROI, editors._NoProfileRoiEditor),
             (rois.ProfileScatterVerticalSliceROI, editors._NoProfileRoiEditor),
             (rois.ProfileScatterCrossSliceROI, editors._NoProfileRoiEditor),
-            (rois.ProfileImageStackHorizontalLineROI, editors._DefaultImageStackProfileRoiEditor),
-            (rois.ProfileImageStackVerticalLineROI, editors._DefaultImageStackProfileRoiEditor),
+            (
+                rois.ProfileImageStackHorizontalLineROI,
+                editors._DefaultImageStackProfileRoiEditor,
+            ),
+            (
+                rois.ProfileImageStackVerticalLineROI,
+                editors._DefaultImageStackProfileRoiEditor,
+            ),
             (rois.ProfileImageStackLineROI, editors._DefaultImageStackProfileRoiEditor),
-            (rois.ProfileImageStackCrossROI, editors._DefaultImageStackProfileRoiEditor),
+            (
+                rois.ProfileImageStackCrossROI,
+                editors._DefaultImageStackProfileRoiEditor,
+            ),
         ]
         with self.defaultPlot() as plot:
             profileManager = manager.ProfileManager(plot, plot)
@@ -285,7 +298,7 @@ class TestInteractions(TestCaseQt):
                     roi = roiClass()
                     roi._setProfileManager(profileManager)
                     try:
-                        # Force widget creation
+                        # Force widget creation
                         menu = qt.QMenu(plot)
                         menu.addAction(editorAction)
                         widgets = editorAction.createdWidgets()
@@ -333,7 +346,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         """Test horizontal and vertical profile, without and with image"""
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
-        for method in ('sum', 'mean'):
+        for method in ("sum", "mean"):
             with self.subTest(method=method):
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4
@@ -348,8 +361,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                         self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
 
                         # with image
-                        self.plot.addImage(
-                            numpy.arange(100 * 100).reshape(100, -1))
+                        self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
                         self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
                         self.mouseMove(widget, pos=pos2)
                         self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
@@ -368,10 +380,9 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         # Use Plot backend widget to submit mouse events
         widget = self.plot.getWidgetHandle()
 
-        self.plot.addImage(
-            numpy.arange(100 * 100).reshape(100, -1))
+        self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
 
-        for method in ('sum', 'mean'):
+        for method in ("sum", "mean"):
             with self.subTest(method=method):
                 # 2 positions to use for mouse events
                 pos1 = widget.width() * 0.4, widget.height() * 0.4
@@ -408,10 +419,12 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                     if not manager.hasPendingOperations():
                         break
 
-                curveItem = roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
-                if method == 'sum':
+                curveItem = (
+                    roi.getProfileWindow().getCurrentPlotWidget().getAllCurves()[0]
+                )
+                if method == "sum":
                     self.assertTrue(curveItem.getData()[1].max() > 10000)
-                elif method == 'mean':
+                elif method == "mean":
                     self.assertTrue(curveItem.getData()[1].max() < 10000)
 
                 # Remove the ROI so the profile window is also removed
@@ -421,19 +434,23 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
 
 class TestProfile3DToolBar(TestCaseQt):
-    """Tests for Profile3DToolBar widget.
-    """
+    """Tests for Profile3DToolBar widget."""
+
     def setUp(self):
         super(TestProfile3DToolBar, self).setUp()
         self.plot = StackView()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
-        self.plot.setStack(numpy.array([
-            [[0, 1, 2], [3, 4, 5]],
-            [[6, 7, 8], [9, 10, 11]],
-            [[12, 13, 14], [15, 16, 17]]
-        ]))
+        self.plot.setStack(
+            numpy.array(
+                [
+                    [[0, 1, 2], [3, 4, 5]],
+                    [[6, 7, 8], [9, 10, 11]],
+                    [[12, 13, 14], [15, 16, 17]],
+                ]
+            )
+        )
 
     def tearDown(self):
         profileManager = self.plot.getProfileToolbar().getProfileManager()
@@ -474,8 +491,7 @@ class TestProfile3DToolBar(TestCaseQt):
         numpy.testing.assert_almost_equal(data, expected)
 
     def testMethodSumLine(self):
-        """Simple interaction test to make sure the sum is correctly computed
-        """
+        """Simple interaction test to make sure the sum is correctly computed"""
         toolBar = self.plot.getProfileToolbar()
 
         toolBar.lineAction.trigger()
@@ -507,7 +523,6 @@ class TestProfile3DToolBar(TestCaseQt):
 
 
 class TestGetProfilePlot(TestCaseQt):
-
     def setUp(self):
         self.plot = None
         super(TestGetProfilePlot, self).setUp()
@@ -555,8 +570,7 @@ class TestGetProfilePlot(TestCaseQt):
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
-        self.plot.setStack(numpy.array([[[0, 1], [2, 3]],
-                                       [[4, 5], [6, 7]]]))
+        self.plot.setStack(numpy.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]))
 
         toolBar = self.plot.getProfileToolbar()
 

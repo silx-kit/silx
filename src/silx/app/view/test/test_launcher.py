@@ -84,23 +84,22 @@ class TestLauncher(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Copy file to temporary dir to avoid import from current dir.
-            script = os.path.join(tmpdir, 'launcher.py')
+            script = os.path.join(tmpdir, "launcher.py")
             shutil.copyfile(filename, script)
             command_line = [sys.executable, script] + list(args)
 
             _logger.info("Execute: %s", " ".join(command_line))
-            p = subprocess.Popen(command_line,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 env=env)
+            p = subprocess.Popen(
+                command_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+            )
             out, err = p.communicate()
             _logger.info("Return code: %d", p.returncode)
             try:
-                out = out.decode('utf-8')
+                out = out.decode("utf-8")
             except UnicodeError:
                 pass
             try:
-                err = err.decode('utf-8')
+                err = err.decode("utf-8")
             except UnicodeError:
                 pass
 

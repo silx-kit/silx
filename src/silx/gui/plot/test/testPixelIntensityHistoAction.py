@@ -52,7 +52,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
     def testShowAndHide(self):
         """Simple test that the plot is showing and hiding when activating the
         action"""
-        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
         self.plotImage.show()
 
         histoAction = self.plotImage.getIntensityHistogramAction()
@@ -75,19 +75,25 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
 
     def testImageFormatInput(self):
         """Test multiple type as image input"""
-        typesToTest = [numpy.uint8, numpy.int8, numpy.int16, numpy.int32,
-                       numpy.float32, numpy.float64]
-        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        typesToTest = [
+            numpy.uint8,
+            numpy.int8,
+            numpy.int16,
+            numpy.int32,
+            numpy.float32,
+            numpy.float64,
+        ]
+        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
         self.plotImage.show()
-        button = getQToolButtonFromAction(
-            self.plotImage.getIntensityHistogramAction())
+        button = getQToolButtonFromAction(self.plotImage.getIntensityHistogramAction())
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
         for typeToTest in typesToTest:
             with self.subTest(typeToTest=typeToTest):
-                self.plotImage.addImage(self.image.astype(typeToTest),
-                                        origin=(0, 0), legend='sino')
+                self.plotImage.addImage(
+                    self.image.astype(typeToTest), origin=(0, 0), legend="sino"
+                )
 
     def testScatter(self):
         """Test that an histogram from a scatter is displayed"""
@@ -135,7 +141,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         data1 = items[0].getValueData(copy=False)
 
         # Set another item to the plot
-        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.addImage(self.image, origin=(0, 0), legend="sino")
         self.qapp.processEvents()
         data2 = items[0].getValueData(copy=False)
 

@@ -34,10 +34,9 @@ import numpy
 from silx.test.utils import utilstest
 from silx.image import tomography
 
-class TestTomography(unittest.TestCase):
-    """
 
-    """
+class TestTomography(unittest.TestCase):
+    """ """
 
     def setUp(self):
         self.sinoTrueData = numpy.load(utilstest.getfile("sino500.npz"))["data"]
@@ -47,7 +46,7 @@ class TestTomography(unittest.TestCase):
         self.assertTrue(numpy.isclose(centerTD, 256, rtol=0.01))
 
     def testCalcCenterCorr(self):
-        centerTrueData = tomography.calc_center_corr(self.sinoTrueData,
-                                                     fullrot=False,
-                                                     props=1)
+        centerTrueData = tomography.calc_center_corr(
+            self.sinoTrueData, fullrot=False, props=1
+        )
         self.assertTrue(numpy.isclose(centerTrueData, 256, rtol=0.01))

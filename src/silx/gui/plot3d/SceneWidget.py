@@ -42,7 +42,7 @@ from .scene import interaction
 from ._model import SceneModel, visitQAbstractItemModel
 from ._model.items import Item3DRow
 
-__all__ = ['items', 'SceneWidget']
+__all__ = ["items", "SceneWidget"]
 
 
 class _SceneSelectionHighlightManager(object):
@@ -88,8 +88,7 @@ class _SceneSelectionHighlightManager(object):
 
                 else:  # disabled
                     self.__unselectItem(current)
-                    selection.sigCurrentChanged.disconnect(
-                        self.__currentChanged)
+                    selection.sigCurrentChanged.disconnect(self.__currentChanged)
 
     def getSceneWidget(self):
         """Returns the SceneWidget this class controls highlight for.
@@ -101,7 +100,7 @@ class _SceneSelectionHighlightManager(object):
     def __selectItem(self, current):
         """Highlight given item.
 
-         :param ~silx.gui.plot3d.items.Item3D current: New current or None
+        :param ~silx.gui.plot3d.items.Item3D current: New current or None
         """
         if current is None:
             return
@@ -131,8 +130,9 @@ class _SceneSelectionHighlightManager(object):
 
         # Restore bbox visibility and color
         current.sigItemChanged.disconnect(self.__selectedChanged)
-        if (self._previousBBoxState is not None and
-                isinstance(current, items.DataItem3D)):
+        if self._previousBBoxState is not None and isinstance(
+            current, items.DataItem3D
+        ):
             current.setBoundingBoxVisible(self._previousBBoxState)
         current._setForegroundColor(sceneWidget.getForegroundColor())
 
@@ -160,10 +160,10 @@ class _SceneSelectionHighlightManager(object):
 class HighlightMode(enum.Enum):
     """:class:`SceneSelection` highlight modes"""
 
-    NONE = 'noHighlight'
+    NONE = "noHighlight"
     """Do not highlight selected item"""
 
-    BOUNDING_BOX = 'boundingBox'
+    BOUNDING_BOX = "boundingBox"
     """Highlight selected item bounding box"""
 
 
@@ -244,12 +244,10 @@ class SceneSelection(qt.QObject):
                 item.sigItemChanged.connect(self.__currentChanged)
                 self.__current = weakref.ref(item)
             else:
-                raise ValueError(
-                    'Item is not in this SceneWidget: %s' % str(item))
+                raise ValueError("Item is not in this SceneWidget: %s" % str(item))
 
         else:
-            raise ValueError(
-                'Not an Item3D: %s' % str(item))
+            raise ValueError("Not an Item3D: %s" % str(item))
 
         current = self.getCurrentItem()
         self.sigCurrentChanged.emit(current, previous)
@@ -282,24 +280,29 @@ class SceneSelection(qt.QObject):
         :raise ValueError: If the selection model does not correspond
                            to the same :class:`SceneWidget`
         """
-        if (not isinstance(selectionModel, qt.QItemSelectionModel) or
-                not isinstance(selectionModel.model(), SceneModel) or
-                selectionModel.model().sceneWidget() is not self.parent()):
-            raise ValueError("Expecting a QItemSelectionModel "
-                             "attached to the same SceneWidget")
+        if (
+            not isinstance(selectionModel, qt.QItemSelectionModel)
+            or not isinstance(selectionModel.model(), SceneModel)
+            or selectionModel.model().sceneWidget() is not self.parent()
+        ):
+            raise ValueError(
+                "Expecting a QItemSelectionModel " "attached to the same SceneWidget"
+            )
 
         # Disconnect from previous selection model
         previousSelectionModel = self._getSyncSelectionModel()
         if previousSelectionModel is not None:
             previousSelectionModel.selectionChanged.disconnect(
-                self.__selectionModelSelectionChanged)
+                self.__selectionModelSelectionChanged
+            )
 
         self.__selectionModel = selectionModel
 
         if selectionModel is not None:
             # Connect to new selection model
             selectionModel.selectionChanged.connect(
-                self.__selectionModelSelectionChanged)
+                self.__selectionModelSelectionChanged
+            )
             self.__updateSelectionModel()
 
     def __selectionModelSelectionChanged(self, selected, deselected):
@@ -341,15 +344,19 @@ class SceneSelection(qt.QObject):
             model = selectionModel.model()
             for index in visitQAbstractItemModel(model):
                 itemRow = index.internalPointer()
-                if (isinstance(itemRow, Item3DRow) and
-                        itemRow.item() is currentItem and
-                        index.flags() & qt.Qt.ItemIsSelectable):
+                if (
+                    isinstance(itemRow, Item3DRow)
+                    and itemRow.item() is currentItem
+                    and index.flags() & qt.Qt.ItemIsSelectable
+                ):
                     # This is the item we are looking for: select it in the model
                     self.__syncInProgress = True
                     selectionModel.select(
-                        index, qt.QItemSelectionModel.Clear |
-                               qt.QItemSelectionModel.Select |
-                               qt.QItemSelectionModel.Current)
+                        index,
+                        qt.QItemSelectionModel.Clear
+                        | qt.QItemSelectionModel.Select
+                        | qt.QItemSelectionModel.Current,
+                    )
                     self.__syncInProgress = False
                     break
 
@@ -363,15 +370,14 @@ class SceneWidget(Plot3DWidget):
         self._selection = None  # Store lazy-loaded SceneSelection
         self._items = []
 
-        self._textColor = 1., 1., 1., 1.
-        self._foregroundColor = 1., 1., 1., 1.
-        self._highlightColor = 0.7, 0.7, 0., 1.
+        self._textColor = 1.0, 1.0, 1.0, 1.0
+        self._foregroundColor = 1.0, 1.0, 1.0, 1.0
+        self._highlightColor = 0.7, 0.7, 0.0, 1.0
 
         self._sceneGroup = RootGroupWithAxesItem(parent=self)
-        self._sceneGroup.setLabel('Data')
+        self._sceneGroup.setLabel("Data")
 
-        self.viewport.scene.children.append(
-            self._sceneGroup._getScenePrimitive())
+        self.viewport.scene.children.append(self._sceneGroup._getScenePrimitive())
 
     def model(self):
         """Returns the model corresponding the scene of this widget
@@ -419,20 +425,21 @@ class SceneWidget(Plot3DWidget):
 
         devicePixelRatio = self.getDevicePixelRatio()
         for result in self.getSceneGroup().pickItems(
-            x * devicePixelRatio, y * devicePixelRatio, condition):
+            x * devicePixelRatio, y * devicePixelRatio, condition
+        ):
             yield result
 
     # Interactive modes
 
     def _handleSelectionChanged(self, current, previous):
         """Handle change of selection to update interactive mode"""
-        if self.getInteractiveMode() == 'panSelectedPlane':
+        if self.getInteractiveMode() == "panSelectedPlane":
             if isinstance(current, items.PlaneMixIn):
                 # Update pan plane to use new selected plane
-                self.setInteractiveMode('panSelectedPlane')
+                self.setInteractiveMode("panSelectedPlane")
 
             else:  # Switch to rotate scene if new selection is not a plane
-                self.setInteractiveMode('rotate')
+                self.setInteractiveMode("rotate")
 
     def setInteractiveMode(self, mode):
         """Set the interactive mode.
@@ -443,26 +450,25 @@ class SceneWidget(Plot3DWidget):
         :param str mode:
             The interactive mode: 'rotate', 'pan', 'panSelectedPlane' or None
         """
-        if self.getInteractiveMode() == 'panSelectedPlane':
-            self.selection().sigCurrentChanged.disconnect(
-                self._handleSelectionChanged)
+        if self.getInteractiveMode() == "panSelectedPlane":
+            self.selection().sigCurrentChanged.disconnect(self._handleSelectionChanged)
 
-        if mode == 'panSelectedPlane':
+        if mode == "panSelectedPlane":
             selected = self.selection().getCurrentItem()
 
             if isinstance(selected, items.PlaneMixIn):
                 mode = interaction.PanPlaneZoomOnWheelControl(
                     self.viewport,
                     selected._getPlane(),
-                    mode='position',
+                    mode="position",
                     orbitAroundCenter=False,
-                    scaleTransform=self._sceneScale)
+                    scaleTransform=self._sceneScale,
+                )
 
-                self.selection().sigCurrentChanged.connect(
-                    self._handleSelectionChanged)
+                self.selection().sigCurrentChanged.connect(self._handleSelectionChanged)
 
             else:  # No selected plane, fallback to rotate scene
-                mode = 'rotate'
+                mode = "rotate"
 
         super(SceneWidget, self).setInteractiveMode(mode)
 
@@ -472,7 +478,7 @@ class SceneWidget(Plot3DWidget):
         :rtype: str
         """
         if isinstance(self.eventHandler, interaction.PanPlaneZoomOnWheelControl):
-            return 'panSelectedPlane'
+            return "panSelectedPlane"
         else:
             return super(SceneWidget, self).getInteractiveMode()
 
@@ -631,7 +637,7 @@ class SceneWidget(Plot3DWidget):
             bbox = self._sceneGroup._getScenePrimitive()
             bbox.tickColor = color
 
-            self.sigStyleChanged.emit('textColor')
+            self.sigStyleChanged.emit("textColor")
 
     def getForegroundColor(self):
         """Return color used for bounding box
@@ -657,7 +663,7 @@ class SceneWidget(Plot3DWidget):
                 if item is not selected:
                     item._setForegroundColor(color)
 
-            self.sigStyleChanged.emit('foregroundColor')
+            self.sigStyleChanged.emit("foregroundColor")
 
     def getHighlightColor(self):
         """Return color used for highlighted item bounding box
@@ -681,4 +687,4 @@ class SceneWidget(Plot3DWidget):
             if selected is not None:
                 selected._setForegroundColor(color)
 
-            self.sigStyleChanged.emit('highlightColor')
+            self.sigStyleChanged.emit("highlightColor")

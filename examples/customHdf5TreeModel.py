@@ -54,19 +54,20 @@ class CustomTooltips(qt.QIdentityProxyModel):
 
     def data(self, index, role=qt.Qt.DisplayRole):
         if role == qt.Qt.ToolTipRole:
-
             # Reach information from the node
             sourceIndex = self.mapToSource(index)
             sourceModel = self.sourceModel()
             originalTooltip = sourceModel.data(sourceIndex, qt.Qt.ToolTipRole)
-            originalH5pyObject = sourceModel.data(sourceIndex, Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            originalH5pyObject = sourceModel.data(
+                sourceIndex, Hdf5TreeModel.H5PY_OBJECT_ROLE
+            )
 
             # We can filter according to the column
             if sourceIndex.column() == Hdf5TreeModel.TYPE_COLUMN:
                 return super(CustomTooltips, self).data(index, role)
 
             # Let's create our own tooltips
-            template = u"""<html>
+            template = """<html>
             <dl>
             <dt><b>Original</b></dt><dd>{original}</dd>
             <dt><b>Parent name</b></dt><dd>{parent_name}</dd>
@@ -79,7 +80,7 @@ class CustomTooltips(qt.QIdentityProxyModel):
             try:
                 data = originalH5pyObject[()]
                 if data.size <= 10:
-                    result = data ** 2
+                    result = data**2
                 else:
                     result = "..."
             except Exception:
@@ -89,7 +90,7 @@ class CustomTooltips(qt.QIdentityProxyModel):
                 original=originalTooltip,
                 parent_name=originalH5pyObject.parent.name,
                 name=originalH5pyObject.name,
-                pow_of_2=str(result)
+                pow_of_2=str(result),
             )
             return template.format(**info)
 
@@ -112,10 +113,12 @@ def get_hdf5_with_all_types():
     g.create_dataset("scalar", data=10)
     g.create_dataset("list", data=numpy.arange(10))
     base_image = numpy.arange(10**2).reshape(10, 10)
-    images = [base_image,
-              base_image.T,
-              base_image.size - 1 - base_image,
-              base_image.size - 1 - base_image.T]
+    images = [
+        base_image,
+        base_image.T,
+        base_image.size - 1 - base_image,
+        base_image.size - 1 - base_image.T,
+    ]
     dtype = images[0].dtype
     data = numpy.empty((10 * 10, 10, 10), dtype=dtype)
     for i in range(10 * 10):
@@ -195,8 +198,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__treeview.activated.connect(self.displayData)
 
     def displayData(self):
-        """Called to update the dataviewer with the selected data.
-        """
+        """Called to update the dataviewer with the selected data."""
         selected = list(self.__treeview.selectedH5Nodes())
         if len(selected) == 1:
             # Update the viewer for a single selection

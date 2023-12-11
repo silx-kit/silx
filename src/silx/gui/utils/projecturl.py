@@ -67,7 +67,8 @@ def getDocumentationUrl(subpath):
         "minor": version.MINOR,
         "micro": version.MICRO,
         "relev": version.RELEV,
-        "subpath": subpath}
+        "subpath": subpath,
+    }
     template = BASE_DOC_URL
     if template is None:
         template = _DEFAULT_BASE_DOC_URL

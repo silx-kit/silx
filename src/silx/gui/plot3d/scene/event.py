@@ -37,6 +37,7 @@ _logger = logging.getLogger(__name__)
 
 # Notifier ####################################################################
 
+
 class Notifier(object):
     """Base class for object with notification mechanism."""
 
@@ -53,7 +54,7 @@ class Notifier(object):
         if listener not in self._listeners:
             self._listeners.append(listener)
         else:
-            _logger.warning('Ignoring addition of an already registered listener')
+            _logger.warning("Ignoring addition of an already registered listener")
 
     def removeListener(self, listener):
         """Remove a previously registered listener.
@@ -63,7 +64,7 @@ class Notifier(object):
         try:
             self._listeners.remove(listener)
         except ValueError:
-            _logger.warning('Trying to remove a listener that is not registered')
+            _logger.warning("Trying to remove a listener that is not registered")
 
     def notify(self, *args, **kwargs):
         """Notify all registered listeners with the given parameters.
@@ -89,19 +90,24 @@ def notifyProperty(attrName, copy=False, converter=None, doc=None):
     :return: A property with getter and setter
     """
     if copy:
+
         def getter(self):
             return getattr(self, attrName).copy()
+
     else:
+
         def getter(self):
             return getattr(self, attrName)
 
     if converter is None:
+
         def setter(self, value):
             if getattr(self, attrName) != value:
                 setattr(self, attrName, value)
                 self.notify()
 
     else:
+
         def setter(self, value):
             value = converter(value)
             if getattr(self, attrName) != value:
@@ -117,7 +123,7 @@ class HookList(list):
     def __init__(self, iterable):
         super(HookList, self).__init__(iterable)
 
-        self._listWasChangedHook('__init__', iterable)
+        self._listWasChangedHook("__init__", iterable)
 
     def _listWillChangeHook(self, methodName, *args, **kwargs):
         """To override. Called before modifying the list.
@@ -140,57 +146,56 @@ class HookList(list):
     def _wrapper(self, methodName, *args, **kwargs):
         """Generic wrapper of list methods calling the hooks."""
         self._listWillChangeHook(methodName, *args, **kwargs)
-        result = getattr(super(HookList, self),
-                         methodName)(*args, **kwargs)
+        result = getattr(super(HookList, self), methodName)(*args, **kwargs)
         self._listWasChangedHook(methodName, *args, **kwargs)
         return result
 
     # Add methods
 
     def __iadd__(self, *args, **kwargs):
-        return self._wrapper('__iadd__', *args, **kwargs)
+        return self._wrapper("__iadd__", *args, **kwargs)
 
     def __imul__(self, *args, **kwargs):
-        return self._wrapper('__imul__', *args, **kwargs)
+        return self._wrapper("__imul__", *args, **kwargs)
 
     def append(self, *args, **kwargs):
-        return self._wrapper('append', *args, **kwargs)
+        return self._wrapper("append", *args, **kwargs)
 
     def extend(self, *args, **kwargs):
-        return self._wrapper('extend', *args, **kwargs)
+        return self._wrapper("extend", *args, **kwargs)
 
     def insert(self, *args, **kwargs):
-        return self._wrapper('insert', *args, **kwargs)
+        return self._wrapper("insert", *args, **kwargs)
 
     # Remove methods
 
     def __delitem__(self, *args, **kwargs):
-        return self._wrapper('__delitem__', *args, **kwargs)
+        return self._wrapper("__delitem__", *args, **kwargs)
 
     def __delslice__(self, *args, **kwargs):
-        return self._wrapper('__delslice__', *args, **kwargs)
+        return self._wrapper("__delslice__", *args, **kwargs)
 
     def remove(self, *args, **kwargs):
-        return self._wrapper('remove', *args, **kwargs)
+        return self._wrapper("remove", *args, **kwargs)
 
     def pop(self, *args, **kwargs):
-        return self._wrapper('pop', *args, **kwargs)
+        return self._wrapper("pop", *args, **kwargs)
 
     # Set methods
 
     def __setitem__(self, *args, **kwargs):
-        return self._wrapper('__setitem__', *args, **kwargs)
+        return self._wrapper("__setitem__", *args, **kwargs)
 
     def __setslice__(self, *args, **kwargs):
-        return self._wrapper('__setslice__', *args, **kwargs)
+        return self._wrapper("__setslice__", *args, **kwargs)
 
     # In place methods
 
     def sort(self, *args, **kwargs):
-        return self._wrapper('sort', *args, **kwargs)
+        return self._wrapper("sort", *args, **kwargs)
 
     def reverse(self, *args, **kwargs):
-        return self._wrapper('reverse', *args, **kwargs)
+        return self._wrapper("reverse", *args, **kwargs)
 
 
 class NotifierList(HookList, Notifier):

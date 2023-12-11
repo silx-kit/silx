@@ -40,4 +40,10 @@ from ._utils import Hdf5ContextMenuEvent  # noqa
 from .NexusSortFilterProxyModel import NexusSortFilterProxyModel  # noqa
 from .Hdf5TreeModel import Hdf5TreeModel  # noqa
 
-__all__ = ['Hdf5TreeView', 'H5Node', 'Hdf5ContextMenuEvent', 'NexusSortFilterProxyModel', 'Hdf5TreeModel']
+__all__ = [
+    "Hdf5TreeView",
+    "H5Node",
+    "Hdf5ContextMenuEvent",
+    "NexusSortFilterProxyModel",
+    "Hdf5TreeModel",
+]

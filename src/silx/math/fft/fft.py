@@ -34,7 +34,7 @@ def FFT(
     axes=None,
     normalize="rescale",
     backend="numpy",
-    **kwargs
+    **kwargs,
 ):
     """
     Initialize a FFT plan.
@@ -94,6 +94,6 @@ def FFT(
         shape_out=shape_out,
         axes=axes,
         normalize=normalize,
-        **kwargs
+        **kwargs,
     )
     return F

@@ -259,7 +259,6 @@ class FFTW(BaseFFT):
         return data_out
 
 
-
 def get_wisdom_metadata():
     """
     Get metadata on the current platform.
@@ -269,7 +268,7 @@ def get_wisdom_metadata():
     """
     return {
         # "venv"
-        "executable":  sys_executable,
+        "executable": sys_executable,
         # encapsulates sys.platform, platform.machine(), platform.architecture(), platform.libc_ver(), ...
         "hostname": gethostname(),
         "available_threads": len(os.sched_getaffinity(0)),
@@ -293,7 +292,7 @@ def export_wisdom(fname, on_existing="overwrite"):
         if on_existing == "raise":
             raise ValueError("File already exists: %s" % fname)
         if on_existing == "append":
-            import_wisdom(fname, on_mismatch="ignore") # ?
+            import_wisdom(fname, on_mismatch="ignore")  # ?
     current_wisdom = pyfftw.export_wisdom()
     res = get_wisdom_metadata()
     for i, w in enumerate(current_wisdom):
@@ -320,8 +319,12 @@ def import_wisdom(fname, match=["hostname"], on_mismatch="warn"):
           - "warn": print a warning, don't crash
           - "ignore": do nothing
     """
+
     def handle_mismatch(item, loaded_value, current_value):
-        msg = "Platform configuration mismatch: %s: currently have '%s', loaded '%s'" % (item, current_value, loaded_value)
+        msg = (
+            "Platform configuration mismatch: %s: currently have '%s', loaded '%s'"
+            % (item, current_value, loaded_value)
+        )
         if on_mismatch == "raise":
             raise ValueError(msg)
         if on_mismatch == "warn":
@@ -332,16 +335,27 @@ def import_wisdom(fname, match=["hostname"], on_mismatch="warn"):
     for metadata_name in match:
         if metadata_name not in wis_metadata:
             raise ValueError(
-                "Cannot match metadata '%s'. Available are: %s" % (match, str(wis_metadata.keys()))
+                "Cannot match metadata '%s'. Available are: %s"
+                % (match, str(wis_metadata.keys()))
             )
         if loaded_wisdom[metadata_name] != wis_metadata[metadata_name]:
-            handle_mismatch(metadata_name, loaded_wisdom[metadata_name], wis_metadata[metadata_name])
+            handle_mismatch(
+                metadata_name, loaded_wisdom[metadata_name], wis_metadata[metadata_name]
+            )
             return
-    w = tuple(loaded_wisdom[k][()] for k in loaded_wisdom.keys() if k not in wis_metadata.keys())
+    w = tuple(
+        loaded_wisdom[k][()]
+        for k in loaded_wisdom.keys()
+        if k not in wis_metadata.keys()
+    )
     pyfftw.import_wisdom(w)
 
 
-def get_wisdom_file(directory=None, name_template="fftw_wisdom_{whoami}_{hostname}.npz", create_dirs=True):
+def get_wisdom_file(
+    directory=None,
+    name_template="fftw_wisdom_{whoami}_{hostname}.npz",
+    create_dirs=True,
+):
     """
     Get a file path for storing FFTW wisdom.
 
@@ -355,10 +369,7 @@ def get_wisdom_file(directory=None, name_template="fftw_wisdom_{whoami}_{hostnam
         Whether to create (possibly nested) directories if needed.
     """
     directory = directory or gettempdir()
-    file_basename = name_template.format(
-        whoami=os.getlogin(),
-        hostname=gethostname()
-    )
+    file_basename = name_template.format(whoami=os.getlogin(), hostname=gethostname())
     out_file = os.path.join(directory, file_basename)
     if create_dirs:
         Path(os.path.dirname(out_file)).mkdir(parents=True, exist_ok=True)

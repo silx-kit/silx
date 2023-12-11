@@ -51,8 +51,12 @@ class TestIcons(TestCaseQt):
         os.mkdir(os.path.join(cls.tmpDirectory, "gui"))
         destination = os.path.join(cls.tmpDirectory, "gui", "icons")
         os.mkdir(destination)
-        shutil.copy(silx.resources.resource_filename("gui/icons/zoom-in.png"), destination)
-        shutil.copy(silx.resources.resource_filename("gui/icons/zoom-out.svg"), destination)
+        shutil.copy(
+            silx.resources.resource_filename("gui/icons/zoom-in.png"), destination
+        )
+        shutil.copy(
+            silx.resources.resource_filename("gui/icons/zoom-out.svg"), destination
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -62,7 +66,9 @@ class TestIcons(TestCaseQt):
     def setUp(self):
         # Store the original configuration
         self._oldResources = dict(silx.resources._RESOURCE_DIRECTORIES)
-        silx.resources.register_resource_directory("test", "foo.bar", forced_path=self.tmpDirectory)
+        silx.resources.register_resource_directory(
+            "test", "foo.bar", forced_path=self.tmpDirectory
+        )
         unittest.TestCase.setUp(self)
 
     def tearDown(self):

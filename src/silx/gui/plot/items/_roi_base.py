@@ -71,7 +71,7 @@ class _RegionOfInterestBase(qt.QObject):
         qt.QObject.__init__(self)
         if parent is not None:
             self.setParent(parent)
-        self.__name = ''
+        self.__name = ""
 
     def getName(self):
         """Returns the name of the ROI
@@ -222,10 +222,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         The RegionOfInterestManager that created this object
     """
 
-    _DEFAULT_LINEWIDTH = 1.
+    _DEFAULT_LINEWIDTH = 1.0
     """Default line width of the curve"""
 
-    _DEFAULT_LINESTYLE = '-'
+    _DEFAULT_LINESTYLE = "-"
     """Default line style of the curve"""
 
     _DEFAULT_HIGHLIGHT_STYLE = items.CurveStyle(linewidth=2)
@@ -251,11 +251,12 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
     def __init__(self, parent=None):
         # Avoid circular dependency
         from ..tools import roi as roi_tools
+
         assert parent is None or isinstance(parent, roi_tools.RegionOfInterestManager)
         _RegionOfInterestBase.__init__(self, parent)
         core.HighlightedMixIn.__init__(self)
         self.__text = None
-        self._color = rgba('red')
+        self._color = rgba("red")
         self._editable = False
         self._selectable = False
         self._focusProxy = None
@@ -290,8 +291,11 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """
         # Avoid circular dependency
         from ..tools import roi as roi_tools
-        if (parent is not None and not isinstance(parent, roi_tools.RegionOfInterestManager)):
-            raise ValueError('Unsupported parent')
+
+        if parent is not None and not isinstance(
+            parent, roi_tools.RegionOfInterestManager
+        ):
+            raise ValueError("Unsupported parent")
 
         previousParent = self.parent()
         if previousParent is not None:
@@ -319,7 +323,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """
         assert item is not None
         self._child.append(item)
-        if item.getName() == '':
+        if item.getName() == "":
             self._setItemName(item)
         manager = self.parent()
         if manager is not None:
@@ -513,13 +517,11 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         raise NotImplementedError()
 
     def creationStarted(self):
-        """Called when the ROI creation interaction was started.
-        """
+        """Called when the ROI creation interaction was started."""
         pass
 
     def creationFinalized(self):
-        """Called when the ROI creation interaction was finalized.
-        """
+        """Called when the ROI creation interaction was finalized."""
         pass
 
     def _updateItemProperty(self, event, source, destination):
@@ -581,11 +583,13 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             style = self.getCurrentStyle()
             self._updatedStyle(event, style)
         else:
-            styleEvents = [items.ItemChangedType.COLOR,
-                           items.ItemChangedType.LINE_STYLE,
-                           items.ItemChangedType.LINE_WIDTH,
-                           items.ItemChangedType.SYMBOL,
-                           items.ItemChangedType.SYMBOL_SIZE]
+            styleEvents = [
+                items.ItemChangedType.COLOR,
+                items.ItemChangedType.LINE_STYLE,
+                items.ItemChangedType.LINE_WIDTH,
+                items.ItemChangedType.SYMBOL,
+                items.ItemChangedType.SYMBOL_SIZE,
+            ]
             if self.isHighlighted():
                 styleEvents.append(items.ItemChangedType.HIGHLIGHTED_STYLE)
 
@@ -625,7 +629,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
             baseSymbol = self.getSymbol()
             baseSymbolsize = self.getSymbolSize()
         else:
-            baseSymbol = 'o'
+            baseSymbol = "o"
             baseSymbolsize = 1
 
         if self.isHighlighted():
@@ -641,13 +645,16 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
                 linestyle=baseLinestyle if linestyle is None else linestyle,
                 linewidth=baseLinewidth if linewidth is None else linewidth,
                 symbol=baseSymbol if symbol is None else symbol,
-                symbolsize=baseSymbolsize if symbolsize is None else symbolsize)
+                symbolsize=baseSymbolsize if symbolsize is None else symbolsize,
+            )
         else:
-            return items.CurveStyle(color=baseColor,
-                                    linestyle=baseLinestyle,
-                                    linewidth=baseLinewidth,
-                                    symbol=baseSymbol,
-                                    symbolsize=baseSymbolsize)
+            return items.CurveStyle(
+                color=baseColor,
+                linestyle=baseLinestyle,
+                linewidth=baseLinewidth,
+                symbol=baseSymbol,
+                symbolsize=baseSymbolsize,
+            )
 
     def _editingStarted(self):
         assert self._editable is True
@@ -793,9 +800,9 @@ class HandleBasedROI(RegionOfInterest):
         color = rgba(self.getColor())
         handleColor = self._computeHandleColor(color)
         for item, role in self._handles:
-            if role == 'user':
+            if role == "user":
                 pass
-            elif role == 'label':
+            elif role == "label":
                 item.setColor(color)
             else:
                 item.setColor(handleColor)

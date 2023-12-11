@@ -35,7 +35,6 @@ from silx.gui.colors import Colormap
 
 
 class SyncPlot(qt.QMainWindow):
-
     def __init__(self):
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Plot with synchronized axes")
@@ -56,7 +55,7 @@ class SyncPlot(qt.QMainWindow):
         colormaps = ["gray", "red", "green", "blue"]
         for i in range(2 * 2):
             plot = Plot2D(parent=widget, backend=backend)
-            plot.setInteractiveMode('pan')
+            plot.setInteractiveMode("pan")
             plot.setDefaultColormap(Colormap(colormaps[i]))
             noisyData = silx.test.utils.add_gaussian_noise(data, mean=i / 10.0)
             plot.addImage(noisyData)
@@ -65,18 +64,22 @@ class SyncPlot(qt.QMainWindow):
         xAxis = [p.getXAxis() for p in plots]
         yAxis = [p.getYAxis() for p in plots]
 
-        self.constraint1 = SyncAxes(xAxis,
-                                    syncLimits=False,
-                                    syncScale=True,
-                                    syncDirection=True,
-                                    syncCenter=True,
-                                    syncZoom=True)
-        self.constraint2 = SyncAxes(yAxis,
-                                    syncLimits=False,
-                                    syncScale=True,
-                                    syncDirection=True,
-                                    syncCenter=True,
-                                    syncZoom=True)
+        self.constraint1 = SyncAxes(
+            xAxis,
+            syncLimits=False,
+            syncScale=True,
+            syncDirection=True,
+            syncCenter=True,
+            syncZoom=True,
+        )
+        self.constraint2 = SyncAxes(
+            yAxis,
+            syncLimits=False,
+            syncScale=True,
+            syncDirection=True,
+            syncCenter=True,
+            syncZoom=True,
+        )
 
         for i, plot in enumerate(plots):
             if i % 2 == 0:

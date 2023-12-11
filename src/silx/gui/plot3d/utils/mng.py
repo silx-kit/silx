@@ -47,10 +47,10 @@ def _png_chunk(name, data):
     :param str name: Chunk type
     :param byte data: Chunk payload
     """
-    length = struct.pack('>I', len(data))
-    name = [char.encode('ascii') for char in name]
-    chunk = struct.pack('cccc', *name) + data
-    crc = struct.pack('>I', zlib.crc32(chunk) & 0xffffffff)
+    length = struct.pack(">I", len(data))
+    name = [char.encode("ascii") for char in name]
+    chunk = struct.pack("cccc", *name) + data
+    crc = struct.pack(">I", zlib.crc32(chunk) & 0xFFFFFFFF)
     return length + chunk + crc
 
 
@@ -76,43 +76,46 @@ def convert(images, nb_images=0, fps=25):
             height, width = image.shape[:2]
 
             # MNG signature
-            yield b'\x8aMNG\r\n\x1a\n'
+            yield b"\x8aMNG\r\n\x1a\n"
 
             # MHDR chunk: File header
-            yield _png_chunk('MHDR', struct.pack(
-                ">IIIIIII",
-                width,
-                height,
-                fps,  # ticks
-                nb_images + 1,  # layer count
-                nb_images,  # frame count
-                nb_images,  # play time
-                1))  # profile: MNG-VLC no alpha: only least significant bit 1
+            yield _png_chunk(
+                "MHDR",
+                struct.pack(
+                    ">IIIIIII",
+                    width,
+                    height,
+                    fps,  # ticks
+                    nb_images + 1,  # layer count
+                    nb_images,  # frame count
+                    nb_images,  # play time
+                    1,
+                ),
+            )  # profile: MNG-VLC no alpha: only least significant bit 1
 
         assert image.shape == (height, width, 3)
-        assert image.dtype == numpy.dtype('uint8')
+        assert image.dtype == numpy.dtype("uint8")
 
         # IHDR chunk: Image header
         depth = 8  # 8 bit per channel
         color_type = 2  # 'truecolor' = RGB
         interlace = 0  # No
-        yield _png_chunk('IHDR', struct.pack(">IIBBBBB",
-                                             width,
-                                             height,
-                                             depth,
-                                             color_type,
-                                             0, 0, interlace))
+        yield _png_chunk(
+            "IHDR",
+            struct.pack(">IIBBBBB", width, height, depth, color_type, 0, 0, interlace),
+        )
 
         # Add filter 'None' before each scanline
-        prepared_data = b'\x00' + b'\x00'.join(
-            line.tobytes() for line in image)  # TODO optimize that
+        prepared_data = b"\x00" + b"\x00".join(
+            line.tobytes() for line in image
+        )  # TODO optimize that
         compressed_data = zlib.compress(prepared_data, 8)
 
         # IDAT chunk: Payload
-        yield _png_chunk('IDAT', compressed_data)
+        yield _png_chunk("IDAT", compressed_data)
 
         # IEND chunk: Image footer
-        yield _png_chunk('IEND', b'')
+        yield _png_chunk("IEND", b"")
 
     # MEND chunk: footer
-    yield _png_chunk('MEND', b'')
+    yield _png_chunk("MEND", b"")

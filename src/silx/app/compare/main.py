@@ -45,22 +45,21 @@ Using URL in command like usually have to be quoted: "URL".
 
 def createParser():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("files", nargs=argparse.ZERO_OR_MORE, help=file_description)
     parser.add_argument(
-        'files',
-        nargs=argparse.ZERO_OR_MORE,
-        help=file_description)
-    parser.add_argument(
-        '--debug',
+        "--debug",
         dest="debug",
         action="store_true",
         default=False,
-        help='Set logging system in debug mode')
+        help="Set logging system in debug mode",
+    )
     parser.add_argument(
-        '--use-opengl-plot',
+        "--use-opengl-plot",
         dest="use_opengl_plot",
         action="store_true",
         default=False,
-        help='Use OpenGL for plots (instead of matplotlib)')
+        help="Use OpenGL for plots (instead of matplotlib)",
+    )
     return parser
 
 
@@ -74,11 +73,9 @@ def mainQt(options):
     else:
         backend = "mpl"
 
-    settings = qt.QSettings(qt.QSettings.IniFormat,
-                            qt.QSettings.UserScope,
-                            "silx",
-                            "silx-compare",
-                            None)
+    settings = qt.QSettings(
+        qt.QSettings.IniFormat, qt.QSettings.UserScope, "silx", "silx-compare", None
+    )
 
     urls = list(parseutils.filenames_to_dataurls(options.files))
 
@@ -104,5 +101,5 @@ def main(argv):
     mainQt(options)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

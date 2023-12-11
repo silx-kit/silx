@@ -37,7 +37,6 @@ import silx.resources
 
 
 class TestResources(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestResources, cls).setUpClass()
@@ -70,74 +69,78 @@ class TestResources(unittest.TestCase):
 
     def test_resource_dir(self):
         """Get a resource directory"""
-        icons_dirname = silx.resources.resource_filename('gui/icons/')
+        icons_dirname = silx.resources.resource_filename("gui/icons/")
         self.assertTrue(os.path.isdir(icons_dirname))
 
     def test_resource_file(self):
         """Get a resource file name"""
-        filename = silx.resources.resource_filename('gui/icons/colormap.png')
+        filename = silx.resources.resource_filename("gui/icons/colormap.png")
         self.assertTrue(os.path.isfile(filename))
 
     def test_resource_nonexistent(self):
         """Get a non existent resource"""
-        filename = silx.resources.resource_filename('non_existent_file.txt')
+        filename = silx.resources.resource_filename("non_existent_file.txt")
         self.assertFalse(os.path.exists(filename))
 
     def test_isdir(self):
-        self.assertTrue(silx.resources.is_dir('gui/icons'))
+        self.assertTrue(silx.resources.is_dir("gui/icons"))
 
     def test_not_isdir(self):
-        self.assertFalse(silx.resources.is_dir('gui/icons/colormap.png'))
+        self.assertFalse(silx.resources.is_dir("gui/icons/colormap.png"))
 
     def test_list_dir(self):
-        result = silx.resources.list_dir('gui/icons')
+        result = silx.resources.list_dir("gui/icons")
         self.assertTrue(len(result) > 10)
 
     # With prefixed resources
 
     def test_resource_dir_with_prefix(self):
         """Get a resource directory"""
-        icons_dirname = silx.resources.resource_filename('silx:gui/icons/')
+        icons_dirname = silx.resources.resource_filename("silx:gui/icons/")
         self.assertTrue(os.path.isdir(icons_dirname))
 
     def test_resource_file_with_prefix(self):
         """Get a resource file name"""
-        filename = silx.resources.resource_filename('silx:gui/icons/colormap.png')
+        filename = silx.resources.resource_filename("silx:gui/icons/colormap.png")
         self.assertTrue(os.path.isfile(filename))
 
     def test_resource_nonexistent_with_prefix(self):
         """Get a non existent resource"""
-        filename = silx.resources.resource_filename('silx:non_existent_file.txt')
+        filename = silx.resources.resource_filename("silx:non_existent_file.txt")
         self.assertFalse(os.path.exists(filename))
 
     def test_isdir_with_prefix(self):
-        self.assertTrue(silx.resources.is_dir('silx:gui/icons'))
+        self.assertTrue(silx.resources.is_dir("silx:gui/icons"))
 
     def test_not_isdir_with_prefix(self):
-        self.assertFalse(silx.resources.is_dir('silx:gui/icons/colormap.png'))
+        self.assertFalse(silx.resources.is_dir("silx:gui/icons/colormap.png"))
 
     def test_list_dir_with_prefix(self):
-        result = silx.resources.list_dir('silx:gui/icons')
+        result = silx.resources.list_dir("silx:gui/icons")
         self.assertTrue(len(result) > 10)
 
     # Test new repository
 
     def test_repository_not_exists(self):
         """The resource from 'test' is available"""
-        self.assertRaises(ValueError, silx.resources.resource_filename, 'test:foo.png')
+        self.assertRaises(ValueError, silx.resources.resource_filename, "test:foo.png")
 
     def test_adding_test_directory(self):
         """The resource from 'test' is available"""
-        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
-        path = silx.resources.resource_filename('test:gui/icons/foo.png')
+        silx.resources.register_resource_directory(
+            "test", "silx.test.resources", forced_path=self.tmpDirectory
+        )
+        path = silx.resources.resource_filename("test:gui/icons/foo.png")
         self.assertTrue(os.path.exists(path))
 
     def test_adding_test_directory_no_override(self):
         """The resource from 'silx' is still available"""
-        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
-        filename1 = silx.resources.resource_filename('gui/icons/close.png')
-        filename2 = silx.resources.resource_filename('silx:gui/icons/close.png')
-        filename3 = silx.resources.resource_filename('test:gui/icons/close.png')
+        silx.resources.register_resource_directory(
+            "test", "silx.test.resources", forced_path=self.tmpDirectory
+        )
+        filename1 = silx.resources.resource_filename("gui/icons/close.png")
+        filename2 = silx.resources.resource_filename("silx:gui/icons/close.png")
+        filename3 = silx.resources.resource_filename("test:gui/icons/close.png")
         self.assertTrue(os.path.isfile(filename1))
         self.assertTrue(os.path.isfile(filename2))
         self.assertTrue(os.path.isfile(filename3))
@@ -147,16 +150,17 @@ class TestResources(unittest.TestCase):
     def test_adding_test_directory_non_existing(self):
         """A resource while not exists in test is not available anyway it exists
         in silx"""
-        silx.resources.register_resource_directory("test", "silx.test.resources", forced_path=self.tmpDirectory)
+        silx.resources.register_resource_directory(
+            "test", "silx.test.resources", forced_path=self.tmpDirectory
+        )
         resource_name = "gui/icons/colormap.png"
-        path = silx.resources.resource_filename('test:' + resource_name)
-        path2 = silx.resources.resource_filename('silx:' + resource_name)
+        path = silx.resources.resource_filename("test:" + resource_name)
+        path2 = silx.resources.resource_filename("silx:" + resource_name)
         self.assertFalse(os.path.exists(path))
         self.assertTrue(os.path.exists(path2))
 
 
 class TestResourcesWithCustomDirectory(TestResources):
-
     @classmethod
     def setUpClass(cls):
         super(TestResourcesWithCustomDirectory, cls).setUpClass()

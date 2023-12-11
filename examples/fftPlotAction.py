@@ -62,16 +62,18 @@ class FftAction(PlotAction):
     :param plot: PlotWindow on which to operate
     :param parent: See documentation of :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
         PlotAction.__init__(
-                self,
-                plot,
-                icon=qt.QIcon(my_icon),
-                text='FFT',
-                tooltip='Perform Fast Fourier Transform on all curves',
-                triggered=self.fftAllCurves,
-                checkable=True,
-                parent=parent)
+            self,
+            plot,
+            icon=qt.QIcon(my_icon),
+            text="FFT",
+            tooltip="Perform Fast Fourier Transform on all curves",
+            triggered=self.fftAllCurves,
+            checkable=True,
+            parent=parent,
+        )
 
     def _rememberGraphLabels(self):
         """Store labels and title as attributes"""
@@ -131,8 +133,7 @@ class FftAction(PlotAction):
                 info["original x"] = x
 
                 # plot the amplitude spectrum
-                self.plot.addCurve(F, A, legend="FFT of " + legend,
-                                   info=info)
+                self.plot.addCurve(F, A, legend="FFT of " + legend, info=info)
 
             else:
                 # INVERSE FFT
@@ -143,15 +144,14 @@ class FftAction(PlotAction):
 
                 # recover original info
                 x1 = info["original x"]
-                legend1 = legend[7:]    # remove "FFT of "
+                legend1 = legend[7:]  # remove "FFT of "
 
                 # remove restored data from info dict
                 for key in ["complex fft", "original x"]:
                     del info[key]
 
                 # plot the original data
-                self.plot.addCurve(x1, y1, legend=legend1,
-                                   info=info)
+                self.plot.addCurve(x1, y1, legend=legend1, info=info)
 
         self.plot.resetZoom()
 
@@ -172,13 +172,17 @@ x = numpy.arange(1000) * 0.01
 
 twopi = 2 * numpy.pi
 # Sum of sine functions with frequencies 3, 20 and 42 Hz
-y1 = numpy.sin(twopi * 3 * x) + 1.5 * numpy.sin(twopi * 20 * x) + 2 * numpy.sin(twopi * 42 * x)
+y1 = (
+    numpy.sin(twopi * 3 * x)
+    + 1.5 * numpy.sin(twopi * 20 * x)
+    + 2 * numpy.sin(twopi * 42 * x)
+)
 # Cosine with frequency 7 Hz and phase pi / 3
 y2 = numpy.cos(twopi * 7 * (x - numpy.pi / 3))
 # 5 periods of square wave, amplitude 2
 y3 = numpy.zeros_like(x)
 for i in [0, 2, 4, 6, 8]:
-    y3[i * len(x) // 10:(i + 1) * len(x) // 10] = 2
+    y3[i * len(x) // 10 : (i + 1) * len(x) // 10] = 2
 
 plotwin.addCurve(x, y1, legend="sin")
 plotwin.addCurve(x, y2, legend="cos")

@@ -36,34 +36,35 @@ from silx.gui.plot3d.scene import utils
 
 # angleBetweenVectors #########################################################
 
+
 class TestAngleBetweenVectors(ParametricTestCase):
-
     TESTS = {  # name: (refvector, vectors, norm, refangles)
-        'single vector':
-            ((1., 0., 0.), (1., 0., 0.), (0., 0., 1.), 0.),
-        'single vector, no norm':
-            ((1., 0., 0.), (1., 0., 0.), None, 0.),
-
-        'with orthogonal norm':
-            ((1., 0., 0.),
-             ((1., 0., 0.), (0., 1., 0.), (-1., 0., 0.), (0., -1., 0.)),
-             (0., 0., 1.),
-             (0., 90., 180., 270.)),
-
-        'with coplanar norm':  # = similar to no norm
-            ((1., 0., 0.),
-             ((1., 0., 0.), (0., 1., 0.), (-1., 0., 0.), (0., -1., 0.)),
-             (1., 0., 0.),
-             (0., 90., 180., 90.)),
-
-        'without norm':
-            ((1., 0., 0.),
-             ((1., 0., 0.), (0., 1., 0.), (-1., 0., 0.), (0., -1., 0.)),
-             None,
-             (0., 90., 180., 90.)),
-
-        'not unit vectors':
-            ((2., 2., 0.), ((1., 1., 0.), (1., -1., 0.)), None, (0., 90.)),
+        "single vector": ((1.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0), 0.0),
+        "single vector, no norm": ((1.0, 0.0, 0.0), (1.0, 0.0, 0.0), None, 0.0),
+        "with orthogonal norm": (
+            (1.0, 0.0, 0.0),
+            ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)),
+            (0.0, 0.0, 1.0),
+            (0.0, 90.0, 180.0, 270.0),
+        ),
+        "with coplanar norm": (  # = similar to no norm
+            (1.0, 0.0, 0.0),
+            ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)),
+            (1.0, 0.0, 0.0),
+            (0.0, 90.0, 180.0, 90.0),
+        ),
+        "without norm": (
+            (1.0, 0.0, 0.0),
+            ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)),
+            None,
+            (0.0, 90.0, 180.0, 90.0),
+        ),
+        "not unit vectors": (
+            (2.0, 2.0, 0.0),
+            ((1.0, 1.0, 0.0), (1.0, -1.0, 0.0)),
+            None,
+            (0.0, 90.0),
+        ),
     }
 
     def testAngleBetweenVectorsFunction(self):
@@ -77,14 +78,13 @@ class TestAngleBetweenVectors(ParametricTestCase):
                 if norm is not None:
                     norm = numpy.array(norm)
 
-                testangles = utils.angleBetweenVectors(
-                    refvector, vectors, norm)
+                testangles = utils.angleBetweenVectors(refvector, vectors, norm)
 
-                self.assertTrue(
-                    numpy.allclose(testangles, refangles, atol=1e-5))
+                self.assertTrue(numpy.allclose(testangles, refangles, atol=1e-5))
 
 
 # Plane #######################################################################
+
 
 class AssertNotificationContext(object):
     """Context that checks if an event.Notifier is sending events."""
@@ -117,9 +117,9 @@ class TestPlaneParameters(ParametricTestCase):
     """Test Plane.parameters read/write and notifications."""
 
     PARAMETERS = {
-        'unit normal': (1., 0., 0., 1.),
-        'not unit normal': (1., 1., 0., 1.),
-        'd = 0': (1., 0., 0., 0.)
+        "unit normal": (1.0, 0.0, 0.0, 1.0),
+        "not unit normal": (1.0, 1.0, 0.0, 1.0),
+        "d = 0": (1.0, 0.0, 0.0, 0.0),
     }
 
     def testParameters(self):
@@ -135,12 +135,9 @@ class TestPlaneParameters(ParametricTestCase):
                 normparams = parameters / numpy.linalg.norm(parameters[:3])
                 self.assertTrue(numpy.allclose(plane.parameters, normparams))
 
-    ZEROS_PARAMETERS = (
-        (0., 0., 0., 0.),
-        (0., 0., 0., 1.)
-    )
+    ZEROS_PARAMETERS = ((0.0, 0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0))
 
-    ZEROS = 0., 0., 0., 0.
+    ZEROS = 0.0, 0.0, 0.0, 0.0
 
     def testParametersNoPlane(self):
         """Test Plane.parameters with ||normal|| == 0 ."""
@@ -151,11 +148,11 @@ class TestPlaneParameters(ParametricTestCase):
             with self.subTest(parameters=parameters):
                 with AssertNotificationContext(plane, count=0):
                     plane.parameters = parameters
-                self.assertTrue(
-                    numpy.allclose(plane.parameters, self.ZEROS, 0., 0.))
+                self.assertTrue(numpy.allclose(plane.parameters, self.ZEROS, 0.0, 0.0))
 
 
 # unindexArrays ###############################################################
+
 
 class TestUnindexArrays(ParametricTestCase):
     """Test unindexArrays function."""
@@ -163,12 +160,13 @@ class TestUnindexArrays(ParametricTestCase):
     def testBasicModes(self):
         """Test for modes: points, lines and triangles"""
         indices = numpy.array((1, 2, 0))
-        arrays = (numpy.array((0., 1., 2.)),
-                  numpy.array(((0, 0), (1, 1), (2, 2))))
-        refresults = (numpy.array((1., 2., 0.)),
-                      numpy.array(((1, 1), (2, 2), (0, 0))))
+        arrays = (numpy.array((0.0, 1.0, 2.0)), numpy.array(((0, 0), (1, 1), (2, 2))))
+        refresults = (
+            numpy.array((1.0, 2.0, 0.0)),
+            numpy.array(((1, 1), (2, 2), (0, 0))),
+        )
 
-        for mode in ('points', 'lines', 'triangles'):
+        for mode in ("points", "lines", "triangles"):
             with self.subTest(mode=mode):
                 testresults = utils.unindexArrays(mode, indices, *arrays)
                 for ref, test in zip(refresults, testresults):
@@ -177,15 +175,16 @@ class TestUnindexArrays(ParametricTestCase):
     def testPackedLines(self):
         """Test for modes: line_strip, loop"""
         indices = numpy.array((1, 2, 0))
-        arrays = (numpy.array((0., 1., 2.)),
-                  numpy.array(((0, 0), (1, 1), (2, 2))))
+        arrays = (numpy.array((0.0, 1.0, 2.0)), numpy.array(((0, 0), (1, 1), (2, 2))))
         results = {
-            'line_strip': (
-                numpy.array((1., 2., 2., 0.)),
-                numpy.array(((1, 1), (2, 2), (2, 2), (0, 0)))),
-            'loop': (
-                numpy.array((1., 2., 2., 0., 0., 1.)),
-                numpy.array(((1, 1), (2, 2), (2, 2), (0, 0), (0, 0), (1, 1)))),
+            "line_strip": (
+                numpy.array((1.0, 2.0, 2.0, 0.0)),
+                numpy.array(((1, 1), (2, 2), (2, 2), (0, 0))),
+            ),
+            "loop": (
+                numpy.array((1.0, 2.0, 2.0, 0.0, 0.0, 1.0)),
+                numpy.array(((1, 1), (2, 2), (2, 2), (0, 0), (0, 0), (1, 1))),
+            ),
         }
 
         for mode, refresults in results.items():
@@ -197,15 +196,19 @@ class TestUnindexArrays(ParametricTestCase):
     def testPackedTriangles(self):
         """Test for modes: triangle_strip, fan"""
         indices = numpy.array((1, 2, 0, 3))
-        arrays = (numpy.array((0., 1., 2., 3.)),
-                  numpy.array(((0, 0), (1, 1), (2, 2), (3, 3))))
+        arrays = (
+            numpy.array((0.0, 1.0, 2.0, 3.0)),
+            numpy.array(((0, 0), (1, 1), (2, 2), (3, 3))),
+        )
         results = {
-            'triangle_strip': (
-                numpy.array((1., 2., 0., 2., 0., 3.)),
-                numpy.array(((1, 1), (2, 2), (0, 0), (2, 2), (0, 0), (3, 3)))),
-            'fan': (
-                numpy.array((1., 2., 0., 1., 0., 3.)),
-                numpy.array(((1, 1), (2, 2), (0, 0), (1, 1), (0, 0), (3, 3)))),
+            "triangle_strip": (
+                numpy.array((1.0, 2.0, 0.0, 2.0, 0.0, 3.0)),
+                numpy.array(((1, 1), (2, 2), (0, 0), (2, 2), (0, 0), (3, 3))),
+            ),
+            "fan": (
+                numpy.array((1.0, 2.0, 0.0, 1.0, 0.0, 3.0)),
+                numpy.array(((1, 1), (2, 2), (0, 0), (1, 1), (0, 0), (3, 3))),
+            ),
         }
 
         for mode, refresults in results.items():
@@ -220,14 +223,15 @@ class TestUnindexArrays(ParametricTestCase):
 
         # negative indices
         with self.assertRaises(AssertionError):
-            utils.unindexArrays('points', (-1, 0), *arrays)
+            utils.unindexArrays("points", (-1, 0), *arrays)
 
         # Too high indices
         with self.assertRaises(AssertionError):
-            utils.unindexArrays('points', (0, 10), *arrays)
+            utils.unindexArrays("points", (0, 10), *arrays)
 
 
 # triangleNormals #############################################################
+
 
 class TestTriangleNormals(ParametricTestCase):
     """Test triangleNormals function."""
@@ -235,20 +239,33 @@ class TestTriangleNormals(ParametricTestCase):
     def test(self):
         """Test for modes: points, lines and triangles"""
         positions = numpy.array(
-            ((0., 0., 0.), (1., 0., 0.), (0., 1., 0.),  # normal = Z
-             (1., 1., 1.), (1., 2., 3.), (4., 5., 6.),  # Random triangle
-             # Degenerated triangles:
-             (0., 0., 0.), (1., 0., 0.), (2., 0., 0.),  # Colinear points
-             (1., 1., 1.), (1., 1., 1.), (1., 1., 1.),  # All same point
-             ),
-            dtype='float32')
+            (
+                (0.0, 0.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0),  # normal = Z
+                (1.0, 1.0, 1.0),
+                (1.0, 2.0, 3.0),
+                (4.0, 5.0, 6.0),  # Random triangle
+                # Degenerated triangles:
+                (0.0, 0.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (2.0, 0.0, 0.0),  # Colinear points
+                (1.0, 1.0, 1.0),
+                (1.0, 1.0, 1.0),
+                (1.0, 1.0, 1.0),  # All same point
+            ),
+            dtype="float32",
+        )
 
         normals = numpy.array(
-            ((0., 0., 1.),
-             (-0.40824829,  0.81649658, -0.40824829),
-             (0., 0., 0.),
-             (0., 0., 0.)),
-            dtype='float32')
+            (
+                (0.0, 0.0, 1.0),
+                (-0.40824829, 0.81649658, -0.40824829),
+                (0.0, 0.0, 0.0),
+                (0.0, 0.0, 0.0),
+            ),
+            dtype="float32",
+        )
 
         testnormals = utils.trianglesNormal(positions)
         self.assertTrue(numpy.allclose(testnormals, normals))

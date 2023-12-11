@@ -40,6 +40,7 @@ from silx.math.fit import leastsq
 # -------------------- Filtering-related functions -----------------------------
 # ------------------------------------------------------------------------------
 
+
 def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
     """
     Compute the Ramachandran-Lakshminarayanan (Ram-Lak) filter, used in
@@ -50,11 +51,11 @@ def compute_ramlak_filter(dwidth_padded, dtype=np.float32):
     """
     L = dwidth_padded
     h = np.zeros(L, dtype=dtype)
-    L2 = L//2+1
-    h[0] = 1/4.
-    j = np.linspace(1, L2, L2//2, False).astype(dtype) # np < 1.9.0
-    h[1:L2:2] = -1./(pi**2 * j**2)
-    h[L2:] = np.copy(h[1:L2-1][::-1])
+    L2 = L // 2 + 1
+    h[0] = 1 / 4.0
+    j = np.linspace(1, L2, L2 // 2, False).astype(dtype)  # np < 1.9.0
+    h[1:L2:2] = -1.0 / (pi**2 * j**2)
+    h[L2:] = np.copy(h[1 : L2 - 1][::-1])
     return h
 
 
@@ -66,14 +67,14 @@ def tukey(N, alpha=0.5):
     :param float alpha:
     """
     apod = np.zeros(N)
-    x = np.arange(N)/(N-1)
+    x = np.arange(N) / (N - 1)
     r = alpha
-    M1 = (0 <= x) * (x < r/2)
-    M2 = (r/2 <= x) * (x <= 1 - r/2)
-    M3 = (1 - r/2 < x) * (x <= 1)
-    apod[M1] = (1 + np.cos(2*pi/r * (x[M1] - r/2)))/2.
-    apod[M2] = 1.
-    apod[M3] = (1 + np.cos(2*pi/r * (x[M3] - 1 + r/2)))/2.
+    M1 = (0 <= x) * (x < r / 2)
+    M2 = (r / 2 <= x) * (x <= 1 - r / 2)
+    M3 = (1 - r / 2 < x) * (x <= 1)
+    apod[M1] = (1 + np.cos(2 * pi / r * (x[M1] - r / 2))) / 2.0
+    apod[M2] = 1.0
+    apod[M3] = (1 + np.cos(2 * pi / r * (x[M3] - 1 + r / 2))) / 2.0
     return apod
 
 
@@ -83,11 +84,11 @@ def lanczos(N):
 
     :param int N: window width
     """
-    x = np.arange(N)/(N-1)
-    return np.sin(pi*(2*x-1))/(pi*(2*x-1))
+    x = np.arange(N) / (N - 1)
+    return np.sin(pi * (2 * x - 1)) / (pi * (2 * x - 1))
 
 
-def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
+def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.0):
     """
     Compute the filter used for FBP.
 
@@ -98,7 +99,7 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
     :param cutoff: Cut-off frequency, if relevant.
     """
     Nf = dwidth_padded
-    #~ filt_f = np.abs(np.fft.fftfreq(Nf))
+    # ~ filt_f = np.abs(np.fft.fftfreq(Nf))
     rl = compute_ramlak_filter(Nf, dtype=np.float64)
     filt_f = np.fft.fft(rl)
 
@@ -110,20 +111,22 @@ def compute_fourier_filter(dwidth_padded, filter_name, cutoff=1.):
     d = cutoff
     apodization = {
         # ~OK
-        "shepp-logan": np.sin(w[1:Nf]/(2*d))/(w[1:Nf]/(2*d)),
+        "shepp-logan": np.sin(w[1:Nf] / (2 * d)) / (w[1:Nf] / (2 * d)),
         # ~OK
-        "cosine": np.cos(w[1:Nf]/(2*d)),
+        "cosine": np.cos(w[1:Nf] / (2 * d)),
         # OK
-        "hamming": 0.54*np.ones_like(filt_f)[1:Nf] + .46 * np.cos(w[1:Nf]/d),
+        "hamming": 0.54 * np.ones_like(filt_f)[1:Nf] + 0.46 * np.cos(w[1:Nf] / d),
         # OK
-        "hann": (np.ones_like(filt_f)[1:Nf] + np.cos(w[1:Nf]/d))/2.,
+        "hann": (np.ones_like(filt_f)[1:Nf] + np.cos(w[1:Nf] / d)) / 2.0,
         # These one is not compatible with Astra - TODO investigate why
-        "tukey": np.fft.fftshift(tukey(dwidth_padded, alpha=d/2.))[1:Nf],
+        "tukey": np.fft.fftshift(tukey(dwidth_padded, alpha=d / 2.0))[1:Nf],
         "lanczos": np.fft.fftshift(lanczos(dwidth_padded))[1:Nf],
     }
     if filter_name not in apodization:
-        raise ValueError("Unknown filter %s. Available filters are %s" %
-                         (filter_name, str(apodization.keys())))
+        raise ValueError(
+            "Unknown filter %s. Available filters are %s"
+            % (filter_name, str(apodization.keys()))
+        )
     filt_f[1:Nf] *= apodization[filter_name]
     return filt_f
 
@@ -142,11 +145,11 @@ def generate_powers():
         # not multiple of 4 (Ram-Lak filter behaves strangely when
         # dwidth_padded/2 is not even)
         minval = 2 if prime == 2 else 0
-        valuations.append(range(minval, maxpow[prime]+1))
+        valuations.append(range(minval, maxpow[prime] + 1))
     powers = product(*valuations)
     res = []
     for pw in powers:
-        res.append(np.prod(list(map(lambda x : x[0]**x[1], zip(primes, pw)))))
+        res.append(np.prod(list(map(lambda x: x[0] ** x[1], zip(primes, pw)))))
     return np.unique(res)
 
 
@@ -158,7 +161,7 @@ def get_next_power(n, powers=None):
     if powers is None:
         powers = generate_powers()
     idx = bisect(powers, n)
-    if powers[idx-1] == n:
+    if powers[idx - 1] == n:
         return n
     return powers[idx]
 
@@ -166,7 +169,6 @@ def get_next_power(n, powers=None):
 # ------------------------------------------------------------------------------
 # ------------- Functions for determining the center of rotation  --------------
 # ------------------------------------------------------------------------------
-
 
 
 def calc_center_corr(sino, fullrot=False, props=1):
@@ -189,7 +191,7 @@ def calc_center_corr(sino, fullrot=False, props=1):
 
     n_a, n_d = sino.shape
     first = 0
-    last = -1 if not(fullrot) else n_a // 2
+    last = -1 if not (fullrot) else n_a // 2
     proj1 = sino[first, :]
     proj2 = sino[last, :][::-1]
 
@@ -202,11 +204,11 @@ def calc_center_corr(sino, fullrot=False, props=1):
         pos = np.argmax(corr)
         if pos > n_d // 2:
             pos -= n_d
-        return (n_d + pos) / 2.
+        return (n_d + pos) / 2.0
     else:
         corr_argsorted = np.argsort(corr)[:props]
         corr_argsorted[corr_argsorted > n_d // 2] -= n_d
-        return (n_d + corr_argsorted) / 2.
+        return (n_d + corr_argsorted) / 2.0
 
 
 def _sine_function(t, offset, amplitude, phase):
@@ -214,7 +216,7 @@ def _sine_function(t, offset, amplitude, phase):
     Helper function for calc_center_centroid
     """
     n_angles = t.shape[0]
-    res = amplitude * np.sin(2 * pi * (1. / (2 * n_angles)) * t + phase)
+    res = amplitude * np.sin(2 * pi * (1.0 / (2 * n_angles)) * t + phase)
     return offset + res
 
 
@@ -224,8 +226,8 @@ def _sine_function_derivative(t, params, eval_idx):
     """
     offset, amplitude, phase = params
     n_angles = t.shape[0]
-    w = 2.0 * pi * (1. / (2.0 * n_angles)) * t + phase
-    grad = (1.0, np.sin(w), amplitude*np.cos(w))
+    w = 2.0 * pi * (1.0 / (2.0 * n_angles)) * t + phase
+    grad = (1.0, np.sin(w), amplitude * np.cos(w))
     return grad[eval_idx]
 
 
@@ -243,35 +245,36 @@ def calc_center_centroid(sino):
     n_a, n_d = sino.shape
     # Compute the vector of centroids of the sinogram
     i = np.arange(n_d)
-    centroids = np.sum(sino*i, axis=1)/np.sum(sino, axis=1)
+    centroids = np.sum(sino * i, axis=1) / np.sum(sino, axis=1)
 
     # Fit with a sine function : phase, amplitude, offset
     # Using non-linear Levenberg–Marquardt  algorithm
     angles = np.linspace(0, n_a, n_a, True)
     # Initial parameter vector
     cmax, cmin = centroids.max(), centroids.min()
-    offs = (cmax + cmin) / 2.
-    amp = (cmax - cmin) / 2.
+    offs = (cmax + cmin) / 2.0
+    amp = (cmax - cmin) / 2.0
     phi = 1.1
     p0 = (offs, amp, phi)
 
     constraints = np.zeros((3, 3))
 
-    popt, _ = leastsq(model=_sine_function,
-                      xdata=angles,
-                      ydata=centroids,
-                      p0=p0,
-                      sigma=None,
-                      constraints=constraints,
-                      model_deriv=None,
-                      epsfcn=None,
-                      deltachi=None,
-                      full_output=0,
-                      check_finite=True,
-                      left_derivative=False,
-                      max_iter=100)
+    popt, _ = leastsq(
+        model=_sine_function,
+        xdata=angles,
+        ydata=centroids,
+        p0=p0,
+        sigma=None,
+        constraints=constraints,
+        model_deriv=None,
+        epsfcn=None,
+        deltachi=None,
+        full_output=0,
+        check_finite=True,
+        left_derivative=False,
+        max_iter=100,
+    )
     return popt[0]
-
 
 
 # ------------------------------------------------------------------------------
@@ -292,9 +295,8 @@ def rescale_intensity(img, from_subimg=None, percentiles=None):
         percentiles = [2, 98]
     else:
         assert type(percentiles) in (tuple, list)
-        assert(len(percentiles) == 2)
+        assert len(percentiles) == 2
     data = from_subimg if from_subimg is not None else img
     imin, imax = np.percentile(data, percentiles)
     res = np.clip(img, imin, imax)
     return res
-

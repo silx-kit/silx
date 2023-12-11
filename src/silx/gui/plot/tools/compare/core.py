@@ -38,6 +38,7 @@ from silx.gui.plot.items.image import ImageBase
 from silx.gui.plot.items.core import ItemChangedType, ColormapMixIn
 
 from silx.opencl import ocl
+
 if ocl is not None:
     try:
         from silx.opencl import sift
@@ -51,10 +52,11 @@ else:  # No OpenCL device or no pyopencl
 @enum.unique
 class VisualizationMode(enum.Enum):
     """Enum for each visualization mode available."""
-    ONLY_A = 'a'
-    ONLY_B = 'b'
-    VERTICAL_LINE = 'vline'
-    HORIZONTAL_LINE = 'hline'
+
+    ONLY_A = "a"
+    ONLY_B = "b"
+    VERTICAL_LINE = "vline"
+    HORIZONTAL_LINE = "hline"
     COMPOSITE_RED_BLUE_GRAY = "rbgchannel"
     COMPOSITE_RED_BLUE_GRAY_NEG = "rbgnegchannel"
     COMPOSITE_A_MINUS_B = "aminusb"
@@ -63,16 +65,18 @@ class VisualizationMode(enum.Enum):
 @enum.unique
 class AlignmentMode(enum.Enum):
     """Enum for each alignment mode available."""
-    ORIGIN = 'origin'
-    CENTER = 'center'
-    STRETCH = 'stretch'
-    AUTO = 'auto'
+
+    ORIGIN = "origin"
+    CENTER = "center"
+    STRETCH = "stretch"
+    AUTO = "auto"
 
 
 class AffineTransformation(NamedTuple):
     """Description of a 2D affine transformation: translation, scale and
     rotation.
     """
+
     tx: float
     ty: float
     sx: float
@@ -120,8 +124,10 @@ class _CompareImageItem(ImageBase, ColormapMixIn):
         If the colormap is using a fixed range, it is updated in order to set
         a similar range with the new data.
         """
-        normalize_colormap = (previousMode == VisualizationMode.COMPOSITE_A_MINUS_B
-                              or mode == VisualizationMode.COMPOSITE_A_MINUS_B)
+        normalize_colormap = (
+            previousMode == VisualizationMode.COMPOSITE_A_MINUS_B
+            or mode == VisualizationMode.COMPOSITE_A_MINUS_B
+        )
         if normalize_colormap:
             data = self._getConcatenatedData(copy=False)
             if data is None or data.size == 0:
@@ -168,7 +174,9 @@ class _CompareImageItem(ImageBase, ColormapMixIn):
         if self.__vizualisationMode == VisualizationMode.COMPOSITE_A_MINUS_B:
             # In this case the histogram have to be special
             if self.__image1.shape == self.__image2.shape:
-                return self.__image1.astype(numpy.float32) - self.__image2.astype(numpy.float32)
+                return self.__image1.astype(numpy.float32) - self.__image2.astype(
+                    numpy.float32
+                )
         else:
             d1 = self.__image1[numpy.isfinite(self.__image1)]
             d2 = self.__image2[numpy.isfinite(self.__image2)]

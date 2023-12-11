@@ -568,7 +568,7 @@ class _Model(qt.QStandardItemModel):
         """
         if isinstance(item, _NxDataItem):
             parent = item.parent()
-            assert(parent is None)
+            assert parent is None
             model = item.model()
             model.removeRow(item.row())
         else:
@@ -693,7 +693,7 @@ class CustomNxDataToolBar(qt.QToolBar):
 
     def setCustomNxDataWidget(self, widget):
         """Set the linked CustomNxdataWidget to this toolbar."""
-        assert(isinstance(widget, CustomNxdataWidget))
+        assert isinstance(widget, CustomNxdataWidget)
         if self.__nxdataWidget is not None:
             selectionModel = self.__nxdataWidget.selectionModel()
             selectionModel.currentChanged.disconnect(self.__currentSelectionChanged)
@@ -713,7 +713,9 @@ class CustomNxDataToolBar(qt.QToolBar):
             item = model.itemFromIndex(index)
         self.__removeNxDataAction.setEnabled(isinstance(item, _NxDataItem))
         self.__removeNxDataAxisAction.setEnabled(isinstance(item, _DatasetAxisItemRow))
-        self.__addNxDataAxisAction.setEnabled(isinstance(item, _NxDataItem) or isinstance(item, _DatasetItemRow))
+        self.__addNxDataAxisAction.setEnabled(
+            isinstance(item, _NxDataItem) or isinstance(item, _DatasetItemRow)
+        )
 
 
 class _HashDropZones(qt.QStyledItemDelegate):
@@ -847,7 +849,9 @@ class CustomNxdataWidget(qt.QTreeView):
 
         if isinstance(item, _NxDataItem):
             action = qt.QAction("Add a new axis", menu)
-            action.triggered.connect(lambda: weakself.model().appendAxisToNxdataItem(item))
+            action.triggered.connect(
+                lambda: weakself.model().appendAxisToNxdataItem(item)
+            )
             action.setIcon(icons.getQIcon("nxdata-axis-add"))
             action.setIconVisibleInMenu(True)
             menu.addAction(action)

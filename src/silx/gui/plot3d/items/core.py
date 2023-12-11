@@ -44,25 +44,25 @@ from ._pick import PickContext
 class Item3DChangedType(enum.Enum):
     """Type of modification provided by :attr:`Item3D.sigItemChanged` signal."""
 
-    INTERPOLATION = 'interpolationChanged'
+    INTERPOLATION = "interpolationChanged"
     """Item3D image interpolation changed flag."""
 
-    TRANSFORM = 'transformChanged'
+    TRANSFORM = "transformChanged"
     """Item3D transform changed flag."""
 
-    HEIGHT_MAP = 'heightMapChanged'
+    HEIGHT_MAP = "heightMapChanged"
     """Item3D height map changed flag."""
 
-    ISO_LEVEL = 'isoLevelChanged'
+    ISO_LEVEL = "isoLevelChanged"
     """Isosurface level changed flag."""
 
-    LABEL = 'labelChanged'
+    LABEL = "labelChanged"
     """Item's label changed flag."""
 
-    BOUNDING_BOX_VISIBLE = 'boundingBoxVisibleChanged'
+    BOUNDING_BOX_VISIBLE = "boundingBoxVisibleChanged"
     """Item's bounding box visibility changed"""
 
-    ROOT_ITEM = 'rootItemChanged'
+    ROOT_ITEM = "rootItemChanged"
     """Item's root changed flag."""
 
 
@@ -99,7 +99,7 @@ class Item3D(qt.QObject):
         labelIndex = self._LABEL_INDICES[self.__class__]
         self._label = str(self.__class__.__name__)
         if labelIndex != 0:
-            self._label += u' %d' % labelIndex
+            self._label += " %d" % labelIndex
         self._LABEL_INDICES[self.__class__] += 1
 
     def setParent(self, parent):
@@ -202,7 +202,7 @@ class Item3D(qt.QObject):
         :param color: RGBA color
         :type color: tuple of 4 float in [0., 1.]
         """
-        if hasattr(super(Item3D, self), '_setForegroundColor'):
+        if hasattr(super(Item3D, self), "_setForegroundColor"):
             super(Item3D, self)._setForegroundColor(color)
 
     def __syncForegroundColor(self):
@@ -212,8 +212,7 @@ class Item3D(qt.QObject):
         if root is not None:
             widget = root.parent()
             if isinstance(widget, qt.QWidget):
-                self._setForegroundColor(
-                    widget.getForegroundColor().getRgbF())
+                self._setForegroundColor(widget.getForegroundColor().getRgbF())
 
     # picking
 
@@ -224,10 +223,12 @@ class Item3D(qt.QObject):
         :return: Data indices at picked position or None
         :rtype: Union[None,PickingResult]
         """
-        if (self.isVisible() and
-                context.isEnabled() and
-                context.isItemPickable(self) and
-                self._pickFastCheck(context)):
+        if (
+            self.isVisible()
+            and context.isEnabled()
+            and context.isItemPickable(self)
+            and self._pickFastCheck(context)
+        ):
             return self._pickFull(context)
         return None
 
@@ -250,8 +251,10 @@ class Item3D(qt.QObject):
 
         bounds = primitive.objectToNDCTransform.transformBounds(bounds)
 
-        return (bounds[0, 0] <= positionNdc[0] <= bounds[1, 0] and
-                bounds[0, 1] <= positionNdc[1] <= bounds[1, 1])
+        return (
+            bounds[0, 0] <= positionNdc[0] <= bounds[1, 0]
+            and bounds[0, 1] <= positionNdc[1] <= bounds[1, 1]
+        )
 
     def _pickFull(self, context):
         """Perform precise picking in this item at given widget position.
@@ -294,17 +297,21 @@ class DataItem3D(Item3D):
         # Group transforms to do to data before rotation
         # This is useful to handle rotation center relative to bbox
         self._transformObjectToRotate = transform.TransformList(
-            [self._matrix, self._scale])
+            [self._matrix, self._scale]
+        )
         self._transformObjectToRotate.addListener(self._updateRotationCenter)
 
-        self._rotationCenter = 0., 0., 0.
+        self._rotationCenter = 0.0, 0.0, 0.0
 
-        self.__transforms = transform.TransformList([
-            self._translate,
-            self._rotateForwardTranslation,
-            self._rotate,
-            self._rotateBackwardTranslation,
-            self._transformObjectToRotate])
+        self.__transforms = transform.TransformList(
+            [
+                self._translate,
+                self._rotateForwardTranslation,
+                self._rotate,
+                self._rotateBackwardTranslation,
+                self._transformObjectToRotate,
+            ]
+        )
 
         self._getScenePrimitive().transforms = self.__transforms
 
@@ -326,7 +333,7 @@ class DataItem3D(Item3D):
         """
         return self.__transforms
 
-    def setScale(self, sx=1., sy=1., sz=1.):
+    def setScale(self, sx=1.0, sy=1.0, sz=1.0):
         """Set the scale of the item in the scene.
 
         :param float sx: Scale factor along the X axis
@@ -345,7 +352,7 @@ class DataItem3D(Item3D):
         """
         return self._scale.scale
 
-    def setTranslation(self, x=0., y=0., z=0.):
+    def setTranslation(self, x=0.0, y=0.0, z=0.0):
         """Set the translation of the origin of the item in the scene.
 
         :param float x: Offset of the data origin on the X axis
@@ -364,7 +371,7 @@ class DataItem3D(Item3D):
         """
         return self._translate.translation
 
-    _ROTATION_CENTER_TAGS = 'lower', 'center', 'upper'
+    _ROTATION_CENTER_TAGS = "lower", "center", "upper"
 
     def _updateRotationCenter(self, *args, **kwargs):
         """Update rotation center relative to bounding box"""
@@ -373,28 +380,31 @@ class DataItem3D(Item3D):
             # Patch position relative to bounding box
             if position in self._ROTATION_CENTER_TAGS:
                 bounds = self._getScenePrimitive().bounds(
-                    transformed=False, dataBounds=True)
+                    transformed=False, dataBounds=True
+                )
                 bounds = self._transformObjectToRotate.transformBounds(bounds)
 
                 if bounds is None:
-                    position = 0.
-                elif position == 'lower':
+                    position = 0.0
+                elif position == "lower":
                     position = bounds[0, index]
-                elif position == 'center':
+                elif position == "center":
                     position = 0.5 * (bounds[0, index] + bounds[1, index])
-                elif position == 'upper':
+                elif position == "upper":
                     position = bounds[1, index]
 
             center.append(position)
 
-        if not numpy.all(numpy.equal(
-                center, self._rotateForwardTranslation.translation)):
+        if not numpy.all(
+            numpy.equal(center, self._rotateForwardTranslation.translation)
+        ):
             self._rotateForwardTranslation.translation = center
-            self._rotateBackwardTranslation.translation = \
-                - self._rotateForwardTranslation.translation
+            self._rotateBackwardTranslation.translation = (
+                -self._rotateForwardTranslation.translation
+            )
             self._updated(Item3DChangedType.TRANSFORM)
 
-    def setRotationCenter(self, x=0., y=0., z=0.):
+    def setRotationCenter(self, x=0.0, y=0.0, z=0.0):
         """Set the center of rotation of the item.
 
         Position of the rotation center is either a float
@@ -429,7 +439,7 @@ class DataItem3D(Item3D):
         """
         return self._rotationCenter
 
-    def setRotation(self, angle=0., axis=(0., 0., 1.)):
+    def setRotation(self, angle=0.0, axis=(0.0, 0.0, 1.0)):
         """Set the rotation of the item in the scene
 
         :param float angle: The rotation angle in degrees.
@@ -438,8 +448,9 @@ class DataItem3D(Item3D):
         axis = numpy.array(axis, dtype=numpy.float32)
         assert axis.ndim == 1
         assert axis.size == 3
-        if (self._rotate.angle != angle or
-                not numpy.all(numpy.equal(axis, self._rotate.axis))):
+        if self._rotate.angle != angle or not numpy.all(
+            numpy.equal(axis, self._rotate.axis)
+        ):
             self._rotate.setAngleAxis(angle, axis)
             self._updated(Item3DChangedType.TRANSFORM)
 
@@ -521,7 +532,7 @@ class BaseNodeItem(DataItem3D):
 
         :rtype: tuple
         """
-        raise NotImplementedError('getItems must be implemented in subclass')
+        raise NotImplementedError("getItems must be implemented in subclass")
 
     def visit(self, included=True):
         """Generator visiting the group content.
@@ -534,7 +545,7 @@ class BaseNodeItem(DataItem3D):
             yield self
         for child in self.getItems():
             yield child
-            if hasattr(child, 'visit'):
+            if hasattr(child, "visit"):
                 for item in child.visit(included=False):
                     yield item
 
@@ -553,8 +564,7 @@ class BaseNodeItem(DataItem3D):
         """
         viewport = self._getScenePrimitive().viewport
         if viewport is None:
-            raise RuntimeError(
-                'Cannot perform picking: Item not attached to a widget')
+            raise RuntimeError("Cannot perform picking: Item not attached to a widget")
 
         context = PickContext(x, y, viewport, condition)
         for result in self._pickItems(context):
@@ -637,12 +647,10 @@ class _BaseGroupItem(BaseNodeItem):
 
         item.setParent(self)
         if index is None:
-            self._getGroupPrimitive().children.append(
-                item._getScenePrimitive())
+            self._getGroupPrimitive().children.append(item._getScenePrimitive())
             self._items.append(item)
         else:
-            self._getGroupPrimitive().children.insert(
-                index, item._getScenePrimitive())
+            self._getGroupPrimitive().children.insert(index, item._getScenePrimitive())
             self._items.insert(index, item)
         self.sigItemAdded.emit(item)
 
@@ -690,8 +698,9 @@ class GroupWithAxesItem(_BaseGroupItem):
 
         :param parent: The View widget this item belongs to.
         """
-        super(GroupWithAxesItem, self).__init__(parent=parent,
-                                                group=axes.LabelledAxes())
+        super(GroupWithAxesItem, self).__init__(
+            parent=parent, group=axes.LabelledAxes()
+        )
 
     # Axes labels
 
@@ -746,9 +755,9 @@ class GroupWithAxesItem(_BaseGroupItem):
         :return: object describing the labels
         """
         labelledAxes = self._getScenePrimitive()
-        return self._Labels((labelledAxes.xlabel,
-                             labelledAxes.ylabel,
-                             labelledAxes.zlabel))
+        return self._Labels(
+            (labelledAxes.xlabel, labelledAxes.ylabel, labelledAxes.zlabel)
+        )
 
 
 class RootGroupWithAxesItem(GroupWithAxesItem):

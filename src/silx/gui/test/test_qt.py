@@ -36,6 +36,7 @@ from silx.test.utils import temp_dir
 from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
+
 try:
     from silx.gui.qt import inspect as qt_inspect
 except ImportError:
@@ -146,7 +147,7 @@ class TestLoadUi(TestCaseQt):
             uifile = os.path.join(tmp, "test.ui")
 
             # write file
-            with open(uifile, mode='w') as f:
+            with open(uifile, mode="w") as f:
                 f.write(self.TEST_UI)
 
             class TestMainWindow(qt.QMainWindow):
@@ -185,12 +186,11 @@ class TestQtInspect(unittest.TestCase):
         self.assertFalse(qt_inspect.isValid(obj))
 
 
-@pytest.mark.skipif(qt.BINDING != "PyQt5",
-                    reason="PyQt5 only test")
+@pytest.mark.skipif(qt.BINDING != "PyQt5", reason="PyQt5 only test")
 def test_exec_():
     """Test the exec_ is still useable with Qt5 bindings"""
     klasses = [
-        #QtWidgets
+        # QtWidgets
         qt.QApplication,
         qt.QColorDialog,
         qt.QDialog,
@@ -201,11 +201,15 @@ def test_exec_():
         qt.QMenu,
         qt.QMessageBox,
         qt.QProgressDialog,
-        #QtCore
+        # QtCore
         qt.QCoreApplication,
         qt.QEventLoop,
         qt.QThread,
     ]
     for klass in klasses:
-        assert hasattr(klass, "exec") and callable(klass.exec), "%s.exec missing" % klass.__name__
-        assert hasattr(klass, "exec_") and callable(klass.exec_), "%s.exec_ missing" % klass.__name__
+        assert hasattr(klass, "exec") and callable(klass.exec), (
+            "%s.exec missing" % klass.__name__
+        )
+        assert hasattr(klass, "exec_") and callable(klass.exec_), (
+            "%s.exec_ missing" % klass.__name__
+        )

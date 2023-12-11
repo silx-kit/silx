@@ -242,7 +242,7 @@ class StaticRow(BaseRow):
     :param children: Iterable of BaseRow to start with (not signaled)
     """
 
-    def __init__(self, display=('', None), roles=None, children=()):
+    def __init__(self, display=("", None), roles=None, children=()):
         super(StaticRow, self).__init__(children)
         self._dataByRoles = {} if roles is None else roles
         self._dataByRoles[qt.Qt.DisplayRole] = display
@@ -278,15 +278,16 @@ class ProxyRow(BaseRow):
     :param editorHint: Data to provide as UserRole for editor selection/setup
     """
 
-    def __init__(self,
-                 name='',
-                 fget=None,
-                 fset=None,
-                 notify=None,
-                 toModelData=None,
-                 fromModelData=None,
-                 editorHint=None):
-
+    def __init__(
+        self,
+        name="",
+        fget=None,
+        fset=None,
+        notify=None,
+        toModelData=None,
+        fromModelData=None,
+        editorHint=None,
+    ):
         super(ProxyRow, self).__init__()
         self.__name = name
         self.__editorHint = editorHint
@@ -317,8 +318,9 @@ class ProxyRow(BaseRow):
         elif column == 1:
             if role == qt.Qt.UserRole:  # EditorHint
                 return self.__editorHint
-            elif role == qt.Qt.DisplayRole or (role == qt.Qt.EditRole and
-                                               self._fset is not None):
+            elif role == qt.Qt.DisplayRole or (
+                role == qt.Qt.EditRole and self._fset is not None
+            ):
                 data = self._fget()
                 if self._toModelData is not None:
                     data = self._toModelData(data)
@@ -364,6 +366,6 @@ class AngleDegreeRow(ProxyRow):
 
     def data(self, column, role):
         if column == 1 and role == qt.Qt.DisplayRole:
-            return u'%g°' % super(AngleDegreeRow, self).data(column, role)
+            return "%g°" % super(AngleDegreeRow, self).data(column, role)
         else:
             return super(AngleDegreeRow, self).data(column, role)

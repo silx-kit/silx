@@ -80,7 +80,7 @@ class MarchingSquaresSciKitImage(object):
             if len(polyline) == 0:
                 continue
             integer_polyline = numpy.floor(polyline + delta)
-            result[size:size + len(polyline)] = integer_polyline
+            result[size : size + len(polyline)] = integer_polyline
             size += len(polyline)
 
         if len(result) == 0:

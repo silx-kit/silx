@@ -32,7 +32,6 @@ from .._mergeimpl import MarchingSquaresMergeImpl
 
 
 class TestMergeImplApi(unittest.TestCase):
-
     def test_image_not_an_array(self):
         bad_image = 1
         self.assertRaises(ValueError, MarchingSquaresMergeImpl, bad_image)
@@ -114,7 +113,6 @@ class TestMergeImplApi(unittest.TestCase):
 
 
 class TestMergeImplContours(unittest.TestCase):
-
     def test_merge_segments(self):
         image = numpy.zeros((4, 4))
         image[(2, 3), :] = 1
@@ -234,8 +232,8 @@ class TestMergeImplContours(unittest.TestCase):
 
     def test_image(self):
         # example from skimage
-        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask)
         polygons = ms.find_contours(0.5)
@@ -244,8 +242,8 @@ class TestMergeImplContours(unittest.TestCase):
 
     def test_image_tiled(self):
         # example from skimage
-        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask, group_size=50)
         polygons = ms.find_contours(0.5)
@@ -254,8 +252,8 @@ class TestMergeImplContours(unittest.TestCase):
 
     def test_image_tiled_minmax(self):
         # example from skimage
-        x, y = numpy.ogrid[-numpy.pi:numpy.pi:100j, -numpy.pi:numpy.pi:100j]
-        image = numpy.sin(numpy.exp((numpy.sin(x)**3 + numpy.cos(y)**2)))
+        x, y = numpy.ogrid[-numpy.pi : numpy.pi : 100j, -numpy.pi : numpy.pi : 100j]
+        image = numpy.sin(numpy.exp((numpy.sin(x) ** 3 + numpy.cos(y) ** 2)))
         mask = None
         ms = MarchingSquaresMergeImpl(image, mask, group_size=50, use_minmax_cache=True)
         polygons = ms.find_contours(0.5)

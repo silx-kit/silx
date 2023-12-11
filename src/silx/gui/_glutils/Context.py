@@ -36,7 +36,9 @@ import contextlib
 
 class _DEFAULT_CONTEXT(object):
     """The default value for OpenGL context"""
+
     pass
+
 
 _context = _DEFAULT_CONTEXT
 """The current OpenGL context"""

@@ -53,10 +53,10 @@ class _VoidConnector(object):
             pos = bufferId << 10
             data = self.__data
             if hasattr(data, "tobytes"):
-                data = data.tobytes()[pos:pos + 1024]
+                data = data.tobytes()[pos : pos + 1024]
             else:
                 # Old fashion
-                data = data.data[pos:pos + 1024]
+                data = data.data[pos : pos + 1024]
 
             self.__cache[bufferId] = data
             if len(self.__cache) > 32:
@@ -96,6 +96,7 @@ class HexaTableModel(qt.QAbstractTableModel):
     :param qt.QObject parent: Parent object
     :param data: A numpy array or a h5py dataset
     """
+
     def __init__(self, parent=None, data=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
@@ -134,7 +135,7 @@ class HexaTableModel(qt.QAbstractTableModel):
 
         if role == qt.Qt.DisplayRole:
             if column == 0x10:
-                start = (row << 4)
+                start = row << 4
                 text = ""
                 for i in range(0x10):
                     pos = start + i
@@ -234,6 +235,7 @@ class HexaTableView(qt.QTableView):
 
     It customs the column size to provide a better layout.
     """
+
     def __init__(self, parent=None):
         """
         Constructor

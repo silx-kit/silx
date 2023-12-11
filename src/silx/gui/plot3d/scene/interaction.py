@@ -31,8 +31,12 @@ import logging
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot.Interaction import \
-    StateMachine, State, LEFT_BTN, RIGHT_BTN  # , MIDDLE_BTN
+from silx.gui.plot.Interaction import (
+    StateMachine,
+    State,
+    LEFT_BTN,
+    RIGHT_BTN,
+)  # , MIDDLE_BTN
 
 from . import transform
 
@@ -41,17 +45,16 @@ _logger = logging.getLogger(__name__)
 
 
 class ClickOrDrag(StateMachine):
-    """Click or drag interaction for a given button.
+    """Click or drag interaction for a given button."""
 
-    """
-    #TODO: merge this class with silx.gui.plot.Interaction.ClickOrDrag
+    # TODO: merge this class with silx.gui.plot.Interaction.ClickOrDrag
 
-    DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
+    DRAG_THRESHOLD_SQUARE_DIST = 5**2
 
     class Idle(State):
         def onPress(self, x, y, btn):
             if btn == self.machine.button:
-                self.goto('clickOrDrag', x, y)
+                self.goto("clickOrDrag", x, y)
                 return True
 
     class ClickOrDrag(State):
@@ -61,13 +64,13 @@ class ClickOrDrag(StateMachine):
         def onMove(self, x, y):
             dx = (x - self.initPos[0]) ** 2
             dy = (y - self.initPos[1]) ** 2
-            if (dx ** 2 + dy ** 2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
-                self.goto('drag', self.initPos, (x, y))
+            if (dx**2 + dy**2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
+                self.goto("drag", self.initPos, (x, y))
 
         def onRelease(self, x, y, btn):
             if btn == self.machine.button:
                 self.machine.click(x, y)
-                self.goto('idle')
+                self.goto("idle")
 
     class Drag(State):
         def enterState(self, initPos, curPos):
@@ -81,16 +84,16 @@ class ClickOrDrag(StateMachine):
         def onRelease(self, x, y, btn):
             if btn == self.machine.button:
                 self.machine.endDrag(self.initPos, (x, y))
-                self.goto('idle')
+                self.goto("idle")
 
     def __init__(self, button=LEFT_BTN):
         self.button = button
         states = {
-            'idle': ClickOrDrag.Idle,
-            'clickOrDrag': ClickOrDrag.ClickOrDrag,
-            'drag': ClickOrDrag.Drag
+            "idle": ClickOrDrag.Idle,
+            "clickOrDrag": ClickOrDrag.ClickOrDrag,
+            "drag": ClickOrDrag.Drag,
         }
-        super(ClickOrDrag, self).__init__(states, 'idle')
+        super(ClickOrDrag, self).__init__(states, "idle")
 
     def click(self, x, y):
         """Called upon a left or right button click.
@@ -122,8 +125,9 @@ class ClickOrDrag(StateMachine):
 class CameraSelectRotate(ClickOrDrag):
     """Camera rotation using an arcball-like interaction."""
 
-    def __init__(self, viewport, orbitAroundCenter=True, button=RIGHT_BTN,
-                 selectCB=None):
+    def __init__(
+        self, viewport, orbitAroundCenter=True, button=RIGHT_BTN, selectCB=None
+    ):
         self._viewport = viewport
         self._orbitAroundCenter = orbitAroundCenter
         self._selectCB = selectCB
@@ -140,7 +144,7 @@ class CameraSelectRotate(ClickOrDrag):
             position = self._viewport._getXZYGL(x, y)
             # This assume no object lie on the far plane
             # Alternative, change the depth range so that far is < 1
-            if ndcZ != 1. and position is not None:
+            if ndcZ != 1.0 and position is not None:
                 self._selectCB((x, y, ndcZ), position)
 
     def beginDrag(self, x, y):
@@ -148,7 +152,7 @@ class CameraSelectRotate(ClickOrDrag):
         if not self._orbitAroundCenter:
             # Try to use picked object position as center of rotation
             ndcZ = self._viewport._pickNdcZGL(x, y)
-            if ndcZ != 1.:
+            if ndcZ != 1.0:
                 # Hit an object, use picked point as center
                 centerPos = self._viewport._getXZYGL(x, y)  # Can return None
 
@@ -173,12 +177,11 @@ class CameraSelectRotate(ClickOrDrag):
             position = self._startExtrinsic.position
         else:
             minsize = min(self._viewport.size)
-            distance = numpy.sqrt(dx ** 2 + dy ** 2)
+            distance = numpy.sqrt(dx**2 + dy**2)
             angle = distance / minsize * numpy.pi
 
             # Take care of y inversion
-            direction = dx * self._startExtrinsic.side - \
-                dy * self._startExtrinsic.up
+            direction = dx * self._startExtrinsic.side - dy * self._startExtrinsic.up
             direction /= numpy.linalg.norm(direction)
             axis = numpy.cross(direction, self._startExtrinsic.direction)
             axis /= numpy.linalg.norm(axis)
@@ -190,10 +193,9 @@ class CameraSelectRotate(ClickOrDrag):
             up = rotation.transformDir(self._startExtrinsic.up)
 
             # Rotate position around center
-            trlist = transform.StaticTransformList((
-                self._center,
-                rotation,
-                self._center.inverse()))
+            trlist = transform.StaticTransformList(
+                (self._center, rotation, self._center.inverse())
+            )
             position = trlist.transformPoint(self._startExtrinsic.position)
 
         camerapos = self._viewport.camera.extrinsic
@@ -219,7 +221,7 @@ class CameraSelectPan(ClickOrDrag):
             position = self._viewport._getXZYGL(x, y)
             # This assume no object lie on the far plane
             # Alternative, change the depth range so that far is < 1
-            if ndcZ != 1. and position is not None:
+            if ndcZ != 1.0 and position is not None:
                 self._selectCB((x, y, ndcZ), position)
 
     def beginDrag(self, x, y):
@@ -227,8 +229,9 @@ class CameraSelectPan(ClickOrDrag):
         ndcZ = self._viewport._pickNdcZGL(x, y)
         # ndcZ is the panning plane
         if ndc is not None and ndcZ is not None:
-            self._lastPosNdc = numpy.array((ndc[0], ndc[1], ndcZ, 1.),
-                                           dtype=numpy.float32)
+            self._lastPosNdc = numpy.array(
+                (ndc[0], ndc[1], ndcZ, 1.0), dtype=numpy.float32
+            )
         else:
             self._lastPosNdc = None
 
@@ -236,14 +239,17 @@ class CameraSelectPan(ClickOrDrag):
         if self._lastPosNdc is not None:
             ndc = self._viewport.windowToNdc(x, y)
             if ndc is not None:
-                ndcPos = numpy.array((ndc[0], ndc[1], self._lastPosNdc[2], 1.),
-                                     dtype=numpy.float32)
+                ndcPos = numpy.array(
+                    (ndc[0], ndc[1], self._lastPosNdc[2], 1.0), dtype=numpy.float32
+                )
 
                 # Convert last and current NDC positions to scene coords
                 scenePos = self._viewport.camera.transformPoint(
-                    ndcPos, direct=False, perspectiveDivide=True)
+                    ndcPos, direct=False, perspectiveDivide=True
+                )
                 lastScenePos = self._viewport.camera.transformPoint(
-                    self._lastPosNdc, direct=False, perspectiveDivide=True)
+                    self._lastPosNdc, direct=False, perspectiveDivide=True
+                )
 
                 # Get translation in scene coords
                 translation = scenePos[:3] - lastScenePos[:3]
@@ -260,21 +266,21 @@ class CameraWheel(object):
     """StateMachine like class, just handling wheel events."""
 
     # TODO choose scale of motion? Translation or Scale?
-    def __init__(self, viewport, mode='center', scaleTransform=None):
-        assert mode in ('center', 'position', 'scale')
+    def __init__(self, viewport, mode="center", scaleTransform=None):
+        assert mode in ("center", "position", "scale")
         self._viewport = viewport
-        if mode == 'center':
+        if mode == "center":
             self._zoomTo = self._zoomToCenter
-        elif mode == 'position':
+        elif mode == "position":
             self._zoomTo = self._zoomToPosition
-        elif mode == 'scale':
+        elif mode == "scale":
             self._zoomTo = self._zoomByScale
             self._scale = scaleTransform
         else:
-            raise ValueError('Unsupported mode: %s' % mode)
+            raise ValueError("Unsupported mode: %s" % mode)
 
     def handleEvent(self, eventName, *args, **kwargs):
-        if eventName == 'wheel':
+        if eventName == "wheel":
             return self._zoomTo(*args, **kwargs)
 
     def _zoomToCenter(self, x, y, angleInDegrees):
@@ -282,7 +288,7 @@ class CameraWheel(object):
 
         Only works with perspective camera.
         """
-        direction = 'forward' if angleInDegrees > 0 else 'backward'
+        direction = "forward" if angleInDegrees > 0 else "backward"
         self._viewport.camera.move(direction)
         return True
 
@@ -293,20 +299,22 @@ class CameraWheel(object):
         """
         ndc = self._viewport.windowToNdc(x, y)
         if ndc is not None:
-            near = numpy.array((ndc[0], ndc[1], -1., 1.), dtype=numpy.float32)
+            near = numpy.array((ndc[0], ndc[1], -1.0, 1.0), dtype=numpy.float32)
 
             nearscene = self._viewport.camera.transformPoint(
-                near, direct=False, perspectiveDivide=True)
+                near, direct=False, perspectiveDivide=True
+            )
 
-            far = numpy.array((ndc[0], ndc[1], 1., 1.), dtype=numpy.float32)
+            far = numpy.array((ndc[0], ndc[1], 1.0, 1.0), dtype=numpy.float32)
             farscene = self._viewport.camera.transformPoint(
-                far, direct=False, perspectiveDivide=True)
+                far, direct=False, perspectiveDivide=True
+            )
 
             dirscene = farscene[:3] - nearscene[:3]
             dirscene /= numpy.linalg.norm(dirscene)
 
             if angleInDegrees < 0:
-                dirscene *= -1.
+                dirscene *= -1.0
 
             # TODO which scale
             self._viewport.camera.extrinsic.position += dirscene
@@ -323,43 +331,43 @@ class CameraWheel(object):
             if ndc is not None:
                 ndcz = self._viewport._pickNdcZGL(x, y)
 
-                position = numpy.array((ndc[0], ndc[1], ndcz),
-                                       dtype=numpy.float32)
+                position = numpy.array((ndc[0], ndc[1], ndcz), dtype=numpy.float32)
                 positionscene = self._viewport.camera.transformPoint(
-                    position, direct=False, perspectiveDivide=True)
+                    position, direct=False, perspectiveDivide=True
+                )
 
                 camtopos = extrinsic.position - positionscene
 
-                step = 0.2 * (1. if angleInDegrees < 0 else -1.)
+                step = 0.2 * (1.0 if angleInDegrees < 0 else -1.0)
                 extrinsic.position += step * camtopos
 
         elif isinstance(projection, transform.Orthographic):
             # For orthographic projection, change projection borders
             ndcx, ndcy = self._viewport.windowToNdc(x, y, checkInside=False)
 
-            step = 0.2 * (1. if angleInDegrees < 0 else -1.)
+            step = 0.2 * (1.0 if angleInDegrees < 0 else -1.0)
 
-            dx = (ndcx + 1) / 2.
+            dx = (ndcx + 1) / 2.0
             stepwidth = step * (projection.right - projection.left)
             left = projection.left - dx * stepwidth
-            right = projection.right + (1. - dx) * stepwidth
+            right = projection.right + (1.0 - dx) * stepwidth
 
-            dy = (ndcy + 1) / 2.
+            dy = (ndcy + 1) / 2.0
             stepheight = step * (projection.top - projection.bottom)
             bottom = projection.bottom - dy * stepheight
-            top = projection.top + (1. - dy) * stepheight
+            top = projection.top + (1.0 - dy) * stepheight
 
             projection.setClipping(left, right, bottom, top)
 
         else:
-            raise RuntimeError('Unsupported camera', projection)
+            raise RuntimeError("Unsupported camera", projection)
         return True
 
     def _zoomByScale(self, x, y, angleInDegrees):
         """Zoom by scaling scene (do not keep pixel under mouse invariant)."""
         scalefactor = 1.1
-        if angleInDegrees < 0.:
-            scalefactor = 1. / scalefactor
+        if angleInDegrees < 0.0:
+            scalefactor = 1.0 / scalefactor
         self._scale.scale = scalefactor * self._scale.scale
 
         self._viewport.adjustCameraDepthExtent()
@@ -372,12 +380,13 @@ class FocusManager(StateMachine):
     On press an event handler can acquire focus.
     By default it looses focus when all buttons are released.
     """
+
     class Idle(State):
         def onPress(self, x, y, btn):
             for eventHandler in self.machine.currentEventHandler:
-                requestFocus = eventHandler.handleEvent('press', x, y, btn)
+                requestFocus = eventHandler.handleEvent("press", x, y, btn)
                 if requestFocus:
-                    self.goto('focus', eventHandler, btn)
+                    self.goto("focus", eventHandler, btn)
                     break
 
         def _processEvent(self, *args):
@@ -387,13 +396,13 @@ class FocusManager(StateMachine):
                     break
 
         def onMove(self, x, y):
-            self._processEvent('move', x, y)
+            self._processEvent("move", x, y)
 
         def onRelease(self, x, y, btn):
-            self._processEvent('release', x, y, btn)
+            self._processEvent("release", x, y, btn)
 
         def onWheel(self, x, y, angle):
-            self._processEvent('wheel', x, y, angle)
+            self._processEvent("wheel", x, y, angle)
 
     class Focus(State):
         def enterState(self, eventHandler, btn):
@@ -402,30 +411,27 @@ class FocusManager(StateMachine):
 
         def onPress(self, x, y, btn):
             self.focusBtns.add(btn)
-            self.eventHandler.handleEvent('press', x, y, btn)
+            self.eventHandler.handleEvent("press", x, y, btn)
 
         def onMove(self, x, y):
-            self.eventHandler.handleEvent('move', x, y)
+            self.eventHandler.handleEvent("move", x, y)
 
         def onRelease(self, x, y, btn):
             self.focusBtns.discard(btn)
-            requestfocus = self.eventHandler.handleEvent('release', x, y, btn)
+            requestfocus = self.eventHandler.handleEvent("release", x, y, btn)
             if len(self.focusBtns) == 0 and not requestfocus:
-                self.goto('idle')
+                self.goto("idle")
 
         def onWheel(self, x, y, angleInDegrees):
-            self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
+            self.eventHandler.handleEvent("wheel", x, y, angleInDegrees)
 
     def __init__(self, eventHandlers=(), ctrlEventHandlers=None):
         self.defaultEventHandlers = eventHandlers
         self.ctrlEventHandlers = ctrlEventHandlers
         self.currentEventHandler = self.defaultEventHandlers
 
-        states = {
-            'idle': FocusManager.Idle,
-            'focus': FocusManager.Focus
-        }
-        super(FocusManager, self).__init__(states, 'idle')
+        states = {"idle": FocusManager.Idle, "focus": FocusManager.Focus}
+        super(FocusManager, self).__init__(states, "idle")
 
     def onKeyPress(self, key):
         if key == qt.Qt.Key_Control and self.ctrlEventHandlers is not None:
@@ -444,43 +450,65 @@ class RotateCameraControl(FocusManager):
     """Combine wheel and rotate state machine for left button
     and pan when ctrl is pressed
     """
-    def __init__(self, viewport,
-                 orbitAroundCenter=False,
-                 mode='center', scaleTransform=None,
-                 selectCB=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    CameraSelectRotate(
-                        viewport, orbitAroundCenter, LEFT_BTN, selectCB))
-        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
-                        CameraSelectPan(viewport, LEFT_BTN, selectCB))
+
+    def __init__(
+        self,
+        viewport,
+        orbitAroundCenter=False,
+        mode="center",
+        scaleTransform=None,
+        selectCB=None,
+    ):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectRotate(viewport, orbitAroundCenter, LEFT_BTN, selectCB),
+        )
+        ctrlHandlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectPan(viewport, LEFT_BTN, selectCB),
+        )
         super(RotateCameraControl, self).__init__(handlers, ctrlHandlers)
 
 
 class PanCameraControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine for left button
     and rotate when ctrl is pressed"""
-    def __init__(self, viewport,
-                 orbitAroundCenter=False,
-                 mode='center', scaleTransform=None,
-                 selectCB=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    CameraSelectPan(viewport, LEFT_BTN, selectCB))
-        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
-                        CameraSelectRotate(
-                            viewport, orbitAroundCenter, LEFT_BTN, selectCB))
+
+    def __init__(
+        self,
+        viewport,
+        orbitAroundCenter=False,
+        mode="center",
+        scaleTransform=None,
+        selectCB=None,
+    ):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectPan(viewport, LEFT_BTN, selectCB),
+        )
+        ctrlHandlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectRotate(viewport, orbitAroundCenter, LEFT_BTN, selectCB),
+        )
         super(PanCameraControl, self).__init__(handlers, ctrlHandlers)
 
 
 class CameraControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine."""
-    def __init__(self, viewport,
-                 orbitAroundCenter=False,
-                 mode='center', scaleTransform=None,
-                 selectCB=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    CameraSelectPan(viewport, LEFT_BTN, selectCB),
-                    CameraSelectRotate(
-                        viewport, orbitAroundCenter, RIGHT_BTN, selectCB))
+
+    def __init__(
+        self,
+        viewport,
+        orbitAroundCenter=False,
+        mode="center",
+        scaleTransform=None,
+        selectCB=None,
+    ):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectPan(viewport, LEFT_BTN, selectCB),
+            CameraSelectRotate(viewport, orbitAroundCenter, RIGHT_BTN, selectCB),
+        )
         super(CameraControl, self).__init__(handlers)
 
 
@@ -526,14 +554,14 @@ class PlaneRotate(ClickOrDrag):
 
         # Normalize x and y on a unit circle
         spherecoords = (position - center) / float(radius)
-        squarelength = numpy.sum(spherecoords ** 2)
+        squarelength = numpy.sum(spherecoords**2)
 
         # Project on the unit sphere and compute z coordinates
         if squarelength > 1.0:  # Outside sphere: project
             spherecoords /= numpy.sqrt(squarelength)
             zsphere = 0.0
         else:  # In sphere: compute z
-            zsphere = numpy.sqrt(1. - squarelength)
+            zsphere = numpy.sqrt(1.0 - squarelength)
 
         spherecoords = numpy.append(spherecoords, zsphere)
         return spherecoords
@@ -546,8 +574,7 @@ class PlaneRotate(ClickOrDrag):
         # Store the plane normal
         self._beginNormal = self._plane.plane.normal
 
-        _logger.debug(
-            'Begin arcball, plane center %s', str(self._plane.center))
+        _logger.debug("Begin arcball, plane center %s", str(self._plane.center))
 
         # Do the arcball on the screen
         radius = min(self._viewport.size)
@@ -556,12 +583,15 @@ class PlaneRotate(ClickOrDrag):
 
         else:
             center = self._plane.objectToNDCTransform.transformPoint(
-                self._plane.center, perspectiveDivide=True)
+                self._plane.center, perspectiveDivide=True
+            )
             self._beginCenter = self._viewport.ndcToWindow(
-                center[0], center[1], checkInside=False)
+                center[0], center[1], checkInside=False
+            )
 
             self._startVector = self._sphereUnitVector(
-                radius, self._beginCenter, (x, y))
+                radius, self._beginCenter, (x, y)
+            )
 
     def drag(self, x, y):
         if self._beginCenter is None:
@@ -569,24 +599,21 @@ class PlaneRotate(ClickOrDrag):
 
         # Compute rotation: this is twice the rotation of the arcball
         radius = min(self._viewport.size)
-        currentvector = self._sphereUnitVector(
-            radius, self._beginCenter, (x, y))
+        currentvector = self._sphereUnitVector(radius, self._beginCenter, (x, y))
         crossprod = numpy.cross(self._startVector, currentvector)
         dotprod = numpy.dot(self._startVector, currentvector)
 
         quaternion = numpy.append(crossprod, dotprod)
         # Rotation was computed with Y downward, but apply in NDC, invert Y
-        quaternion[1] *= -1.
+        quaternion[1] *= -1.0
 
         rotation = transform.Rotate()
         rotation.quaternion = quaternion
 
         # Convert to NDC, rotate, convert back to object
-        normal = self._plane.objectToNDCTransform.transformNormal(
-            self._beginNormal)
+        normal = self._plane.objectToNDCTransform.transformNormal(self._beginNormal)
         normal = rotation.transformNormal(normal)
-        normal = self._plane.objectToNDCTransform.transformNormal(
-            normal, direct=False)
+        normal = self._plane.objectToNDCTransform.transformNormal(normal, direct=False)
         self._plane.plane.normal = normal
 
     def endDrag(self, x, y):
@@ -601,7 +628,7 @@ class PlanePan(ClickOrDrag):
         self._viewport = viewport
         self._beginPlanePoint = None
         self._beginPos = None
-        self._dragNdcZ = 0.
+        self._dragNdcZ = 0.0
         super(PlanePan, self).__init__(button)
 
     def click(self, x, y):
@@ -612,16 +639,17 @@ class PlanePan(ClickOrDrag):
         ndcZ = self._viewport._pickNdcZGL(x, y)
         # ndcZ is the panning plane
         if ndc is not None and ndcZ is not None:
-            ndcPos = numpy.array((ndc[0], ndc[1], ndcZ, 1.),
-                                 dtype=numpy.float32)
+            ndcPos = numpy.array((ndc[0], ndc[1], ndcZ, 1.0), dtype=numpy.float32)
             scenePos = self._viewport.camera.transformPoint(
-                ndcPos, direct=False, perspectiveDivide=True)
+                ndcPos, direct=False, perspectiveDivide=True
+            )
             self._beginPos = self._plane.objectToSceneTransform.transformPoint(
-                scenePos, direct=False)
+                scenePos, direct=False
+            )
             self._dragNdcZ = ndcZ
         else:
             self._beginPos = None
-            self._dragNdcZ = 0.
+            self._dragNdcZ = 0.0
 
         self._beginPlanePoint = self._plane.plane.point
 
@@ -629,14 +657,17 @@ class PlanePan(ClickOrDrag):
         if self._beginPos is not None:
             ndc = self._viewport.windowToNdc(x, y)
             if ndc is not None:
-                ndcPos = numpy.array((ndc[0], ndc[1], self._dragNdcZ, 1.),
-                                     dtype=numpy.float32)
+                ndcPos = numpy.array(
+                    (ndc[0], ndc[1], self._dragNdcZ, 1.0), dtype=numpy.float32
+                )
 
                 # Convert last and current NDC positions to scene coords
                 scenePos = self._viewport.camera.transformPoint(
-                    ndcPos, direct=False, perspectiveDivide=True)
+                    ndcPos, direct=False, perspectiveDivide=True
+                )
                 curPos = self._plane.objectToSceneTransform.transformPoint(
-                    scenePos, direct=False)
+                    scenePos, direct=False
+                )
 
                 # Get translation in scene coords
                 translation = curPos[:3] - self._beginPos[:3]
@@ -646,8 +677,7 @@ class PlanePan(ClickOrDrag):
                 # Keep plane point in bounds
                 bounds = self._plane.parent.bounds(dataBounds=True)
                 if bounds is not None:
-                    newPoint = numpy.clip(
-                        newPoint, a_min=bounds[0], a_max=bounds[1])
+                    newPoint = numpy.clip(newPoint, a_min=bounds[0], a_max=bounds[1])
 
                     # Only update plane if it is in some bounds
                     self._plane.plane.point = newPoint
@@ -658,35 +688,45 @@ class PlanePan(ClickOrDrag):
 
 class PlaneControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine for plane control."""
-    def __init__(self, viewport, plane,
-                 mode='center', scaleTransform=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    PlanePan(viewport, plane, LEFT_BTN),
-                    PlaneRotate(viewport, plane, RIGHT_BTN))
+
+    def __init__(self, viewport, plane, mode="center", scaleTransform=None):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            PlanePan(viewport, plane, LEFT_BTN),
+            PlaneRotate(viewport, plane, RIGHT_BTN),
+        )
         super(PlaneControl, self).__init__(handlers)
 
 
 class PanPlaneRotateCameraControl(FocusManager):
     """Combine wheel, pan plane and camera rotate state machine."""
-    def __init__(self, viewport, plane,
-                 mode='center', scaleTransform=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    PlanePan(viewport, plane, LEFT_BTN),
-                    CameraSelectRotate(viewport,
-                                       orbitAroundCenter=False,
-                                       button=RIGHT_BTN))
+
+    def __init__(self, viewport, plane, mode="center", scaleTransform=None):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            PlanePan(viewport, plane, LEFT_BTN),
+            CameraSelectRotate(viewport, orbitAroundCenter=False, button=RIGHT_BTN),
+        )
         super(PanPlaneRotateCameraControl, self).__init__(handlers)
 
 
 class PanPlaneZoomOnWheelControl(FocusManager):
     """Combine zoom on wheel and pan plane state machines."""
-    def __init__(self, viewport, plane,
-                 mode='center',
-                 orbitAroundCenter=False,
-                 scaleTransform=None):
-        handlers = (CameraWheel(viewport, mode, scaleTransform),
-                    PlanePan(viewport, plane, LEFT_BTN))
-        ctrlHandlers = (CameraWheel(viewport, mode, scaleTransform),
-                        CameraSelectRotate(
-                            viewport, orbitAroundCenter, LEFT_BTN))
+
+    def __init__(
+        self,
+        viewport,
+        plane,
+        mode="center",
+        orbitAroundCenter=False,
+        scaleTransform=None,
+    ):
+        handlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            PlanePan(viewport, plane, LEFT_BTN),
+        )
+        ctrlHandlers = (
+            CameraWheel(viewport, mode, scaleTransform),
+            CameraSelectRotate(viewport, orbitAroundCenter, LEFT_BTN),
+        )
         super(PanPlaneZoomOnWheelControl, self).__init__(handlers, ctrlHandlers)

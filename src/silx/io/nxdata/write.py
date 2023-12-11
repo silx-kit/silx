@@ -40,12 +40,21 @@ def _str_to_utf8(text):
     return numpy.array(text, dtype=h5py.special_dtype(vlen=str))
 
 
-def save_NXdata(filename, signal, axes=None,
-                signal_name="data", axes_names=None,
-                signal_long_name=None, axes_long_names=None,
-                signal_errors=None, axes_errors=None,
-                title=None, interpretation=None,
-                nxentry_name="entry", nxdata_name=None):
+def save_NXdata(
+    filename,
+    signal,
+    axes=None,
+    signal_name="data",
+    axes_names=None,
+    signal_long_name=None,
+    axes_long_names=None,
+    signal_errors=None,
+    axes_errors=None,
+    title=None,
+    interpretation=None,
+    nxentry_name="entry",
+    nxdata_name=None,
+):
     """Write data to an NXdata group.
 
     .. note::
@@ -93,13 +102,15 @@ def save_NXdata(filename, signal, axes=None,
     :return: True if save was successful, else False.
     """
     if h5py is None:
-        raise ImportError("h5py could not be imported, but is required by "
-                          "save_NXdata function")
+        raise ImportError(
+            "h5py could not be imported, but is required by " "save_NXdata function"
+        )
 
     if axes_names is not None:
         assert axes is not None, "Axes names defined, but missing axes arrays"
-        assert len(axes) == len(axes_names), \
-            "Mismatch between number of axes and axes_names"
+        assert len(axes) == len(
+            axes_names
+        ), "Mismatch between number of axes and axes_names"
 
     if axes is not None and axes_names is None:
         axes_names = []
@@ -131,7 +142,7 @@ def save_NXdata(filename, signal, axes=None,
                 # set this entry as default
                 h5f.attrs["default"] = _str_to_utf8(nxentry_name)
             if "NX_class" not in entry.attrs:
-                entry.attrs["NX_class"] = u"NXentry"
+                entry.attrs["NX_class"] = "NXentry"
         else:
             # write NXdata into the root of the file (invalid nexus!)
             entry = h5f
@@ -139,21 +150,25 @@ def save_NXdata(filename, signal, axes=None,
         # Create NXdata group
         if nxdata_name is not None:
             if nxdata_name in entry:
-                _logger.error("Cannot assign an NXdata group to an existing"
-                              " group or dataset")
+                _logger.error(
+                    "Cannot assign an NXdata group to an existing" " group or dataset"
+                )
                 return False
         else:
             # no name specified, take one that is available
             nxdata_name = "data0"
             i = 1
             while nxdata_name in entry:
-                _logger.info("%s item already exists in NXentry group," +
-                             " trying %s", nxdata_name, "data%d" % i)
+                _logger.info(
+                    "%s item already exists in NXentry group," + " trying %s",
+                    nxdata_name,
+                    "data%d" % i,
+                )
                 nxdata_name = "data%d" % i
                 i += 1
 
         data_group = entry.create_group(nxdata_name)
-        data_group.attrs["NX_class"] = u"NXdata"
+        data_group.attrs["NX_class"] = "NXdata"
         data_group.attrs["signal"] = _str_to_utf8(signal_name)
         if axes:
             data_group.attrs["axes"] = _str_to_utf8(axes_names)
@@ -163,8 +178,7 @@ def save_NXdata(filename, signal, axes=None,
             # better way imho
             data_group.attrs["title"] = _str_to_utf8(title)
 
-        signal_dataset = data_group.create_dataset(signal_name,
-                                                   data=signal)
+        signal_dataset = data_group.create_dataset(signal_name, data=signal)
         if signal_long_name:
             signal_dataset.attrs["long_name"] = _str_to_utf8(signal_long_name)
         if interpretation:
@@ -172,28 +186,28 @@ def save_NXdata(filename, signal, axes=None,
 
         for i, axis_array in enumerate(axes):
             if axis_array is None:
-                assert axes_names[i] in [".", None], \
+                assert axes_names[i] in [".", None], (
                     "Axis name defined for dim %d but no axis array" % i
+                )
                 continue
-            axis_dataset = data_group.create_dataset(axes_names[i],
-                                                     data=axis_array)
+            axis_dataset = data_group.create_dataset(axes_names[i], data=axis_array)
             if axes_long_names is not None:
                 axis_dataset.attrs["long_name"] = _str_to_utf8(axes_long_names[i])
 
         if signal_errors is not None:
-            data_group.create_dataset("errors",
-                                      data=signal_errors)
+            data_group.create_dataset("errors", data=signal_errors)
 
         if axes_errors is not None:
-            assert isinstance(axes_errors, (list, tuple)), \
-                "axes_errors must be a list or a tuple of ndarray or None"
-            assert len(axes_errors) == len(axes_names), \
-                "Mismatch between number of axes_errors and axes_names"
+            assert isinstance(
+                axes_errors, (list, tuple)
+            ), "axes_errors must be a list or a tuple of ndarray or None"
+            assert len(axes_errors) == len(
+                axes_names
+            ), "Mismatch between number of axes_errors and axes_names"
             for i, axis_errors in enumerate(axes_errors):
                 if axis_errors is not None:
                     dsname = axes_names[i] + "_errors"
-                    data_group.create_dataset(dsname,
-                                              data=axis_errors)
+                    data_group.create_dataset(dsname, data=axis_errors)
         if "default" not in entry.attrs:
             # set this NXdata as default
             entry.attrs["default"] = nxdata_name

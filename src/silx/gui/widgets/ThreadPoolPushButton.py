@@ -57,7 +57,9 @@ class _Wrapper(qt.QRunnable):
         except Exception as e:
             module = self.__callable.__module__
             name = self.__callable.__name__
-            _logger.error("Error while executing callable %s.%s.", module, name, exc_info=True)
+            _logger.error(
+                "Error while executing callable %s.%s.", module, name, exc_info=True
+            )
             holder.failed.emit(e)
         finally:
             holder.finished.emit()

@@ -48,7 +48,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _HorizontalSlider(HorizontalSliderWithBrowser):
-
     sigCurrentUrlIndexChanged = qt.Signal(int)
 
     def __init__(self, parent):
@@ -65,7 +64,6 @@ class _HorizontalSlider(HorizontalSliderWithBrowser):
 
 
 class _ToggleableUrlSelectionTable(qt.QWidget):
-
     _BUTTON_ICON = qt.QStyle.SP_ToolBarHorizontalExtensionButton  # noqa
 
     sigCurrentUrlChanged = qt.Signal(str)
@@ -78,8 +76,7 @@ class _ToggleableUrlSelectionTable(qt.QWidget):
         self.setLayout(qt.QGridLayout())
         self._toggleButton = qt.QPushButton(parent=self)
         self.layout().addWidget(self._toggleButton, 0, 2, 1, 1)
-        self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed,
-                                         qt.QSizePolicy.Fixed)
+        self._toggleButton.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
 
         self._urlsTable = UrlList(parent=self)
 
@@ -135,6 +132,7 @@ class UrlLoader(qt.QThread):
     """
     Thread use to load DataUrl
     """
+
     def __init__(self, parent, url):
         super().__init__(parent=parent)
         assert isinstance(url, DataUrl)
@@ -325,7 +323,9 @@ class ImageStack(qt.QMainWindow):
     def createUrlIndexes(urls: tuple):
         indexes = {}
         for index, url in enumerate(urls):
-            assert isinstance(url, DataUrl), f"url is expected to be a DataUrl. Get {type(url)}"
+            assert isinstance(
+                url, DataUrl
+            ), f"url is expected to be a DataUrl. Get {type(url)}"
             indexes[index] = url
         return indexes
 
@@ -487,7 +487,7 @@ class ImageStack(qt.QMainWindow):
         if self._urls is None:
             return
         elif index >= len(self._urls):
-            raise ValueError('requested index out of bounds')
+            raise ValueError("requested index out of bounds")
         else:
             return self.setCurrentUrl(self._urls[index])
 
@@ -510,7 +510,6 @@ class ImageStack(qt.QMainWindow):
 
         with blockSignals(self._urlsTable):
             with blockSignals(self._slider):
-
                 self._urlsTable.setUrl(url)
                 self._slider.setUrlIndex(self._urlIndexes[url.path()])
                 if self._current_url is None:
@@ -518,7 +517,9 @@ class ImageStack(qt.QMainWindow):
                 else:
                     if self._current_url.path() in self._urlData:
                         self._waitingOverlay.setVisible(False)
-                        self._plot.addImage(self._urlData[url.path()], resetzoom=self._autoResetZoom)
+                        self._plot.addImage(
+                            self._urlData[url.path()], resetzoom=self._autoResetZoom
+                        )
                     else:
                         self._plot.clear()
                         self._load(url)

@@ -26,25 +26,46 @@ def _set_qt_binding(binding):
 
 
 def pytest_addoption(parser):
-    parser.addoption("--qt-binding", type=str, default=None, dest="qt_binding",
-                     help="Force using a Qt binding: 'PyQt5', 'PySide6', 'PyQt6'")
-    parser.addoption("--no-gui", dest="gui", default=True,
-                     action="store_false",
-                     help="Disable the test of the graphical use interface")
-    parser.addoption("--no-opengl", dest="opengl", default=True,
-                     action="store_false",
-                     help="Disable tests using OpenGL")
-    parser.addoption("--no-opencl", dest="opencl", default=True,
-                     action="store_false",
-                     help="Disable the test of the OpenCL part")
-    parser.addoption("--low-mem", dest="low_mem", default=False,
-                     action="store_true",
-                     help="Disable test with large memory consumption (>100Mbyte")
+    parser.addoption(
+        "--qt-binding",
+        type=str,
+        default=None,
+        dest="qt_binding",
+        help="Force using a Qt binding: 'PyQt5', 'PySide6', 'PyQt6'",
+    )
+    parser.addoption(
+        "--no-gui",
+        dest="gui",
+        default=True,
+        action="store_false",
+        help="Disable the test of the graphical use interface",
+    )
+    parser.addoption(
+        "--no-opengl",
+        dest="opengl",
+        default=True,
+        action="store_false",
+        help="Disable tests using OpenGL",
+    )
+    parser.addoption(
+        "--no-opencl",
+        dest="opencl",
+        default=True,
+        action="store_false",
+        help="Disable the test of the OpenCL part",
+    )
+    parser.addoption(
+        "--low-mem",
+        dest="low_mem",
+        default=False,
+        action="store_true",
+        help="Disable test with large memory consumption (>100Mbyte",
+    )
 
 
 def pytest_configure(config):
-    if not config.getoption('opencl', True):
-        os.environ['SILX_OPENCL'] = 'False'  # Disable OpenCL support in silx
+    if not config.getoption("opencl", True):
+        os.environ["SILX_OPENCL"] = "False"  # Disable OpenCL support in silx
 
     _set_qt_binding(config.option.qt_binding)
 
@@ -52,6 +73,7 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def test_options(request):
     from .test import utils
+
     options = utils._TestOptions()
     options.configure(request.config.option)
     yield options
@@ -111,6 +133,7 @@ def qapp(use_gui, xvfb, request):
     _set_qt_binding(request.config.option.qt_binding)
 
     from silx.gui import qt
+
     app = qt.QApplication.instance()
     if app is None:
         app = qt.QApplication([])
@@ -125,6 +148,7 @@ def qapp(use_gui, xvfb, request):
 def qapp_utils(qapp):
     """Helper containing method to deal with QApplication and widget"""
     from silx.gui.utils.testutils import TestCaseQt
+
     utils = TestCaseQt()
     utils.setUpClass()
     utils.setUp()

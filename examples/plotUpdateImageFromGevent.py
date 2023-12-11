@@ -61,7 +61,7 @@ def update_image(plot2d):
 
     :param plot2d: The Plot2D to update."""
 
-    pos = {'x0': 0, 'y0': 0}
+    pos = {"x0": 0, "y0": 0}
     while True:
         gevent.sleep(0.01)
 
@@ -73,13 +73,17 @@ def update_image(plot2d):
         x = numpy.linspace(-1.5, 1.5, Nx)
         y = numpy.linspace(-1.0, 1.0, Ny)
         xv, yv = numpy.meshgrid(x, y)
-        signal = numpy.exp(- ((xv - pos['x0']) ** 2 / sigma_x ** 2
-                                + (yv - pos['y0']) ** 2 / sigma_y ** 2))
+        signal = numpy.exp(
+            -(
+                (xv - pos["x0"]) ** 2 / sigma_x**2
+                + (yv - pos["y0"]) ** 2 / sigma_y**2
+            )
+        )
         # add noise
         signal += 0.3 * numpy.random.random(size=signal.shape)
         # random walk of center of peak ('drift')
-        pos['x0'] += 0.05 * (numpy.random.random() - 0.5)
-        pos['y0'] += 0.05 * (numpy.random.random() - 0.5)
+        pos["x0"] += 0.05 * (numpy.random.random() - 0.5)
+        pos["y0"] += 0.05 * (numpy.random.random() - 0.5)
 
         plot2d.addImage(signal, resetzoom=False)
 
@@ -96,7 +100,7 @@ def main():
     plot2d = Plot2D()
     plot2d.getIntensityHistogramAction().setVisible(True)
     plot2d.setLimits(0, Nx, 0, Ny)
-    plot2d.getDefaultColormap().setVRange(0., 1.5)
+    plot2d.getDefaultColormap().setVRange(0.0, 1.5)
     plot2d.show()
 
     # Create the thread that calls submitToQtMainThread
@@ -108,5 +112,5 @@ def main():
     updater.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -76,10 +76,13 @@ class ApplicationContext(DataViewHooks):
         settings.endGroup()
 
         # Use matplotlib backend by default
-        silx.config.DEFAULT_PLOT_BACKEND = \
+        silx.config.DEFAULT_PLOT_BACKEND = (
             ("opengl", "matplotlib") if plotBackend == "opengl" else "matplotlib"
+        )
         if plotImageYAxisOrientation != "":
-            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = plotImageYAxisOrientation
+            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = (
+                plotImageYAxisOrientation
+            )
         silx.config._MPL_TIGHT_LAYOUT = mplTightLayout
 
     def restoreSettings(self):
@@ -125,7 +128,10 @@ class ApplicationContext(DataViewHooks):
 
         settings.beginGroup("library")
         settings.setValue("plot.backend", self.getDefaultPlotBackend())
-        settings.setValue("plot-image.y-axis-orientation", silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION)
+        settings.setValue(
+            "plot-image.y-axis-orientation",
+            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION,
+        )
         settings.setValue("mpl.tight_layout", silx.config._MPL_TIGHT_LAYOUT)
         settings.endGroup()
 
@@ -166,8 +172,7 @@ class ApplicationContext(DataViewHooks):
             self.__recentFiles.pop()
 
     def clearRencentFiles(self):
-        """Clear the history of the rencent files.
-        """
+        """Clear the history of the rencent files."""
         self.__recentFiles[:] = []
 
     def getColormap(self, view):
@@ -203,6 +208,10 @@ class ApplicationContext(DataViewHooks):
         backend = silx.config.DEFAULT_PLOT_BACKEND
         if isinstance(backend, str):
             return backend
-        if isinstance(backend, Sequence) and len(backend) and isinstance(backend[0], str):
+        if (
+            isinstance(backend, Sequence)
+            and len(backend)
+            and isinstance(backend[0], str)
+        ):
             return backend[0]
         return "matplotlib"  # fallback

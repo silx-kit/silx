@@ -51,6 +51,7 @@ _logger = logging.getLogger(__name__)
 
 import h5py
 
+
 def load(filename):
     """Load 3D scalar field from file.
 
@@ -60,35 +61,33 @@ def load(filename):
                          and path in file for hdf5 file
     :return: numpy.ndarray with 3 dimensions.
     """
-    if not os.path.isfile(filename.split('::')[0]):
-        raise IOError('No input file: %s' % filename)
+    if not os.path.isfile(filename.split("::")[0]):
+        raise IOError("No input file: %s" % filename)
 
-    if h5py.is_hdf5(filename.split('::')[0]):
-        if '::' not in filename:
-            raise ValueError(
-                'HDF5 path not provided: Use <filename>::<path> format')
+    if h5py.is_hdf5(filename.split("::")[0]):
+        if "::" not in filename:
+            raise ValueError("HDF5 path not provided: Use <filename>::<path> format")
 
-        filename, path = filename.split('::')
-        path, indices = path.split('#')[0], path.split('#')[1:]
+        filename, path = filename.split("::")
+        path, indices = path.split("#")[0], path.split("#")[1:]
 
-        with h5py.File(filename, mode='r') as f:
+        with h5py.File(filename, mode="r") as f:
             data = f[path]
 
             # Loop through indices along first dimensions
             for index in indices:
                 data = data[int(index)]
 
-            data = numpy.array(data, order='C', dtype='float32')
+            data = numpy.array(data, order="C", dtype="float32")
 
     else:  # Try with numpy
         try:
             data = numpy.load(filename)
         except IOError:
-            raise IOError('Unsupported file format: %s' % filename)
+            raise IOError("Unsupported file format: %s" % filename)
 
     if data.ndim != 3:
-        raise RuntimeError(
-            'Unsupported data set dimensions, only supports 3D datasets')
+        raise RuntimeError("Unsupported data set dimensions, only supports 3D datasets")
 
     return data
 
@@ -107,32 +106,66 @@ def default_isolevel(data):
 
 
 # Parse input arguments
-parser = argparse.ArgumentParser(
-    description=__doc__)
+parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
-    '-l', '--level', nargs='?', type=float, default=float('nan'),
-    help="The value at which to generate the iso-surface")
+    "-l",
+    "--level",
+    nargs="?",
+    type=float,
+    default=float("nan"),
+    help="The value at which to generate the iso-surface",
+)
 parser.add_argument(
-    '-sx', '--xscale', nargs='?', type=float, default=1.,
-    help="The scale of the data on the X axis")
+    "-sx",
+    "--xscale",
+    nargs="?",
+    type=float,
+    default=1.0,
+    help="The scale of the data on the X axis",
+)
 parser.add_argument(
-    '-sy', '--yscale', nargs='?', type=float, default=1.,
-    help="The scale of the data on the Y axis")
+    "-sy",
+    "--yscale",
+    nargs="?",
+    type=float,
+    default=1.0,
+    help="The scale of the data on the Y axis",
+)
 parser.add_argument(
-    '-sz', '--zscale', nargs='?', type=float, default=1.,
-    help="The scale of the data on the Z axis")
+    "-sz",
+    "--zscale",
+    nargs="?",
+    type=float,
+    default=1.0,
+    help="The scale of the data on the Z axis",
+)
 parser.add_argument(
-    '-ox', '--xoffset', nargs='?', type=float, default=0.,
-    help="The offset of the data on the X axis")
+    "-ox",
+    "--xoffset",
+    nargs="?",
+    type=float,
+    default=0.0,
+    help="The offset of the data on the X axis",
+)
 parser.add_argument(
-    '-oy', '--yoffset', nargs='?', type=float, default=0.,
-    help="The offset of the data on the Y axis")
+    "-oy",
+    "--yoffset",
+    nargs="?",
+    type=float,
+    default=0.0,
+    help="The offset of the data on the Y axis",
+)
 parser.add_argument(
-    '-oz', '--zoffset', nargs='?', type=float, default=0.,
-    help="The offset of the data on the Z axis")
+    "-oz",
+    "--zoffset",
+    nargs="?",
+    type=float,
+    default=0.0,
+    help="The offset of the data on the Z axis",
+)
 parser.add_argument(
-    'filename',
-    nargs='?',
+    "filename",
+    nargs="?",
     default=None,
     help="""Filename to open.
 
@@ -146,7 +179,8 @@ parser.add_argument(
     <filename>::<path_in_file>#<1st_dim_index>...#<n-3th_dim_index>
 
     E.g.: data.h5::/data_5D#1#1
-    """)
+    """,
+)
 args = parser.parse_args(args=sys.argv[1:])
 
 # Start GUI
@@ -161,18 +195,19 @@ treeView.setSfView(window)  # Attach the parameter tree to the view
 
 # Add the parameter tree to the main window in a dock widget
 dock = qt.QDockWidget()
-dock.setWindowTitle('Parameters')
+dock.setWindowTitle("Parameters")
 dock.setWidget(treeView)
 window.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 
 # Load data from file
 if args.filename is not None:
     data = load(args.filename)
-    _logger.info('Data:\n\tShape: %s\n\tRange: [%f, %f]',
-                 str(data.shape), data.min(), data.max())
+    _logger.info(
+        "Data:\n\tShape: %s\n\tRange: [%f, %f]", str(data.shape), data.min(), data.max()
+    )
 else:
     # Create dummy data
-    _logger.warning('Not data file provided, creating dummy data')
+    _logger.warning("Not data file provided, creating dummy data")
     coords = numpy.linspace(-10, 10, 64)
     z = coords.reshape(-1, 1, 1)
     y = coords.reshape(1, -1, 1)
@@ -189,15 +224,15 @@ window.setScale(args.xscale, args.yscale, args.zscale)
 window.setTranslation(args.xoffset, args.yoffset, args.zoffset)
 
 # Set axes labels
-window.setAxesLabels('X', 'Y', 'Z')
+window.setAxesLabels("X", "Y", "Z")
 
 # Add an iso-surface
 if not numpy.isnan(args.level):
     # Add an iso-surface at the given iso-level
-    window.addIsosurface(args.level, '#FF0000FF')
+    window.addIsosurface(args.level, "#FF0000FF")
 else:
     # Add an iso-surface from a function
-    window.addIsosurface(default_isolevel, '#FF0000FF')
+    window.addIsosurface(default_isolevel, "#FF0000FF")
 
 window.show()
 app.exec()

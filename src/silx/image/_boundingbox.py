@@ -39,6 +39,7 @@ class _BoundingBox:
     :param tuple bottom_left: (y, x) bottom left point
     :param tuple top_right: (y, x) top right point
     """
+
     def __init__(self, bottom_left, top_right):
         self.bottom_left = bottom_left
         self.top_right = top_right
@@ -59,9 +60,8 @@ class _BoundingBox:
         if isinstance(item, _BoundingBox):
             return self.contains(item.bottom_left) and self.contains(item.top_right)
         else:
-            return (
-                    (self.min_x <= item[1] <= self.max_x) and
-                    (self.min_y <= item[0] <= self.max_y)
+            return (self.min_x <= item[1] <= self.max_x) and (
+                self.min_y <= item[0] <= self.max_y
             )
 
     def collide(self, bb):
@@ -74,9 +74,8 @@ class _BoundingBox:
         :rtype: bool
         """
         assert isinstance(bb, _BoundingBox)
-        return (
-            (self.min_x < bb.max_x and self.max_x > bb.min_x) and
-            (self.min_y < bb.max_y and self.max_y > bb.min_y)
+        return (self.min_x < bb.max_x and self.max_x > bb.min_x) and (
+            self.min_y < bb.max_y and self.max_y > bb.min_y
         )
 
     @staticmethod

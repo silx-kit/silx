@@ -55,7 +55,7 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_COLORMAP_NAME = 'gray'
+    DEFAULT_COLORMAP_NAME = "gray"
     """Default LUT for the plot widgets.
 
     The available list of names are available in the module
@@ -64,7 +64,7 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = 'upward'
+    DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "upward"
     """Default Y-axis orientation for plot widget displaying images.
 
     This attribute can be set with:
@@ -84,16 +84,16 @@ class Config(object):
     """
 
     DEFAULT_PLOT_CURVE_COLORS = [
-        '#1f77b4', # tab:blue
-        '#ff7f0e', # tab:orange
-        '#2ca02c', # tab:green
-        '#d62728', # tab:red
-        '#9467bd', # tab:purple
-        '#8c564b', # tab:brown
-        '#e377c2', # tab:pink
-        '#7f7f7f', # tab:gray
-        '#bcbd22', # tab:olive
-        '#17becf', # tab:cyan
+        "#1f77b4",  # tab:blue
+        "#ff7f0e",  # tab:orange
+        "#2ca02c",  # tab:green
+        "#d62728",  # tab:red
+        "#9467bd",  # tab:purple
+        "#8c564b",  # tab:brown
+        "#e377c2",  # tab:pink
+        "#7f7f7f",  # tab:gray
+        "#bcbd22",  # tab:olive
+        "#17becf",  # tab:cyan
     ]
     """Default list of colors for plot widget displaying curves.
 
@@ -115,7 +115,7 @@ class Config(object):
     .. versionadded:: 0.10
     """
 
-    DEFAULT_PLOT_SYMBOL = 'o'
+    DEFAULT_PLOT_SYMBOL = "o"
     """Default marker of the item.
 
     It will have an influence on PlotWidget items

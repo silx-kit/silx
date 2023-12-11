@@ -74,12 +74,15 @@ class ClipPlane(Item3D, PlaneMixIn):
             rayObject[0, :3],
             rayObject[1, :3],
             planeNorm=self.getNormal(),
-            planePt=self.getPoint())
+            planePt=self.getPoint(),
+        )
 
         # A single intersection inside bounding box
-        picked = (len(points) == 1 and
-                  numpy.all(bounds[0] <= points[0]) and
-                  numpy.all(points[0] <= bounds[1]))
+        picked = (
+            len(points) == 1
+            and numpy.all(bounds[0] <= points[0])
+            and numpy.all(points[0] <= bounds[1])
+        )
 
         return picked, points, rayObject
 
@@ -97,18 +100,20 @@ class ClipPlane(Item3D, PlaneMixIn):
                 if picked:  # A single intersection inside bounding box
                     # Clip NDC z range for following brother items
                     ndcIntersect = plane.objectToNDCTransform.transformPoint(
-                        points[0], perspectiveDivide=True)
+                        points[0], perspectiveDivide=True
+                    )
                     ndcNormal = plane.objectToNDCTransform.transformNormal(
-                        self.getNormal())
+                        self.getNormal()
+                    )
                     if ndcNormal[2] < 0:
-                        context.setNDCZRange(-1., ndcIntersect[2])
+                        context.setNDCZRange(-1.0, ndcIntersect[2])
                     else:
-                        context.setNDCZRange(ndcIntersect[2], 1.)
+                        context.setNDCZRange(ndcIntersect[2], 1.0)
 
                 else:
                     # TODO check this might not be correct
-                    rayObject[:, 3] = 1.  # Make sure 4h coordinate is one
-                    if numpy.sum(rayObject[0] * self.getParameters()) < 0.:
+                    rayObject[:, 3] = 1.0  # Make sure 4h coordinate is one
+                    if numpy.sum(rayObject[0] * self.getParameters()) < 0.0:
                         # Disable picking for remaining brothers
                         context.setEnabled(False)
 

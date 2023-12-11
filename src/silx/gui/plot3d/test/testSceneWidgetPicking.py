@@ -67,15 +67,14 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
         imageData.setData(numpy.arange(100).reshape(10, 10))
 
         imageRgba = items.ImageRgba()
-        imageRgba.setData(
-            numpy.arange(300, dtype=numpy.uint8).reshape(10, 10, 3))
+        imageRgba.setData(numpy.arange(300, dtype=numpy.uint8).reshape(10, 10, 3))
 
         for item in (imageData, imageRgba):
             with self.subTest(item=item.__class__.__name__):
                 # Add item
                 self.widget.clearItems()
                 self.widget.addItem(item)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
                 self.qapp.processEvents()
 
                 # Picking on data (at widget center)
@@ -83,12 +82,12 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
 
                 self.assertEqual(len(picking), 1)
                 self.assertIs(picking[0].getItem(), item)
-                self.assertEqual(picking[0].getPositions('ndc').shape, (1, 3))
+                self.assertEqual(picking[0].getPositions("ndc").shape, (1, 3))
                 data = picking[0].getData()
                 self.assertEqual(len(data), 1)
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    item.getData()[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(data, item.getData()[picking[0].getIndices()])
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -109,7 +108,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 # Add item
                 self.widget.clearItems()
                 self.widget.addItem(item)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
                 self.qapp.processEvents()
 
                 # Picking on data (at widget center)
@@ -117,12 +116,14 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
 
                 self.assertEqual(len(picking), 1)
                 self.assertIs(picking[0].getItem(), item)
-                nbPos = len(picking[0].getPositions('ndc'))
+                nbPos = len(picking[0].getPositions("ndc"))
                 data = picking[0].getData()
                 self.assertEqual(nbPos, len(data))
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    item.getValueData()[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(
+                        data, item.getValueData()[picking[0].getIndices()]
+                    )
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -137,7 +138,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 if dtype == numpy.complex64:
                     volume.setComplexMode(volume.ComplexMode.REAL)
                     refData = numpy.real(refData)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
 
                 cutplane = volume.getCutPlanes()[0]
                 if dtype == numpy.complex64:
@@ -159,13 +160,12 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 data = picking[0].getData()
                 self.assertEqual(len(data), 1)
                 self.assertEqual(picking[0].getPositions().shape, (1, 3))
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    refData[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(data, refData[picking[0].getIndices()])
+                )
 
                 # Picking on data with an isosurface
-                isosurface = volume.addIsosurface(
-                    level=500, color=(1., 0., 0., .5))
+                isosurface = volume.addIsosurface(level=500, color=(1.0, 0.0, 0.0, 0.5))
                 picking = list(self.widget.pickItems(*self._widgetCenter()))
                 self.assertEqual(len(picking), 2)
                 self.assertIs(picking[0].getItem(), cutplane)
@@ -173,9 +173,9 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 self.assertEqual(picking[1].getPositions().shape, (1, 3))
                 data = picking[1].getData()
                 self.assertEqual(len(data), 1)
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    refData[picking[1].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(data, refData[picking[1].getIndices()])
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -188,27 +188,29 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
 
         triangles = items.Mesh()
         triangles.setData(
-            position=((0, 0, 0), (1, 0, 0), (1, 1, 0),
-                      (0, 0, 0), (1, 1, 0), (0, 1, 0)),
+            position=((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 0, 0), (1, 1, 0), (0, 1, 0)),
             color=(1, 0, 0, 1),
-            mode='triangles')
+            mode="triangles",
+        )
         triangleStrip = items.Mesh()
         triangleStrip.setData(
             position=(((1, 0, 0), (0, 0, 0), (1, 1, 0), (0, 1, 0))),
             color=(0, 1, 0, 1),
-            mode='triangle_strip')
+            mode="triangle_strip",
+        )
         triangleFan = items.Mesh()
         triangleFan.setData(
             position=((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)),
             color=(0, 0, 1, 1),
-            mode='fan')
+            mode="fan",
+        )
 
         for item in (triangles, triangleStrip, triangleFan):
             with self.subTest(mode=item.getDrawMode()):
                 # Add item
                 self.widget.clearItems()
                 self.widget.addItem(item)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
                 self.qapp.processEvents()
 
                 # Picking on data (at widget center)
@@ -219,9 +221,11 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 nbPos = len(picking[0].getPositions())
                 data = picking[0].getData()
                 self.assertEqual(nbPos, len(data))
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    item.getPositionData()[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(
+                        data, item.getPositionData()[picking[0].getIndices()]
+                    )
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -235,29 +239,35 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
             position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
             color=(1, 0, 0, 1),
             indices=numpy.array(  # dummy triangles and square
-                (0, 0, 1, 0, 1, 2, 1, 2, 3), dtype=numpy.uint8),
-            mode='triangles')
+                (0, 0, 1, 0, 1, 2, 1, 2, 3), dtype=numpy.uint8
+            ),
+            mode="triangles",
+        )
         triangleStrip = items.Mesh()
         triangleStrip.setData(
             position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
             color=(0, 1, 0, 1),
             indices=numpy.array(  # dummy triangles and square
-                (1, 0, 0, 1, 2, 3), dtype=numpy.uint8),
-            mode='triangle_strip')
+                (1, 0, 0, 1, 2, 3), dtype=numpy.uint8
+            ),
+            mode="triangle_strip",
+        )
         triangleFan = items.Mesh()
         triangleFan.setData(
             position=((0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)),
             color=(0, 0, 1, 1),
             indices=numpy.array(  # dummy triangle, square, dummy
-                (1, 1, 0, 2, 3, 3), dtype=numpy.uint8),
-            mode='fan')
+                (1, 1, 0, 2, 3, 3), dtype=numpy.uint8
+            ),
+            mode="fan",
+        )
 
         for item in (triangles, triangleStrip, triangleFan):
             with self.subTest(mode=item.getDrawMode()):
                 # Add item
                 self.widget.clearItems()
                 self.widget.addItem(item)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
                 self.qapp.processEvents()
 
                 # Picking on data (at widget center)
@@ -268,9 +278,11 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 nbPos = len(picking[0].getPositions())
                 data = picking[0].getData()
                 self.assertEqual(nbPos, len(data))
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    item.getPositionData()[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(
+                        data, item.getPositionData()[picking[0].getIndices()]
+                    )
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))
@@ -279,7 +291,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
     def testPickCylindricalMesh(self):
         """Test picking of Box, Cylinder and Hexagon items"""
 
-        positions = numpy.array(((0., 0., 0.), (1., 1., 0.), (2., 2., 0.)))
+        positions = numpy.array(((0.0, 0.0, 0.0), (1.0, 1.0, 0.0), (2.0, 2.0, 0.0)))
         box = items.Box()
         box.setData(position=positions)
         cylinder = items.Cylinder()
@@ -292,7 +304,7 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 # Add item
                 self.widget.clearItems()
                 self.widget.addItem(item)
-                self.widget.resetZoom('front')
+                self.widget.resetZoom("front")
                 self.qapp.processEvents()
 
                 # Picking on data (at widget center)
@@ -305,9 +317,9 @@ class TestSceneWidgetPicking(TestCaseQt, ParametricTestCase):
                 print(item.__class__.__name__, [positions[1]], data)
                 self.assertTrue(numpy.all(numpy.equal(positions[1], data)))
                 self.assertEqual(nbPos, len(data))
-                self.assertTrue(numpy.array_equal(
-                    data,
-                    item.getPosition()[picking[0].getIndices()]))
+                self.assertTrue(
+                    numpy.array_equal(data, item.getPosition()[picking[0].getIndices()])
+                )
 
                 # Picking outside data
                 picking = list(self.widget.pickItems(1, 1))

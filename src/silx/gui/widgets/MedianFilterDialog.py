@@ -42,8 +42,10 @@ from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
 
+
 class MedianFilterDialog(qt.QDialog):
     """QDialog window featuring a :class:`BackgroundWidget`"""
+
     sigFilterOptChanged = qt.Signal(int, bool)
 
     def __init__(self, parent=None):
@@ -54,11 +56,11 @@ class MedianFilterDialog(qt.QDialog):
         self.setLayout(self.mainLayout)
 
         # filter width GUI
-        self.mainLayout.addWidget(qt.QLabel('filter width:', parent = self))
+        self.mainLayout.addWidget(qt.QLabel("filter width:", parent=self))
         self._filterWidth = qt.QSpinBox(parent=self)
         self._filterWidth.setMinimum(1)
         self._filterWidth.setValue(1)
-        self._filterWidth.setSingleStep(2);
+        self._filterWidth.setSingleStep(2)
         widthTooltip = """radius width of the pixel including in the filter
                         for each pixel"""
         self._filterWidth.setToolTip(widthTooltip)
@@ -66,14 +68,16 @@ class MedianFilterDialog(qt.QDialog):
         self.mainLayout.addWidget(self._filterWidth)
 
         # filter option GUI
-        self._filterOption = qt.QCheckBox('conditional', parent=self)
+        self._filterOption = qt.QCheckBox("conditional", parent=self)
         conditionalTooltip = """if check, implement a conditional filter"""
         self._filterOption.stateChanged.connect(self._filterOptionChanged)
         self.mainLayout.addWidget(self._filterOption)
 
     def _filterOptionChanged(self):
         """Call back used when the filter values are changed"""
-        if self._filterWidth.value()%2 == 0:
-            _logger.warning('median filter only accept odd values')
+        if self._filterWidth.value() % 2 == 0:
+            _logger.warning("median filter only accept odd values")
         else:
-            self.sigFilterOptChanged.emit(self._filterWidth.value(), self._filterOption.isChecked())
+            self.sigFilterOptChanged.emit(
+                self._filterWidth.value(), self._filterOption.isChecked()
+            )

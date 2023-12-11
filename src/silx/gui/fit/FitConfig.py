@@ -45,6 +45,7 @@ class TabsDialog(qt.QDialog):
     This dialog defines a __len__ returning the number of tabs,
     and an __iter__ method yielding the tab widgets.
     """
+
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
         self.tabWidget = qt.QTabWidget(self)
@@ -62,9 +63,9 @@ class TabsDialog(qt.QDialog):
         self.buttonDefault.setText("Undo changes")
         layout2.addWidget(self.buttonDefault)
 
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Minimum)
+        spacer = qt.QSpacerItem(
+            20, 20, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum
+        )
         layout2.addItem(spacer)
 
         self.buttonOk = qt.QPushButton(self)
@@ -119,6 +120,7 @@ class TabsDialogData(TabsDialog):
     A default dictionary can be supplied when this dialog is initialized, to
     be used as default data for :attr:`output`.
     """
+
     def __init__(self, parent=None, modal=True, default=None):
         """
 
@@ -197,11 +199,14 @@ class ConstraintsPage(qt.QGroupBox):
     """Checkable QGroupBox widget filled with QCheckBox widgets,
     to configure the fit estimation for standard fit theories.
     """
+
     def __init__(self, parent=None, title="Set constraints"):
         super(ConstraintsPage, self).__init__(parent)
         self.setTitle(title)
-        self.setToolTip("Disable 'Set constraints' to remove all " +
-                        "constraints on all fit parameters")
+        self.setToolTip(
+            "Disable 'Set constraints' to remove all "
+            + "constraints on all fit parameters"
+        )
         self.setCheckable(True)
 
         layout = qt.QVBoxLayout(self)
@@ -212,8 +217,7 @@ class ConstraintsPage(qt.QGroupBox):
         layout.addWidget(self.positiveHeightCB)
 
         self.positionInIntervalCB = qt.QCheckBox("Force position in interval", self)
-        self.positionInIntervalCB.setToolTip(
-                "Fit must position peak within X limits")
+        self.positionInIntervalCB.setToolTip("Fit must position peak within X limits")
         layout.addWidget(self.positionInIntervalCB)
 
         self.positiveFwhmCB = qt.QCheckBox("Force positive FWHM", self)
@@ -226,7 +230,8 @@ class ConstraintsPage(qt.QGroupBox):
 
         self.quotedEtaCB = qt.QCheckBox("Force Eta between 0 and 1", self)
         self.quotedEtaCB.setToolTip(
-                "Fit must find Eta between 0 and 1 for pseudo-Voigt function")
+            "Fit must find Eta between 0 and 1 for pseudo-Voigt function"
+        )
         layout.addWidget(self.quotedEtaCB)
 
         layout.addStretch()
@@ -241,29 +246,27 @@ class ConstraintsPage(qt.QGroupBox):
         if default_dict is None:
             default_dict = {}
         # this one uses reverse logic: if checked, NoConstraintsFlag must be False
-        self.setChecked(
-                not default_dict.get('NoConstraintsFlag', False))
+        self.setChecked(not default_dict.get("NoConstraintsFlag", False))
         self.positiveHeightCB.setChecked(
-                default_dict.get('PositiveHeightAreaFlag', True))
+            default_dict.get("PositiveHeightAreaFlag", True)
+        )
         self.positionInIntervalCB.setChecked(
-                default_dict.get('QuotedPositionFlag', False))
-        self.positiveFwhmCB.setChecked(
-                default_dict.get('PositiveFwhmFlag', True))
-        self.sameFwhmCB.setChecked(
-                default_dict.get('SameFwhmFlag', False))
-        self.quotedEtaCB.setChecked(
-                default_dict.get('QuotedEtaFlag', False))
+            default_dict.get("QuotedPositionFlag", False)
+        )
+        self.positiveFwhmCB.setChecked(default_dict.get("PositiveFwhmFlag", True))
+        self.sameFwhmCB.setChecked(default_dict.get("SameFwhmFlag", False))
+        self.quotedEtaCB.setChecked(default_dict.get("QuotedEtaFlag", False))
 
     def get(self):
         """Return a dictionary of constraint flags, to be processed by the
         :meth:`configure` method of the selected fit theory."""
         ddict = {
-            'NoConstraintsFlag': not self.isChecked(),
-            'PositiveHeightAreaFlag': self.positiveHeightCB.isChecked(),
-            'QuotedPositionFlag': self.positionInIntervalCB.isChecked(),
-            'PositiveFwhmFlag': self.positiveFwhmCB.isChecked(),
-            'SameFwhmFlag': self.sameFwhmCB.isChecked(),
-            'QuotedEtaFlag': self.quotedEtaCB.isChecked(),
+            "NoConstraintsFlag": not self.isChecked(),
+            "PositiveHeightAreaFlag": self.positiveHeightCB.isChecked(),
+            "QuotedPositionFlag": self.positionInIntervalCB.isChecked(),
+            "PositiveFwhmFlag": self.positiveFwhmCB.isChecked(),
+            "SameFwhmFlag": self.sameFwhmCB.isChecked(),
+            "QuotedEtaFlag": self.quotedEtaCB.isChecked(),
         }
         return ddict
 
@@ -276,8 +279,9 @@ class SearchPage(qt.QWidget):
         self.manualFwhmGB = qt.QGroupBox("Define FWHM manually", self)
         self.manualFwhmGB.setCheckable(True)
         self.manualFwhmGB.setToolTip(
-            "If disabled, the FWHM parameter used for peak search is " +
-            "estimated based on the highest peak in the data")
+            "If disabled, the FWHM parameter used for peak search is "
+            + "estimated based on the highest peak in the data"
+        )
         layout.addWidget(self.manualFwhmGB)
         # ------------ GroupBox fwhm--------------------------
         layout2 = qt.QHBoxLayout(self.manualFwhmGB)
@@ -295,8 +299,9 @@ class SearchPage(qt.QWidget):
         self.manualScalingGB = qt.QGroupBox("Define scaling manually", self)
         self.manualScalingGB.setCheckable(True)
         self.manualScalingGB.setToolTip(
-            "If disabled, the Y scaling used for peak search is " +
-            "estimated automatically")
+            "If disabled, the Y scaling used for peak search is "
+            + "estimated automatically"
+        )
         layout.addWidget(self.manualScalingGB)
         # ------------ GroupBox scaling-----------------------
         layout3 = qt.QHBoxLayout(self.manualScalingGB)
@@ -307,8 +312,8 @@ class SearchPage(qt.QWidget):
 
         self.yScalingEntry = qt.QLineEdit(self.manualScalingGB)
         self.yScalingEntry.setToolTip(
-                "Data values will be multiplied by this value prior to peak" +
-                " search")
+            "Data values will be multiplied by this value prior to peak" + " search"
+        )
         self.yScalingEntry.setValidator(qt.QDoubleValidator(self))
         layout3.addWidget(self.yScalingEntry)
         # ----------------------------------------------------
@@ -323,9 +328,10 @@ class SearchPage(qt.QWidget):
 
         self.sensitivityEntry = qt.QLineEdit(containerWidget)
         self.sensitivityEntry.setToolTip(
-            "Peak search sensitivity threshold, expressed as a multiple " +
-            "of the standard deviation of the noise.\nMinimum value is 1 " +
-            "(to be detected, peak must be higher than the estimated noise)")
+            "Peak search sensitivity threshold, expressed as a multiple "
+            + "of the standard deviation of the noise.\nMinimum value is 1 "
+            + "(to be detected, peak must be higher than the estimated noise)"
+        )
         sensivalidator = qt.QDoubleValidator(self)
         sensivalidator.setBottom(1.0)
         self.sensitivityEntry.setValidator(sensivalidator)
@@ -335,8 +341,9 @@ class SearchPage(qt.QWidget):
 
         self.forcePeakPresenceCB = qt.QCheckBox("Force peak presence", self)
         self.forcePeakPresenceCB.setToolTip(
-                "If peak search algorithm is unsuccessful, place one peak " +
-                "at the maximum of the curve")
+            "If peak search algorithm is unsuccessful, place one peak "
+            + "at the maximum of the curve"
+        )
         layout.addWidget(self.forcePeakPresenceCB)
 
         layout.addStretch()
@@ -350,29 +357,25 @@ class SearchPage(qt.QWidget):
             a parameter, its values are used as default values."""
         if default_dict is None:
             default_dict = {}
-        self.manualFwhmGB.setChecked(
-                not default_dict.get('AutoFwhm', True))
-        self.fwhmPointsSpin.setValue(
-               default_dict.get('FwhmPoints', 8))
-        self.sensitivityEntry.setText(
-                str(default_dict.get('Sensitivity', 1.0)))
-        self.manualScalingGB.setChecked(
-                not default_dict.get('AutoScaling', False))
-        self.yScalingEntry.setText(
-                str(default_dict.get('Yscaling', 1.0)))
+        self.manualFwhmGB.setChecked(not default_dict.get("AutoFwhm", True))
+        self.fwhmPointsSpin.setValue(default_dict.get("FwhmPoints", 8))
+        self.sensitivityEntry.setText(str(default_dict.get("Sensitivity", 1.0)))
+        self.manualScalingGB.setChecked(not default_dict.get("AutoScaling", False))
+        self.yScalingEntry.setText(str(default_dict.get("Yscaling", 1.0)))
         self.forcePeakPresenceCB.setChecked(
-                default_dict.get('ForcePeakPresence', False))
+            default_dict.get("ForcePeakPresence", False)
+        )
 
     def get(self):
         """Return a dictionary of peak search parameters, to be processed by
         the :meth:`configure` method of the selected fit theory."""
         ddict = {
-            'AutoFwhm': not self.manualFwhmGB.isChecked(),
-            'FwhmPoints': self.fwhmPointsSpin.value(),
-            'Sensitivity': safe_float(self.sensitivityEntry.text()),
-            'AutoScaling': not self.manualScalingGB.isChecked(),
-            'Yscaling': safe_float(self.yScalingEntry.text()),
-            'ForcePeakPresence': self.forcePeakPresenceCB.isChecked()
+            "AutoFwhm": not self.manualFwhmGB.isChecked(),
+            "FwhmPoints": self.fwhmPointsSpin.value(),
+            "Sensitivity": safe_float(self.sensitivityEntry.text()),
+            "AutoScaling": not self.manualScalingGB.isChecked(),
+            "Yscaling": safe_float(self.yScalingEntry.text()),
+            "ForcePeakPresence": self.forcePeakPresenceCB.isChecked(),
         }
         return ddict
 
@@ -380,60 +383,69 @@ class SearchPage(qt.QWidget):
 class BackgroundPage(qt.QGroupBox):
     """Background subtraction configuration, specific to fittheories
     estimation functions."""
-    def __init__(self, parent=None,
-                 title="Subtract strip background prior to estimation"):
+
+    def __init__(
+        self, parent=None, title="Subtract strip background prior to estimation"
+    ):
         super(BackgroundPage, self).__init__(parent)
         self.setTitle(title)
         self.setCheckable(True)
         self.setToolTip(
-            "The strip algorithm strips away peaks to compute the " +
-            "background signal.\nAt each iteration, a sample is compared " +
-            "to the average of the two samples at a given distance in both" +
-            " directions,\n and if its value is higher than the average,"
-            "it is replaced by the average.")
+            "The strip algorithm strips away peaks to compute the "
+            + "background signal.\nAt each iteration, a sample is compared "
+            + "to the average of the two samples at a given distance in both"
+            + " directions,\n and if its value is higher than the average,"
+            "it is replaced by the average."
+        )
 
         layout = qt.QGridLayout(self)
         self.setLayout(layout)
 
         for i, label_text in enumerate(
-                ["Strip width (in samples)",
-                 "Number of iterations",
-                 "Strip threshold factor"]):
+            [
+                "Strip width (in samples)",
+                "Number of iterations",
+                "Strip threshold factor",
+            ]
+        ):
             label = qt.QLabel(label_text)
             layout.addWidget(label, i, 0)
 
         self.stripWidthSpin = qt.QSpinBox(self)
         self.stripWidthSpin.setToolTip(
-            "Width, in number of samples, of the strip operator")
+            "Width, in number of samples, of the strip operator"
+        )
         self.stripWidthSpin.setRange(1, 999999)
 
         layout.addWidget(self.stripWidthSpin, 0, 1)
 
         self.numIterationsSpin = qt.QSpinBox(self)
-        self.numIterationsSpin.setToolTip(
-            "Number of iterations of the strip algorithm")
+        self.numIterationsSpin.setToolTip("Number of iterations of the strip algorithm")
         self.numIterationsSpin.setRange(1, 999999)
         layout.addWidget(self.numIterationsSpin, 1, 1)
 
         self.thresholdFactorEntry = qt.QLineEdit(self)
         self.thresholdFactorEntry.setToolTip(
-            "Factor used by the strip algorithm to decide whether a sample" +
-            "value should be stripped.\nThe value must be higher than the " +
-            "average of the 2 samples at +- w times this factor.\n")
+            "Factor used by the strip algorithm to decide whether a sample"
+            + "value should be stripped.\nThe value must be higher than the "
+            + "average of the 2 samples at +- w times this factor.\n"
+        )
         self.thresholdFactorEntry.setValidator(qt.QDoubleValidator(self))
         layout.addWidget(self.thresholdFactorEntry, 2, 1)
 
         self.smoothStripGB = qt.QGroupBox("Apply smoothing prior to strip", self)
         self.smoothStripGB.setCheckable(True)
         self.smoothStripGB.setToolTip(
-                "Apply a smoothing before subtracting strip background" +
-                " in fit and estimate processes")
+            "Apply a smoothing before subtracting strip background"
+            + " in fit and estimate processes"
+        )
         smoothlayout = qt.QHBoxLayout(self.smoothStripGB)
         label = qt.QLabel("Smoothing width (Savitsky-Golay)")
         smoothlayout.addWidget(label)
         self.smoothingWidthSpin = qt.QSpinBox(self)
         self.smoothingWidthSpin.setToolTip(
-            "Width parameter for Savitsky-Golay smoothing (number of samples, must be odd)")
+            "Width parameter for Savitsky-Golay smoothing (number of samples, must be odd)"
+        )
         self.smoothingWidthSpin.setRange(3, 101)
         self.smoothingWidthSpin.setSingleStep(2)
         smoothlayout.addWidget(self.smoothingWidthSpin)
@@ -452,31 +464,25 @@ class BackgroundPage(qt.QGroupBox):
         if default_dict is None:
             default_dict = {}
 
-        self.setChecked(
-                default_dict.get('StripBackgroundFlag', True))
+        self.setChecked(default_dict.get("StripBackgroundFlag", True))
 
-        self.stripWidthSpin.setValue(
-                default_dict.get('StripWidth', 2))
-        self.numIterationsSpin.setValue(
-                default_dict.get('StripIterations', 5000))
-        self.thresholdFactorEntry.setText(
-                str(default_dict.get('StripThreshold', 1.0)))
-        self.smoothStripGB.setChecked(
-                default_dict.get('SmoothingFlag', False))
-        self.smoothingWidthSpin.setValue(
-                default_dict.get('SmoothingWidth', 3))
+        self.stripWidthSpin.setValue(default_dict.get("StripWidth", 2))
+        self.numIterationsSpin.setValue(default_dict.get("StripIterations", 5000))
+        self.thresholdFactorEntry.setText(str(default_dict.get("StripThreshold", 1.0)))
+        self.smoothStripGB.setChecked(default_dict.get("SmoothingFlag", False))
+        self.smoothingWidthSpin.setValue(default_dict.get("SmoothingWidth", 3))
 
     def get(self):
         """Return a dictionary of background subtraction parameters, to be
         processed by the :meth:`configure` method of the selected fit theory.
         """
         ddict = {
-            'StripBackgroundFlag': self.isChecked(),
-            'StripWidth': self.stripWidthSpin.value(),
-            'StripIterations': self.numIterationsSpin.value(),
-            'StripThreshold': safe_float(self.thresholdFactorEntry.text()),
-            'SmoothingFlag': self.smoothStripGB.isChecked(),
-            'SmoothingWidth': self.smoothingWidthSpin.value()
+            "StripBackgroundFlag": self.isChecked(),
+            "StripWidth": self.stripWidthSpin.value(),
+            "StripIterations": self.numIterationsSpin.value(),
+            "StripThreshold": safe_float(self.thresholdFactorEntry.text()),
+            "SmoothingFlag": self.smoothStripGB.isChecked(),
+            "SmoothingWidth": self.smoothingWidthSpin.value(),
         }
         return ddict
 
@@ -537,6 +543,7 @@ def main():
     print("TabsDialogData output: ", tdd.output)
 
     a.exec()
+
 
 if __name__ == "__main__":
     main()

@@ -31,8 +31,12 @@ import unittest
 
 import numpy
 
-from silx.math.calibration import NoCalibration, LinearCalibration, \
-    ArrayCalibration, FunctionCalibration
+from silx.math.calibration import (
+    NoCalibration,
+    LinearCalibration,
+    ArrayCalibration,
+    FunctionCalibration,
+)
 
 
 X = numpy.array([3.14, 2.73, 1337])
@@ -46,11 +50,10 @@ class TestNoCalibration(unittest.TestCase):
         self.assertTrue(self.calib.is_affine())
 
     def testSlope(self):
-        self.assertEqual(self.calib.get_slope(), 1.)
+        self.assertEqual(self.calib.get_slope(), 1.0)
 
     def testYIntercept(self):
-        self.assertEqual(self.calib(0.),
-                         0.)
+        self.assertEqual(self.calib(0.0), 0.0)
 
     def testCall(self):
         self.assertTrue(numpy.array_equal(self.calib(X), X))
@@ -60,8 +63,7 @@ class TestLinearCalibration(unittest.TestCase):
     def setUp(self):
         self.y_intercept = 1.5
         self.slope = 2.5
-        self.calib = LinearCalibration(y_intercept=self.y_intercept,
-                                       slope=self.slope)
+        self.calib = LinearCalibration(y_intercept=self.y_intercept, slope=self.slope)
 
     def testIsAffine(self):
         self.assertTrue(self.calib.is_affine())
@@ -70,17 +72,17 @@ class TestLinearCalibration(unittest.TestCase):
         self.assertEqual(self.calib.get_slope(), self.slope)
 
     def testYIntercept(self):
-        self.assertEqual(self.calib(0.),
-                         self.y_intercept)
+        self.assertEqual(self.calib(0.0), self.y_intercept)
 
     def testCall(self):
-        self.assertTrue(numpy.array_equal(self.calib(X),
-                                          self.y_intercept + self.slope * X))
+        self.assertTrue(
+            numpy.array_equal(self.calib(X), self.y_intercept + self.slope * X)
+        )
 
 
 class TestArrayCalibration(unittest.TestCase):
     def setUp(self):
-        self.arr = numpy.array([45.2, 25.3, 666., -8.])
+        self.arr = numpy.array([45.2, 25.3, 666.0, -8.0])
         self.calib = ArrayCalibration(self.arr)
         self.affine_calib = ArrayCalibration([0.1, 0.2, 0.3])
 
@@ -91,12 +93,10 @@ class TestArrayCalibration(unittest.TestCase):
     def testSlope(self):
         with self.assertRaises(AttributeError):
             self.calib.get_slope()
-        self.assertEqual(self.affine_calib.get_slope(),
-                         0.1)
+        self.assertEqual(self.affine_calib.get_slope(), 0.1)
 
     def testYIntercept(self):
-        self.assertEqual(self.calib(0),
-                         self.arr[0])
+        self.assertEqual(self.calib(0), self.arr[0])
 
     def testCall(self):
         with self.assertRaises(ValueError):
@@ -107,9 +107,7 @@ class TestArrayCalibration(unittest.TestCase):
             # floats are not valid indices
             self.calib(3.14)
 
-        self.assertTrue(
-            numpy.array_equal(self.calib([1, 2, 3, 4]),
-                              self.arr))
+        self.assertTrue(numpy.array_equal(self.calib([1, 2, 3, 4]), self.arr))
 
         for idx, value in enumerate(self.arr):
             self.assertEqual(self.calib(idx), value)
@@ -128,9 +126,8 @@ class TestFunctionCalibration(unittest.TestCase):
         self.non_affine_fun = numpy.sin
         self.non_affine_calib = FunctionCalibration(self.non_affine_fun)
 
-        self.affine_fun = lambda x: 52. * x + 0.01
-        self.affine_calib = FunctionCalibration(self.affine_fun,
-                                                is_affine=True)
+        self.affine_fun = lambda x: 52.0 * x + 0.01
+        self.affine_calib = FunctionCalibration(self.affine_fun, is_affine=True)
 
     def testIsAffine(self):
         self.assertFalse(self.non_affine_calib.is_affine())
@@ -139,12 +136,9 @@ class TestFunctionCalibration(unittest.TestCase):
     def testSlope(self):
         with self.assertRaises(AttributeError):
             self.non_affine_calib.get_slope()
-        self.assertAlmostEqual(self.affine_calib.get_slope(),
-                               52.)
+        self.assertAlmostEqual(self.affine_calib.get_slope(), 52.0)
 
     def testCall(self):
         for x in X:
-            self.assertAlmostEqual(self.non_affine_calib(x),
-                                   self.non_affine_fun(x))
-            self.assertAlmostEqual(self.affine_calib(x),
-                                   self.affine_fun(x))
+            self.assertAlmostEqual(self.non_affine_calib(x), self.non_affine_fun(x))
+            self.assertAlmostEqual(self.affine_calib(x), self.affine_fun(x))

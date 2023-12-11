@@ -32,7 +32,6 @@ import silx.image.marchingsquares
 
 
 class MockMarchingSquares(object):
-
     last = None
 
     def __init__(self, image, mask=None):

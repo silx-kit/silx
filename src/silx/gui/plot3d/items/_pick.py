@@ -53,7 +53,7 @@ class PickContext(object):
         self._widgetPosition = x, y
         assert isinstance(viewport, Viewport)
         self._viewport = viewport
-        self._ndcZRange = -1., 1.
+        self._ndcZRange = -1.0, 1.0
         self._enabled = True
         self._condition = condition
 
@@ -108,7 +108,7 @@ class PickContext(object):
         """
         return self._enabled
 
-    def setNDCZRange(self, near=-1., far=1.):
+    def setNDCZRange(self, near=-1.0, far=1.0):
         """Set near and far Z value in normalized device coordinates
 
         This allows to clip the ray to a subset of the NDC range
@@ -142,36 +142,33 @@ class PickContext(object):
             or None if picked point is outside viewport
         :rtype: Union[None,numpy.ndarray]
         """
-        assert frame in ('ndc', 'camera', 'scene') or isinstance(frame, Base)
+        assert frame in ("ndc", "camera", "scene") or isinstance(frame, Base)
 
         positionNdc = self.getNDCPosition()
         if positionNdc is None:
             return None
 
         near, far = self._ndcZRange
-        rayNdc = numpy.array((positionNdc + (near, 1.),
-                              positionNdc + (far, 1.)),
-                             dtype=numpy.float64)
-        if frame == 'ndc':
+        rayNdc = numpy.array(
+            (positionNdc + (near, 1.0), positionNdc + (far, 1.0)), dtype=numpy.float64
+        )
+        if frame == "ndc":
             return rayNdc
 
         viewport = self.getViewport()
 
         rayCamera = viewport.camera.intrinsic.transformPoints(
-            rayNdc,
-            direct=False,
-            perspectiveDivide=True)
-        if frame == 'camera':
+            rayNdc, direct=False, perspectiveDivide=True
+        )
+        if frame == "camera":
             return rayCamera
 
-        rayScene = viewport.camera.extrinsic.transformPoints(
-            rayCamera, direct=False)
-        if frame == 'scene':
+        rayScene = viewport.camera.extrinsic.transformPoints(rayCamera, direct=False)
+        if frame == "scene":
             return rayScene
 
         # frame is a scene Base object
-        rayObject = frame.objectToSceneTransform.transformPoints(
-            rayScene, direct=False)
+        rayObject = frame.objectToSceneTransform.transformPoints(rayScene, direct=False)
         return rayObject
 
 
@@ -193,8 +190,7 @@ class PickingResult(_PickingResult):
         """
         super(PickingResult, self).__init__(item, indices)
 
-        self._objectPositions = numpy.array(
-            positions, copy=False, dtype=numpy.float64)
+        self._objectPositions = numpy.array(positions, copy=False, dtype=numpy.float64)
 
         # Store matrices to generate positions on demand
         primitive = item._getScenePrimitive()
@@ -219,7 +215,7 @@ class PickingResult(_PickingResult):
 
         item = self.getItem()
         if self._fetchdata is None:
-            if hasattr(item, 'getData'):
+            if hasattr(item, "getData"):
                 data = item.getData(copy=False)
             else:
                 return None
@@ -228,7 +224,7 @@ class PickingResult(_PickingResult):
 
         return numpy.array(data[indices], copy=copy)
 
-    def getPositions(self, frame='scene', copy=True):
+    def getPositions(self, frame="scene", copy=True):
         """Returns picking positions in item coordinates.
 
         :param str frame: The frame in which the positions are returned
@@ -239,24 +235,26 @@ class PickingResult(_PickingResult):
         :return: Nx3 array of (x, y, z) coordinates
         :rtype: numpy.ndarray
         """
-        if frame == 'ndc':
+        if frame == "ndc":
             if self._ndcPositions is None:  # Lazy-loading
                 self._ndcPositions = self._objectToNDCTransform.transformPoints(
-                    self._objectPositions, perspectiveDivide=True)
+                    self._objectPositions, perspectiveDivide=True
+                )
 
             positions = self._ndcPositions
 
-        elif frame == 'scene':
+        elif frame == "scene":
             if self._scenePositions is None:  # Lazy-loading
                 self._scenePositions = self._objectToSceneTransform.transformPoints(
-                    self._objectPositions)
+                    self._objectPositions
+                )
 
             positions = self._scenePositions
 
-        elif frame == 'object':
+        elif frame == "object":
             positions = self._objectPositions
 
         else:
-            raise ValueError('Unsupported frame argument: %s' % str(frame))
+            raise ValueError("Unsupported frame argument: %s" % str(frame))
 
         return numpy.array(positions, copy=copy)

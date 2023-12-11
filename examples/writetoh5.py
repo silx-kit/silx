@@ -44,34 +44,45 @@ import argparse
 from silx.io.convert import write_to_h5
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('input_path',
-                    help='Path to input data file')
-parser.add_argument('h5_path',
-                    help='Path to output HDF5 file')
-parser.add_argument('-t', '--target-path', default="/",
-                    help='Name of the group in which to save the scans ' +
-                         'in the output file')
+parser.add_argument("input_path", help="Path to input data file")
+parser.add_argument("h5_path", help="Path to output HDF5 file")
+parser.add_argument(
+    "-t",
+    "--target-path",
+    default="/",
+    help="Name of the group in which to save the scans " + "in the output file",
+)
 
 mode_group = parser.add_mutually_exclusive_group()
-mode_group.add_argument('-o', '--overwrite', action="store_true",
-                        help='Overwrite output file if it exists, ' +
-                             'else create new file.')
-mode_group.add_argument('-a', '--append', action="store_true",
-                        help='Append data to existing file if it exists, ' +
-                             'else create new file.')
+mode_group.add_argument(
+    "-o",
+    "--overwrite",
+    action="store_true",
+    help="Overwrite output file if it exists, " + "else create new file.",
+)
+mode_group.add_argument(
+    "-a",
+    "--append",
+    action="store_true",
+    help="Append data to existing file if it exists, " + "else create new file.",
+)
 
-parser.add_argument('--overwrite-data', action="store_true",
-                    help='In append mode, overwrite existing groups and ' +
-                         'datasets in the output file, if they exist with ' +
-                         'the same name as input data. By default, existing' +
-                         ' data is not touched, corresponding input data is' +
-                         ' ignored.')
+parser.add_argument(
+    "--overwrite-data",
+    action="store_true",
+    help="In append mode, overwrite existing groups and "
+    + "datasets in the output file, if they exist with "
+    + "the same name as input data. By default, existing"
+    + " data is not touched, corresponding input data is"
+    + " ignored.",
+)
 
 args = parser.parse_args()
 
 if args.overwrite_data and not args.append:
-    print("Option --overwrite-data ignored " +
-          "(only relevant combined with option -a)")
+    print(
+        "Option --overwrite-data ignored " + "(only relevant combined with option -a)"
+    )
 
 if args.overwrite:
     mode = "w"
@@ -81,7 +92,10 @@ else:
     # by default, use "write" mode and fail if file already exists
     mode = "w-"
 
-write_to_h5(args.input_path, args.h5_path,
-            h5path=args.target_path,
-            mode=mode,
-            overwrite_data=args.overwrite_data)
+write_to_h5(
+    args.input_path,
+    args.h5_path,
+    h5path=args.target_path,
+    mode=mode,
+    overwrite_data=args.overwrite_data,
+)

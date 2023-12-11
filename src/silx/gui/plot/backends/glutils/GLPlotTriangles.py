@@ -70,9 +70,10 @@ class GLPlotTriangles(GLPlotItem):
             gl_FragColor.a *= alpha;
         }
         """,
-        attrib0='xPos')
+        attrib0="xPos",
+    )
 
-    def __init__(self, x, y, color, triangles, alpha=1.):
+    def __init__(self, x, y, color, triangles, alpha=1.0):
         """
 
         :param numpy.ndarray x: X coordinates of triangle corners
@@ -97,14 +98,14 @@ class GLPlotTriangles(GLPlotItem):
         elif numpy.issubdtype(color.dtype, numpy.integer):
             color = numpy.array(color, dtype=numpy.uint8, copy=False)
         else:
-            raise ValueError('Unsupported color type')
+            raise ValueError("Unsupported color type")
         assert triangles.ndim == 2 and triangles.shape[1] == 3
 
         self.__x_y_color = x, y, color
         self.xMin, self.xMax = min_max(x, finite=True)
         self.yMin, self.yMax = min_max(y, finite=True)
         self.__triangles = triangles
-        self.__alpha = numpy.clip(float(alpha), 0., 1.)
+        self.__alpha = numpy.clip(float(alpha), 0.0, 1.0)
         self.__vbos = None
         self.__indicesVbo = None
         self.__picking_triangles = None
@@ -117,21 +118,22 @@ class GLPlotTriangles(GLPlotItem):
         :return: List of picked data point indices
         :rtype: Union[List[int],None]
         """
-        if (x < self.xMin or x > self.xMax or
-                y < self.yMin or y > self.yMax):
+        if x < self.xMin or x > self.xMax or y < self.yMin or y > self.yMax:
             return None
 
         xPts, yPts = self.__x_y_color[:2]
         if self.__picking_triangles is None:
             self.__picking_triangles = numpy.zeros(
-                self.__triangles.shape + (3,), dtype=numpy.float32)
+                self.__triangles.shape + (3,), dtype=numpy.float32
+            )
             self.__picking_triangles[:, :, 0] = xPts[self.__triangles]
             self.__picking_triangles[:, :, 1] = yPts[self.__triangles]
 
         segment = numpy.array(((x, y, -1), (x, y, 1)), dtype=numpy.float32)
         # Picked triangle indices
         indices = glutils.segmentTrianglesIntersection(
-            segment, self.__picking_triangles)[0]
+            segment, self.__picking_triangles
+        )[0]
         # Point indices
         indices = numpy.unique(numpy.ravel(self.__triangles[indices]))
 
@@ -163,7 +165,8 @@ class GLPlotTriangles(GLPlotItem):
             self.__indicesVbo = glutils.VertexBuffer(
                 numpy.ravel(self.__triangles),
                 usage=gl.GL_STATIC_DRAW,
-                target=gl.GL_ELEMENT_ARRAY_BUFFER)
+                target=gl.GL_ELEMENT_ARRAY_BUFFER,
+            )
 
     def render(self, context):
         """Perform rendering
@@ -177,20 +180,24 @@ class GLPlotTriangles(GLPlotItem):
 
         self._PROGRAM.use()
 
-        gl.glUniformMatrix4fv(self._PROGRAM.uniforms['matrix'],
-                              1,
-                              gl.GL_TRUE,
-                              context.matrix.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            self._PROGRAM.uniforms["matrix"],
+            1,
+            gl.GL_TRUE,
+            context.matrix.astype(numpy.float32),
+        )
 
-        gl.glUniform1f(self._PROGRAM.uniforms['alpha'], self.__alpha)
+        gl.glUniform1f(self._PROGRAM.uniforms["alpha"], self.__alpha)
 
-        for index, name in enumerate(('xPos', 'yPos', 'color')):
+        for index, name in enumerate(("xPos", "yPos", "color")):
             attr = self._PROGRAM.attributes[name]
             gl.glEnableVertexAttribArray(attr)
             self.__vbos[index].setVertexAttrib(attr)
 
         with self.__indicesVbo:
-            gl.glDrawElements(gl.GL_TRIANGLES,
-                              self.__triangles.size,
-                              glutils.numpyToGLType(self.__triangles.dtype),
-                              ctypes.c_void_p(0))
+            gl.glDrawElements(
+                gl.GL_TRIANGLES,
+                self.__triangles.size,
+                glutils.numpyToGLType(self.__triangles.dtype),
+                ctypes.c_void_p(0),
+            )

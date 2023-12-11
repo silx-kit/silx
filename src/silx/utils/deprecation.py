@@ -40,7 +40,15 @@ FORCE = False
 It is needed for reproducible tests.
 """
 
-def deprecated(func=None, reason=None, replacement=None, since_version=None, only_once=True, skip_backtrace_count=1):
+
+def deprecated(
+    func=None,
+    reason=None,
+    replacement=None,
+    since_version=None,
+    only_once=True,
+    skip_backtrace_count=1,
+):
     """
     Decorator that deprecates the use of a function
 
@@ -55,26 +63,37 @@ def deprecated(func=None, reason=None, replacement=None, since_version=None, onl
     :param int skip_backtrace_count: Amount of last backtrace to ignore when
         logging the backtrace
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            deprecated_warning(type_='Function',
-                               name=func.__name__,
-                               reason=reason,
-                               replacement=replacement,
-                               since_version=since_version,
-                               only_once=only_once,
-                               skip_backtrace_count=skip_backtrace_count)
+            deprecated_warning(
+                type_="Function",
+                name=func.__name__,
+                reason=reason,
+                replacement=replacement,
+                since_version=since_version,
+                only_once=only_once,
+                skip_backtrace_count=skip_backtrace_count,
+            )
             return func(*args, **kwargs)
+
         return wrapper
+
     if func is not None:
         return decorator(func)
     return decorator
 
 
-def deprecated_warning(type_, name, reason=None, replacement=None,
-                       since_version=None, only_once=True,
-                       skip_backtrace_count=0):
+def deprecated_warning(
+    type_,
+    name,
+    reason=None,
+    replacement=None,
+    since_version=None,
+    only_once=True,
+    skip_backtrace_count=0,
+):
     """
     Function to log a deprecation warning
 

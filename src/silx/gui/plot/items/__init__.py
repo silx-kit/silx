@@ -31,22 +31,50 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "22/06/2017"
 
-from .core import (Item, DataItem,  # noqa
-                   LabelsMixIn, DraggableMixIn, ColormapMixIn, LineGapColorMixIn,  # noqa
-                   SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
-                   AlphaMixIn, LineMixIn, ScatterVisualizationMixIn,  # noqa
-                   ComplexMixIn, ItemChangedType, PointsBase)  # noqa
+from .core import (
+    Item,
+    DataItem,  # noqa
+    LabelsMixIn,
+    DraggableMixIn,
+    ColormapMixIn,
+    LineGapColorMixIn,  # noqa
+    SymbolMixIn,
+    ColorMixIn,
+    YAxisMixIn,
+    FillMixIn,  # noqa
+    AlphaMixIn,
+    LineMixIn,
+    ScatterVisualizationMixIn,  # noqa
+    ComplexMixIn,
+    ItemChangedType,
+    PointsBase,
+)  # noqa
 from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa
-from .image import ImageBase, ImageData, ImageDataBase, ImageRgba, ImageStack, MaskImageData  # noqa
+from .image import (
+    ImageBase,
+    ImageData,
+    ImageDataBase,
+    ImageRgba,
+    ImageStack,
+    MaskImageData,
+)  # noqa
 from .image_aggregated import ImageDataAggregated  # noqa
 from .shape import Line, Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis
 
-DATA_ITEMS = (ImageComplexData, Curve, Histogram, ImageBase, Scatter,
-              BoundingRect, XAxisExtent, YAxisExtent)
+DATA_ITEMS = (
+    ImageComplexData,
+    Curve,
+    Histogram,
+    ImageBase,
+    Scatter,
+    BoundingRect,
+    XAxisExtent,
+    YAxisExtent,
+)
 """Classes of items representing data and to consider to compute data bounds.
 """

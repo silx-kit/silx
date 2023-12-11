@@ -75,13 +75,13 @@ def _lineProfileTitle(x0, y0, x1, y1):
     :rtype: str
     """
     if x0 == x1:
-        title = '{xlabel} = %g; {ylabel} = [%g, %g]' % (x0, y0, y1)
+        title = "{xlabel} = %g; {ylabel} = [%g, %g]" % (x0, y0, y1)
     elif y0 == y1:
-        title = '{ylabel} = %g; {xlabel} = [%g, %g]' % (y0, x0, x1)
+        title = "{ylabel} = %g; {xlabel} = [%g, %g]" % (y0, x0, x1)
     else:
         m = (y1 - y0) / (x1 - x0)
         b = y0 - m * x0
-        title = '{ylabel} = %g * {xlabel} %+g' % (m, b)
+        title = "{ylabel} = %g * {xlabel} %+g" % (m, b)
 
     return title
 
@@ -147,7 +147,8 @@ class _ImageProfileArea(items.Shape):
             origin=origin,
             scale=scale,
             lineWidth=roi.getProfileLineWidth(),
-            method="none")
+            method="none",
+        )
         return area
 
 
@@ -214,8 +215,7 @@ class _SliceProfileArea(items.Shape):
 
 
 class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
-    """Provide common behavior for silx default image profile ROI.
-    """
+    """Provide common behavior for silx default image profile ROI."""
 
     ITEM_KIND = items.ImageBase
 
@@ -265,21 +265,21 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
 
     def _getRoiInfo(self):
         """Wrapper to allow to reuse the previous Profile code.
-    
+
         It would be good to remove it at one point.
         """
         if isinstance(self, roi_items.HorizontalLineROI):
-            lineProjectionMode = 'X'
+            lineProjectionMode = "X"
             y = self.getPosition()
             roiStart = (0, y)
             roiEnd = (1, y)
         elif isinstance(self, roi_items.VerticalLineROI):
-            lineProjectionMode = 'Y'
+            lineProjectionMode = "Y"
             x = self.getPosition()
             roiStart = (x, 0)
             roiEnd = (x, 1)
         elif isinstance(self, roi_items.LineROI):
-            lineProjectionMode = 'D'
+            lineProjectionMode = "D"
             roiStart, roiEnd = self.getEndPoints()
         else:
             assert False
@@ -303,7 +303,8 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
                 origin=origin,
                 scale=scale,
                 lineWidth=lineWidth,
-                method=method)
+                method=method,
+            )
             return coords, profile, profileName, xLabel
 
         currentData = item.getValueData(copy=False)
@@ -349,61 +350,61 @@ class _DefaultImageProfileRoiMixIn(core.ProfileRoiMixIn):
         return data
 
 
-class ProfileImageHorizontalLineROI(roi_items.HorizontalLineROI,
-                                    _DefaultImageProfileRoiMixIn):
+class ProfileImageHorizontalLineROI(
+    roi_items.HorizontalLineROI, _DefaultImageProfileRoiMixIn
+):
     """ROI for an horizontal profile at a location of an image"""
 
-    ICON = 'shape-horizontal'
-    NAME = 'horizontal line profile'
+    ICON = "shape-horizontal"
+    NAME = "horizontal line profile"
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileImageVerticalLineROI(roi_items.VerticalLineROI,
-                                  _DefaultImageProfileRoiMixIn):
+class ProfileImageVerticalLineROI(
+    roi_items.VerticalLineROI, _DefaultImageProfileRoiMixIn
+):
     """ROI for a vertical profile at a location of an image"""
 
-    ICON = 'shape-vertical'
-    NAME = 'vertical line profile'
+    ICON = "shape-vertical"
+    NAME = "vertical line profile"
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileImageLineROI(roi_items.LineROI,
-                          _DefaultImageProfileRoiMixIn):
+class ProfileImageLineROI(roi_items.LineROI, _DefaultImageProfileRoiMixIn):
     """ROI for an image profile between 2 points.
 
     The X profile of this ROI is the projecting into one of the x/y axes,
     using its scale and its orientation.
     """
 
-    ICON = 'shape-diagonal'
-    NAME = 'line profile'
+    ICON = "shape-diagonal"
+    NAME = "line profile"
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileImageDirectedLineROI(roi_items.LineROI,
-                                  _DefaultImageProfileRoiMixIn):
+class ProfileImageDirectedLineROI(roi_items.LineROI, _DefaultImageProfileRoiMixIn):
     """ROI for an image profile between 2 points.
 
     The X profile of the line is displayed projected into the line itself,
     using its scale and its orientation. It's the distance from the origin.
     """
 
-    ICON = 'shape-diagonal-directed'
-    NAME = 'directed line profile'
+    ICON = "shape-diagonal-directed"
+    NAME = "directed line profile"
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
         _DefaultImageProfileRoiMixIn.__init__(self, parent=parent)
-        self._handleStart.setSymbol('o')
+        self._handleStart.setSymbol("o")
 
     def computeProfile(self, item):
         if not isinstance(item, items.ImageBase):
@@ -420,10 +421,11 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
         roiInfo = self._getRoiInfo()
         roiStart, roiEnd, _lineProjectionMode = roiInfo
 
-        startPt = ((roiStart[1] - origin[1]) / scale[1],
-                   (roiStart[0] - origin[0]) / scale[0])
-        endPt = ((roiEnd[1] - origin[1]) / scale[1],
-                 (roiEnd[0] - origin[0]) / scale[0])
+        startPt = (
+            (roiStart[1] - origin[1]) / scale[1],
+            (roiStart[0] - origin[0]) / scale[0],
+        )
+        endPt = ((roiEnd[1] - origin[1]) / scale[1], (roiEnd[0] - origin[0]) / scale[0])
 
         if numpy.array_equal(startPt, endPt):
             return None
@@ -433,14 +435,16 @@ class ProfileImageDirectedLineROI(roi_items.LineROI,
             (startPt[0] - 0.5, startPt[1] - 0.5),
             (endPt[0] - 0.5, endPt[1] - 0.5),
             lineWidth,
-            method=method)
+            method=method,
+        )
 
         # Compute the line size
-        lineSize = numpy.sqrt((roiEnd[1] - roiStart[1]) ** 2 +
-                              (roiEnd[0] - roiStart[0]) ** 2)
-        coords = numpy.linspace(0, lineSize, len(profile),
-                                endpoint=True,
-                                dtype=numpy.float32)
+        lineSize = numpy.sqrt(
+            (roiEnd[1] - roiStart[1]) ** 2 + (roiEnd[0] - roiStart[0]) ** 2
+        )
+        coords = numpy.linspace(
+            0, lineSize, len(profile), endpoint=True, dtype=numpy.float32
+        )
 
         title = _lineProfileTitle(*roiStart, *roiEnd)
         title = title + "; width = %d" % lineWidth
@@ -531,8 +535,7 @@ class _ProfileCrossROI(roi_items.HandleBasedROI, core.ProfileRoiMixIn):
     def __updateLineProperty(self, event=None, checkVisibility=True):
         if event == items.ItemChangedType.NAME:
             self.__handleLabel.setText(self.getName())
-        elif event in [items.ItemChangedType.COLOR,
-                     items.ItemChangedType.VISIBLE]:
+        elif event in [items.ItemChangedType.COLOR, items.ItemChangedType.VISIBLE]:
             lines = []
             if self.__vline:
                 lines.append(self.__vline)
@@ -659,8 +662,8 @@ class ProfileImageCrossROI(_ProfileCrossROI):
     It is managed using 2 sub ROIs for vertical and horizontal.
     """
 
-    ICON = 'shape-cross'
-    NAME = 'cross profile'
+    ICON = "shape-cross"
+    NAME = "cross profile"
     ITEM_KIND = items.ImageBase
 
     def _createLines(self, parent):
@@ -693,8 +696,7 @@ class ProfileImageCrossROI(_ProfileCrossROI):
 
 
 class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
-    """Provide common behavior for silx default scatter profile ROI.
-    """
+    """Provide common behavior for silx default scatter profile ROI."""
 
     ITEM_KIND = items.Scatter
 
@@ -778,7 +780,7 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
                 x0 = x1 = self.getPosition()
                 y0, y1 = plot.getYAxis().getLimits()
         else:
-            raise RuntimeError('Unsupported ROI for profile: {}'.format(self.__class__))
+            raise RuntimeError("Unsupported ROI for profile: {}".format(self.__class__))
 
         if x1 < x0 or (x1 == x0 and y1 < y0):
             # Invert points
@@ -792,13 +794,14 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
         points = profile[0]
         values = profile[1]
 
-        if (numpy.abs(points[-1, 0] - points[0, 0]) >
-                numpy.abs(points[-1, 1] - points[0, 1])):
+        if numpy.abs(points[-1, 0] - points[0, 0]) > numpy.abs(
+            points[-1, 1] - points[0, 1]
+        ):
             xProfile = points[:, 0]
-            xLabel = '{xlabel}'
+            xLabel = "{xlabel}"
         else:
             xProfile = points[:, 1]
-            xLabel = '{ylabel}'
+            xLabel = "{ylabel}"
 
         # Use the axis names from the original
         profileManager = self.getProfileManager()
@@ -811,41 +814,42 @@ class _DefaultScatterProfileRoiMixIn(core.ProfileRoiMixIn):
             profile=values,
             title=title,
             xLabel=xLabel,
-            yLabel='Profile',
+            yLabel="Profile",
         )
         return data
 
 
-class ProfileScatterHorizontalLineROI(roi_items.HorizontalLineROI,
-                                      _DefaultScatterProfileRoiMixIn):
+class ProfileScatterHorizontalLineROI(
+    roi_items.HorizontalLineROI, _DefaultScatterProfileRoiMixIn
+):
     """ROI for an horizontal profile at a location of a scatter"""
 
-    ICON = 'shape-horizontal'
-    NAME = 'horizontal line profile'
+    ICON = "shape-horizontal"
+    NAME = "horizontal line profile"
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileScatterVerticalLineROI(roi_items.VerticalLineROI,
-                                    _DefaultScatterProfileRoiMixIn):
+class ProfileScatterVerticalLineROI(
+    roi_items.VerticalLineROI, _DefaultScatterProfileRoiMixIn
+):
     """ROI for an horizontal profile at a location of a scatter"""
 
-    ICON = 'shape-vertical'
-    NAME = 'vertical line profile'
+    ICON = "shape-vertical"
+    NAME = "vertical line profile"
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultScatterProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileScatterLineROI(roi_items.LineROI,
-                            _DefaultScatterProfileRoiMixIn):
+class ProfileScatterLineROI(roi_items.LineROI, _DefaultScatterProfileRoiMixIn):
     """ROI for an horizontal profile at a location of a scatter"""
 
-    ICON = 'shape-diagonal'
-    NAME = 'line profile'
+    ICON = "shape-diagonal"
+    NAME = "line profile"
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
@@ -853,11 +857,10 @@ class ProfileScatterLineROI(roi_items.LineROI,
 
 
 class ProfileScatterCrossROI(_ProfileCrossROI):
-    """ROI to manage a cross of profiles for scatters.
-    """
+    """ROI to manage a cross of profiles for scatters."""
 
-    ICON = 'shape-cross'
-    NAME = 'cross profile'
+    ICON = "shape-cross"
+    NAME = "cross profile"
     ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
@@ -909,7 +912,9 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
 
     def _getSlice(self, item):
         position = self.getPosition()
-        bounds = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_BOUNDS)
+        bounds = item.getCurrentVisualizationParameter(
+            items.Scatter.VisualizationParameter.GRID_BOUNDS
+        )
         if isinstance(self, roi_items.HorizontalLineROI):
             axis = 1
         elif isinstance(self, roi_items.VerticalLineROI):
@@ -920,21 +925,25 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
             # ROI outside of the scatter bound
             return None
 
-        major_order = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_MAJOR_ORDER)
-        assert major_order == 'row'
-        max_grid_yy, max_grid_xx = item.getCurrentVisualizationParameter(items.Scatter.VisualizationParameter.GRID_SHAPE)
+        major_order = item.getCurrentVisualizationParameter(
+            items.Scatter.VisualizationParameter.GRID_MAJOR_ORDER
+        )
+        assert major_order == "row"
+        max_grid_yy, max_grid_xx = item.getCurrentVisualizationParameter(
+            items.Scatter.VisualizationParameter.GRID_SHAPE
+        )
 
         xx, yy, _values, _xx_error, _yy_error = item.getData(copy=False)
         if isinstance(self, roi_items.HorizontalLineROI):
             axis = yy
             max_grid_first = max_grid_yy
             max_grid_second = max_grid_xx
-            major_axis = major_order == 'column'
+            major_axis = major_order == "column"
         elif isinstance(self, roi_items.VerticalLineROI):
             axis = xx
             max_grid_first = max_grid_xx
             max_grid_second = max_grid_yy
-            major_axis = major_order == 'row'
+            major_axis = major_order == "row"
         else:
             assert False
 
@@ -946,7 +955,7 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
             # slice in the middle of the scatter
             actual_size_grid_second = len(axis) // max_grid_first
             start = actual_size_grid_second // 2 * max_grid_first
-            vslice = axis[start:start + max_grid_first]
+            vslice = axis[start : start + max_grid_first]
             if len(vslice) == 0:
                 return None
             index = argnearest(vslice, position)
@@ -954,7 +963,7 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         else:
             # slice in the middle of the scatter
             actual_size_grid_second = len(axis) // max_grid_first
-            vslice = axis[actual_size_grid_second // 2::max_grid_second]
+            vslice = axis[actual_size_grid_second // 2 :: max_grid_second]
             if len(vslice) == 0:
                 return None
             index = argnearest(vslice, position)
@@ -999,28 +1008,30 @@ class _DefaultScatterProfileSliceRoiMixIn(core.ProfileRoiMixIn):
         return data
 
 
-class ProfileScatterHorizontalSliceROI(roi_items.HorizontalLineROI,
-                                       _DefaultScatterProfileSliceRoiMixIn):
+class ProfileScatterHorizontalSliceROI(
+    roi_items.HorizontalLineROI, _DefaultScatterProfileSliceRoiMixIn
+):
     """ROI for an horizontal profile at a location of a scatter
     using data slicing.
     """
 
-    ICON = 'slice-horizontal'
-    NAME = 'horizontal data slice profile'
+    ICON = "slice-horizontal"
+    NAME = "horizontal data slice profile"
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultScatterProfileSliceRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
-                                       _DefaultScatterProfileSliceRoiMixIn):
+class ProfileScatterVerticalSliceROI(
+    roi_items.VerticalLineROI, _DefaultScatterProfileSliceRoiMixIn
+):
     """ROI for a vertical profile at a location of a scatter
     using data slicing.
     """
 
-    ICON = 'slice-vertical'
-    NAME = 'vertical data slice profile'
+    ICON = "slice-vertical"
+    NAME = "vertical data slice profile"
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
@@ -1028,11 +1039,10 @@ class ProfileScatterVerticalSliceROI(roi_items.VerticalLineROI,
 
 
 class ProfileScatterCrossSliceROI(_ProfileCrossROI):
-    """ROI to manage a cross of slicing profiles on scatters.
-    """
+    """ROI to manage a cross of slicing profiles on scatters."""
 
-    ICON = 'slice-cross'
-    NAME = 'cross data slice profile'
+    ICON = "slice-cross"
+    NAME = "cross data slice profile"
     ITEM_KIND = items.Scatter
 
     def _createLines(self, parent):
@@ -1042,7 +1052,6 @@ class ProfileScatterCrossSliceROI(_ProfileCrossROI):
 
 
 class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
-
     ITEM_KIND = items.ImageStack
 
     def __init__(self, parent=None):
@@ -1087,7 +1096,8 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
                 origin=origin,
                 scale=scale,
                 lineWidth=self.getProfileLineWidth(),
-                method=method)
+                method=method,
+            )
             return coords, profile, profileName, xLabel
 
         coords, profile, profileName, xLabel = createProfile2(currentData)
@@ -1106,36 +1116,37 @@ class _DefaultImageStackProfileRoiMixIn(_DefaultImageProfileRoiMixIn):
         return data
 
 
-class ProfileImageStackHorizontalLineROI(roi_items.HorizontalLineROI,
-                                         _DefaultImageStackProfileRoiMixIn):
+class ProfileImageStackHorizontalLineROI(
+    roi_items.HorizontalLineROI, _DefaultImageStackProfileRoiMixIn
+):
     """ROI for an horizontal profile at a location of a stack of images"""
 
-    ICON = 'shape-horizontal'
-    NAME = 'horizontal line profile'
+    ICON = "shape-horizontal"
+    NAME = "horizontal line profile"
 
     def __init__(self, parent=None):
         roi_items.HorizontalLineROI.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileImageStackVerticalLineROI(roi_items.VerticalLineROI,
-                                       _DefaultImageStackProfileRoiMixIn):
+class ProfileImageStackVerticalLineROI(
+    roi_items.VerticalLineROI, _DefaultImageStackProfileRoiMixIn
+):
     """ROI for an vertical profile at a location of a stack of images"""
 
-    ICON = 'shape-vertical'
-    NAME = 'vertical line profile'
+    ICON = "shape-vertical"
+    NAME = "vertical line profile"
 
     def __init__(self, parent=None):
         roi_items.VerticalLineROI.__init__(self, parent=parent)
         _DefaultImageStackProfileRoiMixIn.__init__(self, parent=parent)
 
 
-class ProfileImageStackLineROI(roi_items.LineROI,
-                               _DefaultImageStackProfileRoiMixIn):
+class ProfileImageStackLineROI(roi_items.LineROI, _DefaultImageStackProfileRoiMixIn):
     """ROI for an vertical profile at a location of a stack of images"""
 
-    ICON = 'shape-diagonal'
-    NAME = 'line profile'
+    ICON = "shape-diagonal"
+    NAME = "line profile"
 
     def __init__(self, parent=None):
         roi_items.LineROI.__init__(self, parent=parent)
@@ -1145,8 +1156,8 @@ class ProfileImageStackLineROI(roi_items.LineROI,
 class ProfileImageStackCrossROI(ProfileImageCrossROI):
     """ROI for an vertical profile at a location of a stack of images"""
 
-    ICON = 'shape-cross'
-    NAME = 'cross profile'
+    ICON = "shape-cross"
+    NAME = "cross profile"
     ITEM_KIND = items.ImageStack
 
     def _createLines(self, parent):

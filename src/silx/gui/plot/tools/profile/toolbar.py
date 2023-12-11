@@ -44,10 +44,11 @@ _logger = logging.getLogger(__name__)
 
 class ProfileToolBar(qt.QToolBar):
     """Tool bar to provide profile for a plot.
-    
+
     It is an helper class. For a dedicated application it would be better to
     use an own tool bar in order in order have more flexibility.
     """
+
     def __init__(self, parent=None, plot=None):
         super(ProfileToolBar, self).__init__(parent=parent)
         self.__scheme = None

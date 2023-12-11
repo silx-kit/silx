@@ -64,12 +64,12 @@ class _RunnableComputeProfile(qt.QRunnable):
 
     class _Signals(qt.QObject):
         """Signal holder"""
+
         resultReady = qt.Signal(object, object)
         runnerFinished = qt.Signal(object)
 
     def __init__(self, threadPool, item, roi):
-        """Constructor
-        """
+        """Constructor"""
         super(_RunnableComputeProfile, self).__init__()
         self._signals = self._Signals()
         self._signals.moveToThread(threadPool.thread())
@@ -114,8 +114,7 @@ class _RunnableComputeProfile(qt.QRunnable):
         return self._signals.runnerFinished
 
     def run(self):
-        """Process the profile computation.
-        """
+        """Process the profile computation."""
         if not self._cancelled:
             try:
                 profileData = self._roi.computeProfile(self._item)
@@ -141,7 +140,7 @@ class ProfileWindow(qt.QMainWindow):
     def __init__(self, parent=None, backend=None):
         qt.QMainWindow.__init__(self, parent=parent, flags=qt.Qt.Dialog)
 
-        self.setWindowTitle('Profile window')
+        self.setWindowTitle("Profile window")
         self._plot1D = None
         self._plot2D = None
         self._backend = backend
@@ -175,10 +174,11 @@ class ProfileWindow(qt.QMainWindow):
         """
         # import here to avoid circular import
         from ...PlotWindow import Plot1D
+
         plot = Plot1D(parent=parent, backend=backend)
         plot.setDataMargins(yMinMargin=0.1, yMaxMargin=0.1)
-        plot.setGraphYLabel('Profile')
-        plot.setGraphXLabel('')
+        plot.setGraphYLabel("Profile")
+        plot.setGraphXLabel("")
         positionInfo = plot.getPositionInfoWidget()
         positionInfo.setSnappingMode(positionInfo.SNAPPING_CURVE)
         return plot
@@ -194,6 +194,7 @@ class ProfileWindow(qt.QMainWindow):
         """
         # import here to avoid circular import
         from ...PlotWindow import Plot2D
+
         return Plot2D(parent=parent, backend=backend)
 
     def getPlot1D(self, init=True):
@@ -254,15 +255,16 @@ class ProfileWindow(qt.QMainWindow):
         plot.setGraphTitle(data.title)
         plot.getXAxis().setLabel(data.xLabel)
 
-
         coords = data.coords
         colormap = data.colormap
         profileScale = (coords[-1] - coords[0]) / data.profile.shape[1], 1
-        plot.addImage(data.profile,
-                      legend="profile",
-                      colormap=colormap,
-                      origin=(coords[0], 0),
-                      scale=profileScale)
+        plot.addImage(
+            data.profile,
+            legend="profile",
+            colormap=colormap,
+            origin=(coords[0], 0),
+            scale=profileScale,
+        )
         plot.getYAxis().setLabel("Frame index (depth)")
 
         self._showPlot2D()
@@ -281,10 +283,7 @@ class ProfileWindow(qt.QMainWindow):
         plot.getXAxis().setLabel(data.xLabel)
         plot.getYAxis().setLabel(data.yLabel)
 
-        plot.addCurve(data.coords,
-                      data.profile,
-                      legend="level",
-                      color=self.__color)
+        plot.addCurve(data.coords, data.profile, legend="level", color=self.__color)
 
         self._showPlot1D()
 
@@ -304,14 +303,10 @@ class ProfileWindow(qt.QMainWindow):
 
         self._showPlot1D()
 
-        plot.addCurve(data.coords, data.profile,
-                      legend="level", color="black")
-        plot.addCurve(data.coords, data.profile_r,
-                      legend="red", color="red")
-        plot.addCurve(data.coords, data.profile_g,
-                      legend="green", color="green")
-        plot.addCurve(data.coords, data.profile_b,
-                      legend="blue", color="blue")
+        plot.addCurve(data.coords, data.profile, legend="level", color="black")
+        plot.addCurve(data.coords, data.profile_r, legend="red", color="red")
+        plot.addCurve(data.coords, data.profile_g, legend="green", color="green")
+        plot.addCurve(data.coords, data.profile_b, legend="blue", color="blue")
         if data.profile_a is not None:
             plot.addCurve(data.coords, data.profile_a, legend="alpha", color="gray")
 
@@ -333,11 +328,7 @@ class ProfileWindow(qt.QMainWindow):
 
         for i, desc in enumerate(data.profiles):
             name = desc.name if desc.name is not None else f"profile{i}"
-            plot.addCurve(
-                data.coords,
-                desc.profile,
-                legend=name,
-                color=desc.color)
+            plot.addCurve(data.coords, desc.profile, legend=name, color=desc.color)
 
     def clear(self):
         """Clear the window profile"""
@@ -385,10 +376,10 @@ class _ClearAction(qt.QAction):
     def __init__(self, parent, profileManager):
         super(_ClearAction, self).__init__(parent)
         self.__profileManager = weakref.ref(profileManager)
-        icon = icons.getQIcon('profile-clear')
+        icon = icons.getQIcon("profile-clear")
         self.setIcon(icon)
-        self.setText('Clear profile')
-        self.setToolTip('Clear the profiles')
+        self.setText("Clear profile")
+        self.setToolTip("Clear the profiles")
         self.setCheckable(False)
         self.setEnabled(False)
         self.triggered.connect(profileManager.clearProfile)
@@ -446,37 +437,47 @@ class _StoreLastParamBehavior(qt.QObject):
         if previousRoi is roi:
             return
         if previousRoi is not None:
-            previousRoi.sigProfilePropertyChanged.disconnect(self._profilePropertyChanged)
+            previousRoi.sigProfilePropertyChanged.disconnect(
+                self._profilePropertyChanged
+            )
         self.__profileRoi = None if roi is None else weakref.ref(roi)
         if roi is not None:
             roi.sigProfilePropertyChanged.connect(self._profilePropertyChanged)
 
     def _profilePropertyChanged(self):
-        """Handle changes on the properties defining the profile ROI.
-        """
+        """Handle changes on the properties defining the profile ROI."""
         if self.__filter.locked():
             return
         roi = self.sender()
         self.storeProperties(roi)
 
     def storeProperties(self, roi):
-        if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
-                              rois.ProfileImageStackCrossROI)):
+        if isinstance(
+            roi,
+            (rois._DefaultImageStackProfileRoiMixIn, rois.ProfileImageStackCrossROI),
+        ):
             self.__properties["method"] = roi.getProfileMethod()
             self.__properties["line-width"] = roi.getProfileLineWidth()
             self.__properties["type"] = roi.getProfileType()
-        elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
-                            rois.ProfileImageCrossROI)):
+        elif isinstance(
+            roi, (rois._DefaultImageProfileRoiMixIn, rois.ProfileImageCrossROI)
+        ):
             self.__properties["method"] = roi.getProfileMethod()
             self.__properties["line-width"] = roi.getProfileLineWidth()
-        elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
-                              rois.ProfileScatterCrossROI)):
+        elif isinstance(
+            roi, (rois._DefaultScatterProfileRoiMixIn, rois.ProfileScatterCrossROI)
+        ):
             self.__properties["npoints"] = roi.getNPoints()
 
     def restoreProperties(self, roi):
         with self.__filter:
-            if isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
-                                  rois.ProfileImageStackCrossROI)):
+            if isinstance(
+                roi,
+                (
+                    rois._DefaultImageStackProfileRoiMixIn,
+                    rois.ProfileImageStackCrossROI,
+                ),
+            ):
                 value = self.__properties.get("method", None)
                 if value is not None:
                     roi.setProfileMethod(value)
@@ -486,16 +487,18 @@ class _StoreLastParamBehavior(qt.QObject):
                 value = self.__properties.get("type", None)
                 if value is not None:
                     roi.setProfileType(value)
-            elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
-                                rois.ProfileImageCrossROI)):
+            elif isinstance(
+                roi, (rois._DefaultImageProfileRoiMixIn, rois.ProfileImageCrossROI)
+            ):
                 value = self.__properties.get("method", None)
                 if value is not None:
                     roi.setProfileMethod(value)
                 value = self.__properties.get("line-width", None)
                 if value is not None:
                     roi.setProfileLineWidth(value)
-            elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
-                                  rois.ProfileScatterCrossROI)):
+            elif isinstance(
+                roi, (rois._DefaultScatterProfileRoiMixIn, rois.ProfileScatterCrossROI)
+            ):
                 value = self.__properties.get("npoints", None)
                 if value is not None:
                     roi.setNPoints(value)
@@ -508,12 +511,12 @@ class ProfileManager(qt.QObject):
     :param plot: :class:`~silx.gui.plot.tools.roi.RegionOfInterestManager`
         on which to operate.
     """
+
     def __init__(self, parent=None, plot=None, roiManager=None):
         super(ProfileManager, self).__init__(parent)
 
         assert isinstance(plot, PlotWidget)
-        self._plotRef = weakref.ref(
-            plot, WeakMethodProxy(self.__plotDestroyed))
+        self._plotRef = weakref.ref(plot, WeakMethodProxy(self.__plotDestroyed))
 
         # Set-up interaction manager
         if roiManager is None:
@@ -616,14 +619,16 @@ class ProfileManager(qt.QObject):
         if hasattr(profileRoiClass, "ICON"):
             action.setIcon(icons.getQIcon(profileRoiClass.ICON))
         if hasattr(profileRoiClass, "NAME"):
+
             def articulify(word):
                 """Add an an/a article in the front of the word"""
-                first = word[1] if word[0] == 'h' else word[0]
+                first = word[1] if word[0] == "h" else word[0]
                 if first in "aeiou":
                     return "an " + word
                 return "a " + word
-            action.setText('Define %s' % articulify(profileRoiClass.NAME))
-            action.setToolTip('Enables %s selection mode' % profileRoiClass.NAME)
+
+            action.setText("Define %s" % articulify(profileRoiClass.NAME))
+            action.setToolTip("Enables %s selection mode" % profileRoiClass.NAME)
         action.setSingleShot(True)
         return action
 
@@ -649,7 +654,7 @@ class ProfileManager(qt.QObject):
             rois.ProfileImageLineROI,
             rois.ProfileImageDirectedLineROI,
             rois.ProfileImageCrossROI,
-            ]
+        ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createScatterActions(self, parent):
@@ -664,7 +669,7 @@ class ProfileManager(qt.QObject):
             rois.ProfileScatterVerticalLineROI,
             rois.ProfileScatterLineROI,
             rois.ProfileScatterCrossROI,
-            ]
+        ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createScatterSliceActions(self, parent):
@@ -681,7 +686,7 @@ class ProfileManager(qt.QObject):
             rois.ProfileScatterHorizontalSliceROI,
             rois.ProfileScatterVerticalSliceROI,
             rois.ProfileScatterCrossSliceROI,
-            ]
+        ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createImageStackActions(self, parent):
@@ -699,7 +704,7 @@ class ProfileManager(qt.QObject):
             rois.ProfileImageStackVerticalLineROI,
             rois.ProfileImageStackLineROI,
             rois.ProfileImageStackCrossROI,
-            ]
+        ]
         return [self.createProfileAction(pc, parent=parent) for pc in profileClasses]
 
     def createEditorAction(self, parent):
@@ -731,8 +736,7 @@ class ProfileManager(qt.QObject):
         self.setPlotItem(item)
 
     def setProfileWindowClass(self, profileWindowClass):
-        """Set the class which will be instantiated to display profile result.
-        """
+        """Set the class which will be instantiated to display profile result."""
         self._profileWindowClass = profileWindowClass
 
     def setActiveItemTracking(self, tracking):
@@ -824,7 +828,7 @@ class ProfileManager(qt.QObject):
             roiManager.removeRoi(roi)
 
         if not roiManager.isDrawing():
-            # Clean the selected mode
+            # Clean the selected mode
             roiManager.stop()
 
     def hasPendingOperations(self):
@@ -835,8 +839,7 @@ class ProfileManager(qt.QObject):
         return len(self.__reentrantResults) > 0 or len(self._pendingRunners) > 0
 
     def requestUpdateAllProfile(self):
-        """Request to update the profile of all the managed ROIs.
-        """
+        """Request to update the profile of all the managed ROIs."""
         for roi in self._rois:
             self.requestUpdateProfile(roi)
 
@@ -894,7 +897,7 @@ class ProfileManager(qt.QObject):
         if roi in self.__reentrantResults:
             # Store the data to process it in the main loop
             # And not a sub loop created by initProfileWindow
-            # This also remove the duplicated requested
+            # This also remove the duplicated requested
             self.__reentrantResults[roi] = profileData
             return
 
@@ -944,7 +947,7 @@ class ProfileManager(qt.QObject):
         :param ~silx.gui.plot.items.item.Item item: AN item
         :rtype: qt.QColor
         """
-        color = 'pink'
+        color = "pink"
         if isinstance(item, items.ColormapMixIn):
             colormap = item.getColormap()
             name = colormap.getName()
@@ -974,12 +977,13 @@ class ProfileManager(qt.QObject):
         roi.setColor(color)
 
     def __itemChanged(self, changeType):
-        """Handle item changes.
-        """
-        if changeType in (items.ItemChangedType.DATA,
-                          items.ItemChangedType.MASK,
-                          items.ItemChangedType.POSITION,
-                          items.ItemChangedType.SCALE):
+        """Handle item changes."""
+        if changeType in (
+            items.ItemChangedType.DATA,
+            items.ItemChangedType.MASK,
+            items.ItemChangedType.POSITION,
+            items.ItemChangedType.SCALE,
+        ):
             self.requestUpdateAllProfile()
         elif changeType == (items.ItemChangedType.COLORMAP):
             self._updateRoiColors()
@@ -1095,7 +1099,6 @@ class ProfileManager(qt.QObject):
             else:
                 left = screenGeom.width() - profileGeom.width()
         profileWindow.move(left, top)
-
 
     def clearProfileWindow(self, profileWindow):
         """Called when a profile window is not anymore needed.

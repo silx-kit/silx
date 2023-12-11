@@ -47,12 +47,21 @@ import gc
 from collections import namedtuple
 import numpy
 import threading
-from .common import ocl, pyopencl, release_cl_buffers, query_kernel_info, allocate_texture, check_textures_availability
+from .common import (
+    ocl,
+    pyopencl,
+    release_cl_buffers,
+    query_kernel_info,
+    allocate_texture,
+    check_textures_availability,
+)
 from .utils import concatenate_cl_kernel
 import platform
 
 BufferDescription = namedtuple("BufferDescription", ["name", "size", "dtype", "flags"])
-EventDescription = namedtuple("EventDescription", ["name", "event"])  # Deprecated, please use ProfileDescription
+EventDescription = namedtuple(
+    "EventDescription", ["name", "event"]
+)  # Deprecated, please use ProfileDescription
 ProfileDescription = namedtuple("ProfileDescription", ["name", "start", "stop"])
 
 logger = logging.getLogger(__name__)
@@ -72,8 +81,9 @@ class KernelContainer(object):
 
     def get_kernels(self):
         "return the dictionary with all kernels"
-        return dict(item for item in self.__dict__.items()
-                    if not item[0].startswith("_"))
+        return dict(
+            item for item in self.__dict__.items() if not item[0].startswith("_")
+        )
 
     def get_kernel(self, name):
         "get a kernel from its name"
@@ -96,7 +106,9 @@ class KernelContainer(object):
         else:
             kernel = self.get_kernel(kernel_name)
 
-        return query_kernel_info(self._program, kernel, "PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
+        return query_kernel_info(
+            self._program, kernel, "PREFERRED_WORK_GROUP_SIZE_MULTIPLE"
+        )
 
 
 class OpenclProcessing(object):
@@ -108,14 +120,24 @@ class OpenclProcessing(object):
     * Functions to compile kernels, cache them and clean them
     * helper functions to clone the object
     """
+
     # Example of how to create an output buffer of 10 floats
-    buffers = [BufferDescription("output", 10, numpy.float32, None),
-               ]
+    buffers = [
+        BufferDescription("output", 10, numpy.float32, None),
+    ]
     # list of kernel source files to be concatenated before compilation of the program
     kernel_files = []
 
-    def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, memory=None, profile=False):
+    def __init__(
+        self,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        block_size=None,
+        memory=None,
+        profile=False,
+    ):
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
@@ -140,9 +162,12 @@ class OpenclProcessing(object):
         if ctx:
             self.ctx = ctx
         else:
-            self.ctx = ocl.create_context(devicetype=devicetype,
-                                          platformid=platformid, deviceid=deviceid,
-                                          memory=memory)
+            self.ctx = ocl.create_context(
+                devicetype=devicetype,
+                platformid=platformid,
+                deviceid=deviceid,
+                memory=memory,
+            )
         device_name = self.ctx.devices[0].name.strip()
         platform_name = self.ctx.devices[0].platform.name.strip()
         platform = ocl.get_platform(platform_name)
@@ -158,8 +183,7 @@ class OpenclProcessing(object):
         return check_textures_availability(self.ctx)
 
     def __del__(self):
-        """Destructor: release all buffers and programs
-        """
+        """Destructor: release all buffers and programs"""
         try:
             self.reset_log()
             self.free_kernels()
@@ -201,19 +225,27 @@ class OpenclProcessing(object):
             ualloc = 0
             for buf in buffers:
                 ualloc += numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
-            logger.info("%.3fMB are needed on device: %s,  which has %.3fMB",
-                        ualloc / 1.0e6, self.device, self.device.memory / 1.0e6)
+            logger.info(
+                "%.3fMB are needed on device: %s,  which has %.3fMB",
+                ualloc / 1.0e6,
+                self.device,
+                self.device.memory / 1.0e6,
+            )
 
             if ualloc >= self.device.memory:
-                raise MemoryError("Fatal error in allocate_buffers. Not enough "
-                                  " device memory for buffers (%lu requested, %lu available)"
-                                  % (ualloc, self.device.memory))
+                raise MemoryError(
+                    "Fatal error in allocate_buffers. Not enough "
+                    " device memory for buffers (%lu requested, %lu available)"
+                    % (ualloc, self.device.memory)
+                )
 
             # do the allocation
             try:
                 if use_array:
                     for buf in buffers:
-                        mem[buf.name] = pyopencl.array.empty(self.queue, buf.size, buf.dtype)
+                        mem[buf.name] = pyopencl.array.empty(
+                            self.queue, buf.size, buf.dtype
+                        )
                 else:
                     for buf in buffers:
                         size = numpy.dtype(buf.dtype).itemsize * numpy.prod(buf.size)
@@ -241,8 +273,7 @@ class OpenclProcessing(object):
         return self.kernels.max_workgroup_size(kernel_name)
 
     def free_buffers(self):
-        """free all device.memory allocated on the device
-        """
+        """free all device.memory allocated on the device"""
         with self.sem:
             for key, buf in list(self.cl_mem.items()):
                 if buf is not None:
@@ -272,21 +303,22 @@ class OpenclProcessing(object):
         compile_options = compile_options or self.get_compiler_options()
         logger.info("Compiling file %s with options %s", kernel_files, compile_options)
         try:
-            self.program = pyopencl.Program(self.ctx, kernel_src).build(options=compile_options)
+            self.program = pyopencl.Program(self.ctx, kernel_src).build(
+                options=compile_options
+            )
         except (pyopencl.MemoryError, pyopencl.LogicError) as error:
             raise MemoryError(error)
         else:
             self.kernels = KernelContainer(self.program)
 
     def free_kernels(self):
-        """Free all kernels
-        """
+        """Free all kernels"""
         for kernel in self.cl_kernel_args:
             self.cl_kernel_args[kernel] = []
         self.kernels = None
         self.program = None
 
-# Methods about Profiling
+    # Methods about Profiling
     def set_profiling(self, value=True):
         """Switch On/Off the profiling flag of the command queue to allow debugging
 
@@ -301,8 +333,10 @@ class OpenclProcessing(object):
                 if self.queue is not None:
                     self.queue.finish()
                 if self.profile:
-                    self.queue = pyopencl.CommandQueue(self.ctx,
-                        properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                    self.queue = pyopencl.CommandQueue(
+                        self.ctx,
+                        properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                    )
                 else:
                     self.queue = pyopencl.CommandQueue(self.ctx)
                 # Update all memory-objects with the new queue:
@@ -336,7 +370,11 @@ class OpenclProcessing(object):
                 if isinstance(event_desc, ProfileDescription):
                     self.events.append(event_desc)
                 else:
-                    if isinstance(event_desc, EventDescription) or "__len__" in dir(event_desc) and len(event_desc) == 2:
+                    if (
+                        isinstance(event_desc, EventDescription)
+                        or "__len__" in dir(event_desc)
+                        and len(event_desc) == 2
+                    ):
                         desc, event = event_desc
                     else:
                         desc = "?"
@@ -353,7 +391,7 @@ class OpenclProcessing(object):
 
     def log_profile(self, stats=False):
         """If we are in profiling mode, prints out all timing for every single OpenCL call
-        
+
         :param stats: if True, prints the statistics on each kernel instead of all execution timings
         :return: list of lines to print
         """
@@ -361,8 +399,12 @@ class OpenclProcessing(object):
         out = [""]
         if stats:
             stats = {}
-            out.append(f"OpenCL kernel profiling statistics in milliseconds for: {self.__class__.__name__}")
-            out.append(f"{'Kernel name':>50} (count):      min   median      max     mean      std")
+            out.append(
+                f"OpenCL kernel profiling statistics in milliseconds for: {self.__class__.__name__}"
+            )
+            out.append(
+                f"{'Kernel name':>50} (count):      min   median      max     mean      std"
+            )
         else:
             stats = None
             out.append(f"Profiling info for OpenCL: {self.__class__.__name__}")
@@ -373,7 +415,11 @@ class OpenclProcessing(object):
                     name = e[0]
                     t0 = e[1]
                     t1 = e[2]
-                elif isinstance(e, EventDescription) or "__len__" in dir(e) and len(e) == 2:
+                elif (
+                    isinstance(e, EventDescription)
+                    or "__len__" in dir(e)
+                    and len(e) == 2
+                ):
                     name = e[0]
                     pr = e[1].profile
                     t0 = pr.start
@@ -395,9 +441,13 @@ class OpenclProcessing(object):
             if stats is not None:
                 for k, v in stats.items():
                     n = numpy.array(v)
-                    out.append(f"{k:>50} ({len(v):5}): {n.min():8.3f} {numpy.median(n):8.3f} {n.max():8.3f} {n.mean():8.3f} {n.std():8.3f}")
+                    out.append(
+                        f"{k:>50} ({len(v):5}): {n.min():8.3f} {numpy.median(n):8.3f} {n.max():8.3f} {n.mean():8.3f} {n.std():8.3f}"
+                    )
             out.append("_" * 80)
-            out.append(f"{'Total OpenCL execution time':>50}        : {total_time:.3f}ms")
+            out.append(
+                f"{'Total OpenCL execution time':>50}        : {total_time:.3f}ms"
+            )
 
         logger.info(os.linesep.join(out))
         return out
@@ -409,7 +459,7 @@ class OpenclProcessing(object):
         with self.sem:
             self.events = []
 
-# Methods about textures
+    # Methods about textures
     def allocate_texture(self, shape, hostbuf=None, support_1D=False):
         return allocate_texture(self.ctx, shape, hostbuf=hostbuf, support_1D=support_1D)
 
@@ -428,8 +478,8 @@ class OpenclProcessing(object):
             # force 2D with one row in this case
             # ~ ndim = 2
             shp = (1,) + shp
-        copy_kwargs = {"origin":(0,) * ndim, "region": shp[::-1]}
-        if not(isinstance(arr, numpy.ndarray)):  # assuming pyopencl.array.Array
+        copy_kwargs = {"origin": (0,) * ndim, "region": shp[::-1]}
+        if not (isinstance(arr, numpy.ndarray)):  # assuming pyopencl.array.Array
             # D->D copy
             copy_args[2] = arr.data
             copy_kwargs["offset"] = 0
@@ -440,9 +490,11 @@ class OpenclProcessing(object):
     def x87_volatile_option(self):
         # this is running 32 bits OpenCL woth POCL
         if self._X87_VOLATILE is None:
-            if (platform.machine() in ("i386", "i686", "x86_64", "AMD64") and
-                    (tuple.__itemsize__ == 4) and
-                    self.ctx.devices[0].platform.name == 'Portable Computing Language'):
+            if (
+                platform.machine() in ("i386", "i686", "x86_64", "AMD64")
+                and (tuple.__itemsize__ == 4)
+                and self.ctx.devices[0].platform.name == "Portable Computing Language"
+            ):
                 self._X87_VOLATILE = "-DX87_VOLATILE=volatile"
             else:
                 self._X87_VOLATILE = ""
@@ -458,6 +510,7 @@ class OpenclProcessing(object):
         if x87_volatile:
             option_list.append(self.x87_volatile_option)
         return " ".join(i for i in option_list if i)
+
 
 # This should be implemented by concrete class
 #     def __copy__(self):

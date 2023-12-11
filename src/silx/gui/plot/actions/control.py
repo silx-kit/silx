@@ -69,10 +69,14 @@ class ResetZoomAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
-            plot, icon='zoom-original', text='Reset Zoom',
-            tooltip='Auto-scale the graph',
+            plot,
+            icon="zoom-original",
+            text="Reset Zoom",
+            tooltip="Auto-scale the graph",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self._autoscaleChanged(True)
         plot.getXAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
         plot.getYAxis().sigAutoScaleChanged.connect(self._autoscaleChanged)
@@ -83,13 +87,13 @@ class ResetZoomAction(PlotAction):
         self.setEnabled(xAxis.isAutoScale() or yAxis.isAutoScale())
 
         if xAxis.isAutoScale() and yAxis.isAutoScale():
-            tooltip = 'Auto-scale the graph'
+            tooltip = "Auto-scale the graph"
         elif xAxis.isAutoScale():  # And not Y axis
-            tooltip = 'Auto-scale the x-axis of the graph only'
+            tooltip = "Auto-scale the x-axis of the graph only"
         elif yAxis.isAutoScale():  # And not X axis
-            tooltip = 'Auto-scale the y-axis of the graph only'
+            tooltip = "Auto-scale the y-axis of the graph only"
         else:  # no axis in autoscale
-            tooltip = 'Auto-scale the graph'
+            tooltip = "Auto-scale the graph"
         self.setToolTip(tooltip)
 
     def _actionTriggered(self, checked=False):
@@ -105,10 +109,14 @@ class ZoomBackAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomBackAction, self).__init__(
-            plot, icon='zoom-back', text='Zoom Back',
-            tooltip='Zoom back the plot',
+            plot,
+            icon="zoom-back",
+            text="Zoom Back",
+            tooltip="Zoom back the plot",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def _actionTriggered(self, checked=False):
@@ -124,10 +132,14 @@ class ZoomInAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomInAction, self).__init__(
-            plot, icon='zoom-in', text='Zoom In',
-            tooltip='Zoom in the plot',
+            plot,
+            icon="zoom-in",
+            text="Zoom In",
+            tooltip="Zoom in the plot",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcut(qt.QKeySequence.ZoomIn)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
@@ -144,15 +156,19 @@ class ZoomOutAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomOutAction, self).__init__(
-            plot, icon='zoom-out', text='Zoom Out',
-            tooltip='Zoom out the plot',
+            plot,
+            icon="zoom-out",
+            text="Zoom Out",
+            tooltip="Zoom out the plot",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcut(qt.QKeySequence.ZoomOut)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def _actionTriggered(self, checked=False):
-        _applyZoomToPlot(self.plot, 1. / 1.1)
+        _applyZoomToPlot(self.plot, 1.0 / 1.1)
 
 
 class XAxisAutoScaleAction(PlotAction):
@@ -164,11 +180,15 @@ class XAxisAutoScaleAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
-            plot, icon='plot-xauto', text='X Autoscale',
-            tooltip='Enable x-axis auto-scale when checked.\n'
-                    'If unchecked, x-axis does not change when reseting zoom.',
+            plot,
+            icon="plot-xauto",
+            text="X Autoscale",
+            tooltip="Enable x-axis auto-scale when checked.\n"
+            "If unchecked, x-axis does not change when reseting zoom.",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(plot.getXAxis().isAutoScale())
         plot.getXAxis().sigAutoScaleChanged.connect(self.setChecked)
 
@@ -187,11 +207,15 @@ class YAxisAutoScaleAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
-            plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip='Enable y-axis auto-scale when checked.\n'
-                    'If unchecked, y-axis does not change when reseting zoom.',
+            plot,
+            icon="plot-yauto",
+            text="Y Autoscale",
+            tooltip="Enable y-axis auto-scale when checked.\n"
+            "If unchecked, y-axis does not change when reseting zoom.",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(plot.getYAxis().isAutoScale())
         plot.getYAxis().sigAutoScaleChanged.connect(self.setChecked)
 
@@ -210,10 +234,14 @@ class XAxisLogarithmicAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(XAxisLogarithmicAction, self).__init__(
-            plot, icon='plot-xlog', text='X Log. scale',
-            tooltip='Logarithmic x-axis when checked',
+            plot,
+            icon="plot-xlog",
+            text="X Log. scale",
+            tooltip="Logarithmic x-axis when checked",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.axis = plot.getXAxis()
         self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
         self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
@@ -235,10 +263,14 @@ class YAxisLogarithmicAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(YAxisLogarithmicAction, self).__init__(
-            plot, icon='plot-ylog', text='Y Log. scale',
-            tooltip='Logarithmic y-axis when checked',
+            plot,
+            icon="plot-ylog",
+            text="Y Log. scale",
+            tooltip="Logarithmic y-axis when checked",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.axis = plot.getYAxis()
         self.setChecked(self.axis.getScale() == self.axis.LOGARITHMIC)
         self.axis.sigScaleChanged.connect(self._setCheckedIfLogScale)
@@ -260,21 +292,25 @@ class GridAction(PlotAction):
     :param parent: See :class:`QAction`
     """
 
-    def __init__(self, plot, gridMode='both', parent=None):
-        assert gridMode in ('both', 'major')
+    def __init__(self, plot, gridMode="both", parent=None):
+        assert gridMode in ("both", "major")
         self._gridMode = gridMode
 
         super(GridAction, self).__init__(
-            plot, icon='plot-grid', text='Grid',
-            tooltip='Toggle grid (on/off)',
+            plot,
+            icon="plot-grid",
+            text="Grid",
+            tooltip="Toggle grid (on/off)",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(plot.getGraphGrid() is not None)
         plot.sigSetGraphGrid.connect(self._gridChanged)
 
     def _gridChanged(self, which):
         """Slot listening for PlotWidget grid mode change."""
-        self.setChecked(which != 'None')
+        self.setChecked(which != "None")
 
     def _actionTriggered(self, checked=False):
         self.plot.setGraphGrid(self._gridMode if checked else None)
@@ -292,14 +328,17 @@ class CurveStyleAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(CurveStyleAction, self).__init__(
-            plot, icon='plot-toggle-points', text='Curve style',
-            tooltip='Change curve line and markers style',
+            plot,
+            icon="plot-toggle-points",
+            text="Curve style",
+            tooltip="Change curve line and markers style",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
 
     def _actionTriggered(self, checked=False):
-        currentState = (self.plot.isDefaultPlotLines(),
-                        self.plot.isDefaultPlotPoints())
+        currentState = (self.plot.isDefaultPlotLines(), self.plot.isDefaultPlotPoints())
 
         if currentState == (False, False):
             newState = True, False
@@ -324,10 +363,14 @@ class ColormapAction(PlotAction):
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColormapDialog
         super(ColormapAction, self).__init__(
-            plot, icon='colormap', text='Colormap',
+            plot,
+            icon="colormap",
+            text="Colormap",
             tooltip="Change colormap",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.plot.sigActiveImageChanged.connect(self._updateColormap)
         self.plot.sigActiveScatterChanged.connect(self._updateColormap)
 
@@ -338,7 +381,9 @@ class ColormapAction(PlotAction):
             self._dialog.visibleChanged.disconnect(self._dialogVisibleChanged)
 
         self._dialog = dialog
-        self._dialog.visibleChanged.connect(self._dialogVisibleChanged, qt.Qt.UniqueConnection)
+        self._dialog.visibleChanged.connect(
+            self._dialogVisibleChanged, qt.Qt.UniqueConnection
+        )
         self.setChecked(self._dialog.isVisible())
 
     @deprecated(replacement="setColormapDialog", since_version="2.0")
@@ -359,6 +404,7 @@ class ColormapAction(PlotAction):
         :rtype: ColormapDialog
         """
         from silx.gui.dialog.ColormapDialog import ColormapDialog
+
         dialog = ColormapDialog(parent=parent)
         dialog.setModal(False)
         return dialog
@@ -415,10 +461,14 @@ class ColorBarAction(PlotAction):
     def __init__(self, plot, parent=None):
         self._dialog = None  # To store an instance of ColorBar
         super(ColorBarAction, self).__init__(
-            plot, icon='colorbar', text='Colorbar',
+            plot,
+            icon="colorbar",
+            text="Colorbar",
             tooltip="Show/Hide the colorbar",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         colorBarWidget = self.plot.getColorBarWidget()
         old = self.blockSignals(True)
         self.setChecked(colorBarWidget.isVisibleTo(self.plot))
@@ -449,23 +499,24 @@ class KeepAspectRatioAction(PlotAction):
     def __init__(self, plot, parent=None):
         # Uses two images for checked/unchecked states
         self._states = {
-            False: (icons.getQIcon('shape-circle-solid'),
-                    "Keep data aspect ratio"),
-            True: (icons.getQIcon('shape-ellipse-solid'),
-                   "Do no keep data aspect ratio")
+            False: (icons.getQIcon("shape-circle-solid"), "Keep data aspect ratio"),
+            True: (
+                icons.getQIcon("shape-ellipse-solid"),
+                "Do no keep data aspect ratio",
+            ),
         }
 
         icon, tooltip = self._states[plot.isKeepDataAspectRatio()]
         super(KeepAspectRatioAction, self).__init__(
             plot,
             icon=icon,
-            text='Toggle keep aspect ratio',
+            text="Toggle keep aspect ratio",
             tooltip=tooltip,
             triggered=self._actionTriggered,
             checkable=False,
-            parent=parent)
-        plot.sigSetKeepDataAspectRatio.connect(
-            self._keepDataAspectRatioChanged)
+            parent=parent,
+        )
+        plot.sigSetKeepDataAspectRatio.connect(self._keepDataAspectRatioChanged)
 
     def _keepDataAspectRatioChanged(self, aspectRatio):
         """Handle Plot set keep aspect ratio signal"""
@@ -488,21 +539,20 @@ class YAxisInvertedAction(PlotAction):
     def __init__(self, plot, parent=None):
         # Uses two images for checked/unchecked states
         self._states = {
-            False: (icons.getQIcon('plot-ydown'),
-                    "Orient Y axis downward"),
-            True: (icons.getQIcon('plot-yup'),
-                   "Orient Y axis upward"),
+            False: (icons.getQIcon("plot-ydown"), "Orient Y axis downward"),
+            True: (icons.getQIcon("plot-yup"), "Orient Y axis upward"),
         }
 
         icon, tooltip = self._states[plot.getYAxis().isInverted()]
         super(YAxisInvertedAction, self).__init__(
             plot,
             icon=icon,
-            text='Invert Y Axis',
+            text="Invert Y Axis",
             tooltip=tooltip,
             triggered=self._actionTriggered,
             checkable=False,
-            parent=parent)
+            parent=parent,
+        )
         plot.getYAxis().sigInvertedChanged.connect(self._yAxisInvertedChanged)
 
     def _yAxisInvertedChanged(self, inverted):
@@ -527,8 +577,7 @@ class CrosshairAction(PlotAction):
     :param parent: See :class:`QAction`
     """
 
-    def __init__(self, plot, color='black', linewidth=1, linestyle='-',
-                 parent=None):
+    def __init__(self, plot, color="black", linewidth=1, linestyle="-", parent=None):
         self.color = color
         """Color used to draw the crosshair (str)."""
 
@@ -539,18 +588,24 @@ class CrosshairAction(PlotAction):
         """Style of line of the cursor (str)."""
 
         super(CrosshairAction, self).__init__(
-            plot, icon='crosshair', text='Crosshair Cursor',
-            tooltip='Enable crosshair cursor when checked',
+            plot,
+            icon="crosshair",
+            text="Crosshair Cursor",
+            tooltip="Enable crosshair cursor when checked",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(plot.getGraphCursor() is not None)
         plot.sigSetGraphCursor.connect(self.setChecked)
 
     def _actionTriggered(self, checked=False):
-        self.plot.setGraphCursor(checked,
-                                 color=self.color,
-                                 linestyle=self.linestyle,
-                                 linewidth=self.linewidth)
+        self.plot.setGraphCursor(
+            checked,
+            color=self.color,
+            linestyle=self.linestyle,
+            linewidth=self.linewidth,
+        )
 
 
 class PanWithArrowKeysAction(PlotAction):
@@ -561,12 +616,15 @@ class PanWithArrowKeysAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-
         super(PanWithArrowKeysAction, self).__init__(
-            plot, icon='arrow-keys', text='Pan with arrow keys',
-            tooltip='Enable pan with arrow keys when checked',
+            plot,
+            icon="arrow-keys",
+            text="Pan with arrow keys",
+            tooltip="Enable pan with arrow keys when checked",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(plot.isPanWithArrowKeys())
         plot.sigSetPanWithArrowKeys.connect(self.setChecked)
 
@@ -582,15 +640,17 @@ class ShowAxisAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        tooltip = 'Show plot axis when checked, otherwise hide them'
-        PlotAction.__init__(self,
-                            plot,
-                            icon='axis',
-                            text='show axis',
-                            tooltip=tooltip,
-                            triggered=self._actionTriggered,
-                            checkable=True,
-                            parent=parent)
+        tooltip = "Show plot axis when checked, otherwise hide them"
+        PlotAction.__init__(
+            self,
+            plot,
+            icon="axis",
+            text="show axis",
+            tooltip=tooltip,
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent,
+        )
         self.setChecked(self.plot.isAxesDisplayed())
         plot._sigAxesVisibilityChanged.connect(self.setChecked)
 
@@ -607,15 +667,17 @@ class ClosePolygonInteractionAction(PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        tooltip = 'Close the current polygon drawn'
-        PlotAction.__init__(self,
-                            plot,
-                            icon='add-shape-polygon',
-                            text='Close the polygon',
-                            tooltip=tooltip,
-                            triggered=self._actionTriggered,
-                            checkable=True,
-                            parent=parent)
+        tooltip = "Close the current polygon drawn"
+        PlotAction.__init__(
+            self,
+            plot,
+            icon="add-shape-polygon",
+            text="Close the polygon",
+            tooltip=tooltip,
+            triggered=self._actionTriggered,
+            checkable=True,
+            parent=parent,
+        )
         self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
         self._modeChanged(None)
 
@@ -640,12 +702,15 @@ class OpenGLAction(PlotAction):
     def __init__(self, plot, parent=None):
         # Uses two images for checked/unchecked states
         self._states = {
-            "opengl": (icons.getQIcon('backend-opengl'),
-                       "OpenGL rendering (fast)\nClick to disable OpenGL"),
-            "matplotlib": (icons.getQIcon('backend-opengl'),
-                           "Matplotlib rendering (safe)\nClick to enable OpenGL"),
-            "unknown": (icons.getQIcon('backend-opengl'),
-                        "Custom rendering")
+            "opengl": (
+                icons.getQIcon("backend-opengl"),
+                "OpenGL rendering (fast)\nClick to disable OpenGL",
+            ),
+            "matplotlib": (
+                icons.getQIcon("backend-opengl"),
+                "Matplotlib rendering (safe)\nClick to enable OpenGL",
+            ),
+            "unknown": (icons.getQIcon("backend-opengl"), "Custom rendering"),
         }
 
         name = self._getBackendName(plot)
@@ -653,11 +718,12 @@ class OpenGLAction(PlotAction):
         super(OpenGLAction, self).__init__(
             plot,
             icon=icon,
-            text='Enable/disable OpenGL rendering',
+            text="Enable/disable OpenGL rendering",
             tooltip=tooltip,
             triggered=self._actionTriggered,
             checkable=True,
-            parent=parent)
+            parent=parent,
+        )
         plot.sigBackendChanged.connect(self._backendUpdated)
 
     def _backendUpdated(self):
@@ -682,9 +748,12 @@ class OpenGLAction(PlotAction):
         name = self._getBackendName(self.plot)
         if name != "opengl":
             from silx.gui.utils import glutils
+
             result = glutils.isOpenGLAvailable()
             if not result:
-                qt.QMessageBox.critical(plot, "OpenGL rendering is not available", result.error)
+                qt.QMessageBox.critical(
+                    plot, "OpenGL rendering is not available", result.error
+                )
                 return
             plot.setBackend("opengl")
         else:

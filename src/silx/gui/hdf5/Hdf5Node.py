@@ -36,11 +36,12 @@ class Hdf5Node(object):
     It provides link to the childs and to the parents, and a link to an
     external object.
     """
+
     def __init__(
         self,
         parent=None,
         populateAll=False,
-        openedPath: Optional[str]=None,
+        openedPath: Optional[str] = None,
     ):
         """
         Constructor

@@ -234,10 +234,12 @@ class ColormapDialogExample(qt.QMainWindow):
 
     def setSheppLoganPhantom(self):
         from silx.image import phantomgenerator
+
         data = phantomgenerator.PhantomGenerator.get2DPhantomSheppLogan(256)
         data = data * 1000
         if scipy is not None:
             from scipy import ndimage
+
             data = ndimage.gaussian_filter(data, sigma=20)
         data = numpy.random.poisson(data)
         self.data = data
@@ -245,7 +247,7 @@ class ColormapDialogExample(qt.QMainWindow):
             dialog.setData(self.data)
 
     def setDataFromNegToPos(self):
-        data = numpy.ones((50,50))
+        data = numpy.ones((50, 50))
         data = numpy.random.poisson(data)
         self.data = data - 0.5
         for dialog in self.colorDialogs:
@@ -253,10 +255,12 @@ class ColormapDialogExample(qt.QMainWindow):
 
     def setDataWithNonFinite(self):
         from silx.image import phantomgenerator
+
         data = phantomgenerator.PhantomGenerator.get2DPhantomSheppLogan(256)
         data = data * 1000
         if scipy is not None:
             from scipy import ndimage
+
             data = ndimage.gaussian_filter(data, sigma=20)
         data = numpy.random.poisson(data).astype(numpy.float32)
         data[10] = float("nan")
@@ -277,5 +281,5 @@ def main():
     app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

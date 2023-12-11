@@ -35,8 +35,17 @@ import numpy
 from collections import abc
 
 from ....utils.proxy import docstring
-from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, LineGapColorMixIn, YAxisMixIn, ItemChangedType)
+from .core import (
+    DataItem,
+    AlphaMixIn,
+    BaselineMixIn,
+    ColorMixIn,
+    FillMixIn,
+    LineMixIn,
+    LineGapColorMixIn,
+    YAxisMixIn,
+    ItemChangedType,
+)
 from ._pick import PickingResult
 
 _logger = logging.getLogger(__name__)
@@ -58,17 +67,17 @@ def _computeEdges(x, histogramType):
     """
     # for now we consider that the spaces between xs are constant
     edges = x.copy()
-    if histogramType == 'left':
+    if histogramType == "left":
         width = 1
         if len(x) > 1:
             width = x[1] - x[0]
         edges = numpy.append(x[0] - width, edges)
-    if histogramType == 'center':
-        edges = _computeEdges(edges, 'right')
+    if histogramType == "center":
+        edges = _computeEdges(edges, "right")
         widths = (edges[1:] - edges[0:-1]) / 2.0
         widths = numpy.append(widths, widths[-1])
         edges = edges - widths
-    if histogramType == 'right':
+    if histogramType == "right":
         width = 1
         if len(x) > 1:
             width = x[-1] - x[-2]
@@ -98,8 +107,16 @@ def _getHistogramCurve(histogram, edges):
 
 
 # TODO: Yerror, test log scale
-class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
-                LineMixIn, LineGapColorMixIn, YAxisMixIn, BaselineMixIn):
+class Histogram(
+    DataItem,
+    AlphaMixIn,
+    ColorMixIn,
+    FillMixIn,
+    LineMixIn,
+    LineGapColorMixIn,
+    YAxisMixIn,
+    BaselineMixIn,
+):
     """Description of an histogram"""
 
     _DEFAULT_Z_LAYER = 1
@@ -108,10 +125,10 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
     _DEFAULT_SELECTABLE = False
     """Default selectable state for histograms"""
 
-    _DEFAULT_LINEWIDTH = 1.
+    _DEFAULT_LINEWIDTH = 1.0
     """Default line width of the histogram"""
 
-    _DEFAULT_LINESTYLE = '-'
+    _DEFAULT_LINESTYLE = "-"
     """Default line style of the histogram"""
 
     _DEFAULT_BASELINE = None
@@ -153,27 +170,30 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
 
         if xPositive or yPositive:
             clipped = numpy.logical_or(
-                (x <= 0) if xPositive else False,
-                (y <= 0) if yPositive else False)
+                (x <= 0) if xPositive else False, (y <= 0) if yPositive else False
+            )
             # Make a copy and replace negative points by NaN
             x = numpy.array(x, dtype=numpy.float64)
             y = numpy.array(y, dtype=numpy.float64)
             x[clipped] = numpy.nan
             y[clipped] = numpy.nan
 
-        return backend.addCurve(x, y,
-                                color=self.getColor(),
-                                gapcolor=self.getLineGapColor(),
-                                symbol='',
-                                linestyle=self.getLineStyle(),
-                                linewidth=self.getLineWidth(),
-                                yaxis=self.getYAxis(),
-                                xerror=None,
-                                yerror=None,
-                                fill=self.isFill(),
-                                alpha=self.getAlpha(),
-                                baseline=baseline,
-                                symbolsize=1)
+        return backend.addCurve(
+            x,
+            y,
+            color=self.getColor(),
+            gapcolor=self.getLineGapColor(),
+            symbol="",
+            linestyle=self.getLineStyle(),
+            linewidth=self.getLineWidth(),
+            yaxis=self.getYAxis(),
+            xerror=None,
+            yerror=None,
+            fill=self.isFill(),
+            alpha=self.getAlpha(),
+            baseline=baseline,
+            symbolsize=1,
+        )
 
     def _getBounds(self):
         values, edges, baseline = self.getData(copy=False)
@@ -191,11 +211,10 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
 
             if xPositive:
                 # Replace edges <= 0 by NaN and corresponding values by NaN
-                clipped_edges = (edges <= 0)
+                clipped_edges = edges <= 0
                 edges = numpy.array(edges, copy=True, dtype=numpy.float64)
                 edges[clipped_edges] = numpy.nan
-                clipped_values = numpy.logical_or(clipped_edges[:-1],
-                                                  clipped_edges[1:])
+                clipped_values = numpy.logical_or(clipped_edges[:-1], clipped_edges[1:])
             else:
                 clipped_values = numpy.zeros_like(values, dtype=bool)
 
@@ -206,20 +225,26 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
             values[clipped_values] = numpy.nan
 
         if yPositive:
-            return (numpy.nanmin(edges),
-                    numpy.nanmax(edges),
-                    numpy.nanmin(values),
-                    numpy.nanmax(values))
+            return (
+                numpy.nanmin(edges),
+                numpy.nanmax(edges),
+                numpy.nanmin(values),
+                numpy.nanmax(values),
+            )
 
         else:  # No log scale on y axis, include 0 in bounds
             if numpy.all(numpy.isnan(values)):
                 return None
-            return (numpy.nanmin(edges),
-                    numpy.nanmax(edges),
-                    min(0, numpy.nanmin(values)),
-                    max(0, numpy.nanmax(values)))
+            return (
+                numpy.nanmin(edges),
+                numpy.nanmax(edges),
+                min(0, numpy.nanmin(values)),
+                max(0, numpy.nanmax(values)),
+            )
 
-    def __pickFilledHistogram(self, x: float, y: float) -> typing.Optional[PickingResult]:
+    def __pickFilledHistogram(
+        self, x: float, y: float
+    ) -> typing.Optional[PickingResult]:
         """Picking implementation for filled histogram
 
         :param x: X position in pixels
@@ -239,7 +264,7 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
 
         # Check x
         edges = self.getBinEdgesData(copy=False)
-        index = numpy.searchsorted(edges, (xData,), side='left')[0] - 1
+        index = numpy.searchsorted(edges, (xData,), side="left")[0] - 1
         # Safe indexing in histogram values
         index = numpy.clip(index, 0, len(edges) - 2)
 
@@ -249,8 +274,9 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
             baseline = 0  # Default value
 
         value = self.getValueData(copy=False)[index]
-        if ((baseline <= value and baseline <= yData <= value) or
-                (value < baseline and value <= yData <= baseline)):
+        if (baseline <= value and baseline <= yData <= value) or (
+            value < baseline and value <= yData <= baseline
+        ):
             return PickingResult(self, numpy.array([index]))
         else:
             return None
@@ -294,12 +320,13 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
         :returns: (N histogram value, N+1 bin edges)
         :rtype: 2-tuple of numpy.nadarray
         """
-        return (self.getValueData(copy),
-                self.getBinEdgesData(copy),
-                self.getBaseline(copy))
+        return (
+            self.getValueData(copy),
+            self.getBinEdgesData(copy),
+            self.getBaseline(copy),
+        )
 
-    def setData(self, histogram, edges, align='center', baseline=None,
-                copy=True):
+    def setData(self, histogram, edges, align="center", baseline=None, copy=True):
         """Set the histogram values and bin edges.
 
         :param numpy.ndarray histogram: The values of the histogram.
@@ -322,7 +349,7 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
         assert histogram.ndim == 1
         assert edges.ndim == 1
         assert edges.size in (histogram.size, histogram.size + 1)
-        assert align in ('center', 'left', 'right')
+        assert align in ("center", "left", "right")
 
         if histogram.size == 0:  # No data
             self._histogram = ()
@@ -336,12 +363,12 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
             edgesDiff = edgesDiff[numpy.logical_not(numpy.isnan(edgesDiff))]
             assert numpy.all(edgesDiff >= 0) or numpy.all(edgesDiff <= 0)
             # manage baseline
-            if (isinstance(baseline, abc.Iterable)):
+            if isinstance(baseline, abc.Iterable):
                 baseline = numpy.array(baseline)
                 if baseline.size == histogram.size:
                     new_baseline = numpy.empty(baseline.shape[0] * 2)
                     for i_value, value in enumerate(baseline):
-                        new_baseline[i_value*2:i_value*2+2] = value
+                        new_baseline[i_value * 2 : i_value * 2 + 2] = value
                     baseline = new_baseline
             self._histogram = histogram
             self._edges = edges
@@ -374,11 +401,11 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
         """
         # for now we consider that the spaces between xs are constant
         edges = x.copy()
-        if histogramType == 'left':
+        if histogramType == "left":
             return edges[1:]
-        if histogramType == 'center':
+        if histogramType == "center":
             edges = (edges[1:] + edges[:-1]) / 2.0
-        if histogramType == 'right':
+        if histogramType == "right":
             width = 1
             if len(x) > 1:
                 width = x[-1] + x[-2]

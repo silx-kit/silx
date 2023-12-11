@@ -74,11 +74,10 @@ class _LegendWidget(qt.QWidget):
         return icon.getCurve()
 
     def _update(self):
-        """Update widget according to current curve state.
-        """
+        """Update widget according to current curve state."""
         curve = self.getCurve()
         if curve is None:
-            _logger.error('Curve no more exists')
+            _logger.error("Curve no more exists")
             self.setVisible(False)
             return
 
@@ -95,9 +94,11 @@ class _LegendWidget(qt.QWidget):
 
         :param event: Kind of change
         """
-        if event in (items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.HIGHLIGHTED,
-                     items.ItemChangedType.HIGHLIGHTED_STYLE):
+        if event in (
+            items.ItemChangedType.VISIBLE,
+            items.ItemChangedType.HIGHLIGHTED,
+            items.ItemChangedType.HIGHLIGHTED_STYLE,
+        ):
             self._update()
 
 
@@ -142,7 +143,7 @@ class CurveLegendsWidget(qt.QWidget):
         """
         previousPlot = self.getPlotWidget()
         if previousPlot is not None:
-            previousPlot.sigItemAdded.disconnect( self._itemAdded)
+            previousPlot.sigItemAdded.disconnect(self._itemAdded)
             previousPlot.sigItemAboutToBeRemoved.disconnect(self._itemRemoved)
             for legend in list(self._legends.keys()):
                 self._removeLegend(legend)
@@ -168,7 +169,7 @@ class CurveLegendsWidget(qt.QWidget):
         elif len(args) == 2:
             point = qt.QPoint(*args)
         else:
-            raise ValueError('Unsupported arguments')
+            raise ValueError("Unsupported arguments")
         assert isinstance(point, qt.QPoint)
 
         widget = self.childAt(point)
@@ -202,7 +203,7 @@ class CurveLegendsWidget(qt.QWidget):
 
         curve = plot.getCurve(legend)
         if curve is None:
-            _logger.error('Curve not found: %s' % legend)
+            _logger.error("Curve not found: %s" % legend)
             return
 
         widget = _LegendWidget(parent=self, curve=curve)
@@ -216,7 +217,7 @@ class CurveLegendsWidget(qt.QWidget):
         """
         widget = self._legends.pop(legend, None)
         if widget is None:
-            _logger.warning('Unknown legend: %s' % legend)
+            _logger.warning("Unknown legend: %s" % legend)
         else:
             self.layout().removeWidget(widget)
             widget.setParent(None)

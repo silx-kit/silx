@@ -252,6 +252,7 @@ def retry_in_subprocess(
         retry_period = RETRY_PERIOD
 
     import multiprocessing
+
     def decorator(method):
         @wraps(method)
         def wrapper(*args, **kw):

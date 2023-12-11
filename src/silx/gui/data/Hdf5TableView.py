@@ -50,8 +50,8 @@ _logger = logging.getLogger(__name__)
 
 
 class _CellData(object):
-    """Store a table item
-    """
+    """Store a table item"""
+
     def __init__(self, value=None, isHeader=False, span=None, tooltip=None):
         """
         Constructor
@@ -73,8 +73,7 @@ class _CellData(object):
         return self.__isHeader
 
     def value(self):
-        """Returns the value of the item.
-        """
+        """Returns the value of the item."""
         return self.__value
 
     def span(self):
@@ -187,10 +186,18 @@ class _CellFilterAvailableData(_CellData):
 
     _states = {
         True: ("Available", qt.QColor(0x000000), None, None),
-        False: ("Not available", qt.QColor(0xFFFFFF), qt.QColor(0xFF0000),
-                "You have to install this filter on your system to be able to read this dataset"),
-        "na": ("n.a.", qt.QColor(0x000000), None,
-               "This version of h5py/hdf5 is not able to display the information"),
+        False: (
+            "Not available",
+            qt.QColor(0xFFFFFF),
+            qt.QColor(0xFF0000),
+            "You have to install this filter on your system to be able to read this dataset",
+        ),
+        "na": (
+            "n.a.",
+            qt.QColor(0x000000),
+            None,
+            "This version of h5py/hdf5 is not able to display the information",
+        ),
     }
 
     def __init__(self, filterId):
@@ -309,7 +316,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         if h5pyObject is None or self.isSupportedObject(h5pyObject):
             self.__obj = h5pyObject
         else:
-            _logger.warning("Object class %s unsupported. Object ignored.", type(h5pyObject))
+            _logger.warning(
+                "Object class %s unsupported. Object ignored.", type(h5pyObject)
+            )
         self.__initProperties()
 
         self.endResetModel()
@@ -322,7 +331,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         attributeDict = {}
         if hasattr(attribute, "shape"):
             attributeDict["Shape"] = self.__hdf5Formatter.humanReadableShape(attribute)
-        attributeDict["Data type"] = self.__hdf5Formatter.humanReadableType(attribute, full=True)
+        attributeDict["Data type"] = self.__hdf5Formatter.humanReadableType(
+            attribute, full=True
+        )
         html = htmlFromDict(attributeDict, title="HDF5 Attribute")
         return html
 
@@ -336,7 +347,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             return self.__hdf5Formatter.humanReadableShape(dataset)
         size = dataset.size
         shape = self.__hdf5Formatter.humanReadableShape(dataset)
-        return u"%s = %s" % (shape, size)
+        return "%s = %s" % (shape, size)
 
     def __formatChunks(self, dataset):
         """Format the shape"""
@@ -383,7 +394,9 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.__data.addHeaderValueRow("Local", local)
         else:
             # it's a real H5py object
-            self.__data.addHeaderValueRow("Basename", lambda x: os.path.basename(x.name))
+            self.__data.addHeaderValueRow(
+                "Basename", lambda x: os.path.basename(x.name)
+            )
             self.__data.addHeaderValueRow("Name", lambda x: x.name)
             if obj.file is not None:
                 self.__data.addHeaderValueRow("File", lambda x: x.file.filename)
@@ -402,6 +415,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         external_dataset_info = h5link_utils.external_dataset_info(hdf5obj)
 
         if showPhysicalLocation:
+
             def _physical_location(x):
                 if isinstance(obj, silx.gui.hdf5.H5Node):
                     return x.physical_filename + SEPARATOR + x.physical_name
@@ -419,10 +433,11 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
             self.__data.addHeaderRow(headerLabel="External sources")
             self.__data.addHeaderValueRow("Type", external_dataset_info.type)
             self.__data.addHeaderValueRow("Count", external_dataset_info.nfiles)
-            self.__data.addHeaderValueRow("First", external_dataset_info.first_source_url)
+            self.__data.addHeaderValueRow(
+                "First", external_dataset_info.first_source_url
+            )
 
         if hasattr(obj, "dtype"):
-
             self.__data.addHeaderRow(headerLabel="Data info")
 
             if hasattr(obj, "id") and hasattr(obj.id, "get_type"):
@@ -464,10 +479,14 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
                 self.__data.addHeaderRow(headerLabel="Attributes")
                 for key in sorted(obj.attrs.keys()):
                     callback = lambda key, x: self.__formatter.toString(x.attrs[key])
-                    callbackTooltip = lambda key, x: self.__attributeTooltip(x.attrs[key])
-                    self.__data.addHeaderValueRow(headerLabel=key,
-                                                  value=functools.partial(callback, key),
-                                                  tooltip=functools.partial(callbackTooltip, key))
+                    callbackTooltip = lambda key, x: self.__attributeTooltip(
+                        x.attrs[key]
+                    )
+                    self.__data.addHeaderValueRow(
+                        headerLabel=key,
+                        value=functools.partial(callback, key),
+                        tooltip=functools.partial(callbackTooltip, key),
+                    )
 
     def __getFilterInfo(self, dataset, filterIndex):
         """Get a tuple of readable info from dataset filters
@@ -522,8 +541,7 @@ class Hdf5TableModel(HierarchicalTableView.HierarchicalTableModel):
         return self.__formatter
 
     def __formatChanged(self):
-        """Called when the format changed.
-        """
+        """Called when the format changed."""
         self.reset()
 
 
@@ -592,6 +610,11 @@ class Hdf5TableView(HierarchicalTableView.HierarchicalTableView):
         for row in range(model.rowCount()):
             for column in range(model.columnCount()):
                 index = model.index(row, column)
-                if (index.isValid() and index.data(
-                        HierarchicalTableView.HierarchicalTableModel.IsHeaderRole) is False):
+                if (
+                    index.isValid()
+                    and index.data(
+                        HierarchicalTableView.HierarchicalTableModel.IsHeaderRole
+                    )
+                    is False
+                ):
                     self.openPersistentEditor(index)

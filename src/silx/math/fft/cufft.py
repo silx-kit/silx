@@ -25,11 +25,13 @@
 import numpy as np
 
 from .basefft import BaseFFT
+
 try:
     import pycuda.gpuarray as gpuarray
     from skcuda.fft import Plan
     from skcuda.fft import fft as cu_fft
     from skcuda.fft import ifft as cu_ifft
+
     __have_cufft__ = True
 except ImportError:
     __have_cufft__ = False
@@ -47,6 +49,7 @@ class CUFFT(BaseFFT):
       Stream with which to associate the plan. If no stream is specified,
       the default stream is used.
     """
+
     def __init__(
         self,
         shape=None,
@@ -57,8 +60,10 @@ class CUFFT(BaseFFT):
         normalize="rescale",
         stream=None,
     ):
-        if not(__have_cufft__) or not(__have_cufft__):
-            raise ImportError("Please install pycuda and scikit-cuda to use the CUDA back-end")
+        if not (__have_cufft__) or not (__have_cufft__):
+            raise ImportError(
+                "Please install pycuda and scikit-cuda to use the CUDA back-end"
+            )
 
         super().__init__(
             shape=shape,
@@ -103,7 +108,9 @@ class CUFFT(BaseFFT):
                 3: [(1, 2), (2, 1), (1,), (2,)],
             }
             if self.axes not in supported_axes[data_ndims]:
-                raise NotImplementedError("With the CUDA backend, batched transform is only supported along fastest dimensions")
+                raise NotImplementedError(
+                    "With the CUDA backend, batched transform is only supported along fastest dimensions"
+                )
             self.cufft_batch_size = self.shape[0]
             self.cufft_shape = self.shape[1:]
             if data_ndims == 3 and len(self.axes) == 1:
@@ -120,15 +127,17 @@ class CUFFT(BaseFFT):
             raise NotImplementedError(
                 "Normalization mode 'ortho' is not implemented with CUDA backend yet."
             )
-        self.cufft_scale_inverse = (self.normalize == "rescale")
+        self.cufft_scale_inverse = self.normalize == "rescale"
 
     def check_array(self, array, shape, dtype, copy=True):
         if array.shape != shape:
-            raise ValueError("Invalid data shape: expected %s, got %s" %
-                             (shape, array.shape))
+            raise ValueError(
+                "Invalid data shape: expected %s, got %s" % (shape, array.shape)
+            )
         if array.dtype != dtype:
-            raise ValueError("Invalid data type: expected %s, got %s" %
-                             (dtype, array.dtype))
+            raise ValueError(
+                "Invalid data type: expected %s, got %s" % (dtype, array.dtype)
+            )
 
     def set_data(self, dst, src, shape, dtype, copy=True, name=None):
         """
@@ -142,7 +151,7 @@ class CUFFT(BaseFFT):
             if name == "data_out":
                 # Makes little sense to provide output=numpy_array
                 return dst
-            if not(src.flags["C_CONTIGUOUS"]):
+            if not (src.flags["C_CONTIGUOUS"]):
                 src = np.ascontiguousarray(src, dtype=dtype)
             dst[:] = src[:]
         elif isinstance(src, gpuarray.GPUArray):
@@ -157,8 +166,8 @@ class CUFFT(BaseFFT):
             return src
         else:
             raise ValueError(
-                "Invalid array type %s, expected numpy.ndarray or pycuda.gpuarray" %
-                type(src)
+                "Invalid array type %s, expected numpy.ndarray or pycuda.gpuarray"
+                % type(src)
             )
         return dst
 
@@ -176,12 +185,12 @@ class CUFFT(BaseFFT):
             # cufft extensible plan API is only supported after 0.5.1
             # (commit 65288d28ca0b93e1234133f8d460dc6becb65121)
             # but there is still no official 0.5.2
-            #~ auto_allocate=True # cufft extensible plan API
+            # ~ auto_allocate=True # cufft extensible plan API
         )
 
     def compute_inverse_plan(self):
         self.plan_inverse = Plan(
-            self.cufft_shape, # not shape_out
+            self.cufft_shape,  # not shape_out
             self.dtype_out,
             self.dtype,
             batch=self.cufft_batch_size,
@@ -189,7 +198,7 @@ class CUFFT(BaseFFT):
             # cufft extensible plan API is only supported after 0.5.1
             # (commit 65288d28ca0b93e1234133f8d460dc6becb65121)
             # but there is still no official 0.5.2
-            #~ auto_allocate=True
+            # ~ auto_allocate=True
         )
 
     def copy_output_if_numpy(self, dst, src):
@@ -209,12 +218,7 @@ class CUFFT(BaseFFT):
         data_in = self.set_input_data(array, copy=False)
         data_out = self.set_output_data(output, copy=False)
 
-        cu_fft(
-            data_in,
-            data_out,
-            self.plan_forward,
-            scale=False
-        )
+        cu_fft(data_in, data_out, self.plan_forward, scale=False)
 
         if output is not None:
             self.copy_output_if_numpy(output, self.data_out)

@@ -41,16 +41,26 @@ class PlotToolAction(PlotAction):
     """Base class for QAction that maintain a tool window operating on a
     PlotWidget."""
 
-    def __init__(self, plot, icon, text, tooltip=None,
-                 triggered=None, checkable=False, parent=None):
-        PlotAction.__init__(self,
-                            plot=plot,
-                            icon=icon,
-                            text=text,
-                            tooltip=tooltip,
-                            triggered=self._triggered,
-                            parent=parent,
-                            checkable=True)
+    def __init__(
+        self,
+        plot,
+        icon,
+        text,
+        tooltip=None,
+        triggered=None,
+        checkable=False,
+        parent=None,
+    ):
+        PlotAction.__init__(
+            self,
+            plot=plot,
+            icon=icon,
+            text=text,
+            tooltip=tooltip,
+            triggered=self._triggered,
+            parent=parent,
+            checkable=True,
+        )
         self._previousGeometry = None
         self._toolWindow = None
 

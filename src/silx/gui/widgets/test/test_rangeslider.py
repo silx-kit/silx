@@ -52,26 +52,26 @@ class TestRangeSlider(TestCaseQt, ParametricTestCase):
 
         # Play with range
         self.slider.setRange(1, 2)
-        self.assertEqual(self.slider.getRange(), (1., 2.))
-        self.assertEqual(self.slider.getValues(), (1., 1.))
+        self.assertEqual(self.slider.getRange(), (1.0, 2.0))
+        self.assertEqual(self.slider.getValues(), (1.0, 1.0))
 
         self.slider.setMinimum(-1)
-        self.assertEqual(self.slider.getRange(), (-1., 2.))
-        self.assertEqual(self.slider.getValues(), (1., 1.))
+        self.assertEqual(self.slider.getRange(), (-1.0, 2.0))
+        self.assertEqual(self.slider.getValues(), (1.0, 1.0))
 
         self.slider.setMaximum(0)
-        self.assertEqual(self.slider.getRange(), (-1., 0.))
-        self.assertEqual(self.slider.getValues(), (0., 0.))
+        self.assertEqual(self.slider.getRange(), (-1.0, 0.0))
+        self.assertEqual(self.slider.getValues(), (0.0, 0.0))
 
         # Play with values
-        self.slider.setFirstValue(-2.)
-        self.assertEqual(self.slider.getValues(), (-1., 0.))
+        self.slider.setFirstValue(-2.0)
+        self.assertEqual(self.slider.getValues(), (-1.0, 0.0))
 
         self.slider.setFirstValue(-0.5)
-        self.assertEqual(self.slider.getValues(), (-0.5, 0.))
+        self.assertEqual(self.slider.getValues(), (-0.5, 0.0))
 
-        self.slider.setSecondValue(2.)
-        self.assertEqual(self.slider.getValues(), (-0.5, 0.))
+        self.slider.setSecondValue(2.0)
+        self.assertEqual(self.slider.getValues(), (-0.5, 0.0))
 
         self.slider.setSecondValue(-0.1)
         self.assertEqual(self.slider.getValues(), (-0.5, -0.1))
@@ -85,14 +85,14 @@ class TestRangeSlider(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.slider.getFirstPosition(), 3)
 
         self.slider.setPositionCount(3)  # Value is adjusted
-        self.assertEqual(self.slider.getValues(), (0.5, 1.))
+        self.assertEqual(self.slider.getValues(), (0.5, 1.0))
         self.assertEqual(self.slider.getPositions(), (1, 2))
 
     def testGroove(self):
         """Test Groove pixmap"""
         profile = list(range(100))
 
-        for cmap in ('jet', colors.Colormap('viridis')):
+        for cmap in ("jet", colors.Colormap("viridis")):
             with self.subTest(str(cmap)):
                 self.slider.setGroovePixmapFromProfile(profile, cmap)
                 pixmap = self.slider.getGroovePixmap()

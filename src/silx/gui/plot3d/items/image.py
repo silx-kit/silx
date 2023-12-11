@@ -66,11 +66,12 @@ class _Image(DataItem3D, InterpolationMixIn):
         points = utils.segmentPlaneIntersect(
             rayObject[0, :3],
             rayObject[1, :3],
-            planeNorm=numpy.array((0., 0., 1.), dtype=numpy.float64),
-            planePt=numpy.array((0., 0., 0.), dtype=numpy.float64))
+            planeNorm=numpy.array((0.0, 0.0, 1.0), dtype=numpy.float64),
+            planePt=numpy.array((0.0, 0.0, 0.0), dtype=numpy.float64),
+        )
 
         if len(points) == 1:  # Single intersection
-            if points[0][0] < 0. or points[0][1] < 0.:
+            if points[0][0] < 0.0 or points[0][1] < 0.0:
                 return None  # Outside image
             row, column = int(points[0][1]), int(points[0][0])
             data = self.getData(copy=False)
@@ -78,8 +79,9 @@ class _Image(DataItem3D, InterpolationMixIn):
             if row < height and column < width:
                 return PickingResult(
                     self,
-                    positions=[(points[0][0], points[0][1], 0.)],
-                    indices=([row], [column]))
+                    positions=[(points[0][0], points[0][1], 0.0)],
+                    indices=([row], [column]),
+                )
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar
@@ -183,7 +185,7 @@ class _HeightMap(DataItem3D):
         DataItem3D.__init__(self, parent=parent)
         self.__data = numpy.zeros((0, 0), dtype=numpy.float32)
 
-    def _pickFull(self, context, threshold=0., sort='depth'):
+    def _pickFull(self, context, threshold=0.0, sort="depth"):
         """Perform picking in this item at given widget position.
 
         :param PickContext context: Current picking context
@@ -197,9 +199,9 @@ class _HeightMap(DataItem3D):
         :return: Object holding the results or None
         :rtype: Union[None,PickingResult]
         """
-        assert sort in ('index', 'depth')
+        assert sort in ("index", "depth")
 
-        rayNdc = context.getPickingSegment(frame='ndc')
+        rayNdc = context.getPickingSegment(frame="ndc")
         if rayNdc is None:  # No picking outside viewport
             return None
 
@@ -212,40 +214,46 @@ class _HeightMap(DataItem3D):
         height, width = heightData.shape
         z = numpy.ravel(heightData)
         y, x = numpy.mgrid[0:height, 0:width]
-        dataPoints = numpy.transpose((numpy.ravel(x),
-                                      numpy.ravel(y),
-                                      z,
-                                      numpy.ones_like(z)))
+        dataPoints = numpy.transpose(
+            (numpy.ravel(x), numpy.ravel(y), z, numpy.ones_like(z))
+        )
 
         primitive = self._getScenePrimitive()
 
         pointsNdc = primitive.objectToNDCTransform.transformPoints(
-            dataPoints, perspectiveDivide=True)
+            dataPoints, perspectiveDivide=True
+        )
 
         # Perform picking
         distancesNdc = numpy.abs(pointsNdc[:, :2] - rayNdc[0, :2])
         # TODO issue with symbol size: using pixel instead of points
-        threshold += 1.  # symbol size
-        thresholdNdc = 2. * threshold / numpy.array(primitive.viewport.size)
-        picked = numpy.where(numpy.logical_and(
+        threshold += 1.0  # symbol size
+        thresholdNdc = 2.0 * threshold / numpy.array(primitive.viewport.size)
+        picked = numpy.where(
+            numpy.logical_and(
                 numpy.all(distancesNdc < thresholdNdc, axis=1),
-                numpy.logical_and(rayNdc[0, 2] <= pointsNdc[:, 2],
-                                  pointsNdc[:, 2] <= rayNdc[1, 2])))[0]
+                numpy.logical_and(
+                    rayNdc[0, 2] <= pointsNdc[:, 2], pointsNdc[:, 2] <= rayNdc[1, 2]
+                ),
+            )
+        )[0]
 
-        if sort == 'depth':
+        if sort == "depth":
             # Sort picked points from front to back
             picked = picked[numpy.argsort(pointsNdc[picked, 2])]
 
         if picked.size > 0:
             # Convert indices from 1D to 2D
-            return PickingResult(self,
-                                 positions=dataPoints[picked, :3],
-                                 indices=(picked // width, picked % width),
-                                 fetchdata=self.getData)
+            return PickingResult(
+                self,
+                positions=dataPoints[picked, :3],
+                indices=(picked // width, picked % width),
+                fetchdata=self.getData,
+            )
         else:
             return None
 
-    def setData(self, data, copy: bool=True):
+    def setData(self, data, copy: bool = True):
         """Set the height field data.
 
         :param data:
@@ -258,7 +266,7 @@ class _HeightMap(DataItem3D):
         self.__data = data
         self._updated(ItemChangedType.DATA)
 
-    def getData(self, copy: bool=True) -> numpy.ndarray:
+    def getData(self, copy: bool = True) -> numpy.ndarray:
         """Get the height field 2D data.
 
         :param bool copy:
@@ -306,23 +314,22 @@ class HeightMapData(_HeightMap, ColormapMixIn):
 
         if data.shape != heightData.shape:  # data and height size miss-match
             # Colormapped data is interpolated (nearest-neighbour) to match the height field
-            data = data[numpy.floor(y * data.shape[0] / height).astype(numpy.int32),
-                        numpy.floor(x * data.shape[1] / height).astype(numpy.int32)]
+            data = data[
+                numpy.floor(y * data.shape[0] / height).astype(numpy.int32),
+                numpy.floor(x * data.shape[1] / height).astype(numpy.int32),
+            ]
 
         x = numpy.ravel(x)
         y = numpy.ravel(y)
 
         primitive = primitives.Points(
-            x=x,
-            y=y,
-            z=numpy.ravel(heightData),
-            value=numpy.ravel(data),
-            size=1)
-        primitive.marker = 's'
+            x=x, y=y, z=numpy.ravel(heightData), value=numpy.ravel(data), size=1
+        )
+        primitive.marker = "s"
         ColormapMixIn._setSceneColormap(self, primitive.colormap)
         self._getScenePrimitive().children = [primitive]
 
-    def setColormappedData(self, data, copy: bool=True):
+    def setColormappedData(self, data, copy: bool = True):
         """Set the 2D data used to compute colors.
 
         :param data: 2D array of data
@@ -335,7 +342,7 @@ class HeightMapData(_HeightMap, ColormapMixIn):
         self.__data = data
         self._updated(ItemChangedType.DATA)
 
-    def getColormappedData(self, copy: bool=True) -> numpy.ndarray:
+    def getColormappedData(self, copy: bool = True) -> numpy.ndarray:
         """Returns the 2D data used to compute colors.
 
         :param copy:
@@ -380,8 +387,10 @@ class HeightMapRGBA(_HeightMap):
 
         if rgba.shape[:2] != heightData.shape:  # image and height size miss-match
             # RGBA data is interpolated (nearest-neighbour) to match the height field
-            rgba = rgba[numpy.floor(y * rgba.shape[0] / height).astype(numpy.int32),
-                        numpy.floor(x * rgba.shape[1] / height).astype(numpy.int32)]
+            rgba = rgba[
+                numpy.floor(y * rgba.shape[0] / height).astype(numpy.int32),
+                numpy.floor(x * rgba.shape[1] / height).astype(numpy.int32),
+            ]
 
         x = numpy.ravel(x)
         y = numpy.ravel(y)
@@ -391,11 +400,12 @@ class HeightMapRGBA(_HeightMap):
             y=y,
             z=numpy.ravel(heightData),
             color=rgba.reshape(-1, rgba.shape[-1]),
-            size=1)
-        primitive.marker = 's'
+            size=1,
+        )
+        primitive.marker = "s"
         self._getScenePrimitive().children = [primitive]
 
-    def setColorData(self, data, copy: bool=True):
+    def setColorData(self, data, copy: bool = True):
         """Set the RGB(A) image to use.
 
         Supported array format: float32 in [0, 1], uint8.
@@ -413,7 +423,7 @@ class HeightMapRGBA(_HeightMap):
         self.__rgba = data
         self._updated(ItemChangedType.DATA)
 
-    def getColorData(self, copy: bool=True) -> numpy.ndarray:
+    def getColorData(self, copy: bool = True) -> numpy.ndarray:
         """Get the RGB(A) image data.
 
         :param copy: True (default) to get a copy,

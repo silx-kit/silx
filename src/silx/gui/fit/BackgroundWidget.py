@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2021 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
@@ -44,8 +44,9 @@ __date__ = "28/06/2017"
 class HorizontalSpacer(qt.QWidget):
     def __init__(self, *args):
         qt.QWidget.__init__(self, *args)
-        self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding,
-                                          qt.QSizePolicy.Fixed))
+        self.setSizePolicy(
+            qt.QSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        )
 
 
 class BackgroundParamWidget(qt.QWidget):
@@ -56,6 +57,7 @@ class BackgroundParamWidget(qt.QWidget):
     Updating the widgets causes :attr:`sigBackgroundParamWidgetSignal` to
     be emitted.
     """
+
     sigBackgroundParamWidgetSignal = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -70,8 +72,7 @@ class BackgroundParamWidget(qt.QWidget):
         self.algorithmCombo = qt.QComboBox(self)
         self.algorithmCombo.addItem("Strip")
         self.algorithmCombo.addItem("Snip")
-        self.algorithmCombo.activated[int].connect(
-                self._algorithmComboActivated)
+        self.algorithmCombo.activated[int].connect(self._algorithmComboActivated)
 
         # Strip parameters ---------------------------------------------------
         self.stripWidthLabel = qt.QLabel(self)
@@ -90,9 +91,10 @@ class BackgroundParamWidget(qt.QWidget):
         self.stripIterValue.setText("0")
         self.stripIterValue.editingFinished[()].connect(self._emitSignal)
         self.stripIterValue.setToolTip(
-                "Number of iterations for strip algorithm.\n" +
-                "If greater than 999, an 2nd pass of strip filter is " +
-                "applied to remove artifacts created by first pass.")
+            "Number of iterations for strip algorithm.\n"
+            + "If greater than 999, an 2nd pass of strip filter is "
+            + "applied to remove artifacts created by first pass."
+        )
 
         # Snip parameters ----------------------------------------------------
         self.snipWidthLabel = qt.QLabel(self)
@@ -103,7 +105,6 @@ class BackgroundParamWidget(qt.QWidget):
         self.snipWidthSpin.setMinimum(0)
         self.snipWidthSpin.valueChanged[int].connect(self._emitSignal)
 
-
         # Smoothing parameters -----------------------------------------------
         self.smoothingFlagCheck = qt.QCheckBox(self)
         self.smoothingFlagCheck.setText("Smoothing Width (Savitsky-Golay)")
@@ -111,7 +112,7 @@ class BackgroundParamWidget(qt.QWidget):
 
         self.smoothingSpin = qt.QSpinBox(self)
         self.smoothingSpin.setMinimum(3)
-        #self.smoothingSpin.setMaximum(40)
+        # self.smoothingSpin.setMaximum(40)
         self.smoothingSpin.setSingleStep(2)
         self.smoothingSpin.valueChanged[int].connect(self._emitSignal)
 
@@ -125,12 +126,12 @@ class BackgroundParamWidget(qt.QWidget):
         self.anchorsFlagCheck = qt.QCheckBox(self.anchorsGroup)
         self.anchorsFlagCheck.setText("Use anchors")
         self.anchorsFlagCheck.setToolTip(
-                "Define X coordinates of points that must remain fixed")
-        self.anchorsFlagCheck.stateChanged[int].connect(
-                self._anchorsToggled)
+            "Define X coordinates of points that must remain fixed"
+        )
+        self.anchorsFlagCheck.stateChanged[int].connect(self._anchorsToggled)
         anchorsLayout.addWidget(self.anchorsFlagCheck)
 
-        maxnchannel = 16384 * 4    # Fixme ?
+        maxnchannel = 16384 * 4  # Fixme ?
         self.anchorsList = []
         num_anchors = 4
         for i in range(num_anchors):
@@ -170,8 +171,7 @@ class BackgroundParamWidget(qt.QWidget):
         :param algorithm: "snip" or "strip"
         """
         if algorithm not in ["strip", "snip"]:
-            raise ValueError(
-                    "Unknown background filter algorithm %s" % algorithm)
+            raise ValueError("Unknown background filter algorithm %s" % algorithm)
 
         self.algorithm = algorithm
         self.stripWidthSpin.setEnabled(algorithm == "strip")
@@ -220,7 +220,7 @@ class BackgroundParamWidget(qt.QWidget):
 
         if "AnchorsList" in ddict:
             anchorslist = ddict["AnchorsList"]
-            if anchorslist in [None, 'None']:
+            if anchorslist in [None, "None"]:
                 anchorslist = []
             for spin in self.anchorsList:
                 spin.setValue(0)
@@ -248,20 +248,22 @@ class BackgroundParamWidget(qt.QWidget):
         stripitertext = self.stripIterValue.text()
         stripiter = int(stripitertext) if len(stripitertext) else 0
 
-        return {"algorithm": self.algorithm,
-                "StripThreshold": 1.0,
-                "SnipWidth": self.snipWidthSpin.value(),
-                "StripIterations": stripiter,
-                "StripWidth": self.stripWidthSpin.value(),
-                "SmoothingFlag": self.smoothingFlagCheck.isChecked(),
-                "SmoothingWidth": self.smoothingSpin.value(),
-                "AnchorsFlag": self.anchorsFlagCheck.isChecked(),
-                "AnchorsList": [spin.value() for spin in self.anchorsList]}
+        return {
+            "algorithm": self.algorithm,
+            "StripThreshold": 1.0,
+            "SnipWidth": self.snipWidthSpin.value(),
+            "StripIterations": stripiter,
+            "StripWidth": self.stripWidthSpin.value(),
+            "SmoothingFlag": self.smoothingFlagCheck.isChecked(),
+            "SmoothingWidth": self.smoothingSpin.value(),
+            "AnchorsFlag": self.anchorsFlagCheck.isChecked(),
+            "AnchorsList": [spin.value() for spin in self.anchorsList],
+        }
 
     def _emitSignal(self, dummy=None):
         self.sigBackgroundParamWidgetSignal.emit(
-            {'event': 'ParametersChanged',
-             'parameters': self.getParameters()})
+            {"event": "ParametersChanged", "parameters": self.getParameters()}
+        )
 
 
 class BackgroundWidget(qt.QWidget):
@@ -270,6 +272,7 @@ class BackgroundWidget(qt.QWidget):
     Strip and snip filters parameters can be adjusted using input widgets,
     and the computed backgrounds are plotted next to the original data to
     show the result."""
+
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle("Strip and SNIP Configuration Window")
@@ -328,8 +331,7 @@ class BackgroundWidget(qt.QWidget):
         self._update()
 
     def _update(self, resetzoom=False):
-        """Compute strip and snip backgrounds, update the curves
-        """
+        """Compute strip and snip backgrounds, update the curves"""
         if self._y is None:
             return
 
@@ -338,7 +340,7 @@ class BackgroundWidget(qt.QWidget):
         # smoothed data
         y = numpy.ravel(numpy.array(self._y)).astype(numpy.float64)
         if pars["SmoothingFlag"]:
-            ysmooth = filters.savitsky_golay(y, pars['SmoothingWidth'])
+            ysmooth = filters.savitsky_golay(y, pars["SmoothingWidth"])
             f = [0.25, 0.5, 0.25]
             ysmooth[1:-1] = numpy.convolve(ysmooth, f, mode=0)
             ysmooth[0] = 0.5 * (ysmooth[0] + ysmooth[1])
@@ -346,14 +348,13 @@ class BackgroundWidget(qt.QWidget):
         else:
             ysmooth = y
 
-
         # loop for anchors
         x = self._x
-        niter = pars['StripIterations']
+        niter = pars["StripIterations"]
         anchors_indices = []
-        if pars['AnchorsFlag'] and pars['AnchorsList'] is not None:
+        if pars["AnchorsFlag"] and pars["AnchorsList"] is not None:
             ravelled = x
-            for channel in pars['AnchorsList']:
+            for channel in pars["AnchorsList"]:
                 if channel <= ravelled[0]:
                     continue
                 index = numpy.nonzero(ravelled >= channel)[0]
@@ -362,52 +363,56 @@ class BackgroundWidget(qt.QWidget):
                     if index > 0:
                         anchors_indices.append(index)
 
-        stripBackground = filters.strip(ysmooth,
-                                        w=pars['StripWidth'],
-                                        niterations=niter,
-                                        factor=pars['StripThreshold'],
-                                        anchors=anchors_indices)
+        stripBackground = filters.strip(
+            ysmooth,
+            w=pars["StripWidth"],
+            niterations=niter,
+            factor=pars["StripThreshold"],
+            anchors=anchors_indices,
+        )
 
         if niter >= 1000:
             # final smoothing
-            stripBackground = filters.strip(stripBackground,
-                                            w=1,
-                                            niterations=50*pars['StripWidth'],
-                                            factor=pars['StripThreshold'],
-                                            anchors=anchors_indices)
+            stripBackground = filters.strip(
+                stripBackground,
+                w=1,
+                niterations=50 * pars["StripWidth"],
+                factor=pars["StripThreshold"],
+                anchors=anchors_indices,
+            )
 
         if len(anchors_indices) == 0:
-            anchors_indices = [0, len(ysmooth)-1]
+            anchors_indices = [0, len(ysmooth) - 1]
         anchors_indices.sort()
         snipBackground = 0.0 * ysmooth
         lastAnchor = 0
         for anchor in anchors_indices:
             if (anchor > lastAnchor) and (anchor < len(ysmooth)):
-                snipBackground[lastAnchor:anchor] =\
-                            filters.snip1d(ysmooth[lastAnchor:anchor],
-                                           pars['SnipWidth'])
+                snipBackground[lastAnchor:anchor] = filters.snip1d(
+                    ysmooth[lastAnchor:anchor], pars["SnipWidth"]
+                )
                 lastAnchor = anchor
         if lastAnchor < len(ysmooth):
-            snipBackground[lastAnchor:] =\
-                            filters.snip1d(ysmooth[lastAnchor:],
-                                           pars['SnipWidth'])
+            snipBackground[lastAnchor:] = filters.snip1d(
+                ysmooth[lastAnchor:], pars["SnipWidth"]
+            )
 
-        self.graphWidget.addCurve(x, y,
-                                  legend='Input Data',
-                                  replace=True,
-                                  resetzoom=resetzoom)
-        self.graphWidget.addCurve(x, stripBackground,
-                                  legend='Strip Background',
-                                  resetzoom=False)
-        self.graphWidget.addCurve(x, snipBackground,
-                                  legend='SNIP Background',
-                                  resetzoom=False)
+        self.graphWidget.addCurve(
+            x, y, legend="Input Data", replace=True, resetzoom=resetzoom
+        )
+        self.graphWidget.addCurve(
+            x, stripBackground, legend="Strip Background", resetzoom=False
+        )
+        self.graphWidget.addCurve(
+            x, snipBackground, legend="SNIP Background", resetzoom=False
+        )
         if self._xmin is not None and self._xmax is not None:
             self.graphWidget.getXAxis().setLimits(self._xmin, self._xmax)
 
 
 class BackgroundDialog(qt.QDialog):
     """QDialog window featuring a :class:`BackgroundWidget`"""
+
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Strip and Snip Configuration Window")
@@ -452,14 +457,15 @@ class BackgroundDialog(qt.QDialog):
     #     self.output = ddict
 
     def accept(self):
-        """Update :attr:`output`, then call :meth:`QDialog.accept`
-        """
+        """Update :attr:`output`, then call :meth:`QDialog.accept`"""
         self.output = self.getParameters()
         super(BackgroundDialog, self).accept()
 
     def sizeHint(self):
-        return qt.QSize(int(1.5*qt.QDialog.sizeHint(self).width()),
-                        qt.QDialog.sizeHint(self).height())
+        return qt.QSize(
+            int(1.5 * qt.QDialog.sizeHint(self).width()),
+            qt.QDialog.sizeHint(self).height(),
+        )
 
     def setData(self, x, y, xmin=None, xmax=None):
         """See :meth:`BackgroundWidget.setData`"""
@@ -498,11 +504,7 @@ def main():
 
     x = numpy.arange(5000)
     # (height1, center1, fwhm1, ...) 5 peaks
-    params1 = (50, 500, 100,
-               20, 2000, 200,
-               50, 2250, 100,
-               40, 3000, 75,
-               23, 4000, 150)
+    params1 = (50, 500, 100, 20, 2000, 200, 50, 2250, 100, 40, 3000, 75, 23, 4000, 150)
     y0 = sum_gauss(x, *params1)
 
     # random values between [-1;1]
@@ -527,7 +529,8 @@ def main():
     w.parametersWidget.parametersWidget.sigBackgroundParamWidgetSignal.connect(mySlot)
     w.setData(x, y)
     w.exec()
-    #a.exec()
+    # a.exec()
+
 
 if __name__ == "__main__":
     main()

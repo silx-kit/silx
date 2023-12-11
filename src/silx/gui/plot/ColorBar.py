@@ -69,6 +69,7 @@ class ColorBarWidget(qt.QWidget):
     :param plot: PlotWidget the colorbar is attached to (optional)
     :param str legend: the label to set to the colorbar
     """
+
     sigVisibleChanged = qt.Signal(bool)
     """Emitted when the property `visible` have changed."""
 
@@ -88,12 +89,11 @@ class ColorBarWidget(qt.QWidget):
         self.setLayout(qt.QHBoxLayout())
 
         # create color scale widget
-        self._colorScale = ColorScaleBar(parent=self,
-                                         colormap=None)
+        self._colorScale = ColorScaleBar(parent=self, colormap=None)
         self.layout().addWidget(self._colorScale)
 
         # legend (is the right group)
-        self.legend = _VerticalLegend('', self)
+        self.legend = _VerticalLegend("", self)
         self.layout().addWidget(self.legend)
 
         self.layout().setSizeConstraint(qt.QLayout.SetMinAndMaxSize)
@@ -118,10 +118,8 @@ class ColorBarWidget(qt.QWidget):
             self._isConnected = False
             plot = self.getPlot()
             if plot is not None and qt_inspect.isValid(plot):
-                plot.sigActiveImageChanged.disconnect(
-                    self._activeImageChanged)
-                plot.sigActiveScatterChanged.disconnect(
-                    self._activeScatterChanged)
+                plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+                plot.sigActiveScatterChanged.disconnect(self._activeScatterChanged)
                 plot.sigPlotSignal.disconnect(self._defaultColormapChanged)
 
     def _connectPlot(self):
@@ -169,8 +167,7 @@ class ColorBarWidget(qt.QWidget):
             The data to display or item, needed if the colormap require an autoscale
         """
         self._data = data
-        self.getColorScaleBar().setColormap(colormap=colormap,
-                                            data=data)
+        self.getColorScaleBar().setColormap(colormap=colormap, data=data)
         if self._colormap is not None:
             self._colormap.sigChanged.disconnect(self._colormapHasChanged)
         self._colormap = colormap
@@ -178,11 +175,9 @@ class ColorBarWidget(qt.QWidget):
             self._colormap.sigChanged.connect(self._colormapHasChanged)
 
     def _colormapHasChanged(self):
-        """handler of the Colormap.sigChanged signal
-        """
+        """handler of the Colormap.sigChanged signal"""
         assert self._colormap is not None
-        self.setColormap(colormap=self._colormap,
-                         data=self._data)
+        self.setColormap(colormap=self._colormap, data=self._data)
 
     def setLegend(self, legend):
         """Set the legend displayed along the colorbar
@@ -221,8 +216,7 @@ class ColorBarWidget(qt.QWidget):
         # Sync with active scatter
         scatter = plot.getActiveScatter()
 
-        self.setColormap(colormap=scatter.getColormap(),
-                         data=scatter)
+        self.setColormap(colormap=scatter.getColormap(), data=scatter)
 
     def _activeImageChanged(self, previous, legend):
         """Handle plot active image changed"""
@@ -249,11 +243,13 @@ class ColorBarWidget(qt.QWidget):
 
     def _defaultColormapChanged(self, event):
         """Handle plot default colormap changed"""
-        if event['event'] == 'defaultColormapChanged':
+        if event["event"] == "defaultColormapChanged":
             plot = self.getPlot()
-            if (plot is not None and
-                    plot.getActiveImage() is None and
-                    plot.getActiveScatter() is None):
+            if (
+                plot is not None
+                and plot.getActiveImage() is None
+                and plot.getActiveScatter() is None
+            ):
                 # No active item, take default colormap update into account
                 self._syncWithDefaultColormap()
 
@@ -270,8 +266,8 @@ class ColorBarWidget(qt.QWidget):
 
 
 class _VerticalLegend(qt.QLabel):
-    """Display vertically the given text
-    """
+    """Display vertically the given text"""
+
     def __init__(self, text, parent=None):
         """
 
@@ -331,8 +327,7 @@ class ColorScaleBar(qt.QWidget):
     """The tick bar need a margin to display all labels at the correct place.
     So the ColorScale should have the same margin in order for both to fit"""
 
-    def __init__(self, parent=None, colormap=None, data=None,
-                 displayTicksValues=True):
+    def __init__(self, parent=None, colormap=None, data=None, displayTicksValues=True):
         super(ColorScaleBar, self).__init__(parent)
 
         self.minVal = None
@@ -343,10 +338,9 @@ class ColorScaleBar(qt.QWidget):
         self.setLayout(qt.QGridLayout())
 
         # create the left side group (ColorScale)
-        self.colorScale = _ColorScale(colormap=colormap,
-                                      data=data,
-                                      parent=self,
-                                      margin=ColorScaleBar._TEXT_MARGIN)
+        self.colorScale = _ColorScale(
+            colormap=colormap, data=data, parent=self, margin=ColorScaleBar._TEXT_MARGIN
+        )
         if colormap:
             vmin, vmax = colormap.getColormapRange(data)
             normalizer = colormap._getNormalizer()
@@ -354,12 +348,14 @@ class ColorScaleBar(qt.QWidget):
             vmin, vmax = colors.DEFAULT_MIN_LIN, colors.DEFAULT_MAX_LIN
             normalizer = None
 
-        self.tickbar = _TickBar(vmin=vmin,
-                                vmax=vmax,
-                                normalizer=normalizer,
-                                parent=self,
-                                displayValues=displayTicksValues,
-                                margin=ColorScaleBar._TEXT_MARGIN)
+        self.tickbar = _TickBar(
+            vmin=vmin,
+            vmax=vmax,
+            normalizer=normalizer,
+            parent=self,
+            displayValues=displayTicksValues,
+            margin=ColorScaleBar._TEXT_MARGIN,
+        )
 
         self.layout().addWidget(self.tickbar, 1, 0, 1, 1, qt.Qt.AlignRight)
         self.layout().addWidget(self.colorScale, 1, 1, qt.Qt.AlignLeft)
@@ -419,9 +415,7 @@ class ColorScaleBar(qt.QWidget):
             vmin, vmax = None, None
             normalizer = None
 
-        self.tickbar.update(vmin=vmin,
-                            vmax=vmax,
-                            normalizer=normalizer)
+        self.tickbar.update(vmin=vmin, vmax=vmax, normalizer=normalizer)
         self._setMinMaxLabels(vmin, vmax)
 
     def setMinMaxVisible(self, val=True):
@@ -436,24 +430,24 @@ class ColorScaleBar(qt.QWidget):
         """Update the min and max label if we are in the case of the
         configuration 'minMaxValueOnly'"""
         if self.minVal is None:
-            text, tooltip = '', ''
+            text, tooltip = "", ""
         else:
             if self.minVal == 0 or 0 <= numpy.log10(abs(self.minVal)) < 7:
-                text = '%.7g' % self.minVal
+                text = "%.7g" % self.minVal
             else:
-                text = '%.2e' % self.minVal
+                text = "%.2e" % self.minVal
             tooltip = repr(self.minVal)
 
         self._minLabel.setText(text)
         self._minLabel.setToolTip(tooltip)
 
         if self.maxVal is None:
-            text, tooltip = '', ''
+            text, tooltip = "", ""
         else:
             if self.maxVal == 0 or 0 <= numpy.log10(abs(self.maxVal)) < 7:
-                text = '%.7g' % self.maxVal
+                text = "%.7g" % self.maxVal
             else:
-                text = '%.2e' % self.maxVal
+                text = "%.2e" % self.maxVal
             tooltip = repr(self.maxVal)
 
         self._maxLabel.setText(text)
@@ -559,7 +553,7 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        indices = numpy.linspace(0., 1., self._NB_CONTROL_POINTS)
+        indices = numpy.linspace(0.0, 1.0, self._NB_CONTROL_POINTS)
         colors = colormap.getNColors(nbColors=self._NB_CONTROL_POINTS)
         self._gradient = qt.QLinearGradient(0, 1, 0, 0)
         self._gradient.setCoordinateMode(qt.QGradient.StretchToDeviceMode)
@@ -572,22 +566,25 @@ class _ColorScale(qt.QWidget):
         painter = qt.QPainter(self)
         if self.getColormap() is not None:
             painter.setBrush(self._gradient)
-            penColor = self.palette().color(qt.QPalette.Active,
-                                            qt.QPalette.WindowText)
+            penColor = self.palette().color(qt.QPalette.Active, qt.QPalette.WindowText)
         else:
-            penColor = self.palette().color(qt.QPalette.Disabled,
-                                            qt.QPalette.WindowText)
+            penColor = self.palette().color(
+                qt.QPalette.Disabled, qt.QPalette.WindowText
+            )
         painter.setPen(penColor)
 
-        painter.drawRect(qt.QRect(
-            0,
-            self.margin,
-            self.width() - 1,
-            self.height() - 2 * self.margin - 1))
+        painter.drawRect(
+            qt.QRect(
+                0, self.margin, self.width() - 1, self.height() - 2 * self.margin - 1
+            )
+        )
 
     def mouseMoveEvent(self, event):
-        tooltip = str(self.getValueFromRelativePosition(
-            self._getRelativePosition(qt.getMouseEventPosition(event)[1])))
+        tooltip = str(
+            self.getValueFromRelativePosition(
+                self._getRelativePosition(qt.getMouseEventPosition(event)[1])
+            )
+        )
         if qt.BINDING == "PyQt5":
             position = event.globalPos()
         else:  # Qt6
@@ -596,10 +593,9 @@ class _ColorScale(qt.QWidget):
         super(_ColorScale, self).mouseMoveEvent(event)
 
     def _getRelativePosition(self, yPixel):
-        """yPixel : pixel position into _ColorScale widget reference
-        """
+        """yPixel : pixel position into _ColorScale widget reference"""
         # widgets are bottom-top referencial but we display in top-bottom referential
-        return 1. - (yPixel - self.margin) / float(self.height() - 2 * self.margin)
+        return 1.0 - (yPixel - self.margin) / float(self.height() - 2 * self.margin)
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the
@@ -612,12 +608,15 @@ class _ColorScale(qt.QWidget):
         if colormap is None:
             return
 
-        value = numpy.clip(value, 0., 1.)
+        value = numpy.clip(value, 0.0, 1.0)
         normalizer = colormap._getNormalizer()
-        normMin, normMax = normalizer.apply([self.vmin, self.vmax], self.vmin, self.vmax)
+        normMin, normMax = normalizer.apply(
+            [self.vmin, self.vmax], self.vmin, self.vmax
+        )
 
         return normalizer.revert(
-            normMin + (normMax - normMin) * value, self.vmin, self.vmax)
+            normMin + (normMax - normMin) * value, self.vmin, self.vmax
+        )
 
     def setMargin(self, margin):
         """Define the margin to fit with a TickBar object.
@@ -653,6 +652,7 @@ class _TickBar(qt.QWidget):
         number of ticks from the tick density.
     :param int margin: margin to set on the top and bottom
     """
+
     _WIDTH_DISP_VAL = 45
     """widget width when displayed with ticks labels"""
     _WIDTH_NO_DISP_VAL = 10
@@ -664,8 +664,16 @@ class _TickBar(qt.QWidget):
 
     DEFAULT_TICK_DENSITY = 0.015
 
-    def __init__(self, vmin, vmax, normalizer, parent=None, displayValues=True,
-                 nticks=None, margin=5):
+    def __init__(
+        self,
+        vmin,
+        vmax,
+        normalizer,
+        parent=None,
+        displayValues=True,
+        nticks=None,
+        margin=5,
+    ):
         super(_TickBar, self).__init__(parent)
         self.margin = margin
         self._nticks = None
@@ -724,7 +732,7 @@ class _TickBar(qt.QWidget):
         (nticks=None) then you can specify a ticks density to be displayed.
         """
         if density < 0.0:
-            raise ValueError('Density should be a positive value')
+            raise ValueError("Density should be a positive value")
         self.ticksDensity = density
 
     def computeTicks(self):
@@ -754,14 +762,16 @@ class _TickBar(qt.QWidget):
     def _computeTicksLog(self, nticks):
         logMin = numpy.log10(self._vmin)
         logMax = numpy.log10(self._vmax)
-        lowBound, highBound, spacing, self._nfrac = ticklayout.niceNumbersForLog10(logMin,
-                                                                                   logMax,
-                                                                                   nticks)
-        self.ticks = numpy.power(10., numpy.arange(lowBound, highBound, spacing))
+        lowBound, highBound, spacing, self._nfrac = ticklayout.niceNumbersForLog10(
+            logMin, logMax, nticks
+        )
+        self.ticks = numpy.power(10.0, numpy.arange(lowBound, highBound, spacing))
         if spacing == 1:
-            self.subTicks = ticklayout.computeLogSubTicks(ticks=self.ticks,
-                                                          lowBound=numpy.power(10., lowBound),
-                                                          highBound=numpy.power(10., highBound))
+            self.subTicks = ticklayout.computeLogSubTicks(
+                ticks=self.ticks,
+                lowBound=numpy.power(10.0, lowBound),
+                highBound=numpy.power(10.0, highBound),
+            )
         else:
             self.subTicks = []
 
@@ -770,9 +780,9 @@ class _TickBar(qt.QWidget):
         self.computeTicks()
 
     def _computeTicksLin(self, nticks):
-        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(self._vmin,
-                                                                   self._vmax,
-                                                                   nticks)
+        _min, _max, _spacing, self._nfrac = ticklayout.niceNumbers(
+            self._vmin, self._vmax, nticks
+        )
 
         self.ticks = numpy.arange(_min, _max, _spacing)
         self.subTicks = []
@@ -795,19 +805,17 @@ class _TickBar(qt.QWidget):
             self._paintTick(val, painter, majorTick=False)
 
     def _getRelativePosition(self, val):
-        """Return the relative position of val according to min and max value
-        """
+        """Return the relative position of val according to min and max value"""
         if self._normalizer is None:
-            return 0.
+            return 0.0
         normMin, normMax, normVal = self._normalizer.apply(
-            [self._vmin, self._vmax, val],
-            self._vmin,
-            self._vmax)
+            [self._vmin, self._vmax, val], self._vmin, self._vmax
+        )
 
         if normMin == normMax:
-            return 0.
+            return 0.0
         else:
-            return 1. - (normVal - normMin) / (normMax - normMin)
+            return 1.0 - (normVal - normMin) / (normMax - normMin)
 
     def _paintTick(self, val, painter, majorTick=True):
         """
@@ -823,14 +831,14 @@ class _TickBar(qt.QWidget):
         if majorTick is False:
             lineWidth /= 2
 
-        painter.drawLine(qt.QLine(int(self.width() - lineWidth),
-                                  height,
-                                  self.width(),
-                                  height))
+        painter.drawLine(
+            qt.QLine(int(self.width() - lineWidth), height, self.width(), height)
+        )
 
         if self.displayValues and majorTick is True:
-            painter.drawText(qt.QPoint(0, int(height + fm.height() / 2)),
-                             self.form.format(val))
+            painter.drawText(
+                qt.QPoint(0, int(height + fm.height() / 2)), self.form.format(val)
+            )
 
     def setDisplayType(self, disType):
         """Set the type of display we want to set for ticks labels
@@ -843,8 +851,10 @@ class _TickBar(qt.QWidget):
             - 'e' for scientific display
             - None to let the _TickBar guess the best display for this kind of data.
         """
-        if disType not in (None, 'std', 'e'):
-            raise ValueError("display type not recognized, value should be in (None, 'std', 'e'")
+        if disType not in (None, "std", "e"):
+            raise ValueError(
+                "display type not recognized, value should be in (None, 'std', 'e'"
+            )
         self._forcedDisplayType = disType
 
     def _getStandardFormat(self):
@@ -853,12 +863,14 @@ class _TickBar(qt.QWidget):
     def _getFormat(self, font):
         if self._forcedDisplayType is None:
             return self._guessType(font)
-        elif self._forcedDisplayType == 'std':
+        elif self._forcedDisplayType == "std":
             return self._getStandardFormat()
-        elif self._forcedDisplayType == 'e':
+        elif self._forcedDisplayType == "e":
             return self._getScientificForm()
         else:
-            err = 'Forced type for display %s is not recognized' % self._forcedDisplayType
+            err = (
+                "Forced type for display %s is not recognized" % self._forcedDisplayType
+            )
             raise ValueError(err)
 
     def _getScientificForm(self):

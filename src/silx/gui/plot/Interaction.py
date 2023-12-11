@@ -84,6 +84,7 @@ import weakref
 
 # state machine ###############################################################
 
+
 class State(object):
     """Base class for the states of a state machine.
 
@@ -142,6 +143,7 @@ class State(object):
         """
         pass
 
+
 class StateMachine(object):
     """State machine controller.
 
@@ -184,7 +186,7 @@ class StateMachine(object):
         :param str eventName: Name of the event to handle
         :returns: The return value of the handler or None
         """
-        handlerName = 'on' + eventName[0].upper() + eventName[1:]
+        handlerName = "on" + eventName[0].upper() + eventName[1:]
         try:
             handler = getattr(self.state, handlerName)
         except AttributeError:
@@ -204,13 +206,13 @@ class StateMachine(object):
 
 # clickOrDrag #################################################################
 
-LEFT_BTN = 'left'
+LEFT_BTN = "left"
 """Left mouse button."""
 
-RIGHT_BTN = 'right'
+RIGHT_BTN = "right"
 """Right mouse button."""
 
-MIDDLE_BTN = 'middle'
+MIDDLE_BTN = "middle"
 """Middle mouse button."""
 
 
@@ -224,15 +226,15 @@ class ClickOrDrag(StateMachine):
     :param Set[str] dragButtons: Set of buttons that provides drag interaction
     """
 
-    DRAG_THRESHOLD_SQUARE_DIST = 5 ** 2
+    DRAG_THRESHOLD_SQUARE_DIST = 5**2
 
     class Idle(State):
         def onPress(self, x, y, btn):
             if btn in self.machine.dragButtons:
-                self.goto('clickOrDrag', x, y, btn)
+                self.goto("clickOrDrag", x, y, btn)
                 return True
             elif btn in self.machine.clickButtons:
-                self.goto('click', x, y, btn)
+                self.goto("click", x, y, btn)
                 return True
 
     class Click(State):
@@ -244,12 +246,12 @@ class ClickOrDrag(StateMachine):
             dx2 = (x - self.initPos[0]) ** 2
             dy2 = (y - self.initPos[1]) ** 2
             if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
-                self.goto('idle')
+                self.goto("idle")
 
         def onRelease(self, x, y, btn):
             if btn == self.button:
                 self.machine.click(x, y, btn)
-                self.goto('idle')
+                self.goto("idle")
 
     class ClickOrDrag(State):
         def enterState(self, x, y, btn):
@@ -260,13 +262,13 @@ class ClickOrDrag(StateMachine):
             dx2 = (x - self.initPos[0]) ** 2
             dy2 = (y - self.initPos[1]) ** 2
             if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
-                self.goto('drag', self.initPos, (x, y), self.button)
+                self.goto("drag", self.initPos, (x, y), self.button)
 
         def onRelease(self, x, y, btn):
             if btn == self.button:
                 if btn in self.machine.clickButtons:
                     self.machine.click(x, y, btn)
-                self.goto('idle')
+                self.goto("idle")
 
     class Drag(State):
         def enterState(self, initPos, curPos, btn):
@@ -281,26 +283,27 @@ class ClickOrDrag(StateMachine):
         def onRelease(self, x, y, btn):
             if btn == self.button:
                 self.machine.endDrag(self.initPos, (x, y), btn)
-                self.goto('idle')
+                self.goto("idle")
 
-    def __init__(self,
-                 clickButtons=(LEFT_BTN, RIGHT_BTN),
-                 dragButtons=(LEFT_BTN,)):
+    def __init__(self, clickButtons=(LEFT_BTN, RIGHT_BTN), dragButtons=(LEFT_BTN,)):
         states = {
-            'idle': self.Idle,
-            'click': self.Click,
-            'clickOrDrag': self.ClickOrDrag,
-            'drag': self.Drag
+            "idle": self.Idle,
+            "click": self.Click,
+            "clickOrDrag": self.ClickOrDrag,
+            "drag": self.Drag,
         }
         self.__clickButtons = set(clickButtons)
         self.__dragButtons = set(dragButtons)
-        super(ClickOrDrag, self).__init__(states, 'idle')
+        super(ClickOrDrag, self).__init__(states, "idle")
 
-    clickButtons = property(lambda self: self.__clickButtons,
-                            doc="Buttons with click interaction (Set[int])")
+    clickButtons = property(
+        lambda self: self.__clickButtons,
+        doc="Buttons with click interaction (Set[int])",
+    )
 
-    dragButtons = property(lambda self: self.__dragButtons,
-                           doc="Buttons with drag interaction (Set[int])")
+    dragButtons = property(
+        lambda self: self.__dragButtons, doc="Buttons with drag interaction (Set[int])"
+    )
 
     def click(self, x, y, btn):
         """Called upon a button supporting click.

@@ -41,9 +41,9 @@ _logger = logging.getLogger(__name__)
 
 class _DraggableRectItem(qt.QGraphicsRectItem):
     """RectItem which signals its change through visibleRectDragged."""
+
     def __init__(self, *args, **kwargs):
-        super(_DraggableRectItem, self).__init__(
-            *args, **kwargs)
+        super(_DraggableRectItem, self).__init__(*args, **kwargs)
 
         self._previousCursor = None
         self.setFlag(qt.QGraphicsItem.ItemIsMovable)
@@ -81,8 +81,7 @@ class _DraggableRectItem(qt.QGraphicsRectItem):
 
     def itemChange(self, change, value):
         """Callback called before applying changes to the item."""
-        if (change == qt.QGraphicsItem.ItemPositionChange and
-                not self._ignoreChange):
+        if change == qt.QGraphicsItem.ItemPositionChange and not self._ignoreChange:
             # Makes sure that the visible area is in the data
             # or that data is in the visible area if area is too wide
             x, y = value.x(), value.y()
@@ -118,12 +117,12 @@ class _DraggableRectItem(qt.QGraphicsRectItem):
                     value.x() + self.rect().left(),
                     value.y() + self.rect().top(),
                     self.rect().width(),
-                    self.rect().height())
+                    self.rect().height(),
+                )
 
             return value
 
-        return super(_DraggableRectItem, self).itemChange(
-            change, value)
+        return super(_DraggableRectItem, self).itemChange(change, value)
 
     def hoverEnterEvent(self, event):
         """Called when the mouse enters the rectangle area"""
@@ -160,37 +159,37 @@ class RadarView(qt.QGraphicsView):
     It provides: left, top, width, height in data coordinates.
     """
 
-    _DATA_PEN = qt.QPen(qt.QColor('white'))
-    _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
-    _ACTIVEDATA_PEN = qt.QPen(qt.QColor('black'))
-    _ACTIVEDATA_BRUSH = qt.QBrush(qt.QColor('transparent'))
+    _DATA_PEN = qt.QPen(qt.QColor("white"))
+    _DATA_BRUSH = qt.QBrush(qt.QColor("light gray"))
+    _ACTIVEDATA_PEN = qt.QPen(qt.QColor("black"))
+    _ACTIVEDATA_BRUSH = qt.QBrush(qt.QColor("transparent"))
     _ACTIVEDATA_PEN.setWidth(2)
     _ACTIVEDATA_PEN.setCosmetic(True)
-    _VISIBLE_PEN = qt.QPen(qt.QColor('blue'))
+    _VISIBLE_PEN = qt.QPen(qt.QColor("blue"))
     _VISIBLE_PEN.setWidth(2)
     _VISIBLE_PEN.setCosmetic(True)
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
-    _TOOLTIP = 'Radar View:\nRed contour: Visible area\nGray area: The image'
+    _TOOLTIP = "Radar View:\nRed contour: Visible area\nGray area: The image"
 
     _PIXMAP_SIZE = 256
 
     def __init__(self, parent=None):
         self.__plotRef = None
         self._scene = qt.QGraphicsScene()
-        self._dataRect = self._scene.addRect(0, 0, 1, 1,
-                                             self._DATA_PEN,
-                                             self._DATA_BRUSH)
-        self._imageRect = self._scene.addRect(0, 0, 1, 1,
-                                              self._ACTIVEDATA_PEN,
-                                              self._ACTIVEDATA_BRUSH)
+        self._dataRect = self._scene.addRect(
+            0, 0, 1, 1, self._DATA_PEN, self._DATA_BRUSH
+        )
+        self._imageRect = self._scene.addRect(
+            0, 0, 1, 1, self._ACTIVEDATA_PEN, self._ACTIVEDATA_BRUSH
+        )
         self._imageRect.setVisible(False)
-        self._scatterRect = self._scene.addRect(0, 0, 1, 1,
-                                                self._ACTIVEDATA_PEN,
-                                                self._ACTIVEDATA_BRUSH)
+        self._scatterRect = self._scene.addRect(
+            0, 0, 1, 1, self._ACTIVEDATA_PEN, self._ACTIVEDATA_BRUSH
+        )
         self._scatterRect.setVisible(False)
-        self._curveRect = self._scene.addRect(0, 0, 1, 1,
-                                              self._ACTIVEDATA_PEN,
-                                              self._ACTIVEDATA_BRUSH)
+        self._curveRect = self._scene.addRect(
+            0, 0, 1, 1, self._ACTIVEDATA_PEN, self._ACTIVEDATA_BRUSH
+        )
         self._curveRect.setVisible(False)
 
         self._visibleRect = _DraggableRectItem(0, 0, 1, 1)
@@ -202,7 +201,7 @@ class RadarView(qt.QGraphicsView):
         self.setHorizontalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(qt.Qt.ScrollBarAlwaysOff)
         self.setFocusPolicy(qt.Qt.NoFocus)
-        self.setStyleSheet('border: 0px')
+        self.setStyleSheet("border: 0px")
         self.setToolTip(self._TOOLTIP)
 
         self.__reentrant = LockReentrant()
@@ -311,7 +310,7 @@ class RadarView(qt.QGraphicsView):
         # As opposed to Plot. So invert RadarView when Plot is NOT inverted.
         self.resetTransform()
         if not inverted:
-            self.scale(1., -1.)
+            self.scale(1.0, -1.0)
         self.update()
 
     def _viewRectDragged(self, left, top, width, height):

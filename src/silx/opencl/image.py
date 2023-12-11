@@ -48,20 +48,30 @@ logger = logging.getLogger(__name__)
 
 
 class ImageProcessing(OpenclProcessing):
-
     kernel_files = ["cast", "map", "max_min", "histogram"]
 
-    converter = {numpy.dtype(numpy.uint8): "u8_to_float",
-                 numpy.dtype(numpy.int8): "s8_to_float",
-                 numpy.dtype(numpy.uint16): "u16_to_float",
-                 numpy.dtype(numpy.int16): "s16_to_float",
-                 numpy.dtype(numpy.uint32): "u32_to_float",
-                 numpy.dtype(numpy.int32): "s32_to_float",
-                 }
+    converter = {
+        numpy.dtype(numpy.uint8): "u8_to_float",
+        numpy.dtype(numpy.int8): "s8_to_float",
+        numpy.dtype(numpy.uint16): "u16_to_float",
+        numpy.dtype(numpy.int16): "s16_to_float",
+        numpy.dtype(numpy.uint32): "u32_to_float",
+        numpy.dtype(numpy.int32): "s32_to_float",
+    }
 
-    def __init__(self, shape=None, ncolors=1, template=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, memory=None, profile=False):
+    def __init__(
+        self,
+        shape=None,
+        ncolors=1,
+        template=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        block_size=None,
+        memory=None,
+        profile=False,
+    ):
         """Constructor of the ImageProcessing class
 
         :param ctx: actual working context, left to None for automatic
@@ -75,9 +85,16 @@ class ImageProcessing(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel
                          level, store profiling elements (makes code slightly slower)
         """
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  block_size=block_size, memory=memory, profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            block_size=block_size,
+            memory=memory,
+            profile=profile,
+        )
         if template is not None:
             shape = template.shape
             if len(shape) > 2:
@@ -90,36 +107,51 @@ class ImageProcessing(OpenclProcessing):
             self.ncolors = ncolors
             self.shape = shape
             assert shape is not None
-        self.buffer_shape = self.shape if self.ncolors == 1 else self.shape + (self.ncolors,)
+        self.buffer_shape = (
+            self.shape if self.ncolors == 1 else self.shape + (self.ncolors,)
+        )
         kernel_files = [os.path.join("image", i) for i in self.kernel_files]
-        self.compile_kernels(kernel_files,
-                             compile_options="-DNB_COLOR=%i" % self.ncolors)
+        self.compile_kernels(
+            kernel_files, compile_options="-DNB_COLOR=%i" % self.ncolors
+        )
         if self.ncolors == 1:
             img_shape = self.shape
         else:
             img_shape = self.shape + (self.ncolors,)
 
-        buffers = [BufferDescription("image0_d", img_shape, numpy.float32, None),
-                   BufferDescription("image1_d", img_shape, numpy.float32, None),
-                   BufferDescription("image2_d", img_shape, numpy.float32, None),
-                   BufferDescription("max_min_d", 2, numpy.float32, None),
-                   BufferDescription("cnt_d", 1, numpy.int32, None), ]
+        buffers = [
+            BufferDescription("image0_d", img_shape, numpy.float32, None),
+            BufferDescription("image1_d", img_shape, numpy.float32, None),
+            BufferDescription("image2_d", img_shape, numpy.float32, None),
+            BufferDescription("max_min_d", 2, numpy.float32, None),
+            BufferDescription("cnt_d", 1, numpy.int32, None),
+        ]
         # Temporary buffer for max-min reduction
-        self.wg_red = kernel_workgroup_size(self.program, self.kernels.max_min_reduction_stage1)
+        self.wg_red = kernel_workgroup_size(
+            self.program, self.kernels.max_min_reduction_stage1
+        )
         if self.wg_red > 1:
-            self.wg_red = min(self.wg_red,
-                              numpy.int32(1 << int(floor(log(sqrt(numpy.prod(self.shape)), 2)))))
-            tmp = BufferDescription("tmp_max_min_d", 2 * self.wg_red, numpy.float32, None)
+            self.wg_red = min(
+                self.wg_red,
+                numpy.int32(1 << int(floor(log(sqrt(numpy.prod(self.shape)), 2)))),
+            )
+            tmp = BufferDescription(
+                "tmp_max_min_d", 2 * self.wg_red, numpy.float32, None
+            )
             buffers.append(tmp)
         self.allocate_buffers(buffers, use_array=True)
         self.cl_mem["cnt_d"].fill(0)
 
     def __repr__(self):
-        return "ImageProcessing for shape=%s, %i colors initalized on %s" % \
-            (self.shape, self.ncolors, self.ctx.devices[0].name)
+        return "ImageProcessing for shape=%s, %i colors initalized on %s" % (
+            self.shape,
+            self.ncolors,
+            self.ctx.devices[0].name,
+        )
 
-    def _get_in_out_buffers(self, img=None, copy=True, out=None,
-                            out_dtype=None, out_size=None):
+    def _get_in_out_buffers(
+        self, img=None, copy=True, out=None, out_dtype=None, out_size=None
+    ):
         """Internal method used to select the proper buffers before processing.
 
         :param img: expects a numpy array or a pyopencl.array of dim 2 or 3
@@ -128,7 +160,7 @@ class ImageProcessing(OpenclProcessing):
         :param out_dtype: enforce the type of the output buffer (optional)
         :param out_size: enforce the size of the output buffer (optional)
         :return: input_buffer, output_buffer
-        
+
         Nota: this is not locked.
         """
         events = []
@@ -147,7 +179,9 @@ class ImageProcessing(OpenclProcessing):
             if out_dtype != numpy.float32 and out_size:
                 name = "%s_%s_d" % (numpy.dtype(out_dtype), out_size)
                 if name not in self.cl_mem:
-                    output_array = self.cl_mem[name] = pyopencl.array.empty(self.queue, (out_size,), out_dtype)
+                    output_array = self.cl_mem[name] = pyopencl.array.empty(
+                        self.queue, (out_size,), out_dtype
+                    )
                 else:
                     output_array = self.cl_mem[name]
             else:
@@ -157,7 +191,9 @@ class ImageProcessing(OpenclProcessing):
             input_array = self.cl_mem["image1_d"]
         if isinstance(img, pyopencl.array.Array):
             if copy:
-                evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["image1_d"].data, img.data)
+                evt = pyopencl.enqueue_copy(
+                    self.queue, self.cl_mem["image1_d"].data, img.data
+                )
                 input_array = self.cl_mem["image1_d"]
                 events.append(EventDescription("copy D->D", evt))
             else:
@@ -168,11 +204,19 @@ class ImageProcessing(OpenclProcessing):
             # assume this is numpy
             if img.dtype.itemsize > 4:
                 logger.warning("Casting to float32 on CPU")
-                evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["image1_d"].data, numpy.ascontiguousarray(img, numpy.float32))
+                evt = pyopencl.enqueue_copy(
+                    self.queue,
+                    self.cl_mem["image1_d"].data,
+                    numpy.ascontiguousarray(img, numpy.float32),
+                )
                 input_array = self.cl_mem["image1_d"]
                 events.append(EventDescription("cast+copy H->D", evt))
             else:
-                evt = pyopencl.enqueue_copy(self.queue, self.cl_mem["image1_d"].data, numpy.ascontiguousarray(img))
+                evt = pyopencl.enqueue_copy(
+                    self.queue,
+                    self.cl_mem["image1_d"].data,
+                    numpy.ascontiguousarray(img),
+                )
                 input_array = self.cl_mem["image1_d"]
                 events.append(EventDescription("copy H->D", evt))
         if self.profile:
@@ -180,8 +224,8 @@ class ImageProcessing(OpenclProcessing):
         return input_array, output_array
 
     def to_float(self, img, copy=True, out=None):
-        """ Takes any array and convert it to a float array for ease of processing.
-        
+        """Takes any array and convert it to a float array for ease of processing.
+
         :param img: expects a numpy array or a pyopencl.array of dim 2 or 3
         :param copy: set to False to directly re-use a pyopencl array
         :param out: provide an output buffer to store the result
@@ -193,16 +237,23 @@ class ImageProcessing(OpenclProcessing):
             input_array, output_array = self._get_in_out_buffers(img, copy, out)
             if (img.dtype.itemsize > 4) or (img.dtype == numpy.float32):
                 # copy device -> device, already there as float32
-                ev = pyopencl.enqueue_copy(self.queue, output_array.data, input_array.data)
+                ev = pyopencl.enqueue_copy(
+                    self.queue, output_array.data, input_array.data
+                )
                 events.append(EventDescription("copy D->D", ev))
             else:
                 # Cast to float:
                 name = self.converter[img.dtype]
                 kernel = self.kernels.get_kernel(name)
-                ev = kernel(self.queue, (self.shape[1], self.shape[0]), None,
-                            input_array.data, output_array.data,
-                            numpy.int32(self.shape[1]), numpy.int32(self.shape[0])
-                            )
+                ev = kernel(
+                    self.queue,
+                    (self.shape[1], self.shape[0]),
+                    None,
+                    input_array.data,
+                    output_array.data,
+                    numpy.int32(self.shape[1]),
+                    numpy.int32(self.shape[0]),
+                )
                 events.append(EventDescription("cast %s" % name, ev))
 
         if self.profile:
@@ -217,14 +268,14 @@ class ImageProcessing(OpenclProcessing):
     def normalize(self, img, mini=0.0, maxi=1.0, copy=True, out=None):
         """Scale the intensity of the image so that the minimum is 0 and the
         maximum is 1.0 (or any value suggested).
-        
+
         :param img: numpy array or pyopencl array of dim 2 or 3 and of type float
         :param mini: Expected minimum value
         :param maxi: expected maxiumum value
         :param copy: set to False to use directly the input buffer
         :param out: provides an output buffer. prevents a copy D->H
-        
-        This uses a min/max reduction in two stages plus a map operation  
+
+        This uses a min/max reduction in two stages plus a map operation
         """
         assert img.shape == self.buffer_shape
         events = []
@@ -234,34 +285,55 @@ class ImageProcessing(OpenclProcessing):
             if self.wg_red == 1:
                 #  Probably on MacOS CPU WG==1 --> serial code.
                 kernel = self.kernels.get_kernel("max_min_serial")
-                evt = kernel(self.queue, (1,), (1,),
-                             input_array.data,
-                             size,
-                             self.cl_mem["max_min_d"].data)
+                evt = kernel(
+                    self.queue,
+                    (1,),
+                    (1,),
+                    input_array.data,
+                    size,
+                    self.cl_mem["max_min_d"].data,
+                )
                 ed = EventDescription("max_min_serial", evt)
                 events.append(ed)
             else:
                 stage1 = self.kernels.max_min_reduction_stage1
                 stage2 = self.kernels.max_min_reduction_stage2
                 local_mem = pyopencl.LocalMemory(int(self.wg_red * 8))
-                k1 = stage1(self.queue, (int(self.wg_red ** 2),), (int(self.wg_red),),
-                            input_array.data,
-                            self.cl_mem["tmp_max_min_d"].data,
-                            size,
-                            local_mem)
-                k2 = stage2(self.queue, (int(self.wg_red),), (int(self.wg_red),),
-                            self.cl_mem["tmp_max_min_d"].data,
-                            self.cl_mem["max_min_d"].data,
-                            local_mem)
+                k1 = stage1(
+                    self.queue,
+                    (int(self.wg_red**2),),
+                    (int(self.wg_red),),
+                    input_array.data,
+                    self.cl_mem["tmp_max_min_d"].data,
+                    size,
+                    local_mem,
+                )
+                k2 = stage2(
+                    self.queue,
+                    (int(self.wg_red),),
+                    (int(self.wg_red),),
+                    self.cl_mem["tmp_max_min_d"].data,
+                    self.cl_mem["max_min_d"].data,
+                    local_mem,
+                )
 
-                events += [EventDescription("max_min_stage1", k1),
-                           EventDescription("max_min_stage2", k2)]
+                events += [
+                    EventDescription("max_min_stage1", k1),
+                    EventDescription("max_min_stage2", k2),
+                ]
 
-            evt = self.kernels.normalize_image(self.queue, (self.shape[1], self.shape[0]), None,
-                                               input_array.data, output_array.data,
-                                               numpy.int32(self.shape[1]), numpy.int32(self.shape[0]),
-                                               self.cl_mem["max_min_d"].data,
-                                               numpy.float32(mini), numpy.float32(maxi))
+            evt = self.kernels.normalize_image(
+                self.queue,
+                (self.shape[1], self.shape[0]),
+                None,
+                input_array.data,
+                output_array.data,
+                numpy.int32(self.shape[1]),
+                numpy.int32(self.shape[0]),
+                self.cl_mem["max_min_d"].data,
+                numpy.float32(mini),
+                numpy.float32(maxi),
+            )
             events.append(EventDescription("normalize", evt))
         if self.profile:
             self.events += events
@@ -273,32 +345,32 @@ class ImageProcessing(OpenclProcessing):
             output_array.finish()
             return output_array
 
-    def histogram(self, img=None, nbins=255, range=None,
-                  log_scale=False, copy=True, out=None):
+    def histogram(
+        self, img=None, nbins=255, range=None, log_scale=False, copy=True, out=None
+    ):
         """Compute the histogram of a set of data.
-        
+
         :param img: input image. If None, use the one already on the device
         :param nbins: number of bins
-        :param range: the lower and upper range of the bins.  If not provided, 
-                    range is simply ``(a.min(), a.max())``.  Values outside the 
-                    range are ignored. The first element of the range must be 
+        :param range: the lower and upper range of the bins.  If not provided,
+                    range is simply ``(a.min(), a.max())``.  Values outside the
+                    range are ignored. The first element of the range must be
                     less than or equal to the second.
-        :param log_scale: perform the binning in lograrithmic scale. 
+        :param log_scale: perform the binning in lograrithmic scale.
                          Open to extension
         :param copy: unset to directly use the input buffer without copy
-        :param out: use a provided array for offering the result 
+        :param out: use a provided array for offering the result
         :return: histogram (size=nbins), edges (size=nbins+1)
-        API similar to numpy  
+        API similar to numpy
         """
         assert img.shape == self.buffer_shape
 
         input_array = self.to_float(img, copy=copy, out=self.cl_mem["image0_d"])
         events = []
         with self.sem:
-            input_array, output_array = self._get_in_out_buffers(input_array, copy=False,
-                                                                 out=out,
-                                                                 out_dtype=numpy.int32,
-                                                                 out_size=nbins)
+            input_array, output_array = self._get_in_out_buffers(
+                input_array, copy=False, out=out, out_dtype=numpy.int32, out_size=nbins
+            )
 
             if range is None:
                 # measure actually the bounds
@@ -307,27 +379,43 @@ class ImageProcessing(OpenclProcessing):
                     #  Probably on MacOS CPU WG==1 --> serial code.
                     kernel = self.kernels.get_kernel("max_min_serial")
 
-                    evt = kernel(self.queue, (1,), (1,),
-                                 input_array.data,
-                                 size,
-                                 self.cl_mem["max_min_d"].data)
+                    evt = kernel(
+                        self.queue,
+                        (1,),
+                        (1,),
+                        input_array.data,
+                        size,
+                        self.cl_mem["max_min_d"].data,
+                    )
                     events.append(EventDescription("max_min_serial", evt))
                 else:
                     stage1 = self.kernels.max_min_reduction_stage1
                     stage2 = self.kernels.max_min_reduction_stage2
-                    local_mem = pyopencl.LocalMemory(int(self.wg_red * 2 * numpy.dtype("float32").itemsize))
-                    k1 = stage1(self.queue, (int(self.wg_red ** 2),), (int(self.wg_red),),
-                                input_array.data,
-                                self.cl_mem["tmp_max_min_d"].data,
-                                size,
-                                local_mem)
-                    k2 = stage2(self.queue, (int(self.wg_red),), (int(self.wg_red),),
-                                self.cl_mem["tmp_max_min_d"].data,
-                                self.cl_mem["max_min_d"].data,
-                                local_mem)
+                    local_mem = pyopencl.LocalMemory(
+                        int(self.wg_red * 2 * numpy.dtype("float32").itemsize)
+                    )
+                    k1 = stage1(
+                        self.queue,
+                        (int(self.wg_red**2),),
+                        (int(self.wg_red),),
+                        input_array.data,
+                        self.cl_mem["tmp_max_min_d"].data,
+                        size,
+                        local_mem,
+                    )
+                    k2 = stage2(
+                        self.queue,
+                        (int(self.wg_red),),
+                        (int(self.wg_red),),
+                        self.cl_mem["tmp_max_min_d"].data,
+                        self.cl_mem["max_min_d"].data,
+                        local_mem,
+                    )
 
-                    events += [EventDescription("max_min_stage1", k1),
-                               EventDescription("max_min_stage2", k2)]
+                    events += [
+                        EventDescription("max_min_stage1", k1),
+                        EventDescription("max_min_stage2", k2),
+                    ]
                 maxi, mini = self.cl_mem["max_min_d"].get()
             else:
                 mini = numpy.float32(min(range))
@@ -337,13 +425,17 @@ class ImageProcessing(OpenclProcessing):
             tmp_size = nb_engines * nbins
             name = "tmp_int32_%s_d" % (tmp_size)
             if name not in self.cl_mem:
-                tmp_array = self.cl_mem[name] = pyopencl.array.empty(self.queue, (tmp_size,), numpy.int32)
+                tmp_array = self.cl_mem[name] = pyopencl.array.empty(
+                    self.queue, (tmp_size,), numpy.int32
+                )
             else:
                 tmp_array = self.cl_mem[name]
 
             edge_name = "tmp_float32_%s_d" % (nbins + 1)
             if edge_name not in self.cl_mem:
-                edges_array = self.cl_mem[edge_name] = pyopencl.array.empty(self.queue, (nbins + 1,), numpy.float32)
+                edges_array = self.cl_mem[edge_name] = pyopencl.array.empty(
+                    self.queue, (nbins + 1,), numpy.float32
+                )
             else:
                 edges_array = self.cl_mem[edge_name]
 
@@ -355,21 +447,27 @@ class ImageProcessing(OpenclProcessing):
             else:
                 map_operation = numpy.int32(0)
             kernel = self.kernels.get_kernel("histogram")
-            wg = min(device.max_work_group_size,
-                     1 << (int(ceil(log(nbins, 2)))),
-                     self.kernels.max_workgroup_size(kernel))
-            evt = kernel(self.queue, (wg * nb_engines,), (wg,),
-                         input_array.data,
-                         numpy.int32(input_array.size),
-                         mini,
-                         maxi,
-                         map_operation,
-                         output_array.data,
-                         edges_array.data,
-                         numpy.int32(nbins),
-                         tmp_array.data,
-                         self.cl_mem["cnt_d"].data,
-                         shared)
+            wg = min(
+                device.max_work_group_size,
+                1 << (int(ceil(log(nbins, 2)))),
+                self.kernels.max_workgroup_size(kernel),
+            )
+            evt = kernel(
+                self.queue,
+                (wg * nb_engines,),
+                (wg,),
+                input_array.data,
+                numpy.int32(input_array.size),
+                mini,
+                maxi,
+                map_operation,
+                output_array.data,
+                edges_array.data,
+                numpy.int32(nbins),
+                tmp_array.data,
+                self.cl_mem["cnt_d"].data,
+                shared,
+            )
             events.append(EventDescription("histogram", evt))
 
         if self.profile:

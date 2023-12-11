@@ -50,9 +50,12 @@ def _factory(engine, image, mask):
         return MarchingSquaresMergeImpl(image, mask)
     elif engine == "skimage":
         from _skimage import MarchingSquaresSciKitImage
+
         return MarchingSquaresSciKitImage(image, mask)
     else:
-        raise ValueError("Engine '%s' is not supported ('merge' or 'skimage' expected).")
+        raise ValueError(
+            "Engine '%s' is not supported ('merge' or 'skimage' expected)."
+        )
 
 
 def find_pixels(image, level, mask=None):
@@ -79,9 +82,9 @@ def find_pixels(image, level, mask=None):
     :returns: An array of coordinates in y/x
     :rtype: numpy.ndarray
     """
-    assert(image is not None)
+    assert image is not None
     if mask is not None:
-        assert(image.shape == mask.shape)
+        assert image.shape == mask.shape
     engine = "merge"
     impl = _factory(engine, image, mask)
     return impl.find_pixels(level)
@@ -108,9 +111,9 @@ def find_contours(image, level, mask=None):
     :returns: A list of array containing y-x coordinates of points
     :rtype: List[numpy.ndarray]
     """
-    assert(image is not None)
+    assert image is not None
     if mask is not None:
-        assert(image.shape == mask.shape)
+        assert image.shape == mask.shape
     engine = "merge"
     impl = _factory(engine, image, mask)
     return impl.find_contours(level)

@@ -110,7 +110,7 @@ def testRectangle_setOriginGeometry(qapp):
 
 def testCircle_geometry(qapp):
     center = numpy.array([0, 0])
-    radius = 10.
+    radius = 10.0
     item = roi_items.CircleROI()
     item.setGeometry(center=center, radius=radius)
     numpy.testing.assert_allclose(item.getCenter(), center)
@@ -119,7 +119,7 @@ def testCircle_geometry(qapp):
 
 def testCircle_setCenter(qapp):
     center = numpy.array([0, 0])
-    radius = 10.
+    radius = 10.0
     item = roi_items.CircleROI()
     item.setGeometry(center=center, radius=radius)
     newCenter = numpy.array([-10, 0])
@@ -130,7 +130,7 @@ def testCircle_setCenter(qapp):
 
 def testCircle_setRadius(qapp):
     center = numpy.array([0, 0])
-    radius = 10.
+    radius = 10.0
     item = roi_items.CircleROI()
     item.setGeometry(center=center, radius=radius)
     newRadius = 5.1
@@ -141,7 +141,7 @@ def testCircle_setRadius(qapp):
 
 def testCircle_contains(qapp):
     center = numpy.array([2, -1])
-    radius = 1.
+    radius = 1.0
     item = roi_items.CircleROI()
     item.setGeometry(center=center, radius=radius)
     assert item.contains([1, -1])
@@ -265,7 +265,12 @@ def testArc_anticlockwiseGeometry(qapp):
     """Test that we can use getGeometry as input to setGeometry"""
     item = roi_items.ArcROI()
     center = numpy.array([10, 20])
-    innerRadius, outerRadius, startAngle, endAngle = 1, 100, numpy.pi * 0.5, -numpy.pi * 0.5
+    innerRadius, outerRadius, startAngle, endAngle = (
+        1,
+        100,
+        numpy.pi * 0.5,
+        -numpy.pi * 0.5,
+    )
     item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
     numpy.testing.assert_allclose(item.getCenter(), center)
     assert item.getInnerRadius() == pytest.approx(innerRadius)
@@ -283,8 +288,12 @@ def testArc_position(qapp):
     item.setGeometry(center, innerRadius, outerRadius, startAngle, endAngle)
     assert item.getPosition(roi_items.ArcROI.Role.START) == pytest.approx((10.0, 70.5))
     assert item.getPosition(roi_items.ArcROI.Role.STOP) == pytest.approx((-40.5, 20.0))
-    assert item.getPosition(roi_items.ArcROI.Role.MIDDLE) == pytest.approx((-25.71, 55.71), abs=0.1)
-    assert item.getPosition(roi_items.ArcROI.Role.CENTER) == pytest.approx((10.0, 20), abs=0.1)
+    assert item.getPosition(roi_items.ArcROI.Role.MIDDLE) == pytest.approx(
+        (-25.71, 55.71), abs=0.1
+    )
+    assert item.getPosition(roi_items.ArcROI.Role.CENTER) == pytest.approx(
+        (10.0, 20), abs=0.1
+    )
 
 
 def testHRange_geometry(qapp):

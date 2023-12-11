@@ -49,7 +49,7 @@ FLOAT32_SAFE_MAX = 1e37
 # TODO double support
 
 
-def checkAxisLimits(vmin: float, vmax: float, isLog: bool=False, name: str=""):
+def checkAxisLimits(vmin: float, vmax: float, isLog: bool = False, name: str = ""):
     """Makes sure axis range is not empty and within supported range.
 
     :param vmin: Min axis value
@@ -62,11 +62,11 @@ def checkAxisLimits(vmin: float, vmax: float, isLog: bool=False, name: str=""):
     vmin = numpy.clip(vmin, min_, FLOAT32_SAFE_MAX)
 
     if vmax < vmin:
-        _logger.debug('%s axis: max < min, inverting limits.', name)
+        _logger.debug("%s axis: max < min, inverting limits.", name)
         vmin, vmax = vmax, vmin
     elif vmax == vmin:
-        _logger.debug('%s axis: max == min, expanding limits.', name)
-        if vmin == 0.:
+        _logger.debug("%s axis: max == min, expanding limits.", name)
+        if vmin == 0.0:
             vmin, vmax = -0.1, 0.1
         elif vmin < 0:
             vmax *= 0.9
@@ -96,9 +96,9 @@ def scale1DRange(
         # Min and center can be < 0 when
         # autoscale is off and switch to log scale
         # max_ < 0 should not happen
-        min_ = numpy.log10(min_) if min_ > 0. else FLOAT32_MINPOS
-        center = numpy.log10(center) if center > 0. else FLOAT32_MINPOS
-        max_ = numpy.log10(max_) if max_ > 0. else FLOAT32_MINPOS
+        min_ = numpy.log10(min_) if min_ > 0.0 else FLOAT32_MINPOS
+        center = numpy.log10(center) if center > 0.0 else FLOAT32_MINPOS
+        max_ = numpy.log10(max_) if max_ > 0.0 else FLOAT32_MINPOS
 
     if min_ == max_:
         return min_, max_
@@ -106,12 +106,12 @@ def scale1DRange(
     offset = (center - min_) / (max_ - min_)
     range_ = (max_ - min_) / scale
     newMin = center - offset * range_
-    newMax = center + (1. - offset) * range_
+    newMax = center + (1.0 - offset) * range_
 
     if isLog:
         # No overflow as exponent is log10 of a float32
-        newMin = pow(10., newMin)
-        newMax = pow(10., newMax)
+        newMin = pow(10.0, newMin)
+        newMax = pow(10.0, newMax)
         newMin = numpy.clip(newMin, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
         newMax = numpy.clip(newMax, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
     else:
@@ -122,6 +122,7 @@ def scale1DRange(
 
 class EnabledAxes(NamedTuple):
     """Toggle zoom for each axis"""
+
     xaxis: bool = True
     yaxis: bool = True
     y2axis: bool = True
@@ -134,8 +135,8 @@ class EnabledAxes(NamedTuple):
 def applyZoomToPlot(
     plot,
     scale: float,
-    center: tuple[float, float]=None,
-    enabled: EnabledAxes=EnabledAxes(),
+    center: tuple[float, float] = None,
+    enabled: EnabledAxes = EnabledAxes(),
 ):
     """Zoom in/out plot given a scale and a center point.
 
@@ -158,19 +159,22 @@ def applyZoomToPlot(
     assert dataCenterPos is not None
 
     if enabled.xaxis:
-        xMin, xMax = scale1DRange(xMin, xMax, dataCenterPos[0], scale,
-                                  plot.getXAxis()._isLogarithmic())
+        xMin, xMax = scale1DRange(
+            xMin, xMax, dataCenterPos[0], scale, plot.getXAxis()._isLogarithmic()
+        )
 
     if enabled.yaxis:
-        yMin, yMax = scale1DRange(yMin, yMax, dataCenterPos[1], scale,
-                                  plot.getYAxis()._isLogarithmic())
+        yMin, yMax = scale1DRange(
+            yMin, yMax, dataCenterPos[1], scale, plot.getYAxis()._isLogarithmic()
+        )
 
     if enabled.y2axis:
         dataPos = plot.pixelToData(cx, cy, axis="right")
         assert dataPos is not None
         y2Center = dataPos[1]
-        y2Min, y2Max = scale1DRange(y2Min, y2Max, y2Center, scale,
-                                    plot.getYAxis()._isLogarithmic())
+        y2Min, y2Max = scale1DRange(
+            y2Min, y2Max, y2Center, scale, plot.getYAxis()._isLogarithmic()
+        )
 
     plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
@@ -189,15 +193,15 @@ def applyPan(min_, max_, panFactor, isLog10):
     :return: New min and max value with pan applied.
     :rtype: 2-tuple of float.
     """
-    if isLog10 and min_ > 0.:
+    if isLog10 and min_ > 0.0:
         # Negative range and log scale can happen with matplotlib
         logMin, logMax = math.log10(min_), math.log10(max_)
         logOffset = panFactor * (logMax - logMin)
-        newMin = pow(10., logMin + logOffset)
-        newMax = pow(10., logMax + logOffset)
+        newMin = pow(10.0, logMin + logOffset)
+        newMax = pow(10.0, logMax + logOffset)
 
         # Takes care of out-of-range values
-        if newMin > 0. and newMax < float('inf'):
+        if newMin > 0.0 and newMax < float("inf"):
             min_, max_ = newMin, newMax
 
     else:
@@ -205,13 +209,14 @@ def applyPan(min_, max_, panFactor, isLog10):
         newMin, newMax = min_ + offset, max_ + offset
 
         # Takes care of out-of-range values
-        if newMin > - float('inf') and newMax < float('inf'):
+        if newMin > -float("inf") and newMax < float("inf"):
             min_, max_ = newMin, newMax
     return min_, max_
 
 
 class _Unset(object):
     """To be able to have distinction between None and unset"""
+
     pass
 
 
@@ -226,10 +231,17 @@ class ViewConstraints(object):
         self._minRange = [None, None]
         self._maxRange = [None, None]
 
-    def update(self, xMin=_Unset, xMax=_Unset,
-               yMin=_Unset, yMax=_Unset,
-               minXRange=_Unset, maxXRange=_Unset,
-               minYRange=_Unset, maxYRange=_Unset):
+    def update(
+        self,
+        xMin=_Unset,
+        xMax=_Unset,
+        yMin=_Unset,
+        yMax=_Unset,
+        minXRange=_Unset,
+        maxXRange=_Unset,
+        minYRange=_Unset,
+        maxYRange=_Unset,
+    ):
         """
         Update the constraints managed by the object
 
@@ -261,7 +273,6 @@ class ViewConstraints(object):
         maxPos = [xMax, yMax]
 
         for axis in range(2):
-
             value = minPos[axis]
             if value is not _Unset and value != self._min[axis]:
                 self._min[axis] = value
@@ -285,7 +296,11 @@ class ViewConstraints(object):
         # Sanity checks
 
         for axis in range(2):
-            if self._maxRange[axis] is not None and self._min[axis] is not None and self._max[axis] is not None:
+            if (
+                self._maxRange[axis] is not None
+                and self._min[axis] is not None
+                and self._max[axis] is not None
+            ):
                 # max range cannot be larger than bounds
                 diff = self._max[axis] - self._min[axis]
                 self._maxRange[axis] = min(self._maxRange[axis], diff)
@@ -321,8 +336,12 @@ class ViewConstraints(object):
                     viewRange[axis][1] += delta * 0.5
 
             # clamp min and max positions
-            outMin = self._min[axis] is not None and viewRange[axis][0] < self._min[axis]
-            outMax = self._max[axis] is not None and viewRange[axis][1] > self._max[axis]
+            outMin = (
+                self._min[axis] is not None and viewRange[axis][0] < self._min[axis]
+            )
+            outMax = (
+                self._max[axis] is not None and viewRange[axis][1] > self._max[axis]
+            )
 
             if outMin and outMax:
                 if allow_scaling:

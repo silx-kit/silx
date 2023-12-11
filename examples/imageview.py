@@ -65,7 +65,7 @@ class UpdateThread(threading.Thread):
         self.future_result = None
         super(UpdateThread, self).__init__()
 
-    def createImage(self, x0: float=0., y0: float=0.):
+    def createImage(self, x0: float = 0.0, y0: float = 0.0):
         # width of peak
         sigma_x = 0.15
         sigma_y = 0.25
@@ -73,8 +73,9 @@ class UpdateThread(threading.Thread):
         x = numpy.linspace(-1.5, 1.5, Nx)
         y = numpy.linspace(-1.0, 1.0, Ny)
         xv, yv = numpy.meshgrid(x, y)
-        signal = numpy.exp(- ((xv - x0) ** 2 / sigma_x ** 2
-                                + (yv - y0) ** 2 / sigma_y ** 2))
+        signal = numpy.exp(
+            -((xv - x0) ** 2 / sigma_x**2 + (yv - y0) ** 2 / sigma_y**2)
+        )
         # add noise
         signal += 0.3 * numpy.random.random(size=signal.shape)
         return signal
@@ -90,7 +91,7 @@ class UpdateThread(threading.Thread):
         It produces an image every 10 ms or so, and
         either updates the plot or skip the image
         """
-        x0, y0 = 0., 0.
+        x0, y0 = 0.0, 0.0
 
         while self.running:
             time.sleep(0.01)
@@ -104,7 +105,8 @@ class UpdateThread(threading.Thread):
                 # plot the data asynchronously, and
                 # keep a reference to the `future` object
                 self.future_result = concurrent.submitToQtMainThread(
-                    self.imageview.setImage, signal, resetzoom=False)
+                    self.imageview.setImage, signal, resetzoom=False
+                )
 
     def stop(self):
         """Stop the update thread"""
@@ -128,27 +130,35 @@ def main(argv=None):
     from fabio.fabioimage import FabioImage
 
     # Command-line arguments
-    parser = argparse.ArgumentParser(
-        description='Browse the images of an EDF file.')
+    parser = argparse.ArgumentParser(description="Browse the images of an EDF file.")
     parser.add_argument(
-        '-o', '--origin', nargs=2,
-        type=float, default=(0., 0.),
+        "-o",
+        "--origin",
+        nargs=2,
+        type=float,
+        default=(0.0, 0.0),
         help="""Coordinates of the origin of the image: (x, y).
-        Default: 0., 0.""")
+        Default: 0., 0.""",
+    )
     parser.add_argument(
-        '-s', '--scale', nargs=2,
-        type=float, default=(1., 1.),
+        "-s",
+        "--scale",
+        nargs=2,
+        type=float,
+        default=(1.0, 1.0),
         help="""Scale factors applied to the image: (sx, sy).
-        Default: 1., 1.""")
+        Default: 1., 1.""",
+    )
     parser.add_argument(
-        '-l', '--log', action="store_true",
-        help="Use logarithm normalization for colormap, default: Linear.")
+        "-l",
+        "--log",
+        action="store_true",
+        help="Use logarithm normalization for colormap, default: Linear.",
+    )
+    parser.add_argument("filename", nargs="?", help="Filename of the image to open")
     parser.add_argument(
-        'filename', nargs='?',
-        help='Filename of the image to open')
-    parser.add_argument(
-        '--live', action='store_true',
-        help='Live update of a generated image')
+        "--live", action="store_true", help="Live update of a generated image"
+    )
     args = parser.parse_args(args=argv)
 
     global app  # QApplication must be global to avoid seg fault on quit
@@ -180,31 +190,31 @@ def main(argv=None):
         image = fabio.open(args.filename)
 
     else:
-        logger.warning('No image file provided, displaying dummy data')
+        logger.warning("No image file provided, displaying dummy data")
         size = 512
         xx, yy = numpy.ogrid[-size:size, -size:size]
-        data = numpy.cos(xx / (size//5)) + numpy.cos(yy / (size//5))
+        data = numpy.cos(xx / (size // 5)) + numpy.cos(yy / (size // 5))
         data = numpy.random.poisson(numpy.abs(data))
         image = FabioImage(data)
 
-    mainWindow.setImage(image.data,
-                        origin=args.origin,
-                        scale=args.scale)
+    mainWindow.setImage(image.data, origin=args.origin, scale=args.scale)
 
     if image.nframes > 1:
         # Add a toolbar for multi-frame EDF support
-        multiFrameToolbar = qt.QToolBar('Multi-frame')
-        multiFrameToolbar.addWidget(qt.QLabel(
-            'Frame [0-%d]:' % (image.nframes - 1)))
+        multiFrameToolbar = qt.QToolBar("Multi-frame")
+        multiFrameToolbar.addWidget(qt.QLabel("Frame [0-%d]:" % (image.nframes - 1)))
 
         spinBox = qt.QSpinBox()
         spinBox.setRange(0, image.nframes - 1)
 
         def updateImage(index):
-            mainWindow.setImage(image.get_frame(index).data,
-                                origin=args.origin,
-                                scale=args.scale,
-                                reset=False)
+            mainWindow.setImage(
+                image.get_frame(index).data,
+                origin=args.origin,
+                scale=args.scale,
+                reset=False,
+            )
+
         spinBox.valueChanged[int].connect(updateImage)
         multiFrameToolbar.addWidget(spinBox)
 
@@ -216,4 +226,5 @@ def main(argv=None):
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main(argv=sys.argv[1:]))

@@ -76,9 +76,9 @@ class Isosurface(qt.QObject):
 
     def __init__(self, parent):
         super(Isosurface, self).__init__(parent=parent)
-        self._level = float('nan')
+        self._level = float("nan")
         self._autoLevelFunction = None
-        self._color = rgba('#FFD700FF')
+        self._color = rgba("#FFD700FF")
         self._data = None
         self._group = scene.Group()
 
@@ -91,7 +91,7 @@ class Isosurface(qt.QObject):
         if data is None:
             self._data = None
         else:
-            self._data = numpy.array(data, copy=copy, order='C')
+            self._data = numpy.array(data, copy=copy, order="C")
 
         self._update()
 
@@ -167,7 +167,7 @@ class Isosurface(qt.QObject):
         if color != self._color:
             self._color = color
             if len(self._group.children) != 0:
-                self._group.children[0].setAttribute('color', self._color)
+                self._group.children[0].setAttribute("color", self._color)
             self.sigColorChanged.emit()
 
     def _update(self):
@@ -176,7 +176,7 @@ class Isosurface(qt.QObject):
 
         if self._data is None:
             if self.isAutoLevel():
-                self._level = float('nan')
+                self._level = float("nan")
 
         else:
             if self.isAutoLevel():
@@ -191,12 +191,12 @@ class Isosurface(qt.QObject):
                         "Error while executing iso level function %s.%s",
                         module,
                         name,
-                        exc_info=True)
-                    level = float('nan')
+                        exc_info=True,
+                    )
+                    level = float("nan")
 
                 else:
-                    _logger.info(
-                        'Computed iso-level in %f s.', time.time() - st)
+                    _logger.info("Computed iso-level in %f s.", time.time() - st)
 
                 if level != self._level:
                     self._level = level
@@ -206,19 +206,19 @@ class Isosurface(qt.QObject):
                 return
 
             st = time.time()
-            vertices, normals, indices = MarchingCubes(
-                self._data,
-                isolevel=self._level)
-            _logger.info('Computed iso-surface in %f s.', time.time() - st)
+            vertices, normals, indices = MarchingCubes(self._data, isolevel=self._level)
+            _logger.info("Computed iso-surface in %f s.", time.time() - st)
 
             if len(vertices) == 0:
                 return
             else:
-                mesh = primitives.Mesh3D(vertices,
-                                         colors=self._color,
-                                         normals=normals,
-                                         mode='triangles',
-                                         indices=indices)
+                mesh = primitives.Mesh3D(
+                    vertices,
+                    colors=self._color,
+                    normals=normals,
+                    mode="triangles",
+                    indices=indices,
+                )
                 self._group.children = [mesh]
 
 
@@ -233,9 +233,9 @@ class SelectedRegion(object):
     :param scale: Scale from array to data coordinates (sx, sy, sz)
     """
 
-    def __init__(self, arrayRange, dataBBox,
-                 translation=(0., 0., 0.),
-                 scale=(1., 1., 1.)):
+    def __init__(
+        self, arrayRange, dataBBox, translation=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0)
+    ):
         self._arrayRange = numpy.array(arrayRange, copy=True, dtype=numpy.int64)
         assert self._arrayRange.shape == (3, 2)
         assert numpy.all(self._arrayRange[:, 1] >= self._arrayRange[:, 0])
@@ -261,9 +261,11 @@ class SelectedRegion(object):
         :return: A numpy array with (zslice, yslice, zslice)
         :rtype: numpy.ndarray
         """
-        return (slice(*self._arrayRange[0]),
-                slice(*self._arrayRange[1]),
-                slice(*self._arrayRange[2]))
+        return (
+            slice(*self._arrayRange[0]),
+            slice(*self._arrayRange[1]),
+            slice(*self._arrayRange[2]),
+        )
 
     def getDataRange(self):
         """Range in the data coordinates of the selection: 3x2 array of float
@@ -348,12 +350,13 @@ class CutPlane(qt.QObject):
         # Plane with texture on the data bounding box
         self._dataPlane = cutplane.CutPlane(normal=(0, 1, 0))
         self._dataPlane.strokeVisible = False
-        self._dataPlane.alpha = 1.
+        self._dataPlane.alpha = 1.0
         self._dataPlane.visible = self._visible
         self._dataPlane.plane.addListener(self._planePositionChanged)
 
         self._colormap = Colormap(
-            name='gray', normalization='linear', vmin=None, vmax=None)
+            name="gray", normalization="linear", vmin=None, vmax=None
+        )
         self.getColormap().sigChanged.connect(self._colormapChanged)
         self._updateSceneColormap()
 
@@ -369,8 +372,8 @@ class CutPlane(qt.QObject):
         bounds = self._planeStroke.parent.bounds(dataBounds=True)
         if bounds is not None:
             self._planeStroke.plane.point = numpy.clip(
-                self._planeStroke.plane.point,
-                a_min=bounds[0], a_max=bounds[1])
+                self._planeStroke.plane.point, a_min=bounds[0], a_max=bounds[1]
+            )
 
     @staticmethod
     def _syncPlanes(master, slave):
@@ -379,14 +382,12 @@ class CutPlane(qt.QObject):
         :param PlaneInGroup master: Reference PlaneInGroup
         :param PlaneInGroup slave: PlaneInGroup to align
         """
-        masterToSlave = transform.StaticTransformList([
-            slave.objectToSceneTransform.inverse(),
-            master.objectToSceneTransform])
+        masterToSlave = transform.StaticTransformList(
+            [slave.objectToSceneTransform.inverse(), master.objectToSceneTransform]
+        )
 
-        point = masterToSlave.transformPoint(
-            master.plane.point)
-        normal = masterToSlave.transformNormal(
-            master.plane.normal)
+        point = masterToSlave.transformPoint(master.plane.point)
+        normal = masterToSlave.transformNormal(master.plane.normal)
         slave.plane.setPlane(point, normal)
 
     def _sfViewDataChanged(self):
@@ -407,8 +408,7 @@ class CutPlane(qt.QObject):
     def _sfViewTransformChanged(self):
         """Handle transform changed in the ScalarFieldView"""
         self._keepPlaneInBBox()
-        self._syncPlanes(master=self._planeStroke,
-                         slave=self._dataPlane)
+        self._syncPlanes(master=self._planeStroke, slave=self._dataPlane)
         self.sigPlaneChanged.emit()
 
     def _planeChanged(self, source, *args, **kwargs):
@@ -423,14 +423,11 @@ class CutPlane(qt.QObject):
         if self.__syncPlane:
             self.__syncPlane = False
             if source is self._planeStroke.plane:
-                self._syncPlanes(master=self._planeStroke,
-                                 slave=self._dataPlane)
+                self._syncPlanes(master=self._planeStroke, slave=self._dataPlane)
             elif source is self._dataPlane.plane:
-                self._syncPlanes(master=self._dataPlane,
-                                 slave=self._planeStroke)
+                self._syncPlanes(master=self._dataPlane, slave=self._planeStroke)
             else:
-                _logger.error('Received an unknown object %s',
-                              str(source))
+                _logger.error("Received an unknown object %s", str(source))
 
             if self._planeStroke.visible or self._dataPlane.visible:
                 self.sigPlaneChanged.emit()
@@ -447,7 +444,7 @@ class CutPlane(qt.QObject):
         """Returns whether the cut plane is defined or not (bool)"""
         return self._planeStroke.isValid
 
-    def _plane(self, coordinates='array'):
+    def _plane(self, coordinates="array"):
         """Returns the scene plane to set.
 
         :param str coordinates: The coordinate system to use:
@@ -455,15 +452,14 @@ class CutPlane(qt.QObject):
         :rtype: Plane
         :raise ValueError: If coordinates is not correct
         """
-        if coordinates == 'scene':
+        if coordinates == "scene":
             return self._planeStroke.plane
-        elif coordinates == 'array':
+        elif coordinates == "array":
             return self._dataPlane.plane
         else:
-             raise ValueError(
-                'Unsupported coordinates: %s' % str(coordinates))
+            raise ValueError("Unsupported coordinates: %s" % str(coordinates))
 
-    def getNormal(self, coordinates='array'):
+    def getNormal(self, coordinates="array"):
         """Returns the normal of the plane (as a unit vector)
 
         :param str coordinates: The coordinate system to use:
@@ -474,7 +470,7 @@ class CutPlane(qt.QObject):
         """
         return self._plane(coordinates).normal
 
-    def setNormal(self, normal, coordinates='array'):
+    def setNormal(self, normal, coordinates="array"):
         """Set the normal of the plane.
 
         :param normal: 3-tuple of float: nx, ny, nz
@@ -484,7 +480,7 @@ class CutPlane(qt.QObject):
         """
         self._plane(coordinates).normal = normal
 
-    def getPoint(self, coordinates='array'):
+    def getPoint(self, coordinates="array"):
         """Returns a point on the plane.
 
         :param str coordinates: The coordinate system to use:
@@ -495,7 +491,7 @@ class CutPlane(qt.QObject):
         """
         return self._plane(coordinates).point
 
-    def setPoint(self, point, constraint=True, coordinates='array'):
+    def setPoint(self, point, constraint=True, coordinates="array"):
         """Set a point contained in the plane.
 
         Warning: The plane might not intersect the bounding box of the data.
@@ -511,7 +507,7 @@ class CutPlane(qt.QObject):
         if constraint:
             self._keepPlaneInBBox()
 
-    def getParameters(self, coordinates='array'):
+    def getParameters(self, coordinates="array"):
         """Returns the plane equation parameters: a*x + b*y + c*z + d = 0
 
         :param str coordinates: The coordinate system to use:
@@ -522,7 +518,7 @@ class CutPlane(qt.QObject):
         """
         return self._plane(coordinates).parameters
 
-    def setParameters(self, parameters, constraint=True, coordinates='array'):
+    def setParameters(self, parameters, constraint=True, coordinates="array"):
         """Set the plane equation parameters: a*x + b*y + c*z + d = 0
 
         Warning: The plane might not intersect the bounding box of the data.
@@ -644,11 +640,7 @@ class CutPlane(qt.QObject):
         """
         return self._colormap
 
-    def setColormap(self,
-                    name='gray',
-                    norm=None,
-                    vmin=None,
-                    vmax=None):
+    def setColormap(self, name="gray", norm=None, vmin=None, vmax=None):
         """Set the colormap to use.
 
         By either providing a :class:`Colormap` object or
@@ -662,8 +654,9 @@ class CutPlane(qt.QObject):
         :param float vmin: The minimum value of the range or None for autoscale
         :param float vmax: The maximum value of the range or None for autoscale
         """
-        _logger.debug('setColormap %s %s (%s, %s)',
-                      name, str(norm), str(vmin), str(vmax))
+        _logger.debug(
+            "setColormap %s %s (%s, %s)", name, str(norm), str(vmin), str(vmax)
+        )
 
         self._colormap.sigChanged.disconnect(self._colormapChanged)
 
@@ -672,9 +665,10 @@ class CutPlane(qt.QObject):
             self._colormap = name
         else:
             if norm is None:
-                norm = 'linear'
+                norm = "linear"
             self._colormap = Colormap(
-                name=name, normalization=norm, vmin=vmin, vmax=vmax)
+                name=name, normalization=norm, vmin=vmin, vmax=vmax
+            )
 
         self._colormap.sigChanged.connect(self._colormapChanged)
         self._colormapChanged()
@@ -718,12 +712,12 @@ class _CutPlaneImage(object):
         self._isValid = False
         self._data = numpy.zeros((0, 0), dtype=numpy.float32)
         self._index = 0
-        self._xLabel = ''
-        self._yLabel = ''
-        self._normalLabel = ''
-        self._scale = float('nan'), float('nan')
-        self._translation = float('nan'), float('nan')
-        self._position = float('nan')
+        self._xLabel = ""
+        self._yLabel = ""
+        self._normalLabel = ""
+        self._scale = float("nan"), float("nan")
+        self._translation = float("nan"), float("nan")
+        self._position = float("nan")
 
         sfView = cutPlane.parent()
         if not sfView or not cutPlane.isValid():
@@ -735,10 +729,10 @@ class _CutPlaneImage(object):
             _logger.info("No data available")
             return
 
-        normal = cutPlane.getNormal(coordinates='array')
-        point = cutPlane.getPoint(coordinates='array')
+        normal = cutPlane.getNormal(coordinates="array")
+        point = cutPlane.getPoint(coordinates="array")
 
-        if numpy.linalg.norm(numpy.cross(normal, (1., 0., 0.))) < 0.0017:
+        if numpy.linalg.norm(numpy.cross(normal, (1.0, 0.0, 0.0))) < 0.0017:
             if not 0 <= point[0] <= data.shape[2]:
                 _logger.info("Plane outside dataset")
                 return
@@ -746,7 +740,7 @@ class _CutPlaneImage(object):
             slice_ = data[:, :, index]
             xAxisIndex, yAxisIndex, normalAxisIndex = 1, 2, 0  # y, z, x
 
-        elif numpy.linalg.norm(numpy.cross(normal, (0., 1., 0.))) < 0.0017:
+        elif numpy.linalg.norm(numpy.cross(normal, (0.0, 1.0, 0.0))) < 0.0017:
             if not 0 <= point[1] <= data.shape[1]:
                 _logger.info("Plane outside dataset")
                 return
@@ -754,7 +748,7 @@ class _CutPlaneImage(object):
             slice_ = numpy.transpose(data[:, index, :])
             xAxisIndex, yAxisIndex, normalAxisIndex = 2, 0, 1  # z, x, y
 
-        elif numpy.linalg.norm(numpy.cross(normal, (0., 0., 1.))) < 0.0017:
+        elif numpy.linalg.norm(numpy.cross(normal, (0.0, 0.0, 1.0))) < 0.0017:
             if not 0 <= point[2] <= data.shape[0]:
                 _logger.info("Plane outside dataset")
                 return
@@ -762,8 +756,9 @@ class _CutPlaneImage(object):
             slice_ = data[index, :, :]
             xAxisIndex, yAxisIndex, normalAxisIndex = 0, 1, 2  # x, y, z
         else:
-            _logger.warning('Unsupported normal: (%f, %f, %f)',
-                            normal[0], normal[1], normal[2])
+            _logger.warning(
+                "Unsupported normal: (%f, %f, %f)", normal[0], normal[1], normal[2]
+            )
             return
 
         # Store cut plane image info
@@ -774,8 +769,11 @@ class _CutPlaneImage(object):
 
         # Only store extra information when no transform matrix is set
         # Otherwise this information can be meaningless
-        if numpy.all(numpy.equal(sfView.getTransformMatrix(),
-                                 numpy.identity(3, dtype=numpy.float32))):
+        if numpy.all(
+            numpy.equal(
+                sfView.getTransformMatrix(), numpy.identity(3, dtype=numpy.float32)
+            )
+        ):
             labels = sfView.getAxesLabels()
             self._xLabel = labels[xAxisIndex]
             self._yLabel = labels[yAxisIndex]
@@ -787,8 +785,9 @@ class _CutPlaneImage(object):
             translation = sfView.getTranslation()
             self._translation = translation[xAxisIndex], translation[yAxisIndex]
 
-            self._position = float(index * scale[normalAxisIndex] +
-                                   translation[normalAxisIndex])
+            self._position = float(
+                index * scale[normalAxisIndex] + translation[normalAxisIndex]
+            )
 
     def isValid(self):
         """Returns True if the cut plane image is defined (bool)"""
@@ -860,7 +859,8 @@ class ScalarFieldView(Plot3DWindow):
     def __init__(self, parent=None):
         super(ScalarFieldView, self).__init__(parent)
         self._colormap = Colormap(
-            name='gray', normalization='linear', vmin=None, vmax=None)
+            name="gray", normalization="linear", vmin=None, vmax=None
+        )
         self._selectedRange = None
 
         # Store iso-surfaces
@@ -869,35 +869,37 @@ class ScalarFieldView(Plot3DWindow):
         # Transformations
         self._dataScale = transform.Scale()
         self._dataTranslate = transform.Translate()
-        self._dataTransform = transform.Matrix()   # default to identity
+        self._dataTransform = transform.Matrix()  # default to identity
 
-        self._foregroundColor = 1., 1., 1., 1.
-        self._highlightColor = 0.7, 0.7, 0., 1.
+        self._foregroundColor = 1.0, 1.0, 1.0, 1.0
+        self._highlightColor = 0.7, 0.7, 0.0, 1.0
 
         self._data = None
         self._dataRange = None
 
         self._group = primitives.BoundedGroup()
         self._group.transforms = [
-            self._dataTranslate, self._dataTransform, self._dataScale]
+            self._dataTranslate,
+            self._dataTransform,
+            self._dataScale,
+        ]
 
         self._bbox = axes.LabelledAxes()
         self._bbox.children = [self._group]
-        self._outerScale = transform.Scale(1., 1., 1.)
+        self._outerScale = transform.Scale(1.0, 1.0, 1.0)
         self._bbox.transforms = [self._outerScale]
         self.getPlot3DWidget().viewport.scene.children.append(self._bbox)
 
         self._selectionBox = primitives.Box()
         self._selectionBox.strokeSmooth = False
-        self._selectionBox.strokeWidth = 1.
+        self._selectionBox.strokeWidth = 1.0
         # self._selectionBox.fillColor = 1., 1., 1., 0.3
         # self._selectionBox.fillCulling = 'back'
         self._selectionBox.visible = False
         self._group.children.append(self._selectionBox)
 
         self._cutPlane = CutPlane(sfView=self)
-        self._cutPlane.sigVisibilityChanged.connect(
-            self._planeVisibilityChanged)
+        self._cutPlane.sigVisibilityChanged.connect(self._planeVisibilityChanged)
         planeStroke, dataPlane = self._cutPlane._get3DPrimitives()
         self._bbox.children.append(planeStroke)
         self._group.children.append(dataPlane)
@@ -905,13 +907,16 @@ class ScalarFieldView(Plot3DWindow):
         self._isogroup = primitives.GroupDepthOffset()
         self._isogroup.transforms = [
             # Convert from z, y, x from marching cubes to x, y, z
-            transform.Matrix((
-                (0., 0., 1., 0.),
-                (0., 1., 0., 0.),
-                (1., 0., 0., 0.),
-                (0., 0., 0., 1.))),
+            transform.Matrix(
+                (
+                    (0.0, 0.0, 1.0, 0.0),
+                    (0.0, 1.0, 0.0, 0.0),
+                    (1.0, 0.0, 0.0, 0.0),
+                    (0.0, 0.0, 0.0, 1.0),
+                )
+            ),
             # Offset to match cutting plane coords
-            transform.Translate(0.5, 0.5, 0.5)
+            transform.Translate(0.5, 0.5, 0.5),
         ]
         self._group.children.append(self._isogroup)
 
@@ -931,7 +936,7 @@ class ScalarFieldView(Plot3DWindow):
 
         stream = qt.QDataStream(ioDevice)
 
-        stream.writeString('<ScalarFieldView>')
+        stream.writeString("<ScalarFieldView>")
 
         isoSurfaces = self.getIsosurfaces()
 
@@ -940,7 +945,7 @@ class ScalarFieldView(Plot3DWindow):
         # TODO : delegate the serialization to the serialized items
         # isosurfaces
         if nIsoSurfaces:
-            tagIn = '<IsoSurfaces nIso={0}>'.format(nIsoSurfaces)
+            tagIn = "<IsoSurfaces nIso={0}>".format(nIsoSurfaces)
             stream.writeString(tagIn)
 
             for surface in isoSurfaces:
@@ -951,16 +956,16 @@ class ScalarFieldView(Plot3DWindow):
                 stream.writeDouble(level)
                 stream.writeBool(visible)
 
-            stream.writeString('</IsoSurfaces>')
+            stream.writeString("</IsoSurfaces>")
 
-        stream.writeString('<Style>')
+        stream.writeString("<Style>")
         background = self.getBackgroundColor()
         foreground = self.getForegroundColor()
         highlight = self.getHighlightColor()
         stream << background << foreground << highlight
-        stream.writeString('</Style>')
+        stream.writeString("</Style>")
 
-        stream.writeString('</ScalarFieldView>')
+        stream.writeString("</ScalarFieldView>")
 
     def loadConfig(self, ioDevice):
         """
@@ -972,14 +977,13 @@ class ScalarFieldView(Plot3DWindow):
 
         tagStack = deque()
 
-        tagInRegex = re.compile('<(?P<itemId>[^ /]*) *'
-                                '(?P<args>.*)>')
+        tagInRegex = re.compile("<(?P<itemId>[^ /]*) *" "(?P<args>.*)>")
 
-        tagOutRegex = re.compile('</(?P<itemId>[^ ]*)>')
+        tagOutRegex = re.compile("</(?P<itemId>[^ ]*)>")
 
-        tagRootInRegex = re.compile('<ScalarFieldView>')
+        tagRootInRegex = re.compile("<ScalarFieldView>")
 
-        isoSurfaceArgsRegex = re.compile('nIso=(?P<nIso>[0-9]*)')
+        isoSurfaceArgsRegex = re.compile("nIso=(?P<nIso>[0-9]*)")
 
         stream = qt.QDataStream(ioDevice)
 
@@ -988,26 +992,27 @@ class ScalarFieldView(Plot3DWindow):
 
         if tagMatch is None:
             # TODO : explicit error
-            raise ValueError('Unknown data.')
+            raise ValueError("Unknown data.")
 
-        itemId = 'ScalarFieldView'
+        itemId = "ScalarFieldView"
 
         tagStack.append(itemId)
 
         while True:
-
             tag = stream.readString()
 
             tagMatch = tagOutRegex.match(tag)
             if tagMatch:
-                closeId = tagMatch.groupdict()['itemId']
+                closeId = tagMatch.groupdict()["itemId"]
                 if closeId != itemId:
                     # TODO : explicit error
-                    raise ValueError('Unexpected closing tag {0} '
-                                     '(expected {1})'
-                                     ''.format(closeId, itemId))
+                    raise ValueError(
+                        "Unexpected closing tag {0} "
+                        "(expected {1})"
+                        "".format(closeId, itemId)
+                    )
 
-                if itemId == 'ScalarFieldView':
+                if itemId == "ScalarFieldView":
                     # reached end
                     break
                 else:
@@ -1019,23 +1024,24 @@ class ScalarFieldView(Plot3DWindow):
 
             if tagMatch is None:
                 # TODO : explicit error
-                raise ValueError('Unknown data.')
+                raise ValueError("Unknown data.")
 
             tagStack.append(itemId)
 
             matchDict = tagMatch.groupdict()
 
-            itemId = matchDict['itemId']
+            itemId = matchDict["itemId"]
 
             # TODO : delegate the deserialization to the serialized items
-            if itemId == 'IsoSurfaces':
-                argsMatch = isoSurfaceArgsRegex.match(matchDict['args'])
+            if itemId == "IsoSurfaces":
+                argsMatch = isoSurfaceArgsRegex.match(matchDict["args"])
                 if not argsMatch:
                     # TODO : explicit error
-                    raise ValueError('Failed to parse args "{0}".'
-                                     ''.format(matchDict['args']))
+                    raise ValueError(
+                        'Failed to parse args "{0}".' "".format(matchDict["args"])
+                    )
                 argsDict = argsMatch.groupdict()
-                nIso = int(argsDict['nIso'])
+                nIso = int(argsDict["nIso"])
                 if nIso:
                     for surface in self.getIsosurfaces():
                         self.removeIsosurface(surface)
@@ -1046,7 +1052,7 @@ class ScalarFieldView(Plot3DWindow):
                         visible = stream.readBool()
                         surface = self.addIsosurface(level, color=color)
                         surface.setVisible(visible)
-            elif itemId == 'Style':
+            elif itemId == "Style":
                 background = qt.QColor()
                 foreground = qt.QColor()
                 highlight = qt.QColor()
@@ -1055,22 +1061,23 @@ class ScalarFieldView(Plot3DWindow):
                 self.setForegroundColor(foreground)
                 self.setHighlightColor(highlight)
             else:
-                raise ValueError('Unknown entry tag {0}.'
-                                 ''.format(itemId))
+                raise ValueError("Unknown entry tag {0}." "".format(itemId))
 
     def _initPanPlaneAction(self):
         """Creates and init the pan plane action"""
         self._panPlaneAction = qt.QAction(self)
-        self._panPlaneAction.setIcon(icons.getQIcon('3d-plane-pan'))
-        self._panPlaneAction.setText('Pan plane')
+        self._panPlaneAction.setIcon(icons.getQIcon("3d-plane-pan"))
+        self._panPlaneAction.setText("Pan plane")
         self._panPlaneAction.setCheckable(True)
         self._panPlaneAction.setToolTip(
-            'Pan the cutting plane. Press <b>Ctrl</b> to rotate the scene.')
+            "Pan the cutting plane. Press <b>Ctrl</b> to rotate the scene."
+        )
         self._panPlaneAction.setEnabled(False)
 
         self._panPlaneAction.triggered[bool].connect(self._planeActionTriggered)
         self.getPlot3DWidget().sigInteractiveModeChanged.connect(
-            self._interactiveModeChanged)
+            self._interactiveModeChanged
+        )
 
         toolbar = self.findChild(InteractiveModeToolBar)
         if toolbar is not None:
@@ -1078,10 +1085,10 @@ class ScalarFieldView(Plot3DWindow):
 
     def _planeActionTriggered(self, checked=False):
         self._panPlaneAction.setChecked(True)
-        self.setInteractiveMode('plane')
+        self.setInteractiveMode("plane")
 
     def _interactiveModeChanged(self):
-        self._panPlaneAction.setChecked(self.getInteractiveMode() == 'plane')
+        self._panPlaneAction.setChecked(self.getInteractiveMode() == "plane")
         self._updateColors()
 
     def _planeVisibilityChanged(self, visible):
@@ -1089,9 +1096,9 @@ class ScalarFieldView(Plot3DWindow):
         if visible != self._panPlaneAction.isEnabled():
             self._panPlaneAction.setEnabled(visible)
             if visible:
-                self.setInteractiveMode('plane')
+                self.setInteractiveMode("plane")
             elif self._panPlaneAction.isChecked():
-                self.setInteractiveMode('rotate')
+                self.setInteractiveMode("rotate")
 
     def setInteractiveMode(self, mode):
         """Choose the current interaction.
@@ -1102,23 +1109,24 @@ class ScalarFieldView(Plot3DWindow):
             return
 
         sceneScale = self.getPlot3DWidget().viewport.scene.transforms[0]
-        if mode == 'plane':
+        if mode == "plane":
             mode = interaction.PanPlaneZoomOnWheelControl(
                 self.getPlot3DWidget().viewport,
                 self._cutPlane._get3DPrimitives()[0],
-                mode='position',
+                mode="position",
                 orbitAroundCenter=False,
-                scaleTransform=sceneScale)
+                scaleTransform=sceneScale,
+            )
 
         self.getPlot3DWidget().setInteractiveMode(mode)
         self._updateColors()
 
     def getInteractiveMode(self):
-        """Returns the current interaction mode, see :meth:`setInteractiveMode`
-        """
-        if isinstance(self.getPlot3DWidget().eventHandler,
-                      interaction.PanPlaneZoomOnWheelControl):
-            return 'plane'
+        """Returns the current interaction mode, see :meth:`setInteractiveMode`"""
+        if isinstance(
+            self.getPlot3DWidget().eventHandler, interaction.PanPlaneZoomOnWheelControl
+        ):
+            return "plane"
         else:
             return self.getPlot3DWidget().getInteractiveMode()
 
@@ -1143,7 +1151,7 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.float32, order='C')
+            data = numpy.array(data, copy=copy, dtype=numpy.float32, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 
@@ -1160,7 +1168,7 @@ class ScalarFieldView(Plot3DWindow):
             if dataRange is not None:
                 min_positive = dataRange.min_positive
                 if min_positive is None:
-                    min_positive = float('nan')
+                    min_positive = float("nan")
                 dataRange = dataRange.minimum, min_positive, dataRange.maximum
             self._dataRange = dataRange
 
@@ -1203,7 +1211,7 @@ class ScalarFieldView(Plot3DWindow):
 
     # Transformations
 
-    def setOuterScale(self, sx=1., sy=1., sz=1.):
+    def setOuterScale(self, sx=1.0, sy=1.0, sz=1.0):
         """Set the scale to apply to the whole scene including the axes.
 
         This is useful when axis lengths in data space are really different.
@@ -1222,7 +1230,7 @@ class ScalarFieldView(Plot3DWindow):
         """
         return self._outerScale.scale
 
-    def setScale(self, sx=1., sy=1., sz=1.):
+    def setScale(self, sx=1.0, sy=1.0, sz=1.0):
         """Set the scale of the 3D scalar field (i.e., size of a voxel).
 
         :param float sx: Scale factor along the X axis
@@ -1236,11 +1244,10 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()  # Reset viewpoint
 
     def getScale(self):
-        """Returns the scales provided by :meth:`setScale` as a numpy.ndarray.
-        """
+        """Returns the scales provided by :meth:`setScale` as a numpy.ndarray."""
         return self._dataScale.scale
 
-    def setTranslation(self, x=0., y=0., z=0.):
+    def setTranslation(self, x=0.0, y=0.0, z=0.0):
         """Set the translation of the origin of the data array in data coordinates.
 
         :param float x: Offset of the data origin on the X axis
@@ -1254,8 +1261,7 @@ class ScalarFieldView(Plot3DWindow):
             self.centerScene()  # Reset viewpoint
 
     def getTranslation(self):
-        """Returns the offset set by :meth:`setTranslation` as a numpy.ndarray.
-        """
+        """Returns the offset set by :meth:`setTranslation` as a numpy.ndarray."""
         return self._dataTranslate.translation
 
     def setTransformMatrix(self, matrix3x3):
@@ -1346,9 +1352,7 @@ class ScalarFieldView(Plot3DWindow):
 
         :return: object describing the labels
         """
-        return self._Labels((self._bbox.xlabel,
-                             self._bbox.ylabel,
-                             self._bbox.zlabel))
+        return self._Labels((self._bbox.xlabel, self._bbox.ylabel, self._bbox.zlabel))
 
     # Colors
 
@@ -1356,7 +1360,7 @@ class ScalarFieldView(Plot3DWindow):
         """Update item depending on foreground/highlight color"""
         self._bbox.tickColor = self._foregroundColor
         self._selectionBox.strokeColor = self._foregroundColor
-        if self.getInteractiveMode() == 'plane':
+        if self.getInteractiveMode() == "plane":
             self._cutPlane.setStrokeColor(self._highlightColor)
             self._bbox.color = self._foregroundColor
         else:
@@ -1435,18 +1439,17 @@ class ScalarFieldView(Plot3DWindow):
 
             elif None in (xrange_, yrange, zrange):
                 # One of the range is None and no data available
-                raise RuntimeError(
-                    'Data is not set, cannot get default range from it.')
+                raise RuntimeError("Data is not set, cannot get default range from it.")
 
             # Clip selected region to data shape and make sure min <= max
-            selectedRange = numpy.array((
-                (max(0, min(*zrange)),
-                 min(self._data.shape[0], max(*zrange))),
-                (max(0, min(*yrange)),
-                 min(self._data.shape[1], max(*yrange))),
-                (max(0, min(*xrange_)),
-                 min(self._data.shape[2], max(*xrange_))),
-                ), dtype=numpy.int64)
+            selectedRange = numpy.array(
+                (
+                    (max(0, min(*zrange)), min(self._data.shape[0], max(*zrange))),
+                    (max(0, min(*yrange)), min(self._data.shape[1], max(*yrange))),
+                    (max(0, min(*xrange_)), min(self._data.shape[2], max(*xrange_))),
+                ),
+                dtype=numpy.int64,
+            )
 
         # numpy.equal supports None
         if not numpy.all(numpy.equal(selectedRange, self._selectedRange)):
@@ -1460,7 +1463,8 @@ class ScalarFieldView(Plot3DWindow):
                 scales = self._selectedRange[:, 1] - self._selectedRange[:, 0]
                 self._selectionBox.size = scales[::-1]
                 self._selectionBox.transforms = [
-                    transform.Translate(*self._selectedRange[::-1, 0])]
+                    transform.Translate(*self._selectedRange[::-1, 0])
+                ]
 
             self.sigSelectedRegionChanged.emit(self.getSelectedRegion())
 
@@ -1470,10 +1474,14 @@ class ScalarFieldView(Plot3DWindow):
             return None
         else:
             dataBBox = self._group.transforms.transformBounds(
-                self._selectedRange[::-1].T).T
-            return SelectedRegion(self._selectedRange, dataBBox,
-                                  translation=self.getTranslation(),
-                                  scale=self.getScale())
+                self._selectedRange[::-1].T
+            ).T
+            return SelectedRegion(
+                self._selectedRange,
+                dataBBox,
+                translation=self.getTranslation(),
+                scale=self.getScale(),
+            )
 
     # Handle iso-surfaces
 
@@ -1528,8 +1536,8 @@ class ScalarFieldView(Plot3DWindow):
         :param isosurface: The isosurface object to remove"""
         if isosurface not in self.getIsosurfaces():
             _logger.warning(
-                "Try to remove isosurface that is not in the list: %s",
-                str(isosurface))
+                "Try to remove isosurface that is not in the list: %s", str(isosurface)
+            )
         else:
             isosurface.sigLevelChanged.disconnect(self._updateIsosurfaces)
             self._isosurfaces.remove(isosurface)
@@ -1544,6 +1552,5 @@ class ScalarFieldView(Plot3DWindow):
     def _updateIsosurfaces(self, level=None):
         """Handle updates of iso-surfaces level and add/remove"""
         # Sorting using minus, this supposes data 'object' to be max values
-        sortedIso = sorted(self.getIsosurfaces(),
-                           key=lambda iso: - iso.getLevel())
+        sortedIso = sorted(self.getIsosurfaces(), key=lambda iso: -iso.getLevel())
         self._isogroup.children = [iso._get3DPrimitive() for iso in sortedIso]

@@ -94,8 +94,9 @@ def segmentTrianglesIntersection(segment, triangles):
     subVolumes[:, 2] = numpy.sum(t0s0CrossEdge01 * d, axis=1)
     subVolumes[:, 0] = volume - subVolumes[:, 1] - subVolumes[:, 2]
     intersect = numpy.logical_or(
-        numpy.all(subVolumes >= 0., axis=1),  # All positive
-        numpy.all(subVolumes <= 0., axis=1))  # All negative
+        numpy.all(subVolumes >= 0.0, axis=1),  # All positive
+        numpy.all(subVolumes <= 0.0, axis=1),
+    )  # All negative
     intersect = numpy.where(intersect)[0]  # Indices of intersected triangles
 
     # Get barycentric coordinates
@@ -112,7 +113,7 @@ def segmentTrianglesIntersection(segment, triangles):
     del volAlpha
     del volume
 
-    inSegmentMask = numpy.logical_and(t >= 0., t <= 1.)
+    inSegmentMask = numpy.logical_and(t >= 0.0, t <= 1.0)
     intersect = intersect[inSegmentMask]
     t = t[inSegmentMask]
     barycentric = barycentric[inSegmentMask]

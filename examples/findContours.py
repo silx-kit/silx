@@ -59,8 +59,10 @@ else:
 
 
 def rescale_image(image, shape):
-    y, x = numpy.ogrid[:shape[0], :shape[1]]
-    y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (image.shape[1] - 1) / (shape[1] - 1)
+    y, x = numpy.ogrid[: shape[0], : shape[1]]
+    y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (
+        image.shape[1] - 1
+    ) / (shape[1] - 1)
     b = silx.image.bilinear.BilinearImage(image)
     # TODO: could be optimized using strides
     x2d = numpy.zeros_like(y) + x
@@ -98,7 +100,8 @@ def create_gravity_field(size, objects):
 
     def distance(x, y):
         yy1, xx1 = (yy + half * y) * coef, (xx + half * x) * coef
-        return numpy.sqrt(xx1 ** 2 + yy1 ** 2)
+        return numpy.sqrt(xx1**2 + yy1**2)
+
     result = numpy.zeros((size, size), dtype=numpy.float32)
     for x, y, m in objects:
         result += m / distance(x, y)
@@ -123,7 +126,9 @@ def create_composite_gradient(size, dx=0, dy=0, sx=1.0, sy=1.0):
     half_hole = hole // 2
 
     def copy_module(x1, y1, x2, y2, width, height):
-        result[y1:y1 + height, x1:x1 + width] = base[y2:y2 + height, x2:x2 + width]
+        result[y1 : y1 + height, x1 : x1 + width] = base[
+            y2 : y2 + height, x2 : x2 + width
+        ]
 
     y1 = 0
     y2 = 0
@@ -173,7 +178,9 @@ def create_island(shape, summit, under_water):
     first_array = numpy.zeros((4, 4), dtype=numpy.uint8)
     first_array[1:3, 1:3] = 255
     weights = [255] + [(256 >> (i)) - 1 for i in range(8)]
-    data = create_value_noise(shape, octaves=7, first_array=first_array, weights=weights)
+    data = create_value_noise(
+        shape, octaves=7, first_array=first_array, weights=weights
+    )
     # more slops
     data *= data
     # normalize the height
@@ -458,7 +465,15 @@ class FindContours(qt.QMainWindow):
             y = polygon[:, 0] + 0.5
             legend = "custom-polygon-%d" % ipolygon
             self.__customPolygons.append(legend)
-            self.__plot.addCurve(x=x, y=y, linestyle="--", color="red", linewidth=2.0, legend=legend, resetzoom=False)
+            self.__plot.addCurve(
+                x=x,
+                y=y,
+                linestyle="--",
+                color="red",
+                linewidth=2.0,
+                legend=legend,
+                resetzoom=False,
+            )
 
     def __updateAlgo(self, image, mask=None):
         if mask is None:
@@ -471,11 +486,17 @@ class FindContours(qt.QMainWindow):
         implButton = self.__impl.checkedButton()
         if implButton == self.__implMerge:
             from silx.image.marchingsquares import MarchingSquaresMergeImpl
+
             self.__algo = MarchingSquaresMergeImpl(self.__image, self.__mask)
         elif implButton == self.__implMergeCache:
             from silx.image.marchingsquares import MarchingSquaresMergeImpl
-            self.__algo = MarchingSquaresMergeImpl(self.__image, self.__mask, use_minmax_cache=True)
-        elif implButton == self.__implSkimage and MarchingSquaresSciKitImage is not None:
+
+            self.__algo = MarchingSquaresMergeImpl(
+                self.__image, self.__mask, use_minmax_cache=True
+            )
+        elif (
+            implButton == self.__implSkimage and MarchingSquaresSciKitImage is not None
+        ):
             self.__algo = MarchingSquaresSciKitImage(self.__image, self.__mask)
         else:
             _logger.error("No algorithm available")
@@ -518,7 +539,7 @@ class FindContours(qt.QMainWindow):
         for ivalue, value in enumerate(values):
             startTime = time.time()
             polygons = self.__algo.find_contours(value)
-            nbTime += (time.time() - startTime)
+            nbTime += time.time() - startTime
             nbPolygons += len(polygons)
             for polygon in polygons:
                 if len(polygon) == 0:
@@ -533,7 +554,9 @@ class FindContours(qt.QMainWindow):
                 else:
                     extraStyle = {"linestyle": "-", "linewidth": 1.0, "color": "black"}
                 self.__polygons.append(legend)
-                self.__plot.addCurve(x=x, y=y, legend=legend, resetzoom=False, **extraStyle)
+                self.__plot.addCurve(
+                    x=x, y=y, legend=legend, resetzoom=False, **extraStyle
+                )
                 ipolygon += 1
 
         self.__timeLabel.setText("%0.3fs" % nbTime)
@@ -649,10 +672,19 @@ class FindContours(qt.QMainWindow):
         image *= 1000.0
 
         def styleCallback(value, ivalue, ipolygon):
-            colors = ["#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000"]
+            colors = [
+                "#9400D3",
+                "#4B0082",
+                "#0000FF",
+                "#00FF00",
+                "#FFFF00",
+                "#FF7F00",
+                "#FF0000",
+            ]
             color = colors[ivalue % len(colors)]
             style = {"linestyle": "-", "linewidth": 2.0, "color": color}
             return style
+
         delta = (image.max() - image.min()) / 9.0
         values = numpy.arange(image.min(), image.max(), delta)
         values = values[1:8]
@@ -673,10 +705,19 @@ class FindContours(qt.QMainWindow):
         image *= 1000.0
 
         def styleCallback(value, ivalue, ipolygon):
-            colors = ["#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000"]
+            colors = [
+                "#9400D3",
+                "#4B0082",
+                "#0000FF",
+                "#00FF00",
+                "#FFFF00",
+                "#FF7F00",
+                "#FF0000",
+            ]
             color = colors[ivalue % len(colors)]
             style = {"linestyle": "-", "linewidth": 2.0, "color": color}
             return style
+
         delta = (image.max() - image.min()) / 9.0
         values = numpy.arange(image.min(), image.max(), delta)
         values = values[1:8]

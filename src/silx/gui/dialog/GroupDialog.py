@@ -54,8 +54,7 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
         self._tree = Hdf5TreeView(self)
         self._tree.setSelectionMode(qt.QAbstractItemView.SingleSelection)
         self._tree.activated.connect(self._onActivation)
-        self._tree.selectionModel().selectionChanged.connect(
-            self._onSelectionChange)
+        self._tree.selectionModel().selectionChanged.connect(self._onSelectionChange)
 
         self._model = self._tree.findHdf5TreeModel()
 
@@ -67,10 +66,9 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
         self._labelNewItem.setText("Create new item in selected group (optional):")
         self._lineEditNewItem = qt.QLineEdit(self._newItemWidget)
         self._lineEditNewItem.setToolTip(
-                "Specify the name of a new item "
-                "to be created in the selected group.")
-        self._lineEditNewItem.textChanged.connect(
-                self._onNewItemNameChange)
+            "Specify the name of a new item " "to be created in the selected group."
+        )
+        self._lineEditNewItem.textChanged.connect(self._onNewItemNameChange)
         newItemLayout.addWidget(self._labelNewItem)
         newItemLayout.addWidget(self._lineEditNewItem)
 
@@ -151,11 +149,11 @@ class _Hdf5ItemSelectionDialog(qt.QDialog):
                 if not data_path.endswith("/"):
                     data_path += "/"
                 data_path += subgroupName.lstrip("/")
-            self._selectedUrl = DataUrl(file_path=node.local_filename,
-                                        data_path=data_path)
+            self._selectedUrl = DataUrl(
+                file_path=node.local_filename, data_path=data_path
+            )
             self._okButton.setEnabled(True)
-            self._labelSelection.setText(
-                    self._selectedUrl.path())
+            self._labelSelection.setText(self._selectedUrl.path())
 
     def getSelectedDataUrl(self):
         """Return a :class:`DataUrl` with a file path and a data path.
@@ -189,15 +187,16 @@ class GroupDialog(_Hdf5ItemSelectionDialog):
             print("Operation cancelled :(")
 
     """
+
     def __init__(self, parent=None):
         _Hdf5ItemSelectionDialog.__init__(self, parent)
 
         # customization for groups
         self.setWindowTitle("HDF5 group selection")
 
-        self._header.setSections([self._model.NAME_COLUMN,
-                                  self._model.NODE_COLUMN,
-                                  self._model.LINK_COLUMN])
+        self._header.setSections(
+            [self._model.NAME_COLUMN, self._model.NODE_COLUMN, self._model.LINK_COLUMN]
+        )
 
     def _onActivation(self, idx):
         # double-click or enter press: filter for groups
@@ -218,11 +217,11 @@ class GroupDialog(_Hdf5ItemSelectionDialog):
                     if not data_path.endswith("/"):
                         data_path += "/"
                     data_path += subgroupName.lstrip("/")
-                self._selectedUrl = DataUrl(file_path=node.local_filename,
-                                            data_path=data_path)
+                self._selectedUrl = DataUrl(
+                    file_path=node.local_filename, data_path=data_path
+                )
                 self._okButton.setEnabled(True)
-                self._labelSelection.setText(
-                        self._selectedUrl.path())
+                self._labelSelection.setText(self._selectedUrl.path())
             else:
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)

@@ -83,8 +83,8 @@ class TextFormatter(qt.QObject):
             self.__integerFormat = "%d"
             self.__floatFormat = "%g"
             self.__useQuoteForText = True
-            self.__imaginaryUnit = u"j"
-            self.__enumFormat = u"%(name)s(%(value)d)"
+            self.__imaginaryUnit = "j"
+            self.__enumFormat = "%(name)s(%(value)d)"
 
     def integerFormat(self):
         """Returns the format string controlling how the integer data
@@ -195,7 +195,7 @@ class TextFormatter(qt.QObject):
 
     def __formatText(self, text):
         if self.__useQuoteForText:
-            text = "\"%s\"" % text.replace("\\", "\\\\").replace("\"", "\\\"")
+            text = '"%s"' % text.replace("\\", "\\\\").replace('"', '\\"')
         return text
 
     def __formatBinary(self, data):
@@ -209,7 +209,7 @@ class TextFormatter(qt.QObject):
                 pass
         data = ["\\x%02X" % d for d in data]
         if self.__useQuoteForText:
-            return "b\"%s\"" % "".join(data)
+            return 'b"%s"' % "".join(data)
         else:
             return "".join(data)
 
@@ -217,7 +217,7 @@ class TextFormatter(qt.QObject):
         data = [chr(d) if (d > 0x20 and d < 0x7F) else "\\x%02X" % d for d in data]
         if self.__useQuoteForText:
             data = [c if c != '"' else "\\" + c for c in data]
-            return "b\"%s\"" % "".join(data)
+            return 'b"%s"' % "".join(data)
         else:
             return "".join(data)
 
@@ -244,7 +244,7 @@ class TextFormatter(qt.QObject):
             _logger.error("Invalid ASCII string %s.", data)
             if data == b"\xB0":
                 _logger.error("Fallback using cp1252 encoding")
-                return self.__formatText(u"\u00B0")
+                return self.__formatText("\u00B0")
         return self.__formatSafeAscii(data)
 
     def __formatH5pyObject(self, data, dtype):
@@ -296,7 +296,7 @@ class TextFormatter(qt.QObject):
             else:
                 text = [self.toString(d, dtype) for d in data]
                 return "[" + " ".join(text) + "]"
-        if dtype is not None and dtype.kind == 'O':
+        if dtype is not None and dtype.kind == "O":
             text = self.__formatH5pyObject(data, dtype)
             if text is not None:
                 return text
@@ -306,7 +306,9 @@ class TextFormatter(qt.QObject):
             if dtype.fields is not None:
                 text = []
                 for index, field in enumerate(dtype.fields.items()):
-                    text.append(field[0] + ":" + self.toString(data[index], field[1][0]))
+                    text.append(
+                        field[0] + ":" + self.toString(data[index], field[1][0])
+                    )
                 return "(" + " ".join(text) + ")"
             return self.__formatBinary(data)
         elif isinstance(data, (numpy.unicode_, str)):
@@ -316,9 +318,9 @@ class TextFormatter(qt.QObject):
                 dtype = data.dtype
             if dtype is not None:
                 # Maybe a sub item from HDF5
-                if dtype.kind == 'S':
+                if dtype.kind == "S":
                     return self.__formatCharString(data)
-                elif dtype.kind == 'O':
+                elif dtype.kind == "O":
                     text = self.__formatH5pyObject(data, dtype)
                     if text is not None:
                         return text
@@ -355,18 +357,28 @@ class TextFormatter(qt.QObject):
                 text += self.__floatFormat % data.real
             if data.real != 0 and data.imag != 0:
                 if data.imag < 0:
-                    template = self.__floatFormat + " - " + self.__floatFormat + self.__imaginaryUnit
+                    template = (
+                        self.__floatFormat
+                        + " - "
+                        + self.__floatFormat
+                        + self.__imaginaryUnit
+                    )
                     params = (data.real, -data.imag)
                 else:
-                    template = self.__floatFormat + " + " + self.__floatFormat + self.__imaginaryUnit
+                    template = (
+                        self.__floatFormat
+                        + " + "
+                        + self.__floatFormat
+                        + self.__imaginaryUnit
+                    )
                     params = (data.real, data.imag)
             else:
                 if data.imag != 0:
                     template = self.__floatFormat + self.__imaginaryUnit
-                    params = (data.imag)
+                    params = data.imag
                 else:
                     template = self.__floatFormat
-                    params = (data.real)
+                    params = data.real
             return template % params
         elif isinstance(data, h5py.h5r.Reference):
             dtype = h5py.special_dtype(ref=h5py.Reference)

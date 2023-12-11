@@ -84,15 +84,14 @@ class _Cache:
 
 # Text2D ######################################################################
 
-LEFT, CENTER, RIGHT = 'left', 'center', 'right'
-TOP, BASELINE, BOTTOM = 'top', 'baseline', 'bottom'
+LEFT, CENTER, RIGHT = "left", "center", "right"
+TOP, BASELINE, BOTTOM = "top", "baseline", "bottom"
 ROTATE_90, ROTATE_180, ROTATE_270 = 90, 180, 270
 
 
 class Text2D:
-
     _SHADERS = {
-        'vertex': """
+        "vertex": """
     #version 120
 
     attribute vec2 position;
@@ -106,7 +105,7 @@ class Text2D:
         vCoords = texCoords;
     }
     """,
-        'fragment': """
+        "fragment": """
     #version 120
 
     uniform sampler2D texText;
@@ -118,15 +117,14 @@ class Text2D:
     void main(void) {
         gl_FragColor = mix(bgColor, color, texture2D(texText, vCoords).r);
     }
-    """
+    """,
     }
 
-    _TEX_COORDS = numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
-                              dtype=numpy.float32).ravel()
+    _TEX_COORDS = numpy.array(
+        ((0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)), dtype=numpy.float32
+    ).ravel()
 
-    _program = Program(_SHADERS['vertex'],
-                       _SHADERS['fragment'],
-                       attrib0='position')
+    _program = Program(_SHADERS["vertex"], _SHADERS["fragment"], attrib0="position")
 
     # Discard texture objects when removed from the cache
     _textures = weakref.WeakKeyDictionary()
@@ -139,14 +137,14 @@ class Text2D:
         self,
         text: str,
         font: qt.QFont,
-        x: float = 0.,
-        y: float = 0.,
-        color: tuple[float, float, float, float] = (0., 0., 0., 1.),
+        x: float = 0.0,
+        y: float = 0.0,
+        color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0),
         bgColor: tuple[float, float, float, float] | None = None,
         align: str = LEFT,
         valign: str = BASELINE,
-        rotate: float = 0.,
-        devicePixelRatio: float = 1.,
+        rotate: float = 0.0,
+        devicePixelRatio: float = 1.0,
     ):
         self.devicePixelRatio = devicePixelRatio
         self.font = font
@@ -158,13 +156,11 @@ class Text2D:
         self.bgColor = bgColor
 
         if align not in (LEFT, CENTER, RIGHT):
-            raise ValueError(
-                "Horizontal alignment not supported: {0}".format(align))
+            raise ValueError("Horizontal alignment not supported: {0}".format(align))
         self._align = align
 
         if valign not in (TOP, CENTER, BASELINE, BOTTOM):
-            raise ValueError(
-                "Vertical alignment not supported: {0}".format(valign))
+            raise ValueError("Vertical alignment not supported: {0}".format(valign))
         self._valign = valign
 
         self._rotate = numpy.radians(rotate)
@@ -180,14 +176,14 @@ class Text2D:
         context = Context.getCurrent()
         if context not in self._textures:
             self._textures[context] = _Cache(
-                callback=lambda key, value: value[0].discard())
+                callback=lambda key, value: value[0].discard()
+            )
         textures = self._textures[context]
 
         if textureKey not in textures:
             image, offset = font.rasterText(
-                self.text,
-                self.font,
-                devicePixelRatio=self.devicePixelRatio)
+                self.text, self.font, devicePixelRatio=self.devicePixelRatio
+            )
             if textureKey not in self._sizes:
                 self._sizes[textureKey] = image.shape[1], image.shape[0]
 
@@ -196,8 +192,8 @@ class Text2D:
                 data=image,
                 minFilter=gl.GL_NEAREST,
                 magFilter=gl.GL_NEAREST,
-                wrap=(gl.GL_CLAMP_TO_EDGE,
-                      gl.GL_CLAMP_TO_EDGE))
+                wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
+            )
             texture.prepare()
             textures[textureKey] = texture, offset
 
@@ -212,9 +208,8 @@ class Text2D:
         textureKey = self._textureKey()
         if textureKey not in self._sizes:
             image, offset = font.rasterText(
-                self.text,
-                self.font,
-                devicePixelRatio=self.devicePixelRatio)
+                self.text, self.font, devicePixelRatio=self.devicePixelRatio
+            )
             self._sizes[textureKey] = image.shape[1], image.shape[0]
         return self._sizes[textureKey]
 
@@ -224,30 +219,41 @@ class Text2D:
         if self._align == LEFT:
             xOrig = 0
         elif self._align == RIGHT:
-            xOrig = - width
+            xOrig = -width
         else:  # CENTER
-            xOrig = - width // 2
+            xOrig = -width // 2
 
         if self._valign == BASELINE:
-            yOrig = - offset
+            yOrig = -offset
         elif self._valign == TOP:
             yOrig = 0
         elif self._valign == BOTTOM:
-            yOrig = - height
+            yOrig = -height
         else:  # CENTER
-            yOrig = - height // 2
+            yOrig = -height // 2
 
-        vertices = numpy.array((
-            (xOrig, yOrig),
-            (xOrig + width, yOrig),
-            (xOrig, yOrig + height),
-            (xOrig + width, yOrig + height)), dtype=numpy.float32)
+        vertices = numpy.array(
+            (
+                (xOrig, yOrig),
+                (xOrig + width, yOrig),
+                (xOrig, yOrig + height),
+                (xOrig + width, yOrig + height),
+            ),
+            dtype=numpy.float32,
+        )
 
         cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
-        vertices = numpy.ascontiguousarray(numpy.transpose(numpy.array((
-            cos * vertices[:, 0] - sin * vertices[:, 1],
-            sin * vertices[:, 0] + cos * vertices[:, 1]),
-            dtype=numpy.float32)))
+        vertices = numpy.ascontiguousarray(
+            numpy.transpose(
+                numpy.array(
+                    (
+                        cos * vertices[:, 0] - sin * vertices[:, 1],
+                        sin * vertices[:, 0] + cos * vertices[:, 1],
+                    ),
+                    dtype=numpy.float32,
+                )
+            )
+        )
 
         return vertices
 
@@ -261,38 +267,31 @@ class Text2D:
         texUnit = 0
         texture, offset = self._getTexture()
 
-        gl.glUniform1i(prog.uniforms['texText'], texUnit)
+        gl.glUniform1i(prog.uniforms["texText"], texUnit)
 
         mat = numpy.dot(matrix, mat4Translate(int(self.x), int(self.y)))
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
 
-        gl.glUniform4f(prog.uniforms['color'], *self.color)
+        gl.glUniform4f(prog.uniforms["color"], *self.color)
         if self.bgColor is not None:
             bgColor = self.bgColor
         else:
-            bgColor = self.color[0], self.color[1], self.color[2], 0.
-        gl.glUniform4f(prog.uniforms['bgColor'], *bgColor)
+            bgColor = self.color[0], self.color[1], self.color[2], 0.0
+        gl.glUniform4f(prog.uniforms["bgColor"], *bgColor)
 
         vertices = self.getVertices(offset, texture.shape)
 
-        posAttrib = prog.attributes['position']
+        posAttrib = prog.attributes["position"]
         gl.glEnableVertexAttribArray(posAttrib)
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0,
-                                 vertices)
+        gl.glVertexAttribPointer(posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, vertices)
 
-        texAttrib = prog.attributes['texCoords']
+        texAttrib = prog.attributes["texCoords"]
         gl.glEnableVertexAttribArray(texAttrib)
-        gl.glVertexAttribPointer(texAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0,
-                                 self._TEX_COORDS)
+        gl.glVertexAttribPointer(
+            texAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, self._TEX_COORDS
+        )
 
         with texture:
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)

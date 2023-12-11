@@ -80,28 +80,28 @@ class TestPositionInfo(PlotWidgetTestCase):
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
         positionWidget = tools.PositionInfo(plot=self.plot)
-        self._test(positionWidget, ('X', 'Y'))
+        self._test(positionWidget, ("X", "Y"))
 
     def testCustomConverters(self):
         """Test PositionInfo with custom converters"""
         converters = [
-            ('Coords', lambda x, y: (int(x), int(y))),
-            ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
-            ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))
+            ("Coords", lambda x, y: (int(x), int(y))),
+            ("Radius", lambda x, y: numpy.sqrt(x * x + y * y)),
+            ("Angle", lambda x, y: numpy.degrees(numpy.arctan2(y, x))),
         ]
-        positionWidget = tools.PositionInfo(plot=self.plot,
-                                            converters=converters)
-        self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
+        positionWidget = tools.PositionInfo(plot=self.plot, converters=converters)
+        self._test(positionWidget, ("Coords", "Radius", "Angle"))
 
     def testFailingConverters(self):
         """Test PositionInfo with failing custom converters"""
+
         def raiseException(x, y):
             raise RuntimeError()
 
         positionWidget = tools.PositionInfo(
-            plot=self.plot,
-            converters=[('Exception', raiseException)])
-        self._test(positionWidget, ['Exception'], error=2)
+            plot=self.plot, converters=[("Exception", raiseException)]
+        )
+        self._test(positionWidget, ["Exception"], error=2)
 
     def testUpdate(self):
         """Test :meth:`PositionInfo.updateInfo`"""
@@ -113,7 +113,8 @@ class TestPositionInfo(PlotWidgetTestCase):
 
         positionWidget = tools.PositionInfo(
             plot=self.plot,
-            converters=[('Call count', functools.partial(update, calls))])
+            converters=[("Call count", functools.partial(update, calls))],
+        )
 
         positionWidget.updateInfo()
         self.assertEqual(len(calls), 1)
@@ -123,10 +124,12 @@ class TestPlotToolsToolbars(PlotWidgetTestCase):
     """Tests toolbars from silx.gui.plot.tools"""
 
     def test(self):
-        """"Add all toolbars"""
-        for tbClass in (tools.InteractiveModeToolBar,
-                        tools.ImageToolBar,
-                        tools.CurveToolBar,
-                        tools.OutputToolBar):
+        """ "Add all toolbars"""
+        for tbClass in (
+            tools.InteractiveModeToolBar,
+            tools.ImageToolBar,
+            tools.CurveToolBar,
+            tools.OutputToolBar,
+        ):
             tb = tbClass(parent=self.plot, plot=self.plot)
         self.plot.addToolBar(tb)

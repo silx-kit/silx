@@ -111,7 +111,7 @@ class TestSpecfilewrapper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -131,60 +131,59 @@ class TestSpecfilewrapper(unittest.TestCase):
         self.assertEqual(3, len(self.sf))
 
     def test_list_of_scan_indices(self):
-        self.assertEqual(self.sf.list(),
-                         '1,25,1')
-        self.assertEqual(self.sf.keys(),
-                         ["1.1", "25.1", "1.2"])
+        self.assertEqual(self.sf.list(), "1,25,1")
+        self.assertEqual(self.sf.keys(), ["1.1", "25.1", "1.2"])
 
     def test_scan_headers(self):
-        self.assertEqual(self.scan25.header('S'),
-                         ["#S 25  ascan  c3th 1.33245 1.52245  40 0.15"])
-        self.assertEqual(self.scan1.header("G0"), ['#G0 0'])
+        self.assertEqual(
+            self.scan25.header("S"), ["#S 25  ascan  c3th 1.33245 1.52245  40 0.15"]
+        )
+        self.assertEqual(self.scan1.header("G0"), ["#G0 0"])
         # parsing headers with long keys
         # parsing empty headers
-        self.assertEqual(self.scan1.header('Q'), ['#Q '])
+        self.assertEqual(self.scan1.header("Q"), ["#Q "])
 
     def test_file_headers(self):
-        self.assertEqual(self.scan1.header("E"),
-                         ['#E 1455180875'])
-        self.assertEqual(self.sf.title(),
-                         "imaging")
-        self.assertEqual(self.sf.epoch(),
-                         1455180875)
-        self.assertEqual(self.sf.allmotors(),
-                         ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
-                          "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
+        self.assertEqual(self.scan1.header("E"), ["#E 1455180875"])
+        self.assertEqual(self.sf.title(), "imaging")
+        self.assertEqual(self.sf.epoch(), 1455180875)
+        self.assertEqual(
+            self.sf.allmotors(),
+            [
+                "Pslit HGap",
+                "MRTSlit UP",
+                "MRTSlit DOWN",
+                "Sslit1 VOff",
+                "Sslit1 HOff",
+                "Sslit1 VGap",
+            ],
+        )
 
     def test_scan_labels(self):
-        self.assertEqual(self.scan1.alllabels(),
-                         ['first column', 'second column', '3rd_col'])
+        self.assertEqual(
+            self.scan1.alllabels(), ["first column", "second column", "3rd_col"]
+        )
 
     def test_data(self):
-        self.assertAlmostEqual(self.scan1.dataline(3)[2],
-                               -3.14)
-        self.assertAlmostEqual(self.scan1.datacol(1)[2],
-                               3.14)
+        self.assertAlmostEqual(self.scan1.dataline(3)[2], -3.14)
+        self.assertAlmostEqual(self.scan1.datacol(1)[2], 3.14)
         # tests for data transposition between original file and .data attr
-        self.assertAlmostEqual(self.scan1.data()[2, 0],
-                               8)
+        self.assertAlmostEqual(self.scan1.data()[2, 0], 8)
         self.assertEqual(self.scan1.data().shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data()), 113.631)
 
     def test_date(self):
-        self.assertEqual(self.scan1.date(),
-                         "Thu Feb 11 09:55:20 2016")
+        self.assertEqual(self.scan1.date(), "Thu Feb 11 09:55:20 2016")
 
     def test_motors(self):
         self.assertEqual(len(self.sf.allmotors()), 6)
         self.assertEqual(len(self.scan1.allmotorpos()), 6)
-        self.assertAlmostEqual(sum(self.scan1.allmotorpos()),
-                               223.385912)
-        self.assertEqual(self.sf.allmotors()[1], 'MRTSlit UP')
+        self.assertAlmostEqual(sum(self.scan1.allmotorpos()), 223.385912)
+        self.assertEqual(self.sf.allmotors()[1], "MRTSlit UP")
 
     def test_mca(self):
         self.assertEqual(self.scan1_2.mca(2)[2], 5)
         self.assertEqual(sum(self.scan1_2.mca(3)), 21.7)
 
     def test_mca_header(self):
-        self.assertEqual(self.scan1_2.header("CALIB"),
-                         ["#@CALIB 1 2 3"])
+        self.assertEqual(self.scan1_2.header("CALIB"), ["#@CALIB 1 2 3"])

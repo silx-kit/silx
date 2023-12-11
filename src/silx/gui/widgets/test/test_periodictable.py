@@ -47,9 +47,8 @@ class TestPeriodicTable(TestCaseQt):
     def testCustomElements(self):
         PTI = PeriodicTable.ColoredPeriodicTableItem
         my_items = [
-            PTI("Xx", 42, 43, 44, "xaxatorium", 1002.2,
-                bgcolor="#FF0000"),
-            PTI("Yy", 25, 22, 44, "yoyotrium", 8.8)
+            PTI("Xx", 42, 43, 44, "xaxatorium", 1002.2, bgcolor="#FF0000"),
+            PTI("Yy", 25, 22, 44, "yoyotrium", 8.8),
         ]
 
         pt = PeriodicTable.PeriodicTable(elements=my_items)
@@ -61,8 +60,7 @@ class TestPeriodicTable(TestCaseQt):
         self.assertEqual(selection[0].Z, 42)
         self.assertEqual(selection[0].col, 43)
         self.assertAlmostEqual(selection[0].mass, 1002.2)
-        self.assertEqual(qt.QColor(selection[0].bgcolor),
-                         qt.QColor(qt.Qt.red))
+        self.assertEqual(qt.QColor(selection[0].bgcolor), qt.QColor(qt.Qt.red))
 
         self.assertTrue(pt.isElementSelected("Xx"))
         self.assertFalse(pt.isElementSelected("Yy"))
@@ -76,7 +74,7 @@ class TestPeriodicTable(TestCaseQt):
 
         my_items = [
             MyPTI("Xx", 42, 43, 44, "xaxatorium", 1002.2, "spam"),
-            MyPTI("Yy", 25, 22, 44, "yoyotrium", 8.8, "eggs")
+            MyPTI("Yy", 25, 22, 44, "yoyotrium", 8.8, "eggs"),
         ]
 
         pt = PeriodicTable.PeriodicTable(elements=my_items)
@@ -94,6 +92,7 @@ class TestPeriodicTable(TestCaseQt):
 
 class TestPeriodicCombo(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
+
     def setUp(self):
         super(TestPeriodicCombo, self).setUp()
         self.pc = PeriodicTable.PeriodicCombo()
@@ -110,8 +109,7 @@ class TestPeriodicCombo(TestCaseQt):
     def testSelect(self):
         self.pc.setSelection("Sb")
         selection = self.pc.getSelection()
-        self.assertIsInstance(selection,
-                              PeriodicTable.PeriodicTableItem)
+        self.assertIsInstance(selection, PeriodicTable.PeriodicTableItem)
         self.assertEqual(selection.symbol, "Sb")
         self.assertEqual(selection.Z, 51)
         self.assertEqual(selection.name, "antimony")
@@ -119,6 +117,7 @@ class TestPeriodicCombo(TestCaseQt):
 
 class TestPeriodicList(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
+
     def setUp(self):
         super(TestPeriodicList, self).setUp()
         self.pl = PeriodicTable.PeriodicList()
@@ -136,8 +135,7 @@ class TestPeriodicList(TestCaseQt):
         self.pl.setSelectedElements(["Li", "He", "Au"])
         sel_elmts = self.pl.getSelection()
 
-        self.assertEqual(len(sel_elmts), 3,
-                         "Wrong number of elements selected")
+        self.assertEqual(len(sel_elmts), 3, "Wrong number of elements selected")
         for e in sel_elmts:
             self.assertIsInstance(e, PeriodicTable.PeriodicTableItem)
             self.assertIn(e.symbol, ["Li", "He", "Au"])

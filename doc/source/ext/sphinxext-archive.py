@@ -72,6 +72,7 @@ _logger = logging.getLogger(__name__)
 
 # docutils directive
 
+
 class ArchiveDirective(Directive):
     """Add a link to download an archive
 
@@ -83,40 +84,44 @@ class ArchiveDirective(Directive):
     optional_arguments = 0
     final_argument_whitespace = False
     option_spec = {
-        'filename': directives.unchanged,
-        'filter': directives.unchanged,
-        'basedir': directives.unchanged,
+        "filename": directives.unchanged,
+        "filter": directives.unchanged,
+        "basedir": directives.unchanged,
     }
 
     def run(self):
-        node = archive('')
+        node = archive("")
 
         # Get rst source file containing this directive
         source_file = self.state_machine.get_source_and_line()[0]
         if source_file is None:
-            raise RuntimeError('Cannot get rst source file path')
+            raise RuntimeError("Cannot get rst source file path")
 
         # Build input path from rst source file and directive argument
         input_path = self.arguments[0]
-        if not input_path.startswith('/'):  # Argument is a relative path
+        if not input_path.startswith("/"):  # Argument is a relative path
             input_path = os.path.abspath(
-                os.path.join(os.path.dirname(source_file), input_path))
-        node['input_path'] = input_path
+                os.path.join(os.path.dirname(source_file), input_path)
+            )
+        node["input_path"] = input_path
 
         default_basedir = os.path.basename(input_path)
-        node['basedir'] = self.options.get('basedir', default_basedir)
-        node['filename'] = self.options.get('filename',
-                                            '.'.join((default_basedir, 'zip')))
+        node["basedir"] = self.options.get("basedir", default_basedir)
+        node["filename"] = self.options.get(
+            "filename", ".".join((default_basedir, "zip"))
+        )
 
-        node['filter'] = self.options.get('filter', '*.*')
+        node["filter"] = self.options.get("filter", "*.*")
 
         return [node]
 
 
 # archive doctuils node
 
+
 class archive(docutils.nodes.General, docutils.nodes.Element, docutils.nodes.Inline):
     """archive node created by :class:`ArchiveDirective`"""
+
     pass
 
 
@@ -127,17 +132,17 @@ def visit_archive_html(self, node):
     :param node: The :class:`archive` node to translate to HTML
     :raise: SkipNode as depart is not implemented
     """
-    filename = node['filename']
-    input_path = node['input_path']
+    filename = node["filename"]
+    input_path = node["input_path"]
 
     # Create a temporary folder to create archive content
     tmp_dir = tempfile.mkdtemp()
 
     # Copy selected content to temporary folder
-    base_dir = os.path.join(tmp_dir, node['basedir'])
+    base_dir = os.path.join(tmp_dir, node["basedir"])
 
     def ignore(src, names):
-        patterns = node['filter'].split()
+        patterns = node["filter"].split()
         ignored_names = []
         for name in names:
             for pattern in patterns:
@@ -150,11 +155,10 @@ def visit_archive_html(self, node):
     shutil.copytree(input_path, base_dir, ignore=ignore)
 
     # Compress temporary folder to zip
-    output_filename = os.path.join(
-        self.builder.outdir, '_downloads', filename)
+    output_filename = os.path.join(self.builder.outdir, "_downloads", filename)
     root, ext = os.path.splitext(output_filename)
-    assert ext == '.zip'
-    shutil.make_archive(root, 'zip', tmp_dir, node['basedir'])
+    assert ext == ".zip"
+    shutil.make_archive(root, "zip", tmp_dir, node["basedir"])
 
     # Clean-up temporary folder
     shutil.rmtree(tmp_dir)
@@ -172,12 +176,11 @@ def visit_skip(self, node):
 
 # Extension setup
 
+
 def setup(app):
     """Sphinx extension registration"""
-    app.add_node(archive,
-                 html=(visit_archive_html, None),
-                 latex=(visit_skip, None))
+    app.add_node(archive, html=(visit_archive_html, None), latex=(visit_skip, None))
 
-    app.add_directive('archive', ArchiveDirective)
+    app.add_directive("archive", ArchiveDirective)
 
-    return {'version': '0.1'}
+    return {"version": "0.1"}
