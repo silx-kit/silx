@@ -435,7 +435,7 @@ class PlotWindow(PlotWidget):
                 elif obj is self.yAxisInvertedButton:
                     self.yAxisInvertedAction = toolbar.addWidget(obj)
                 else:
-                    raise RuntimeError()
+                    raise RuntimeError("unknow action to be defined")
         return toolbar
 
     def toolBar(self):
