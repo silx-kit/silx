@@ -35,7 +35,6 @@ from silx.utils.proxy import Proxy, docstring
 
 
 class Thing(object):
-
     def __init__(self, value):
         self.value = value
 
@@ -264,7 +263,6 @@ class TestInheritedProxy(unittest.TestCase):
 
 
 class TestPickle(unittest.TestCase):
-
     def test_dumps(self):
         obj = Thing(10)
         p = Proxy(obj)
@@ -295,8 +293,7 @@ class TestDocstring(unittest.TestCase):
             def method(self):
                 pass
 
-        self.assertEqual(Derived.method.__doc__,
-                         TestDocstring.Base.method.__doc__)
+        self.assertEqual(Derived.method.__doc__, TestDocstring.Base.method.__doc__)
 
     def test_composition(self):
         class Composed(object):
@@ -311,11 +308,9 @@ class TestDocstring(unittest.TestCase):
             def renamed(self):
                 return self._base.method()
 
-        self.assertEqual(Composed.method.__doc__,
-                         TestDocstring.Base.method.__doc__)
+        self.assertEqual(Composed.method.__doc__, TestDocstring.Base.method.__doc__)
 
-        self.assertEqual(Composed.renamed.__doc__,
-                         TestDocstring.Base.method.__doc__)
+        self.assertEqual(Composed.renamed.__doc__, TestDocstring.Base.method.__doc__)
 
     def test_function(self):
         def f():

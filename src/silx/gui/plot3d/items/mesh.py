@@ -82,7 +82,7 @@ class _MeshBase(DataItem3D):
         if self._getMesh() is None:
             return numpy.empty((0, 3), dtype=numpy.float32)
         else:
-            return self._getMesh().getAttribute('position', copy=copy)
+            return self._getMesh().getAttribute("position", copy=copy)
 
     def getNormalData(self, copy=True):
         """Get the mesh vertex normals.
@@ -96,7 +96,7 @@ class _MeshBase(DataItem3D):
         if self._getMesh() is None:
             return None
         else:
-            return self._getMesh().getAttribute('normal', copy=copy)
+            return self._getMesh().getAttribute("normal", copy=copy)
 
     def getIndices(self, copy=True):
         """Get the vertex indices.
@@ -143,21 +143,23 @@ class _MeshBase(DataItem3D):
             positions = utils.unindexArrays(mode, vertexIndices, positions)[0]
             triangles = positions.reshape(-1, 3, 3)
         else:
-            if mode == 'triangles':
+            if mode == "triangles":
                 triangles = positions.reshape(-1, 3, 3)
 
-            elif mode == 'triangle_strip':
+            elif mode == "triangle_strip":
                 # Expand strip
-                triangles = numpy.empty((len(positions) - 2, 3, 3),
-                                        dtype=positions.dtype)
+                triangles = numpy.empty(
+                    (len(positions) - 2, 3, 3), dtype=positions.dtype
+                )
                 triangles[:, 0] = positions[:-2]
                 triangles[:, 1] = positions[1:-1]
                 triangles[:, 2] = positions[2:]
 
-            elif mode == 'fan':
+            elif mode == "fan":
                 # Expand fan
-                triangles = numpy.empty((len(positions) - 2, 3, 3),
-                                        dtype=positions.dtype)
+                triangles = numpy.empty(
+                    (len(positions) - 2, 3, 3), dtype=positions.dtype
+                )
                 triangles[:, 0] = positions[0]
                 triangles[:, 1] = positions[1:-1]
                 triangles[:, 2] = positions[2:]
@@ -167,7 +169,8 @@ class _MeshBase(DataItem3D):
                 return None
 
         trianglesIndices, t, barycentric = glu.segmentTrianglesIntersection(
-            rayObject, triangles)
+            rayObject, triangles
+        )
 
         if len(trianglesIndices) == 0:
             return None
@@ -177,13 +180,13 @@ class _MeshBase(DataItem3D):
         # Get vertex index from triangle index and closest point in triangle
         closest = numpy.argmax(barycentric, axis=1)
 
-        if mode == 'triangles':
+        if mode == "triangles":
             indices = trianglesIndices * 3 + closest
 
-        elif mode == 'triangle_strip':
+        elif mode == "triangle_strip":
             indices = trianglesIndices + closest
 
-        elif mode == 'fan':
+        elif mode == "fan":
             indices = trianglesIndices + closest  # For corners 1 and 2
             indices[closest == 0] = 0  # For first corner (common)
 
@@ -191,10 +194,9 @@ class _MeshBase(DataItem3D):
             # Convert from indices in expanded triangles to input vertices
             indices = vertexIndices[indices]
 
-        return PickingResult(self,
-                             positions=points,
-                             indices=indices,
-                             fetchdata=self.getPositionData)
+        return PickingResult(
+            self, positions=points, indices=indices, fetchdata=self.getPositionData
+        )
 
 
 class Mesh(_MeshBase):
@@ -206,13 +208,9 @@ class Mesh(_MeshBase):
     def __init__(self, parent=None):
         _MeshBase.__init__(self, parent=parent)
 
-    def setData(self,
-                position,
-                color,
-                normal=None,
-                mode='triangles',
-                indices=None,
-                copy=True):
+    def setData(
+        self, position, color, normal=None, mode="triangles", indices=None, copy=True
+    ):
         """Set mesh geometry data.
 
         Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
@@ -227,12 +225,13 @@ class Mesh(_MeshBase):
         :param bool copy: True (default) to copy the data,
                           False to use as is (do not modify!).
         """
-        assert mode in ('triangles', 'triangle_strip', 'fan')
+        assert mode in ("triangles", "triangle_strip", "fan")
         if position is None or len(position) == 0:
             mesh = None
         else:
             mesh = primitives.Mesh3D(
-                position, color, normal, mode=mode, indices=indices, copy=copy)
+                position, color, normal, mode=mode, indices=indices, copy=copy
+            )
         self._setMesh(mesh)
 
     def getData(self, copy=True):
@@ -244,10 +243,12 @@ class Mesh(_MeshBase):
         :return: The positions, colors, normals and mode
         :rtype: tuple of numpy.ndarray
         """
-        return (self.getPositionData(copy=copy),
-                self.getColorData(copy=copy),
-                self.getNormalData(copy=copy),
-                self.getDrawMode())
+        return (
+            self.getPositionData(copy=copy),
+            self.getColorData(copy=copy),
+            self.getNormalData(copy=copy),
+            self.getDrawMode(),
+        )
 
     def getColorData(self, copy=True):
         """Get the mesh vertex colors.
@@ -261,7 +262,7 @@ class Mesh(_MeshBase):
         if self._getMesh() is None:
             return numpy.empty((0, 4), dtype=numpy.float32)
         else:
-            return self._getMesh().getAttribute('color', copy=copy)
+            return self._getMesh().getAttribute("color", copy=copy)
 
 
 class ColormapMesh(_MeshBase, ColormapMixIn):
@@ -274,13 +275,9 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         _MeshBase.__init__(self, parent=parent)
         ColormapMixIn.__init__(self, function.Colormap())
 
-    def setData(self,
-                position,
-                value,
-                normal=None,
-                mode='triangles',
-                indices=None,
-                copy=True):
+    def setData(
+        self, position, value, normal=None, mode="triangles", indices=None, copy=True
+    ):
         """Set mesh geometry data.
 
         Supported drawing modes are: 'triangles', 'triangle_strip', 'fan'
@@ -295,18 +292,21 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         :param bool copy: True (default) to copy the data,
                           False to use as is (do not modify!).
         """
-        assert mode in ('triangles', 'triangle_strip', 'fan')
+        assert mode in ("triangles", "triangle_strip", "fan")
         if position is None or len(position) == 0:
             mesh = None
         else:
             mesh = primitives.ColormapMesh3D(
                 position=position,
-                value=numpy.array(value, copy=False).reshape(-1, 1),  # Make it a 2D array
+                value=numpy.array(value, copy=False).reshape(
+                    -1, 1
+                ),  # Make it a 2D array
                 colormap=self._getSceneColormap(),
                 normal=normal,
                 mode=mode,
                 indices=indices,
-                copy=copy)
+                copy=copy,
+            )
         self._setMesh(mesh)
 
         self._setColormappedData(self.getValueData(copy=False), copy=False)
@@ -320,10 +320,12 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         :return: The positions, values, normals and mode
         :rtype: tuple of numpy.ndarray
         """
-        return (self.getPositionData(copy=copy),
-                self.getValueData(copy=copy),
-                self.getNormalData(copy=copy),
-                self.getDrawMode())
+        return (
+            self.getPositionData(copy=copy),
+            self.getValueData(copy=copy),
+            self.getNormalData(copy=copy),
+            self.getDrawMode(),
+        )
 
     def getValueData(self, copy=True):
         """Get the mesh vertex values.
@@ -337,7 +339,7 @@ class ColormapMesh(_MeshBase, ColormapMixIn):
         if self._getMesh() is None:
             return numpy.empty((0,), dtype=numpy.float32)
         else:
-            return self._getMesh().getAttribute('value', copy=copy)
+            return self._getMesh().getAttribute("value", copy=copy)
 
 
 class _CylindricalVolume(DataItem3D):
@@ -362,8 +364,7 @@ class _CylindricalVolume(DataItem3D):
         """
         raise NotImplementedError("Must be implemented in subclass")
 
-    def _setData(self, position, radius, height, angles, color, flatFaces,
-                 rotation):
+    def _setData(self, position, radius, height, angles, color, flatFaces, rotation):
         """Set volume geometry data.
 
         :param numpy.ndarray position:
@@ -384,10 +385,8 @@ class _CylindricalVolume(DataItem3D):
         else:
             self._nbFaces = len(angles) - 1
 
-            volume = numpy.empty(shape=(len(angles) - 1, 12, 3),
-                                 dtype=numpy.float32)
-            normal = numpy.empty(shape=(len(angles) - 1, 12, 3),
-                                 dtype=numpy.float32)
+            volume = numpy.empty(shape=(len(angles) - 1, 12, 3), dtype=numpy.float32)
+            normal = numpy.empty(shape=(len(angles) - 1, 12, 3), dtype=numpy.float32)
 
             for i in range(0, len(angles) - 1):
                 #       c6
@@ -404,71 +403,103 @@ class _CylindricalVolume(DataItem3D):
                 #      \  /
                 #       \/
                 #       c1
-                c1 = numpy.array([0, 0, -height/2])
+                c1 = numpy.array([0, 0, -height / 2])
                 c1 = rotation.transformPoint(c1)
-                c2 = numpy.array([radius * numpy.cos(angles[i]),
-                                  radius * numpy.sin(angles[i]),
-                                  -height/2])
+                c2 = numpy.array(
+                    [
+                        radius * numpy.cos(angles[i]),
+                        radius * numpy.sin(angles[i]),
+                        -height / 2,
+                    ]
+                )
                 c2 = rotation.transformPoint(c2)
-                c3 = numpy.array([radius * numpy.cos(angles[i+1]),
-                                  radius * numpy.sin(angles[i+1]),
-                                  -height/2])
+                c3 = numpy.array(
+                    [
+                        radius * numpy.cos(angles[i + 1]),
+                        radius * numpy.sin(angles[i + 1]),
+                        -height / 2,
+                    ]
+                )
                 c3 = rotation.transformPoint(c3)
-                c4 = numpy.array([radius * numpy.cos(angles[i]),
-                                  radius * numpy.sin(angles[i]),
-                                  height/2])
+                c4 = numpy.array(
+                    [
+                        radius * numpy.cos(angles[i]),
+                        radius * numpy.sin(angles[i]),
+                        height / 2,
+                    ]
+                )
                 c4 = rotation.transformPoint(c4)
-                c5 = numpy.array([radius * numpy.cos(angles[i+1]),
-                                  radius * numpy.sin(angles[i+1]),
-                                  height/2])
+                c5 = numpy.array(
+                    [
+                        radius * numpy.cos(angles[i + 1]),
+                        radius * numpy.sin(angles[i + 1]),
+                        height / 2,
+                    ]
+                )
                 c5 = rotation.transformPoint(c5)
-                c6 = numpy.array([0, 0, height/2])
+                c6 = numpy.array([0, 0, height / 2])
                 c6 = rotation.transformPoint(c6)
 
-                volume[i] = numpy.array([c1, c3, c2,
-                                         c2, c3, c4,
-                                         c3, c5, c4,
-                                         c4, c5, c6])
+                volume[i] = numpy.array(
+                    [c1, c3, c2, c2, c3, c4, c3, c5, c4, c4, c5, c6]
+                )
                 if flatFaces:
-                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1),  # c1
-                                             numpy.cross(c2-c3, c1-c3),  # c3
-                                             numpy.cross(c1-c2, c3-c2),  # c2
-                                             numpy.cross(c3-c2, c4-c2),  # c2
-                                             numpy.cross(c4-c3, c2-c3),  # c3
-                                             numpy.cross(c2-c4, c3-c4),  # c4
-                                             numpy.cross(c5-c3, c4-c3),  # c3
-                                             numpy.cross(c4-c5, c3-c5),  # c5
-                                             numpy.cross(c3-c4, c5-c4),  # c4
-                                             numpy.cross(c5-c4, c6-c4),  # c4
-                                             numpy.cross(c6-c5, c5-c5),  # c5
-                                             numpy.cross(c4-c6, c5-c6)])  # c6
+                    normal[i] = numpy.array(
+                        [
+                            numpy.cross(c3 - c1, c2 - c1),  # c1
+                            numpy.cross(c2 - c3, c1 - c3),  # c3
+                            numpy.cross(c1 - c2, c3 - c2),  # c2
+                            numpy.cross(c3 - c2, c4 - c2),  # c2
+                            numpy.cross(c4 - c3, c2 - c3),  # c3
+                            numpy.cross(c2 - c4, c3 - c4),  # c4
+                            numpy.cross(c5 - c3, c4 - c3),  # c3
+                            numpy.cross(c4 - c5, c3 - c5),  # c5
+                            numpy.cross(c3 - c4, c5 - c4),  # c4
+                            numpy.cross(c5 - c4, c6 - c4),  # c4
+                            numpy.cross(c6 - c5, c5 - c5),  # c5
+                            numpy.cross(c4 - c6, c5 - c6),
+                        ]
+                    )  # c6
                 else:
-                    normal[i] = numpy.array([numpy.cross(c3-c1, c2-c1),
-                                             numpy.cross(c2-c3, c1-c3),
-                                             numpy.cross(c1-c2, c3-c2),
-                                             c2-c1, c3-c1, c4-c6,  # c2 c2 c4
-                                             c3-c1, c5-c6, c4-c6,  # c3 c5 c4
-                                             numpy.cross(c5-c4, c6-c4),
-                                             numpy.cross(c6-c5, c5-c5),
-                                             numpy.cross(c4-c6, c5-c6)])
+                    normal[i] = numpy.array(
+                        [
+                            numpy.cross(c3 - c1, c2 - c1),
+                            numpy.cross(c2 - c3, c1 - c3),
+                            numpy.cross(c1 - c2, c3 - c2),
+                            c2 - c1,
+                            c3 - c1,
+                            c4 - c6,  # c2 c2 c4
+                            c3 - c1,
+                            c5 - c6,
+                            c4 - c6,  # c3 c5 c4
+                            numpy.cross(c5 - c4, c6 - c4),
+                            numpy.cross(c6 - c5, c5 - c5),
+                            numpy.cross(c4 - c6, c5 - c6),
+                        ]
+                    )
 
             # Multiplication according to the number of positions
-            vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1))\
-                .reshape((-1, 3))
-            normals = numpy.tile(normal.reshape(-1, 3), (len(position), 1))\
-                .reshape((-1, 3))
+            vertices = numpy.tile(volume.reshape(-1, 3), (len(position), 1)).reshape(
+                (-1, 3)
+            )
+            normals = numpy.tile(normal.reshape(-1, 3), (len(position), 1)).reshape(
+                (-1, 3)
+            )
 
             # Translations
-            numpy.add(vertices, numpy.tile(position, (1, (len(angles)-1) * 12))
-                      .reshape((-1, 3)), out=vertices)
+            numpy.add(
+                vertices,
+                numpy.tile(position, (1, (len(angles) - 1) * 12)).reshape((-1, 3)),
+                out=vertices,
+            )
 
             # Colors
             if numpy.ndim(color) == 2:
-                color = numpy.tile(color, (1, 12 * (len(angles) - 1)))\
-                    .reshape(-1, 3)
+                color = numpy.tile(color, (1, 12 * (len(angles) - 1))).reshape(-1, 3)
 
             self._mesh = primitives.Mesh3D(
-                vertices, color, normals, mode='triangles', copy=False)
+                vertices, color, normals, mode="triangles", copy=False
+            )
             self._getScenePrimitive().children.append(self._mesh)
 
         self._updated(ItemChangedType.DATA)
@@ -488,11 +519,10 @@ class _CylindricalVolume(DataItem3D):
             return None
         rayObject = rayObject[:, :3]
 
-        positions = self._mesh.getAttribute('position', copy=False)
+        positions = self._mesh.getAttribute("position", copy=False)
         triangles = positions.reshape(-1, 3, 3)  # 'triangle' draw mode
 
-        trianglesIndices, t = glu.segmentTrianglesIntersection(
-            rayObject, triangles)[:2]
+        trianglesIndices, t = glu.segmentTrianglesIntersection(rayObject, triangles)[:2]
 
         if len(trianglesIndices) == 0:
             return None
@@ -511,10 +541,9 @@ class _CylindricalVolume(DataItem3D):
 
         points = t.reshape(-1, 1) * (rayObject[1] - rayObject[0]) + rayObject[0]
 
-        return PickingResult(self,
-                             positions=points,
-                             indices=indices,
-                             fetchdata=self.getPosition)
+        return PickingResult(
+            self, positions=points, indices=indices, fetchdata=self.getPosition
+        )
 
 
 class Box(_CylindricalVolume):
@@ -533,8 +562,13 @@ class Box(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, size=(1, 1, 1), color=(1, 1, 1),
-                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
+    def setData(
+        self,
+        size=(1, 1, 1),
+        color=(1, 1, 1),
+        position=(0, 0, 0),
+        rotation=(0, (0, 0, 0)),
+    ):
         """
         Set Box geometry data.
 
@@ -550,28 +584,28 @@ class Box(_CylindricalVolume):
         self.position = numpy.atleast_2d(numpy.array(position, copy=True))
         self.size = numpy.array(size, copy=True)
         self.color = numpy.array(color, copy=True)
-        self.rotation = Rotate(rotation[0],
-                               rotation[1][0], rotation[1][1], rotation[1][2])
+        self.rotation = Rotate(
+            rotation[0], rotation[1][0], rotation[1][1], rotation[1][2]
+        )
 
-        assert (numpy.ndim(self.color) == 1 or
-                len(self.color) == len(self.position))
+        assert numpy.ndim(self.color) == 1 or len(self.color) == len(self.position)
 
-        diagonal = numpy.sqrt(self.size[0]**2 + self.size[1]**2)
+        diagonal = numpy.sqrt(self.size[0] ** 2 + self.size[1] ** 2)
         alpha = 2 * numpy.arcsin(self.size[1] / diagonal)
         beta = 2 * numpy.arcsin(self.size[0] / diagonal)
-        angles = numpy.array([0,
-                              alpha,
-                              alpha + beta,
-                              alpha + beta + alpha,
-                              2 * numpy.pi])
+        angles = numpy.array(
+            [0, alpha, alpha + beta, alpha + beta + alpha, 2 * numpy.pi]
+        )
         numpy.subtract(angles, 0.5 * alpha, out=angles)
-        self._setData(self.position,
-                      numpy.sqrt(self.size[0]**2 + self.size[1]**2)/2,
-                      self.size[2],
-                      angles,
-                      self.color,
-                      True,
-                      self.rotation)
+        self._setData(
+            self.position,
+            numpy.sqrt(self.size[0] ** 2 + self.size[1] ** 2) / 2,
+            self.size[2],
+            angles,
+            self.color,
+            True,
+            self.rotation,
+        )
 
     def getPosition(self, copy=True):
         """Get box(es) position(s).
@@ -622,8 +656,15 @@ class Cylinder(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, radius=1, height=1, color=(1, 1, 1), nbFaces=20,
-                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
+    def setData(
+        self,
+        radius=1,
+        height=1,
+        color=(1, 1, 1),
+        nbFaces=20,
+        position=(0, 0, 0),
+        rotation=(0, (0, 0, 0)),
+    ):
         """
         Set the cylinder geometry data
 
@@ -644,20 +685,22 @@ class Cylinder(_CylindricalVolume):
         self.height = float(height)
         self.color = numpy.array(color, copy=True)
         self.nbFaces = int(nbFaces)
-        self.rotation = Rotate(rotation[0],
-                               rotation[1][0], rotation[1][1], rotation[1][2])
+        self.rotation = Rotate(
+            rotation[0], rotation[1][0], rotation[1][1], rotation[1][2]
+        )
 
-        assert (numpy.ndim(self.color) == 1 or
-                len(self.color) == len(self.position))
+        assert numpy.ndim(self.color) == 1 or len(self.color) == len(self.position)
 
-        angles = numpy.linspace(0, 2*numpy.pi, self.nbFaces + 1)
-        self._setData(self.position,
-                      self.radius,
-                      self.height,
-                      angles,
-                      self.color,
-                      False,
-                      self.rotation)
+        angles = numpy.linspace(0, 2 * numpy.pi, self.nbFaces + 1)
+        self._setData(
+            self.position,
+            self.radius,
+            self.height,
+            angles,
+            self.color,
+            False,
+            self.rotation,
+        )
 
     def getPosition(self, copy=True):
         """Get cylinder(s) position(s).
@@ -716,8 +759,14 @@ class Hexagon(_CylindricalVolume):
         self.rotation = None
         self.setData()
 
-    def setData(self, radius=1, height=1, color=(1, 1, 1),
-                position=(0, 0, 0), rotation=(0, (0, 0, 0))):
+    def setData(
+        self,
+        radius=1,
+        height=1,
+        color=(1, 1, 1),
+        position=(0, 0, 0),
+        rotation=(0, (0, 0, 0)),
+    ):
         """
         Set the uniform hexagonal prism geometry data
 
@@ -735,20 +784,22 @@ class Hexagon(_CylindricalVolume):
         self.radius = float(radius)
         self.height = float(height)
         self.color = numpy.array(color, copy=True)
-        self.rotation = Rotate(rotation[0], rotation[1][0], rotation[1][1],
-                               rotation[1][2])
+        self.rotation = Rotate(
+            rotation[0], rotation[1][0], rotation[1][1], rotation[1][2]
+        )
 
-        assert (numpy.ndim(self.color) == 1 or
-                len(self.color) == len(self.position))
+        assert numpy.ndim(self.color) == 1 or len(self.color) == len(self.position)
 
-        angles = numpy.linspace(0, 2*numpy.pi, 7)
-        self._setData(self.position,
-                      self.radius,
-                      self.height,
-                      angles,
-                      self.color,
-                      True,
-                      self.rotation)
+        angles = numpy.linspace(0, 2 * numpy.pi, 7)
+        self._setData(
+            self.position,
+            self.radius,
+            self.height,
+            angles,
+            self.color,
+            True,
+            self.rotation,
+        )
 
     def getPosition(self, copy=True):
         """Get hexagonal prim(s) position(s).
@@ -758,7 +809,7 @@ class Hexagon(_CylindricalVolume):
             False to get internal representation (do not modify!).
          :return: Position(s) of hexagonal prism(s) as a (N, 3) array.
          :rtype: numpy.ndarray
-         """
+        """
         return numpy.array(self.position, copy=copy)
 
     def getRadius(self):

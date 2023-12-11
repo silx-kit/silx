@@ -155,8 +155,7 @@ class Example(qt.QMainWindow):
         self.stack.clear()
 
     def _updateImage(self):
-        x = numpy.outer(numpy.linspace(-10, 10, 200),
-                        numpy.linspace(-5, 5, 150))
+        x = numpy.outer(numpy.linspace(-10, 10, 200), numpy.linspace(-5, 5, 150))
         image = numpy.sin(x) / x
         image = image * 10 + numpy.random.rand(*image.shape)
 
@@ -165,10 +164,9 @@ class Example(qt.QMainWindow):
 
     def _updateRgbImage(self):
         image = numpy.empty(shape=(200, 150, 3), dtype=numpy.uint8)
-        x = numpy.outer(numpy.linspace(-10, 10, 200),
-                        numpy.linspace(-5, 5, 150))
+        x = numpy.outer(numpy.linspace(-10, 10, 200), numpy.linspace(-5, 5, 150))
         r = numpy.sin(x) / x
-        g = numpy.cos(x/10) * numpy.sin(x/10)
+        g = numpy.cos(x / 10) * numpy.sin(x / 10)
         b = x
         image[..., 0] = 100 + 200 * (r / r.max())
         image[..., 1] = 100 + 200 * (g / g.max())
@@ -184,23 +182,26 @@ class Example(qt.QMainWindow):
         self.dataLayout.setCurrentWidget(self.scatter)
 
     def _updateStack(self):
-        a, b, c = numpy.meshgrid(numpy.linspace(-10, 10, 200),
-                                 numpy.linspace(-10, 5, 150),
-                                 numpy.linspace(-5, 10, 120),
-                                 indexing="ij")
-        raw = numpy.asarray(numpy.sin(a * b * c) / (a * b * c),
-                            dtype='float32')
+        a, b, c = numpy.meshgrid(
+            numpy.linspace(-10, 10, 200),
+            numpy.linspace(-10, 5, 150),
+            numpy.linspace(-5, 10, 120),
+            indexing="ij",
+        )
+        raw = numpy.asarray(numpy.sin(a * b * c) / (a * b * c), dtype="float32")
         raw = numpy.abs(raw)
         raw[numpy.isnan(raw)] = 0
         data = raw + numpy.random.poisson(raw * 10)
         self.stack.setStack(data)
         self.dataLayout.setCurrentWidget(self.stack)
 
+
 def main():
     app = qt.QApplication([])
     widget = Example()
     widget.show()
     app.exec()
+
 
 if __name__ == "__main__":
     main()

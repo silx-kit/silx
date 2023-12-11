@@ -42,7 +42,7 @@ import numpy
 from silx.gui import qt
 
 from silx.gui.plot import PlotWidget
-from silx.gui.plot import tools   # QToolbars to use with PlotWidget
+from silx.gui.plot import tools  # QToolbars to use with PlotWidget
 from silx.gui.plot import actions  # QAction to use with PlotWidget
 from silx.gui.plot import PlotToolButtons  # QToolButton to use with PlotWidget
 from silx.gui.plot.ColorBar import ColorBarWidget
@@ -95,8 +95,7 @@ class MyPlotWindow(qt.QMainWindow):
         self.setCentralWidget(centralWidget)
 
         # Add ready to use toolbar with zoom and pan interaction mode buttons
-        interactionToolBar = tools.InteractiveModeToolBar(
-            parent=self, plot=self._plot)
+        interactionToolBar = tools.InteractiveModeToolBar(parent=self, plot=self._plot)
         self.addToolBar(interactionToolBar)
         # Add toolbar actions to activate keyboard shortcuts
         self.addActions(interactionToolBar.actions())
@@ -106,13 +105,13 @@ class MyPlotWindow(qt.QMainWindow):
         self.addToolBar(toolBar)
 
         # Add actions from silx.gui.plot.action to the toolbar
-        resetZoomAction = actions.control.ResetZoomAction(
-            parent=self, plot=self._plot)
+        resetZoomAction = actions.control.ResetZoomAction(parent=self, plot=self._plot)
         toolBar.addAction(resetZoomAction)
 
         # Add tool buttons from silx.gui.plot.PlotToolButtons
         aspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=self._plot)
+            parent=self, plot=self._plot
+        )
         toolBar.addWidget(aspectRatioButton)
 
         # Add ready to use toolbar with copy, save and print buttons
@@ -132,11 +131,10 @@ class MyPlotWindow(qt.QMainWindow):
     def showImage(self):
         plot = self.getPlotWidget()
         plot.clear()
-        plot.getDefaultColormap().setName('viridis')
+        plot.getDefaultColormap().setName("viridis")
 
         # Add an image to the plot
-        x = numpy.outer(
-            numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
+        x = numpy.outer(numpy.linspace(-10, 10, 200), numpy.linspace(-10, 5, 150))
         image = numpy.sin(x) / x
         plot.addImage(image)
         plot.resetZoom()
@@ -144,7 +142,7 @@ class MyPlotWindow(qt.QMainWindow):
     def showScatter(self):
         plot = self.getPlotWidget()
         plot.clear()
-        plot.getDefaultColormap().setName('viridis')
+        plot.getDefaultColormap().setName("viridis")
 
         nbPoints = 50
         x = numpy.random.rand(nbPoints)
@@ -156,7 +154,7 @@ class MyPlotWindow(qt.QMainWindow):
     def showDelaunay(self):
         plot = self.getPlotWidget()
         plot.clear()
-        plot.getDefaultColormap().setName('viridis')
+        plot.getDefaultColormap().setName("viridis")
 
         nbPoints = 50
         x = numpy.random.rand(nbPoints)
@@ -180,5 +178,5 @@ def main():
     app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

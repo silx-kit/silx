@@ -117,12 +117,12 @@ class Hdf5DatasetMimeData(qt.QMimeData):
         self.__dataset = dataset
         self.__node = node
         self.__isRoot = isRoot
-        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
+        self.setData(self.MIME_TYPE, "".encode(encoding="utf-8"))
         if node is not None:
             h5Node = H5Node(node)
             silxUrl = h5Node.url
             self.setText(silxUrl)
-            self.setData(constants.SILX_URI_MIMETYPE, silxUrl.encode(encoding='utf-8'))
+            self.setData(constants.SILX_URI_MIMETYPE, silxUrl.encode(encoding="utf-8"))
 
     def isRoot(self):
         return self.__isRoot
@@ -428,9 +428,9 @@ class H5Node(object):
         :rtype: ~silx.io.url.DataUrl
         """
         absolute_filename = os.path.abspath(self.local_filename)
-        return silx.io.url.DataUrl(scheme="silx",
-                                   file_path=absolute_filename,
-                                   data_path=self.local_name)
+        return silx.io.url.DataUrl(
+            scheme="silx", file_path=absolute_filename, data_path=self.local_name
+        )
 
     @property
     def url(self):

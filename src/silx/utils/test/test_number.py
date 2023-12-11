@@ -28,7 +28,7 @@ __date__ = "05/06/2018"
 
 import logging
 import numpy
-import pkg_resources
+from packaging.version import Version
 from silx.utils import number
 from silx.utils import testutils
 
@@ -36,7 +36,6 @@ _logger = logging.getLogger(__name__)
 
 
 class TestConversionTypes(testutils.ParametricTestCase):
-
     def testEmptyFail(self):
         self.assertRaises(ValueError, number.min_numerical_convertible_type, "")
 
@@ -115,13 +114,13 @@ class TestConversionTypes(testutils.ParametricTestCase):
         self.skipIfFloat80NotSupported()
         dtype = number.min_numerical_convertible_type("1000000000.00001013")
 
-        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+        if Version(numpy.version.version) <= Version("1.10.4"):
             # numpy 1.8.2 -> Debian 8
             # Checking a float128 precision with numpy 1.8.2 using abs(diff) is not working.
             # It looks like the difference is done using float64 (diff == 0.0)
             expected = (numpy.longdouble, numpy.float64)
         else:
-            expected = (numpy.longdouble, )
+            expected = (numpy.longdouble,)
         self.assertIn(dtype, expected)
 
     def testExponent32(self):
@@ -148,25 +147,27 @@ class TestConversionTypes(testutils.ParametricTestCase):
 
     def testLosePrecisionUsingFloat80(self):
         self.skipIfFloat80NotSupported()
-        if pkg_resources.parse_version(numpy.version.version) <= pkg_resources.parse_version("1.10.4"):
+        if Version(numpy.version.version) <= Version("1.10.4"):
             self.skipTest("numpy > 1.10.4 expected")
         # value does not fit even in a 128 bits mantissa
         value = "1.0340282366920938463463374607431768211456"
         func = testutils.validate_logging(number._logger.name, warning=1)
         func = func(number.min_numerical_convertible_type)
         dtype = func(value)
-        self.assertIn(dtype, (numpy.longdouble, ))
+        self.assertIn(dtype, (numpy.longdouble,))
 
     def testMillisecondEpochTime(self):
-        datetimes = ['1465803236.495412',
-                     '1465803236.999362',
-                     '1465803237.504311',
-                     '1465803238.009261',
-                     '1465803238.512211',
-                     '1465803239.016160',
-                     '1465803239.520110',
-                     '1465803240.026059',
-                     '1465803240.529009']
+        datetimes = [
+            "1465803236.495412",
+            "1465803236.999362",
+            "1465803237.504311",
+            "1465803238.009261",
+            "1465803238.512211",
+            "1465803239.016160",
+            "1465803239.520110",
+            "1465803240.026059",
+            "1465803240.529009",
+        ]
         for datetime in datetimes:
             with self.subTest(datetime=datetime):
                 dtype = number.min_numerical_convertible_type(datetime)

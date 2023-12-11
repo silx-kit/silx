@@ -35,8 +35,15 @@ import numpy
 
 from ... import colors
 from .core import (
-    Item, DataItem,
-    AlphaMixIn, ColorMixIn, FillMixIn, ItemChangedType, LineMixIn, YAxisMixIn)
+    Item,
+    DataItem,
+    AlphaMixIn,
+    ColorMixIn,
+    FillMixIn,
+    ItemChangedType,
+    LineMixIn,
+    YAxisMixIn,
+)
 
 
 _logger = logging.getLogger(__name__)
@@ -78,7 +85,7 @@ class _TwoColorsLineMixIn(LineMixIn):
         """
         return self.__backgroundColor
 
-    def setLineBgColor(self, color, copy: bool=True):
+    def setLineBgColor(self, color, copy: bool = True):
         """Set dash line background color
 
         :param color: color(s) to be used
@@ -116,7 +123,7 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         _TwoColorsLineMixIn.__init__(self)
-        assert type_ in ('hline', 'polygon', 'rectangle', 'vline', 'polylines')
+        assert type_ in ("hline", "polygon", "rectangle", "vline", "polylines")
         self._type = type_
         self._points = ()
         self._handle = None
@@ -125,15 +132,17 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
         """Update backend renderer"""
         points = self.getPoints(copy=False)
         x, y = points.T[0], points.T[1]
-        return backend.addShape(x,
-                                y,
-                                shape=self.getType(),
-                                color=self.getColor(),
-                                fill=self.isFill(),
-                                overlay=self.isOverlay(),
-                                linestyle=self.getLineStyle(),
-                                linewidth=self.getLineWidth(),
-                                linebgcolor=self.getLineBgColor())
+        return backend.addShape(
+            x,
+            y,
+            shape=self.getType(),
+            color=self.getColor(),
+            fill=self.isFill(),
+            overlay=self.isOverlay(),
+            linestyle=self.getLineStyle(),
+            linewidth=self.getLineWidth(),
+            linebgcolor=self.getLineBgColor(),
+        )
 
     def getType(self):
         """Returns the type of shape to draw.
@@ -225,11 +234,11 @@ class _BaseExtent(DataItem):
     :param str axis: Either 'x' or 'y'.
     """
 
-    def __init__(self, axis='x'):
-        assert axis in ('x', 'y')
+    def __init__(self, axis="x"):
+        assert axis in ("x", "y")
         DataItem.__init__(self)
         self.__axis = axis
-        self.__range = 1., 100.
+        self.__range = 1.0, 100.0
 
     def setRange(self, min_, max_):
         """Set the range of the extent of this item in data coordinates.
@@ -261,17 +270,17 @@ class _BaseExtent(DataItem):
 
         plot = self.getPlot()
         if plot is not None:
-            axis = plot.getXAxis() if self.__axis == 'x' else plot.getYAxis()
+            axis = plot.getXAxis() if self.__axis == "x" else plot.getYAxis()
             if axis._isLogarithmic():
                 if max_ <= 0:
                     return None
                 if min_ <= 0:
                     min_ = max_
 
-        if self.__axis == 'x':
-            return min_, max_, float('nan'), float('nan')
+        if self.__axis == "x":
+            return min_, max_, float("nan"), float("nan")
         else:
-            return float('nan'), float('nan'), min_, max_
+            return float("nan"), float("nan"), min_, max_
 
 
 class XAxisExtent(_BaseExtent):
@@ -281,8 +290,9 @@ class XAxisExtent(_BaseExtent):
     item with a horizontal extent regarding plot data bounds, i.e.,
     :meth:`PlotWidget.resetZoom` will take this horizontal extent into account.
     """
+
     def __init__(self):
-        _BaseExtent.__init__(self, axis='x')
+        _BaseExtent.__init__(self, axis="x")
 
 
 class YAxisExtent(_BaseExtent, YAxisMixIn):
@@ -294,7 +304,7 @@ class YAxisExtent(_BaseExtent, YAxisMixIn):
     """
 
     def __init__(self):
-        _BaseExtent.__init__(self, axis='y')
+        _BaseExtent.__init__(self, axis="y")
         YAxisMixIn.__init__(self)
 
 
@@ -304,7 +314,7 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
     Warning: If slope is not finite, then the line is x = intercept.
     """
 
-    def __init__(self, slope: float=0, intercept: float=0):
+    def __init__(self, slope: float = 0, intercept: float = 0):
         assert numpy.isfinite(intercept)
 
         _OverlayItem.__init__(self)
@@ -377,7 +387,7 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
         """Set slope and intercept from 2 (x, y) points"""
         x0, y0 = point0
         x1, y1 = point1
-        if x0 == x1: # Special case: vertical line
+        if x0 == x1:  # Special case: vertical line
             self.setSlope(float("inf"))
             self.setIntercept(x0)
             return
@@ -393,7 +403,7 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
 
         return backend.addShape(
             *self.__coordinates,
-            shape='polylines',
+            shape="polylines",
             color=self.getColor(),
             fill=False,
             overlay=self.isOverlay(),

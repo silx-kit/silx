@@ -31,22 +31,27 @@ try:
     import pytest
 except ImportError:
     logging.getLogger(__name__).error(
-        "pytest is required to run the tests, please install it.")
+        "pytest is required to run the tests, please install it."
+    )
     raise
 
-def run_tests(module: str='silx', verbosity: int=0, args=()):
+
+def run_tests(module: str = "silx", verbosity: int = 0, args=()):
     """Run tests
 
     :param module: Name of the silx module to test (default: 'silx')
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    return pytest.main([
-        '--pyargs',
-        module,
-        '--verbosity',
-        str(verbosity),
-        '-o python_files=["test/test*.py","test/Test*.py"]',
-        '-o python_classes=["Test"]',
-        '-o python_functions=["test"]',
-    ] + list(args))
+    return pytest.main(
+        [
+            "--pyargs",
+            module,
+            "--verbosity",
+            str(verbosity),
+            '-o python_files=["test/test*.py","test/Test*.py"]',
+            '-o python_classes=["Test"]',
+            '-o python_functions=["test"]',
+        ]
+        + list(args)
+    )

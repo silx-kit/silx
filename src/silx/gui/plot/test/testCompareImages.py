@@ -99,7 +99,8 @@ def testSetImageSeparately(compareImages):
     compareImages.setImage2(numpy.random.rand(10, 10))
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
         (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
@@ -107,16 +108,17 @@ def testSetImageSeparately(compareImages):
         (CompareImages.VisualizationMode.VERTICAL_LINE,),
         (CompareImages.VisualizationMode.ONLY_A,),
         (CompareImages.VisualizationMode.ONLY_B,),
-    ]
+    ],
 )
 def testVisualizationMode(compareImages, data):
-    visualizationMode, = data
+    (visualizationMode,) = data
     compareImages.setImage1(numpy.random.rand(10, 10))
     compareImages.setImage2(numpy.random.rand(10, 10))
     compareImages.setVisualizationMode(visualizationMode)
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
         (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
@@ -124,15 +126,17 @@ def testVisualizationMode(compareImages, data):
         (CompareImages.VisualizationMode.VERTICAL_LINE,),
         (CompareImages.VisualizationMode.ONLY_A,),
         (CompareImages.VisualizationMode.ONLY_B,),
-    ]
+    ],
 )
 def testVisualizationModeWithoutImage(compareImages, data):
-    visualizationMode, = data
+    (visualizationMode,) = data
     compareImages.setImage1(None)
     compareImages.setImage2(None)
     compareImages.setVisualizationMode(visualizationMode)
 
-@pytest.mark.parametrize("data",
+
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
         (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
@@ -140,16 +144,17 @@ def testVisualizationModeWithoutImage(compareImages, data):
         (CompareImages.VisualizationMode.VERTICAL_LINE,),
         (CompareImages.VisualizationMode.ONLY_A,),
         (CompareImages.VisualizationMode.ONLY_B,),
-    ]
+    ],
 )
 def testVisualizationModeWithOnlyImage1(compareImages, data):
-    visualizationMode, = data
+    (visualizationMode,) = data
     compareImages.setImage1(numpy.random.rand(10, 10))
     compareImages.setImage2(None)
     compareImages.setVisualizationMode(visualizationMode)
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
         (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
@@ -157,16 +162,17 @@ def testVisualizationModeWithOnlyImage1(compareImages, data):
         (CompareImages.VisualizationMode.VERTICAL_LINE,),
         (CompareImages.VisualizationMode.ONLY_A,),
         (CompareImages.VisualizationMode.ONLY_B,),
-    ]
+    ],
 )
 def testVisualizationModeWithOnlyImage2(compareImages, data):
-    visualizationMode, = data
+    (visualizationMode,) = data
     compareImages.setImage1(None)
     compareImages.setImage2(numpy.random.rand(10, 10))
     compareImages.setVisualizationMode(visualizationMode)
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.VisualizationMode.COMPOSITE_A_MINUS_B,),
         (CompareImages.VisualizationMode.COMPOSITE_RED_BLUE_GRAY,),
@@ -174,39 +180,41 @@ def testVisualizationModeWithOnlyImage2(compareImages, data):
         (CompareImages.VisualizationMode.VERTICAL_LINE,),
         (CompareImages.VisualizationMode.ONLY_A,),
         (CompareImages.VisualizationMode.ONLY_B,),
-    ]
+    ],
 )
 def testVisualizationModeWithRGBImage(compareImages, data):
-    visualizationMode, = data
+    (visualizationMode,) = data
     image1 = numpy.random.rand(10, 10)
     image2 = numpy.random.randint(0, 255, size=(10, 10, 3))
     compareImages.setData(image1, image2)
     compareImages.setVisualizationMode(visualizationMode)
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.AlignmentMode.STRETCH,),
         (CompareImages.AlignmentMode.AUTO,),
         (CompareImages.AlignmentMode.CENTER,),
         (CompareImages.AlignmentMode.ORIGIN,),
-    ]
+    ],
 )
 def testAlignemntModeWithoutImages(compareImages, data):
-    alignmentMode, = data
+    (alignmentMode,) = data
     compareImages.setAlignmentMode(alignmentMode)
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (CompareImages.AlignmentMode.STRETCH,),
         (CompareImages.AlignmentMode.AUTO,),
         (CompareImages.AlignmentMode.CENTER,),
         (CompareImages.AlignmentMode.ORIGIN,),
-    ]
+    ],
 )
 def testAlignemntModeWithSingleImage(compareImages, data):
-    alignmentMode, = data
+    (alignmentMode,) = data
     compareImages.setImage1(numpy.arange(9).reshape(3, 3))
     compareImages.setAlignmentMode(alignmentMode)
 

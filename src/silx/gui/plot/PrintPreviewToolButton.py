@@ -125,6 +125,7 @@ class PrintPreviewToolButton(qt.QToolButton):
     :param parent: See :class:`QAction`
     :param plot: :class:`.PlotWidget` instance on which to operate
     """
+
     def __init__(self, parent=None, plot=None):
         super(PrintPreviewToolButton, self).__init__(parent)
 
@@ -132,17 +133,19 @@ class PrintPreviewToolButton(qt.QToolButton):
             raise TypeError("plot parameter must be a PlotWidget")
         self._plot = plot
 
-        self.setIcon(icons.getQIcon('document-print'))
+        self.setIcon(icons.getQIcon("document-print"))
 
         printGeomAction = qt.QAction("Print geometry", self)
-        printGeomAction.setToolTip("Define a print geometry prior to sending "
-                                   "the plot to the print preview dialog")
-        printGeomAction.setIcon(icons.getQIcon('shape-rectangle'))
+        printGeomAction.setToolTip(
+            "Define a print geometry prior to sending "
+            "the plot to the print preview dialog"
+        )
+        printGeomAction.setIcon(icons.getQIcon("shape-rectangle"))
         printGeomAction.triggered.connect(self._setPrintConfiguration)
 
         printPreviewAction = qt.QAction("Print preview", self)
         printPreviewAction.setToolTip("Send plot to the print preview dialog")
-        printPreviewAction.setIcon(icons.getQIcon('document-print'))
+        printPreviewAction.setIcon(icons.getQIcon("document-print"))
         printPreviewAction.triggered.connect(self._plotToPrintPreview)
 
         menu = qt.QMenu(self)
@@ -154,12 +157,14 @@ class PrintPreviewToolButton(qt.QToolButton):
         self._printPreviewDialog = None
         self._printConfigurationDialog = None
 
-        self._printGeometry = {"xOffset": 0.1,
-                               "yOffset": 0.1,
-                               "width": 0.9,
-                               "height": 0.9,
-                               "units": "page",
-                               "keepAspectRatio": True}
+        self._printGeometry = {
+            "xOffset": 0.1,
+            "yOffset": 0.1,
+            "width": 0.9,
+            "height": 0.9,
+            "units": "page",
+            "keepAspectRatio": True,
+        }
 
     @property
     def printPreviewDialog(self):
@@ -205,19 +210,23 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         if qt.HAS_SVG:
             svgRenderer, viewBox = self._getSvgRendererAndViewbox()
-            self.printPreviewDialog.addSvgItem(svgRenderer,
-                                               title=self.getTitle(),
-                                               comment=comment,
-                                               commentPosition=commentPosition,
-                                               viewBox=viewBox,
-                                               keepRatio=self._printGeometry["keepAspectRatio"])
+            self.printPreviewDialog.addSvgItem(
+                svgRenderer,
+                title=self.getTitle(),
+                comment=comment,
+                commentPosition=commentPosition,
+                viewBox=viewBox,
+                keepRatio=self._printGeometry["keepAspectRatio"],
+            )
         else:
             _logger.warning("Missing QtSvg library, using a raster image")
             pixmap = self._plot.centralWidget().grab()
-            self.printPreviewDialog.addPixmap(pixmap,
-                                              title=self.getTitle(),
-                                              comment=comment,
-                                              commentPosition=commentPosition)
+            self.printPreviewDialog.addPixmap(
+                pixmap,
+                title=self.getTitle(),
+                comment=comment,
+                commentPosition=commentPosition,
+            )
         self.printPreviewDialog.show()
         self.printPreviewDialog.raise_()
 
@@ -229,8 +238,7 @@ class PrintPreviewToolButton(qt.QToolButton):
         and to the geometry configuration (width, height, ratio) specified
         by the user."""
         imgData = StringIO()
-        assert self._plot.saveGraph(imgData, fileFormat="svg"), \
-            "Unable to save graph"
+        assert self._plot.saveGraph(imgData, fileFormat="svg"), "Unable to save graph"
         imgData.flush()
         imgData.seek(0)
         svgData = imgData.read()
@@ -254,8 +262,7 @@ class PrintPreviewToolButton(qt.QToolButton):
         return svgRenderer, viewbox
 
     def _getViewBox(self):
-        """
-        """
+        """ """
         printer = self.printPreviewDialog.printer
         dpix = printer.logicalDpiX()
         dpiy = printer.logicalDpiY()
@@ -263,23 +270,23 @@ class PrintPreviewToolButton(qt.QToolButton):
         availableHeight = printer.height()
 
         config = self._printGeometry
-        width = config['width']
-        height = config['height']
-        xOffset = config['xOffset']
-        yOffset = config['yOffset']
-        units = config['units']
-        keepAspectRatio = config['keepAspectRatio']
+        width = config["width"]
+        height = config["height"]
+        xOffset = config["xOffset"]
+        yOffset = config["yOffset"]
+        units = config["units"]
+        keepAspectRatio = config["keepAspectRatio"]
         aspectRatio = self._getPlotAspectRatio()
 
         # convert the offsets to dots
-        if units.lower() in ['inch', 'inches']:
+        if units.lower() in ["inch", "inches"]:
             xOffset = xOffset * dpix
             yOffset = yOffset * dpiy
             if width is not None:
                 width = width * dpix
             if height is not None:
                 height = height * dpiy
-        elif units.lower() in ['cm', 'centimeters']:
+        elif units.lower() in ["cm", "centimeters"]:
             xOffset = (xOffset / 2.54) * dpix
             yOffset = (yOffset / 2.54) * dpiy
             if width is not None:
@@ -300,13 +307,17 @@ class PrintPreviewToolButton(qt.QToolButton):
 
         if width is not None:
             if (availableWidth + 0.1) < width:
-                txt = "Available width  %f is less than requested width %f" % \
-                      (availableWidth, width)
+                txt = "Available width  %f is less than requested width %f" % (
+                    availableWidth,
+                    width,
+                )
                 raise ValueError(txt)
         if height is not None:
             if (availableHeight + 0.1) < height:
-                txt = "Available height  %f is less than requested height %f" % \
-                      (availableHeight, height)
+                txt = "Available height  %f is less than requested height %f" % (
+                    availableHeight,
+                    height,
+                )
                 raise ValueError(txt)
 
         if keepAspectRatio:
@@ -321,10 +332,7 @@ class PrintPreviewToolButton(qt.QToolButton):
             bodyWidth = width or availableWidth
             bodyHeight = height or availableHeight
 
-        return qt.QRectF(xOffset,
-                         yOffset,
-                         bodyWidth,
-                         bodyHeight)
+        return qt.QRectF(xOffset, yOffset, bodyWidth, bodyHeight)
 
     def _setPrintConfiguration(self):
         """Open a dialog to prompt the user to adjust print
@@ -350,6 +358,7 @@ class SingletonPrintPreviewToolButton(PrintPreviewToolButton):
 
     This allows for several plots to send their content to the
     same print page, and for users to arrange them."""
+
     def __init__(self, parent=None, plot=None):
         PrintPreviewToolButton.__init__(self, parent, plot)
 
@@ -360,14 +369,14 @@ class SingletonPrintPreviewToolButton(PrintPreviewToolButton):
         return self._printPreviewDialog
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import numpy
+
     app = qt.QApplication([])
 
     pw = PlotWidget()
     toolbar = qt.QToolBar(pw)
-    toolbutton = PrintPreviewToolButton(parent=toolbar,
-                                        plot=pw)
+    toolbutton = PrintPreviewToolButton(parent=toolbar, plot=pw)
     pw.addToolBar(toolbar)
     toolbar.addWidget(toolbutton)
     pw.show()

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,20 +32,22 @@ import time
 import os
 import tempfile
 import numpy
-from pkg_resources import parse_version
+from packaging.version import Version
 from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import hdf5
 from silx.gui.utils.testutils import SignalListener
 from silx.io import commonh5
+from silx.io import h5py_utils
+from silx.io.url import DataUrl
 import weakref
 
 import h5py
 import pytest
 
 
-h5py2_9 = parse_version(h5py.version.version) >= parse_version('2.9.0')
+h5py2_9 = Version(h5py.version.version) >= Version("2.9.0")
 
 
 @pytest.fixture(scope="class")
@@ -53,7 +55,7 @@ def useH5File(request, tmpdir_factory):
     tmp = tmpdir_factory.mktemp("test_hdf5")
     request.cls.filename = os.path.join(tmp, "data.h5")
     # create h5 data
-    with h5py.File(request.cls.filename, "w") as f:
+    with h5py_utils.File(request.cls.filename, "w") as f:
         g = f.create_group("arrays")
         g.create_dataset("scalar", data=10)
     yield
@@ -68,7 +70,6 @@ def create_NXentry(group, name):
 
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModel(TestCaseQt):
-
     def setUp(self):
         super(TestHdf5TreeModel, self).setUp()
 
@@ -86,7 +87,7 @@ class TestHdf5TreeModel(TestCaseQt):
         fd, tmp_name = tempfile.mkstemp(suffix=".h5")
         os.close(fd)
         # create h5 data
-        h5file = h5py.File(tmp_name, "w")
+        h5file = h5py_utils.File(tmp_name, "w")
         g = h5file.create_group("arrays")
         g.create_dataset("scalar", data=10)
         h5file.close()
@@ -133,7 +134,9 @@ class TestHdf5TreeModel(TestCaseQt):
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertFileAsync(self.filename)
             index = model.index(0, 0, qt.QModelIndex())
-            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem)
+            self.assertIsInstance(
+                model.nodeFromIndex(index), hdf5.Hdf5LoadingItem.Hdf5LoadingItem
+            )
             self.waitForPendingOperations(model)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
@@ -159,7 +162,7 @@ class TestHdf5TreeModel(TestCaseQt):
         self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
 
     def testSynchronizeObject(self):
-        h5 = h5py.File(self.filename, mode="r")
+        h5 = h5py_utils.File(self.filename, mode="r")
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         self.assertEqual(model.rowCount(qt.QModelIndex()), 1)
@@ -234,7 +237,7 @@ class TestHdf5TreeModel(TestCaseQt):
         """A file inserted as an h5py object is not open (then not closed)
         internally."""
         try:
-            h5File = h5py.File(self.filename, mode="r")
+            h5File = h5py_utils.File(self.filename, mode="r")
             model = hdf5.Hdf5TreeModel()
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
             model.insertH5pyObject(h5File)
@@ -243,7 +246,9 @@ class TestHdf5TreeModel(TestCaseQt):
             h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
             model.removeIndex(index)
             self.assertEqual(model.rowCount(qt.QModelIndex()), 0)
-            self.assertTrue(bool(h5File.id.valid), "The HDF5 file was unexpetedly closed")
+            self.assertTrue(
+                bool(h5File.id.valid), "The HDF5 file was unexpetedly closed"
+            )
         finally:
             h5File.close()
 
@@ -268,7 +273,12 @@ class TestHdf5TreeModel(TestCaseQt):
 
     def getRowDataAsDict(self, model, row):
         displayed = {}
-        roles = [qt.Qt.DisplayRole, qt.Qt.DecorationRole, qt.Qt.ToolTipRole, qt.Qt.TextAlignmentRole]
+        roles = [
+            qt.Qt.DisplayRole,
+            qt.Qt.DecorationRole,
+            qt.Qt.ToolTipRole,
+            qt.Qt.TextAlignmentRole,
+        ]
         for column in range(0, model.columnCount(qt.QModelIndex())):
             index = model.index(0, column, qt.QModelIndex())
             for role in roles:
@@ -285,13 +295,27 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(h5)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock")
-        self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], None)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "File")
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock"
+        )
+        self.assertIsInstance(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], None
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "File"
+        )
 
     def testGroupData(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -301,13 +325,27 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(d)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
-        self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "fooo")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Group")
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo"
+        )
+        self.assertIsInstance(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], ""
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "fooo"
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Group"
+        )
 
     def testDatasetData(self):
         h5 = commonh5.File("/foo/bar/1.mock", "w")
@@ -317,13 +355,29 @@ class TestHdf5TreeModel(TestCaseQt):
         model = hdf5.Hdf5TreeModel()
         model.insertH5pyObject(d)
         displayed = self.getRowDataAsDict(model, row=0)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo")
-        self.assertIsInstance(displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole], value.dtype.name)
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "3")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "[1 2 3]")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole], "[1 2 3]")
-        self.assertEqual(displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Dataset")
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DisplayRole], "1.mock::foo"
+        )
+        self.assertIsInstance(
+            displayed[hdf5.Hdf5TreeModel.NAME_COLUMN, qt.Qt.DecorationRole], qt.QIcon
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.TYPE_COLUMN, qt.Qt.DisplayRole],
+            value.dtype.name,
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.SHAPE_COLUMN, qt.Qt.DisplayRole], "3"
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.VALUE_COLUMN, qt.Qt.DisplayRole], "[1 2 3]"
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.DESCRIPTION_COLUMN, qt.Qt.DisplayRole],
+            "[1 2 3]",
+        )
+        self.assertEqual(
+            displayed[hdf5.Hdf5TreeModel.NODE_COLUMN, qt.Qt.DisplayRole], "Dataset"
+        )
 
     def testDropLastAsFirst(self):
         model = hdf5.Hdf5TreeModel()
@@ -364,17 +418,18 @@ class TestHdf5TreeModel(TestCaseQt):
 
 @pytest.mark.usefixtures("useH5File")
 class TestHdf5TreeModelSignals(TestCaseQt):
-
     def setUp(self):
         TestCaseQt.setUp(self)
         self.model = hdf5.Hdf5TreeModel()
-        self.h5 = h5py.File(self.filename, mode='r')
+        self.h5 = h5py_utils.File(self.filename, mode="r")
         self.model.insertH5pyObject(self.h5)
 
         self.listener = SignalListener()
         self.model.sigH5pyObjectLoaded.connect(self.listener.partial(signal="loaded"))
         self.model.sigH5pyObjectRemoved.connect(self.listener.partial(signal="removed"))
-        self.model.sigH5pyObjectSynchronized.connect(self.listener.partial(signal="synchronized"))
+        self.model.sigH5pyObjectSynchronized.connect(
+            self.listener.partial(signal="synchronized")
+        )
 
     def tearDown(self):
         self.signals = None
@@ -394,16 +449,28 @@ class TestHdf5TreeModelSignals(TestCaseQt):
             raise RuntimeError("Still waiting for a pending operation")
 
     def testInsert(self):
-        h5 = h5py.File(self.filename, mode='r')
+        h5 = h5py_utils.File(self.filename, mode="r")
         self.model.insertH5pyObject(h5)
         self.assertEqual(self.listener.callCount(), 0)
 
     def testLoaded(self):
-        self.model.insertFile(self.filename)
-        self.assertEqual(self.listener.callCount(), 1)
-        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "loaded")
-        self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
-        self.assertEqual(self.listener.arguments(callIndex=0)[0].filename, self.filename)
+        for data_path in [None, "/arrays/scalar"]:
+            with self.subTest(data_path=data_path):
+                url = DataUrl(file_path=self.filename, data_path=data_path)
+                insertedFilename = url.path()
+                self.model.insertFile(insertedFilename)
+                self.assertEqual(self.listener.callCount(), 1)
+                self.assertEqual(
+                    self.listener.karguments(argumentName="signal")[0], "loaded"
+                )
+                self.assertIsNot(self.listener.arguments(callIndex=0)[0], self.h5)
+                self.assertEqual(
+                    self.listener.arguments(callIndex=0)[0].file.filename, self.filename
+                )
+                self.assertEqual(
+                    self.listener.arguments(callIndex=0)[1], insertedFilename
+                )
+                self.listener.clear()
 
     def testRemoved(self):
         self.model.removeH5pyObject(self.h5)
@@ -415,13 +482,14 @@ class TestHdf5TreeModelSignals(TestCaseQt):
         self.model.synchronizeH5pyObject(self.h5)
         self.waitForPendingOperations(self.model)
         self.assertEqual(self.listener.callCount(), 1)
-        self.assertEqual(self.listener.karguments(argumentName="signal")[0], "synchronized")
+        self.assertEqual(
+            self.listener.karguments(argumentName="signal")[0], "synchronized"
+        )
         self.assertIs(self.listener.arguments(callIndex=0)[0], self.h5)
         self.assertIsNot(self.listener.arguments(callIndex=0)[1], self.h5)
 
 
 class TestNexusSortFilterProxyModel(TestCaseQt):
-
     def getChildNames(self, model, index):
         count = model.rowCount(index)
         result = []
@@ -450,9 +518,15 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         """Test NXentry with start_time"""
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
-        create_NXentry(h5, "a").create_dataset("start_time", data=numpy.array([numpy.string_("2015")]))
-        create_NXentry(h5, "b").create_dataset("start_time", data=numpy.array([numpy.string_("2013")]))
-        create_NXentry(h5, "c").create_dataset("start_time", data=numpy.array([numpy.string_("2014")]))
+        create_NXentry(h5, "a").create_dataset(
+            "start_time", data=numpy.array([numpy.string_("2015")])
+        )
+        create_NXentry(h5, "b").create_dataset(
+            "start_time", data=numpy.array([numpy.string_("2013")])
+        )
+        create_NXentry(h5, "c").create_dataset(
+            "start_time", data=numpy.array([numpy.string_("2014")])
+        )
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -465,9 +539,15 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         """Test NXentry with end_time"""
         model = hdf5.Hdf5TreeModel()
         h5 = commonh5.File("/foo/bar/1.mock", "w")
-        create_NXentry(h5, "a").create_dataset("end_time", data=numpy.array([numpy.string_("2015")]))
-        create_NXentry(h5, "b").create_dataset("end_time", data=numpy.array([numpy.string_("2013")]))
-        create_NXentry(h5, "c").create_dataset("end_time", data=numpy.array([numpy.string_("2014")]))
+        create_NXentry(h5, "a").create_dataset(
+            "end_time", data=numpy.array([numpy.string_("2015")])
+        )
+        create_NXentry(h5, "b").create_dataset(
+            "end_time", data=numpy.array([numpy.string_("2013")])
+        )
+        create_NXentry(h5, "c").create_dataset(
+            "end_time", data=numpy.array([numpy.string_("2014")])
+        )
         model.insertH5pyObject(h5)
 
         proxy = hdf5.NexusSortFilterProxyModel()
@@ -564,7 +644,7 @@ class TestNexusSortFilterProxyModel(TestCaseQt):
         self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope="class")
 def useH5Model(request, tmpdir_factory):
     # Create HDF5 files
     tmp = tmpdir_factory.mktemp("test_hdf5")
@@ -572,16 +652,16 @@ def useH5Model(request, tmpdir_factory):
     extH5FileName = os.path.join(tmp, "base__external.h5")
     extDatFileName = os.path.join(tmp, "base__external.dat")
 
-    externalh5 = h5py.File(extH5FileName, mode="w")
+    externalh5 = h5py_utils.File(extH5FileName, mode="w")
     externalh5["target/dataset"] = 50
     externalh5["target/link"] = h5py.SoftLink("/target/dataset")
     externalh5["/ext/vds0"] = [0, 1]
     externalh5["/ext/vds1"] = [2, 3]
     externalh5.close()
 
-    numpy.array([0,1,10,10,2,3]).tofile(extDatFileName)
+    numpy.array([0, 1, 10, 10, 2, 3]).tofile(extDatFileName)
 
-    h5 = h5py.File(filename, mode="w")
+    h5 = h5py_utils.File(filename, mode="w")
     h5["group/dataset"] = 50
     h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
     h5["link/soft_link_to_group"] = h5py.SoftLink("/group")
@@ -590,21 +670,32 @@ def useH5Model(request, tmpdir_factory):
     h5["group/soft_link_relative"] = h5py.SoftLink("dataset")
     h5["link/external_link"] = h5py.ExternalLink(extH5FileName, "/target/dataset")
     h5["link/external_link_to_link"] = h5py.ExternalLink(extH5FileName, "/target/link")
-    h5["broken_link/external_broken_file"] = h5py.ExternalLink(extH5FileName + "_not_exists", "/target/link")
-    h5["broken_link/external_broken_link"] = h5py.ExternalLink(extH5FileName, "/target/not_exists")
+    h5["broken_link/external_broken_file"] = h5py.ExternalLink(
+        extH5FileName + "_not_exists", "/target/link"
+    )
+    h5["broken_link/external_broken_link"] = h5py.ExternalLink(
+        extH5FileName, "/target/not_exists"
+    )
     h5["broken_link/soft_broken_link"] = h5py.SoftLink("/group/not_exists")
     h5["broken_link/soft_link_to_broken_link"] = h5py.SoftLink("/group/not_exists")
     if h5py2_9:
-        layout = h5py.VirtualLayout((2,2), dtype=int)
-        layout[0] = h5py.VirtualSource("base__external.h5", name="/ext/vds0", shape=(2,), dtype=int)
-        layout[1] = h5py.VirtualSource("base__external.h5", name="/ext/vds1", shape=(2,), dtype=int)
+        layout = h5py.VirtualLayout((2, 2), dtype=int)
+        layout[0] = h5py.VirtualSource(
+            "base__external.h5", name="/ext/vds0", shape=(2,), dtype=int
+        )
+        layout[1] = h5py.VirtualSource(
+            "base__external.h5", name="/ext/vds1", shape=(2,), dtype=int
+        )
         h5.create_group("/ext")
         h5["/ext"].create_virtual_dataset("virtual", layout)
-        external = [("base__external.dat", 0, 2*8), ("base__external.dat", 4*8, 2*8)]
-        h5["/ext"].create_dataset("raw", shape=(2,2), dtype=int, external=external)
+        external = [
+            ("base__external.dat", 0, 2 * 8),
+            ("base__external.dat", 4 * 8, 2 * 8),
+        ]
+        h5["/ext"].create_dataset("raw", shape=(2, 2), dtype=int, external=external)
         h5.close()
 
-    with h5py.File(filename, mode="r") as h5File:
+    with h5py_utils.File(filename, mode="r") as h5File:
         # Create model
         request.cls.model = hdf5.Hdf5TreeModel()
         request.cls.model.insertH5pyObject(h5File)
@@ -614,7 +705,7 @@ def useH5Model(request, tmpdir_factory):
         TestCaseQt.qWaitForDestroy(ref)
 
 
-@pytest.mark.usefixtures('useH5Model')
+@pytest.mark.usefixtures("useH5Model")
 class _TestModelBase(TestCaseQt):
     def getIndexFromPath(self, model, path):
         """
@@ -638,7 +729,6 @@ class _TestModelBase(TestCaseQt):
 
 
 class TestH5Item(_TestModelBase):
-
     def testFile(self):
         path = ["base.h5"]
         h5item = self.getH5ItemFromPath(self.model, path)
@@ -718,7 +808,14 @@ class TestH5Item(_TestModelBase):
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
 
     def testDatasetFromSoftLinkToFile(self):
-        path = ["base.h5", "link", "soft_link_to_file", "link", "soft_link_to_group", "dataset"]
+        path = [
+            "base.h5",
+            "link",
+            "soft_link_to_file",
+            "link",
+            "soft_link_to_group",
+            "dataset",
+        ]
         h5item = self.getH5ItemFromPath(self.model, path)
 
         self.assertEqual(h5item.dataLink(qt.Qt.DisplayRole), "")
@@ -739,7 +836,6 @@ class TestH5Item(_TestModelBase):
 
 
 class TestH5Node(_TestModelBase):
-
     def getH5NodeFromPath(self, model, path):
         item = self.getH5ItemFromPath(model, path)
         h5node = hdf5.H5Node(item)
@@ -895,7 +991,14 @@ class TestH5Node(_TestModelBase):
         self.assertEqual(h5node.local_name, "/link/soft_link_to_group/dataset")
 
     def testDatasetFromSoftLinkToFile(self):
-        path = ["base.h5", "link", "soft_link_to_file", "link", "soft_link_to_group", "dataset"]
+        path = [
+            "base.h5",
+            "link",
+            "soft_link_to_file",
+            "link",
+            "soft_link_to_group",
+            "dataset",
+        ]
         h5node = self.getH5NodeFromPath(self.model, path)
 
         self.assertEqual(h5node.physical_filename, h5node.local_filename)
@@ -903,7 +1006,9 @@ class TestH5Node(_TestModelBase):
         self.assertEqual(h5node.physical_basename, "dataset")
         self.assertEqual(h5node.physical_name, "/group/dataset")
         self.assertEqual(h5node.local_basename, "dataset")
-        self.assertEqual(h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset")
+        self.assertEqual(
+            h5node.local_name, "/link/soft_link_to_file/link/soft_link_to_group/dataset"
+        )
 
     @pytest.mark.skipif(not h5py2_9, reason="requires h5py>=2.9")
     def testExternalVirtual(self):

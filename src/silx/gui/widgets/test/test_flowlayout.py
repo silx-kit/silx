@@ -53,8 +53,8 @@ class TestFlowLayout(TestCaseQt):
         layout = FlowLayout()
         self.widget.setLayout(layout)
 
-        layout.addWidget(qt.QLabel('first'))
-        layout.addWidget(qt.QLabel('second'))
+        layout.addWidget(qt.QLabel("first"))
+        layout.addWidget(qt.QLabel("second"))
         self.assertEqual(layout.count(), 2)
 
         layout.setHorizontalSpacing(10)

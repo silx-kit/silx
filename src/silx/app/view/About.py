@@ -115,10 +115,9 @@ class About(qt.QDialog):
         :rtype: str
         """
         from silx._version import __date__ as date
+
         year = date.split("/")[2]
-        info = dict(
-            year=year
-        )
+        info = dict(year=year)
         textLicense = _LICENSE_TEMPLATE.format(**info)
         return textLicense
 
@@ -191,6 +190,7 @@ class About(qt.QDialog):
             # Previous versions only return True if the filter was first used
             # to decode a dataset
             import h5py.h5z
+
             FILTER_LZ4 = 32004
             FILTER_BITSHUFFLE = 32008
             filters = [
@@ -201,7 +201,11 @@ class About(qt.QDialog):
                 isAvailable = h5py.h5z.filter_avail(filterId)
                 optionals.append(self.__formatOptionalFilters(name, isAvailable))
         else:
-            optionals.append(self.__formatOptionalLibraries("hdf5plugin", "hdf5plugin" in sys.modules))
+            optionals.append(
+                self.__formatOptionalLibraries(
+                    "hdf5plugin", "hdf5plugin" in sys.modules
+                )
+            )
 
         # Access to the logo in SVG or PNG
         logo = icons.getQFile("silx:" + os.path.join("gui", "logo", "silx"))
@@ -217,7 +221,7 @@ class About(qt.QDialog):
             qt_version=qt.qVersion(),
             python_version=sys.version.replace("\n", "<br />"),
             optional_lib="<br />".join(optionals),
-            silx_image_path=logo.fileName()
+            silx_image_path=logo.fileName(),
         )
 
         self.__label.setText(message.format(**info))
@@ -226,9 +230,13 @@ class About(qt.QDialog):
     def __updateSize(self):
         """Force the size to a QMessageBox like size."""
         if qt.BINDING == "PyQt5":
-            screenSize = qt.QApplication.desktop().availableGeometry(qt.QCursor.pos()).size()
+            screenSize = (
+                qt.QApplication.desktop().availableGeometry(qt.QCursor.pos()).size()
+            )
         else:  # Qt6
-            screenSize = qt.QApplication.instance().primaryScreen().availableGeometry().size()
+            screenSize = (
+                qt.QApplication.instance().primaryScreen().availableGeometry().size()
+            )
         hardLimit = min(screenSize.width() - 480, 1000)
         if screenSize.width() <= 1024:
             hardLimit = screenSize.width()

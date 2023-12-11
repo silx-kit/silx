@@ -56,7 +56,8 @@ class _GetROIItemCoupleDialog(qt.QDialog):
     """
     Dialog used to know which plot item and which roi he wants
     """
-    _COMPATIBLE_KINDS = ('curve', 'image', 'scatter', 'histogram')
+
+    _COMPATIBLE_KINDS = ("curve", "image", "scatter", "histogram")
 
     def __init__(self, parent=None, plot=None, rois=None):
         qt.QDialog.__init__(self, parent=parent)
@@ -91,13 +92,15 @@ class _GetROIItemCoupleDialog(qt.QDialog):
 
     def _getCompatibleRois(self, kind):
         """Return compatible rois for the given item kind"""
+
         def is_compatible(roi, kind):
             if isinstance(roi, RegionOfInterest):
-                return kind in ('image', 'scatter')
+                return kind in ("image", "scatter")
             elif isinstance(roi, ROI):
-                return kind in ('curve', 'histogram')
+                return kind in ("curve", "histogram")
             else:
-                raise ValueError('kind not managed')
+                raise ValueError("kind not managed")
+
         return list(filter(lambda x: is_compatible(x, kind), self._rois))
 
     def exec(self):
@@ -113,6 +116,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
         self._kind_name_to_item = {}
         # key is (kind, legend name) value is item
         for kind in _GetROIItemCoupleDialog._COMPATIBLE_KINDS:
+
             def getItems(kind):
                 output = []
                 for item in self._plot.getItems():
@@ -134,7 +138,7 @@ class _GetROIItemCoupleDialog(qt.QDialog):
 
         # filter roi according to kinds
         if len(self._valid_kinds) == 0:
-            _logger.warning('no couple item/roi detected for displaying stats')
+            _logger.warning("no couple item/roi detected for displaying stats")
             return self.reject()
 
         for kind in self._valid_kinds:
@@ -172,10 +176,11 @@ class ROIStatsItemHelper(object):
     Display on one row statistics regarding the couple
     (Item (plot item) / roi).
 
-    :param Item plot_item: item for which we want statistics 
+    :param Item plot_item: item for which we want statistics
     :param Union[ROI,RegionOfInterest]: region of interest to use for
                                         statistics.
     """
+
     def __init__(self, plot_item, roi):
         self._plot_item = plot_item
         self._roi = roi
@@ -191,7 +196,7 @@ class ROIStatsItemHelper(object):
         elif isinstance(self._roi, RegionOfInterest):
             return self._roi.getName()
         else:
-            raise TypeError('Unmanaged roi type')
+            raise TypeError("Unmanaged roi type")
 
     @property
     def roi_kind(self):
@@ -202,19 +207,21 @@ class ROIStatsItemHelper(object):
     def item_kind(self):
         """item kind"""
         if isinstance(self._plot_item, plotitems.Curve):
-            return 'curve'
+            return "curve"
         elif isinstance(self._plot_item, plotitems.ImageData):
-            return 'image'
+            return "image"
         elif isinstance(self._plot_item, plotitems.Scatter):
-            return 'scatter'
+            return "scatter"
         elif isinstance(self._plot_item, plotitems.Histogram):
-            return 'histogram'
-        elif isinstance(self._plot_item, (plot3ditems.ImageData,
-                                          plot3ditems.ScalarField3D)):
-            return 'image'
-        elif isinstance(self._plot_item, (plot3ditems.Scatter2D,
-                                          plot3ditems.Scatter3D)):
-            return 'scatter'
+            return "histogram"
+        elif isinstance(
+            self._plot_item, (plot3ditems.ImageData, plot3ditems.ScalarField3D)
+        ):
+            return "image"
+        elif isinstance(
+            self._plot_item, (plot3ditems.Scatter2D, plot3ditems.Scatter3D)
+        ):
+            return "scatter"
 
     @property
     def item_legend(self):
@@ -223,27 +230,28 @@ class ROIStatsItemHelper(object):
 
     def id_key(self):
         """unique key to represent the couple (item, roi)"""
-        return (self.item_kind(), self.item_legend, self.roi_kind,
-                self.roi_name())
+        return (self.item_kind(), self.item_legend, self.roi_kind, self.roi_name())
 
 
 class _StatsROITable(_StatsWidgetBase, TableWidget):
     """
     Table sued to display some statistics regarding a couple (item/roi)
     """
-    _LEGEND_HEADER_DATA = 'legend'
 
-    _KIND_HEADER_DATA = 'kind'
+    _LEGEND_HEADER_DATA = "legend"
 
-    _ROI_HEADER_DATA = 'roi'
+    _KIND_HEADER_DATA = "kind"
+
+    _ROI_HEADER_DATA = "roi"
 
     sigUpdateModeChanged = qt.Signal(object)
     """Signal emitted when the update mode changed"""
 
     def __init__(self, parent, plot):
         TableWidget.__init__(self, parent)
-        _StatsWidgetBase.__init__(self, statsOnVisibleData=False,
-                                  displayOnlyActItem=False)
+        _StatsWidgetBase.__init__(
+            self, statsOnVisibleData=False, displayOnlyActItem=False
+        )
         self.__region_edition_callback = {}
         """We need to keep trace of the roi signals connection because
         the roi emits the sigChanged during roi edition"""
@@ -283,8 +291,8 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
     def _addItem(self, item):
         """
         Add a _RoiStatsItemWidget item to the table.
-        
-        :param item: 
+
+        :param item:
         :return: True if successfully added.
         """
         if not isinstance(item, ROIStatsItemHelper):
@@ -306,7 +314,8 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         tableItems = [
             qt.QTableWidgetItem(),  # Legend
             qt.QTableWidgetItem(),  # Kind
-            qt.QTableWidgetItem()]  # roi
+            qt.QTableWidgetItem(),
+        ]  # roi
 
         for column in range(3, self.columnCount()):
             header = self.horizontalHeaderItem(column)
@@ -333,8 +342,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
             row = self.rowCount() - 1
             for column, tableItem in enumerate(tableItems):
                 tableItem.setData(qt.Qt.UserRole, _Container(item))
-                tableItem.setFlags(
-                    qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+                tableItem.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
                 self.setItem(row, column, tableItem)
 
             # Update table items content
@@ -343,8 +351,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         # Listen for item changes
         # Using queued connection to avoid issue with sender
         # being that of the signal calling the signal
-        item._plot_item.sigItemChanged.connect(self._plotItemChanged,
-                                               qt.Qt.QueuedConnection)
+        item._plot_item.sigItemChanged.connect(
+            self._plotItemChanged, qt.Qt.QueuedConnection
+        )
         return True
 
     def _removeAllItems(self):
@@ -368,7 +377,9 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         _StatsWidgetBase.setStats(self, statsHandler)
 
         self.setRowCount(0)
-        self.setColumnCount(len(self._statsHandler.stats) + 3)  # + legend, kind and roi # noqa
+        self.setColumnCount(
+            len(self._statsHandler.stats) + 3
+        )  # + legend, kind and roi # noqa
 
         for index, stat in enumerate(self._statsHandler.stats.values()):
             headerItem = qt.QTableWidgetItem(stat.name.capitalize())
@@ -406,10 +417,14 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
         statsHandler = self.getStatsHandler()
         if statsHandler is not None:
-            stats = statsHandler.calculate(plotItem, plot,
-                                           onlimits=self._statsOnVisibleData,
-                                           roi=roi, data_changed=data_changed,
-                                           roi_changed=roi_changed)
+            stats = statsHandler.calculate(
+                plotItem,
+                plot,
+                onlimits=self._statsOnVisibleData,
+                roi=roi,
+                data_changed=data_changed,
+                roi_changed=roi_changed,
+            )
         else:
             stats = {}
 
@@ -427,7 +442,7 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                     value = stats.get(name)
                     if value is None:
                         _logger.error("Value not found for: %s", name)
-                        tableItem.setText('-')
+                        tableItem.setText("-")
                     else:
                         tableItem.setText(str(value))
 
@@ -518,15 +533,21 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                 # item connection within sigRegionChanged should only be
                 # stopped during the region edition
                 self.__region_edition_callback[item._roi] = functools.partial(
-                    self._updateAllStats, False, True)
-                item._roi.sigRegionChanged.connect(self.__region_edition_callback[item._roi])
-                item._roi.sigEditingStarted.connect(functools.partial(
-                    self._startFiltering, item._roi))
-                item._roi.sigEditingFinished.connect(functools.partial(
-                    self._endFiltering, item._roi))
+                    self._updateAllStats, False, True
+                )
+                item._roi.sigRegionChanged.connect(
+                    self.__region_edition_callback[item._roi]
+                )
+                item._roi.sigEditingStarted.connect(
+                    functools.partial(self._startFiltering, item._roi)
+                )
+                item._roi.sigEditingFinished.connect(
+                    functools.partial(self._endFiltering, item._roi)
+                )
             else:
-                item._roi.sigChanged.connect(functools.partial(
-                    self._updateAllStats, False, True))
+                item._roi.sigChanged.connect(
+                    functools.partial(self._updateAllStats, False, True)
+                )
         self.__roiToItems[item._roi].add(item)
 
     def _startFiltering(self, roi):
@@ -540,10 +561,12 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         if roi in self.__roiToItems:
             del self.__roiToItems[roi]
             if isinstance(roi, RegionOfInterest):
-                roi.sigRegionEditionStarted.disconnect(functools.partial(
-                    self._startFiltering, roi))
-                roi.sigRegionEditionFinished.disconnect(functools.partial(
-                    self._startFiltering, roi))
+                roi.sigRegionEditionStarted.disconnect(
+                    functools.partial(self._startFiltering, roi)
+                )
+                roi.sigRegionEditionFinished.disconnect(
+                    functools.partial(self._startFiltering, roi)
+                )
                 try:
                     roi.sigRegionChanged.disconnect(self._updateAllStats)
                 except:
@@ -574,11 +597,13 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
                             self.setRowHidden(row_index, not item.isVisible())
 
     def _removeItem(self, itemKey):
-        if isinstance(itemKey, (silx.gui.plot.items.marker.Marker,
-                                silx.gui.plot.items.shape.Shape)):
+        if isinstance(
+            itemKey,
+            (silx.gui.plot.items.marker.Marker, silx.gui.plot.items.shape.Shape),
+        ):
             return
         if itemKey not in self._items:
-            _logger.warning('key not recognized. Won\'t remove any item')
+            _logger.warning("key not recognized. Won't remove any item")
             return
         item = self._items[itemKey]
         row = self._itemToRow(item)
@@ -596,16 +621,20 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
 
         :param bool is_request: True if come from a manual request
         """
-        if (self.getUpdateMode() is UpdateMode.MANUAL and
-                not is_request and not roi_changed):
+        if (
+            self.getUpdateMode() is UpdateMode.MANUAL
+            and not is_request
+            and not roi_changed
+        ):
             return
 
         with self._disableSorting():
             for row in range(self.rowCount()):
                 tableItem = self.item(row, 0)
                 item = self._tableItemToItem(tableItem)
-                self._updateStats(item, roi_changed=roi_changed,
-                                  data_changed=is_request)
+                self._updateStats(
+                    item, roi_changed=roi_changed, data_changed=is_request
+                )
 
     def _plotCurrentChanged(self, *args):
         pass
@@ -623,7 +652,10 @@ class _StatsROITable(_StatsWidgetBase, TableWidget):
         """return the plotItem fitting the requirement kind, legend.
         This information is enough to be sure it is unique (in the widget)"""
         for plotItem in self.__plotItemToItems:
-            if legend == plotItem.getLegend() and self._plotWrapper.getKind(plotItem) == kind:
+            if (
+                legend == plotItem.getLegend()
+                and self._plotWrapper.getKind(plotItem) == kind
+            ):
                 return plotItem
         return None
 
@@ -667,12 +699,12 @@ class ROIStatsWidget(qt.QMainWindow):
         qt.QMainWindow.__init__(self, parent)
 
         toolbar = qt.QToolBar(self)
-        icon = icons.getQIcon('add')
+        icon = icons.getQIcon("add")
         self._rois = list(rois) if rois is not None else []
-        self._addAction = qt.QAction(icon, 'add item/roi', toolbar)
+        self._addAction = qt.QAction(icon, "add item/roi", toolbar)
         self._addAction.triggered.connect(self._addRoiStatsItem)
-        icon = icons.getQIcon('rm')
-        self._removeAction = qt.QAction(icon, 'remove item/roi', toolbar)
+        icon = icons.getQIcon("rm")
+        self._removeAction = qt.QAction(icon, "remove item/roi", toolbar)
         self._removeAction.triggered.connect(self._removeCurrentRow)
 
         toolbar.addAction(self._addAction)
@@ -716,15 +748,14 @@ class ROIStatsWidget(qt.QMainWindow):
     @docstring(_StatsROITable)
     def getStatsHandler(self):
         """
-        
-        :return: 
+
+        :return:
         """
         return self._statsROITable.getStatsHandler()
 
     def _addRoiStatsItem(self):
         """Ask the user what couple ROI / item he want to display"""
-        dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot,
-                                         rois=self._rois)
+        dialog = _GetROIItemCoupleDialog(parent=self, plot=self._plot, rois=self._rois)
         if dialog.exec():
             self.addItem(roi=dialog.getROI(), plotItem=dialog.getItem())
 
@@ -754,7 +785,7 @@ class ROIStatsWidget(qt.QMainWindow):
 
     def _removeCurrentRow(self):
         def is1DKind(kind):
-            if kind in ('curve', 'histogram', 'scatter'):
+            if kind in ("curve", "histogram", "scatter"):
                 return True
             else:
                 return False
@@ -767,12 +798,10 @@ class ROIStatsWidget(qt.QMainWindow):
         roi_kind = ROI if is1DKind(item_kind) else RegionOfInterest
         roi = self._statsROITable._getRoi(kind=roi_kind, name=roi_name)
         if roi is None:
-            _logger.warning('failed to retrieve the roi you want to remove')
+            _logger.warning("failed to retrieve the roi you want to remove")
             return False
-        plot_item = self._statsROITable._getPlotItem(kind=item_kind,
-                                                     legend=item_legend)
+        plot_item = self._statsROITable._getPlotItem(kind=item_kind, legend=item_legend)
         if plot_item is None:
-            _logger.warning('failed to retrieve the plot item you want to'
-                            'remove')
+            _logger.warning("failed to retrieve the plot item you want to" "remove")
             return False
         return self.removeItem(plotItem=plot_item, roi=roi)

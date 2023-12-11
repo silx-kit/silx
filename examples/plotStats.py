@@ -77,7 +77,7 @@ class UpdateThread(threading.Thread):
                 numpy.arange(1000),
                 numpy.random.random(1000),
                 resetzoom=False,
-                legend=random.choice(('mycurve0', 'mycurve1'))
+                legend=random.choice(("mycurve0", "mycurve1")),
             )
 
     def stop(self):
@@ -90,8 +90,9 @@ class Integral(StatBase):
     """
     Simple calculation of the line integral
     """
+
     def __init__(self):
-        StatBase.__init__(self, name='integral', compatibleKinds=('curve',))
+        StatBase.__init__(self, name="integral", compatibleKinds=("curve",))
 
     def calculate(self, context):
         xData, yData = context.data
@@ -102,23 +103,24 @@ class COM(StatBase):
     """
     Compute data center of mass
     """
+
     def __init__(self):
-        StatBase.__init__(self, name='COM', description="Center of mass")
+        StatBase.__init__(self, name="COM", description="Center of mass")
 
     def calculate(self, context):
-        if context.kind in ('curve', 'histogram'):
+        if context.kind in ("curve", "histogram"):
             xData, yData = context.data
             deno = numpy.sum(yData).astype(numpy.float32)
             if deno == 0.0:
                 return 0.0
             else:
                 return numpy.sum(xData * yData).astype(numpy.float32) / deno
-        elif context.kind == 'scatter':
+        elif context.kind == "scatter":
             xData, yData, values = context.data
             values = values.astype(numpy.float64)
             deno = numpy.sum(values)
             if deno == 0.0:
-                return float('inf'), float('inf')
+                return float("inf"), float("inf")
             else:
                 comX = numpy.sum(xData * values) / deno
                 comY = numpy.sum(yData * values) / deno
@@ -128,9 +130,8 @@ class COM(StatBase):
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--update-mode',
-        default='auto',
-        help='update mode to display (manual or auto)')
+        "--update-mode", default="auto", help="update mode to display (manual or auto)"
+    )
 
     options = parser.parse_args(argv[1:])
 
@@ -142,16 +143,18 @@ def main(argv):
     updateThread = UpdateThread(plot)
     updateThread.start()  # Start updating the plot
 
-    plot.addScatter(x=[0, 2, 5, 5, 12, 20],
-                    y=[2, 3, 4, 20, 15, 6],
-                    value=[5, 6, 7, 10, 90, 20],
-                    colormap=Colormap('viridis'),
-                    legend='myScatter')
+    plot.addScatter(
+        x=[0, 2, 5, 5, 12, 20],
+        y=[2, 3, 4, 20, 15, 6],
+        value=[5, 6, 7, 10, 90, 20],
+        colormap=Colormap("viridis"),
+        legend="myScatter",
+    )
 
     stats = [
-        ('sum', numpy.sum),
+        ("sum", numpy.sum),
         Integral(),
-        (COM(), '{0:.2f}'),
+        (COM(), "{0:.2f}"),
     ]
 
     plot.getStatsWidget().setStats(stats)
@@ -164,6 +167,7 @@ def main(argv):
     updateThread.stop()  # Stop updating the plot
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     main(sys.argv)

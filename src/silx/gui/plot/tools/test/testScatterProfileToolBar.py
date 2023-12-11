@@ -66,8 +66,9 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Add a scatter plot
         self.plot.addScatter(
-            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
-        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
+            x=(0.0, 1.0, 1.0, 0.0), y=(0.0, 0.0, 1.0, 1.0), value=(0.0, 1.0, 2.0, 3.0)
+        )
+        self.plot.resetZoom(dataMargins=(0.1, 0.1, 0.1, 0.1))
         self.qapp.processEvents()
 
         # Set a ROI profile
@@ -106,8 +107,9 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Add a scatter plot
         self.plot.addScatter(
-            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
-        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
+            x=(0.0, 1.0, 1.0, 0.0), y=(0.0, 0.0, 1.0, 1.0), value=(0.0, 1.0, 2.0, 3.0)
+        )
+        self.plot.resetZoom(dataMargins=(0.1, 0.1, 0.1, 0.1))
         self.qapp.processEvents()
 
         # Set a ROI profile
@@ -159,13 +161,14 @@ class TestScatterProfileToolBar(TestCaseQt, ParametricTestCase):
 
         # Add a scatter plot
         self.plot.addScatter(
-            x=(0., 1., 1., 0.), y=(0., 0., 1., 1.), value=(0., 1., 2., 3.))
-        self.plot.resetZoom(dataMargins=(.1, .1, .1, .1))
+            x=(0.0, 1.0, 1.0, 0.0), y=(0.0, 0.0, 1.0, 1.0), value=(0.0, 1.0, 2.0, 3.0)
+        )
+        self.plot.resetZoom(dataMargins=(0.1, 0.1, 0.1, 0.1))
         self.qapp.processEvents()
 
         # Set a ROI profile
         roi = rois.ProfileScatterLineROI()
-        roi.setEndPoints(numpy.array([0., 0.]), numpy.array([1., 1.]))
+        roi.setEndPoints(numpy.array([0.0, 0.0]), numpy.array([1.0, 1.0]))
         roi.setNPoints(8)
         roiManager.addRoi(roi)
 

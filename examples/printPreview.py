@@ -45,6 +45,7 @@ from silx.gui.plot import PrintPreviewToolButton
 class MyPrintPreviewButton(PrintPreviewToolButton.PrintPreviewToolButton):
     """This class illustrates how to subclass PrintPreviewToolButton
     to add a title and a comment."""
+
     def getTitle(self):
         return "Widget 1's plot"
 
@@ -77,7 +78,8 @@ pw2 = PlotWidget()
 pw2.setWindowTitle("Widget 2 with shared print preview")
 toolbar2 = qt.QToolBar(pw2)
 toolbutton2 = PrintPreviewToolButton.SingletonPrintPreviewToolButton(
-        parent=toolbar2, plot=pw2)
+    parent=toolbar2, plot=pw2
+)
 pw2.addToolBar(toolbar2)
 toolbar2.addWidget(toolbutton2)
 pw2.show()
@@ -88,7 +90,8 @@ pw3 = PlotWidget()
 pw3.setWindowTitle("Widget 3 with shared print preview")
 toolbar3 = qt.QToolBar(pw3)
 toolbutton3 = PrintPreviewToolButton.SingletonPrintPreviewToolButton(
-        parent=toolbar3, plot=pw3)
+    parent=toolbar3, plot=pw3
+)
 pw3.addToolBar(toolbar3)
 toolbar3.addWidget(toolbutton3)
 pw3.show()

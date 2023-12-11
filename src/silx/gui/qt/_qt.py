@@ -28,10 +28,13 @@ __license__ = "MIT"
 __date__ = "12/01/2022"
 
 
+import importlib
 import logging
+import os
 import sys
 import traceback
 
+from packaging.version import Version
 from silx.utils import deprecation
 
 _logger = logging.getLogger(__name__)
@@ -49,42 +52,68 @@ HAS_SVG = False
 HAS_OPENGL = False
 """True if Qt provides support for OpenGL (QtOpenGL)."""
 
-# First check for an already loaded wrapper
-for _binding in ('PyQt5', 'PySide6', 'PyQt6'):
-    if _binding + '.QtCore' in sys.modules:
-        BINDING = _binding
-        break
-else:  # Then try Qt bindings
-    try:
-        import PyQt5.QtCore  # noqa
-    except ImportError:
-        if 'PyQt5' in sys.modules:
-            del sys.modules["PyQt5"]
-        try:
-            import PySide6.QtCore  # noqa
-        except ImportError:
-            if 'PySide6' in sys.modules:
-                del sys.modules["PySide6"]
-            try:
-                import PyQt6.QtCore  # noqa
-            except ImportError:
-                if 'PyQt6' in sys.modules:
-                    del sys.modules["PyQt6"]
 
-                raise ImportError(
-                    'No Qt wrapper found. Install PyQt5, PySide6, PyQt6.')
-            else:
-                BINDING = 'PyQt6'
+def _select_binding() -> str:
+    """Select and load a Qt binding
+
+    Qt binding is selected according to:
+    - Already loaded binding
+    - QT_API environment variable
+    - Bindings order of priority
+
+    :raises ImportError:
+    :returns: Loaded binding
+    """
+    bindings = "PyQt5", "PySide6", "PyQt6"
+
+    envvar = os.environ.get("QT_API", "").lower()
+
+    # First check for an already loaded binding
+    for binding in bindings:
+        if f"{binding}.QtCore" in sys.modules:
+            if envvar and envvar != binding.lower():
+                _logger.warning(
+                    f"Cannot satisfy QT_API={envvar} environment variable, {binding} is already loaded"
+                )
+            return binding
+
+    # Check if QT_API can be satisfied
+    if envvar:
+        selection = [b for b in bindings if envvar == b.lower()]
+        if not selection:
+            _logger.warning(f"Environment variable QT_API={envvar} is not supported")
         else:
-            BINDING = 'PySide6'
-    else:
-        BINDING = 'PyQt5'
+            binding = selection[0]
+            try:
+                importlib.import_module(f"{binding}.QtCore")
+            except ImportError:
+                _logger.warning(
+                    f"Cannot import {binding} specified by QT_API environment variable"
+                )
+            else:
+                return binding
+
+    # Try to load binding
+    for binding in bindings:
+        try:
+            importlib.import_module(f"{binding}.QtCore")
+        except ImportError:
+            if binding in sys.modules:
+                del sys.modules[binding]
+        else:
+            return binding
+
+    raise ImportError("No Qt wrapper found. Install PyQt5, PySide6, PyQt6.")
 
 
-if BINDING == 'PyQt5':
-    _logger.debug('Using PyQt5 bindings')
+BINDING = _select_binding()
+
+
+if BINDING == "PyQt5":
+    _logger.debug("Using PyQt5 bindings")
     from PyQt5 import QtCore
-    if sys.version_info >= (3, 10) and QtCore.PYQT_VERSION < 0x50e02:
+
+    if sys.version_info >= (3, 10) and QtCore.PYQT_VERSION < 0x50E02:
         raise RuntimeError(
             "PyQt5 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
         )
@@ -122,14 +151,21 @@ if BINDING == 'PyQt5':
 
     # Disable PyQt5's cooperative multi-inheritance since other bindings do not provide it.
     # See https://www.riverbankcomputing.com/static/Docs/PyQt5/multiinheritance.html?highlight=inheritance
-    class _Foo(object): pass
-    class QObject(QObject, _Foo): pass
+    class _Foo(object):
+        pass
 
+    class QObject(QObject, _Foo):
+        pass
 
-elif BINDING == 'PySide6':
-    _logger.debug('Using PySide6 bindings')
+elif BINDING == "PySide6":
+    _logger.debug("Using PySide6 bindings")
 
     import PySide6 as QtBinding  # noqa
+
+    if Version(QtBinding.__version__) < Version("6.4"):
+        raise RuntimeError(
+            f"PySide6 v{QtBinding.__version__} is not supported, please upgrade it."
+        )
 
     from PySide6.QtCore import *  # noqa
     from PySide6.QtGui import *  # noqa
@@ -156,13 +192,14 @@ elif BINDING == 'PySide6':
     pyqtSignal = Signal
 
 
-elif BINDING == 'PyQt6':
-    _logger.debug('Using PyQt6 bindings')
+elif BINDING == "PyQt6":
+    _logger.debug("Using PyQt6 bindings")
 
     # Monkey-patch module to expose enum values for compatibility
     # All Qt modules loaded here should be patched.
     from . import _pyqt6
     from PyQt6 import QtCore
+
     if QtCore.PYQT_VERSION < int("0x60300", 16):
         raise RuntimeError(
             "PyQt6 v%s is not supported, please upgrade it." % QtCore.PYQT_VERSION_STR
@@ -170,8 +207,10 @@ elif BINDING == 'PyQt6':
 
     from PyQt6 import QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg
     from PyQt6 import QtTest as _QtTest
+
     _pyqt6.patch_enums(
-        QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg, _QtTest)
+        QtCore, QtGui, QtWidgets, QtPrintSupport, QtOpenGL, QtSvg, _QtTest
+    )
 
     import PyQt6 as QtBinding  # noqa
 
@@ -207,11 +246,14 @@ elif BINDING == 'PyQt6':
 
     # Disable PyQt6 cooperative multi-inheritance since other bindings do not provide it.
     # See https://www.riverbankcomputing.com/static/Docs/PyQt6/multiinheritance.html?highlight=inheritance
-    class _Foo(object): pass
-    class QObject(QObject, _Foo): pass
+    class _Foo(object):
+        pass
+
+    class QObject(QObject, _Foo):
+        pass
 
 else:
-    raise ImportError('No Qt wrapper found. Install PyQt5, PySide6 or PyQt6')
+    raise ImportError("No Qt wrapper found. Install PyQt5, PySide6 or PyQt6")
 
 
 # provide a exception handler but not implement it by default
@@ -228,11 +270,11 @@ def exceptionHandler(type_, value, trace):
             sys.excepthook = qt.exceptionHandler
 
     """
-    _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
+    _logger.error("%s %s %s", type_, value, "".join(traceback.format_tb(trace)))
     msg = QMessageBox()
     msg.setWindowTitle("Unhandled exception")
     msg.setIcon(QMessageBox.Critical)
     msg.setInformativeText("%s %s\nPlease report details" % (type_, value))
-    msg.setDetailedText(("%s " % value) + ''.join(traceback.format_tb(trace)))
+    msg.setDetailedText(("%s " % value) + "".join(traceback.format_tb(trace)))
     msg.raise_()
     msg.exec()

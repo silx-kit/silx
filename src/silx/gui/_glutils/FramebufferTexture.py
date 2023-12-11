@@ -53,13 +53,14 @@ class FramebufferTexture(object):
 
     _PACKED_FORMAT = gl.GL_DEPTH24_STENCIL8, gl.GL_DEPTH_STENCIL
 
-    def __init__(self,
-                 internalFormat,
-                 shape,
-                 stencilFormat=gl.GL_DEPTH24_STENCIL8,
-                 depthFormat=gl.GL_DEPTH24_STENCIL8,
-                 **kwargs):
-
+    def __init__(
+        self,
+        internalFormat,
+        shape,
+        stencilFormat=gl.GL_DEPTH24_STENCIL8,
+        depthFormat=gl.GL_DEPTH24_STENCIL8,
+        **kwargs,
+    ):
         self._texture = Texture(internalFormat, shape=shape, **kwargs)
         self._texture.prepare()
 
@@ -69,24 +70,28 @@ class FramebufferTexture(object):
 
         with self:  # Bind FBO
             # Attachments
-            gl.glFramebufferTexture2D(gl.GL_FRAMEBUFFER,
-                                      gl.GL_COLOR_ATTACHMENT0,
-                                      gl.GL_TEXTURE_2D,
-                                      self._texture.name,
-                                      0)
+            gl.glFramebufferTexture2D(
+                gl.GL_FRAMEBUFFER,
+                gl.GL_COLOR_ATTACHMENT0,
+                gl.GL_TEXTURE_2D,
+                self._texture.name,
+                0,
+            )
 
             height, width = self._texture.shape
 
             if stencilFormat is not None:
                 self._stencilId = gl.glGenRenderbuffers(1)
                 gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._stencilId)
-                gl.glRenderbufferStorage(gl.GL_RENDERBUFFER,
-                                         stencilFormat,
-                                         width, height)
-                gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
-                                             gl.GL_STENCIL_ATTACHMENT,
-                                             gl.GL_RENDERBUFFER,
-                                             self._stencilId)
+                gl.glRenderbufferStorage(
+                    gl.GL_RENDERBUFFER, stencilFormat, width, height
+                )
+                gl.glFramebufferRenderbuffer(
+                    gl.GL_FRAMEBUFFER,
+                    gl.GL_STENCIL_ATTACHMENT,
+                    gl.GL_RENDERBUFFER,
+                    self._stencilId,
+                )
             else:
                 self._stencilId = None
 
@@ -96,13 +101,15 @@ class FramebufferTexture(object):
                 else:
                     self._depthId = gl.glGenRenderbuffers(1)
                     gl.glBindRenderbuffer(gl.GL_RENDERBUFFER, self._depthId)
-                    gl.glRenderbufferStorage(gl.GL_RENDERBUFFER,
-                                             depthFormat,
-                                             width, height)
-                gl.glFramebufferRenderbuffer(gl.GL_FRAMEBUFFER,
-                                             gl.GL_DEPTH_ATTACHMENT,
-                                             gl.GL_RENDERBUFFER,
-                                             self._depthId)
+                    gl.glRenderbufferStorage(
+                        gl.GL_RENDERBUFFER, depthFormat, width, height
+                    )
+                gl.glFramebufferRenderbuffer(
+                    gl.GL_FRAMEBUFFER,
+                    gl.GL_DEPTH_ATTACHMENT,
+                    gl.GL_RENDERBUFFER,
+                    self._depthId,
+                )
             else:
                 self._depthId = None
 
@@ -110,7 +117,8 @@ class FramebufferTexture(object):
             if status != gl.GL_FRAMEBUFFER_COMPLETE:
                 _logger.error(
                     "OpenGL framebuffer initialization not complete, display may fail (error %d)",
-                    status)
+                    status,
+                )
 
     @property
     def shape(self):
@@ -130,8 +138,10 @@ class FramebufferTexture(object):
         if self._name is not None:
             return self._name
         else:
-            raise RuntimeError("No OpenGL framebuffer resource, \
-                               discard has already been called")
+            raise RuntimeError(
+                "No OpenGL framebuffer resource, \
+                               discard has already been called"
+            )
 
     def bind(self):
         """Bind this framebuffer for rendering"""

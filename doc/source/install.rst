@@ -7,15 +7,15 @@ programming language.
 
 This table summarizes the support matrix of silx:
 
-+------------+--------------+-----------------------------+
-| System     | Python vers. | Qt and its bindings         |
-+------------+--------------+-----------------------------+
-| `Windows`_ | 3.7-3.10     | PyQt5.6+, PySide6, PyQt6.3+ |
-+------------+--------------+-----------------------------+
-| `MacOS`_   | 3.7-3.10     | PyQt5.6+, PySide6, PyQt6.3+ |
-+------------+--------------+-----------------------------+
-| `Linux`_   | 3.7-3.10     | PyQt5.3+, PySide6, PyQt6.3+ |
-+------------+--------------+-----------------------------+
++------------+--------------+--------------------------------+
+| System     | Python vers. | Qt and its bindings            |
++------------+--------------+--------------------------------+
+| `Windows`_ | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
++------------+--------------+--------------------------------+
+| `MacOS`_   | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
++------------+--------------+--------------------------------+
+| `Linux`_   | 3.7-3.10     | PyQt5.9+, PySide6.4+, PyQt6.3+ |
++------------+--------------+--------------------------------+
 
 For the description of *silx* dependencies, see the Dependencies_ section.
 
@@ -329,6 +329,11 @@ To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
 
     To re-generate the example script screenshots, build the documentation with the
     environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
+
+Formatting
+++++++++++
+
+To format the code, use `black <https://black.readthedocs.io>`_.
 
 Testing
 +++++++

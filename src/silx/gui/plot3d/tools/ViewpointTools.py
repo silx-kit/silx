@@ -57,8 +57,8 @@ class ViewpointToolButton(qt.QToolButton):
 
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        self.setIcon(getQIcon('cube'))
-        self.setToolTip('Reset the viewpoint to a defined position')
+        self.setIcon(getQIcon("cube"))
+        self.setToolTip("Reset the viewpoint to a defined position")
 
     def setPlot3DWidget(self, widget):
         """Set the Plot3DWidget this toolbar is associated with

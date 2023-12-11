@@ -87,15 +87,16 @@ else:
     raise ImportError(msg)
 
 try:
-    from qtconsole.rich_jupyter_widget import RichJupyterWidget as \
-        _RichJupyterWidget
+    from qtconsole.rich_jupyter_widget import RichJupyterWidget as _RichJupyterWidget
 except ImportError:
     try:
-        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
-            _RichJupyterWidget
+        from qtconsole.rich_ipython_widget import (
+            RichJupyterWidget as _RichJupyterWidget,
+        )
     except ImportError:
-        from qtconsole.rich_ipython_widget import RichIPythonWidget as \
-            _RichJupyterWidget
+        from qtconsole.rich_ipython_widget import (
+            RichIPythonWidget as _RichJupyterWidget,
+        )
 
 from qtconsole.inprocess import QtInProcessKernelManager
 
@@ -126,11 +127,15 @@ class IPythonWidget(_RichJupyterWidget):
 
         # Monkey-patch to workaround issue:
         # https://github.com/ipython/ipykernel/issues/370
-        if (_ipykernel_version_info is not None and
-                _ipykernel_version_info[0] > 4 and
-                _ipykernel_version_info[:3] <= (5, 1, 0)):
+        if (
+            _ipykernel_version_info is not None
+            and _ipykernel_version_info[0] > 4
+            and _ipykernel_version_info[:3] <= (5, 1, 0)
+        ):
+
             def _abort_queues(*args, **kwargs):
                 pass
+
             kernel_manager.kernel._abort_queues = _abort_queues
 
         self.kernel_client = kernel_client = self._kernel_manager.client()
@@ -139,6 +144,7 @@ class IPythonWidget(_RichJupyterWidget):
         def stop():
             kernel_client.stop_channels()
             kernel_manager.shutdown_kernel()
+
         self.exit_requested.connect(stop)
 
     def sizeHint(self):
@@ -146,7 +152,7 @@ class IPythonWidget(_RichJupyterWidget):
         return qt.QSize(500, 300)
 
     def pushVariables(self, variable_dict):
-        """ Given a dictionary containing name / value pairs, push those
+        """Given a dictionary containing name / value pairs, push those
         variables to the IPython console widget.
 
         :param variable_dict: Dictionary of variables to be pushed to the
@@ -169,8 +175,10 @@ class IPythonDockWidget(qt.QDockWidget):
     :param parent: Parent :class:`qt.QMainWindow` containing this
         :class:`qt.QDockWidget`
     """
-    def __init__(self, parent=None, available_vars=None, custom_banner=None,
-                 title="Console"):
+
+    def __init__(
+        self, parent=None, available_vars=None, custom_banner=None, title="Console"
+    ):
         super(IPythonDockWidget, self).__init__(title, parent)
 
         self.ipyconsole = IPythonWidget(custom_banner=custom_banner)
@@ -190,5 +198,5 @@ def main():
     app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

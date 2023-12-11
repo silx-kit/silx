@@ -24,22 +24,22 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
-        # Python 3.8
-        - PYTHON_DIR: "C:\\Python38-x64"
+        # Python 3.9
+        - PYTHON_DIR: "C:\\Python39-x64"
           QT_BINDING: "PyQt5"
           WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
 
-        # Python 3.7
-        - PYTHON_DIR: "C:\\Python37-x64"
+        # Python 3.12
+        - PYTHON_DIR: "C:\\Python312-x64"
           QT_BINDING: "PySide6"
-          WITH_GL_TEST: False  # OpenGL not working
+          WITH_GL_TEST: True
           PIP_OPTIONS: "-q --pre"
 
-        # Python 3.10
-        - PYTHON_DIR: "C:\\Python310-x64"
+        # Python 3.11
+        - PYTHON_DIR: "C:\\Python311-x64"
           QT_BINDING: "PyQt6"
-          WITH_GL_TEST: False  # OpenGL not working
+          WITH_GL_TEST: True
           PIP_OPTIONS: "-q"
 
 
@@ -53,7 +53,6 @@ install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
     # Upgrade/install distribution modules
-    - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "python -m pip install %PIP_OPTIONS% --upgrade pip"
 
     # Download Mesa OpenGL in Python directory when testing OpenGL
@@ -65,7 +64,8 @@ build_script:
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
-    - "pip install %PIP_OPTIONS% --upgrade setuptools<60.0.0"
+    - "pip install %PIP_OPTIONS% --upgrade build"
+    - "pip install %PIP_OPTIONS% --upgrade setuptools"
     - "pip install %PIP_OPTIONS% --upgrade wheel"
     - "pip install %PIP_OPTIONS% --upgrade numpy"
     - "pip install %PIP_OPTIONS% --upgrade cython"
@@ -75,7 +75,7 @@ build_script:
     - "pip list --format=columns"
 
     # Build
-    - "python setup.py bdist_wheel"
+    - "python -m build --no-isolation --wheel"
     - ps: "ls dist"
 
     # Leave build virtualenv
@@ -95,6 +95,7 @@ before_test:
     - pip install %PIP_OPTIONS% -r requirements.txt
 
     # Install selected Qt binding
+    - "pip uninstall -y PyQt5 PySide6 PyQt6"
     - "pip install %PIP_OPTIONS% %QT_BINDING%"
 
     # Install pytest

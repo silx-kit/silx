@@ -58,12 +58,13 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
     """
 
     def __init__(self, parent):
-        plane = cutplane.CutPlane(normal=(0, 1, 0))
-
         Item3D.__init__(self, parent=None)
         ColormapMixIn.__init__(self)
         InterpolationMixIn.__init__(self)
-        PlaneMixIn.__init__(self, plane=plane)
+        PlaneMixIn.__init__(self)
+
+        plane = cutplane.CutPlane(normal=(0, 1, 0))
+        self._setPlane(plane)
 
         self._dataRange = None
         self._data = None
@@ -92,10 +93,13 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
         self._dataRange = range_
         if range_ is None:
             range_ = None, None, None
-        self._setColormappedData(self._data, copy=False,
-                                 min_=range_[0],
-                                 minPositive=range_[1],
-                                 max_=range_[2])
+        self._setColormappedData(
+            self._data,
+            copy=False,
+            min_=range_[0],
+            minPositive=range_[1],
+            max_=range_[2],
+        )
 
         self._updated(ItemChangedType.DATA)
 
@@ -184,10 +188,11 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
             rayObject[0, :3],
             rayObject[1, :3],
             planeNorm=self.getNormal(),
-            planePt=self.getPoint())
+            planePt=self.getPoint(),
+        )
 
         if len(points) == 1:  # Single intersection
-            if numpy.any(points[0] < 0.):
+            if numpy.any(points[0] < 0.0):
                 return None  # Outside volume
             z, y, x = int(points[0][2]), int(points[0][1]), int(points[0][0])
 
@@ -197,9 +202,9 @@ class CutPlane(Item3D, ColormapMixIn, InterpolationMixIn, PlaneMixIn):
 
             depth, height, width = data.shape
             if z < depth and y < height and x < width:
-                return PickingResult(self,
-                                     positions=[points[0]],
-                                     indices=([z], [y], [x]))
+                return PickingResult(
+                    self, positions=[points[0]], indices=([z], [y], [x])
+                )
             else:
                 return None  # Outside image
         else:  # Either no intersection or segment and image are coplanar
@@ -215,9 +220,9 @@ class Isosurface(Item3D):
     def __init__(self, parent):
         Item3D.__init__(self, parent=None)
         self._data = None
-        self._level = float('nan')
+        self._level = float("nan")
         self._autoLevelFunction = None
-        self._color = rgba('#FFD700FF')
+        self._color = rgba("#FFD700FF")
         self.setParent(parent)
 
     def _syncDataWithParent(self):
@@ -310,7 +315,7 @@ class Isosurface(Item3D):
         """
         primitive = self._getScenePrimitive()
         if len(primitive.children) != 0:
-            primitive.children[0].setAttribute('color', color)
+            primitive.children[0].setAttribute("color", color)
 
     def setColor(self, color):
         """Set the color of the iso-surface
@@ -334,7 +339,7 @@ class Isosurface(Item3D):
 
         if data is None:
             if self.isAutoLevel():
-                self._level = float('nan')
+                self._level = float("nan")
 
         else:
             if self.isAutoLevel():
@@ -349,12 +354,12 @@ class Isosurface(Item3D):
                         "Error while executing iso level function %s.%s",
                         module_,
                         name,
-                        exc_info=True)
-                    level = float('nan')
+                        exc_info=True,
+                    )
+                    level = float("nan")
 
                 else:
-                    _logger.info(
-                        'Computed iso-level in %f s.', time.time() - st)
+                    _logger.info("Computed iso-level in %f s.", time.time() - st)
 
                 if level != self._level:
                     self._level = level
@@ -362,10 +367,8 @@ class Isosurface(Item3D):
 
             if numpy.isfinite(self._level):
                 st = time.time()
-                vertices, normals, indices = MarchingCubes(
-                    data,
-                    isolevel=self._level)
-                _logger.info('Computed iso-surface in %f s.', time.time() - st)
+                vertices, normals, indices = MarchingCubes(data, isolevel=self._level)
+                _logger.info("Computed iso-surface in %f s.", time.time() - st)
 
                 if len(vertices) != 0:
                     return vertices, normals, indices
@@ -378,12 +381,14 @@ class Isosurface(Item3D):
 
         vertices, normals, indices = self._computeIsosurface()
         if vertices is not None:
-            mesh = primitives.Mesh3D(vertices,
-                                     colors=self._color,
-                                     normals=normals,
-                                     mode='triangles',
-                                     indices=indices,
-                                     copy=False)
+            mesh = primitives.Mesh3D(
+                vertices,
+                colors=self._color,
+                normals=normals,
+                mode="triangles",
+                indices=indices,
+                copy=False,
+            )
             self._getScenePrimitive().children = [mesh]
 
     def _pickFull(self, context):
@@ -399,8 +404,7 @@ class Isosurface(Item3D):
         rayObject = rayObject[:, :3]
 
         data = self.getData(copy=False)
-        bins = utils.segmentVolumeIntersect(
-            rayObject, numpy.array(data.shape) - 1)
+        bins = utils.segmentVolumeIntersect(rayObject, numpy.array(data.shape) - 1)
         if bins is None:
             return None
 
@@ -413,8 +417,10 @@ class Isosurface(Item3D):
 
         # check bin candidates
         level = self.getLevel()
-        mask = numpy.logical_and(numpy.nanmin(binsData, axis=1) <= level,
-                                 level <= numpy.nanmax(binsData, axis=1))
+        mask = numpy.logical_and(
+            numpy.nanmin(binsData, axis=1) <= level,
+            level <= numpy.nanmax(binsData, axis=1),
+        )
         bins = bins[mask]
         binsData = binsData[mask]
 
@@ -476,19 +482,23 @@ class ScalarField3D(BaseNodeItem):
         self._isogroup = primitives.GroupDepthOffset()
         self._isogroup.transforms = [
             # Convert from z, y, x from marching cubes to x, y, z
-            transform.Matrix((
-                (0., 0., 1., 0.),
-                (0., 1., 0., 0.),
-                (1., 0., 0., 0.),
-                (0., 0., 0., 1.))),
+            transform.Matrix(
+                (
+                    (0.0, 0.0, 1.0, 0.0),
+                    (0.0, 1.0, 0.0, 0.0),
+                    (1.0, 0.0, 0.0, 0.0),
+                    (0.0, 0.0, 0.0, 1.0),
+                )
+            ),
             # Offset to match cutting plane coords
-            transform.Translate(0.5, 0.5, 0.5)
+            transform.Translate(0.5, 0.5, 0.5),
         ]
 
         self._getScenePrimitive().children = [
             self._boundedGroup,
             self._cutPlane._getScenePrimitive(),
-            self._isogroup]
+            self._isogroup,
+        ]
 
     @staticmethod
     def _computeRangeFromData(data):
@@ -507,7 +517,7 @@ class ScalarField3D(BaseNodeItem):
         if dataRange is not None:
             min_positive = dataRange.min_positive
             if min_positive is None:
-                min_positive = float('nan')
+                min_positive = float("nan")
             return dataRange.minimum, min_positive, dataRange.maximum
 
     def setData(self, data, copy=True):
@@ -526,7 +536,7 @@ class ScalarField3D(BaseNodeItem):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.float32, order='C')
+            data = numpy.array(data, copy=copy, dtype=numpy.float32, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 
@@ -625,8 +635,8 @@ class ScalarField3D(BaseNodeItem):
         """
         if isosurface not in self.getIsosurfaces():
             _logger.warning(
-                "Try to remove isosurface that is not in the list: %s",
-                str(isosurface))
+                "Try to remove isosurface that is not in the list: %s", str(isosurface)
+            )
         else:
             isosurface.sigItemChanged.disconnect(self._isosurfaceItemChanged)
             self._isosurfaces.remove(isosurface)
@@ -646,8 +656,9 @@ class ScalarField3D(BaseNodeItem):
     def _updateIsosurfaces(self):
         """Handle updates of iso-surfaces level and add/remove"""
         # Sorting using minus, this supposes data 'object' to be max values
-        sortedIso = sorted(self.getIsosurfaces(),
-                           key=lambda isosurface: - isosurface.getLevel())
+        sortedIso = sorted(
+            self.getIsosurfaces(), key=lambda isosurface: -isosurface.getLevel()
+        )
         self._isogroup.children = [iso._getScenePrimitive() for iso in sortedIso]
 
     # BaseNodeItem
@@ -663,6 +674,7 @@ class ScalarField3D(BaseNodeItem):
 ##################
 # ComplexField3D #
 ##################
+
 
 class ComplexCutPlane(CutPlane, ComplexMixIn):
     """Class representing a cutting plane in a :class:`ComplexField3D` item.
@@ -701,8 +713,9 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
     :param parent: The DataItem3D this iso-surface belongs to
     """
 
-    _SUPPORTED_COMPLEX_MODES = \
-        (ComplexMixIn.ComplexMode.NONE,) + ComplexMixIn._SUPPORTED_COMPLEX_MODES
+    _SUPPORTED_COMPLEX_MODES = (
+        ComplexMixIn.ComplexMode.NONE,
+    ) + ComplexMixIn._SUPPORTED_COMPLEX_MODES
     """Overrides supported ComplexMode"""
 
     def __init__(self, parent):
@@ -717,8 +730,9 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         :param List[float] color: RGBA channels in [0, 1]
         """
         primitive = self._getScenePrimitive()
-        if (len(primitive.children) != 0 and
-                isinstance(primitive.children[0], primitives.ColormapMesh3D)):
+        if len(primitive.children) != 0 and isinstance(
+            primitive.children[0], primitives.ColormapMesh3D
+        ):
             primitive.children[0].alpha = self._color[3]
         else:
             super(ComplexIsosurface, self)._updateColor(color)
@@ -729,15 +743,14 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         if parent is None:
             self._data = None
         else:
-            self._data = parent.getData(
-                mode=parent.getComplexMode(), copy=False)
+            self._data = parent.getData(mode=parent.getComplexMode(), copy=False)
 
         if parent is None or self.getComplexMode() == self.ComplexMode.NONE:
             self._setColormappedData(None, copy=False)
         else:
             self._setColormappedData(
-                parent.getData(mode=self.getComplexMode(), copy=False),
-                copy=False)
+                parent.getData(mode=self.getComplexMode(), copy=False), copy=False
+            )
 
         self._updateScenePrimitive()
 
@@ -755,8 +768,7 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
         if event == ItemChangedType.COMPLEX_MODE:
             self._syncDataWithParent()
 
-        elif event in (ItemChangedType.COLORMAP,
-                       Item3DChangedType.INTERPOLATION):
+        elif event in (ItemChangedType.COLORMAP, Item3DChangedType.INTERPOLATION):
             self._updateScenePrimitive()
         super(ComplexIsosurface, self)._updated(event)
 
@@ -772,7 +784,7 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
             if values is not None:
                 vertices, normals, indices = self._computeIsosurface()
                 if vertices is not None:
-                    values = interp3d(values, vertices, method='linear_omp')
+                    values = interp3d(values, vertices, method="linear_omp")
                     # TODO reuse isosurface when only color changes...
 
                     mesh = primitives.ColormapMesh3D(
@@ -780,9 +792,10 @@ class ComplexIsosurface(Isosurface, ComplexMixIn, ColormapMixIn):
                         value=values.reshape(-1, 1),
                         colormap=self._getSceneColormap(),
                         normal=normals,
-                        mode='triangles',
+                        mode="triangles",
                         indices=indices,
-                        copy=False)
+                        copy=False,
+                    )
                     mesh.alpha = self._color[3]
                     self._getScenePrimitive().children = [mesh]
 
@@ -826,7 +839,7 @@ class ComplexField3D(ScalarField3D, ComplexMixIn):
             self._boundedGroup.shape = None
 
         else:
-            data = numpy.array(data, copy=copy, dtype=numpy.complex64, order='C')
+            data = numpy.array(data, copy=copy, dtype=numpy.complex64, order="C")
             assert data.ndim == 3
             assert min(data.shape) >= 2
 

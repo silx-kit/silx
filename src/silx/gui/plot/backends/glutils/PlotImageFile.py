@@ -37,6 +37,7 @@ from fabio.TiffIO import TiffIO
 
 # Image writer ################################################################
 
+
 def convertRGBDataToPNG(data):
     """Convert a RGB bitmap to PNG.
 
@@ -54,29 +55,42 @@ def convertRGBDataToPNG(data):
     colorType = 2  # 'truecolor' = RGB
     interlace = 0  # No
 
-    IHDRdata = struct.pack(">ccccIIBBBBB", b'I', b'H', b'D', b'R',
-                           width, height, depth, colorType,
-                           0, 0, interlace)
+    IHDRdata = struct.pack(
+        ">ccccIIBBBBB",
+        b"I",
+        b"H",
+        b"D",
+        b"R",
+        width,
+        height,
+        depth,
+        colorType,
+        0,
+        0,
+        interlace,
+    )
 
     # Add filter 'None' before each scanline
-    preparedData = b'\x00' + b'\x00'.join(line.tobytes() for line in data)
+    preparedData = b"\x00" + b"\x00".join(line.tobytes() for line in data)
     compressedData = zlib.compress(preparedData, 8)
 
-    IDATdata = struct.pack("cccc", b'I', b'D', b'A', b'T')
+    IDATdata = struct.pack("cccc", b"I", b"D", b"A", b"T")
     IDATdata += compressedData
 
-    return b''.join([
-        b'\x89PNG\r\n\x1a\n',  # PNG signature
-        # IHDR chunk: Image Header
-        struct.pack(">I", 13),  # length
-        IHDRdata,
-        struct.pack(">I", zlib.crc32(IHDRdata) & 0xffffffff),  # CRC
-        # IDAT chunk: Payload
-        struct.pack(">I", len(compressedData)),
-        IDATdata,
-        struct.pack(">I", zlib.crc32(IDATdata) & 0xffffffff),  # CRC
-        b'\x00\x00\x00\x00IEND\xaeB`\x82'  # IEND chunk: footer
-    ])
+    return b"".join(
+        [
+            b"\x89PNG\r\n\x1a\n",  # PNG signature
+            # IHDR chunk: Image Header
+            struct.pack(">I", 13),  # length
+            IHDRdata,
+            struct.pack(">I", zlib.crc32(IHDRdata) & 0xFFFFFFFF),  # CRC
+            # IDAT chunk: Payload
+            struct.pack(">I", len(compressedData)),
+            IDATdata,
+            struct.pack(">I", zlib.crc32(IDATdata) & 0xFFFFFFFF),  # CRC
+            b"\x00\x00\x00\x00IEND\xaeB`\x82",  # IEND chunk: footer
+        ]
+    )
 
 
 def saveImageToFile(data, fileNameOrObj, fileFormat):
@@ -90,59 +104,56 @@ def saveImageToFile(data, fileNameOrObj, fileFormat):
     """
     assert len(data.shape) == 3
     assert data.shape[2] == 3
-    assert fileFormat in ('png', 'ppm', 'svg', 'tif', 'tiff')
+    assert fileFormat in ("png", "ppm", "svg", "tif", "tiff")
 
-    if not hasattr(fileNameOrObj, 'write'):
-        if fileFormat in ('png', 'ppm', 'tiff'):
+    if not hasattr(fileNameOrObj, "write"):
+        if fileFormat in ("png", "ppm", "tiff"):
             # Open in binary mode
-            fileObj = open(fileNameOrObj, 'wb')
+            fileObj = open(fileNameOrObj, "wb")
         else:
-            fileObj = open(fileNameOrObj, 'w', newline='')
+            fileObj = open(fileNameOrObj, "w", newline="")
     else:  # Use as a file-like object
         fileObj = fileNameOrObj
 
-    if fileFormat == 'svg':
+    if fileFormat == "svg":
         height, width = data.shape[:2]
         base64Data = base64.b64encode(convertRGBDataToPNG(data))
 
-        fileObj.write(
-            '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n')
+        fileObj.write('<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n')
         fileObj.write('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"\n')
-        fileObj.write(
-            '  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
+        fileObj.write('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
         fileObj.write('<svg xmlns:xlink="http://www.w3.org/1999/xlink"\n')
         fileObj.write('     xmlns="http://www.w3.org/2000/svg"\n')
         fileObj.write('     version="1.1"\n')
         fileObj.write('     width="%d"\n' % width)
         fileObj.write('     height="%d">\n' % height)
         fileObj.write('    <image xlink:href="data:image/png;base64,')
-        fileObj.write(base64Data.decode('ascii'))
+        fileObj.write(base64Data.decode("ascii"))
         fileObj.write('"\n')
         fileObj.write('           x="0"\n')
         fileObj.write('           y="0"\n')
         fileObj.write('           width="%d"\n' % width)
         fileObj.write('           height="%d"\n' % height)
         fileObj.write('           id="image" />\n')
-        fileObj.write('</svg>')
+        fileObj.write("</svg>")
 
-    elif fileFormat == 'ppm':
+    elif fileFormat == "ppm":
         height, width = data.shape[:2]
 
-        fileObj.write(b'P6\n')
-        fileObj.write(b'%d %d\n' % (width, height))
-        fileObj.write(b'255\n')
+        fileObj.write(b"P6\n")
+        fileObj.write(b"%d %d\n" % (width, height))
+        fileObj.write(b"255\n")
         fileObj.write(data.tobytes())
 
-    elif fileFormat == 'png':
+    elif fileFormat == "png":
         fileObj.write(convertRGBDataToPNG(data))
 
-    elif fileFormat in ('tif', 'tiff'):
+    elif fileFormat in ("tif", "tiff"):
         if fileObj == fileNameOrObj:
-            raise NotImplementedError(
-                'Save TIFF to a file-like object not implemented')
+            raise NotImplementedError("Save TIFF to a file-like object not implemented")
 
-        tif = TiffIO(fileNameOrObj, mode='wb+')
-        tif.writeImage(data, info={'Title': 'OpenGL Plot Snapshot'})
+        tif = TiffIO(fileNameOrObj, mode="wb+")
+        tif.writeImage(data, info={"Title": "OpenGL Plot Snapshot"})
 
     if fileObj != fileNameOrObj:
         fileObj.close()

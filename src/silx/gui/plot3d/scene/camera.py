@@ -35,6 +35,7 @@ from . import transform
 
 # CameraExtrinsic #############################################################
 
+
 class CameraExtrinsic(transform.Transform):
     """Transform matrix to handle camera position and orientation.
 
@@ -46,21 +47,19 @@ class CameraExtrinsic(transform.Transform):
     :type up: numpy.ndarray-like of 3 float32.
     """
 
-    def __init__(self, position=(0., 0., 0.),
-                 direction=(0., 0., -1.),
-                 up=(0., 1., 0.)):
-
+    def __init__(
+        self, position=(0.0, 0.0, 0.0), direction=(0.0, 0.0, -1.0), up=(0.0, 1.0, 0.0)
+    ):
         super(CameraExtrinsic, self).__init__()
         self._position = None
         self.position = position  # set _position
-        self._side = 1., 0., 0.
-        self._up = 0., 1., 0.
-        self._direction = 0., 0., -1.
+        self._side = 1.0, 0.0, 0.0
+        self._up = 0.0, 1.0, 0.0
+        self._direction = 0.0, 0.0, -1.0
         self.setOrientation(direction=direction, up=up)  # set _direction, _up
 
     def _makeMatrix(self):
-        return transform.mat4LookAtDir(self._position,
-                                       self._direction, self._up)
+        return transform.mat4LookAtDir(self._position, self._direction, self._up)
 
     def copy(self):
         """Return an independent copy"""
@@ -93,8 +92,8 @@ class CameraExtrinsic(transform.Transform):
         # Update side and up to make sure they are perpendicular and normalized
         side = numpy.cross(direction, up)
         sidenormal = numpy.linalg.norm(side)
-        if sidenormal == 0.:
-            raise RuntimeError('direction and up vectors are parallel.')
+        if sidenormal == 0.0:
+            raise RuntimeError("direction and up vectors are parallel.")
             # Alternative: when one of the input parameter is None, it is
             # possible to guess correct vectors using previous direction and up
         side /= sidenormal
@@ -128,8 +127,7 @@ class CameraExtrinsic(transform.Transform):
 
     @property
     def up(self):
-        """Vector pointing upward in the image plane (ndarray of 3 float32).
-        """
+        """Vector pointing upward in the image plane (ndarray of 3 float32)."""
         return self._up.copy()
 
     @up.setter
@@ -143,7 +141,7 @@ class CameraExtrinsic(transform.Transform):
         ndarray of 3 float32"""
         return self._side.copy()
 
-    def move(self, direction, step=1.):
+    def move(self, direction, step=1.0):
         """Move the camera relative to the image plane.
 
         :param str direction: Direction relative to image plane.
@@ -152,35 +150,35 @@ class CameraExtrinsic(transform.Transform):
         :param float step: The step of the pan to perform in the coordinate
                            in which the camera position is defined.
         """
-        if direction in ('up', 'down'):
-            vector = self.up * (1. if direction == 'up' else -1.)
-        elif direction in ('left', 'right'):
-            vector = self.side * (1. if direction == 'right' else -1.)
-        elif direction in ('forward', 'backward'):
-            vector = self.direction * (1. if direction == 'forward' else -1.)
+        if direction in ("up", "down"):
+            vector = self.up * (1.0 if direction == "up" else -1.0)
+        elif direction in ("left", "right"):
+            vector = self.side * (1.0 if direction == "right" else -1.0)
+        elif direction in ("forward", "backward"):
+            vector = self.direction * (1.0 if direction == "forward" else -1.0)
         else:
-            raise ValueError('Unsupported direction: %s' % direction)
+            raise ValueError("Unsupported direction: %s" % direction)
 
         self.position += step * vector
 
-    def rotate(self, direction, angle=1.):
+    def rotate(self, direction, angle=1.0):
         """First-person rotation of the camera towards the direction.
 
         :param str direction: Direction of movement relative to image plane.
                               In: 'up', 'down', 'left', 'right'.
         :param float angle: The angle in degrees of the rotation.
         """
-        if direction in ('up', 'down'):
-            axis = self.side * (1. if direction == 'up' else -1.)
-        elif direction in ('left', 'right'):
-            axis = self.up * (1. if direction == 'left' else -1.)
+        if direction in ("up", "down"):
+            axis = self.side * (1.0 if direction == "up" else -1.0)
+        elif direction in ("left", "right"):
+            axis = self.up * (1.0 if direction == "left" else -1.0)
         else:
-            raise ValueError('Unsupported direction: %s' % direction)
+            raise ValueError("Unsupported direction: %s" % direction)
 
         matrix = transform.mat4RotateFromAngleAxis(numpy.radians(angle), *axis)
         newdir = numpy.dot(matrix[:3, :3], self.direction)
 
-        if direction in ('up', 'down'):
+        if direction in ("up", "down"):
             # Rotate up to avoid up and new direction to be (almost) co-linear
             newup = numpy.dot(matrix[:3, :3], self.up)
             self.setOrientation(newdir, newup)
@@ -188,7 +186,7 @@ class CameraExtrinsic(transform.Transform):
             # No need to rotate up here as it is the rotation axis
             self.direction = newdir
 
-    def orbit(self, direction, center=(0., 0., 0.), angle=1.):
+    def orbit(self, direction, center=(0.0, 0.0, 0.0), angle=1.0):
         """Rotate the camera around a point.
 
         :param str direction: Direction of movement relative to image plane.
@@ -197,33 +195,32 @@ class CameraExtrinsic(transform.Transform):
         :type center: numpy.ndarray-like of 3 float32.
         :param float angle: he angle in degrees of the rotation.
         """
-        if direction in ('up', 'down'):
-            axis = self.side * (1. if direction == 'down' else -1.)
-        elif direction in ('left', 'right'):
-            axis = self.up * (1. if direction == 'right' else -1.)
+        if direction in ("up", "down"):
+            axis = self.side * (1.0 if direction == "down" else -1.0)
+        elif direction in ("left", "right"):
+            axis = self.up * (1.0 if direction == "right" else -1.0)
         else:
-            raise ValueError('Unsupported direction: %s' % direction)
+            raise ValueError("Unsupported direction: %s" % direction)
 
         # Rotate viewing direction
-        rotmatrix = transform.mat4RotateFromAngleAxis(
-            numpy.radians(angle), *axis)
+        rotmatrix = transform.mat4RotateFromAngleAxis(numpy.radians(angle), *axis)
         self.direction = numpy.dot(rotmatrix[:3, :3], self.direction)
 
         # Rotate position around center
         center = numpy.array(center, copy=False, dtype=numpy.float32)
         matrix = numpy.dot(transform.mat4Translate(*center), rotmatrix)
         matrix = numpy.dot(matrix, transform.mat4Translate(*(-center)))
-        position = numpy.append(self.position, 1.)
+        position = numpy.append(self.position, 1.0)
         self.position = numpy.dot(matrix, position)[:3]
 
     _RESET_CAMERA_ORIENTATIONS = {
-        'side': ((-1., -1., -1.), (0., 1., 0.)),
-        'front': ((0., 0., -1.), (0., 1., 0.)),
-        'back': ((0., 0., 1.), (0., 1., 0.)),
-        'top': ((0., -1., 0.), (0., 0., -1.)),
-        'bottom': ((0., 1., 0.), (0., 0., 1.)),
-        'right': ((-1., 0., 0.), (0., 1., 0.)),
-        'left': ((1., 0., 0.), (0., 1., 0.))
+        "side": ((-1.0, -1.0, -1.0), (0.0, 1.0, 0.0)),
+        "front": ((0.0, 0.0, -1.0), (0.0, 1.0, 0.0)),
+        "back": ((0.0, 0.0, 1.0), (0.0, 1.0, 0.0)),
+        "top": ((0.0, -1.0, 0.0), (0.0, 0.0, -1.0)),
+        "bottom": ((0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),
+        "right": ((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
+        "left": ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0)),
     }
 
     def reset(self, face=None):
@@ -233,12 +230,12 @@ class CameraExtrinsic(transform.Transform):
                          side, front, back, top, bottom, right, left.
         """
         if face not in self._RESET_CAMERA_ORIENTATIONS:
-            raise ValueError('Unsupported face: %s' % face)
+            raise ValueError("Unsupported face: %s" % face)
 
         distance = numpy.linalg.norm(self.position)
         direction, up = self._RESET_CAMERA_ORIENTATIONS[face]
         self.setOrientation(direction, up)
-        self.position = - self.direction * distance
+        self.position = -self.direction * distance
 
 
 class Camera(transform.Transform):
@@ -260,9 +257,16 @@ class Camera(transform.Transform):
     :type up: numpy.ndarray-like of 3 float32.
     """
 
-    def __init__(self, fovy=30., near=0.1, far=1., size=(1., 1.),
-                 position=(0., 0., 0.),
-                 direction=(0., 0., -1.), up=(0., 1., 0.)):
+    def __init__(
+        self,
+        fovy=30.0,
+        near=0.1,
+        far=1.0,
+        size=(1.0, 1.0),
+        position=(0.0, 0.0, 0.0),
+        direction=(0.0, 0.0, -1.0),
+        up=(0.0, 1.0, 0.0),
+    ):
         super(Camera, self).__init__()
         self._intrinsic = transform.Perspective(fovy, near, far, size)
         self._intrinsic.addListener(self._transformChanged)
@@ -289,8 +293,8 @@ class Camera(transform.Transform):
 
         center = 0.5 * (bounds[0] + bounds[1])
         radius = numpy.linalg.norm(0.5 * (bounds[1] - bounds[0]))
-        if radius == 0.:  # bounds are all collapsed
-            radius = 1.
+        if radius == 0.0:  # bounds are all collapsed
+            radius = 1.0
 
         if isinstance(self.intrinsic, transform.Perspective):
             # Get the viewpoint distance from the bounds center
@@ -302,8 +306,7 @@ class Camera(transform.Transform):
             offset = radius / numpy.sin(0.5 * minfov)
 
             # Update camera
-            self.extrinsic.position = \
-                center - offset * self.extrinsic.direction
+            self.extrinsic.position = center - offset * self.extrinsic.direction
             self.intrinsic.setDepthExtent(offset - radius, offset + radius)
 
         elif isinstance(self.intrinsic, transform.Orthographic):
@@ -312,14 +315,14 @@ class Camera(transform.Transform):
                 left=center[0] - radius,
                 right=center[0] + radius,
                 bottom=center[1] - radius,
-                top=center[1] + radius)
+                top=center[1] + radius,
+            )
 
             # Update camera
             self.extrinsic.position = 0, 0, 0
-            self.intrinsic.setDepthExtent(center[2] - radius,
-                                          center[2] + radius)
+            self.intrinsic.setDepthExtent(center[2] - radius, center[2] + radius)
         else:
-            raise RuntimeError('Unsupported camera: %s' % self.intrinsic)
+            raise RuntimeError("Unsupported camera: %s" % self.intrinsic)
 
     @property
     def intrinsic(self):

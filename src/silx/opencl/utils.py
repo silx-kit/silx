@@ -43,9 +43,13 @@ def calc_size(shape, blocksize):
     Calculate the optimal size for a kernel according to the workgroup size
     """
     if "__len__" in dir(blocksize):
-        return tuple((int(i) + int(j) - 1) & ~(int(j) - 1) for i, j in zip(shape, blocksize))
+        return tuple(
+            (int(i) + int(j) - 1) & ~(int(j) - 1) for i, j in zip(shape, blocksize)
+        )
     else:
-        return tuple((int(i) + int(blocksize) - 1) & ~(int(blocksize) - 1) for i in shape)
+        return tuple(
+            (int(i) + int(blocksize) - 1) & ~(int(blocksize) - 1) for i in shape
+        )
 
 
 def nextpower(n):
@@ -88,8 +92,7 @@ def get_cl_file(resource):
     """
     if not resource.endswith(".cl"):
         resource += ".cl"
-    return resources._resource_filename(resource,
-                                        default_directory="opencl")
+    return resources._resource_filename(resource, default_directory="opencl")
 
 
 def read_cl_file(filename):
@@ -118,8 +121,6 @@ def concatenate_cl_kernel(filenames):
     return os.linesep.join(read_cl_file(fn) for fn in filenames)
 
 
-
-
 class ConvolutionInfos(object):
     allowed_axes = {
         "1D": [None],
@@ -132,10 +133,10 @@ class ConvolutionInfos(object):
             (2, 0, 1),
             (2, 1, 0),
             (1, 0, 2),
-            (0, 2, 1)
+            (0, 2, 1),
         ],
         "batched_1D_3D": [(0,), (1,), (2,)],
-        "batched_separable_2D_1D_3D": [(0,), (1,), (2,)], # unsupported (?)
+        "batched_separable_2D_1D_3D": [(0,), (1,), (2,)],  # unsupported (?)
         "2D": [None],
         "batched_2D_3D": [(0,), (1,), (2,)],
         "separable_3D_2D_3D": [
@@ -202,10 +203,3 @@ class ConvolutionInfos(object):
             },
         },
     }
-
-
-
-
-
-
-

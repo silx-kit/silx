@@ -54,12 +54,14 @@ class MedianFilterAction(PlotToolAction):
     """
 
     def __init__(self, plot, parent=None):
-        PlotToolAction.__init__(self,
-                                plot,
-                                icon='median-filter',
-                                text='median filter',
-                                tooltip='Apply a median filter on the image',
-                                parent=parent)
+        PlotToolAction.__init__(
+            self,
+            plot,
+            icon="median-filter",
+            text="median filter",
+            tooltip="Apply a median filter on the image",
+            parent=parent,
+        )
         self._originalImage = None
         self._legend = None
         self._filteredImage = None
@@ -85,7 +87,9 @@ class MedianFilterAction(PlotToolAction):
             self._originalImage = None
             self._legend = None
         else:
-            self._originalImage = self.plot.getImage(self._activeImageLegend).getData(copy=False)
+            self._originalImage = self.plot.getImage(self._activeImageLegend).getData(
+                copy=False
+            )
             self._legend = self.plot.getImage(self._activeImageLegend).getName()
 
     def _updateFilter(self, kernelWidth, conditional=False):
@@ -94,13 +98,11 @@ class MedianFilterAction(PlotToolAction):
 
         self.plot.sigActiveImageChanged.disconnect(self._updateActiveImage)
         filteredImage = self._computeFilteredImage(kernelWidth, conditional)
-        self.plot.addImage(data=filteredImage,
-                           legend=self._legend,
-                           replace=True)
+        self.plot.addImage(data=filteredImage, legend=self._legend, replace=True)
         self.plot.sigActiveImageChanged.connect(self._updateActiveImage)
 
     def _computeFilteredImage(self, kernelWidth, conditional):
-        raise NotImplementedError('MedianFilterAction is a an abstract class')
+        raise NotImplementedError("MedianFilterAction is a an abstract class")
 
     def getFilteredImage(self):
         """
@@ -114,16 +116,13 @@ class MedianFilter1DAction(MedianFilterAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
-        MedianFilterAction.__init__(self,
-                                    plot,
-                                    parent=parent)
+        MedianFilterAction.__init__(self, plot, parent=parent)
 
     def _computeFilteredImage(self, kernelWidth, conditional):
-        assert(self.plot is not None)
-        return medfilt2d(self._originalImage,
-                         (kernelWidth, 1),
-                         conditional)
+        assert self.plot is not None
+        return medfilt2d(self._originalImage, (kernelWidth, 1), conditional)
 
 
 class MedianFilter2DAction(MedianFilterAction):
@@ -132,13 +131,10 @@ class MedianFilter2DAction(MedianFilterAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
-        MedianFilterAction.__init__(self,
-                                    plot,
-                                    parent=parent)
+        MedianFilterAction.__init__(self, plot, parent=parent)
 
     def _computeFilteredImage(self, kernelWidth, conditional):
-        assert(self.plot is not None)
-        return medfilt2d(self._originalImage,
-                         (kernelWidth, kernelWidth),
-                         conditional)
+        assert self.plot is not None
+        return medfilt2d(self._originalImage, (kernelWidth, kernelWidth), conditional)

@@ -43,6 +43,7 @@ class KindsSelector(qt.QListWidget):
     """List widget allowing to select plot item kinds
     ("curve", "scatter", "image"...)
     """
+
     sigSelectedKindsChanged = qt.Signal(list)
 
     def __init__(self, parent=None, kinds=None):
@@ -87,8 +88,10 @@ class KindsSelector(qt.QListWidget):
 
     def selectAll(self):
         """Select all available kinds."""
-        if self.selectionMode() in [qt.QAbstractItemView.SingleSelection,
-                                    qt.QAbstractItemView.NoSelection]:
+        if self.selectionMode() in [
+            qt.QAbstractItemView.SingleSelection,
+            qt.QAbstractItemView.NoSelection,
+        ]:
             raise RuntimeError("selectAll requires a multiple selection mode")
         for i in range(self.count()):
             self.item(i).setSelected(True)
@@ -102,6 +105,7 @@ class PlotItemsSelector(qt.QTableWidget):
     You can be warned of selection changes by listening to signal
     :attr:`itemSelectionChanged`.
     """
+
     def __init__(self, parent=None, plot=None):
         if plot is None or not isinstance(plot, PlotWidget):
             raise AttributeError("parameter plot is required")
@@ -131,8 +135,9 @@ class PlotItemsSelector(qt.QTableWidget):
         :param list[str] kinds: Sequence of kinds
         """
         if not set(kinds) <= set(PlotWidget.ITEM_KINDS):
-            raise KeyError("Illegal plot item kinds: %s" %
-                           set(kinds) - set(PlotWidget.ITEM_KINDS))
+            raise KeyError(
+                "Illegal plot item kinds: %s" % set(kinds) - set(PlotWidget.ITEM_KINDS)
+            )
         self.plot_item_kinds = kinds
 
         self.updatePlotItems()
@@ -199,6 +204,7 @@ class ItemsSelectionDialog(qt.QDialog):
         else:
             print("Selection cancelled")
     """
+
     def __init__(self, parent=None, plot=None):
         if plot is None or not isinstance(plot, PlotWidget):
             raise AttributeError("parameter plot is required")
@@ -211,7 +217,8 @@ class ItemsSelectionDialog(qt.QDialog):
 
         self.kind_selector = KindsSelector(self)
         self.kind_selector.setToolTip(
-                "select one or more item kinds to show them in the item list")
+            "select one or more item kinds to show them in the item list"
+        )
 
         self.item_selector = PlotItemsSelector(self, plot)
         self.item_selector.setToolTip("select items")
@@ -261,25 +268,26 @@ class ItemsSelectionDialog(qt.QDialog):
         :param mode: One of :class:`QTableWidget` selection modes
         """
         if mode == self.item_selector.SingleSelection:
-            self.item_selector.setToolTip(
-                    "Select one item by clicking on it.")
+            self.item_selector.setToolTip("Select one item by clicking on it.")
         elif mode == self.item_selector.MultiSelection:
             self.item_selector.setToolTip(
-                    "Select one or more items by clicking with the left mouse"
-                    " button.\nYou can unselect items by clicking them again.\n"
-                    "Multiple items can be toggled by dragging the mouse over them.")
+                "Select one or more items by clicking with the left mouse"
+                " button.\nYou can unselect items by clicking them again.\n"
+                "Multiple items can be toggled by dragging the mouse over them."
+            )
         elif mode == self.item_selector.ExtendedSelection:
             self.item_selector.setToolTip(
-                    "Select one or more items. You can select multiple items "
-                    "by keeping the Ctrl key pushed when clicking.\nYou can "
-                    "select a range of items by clicking on the first and "
-                    "last while keeping the Shift key pushed.")
+                "Select one or more items. You can select multiple items "
+                "by keeping the Ctrl key pushed when clicking.\nYou can "
+                "select a range of items by clicking on the first and "
+                "last while keeping the Shift key pushed."
+            )
         elif mode == self.item_selector.ContiguousSelection:
             self.item_selector.setToolTip(
-                    "Select one item by clicking on it. If you press the Shift"
-                    " key while clicking on a second item,\nall items between "
-                    "the two will be selected.")
+                "Select one item by clicking on it. If you press the Shift"
+                " key while clicking on a second item,\nall items between "
+                "the two will be selected."
+            )
         elif mode == self.item_selector.NoSelection:
-            raise ValueError("The NoSelection mode is not allowed "
-                             "in this context.")
+            raise ValueError("The NoSelection mode is not allowed " "in this context.")
         self.item_selector.setSelectionMode(mode)

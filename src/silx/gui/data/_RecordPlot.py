@@ -5,16 +5,28 @@ from .. import qt
 
 class RecordPlot(PlotWindow):
     def __init__(self, parent=None, backend=None):
-        super(RecordPlot, self).__init__(parent=parent, backend=backend,
-                                         resetzoom=True, autoScale=True,
-                                         logScale=True, grid=True,
-                                         curveStyle=True, colormap=False,
-                                         aspectRatio=False, yInverted=False,
-                                         copy=True, save=True, print_=True,
-                                         control=True, position=True,
-                                         roi=True, mask=False, fit=True)
+        super(RecordPlot, self).__init__(
+            parent=parent,
+            backend=backend,
+            resetzoom=True,
+            autoScale=True,
+            logScale=True,
+            grid=True,
+            curveStyle=True,
+            colormap=False,
+            aspectRatio=False,
+            yInverted=False,
+            copy=True,
+            save=True,
+            print_=True,
+            control=True,
+            position=True,
+            roi=True,
+            mask=False,
+            fit=True,
+        )
         if parent is None:
-            self.setWindowTitle('RecordPlot')
+            self.setWindowTitle("RecordPlot")
         self._axesSelectionToolBar = AxesSelectionToolBar(parent=self, plot=self)
         self.addToolBar(qt.Qt.BottomToolBarArea, self._axesSelectionToolBar)
 
@@ -23,7 +35,7 @@ class RecordPlot(PlotWindow):
 
         :param Union[str,None] value:
         """
-        label = '' if value is None else value
+        label = "" if value is None else value
         index = self._axesSelectionToolBar.getXAxisDropDown().findData(value)
 
         if index >= 0:
@@ -53,7 +65,7 @@ class RecordPlot(PlotWindow):
         """
         comboBox = self._axesSelectionToolBar.getXAxisDropDown()
         comboBox.clear()
-        comboBox.addItem('-', None)
+        comboBox.addItem("-", None)
         comboBox.insertSeparator(1)
         for name in fieldNames:
             comboBox.addItem(name, name)
@@ -65,8 +77,9 @@ class RecordPlot(PlotWindow):
     def getAxesSelectionToolBar(self):
         return self._axesSelectionToolBar
 
+
 class AxesSelectionToolBar(qt.QToolBar):
-    def __init__(self, parent=None, plot=None, title='Plot Axes Selection'):
+    def __init__(self, parent=None, plot=None, title="Plot Axes Selection"):
         super(AxesSelectionToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)

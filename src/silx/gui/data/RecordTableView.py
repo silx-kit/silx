@@ -53,8 +53,9 @@ class _MultiLineItem(qt.QItemDelegate):
         """
         qt.QItemDelegate.__init__(self, parent)
         self.__textOptions = qt.QTextOption()
-        self.__textOptions.setFlags(qt.QTextOption.IncludeTrailingSpaces |
-                                    qt.QTextOption.ShowTabsAndSpaces)
+        self.__textOptions.setFlags(
+            qt.QTextOption.IncludeTrailingSpaces | qt.QTextOption.ShowTabsAndSpaces
+        )
         self.__textOptions.setWrapMode(qt.QTextOption.NoWrap)
         self.__textOptions.setAlignment(qt.Qt.AlignTop | qt.Qt.AlignLeft)
 
@@ -148,7 +149,7 @@ class RecordTableModel(qt.QAbstractTableModel):
     :param numpy.ndarray data: A numpy array or a h5py dataset
     """
 
-    MAX_NUMBER_OF_ROWS = 10e6
+    MAX_NUMBER_OF_ROWS = int(10e6)
     """Maximum number of display values of the dataset"""
 
     def __init__(self, parent=None, data=None):
@@ -242,9 +243,11 @@ class RecordTableModel(qt.QAbstractTableModel):
             return None
 
         # Handle clipping of huge tables
-        if (self.__isClipped() and
-                orientation == qt.Qt.Vertical and
-                section == self.rowCount() - 2):
+        if (
+            self.__isClipped()
+            and orientation == qt.Qt.Vertical
+            and section == self.rowCount() - 2
+        ):
             return self.__clippedData(role)
 
         if role == qt.Qt.DisplayRole:
@@ -276,7 +279,11 @@ class RecordTableModel(qt.QAbstractTableModel):
 
     def __isClipped(self) -> bool:
         """Returns whether the displayed array is clipped or not"""
-        return self.__data is not None and self.__is_array and len(self.__data) > self.MAX_NUMBER_OF_ROWS
+        return (
+            self.__data is not None
+            and self.__is_array
+            and len(self.__data) > self.MAX_NUMBER_OF_ROWS
+        )
 
     def setArrayData(self, data):
         """Set the data array and the viewing perspective.
@@ -359,8 +366,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         return self.__formatter
 
     def __formatChanged(self):
-        """Called when the format changed.
-        """
+        """Called when the format changed."""
         self.__editFormatter = TextFormatter(self, self.getFormatter())
         self.__editFormatter.setUseQuoteForText(False)
         self.reset()
@@ -398,8 +404,8 @@ class _ShowEditorProxyModel(qt.QIdentityProxyModel):
 
 
 class RecordTableView(qt.QTableView):
-    """TableView using DatabaseTableModel as default model.
-    """
+    """TableView using DatabaseTableModel as default model."""
+
     def __init__(self, parent=None):
         """
         Constructor

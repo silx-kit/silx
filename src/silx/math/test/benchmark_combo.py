@@ -43,40 +43,49 @@ _logger.setLevel(logging.DEBUG)
 class TestBenchmarkMinMax(ParametricTestCase):
     """Benchmark of min max combo"""
 
-    DTYPES = ('float32', 'float64',
-              'int8', 'int16', 'int32', 'int64',
-              'uint8', 'uint16', 'uint32', 'uint64')
+    DTYPES = (
+        "float32",
+        "float64",
+        "int8",
+        "int16",
+        "int32",
+        "int64",
+        "uint8",
+        "uint16",
+        "uint32",
+        "uint64",
+    )
 
-    ARANGE = 'ascent', 'descent', 'random'
+    ARANGE = "ascent", "descent", "random"
 
     EXPONENT = 3, 4, 5, 6, 7
 
     def test_benchmark_min_max(self):
         """Benchmark min_max without min positive.
-        
+
         Compares with:
-        
+
         - numpy.nanmin, numpy.nanmax and
         - numpy.argmin, numpy.argmax
 
         It runs bench for different types, different data size and 3
         data sets: increasing , decreasing and random data.
         """
-        durations = {'min/max': [], 'argmin/max': [], 'combo': []}
+        durations = {"min/max": [], "argmin/max": [], "combo": []}
 
-        _logger.info('Benchmark against argmin/argmax and nanmin/nanmax')
+        _logger.info("Benchmark against argmin/argmax and nanmin/nanmax")
 
         for dtype in self.DTYPES:
             for arange in self.ARANGE:
                 for exponent in self.EXPONENT:
                     size = 10**exponent
                     with self.subTest(dtype=dtype, size=size, arange=arange):
-                        if arange == 'ascent':
+                        if arange == "ascent":
                             data = numpy.arange(0, size, 1, dtype=dtype)
-                        elif arange == 'descent':
+                        elif arange == "descent":
                             data = numpy.arange(size, 0, -1, dtype=dtype)
                         else:
-                            if dtype in ('float32', 'float64'):
+                            if dtype in ("float32", "float64"):
                                 data = numpy.random.random(size)
                             else:
                                 data = numpy.random.randint(10**6, size=size)
@@ -85,55 +94,58 @@ class TestBenchmarkMinMax(ParametricTestCase):
                         start = time.time()
                         ref_min = numpy.nanmin(data)
                         ref_max = numpy.nanmax(data)
-                        durations['min/max'].append(time.time() - start)
+                        durations["min/max"].append(time.time() - start)
 
                         start = time.time()
                         ref_argmin = numpy.argmin(data)
                         ref_argmax = numpy.argmax(data)
-                        durations['argmin/max'].append(time.time() - start)
+                        durations["argmin/max"].append(time.time() - start)
 
                         start = time.time()
                         result = combo.min_max(data, min_positive=False)
-                        durations['combo'].append(time.time() - start)
+                        durations["combo"].append(time.time() - start)
 
                         _logger.info(
-                            '%s-%s-10**%d\tx%.2f argmin/max x%.2f min/max',
-                            dtype, arange, exponent,
-                            durations['argmin/max'][-1] / durations['combo'][-1],
-                            durations['min/max'][-1] / durations['combo'][-1])
+                            "%s-%s-10**%d\tx%.2f argmin/max x%.2f min/max",
+                            dtype,
+                            arange,
+                            exponent,
+                            durations["argmin/max"][-1] / durations["combo"][-1],
+                            durations["min/max"][-1] / durations["combo"][-1],
+                        )
 
                         self.assertEqual(result.minimum, ref_min)
                         self.assertEqual(result.maximum, ref_max)
                         self.assertEqual(result.argmin, ref_argmin)
                         self.assertEqual(result.argmax, ref_argmax)
 
-        self.show_results('min/max', durations, 'combo')
+        self.show_results("min/max", durations, "combo")
 
     def test_benchmark_min_pos(self):
         """Benchmark min_max wit min positive.
-        
+
         Compares with:
-        
+
         - numpy.nanmin(data[data > 0]); numpy.nanmin(pos); numpy.nanmax(pos)
 
         It runs bench for different types, different data size and 3
         data sets: increasing , decreasing and random data.
         """
-        durations = {'min/max': [], 'combo': []}
+        durations = {"min/max": [], "combo": []}
 
-        _logger.info('Benchmark against min, max, positive min')
+        _logger.info("Benchmark against min, max, positive min")
 
         for dtype in self.DTYPES:
             for arange in self.ARANGE:
                 for exponent in self.EXPONENT:
                     size = 10**exponent
                     with self.subTest(dtype=dtype, size=size, arange=arange):
-                        if arange == 'ascent':
+                        if arange == "ascent":
                             data = numpy.arange(0, size, 1, dtype=dtype)
-                        elif arange == 'descent':
+                        elif arange == "descent":
                             data = numpy.arange(size, 0, -1, dtype=dtype)
                         else:
-                            if dtype in ('float32', 'float64'):
+                            if dtype in ("float32", "float64"):
                                 data = numpy.random.random(size)
                             else:
                                 data = numpy.random.randint(10**6, size=size)
@@ -143,44 +155,47 @@ class TestBenchmarkMinMax(ParametricTestCase):
                         ref_min_positive = numpy.nanmin(data[data > 0])
                         ref_min = numpy.nanmin(data)
                         ref_max = numpy.nanmax(data)
-                        durations['min/max'].append(time.time() - start)
+                        durations["min/max"].append(time.time() - start)
 
                         start = time.time()
                         result = combo.min_max(data, min_positive=True)
-                        durations['combo'].append(time.time() - start)
+                        durations["combo"].append(time.time() - start)
 
                         _logger.info(
-                            '%s-%s-10**%d\tx%.2f min/minpos/max',
-                            dtype, arange, exponent,
-                            durations['min/max'][-1] / durations['combo'][-1])
+                            "%s-%s-10**%d\tx%.2f min/minpos/max",
+                            dtype,
+                            arange,
+                            exponent,
+                            durations["min/max"][-1] / durations["combo"][-1],
+                        )
 
                         self.assertEqual(result.min_positive, ref_min_positive)
                         self.assertEqual(result.minimum, ref_min)
                         self.assertEqual(result.maximum, ref_max)
 
-        self.show_results('min/max/min positive', durations, 'combo')
+        self.show_results("min/max/min positive", durations, "combo")
 
     def show_results(self, title, durations, ref_key):
         try:
             from matplotlib import pyplot
         except ImportError:
-            _logger.warning('matplotlib not available')
+            _logger.warning("matplotlib not available")
             return
 
         pyplot.title(title)
-        pyplot.xlabel('-'.join(self.DTYPES))
-        pyplot.ylabel('duration (sec)')
+        pyplot.xlabel("-".join(self.DTYPES))
+        pyplot.ylabel("duration (sec)")
         for label, values in durations.items():
             pyplot.semilogy(values, label=label)
         pyplot.legend()
         pyplot.show()
 
         pyplot.title(title)
-        pyplot.xlabel('-'.join(self.DTYPES))
-        pyplot.ylabel('Duration ratio')
+        pyplot.xlabel("-".join(self.DTYPES))
+        pyplot.ylabel("Duration ratio")
         ref = numpy.array(durations[ref_key])
         for label, values in durations.items():
             values = numpy.array(values)
-            pyplot.plot(values/ref, label=label + ' / ' + ref_key)
+            pyplot.plot(values / ref, label=label + " / " + ref_key)
         pyplot.legend()
         pyplot.show()

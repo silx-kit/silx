@@ -76,7 +76,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         """
         if sourceLeft.column() != Hdf5TreeModel.NAME_COLUMN:
             return super(NexusSortFilterProxyModel, self).lessThan(
-                sourceLeft, sourceRight)
+                sourceLeft, sourceRight
+            )
 
         # Do not sort child of root (files)
         if sourceLeft.parent() == qt.QModelIndex():
@@ -217,7 +218,9 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         if index.column() == Hdf5TreeModel.NAME_COLUMN:
             if role == qt.Qt.DecorationRole:
                 sourceIndex = self.mapToSource(index)
-                item = self.sourceModel().data(sourceIndex, Hdf5TreeModel.H5PY_ITEM_ROLE)
+                item = self.sourceModel().data(
+                    sourceIndex, Hdf5TreeModel.H5PY_ITEM_ROLE
+                )
                 if self.__isNXnode(item):
                     result = self.__getNxIcon(result)
         return result

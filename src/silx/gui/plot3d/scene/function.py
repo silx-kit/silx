@@ -44,8 +44,7 @@ _logger = logging.getLogger(__name__)
 
 
 class ProgramFunction(object):
-    """Class providing a function to add to a GLProgram shaders.
-    """
+    """Class providing a function to add to a GLProgram shaders."""
 
     def setupProgram(self, context, program):
         """Sets-up uniforms of a program using this shader function.
@@ -63,6 +62,7 @@ class Fog(event.Notifier, ProgramFunction):
     The background of the viewport is used as fog color,
     otherwise it defaults to white.
     """
+
     # TODO: add more controls (set fog range), add more fog modes
 
     _fragDecl = """
@@ -120,26 +120,29 @@ class Fog(event.Notifier, ProgramFunction):
         """
         # Provide scene z extent in camera coords
         bounds = viewport.camera.extrinsic.transformBounds(
-            viewport.scene.bounds(transformed=True, dataBounds=True))
+            viewport.scene.bounds(transformed=True, dataBounds=True)
+        )
         return bounds[:, 2]
 
     def setupProgram(self, context, program):
         if not self.isOn:
             return
 
-        far, near = context.cache(key='zExtentCamera',
-                                  factory=self._zExtentCamera,
-                                  viewport=context.viewport)
+        far, near = context.cache(
+            key="zExtentCamera", factory=self._zExtentCamera, viewport=context.viewport
+        )
         extent = far - near
-        gl.glUniform2f(program.uniforms['fogExtentInfo'],
-                       0.9/extent if extent != 0. else 0.,
-                       near)
+        gl.glUniform2f(
+            program.uniforms["fogExtentInfo"],
+            0.9 / extent if extent != 0.0 else 0.0,
+            near,
+        )
 
         # Use background color as fog color
         bgColor = context.viewport.background
         if bgColor is None:
-            bgColor = 1., 1., 1.
-        gl.glUniform3f(program.uniforms['fogColor'], *bgColor[:3])
+            bgColor = 1.0, 1.0, 1.0
+        gl.glUniform3f(program.uniforms["fogColor"], *bgColor[:3])
 
 
 class ClippingPlane(ProgramFunction):
@@ -183,7 +186,7 @@ class ClippingPlane(ProgramFunction):
     void clipping(vec4 position) {}
     """
 
-    def __init__(self, point=(0., 0., 0.), normal=(0., 0., 0.)):
+    def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 0.0)):
         self._plane = utils.Plane(point, normal)
 
     @property
@@ -209,7 +212,7 @@ class ClippingPlane(ProgramFunction):
                                   It MUST be in use and using this function.
         """
         if self.plane.isPlane:
-            gl.glUniform4f(program.uniforms['planeEq'], *self.plane.parameters)
+            gl.glUniform4f(program.uniforms["planeEq"], *self.plane.parameters)
 
 
 class DirectionalLight(event.Notifier, ProgramFunction):
@@ -279,9 +282,14 @@ class DirectionalLight(event.Notifier, ProgramFunction):
     }
     """
 
-    def __init__(self, direction=None,
-                 ambient=(1., 1., 1.), diffuse=(0., 0., 0.),
-                 specular=(1., 1., 1.), shininess=0):
+    def __init__(
+        self,
+        direction=None,
+        ambient=(1.0, 1.0, 1.0),
+        diffuse=(0.0, 0.0, 0.0),
+        specular=(1.0, 1.0, 1.0),
+        shininess=0,
+    ):
         super(DirectionalLight, self).__init__()
         self._direction = None
         self.direction = direction  # Set _direction
@@ -291,10 +299,10 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         self._specular = specular
         self._shininess = shininess
 
-    ambient = event.notifyProperty('_ambient')
-    diffuse = event.notifyProperty('_diffuse')
-    specular = event.notifyProperty('_specular')
-    shininess = event.notifyProperty('_shininess')
+    ambient = event.notifyProperty("_ambient")
+    diffuse = event.notifyProperty("_diffuse")
+    specular = event.notifyProperty("_specular")
+    shininess = event.notifyProperty("_shininess")
 
     @property
     def isOn(self):
@@ -359,28 +367,29 @@ class DirectionalLight(event.Notifier, ProgramFunction):
         if self.isOn and self._direction is not None:
             # Transform light direction from camera space to object coords
             lightdir = context.objectToCamera.transformDir(
-                self._direction, direct=False)
+                self._direction, direct=False
+            )
             lightdir /= numpy.linalg.norm(lightdir)
 
-            gl.glUniform3f(program.uniforms['dLight.lightDir'], *lightdir)
+            gl.glUniform3f(program.uniforms["dLight.lightDir"], *lightdir)
 
             # Convert view position to object coords
             viewpos = context.objectToCamera.transformPoint(
-                numpy.array((0., 0., 0., 1.), dtype=numpy.float32),
+                numpy.array((0.0, 0.0, 0.0, 1.0), dtype=numpy.float32),
                 direct=False,
-                perspectiveDivide=True)[:3]
-            gl.glUniform3f(program.uniforms['dLight.viewPos'], *viewpos)
+                perspectiveDivide=True,
+            )[:3]
+            gl.glUniform3f(program.uniforms["dLight.viewPos"], *viewpos)
 
-            gl.glUniform3f(program.uniforms['dLight.ambient'], *self.ambient)
-            gl.glUniform3f(program.uniforms['dLight.diffuse'], *self.diffuse)
-            gl.glUniform3f(program.uniforms['dLight.specular'], *self.specular)
-            gl.glUniform1f(program.uniforms['dLight.shininess'],
-                           self.shininess)
+            gl.glUniform3f(program.uniforms["dLight.ambient"], *self.ambient)
+            gl.glUniform3f(program.uniforms["dLight.diffuse"], *self.diffuse)
+            gl.glUniform3f(program.uniforms["dLight.specular"], *self.specular)
+            gl.glUniform1f(program.uniforms["dLight.shininess"], self.shininess)
 
 
 class Colormap(event.Notifier, ProgramFunction):
-
-    _declTemplate = string.Template("""
+    _declTemplate = string.Template(
+        """
     uniform sampler2D cmap_texture;
     uniform int cmap_normalization;
     uniform float cmap_parameter;
@@ -429,7 +438,8 @@ class Colormap(event.Notifier, ProgramFunction):
         }
         return color;
     }
-    """)
+    """
+    )
 
     _discardCode = """
         if (value == 0.) {
@@ -439,13 +449,13 @@ class Colormap(event.Notifier, ProgramFunction):
 
     call = "colormap"
 
-    NORMS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
+    NORMS = "linear", "log", "sqrt", "gamma", "arcsinh"
     """Tuple of supported normalizations."""
 
     _COLORMAP_TEXTURE_UNIT = 1
     """Texture unit to use for storing the colormap"""
 
-    def __init__(self, colormap=None, norm='linear', gamma=0., range_=(1., 10.)):
+    def __init__(self, colormap=None, norm="linear", gamma=0.0, range_=(1.0, 10.0)):
         """Shader function to apply a colormap to a value.
 
         :param colormap: RGB(A) color look-up table (default: gray)
@@ -459,11 +469,11 @@ class Colormap(event.Notifier, ProgramFunction):
 
         # Init privates to default
         self._colormap = None
-        self._norm = 'linear'
-        self._gamma = -1.
-        self._range = 1., 10.
+        self._norm = "linear"
+        self._gamma = -1.0
+        self._range = 1.0, 10.0
         self._displayValuesBelowMin = True
-        self._nancolor = numpy.array((1., 1., 1., 0.), dtype=numpy.float32)
+        self._nancolor = numpy.array((1.0, 1.0, 1.0, 0.0), dtype=numpy.float32)
 
         self._texture = None
         self._textureToDiscard = None
@@ -471,8 +481,7 @@ class Colormap(event.Notifier, ProgramFunction):
         if colormap is None:
             # default colormap
             colormap = numpy.empty((256, 3), dtype=numpy.uint8)
-            colormap[:] = numpy.arange(256,
-                                       dtype=numpy.uint8)[:, numpy.newaxis]
+            colormap[:] = numpy.arange(256, dtype=numpy.uint8)[:, numpy.newaxis]
 
         # Set to values through properties to perform asserts and updates
         self.colormap = colormap
@@ -484,7 +493,8 @@ class Colormap(event.Notifier, ProgramFunction):
     def decl(self):
         """Source code of the function declaration"""
         return self._declTemplate.substitute(
-            discard="" if self.displayValuesBelowMin else self._discardCode)
+            discard="" if self.displayValuesBelowMin else self._discardCode
+        )
 
     @property
     def colormap(self):
@@ -503,17 +513,21 @@ class Colormap(event.Notifier, ProgramFunction):
 
         data = numpy.empty(
             (16, self._colormap.shape[0], self._colormap.shape[1]),
-            dtype=self._colormap.dtype)
+            dtype=self._colormap.dtype,
+        )
         data[:] = self._colormap
 
         format_ = gl.GL_RGBA if data.shape[-1] == 4 else gl.GL_RGB
 
         self._texture = _glutils.Texture(
-            format_, data, format_,
+            format_,
+            data,
+            format_,
             texUnit=self._COLORMAP_TEXTURE_UNIT,
             minFilter=gl.GL_NEAREST,
             magFilter=gl.GL_NEAREST,
-            wrap=gl.GL_CLAMP_TO_EDGE)
+            wrap=gl.GL_CLAMP_TO_EDGE,
+        )
 
         self.notify()
 
@@ -524,7 +538,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
     @nancolor.setter
     def nancolor(self, color):
-        color = numpy.clip(numpy.array(color, dtype=numpy.float32), 0., 1.)
+        color = numpy.clip(numpy.array(color, dtype=numpy.float32), 0.0, 1.0)
         assert color.ndim == 1
         assert len(color) == 4
         if not numpy.array_equal(self._nancolor, color):
@@ -545,7 +559,7 @@ class Colormap(event.Notifier, ProgramFunction):
         if norm != self._norm:
             assert norm in self.NORMS
             self._norm = norm
-            if norm in ('log', 'sqrt'):
+            if norm in ("log", "sqrt"):
                 self.range_ = self.range_  # To test for positive range_
             self.notify()
 
@@ -557,7 +571,7 @@ class Colormap(event.Notifier, ProgramFunction):
     @gamma.setter
     def gamma(self, gamma):
         if gamma != self._gamma:
-            assert gamma >= 0.
+            assert gamma >= 0.0
             self._gamma = gamma
             self.notify()
 
@@ -577,15 +591,13 @@ class Colormap(event.Notifier, ProgramFunction):
         assert len(range_) == 2
         range_ = float(range_[0]), float(range_[1])
 
-        if self.norm == 'log' and (range_[0] <= 0. or range_[1] <= 0.):
-            _logger.warning(
-                "Log normalization and negative range: updating range.")
+        if self.norm == "log" and (range_[0] <= 0.0 or range_[1] <= 0.0):
+            _logger.warning("Log normalization and negative range: updating range.")
             minPos = numpy.finfo(numpy.float32).tiny
             range_ = max(range_[0], minPos), max(range_[1], minPos)
-        elif self.norm == 'sqrt' and (range_[0] < 0. or range_[1] < 0.):
-            _logger.warning(
-                "Sqrt normalization and negative range: updating range.")
-            range_ = max(range_[0], 0.), max(range_[1], 0.)
+        elif self.norm == "sqrt" and (range_[0] < 0.0 or range_[1] < 0.0):
+            _logger.warning("Sqrt normalization and negative range: updating range.")
+            range_ = max(range_[0], 0.0), max(range_[1], 0.0)
 
         if range_ != self._range:
             self._range = range_
@@ -593,8 +605,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
     @property
     def displayValuesBelowMin(self):
-        """True to display values below colormap min, False to discard them.
-        """
+        """True to display values below colormap min, False to discard them."""
         return self._displayValuesBelowMin
 
     @displayValuesBelowMin.setter
@@ -615,33 +626,34 @@ class Colormap(event.Notifier, ProgramFunction):
 
         self._texture.bind()
 
-        gl.glUniform1i(program.uniforms['cmap_texture'],
-                       self._texture.texUnit)
+        gl.glUniform1i(program.uniforms["cmap_texture"], self._texture.texUnit)
 
         min_, max_ = self.range_
-        param = 0.
-        if self._norm == 'log':
+        param = 0.0
+        if self._norm == "log":
             min_, max_ = numpy.log10(min_), numpy.log10(max_)
             normID = 1
-        elif self._norm == 'sqrt':
+        elif self._norm == "sqrt":
             min_, max_ = numpy.sqrt(min_), numpy.sqrt(max_)
             normID = 2
-        elif self._norm == 'gamma':
+        elif self._norm == "gamma":
             # Keep min_, max_ as is
             param = self._gamma
             normID = 3
-        elif self._norm == 'arcsinh':
+        elif self._norm == "arcsinh":
             min_, max_ = numpy.arcsinh(min_), numpy.arcsinh(max_)
             normID = 4
         else:  # Linear
             normID = 0
 
-        gl.glUniform1i(program.uniforms['cmap_normalization'], normID)
-        gl.glUniform1f(program.uniforms['cmap_parameter'], param)
-        gl.glUniform1f(program.uniforms['cmap_min'], min_)
-        gl.glUniform1f(program.uniforms['cmap_oneOverRange'],
-                       (1. / (max_ - min_)) if max_ != min_ else 0.)
-        gl.glUniform4f(program.uniforms['nancolor'], *self._nancolor)
+        gl.glUniform1i(program.uniforms["cmap_normalization"], normID)
+        gl.glUniform1f(program.uniforms["cmap_parameter"], param)
+        gl.glUniform1f(program.uniforms["cmap_min"], min_)
+        gl.glUniform1f(
+            program.uniforms["cmap_oneOverRange"],
+            (1.0 / (max_ - min_)) if max_ != min_ else 0.0,
+        )
+        gl.glUniform4f(program.uniforms["nancolor"], *self._nancolor)
 
     def prepareGL2(self, context):
         if self._textureToDiscard is not None:

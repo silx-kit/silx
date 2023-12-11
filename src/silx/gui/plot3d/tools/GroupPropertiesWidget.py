@@ -56,16 +56,16 @@ class GroupPropertiesWidget(qt.QWidget):
         self.setLayout(layout)
 
         # Colormap
-        colormapButton = qt.QPushButton('Set...')
+        colormapButton = qt.QPushButton("Set...")
         colormapButton.setToolTip("Set colormap for all items")
         colormapButton.clicked.connect(self._colormapButtonClicked)
-        layout.addRow('Colormap', colormapButton)
+        layout.addRow("Colormap", colormapButton)
 
         self._markerComboBox = qt.QComboBox(self)
         self._markerComboBox.addItems(SymbolMixIn.getSupportedSymbolNames())
 
         # Marker
-        markerButton = qt.QPushButton('Set')
+        markerButton = qt.QPushButton("Set")
         markerButton.setToolTip("Set marker for all items")
         markerButton.clicked.connect(self._markerButtonClicked)
 
@@ -74,7 +74,7 @@ class GroupPropertiesWidget(qt.QWidget):
         markerLayout.addWidget(self._markerComboBox, 1)
         markerLayout.addWidget(markerButton, 0)
 
-        layout.addRow('Marker', markerLayout)
+        layout.addRow("Marker", markerLayout)
 
         # Marker size
         self._markerSizeSlider = qt.QSlider()
@@ -83,18 +83,18 @@ class GroupPropertiesWidget(qt.QWidget):
         self._markerSizeSlider.setRange(1, self.MAX_MARKER_SIZE)
         self._markerSizeSlider.setValue(1)
 
-        markerSizeButton = qt.QPushButton('Set')
+        markerSizeButton = qt.QPushButton("Set")
         markerSizeButton.setToolTip("Set marker size for all items")
         markerSizeButton.clicked.connect(self._markerSizeButtonClicked)
 
         markerSizeLayout = qt.QHBoxLayout()
         markerSizeLayout.setContentsMargins(0, 0, 0, 0)
-        markerSizeLayout.addWidget(qt.QLabel('1'))
+        markerSizeLayout.addWidget(qt.QLabel("1"))
         markerSizeLayout.addWidget(self._markerSizeSlider, 1)
         markerSizeLayout.addWidget(qt.QLabel(str(self.MAX_MARKER_SIZE)))
         markerSizeLayout.addWidget(markerSizeButton, 0)
 
-        layout.addRow('Marker Size', markerSizeLayout)
+        layout.addRow("Marker Size", markerSizeLayout)
 
         # Line width
         self._lineWidthSlider = qt.QSlider()
@@ -103,18 +103,18 @@ class GroupPropertiesWidget(qt.QWidget):
         self._lineWidthSlider.setRange(1, self.MAX_LINE_WIDTH)
         self._lineWidthSlider.setValue(1)
 
-        lineWidthButton = qt.QPushButton('Set')
+        lineWidthButton = qt.QPushButton("Set")
         lineWidthButton.setToolTip("Set line width for all items")
         lineWidthButton.clicked.connect(self._lineWidthButtonClicked)
 
         lineWidthLayout = qt.QHBoxLayout()
         lineWidthLayout.setContentsMargins(0, 0, 0, 0)
-        lineWidthLayout.addWidget(qt.QLabel('1'))
+        lineWidthLayout.addWidget(qt.QLabel("1"))
         lineWidthLayout.addWidget(self._lineWidthSlider, 1)
         lineWidthLayout.addWidget(qt.QLabel(str(self.MAX_LINE_WIDTH)))
         lineWidthLayout.addWidget(lineWidthButton, 0)
 
-        layout.addRow('Line Width', lineWidthLayout)
+        layout.addRow("Line Width", lineWidthLayout)
 
         self._colormapDialog = None  # To store dialog
         self._colormap = Colormap()
@@ -159,7 +159,8 @@ class GroupPropertiesWidget(qt.QWidget):
                         itemCmap.setColormapLUT(colormap.getColormapLUT())
                     itemCmap.setNormalization(colormap.getNormalization())
                     itemCmap.setGammaNormalizationParameter(
-                        colormap.getGammaNormalizationParameter())
+                        colormap.getGammaNormalizationParameter()
+                    )
                     itemCmap.setVRange(colormap.getVMin(), colormap.getVMax())
         else:
             # Reset colormap
@@ -195,5 +196,5 @@ class GroupPropertiesWidget(qt.QWidget):
 
         lineWidth = self._lineWidthSlider.value()
         for item in group.visit():
-            if hasattr(item, 'setLineWidth'):
+            if hasattr(item, "setLineWidth"):
                 item.setLineWidth(lineWidth)

@@ -75,25 +75,25 @@ def testAxisSetScaleLogNoData(qapp, qWidgetFactory):
     yaxis = plotWidget.getYAxis()
     y2axis = plotWidget.getYAxis("right")
 
-    xaxis.setLimits(-1., 1.)
-    yaxis.setLimits(2., 3.)
-    y2axis.setLimits(-2., -1.)
+    xaxis.setLimits(-1.0, 1.0)
+    yaxis.setLimits(2.0, 3.0)
+    y2axis.setLimits(-2.0, -1.0)
 
     xaxis.setScale("log")
     qapp.processEvents()
 
-    assert xaxis.getLimits() == (1., 100.)
-    assert yaxis.getLimits() == (2., 3.)
-    assert y2axis.getLimits() == (-2., -1.)
+    assert xaxis.getLimits() == (1.0, 100.0)
+    assert yaxis.getLimits() == (2.0, 3.0)
+    assert y2axis.getLimits() == (-2.0, -1.0)
 
-    xaxis.setLimits(10., 20.)
+    xaxis.setLimits(10.0, 20.0)
 
     yaxis.setScale("log")
     qapp.processEvents()
 
-    assert xaxis.getLimits() == (10., 20.)
-    assert yaxis.getLimits() == (2., 3.)  # Positive range is preserved
-    assert y2axis.getLimits() == (1., 100.)  # Negative min is reset
+    assert xaxis.getLimits() == (10.0, 20.0)
+    assert yaxis.getLimits() == (2.0, 3.0)  # Positive range is preserved
+    assert y2axis.getLimits() == (1.0, 100.0)  # Negative min is reset
 
 
 def testAxisSetScaleLogWithData(qapp, qWidgetFactory):
@@ -106,15 +106,15 @@ def testAxisSetScaleLogWithData(qapp, qWidgetFactory):
     yaxis = plotWidget.getYAxis()
     plotWidget.addCurve((-1, 1, 2, 3), (-1, 1, 2, 3))
 
-    xaxis.setLimits(-1., 0.5)  # Limits contains no positive data
-    yaxis.setLimits(-1., 2.)  # Limits contains positive data
+    xaxis.setLimits(-1.0, 0.5)  # Limits contains no positive data
+    yaxis.setLimits(-1.0, 2.0)  # Limits contains positive data
 
     xaxis.setScale("log")
     yaxis.setScale("log")
     qapp.processEvents()
 
-    assert xaxis.getLimits() == (1., 3.)  # Reset to positive data range
-    assert yaxis.getLimits() == (1., 2.)  # Keep max limit
+    assert xaxis.getLimits() == (1.0, 3.0)  # Reset to positive data range
+    assert yaxis.getLimits() == (1.0, 2.0)  # Keep max limit
 
 
 def testAxisSetScaleLinear(qapp, qWidgetFactory):
@@ -128,20 +128,20 @@ def testAxisSetScaleLinear(qapp, qWidgetFactory):
     plotWidget.resetZoom()
     qapp.processEvents()
 
-    xaxis.setLimits(10., 1000.)
-    yaxis.setLimits(20., 2000.)
-    y2axis.setLimits(30., 3000.)
+    xaxis.setLimits(10.0, 1000.0)
+    yaxis.setLimits(20.0, 2000.0)
+    y2axis.setLimits(30.0, 3000.0)
 
     xaxis.setScale("linear")
     qapp.processEvents()
 
-    assert xaxis.getLimits() == (10., 1000.)
-    assert yaxis.getLimits() == (20., 2000.)
-    assert y2axis.getLimits() == (30., 3000.)
+    assert xaxis.getLimits() == (10.0, 1000.0)
+    assert yaxis.getLimits() == (20.0, 2000.0)
+    assert y2axis.getLimits() == (30.0, 3000.0)
 
     yaxis.setScale("linear")
     qapp.processEvents()
 
-    assert xaxis.getLimits() == (10., 1000.)
-    assert yaxis.getLimits() == (20., 2000.)
-    assert y2axis.getLimits() == (30., 3000.)
+    assert xaxis.getLimits() == (10.0, 1000.0)
+    assert yaxis.getLimits() == (20.0, 2000.0)
+    assert y2axis.getLimits() == (30.0, 3000.0)

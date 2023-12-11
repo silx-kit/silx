@@ -37,8 +37,7 @@ import h5py
 
 
 class Hdf5Formatter(qt.QObject):
-    """Formatter to convert HDF5 data to string.
-    """
+    """Formatter to convert HDF5 data to string."""
 
     formatChanged = qt.Signal()
     """Emitted when properties of the formatter change."""
@@ -87,7 +86,7 @@ class Hdf5Formatter(qt.QObject):
         if dataset.shape == tuple():
             return "scalar"
         shape = [str(i) for i in dataset.shape]
-        text = u" \u00D7 ".join(shape)
+        text = " \u00D7 ".join(shape)
         return text
 
     def humanReadableValue(self, dataset):
@@ -162,7 +161,7 @@ class Hdf5Formatter(qt.QObject):
             if enumType is not None:
                 return "enum"
 
-        text = str(dtype.newbyteorder('N'))
+        text = str(dtype.newbyteorder("N"))
         if numpy.issubdtype(dtype, numpy.floating):
             if hasattr(numpy, "float128") and dtype == numpy.float128:
                 text = "float80"
@@ -181,7 +180,7 @@ class Hdf5Formatter(qt.QObject):
             elif dtype.byteorder == "=":
                 text = "Native " + text
 
-        dtype = dtype.newbyteorder('N')
+        dtype = dtype.newbyteorder("N")
         return text
 
     def humanReadableHdf5Type(self, dataset):

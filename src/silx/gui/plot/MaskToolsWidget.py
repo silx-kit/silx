@@ -57,7 +57,7 @@ from ..utils import LockReentrant
 
 _logger = logging.getLogger(__name__)
 
-_HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
+_HDF5_EXT_STR = " ".join(["*" + ext for ext in NEXUS_HDF5_EXT])
 
 
 def _selectDataset(filename, mode=DatasetDialog.SaveMode):
@@ -109,17 +109,17 @@ class ImageMask(BaseMask):
             or 'msk' (if FabIO is installed)
         :raise Exception: Raised if the file writing fail
         """
-        if kind == 'edf':
+        if kind == "edf":
             EdfImage(
                 data=self.getMask(),
                 header={"program_name": "silx-mask", "masked_value": "nonzero"},
             ).write(filename)
 
-        elif kind == 'tif':
-            tiffFile = TiffIO(filename, mode='w')
-            tiffFile.writeImage(self.getMask(copy=False), software='silx')
+        elif kind == "tif":
+            tiffFile = TiffIO(filename, mode="w")
+            tiffFile.writeImage(self.getMask(copy=False), software="silx")
 
-        elif kind == 'npy':
+        elif kind == "npy":
             try:
                 numpy.save(filename, self.getMask(copy=False))
             except IOError:
@@ -128,7 +128,7 @@ class ImageMask(BaseMask):
         elif ("." + kind) in NEXUS_HDF5_EXT:
             self._saveToHdf5(filename, self.getMask(copy=False))
 
-        elif kind == 'msk':
+        elif kind == "msk":
             try:
                 data = self.getMask(copy=False)
                 image = fabio.fabioimage.FabioImage(data=data)
@@ -159,10 +159,11 @@ class ImageMask(BaseMask):
             existing_ds = h5f.get(dataPath)
             if existing_ds is not None:
                 reply = qt.QMessageBox.question(
-                        None,
-                        "Confirm overwrite",
-                        "Do you want to overwrite an existing dataset?",
-                        qt.QMessageBox.Yes | qt.QMessageBox.No)
+                    None,
+                    "Confirm overwrite",
+                    "Do you want to overwrite an existing dataset?",
+                    qt.QMessageBox.Yes | qt.QMessageBox.No,
+                )
                 if reply != qt.QMessageBox.Yes:
                     return False
                 del h5f[dataPath]
@@ -186,10 +187,11 @@ class ImageMask(BaseMask):
         assert 0 < level < 256
         if row + height <= 0 or col + width <= 0:
             return  # Rectangle outside image, avoid negative indices
-        selection = self._mask[max(0, row):row + height + 1,
-                               max(0, col):col + width + 1]
+        selection = self._mask[
+            max(0, row) : row + height + 1, max(0, col) : col + width + 1
+        ]
         if mask:
-            selection[:,:] = level
+            selection[:, :] = level
         else:
             selection[selection == level] = 0
         self._notify()
@@ -205,8 +207,7 @@ class ImageMask(BaseMask):
         if mask:
             self._mask[fill != 0] = level
         else:
-            self._mask[numpy.logical_and(fill != 0,
-                                         self._mask == level)] = 0
+            self._mask[numpy.logical_and(fill != 0, self._mask == level)] = 0
         self._notify()
 
     def updatePoints(self, level, rows, cols, mask=True):
@@ -221,8 +222,8 @@ class ImageMask(BaseMask):
         """
         valid = numpy.logical_and(
             numpy.logical_and(rows >= 0, cols >= 0),
-            numpy.logical_and(rows < self._mask.shape[0],
-                              cols < self._mask.shape[1]))
+            numpy.logical_and(rows < self._mask.shape[0], cols < self._mask.shape[1]),
+        )
         rows, cols = rows[valid], cols[valid]
 
         if mask:
@@ -278,10 +279,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
-        super(MaskToolsWidget, self).__init__(parent, plot,
-                                              mask=ImageMask())
-        self._origin = (0., 0.)  # Mask origin in plot
-        self._scale = (1., 1.)  # Mask scale in plot
+        super(MaskToolsWidget, self).__init__(parent, plot, mask=ImageMask())
+        self._origin = (0.0, 0.0)  # Mask origin in plot
+        self._scale = (1.0, 1.0)  # Mask scale in plot
         self._z = 1  # Mask layer in plot
         self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
 
@@ -336,11 +336,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
         if len(mask.shape) != 2:
-            _logger.error('Not an image, shape: %d', len(mask.shape))
+            _logger.error("Not an image, shape: %d", len(mask.shape))
             return None
 
         # Handle mask with single level
-        if self.multipleMasks() == 'single':
+        if self.multipleMasks() == "single":
             mask = numpy.array(mask != 0, dtype=numpy.uint8)
 
         # if mask has not changed, do nothing
@@ -352,15 +352,17 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._mask.commit()
             return mask.shape
         else:
-            _logger.warning('Mask has not the same size as current image.'
-                            ' Mask will be cropped or padded to fit image'
-                            ' dimensions. %s != %s',
-                            str(mask.shape), str(self._data.shape))
-            resizedMask = numpy.zeros(self._data.shape[0:2],
-                                      dtype=numpy.uint8)
+            _logger.warning(
+                "Mask has not the same size as current image."
+                " Mask will be cropped or padded to fit image"
+                " dimensions. %s != %s",
+                str(mask.shape),
+                str(self._data.shape),
+            )
+            resizedMask = numpy.zeros(self._data.shape[0:2], dtype=numpy.uint8)
             height = min(self._data.shape[0], mask.shape[0])
             width = min(self._data.shape[1], mask.shape[1])
-            resizedMask[:height,:width] = mask[:height,:width]
+            resizedMask[:height, :width] = mask[:height, :width]
             self._mask.setMask(resizedMask, copy=False)
             self._mask.commit()
             return resizedMask.shape
@@ -387,12 +389,13 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                 self.plot.addItem(maskItem)
 
         elif self.plot.getImage(self._maskName):
-            self.plot.remove(self._maskName, kind='image')
+            self.plot.remove(self._maskName, kind="image")
 
     def showEvent(self, event):
         try:
             self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare)
+                self._activeImageChangedAfterCare
+            )
         except (RuntimeError, TypeError):
             pass
 
@@ -402,8 +405,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
     def hideEvent(self, event):
         try:
-            self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChanged)
+            self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
         except (RuntimeError, TypeError):
             pass
 
@@ -424,11 +426,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._mask.reset()
 
             if self.plot.getImage(self._maskName):
-                self.plot.remove(self._maskName, kind='image')
+                self.plot.remove(self._maskName, kind="image")
 
         elif self.getSelectionMask(copy=False) is not None:
-            self.plot.sigActiveImageChanged.connect(
-                self._activeImageChangedAfterCare)
+            self.plot.sigActiveImageChanged.connect(self._activeImageChangedAfterCare)
 
     def _activeImageChanged(self, previous, current):
         """Reacts upon active image change.
@@ -448,10 +449,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         """
         if isinstance(image, items.ColormapMixIn):
             colormap = image.getColormap()
-            self._defaultOverlayColor = rgba(
-                cursorColorForColormap(colormap['name']))
+            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap["name"]))
         else:
-            self._defaultOverlayColor = rgba('black')
+            self._defaultOverlayColor = rgba("black")
 
     def _activeImageChangedAfterCare(self, *args):
         """Check synchro of active image and mask when mask widget is hidden.
@@ -467,15 +467,17 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             self._mask.reset()
 
             if self.plot.getImage(self._maskName):
-                self.plot.remove(self._maskName, kind='image')
+                self.plot.remove(self._maskName, kind="image")
 
             self.plot.sigActiveImageChanged.disconnect(
-                self._activeImageChangedAfterCare)
+                self._activeImageChangedAfterCare
+            )
         else:
             self._setOverlayColorForImage(activeImage)
-            self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencySlider.value() /
-                                self.transparencySlider.maximum())
+            self._setMaskColors(
+                self.levelSpinBox.value(),
+                self.transparencySlider.value() / self.transparencySlider.maximum(),
+            )
 
             self._origin = activeImage.getOrigin()
             self._scale = activeImage.getScale()
@@ -484,10 +486,11 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             if self._data.shape[:2] != self._mask.getMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
                 if self.plot.getImage(self._maskName):
-                    self.plot.remove(self._maskName, kind='image')
+                    self.plot.remove(self._maskName, kind="image")
 
                 self.plot.sigActiveImageChanged.disconnect(
-                    self._activeImageChangedAfterCare)
+                    self._activeImageChangedAfterCare
+                )
             else:
                 # Refresh in case origin, scale, z changed
                 self._mask.setDataItem(activeImage)
@@ -519,11 +522,9 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             if self.isItemMaskUpdated():
                 if image.getMaskData(copy=False) is None:
                     # Image item has no mask: use current mask from the tool
-                    image.setMaskData(
-                        self.getSelectionMask(copy=False), copy=True)
+                    image.setMaskData(self.getSelectionMask(copy=False), copy=True)
                 else:  # Image item has a mask: set it in tool
-                    self.setSelectionMask(
-                        image.getMaskData(copy=False), copy=True)
+                    self.setSelectionMask(image.getMaskData(copy=False), copy=True)
                     self._mask.resetHistory()
             self.__imageUpdated()
             if self.isVisible():
@@ -536,17 +537,21 @@ class MaskToolsWidget(BaseMaskToolsWidget):
             _logger.error("Mask is not attached to an image")
             return
 
-        if event in (items.ItemChangedType.COLORMAP,
-                     items.ItemChangedType.DATA,
-                     items.ItemChangedType.POSITION,
-                     items.ItemChangedType.SCALE,
-                     items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.ZVALUE):
+        if event in (
+            items.ItemChangedType.COLORMAP,
+            items.ItemChangedType.DATA,
+            items.ItemChangedType.POSITION,
+            items.ItemChangedType.SCALE,
+            items.ItemChangedType.VISIBLE,
+            items.ItemChangedType.ZVALUE,
+        ):
             self.__imageUpdated()
 
-        elif (event == items.ItemChangedType.MASK and
-                self.isItemMaskUpdated() and
-                not self.__itemMaskUpdatedLock.locked()):
+        elif (
+            event == items.ItemChangedType.MASK
+            and self.isItemMaskUpdated()
+            and not self.__itemMaskUpdatedLock.locked()
+        ):
             # Update mask from the image item unless mask tool is updating it
             self.setSelectionMask(image.getMaskData(copy=False), copy=True)
 
@@ -559,9 +564,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         self._setOverlayColorForImage(image)
 
-        self._setMaskColors(self.levelSpinBox.value(),
-                            self.transparencySlider.value() /
-                            self.transparencySlider.maximum())
+        self._setMaskColors(
+            self.levelSpinBox.value(),
+            self.transparencySlider.value() / self.transparencySlider.maximum(),
+        )
 
         self._origin = image.getOrigin()
         self._scale = image.getScale()
@@ -621,7 +627,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if effectiveMaskShape is None:
             return
         if mask.shape != effectiveMaskShape:
-            msg = 'Mask was resized from %s to %s'
+            msg = "Mask was resized from %s to %s"
             msg = msg % (str(mask.shape), str(effectiveMaskShape))
             raise RuntimeWarning(msg)
 
@@ -699,15 +705,15 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         dialog.setWindowTitle("Save Mask")
         dialog.setOption(qt.QFileDialog.DontUseNativeDialog)
         dialog.setModal(1)
-        hdf5Filter = 'HDF5 (%s)' % _HDF5_EXT_STR
+        hdf5Filter = "HDF5 (%s)" % _HDF5_EXT_STR
         filters = [
-            'EDF (*.edf)',
-            'TIFF (*.tif)',
-            'NumPy binary file (*.npy)',
+            "EDF (*.edf)",
+            "TIFF (*.tif)",
+            "NumPy binary file (*.npy)",
             hdf5Filter,
             # Fit2D mask is displayed anyway fabio is here or not
             # to show to the user that the option exists
-            'Fit2D mask (*.msk)',
+            "Fit2D mask (*.msk)",
         ]
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.AnyFile)
@@ -734,8 +740,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
         if "HDF5" in nameFilter:
             has_allowed_ext = False
             for ext in NEXUS_HDF5_EXT:
-                if (len(filename) > len(ext) and
-                        filename[-len(ext):].lower() == ext.lower()):
+                if (
+                    len(filename) > len(ext)
+                    and filename[-len(ext) :].lower() == ext.lower()
+                ):
                     has_allowed_ext = True
                     extension = ext
             if not has_allowed_ext:
@@ -759,8 +767,7 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     strerror = e.strerror
                 else:
                     strerror = sys.exc_info()[1]
-                msg.setText("Cannot save.\n"
-                            "Input Output Error: %s" % strerror)
+                msg.setText("Cannot save.\n" "Input Output Error: %s" % strerror)
                 msg.exec()
                 return
 
@@ -788,8 +795,10 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
-        if (self._drawingMode is None or
-                event['event'] not in ('drawingProgress', 'drawingFinished')):
+        if self._drawingMode is None or event["event"] not in (
+            "drawingProgress",
+            "drawingFinished",
+        ):
             return
 
         if not len(self._data):
@@ -797,56 +806,54 @@ class MaskToolsWidget(BaseMaskToolsWidget):
 
         level = self.levelSpinBox.value()
 
-        if self._drawingMode == 'rectangle':
-            if event['event'] == 'drawingFinished':
+        if self._drawingMode == "rectangle":
+            if event["event"] == "drawingFinished":
                 # Convert from plot to array coords
                 doMask = self._isMasking()
                 ox, oy = self._origin
                 sx, sy = self._scale
 
-                height = int(abs(event['height'] / sy))
-                width = int(abs(event['width'] / sx))
+                height = int(abs(event["height"] / sy))
+                width = int(abs(event["width"] / sx))
 
-                row = int((event['y'] - oy) / sy)
+                row = int((event["y"] - oy) / sy)
                 if sy < 0:
                     row -= height
 
-                col = int((event['x'] - ox) / sx)
+                col = int((event["x"] - ox) / sx)
                 if sx < 0:
                     col -= width
 
                 self._mask.updateRectangle(
-                    level,
-                    row=row,
-                    col=col,
-                    height=height,
-                    width=width,
-                    mask=doMask)
+                    level, row=row, col=col, height=height, width=width, mask=doMask
+                )
                 self._mask.commit()
 
-        elif self._drawingMode == 'ellipse':
-            if event['event'] == 'drawingFinished':
+        elif self._drawingMode == "ellipse":
+            if event["event"] == "drawingFinished":
                 doMask = self._isMasking()
                 # Convert from plot to array coords
-                center = (event['points'][0] - self._origin) / self._scale
-                size = event['points'][1] / self._scale
+                center = (event["points"][0] - self._origin) / self._scale
+                size = event["points"][1] / self._scale
                 center = center.astype(numpy.int64)  # (row, col)
-                self._mask.updateEllipse(level, center[1], center[0], size[1], size[0], doMask)
+                self._mask.updateEllipse(
+                    level, center[1], center[0], size[1], size[0], doMask
+                )
                 self._mask.commit()
 
-        elif self._drawingMode == 'polygon':
-            if event['event'] == 'drawingFinished':
+        elif self._drawingMode == "polygon":
+            if event["event"] == "drawingFinished":
                 doMask = self._isMasking()
                 # Convert from plot to array coords
-                vertices = (event['points'] - self._origin) / self._scale
+                vertices = (event["points"] - self._origin) / self._scale
                 vertices = vertices.astype(numpy.int64)[:, (1, 0)]  # (row, col)
                 self._mask.updatePolygon(level, vertices, doMask)
                 self._mask.commit()
 
-        elif self._drawingMode == 'pencil':
+        elif self._drawingMode == "pencil":
             doMask = self._isMasking()
             # convert from plot to array coords
-            col, row = (event['points'][-1] - self._origin) / self._scale
+            col, row = (event["points"][-1] - self._origin) / self._scale
             col, row = int(col), int(row)
             brushSize = self._getPencilWidth()
 
@@ -855,15 +862,18 @@ class MaskToolsWidget(BaseMaskToolsWidget):
                     # Draw the line
                     self._mask.updateLine(
                         level,
-                        self._lastPencilPos[0], self._lastPencilPos[1],
-                        row, col,
+                        self._lastPencilPos[0],
+                        self._lastPencilPos[1],
+                        row,
+                        col,
                         brushSize,
-                        doMask)
+                        doMask,
+                    )
 
                 # Draw the very first, or last point
-                self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
+                self._mask.updateDisk(level, row, col, brushSize / 2.0, doMask)
 
-            if event['event'] == 'drawingFinished':
+            if event["event"] == "drawingFinished":
                 self._mask.commit()
                 self._lastPencilPos = None
             else:
@@ -874,15 +884,17 @@ class MaskToolsWidget(BaseMaskToolsWidget):
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
         activeImage = self.plot.getActiveImage()
-        if (isinstance(activeImage, items.ColormapMixIn) and
-                activeImage.getName() != self._maskName):
+        if (
+            isinstance(activeImage, items.ColormapMixIn)
+            and activeImage.getName() != self._maskName
+        ):
             # Update thresholds according to colormap
             colormap = activeImage.getColormap()
-            if colormap['autoscale']:
+            if colormap["autoscale"]:
                 min_ = numpy.nanmin(activeImage.getData(copy=False))
                 max_ = numpy.nanmax(activeImage.getData(copy=False))
             else:
-                min_, max_ = colormap['vmin'], colormap['vmax']
+                min_, max_ = colormap["vmin"], colormap["vmax"]
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
 
@@ -897,6 +909,6 @@ class MaskToolsDockWidget(BaseMaskToolsDockWidget):
     :paran str name: The title of this widget
     """
 
-    def __init__(self, parent=None, plot=None, name='Mask'):
+    def __init__(self, parent=None, plot=None, name="Mask"):
         widget = MaskToolsWidget(plot=plot)
         super(MaskToolsDockWidget, self).__init__(parent, name, widget)

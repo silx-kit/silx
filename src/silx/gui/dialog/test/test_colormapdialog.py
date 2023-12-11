@@ -43,9 +43,7 @@ import numpy
 
 @pytest.fixture
 def colormap():
-    colormap = Colormap(name='gray',
-                        vmin=10.0, vmax=20.0,
-                        normalization='linear')
+    colormap = Colormap(name="gray", vmin=10.0, vmax=20.0, normalization="linear")
     yield colormap
 
 
@@ -56,6 +54,7 @@ def colormapDialog(qapp):
     yield weakref.proxy(dialog)
     qapp.processEvents()
     from silx.gui.qt import inspect
+
     if inspect.isValid(dialog):
         dialog.close()
         del dialog
@@ -79,7 +78,6 @@ def colormap_class_attr(request, qapp_utils, colormap, colormapDialog):
 
 @pytest.mark.usefixtures("colormap_class_attr")
 class TestColormapDialog(TestCaseQt, ParametricTestCase):
-
     def testGUIEdition(self):
         """Make sure the colormap is correctly edited and also that the
         modification are correctly updated if an other colormapdialog is
@@ -92,18 +90,20 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.show()
         self.qapp.processEvents()
 
-        self.colormapDiag._comboBoxColormap._setCurrentName('red')
+        self.colormapDiag._comboBoxColormap._setCurrentName("red")
         self.colormapDiag._comboBoxNormalization.setCurrentIndex(
-            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM))
-        self.assertTrue(self.colormap.getName() == 'red')
-        self.assertTrue(self.colormapDiag.getColormap().getName() == 'red')
-        self.assertTrue(self.colormap.getNormalization() == 'log')
+            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM)
+        )
+        self.assertTrue(self.colormap.getName() == "red")
+        self.assertTrue(self.colormapDiag.getColormap().getName() == "red")
+        self.assertTrue(self.colormap.getNormalization() == "log")
         self.assertTrue(self.colormap.getVMin() == 10)
         self.assertTrue(self.colormap.getVMax() == 20)
         # checked second colormap dialog
-        self.assertTrue(colormapDiag2._comboBoxColormap.getCurrentName() == 'red')
-        self.assertEqual(colormapDiag2._comboBoxNormalization.currentData(),
-                         Colormap.LOGARITHM)
+        self.assertTrue(colormapDiag2._comboBoxColormap.getCurrentName() == "red")
+        self.assertEqual(
+            colormapDiag2._comboBoxNormalization.currentData(), Colormap.LOGARITHM
+        )
         self.assertTrue(int(colormapDiag2._minValue.getValue()) == 10)
         self.assertTrue(int(colormapDiag2._maxValue.getValue()) == 20)
         colormapDiag2.close()
@@ -123,7 +123,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag._maxValue.sigAutoScaleChanged.emit(True)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Ok),
-            button=qt.Qt.LeftButton
+            button=qt.Qt.LeftButton,
         )
         self.assertTrue(self.colormap.getVMin() is None)
         self.assertTrue(self.colormap.getVMax() is None)
@@ -141,7 +141,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsModal.button(qt.QDialogButtonBox.Cancel),
-            button=qt.Qt.LeftButton
+            button=qt.Qt.LeftButton,
         )
         self.assertTrue(self.colormap.getVMin() is not None)
 
@@ -156,7 +156,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Close),
-            button=qt.Qt.LeftButton
+            button=qt.Qt.LeftButton,
         )
         self.assertTrue(self.colormap.getVMin() is None)
 
@@ -171,7 +171,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.assertTrue(self.colormap.getVMin() is None)
         self.mouseClick(
             widget=self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset),
-            button=qt.Qt.LeftButton
+            button=qt.Qt.LeftButton,
         )
         self.assertTrue(self.colormap.getVMin() is not None)
         self.colormapDiag.close()
@@ -191,10 +191,10 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
 
     def testSetColormapIsCorrect(self):
         """Make sure the interface fir the colormap when set a new colormap"""
-        self.colormap.setName('red')
+        self.colormap.setName("red")
         self.colormapDiag.show()
         self.qapp.processEvents()
-        for norm in (Colormap.NORMALIZATIONS):
+        for norm in Colormap.NORMALIZATIONS:
             for autoscale in (True, False):
                 if autoscale is True:
                     self.colormap.setVRange(None, None)
@@ -204,32 +204,40 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
                 with self.subTest(colormap=self.colormap):
                     self.colormapDiag.setColormap(self.colormap)
                     self.assertEqual(
-                        self.colormapDiag._comboBoxNormalization.currentData(), norm)
+                        self.colormapDiag._comboBoxNormalization.currentData(), norm
+                    )
                     self.assertTrue(
-                        self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
+                        self.colormapDiag._comboBoxColormap.getCurrentName() == "red"
+                    )
                     self.assertTrue(
-                        self.colormapDiag._minValue.isAutoChecked() == autoscale)
+                        self.colormapDiag._minValue.isAutoChecked() == autoscale
+                    )
                     self.assertTrue(
-                        self.colormapDiag._maxValue.isAutoChecked() == autoscale)
+                        self.colormapDiag._maxValue.isAutoChecked() == autoscale
+                    )
                     if autoscale is False:
                         self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
                         self.assertTrue(self.colormapDiag._maxValue.getValue() == 101)
                         self.assertTrue(self.colormapDiag._minValue.isEnabled())
                         self.assertTrue(self.colormapDiag._maxValue.isEnabled())
                     else:
-                        self.assertTrue(self.colormapDiag._minValue._numVal.isReadOnly())
-                        self.assertTrue(self.colormapDiag._maxValue._numVal.isReadOnly())
+                        self.assertTrue(
+                            self.colormapDiag._minValue._numVal.isReadOnly()
+                        )
+                        self.assertTrue(
+                            self.colormapDiag._maxValue._numVal.isReadOnly()
+                        )
 
     def testColormapDel(self):
         """Check behavior if the colormap has been deleted outside. For now
         we make sure the colormap is still running and nothing more"""
-        colormap = Colormap(name='gray')
+        colormap = Colormap(name="gray")
         self.colormapDiag.setColormap(colormap)
         self.colormapDiag.show()
         self.qapp.processEvents()
         colormap = None
         self.assertTrue(self.colormapDiag.getColormap() is None)
-        self.colormapDiag._comboBoxColormap._setCurrentName('blue')
+        self.colormapDiag._comboBoxColormap._setCurrentName("blue")
 
     def testColormapEditedOutside(self):
         """Make sure the GUI is still up to date if the colormap is modified
@@ -238,12 +246,12 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         self.colormapDiag.show()
         self.qapp.processEvents()
 
-        self.colormap.setName('red')
-        self.assertTrue(
-            self.colormapDiag._comboBoxColormap.getCurrentName() == 'red')
+        self.colormap.setName("red")
+        self.assertTrue(self.colormapDiag._comboBoxColormap.getCurrentName() == "red")
         self.colormap.setNormalization(Colormap.LOGARITHM)
-        self.assertEqual(self.colormapDiag._comboBoxNormalization.currentData(),
-                         Colormap.LOGARITHM)
+        self.assertEqual(
+            self.colormapDiag._comboBoxNormalization.currentData(), Colormap.LOGARITHM
+        )
         self.colormap.setVRange(11, 201)
         self.assertTrue(self.colormapDiag._minValue.getValue() == 11)
         self.assertTrue(self.colormapDiag._maxValue.getValue() == 201)
@@ -261,12 +269,9 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testSetColormapScenario(self):
         """Test of a simple scenario of a colormap dialog editing several
         colormap"""
-        colormap1 = Colormap(name='gray', vmin=10.0, vmax=20.0,
-                             normalization='linear')
-        colormap2 = Colormap(name='red', vmin=10.0, vmax=20.0,
-                             normalization='log')
-        colormap3 = Colormap(name='blue', vmin=None, vmax=None,
-                             normalization='linear')
+        colormap1 = Colormap(name="gray", vmin=10.0, vmax=20.0, normalization="linear")
+        colormap2 = Colormap(name="red", vmin=10.0, vmax=20.0, normalization="log")
+        colormap3 = Colormap(name="blue", vmin=None, vmax=None, normalization="linear")
         self.colormapDiag.setColormap(self.colormap)
         self.colormapDiag.setColormap(colormap1)
         del colormap1
@@ -279,6 +284,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
         """Test that the colormapEditor is able to edit a colormap which is not
         part of the 'prefered colormap'
         """
+
         def getFirstNotPreferredColormap():
             cms = Colormap.getSupportedColormaps()
             preferred = preferredColormaps()
@@ -304,7 +310,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testColormapEditableMode(self):
         """Test that the colormapDialog is correctly updated when changing the
         colormap editable status"""
-        colormap = Colormap(normalization='linear', vmin=1.0, vmax=10.0)
+        colormap = Colormap(normalization="linear", vmin=1.0, vmax=10.0)
         self.colormapDiag.show()
         self.qapp.processEvents()
         self.colormapDiag.setColormap(colormap)
@@ -312,21 +318,24 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
             with self.subTest(editable=editable):
                 colormap.setEditable(editable)
                 self.assertTrue(
-                    self.colormapDiag._comboBoxColormap.isEnabled() is editable)
+                    self.colormapDiag._comboBoxColormap.isEnabled() is editable
+                )
+                self.assertTrue(self.colormapDiag._minValue.isEnabled() is editable)
+                self.assertTrue(self.colormapDiag._maxValue.isEnabled() is editable)
                 self.assertTrue(
-                    self.colormapDiag._minValue.isEnabled() is editable)
-                self.assertTrue(
-                    self.colormapDiag._maxValue.isEnabled() is editable)
-                self.assertTrue(
-                    self.colormapDiag._comboBoxNormalization.isEnabled() is editable)
+                    self.colormapDiag._comboBoxNormalization.isEnabled() is editable
+                )
 
         # Make sure the reset button is also set to enable when edition mode is
         # False
         self.colormapDiag.setModal(False)
         colormap.setEditable(True)
         self.colormapDiag._comboBoxNormalization.setCurrentIndex(
-            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM))
-        resetButton = self.colormapDiag._buttonsNonModal.button(qt.QDialogButtonBox.Reset)
+            self.colormapDiag._comboBoxNormalization.findData(Colormap.LOGARITHM)
+        )
+        resetButton = self.colormapDiag._buttonsNonModal.button(
+            qt.QDialogButtonBox.Reset
+        )
         self.assertTrue(resetButton.isEnabled())
         colormap.setEditable(False)
         self.assertFalse(resetButton.isEnabled())
@@ -347,7 +356,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testImageItem(self):
         """Check that an ImageData plot item can be used"""
         dialog = self.colormapDiag
-        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        colormap = Colormap(name="gray", vmin=None, vmax=None)
         data = numpy.arange(3**2).reshape(3, 3)
         item = ImageData()
         item.setData(data, copy=False)
@@ -362,7 +371,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testItemDel(self):
         """Check that the plot items are not hard linked to the dialog"""
         dialog = self.colormapDiag
-        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        colormap = Colormap(name="gray", vmin=None, vmax=None)
         data = numpy.arange(3**2).reshape(3, 3)
         item = ImageData()
         item.setData(data, copy=False)
@@ -379,7 +388,7 @@ class TestColormapDialog(TestCaseQt, ParametricTestCase):
     def testDataDel(self):
         """Check that the data are not hard linked to the dialog"""
         dialog = self.colormapDiag
-        colormap = Colormap(name='gray', vmin=None, vmax=None)
+        colormap = Colormap(name="gray", vmin=None, vmax=None)
         data = numpy.arange(5)
 
         dialog.setColormap(colormap)

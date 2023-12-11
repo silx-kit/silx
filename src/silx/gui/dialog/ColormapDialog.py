@@ -58,6 +58,8 @@ The updates of the colormap description are also available through the signal:
 :attr:`ColormapDialog.sigColormapChanged`.
 """  # noqa
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent", "H. Payno"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
@@ -84,6 +86,7 @@ from silx.gui.widgets.FormGridLayout import FormGridLayout
 from silx.math.histogram import Histogramnd
 from silx.gui.plot.items.roi import RectangleROI
 from silx.gui.plot.tools.roi import RegionOfInterestManager
+from silx.utils.enum import Enum as _Enum
 
 _logger = logging.getLogger(__name__)
 
@@ -127,8 +130,8 @@ class _BoundaryWidget(qt.QWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self._numVal = FloatEdit(parent=self, value=value)
 
-        self._iconAuto = icons.getQIcon('scale-auto')
-        self._iconFixed = icons.getQIcon('scale-fixed')
+        self._iconAuto = icons.getQIcon("scale-auto")
+        self._iconFixed = icons.getQIcon("scale-fixed")
 
         self._autoToggleAction = qt.QAction(self)
         self._autoToggleAction.setText("Auto scale")
@@ -141,7 +144,7 @@ class _BoundaryWidget(qt.QWidget):
         self._numVal.addAction(self._autoToggleAction, qt.QLineEdit.LeadingPosition)
 
         self.layout().addWidget(self._numVal)
-        self._autoCB = qt.QCheckBox('auto', parent=self)
+        self._autoCB = qt.QCheckBox("auto", parent=self)
         self.layout().addWidget(self._autoCB)
         self._autoCB.setChecked(False)
         self._autoCB.setVisible(False)
@@ -219,7 +222,7 @@ class _BoundaryWidget(qt.QWidget):
             color = palette.color(qt.QPalette.Disabled, qt.QPalette.Base)
             icon = self._iconAuto
         else:
-            color = palette.color(qt.QPalette.Normal, qt.QPalette.Base)
+            color = palette.color(qt.QPalette.Active, qt.QPalette.Base)
             icon = self._iconFixed
         palette.setColor(qt.QPalette.Base, color)
         self._numVal.setPalette(palette)
@@ -227,7 +230,6 @@ class _BoundaryWidget(qt.QWidget):
 
 
 class _AutoscaleModeComboBox(qt.QComboBox):
-
     DATA = {
         Colormap.MINMAX: ("Min/max", "Use the data min/max"),
         Colormap.STDDEV3: ("Mean±3std", "Use the data mean ± 3 × standard deviation"),
@@ -274,7 +276,6 @@ class _AutoscaleModeComboBox(qt.QComboBox):
 
 
 class _AutoScaleButton(qt.QPushButton):
-
     autoRangeChanged = qt.Signal(object)
 
     def __init__(self, parent=None):
@@ -299,11 +300,13 @@ class _AutoScaleButton(qt.QPushButton):
         with utils.blockSignals(self):
             self.setChecked(autoRange[0] if autoRange[0] == autoRange[1] else False)
 
+
 @enum.unique
-class _DataInPlotMode(enum.Enum):
+class DisplayMode(_Enum):
     """Enum for each mode of display of the data in the plot."""
-    RANGE = 'range'
-    HISTOGRAM = 'histogram'
+
+    RANGE = "range"
+    HISTOGRAM = "histogram"
 
 
 class _ColormapHistogram(qt.QWidget):
@@ -332,7 +335,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def __init__(self, parent):
         qt.QWidget.__init__(self, parent=parent)
-        self._dataInPlotMode = _DataInPlotMode.RANGE
+        self._displayMode = DisplayMode.RANGE
         self._finiteRange = None, None
         self._initPlot()
 
@@ -349,7 +352,7 @@ class _ColormapHistogram(qt.QWidget):
 
     def paintEvent(self, event):
         if self._invalidated:
-            self._updateDataInPlot()
+            self._updateDisplayMode()
             self._invalidated = False
         self._updateMarkerPosition()
         return super(_ColormapHistogram, self).paintEvent(event)
@@ -418,7 +421,9 @@ class _ColormapHistogram(qt.QWidget):
         dataRange = self._getNormalizedDataRange()
         if dataRange[0] is None or dataRange[1] is None:
             return None, None
-        counts, edges = self.parent().computeHistogram(data, scale=norm, dataRange=dataRange)
+        counts, edges = self.parent().computeHistogram(
+            data, scale=norm, dataRange=dataRange
+        )
         return counts, edges
 
     def _getNormalizedDataRange(self):
@@ -510,22 +515,22 @@ class _ColormapHistogram(qt.QWidget):
         self._plot.setDataMargins(0.125, 0.125, 0.01, 0.01)
         self._plot.getXAxis().setLabel("Data Values")
         self._plot.getYAxis().setLabel("")
-        self._plot.setInteractiveMode('select', zoomOnWheel=False)
+        self._plot.setInteractiveMode("select", zoomOnWheel=False)
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotEventReceived)
         palette = self.palette()
-        color = palette.color(qt.QPalette.Normal, qt.QPalette.Window)
+        color = palette.color(qt.QPalette.Active, qt.QPalette.Window)
         self._plot.setBackgroundColor(color)
         self._plot.setDataBackgroundColor("white")
 
         lut = numpy.arange(256)
         lut.shape = 1, -1
-        self._plot.addImage(lut, legend='lut')
+        self._plot.addImage(lut, legend="lut")
         self._lutItem = self._plot._getItem("image", "lut")
         self._lutItem.setVisible(False)
 
-        self._plot.addScatter(x=[], y=[], value=[], legend='lut2')
+        self._plot.addScatter(x=[], y=[], value=[], legend="lut2")
         self._lutItem2 = self._plot._getItem("scatter", "lut2")
         self._lutItem2.setVisible(False)
         self.__lutY = numpy.array([-0.05] * 256)
@@ -545,24 +550,32 @@ class _ColormapHistogram(qt.QWidget):
 
         group = qt.QActionGroup(self._plotToolbar)
         group.setExclusive(True)
-
+        # data range mode
         action = qt.QAction("Data range", self)
-        action.setToolTip("Display the data range within the colormap range. A fast data processing have to be done.")
-        action.setIcon(icons.getQIcon('colormap-range'))
+        action.setToolTip(
+            "Display the data range within the colormap range. A fast data processing have to be done."
+        )
+        action.setIcon(icons.getQIcon("colormap-range"))
         action.setCheckable(True)
-        action.setData(_DataInPlotMode.RANGE)
-        action.setChecked(action.data() == self._dataInPlotMode)
+        action.setData(DisplayMode.RANGE)
+        action.setChecked(action.data() == self._displayMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
+        self._dataRangeAction = action
+        # histogram mode
         action = qt.QAction("Histogram", self)
-        action.setToolTip("Display the data histogram within the colormap range. A slow data processing have to be done. ")
-        action.setIcon(icons.getQIcon('colormap-histogram'))
+        action.setToolTip(
+            "Display the data histogram within the colormap range. A slow data processing have to be done. "
+        )
+        action.setIcon(icons.getQIcon("colormap-histogram"))
         action.setCheckable(True)
-        action.setData(_DataInPlotMode.HISTOGRAM)
-        action.setChecked(action.data() == self._dataInPlotMode)
+        action.setData(DisplayMode.HISTOGRAM)
+        action.setChecked(action.data() == self._displayMode)
         self._plotToolbar.addAction(action)
         group.addAction(action)
-        group.triggered.connect(self._displayDataInPlotModeChanged)
+        self._dataHistogramAction = action
+        group.setExclusive(True)
+        group.triggered.connect(self._displayModeChanged)
 
         plotBoxLayout = qt.QHBoxLayout()
         plotBoxLayout.setContentsMargins(0, 0, 0, 0)
@@ -574,28 +587,28 @@ class _ColormapHistogram(qt.QWidget):
 
     def _plotEventReceived(self, event):
         """Handle events from the plot"""
-        kind = event['event']
+        kind = event["event"]
 
-        if kind == 'markerMoving':
-            value = event['xdata']
-            if event['label'] == 'Min':
+        if kind == "markerMoving":
+            value = event["xdata"]
+            if event["label"] == "Min":
                 self._dragging = True, False, False
                 self._finiteRange = value, self._finiteRange[1]
                 self._last = value, None, None
                 self._updateGammaPosition()
                 self.sigRangeMoving.emit(*self._last)
-            elif event['label'] == 'Max':
+            elif event["label"] == "Max":
                 self._dragging = False, True, False
                 self._finiteRange = self._finiteRange[0], value
                 self._last = None, value, None
                 self._updateGammaPosition()
                 self.sigRangeMoving.emit(*self._last)
-            elif event['label'] == 'Gamma':
+            elif event["label"] == "Gamma":
                 self._dragging = False, False, True
                 self._last = None, None, value
                 self.sigRangeMoving.emit(*self._last)
             self._updateLutItem(self._finiteRange)
-        elif kind == 'markerMoved':
+        elif kind == "markerMoved":
             self.sigRangeMoved.emit(*self._last)
             self._plot.resetZoom()
             self._dragging = False, False, False
@@ -615,20 +628,22 @@ class _ColormapHistogram(qt.QWidget):
             if posMin is not None and not self._dragging[0]:
                 self._plot.addXMarker(
                     posMin,
-                    legend='Min',
-                    text='Min',
+                    legend="Min",
+                    text="Min",
                     draggable=isDraggable,
                     color="blue",
-                    constraint=self._plotMinMarkerConstraint)
+                    constraint=self._plotMinMarkerConstraint,
+                )
             self._updateGammaPosition()
             if posMax is not None and not self._dragging[1]:
                 self._plot.addXMarker(
                     posMax,
-                    legend='Max',
-                    text='\n\nMax',
+                    legend="Max",
+                    text="\n\nMax",
                     draggable=isDraggable,
                     color="blue",
-                    constraint=self._plotMaxMarkerConstraint)
+                    constraint=self._plotMaxMarkerConstraint,
+                )
 
         self._updateLutItem((posMin, posMax))
         self._plot.resetZoom()
@@ -649,14 +664,14 @@ class _ColormapHistogram(qt.QWidget):
             if not self._dragging[2]:
                 posRange = posMax - posMin
                 if posRange > 0:
-                    gammaPos = posMin + posRange * 0.5**(1/gamma)
+                    gammaPos = posMin + posRange * 0.5 ** (1 / gamma)
                 else:
                     gammaPos = posMin
                 marker = self._plot._getMarker(
                     self._plot.addXMarker(
                         gammaPos,
-                        legend='Gamma',
-                        text='\nGamma',
+                        legend="Gamma",
+                        text="\nGamma",
                         draggable=True,
                         color="blue",
                         constraint=self._plotGammaMarkerConstraint,
@@ -665,7 +680,7 @@ class _ColormapHistogram(qt.QWidget):
                 marker.setZValue(2)
         else:
             try:
-                self._plot.removeMarker('Gamma')
+                self._plot.removeMarker("Gamma")
             except Exception:
                 pass
 
@@ -702,10 +717,9 @@ class _ColormapHistogram(qt.QWidget):
                 self._lutItem2.setVisible(False)
                 self._lutItem2.setColormap(normColormap)
                 xx = numpy.geomspace(posMin, posMax, 256)
-                self._lutItem2.setData(x=xx,
-                                       y=self.__lutY,
-                                       value=self.__lutV,
-                                       copy=False)
+                self._lutItem2.setData(
+                    x=xx, y=self.__lutY, value=self.__lutV, copy=False
+                )
                 self._lutItem2.setSymbol("|")
                 self._lutItem2.setVisible(True)
                 self._lutItem.setVisible(False)
@@ -716,10 +730,8 @@ class _ColormapHistogram(qt.QWidget):
                 self._lutItem2.setColormap(normColormap)
                 xx = numpy.linspace(posMin, posMax, 256, endpoint=True)
                 self._lutItem2.setData(
-                    x=xx,
-                    y=self.__lutY,
-                    value=self.__lutV,
-                    copy=False)
+                    x=xx, y=self.__lutY, value=self.__lutV, copy=False
+                )
                 self._lutItem2.setSymbol("|")
                 self._lutItem2.setVisible(True)
                 self._lutItem.setVisible(False)
@@ -749,15 +761,29 @@ class _ColormapHistogram(qt.QWidget):
             x = min(x, vmax)
         return x, y
 
-    def _setDataInPlotMode(self, mode):
-        if self._dataInPlotMode == mode:
-            return
-        self._dataInPlotMode = mode
-        self._updateDataInPlot()
+    def setDisplayMode(self, mode: str | DisplayMode):
+        mode = DisplayMode.from_value(mode)
+        if mode is DisplayMode.HISTOGRAM:
+            action = self._dataHistogramAction
+        elif mode is DisplayMode.RANGE:
+            action = self._dataRangeAction
+        else:
+            raise ValueError("Mode not supported")
+        action.setChecked(True)
+        self._displayModeChanged(action)
 
-    def _displayDataInPlotModeChanged(self, action):
+    def _setDisplayMode(self, mode):
+        if self._displayMode == mode:
+            return
+        self._displayMode = mode
+        self._updateDisplayMode()
+
+    def getDsiplayMode(self) -> DisplayMode:
+        return self._displayMode
+
+    def _displayModeChanged(self, action):
         mode = action.data()
-        self._setDataInPlotMode(mode)
+        self._setDisplayMode(mode)
 
     def invalidateData(self):
         self._histogramData = {}
@@ -765,8 +791,8 @@ class _ColormapHistogram(qt.QWidget):
         self._invalidated = True
         self.update()
 
-    def _updateDataInPlot(self):
-        mode = self._dataInPlotMode
+    def _updateDisplayMode(self):
+        mode = self._displayMode
 
         norm = self._getNorm()
         if norm == Colormap.LINEAR:
@@ -779,38 +805,42 @@ class _ColormapHistogram(qt.QWidget):
         axis = self._plot.getXAxis()
         axis.setScale(scale)
 
-        if mode == _DataInPlotMode.RANGE:
+        if mode == DisplayMode.RANGE:
             dataRange = self._getNormalizedDataRange()
             xmin, xmax = dataRange
             if xmax is None or xmin is None:
-                self._plot.remove(legend='Data', kind='histogram')
+                self._plot.remove(legend="Data", kind="histogram")
             else:
                 histogram = numpy.array([1])
                 bin_edges = numpy.array([xmin, xmax])
-                self._plot.addHistogram(histogram,
-                                        bin_edges,
-                                        legend="Data",
-                                        color='gray',
-                                        align='center',
-                                        fill=True,
-                                        z=1)
+                self._plot.addHistogram(
+                    histogram,
+                    bin_edges,
+                    legend="Data",
+                    color="gray",
+                    align="center",
+                    fill=True,
+                    z=1,
+                )
 
-        elif mode == _DataInPlotMode.HISTOGRAM:
+        elif mode == DisplayMode.HISTOGRAM:
             histogram, bin_edges = self._getNormalizedHistogram()
             if histogram is None or bin_edges is None:
-                self._plot.remove(legend='Data', kind='histogram')
+                self._plot.remove(legend="Data", kind="histogram")
             else:
                 histogram = numpy.array(histogram, copy=True)
                 bin_edges = numpy.array(bin_edges, copy=True)
-                with numpy.errstate(invalid='ignore'):
+                with numpy.errstate(invalid="ignore"):
                     norm_histogram = histogram / numpy.nanmax(histogram)
-                self._plot.addHistogram(norm_histogram,
-                                        bin_edges,
-                                        legend="Data",
-                                        color='gray',
-                                        align='center',
-                                        fill=True,
-                                        z=1)
+                self._plot.addHistogram(
+                    norm_histogram,
+                    bin_edges,
+                    legend="Data",
+                    color="gray",
+                    align="center",
+                    fill=True,
+                    z=1,
+                )
         else:
             _logger.error("Mode unsupported")
 
@@ -829,7 +859,7 @@ class _ColormapHistogram(qt.QWidget):
             return norm
 
     def updateNormalization(self):
-        self._updateDataInPlot()
+        self._updateDisplayMode()
         self.update()
 
 
@@ -886,16 +916,19 @@ class ColormapDialog(qt.QDialog):
 
         # Colormap row
         self._comboBoxColormap = ColormapNameComboBox(parent=self)
-        self._comboBoxColormap.currentIndexChanged[int].connect(self._comboBoxColormapUpdated)
+        self._comboBoxColormap.currentIndexChanged[int].connect(
+            self._comboBoxColormapUpdated
+        )
 
         # Normalization row
         self._comboBoxNormalization = qt.QComboBox(parent=self)
         normalizations = [
-            ('Linear', Colormap.LINEAR),
-            ('Gamma correction', Colormap.GAMMA),
-            ('Arcsinh', Colormap.ARCSINH),
-            ('Logarithmic', Colormap.LOGARITHM),
-            ('Square root', Colormap.SQRT)]
+            ("Linear", Colormap.LINEAR),
+            ("Gamma correction", Colormap.GAMMA),
+            ("Arcsinh", Colormap.ARCSINH),
+            ("Logarithmic", Colormap.LOGARITHM),
+            ("Square root", Colormap.SQRT),
+        ]
         for name, userData in normalizations:
             try:
                 icon = icons.getQIcon("colormap-norm-%s" % userData)
@@ -903,11 +936,12 @@ class ColormapDialog(qt.QDialog):
                 icon = qt.QIcon()
             self._comboBoxNormalization.addItem(icon, name, userData)
         self._comboBoxNormalization.currentIndexChanged[int].connect(
-            self._normalizationUpdated)
+            self._normalizationUpdated
+        )
 
         self._gammaSpinBox = qt.QDoubleSpinBox(parent=self)
         self._gammaSpinBox.setEnabled(False)
-        self._gammaSpinBox.setRange(0.01, 100.)
+        self._gammaSpinBox.setRange(0.01, 100.0)
         self._gammaSpinBox.setDecimals(4)
         if hasattr(qt.QDoubleSpinBox, "setStepType"):
             # Introduced in Qt 5.12
@@ -915,7 +949,7 @@ class ColormapDialog(qt.QDialog):
         else:
             self._gammaSpinBox.setSingleStep(0.1)
         self._gammaSpinBox.valueChanged.connect(self._gammaUpdated)
-        self._gammaSpinBox.setValue(2.)
+        self._gammaSpinBox.setValue(2.0)
 
         autoScaleCombo = _AutoscaleModeComboBox(self)
         autoScaleCombo.currentIndexChanged.connect(self._autoscaleModeUpdated)
@@ -958,15 +992,17 @@ class ColormapDialog(qt.QDialog):
         self._histoWidget = _ColormapHistogram(self)
         self._histoWidget.sigRangeMoving.connect(self._histogramRangeMoving)
         self._histoWidget.sigRangeMoved.connect(self._histogramRangeMoved)
-        self._histoWidget.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        self._histoWidget.setSizePolicy(
+            qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding
+        )
 
         # Scale to buttons
         self._visibleAreaButton = qt.QPushButton(self)
         self._visibleAreaButton.setEnabled(False)
         self._visibleAreaButton.setText("Visible Area")
         self._visibleAreaButton.clicked.connect(
-            self._handleScaleToVisibleAreaClicked,
-            type=qt.Qt.QueuedConnection)
+            self._handleScaleToVisibleAreaClicked, type=qt.Qt.QueuedConnection
+        )
 
         # Place-holder for selected area ROI manager
         self._roiForColormapManager = None
@@ -978,8 +1014,8 @@ class ColormapDialog(qt.QDialog):
         self._selectedAreaButton.setIcon(icons.getQIcon("add-shape-rectangle"))
         self._selectedAreaButton.setCheckable(True)
         self._selectedAreaButton.toggled.connect(
-            self._handleScaleToSelectionToggled,
-            type=qt.Qt.QueuedConnection)
+            self._handleScaleToSelectionToggled, type=qt.Qt.QueuedConnection
+        )
 
         # define modal buttons
         types = qt.QDialogButtonBox.Ok | qt.QDialogButtonBox.Cancel
@@ -1002,8 +1038,9 @@ class ColormapDialog(qt.QDialog):
         self._buttonsNonModal.setFocus(qt.Qt.OtherFocusReason)
 
         # Set the colormap to default values
-        self.setColormap(Colormap(name='gray', normalization='linear',
-                         vmin=None, vmax=None))
+        self.setColormap(
+            Colormap(name="gray", normalization="linear", vmin=None, vmax=None)
+        )
 
         self.setModal(self.isModal())
 
@@ -1022,20 +1059,23 @@ class ColormapDialog(qt.QDialog):
         layoutScale.addWidget(self._autoScaleCombo)
         layoutScale.addStretch()
 
-
         formLayout = FormGridLayout(self)
         formLayout.setContentsMargins(10, 10, 10, 10)
 
-        formLayout.addRow('Colormap:', self._comboBoxColormap)
-        formLayout.addRow('Normalization:', self._comboBoxNormalization)
-        formLayout.addRow('Gamma:', self._gammaSpinBox)
+        formLayout.addRow("Colormap:", self._comboBoxColormap)
+        formLayout.addRow("Normalization:", self._comboBoxNormalization)
+        formLayout.addRow("Gamma:", self._gammaSpinBox)
 
-        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
+        formLayout.addItem(
+            qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+        )
         formLayout.addRow(self._histoWidget)
-        formLayout.setRowStretch(formLayout.rowCount() -1, 1)
+        formLayout.setRowStretch(formLayout.rowCount() - 1, 1)
         formLayout.addRow(rangeLayout)
-        formLayout.addItem(qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed))
-        formLayout.addRow('Scale:', layoutScale)
+        formLayout.addItem(
+            qt.QSpacerItem(1, 1, qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
+        )
+        formLayout.addRow("Scale:", layoutScale)
         formLayout.addRow("Fixed scale on:", self._scaleToAreaGroup)
         formLayout.addRow(self._buttonsModal)
         formLayout.addRow(self._buttonsNonModal)
@@ -1053,6 +1093,9 @@ class ColormapDialog(qt.QDialog):
         self.setTabOrder(self._buttonsModal, self._buttonsNonModal)
 
         self._applyColormap()
+
+    def getHistogramWidget(self):
+        return self._histoWidget
 
     def _invalidateColormap(self):
         if self.isVisible():
@@ -1156,9 +1199,9 @@ class ColormapDialog(qt.QDialog):
 
         if dataRange is None or len(dataRange) != 3:
             qt.QMessageBox.warning(
-                None, "No Data",
-                "Image data does not contain any real value")
-            dataRange = 1., 1., 10.
+                None, "No Data", "Image data does not contain any real value"
+            )
+            dataRange = 1.0, 1.0, 10.0
 
         return dataRange
 
@@ -1182,11 +1225,11 @@ class ColormapDialog(qt.QDialog):
             return None, None
 
         if data.ndim == 3:  # RGB(A) images
-            _logger.info('Converting current image from RGB(A) to grayscale\
-                in order to compute the intensity distribution')
-            data = (data[:,:, 0] * 0.299 +
-                    data[:,:, 1] * 0.587 +
-                    data[:,:, 2] * 0.114)
+            _logger.info(
+                "Converting current image from RGB(A) to grayscale\
+                in order to compute the intensity distribution"
+            )
+            data = data[:, :, 0] * 0.299 + data[:, :, 1] * 0.587 + data[:, :, 2] * 0.114
 
         # bad hack: get 256 continuous bins in the case we have a B&W
         normalizeData = True
@@ -1200,7 +1243,7 @@ class ColormapDialog(qt.QDialog):
 
         if normalizeData:
             if scale == Colormap.LOGARITHM:
-                with numpy.errstate(divide='ignore', invalid='ignore'):
+                with numpy.errstate(divide="ignore", invalid="ignore"):
                     data = numpy.log10(data)
 
         if dataRange is not None:
@@ -1231,7 +1274,7 @@ class ColormapDialog(qt.QDialog):
         bins = histogram.edges[0]
         if normalizeData:
             if scale == Colormap.LOGARITHM:
-                bins = 10 ** bins
+                bins = 10**bins
         return histogram.histo, bins
 
     def _getItem(self):
@@ -1432,7 +1475,7 @@ class ColormapDialog(qt.QDialog):
             (xmin, xmax, ymin, ymax) Rectangular region in data space
         """
         if bounds is None:
-            return None  # no-op
+            return  # no-op
 
         colormap = self.getColormap()
         if colormap is None:
@@ -1440,13 +1483,15 @@ class ColormapDialog(qt.QDialog):
 
         item = self._getItem()
         if not isinstance(item, items.ColormapMixIn):
-            return None  # no-op
+            return  # no-op
 
         data = item.getColormappedData(copy=False)
-
         xmin, xmax, ymin, ymax = bounds
 
         if isinstance(item, items.ImageBase):
+            if data.ndim != 2:
+                return  # no-op
+
             ox, oy = item.getOrigin()
             sx, sy = item.getScale()
 
@@ -1463,7 +1508,9 @@ class ColormapDialog(qt.QDialog):
             subset = data[
                 numpy.logical_and(
                     numpy.logical_and(xmin <= x, x <= xmax),
-                    numpy.logical_and(ymin <= y, y <= ymax))]
+                    numpy.logical_and(ymin <= y, y <= ymax),
+                )
+            ]
 
         if subset.size == 0:
             return  # no-op
@@ -1566,19 +1613,21 @@ class ColormapDialog(qt.QDialog):
                 self._comboBoxColormap.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._comboBoxNormalization):
                 index = self._comboBoxNormalization.findData(
-                    colormap.getNormalization())
+                    colormap.getNormalization()
+                )
                 if index < 0:
-                    _logger.error('Unsupported normalization: %s' %
-                                  colormap.getNormalization())
+                    _logger.error(
+                        "Unsupported normalization: %s" % colormap.getNormalization()
+                    )
                 else:
                     self._comboBoxNormalization.setCurrentIndex(index)
                 self._comboBoxNormalization.setEnabled(colormap.isEditable())
             with utils.blockSignals(self._gammaSpinBox):
-                self._gammaSpinBox.setValue(
-                    colormap.getGammaNormalizationParameter())
+                self._gammaSpinBox.setValue(colormap.getGammaNormalizationParameter())
                 self._gammaSpinBox.setEnabled(
-                    colormap.getNormalization() == Colormap.GAMMA and
-                    colormap.isEditable())
+                    colormap.getNormalization() == Colormap.GAMMA
+                    and colormap.isEditable()
+                )
             with utils.blockSignals(self._autoScaleCombo):
                 self._autoScaleCombo.setCurrentMode(colormap.getAutoscaleMode())
                 self._autoScaleCombo.setEnabled(colormap.isEditable())
@@ -1627,8 +1676,8 @@ class ColormapDialog(qt.QDialog):
         dataRange = self._getFiniteColormapRange()
 
         # Final colormap range
-        vmin = (dataRange[0] if not autoRange[0] else None)
-        vmax = (dataRange[1] if not autoRange[1] else None)
+        vmin = dataRange[0] if not autoRange[0] else None
+        vmax = dataRange[1] if not autoRange[1] else None
 
         with self._colormapChange:
             colormap = self.getColormap()
@@ -1648,7 +1697,7 @@ class ColormapDialog(qt.QDialog):
         colormap = self.getColormap()
         if colormap is not None:
             normalization = self._comboBoxNormalization.itemData(index)
-            self._gammaSpinBox.setEnabled(normalization == 'gamma')
+            self._gammaSpinBox.setEnabled(normalization == "gamma")
 
             with self._colormapChange:
                 colormap.setNormalization(normalization)
@@ -1748,7 +1797,7 @@ class ColormapDialog(qt.QDialog):
                 gamma = self._gammaSpinBox.minimum()
             else:
                 gamma = numpy.clip(
-                    numpy.log(0.5)/numpy.log((gammaPos - vmin) / (vmax - vmin)),
+                    numpy.log(0.5) / numpy.log((gammaPos - vmin) / (vmax - vmin)),
                     self._gammaSpinBox.minimum(),
                     self._gammaSpinBox.maximum(),
                 )
@@ -1774,7 +1823,9 @@ class ColormapDialog(qt.QDialog):
     def _syncScaleToButtonsEnabled(self):
         """Set the state of scale to buttons according to current item and colormap"""
         colormap = self.getColormap()
-        enabled = self._item is not None and colormap is not None and colormap.isEditable()
+        enabled = (
+            self._item is not None and colormap is not None and colormap.isEditable()
+        )
         self._scaleToAreaGroup.setVisible(enabled)
         self._visibleAreaButton.setEnabled(enabled)
         if not enabled:
@@ -1820,10 +1871,14 @@ class ColormapDialog(qt.QDialog):
         self._roiForColormapManager = RegionOfInterestManager(parent=plotWidget)
         cmap = self.getColormap()
         self._roiForColormapManager.setColor(
-            'black' if cmap is None else cursorColorForColormap(cmap.getName()))
+            "black" if cmap is None else cursorColorForColormap(cmap.getName())
+        )
         self._roiForColormapManager.sigInteractiveModeFinished.connect(
-            self.__roiInteractiveModeFinished)
-        self._roiForColormapManager.sigInteractiveRoiFinalized.connect(self.__roiFinalized)
+            self.__roiInteractiveModeFinished
+        )
+        self._roiForColormapManager.sigInteractiveRoiFinalized.connect(
+            self.__roiFinalized
+        )
         self._roiForColormapManager.start(RectangleROI)
 
     def __roiInteractiveModeFinished(self):
@@ -1833,7 +1888,7 @@ class ColormapDialog(qt.QDialog):
         if roi is not None:
             ox, oy = roi.getOrigin()
             width, height = roi.getSize()
-            self.setColormapRangeFromDataBounds((ox, ox+width, oy, oy+height))
+            self.setColormapRangeFromDataBounds((ox, ox + width, oy, oy + height))
             # clear ROI
             self._roiForColormapManager.removeRoi(roi)
 

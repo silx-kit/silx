@@ -5,10 +5,14 @@
 --find-links http://www.silx.org/pub/wheelhouse/
 --only-binary numpy,h5py,scipy,PyQt5,PySide6,PyQt6
 
-# Required dependencies (from setup.py setup_requires and install_requires)
+# Required dependencies
+# From pyproject.toml
+wheel
+setuptools
 numpy >= 1.12
-setuptools < 60.0.0
 Cython >= 0.21.1
+# From setup.py install_requires
+packaging
 h5py
 fabio >= 0.9
 

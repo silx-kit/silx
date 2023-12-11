@@ -51,8 +51,8 @@ class TestBoxLayoutDockWidget(TestCaseQt):
         """Test update of layout direction according to dock area"""
         # Create a widget with a QBoxLayout
         layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
-        layout.addWidget(qt.QLabel('First'))
-        layout.addWidget(qt.QLabel('Second'))
+        layout.addWidget(qt.QLabel("First"))
+        layout.addWidget(qt.QLabel("Second"))
         widget = qt.QWidget()
         widget.setLayout(layout)
 

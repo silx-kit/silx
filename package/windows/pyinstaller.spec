@@ -6,8 +6,6 @@ import shutil
 import subprocess
 import sys
 
-import pkg_resources
-
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 datas = []
@@ -148,11 +146,11 @@ It includes mainy software packages with different licenses:
 - Qt ({PyQt5.QtCore.qVersion()}): GNU Lesser General Public License v3, https://www.qt.io/
 """)
 
-        for dist in sorted(pkg_resources.working_set, key=lambda d: d.key):
-            license = importlib.metadata.metadata(dist.key).get('License')
-            homepage = importlib.metadata.metadata(dist.key).get('Home-page')
+        for dist in sorted(importlib.metadata.distributions(), key=lambda d: d.name.lower()):
+            license = dist.metadata.get('License')
+            homepage = dist.metadata.get('Home-page')
             info = ", ".join(info for info in (license, homepage) if info)
-            f.write(f"- {dist.project_name} ({importlib.metadata.version(dist.key)}): {info}\n")
+            f.write(f"- {dist.name} ({dist.version}): {info}\n")
 
 create_license_file('LICENSE')
 

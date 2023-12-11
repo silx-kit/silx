@@ -75,7 +75,7 @@ class UpdateThread(threading.Thread):
                 self.plot2d.addImage,
                 numpy.random.random(10000).reshape(100, 100),
                 resetzoom=False,
-                legend=random.choice(('img1', 'img2'))
+                legend=random.choice(("img1", "img2")),
             )
 
     def stop(self):
@@ -88,6 +88,7 @@ class _RoiStatsWidget(qt.QMainWindow):
     """
     Window used to associate ROIStatsWidget and UpdateModeWidget
     """
+
     def __init__(self, parent=None, plot=None, mode=None):
         assert plot is not None
         qt.QMainWindow.__init__(self, parent)
@@ -98,15 +99,16 @@ class _RoiStatsWidget(qt.QMainWindow):
         self._updateModeControl = UpdateModeWidget(parent=self)
         self._docker = qt.QDockWidget(parent=self)
         self._docker.setWidget(self._updateModeControl)
-        self.addDockWidget(qt.Qt.TopDockWidgetArea,
-                           self._docker)
+        self.addDockWidget(qt.Qt.TopDockWidgetArea, self._docker)
         self.setWindowFlags(qt.Qt.Widget)
 
         # connect signal / slot
         self._updateModeControl.sigUpdateModeChanged.connect(
-            self._roiStatsWindow._setUpdateMode)
-        callback = functools.partial(self._roiStatsWindow._updateAllStats,
-                                     is_request=True)
+            self._roiStatsWindow._setUpdateMode
+        )
+        callback = functools.partial(
+            self._roiStatsWindow._updateAllStats, is_request=True
+        )
         self._updateModeControl.sigUpdateRequested.connect(callback)
 
         # expose API
@@ -117,13 +119,14 @@ class _RoiStatsWidget(qt.QMainWindow):
         self.setUpdateMode = self._updateModeControl.setUpdateMode
 
         # setup
-        self._updateModeControl.setUpdateMode('auto')
+        self._updateModeControl.setUpdateMode("auto")
 
 
 class _RoiStatsDisplayExWindow(qt.QMainWindow):
     """
     Simple window to group the different statistics actors
     """
+
     def __init__(self, parent=None, mode=None):
         qt.QMainWindow.__init__(self, parent)
         self.plot = Plot2D()
@@ -144,7 +147,7 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
         # tabWidget for displaying the rois
         self._roisTabWidget = qt.QTabWidget(parent=self)
-        if hasattr(self._roisTabWidget, 'setTabBarAutoHide'):
+        if hasattr(self._roisTabWidget, "setTabBarAutoHide"):
             self._roisTabWidget.setTabBarAutoHide(True)
 
         # widget for displaying stats results and update mode
@@ -153,17 +156,14 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
         # create Dock widgets
         self._roisTabWidgetDockWidget = qt.QDockWidget(parent=self)
         self._roisTabWidgetDockWidget.setWidget(self._roisTabWidget)
-        self.addDockWidget(qt.Qt.RightDockWidgetArea,
-                           self._roisTabWidgetDockWidget)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._roisTabWidgetDockWidget)
 
         # create Dock widgets
         self._roiStatsWindowDockWidget = qt.QDockWidget(parent=self)
         self._roiStatsWindowDockWidget.setWidget(self._statsWidget)
         # move the docker contain in the parent widget
-        self.addDockWidget(qt.Qt.RightDockWidgetArea,
-                           self._statsWidget._docker)
-        self.addDockWidget(qt.Qt.RightDockWidgetArea,
-                           self._roiStatsWindowDockWidget)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._statsWidget._docker)
+        self.addDockWidget(qt.Qt.RightDockWidgetArea, self._roiStatsWindowDockWidget)
 
         # expose API
         self.setUpdateMode = self._statsWidget.setUpdateMode
@@ -181,9 +181,9 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
         # update manage tab visibility
         if len(rois2D) > 0:
-            self._roisTabWidget.addTab(self._2DRoiWidget, '2D roi(s)')
+            self._roisTabWidget.addTab(self._2DRoiWidget, "2D roi(s)")
         if len(rois1D) > 0:
-            self._roisTabWidget.addTab(self._curveRoiWidget, '1D roi(s)')
+            self._roisTabWidget.addTab(self._curveRoiWidget, "1D roi(s)")
 
     def setStats(self, stats):
         self._statsWidget.setStats(stats=stats)
@@ -194,15 +194,15 @@ class _RoiStatsDisplayExWindow(qt.QMainWindow):
 
 # define stats to display
 STATS = [
-    ('sum', numpy.sum),
-    ('mean', numpy.mean),
+    ("sum", numpy.sum),
+    ("mean", numpy.mean),
 ]
 
 
 def get_1D_rois():
     """return some ROI instance"""
-    roi1D = ROI(name='range1', fromdata=0, todata=4, type_='energy')
-    roi2D = ROI(name='range2', fromdata=-2, todata=6, type_='energy')
+    roi1D = ROI(name="range1", fromdata=0, todata=4, type_="energy")
+    roi2D = ROI(name="range2", fromdata=-2, todata=6, type_="energy")
     return roi1D, roi2D
 
 
@@ -210,13 +210,13 @@ def get_2D_rois():
     """return some RectangleROI instance"""
     rectangle_roi = RectangleROI()
     rectangle_roi.setGeometry(origin=(0, 100), size=(20, 20))
-    rectangle_roi.setName('Initial ROI')
+    rectangle_roi.setName("Initial ROI")
     polygon_roi = PolygonROI()
     polygon_points = numpy.array([(0, 10), (10, 20), (45, 30), (35, 0)])
     polygon_roi.setPoints(polygon_points)
-    polygon_roi.setName('polygon ROI')
+    polygon_roi.setName("polygon ROI")
     arc_roi = ArcROI()
-    arc_roi.setName('arc ROI')
+    arc_roi.setName("arc ROI")
     arc_roi.setFirstShapePoints(numpy.array([[50, 10], [80, 120]]))
     arc_roi.setGeometry(*arc_roi.getGeometry())
     return rectangle_roi, polygon_roi, arc_roi
@@ -230,18 +230,23 @@ def example_curve(mode):
     window.setRois(rois1D=(roi_2, roi_1))
 
     # define some image and curve
-    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
-                         legend='curve1', color='blue')
-    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.random.random_sample(size=56),
-                         legend='curve2', color='red')
+    window.plot.addCurve(
+        x=numpy.linspace(0, 10, 56), y=numpy.arange(56), legend="curve1", color="blue"
+    )
+    window.plot.addCurve(
+        x=numpy.linspace(0, 10, 56),
+        y=numpy.random.random_sample(size=56),
+        legend="curve2",
+        color="red",
+    )
 
     window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    curve1_item = window.plot.getCurve('curve1')
+    curve1_item = window.plot.getCurve("curve1")
     window.addItem(item=curve1_item, roi=roi_1)
     window.addItem(item=curve1_item, roi=roi_2)
-    curve2_item = window.plot.getCurve('curve2')
+    curve2_item = window.plot.getCurve("curve2")
     window.addItem(item=curve2_item, roi=roi_2)
 
     window.setUpdateMode(mode)
@@ -262,14 +267,15 @@ def example_image(mode):
     updateThread.start()  # Start updating the plot
 
     # define some image and curve
-    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
-    window.plot.addImage(numpy.random.random(10000).reshape(100, 100), legend='img2',
-                         origin=(0, 100))
+    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend="img1")
+    window.plot.addImage(
+        numpy.random.random(10000).reshape(100, 100), legend="img2", origin=(0, 100)
+    )
     window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    img1_item = window.plot.getImage('img1')
-    img2_item = window.plot.getImage('img2')
+    img1_item = window.plot.getImage("img1")
+    img2_item = window.plot.getImage("img2")
     window.addItem(item=img2_item, roi=rectangle_roi)
     window.addItem(item=img1_item, roi=polygon_roi)
     window.addItem(item=img1_item, roi=arc_roi)
@@ -289,21 +295,28 @@ def example_curve_image(mode):
     rectangle_roi, polygon_roi, arc_roi = get_2D_rois()
 
     window = _RoiStatsDisplayExWindow()
-    window.setRois(rois1D=(roi1D_1, roi1D_2,),
-                   rois2D=(rectangle_roi, polygon_roi, arc_roi))
+    window.setRois(
+        rois1D=(
+            roi1D_1,
+            roi1D_2,
+        ),
+        rois2D=(rectangle_roi, polygon_roi, arc_roi),
+    )
 
     # define some image and curve
-    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend='img1')
-    window.plot.addImage(numpy.random.random(10000).reshape(100, 100),
-                         legend='img2', origin=(0, 100))
-    window.plot.addCurve(x=numpy.linspace(0, 10, 56), y=numpy.arange(56),
-                         legend='curve1')
+    window.plot.addImage(numpy.arange(10000).reshape(100, 100), legend="img1")
+    window.plot.addImage(
+        numpy.random.random(10000).reshape(100, 100), legend="img2", origin=(0, 100)
+    )
+    window.plot.addCurve(
+        x=numpy.linspace(0, 10, 56), y=numpy.arange(56), legend="curve1"
+    )
     window.setStats(STATS)
 
     # add some couple (plotItem, roi) to be displayed by default
-    img_item = window.plot.getImage('img2')
+    img_item = window.plot.getImage("img2")
     window.addItem(item=img_item, roi=rectangle_roi)
-    curve_item = window.plot.getCurve('curve1')
+    curve_item = window.plot.getCurve("curve1")
     window.addItem(item=curve_item, roi=roi1D_1)
 
     window.setUpdateMode(mode)
@@ -319,22 +332,27 @@ def example_curve_image(mode):
 
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--items", dest="items", default='curves+images',
-                        help="items type(s), can be curve, image, curves+images")
-    parser.add_argument('--mode', dest='mode', default='auto',
-                        help='valid modes are `auto` or `manual`')
+    parser.add_argument(
+        "--items",
+        dest="items",
+        default="curves+images",
+        help="items type(s), can be curve, image, curves+images",
+    )
+    parser.add_argument(
+        "--mode", dest="mode", default="auto", help="valid modes are `auto` or `manual`"
+    )
     options = parser.parse_args(argv[1:])
 
     items = options.items.lower()
-    if items == 'curves':
+    if items == "curves":
         example_curve(mode=options.mode)
-    elif items == 'images':
+    elif items == "images":
         example_image(mode=options.mode)
-    elif items == 'curves+images':
+    elif items == "curves+images":
         example_curve_image(mode=options.mode)
     else:
-        raise ValueError('invalid entry for item type')
+        raise ValueError("invalid entry for item type")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

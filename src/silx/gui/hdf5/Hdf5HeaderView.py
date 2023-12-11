@@ -72,21 +72,49 @@ class Hdf5HeaderView(qt.QHeaderView):
     def __updateAutoResize(self):
         """Update the view according to the state of the auto-resize"""
         if self.__auto_resize:
-            self.setSectionResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.ResizeToContents)
-            self.setSectionResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.ResizeToContents)
-            self.setSectionResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.ResizeToContents)
-            self.setSectionResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents)
-            self.setSectionResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents)
+            self.setSectionResizeMode(
+                Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.ResizeToContents
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.ResizeToContents
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.ResizeToContents
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.ResizeToContents
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.ResizeToContents
+            )
         else:
-            self.setSectionResizeMode(Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive)
-            self.setSectionResizeMode(Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive)
+            self.setSectionResizeMode(
+                Hdf5TreeModel.NAME_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.TYPE_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.SHAPE_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.VALUE_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.DESCRIPTION_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.NODE_COLUMN, qt.QHeaderView.Interactive
+            )
+            self.setSectionResizeMode(
+                Hdf5TreeModel.LINK_COLUMN, qt.QHeaderView.Interactive
+            )
 
     def setAutoResizeColumns(self, autoResize):
         """Enable/disable auto-resize. When auto-resized, the header take care
@@ -125,7 +153,9 @@ class Hdf5HeaderView(qt.QHeaderView):
         """
         return self.__hide_columns_popup
 
-    enableHideColumnsPopup = qt.Property(bool, hasHideColumnsPopup, setAutoResizeColumns)
+    enableHideColumnsPopup = qt.Property(
+        bool, hasHideColumnsPopup, setAutoResizeColumns
+    )
     """Property to enable/disable popup allowing to hide/show columns."""
 
     def __genHideSectionEvent(self, column):

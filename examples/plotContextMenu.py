@@ -45,13 +45,14 @@ from silx.gui.plot.actions.control import ZoomBackAction, CrosshairAction
 from silx.gui.plot.actions.io import SaveAction, PrintAction
 from silx.gui.plot.tools.menus import ZoomEnabledAxesMenu
 
+
 class PlotWidgetWithContextMenu(PlotWidget):
     """This class adds a custom context menu to PlotWidget's plot area."""
 
     def __init__(self, *args, **kwargs):
         super(PlotWidgetWithContextMenu, self).__init__(*args, **kwargs)
-        self.setWindowTitle('PlotWidget with a context menu')
-        self.setGraphTitle('Right-click on the plot to access context menu')
+        self.setWindowTitle("PlotWidget with a context menu")
+        self.setGraphTitle("Right-click on the plot to access context menu")
 
         # Create QAction for the context menu once for all
         self._zoomBackAction = ZoomBackAction(plot=self, parent=self)
@@ -98,7 +99,7 @@ plot = PlotWidgetWithContextMenu()  # Create the widget
 
 # Add content to the plot
 x = numpy.linspace(0, 2 * numpy.pi, 1000)
-plot.addCurve(x, numpy.sin(x), legend='sin')
+plot.addCurve(x, numpy.sin(x), legend="sin")
 
 # Show the widget and start the application
 plot.show()

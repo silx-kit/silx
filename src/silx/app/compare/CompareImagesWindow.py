@@ -27,19 +27,35 @@
 
 import logging
 import numpy
+import typing
+import os.path
 
 import silx.io
 from silx.gui import icons
 from silx.gui import qt
-from silx.io.url import DataUrl
 from silx.gui.plot.CompareImages import CompareImages
 from silx.gui.widgets.UrlSelectionTable import UrlSelectionTable
 from ..utils import parseutils
 from silx.gui.plot.tools.profile.manager import ProfileManager
 from silx.gui.plot.tools.compare.profile import ProfileImageDirectedLineROI
 
+try:
+    import PIL
+except ImportError:
+    PIL = None
+
 
 _logger = logging.getLogger(__name__)
+
+
+def _get_image_from_file(urlPath: str) -> typing.Optional[numpy.ndarray]:
+    """Returns a dataset from an image file.
+
+    The returned layout shape is supposed to be `rows, columns, channels (rgb[a])`.
+    """
+    if PIL is None:
+        return None
+    return numpy.asarray(PIL.Image.open(urlPath))
 
 
 class CompareImagesWindow(qt.QMainWindow):
@@ -57,7 +73,9 @@ class CompareImagesWindow(qt.QMainWindow):
         virtualItem = self._plot._getVirtualPlotItem()
         self.__manager.setPlotItem(virtualItem)
 
-        directedLineAction = self.__manager.createProfileAction(ProfileImageDirectedLineROI, self)
+        directedLineAction = self.__manager.createProfileAction(
+            ProfileImageDirectedLineROI, self
+        )
 
         profileToolBar = qt.QToolBar(self)
         profileToolBar.setWindowTitle("Profile")
@@ -91,10 +109,7 @@ class CompareImagesWindow(qt.QMainWindow):
             self._selectionTable.addUrl(url)
         url1 = urls[0].path() if len(urls) >= 1 else None
         url2 = urls[1].path() if len(urls) >= 2 else None
-        self._selectionTable.setUrlSelection(
-            url_img_a=url1,
-            url_img_b=url2
-        )
+        self._selectionTable.setUrlSelection(url_img_a=url1, url_img_b=url2)
         self._plot.resetZoom()
         self._plot.centerLines()
 
@@ -121,15 +136,23 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.setImage2(data)
 
     def readData(self, urlPath: str):
-        """Read an URL as an image
-        """
+        """Read an URL as an image"""
         if urlPath in ("", None):
             return None
 
-        try:
-            data = silx.io.utils.get_data(urlPath)
-        except Exception:
-            raise ValueError(f"Data from '{urlPath}' is not readable")
+        data = None
+        _, ext = os.path.splitext(urlPath)
+        if ext in {".jpg", ".jpeg", ".png"}:
+            try:
+                data = _get_image_from_file(urlPath)
+            except Exception:
+                _logger.debug("Error while loading image with PIL", exc_info=True)
+
+        if data is None:
+            try:
+                data = silx.io.utils.get_data(urlPath)
+            except Exception:
+                raise ValueError(f"Data from '{urlPath}' is not readable")
 
         if not isinstance(data, numpy.ndarray):
             raise ValueError(f"URL '{urlPath}' does not link to a numpy array")
@@ -138,7 +161,7 @@ class CompareImagesWindow(qt.QMainWindow):
 
         if data.ndim == 2:
             return data
-        if data.ndim == 3 and data.shape[0] in set(3, 4):
+        if data.ndim == 3 and data.shape[2] in {3, 4}:
             return data
 
         raise ValueError(f"URL '{urlPath}' does not link to an numpy image")
@@ -163,6 +186,10 @@ class CompareImagesWindow(qt.QMainWindow):
         settings.setValue("pos", self.pos())
         settings.setValue("full-screen", isFullScreen)
         settings.setValue("spliter", self.__splitter.sizes())
+        # NOTE: isInverted returns a numpy bool
+        settings.setValue(
+            "y-axis-inverted", bool(self._plot.getPlot().getYAxis().isInverted())
+        )
 
         settings.setValue("visualization-mode", self._plot.getVisualizationMode().name)
         settings.setValue("alignment-mode", self._plot.getAlignmentMode().name)
@@ -189,17 +216,21 @@ class CompareImagesWindow(qt.QMainWindow):
         pos = settings.value("pos", qt.QPoint())
         isFullScreen = settings.value("full-screen", False)
         isFullScreen = parseutils.to_bool(isFullScreen, False)
+        yAxisInverted = settings.value("y-axis-inverted", False)
+        yAxisInverted = parseutils.to_bool(yAxisInverted, False)
 
         visualizationMode = settings.value("visualization-mode", "")
         visualizationMode = parseutils.to_enum(
             visualizationMode,
             CompareImages.VisualizationMode,
-            CompareImages.VisualizationMode.VERTICAL_LINE)
+            CompareImages.VisualizationMode.VERTICAL_LINE,
+        )
         alignmentMode = settings.value("alignment-mode", "")
         alignmentMode = parseutils.to_enum(
             alignmentMode,
             CompareImages.AlignmentMode,
-            CompareImages.AlignmentMode.ORIGIN)
+            CompareImages.AlignmentMode.ORIGIN,
+        )
         displayKeypoints = settings.value("display-keypoints", False)
         displayKeypoints = parseutils.to_bool(displayKeypoints, False)
 
@@ -220,3 +251,4 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.setVisualizationMode(visualizationMode)
         self._plot.setAlignmentMode(alignmentMode)
         self._plot.setKeypointsVisible(displayKeypoints)
+        self._plot.getPlot().getYAxis().setInverted(yAxisInverted)

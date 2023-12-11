@@ -22,6 +22,8 @@
 # ############################################################################*/
 """Browse a data file with a GUI"""
 
+from __future__ import annotations
+
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "15/01/2019"
@@ -30,6 +32,8 @@ __date__ = "15/01/2019"
 import os
 import logging
 import functools
+import traceback
+from types import TracebackType
 from typing import Optional
 
 import silx.io.nxdata
@@ -64,6 +68,8 @@ class Viewer(qt.QMainWindow):
         silxIcon = icons.getQIcon("silx")
         self.setWindowIcon(silxIcon)
 
+        self.__error = ""
+
         self.__context = self.createApplicationContext(settings)
         self.__context.restoreLibrarySettings()
 
@@ -86,7 +92,9 @@ class Viewer(qt.QMainWindow):
         treeModel.sigH5pyObjectRemoved.connect(self.__h5FileRemoved)
         treeModel.sigH5pyObjectSynchronized.connect(self.__h5FileSynchonized)
         treeModel.setDatasetDragEnabled(True)
-        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(self.__treeview)
+        self.__treeModelSorted = silx.gui.hdf5.NexusSortFilterProxyModel(
+            self.__treeview
+        )
         self.__treeModelSorted.setSourceModel(treeModel)
         self.__treeModelSorted.sort(0, qt.Qt.AscendingOrder)
         self.__treeModelSorted.setSortCaseSensitivity(qt.Qt.CaseInsensitive)
@@ -141,8 +149,8 @@ class Viewer(qt.QMainWindow):
         columns.insert(1, treeModel.DESCRIPTION_COLUMN)
         self.__treeview.header().setSections(columns)
 
-        self._iconUpward = icons.getQIcon('plot-yup')
-        self._iconDownward = icons.getQIcon('plot-ydown')
+        self._iconUpward = icons.getQIcon("plot-yup")
+        self._iconDownward = icons.getQIcon("plot-ydown")
 
         self.createActions()
         self.createMenus()
@@ -252,8 +260,7 @@ class Viewer(qt.QMainWindow):
         qt.QApplication.restoreOverrideCursor()
 
     def __refreshSelected(self):
-        """Refresh all selected items
-        """
+        """Refresh all selected items"""
         qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
 
         selection = self.__treeview.selectionModel()
@@ -272,8 +279,12 @@ class Viewer(qt.QMainWindow):
             rootRow = rootIndex.row()
             relativePath = self.__getRelativePath(model, rootIndex, index)
             selectedItems.append((rootRow, relativePath))
-            h5 = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
-            item = model.data(rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE)
+            h5 = model.data(
+                rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE
+            )
+            item = model.data(
+                rootIndex, role=silx.gui.hdf5.Hdf5TreeModel.H5PY_ITEM_ROLE
+            )
             h5files.append((h5, item._openedPath))
 
         if len(h5files) == 0:
@@ -348,7 +359,7 @@ class Viewer(qt.QMainWindow):
             path = node._getCanonicalName()
             if rootPath is None:
                 rootPath = path
-            path = path[len(rootPath):]
+            path = path[len(rootPath) :]
             paths.append(path)
 
             for child in range(model.rowCount(index)):
@@ -453,9 +464,9 @@ class Viewer(qt.QMainWindow):
         layout.addWidget(customNxdataWidget)
         return widget
 
-    def __h5FileLoaded(self, loadedH5):
+    def __h5FileLoaded(self, loadedH5, filename):
         self.__context.pushRecentFile(loadedH5.file.filename)
-        if loadedH5.file.filename == self.__displayIt:
+        if filename == self.__displayIt:
             self.__displayIt = None
             self.displayData(loadedH5)
 
@@ -614,9 +625,11 @@ class Viewer(qt.QMainWindow):
         # Plot image orientation
 
         self._plotImageOrientationMenu = qt.QMenu(
-            "Default plot image y-axis orientation", self)
+            "Default plot image y-axis orientation", self
+        )
         self._plotImageOrientationMenu.setStatusTip(
-            "Select the default y-axis orientation used by plot displaying images")
+            "Select the default y-axis orientation used by plot displaying images"
+        )
 
         group = qt.QActionGroup(self)
         group.setExclusive(True)
@@ -639,10 +652,19 @@ class Viewer(qt.QMainWindow):
         self._plotImageOrientationMenu.addAction(action)
         self._useYAxisOrientationUpward = action
 
+        # mpl layout
+
+        action = qt.QAction("Use MPL tight layout", self)
+        action.setCheckable(True)
+        action.triggered.connect(self.__forceMplTightLayout)
+        self._useMplTightLayout = action
+
         # Windows
 
         action = qt.QAction("Show custom NXdata selector", self)
-        action.setStatusTip("Show a widget which allow to create plot by selecting data and axes")
+        action.setStatusTip(
+            "Show a widget which allow to create plot by selecting data and axes"
+        )
         action.setCheckable(True)
         action.setShortcut(qt.QKeySequence(qt.Qt.Key_F6))
         action.toggled.connect(self.__toggleCustomNxdataWindow)
@@ -661,7 +683,9 @@ class Viewer(qt.QMainWindow):
                 baseName = os.path.basename(filePath)
                 action = qt.QAction(baseName, self)
                 action.setToolTip(filePath)
-                action.triggered.connect(functools.partial(self.__openRecentFile, filePath))
+                action.triggered.connect(
+                    functools.partial(self.__openRecentFile, filePath)
+                )
                 self._openRecentMenu.addAction(action)
             self._openRecentMenu.addSeparator()
             baseName = os.path.basename(filePath)
@@ -683,17 +707,18 @@ class Viewer(qt.QMainWindow):
         # plot backend
 
         title = self._plotBackendMenu.title().split(": ", 1)[0]
-        self._plotBackendMenu.setTitle("%s: %s" % (title, silx.config.DEFAULT_PLOT_BACKEND))
+        backend = self.__context.getDefaultPlotBackend()
+        self._plotBackendMenu.setTitle(f"{title}: {backend}")
 
         action = self._usePlotWithMatplotlib
-        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["matplotlib", "mpl"])
+        action.setChecked(backend in ["matplotlib", "mpl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
 
         action = self._usePlotWithOpengl
-        action.setChecked(silx.config.DEFAULT_PLOT_BACKEND in ["opengl", "gl"])
+        action.setChecked(backend in ["opengl", "gl"])
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
@@ -708,18 +733,27 @@ class Viewer(qt.QMainWindow):
             menu.setIcon(self._iconUpward)
 
         action = self._useYAxisOrientationDownward
-        action.setChecked(silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward")
+        action.setChecked(
+            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward"
+        )
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
 
         action = self._useYAxisOrientationUpward
-        action.setChecked(silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION != "downward")
+        action.setChecked(
+            silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION != "downward"
+        )
         title = action.text().split(" (", 1)[0]
         if not action.isChecked():
             title += " (applied after application restart)"
         action.setText(title)
+
+        # mpl
+
+        action = self._useMplTightLayout
+        action.setChecked(silx.config._MPL_TIGHT_LAYOUT)
 
     def createMenus(self):
         fileMenu = self.menuBar().addMenu("&File")
@@ -733,6 +767,7 @@ class Viewer(qt.QMainWindow):
         optionMenu = self.menuBar().addMenu("&Options")
         optionMenu.addMenu(self._plotImageOrientationMenu)
         optionMenu.addMenu(self._plotBackendMenu)
+        optionMenu.addAction(self._useMplTightLayout)
         optionMenu.aboutToShow.connect(self.__updateOptionMenu)
 
         viewMenu = self.menuBar().addMenu("&Views")
@@ -741,6 +776,17 @@ class Viewer(qt.QMainWindow):
         helpMenu = self.menuBar().addMenu("&Help")
         helpMenu.addAction(self._aboutAction)
         helpMenu.addAction(self._documentationAction)
+
+        self.__errorButton = qt.QToolButton(self)
+        self.__errorButton.setIcon(
+            self.style().standardIcon(qt.QStyle.SP_MessageBoxWarning)
+        )
+        self.__errorButton.setToolTip(
+            "An error occured!\nClick to display last error\nor check messages in the console"
+        )
+        self.__errorButton.setVisible(False)
+        self.__errorButton.clicked.connect(self.__errorButtonClicked)
+        self.menuBar().setCornerWidget(self.__errorButton)
 
     def open(self):
         dialog = self.createFileDialog()
@@ -799,6 +845,7 @@ class Viewer(qt.QMainWindow):
 
     def about(self):
         from .About import About
+
         About.about(self, "Silx viewer")
 
     def showDocumentation(self):
@@ -813,7 +860,6 @@ class Viewer(qt.QMainWindow):
         """
         sort = bool(sort)
         if sort != self.isContentSorted():
-
             # save expanded nodes
             pathss = []
             root = qt.QModelIndex()
@@ -824,7 +870,8 @@ class Viewer(qt.QMainWindow):
                 pathss.append(paths)
 
             self.__treeview.setModel(
-                self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel())
+                self.__treeModelSorted if sort else self.__treeModelSorted.sourceModel()
+            )
             self._sortContentAction.setChecked(self.isContentSorted())
 
             # restore expanded nodes
@@ -851,7 +898,10 @@ class Viewer(qt.QMainWindow):
         silx.config.DEFAULT_PLOT_BACKEND = "matplotlib"
 
     def __forceOpenglBackend(self):
-        silx.config.DEFAULT_PLOT_BACKEND = "opengl"
+        silx.config.DEFAULT_PLOT_BACKEND = "opengl", "matplotlib"
+
+    def __forceMplTightLayout(self):
+        silx.config._MPL_TIGHT_LAYOUT = self._useMplTightLayout.isChecked()
 
     def appendFile(self, filename):
         if self.__displayIt is None:
@@ -860,8 +910,7 @@ class Viewer(qt.QMainWindow):
         self.__treeview.findHdf5TreeModel().appendFile(filename)
 
     def displaySelectedData(self):
-        """Called to update the dataviewer with the selected data.
-        """
+        """Called to update the dataviewer with the selected data."""
         selected = list(self.__treeview.selectedH5Nodes(ignoreBrokenLinks=False))
         if len(selected) == 1:
             # Update the viewer for a single selection
@@ -871,8 +920,7 @@ class Viewer(qt.QMainWindow):
             _logger.debug("Too many data selected")
 
     def displayData(self, data):
-        """Called to update the dataviewer with a secific data.
-        """
+        """Called to update the dataviewer with a secific data."""
         self.__dataPanel.setData(data)
 
     def displaySelectedCustomData(self):
@@ -944,8 +992,42 @@ class Viewer(qt.QMainWindow):
 
             if silx.io.is_file(h5):
                 action = qt.QAction("Close %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5))
+                action.triggered.connect(
+                    lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(h5)
+                )
                 menu.addAction(action)
-                action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
+                action = qt.QAction(
+                    "Synchronize %s" % obj.local_filename, event.source()
+                )
                 action.triggered.connect(lambda: self.__synchronizeH5pyObject(h5))
                 menu.addAction(action)
+
+    def __errorButtonClicked(self):
+        button = qt.QMessageBox.warning(
+            self,
+            "Error",
+            self.getError(),
+            qt.QMessageBox.Reset | qt.QMessageBox.Close,
+            qt.QMessageBox.Close,
+        )
+        if button == qt.QMessageBox.Reset:
+            self.setError("")
+
+    def getError(self) -> str:
+        """Returns error information string"""
+        return self.__error
+
+    def setError(self, error: str):
+        """Set error information string"""
+        if error == self.__error:
+            return
+
+        self.__error = error
+        self.__errorButton.setVisible(error != "")
+
+    def setErrorFromException(
+        self, type_: type[BaseException], value: BaseException, trace: TracebackType
+    ):
+        """Set information about the last exception that occured"""
+        formattedTrace = "\n".join(traceback.format_tb(trace))
+        self.setError(f"{type_.__name__}:\n{value}\n\n{formattedTrace}")

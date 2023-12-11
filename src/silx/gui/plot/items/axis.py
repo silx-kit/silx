@@ -43,8 +43,9 @@ from .. import _utils
 
 class TickMode(enum.Enum):
     """Determines if ticks are regular number or datetimes."""
-    DEFAULT = 0       # Ticks are regular numbers
-    TIME_SERIES = 1   # Ticks are datetime objects
+
+    DEFAULT = 0  # Ticks are regular numbers
+    TIME_SERIES = 1  # Ticks are datetime objects
 
 
 class Axis(qt.QObject):
@@ -52,6 +53,7 @@ class Axis(qt.QObject):
 
     Note: This is an abstract class.
     """
+
     # States are half-stored on the backend of the plot, and half-stored on this
     # object.
     # TODO It would be good to store all the states of an axis in this object.
@@ -90,10 +92,10 @@ class Axis(qt.QObject):
         self._scale = self.LINEAR
         self._isAutoScale = True
         # Store default labels provided to setGraph[X|Y]Label
-        self._defaultLabel = ''
+        self._defaultLabel = ""
         # Store currently displayed labels
         # Current label can differ from input one with active curve handling
-        self._currentLabel = ''
+        self._currentLabel = ""
 
     def _getPlot(self):
         """Returns the PlotWidget this Axis belongs to.
@@ -149,7 +151,8 @@ class Axis(qt.QObject):
         :rtype: 2-tuple of float
         """
         return _utils.checkAxisLimits(
-            vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel)
+            vmin, vmax, isLog=self._isLogarithmic(), name=self._defaultLabel
+        )
 
     def _getDataRange(self) -> Optional[tuple[float, float]]:
         """Returns the range of data items over this axis as (vmin, vmax)"""
@@ -206,10 +209,10 @@ class Axis(qt.QObject):
 
         :param str label: Currently displayed label
         """
-        if label is None or label == '':
+        if label is None or label == "":
             label = self._defaultLabel
         if label is None:
-            label = ''
+            label = ""
         self._currentLabel = label
         self._internalSetCurrentLabel(label)
 
@@ -225,7 +228,7 @@ class Axis(qt.QObject):
 
         :param str scale: Name of the scale ("log", or "linear")
         """
-        assert(scale in self._SCALES)
+        assert scale in self._SCALES
         if self._scale == scale:
             return
 
@@ -247,7 +250,7 @@ class Axis(qt.QObject):
             if vmin <= 0:
                 dataRange = self._getDataRange()
                 if dataRange is None:
-                    self.setLimits(1., 100.)
+                    self.setLimits(1.0, 100.0)
                 else:
                     if vmax > 0 and dataRange[0] < vmax:
                         self.setLimits(dataRange[0], vmax)
@@ -344,7 +347,7 @@ class Axis(qt.QObject):
             plot = self._getPlot()
             xMin, xMax = plot.getXAxis().getLimits()
             yMin, yMax = plot.getYAxis().getLimits()
-            y2Min, y2Max = plot.getYAxis('right').getLimits()
+            y2Min, y2Max = plot.getYAxis("right").getLimits()
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
 
@@ -367,7 +370,7 @@ class Axis(qt.QObject):
             plot = self._getPlot()
             xMin, xMax = plot.getXAxis().getLimits()
             yMin, yMax = plot.getYAxis().getLimits()
-            y2Min, y2Max = plot.getYAxis('right').getLimits()
+            y2Min, y2Max = plot.getYAxis("right").getLimits()
             plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
         return updated
 
@@ -384,7 +387,7 @@ class XAxis(Axis):
     def setTimeZone(self, tz):
         if isinstance(tz, str) and tz.upper() == "UTC":
             tz = dateutil.tz.tzutc()
-        elif not(tz is None or isinstance(tz, dt.tzinfo)):
+        elif not (tz is None or isinstance(tz, dt.tzinfo)):
             raise TypeError("tz must be a dt.tzinfo object, None or 'UTC'.")
 
         self._getBackend().setXAxisTimeZone(tz)
@@ -439,13 +442,13 @@ class YAxis(Axis):
     #      specialised implementations (prefixel by '_internal')
 
     def _internalSetCurrentLabel(self, label):
-        self._getBackend().setGraphYLabel(label, axis='left')
+        self._getBackend().setGraphYLabel(label, axis="left")
 
     def _internalGetLimits(self):
-        return self._getBackend().getGraphYLimits(axis='left')
+        return self._getBackend().getGraphYLimits(axis="left")
 
     def _internalSetLimits(self, ymin, ymax):
-        self._getBackend().setGraphYLimits(ymin, ymax, axis='left')
+        self._getBackend().setGraphYLimits(ymin, ymax, axis="left")
 
     def _internalSetLogarithmic(self, flag):
         self._getBackend().setYAxisLogarithmic(flag)
@@ -511,13 +514,13 @@ class YRightAxis(Axis):
         self.__mainAxis.sigAutoScaleChanged.connect(self.sigAutoScaleChanged.emit)
 
     def _internalSetCurrentLabel(self, label):
-        self._getBackend().setGraphYLabel(label, axis='right')
+        self._getBackend().setGraphYLabel(label, axis="right")
 
     def _internalGetLimits(self):
-        return self._getBackend().getGraphYLimits(axis='right')
+        return self._getBackend().getGraphYLimits(axis="right")
 
     def _internalSetLimits(self, ymin, ymax):
-        self._getBackend().setGraphYLimits(ymin, ymax, axis='right')
+        self._getBackend().setGraphYLimits(ymin, ymax, axis="right")
 
     def setInverted(self, flag=True):
         """Set the Y axis orientation.

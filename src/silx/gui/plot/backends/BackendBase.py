@@ -28,19 +28,25 @@ It documents the Plot backend API.
 This API is a simplified version of PyMca PlotBackend API.
 """
 
+from __future__ import annotations
+
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
 
+from collections.abc import Callable
 import weakref
+
+from ... import qt
 
 
 # Names for setCursor
-CURSOR_DEFAULT = 'default'
-CURSOR_POINTING = 'pointing'
-CURSOR_SIZE_HOR = 'size horizontal'
-CURSOR_SIZE_VER = 'size vertical'
-CURSOR_SIZE_ALL = 'size all'
+CURSOR_DEFAULT = "default"
+CURSOR_POINTING = "pointing"
+CURSOR_SIZE_HOR = "size horizontal"
+CURSOR_SIZE_VER = "size vertical"
+CURSOR_SIZE_ALL = "size all"
 
 
 class BackendBase(object):
@@ -52,8 +58,8 @@ class BackendBase(object):
         :param Plot plot: The Plot this backend is attached to
         :param parent: The parent widget of the plot widget.
         """
-        self.__xLimits = 1., 100.
-        self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
+        self.__xLimits = 1.0, 100.0
+        self.__yLimits = {"left": (1.0, 100.0), "right": (1.0, 100.0)}
         self.__yAxisInverted = False
         self.__keepDataAspectRatio = False
         self.__xAxisTimeSeries = False
@@ -65,11 +71,11 @@ class BackendBase(object):
     def _plot(self):
         """The plot this backend is attached to."""
         if self._plotRef is None:
-            raise RuntimeError('This backend is not attached to a Plot')
+            raise RuntimeError("This backend is not attached to a Plot")
 
         plot = self._plotRef()
         if plot is None:
-            raise RuntimeError('This backend is no more attached to a Plot')
+            raise RuntimeError("This backend is no more attached to a Plot")
         return plot
 
     def _setPlot(self, plot):
@@ -81,11 +87,23 @@ class BackendBase(object):
 
     # Add methods
 
-    def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
-                 yaxis,
-                 xerror, yerror,
-                 fill, alpha, symbolsize, baseline):
+    def addCurve(
+        self,
+        x,
+        y,
+        color,
+        gapcolor,
+        symbol,
+        linewidth,
+        linestyle,
+        yaxis,
+        xerror,
+        yerror,
+        fill,
+        alpha,
+        symbolsize,
+        baseline,
+    ):
         """Add a 1D curve given by x an y to the graph.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -93,6 +111,8 @@ class BackendBase(object):
         :param color: color(s) to be used
         :type color: string ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in colors.py
+        :param Union[str, None] gapcolor:
+            color used to fill dashed line gaps.
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
             - ' ' or '' no symbol
@@ -126,9 +146,7 @@ class BackendBase(object):
         """
         return object()
 
-    def addImage(self, data,
-                 origin, scale,
-                 colormap, alpha):
+    def addImage(self, data, origin, scale, colormap, alpha):
         """Add an image to the plot.
 
         :param numpy.ndarray data: (nrows, ncolumns) data or
@@ -146,8 +164,7 @@ class BackendBase(object):
         """
         return object()
 
-    def addTriangles(self, x, y, triangles,
-                     color, alpha):
+    def addTriangles(self, x, y, triangles, color, alpha):
         """Add a set of triangles.
 
         :param numpy.ndarray x: The data corresponding to the x axis
@@ -160,8 +177,9 @@ class BackendBase(object):
         """
         return object()
 
-    def addShape(self, x, y, shape, color, fill, overlay,
-                 linestyle, linewidth, linebgcolor):
+    def addShape(
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+    ):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
@@ -188,17 +206,28 @@ class BackendBase(object):
         """
         return object()
 
-    def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
+    def addMarker(
+        self,
+        x: float | None,
+        y: float | None,
+        text: str | None,
+        color: str,
+        symbol: str | None,
+        linestyle: str,
+        linewidth: float,
+        constraint: Callable[[float, float], tuple[float, float]] | None,
+        yaxis: str,
+        font: qt.QFont,
+    ) -> object:
         """Add a point, vertical line or horizontal line marker to the plot.
 
-        :param float x: Horizontal position of the marker in graph coordinates.
-                        If None, the marker is a horizontal line.
-        :param float y: Vertical position of the marker in graph coordinates.
-                        If None, the marker is a vertical line.
-        :param str text: Text associated to the marker (or None for no text)
-        :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
-        :param str symbol: Symbol representing the marker.
+        :param x: Horizontal position of the marker in graph coordinates.
+            If None, the marker is a horizontal line.
+        :param y: Vertical position of the marker in graph coordinates.
+            If None, the marker is a vertical line.
+        :param text: Text associated to the marker (or None for no text)
+        :param color: Color to be used for instance 'blue', 'b', '#FF0000'
+        :param symbol: Symbol representing the marker.
             Only relevant for point markers where X and Y are not None.
             Value in:
 
@@ -209,7 +238,7 @@ class BackendBase(object):
             - 'x' x-cross
             - 'd' diamond
             - 's' square
-        :param str linestyle: Style of the line.
+        :param linestyle: Style of the line.
             Only relevant for line markers where X or Y is None.
             Value in:
 
@@ -218,16 +247,15 @@ class BackendBase(object):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
-        :param float linewidth: Width of the line.
+        :param linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
         :param constraint: A function filtering marker displacement by
-                           dragging operations or None for no filter.
-                           This function is called each time a marker is
-                           moved.
-        :type constraint: None or a callable that takes the coordinates of
-                          the current cursor position in the plot as input
-                          and that returns the filtered coordinates.
-        :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
+            dragging operations or None for no filter.
+            This function is called each time a marker is moved.
+            It takes the coordinates of the current cursor position in the plot
+            as input and that returns the filtered coordinates.
+        :param yaxis: The Y axis this marker belongs to in: 'left', 'right'
+        :param font: QFont to use to render text
         :return: Handle used by the backend to univocally access the marker
         """
         return object()
@@ -294,8 +322,8 @@ class BackendBase(object):
             content = [item for item in content if condition(item)]
 
         return sorted(
-            content,
-            key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue()))
+            content, key=lambda i: ((1 if i.isOverlay() else 0), i.getZValue())
+        )
 
     def pickItem(self, x, y, item):
         """Return picked indices if any, or None.
@@ -383,9 +411,9 @@ class BackendBase(object):
         :param float y2max: maximum right axis value
         """
         self.__xLimits = xmin, xmax
-        self.__yLimits['left'] = ymin, ymax
+        self.__yLimits["left"] = ymin, ymax
         if y2min is not None and y2max is not None:
-            self.__yLimits['right'] = y2min, y2max
+            self.__yLimits["right"] = y2min, y2max
 
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
@@ -420,7 +448,6 @@ class BackendBase(object):
         self.__yLimits[axis] = ymin, ymax
 
     # Graph axes
-
 
     def getXAxisTimeZone(self):
         """Returns tzinfo that is used if the X-Axis plots date-times.
@@ -556,7 +583,7 @@ class BackendBase(object):
 
     def setForegroundColors(self, foregroundColor, gridColor):
         """Set foreground and grid colors used to display this widget.
-        
+
         :param List[float] foregroundColor: RGBA foreground color of the widget
         :param List[float] gridColor: RGBA grid color of the data view
         """

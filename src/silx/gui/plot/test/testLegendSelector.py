@@ -43,6 +43,7 @@ class TestLegendSelector(TestCaseQt):
 
     def testLegendSelector(self):
         """Test copied from __main__ of LegendSelector in PyMca"""
+
         class Notifier(qt.QObject):
             def __init__(self):
                 qt.QObject.__init__(self)
@@ -50,22 +51,31 @@ class TestLegendSelector(TestCaseQt):
 
             def signalReceived(self, **kw):
                 obj = self.sender()
-                _logger.info('NOTIFIER -- signal received\n\tsender: %s',
-                             str(obj))
+                _logger.info("NOTIFIER -- signal received\n\tsender: %s", str(obj))
 
         notifier = Notifier()
 
-        legends = ['Legend0',
-                   'Legend1',
-                   'Long Legend 2',
-                   'Foo Legend 3',
-                   'Even Longer Legend 4',
-                   'Short Leg 5',
-                   'Dot symbol 6',
-                   'Comma symbol 7']
-        colors = [qt.Qt.darkRed, qt.Qt.green, qt.Qt.yellow, qt.Qt.darkCyan,
-                  qt.Qt.blue, qt.Qt.darkBlue, qt.Qt.red, qt.Qt.darkYellow]
-        symbols = ['o', 't', '+', 'x', 's', 'd', '.', ',']
+        legends = [
+            "Legend0",
+            "Legend1",
+            "Long Legend 2",
+            "Foo Legend 3",
+            "Even Longer Legend 4",
+            "Short Leg 5",
+            "Dot symbol 6",
+            "Comma symbol 7",
+        ]
+        colors = [
+            qt.Qt.darkRed,
+            qt.Qt.green,
+            qt.Qt.yellow,
+            qt.Qt.darkCyan,
+            qt.Qt.blue,
+            qt.Qt.darkBlue,
+            qt.Qt.red,
+            qt.Qt.darkYellow,
+        ]
+        symbols = ["o", "t", "+", "x", "s", "d", ".", ","]
 
         win = LegendSelector.LegendListView()
         # win = LegendListContextMenu()
@@ -76,9 +86,9 @@ class TestLegendSelector(TestCaseQt):
 
         for _idx, (l, c, s) in enumerate(zip(legends, colors, symbols)):
             ddict = {
-                'color': qt.QColor(c),
-                'linewidth': 4,
-                'symbol': s,
+                "color": qt.QColor(c),
+                "linewidth": 4,
+                "symbol": s,
             }
             legend = l
             llist.append((legend, ddict))
@@ -115,14 +125,15 @@ class TestRenameCurveDialog(TestCaseQt):
     def testDialog(self):
         """Create dialog, change name and press OK"""
         self.dialog = LegendSelector.RenameCurveDialog(
-            None, 'curve1', ['curve1', 'curve2', 'curve3'])
+            None, "curve1", ["curve1", "curve2", "curve3"]
+        )
         self.dialog.open()
         self.qWaitForWindowExposed(self.dialog)
-        self.keyClicks(self.dialog.lineEdit, 'changed')
+        self.keyClicks(self.dialog.lineEdit, "changed")
         self.mouseClick(self.dialog.okButton, qt.Qt.LeftButton)
         self.qapp.processEvents()
         ret = self.dialog.result()
         self.assertEqual(ret, qt.QDialog.Accepted)
         newName = self.dialog.getText()
-        self.assertEqual(newName, 'curve1changed')
+        self.assertEqual(newName, "curve1changed")
         del self.dialog

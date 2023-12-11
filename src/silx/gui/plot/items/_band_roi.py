@@ -100,7 +100,7 @@ class BandGeometry(NamedTuple):
     def slope(self) -> float:
         """Slope of the line (begin, end), infinity for a vertical line"""
         if self.begin.x == self.end.x:
-            return float('inf')
+            return float("inf")
         return (self.end.y - self.begin.y) / (self.end.x - self.begin.x)
 
     @property
@@ -309,18 +309,20 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         )
 
     @staticmethod
-    def __snap(point: Tuple[float, float], fixed: Tuple[float, float]) -> Tuple[float, float]:
+    def __snap(
+        point: Tuple[float, float], fixed: Tuple[float, float]
+    ) -> Tuple[float, float]:
         """Snap point so that vector [point, fixed] snap to direction 0, 45 or 90 degrees
 
         :return: the snapped point position.
         """
         vector = point[0] - fixed[0], point[1] - fixed[1]
         angle = numpy.arctan2(vector[1], vector[0])
-        snapAngle = numpy.pi/4 * numpy.round(angle / (numpy.pi/4))
+        snapAngle = numpy.pi / 4 * numpy.round(angle / (numpy.pi / 4))
         length = numpy.linalg.norm(vector)
         return (
             fixed[0] + length * numpy.cos(snapAngle),
-            fixed[1] + length * numpy.sin(snapAngle)
+            fixed[1] + length * numpy.sin(snapAngle),
         )
 
     def handleDragUpdated(self, handle, origin, previous, current):
@@ -353,12 +355,16 @@ class BandROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
 
     def __handleWidthUpConstraint(self, x: float, y: float) -> Tuple[float, float]:
         geometry = self.getGeometry()
-        offset = max(0, numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center))
+        offset = max(
+            0, numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center)
+        )
         return tuple(geometry.center + offset * numpy.array(geometry.normal))
 
     def __handleWidthDownConstraint(self, x: float, y: float) -> Tuple[float, float]:
         geometry = self.getGeometry()
-        offset = max(0, -numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center))
+        offset = max(
+            0, -numpy.dot(geometry.normal, numpy.array((x, y)) - geometry.center)
+        )
         return tuple(geometry.center - offset * numpy.array(geometry.normal))
 
     @docstring(_RegionOfInterestBase)

@@ -118,7 +118,9 @@ class DataViewerSelector(qt.QWidget):
             return
         if self.__dataViewer is not None:
             self.__dataViewer.dataChanged.disconnect(self.__updateButtonsVisibility)
-            self.__dataViewer.displayedViewChanged.disconnect(self.__displayedViewChanged)
+            self.__dataViewer.displayedViewChanged.disconnect(
+                self.__displayedViewChanged
+            )
         self.__dataViewer = dataViewer
         if self.__dataViewer is not None:
             self.__dataViewer.dataChanged.connect(self.__updateButtonsVisibility)

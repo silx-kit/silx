@@ -82,13 +82,13 @@ class CompareImages(qt.QMainWindow):
         self._resetZoomActive = True
         self._colormap = Colormap()
         """Colormap shared by all modes, except the compose images (rgb image)"""
-        self._colormapKeyPoints = Colormap('spring')
+        self._colormapKeyPoints = Colormap("spring")
         """Colormap used for sift keypoints"""
 
         self._colormap.sigChanged.connect(self.__colormapChanged)
 
         if parent is None:
-            self.setWindowTitle('Compare images')
+            self.setWindowTitle("Compare images")
         else:
             self.setWindowFlags(qt.Qt.Widget)
 
@@ -105,9 +105,9 @@ class CompareImages(qt.QMainWindow):
 
         self.__plot = plot.PlotWidget(parent=self, backend=backend)
         self.__plot.setDefaultColormap(self._colormap)
-        self.__plot.getXAxis().setLabel('Columns')
-        self.__plot.getYAxis().setLabel('Rows')
-        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+        self.__plot.getXAxis().setLabel("Columns")
+        self.__plot.getYAxis().setLabel("Rows")
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
             self.__plot.getYAxis().setInverted(True)
         self.__plot.addItem(self.__item)
         self.__plot.setActiveImage("_virtual")
@@ -125,22 +125,24 @@ class CompareImages(qt.QMainWindow):
 
         legend = VisualizationMode.VERTICAL_LINE.name
         self.__plot.addXMarker(
-                0,
-                legend=legend,
-                text='',
-                draggable=True,
-                color='blue',
-                constraint=WeakMethodProxy(self.__separatorConstraint))
+            0,
+            legend=legend,
+            text="",
+            draggable=True,
+            color="blue",
+            constraint=WeakMethodProxy(self.__separatorConstraint),
+        )
         self.__vline = self.__plot._getMarker(legend)
 
         legend = VisualizationMode.HORIZONTAL_LINE.name
         self.__plot.addYMarker(
-                0,
-                legend=legend,
-                text='',
-                draggable=True,
-                color='blue',
-                constraint=WeakMethodProxy(self.__separatorConstraint))
+            0,
+            legend=legend,
+            text="",
+            draggable=True,
+            color="blue",
+            constraint=WeakMethodProxy(self.__separatorConstraint),
+        )
         self.__hline = self.__plot._getMarker(legend)
 
         # default values
@@ -169,7 +171,9 @@ class CompareImages(qt.QMainWindow):
             self.setStatusBar(self._statusBar)
 
     def __getSealedColormap(self):
-        vrange = self._colormap.getColormapRange(self.__item.getColormappedData(copy=False))
+        vrange = self._colormap.getColormapRange(
+            self.__item.getColormappedData(copy=False)
+        )
         sealed = self._colormap.copy()
         sealed.setVRange(*vrange)
         return sealed
@@ -267,7 +271,7 @@ class CompareImages(qt.QMainWindow):
             x2 = -1
             y2 = -1
         else:
-            assert(False)
+            assert False
 
         x1, y1 = int(x1), int(y1)
         x2, y2 = int(x2), int(y2)
@@ -305,8 +309,7 @@ class CompareImages(qt.QMainWindow):
         self.sigConfigurationChanged.emit()
 
     def centerLines(self):
-        """Center the line used to compare the 2 images.
-        """
+        """Center the line used to compare the 2 images."""
         if self.__image1 is None:
             return
         data_range = self.__plot.getDataRange()
@@ -363,16 +366,16 @@ class CompareImages(qt.QMainWindow):
 
     def __plotSlot(self, event):
         """Handle events from the plot"""
-        if event['event'] in ('markerMoving', 'markerMoved'):
+        if event["event"] in ("markerMoving", "markerMoved"):
             mode = self.getVisualizationMode()
             legend = mode.name
-            if event['label'] == legend:
+            if event["label"] == legend:
                 if mode == VisualizationMode.VERTICAL_LINE:
-                    value = int(float(str(event['xdata'])))
+                    value = int(float(str(event["xdata"])))
                 elif mode == VisualizationMode.HORIZONTAL_LINE:
-                    value = int(float(str(event['ydata'])))
+                    value = int(float(str(event["ydata"])))
                 else:
-                    assert(False)
+                    assert False
                 if self.__previousSeparatorPosition != value:
                     self.__separatorMoved(value)
                     self.__previousSeparatorPosition = value
@@ -394,8 +397,7 @@ class CompareImages(qt.QMainWindow):
         return x, y
 
     def __updateSeparators(self):
-        """Redraw images according to the current state of the separators.
-        """
+        """Redraw images according to the current state of the separators."""
         mode = self.getVisualizationMode()
         if mode == VisualizationMode.VERTICAL_LINE:
             pos = self.__vline.getXPosition()
@@ -444,7 +446,7 @@ class CompareImages(qt.QMainWindow):
                 self.__image2.setData(data2, copy=False)
                 self.__image2.setOrigin((0, pos))
         else:
-            assert(False)
+            assert False
 
     def clear(self):
         self.setData(None, None)
@@ -462,7 +464,9 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         if updateColormap != "deprecated":
-            deprecated_warning("Argument", "setData's updateColormap argument", since_version="2.0.0")
+            deprecated_warning(
+                "Argument", "setData's updateColormap argument", since_version="2.0.0"
+            )
 
         self.__raw1 = image1
         self.__raw2 = image2
@@ -482,7 +486,9 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image1: The first image
         """
         if updateColormap != "deprecated":
-            deprecated_warning("Argument", "setImage1's updateColormap argument", since_version="2.0.0")
+            deprecated_warning(
+                "Argument", "setImage1's updateColormap argument", since_version="2.0.0"
+            )
 
         self.__raw1 = image1
         self.__updateData()
@@ -501,7 +507,9 @@ class CompareImages(qt.QMainWindow):
         :param numpy.ndarray image2: The second image
         """
         if updateColormap != "deprecated":
-            deprecated_warning("Argument", "setImage2's updateColormap argument", since_version="2.0.0")
+            deprecated_warning(
+                "Argument", "setImage2's updateColormap argument", since_version="2.0.0"
+            )
 
         self.__raw2 = image2
         self.__updateData()
@@ -509,8 +517,7 @@ class CompareImages(qt.QMainWindow):
             self.__plot.resetZoom()
 
     def __updateKeyPoints(self):
-        """Update the displayed keypoints using cached keypoints.
-        """
+        """Update the displayed keypoints using cached keypoints."""
         if self.__keypointsVisible and self.__matching_keypoints:
             data = self.__matching_keypoints
         else:
@@ -552,17 +559,25 @@ class CompareImages(qt.QMainWindow):
                 yy = max(raw1.shape[0], raw2.shape[0])
                 xx = max(raw1.shape[1], raw2.shape[1])
                 size = yy, xx
-                data1 = self.__createMarginImage(raw1, size, transparent=True, center=True)
-                data2 = self.__createMarginImage(raw2, size, transparent=True, center=True)
-                self.__matching_keypoints = ([data1.shape[1] // 2],
-                                             [data1.shape[0] // 2],
-                                             [1.0])
+                data1 = self.__createMarginImage(
+                    raw1, size, transparent=True, center=True
+                )
+                data2 = self.__createMarginImage(
+                    raw2, size, transparent=True, center=True
+                )
+                self.__matching_keypoints = (
+                    [data1.shape[1] // 2],
+                    [data1.shape[0] // 2],
+                    [1.0],
+                )
             elif alignmentMode == AlignmentMode.STRETCH:
                 data1 = raw1
                 data2 = self.__rescaleImage(raw2, data1.shape)
-                self.__matching_keypoints = ([0, data1.shape[1], data1.shape[1], 0],
-                                             [0, 0, data1.shape[0], data1.shape[0]],
-                                             [1.0, 1.0, 1.0, 1.0])
+                self.__matching_keypoints = (
+                    [0, data1.shape[1], data1.shape[1], 0],
+                    [0, 0, data1.shape[0], data1.shape[0]],
+                    [1.0, 1.0, 1.0, 1.0],
+                )
             elif alignmentMode == AlignmentMode.AUTO:
                 # TODO: sift implementation do not support RGBA images
                 yy = max(raw1.shape[0], raw2.shape[0])
@@ -581,7 +596,7 @@ class CompareImages(qt.QMainWindow):
                     self.__setDefaultAlignmentMode()
                     return
             else:
-                assert(False)
+                assert False
 
         self.__item.setImageData1(data1)
         self.__item.setImageData2(data2)
@@ -609,7 +624,9 @@ class CompareImages(qt.QMainWindow):
             colormap1 = colormap
         else:
             colormap1 = None
-        self.__plot.addImage(data1, z=0, legend="image1", resetzoom=False, colormap=colormap1)
+        self.__plot.addImage(
+            data1, z=0, legend="image1", resetzoom=False, colormap=colormap1
+        )
         self.__image1 = self.__plot.getImage("image1")
 
         if data2 is not None:
@@ -618,7 +635,9 @@ class CompareImages(qt.QMainWindow):
                 colormap2 = colormap
             else:
                 colormap2 = None
-            self.__plot.addImage(data2, z=0, legend="image2", resetzoom=False, colormap=colormap2)
+            self.__plot.addImage(
+                data2, z=0, legend="image2", resetzoom=False, colormap=colormap2
+            )
             self.__image2 = self.__plot.getImage("image2")
             self.__image2.setVisible(True)
         else:
@@ -683,7 +702,7 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         if data1.size != 0 and data2.size != 0:
-            assert(data1.shape[0:2] == data2.shape[0:2])
+            assert data1.shape[0:2] == data2.shape[0:2]
 
         sealed = self.__getSealedColormap()
         vmin, vmax = sealed.getVRange()
@@ -708,18 +727,22 @@ class CompareImages(qt.QMainWindow):
 
         shape = intensity1.shape
         result = numpy.empty((shape[0], shape[1], 3), dtype=numpy.uint8)
-        a, _, _ = normalize(intensity1,
-                            norm=sealed.getNormalization(),
-                            autoscale=sealed.getAutoscaleMode(),
-                            vmin=sealed.getVMin(),
-                            vmax=sealed.getVMax(),
-                            gamma=sealed.getGammaNormalizationParameter())
-        b, _, _ = normalize(intensity2,
-                            norm=sealed.getNormalization(),
-                            autoscale=sealed.getAutoscaleMode(),
-                            vmin=sealed.getVMin(),
-                            vmax=sealed.getVMax(),
-                            gamma=sealed.getGammaNormalizationParameter())
+        a, _, _ = normalize(
+            intensity1,
+            norm=sealed.getNormalization(),
+            autoscale=sealed.getAutoscaleMode(),
+            vmin=sealed.getVMin(),
+            vmax=sealed.getVMax(),
+            gamma=sealed.getGammaNormalizationParameter(),
+        )
+        b, _, _ = normalize(
+            intensity2,
+            norm=sealed.getNormalization(),
+            autoscale=sealed.getAutoscaleMode(),
+            vmin=sealed.getVMin(),
+            vmax=sealed.getVMax(),
+            gamma=sealed.getGammaNormalizationParameter(),
+        )
         if mode == VisualizationMode.COMPOSITE_RED_BLUE_GRAY:
             result[:, :, 0] = a
             result[:, :, 1] = a // 2 + b // 2
@@ -741,7 +764,7 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         if data1.size != 0 and data2.size != 0:
-            assert(data1.shape[0:2] == data2.shape[0:2])
+            assert data1.shape[0:2] == data2.shape[0:2]
 
         data1 = self.__asIntensityImage(data1)
         data2 = self.__asIntensityImage(data2)
@@ -776,7 +799,7 @@ class CompareImages(qt.QMainWindow):
         :rtype: numpy.ndarray
         """
         mode = self.__getImageMode(image)
-        assert(mode in ["rgb", "rgba"])
+        assert mode in ["rgb", "rgba"]
         is_uint8 = image.dtype.type == numpy.uint8
         # luminosity
         image = 0.21 * image[..., 0] + 0.72 * image[..., 1] + 0.07 * image[..., 2]
@@ -789,8 +812,10 @@ class CompareImages(qt.QMainWindow):
 
         :rtype: numpy.ndarray
         """
-        y, x = numpy.ogrid[:shape[0], :shape[1]]
-        y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (image.shape[1] - 1) / (shape[1] - 1)
+        y, x = numpy.ogrid[: shape[0], : shape[1]]
+        y, x = y * 1.0 * (image.shape[0] - 1) / (shape[0] - 1), x * 1.0 * (
+            image.shape[1] - 1
+        ) / (shape[1] - 1)
         b = silx.image.bilinear.BilinearImage(image)
         # TODO: could be optimized using strides
         x2d = numpy.zeros_like(y) + x
@@ -803,8 +828,8 @@ class CompareImages(qt.QMainWindow):
 
         :rtype: numpy.ndarray
         """
-        assert(image.shape[0] <= size[0])
-        assert(image.shape[1] <= size[1])
+        assert image.shape[0] <= size[0]
+        assert image.shape[1] <= size[1]
         if image.shape == size:
             return image
         mode = self.__getImageMode(image)
@@ -817,7 +842,7 @@ class CompareImages(qt.QMainWindow):
 
         if mode == "intensity":
             data = numpy.zeros(size, dtype=image.dtype)
-            data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1]] = image
+            data[pos0 : pos0 + image.shape[0], pos1 : pos1 + image.shape[1]] = image
             # TODO: It is maybe possible to put NaN on the margin
         else:
             if transparent:
@@ -825,9 +850,13 @@ class CompareImages(qt.QMainWindow):
             else:
                 data = numpy.zeros((size[0], size[1], 3), dtype=numpy.uint8)
             depth = min(data.shape[2], image.shape[2])
-            data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 0:depth] = image[:, :, 0:depth]
+            data[
+                pos0 : pos0 + image.shape[0], pos1 : pos1 + image.shape[1], 0:depth
+            ] = image[:, :, 0:depth]
             if transparent and depth == 3:
-                data[pos0:pos0 + image.shape[0], pos1:pos1 + image.shape[1], 3] = 255
+                data[
+                    pos0 : pos0 + image.shape[0], pos1 : pos1 + image.shape[1], 3
+                ] = 255
         return data
 
     def __toAffineTransformation(self, sift_result):
@@ -880,9 +909,11 @@ class CompareImages(qt.QMainWindow):
         _logger.info("Number of Keypoints within image 1: %i" % keypoints.size)
         _logger.info("                    within image 2: %i" % second_keypoints.size)
 
-        self.__matching_keypoints = (match[:].x[:, 0],
-                                     match[:].y[:, 0],
-                                     match[:].scale[:, 0])
+        self.__matching_keypoints = (
+            match[:].x[:, 0],
+            match[:].y[:, 0],
+            match[:].scale[:, 0],
+        )
         matching_keypoints = match.shape[0]
         _logger.info("Matching keypoints: %i" % matching_keypoints)
         if matching_keypoints == 0:
@@ -903,8 +934,7 @@ class CompareImages(qt.QMainWindow):
         return data1, data2
 
     def resetZoom(self, dataMargins=None):
-        """Reset the plot limits to the bounds of the data and redraw the plot.
-        """
+        """Reset the plot limits to the bounds of the data and redraw the plot."""
         self.__plot.resetZoom(dataMargins)
 
     def setAutoResetZoom(self, activate=True):

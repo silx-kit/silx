@@ -33,10 +33,17 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "2012-2017 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "14/06/2023"
+__date__ = "09/09/2023"
 __status__ = "stable"
-__all__ = ["ocl", "pyopencl", "mf", "release_cl_buffers", "allocate_cl_buffers",
-           "measure_workgroup_size", "kernel_workgroup_size"]
+__all__ = [
+    "ocl",
+    "pyopencl",
+    "mf",
+    "release_cl_buffers",
+    "allocate_cl_buffers",
+    "measure_workgroup_size",
+    "kernel_workgroup_size",
+]
 
 import os
 import logging
@@ -48,59 +55,69 @@ from .utils import get_opencl_code
 logger = logging.getLogger(__name__)
 
 if os.environ.get("SILX_OPENCL") in ["0", "False"]:
-    logger.info("Use of OpenCL has been disabled from environment variable: SILX_OPENCL=0")
+    logger.info(
+        "Use of OpenCL has been disabled from environment variable: SILX_OPENCL=0"
+    )
     pyopencl = None
 else:
     try:
         import pyopencl
     except ImportError:
-        logger.warning("Unable to import pyOpenCl. Please install it from: https://pypi.org/project/pyopencl")
+        logger.warning(
+            "Unable to import pyOpenCl. Please install it from: https://pypi.org/project/pyopencl"
+        )
         pyopencl = None
     else:
         try:
             pyopencl.get_platforms()
         except pyopencl.LogicError:
-            logger.warning("The module pyOpenCL has been imported but can't be used here")
+            logger.warning(
+                "The module pyOpenCL has been imported but can't be used here"
+            )
             pyopencl = None
-        else:
-            import pyopencl.array as array
-            mf = pyopencl.mem_flags
-            from .atomic import check_atomic32, check_atomic64
 
-if pyopencl is None:
+if pyopencl is not None:
+    import pyopencl.array as array
 
+    mf = pyopencl.mem_flags
+    from .atomic import check_atomic32, check_atomic64
+else:
     # Define default mem flags
     class mf(object):
         WRITE_ONLY = 1
         READ_ONLY = 1
         READ_WRITE = 1
 
-FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
-                 "CPU": 4,  # CPU, at least intel's have 4 operation per cycle
-                 "ACC": 8}  # ACC: the Xeon-phi (MIC) appears to be able to process 8 Flops per hyperthreaded-core
+
+FLOP_PER_CORE = {
+    "GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
+    "CPU": 4,  # CPU, at least intel's have 4 operation per cycle
+    "ACC": 8,
+}  # ACC: the Xeon-phi (MIC) appears to be able to process 8 Flops per hyperthreaded-core
 
 # Sources : https://en.wikipedia.org/wiki/CUDA
-NVIDIA_FLOP_PER_CORE = {(1, 0): 24,   # Guessed !
-                        (1, 1): 24,   # Measured on G98 [Quadro NVS 295]
-                        (1, 2): 24,   # Guessed !
-                        (1, 3): 24,   # measured on a GT285 (GT200)
-                        (2, 0): 64,   # Measured on a 580 (GF110)
-                        (2, 1): 96,   # Measured on Quadro2000 GF106GL
-                        (3, 0): 384,  # Guessed!
-                        (3, 5): 384,  # Measured on K20
-                        (3, 7): 384,  # K80: Guessed!
-                        (5, 0): 256,  # Maxwell 4 warps/SM 2 flops/ CU
-                        (5, 2): 256,  # Titan-X
-                        (5, 3): 256,  # TX1
-                        (6, 0): 128,  # GP100
-                        (6, 1): 128,  # GP104
-                        (6, 2): 128,  # ?
-                        (7, 0): 128,  # Volta  # measured on Telsa V100
-                        (7, 2): 128,  # Volta  ? 
-                        (7, 5): 128,  # Turing # measured on RTX 6000
-                        (8, 0): 128,  # Ampere # measured on Tesla A100
-                        (8, 6): 256,  # Ampere # measured on RTX A5000
-                        }
+NVIDIA_FLOP_PER_CORE = {
+    (1, 0): 24,  # Guessed !
+    (1, 1): 24,  # Measured on G98 [Quadro NVS 295]
+    (1, 2): 24,  # Guessed !
+    (1, 3): 24,  # measured on a GT285 (GT200)
+    (2, 0): 64,  # Measured on a 580 (GF110)
+    (2, 1): 96,  # Measured on Quadro2000 GF106GL
+    (3, 0): 384,  # Guessed!
+    (3, 5): 384,  # Measured on K20
+    (3, 7): 384,  # K80: Guessed!
+    (5, 0): 256,  # Maxwell 4 warps/SM 2 flops/ CU
+    (5, 2): 256,  # Titan-X
+    (5, 3): 256,  # TX1
+    (6, 0): 128,  # GP100
+    (6, 1): 128,  # GP104
+    (6, 2): 128,  # ?
+    (7, 0): 128,  # Volta  # measured on Telsa V100
+    (7, 2): 128,  # Volta  ?
+    (7, 5): 128,  # Turing # measured on RTX 6000
+    (8, 0): 128,  # Ampere # measured on Tesla A100
+    (8, 6): 256,  # Ampere # measured on RTX A5000
+}
 
 AMD_FLOP_PER_CORE = 160  # Measured on a M7820 10 core, 700MHz 1120GFlops
 
@@ -110,10 +127,24 @@ class Device(object):
     Simple class that contains the structure of an OpenCL device
     """
 
-    def __init__(self, name="None", dtype=None, version=None, driver_version=None,
-                 extensions="", memory=None, available=None,
-                 cores=None, frequency=None, flop_core=None, idx=0, workgroup=1,
-                 atomic32=None, atomic64=None, platform=None):
+    def __init__(
+        self,
+        name="None",
+        dtype=None,
+        version=None,
+        driver_version=None,
+        extensions="",
+        memory=None,
+        available=None,
+        cores=None,
+        frequency=None,
+        flop_core=None,
+        idx=0,
+        workgroup=1,
+        atomic32=None,
+        atomic64=None,
+        platform=None,
+    ):
         """
         Simple container with some important data for the OpenCL device description.
 
@@ -150,7 +181,7 @@ class Device(object):
             self.flops = cores * frequency * flop_core
         else:
             self.flops = flop_core
-        self.platform = platform 
+        self.platform = platform
 
     def __repr__(self):
         return "%s" % self.name
@@ -161,19 +192,20 @@ class Device(object):
 
         :return: string
         """
-        lst = ["Name\t\t:\t%s" % self.name,
-               "Type\t\t:\t%s" % self.type,
-               "Memory\t\t:\t%.3f MB" % (self.memory / 2.0 ** 20),
-               "Cores\t\t:\t%s CU" % self.cores,
-               "Frequency\t:\t%s MHz" % self.frequency,
-               "Speed\t\t:\t%.3f GFLOPS" % (self.flops / 1000.),
-               "Version\t\t:\t%s" % self.version,
-               "Available\t:\t%s" % self.available]
+        lst = [
+            "Name\t\t:\t%s" % self.name,
+            "Type\t\t:\t%s" % self.type,
+            "Memory\t\t:\t%.3f MB" % (self.memory / 2.0**20),
+            "Cores\t\t:\t%s CU" % self.cores,
+            "Frequency\t:\t%s MHz" % self.frequency,
+            "Speed\t\t:\t%.3f GFLOPS" % (self.flops / 1000.0),
+            "Version\t\t:\t%s" % self.version,
+            "Available\t:\t%s" % self.available,
+        ]
         return os.linesep.join(lst)
 
     def set_unavailable(self):
-        """Use this method to flag a faulty device
-        """
+        """Use this method to flag a faulty device"""
         self.available = False
 
 
@@ -182,7 +214,9 @@ class Platform(object):
     Simple class that contains the structure of an OpenCL platform
     """
 
-    def __init__(self, name="None", vendor="None", version=None, extensions=None, idx=0):
+    def __init__(
+        self, name="None", vendor="None", version=None, extensions=None, idx=0
+    ):
         """
         Class containing all descriptions of a platform and all devices description within that platform.
 
@@ -249,19 +283,25 @@ def _measure_workgroup_size(device_or_context, fast=False):
             platformid = pyopencl.get_platforms().index(platform)
             deviceid = platform.get_devices().index(device_or_context)
             ocl.platforms[platformid].devices[deviceid].set_unavailable()
-            raise RuntimeError("Unable to create context on %s/%s: %s" % (platform, device_or_context, error))
+            raise RuntimeError(
+                "Unable to create context on %s/%s: %s"
+                % (platform, device_or_context, error)
+            )
         else:
             device = device_or_context
     elif isinstance(device_or_context, pyopencl.Context):
         ctx = device_or_context
         device = device_or_context.devices[0]
     elif isinstance(device_or_context, (tuple, list)) and len(device_or_context) == 2:
-        ctx = ocl.create_context(platformid=device_or_context[0],
-                                 deviceid=device_or_context[1])
+        ctx = ocl.create_context(
+            platformid=device_or_context[0], deviceid=device_or_context[1]
+        )
         device = ctx.devices[0]
     else:
-        raise RuntimeError("""given parameter device_or_context is not an
-            instanciation of a device or a context""")
+        raise RuntimeError(
+            """given parameter device_or_context is not an
+            instanciation of a device or a context"""
+        )
     shape = device.max_work_group_size
     # get the context
 
@@ -276,7 +316,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
     if fast:
-        max_valid_wg = program.addition.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+        max_valid_wg = program.addition.get_work_group_info(
+            pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device
+        )
     else:
         maxi = int(round(numpy.log2(shape)))
         for i in range(maxi + 1):
@@ -284,11 +326,19 @@ def _measure_workgroup_size(device_or_context, fast=False):
             wg = 1 << i
             try:
                 evt = program.addition(
-                    queue, (shape,), (wg,),
-                    d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
+                    queue,
+                    (shape,),
+                    (wg,),
+                    d_data.data,
+                    d_data_1.data,
+                    d_res.data,
+                    numpy.int32(shape),
+                )
                 evt.wait()
             except Exception as error:
-                logger.info("%s on device %s for WG=%s/%s", error, device.name, wg, shape)
+                logger.info(
+                    "%s on device %s for WG=%s/%s", error, device.name, wg, shape
+                )
                 program = queue = d_res = d_data_1 = d_data = None
                 break
             else:
@@ -298,7 +348,9 @@ def _measure_workgroup_size(device_or_context, fast=False):
                     if wg > max_valid_wg:
                         max_valid_wg = wg
                 else:
-                    logger.warning("ArithmeticError on %s for WG=%s/%s", wg, device.name, shape)
+                    logger.warning(
+                        "ArithmeticError on %s for WG=%s/%s", wg, device.name, shape
+                    )
 
     return max_valid_wg
 
@@ -321,15 +373,25 @@ class OpenCL(object):
     if pyopencl:
         platform = device = pypl = devtype = extensions = pydev = None
         for idx, platform in enumerate(pyopencl.get_platforms()):
-            pypl = Platform(platform.name, platform.vendor, platform.version, platform.extensions, idx)
+            pypl = Platform(
+                platform.name,
+                platform.vendor,
+                platform.version,
+                platform.extensions,
+                idx,
+            )
             for idd, device in enumerate(platform.get_devices()):
                 ####################################################
                 # Nvidia does not report int64 atomics (we are using) ...
                 # this is a hack around as any nvidia GPU with double-precision supports int64 atomics
                 ####################################################
                 extensions = device.extensions
-                if (pypl.vendor == "NVIDIA Corporation") and ('cl_khr_fp64' in extensions):
-                    extensions += ' cl_khr_int64_base_atomics cl_khr_int64_extended_atomics'
+                if (pypl.vendor == "NVIDIA Corporation") and (
+                    "cl_khr_fp64" in extensions
+                ):
+                    extensions += (
+                        " cl_khr_int64_base_atomics cl_khr_int64_extended_atomics"
+                    )
                 try:
                     devtype = pyopencl.device_type.to_string(device.type).upper()
                 except ValueError:
@@ -344,14 +406,23 @@ class OpenCL(object):
                         devtype = "CPU"
                     else:
                         devtype = devtype[:3]
-                if _is_nvidia_gpu(device.vendor, devtype) and ("compute_capability_major_nv" in dir(device)):
+                if _is_nvidia_gpu(device.vendor, devtype) and (
+                    "compute_capability_major_nv" in dir(device)
+                ):
                     try:
-                        comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
+                        comput_cap = (
+                            device.compute_capability_major_nv,
+                            device.compute_capability_minor_nv,
+                        )
                     except pyopencl.LogicError:
                         flop_core = FLOP_PER_CORE["GPU"]
                     else:
-                        flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, FLOP_PER_CORE["GPU"])
-                elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (devtype == "GPU"):
+                        flop_core = NVIDIA_FLOP_PER_CORE.get(
+                            comput_cap, FLOP_PER_CORE["GPU"]
+                        )
+                elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (
+                    devtype == "GPU"
+                ):
                     flop_core = AMD_FLOP_PER_CORE
                 elif devtype == "CPU":
                     flop_core = FLOP_PER_CORE.get(devtype, 1)
@@ -359,15 +430,29 @@ class OpenCL(object):
                     flop_core = 1
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
-                    logger.info("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
+                    logger.info(
+                        "For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size."
+                    )
                     workgroup = _measure_workgroup_size(device, fast=True)
                 if (devtype == "GPU") and os.environ.get("GPU") == "False":
                     # Environment variable to disable GPU devices
                     continue
-                pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
-                               device.global_mem_size, bool(device.available), device.max_compute_units,
-                               device.max_clock_frequency, flop_core, idd, workgroup, 
-                               check_atomic32(device)[0], check_atomic64(device)[0])
+                pydev = Device(
+                    device.name,
+                    devtype,
+                    device.version,
+                    device.driver_version,
+                    extensions,
+                    device.global_mem_size,
+                    bool(device.available),
+                    device.max_compute_units,
+                    device.max_clock_frequency,
+                    flop_core,
+                    idd,
+                    workgroup,
+                    check_atomic32(device)[0],
+                    check_atomic64(device)[0],
+                )
                 pypl.add_device(pydev)
                 nb_devices += 1
             platforms.append(pypl)
@@ -376,8 +461,10 @@ class OpenCL(object):
     def __repr__(self):
         out = ["OpenCL devices:"]
         for platformid, platform in enumerate(self.platforms):
-            deviceids = [f"({platformid},{deviceid}) {dev.name}"
-                         for deviceid, dev in enumerate(platform.devices)]
+            deviceids = [
+                f"({platformid},{deviceid}) {dev.name}"
+                for deviceid, dev in enumerate(platform.devices)
+            ]
             out.append(f"[{platformid}] {platform.name}: " + ", ".join(deviceids))
         return os.linesep.join(out)
 
@@ -400,7 +487,9 @@ class OpenCL(object):
                 out = self.platforms[platid]
         return out
 
-    def select_device(self, dtype="ALL", memory=None, extensions=None, best=True, **kwargs):
+    def select_device(
+        self, dtype="ALL", memory=None, extensions=None, best=True, **kwargs
+    ):
         """
         Select a device based on few parameters (at the end, keep the one with most memory)
 
@@ -444,8 +533,15 @@ class OpenCL(object):
         # Nothing found
         return None
 
-    def create_context(self, devicetype="ALL", platformid=None,
-                       deviceid=None, cached=True, memory=None, extensions=None):
+    def create_context(
+        self,
+        devicetype="ALL",
+        platformid=None,
+        deviceid=None,
+        cached=True,
+        memory=None,
+        extensions=None,
+    ):
         """
         Choose a device and initiate a context.
 
@@ -465,33 +561,59 @@ class OpenCL(object):
         if extensions is None:
             extensions = []
 
+        ctx = None
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)
             deviceid = int(deviceid)
         elif "PYOPENCL_CTX" in os.environ:
-            pyopencl_ctx = [int(i) if i.isdigit() else 0 for i in os.environ["PYOPENCL_CTX"].split(":")]
-            pyopencl_ctx += [0] * (2 - len(pyopencl_ctx))  # pad with 0
-            platformid, deviceid = pyopencl_ctx
+            ctx = pyopencl.create_some_context()
+            # try:
+            device = ctx.devices[0]
+            platforms = [
+                i for i, p in enumerate(ocl.platforms) if device.platform.name == p.name
+            ]
+            if platforms:
+                platformid = platforms[0]
+                devices = [
+                    i
+                    for i, d in enumerate(ocl.platforms[platformid].devices)
+                    if device.name == d.name
+                ]
+                if devices:
+                    deviceid = devices[0]
+                    if cached:
+                        self.context_cache[(platformid, deviceid)] = ctx
         else:
             ids = ocl.select_device(type=devicetype, extensions=extensions)
             if ids:
                 platformid, deviceid = ids
-        ctx = None
-        if (platformid is not None) and (deviceid is not None):
+
+        if (ctx is None) and (platformid is not None) and (deviceid is not None):
             if (platformid, deviceid) in self.context_cache:
                 ctx = self.context_cache[(platformid, deviceid)]
             else:
                 try:
-                    ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[platformid].get_devices()[deviceid]])
+                    ctx = pyopencl.Context(
+                        devices=[
+                            pyopencl.get_platforms()[platformid].get_devices()[deviceid]
+                        ]
+                    )
                 except pyopencl._cl.LogicError as error:
                     self.platforms[platformid].devices[deviceid].set_unavailable()
-                    logger.warning("Unable to create context on %s/%s: %s", platformid, deviceid, error)
+                    logger.warning(
+                        "Unable to create context on %s/%s: %s",
+                        platformid,
+                        deviceid,
+                        error,
+                    )
                     ctx = None
                 else:
                     if cached:
                         self.context_cache[(platformid, deviceid)] = ctx
         if ctx is None:
-            logger.warning("Last chance to get an OpenCL device ... probably not the one requested")
+            logger.warning(
+                "Last chance to get an OpenCL device ... probably not the one requested"
+            )
             ctx = pyopencl.create_some_context(interactive=False)
         return ctx
 
@@ -561,8 +683,9 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     for _, _, dtype, size in buffers:
         ualloc += numpy.dtype(dtype).itemsize * size
     memory = device.memory
-    logger.info("%.3fMB are needed on device which has %.3fMB",
-                ualloc / 1.0e6, memory / 1.0e6)
+    logger.info(
+        "%.3fMB are needed on device which has %.3fMB", ualloc / 1.0e6, memory / 1.0e6
+    )
     if ualloc >= memory:
         memError = "Fatal error in allocate_buffers."
         memError += "Not enough device memory for buffers"
@@ -572,8 +695,9 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     # do the allocation
     try:
         for name, flag, dtype, size in buffers:
-            mem[name] = pyopencl.Buffer(context, flag,
-                                        numpy.dtype(dtype).itemsize * size)
+            mem[name] = pyopencl.Buffer(
+                context, flag, numpy.dtype(dtype).itemsize * size
+            )
     except pyopencl.MemoryError as error:
         release_cl_buffers(mem)
         raise MemoryError(error)
@@ -590,16 +714,15 @@ def allocate_texture(ctx, shape, hostbuf=None, support_1D=False):
         do not support 1D images, so 1D images are handled as 2D with one row
     :param support_1D: force the image to be 1D if the shape has only one dim
     """
-    if len(shape) == 1 and not(support_1D):
+    if len(shape) == 1 and not (support_1D):
         shape = (1,) + shape
     return pyopencl.Image(
         ctx,
         pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.USE_HOST_PTR,
         pyopencl.ImageFormat(
-            pyopencl.channel_order.INTENSITY,
-            pyopencl.channel_type.FLOAT
+            pyopencl.channel_order.INTENSITY, pyopencl.channel_type.FLOAT
         ),
-        hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32)
+        hostbuf=numpy.zeros(shape[::-1], dtype=numpy.float32),
     )
 
 
@@ -621,7 +744,7 @@ def check_textures_availability(ctx):
     # There is no way to detect this until a kernel is compiled
     try:
         cc = ctx.devices[0].compute_capability_major_nv
-        textures_available &= (cc >= 3)
+        textures_available &= cc >= 3
     except (pyopencl.LogicError, AttributeError):  # probably not a Nvidia GPU
         pass
     #
@@ -661,7 +784,7 @@ def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
     :param kernel: kernel or name of the kernel
     :param what: what is the query about ?
     :return: int or 3-int for the workgroup size.
-    
+
     Possible information available are:
     * 'COMPILE_WORK_GROUP_SIZE': Returns the work-group size specified inside the kernel (__attribute__((reqd_work_gr oup_size(X, Y, Z))))
     * 'GLOBAL_WORK_SIZE': maximum global size that can be used to execute a kernel  #OCL2.1!
@@ -669,15 +792,17 @@ def query_kernel_info(program, kernel, what="WORK_GROUP_SIZE"):
     * 'PREFERRED_WORK_GROUP_SIZE_MULTIPLE': preferred multiple of workgroup size for launch. This is a performance hint.
     * 'PRIVATE_MEM_SIZE' Returns the minimum amount of private memory, in bytes, used by each workitem in the kernel
     * 'WORK_GROUP_SIZE': maximum work-group size that can be used to execute a kernel on a specific device given by device
-    
+
     Further information on:
     https://www.khronos.org/registry/OpenCL/sdk/1.1/docs/man/xhtml/clGetKernelWorkGroupInfo.html
-    
+
     """
     assert isinstance(program, pyopencl.Program)
     if not isinstance(kernel, pyopencl.Kernel):
         kernel_name = kernel
-        assert kernel in (k.function_name for k in program.all_kernels()), "the kernel exists"
+        assert kernel in (
+            k.function_name for k in program.all_kernels()
+        ), "the kernel exists"
         kernel = program.__getattr__(kernel_name)
 
     device = program.devices[0]

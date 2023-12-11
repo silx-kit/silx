@@ -45,6 +45,7 @@ class MaskScatterWidget(qt.QMainWindow):
     A mask tools widget is provided to select/mask points of the scatter
     plot.
     """
+
     def __init__(self, parent=None):
         super(MaskScatterWidget, self).__init__(parent=parent)
         self._activeScatterLegend = "active scatter"
@@ -56,7 +57,8 @@ class MaskScatterWidget(qt.QMainWindow):
         self._plot = PlotWidget(parent=centralWidget)
 
         self._maskToolsWidget = ScatterMaskToolsWidget.ScatterMaskToolsWidget(
-            plot=self._plot, parent=centralWidget)
+            plot=self._plot, parent=centralWidget
+        )
 
         self._alphaSlider = NamedScatterAlphaSlider(parent=self, plot=self._plot)
         self._alphaSlider.setOrientation(qt.Qt.Horizontal)
@@ -81,8 +83,7 @@ class MaskScatterWidget(qt.QMainWindow):
                           False to use it as is if possible.
         :return: None if failed, shape of mask as 1-tuple if successful.
         """
-        return self._maskToolsWidget.setSelectionMask(mask,
-                                                      copy=copy)
+        return self._maskToolsWidget.setSelectionMask(mask, copy=copy)
 
     def getSelectionMask(self, copy=True):
         """Get the current mask as a 1D array.
@@ -95,8 +96,9 @@ class MaskScatterWidget(qt.QMainWindow):
         """
         return self._maskToolsWidget.getSelectionMask(copy=copy)
 
-    def setBackgroundImage(self, image, xscale=(0, 1.), yscale=(0, 1.),
-                           colormap=None):
+    def setBackgroundImage(
+        self, image, xscale=(0, 1.0), yscale=(0, 1.0), colormap=None
+    ):
         """Set a background image
 
         :param image: 2D image, array of shape (nrows, ncolumns)
@@ -105,11 +107,14 @@ class MaskScatterWidget(qt.QMainWindow):
             *(a, b)* such as :math:`x \mapsto a + bx`
         :param yscale: Factors for polynomial scaling  for y-axis
         """
-        self._plot.addImage(image, legend=self._bgImageLegend,
-                            origin=(xscale[0], yscale[0]),
-                            scale=(xscale[1], yscale[1]),
-                            z=0,
-                            colormap=colormap)
+        self._plot.addImage(
+            image,
+            legend=self._bgImageLegend,
+            origin=(xscale[0], yscale[0]),
+            scale=(xscale[1], yscale[1]),
+            z=0,
+            colormap=colormap,
+        )
 
     def setScatter(self, x, y, v=None, info=None, colormap=None):
         """Set the scatter data, by providing its data as a 1D
@@ -123,11 +128,11 @@ class MaskScatterWidget(qt.QMainWindow):
         :param v: Array of values for each point, represented as the color
              of the point on the plot.
         """
-        self._plot.addScatter(x, y, v, legend=self._activeScatterLegend,
-                              info=info, colormap=colormap)
+        self._plot.addScatter(
+            x, y, v, legend=self._activeScatterLegend, info=info, colormap=colormap
+        )
         # the mask is associated with the active scatter
-        self._plot._setActiveItem(kind="scatter",
-                                  legend=self._activeScatterLegend)
+        self._plot.setActiveScatter(self._activeScatterLegend)
 
         self._alphaSlider.setLegend(self._activeScatterLegend)
 
@@ -137,13 +142,17 @@ if __name__ == "__main__":
     msw = MaskScatterWidget()
 
     # create a synthetic bg image
-    bg_img = numpy.arange(200*150).reshape((200, 150))
+    bg_img = numpy.arange(200 * 150).reshape((200, 150))
     bg_img[75:125, 80:120] = 1000
 
     # create synthetic data for a scatter plot
     twopi = numpy.pi * 2
-    x = 50 + 80 * numpy.linspace(0, twopi, num=100) / twopi * numpy.cos(numpy.linspace(0, twopi, num=100))
-    y = 150 + 150 * numpy.linspace(0, twopi, num=100) / twopi * numpy.sin(numpy.linspace(0, twopi, num=100))
+    x = 50 + 80 * numpy.linspace(0, twopi, num=100) / twopi * numpy.cos(
+        numpy.linspace(0, twopi, num=100)
+    )
+    y = 150 + 150 * numpy.linspace(0, twopi, num=100) / twopi * numpy.sin(
+        numpy.linspace(0, twopi, num=100)
+    )
     v = numpy.arange(100) / 3.14
 
     msw.setScatter(x, y, v=v)

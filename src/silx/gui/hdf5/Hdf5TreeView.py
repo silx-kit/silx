@@ -57,6 +57,7 @@ class Hdf5TreeView(qt.QTreeView):
     :meth:`removeContextMenuCallback` to add your custum actions according
     to the selected objects.
     """
+
     def __init__(self, parent=None):
         """
         Constructor
@@ -167,7 +168,11 @@ class Hdf5TreeView(qt.QTreeView):
 
     def dragEnterEvent(self, event):
         model = self.findHdf5TreeModel()
-        if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+        if (
+            model is not None
+            and model.isFileDropEnabled()
+            and event.mimeData().hasFormat("text/uri-list")
+        ):
             self.setState(qt.QAbstractItemView.DraggingState)
             event.accept()
         else:
@@ -175,7 +180,11 @@ class Hdf5TreeView(qt.QTreeView):
 
     def dragMoveEvent(self, event):
         model = self.findHdf5TreeModel()
-        if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+        if (
+            model is not None
+            and model.isFileDropEnabled()
+            and event.mimeData().hasFormat("text/uri-list")
+        ):
             event.setDropAction(qt.Qt.CopyAction)
             event.accept()
         else:
@@ -215,7 +224,9 @@ class Hdf5TreeView(qt.QTreeView):
                 model = model.sourceModel()
             else:
                 break
-        raise RuntimeError("Model from the requested index is not reachable from this view")
+        raise RuntimeError(
+            "Model from the requested index is not reachable from this view"
+        )
 
     def mapToModel(self, index):
         """Map an index from any model reachable by the view to an index from

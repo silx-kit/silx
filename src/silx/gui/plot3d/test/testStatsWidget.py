@@ -72,18 +72,19 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
 
         # Data image
         image = self.sceneWidget.addImage(numpy.arange(100).reshape(10, 10))
-        image.setLabel('Image')
+        image.setLabel("Image")
         # RGB image
         imageRGB = self.sceneWidget.addImage(
-            numpy.arange(300, dtype=numpy.uint8).reshape(10, 10, 3))
-        imageRGB.setLabel('RGB Image')
+            numpy.arange(300, dtype=numpy.uint8).reshape(10, 10, 3)
+        )
+        imageRGB.setLabel("RGB Image")
         # 2D scatter
         data = numpy.arange(100)
         scatter2D = self.sceneWidget.add2DScatter(x=data, y=data, value=data)
-        scatter2D.setLabel('2D Scatter')
+        scatter2D.setLabel("2D Scatter")
         # 3D scatter
         scatter3D = self.sceneWidget.add3DScatter(x=data, y=data, z=data, value=data)
-        scatter3D.setLabel('3D Scatter')
+        scatter3D.setLabel("3D Scatter")
         # Add a group
         group = items.GroupItem()
         self.sceneWidget.addItem(group)
@@ -91,7 +92,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         data = numpy.arange(64**3).reshape(64, 64, 64)
         scalarField = items.ScalarField3D()
         scalarField.setData(data, copy=False)
-        scalarField.setLabel('3D Scalar field')
+        scalarField.setLabel("3D Scalar field")
         group.addItem(scalarField)
 
         statsTable = self.statsWidget._getStatsTable()
@@ -104,7 +105,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         self.assertEqual(statsTable.rowCount(), 0)
 
         for item in (image, scatter2D, scatter3D, scalarField):
-            with self.subTest('selection only', item=item.getLabel()):
+            with self.subTest("selection only", item=item.getLabel()):
                 self.sceneWidget.selection().setCurrentItem(item)
                 self.assertEqual(statsTable.rowCount(), 1)
                 self._checkItem(item)
@@ -114,7 +115,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         self.assertEqual(statsTable.rowCount(), 4)
 
         for item in (image, scatter2D, scatter3D, scalarField):
-            with self.subTest('all items', item=item.getLabel()):
+            with self.subTest("all items", item=item.getLabel()):
                 self._checkItem(item)
 
     def _checkItem(self, item):
@@ -130,9 +131,9 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         statsTable = self.statsWidget._getStatsTable()
         tableItems = statsTable._itemToTableItems(item)
         self.assertTrue(len(tableItems) > 0)
-        self.assertEqual(tableItems['legend'].text(), item.getLabel())
-        self.assertEqual(float(tableItems['min'].text()), numpy.min(data))
-        self.assertEqual(float(tableItems['max'].text()), numpy.max(data))
+        self.assertEqual(tableItems["legend"].text(), item.getLabel())
+        self.assertEqual(float(tableItems["min"].text()), numpy.min(data))
+        self.assertEqual(float(tableItems["max"].text()), numpy.max(data))
         # TODO
 
 
@@ -192,10 +193,19 @@ class TestScalarFieldView(TestCaseQt):
         self.assertEqual(statsTable.rowCount(), 1)
 
         for column in range(statsTable.columnCount()):
-            self.assertEqual(float(self._getTextFor(0, 'min')), numpy.min(data))
-            self.assertEqual(float(self._getTextFor(0, 'max')), numpy.max(data))
+            self.assertEqual(float(self._getTextFor(0, "min")), numpy.min(data))
+            self.assertEqual(float(self._getTextFor(0, "max")), numpy.max(data))
             sum_ = numpy.sum(data)
-            comz = numpy.sum(numpy.arange(data.shape[0]) * numpy.sum(data, axis=(1, 2))) / sum_
-            comy = numpy.sum(numpy.arange(data.shape[1]) * numpy.sum(data, axis=(0, 2))) / sum_
-            comx = numpy.sum(numpy.arange(data.shape[2]) * numpy.sum(data, axis=(0, 1))) / sum_
-            self.assertEqual(self._getTextFor(0, 'COM'), str((comx, comy, comz)))
+            comz = (
+                numpy.sum(numpy.arange(data.shape[0]) * numpy.sum(data, axis=(1, 2)))
+                / sum_
+            )
+            comy = (
+                numpy.sum(numpy.arange(data.shape[1]) * numpy.sum(data, axis=(0, 2)))
+                / sum_
+            )
+            comx = (
+                numpy.sum(numpy.arange(data.shape[2]) * numpy.sum(data, axis=(0, 1)))
+                / sum_
+            )
+            self.assertEqual(self._getTextFor(0, "COM"), str((comx, comy, comz)))

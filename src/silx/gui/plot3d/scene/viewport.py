@@ -59,17 +59,19 @@ class RenderContext(object):
     :param Context glContext: The operating system OpenGL context in use.
     """
 
-    _FRAGMENT_SHADER_SRC = string.Template("""
+    _FRAGMENT_SHADER_SRC = string.Template(
+        """
         void scene_post(vec4 cameraPosition) {
             gl_FragColor = $fogCall(gl_FragColor, cameraPosition);
         }
-        """)
+        """
+    )
 
     def __init__(self, viewport, glContext):
         self._viewport = viewport
         self._glContext = glContext
         self._transformStack = [viewport.camera.extrinsic]
-        self._clipPlane = ClippingPlane(normal=(0., 0., 0.))
+        self._clipPlane = ClippingPlane(normal=(0.0, 0.0, 0.0))
 
         # cache
         self.__cache = {}
@@ -118,8 +120,7 @@ class RenderContext(object):
 
         Do not modify.
         """
-        return transform.StaticTransformList(
-            (self.projection, self.objectToCamera))
+        return transform.StaticTransformList((self.projection, self.objectToCamera))
 
     def pushTransform(self, transform_, multiply=True):
         """Push a :class:`Transform` on the transform stack.
@@ -132,7 +133,8 @@ class RenderContext(object):
         if multiply:
             assert len(self._transformStack) >= 1
             transform_ = transform.StaticTransformList(
-                (self._transformStack[-1], transform_))
+                (self._transformStack[-1], transform_)
+            )
 
         self._transformStack.append(transform_)
 
@@ -149,7 +151,7 @@ class RenderContext(object):
         """The current clipping plane (ClippingPlane)"""
         return self._clipPlane
 
-    def setClipPlane(self, point=(0., 0., 0.), normal=(0., 0., 0.)):
+    def setClipPlane(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 0.0)):
         """Set the clipping plane to use
 
         For now only handles a single clipping plane.
@@ -173,11 +175,15 @@ class RenderContext(object):
     @property
     def fragDecl(self):
         """Fragment shader declaration for scene shader functions"""
-        return '\n'.join((
-            self.clipper.fragDecl,
-            self.viewport.fog.fragDecl,
-            self._FRAGMENT_SHADER_SRC.substitute(
-                fogCall=self.viewport.fog.fragCall)))
+        return "\n".join(
+            (
+                self.clipper.fragDecl,
+                self.viewport.fog.fragDecl,
+                self._FRAGMENT_SHADER_SRC.substitute(
+                    fogCall=self.viewport.fog.fragCall
+                ),
+            )
+        )
 
     @property
     def fragCallPre(self):
@@ -204,6 +210,7 @@ class Viewport(event.Notifier):
 
     def __init__(self, framebuffer=0):
         from . import Group  # Here to avoid cyclic import
+
         super(Viewport, self).__init__()
         self._dirty = True
         self._origin = 0, 0
@@ -212,15 +219,16 @@ class Viewport(event.Notifier):
         self.scene = Group()  # The stuff to render, add overlaid scenes?
         self.scene._setParent(self)
         self.scene.addListener(self._changed)
-        self._background = 0., 0., 0., 1.
-        self._camera = camera.Camera(fovy=30., near=1., far=100.,
-                                     position=(0., 0., 12.))
+        self._background = 0.0, 0.0, 0.0, 1.0
+        self._camera = camera.Camera(
+            fovy=30.0, near=1.0, far=100.0, position=(0.0, 0.0, 12.0)
+        )
         self._camera.addListener(self._changed)
         self._transforms = transform.TransformList([self._camera])
 
-        self._light = DirectionalLight(direction=(0., 0., -1.),
-                                       ambient=(0.3, 0.3, 0.3),
-                                       diffuse=(0.7, 0.7, 0.7))
+        self._light = DirectionalLight(
+            direction=(0.0, 0.0, -1.0), ambient=(0.3, 0.3, 0.3), diffuse=(0.7, 0.7, 0.7)
+        )
         self._light.addListener(self._changed)
         self._fog = Fog()
         self._fog.isOn = False
@@ -352,7 +360,7 @@ class Viewport(event.Notifier):
 
         gl.glEnable(gl.GL_DEPTH_TEST)
         gl.glDepthFunc(gl.GL_LEQUAL)
-        gl.glDepthRange(0., 1.)
+        gl.glDepthRange(0.0, 1.0)
 
         # gl.glEnable(gl.GL_POLYGON_OFFSET_FILL)
         # gl.glPolygonOffset(1., 1.)
@@ -361,15 +369,16 @@ class Viewport(event.Notifier):
         gl.glEnable(gl.GL_LINE_SMOOTH)
 
         if self.background is None:
-            gl.glClear(gl.GL_STENCIL_BUFFER_BIT |
-                       gl.GL_DEPTH_BUFFER_BIT)
+            gl.glClear(gl.GL_STENCIL_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
         else:
             gl.glClearColor(*self.background)
 
             # Prepare OpenGL
-            gl.glClear(gl.GL_COLOR_BUFFER_BIT |
-                       gl.GL_STENCIL_BUFFER_BIT |
-                       gl.GL_DEPTH_BUFFER_BIT)
+            gl.glClear(
+                gl.GL_COLOR_BUFFER_BIT
+                | gl.GL_STENCIL_BUFFER_BIT
+                | gl.GL_DEPTH_BUFFER_BIT
+            )
 
         ctx = RenderContext(self, glContext)
         self.scene.render(ctx)
@@ -384,15 +393,16 @@ class Viewport(event.Notifier):
         """
         bounds = self.scene.bounds(transformed=True)
         if bounds is None:
-             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
-                                  dtype=numpy.float32)
+            bounds = numpy.array(
+                ((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)), dtype=numpy.float32
+            )
         bounds = self.camera.extrinsic.transformBounds(bounds)
 
         if isinstance(self.camera.intrinsic, transform.Perspective):
             # This needs to be reworked
-            zbounds = - bounds[:, 2]
+            zbounds = -bounds[:, 2]
             zextent = max(numpy.fabs(zbounds[0] - zbounds[1]), 0.0001)
-            near = max(zextent / 1000., 0.95 * zbounds[1])
+            near = max(zextent / 1000.0, 0.95 * zbounds[1])
             far = max(near + 0.1, 1.05 * zbounds[0])
 
             self.camera.intrinsic.setDepthExtent(near, far)
@@ -401,7 +411,7 @@ class Viewport(event.Notifier):
             border = max(abs(bounds[:, 2]))
             self.camera.intrinsic.setDepthExtent(-border, border)
         else:
-            raise RuntimeError('Unsupported camera', self.camera.intrinsic)
+            raise RuntimeError("Unsupported camera", self.camera.intrinsic)
 
     def resetCamera(self):
         """Change camera to have the whole scene in the viewing frustum.
@@ -411,11 +421,12 @@ class Viewport(event.Notifier):
         """
         bounds = self.scene.bounds(transformed=True)
         if bounds is None:
-            bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
-                                 dtype=numpy.float32)
+            bounds = numpy.array(
+                ((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)), dtype=numpy.float32
+            )
         self.camera.resetCamera(bounds)
 
-    def orbitCamera(self, direction, angle=1.):
+    def orbitCamera(self, direction, angle=1.0):
         """Rotate the camera around center of the scene.
 
         :param str direction: Direction of movement relative to image plane.
@@ -424,8 +435,9 @@ class Viewport(event.Notifier):
         """
         bounds = self.scene.bounds(transformed=True)
         if bounds is None:
-             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
-                                  dtype=numpy.float32)
+            bounds = numpy.array(
+                ((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)), dtype=numpy.float32
+            )
         center = 0.5 * (bounds[0] + bounds[1])
         self.camera.orbit(direction, center, angle)
 
@@ -439,35 +451,36 @@ class Viewport(event.Notifier):
         """
         bounds = self.scene.bounds(transformed=True)
         if bounds is None:
-             bounds = numpy.array(((0., 0., 0.), (1., 1., 1.)),
-                                  dtype=numpy.float32)
+            bounds = numpy.array(
+                ((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)), dtype=numpy.float32
+            )
         bounds = self.camera.extrinsic.transformBounds(bounds)
         center = 0.5 * (bounds[0] + bounds[1])
-        ndcCenter = self.camera.intrinsic.transformPoint(
-            center, perspectiveDivide=True)
+        ndcCenter = self.camera.intrinsic.transformPoint(center, perspectiveDivide=True)
 
-        step *= 2.  # NDC has size 2
+        step *= 2.0  # NDC has size 2
 
-        if direction == 'up':
+        if direction == "up":
             ndcCenter[1] -= step
-        elif direction == 'down':
+        elif direction == "down":
             ndcCenter[1] += step
 
-        elif direction == 'right':
+        elif direction == "right":
             ndcCenter[0] -= step
-        elif direction == 'left':
+        elif direction == "left":
             ndcCenter[0] += step
 
-        elif direction == 'forward':
+        elif direction == "forward":
             ndcCenter[2] += step
-        elif direction == 'backward':
+        elif direction == "backward":
             ndcCenter[2] -= step
 
         else:
-            raise ValueError('Unsupported direction: %s' % direction)
+            raise ValueError("Unsupported direction: %s" % direction)
 
         newCenter = self.camera.intrinsic.transformPoint(
-            ndcCenter, direct=False, perspectiveDivide=True)
+            ndcCenter, direct=False, perspectiveDivide=True
+        )
 
         self.camera.move(direction, numpy.linalg.norm(newCenter - center))
 
@@ -495,11 +508,11 @@ class Viewport(event.Notifier):
 
         x, y = winX - ox, winY - oy
 
-        if checkInside and (x < 0. or x > width or y < 0. or y > height):
+        if checkInside and (x < 0.0 or x > width or y < 0.0 or y > height):
             return None  # Out of viewport
 
-        ndcx = 2. * x / float(width) - 1.
-        ndcy = 1. - 2. * y / float(height)
+        ndcx = 2.0 * x / float(width) - 1.0
+        ndcy = 1.0 - 2.0 * y / float(height)
         return ndcx, ndcy
 
     def ndcToWindow(self, ndcX, ndcY, checkInside=True):
@@ -512,15 +525,14 @@ class Viewport(event.Notifier):
         :return: (x, y) window coordinates or None.
                  Origin top-left, x to the right, y goes downward.
         """
-        if (checkInside and
-                (ndcX < -1. or ndcX > 1. or ndcY < -1. or ndcY > 1.)):
+        if checkInside and (ndcX < -1.0 or ndcX > 1.0 or ndcY < -1.0 or ndcY > 1.0):
             return None  # Outside viewport
 
         ox, oy = self._origin
         width, height = self.size
 
-        winx = ox + width * 0.5 * (ndcX + 1.)
-        winy = oy + height * 0.5 * (1. - ndcY)
+        winx = ox + width * 0.5 * (ndcX + 1.0)
+        winy = oy + height * 0.5 * (1.0 - ndcY)
         return winx, winy
 
     def _pickNdcZGL(self, x, y, offset=0):
@@ -550,20 +562,18 @@ class Viewport(event.Notifier):
 
         if offset == 0:  # Fast path
             # glReadPixels is not GL|ES friendly
-            depth = gl.glReadPixels(
-                x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)[0]
+            depth = gl.glReadPixels(x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)[0]
         else:
             offset = abs(int(offset))
-            size = 2*offset + 1
+            size = 2 * offset + 1
             depthPatch = gl.glReadPixels(
-                x - offset, y - offset,
-                size, size,
-                gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)
+                x - offset, y - offset, size, size, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT
+            )
             depthPatch = depthPatch.ravel()  # Work in 1D
 
             # TODO cache sortedIndices to avoid computing it each time
             # Compute distance of each pixels to the center of the patch
-            offsetToCenter = numpy.arange(- offset, offset + 1, dtype=numpy.float32) ** 2
+            offsetToCenter = numpy.arange(-offset, offset + 1, dtype=numpy.float32) ** 2
             sqDistToCenter = numpy.add.outer(offsetToCenter, offsetToCenter)
 
             # Use distance to center to sort values from the patch
@@ -571,26 +581,26 @@ class Viewport(event.Notifier):
             sortedValues = depthPatch[sortedIndices]
 
             # Take first depth that is not 1 in the sorted values
-            hits = sortedValues[sortedValues != 1.]
-            depth = 1. if len(hits) == 0 else hits[0]
+            hits = sortedValues[sortedValues != 1.0]
+            depth = 1.0 if len(hits) == 0 else hits[0]
 
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
         # Z in NDC in [-1., 1.]
-        return float(depth) * 2. - 1.
+        return float(depth) * 2.0 - 1.0
 
     def _getXZYGL(self, x, y):
         ndc = self.windowToNdc(x, y)
         if ndc is None:
             return None  # Outside viewport
         ndcz = self._pickNdcZGL(x, y)
-        ndcpos = numpy.array((ndc[0], ndc[1], ndcz, 1.), dtype=numpy.float32)
+        ndcpos = numpy.array((ndc[0], ndc[1], ndcz, 1.0), dtype=numpy.float32)
 
         camerapos = self.camera.intrinsic.transformPoint(
-            ndcpos, direct=False, perspectiveDivide=True)
+            ndcpos, direct=False, perspectiveDivide=True
+        )
 
-        scenepos = self.camera.extrinsic.transformPoint(camerapos,
-                                                        direct=False)
+        scenepos = self.camera.extrinsic.transformPoint(camerapos, direct=False)
         return scenepos[:3]
 
     def pick(self, x, y):

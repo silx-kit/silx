@@ -94,19 +94,21 @@ class DropLabel(qt.QLabel):
         self.setUrl(silx.io.url.DataUrl())
 
     def setUrl(self, url):
-        template = ("<html>URL information (drop an URL here to parse its information):<ul>"
-                    "<li><b>file_path</b>: {file_path}</li>"
-                    "<li><b>data_path</b>: {data_path}</li>"
-                    "<li><b>data_slice</b>: {data_slice}</li>"
-                    "<li><b>scheme</b>: {scheme}</li>"
-                    "</ul></html>"
-                    )
+        template = (
+            "<html>URL information (drop an URL here to parse its information):<ul>"
+            "<li><b>file_path</b>: {file_path}</li>"
+            "<li><b>data_path</b>: {data_path}</li>"
+            "<li><b>data_slice</b>: {data_slice}</li>"
+            "<li><b>scheme</b>: {scheme}</li>"
+            "</ul></html>"
+        )
 
         text = template.format(
             file_path=url.file_path(),
             data_path=url.data_path(),
             data_slice=url.data_slice(),
-            scheme=url.scheme())
+            scheme=url.scheme(),
+        )
         self.setText(text)
 
     def dragEnterEvent(self, event):
@@ -126,15 +128,15 @@ class DragLabel(qt.QLabel):
     def __init__(self, parent=None, url=None):
         self._url = url
         qt.QLabel.__init__(self, parent)
-        self.setText('-' if url is None else "- " + self._url.path())
+        self.setText("-" if url is None else "- " + self._url.path())
 
     def mousePressEvent(self, event):
         if event.button() == qt.Qt.LeftButton and self._url is not None:
             mimeData = qt.QMimeData()
             mimeData.setText(self._url.path())
             mimeData.setData(
-                "application/x-silx-uri",
-                self._url.path().encode(encoding='utf-8'))
+                "application/x-silx-uri", self._url.path().encode(encoding="utf-8")
+            )
             drag = qt.QDrag(self)
             drag.setMimeData(mimeData)
             dropAction = drag.exec()
@@ -148,9 +150,12 @@ class DragAndDropExample(qt.QMainWindow):
         centralWidget = qt.QWidget(self)
         layout = qt.QVBoxLayout()
         centralWidget.setLayout(layout)
-        layout.addWidget(qt.QLabel(
-            "Drag and drop one of the following URLs on the plot or on the URL information zone:",
-            self))
+        layout.addWidget(
+            qt.QLabel(
+                "Drag and drop one of the following URLs on the plot or on the URL information zone:",
+                self,
+            )
+        )
         for url in urls:
             layout.addWidget(DragLabel(parent=self, url=url))
 
@@ -166,13 +171,20 @@ def main():
         # Create temporary file with datasets
         filename = os.path.join(tempdir, "file.h5")
         with h5py.File(filename, "w") as f:
-            f['image'] = numpy.arange(10000.).reshape(100, 100)
-            f['curve'] = numpy.sin(numpy.linspace(0, 2*numpy.pi, 1000))
+            f["image"] = numpy.arange(10000.0).reshape(100, 100)
+            f["curve"] = numpy.sin(numpy.linspace(0, 2 * numpy.pi, 1000))
 
         # Create widgets
-        example = DragAndDropExample(urls=(
-            silx.io.url.DataUrl(file_path=filename, data_path='/image', scheme="silx"),
-            silx.io.url.DataUrl(file_path=filename, data_path='/curve', scheme="silx")))
+        example = DragAndDropExample(
+            urls=(
+                silx.io.url.DataUrl(
+                    file_path=filename, data_path="/image", scheme="silx"
+                ),
+                silx.io.url.DataUrl(
+                    file_path=filename, data_path="/curve", scheme="silx"
+                ),
+            )
+        )
         example.setWindowTitle("Drag&Drop URLs sample code")
         example.show()
         app.exec()

@@ -44,9 +44,7 @@ from .. import fabioh5
 
 
 class TestFabioH5(unittest.TestCase):
-
     def setUp(self):
-
         header = {
             "integer": "-100",
             "float": "1.0",
@@ -192,14 +190,16 @@ class TestFabioH5(unittest.TestCase):
         self.assertEqual(dataset[0, 1], 2.0)
 
     def test_metadata_list_looks_like_list(self):
-        dataset = self.h5_image["/scan_0/instrument/detector_0/others/string_looks_like_list"]
+        dataset = self.h5_image[
+            "/scan_0/instrument/detector_0/others/string_looks_like_list"
+        ]
         self.assertEqual(dataset.h5py_class, h5py.Dataset)
         self.assertEqual(dataset[()], numpy.string_("2000 hi!"))
         self.assertEqual(dataset.dtype.type, numpy.string_)
         self.assertEqual(dataset.shape, (1,))
 
     def test_float_32(self):
-        float_list = [u'1.2', u'1.3', u'1.4']
+        float_list = ["1.2", "1.3", "1.4"]
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = None
         for float_item in float_list:
@@ -213,15 +213,22 @@ class TestFabioH5(unittest.TestCase):
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
         # At worst a float32
-        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ["d", "f"])
         self.assertLessEqual(data.dtype.itemsize, 32 / 8)
 
     def test_float_64(self):
         float_list = [
-            u'1469117129.082226',
-            u'1469117136.684986', u'1469117144.312749', u'1469117151.892507',
-            u'1469117159.474265', u'1469117167.100027', u'1469117174.815799',
-            u'1469117182.437561', u'1469117190.094326', u'1469117197.721089']
+            "1469117129.082226",
+            "1469117136.684986",
+            "1469117144.312749",
+            "1469117151.892507",
+            "1469117159.474265",
+            "1469117167.100027",
+            "1469117174.815799",
+            "1469117182.437561",
+            "1469117190.094326",
+            "1469117197.721089",
+        ]
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = None
         for float_item in float_list:
@@ -235,12 +242,12 @@ class TestFabioH5(unittest.TestCase):
         # There is no equality between items
         self.assertEqual(len(data), len(set(data)))
         # At least a float64
-        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ["d", "f"])
         self.assertGreaterEqual(data.dtype.itemsize, 64 / 8)
 
     def test_mixed_float_size__scalar(self):
         # We expect to have a precision of 32 bits
-        float_list = [u'1.2', u'1.3001']
+        float_list = ["1.2", "1.3001"]
         expected_float_result = [1.2, 1.3001]
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = None
@@ -253,14 +260,14 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
-        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ["d", "f"])
         self.assertLessEqual(data.dtype.itemsize, 32 / 8)
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
     def test_mixed_float_size__list(self):
         # We expect to have a precision of 32 bits
-        float_list = [u'1.2 1.3001']
+        float_list = ["1.2 1.3001"]
         expected_float_result = numpy.array([[1.2, 1.3001]])
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = None
@@ -273,14 +280,14 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
-        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ["d", "f"])
         self.assertLessEqual(data.dtype.itemsize, 32 / 8)
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
 
     def test_mixed_float_size__list_of_list(self):
         # We expect to have a precision of 32 bits
-        float_list = [u'1.2 1.3001', u'1.3001 1.3001']
+        float_list = ["1.2 1.3001", "1.3001 1.3001"]
         expected_float_result = numpy.array([[1.2, 1.3001], [1.3001, 1.3001]])
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = None
@@ -293,7 +300,7 @@ class TestFabioH5(unittest.TestCase):
         h5_image = fabioh5.File(fabio_image=fabio_image)
         data = h5_image["/scan_0/instrument/detector_0/others/float_item"]
         # At worst a float32
-        self.assertIn(data.dtype.kind, ['d', 'f'])
+        self.assertIn(data.dtype.kind, ["d", "f"])
         self.assertLessEqual(data.dtype.itemsize, 32 / 8)
         for computed, expected in zip(data, expected_float_result):
             numpy.testing.assert_almost_equal(computed, expected, 5)
@@ -301,10 +308,12 @@ class TestFabioH5(unittest.TestCase):
     def test_ub_matrix(self):
         """Data from mediapix.edf"""
         header = {}
-        header["UB_mne"] = 'UB0 UB1 UB2 UB3 UB4 UB5 UB6 UB7 UB8'
-        header["UB_pos"] = '1.99593e-16 2.73682e-16 -1.54 -1.08894 1.08894 1.6083e-16 1.08894 1.08894 9.28619e-17'
-        header["sample_mne"] = 'U0 U1 U2 U3 U4 U5'
-        header["sample_pos"] = '4.08 4.08 4.08 90 90 90'
+        header["UB_mne"] = "UB0 UB1 UB2 UB3 UB4 UB5 UB6 UB7 UB8"
+        header[
+            "UB_pos"
+        ] = "1.99593e-16 2.73682e-16 -1.54 -1.08894 1.08894 1.6083e-16 1.08894 1.08894 9.28619e-17"
+        header["sample_mne"] = "U0 U1 U2 U3 U4 U5"
+        header["sample_pos"] = "4.08 4.08 4.08 90 90 90"
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
         h5_image = fabioh5.File(fabio_image=fabio_image)
@@ -312,27 +321,33 @@ class TestFabioH5(unittest.TestCase):
         self.assertIsNotNone(sample)
         self.assertEqual(sample.attrs["NXclass"], "NXsample")
 
-        d = sample['unit_cell_abc']
+        d = sample["unit_cell_abc"]
         expected = numpy.array([4.08, 4.08, 4.08])
         self.assertIsNotNone(d)
-        self.assertEqual(d.shape, (3, ))
-        self.assertIn(d.dtype.kind, ['d', 'f'])
+        self.assertEqual(d.shape, (3,))
+        self.assertIn(d.dtype.kind, ["d", "f"])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
-        d = sample['unit_cell_alphabetagamma']
+        d = sample["unit_cell_alphabetagamma"]
         expected = numpy.array([90.0, 90.0, 90.0])
         self.assertIsNotNone(d)
-        self.assertEqual(d.shape, (3, ))
-        self.assertIn(d.dtype.kind, ['d', 'f'])
+        self.assertEqual(d.shape, (3,))
+        self.assertIn(d.dtype.kind, ["d", "f"])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
-        d = sample['ub_matrix']
-        expected = numpy.array([[[1.99593e-16, 2.73682e-16, -1.54],
-                                 [-1.08894, 1.08894, 1.6083e-16],
-                                 [1.08894, 1.08894, 9.28619e-17]]])
+        d = sample["ub_matrix"]
+        expected = numpy.array(
+            [
+                [
+                    [1.99593e-16, 2.73682e-16, -1.54],
+                    [-1.08894, 1.08894, 1.6083e-16],
+                    [1.08894, 1.08894, 9.28619e-17],
+                ]
+            ]
+        )
         self.assertIsNotNone(d)
         self.assertEqual(d.shape, (1, 3, 3))
-        self.assertIn(d.dtype.kind, ['d', 'f'])
+        self.assertIn(d.dtype.kind, ["d", "f"])
         numpy.testing.assert_array_almost_equal(d[...], expected)
 
     def test_interpretation_mca_edf(self):
@@ -342,7 +357,8 @@ class TestFabioH5(unittest.TestCase):
             "Title": "zapimage  samy -4.975 -5.095 80 500 samz -4.091 -4.171 70 0",
             "MCA a": -23.812,
             "MCA b": 2.7107,
-            "MCA c": 8.1164e-06}
+            "MCA c": 8.1164e-06,
+        }
 
         data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
         fabio_image = fabio.edfimage.EdfImage(data=data, header=header)
@@ -372,7 +388,9 @@ class TestFabioH5(unittest.TestCase):
         detector2 = self.h5_image["/scan_0/measurement/image_0/info"]
         self.assertIsNot(detector1, detector2)
         self.assertEqual(list(detector1.items()), list(detector2.items()))
-        self.assertEqual(self.h5_image.get(detector2.name, getlink=True).path, detector1.name)
+        self.assertEqual(
+            self.h5_image.get(detector2.name, getlink=True).path, detector1.name
+        )
 
     def test_detector_data_link(self):
         data1 = self.h5_image["/scan_0/instrument/detector_0/data"]
@@ -385,11 +403,11 @@ class TestFabioH5(unittest.TestCase):
         """Test that it does not fail"""
         try:
             header = {}
-            header["foo"] = b'abc'
+            header["foo"] = b"abc"
             data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
             fabio_image = fabio.edfimage.edfimage(data=data, header=header)
             header = {}
-            header["foo"] = b'a\x90bc\xFE'
+            header["foo"] = b"a\x90bc\xFE"
             fabio_image.append_frame(data=data, header=header)
         except Exception as e:
             _logger.error(e.args[0])
@@ -406,11 +424,11 @@ class TestFabioH5(unittest.TestCase):
         """Test that it does not fail"""
         try:
             header = {}
-            header["foo"] = b'abc'
+            header["foo"] = b"abc"
             data = numpy.array([[0, 0], [0, 0]], dtype=numpy.int8)
             fabio_image = fabio.edfimage.edfimage(data=data, header=header)
             header = {}
-            header["foo"] = u'abc\u2764'
+            header["foo"] = "abc\u2764"
             fabio_image.append_frame(data=data, header=header)
         except Exception as e:
             _logger.error(e.args[0])
@@ -425,13 +443,10 @@ class TestFabioH5(unittest.TestCase):
 
 
 class TestFabioH5MultiFrames(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-
         names = ["A", "B", "C", "D"]
-        values = [["32000", "-10", "5.0", "1"],
-                  ["-32000", "-10", "5.0", "1"]]
+        values = [["32000", "-10", "5.0", "1"], ["-32000", "-10", "5.0", "1"]]
 
         fabio_file = None
 
@@ -447,7 +462,7 @@ class TestFabioH5MultiFrames(unittest.TestCase):
                 "motor_mne": " ".join(names),
                 "motor_pos": " ".join(values[i % len(values)]),
                 "counter_mne": " ".join(names),
-                "counter_pos": " ".join(values[i % len(values)])
+                "counter_pos": " ".join(values[i % len(values)]),
             }
             for iname, name in enumerate(names):
                 header[name] = values[i % len(values)][iname]
@@ -510,10 +525,8 @@ class TestFabioH5MultiFrames(unittest.TestCase):
 
 
 class TestFabioH5WithEdf(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-
         cls.tmp_directory = tempfile.mkdtemp()
 
         cls.edf_filename = os.path.join(cls.tmp_directory, "test.edf")
@@ -551,15 +564,14 @@ class TestFabioH5WithEdf(unittest.TestCase):
 
 class _TestableFrameData(fabioh5.FrameData):
     """Allow to test if the full data is reached."""
+
     def _create_data(self):
         raise RuntimeError("Not supposed to be called")
 
 
 class TestFabioH5WithFileSeries(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-
         cls.tmp_directory = tempfile.mkdtemp()
 
         cls.edf_filenames = []

@@ -31,14 +31,19 @@ __date__ = "25/07/2016"
 from contextlib import contextmanager as _contextmanager
 from ctypes import c_uint
 import logging
+import sys
 from typing import Optional
+
+from packaging.version import Version
+
 
 _logger = logging.getLogger(__name__)
 
 import OpenGL
+
 # Set the following to true for debugging
 if _logger.getEffectiveLevel() <= logging.DEBUG:
-    _logger.debug('Enabling PyOpenGL debug flags')
+    _logger.debug("Enabling PyOpenGL debug flags")
     OpenGL.ERROR_LOGGING = True
     OpenGL.ERROR_CHECKING = True
     OpenGL.ERROR_ON_COPY = True
@@ -46,6 +51,11 @@ else:
     OpenGL.ERROR_LOGGING = False
     OpenGL.ERROR_CHECKING = False
     OpenGL.ERROR_ON_COPY = False
+
+if sys.version_info >= (3, 12) and Version(OpenGL.__version__) <= Version("3.1.7"):
+    # Python3.12 patch: see https://github.com/mcfletch/pyopengl/pull/100
+    OpenGL.FormatHandler.by_name("ctypesparameter").check.append("_ctypes.CArgObject")
+
 
 import OpenGL.GL as _GL
 from OpenGL.GL import *  # noqa
@@ -62,6 +72,7 @@ try:
     GLchar
 except NameError:
     from ctypes import c_char
+
     GLchar = c_char
 
 
@@ -77,7 +88,6 @@ def getPlatform() -> Optional[str]:
     return platform.__class__.__name__
 
 
-
 def getVersion() -> tuple:
     """Returns the GL version as tuple of integers.
 
@@ -89,7 +99,7 @@ def getVersion() -> tuple:
         if isinstance(desc, bytes):
             desc = desc.decode("ascii")
         version = desc.split(" ", 1)[0]
-        return tuple([int(i) for i in version.split('.')])
+        return tuple([int(i) for i in version.split(".")])
     except Exception as e:
         raise ValueError("GL version not properly formatted") from e
 
@@ -121,7 +131,7 @@ def testGL() -> bool:
 
 
 # Additional setup
-if hasattr(glget, 'addGLGetConstant'):
+if hasattr(glget, "addGLGetConstant"):
     glget.addGLGetConstant(GL_FRAMEBUFFER_BINDING, (1,))
 
 
@@ -162,6 +172,7 @@ def disabled(capacity, disable=True):
 
 # Additional OpenGL wrapping
 
+
 def glGetActiveAttrib(program, index):
     """Wrap PyOpenGL glGetActiveAttrib"""
     bufsize = glGetProgramiv(program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH)
@@ -175,28 +186,28 @@ def glGetActiveAttrib(program, index):
 
 
 def glDeleteRenderbuffers(buffers):
-    if not hasattr(buffers, '__len__'):  # Support single int argument
+    if not hasattr(buffers, "__len__"):  # Support single int argument
         buffers = [buffers]
     length = len(buffers)
     _FBO.glDeleteRenderbuffers(length, (c_uint * length)(*buffers))
 
 
 def glDeleteFramebuffers(buffers):
-    if not hasattr(buffers, '__len__'):  # Support single int argument
+    if not hasattr(buffers, "__len__"):  # Support single int argument
         buffers = [buffers]
     length = len(buffers)
     _FBO.glDeleteFramebuffers(length, (c_uint * length)(*buffers))
 
 
 def glDeleteBuffers(buffers):
-    if not hasattr(buffers, '__len__'):  # Support single int argument
+    if not hasattr(buffers, "__len__"):  # Support single int argument
         buffers = [buffers]
     length = len(buffers)
     _GL.glDeleteBuffers(length, (c_uint * length)(*buffers))
 
 
 def glDeleteTextures(textures):
-    if not hasattr(textures, '__len__'):  # Support single int argument
+    if not hasattr(textures, "__len__"):  # Support single int argument
         textures = [textures]
     length = len(textures)
     _GL.glDeleteTextures((c_uint * length)(*textures))

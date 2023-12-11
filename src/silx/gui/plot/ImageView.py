@@ -69,12 +69,21 @@ from .actions import PlotAction
 _logger = logging.getLogger(__name__)
 
 
-ProfileSumResult = collections.namedtuple("ProfileResult",
-                                          ["dataXRange", "dataYRange",
-                                           'histoH', 'histoHRange',
-                                           'histoV', 'histoVRange',
-                                           "xCoords", "xData",
-                                           "yCoords", "yData"])
+ProfileSumResult = collections.namedtuple(
+    "ProfileResult",
+    [
+        "dataXRange",
+        "dataYRange",
+        "histoH",
+        "histoHRange",
+        "histoV",
+        "histoVRange",
+        "xCoords",
+        "xData",
+        "yCoords",
+        "yData",
+    ],
+)
 
 
 def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
@@ -102,8 +111,7 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
     yMin = int((yMin - origin[1]) / scale[1])
     yMax = int((yMax - origin[1]) / scale[1])
 
-    if (xMin >= width or xMax < 0 or
-            yMin >= height or yMax < 0):
+    if xMin >= width or xMax < 0 or yMin >= height or yMax < 0:
         return None
 
     # The image is at least partly in the plot area
@@ -114,14 +122,15 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
     subsetYMax = (height if yMax >= height else yMax) + 1
 
     if cache is not None:
-        if ((subsetXMin, subsetXMax) == cache.dataXRange and
-                (subsetYMin, subsetYMax) == cache.dataYRange):
+        if (subsetXMin, subsetXMax) == cache.dataXRange and (
+            subsetYMin,
+            subsetYMax,
+        ) == cache.dataYRange:
             # The visible area of data is the same
             return cache
 
     # Rebuild histograms for visible area
-    visibleData = data[subsetYMin:subsetYMax,
-                       subsetXMin:subsetXMax]
+    visibleData = data[subsetYMin:subsetYMax, subsetXMin:subsetXMax]
     histoHVisibleData = numpy.nansum(visibleData, axis=0)
     histoVVisibleData = numpy.nansum(visibleData, axis=1)
     histoHMin = numpy.nanmin(histoHVisibleData)
@@ -150,7 +159,8 @@ def computeProfileSumOnRange(imageItem, xRange, yRange, cache=None):
         xCoords=xCoords,
         xData=xData,
         yCoords=yCoords,
-        yData=yData)
+        yData=yData,
+    )
 
     return result
 
@@ -176,8 +186,8 @@ class _SideHistogram(PlotWidget):
 
     def _plotEvents(self, eventDict):
         """Callback for horizontal histogram plot events."""
-        if eventDict['event'] == 'mouseMoved':
-            self.sigMouseMoved.emit(eventDict['x'], eventDict['y'])
+        if eventDict["event"] == "mouseMoved":
+            self.sigMouseMoved.emit(eventDict["x"], eventDict["y"])
 
     def setProfileColor(self, color):
         self._color = color
@@ -217,13 +227,13 @@ class _SideHistogram(PlotWidget):
         profileSum = self.__profileSum
 
         try:
-            self.removeCurve('profile')
+            self.removeCurve("profile")
         except Exception:
             pass
 
         if profileSum is None:
             try:
-                self.removeCurve('profilesum')
+                self.removeCurve("profilesum")
             except Exception:
                 pass
             return
@@ -235,13 +245,17 @@ class _SideHistogram(PlotWidget):
         else:
             assert False
 
-        self.addCurve(xx, yy,
-                      xlabel='', ylabel='',
-                      legend="profilesum",
-                      color=self._color,
-                      linestyle='-',
-                      selectable=False,
-                      resetzoom=False)
+        self.addCurve(
+            xx,
+            yy,
+            xlabel="",
+            ylabel="",
+            legend="profilesum",
+            color=self._color,
+            linestyle="-",
+            selectable=False,
+            resetzoom=False,
+        )
 
         self.__updateLimits()
 
@@ -253,13 +267,13 @@ class _SideHistogram(PlotWidget):
         profile = self.__profile
 
         try:
-            self.removeCurve('profilesum')
+            self.removeCurve("profilesum")
         except Exception:
             pass
 
         if profile is None:
             try:
-                self.removeCurve('profile')
+                self.removeCurve("profile")
             except Exception:
                 pass
             self.setProfileSum(self.__profileSum)
@@ -272,11 +286,7 @@ class _SideHistogram(PlotWidget):
         else:
             assert False
 
-        self.addCurve(xx,
-                      yy,
-                      legend="profile",
-                      color=self._roiColor,
-                      resetzoom=False)
+        self.addCurve(xx, yy, legend="profile", color=self._roiColor, resetzoom=False)
 
         self.__updateLimits()
 
@@ -298,9 +308,13 @@ class _SideHistogram(PlotWidget):
         # Tune the result using the data margins
         margins = self.getDataMargins()
         if self._direction == qt.Qt.Horizontal:
-            _, _, vMin, vMax = _utils.addMarginsToLimits(margins, False, False, 0, 0, vMin, vMax)
+            _, _, vMin, vMax = _utils.addMarginsToLimits(
+                margins, False, False, 0, 0, vMin, vMax
+            )
         elif self._direction == qt.Qt.Vertical:
-            vMin, vMax, _, _ = _utils.addMarginsToLimits(margins, False, False, vMin, vMax, 0, 0)
+            vMin, vMax, _, _ = _utils.addMarginsToLimits(
+                margins, False, False, vMin, vMax, 0, 0
+            )
         else:
             assert False
 
@@ -324,10 +338,14 @@ class ShowSideHistogramsAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ShowSideHistogramsAction, self).__init__(
-            plot, icon='side-histograms', text='Show/hide side histograms',
-            tooltip='Show/hide side histogram',
+            plot,
+            icon="side-histograms",
+            text="Show/hide side histograms",
+            tooltip="Show/hide side histogram",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
 
     def _actionTriggered(self, checked=False):
         if self.plot.isSideHistogramDisplayed() != checked:
@@ -348,25 +366,33 @@ class AggregationModeAction(qt.QWidgetAction):
         filterAction.setText("No filter")
         filterAction.setCheckable(True)
         filterAction.setChecked(True)
-        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.NONE)
+        filterAction.setProperty(
+            "aggregation", items.ImageDataAggregated.Aggregation.NONE
+        )
         densityNoFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Max filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MAX)
+        filterAction.setProperty(
+            "aggregation", items.ImageDataAggregated.Aggregation.MAX
+        )
         densityMaxFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Mean filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MEAN)
+        filterAction.setProperty(
+            "aggregation", items.ImageDataAggregated.Aggregation.MEAN
+        )
         densityMeanFilterAction = filterAction
 
         filterAction = qt.QAction(self)
         filterAction.setText("Min filter")
         filterAction.setCheckable(True)
-        filterAction.setProperty("aggregation", items.ImageDataAggregated.Aggregation.MIN)
+        filterAction.setProperty(
+            "aggregation", items.ImageDataAggregated.Aggregation.MIN
+        )
         densityMinFilterAction = filterAction
 
         densityGroup = qt.QActionGroup(self)
@@ -427,7 +453,7 @@ class ImageView(PlotWindow):
     :type backend: str or :class:`BackendBase.BackendBase`
     """
 
-    HISTOGRAMS_COLOR = 'blue'
+    HISTOGRAMS_COLOR = "blue"
     """Color to use for the side histograms."""
 
     HISTOGRAMS_HEIGHT = 200
@@ -451,26 +477,37 @@ class ImageView(PlotWindow):
     class ProfileWindowBehavior(Enum):
         """ImageView's profile window behavior options"""
 
-        POPUP = 'popup'
+        POPUP = "popup"
         """All profiles are displayed in pop-up windows"""
 
-        EMBEDDED = 'embedded'
+        EMBEDDED = "embedded"
         """Horizontal, vertical and cross profiles are displayed in
         sides widgets, others are displayed in pop-up windows.
         """
 
     def __init__(self, parent=None, backend=None):
-        self._imageLegend = '__ImageView__image' + str(id(self))
+        self._imageLegend = "__ImageView__image" + str(id(self))
         self._cache = None  # Store currently visible data information
 
-        super(ImageView, self).__init__(parent=parent, backend=backend,
-                                        resetzoom=True, autoScale=False,
-                                        logScale=False, grid=False,
-                                        curveStyle=False, colormap=True,
-                                        aspectRatio=True, yInverted=True,
-                                        copy=True, save=True, print_=True,
-                                        control=False, position=False,
-                                        roi=False, mask=True)
+        super(ImageView, self).__init__(
+            parent=parent,
+            backend=backend,
+            resetzoom=True,
+            autoScale=False,
+            logScale=False,
+            grid=False,
+            curveStyle=False,
+            colormap=True,
+            aspectRatio=True,
+            yInverted=True,
+            copy=True,
+            save=True,
+            print_=True,
+            control=False,
+            position=False,
+            roi=False,
+            mask=True,
+        )
 
         # Enable mask synchronisation to use it in profiles
         maskToolsWidget = self.getMaskToolsDockWidget().widget()
@@ -480,12 +517,14 @@ class ImageView(PlotWindow):
         self.__showSideHistogramsAction.setChecked(True)
 
         self.__aggregationModeAction = AggregationModeAction(self)
-        self.__aggregationModeAction.sigAggregationModeChanged.connect(self._aggregationModeChanged)
+        self.__aggregationModeAction.sigAggregationModeChanged.connect(
+            self._aggregationModeChanged
+        )
 
         if parent is None:
-            self.setWindowTitle('ImageView')
+            self.setWindowTitle("ImageView")
 
-        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
             self.getYAxis().setInverted(True)
 
         self._initWidgets(backend)
@@ -500,26 +539,32 @@ class ImageView(PlotWindow):
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
-        self._histoHPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Horizontal)
+        self._histoHPlot = _SideHistogram(
+            backend=backend, parent=self, direction=qt.Qt.Horizontal
+        )
         widgetHandle = self._histoHPlot.getWidgetHandle()
         widgetHandle.setMinimumHeight(self.HISTOGRAMS_HEIGHT)
         widgetHandle.setMaximumHeight(self.HISTOGRAMS_HEIGHT)
-        self._histoHPlot.setInteractiveMode('zoom')
-        self._histoHPlot.setDataMargins(0., 0., 0.1, 0.1)
+        self._histoHPlot.setInteractiveMode("zoom")
+        self._histoHPlot.setDataMargins(0.0, 0.0, 0.1, 0.1)
         self._histoHPlot.sigMouseMoved.connect(self._mouseMovedOnHistoH)
         self._histoHPlot.setProfileColor(self.HISTOGRAMS_COLOR)
 
-        self._histoVPlot = _SideHistogram(backend=backend, parent=self, direction=qt.Qt.Vertical)
+        self._histoVPlot = _SideHistogram(
+            backend=backend, parent=self, direction=qt.Qt.Vertical
+        )
         widgetHandle = self._histoVPlot.getWidgetHandle()
         widgetHandle.setMinimumWidth(self.HISTOGRAMS_HEIGHT)
         widgetHandle.setMaximumWidth(self.HISTOGRAMS_HEIGHT)
-        self._histoVPlot.setInteractiveMode('zoom')
-        self._histoVPlot.setDataMargins(0.1, 0.1, 0., 0.)
+        # Trick to align the histogram to the main plot
+        self._histoVPlot.setGraphTitle(" ")
+        self._histoVPlot.setInteractiveMode("zoom")
+        self._histoVPlot.setDataMargins(0.1, 0.1, 0.0, 0.0)
         self._histoVPlot.sigMouseMoved.connect(self._mouseMovedOnHistoV)
         self._histoVPlot.setProfileColor(self.HISTOGRAMS_COLOR)
 
         self.setPanWithArrowKeys(True)
-        self.setInteractiveMode('zoom')  # Color set in setColormap
+        self.setInteractiveMode("zoom")  # Color set in setColormap
         self.sigPlotSignal.connect(self._imagePlotCB)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
 
@@ -624,7 +669,7 @@ class ImageView(PlotWindow):
 
     def _imagePlotCB(self, eventDict):
         """Callback for imageView plot events."""
-        if eventDict['event'] == 'mouseMoved':
+        if eventDict["event"] == "mouseMoved":
             activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData(copy=False)
@@ -633,16 +678,14 @@ class ImageView(PlotWindow):
                 # Get corresponding coordinate in image
                 origin = activeImage.getOrigin()
                 scale = activeImage.getScale()
-                if (eventDict['x'] >= origin[0] and
-                        eventDict['y'] >= origin[1]):
-                    x = int((eventDict['x'] - origin[0]) / scale[0])
-                    y = int((eventDict['y'] - origin[1]) / scale[1])
+                if eventDict["x"] >= origin[0] and eventDict["y"] >= origin[1]:
+                    x = int((eventDict["x"] - origin[0]) / scale[0])
+                    y = int((eventDict["y"] - origin[1]) / scale[1])
 
                     if x >= 0 and x < width and y >= 0 and y < height:
-                        self.valueChanged.emit(float(x), float(y),
-                                               data[y][x])
+                        self.valueChanged.emit(float(x), float(y), data[y][x])
 
-        elif eventDict['event'] == 'limitsChanged':
+        elif eventDict["event"] == "limitsChanged":
             self._updateHistograms()
 
     def _mouseMovedOnHistoH(self, x, y):
@@ -662,9 +705,10 @@ class ImageView(PlotWindow):
             column = int((x - minValue) / xScale)
             if column >= 0 and column < data.shape[0]:
                 self.valueChanged.emit(
-                    float('nan'),
+                    float("nan"),
                     float(column + self._cache.dataXRange[0]),
-                    data[column])
+                    data[column],
+                )
 
     def _mouseMovedOnHistoV(self, x, y):
         if self._cache is None:
@@ -683,9 +727,8 @@ class ImageView(PlotWindow):
             row = int((y - minValue) / yScale)
             if row >= 0 and row < data.shape[0]:
                 self.valueChanged.emit(
-                    float(row + self._cache.dataYRange[0]),
-                    float('nan'),
-                    data[row])
+                    float(row + self._cache.dataYRange[0]), float("nan"), data[row]
+                )
 
     def _activeImageChangedSlot(self, previous, legend):
         """Handle Plot active image change.
@@ -756,18 +799,20 @@ class ImageView(PlotWindow):
         :return: The histogram and its extent as a dict or None.
         :rtype: dict
         """
-        assert axis in ('x', 'y')
+        assert axis in ("x", "y")
         if self._cache is None:
             return None
         else:
-            if axis == 'x':
+            if axis == "x":
                 return dict(
                     data=numpy.array(self._cache.histoH, copy=True),
-                    extent=self._cache.dataXRange)
+                    extent=self._cache.dataXRange,
+                )
             else:
                 return dict(
                     data=numpy.array(self._cache.histoV, copy=True),
-                    extent=(self._cache.dataYRange))
+                    extent=(self._cache.dataYRange),
+                )
 
     def radarView(self):
         """Get the lower right radarView widget."""
@@ -794,8 +839,15 @@ class ImageView(PlotWindow):
         """
         return self.getDefaultColormap()
 
-    def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=None):
+    def setColormap(
+        self,
+        colormap=None,
+        normalization=None,
+        autoscale=None,
+        vmin=None,
+        vmax=None,
+        colors=None,
+    ):
         """Set the default colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -867,10 +919,17 @@ class ImageView(PlotWindow):
                 cmap.setColormapLUT(colors)
 
         cursorColor = cursorColorForColormap(cmap.getName())
-        self.setInteractiveMode('zoom', color=cursorColor)
+        self.setInteractiveMode("zoom", color=cursorColor)
 
-    def setImage(self, image, origin=(0, 0), scale=(1., 1.),
-                 copy=True, reset=None, resetzoom=True):
+    def setImage(
+        self,
+        image,
+        origin=(0, 0),
+        scale=(1.0, 1.0),
+        copy=True,
+        reset=None,
+        resetzoom=True,
+    ):
         """Set the image to display.
 
         :param image: A 2D array representing the image or None to empty plot.
@@ -900,12 +959,12 @@ class ImageView(PlotWindow):
         assert scale[1] > 0
 
         if image is None:
-            self.remove(self._imageLegend, kind='image')
+            self.remove(self._imageLegend, kind="image")
             return
 
-        data = numpy.array(image, order='C', copy=copy)
+        data = numpy.array(image, order="C", copy=copy)
         if data.size == 0:
-            self.remove(self._imageLegend, kind='image')
+            self.remove(self._imageLegend, kind="image")
             return
 
         assert data.ndim == 2 or (data.ndim == 3 and data.shape[2] in (3, 4))
@@ -916,11 +975,14 @@ class ImageView(PlotWindow):
             aggregation = items.ImageDataAggregated.Aggregation.NONE
 
         if aggregation is items.ImageDataAggregated.Aggregation.NONE:
-            self.addImage(data,
-                          legend=self._imageLegend,
-                          origin=origin, scale=scale,
-                          colormap=self.getColormap(),
-                          resetzoom=False)
+            self.addImage(
+                data,
+                legend=self._imageLegend,
+                origin=origin,
+                scale=scale,
+                colormap=self.getColormap(),
+                resetzoom=False,
+            )
         else:
             item = self._getItem("image", self._imageLegend)
             if isinstance(item, items.ImageDataAggregated):
@@ -953,31 +1015,33 @@ class ImageView(PlotWindow):
 
 # ImageViewMainWindow #########################################################
 
+
 class ImageViewMainWindow(ImageView):
     """:class:`ImageView` with additional toolbars
 
     Adds extra toolbar and a status bar to :class:`ImageView`.
     """
+
     def __init__(self, parent=None, backend=None):
         self._dataInfo = None
         super(ImageViewMainWindow, self).__init__(parent, backend)
         self.setWindowFlags(qt.Qt.Window)
 
-        self.getXAxis().setLabel('X')
-        self.getYAxis().setLabel('Y')
-        self.setGraphTitle('Image')
+        self.getXAxis().setLabel("X")
+        self.getYAxis().setLabel("Y")
+        self.setGraphTitle("Image")
 
         # Add toolbars and status bar
         self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
-        menu = self.menuBar().addMenu('File')
+        menu = self.menuBar().addMenu("File")
         menu.addAction(self.getOutputToolBar().getSaveAction())
         menu.addAction(self.getOutputToolBar().getPrintAction())
         menu.addSeparator()
-        action = menu.addAction('Quit')
+        action = menu.addAction("Quit")
         action.triggered[bool].connect(qt.QApplication.instance().quit)
 
-        menu = self.menuBar().addMenu('Edit')
+        menu = self.menuBar().addMenu("Edit")
         menu.addAction(self.getOutputToolBar().getCopyAction())
         menu.addSeparator()
         menu.addAction(self.getResetZoomAction())
@@ -986,7 +1050,7 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(actions.control.YAxisInvertedAction(self, self))
         menu.addAction(self.getShowSideHistogramsAction())
 
-        self.__profileMenu = self.menuBar().addMenu('Profile')
+        self.__profileMenu = self.menuBar().addMenu("Profile")
         self.__updateProfileMenu()
 
         # Connect to ImageView's signal
@@ -1006,7 +1070,12 @@ class ImageViewMainWindow(ImageView):
         try:
             if isinstance(value, numpy.ndarray):
                 if len(value) == 4:
-                    return "RGBA: %.3g, %.3g, %.3g, %.3g" % (value[0], value[1], value[2], value[3])
+                    return "RGBA: %.3g, %.3g, %.3g, %.3g" % (
+                        value[0],
+                        value[1],
+                        value[2],
+                        value[3],
+                    )
                 elif len(value) == 3:
                     return "RGB: %.3g, %.3g, %.3g" % (value[0], value[1], value[2])
             else:
@@ -1019,14 +1088,14 @@ class ImageViewMainWindow(ImageView):
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
         if numpy.isnan(row):
-            msg = 'Column: %d, Sum: %g' % (int(column), value)
+            msg = "Column: %d, Sum: %g" % (int(column), value)
         elif numpy.isnan(column):
-            msg = 'Row: %d, Sum: %g' % (int(row), value)
+            msg = "Row: %d, Sum: %g" % (int(row), value)
         else:
             msg_value = self._formatValueToString(value)
-            msg = 'Position: (%d, %d), %s' % (int(row), int(column), msg_value)
+            msg = "Position: (%d, %d), %s" % (int(row), int(column), msg_value)
         if self._dataInfo is not None:
-            msg = self._dataInfo + ', ' + msg
+            msg = self._dataInfo + ", " + msg
 
         self.statusBar().showMessage(msg)
 
@@ -1037,10 +1106,10 @@ class ImageViewMainWindow(ImageView):
 
     @docstring(ImageView)
     def setImage(self, image, *args, **kwargs):
-        if hasattr(image, 'dtype') and hasattr(image, 'shape'):
+        if hasattr(image, "dtype") and hasattr(image, "shape"):
             assert image.ndim == 2 or (image.ndim == 3 and image.shape[2] in (3, 4))
             height, width = image.shape[0:2]
-            dataInfo = 'Data: %dx%d (%s)' % (width, height, str(image.dtype))
+            dataInfo = "Data: %dx%d (%s)" % (width, height, str(image.dtype))
         else:
             dataInfo = None
 

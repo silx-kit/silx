@@ -52,64 +52,70 @@ _logger = logging.getLogger(__name__)
 
 # Content #####################################################################
 
+
 class _ShapeItem(dict):
-    def __init__(self, x, y, shape, color, fill, overlay,
-                 linestyle, linewidth, linebgcolor):
+    def __init__(
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+    ):
         super(_ShapeItem, self).__init__()
 
-        if shape not in ('polygon', 'rectangle', 'line',
-                         'vline', 'hline', 'polylines'):
+        if shape not in ("polygon", "rectangle", "line", "vline", "hline", "polylines"):
             raise NotImplementedError("Unsupported shape {0}".format(shape))
 
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
 
-        if shape == 'rectangle':
+        if shape == "rectangle":
             xMin, xMax = x
             x = numpy.array((xMin, xMin, xMax, xMax))
             yMin, yMax = y
             y = numpy.array((yMin, yMax, yMax, yMin))
 
         # Ignore fill for polylines to mimic matplotlib
-        fill = fill if shape != 'polylines' else False
+        fill = fill if shape != "polylines" else False
 
-        self.update({
-            'shape': shape,
-            'color': colors.rgba(color),
-            'fill': 'hatch' if fill else None,
-            'x': x,
-            'y': y,
-            'linestyle': linestyle,
-            'linewidth': linewidth,
-            'linebgcolor': linebgcolor,
-        })
+        self.update(
+            {
+                "shape": shape,
+                "color": colors.rgba(color),
+                "fill": "hatch" if fill else None,
+                "x": x,
+                "y": y,
+                "linestyle": linestyle,
+                "linewidth": linewidth,
+                "linebgcolor": linebgcolor,
+            }
+        )
 
 
 class _MarkerItem(dict):
-    def __init__(self, x, y, text, color,
-                 symbol, linestyle, linewidth, constraint, yaxis):
+    def __init__(
+        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+    ):
         super(_MarkerItem, self).__init__()
 
         if symbol is None:
-            symbol = '+'
+            symbol = "+"
 
         # Apply constraint to provided position
-        isConstraint = (constraint is not None and
-                        x is not None and y is not None)
+        isConstraint = constraint is not None and x is not None and y is not None
         if isConstraint:
             x, y = constraint(x, y)
 
-        self.update({
-            'x': x,
-            'y': y,
-            'text': text,
-            'color': colors.rgba(color),
-            'constraint': constraint if isConstraint else None,
-            'symbol': symbol,
-            'linestyle': linestyle,
-            'linewidth': linewidth,
-            'yaxis': yaxis,
-        })
+        self.update(
+            {
+                "x": x,
+                "y": y,
+                "text": text,
+                "color": colors.rgba(color),
+                "constraint": constraint if isConstraint else None,
+                "symbol": symbol,
+                "linestyle": linestyle,
+                "linewidth": linewidth,
+                "yaxis": yaxis,
+                "font": font,
+            }
+        )
 
 
 # shaders #####################################################################
@@ -194,25 +200,26 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     """
 
     def __init__(self, plot, parent=None, f=qt.Qt.Widget):
-        glu.OpenGLWidget.__init__(self, parent,
-                                  alphaBufferSize=8,
-                                  depthBufferSize=0,
-                                  stencilBufferSize=0,
-                                  version=(2, 1),
-                                  f=f)
+        glu.OpenGLWidget.__init__(
+            self,
+            parent,
+            alphaBufferSize=8,
+            depthBufferSize=0,
+            stencilBufferSize=0,
+            version=(2, 1),
+            f=f,
+        )
         BackendBase.BackendBase.__init__(self, plot, parent)
 
         self.__isOpenGLValid = False
 
-        self._backgroundColor = 1., 1., 1., 1.
-        self._dataBackgroundColor = 1., 1., 1., 1.
+        self._backgroundColor = 1.0, 1.0, 1.0, 1.0
+        self._dataBackgroundColor = 1.0, 1.0, 1.0, 1.0
 
         self.matScreenProj = glutils.mat4Identity()
 
-        self._progBase = glu.Program(
-            _baseVertShd, _baseFragShd, attrib0='position')
-        self._progTex = glu.Program(
-            _texVertShd, _texFragShd, attrib0='position')
+        self._progBase = glu.Program(_baseVertShd, _baseFragShd, attrib0="position")
+        self._progTex = glu.Program(_texVertShd, _texFragShd, attrib0="position")
         self._plotFBOs = weakref.WeakKeyDictionary()
 
         self._keepDataAspectRatio = False
@@ -223,12 +230,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._glGarbageCollector = []
 
         self._plotFrame = glutils.GLPlotFrame2D(
-            foregroundColor=(0., 0., 0., 1.),
-            gridColor=(.7, .7, .7, 1.),
-            marginRatios=(.15, .1, .1, .15))
+            foregroundColor=(0.0, 0.0, 0.0, 1.0),
+            gridColor=(0.7, 0.7, 0.7, 1.0),
+            marginRatios=(0.15, 0.1, 0.1, 0.15),
+        )
         self._plotFrame.size = (  # Init size with size int
             int(self.getDevicePixelRatio() * 640),
-            int(self.getDevicePixelRatio() * 480))
+            int(self.getDevicePixelRatio() * 480),
+        )
 
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
@@ -236,9 +245,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     # QWidget
 
     _MOUSE_BTNS = {
-        qt.Qt.LeftButton: 'left',
-        qt.Qt.RightButton: 'right',
-        qt.Qt.MiddleButton: 'middle',
+        qt.Qt.LeftButton: "left",
+        qt.Qt.RightButton: "right",
+        qt.Qt.MiddleButton: "middle",
     }
 
     def sizeHint(self):
@@ -262,8 +271,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             self._mousePosInPixels = None  # Mouse outside plot area
 
-        if (self._crosshairCursor is not None and
-                previousMousePosInPixels != self._mousePosInPixels):
+        if (
+            self._crosshairCursor is not None
+            and previousMousePosInPixels != self._mousePosInPixels
+        ):
             # Avoid replot when cursor remains outside plot area
             self._plot._setDirtyPlot(overlayOnly=True)
 
@@ -279,7 +290,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
-        angleInDegrees = delta / 8.
+        angleInDegrees = delta / 8.0
         x, y = qt.getMouseEventPosition(event)
         self._plot.onMouseWheel(x, y, angleInDegrees)
         event.accept()
@@ -298,10 +309,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         gl.glEnable(gl.GL_BLEND)
         # gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA)
-        gl.glBlendFuncSeparate(gl.GL_SRC_ALPHA,
-                               gl.GL_ONE_MINUS_SRC_ALPHA,
-                               gl.GL_ONE,
-                               gl.GL_ONE)
+        gl.glBlendFuncSeparate(
+            gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA, gl.GL_ONE, gl.GL_ONE
+        )
 
         # For lines
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
@@ -319,28 +329,33 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def _paintFBOGL(self):
         context = glu.Context.getCurrent()
         plotFBOTex = self._plotFBOs.get(context)
-        if (self._plot._getDirtyPlot() or self._plotFrame.isDirty or
-                plotFBOTex is None):
+        if self._plot._getDirtyPlot() or self._plotFrame.isDirty or plotFBOTex is None:
             self._plotVertices = (
                 # Vertex coordinates
-                numpy.array(((-1., -1.), (1., -1.), (-1., 1.), (1., 1.)),
-                             dtype=numpy.float32),
-                 # Texture coordinates
-                 numpy.array(((0., 0.), (1., 0.), (0., 1.), (1., 1.)),
-                             dtype=numpy.float32))
-            if plotFBOTex is None or \
-               plotFBOTex.shape[1] != self._plotFrame.size[0] or \
-               plotFBOTex.shape[0] != self._plotFrame.size[1]:
+                numpy.array(
+                    ((-1.0, -1.0), (1.0, -1.0), (-1.0, 1.0), (1.0, 1.0)),
+                    dtype=numpy.float32,
+                ),
+                # Texture coordinates
+                numpy.array(
+                    ((0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)),
+                    dtype=numpy.float32,
+                ),
+            )
+            if (
+                plotFBOTex is None
+                or plotFBOTex.shape[1] != self._plotFrame.size[0]
+                or plotFBOTex.shape[0] != self._plotFrame.size[1]
+            ):
                 if plotFBOTex is not None:
                     plotFBOTex.discard()
                 plotFBOTex = glu.FramebufferTexture(
                     gl.GL_RGBA,
-                    shape=(self._plotFrame.size[1],
-                           self._plotFrame.size[0]),
+                    shape=(self._plotFrame.size[1], self._plotFrame.size[0]),
                     minFilter=gl.GL_NEAREST,
                     magFilter=gl.GL_NEAREST,
-                    wrap=(gl.GL_CLAMP_TO_EDGE,
-                          gl.GL_CLAMP_TO_EDGE))
+                    wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
+                )
                 self._plotFBOs[context] = plotFBOTex
 
             with plotFBOTex:
@@ -355,25 +370,33 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._progTex.use()
         texUnit = 0
 
-        gl.glUniform1i(self._progTex.uniforms['tex'], texUnit)
-        gl.glUniformMatrix4fv(self._progTex.uniforms['matrix'], 1, gl.GL_TRUE,
-                              glutils.mat4Identity().astype(numpy.float32))
+        gl.glUniform1i(self._progTex.uniforms["tex"], texUnit)
+        gl.glUniformMatrix4fv(
+            self._progTex.uniforms["matrix"],
+            1,
+            gl.GL_TRUE,
+            glutils.mat4Identity().astype(numpy.float32),
+        )
 
-        gl.glEnableVertexAttribArray(self._progTex.attributes['position'])
-        gl.glVertexAttribPointer(self._progTex.attributes['position'],
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0,
-                                 self._plotVertices[0])
+        gl.glEnableVertexAttribArray(self._progTex.attributes["position"])
+        gl.glVertexAttribPointer(
+            self._progTex.attributes["position"],
+            2,
+            gl.GL_FLOAT,
+            gl.GL_FALSE,
+            0,
+            self._plotVertices[0],
+        )
 
-        gl.glEnableVertexAttribArray(self._progTex.attributes['texCoords'])
-        gl.glVertexAttribPointer(self._progTex.attributes['texCoords'],
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0,
-                                 self._plotVertices[1])
+        gl.glEnableVertexAttribArray(self._progTex.attributes["texCoords"])
+        gl.glVertexAttribPointer(
+            self._progTex.attributes["texCoords"],
+            2,
+            gl.GL_FLOAT,
+            gl.GL_FALSE,
+            0,
+            self._plotVertices[1],
+        )
 
         with plotFBOTex.texture:
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._plotVertices[0]))
@@ -434,18 +457,22 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         )
 
         for plotItem in self.getItemsFromBackToFront(
-                condition=lambda i: i.isVisible() and i.isOverlay() == overlay):
+            condition=lambda i: i.isVisible() and i.isOverlay() == overlay
+        ):
             if plotItem._backendRenderer is None:
                 continue
 
             item = plotItem._backendRenderer
 
             if isinstance(item, glutils.GLPlotItem):  # Render data items
-                gl.glViewport(self._plotFrame.margins.left,
-                              self._plotFrame.margins.bottom,
-                              plotWidth, plotHeight)
+                gl.glViewport(
+                    self._plotFrame.margins.left,
+                    self._plotFrame.margins.bottom,
+                    plotWidth,
+                    plotHeight,
+                )
                 # Set matrix
-                if item.yaxis == 'right':
+                if item.yaxis == "right":
                     context.matrix = self._plotFrame.transformedDataY2ProjMat
                 else:
                     context.matrix = self._plotFrame.transformedDataProjMat
@@ -454,140 +481,185 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             elif isinstance(item, _ShapeItem):  # Render shape items
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                if ((isXLog and numpy.min(item['x']) < FLOAT32_MINPOS) or
-                        (isYLog and numpy.min(item['y']) < FLOAT32_MINPOS)):
+                if (isXLog and numpy.min(item["x"]) < FLOAT32_MINPOS) or (
+                    isYLog and numpy.min(item["y"]) < FLOAT32_MINPOS
+                ):
                     # Ignore items <= 0. on log axes
                     continue
 
-                if item['shape'] == 'hline':
+                if item["shape"] == "hline":
                     width = self._plotFrame.size[0]
                     _, yPixel = self._plotFrame.dataToPixel(
-                        0.5 * sum(self._plotFrame.dataRanges[0]),
-                        item['y'],
-                        axis='left')
-                    subShapes = [numpy.array(((0., yPixel), (width, yPixel)),
-                                             dtype=numpy.float32)]
+                        0.5 * sum(self._plotFrame.dataRanges[0]), item["y"], axis="left"
+                    )
+                    subShapes = [
+                        numpy.array(
+                            ((0.0, yPixel), (width, yPixel)), dtype=numpy.float32
+                        )
+                    ]
 
-                elif item['shape'] == 'vline':
+                elif item["shape"] == "vline":
                     xPixel, _ = self._plotFrame.dataToPixel(
-                        item['x'],
-                        0.5 * sum(self._plotFrame.dataRanges[1]),
-                        axis='left')
+                        item["x"], 0.5 * sum(self._plotFrame.dataRanges[1]), axis="left"
+                    )
                     height = self._plotFrame.size[1]
-                    subShapes = [numpy.array(((xPixel, 0), (xPixel, height)),
-                                             dtype=numpy.float32)]
+                    subShapes = [
+                        numpy.array(
+                            ((xPixel, 0), (xPixel, height)), dtype=numpy.float32
+                        )
+                    ]
 
                 else:
                     # Split sub-shapes at not finite values
-                    splits = numpy.nonzero(numpy.logical_not(numpy.logical_and(
-                        numpy.isfinite(item['x']), numpy.isfinite(item['y']))))[0]
-                    splits = numpy.concatenate(([-1], splits, [len(item['x'])]))
+                    splits = numpy.nonzero(
+                        numpy.logical_not(
+                            numpy.logical_and(
+                                numpy.isfinite(item["x"]), numpy.isfinite(item["y"])
+                            )
+                        )
+                    )[0]
+                    splits = numpy.concatenate(([-1], splits, [len(item["x"])]))
                     subShapes = []
                     for begin, end in zip(splits[:-1] + 1, splits[1:]):
                         if end > begin:
-                            subShapes.append(numpy.array([
-                                self._plotFrame.dataToPixel(x, y, axis='left')
-                                for (x, y) in zip(item['x'][begin:end], item['y'][begin:end])]))
+                            subShapes.append(
+                                numpy.array(
+                                    [
+                                        self._plotFrame.dataToPixel(x, y, axis="left")
+                                        for (x, y) in zip(
+                                            item["x"][begin:end], item["y"][begin:end]
+                                        )
+                                    ]
+                                )
+                            )
 
                 for points in subShapes:  # Draw each sub-shape
                     # Draw the fill
-                    if (item['fill'] is not None and
-                            item['shape'] not in ('hline', 'vline')):
+                    if item["fill"] is not None and item["shape"] not in (
+                        "hline",
+                        "vline",
+                    ):
                         self._progBase.use()
                         gl.glUniformMatrix4fv(
-                            self._progBase.uniforms['matrix'], 1, gl.GL_TRUE,
-                            self.matScreenProj.astype(numpy.float32))
-                        gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-                        gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
+                            self._progBase.uniforms["matrix"],
+                            1,
+                            gl.GL_TRUE,
+                            self.matScreenProj.astype(numpy.float32),
+                        )
+                        gl.glUniform2i(self._progBase.uniforms["isLog"], False, False)
+                        gl.glUniform1f(self._progBase.uniforms["tickLen"], 0.0)
 
                         shape2D = glutils.FilledShape2D(
-                            points, style=item['fill'], color=item['color'])
+                            points, style=item["fill"], color=item["color"]
+                        )
                         shape2D.render(
-                            posAttrib=self._progBase.attributes['position'],
-                            colorUnif=self._progBase.uniforms['color'],
-                            hatchStepUnif=self._progBase.uniforms['hatchStep'])
+                            posAttrib=self._progBase.attributes["position"],
+                            colorUnif=self._progBase.uniforms["color"],
+                            hatchStepUnif=self._progBase.uniforms["hatchStep"],
+                        )
 
                     # Draw the stroke
-                    if item['linestyle'] not in ('', ' ', None):
-                        if item['shape'] != 'polylines':
+                    if item["linestyle"] not in ("", " ", None):
+                        if item["shape"] != "polylines":
                             # close the polyline
-                            points = numpy.append(points,
-                                                  numpy.atleast_2d(points[0]), axis=0)
+                            points = numpy.append(
+                                points, numpy.atleast_2d(points[0]), axis=0
+                            )
 
                         lines = glutils.GLLines2D(
-                            points[:, 0], points[:, 1],
-                            style=item['linestyle'],
-                            color=item['color'],
-                            dash2ndColor=item['linebgcolor'],
-                            width=item['linewidth'])
+                            points[:, 0],
+                            points[:, 1],
+                            style=item["linestyle"],
+                            color=item["color"],
+                            gapColor=item["linebgcolor"],
+                            width=item["linewidth"],
+                        )
                         context.matrix = self.matScreenProj
                         lines.render(context)
 
             elif isinstance(item, _MarkerItem):
                 gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-                xCoord, yCoord, yAxis = item['x'], item['y'], item['yaxis']
+                xCoord, yCoord, yAxis = item["x"], item["y"], item["yaxis"]
 
-                if ((isXLog and xCoord is not None and xCoord <= 0) or
-                        (isYLog and yCoord is not None and yCoord <= 0)):
+                if (isXLog and xCoord is not None and xCoord <= 0) or (
+                    isYLog and yCoord is not None and yCoord <= 0
+                ):
                     # Do not render markers with negative coords on log axis
                     continue
 
-                color = item['color']
+                color = item["color"]
                 intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
-                bgColor = (1., 1., 1., 0.75) if intensity <= 0.5 else (0., 0., 0., 0.75)
+                bgColor = (
+                    (1.0, 1.0, 1.0, 0.75) if intensity <= 0.5 else (0.0, 0.0, 0.0, 0.75)
+                )
                 if xCoord is None or yCoord is None:
                     if xCoord is None:  # Horizontal line in data space
                         pixelPos = self._plotFrame.dataToPixel(
-                            0.5 * sum(self._plotFrame.dataRanges[0]),
-                            yCoord,
-                            axis=yAxis)
+                            0.5 * sum(self._plotFrame.dataRanges[0]), yCoord, axis=yAxis
+                        )
 
-                        if item['text'] is not None:
-                            x = self._plotFrame.size[0] - \
-                                self._plotFrame.margins.right - pixelOffset
+                        if item["text"] is not None:
+                            x = (
+                                self._plotFrame.size[0]
+                                - self._plotFrame.margins.right
+                                - pixelOffset
+                            )
                             y = pixelPos[1] - pixelOffset
                             label = glutils.Text2D(
-                                item['text'], x, y,
-                                color=item['color'],
+                                item["text"],
+                                item["font"],
+                                x,
+                                y,
+                                color=item["color"],
                                 bgColor=bgColor,
                                 align=glutils.RIGHT,
                                 valign=glutils.BOTTOM,
-                                devicePixelRatio=self.getDevicePixelRatio())
+                                devicePixelRatio=self.getDevicePixelRatio(),
+                            )
                             labels.append(label)
 
                         width = self._plotFrame.size[0]
                         lines = glutils.GLLines2D(
-                            (0, width), (pixelPos[1], pixelPos[1]),
-                            style=item['linestyle'],
-                            color=item['color'],
-                            width=item['linewidth'])
+                            (0, width),
+                            (pixelPos[1], pixelPos[1]),
+                            style=item["linestyle"],
+                            color=item["color"],
+                            width=item["linewidth"],
+                        )
                         context.matrix = self.matScreenProj
                         lines.render(context)
 
                     else:  # yCoord is None: vertical line in data space
-                        yRange = self._plotFrame.dataRanges[1 if yAxis == 'left' else 2]
+                        yRange = self._plotFrame.dataRanges[1 if yAxis == "left" else 2]
                         pixelPos = self._plotFrame.dataToPixel(
-                            xCoord, 0.5 * sum(yRange), axis=yAxis)
+                            xCoord, 0.5 * sum(yRange), axis=yAxis
+                        )
 
-                        if item['text'] is not None:
+                        if item["text"] is not None:
                             x = pixelPos[0] + pixelOffset
                             y = self._plotFrame.margins.top + pixelOffset
                             label = glutils.Text2D(
-                                item['text'], x, y,
-                                color=item['color'],
+                                item["text"],
+                                item["font"],
+                                x,
+                                y,
+                                color=item["color"],
                                 bgColor=bgColor,
                                 align=glutils.LEFT,
                                 valign=glutils.TOP,
-                                devicePixelRatio=self.getDevicePixelRatio())
+                                devicePixelRatio=self.getDevicePixelRatio(),
+                            )
                             labels.append(label)
 
                         height = self._plotFrame.size[1]
                         lines = glutils.GLLines2D(
-                            (pixelPos[0], pixelPos[0]), (0, height),
-                            style=item['linestyle'],
-                            color=item['color'],
-                            width=item['linewidth'])
+                            (pixelPos[0], pixelPos[0]),
+                            (0, height),
+                            style=item["linestyle"],
+                            color=item["color"],
+                            width=item["linewidth"],
+                        )
                         context.matrix = self.matScreenProj
                         lines.render(context)
 
@@ -597,8 +669,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     if not xmin < xCoord < xmax or not ymin < yCoord < ymax:
                         # Do not render markers outside visible plot area
                         continue
-                    pixelPos = self._plotFrame.dataToPixel(
-                        xCoord, yCoord, axis=yAxis)
+                    pixelPos = self._plotFrame.dataToPixel(xCoord, yCoord, axis=yAxis)
 
                     if isYInverted:
                         valign = glutils.BOTTOM
@@ -607,16 +678,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         valign = glutils.TOP
                         vPixelOffset = pixelOffset
 
-                    if item['text'] is not None:
+                    if item["text"] is not None:
                         x = pixelPos[0] + pixelOffset
                         y = pixelPos[1] + vPixelOffset
                         label = glutils.Text2D(
-                            item['text'], x, y,
-                            color=item['color'],
+                            item["text"],
+                            item["font"],
+                            x,
+                            y,
+                            color=item["color"],
                             bgColor=bgColor,
                             align=glutils.LEFT,
                             valign=valign,
-                            devicePixelRatio=self.getDevicePixelRatio())
+                            devicePixelRatio=self.getDevicePixelRatio(),
+                        )
                         labels.append(label)
 
                     # For now simple implementation: using a curve for each marker
@@ -624,15 +699,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     marker = glutils.Points2D(
                         (pixelPos[0],),
                         (pixelPos[1],),
-                        marker=item['symbol'],
-                        color=item['color'],
+                        marker=item["symbol"],
+                        color=item["color"],
                         size=11,
                     )
                     context.matrix = self.matScreenProj
                     marker.render(context)
 
             else:
-                _logger.error('Unsupported item: %s', str(item))
+                _logger.error("Unsupported item: %s", str(item))
                 continue
 
         # Render marker labels
@@ -645,9 +720,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         plotWidth, plotHeight = self._plotFrame.plotSize
 
         # Scissor to plot area
-        gl.glScissor(self._plotFrame.margins.left,
-                     self._plotFrame.margins.bottom,
-                     plotWidth, plotHeight)
+        gl.glScissor(
+            self._plotFrame.margins.left,
+            self._plotFrame.margins.bottom,
+            plotWidth,
+            plotHeight,
+        )
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
         self._renderItems(overlay=True)
@@ -655,17 +733,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # Render crosshair cursor
         if self._crosshairCursor is not None and self._mousePosInPixels is not None:
             self._progBase.use()
-            gl.glUniform2i(self._progBase.uniforms['isLog'], False, False)
-            gl.glUniform1f(self._progBase.uniforms['tickLen'], 0.)
-            posAttrib = self._progBase.attributes['position']
-            matrixUnif = self._progBase.uniforms['matrix']
-            colorUnif = self._progBase.uniforms['color']
-            hatchStepUnif = self._progBase.uniforms['hatchStep']
+            gl.glUniform2i(self._progBase.uniforms["isLog"], False, False)
+            gl.glUniform1f(self._progBase.uniforms["tickLen"], 0.0)
+            posAttrib = self._progBase.attributes["position"]
+            matrixUnif = self._progBase.uniforms["matrix"]
+            colorUnif = self._progBase.uniforms["color"]
+            hatchStepUnif = self._progBase.uniforms["hatchStep"]
 
             gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
 
-            gl.glUniformMatrix4fv(matrixUnif, 1, gl.GL_TRUE,
-                                  self.matScreenProj.astype(numpy.float32))
+            gl.glUniformMatrix4fv(
+                matrixUnif, 1, gl.GL_TRUE, self.matScreenProj.astype(numpy.float32)
+            )
 
             color, lineWidth = self._crosshairCursor
             gl.glUniform4f(colorUnif, *color)
@@ -673,18 +752,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             xPixel, yPixel = self._mousePosInPixels
             xPixel, yPixel = xPixel + 0.5, yPixel + 0.5
-            vertices = numpy.array(((0., yPixel),
-                                    (self._plotFrame.size[0], yPixel),
-                                    (xPixel, 0.),
-                                    (xPixel, self._plotFrame.size[1])),
-                                   dtype=numpy.float32)
+            vertices = numpy.array(
+                (
+                    (0.0, yPixel),
+                    (self._plotFrame.size[0], yPixel),
+                    (xPixel, 0.0),
+                    (xPixel, self._plotFrame.size[1]),
+                ),
+                dtype=numpy.float32,
+            )
 
             gl.glEnableVertexAttribArray(posAttrib)
-            gl.glVertexAttribPointer(posAttrib,
-                                     2,
-                                     gl.GL_FLOAT,
-                                     gl.GL_FALSE,
-                                     0, vertices)
+            gl.glVertexAttribPointer(
+                posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, vertices
+            )
             gl.glLineWidth(lineWidth)
             gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
@@ -697,9 +778,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         """
         plotWidth, plotHeight = self._plotFrame.plotSize
 
-        gl.glScissor(self._plotFrame.margins.left,
-                     self._plotFrame.margins.bottom,
-                     plotWidth, plotHeight)
+        gl.glScissor(
+            self._plotFrame.margins.left,
+            self._plotFrame.margins.bottom,
+            plotWidth,
+            plotHeight,
+        )
         gl.glEnable(gl.GL_SCISSOR_TEST)
 
         if self._dataBackgroundColor != self._backgroundColor:
@@ -722,29 +806,28 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         self._plotFrame.size = (
             int(self.getDevicePixelRatio() * width),
-            int(self.getDevicePixelRatio() * height))
+            int(self.getDevicePixelRatio() * height),
+        )
 
         self.matScreenProj = glutils.mat4Ortho(
-            0, self._plotFrame.size[0],
-            self._plotFrame.size[1], 0,
-            1, -1)
+            0, self._plotFrame.size[0], self._plotFrame.size[1], 0, 1, -1
+        )
 
         # Store current ranges
         previousXRange = self.getGraphXLimits()
-        previousYRange = self.getGraphYLimits(axis='left')
-        previousYRightRange = self.getGraphYLimits(axis='right')
+        previousYRange = self.getGraphYLimits(axis="left")
+        previousYRightRange = self.getGraphYLimits(axis="right")
 
-        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = \
-            self._plotFrame.dataRanges
+        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self._plotFrame.dataRanges
         self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
         # If plot range has changed, then emit signal
         if previousXRange != self.getGraphXLimits():
             self._plot.getXAxis()._emitLimitsChanged()
-        if previousYRange != self.getGraphYLimits(axis='left'):
-            self._plot.getYAxis(axis='left')._emitLimitsChanged()
-        if previousYRightRange != self.getGraphYLimits(axis='right'):
-            self._plot.getYAxis(axis='right')._emitLimitsChanged()
+        if previousYRange != self.getGraphYLimits(axis="left"):
+            self._plot.getYAxis(axis="left")._emitLimitsChanged()
+        if previousYRightRange != self.getGraphYLimits(axis="right"):
+            self._plot.getYAxis(axis="right")._emitLimitsChanged()
 
     # Add methods
 
@@ -761,39 +844,60 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         elif numpy.issubdtype(v.dtype, numpy.integer):
             return numpy.float32 if v.itemsize <= 2 else numpy.float64
         else:
-            raise ValueError('Unsupported data type')
+            raise ValueError("Unsupported data type")
 
-    def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
-                 yaxis,
-                 xerror, yerror,
-                 fill, alpha, symbolsize, baseline):
-        for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, fill, symbolsize):
+    def addCurve(
+        self,
+        x,
+        y,
+        color,
+        gapcolor,
+        symbol,
+        linewidth,
+        linestyle,
+        yaxis,
+        xerror,
+        yerror,
+        fill,
+        alpha,
+        symbolsize,
+        baseline,
+    ):
+        for parameter in (
+            x,
+            y,
+            color,
+            symbol,
+            linewidth,
+            linestyle,
+            yaxis,
+            fill,
+            symbolsize,
+        ):
             assert parameter is not None
-        assert yaxis in ('left', 'right')
+        assert yaxis in ("left", "right")
 
         # Convert input data
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
 
         # Check if float32 is enough
-        if (self._castArrayTo(x) is numpy.float32 and
-                self._castArrayTo(y) is numpy.float32):
+        if (
+            self._castArrayTo(x) is numpy.float32
+            and self._castArrayTo(y) is numpy.float32
+        ):
             dtype = numpy.float32
         else:
             dtype = numpy.float64
 
-        x = numpy.array(x, dtype=dtype, copy=False, order='C')
-        y = numpy.array(y, dtype=dtype, copy=False, order='C')
+        x = numpy.array(x, dtype=dtype, copy=False, order="C")
+        y = numpy.array(y, dtype=dtype, copy=False, order="C")
 
         # Convert errors to float32
         if xerror is not None:
-            xerror = numpy.array(
-                xerror, dtype=numpy.float32, copy=False, order='C')
+            xerror = numpy.array(xerror, dtype=numpy.float32, copy=False, order="C")
         if yerror is not None:
-            yerror = numpy.array(
-                yerror, dtype=numpy.float32, copy=False, order='C')
+            yerror = numpy.array(yerror, dtype=numpy.float32, copy=False, order="C")
 
         # Handle axes log scale: convert data
 
@@ -803,21 +907,21 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if xerror is not None:
                 # Transform xerror so that
                 # log10(x) +/- xerror' = log10(x +/- xerror)
-                if hasattr(xerror, 'shape') and len(xerror.shape) == 2:
+                if hasattr(xerror, "shape") and len(xerror.shape) == 2:
                     xErrorMinus, xErrorPlus = xerror[0], xerror[1]
                 else:
                     xErrorMinus, xErrorPlus = xerror, xerror
-                with numpy.errstate(divide='ignore', invalid='ignore'):
+                with numpy.errstate(divide="ignore", invalid="ignore"):
                     # Ignore divide by zero, invalid value encountered in log10
                     xErrorMinus = logX - numpy.log10(x - xErrorMinus)
                 xErrorPlus = numpy.log10(x + xErrorPlus) - logX
-                xerror = numpy.array((xErrorMinus, xErrorPlus),
-                                     dtype=numpy.float32)
+                xerror = numpy.array((xErrorMinus, xErrorPlus), dtype=numpy.float32)
 
             x = logX
 
-        isYLog = (yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
-            yaxis == 'right' and self._plotFrame.y2Axis.isLog)
+        isYLog = (yaxis == "left" and self._plotFrame.yAxis.isLog) or (
+            yaxis == "right" and self._plotFrame.y2Axis.isLog
+        )
 
         if isYLog:
             logY = numpy.log10(y)
@@ -825,25 +929,23 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if yerror is not None:
                 # Transform yerror so that
                 # log10(y) +/- yerror' = log10(y +/- yerror)
-                if hasattr(yerror, 'shape') and len(yerror.shape) == 2:
+                if hasattr(yerror, "shape") and len(yerror.shape) == 2:
                     yErrorMinus, yErrorPlus = yerror[0], yerror[1]
                 else:
                     yErrorMinus, yErrorPlus = yerror, yerror
-                with numpy.errstate(divide='ignore', invalid='ignore'):
+                with numpy.errstate(divide="ignore", invalid="ignore"):
                     # Ignore divide by zero, invalid value encountered in log10
                     yErrorMinus = logY - numpy.log10(y - yErrorMinus)
                 yErrorPlus = numpy.log10(y + yErrorPlus) - logY
-                yerror = numpy.array((yErrorMinus, yErrorPlus),
-                                     dtype=numpy.float32)
+                yerror = numpy.array((yErrorMinus, yErrorPlus), dtype=numpy.float32)
 
             y = logY
 
         # TODO check if need more filtering of error (e.g., clip to positive)
 
         # TODO check and improve this
-        if (len(color) == 4 and
-                type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
-            color = numpy.array(color, dtype=numpy.float32) / 255.
+        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+            color = numpy.array(color, dtype=numpy.float32) / 255.0
 
         if isinstance(color, numpy.ndarray) and color.ndim == 2:
             colorArray = color
@@ -852,7 +954,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             colorArray = None
             color = colors.rgba(color)
 
-        if alpha < 1.:  # Apply image transparency
+        if alpha < 1.0:  # Apply image transparency
             if colorArray is not None and colorArray.shape[1] == 4:
                 # multiply alpha channel
                 colorArray[:, 3] = colorArray[:, 3] * alpha
@@ -863,42 +965,45 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fill is True:
             fillColor = color
         curve = glutils.GLPlotCurve2D(
-            x, y, colorArray,
+            x,
+            y,
+            colorArray,
             xError=xerror,
             yError=yerror,
             lineStyle=linestyle,
             lineColor=color,
+            lineGapColor=gapcolor,
             lineWidth=linewidth,
             marker=symbol,
             markerColor=color,
             markerSize=symbolsize,
             fillColor=fillColor,
             baseline=baseline,
-            isYLog=isYLog)
-        curve.yaxis = 'left' if yaxis is None else yaxis
+            isYLog=isYLog,
+        )
+        curve.yaxis = "left" if yaxis is None else yaxis
 
         if yaxis == "right":
             self._plotFrame.isY2Axis = True
 
         return curve
 
-    def addImage(self, data,
-                 origin, scale,
-                 colormap, alpha):
+    def addImage(self, data, origin, scale, colormap, alpha):
         for parameter in (data, origin, scale):
             assert parameter is not None
 
         if data.ndim == 2:
             # Ensure array is contiguous and eventually convert its type
-            dtypes = [dtype for dtype in (
-                numpy.float32, numpy.float16, numpy.uint8, numpy.uint16)
-                if glu.isSupportedGLType(dtype)]
+            dtypes = [
+                dtype
+                for dtype in (numpy.float32, numpy.float16, numpy.uint8, numpy.uint16)
+                if glu.isSupportedGLType(dtype)
+            ]
             if data.dtype in dtypes:
-                data = numpy.array(data, copy=False, order='C')
+                data = numpy.array(data, copy=False, order="C")
             else:
-                _logger.info(
-                    'addImage: Convert %s data to float32', str(data.dtype))
-                data = numpy.array(data, dtype=numpy.float32, order='C')
+                _logger.info("addImage: Convert %s data to float32", str(data.dtype))
+                data = numpy.array(data, dtype=numpy.float32, order="C")
 
             normalization = colormap.getNormalization()
             if normalization in glutils.GLPlotColormap.SUPPORTED_NORMALIZATIONS:
@@ -917,7 +1022,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     gamma,
                     cmapRange,
                     alpha,
-                    nanColor)
+                    nanColor,
+                )
 
             else:  # Fallback applying colormap on CPU
                 rgba = colormap.applyToData(data)
@@ -934,7 +1040,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             elif numpy.issubdtype(data.dtype, numpy.integer):
                 data = numpy.array(data, dtype=numpy.uint8, copy=False)
             else:
-                raise ValueError('Unsupported data type')
+                raise ValueError("Unsupported data type")
 
             image = glutils.GLPlotRGBAImage(data, origin, scale, alpha)
 
@@ -942,17 +1048,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError("Unsupported data shape {0}".format(data.shape))
 
         # TODO is this needed?
-        if self._plotFrame.xAxis.isLog and image.xMin <= 0.:
-            raise RuntimeError(
-                'Cannot add image with X <= 0 with X axis log scale')
-        if self._plotFrame.yAxis.isLog and image.yMin <= 0.:
-            raise RuntimeError(
-                'Cannot add image with Y <= 0 with Y axis log scale')
+        if self._plotFrame.xAxis.isLog and image.xMin <= 0.0:
+            raise RuntimeError("Cannot add image with X <= 0 with X axis log scale")
+        if self._plotFrame.yAxis.isLog and image.yMin <= 0.0:
+            raise RuntimeError("Cannot add image with Y <= 0 with Y axis log scale")
 
         return image
 
-    def addTriangles(self, x, y, triangles,
-                     color, alpha):
+    def addTriangles(self, x, y, triangles, color, alpha):
         # Handle axes log scale: convert data
         if self._plotFrame.xAxis.isLog:
             x = numpy.log10(x)
@@ -963,36 +1066,41 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         return triangles
 
-    def addShape(self, x, y, shape, color, fill, overlay,
-                 linestyle, linewidth, linebgcolor):
+    def addShape(
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+    ):
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
 
         # TODO is this needed?
-        if self._plotFrame.xAxis.isLog and x.min() <= 0.:
-            raise RuntimeError(
-                'Cannot add item with X <= 0 with X axis log scale')
-        if self._plotFrame.yAxis.isLog and y.min() <= 0.:
-            raise RuntimeError(
-                'Cannot add item with Y <= 0 with Y axis log scale')
+        if self._plotFrame.xAxis.isLog and x.min() <= 0.0:
+            raise RuntimeError("Cannot add item with X <= 0 with X axis log scale")
+        if self._plotFrame.yAxis.isLog and y.min() <= 0.0:
+            raise RuntimeError("Cannot add item with Y <= 0 with Y axis log scale")
 
-        return _ShapeItem(x, y, shape, color, fill, overlay,
-                          linestyle, linewidth, linebgcolor)
+        return _ShapeItem(
+            x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+        )
 
-    def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
-        return _MarkerItem(x, y, text, color,
-                           symbol, linestyle, linewidth, constraint, yaxis)
+    def addMarker(
+        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+    ):
+        font = qt.QApplication.instance().font() if font is None else font
+        return _MarkerItem(
+            x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+        )
 
     # Remove methods
 
     def remove(self, item):
         if isinstance(item, glutils.GLPlotItem):
-            if item.yaxis == 'right':
+            if item.yaxis == "right":
                 # Check if some curves remains on the right Y axis
-                y2AxisItems = (item for item in self._plot.getItems()
-                               if isinstance(item, items.YAxisMixIn) and
-                               item.getYAxis() == 'right')
+                y2AxisItems = (
+                    item
+                    for item in self._plot.getItems()
+                    if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right"
+                )
                 self._plotFrame.isY2Axis = next(y2AxisItems, None) is not None
 
             if item.isInitialized():
@@ -1002,7 +1110,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             pass  # No-op
 
         else:
-            _logger.error('Unsupported item: %s', str(item))
+            _logger.error("Unsupported item: %s", str(item))
 
     # Interaction methods
 
@@ -1022,9 +1130,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             super(BackendOpenGL, self).setCursor(qt.QCursor(cursor))
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
-        if linestyle != '-':
-            _logger.warning(
-                "BackendOpenGL.setGraphCursor linestyle parameter ignored")
+        if linestyle != "-":
+            _logger.warning("BackendOpenGL.setGraphCursor linestyle parameter ignored")
 
         if flag:
             color = colors.rgba(color)
@@ -1048,8 +1155,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         :rtype: List[float]
         """
         left, top, width, height = self.getPlotBoundsInPixels()
-        return (numpy.clip(x, left, left + width - 1),  # TODO -1?
-                numpy.clip(y, top, top + height - 1))
+        return (
+            numpy.clip(x, left, left + width - 1),  # TODO -1?
+            numpy.clip(y, top, top + height - 1),
+        )
 
     def __pickCurves(self, item, x, y):
         """Perform picking on a curve item.
@@ -1064,24 +1173,26 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if item.marker is not None:
             # Convert markerSize from points to qt pixels
             qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
-            size = item.markerSize / 72. * qtDpi
-            offset = max(size / 2., offset)
+            size = item.markerSize / 72.0 * qtDpi
+            offset = max(size / 2.0, offset)
         if item.lineStyle is not None:
             # Convert line width from points to qt pixels
             qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
-            lineWidth = item.lineWidth / 72. * qtDpi
-            offset = max(lineWidth / 2., offset)
+            lineWidth = item.lineWidth / 72.0 * qtDpi
+            offset = max(lineWidth / 2.0, offset)
 
         inAreaPos = self._mouseInPlotArea(x - offset, y - offset)
-        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                         axis=item.yaxis, check=True)
+        dataPos = self._plot.pixelToData(
+            inAreaPos[0], inAreaPos[1], axis=item.yaxis, check=True
+        )
         if dataPos is None:
             return None
         xPick0, yPick0 = dataPos
 
         inAreaPos = self._mouseInPlotArea(x + offset, y + offset)
-        dataPos = self._plot.pixelToData(inAreaPos[0], inAreaPos[1],
-                                         axis=item.yaxis, check=True)
+        dataPos = self._plot.pixelToData(
+            inAreaPos[0], inAreaPos[1], axis=item.yaxis, check=True
+        )
         if dataPos is None:
             return None
         xPick1, yPick1 = dataPos
@@ -1101,17 +1212,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             xPickMin = numpy.log10(xPickMin)
             xPickMax = numpy.log10(xPickMax)
 
-        if (item.yaxis == 'left' and self._plotFrame.yAxis.isLog) or (
-                item.yaxis == 'right' and self._plotFrame.y2Axis.isLog):
+        if (item.yaxis == "left" and self._plotFrame.yAxis.isLog) or (
+            item.yaxis == "right" and self._plotFrame.y2Axis.isLog
+        ):
             yPickMin = numpy.log10(yPickMin)
             yPickMax = numpy.log10(yPickMax)
 
-        return item.pick(xPickMin, yPickMin,
-                         xPickMax, yPickMax)
+        return item.pick(xPickMin, yPickMin, xPickMax, yPickMax)
 
     def pickItem(self, x, y, item):
         # Picking is performed in Qt widget pixels not device pixels
-        dataPos = self._plot.pixelToData(x, y, axis='left', check=True)
+        dataPos = self._plot.pixelToData(x, y, axis="left", check=True)
         if dataPos is None:
             return None  # Outside plot area
 
@@ -1121,32 +1232,36 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         # Pick markers
         if isinstance(item, _MarkerItem):
-            yaxis = item['yaxis']
+            yaxis = item["yaxis"]
             pixelPos = self._plot.dataToPixel(
-                item['x'], item['y'], axis=yaxis, check=False)
+                item["x"], item["y"], axis=yaxis, check=False
+            )
             if pixelPos is None:
                 return None  # negative coord on a log axis
 
-            if item['x'] is None:  # Horizontal line
+            if item["x"] is None:  # Horizontal line
                 pt1 = self._plot.pixelToData(
-                    x, y - self._PICK_OFFSET, axis=yaxis, check=False)
+                    x, y - self._PICK_OFFSET, axis=yaxis, check=False
+                )
                 pt2 = self._plot.pixelToData(
-                    x, y + self._PICK_OFFSET, axis=yaxis, check=False)
-                isPicked = (min(pt1[1], pt2[1]) <= item['y'] <=
-                            max(pt1[1], pt2[1]))
+                    x, y + self._PICK_OFFSET, axis=yaxis, check=False
+                )
+                isPicked = min(pt1[1], pt2[1]) <= item["y"] <= max(pt1[1], pt2[1])
 
-            elif item['y'] is None:  # Vertical line
+            elif item["y"] is None:  # Vertical line
                 pt1 = self._plot.pixelToData(
-                    x - self._PICK_OFFSET, y, axis=yaxis, check=False)
+                    x - self._PICK_OFFSET, y, axis=yaxis, check=False
+                )
                 pt2 = self._plot.pixelToData(
-                    x + self._PICK_OFFSET, y, axis=yaxis, check=False)
-                isPicked = (min(pt1[0], pt2[0]) <= item['x'] <=
-                            max(pt1[0], pt2[0]))
+                    x + self._PICK_OFFSET, y, axis=yaxis, check=False
+                )
+                isPicked = min(pt1[0], pt2[0]) <= item["x"] <= max(pt1[0], pt2[0])
 
             else:
                 isPicked = (
-                    numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET and
-                    numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET)
+                    numpy.fabs(x - pixelPos[0]) <= self._PICK_OFFSET
+                    and numpy.fabs(y - pixelPos[1]) <= self._PICK_OFFSET
+                )
 
             return (0,) if isPicked else None
 
@@ -1177,11 +1292,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if dpi is not None:
             _logger.warning("saveGraph ignores dpi parameter")
 
-        if fileFormat not in ['png', 'ppm', 'svg', 'tif', 'tiff']:
-            raise NotImplementedError('Unsupported format: %s' % fileFormat)
+        if fileFormat not in ["png", "ppm", "svg", "tif", "tiff"]:
+            raise NotImplementedError("Unsupported format: %s" % fileFormat)
 
         if not self.isValid():
-            _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
+            _logger.error("OpenGL 2.1 not available, cannot save OpenGL image")
             width, height = self._plotFrame.size
             data = numpy.zeros((height, width, 3), dtype=numpy.uint8)
         else:
@@ -1189,7 +1304,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
             data = numpy.empty(
                 (self._plotFrame.size[1], self._plotFrame.size[0], 3),
-                dtype=numpy.uint8, order='C')
+                dtype=numpy.uint8,
+                order="C",
+            )
 
             context = self.context()
             framebufferTexture = self._plotFBOs.get(context)
@@ -1205,8 +1322,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, fboName)
             gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-            gl.glReadPixels(0, 0, width, height,
-                            gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
+            gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, data)
             gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
 
             # glReadPixels gives bottom to top,
@@ -1225,7 +1341,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         self._plotFrame.xAxis.title = label
 
     def setGraphYLabel(self, label, axis):
-        if axis == 'left':
+        if axis == "left":
             self._plotFrame.yAxis.title = label
         else:  # right axis
             self._plotFrame.y2Axis.title = label
@@ -1258,24 +1374,27 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
         if keepDim is None:
             ranges = self._plot.getDataRange()
-            if (ranges.y is not None and
-                ranges.x is not None and
-                (ranges.y[1] - ranges.y[0]) != 0.):
-                dataRatio = (ranges.x[1] - ranges.x[0]) / float(ranges.y[1] - ranges.y[0])
+            if (
+                ranges.y is not None
+                and ranges.x is not None
+                and (ranges.y[1] - ranges.y[0]) != 0.0
+            ):
+                dataRatio = (ranges.x[1] - ranges.x[0]) / float(
+                    ranges.y[1] - ranges.y[0]
+                )
                 plotRatio = plotWidth / float(plotHeight)  # Test != 0 before
 
-                keepDim = 'x' if dataRatio > plotRatio else 'y'
+                keepDim = "x" if dataRatio > plotRatio else "y"
             else:  # Limit case
-                keepDim = 'x'
+                keepDim = "x"
 
-        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = \
-            self._plotFrame.dataRanges
-        if keepDim == 'y':
+        (xMin, xMax), (yMin, yMax), (y2Min, y2Max) = self._plotFrame.dataRanges
+        if keepDim == "y":
             dataW = (yMax - yMin) * plotWidth / float(plotHeight)
             xCenter = 0.5 * (xMin + xMax)
             xMin = xCenter - 0.5 * dataW
             xMax = xCenter + 0.5 * dataW
-        elif keepDim == 'x':
+        elif keepDim == "x":
             dataH = (xMax - xMin) * plotHeight / float(plotWidth)
             yCenter = 0.5 * (yMin + yMax)
             yMin = yCenter - 0.5 * dataH
@@ -1284,19 +1403,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             y2Min = y2Center - 0.5 * dataH
             y2Max = y2Center + 0.5 * dataH
         else:
-            raise RuntimeError('Unsupported dimension to keep: %s' % keepDim)
+            raise RuntimeError("Unsupported dimension to keep: %s" % keepDim)
 
         # Update plot frame bounds
-        self._setDataRanges(xlim=(xMin, xMax),
-                            ylim=(yMin, yMax),
-                            y2lim=(y2Min, y2Max))
+        self._setDataRanges(xlim=(xMin, xMax), ylim=(yMin, yMax), y2lim=(y2Min, y2Max))
 
-    def _setPlotBounds(self, xRange=None, yRange=None, y2Range=None,
-                       keepDim=None):
+    def _setPlotBounds(self, xRange=None, yRange=None, y2Range=None, keepDim=None):
         # Update axes range with a clipped range if too wide
-        self._setDataRanges(xlim=xRange,
-                            ylim=yRange,
-                            y2lim=y2Range)
+        self._setDataRanges(xlim=xRange, ylim=yRange, y2lim=y2Range)
 
         # Keep data aspect ratio
         if self.isKeepDataAspectRatio():
@@ -1318,7 +1432,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
     def setGraphXLimits(self, xmin, xmax):
         assert xmin < xmax
-        self._setPlotBounds(xRange=(xmin, xmax), keepDim='x')
+        self._setPlotBounds(xRange=(xmin, xmax), keepDim="x")
 
     def getGraphYLimits(self, axis):
         assert axis in ("left", "right")
@@ -1332,9 +1446,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         assert axis in ("left", "right")
 
         if axis == "left":
-            self._setPlotBounds(yRange=(ymin, ymax), keepDim='y')
+            self._setPlotBounds(yRange=(ymin, ymax), keepDim="y")
         else:
-            self._setPlotBounds(y2Range=(ymin, ymax), keepDim='y')
+            self._setPlotBounds(y2Range=(ymin, ymax), keepDim="y")
 
     # Graph axes
 
@@ -1353,17 +1467,14 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     def setXAxisLogarithmic(self, flag):
         if flag != self._plotFrame.xAxis.isLog:
             if flag and self._keepDataAspectRatio:
-                _logger.warning(
-                    "KeepDataAspectRatio is ignored with log axes")
+                _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
             self._plotFrame.xAxis.isLog = flag
 
     def setYAxisLogarithmic(self, flag):
-        if (flag != self._plotFrame.yAxis.isLog or
-                flag != self._plotFrame.y2Axis.isLog):
+        if flag != self._plotFrame.yAxis.isLog or flag != self._plotFrame.y2Axis.isLog:
             if flag and self._keepDataAspectRatio:
-                _logger.warning(
-                    "KeepDataAspectRatio is ignored with log axes")
+                _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
             self._plotFrame.yAxis.isLog = flag
             self._plotFrame.y2Axis.isLog = flag
@@ -1385,14 +1496,13 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return self._keepDataAspectRatio
 
     def setKeepDataAspectRatio(self, flag):
-        if flag and (self._plotFrame.xAxis.isLog or
-                     self._plotFrame.yAxis.isLog):
+        if flag and (self._plotFrame.xAxis.isLog or self._plotFrame.yAxis.isLog):
             _logger.warning("KeepDataAspectRatio is ignored with log axes")
 
         self._keepDataAspectRatio = flag
 
     def setGraphGrid(self, which):
-        assert which in (None, 'major', 'both')
+        assert which in (None, "major", "both")
         self._plotFrame.grid = which is not None  # TODO True grid support
 
     # Data <-> Pixel coordinates conversion
@@ -1403,17 +1513,20 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             return None
         else:
             devicePixelRatio = self.getDevicePixelRatio()
-            return tuple(value/devicePixelRatio for value in result)
+            return tuple(value / devicePixelRatio for value in result)
 
     def pixelToData(self, x, y, axis):
         devicePixelRatio = self.getDevicePixelRatio()
         return self._plotFrame.pixelToData(
-            x * devicePixelRatio, y * devicePixelRatio, axis)
+            x * devicePixelRatio, y * devicePixelRatio, axis
+        )
 
     def getPlotBoundsInPixels(self):
         devicePixelRatio = self.getDevicePixelRatio()
-        return tuple(int(value / devicePixelRatio)
-            for value in self._plotFrame.plotOrigin + self._plotFrame.plotSize)
+        return tuple(
+            int(value / devicePixelRatio)
+            for value in self._plotFrame.plotOrigin + self._plotFrame.plotSize
+        )
 
     def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         self._plotFrame.marginRatios = left, top, right, bottom

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2018-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import logging
 import time
 import weakref
 import functools
+from typing import Optional
 
 import numpy
 
@@ -42,6 +43,8 @@ from ...utils import blockSignals
 from ...utils import LockReentrant
 from .. import PlotWidget
 from ..items import roi as roi_items
+from ..items import ItemChangedType
+from ..items.roi import RegionOfInterest
 
 from ...colors import rgba
 
@@ -87,7 +90,7 @@ class CreateRoiModeAction(qt.QAction):
             iconName = "add-shape-unknown"
         if name is None:
             name = roiClass.__name__
-        text = 'Add %s' % name
+        text = "Add %s" % name
         self.setIcon(icons.getQIcon(iconName))
         self.setText(text)
         self.setCheckable(True)
@@ -144,7 +147,9 @@ class CreateRoiModeAction(qt.QAction):
         if roiManager is not None:
             roiManager.sigInteractiveRoiCreated.disconnect(self.initRoi)
             roiManager.sigInteractiveRoiFinalized.disconnect(self.__finalizeRoi)
-            roiManager.sigInteractiveModeFinished.disconnect(self.__interactiveModeFinished)
+            roiManager.sigInteractiveModeFinished.disconnect(
+                self.__interactiveModeFinished
+            )
         self.setChecked(False)
 
     def initRoi(self, roi):
@@ -391,7 +396,8 @@ class RegionOfInterestManager(qt.QObject):
 
         self._roiClass = None
         self._source = None
-        self._color = rgba('red')
+        self._lastHoveredMarkerLabel = None
+        self._color = rgba("red")
 
         self._label = "__RegionOfInterestManager__%d" % id(self)
 
@@ -404,8 +410,7 @@ class RegionOfInterestManager(qt.QObject):
 
         parent.sigPlotSignal.connect(self._plotSignals)
 
-        parent.sigInteractiveModeChanged.connect(
-            self._plotInteractiveModeChanged)
+        parent.sigInteractiveModeChanged.connect(self._plotInteractiveModeChanged)
 
         parent.sigItemRemoved.connect(self._itemRemoved)
 
@@ -432,7 +437,7 @@ class RegionOfInterestManager(qt.QObject):
         :raise ValueError: If kind is not supported
         """
         if not issubclass(roiClass, roi_items.RegionOfInterest):
-            raise ValueError('Unsupported ROI class %s' % roiClass)
+            raise ValueError("Unsupported ROI class %s" % roiClass)
 
         action = self._modeActions.get(roiClass, None)
         if action is None:  # Lazy-loading
@@ -476,19 +481,21 @@ class RegionOfInterestManager(qt.QObject):
             return  # Should not happen
 
         kind = roiClass.getFirstInteractionShape()
-        if kind == 'point':
-            if event['event'] == 'mouseClicked' and event['button'] == 'left':
-                points = numpy.array([(event['x'], event['y'])],
-                                     dtype=numpy.float64)
+        if kind == "point":
+            if event["event"] == "mouseClicked" and event["button"] == "left":
+                points = numpy.array([(event["x"], event["y"])], dtype=numpy.float64)
                 # Not an interactive creation
                 roi = self._createInteractiveRoi(roiClass, points=points)
                 roi.creationFinalized()
                 self.sigInteractiveRoiFinalized.emit(roi)
         else:  # other shapes
-            if (event['event'] in ('drawingProgress', 'drawingFinished') and
-                    event['parameters']['label'] == self._label):
-                points = numpy.array((event['xdata'], event['ydata']),
-                                     dtype=numpy.float64).T
+            if (
+                event["event"] in ("drawingProgress", "drawingFinished")
+                and event["parameters"]["label"] == self._label
+            ):
+                points = numpy.array(
+                    (event["xdata"], event["ydata"]), dtype=numpy.float64
+                ).T
 
                 if self._drawnROI is None:  # Create new ROI
                     # NOTE: Set something before createRoi, so isDrawing is True
@@ -497,8 +504,8 @@ class RegionOfInterestManager(qt.QObject):
                 else:
                     self._drawnROI.setFirstShapePoints(points)
 
-                if event['event'] == 'drawingFinished':
-                    if kind == 'polygon' and len(points) > 1:
+                if event["event"] == "drawingFinished":
+                    if kind == "polygon" and len(points) > 1:
                         self._drawnROI.setFirstShapePoints(points[:-1])
                     roi = self._drawnROI
                     self._drawnROI = None  # Stop drawing
@@ -521,7 +528,7 @@ class RegionOfInterestManager(qt.QObject):
                         return roi
         return None
 
-    def setCurrentRoi(self, roi):
+    def setCurrentRoi(self, roi: Optional[RegionOfInterest]):
         """Set the currently selected ROI, and emit a signal.
 
         :param Union[RegionOfInterest,None] roi: The ROI to select
@@ -545,11 +552,8 @@ class RegionOfInterestManager(qt.QObject):
             self._currentRoi.setHighlighted(True)
         self.sigCurrentRoiChanged.emit(roi)
 
-    def getCurrentRoi(self):
-        """Returns the currently selected ROI, else None.
-
-        :rtype: Union[RegionOfInterest,None]
-        """
+    def getCurrentRoi(self) -> Optional[RegionOfInterest]:
+        """Returns the currently selected ROI, else None."""
         return self._currentRoi
 
     def _plotSignals(self, event):
@@ -568,6 +572,8 @@ class RegionOfInterestManager(qt.QObject):
             plot = self.parent()
             marker = plot._getMarkerAt(event["xpixel"], event["ypixel"])
             roi = self.__getRoiFromMarker(marker)
+        elif event["event"] == "hover":
+            self._lastHoveredMarkerLabel = event["label"]
         else:
             return
 
@@ -585,7 +591,7 @@ class RegionOfInterestManager(qt.QObject):
         else:
             self.setCurrentRoi(None)
 
-    def __updateMode(self, roi):
+    def __updateMode(self, roi: RegionOfInterest):
         if isinstance(roi, roi_items.InteractionModeMixIn):
             available = roi.availableInteractionModes()
             mode = roi.getInteractionMode()
@@ -593,46 +599,50 @@ class RegionOfInterestManager(qt.QObject):
             mode = available[(imode + 1) % len(available)]
             roi.setInteractionMode(mode)
 
-    def _feedContextMenu(self, menu):
+    def _feedContextMenu(self, menu: qt.QMenu):
         """Called when the default plot context menu is about to be displayed"""
         roi = self.getCurrentRoi()
         if roi is not None:
             if roi.isEditable():
-                # Filter by data position
-                # FIXME: It would be better to use GUI coords for it
-                plot = self.parent()
-                pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
-                data = plot.pixelToData(pos.x(), pos.y())
-                if roi.contains(data):
-                    if isinstance(roi, roi_items.InteractionModeMixIn):
-                        self._contextMenuForInteractionMode(menu, roi)
+                if self._isMouseHoverRoi(roi):
+                    roiMenu = self._createMenuForRoi(menu, roi)
+                    menu.addMenu(roiMenu)
 
-                removeAction = qt.QAction(menu)
-                removeAction.setText("Remove %s" % roi.getName())
-                callback = functools.partial(self.removeRoi, roi)
-                removeAction.triggered.connect(callback)
-                menu.addAction(removeAction)
+    def _isMouseHoverRoi(self, roi: RegionOfInterest) -> bool:
+        """Check that the mouse hovers this roi"""
+        plot = self.parent()
 
-    def _contextMenuForInteractionMode(self, menu, roi):
-        availableModes = roi.availableInteractionModes()
-        currentMode = roi.getInteractionMode()
-        submenu = qt.QMenu(menu)
-        modeGroup = qt.QActionGroup(menu)
-        modeGroup.setExclusive(True)
-        for mode in availableModes:
-            action = qt.QAction(menu)
-            action.setText(mode.label)
-            action.setToolTip(mode.description)
-            action.setCheckable(True)
-            if mode is currentMode:
-                action.setChecked(True)
-            else:
-                callback = functools.partial(roi.setInteractionMode, mode)
-                action.triggered.connect(callback)
-            modeGroup.addAction(action)
-            submenu.addAction(action)
-        submenu.setTitle("%s interaction mode" % roi.getName())
-        menu.addMenu(submenu)
+        if self._lastHoveredMarkerLabel is not None:
+            marker = plot._getMarker(self._lastHoveredMarkerLabel)
+            if marker is not None:
+                r = self.__getRoiFromMarker(marker)
+                if roi is r:
+                    return True
+
+        # Filter by data position
+        # FIXME: It would be better to use GUI coords for it
+        pos = plot.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())
+        data = plot.pixelToData(pos.x(), pos.y())
+        return roi.contains(data)
+
+    def _createMenuForRoi(self, parent: qt.QWidget, roi: RegionOfInterest) -> qt.QMenu:
+        """Create a QMenu for the given RegionOfInterest"""
+        roiMenu = qt.QMenu(parent)
+        roiMenu.setTitle(roi.getName())
+
+        if isinstance(roi, roi_items.InteractionModeMixIn):
+            interactionMenu = roi.createMenuForInteractionMode(roiMenu)
+            roiMenu.addMenu(interactionMenu)
+
+        removeAction = qt.QAction(roiMenu)
+        removeAction.setText("Remove")
+        callback = functools.partial(self.removeRoi, roi)
+        removeAction.triggered.connect(callback)
+        roiMenu.addAction(removeAction)
+
+        roi.populateContextMenu(roiMenu)
+
+        return roiMenu
 
     # RegionOfInterest API
 
@@ -654,8 +664,7 @@ class RegionOfInterestManager(qt.QObject):
         """
         if self.getRois():  # Something to reset
             for roi in self._rois:
-                roi.sigRegionChanged.disconnect(
-                    self._regionOfInterestChanged)
+                roi.sigRegionChanged.disconnect(self._regionOfInterestChanged)
                 roi.setParent(None)
             self._rois = []
             self._roisUpdated()
@@ -715,8 +724,7 @@ class RegionOfInterestManager(qt.QObject):
         """
         plot = self.parent()
         if plot is None:
-            raise RuntimeError(
-                'Cannot add ROI: PlotWidget no more available')
+            raise RuntimeError("Cannot add ROI: PlotWidget no more available")
 
         roi.setParent(self)
 
@@ -739,11 +747,12 @@ class RegionOfInterestManager(qt.QObject):
         :param roi_items.RegionOfInterest roi: The ROI to remove
         :raise ValueError: When ROI does not belong to this object
         """
-        if not (isinstance(roi, roi_items.RegionOfInterest) and
-                roi.parent() is self and
-                roi in self._rois):
-            raise ValueError(
-                'RegionOfInterest does not belong to this instance')
+        if not (
+            isinstance(roi, roi_items.RegionOfInterest)
+            and roi.parent() is self
+            and roi in self._rois
+        ):
+            raise ValueError("RegionOfInterest does not belong to this instance")
 
         roi.sigAboutToBeRemoved.emit()
         self.sigRoiAboutToBeRemoved.emit(roi)
@@ -834,7 +843,7 @@ class RegionOfInterestManager(qt.QObject):
         self.stop()
 
         if not issubclass(roiClass, roi_items.RegionOfInterest):
-            raise ValueError('Unsupported ROI class %s' % roiClass)
+            raise ValueError("Unsupported ROI class %s" % roiClass)
 
         plot = self.parent()
         if plot is None:
@@ -859,18 +868,20 @@ class RegionOfInterestManager(qt.QObject):
         plot = self.parent()
         firstInteractionShapeKind = roiClass.getFirstInteractionShape()
 
-        if firstInteractionShapeKind == 'point':
-            plot.setInteractiveMode(mode='select', source=self)
+        if firstInteractionShapeKind == "point":
+            plot.setInteractiveMode(mode="select", source=self)
         else:
             if roiClass.showFirstInteractionShape():
                 color = rgba(self.getColor())
             else:
                 color = None
-            plot.setInteractiveMode(mode='select-draw',
-                                    source=self,
-                                    shape=firstInteractionShapeKind,
-                                    color=color,
-                                    label=self._label)
+            plot.setInteractiveMode(
+                mode="draw",
+                source=self,
+                shape=firstInteractionShapeKind,
+                color=color,
+                label=self._label,
+            )
 
     def __roiInteractiveModeEnded(self):
         """Handle end of ROI draw interactive mode"""
@@ -964,7 +975,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         super(InteractiveRegionOfInterestManager, self).__init__(parent)
         self._maxROI = None
         self.__timeoutEndTime = None
-        self.__message = ''
+        self.__message = ""
         self.__validationMode = self.ValidationMode.ENTER
         self.__execClass = None
 
@@ -991,11 +1002,10 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
         if max_ is not None:
             max_ = int(max_)
             if max_ <= 0:
-                raise ValueError('Max limit must be strictly positive')
+                raise ValueError("Max limit must be strictly positive")
 
             if len(self.getRois()) > max_:
-                raise ValueError(
-                    'Cannot set max limit: Already too many ROIs')
+                raise ValueError("Cannot set max limit: Already too many ROIs")
 
         self._maxROI = max_
 
@@ -1013,19 +1023,19 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
     class ValidationMode(enum.Enum):
         """Mode of validation to leave blocking :meth:`exec`"""
 
-        AUTO = 'auto'
+        AUTO = "auto"
         """Automatically ends the interactive mode once
         the user terminates the last ROI shape."""
 
-        ENTER = 'enter'
+        ENTER = "enter"
         """Ends the interactive mode when the *Enter* key is pressed."""
 
-        AUTO_ENTER = 'auto_enter'
+        AUTO_ENTER = "auto_enter"
         """Ends the interactive mode when reaching max ROIs or
         when the *Enter* key is pressed.
         """
 
-        NONE = 'none'
+        NONE = "none"
         """Do not provide the user a way to end the interactive mode.
 
         The end of :meth:`exec` is done through :meth:`quit` or timeout.
@@ -1051,9 +1061,10 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             self.__validationMode = mode
 
         if self.isExec():
-            if (self.isMaxRois() and self.getValidationMode() in
-                    (self.ValidationMode.AUTO,
-                     self.ValidationMode.AUTO_ENTER)):
+            if self.isMaxRois() and self.getValidationMode() in (
+                self.ValidationMode.AUTO,
+                self.ValidationMode.AUTO_ENTER,
+            ):
                 self.quit()
 
             self.__updateMessage()
@@ -1064,17 +1075,20 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
         if event.type() == qt.QEvent.KeyPress:
             key = event.key()
-            if (key in (qt.Qt.Key_Return, qt.Qt.Key_Enter) and
-                    self.getValidationMode() in (
-                        self.ValidationMode.ENTER,
-                        self.ValidationMode.AUTO_ENTER)):
+            if key in (
+                qt.Qt.Key_Return,
+                qt.Qt.Key_Enter,
+            ) and self.getValidationMode() in (
+                self.ValidationMode.ENTER,
+                self.ValidationMode.AUTO_ENTER,
+            ):
                 # Stop on return key pressed
                 self.quit()
                 return True  # Stop further handling of this keys
 
-            if (key in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
-                    key == qt.Qt.Key_Z and
-                    event.modifiers() & qt.Qt.ControlModifier)):
+            if key in (qt.Qt.Key_Delete, qt.Qt.Key_Backspace) or (
+                key == qt.Qt.Key_Z and event.modifiers() & qt.Qt.ControlModifier
+            ):
                 rois = self.getRois()
                 if rois:  # Something to undo
                     self.removeRoi(rois[-1])
@@ -1096,8 +1110,7 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
             return self.__message
         else:
             remaining = self.__timeoutEndTime - time.time()
-            return self.__message + (' - %d seconds remaining' %
-                                     max(1, int(remaining)))
+            return self.__message + (" - %d seconds remaining" % max(1, int(remaining)))
 
     # Listen to ROI updates
 
@@ -1110,9 +1123,10 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
                 self.removeRoi(self.getRois()[-2])
 
         self.__updateMessage()
-        if (self.isMaxRois() and
-                self.getValidationMode() in (self.ValidationMode.AUTO,
-                                             self.ValidationMode.AUTO_ENTER)):
+        if self.isMaxRois() and self.getValidationMode() in (
+            self.ValidationMode.AUTO,
+            self.ValidationMode.AUTO_ENTER,
+        ):
             self.quit()
 
     def __aboutToBeRemoved(self, *args, **kwargs):
@@ -1131,10 +1145,10 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
     def __updateMessage(self, nbrois=None):
         """Update message"""
         if not self.isExec():
-            message = 'Done'
+            message = "Done"
 
         elif not self.isStarted():
-            message = 'Use %s ROI edition mode' % self.__execClass
+            message = "Use %s ROI edition mode" % self.__execClass
 
         else:
             if nbrois is None:
@@ -1144,16 +1158,18 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
             max_ = self.getMaxRois()
             if max_ is None:
-                message = 'Select %ss (%d selected)' % (name, nbrois)
+                message = "Select %ss (%d selected)" % (name, nbrois)
 
             elif max_ <= 1:
-                message = 'Select a %s' % name
+                message = "Select a %s" % name
             else:
-                message = 'Select %d/%d %ss' % (nbrois, max_, name)
+                message = "Select %d/%d %ss" % (nbrois, max_, name)
 
-            if (self.getValidationMode() == self.ValidationMode.ENTER and
-                    self.isMaxRois()):
-                message += ' - Press Enter to confirm'
+            if (
+                self.getValidationMode() == self.ValidationMode.ENTER
+                and self.isMaxRois()
+            ):
+                message += " - Press Enter to confirm"
 
         if message != self.__message:
             self.__message = message
@@ -1164,9 +1180,11 @@ class InteractiveRegionOfInterestManager(RegionOfInterestManager):
 
     def __timeoutUpdate(self):
         """Handle update of timeout"""
-        if (self.__timeoutEndTime is not None and
-                (self.__timeoutEndTime - time.time()) > 0):
-                self.sigMessageChanged.emit(self.getMessage())
+        if (
+            self.__timeoutEndTime is not None
+            and (self.__timeoutEndTime - time.time()) > 0
+        ):
+            self.sigMessageChanged.emit(self.getMessage())
         else:  # Stop interactive mode and message timer
             timer = self.sender()
             if timer is not None:
@@ -1234,7 +1252,7 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
 
     def __init__(self, parent, roi):
         super(_DeleteRegionOfInterestToolButton, self).__init__(parent)
-        self.setIcon(icons.getQIcon('remove'))
+        self.setIcon(icons.getQIcon("remove"))
         self.setToolTip("Remove this ROI")
         self.__roiRef = roi if roi is None else weakref.ref(roi)
         self.clicked.connect(self.__clicked)
@@ -1252,11 +1270,20 @@ class _DeleteRegionOfInterestToolButton(qt.QToolButton):
 class RegionOfInterestTableWidget(qt.QTableWidget):
     """Widget displaying the ROIs of a :class:`RegionOfInterestManager`"""
 
+    # Columns indices of the different displayed information
+    (
+        _LABEL_VISIBLE_COL,
+        _EDITABLE_COL,
+        _KIND_COL,
+        _COORDINATES_COL,
+        _DELETE_COL,
+    ) = range(5)
+
     def __init__(self, parent=None):
         super(RegionOfInterestTableWidget, self).__init__(parent)
         self._roiManagerRef = None
 
-        headers = ['Label', 'Edit', 'Kind', 'Coordinates', '']
+        headers = ["Label", "Edit", "Kind", "Coordinates", ""]
         self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers)
 
@@ -1278,21 +1305,17 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         self.itemChanged.connect(self.__itemChanged)
 
     def __itemChanged(self, item):
-        """Handle item updates"""
+        """Handle QTableWidget item updates"""
         column = item.column()
-        index = item.data(qt.Qt.UserRole)
-
-        if index is not None:
-            manager = self.getRegionOfInterestManager()
-            roi = manager.getRois()[index]
-        else:
+        roi = item.data(qt.Qt.UserRole)
+        if roi is None:
             return
 
         if column == 0:
             # First collect information from item, then update ROI
-            # Otherwise, this causes issues issues
+            # Otherwise, this causes issues
             checked = item.checkState() == qt.Qt.Checked
-            text= item.text()
+            text = item.text()
             roi.setVisible(checked)
             roi.setName(text)
         elif column == 1:
@@ -1300,7 +1323,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         elif column in (2, 3, 4):
             pass  # TODO
         else:
-            logger.error('Unhandled column %d', column)
+            logger.error("Unhandled column %d", column)
 
     def setRegionOfInterestManager(self, manager):
         """Set the :class:`RegionOfInterestManager` object to sync with
@@ -1312,7 +1335,13 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         previousManager = self.getRegionOfInterestManager()
 
         if previousManager is not None:
-            previousManager.sigRoiChanged.disconnect(self._sync)
+            previousManager.sigRoiAdded.disconnect(self.__roiAdded)
+            previousManager.sigRoiAboutToBeRemoved.disconnect(
+                self.__roiAboutToBeRemoved
+            )
+            for roi in previousManager.getRois():
+                self.__disconnectRoi(roi)
+
         self.setRowCount(0)
 
         self._roiManagerRef = weakref.ref(manager)
@@ -1320,7 +1349,10 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
         self._sync()
 
         if manager is not None:
-            manager.sigRoiChanged.connect(self._sync)
+            for roi in manager.getRois():
+                self.__connectRoi(roi)
+            manager.sigRoiAdded.connect(self.__roiAdded)
+            manager.sigRoiAboutToBeRemoved.connect(self.__roiAboutToBeRemoved)
 
     def _getReadableRoiDescription(self, roi):
         """Returns modelisation of a ROI as a readable sequence of values.
@@ -1345,6 +1377,75 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             logger.debug("Backtrace", exc_info=True)
         return text
 
+    def __connectRoi(self, roi: RegionOfInterest):
+        """Start listening ROI signals"""
+        roi.sigItemChanged.connect(self.__roiItemChanged)
+        roi.sigRegionChanged.connect(self.__roiRegionChanged)
+
+    def __disconnectRoi(self, roi: RegionOfInterest):
+        """Stop listening ROI signals"""
+        roi.sigItemChanged.disconnect(self.__roiItemChanged)
+        roi.sigRegionChanged.disconnect(self.__roiRegionChanged)
+
+    def __getRoiRow(self, roi: RegionOfInterest) -> int:
+        """Returns row index of given region of interest
+
+        :raises ValueError: If region of interest is not in the list
+        """
+        manager = self.getRegionOfInterestManager()
+        if manager is None:
+            return
+        return manager.getRois().index(roi)
+
+    def __roiAdded(self, roi: RegionOfInterest):
+        """Handle new ROI added to the manager"""
+        self.__connectRoi(roi)
+        self._sync()
+
+    def __roiAboutToBeRemoved(self, roi: RegionOfInterest):
+        """Handle removing a ROI from the manager"""
+        self.__disconnectRoi(roi)
+        self.removeRow(self.__getRoiRow(roi))
+
+    def __roiItemChanged(self, event: ItemChangedType):
+        """Handle ROI sigItemChanged events"""
+        roi = self.sender()
+        if roi is None:
+            return
+
+        try:
+            row = self.__getRoiRow(roi)
+        except ValueError:
+            return
+
+        if event == ItemChangedType.VISIBLE:
+            item = self.item(row, self._LABEL_VISIBLE_COL)
+            item.setCheckState(qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
+            return
+
+        if event == ItemChangedType.NAME:
+            item = self.item(row, self._LABEL_VISIBLE_COL)
+            item.setText(roi.getName())
+            return
+
+        if event == ItemChangedType.EDITABLE:
+            item = self.item(row, self._EDITABLE_COL)
+            item.setCheckState(qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
+            return
+
+    def __roiRegionChanged(self):
+        """Handle change of ROI coordinates"""
+        roi = self.sender()
+        if roi is None:
+            return
+
+        item = self.item(self.__getRoiRow(roi), self._COORDINATES_COL)
+        if item is None:
+            return
+
+        text = self._getReadableRoiDescription(roi)
+        item.setText(text)
+
     def _sync(self):
         """Update widget content according to ROI manger"""
         manager = self.getRegionOfInterestManager()
@@ -1360,21 +1461,19 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             baseFlags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
 
             # Label and visible
-            label = roi.getName()
-            item = qt.QTableWidgetItem(label)
+            item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsEditable | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, index)
-            item.setCheckState(
-                qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
-            self.setItem(index, 0, item)
+            item.setData(qt.Qt.UserRole, roi)
+            item.setText(roi.getName())
+            item.setCheckState(qt.Qt.Checked if roi.isVisible() else qt.Qt.Unchecked)
+            self.setItem(index, self._LABEL_VISIBLE_COL, item)
 
             # Editable
             item = qt.QTableWidgetItem()
             item.setFlags(baseFlags | qt.Qt.ItemIsUserCheckable)
-            item.setData(qt.Qt.UserRole, index)
-            item.setCheckState(
-                qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
-            self.setItem(index, 1, item)
+            item.setData(qt.Qt.UserRole, roi)
+            item.setCheckState(qt.Qt.Checked if roi.isEditable() else qt.Qt.Unchecked)
+            self.setItem(index, self._EDITABLE_COL, item)
             item.setTextAlignment(qt.Qt.AlignCenter)
             item.setText(None)
 
@@ -1385,19 +1484,18 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
                 label = roi.__class__.__name__
             item = qt.QTableWidgetItem(label.capitalize())
             item.setFlags(baseFlags)
-            self.setItem(index, 2, item)
-
-            item = qt.QTableWidgetItem()
-            item.setFlags(baseFlags)
+            self.setItem(index, self._KIND_COL, item)
 
             # Coordinates
+            item = qt.QTableWidgetItem()
+            item.setFlags(baseFlags)
             text = self._getReadableRoiDescription(roi)
             item.setText(text)
-            self.setItem(index, 3, item)
+            self.setItem(index, self._COORDINATES_COL, item)
 
             # Delete
-            delBtn = _DeleteRegionOfInterestToolButton(None, roi)
             widget = qt.QWidget(self)
+            delBtn = _DeleteRegionOfInterestToolButton(widget, roi)
             layout = qt.QHBoxLayout()
             layout.setContentsMargins(2, 2, 2, 2)
             layout.setSpacing(0)
@@ -1405,7 +1503,7 @@ class RegionOfInterestTableWidget(qt.QTableWidget):
             layout.addStretch(1)
             layout.addWidget(delBtn)
             layout.addStretch(1)
-            self.setCellWidget(index, 4, widget)
+            self.setCellWidget(index, self._DELETE_COL, widget)
 
     def getRegionOfInterestManager(self):
         """Returns the :class:`RegionOfInterestManager` this widget supervise.

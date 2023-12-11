@@ -37,7 +37,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _HeaderLabel(qt.QLabel):
-
     def __init__(self, parent=None):
         qt.QLabel.__init__(self, parent=parent)
         self.setFrameShape(qt.QFrame.StyledPanel)
@@ -89,7 +88,6 @@ class _HeaderLabel(qt.QLabel):
 
 
 class DataPanel(qt.QWidget):
-
     def __init__(self, parent=None, context=None):
         qt.QWidget.__init__(self, parent=parent)
 

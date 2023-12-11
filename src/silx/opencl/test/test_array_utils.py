@@ -33,11 +33,13 @@ __date__ = "14/06/2017"
 import logging
 import numpy as np
 import unittest
+
 try:
     import mako
 except ImportError:
     mako = None
 from ..common import ocl
+
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
@@ -48,7 +50,6 @@ logger = logging.getLogger(__name__)
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestCpy2d(unittest.TestCase):
-
     def setUp(self):
         if ocl is None:
             return
@@ -56,8 +57,8 @@ class TestCpy2d(unittest.TestCase):
         if logger.getEffectiveLevel() <= logging.INFO:
             self.PROFILE = True
             self.queue = cl.CommandQueue(
-                            self.ctx,
-                            properties=cl.command_queue_properties.PROFILING_ENABLE)
+                self.ctx, properties=cl.command_queue_properties.PROFILING_ENABLE
+            )
         else:
             self.PROFILE = False
             self.queue = cl.CommandQueue(self.ctx)
@@ -84,8 +85,12 @@ class TestCpy2d(unittest.TestCase):
         self.offset1 = (offset1_y, offset1_x)
         self.offset2 = (offset2_y, offset2_x)
         # Compute the size of the rectangle to transfer
-        size_y = np.random.randint(2, high=min(self.shape1[0], self.shape2[0]) - max(offset1_y, offset2_y) + 1)
-        size_x = np.random.randint(2, high=min(self.shape1[1], self.shape2[1]) - max(offset1_x, offset2_x) + 1)
+        size_y = np.random.randint(
+            2, high=min(self.shape1[0], self.shape2[0]) - max(offset1_y, offset2_y) + 1
+        )
+        size_x = np.random.randint(
+            2, high=min(self.shape1[1], self.shape2[1]) - max(offset1_x, offset2_x) + 1
+        )
         self.transfer_shape = (size_y, size_x)
 
     def tearDown(self):
@@ -101,7 +106,9 @@ class TestCpy2d(unittest.TestCase):
     def compare(self, result, reference):
         errmax = np.max(np.abs(result - reference))
         logger.info("Max error = %e" % (errmax))
-        self.assertTrue(errmax == 0, str("Max error is too high"))#. PRNG state was %s" % str(self.prng_state)))
+        self.assertTrue(
+            errmax == 0, str("Max error is too high")
+        )  # . PRNG state was %s" % str(self.prng_state)))
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_cpy2d(self):
@@ -112,18 +119,26 @@ class TestCpy2d(unittest.TestCase):
         o1 = self.offset1
         o2 = self.offset2
         T = self.transfer_shape
-        logger.info("""Testing D->D rectangular copy with (N1_y, N1_x) = %s,
+        logger.info(
+            """Testing D->D rectangular copy with (N1_y, N1_x) = %s,
                     (N2_y, N2_x) = %s:
-                    array2[%d:%d, %d:%d] = array1[%d:%d, %d:%d]""" %
-                        (
-                            str(self.shape1), str(self.shape2),
-                            o2[0], o2[0] + T[0],
-                            o2[1], o2[1] + T[1],
-                            o1[0], o1[0] + T[0],
-                            o1[1], o1[1] + T[1]
-                        )
-                    )
-        self.array2[o2[0]:o2[0] + T[0], o2[1]:o2[1] + T[1]] = self.array1[o1[0]:o1[0] + T[0], o1[1]:o1[1] + T[1]]
+                    array2[%d:%d, %d:%d] = array1[%d:%d, %d:%d]"""
+            % (
+                str(self.shape1),
+                str(self.shape2),
+                o2[0],
+                o2[0] + T[0],
+                o2[1],
+                o2[1] + T[1],
+                o1[0],
+                o1[0] + T[0],
+                o1[1],
+                o1[1] + T[1],
+            )
+        )
+        self.array2[o2[0] : o2[0] + T[0], o2[1] : o2[1] + T[1]] = self.array1[
+            o1[0] : o1[0] + T[0], o1[1] : o1[1] + T[1]
+        ]
         kernel_args = (
             self.d_array2.data,
             self.d_array1.data,
@@ -131,7 +146,7 @@ class TestCpy2d(unittest.TestCase):
             np.int32(self.shape1[1]),
             np.int32(self.offset2[::-1]),
             np.int32(self.offset1[::-1]),
-            np.int32(self.transfer_shape[::-1])
+            np.int32(self.transfer_shape[::-1]),
         )
         wg = None
         ndrange = self.transfer_shape[::-1]

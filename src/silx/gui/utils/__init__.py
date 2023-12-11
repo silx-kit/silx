@@ -47,9 +47,9 @@ def blockSignals(*objs):
             obj.blockSignals(previous)
 
 
-class LockReentrant():
-    """Context manager to lock a code block and check the state.
-    """
+class LockReentrant:
+    """Context manager to lock a code block and check the state."""
+
     def __init__(self):
         self.__locked = False
 
@@ -72,4 +72,5 @@ def getQEventName(eventType):
     :returns: str
     """
     from . import qtutils
+
     return qtutils.getQEventName(eventType)

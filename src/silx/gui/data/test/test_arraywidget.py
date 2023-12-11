@@ -40,6 +40,7 @@ import h5py
 
 class TestArrayWidget(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
+
     def setUp(self):
         super(TestArrayWidget, self).setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
@@ -78,16 +79,13 @@ class TestArrayWidget(TestCaseQt):
         self.assertEqual(len(self.aw.model._perspective), 0)
 
     def testSetData4D(self):
-        a = numpy.reshape(numpy.linspace(0.213, 1.234, 1250),
-                          (5, 5, 5, 10))
+        a = numpy.reshape(numpy.linspace(0.213, 1.234, 1250), (5, 5, 5, 10))
         self.aw.setArrayData(a)
 
         # default perspective (0, 1)
-        self.assertEqual(list(self.aw.model._perspective),
-                         [0, 1])
+        self.assertEqual(list(self.aw.model._perspective), [0, 1])
         self.aw.setPerspective((1, 3))
-        self.assertEqual(list(self.aw.model._perspective),
-                         [1, 3])
+        self.assertEqual(list(self.aw.model._perspective), [1, 3])
 
         b = self.aw.getData(copy=True)
         self.assertTrue(numpy.array_equal(a, b))
@@ -95,12 +93,10 @@ class TestArrayWidget(TestCaseQt):
         # 4D data has a 2-tuple as frame index
         self.assertEqual(len(self.aw.model._index), 2)
         # default index is (0, 0)
-        self.assertEqual(list(self.aw.model._index),
-                         [0, 0])
+        self.assertEqual(list(self.aw.model._index), [0, 0])
         self.aw.setFrameIndex((3, 1))
 
-        self.assertEqual(list(self.aw.model._index),
-                         [3, 1])
+        self.assertEqual(list(self.aw.model._index), [3, 1])
 
     def testColors(self):
         a = numpy.arange(256, dtype=numpy.uint8)
@@ -120,18 +116,20 @@ class TestArrayWidget(TestCaseQt):
         for i in range(256):
             # all RGB channels for BG equal to data value
             self.assertEqual(
-                self.aw.model.data(self.aw.model.index(0, i),
-                                   role=qt.Qt.BackgroundRole),
+                self.aw.model.data(
+                    self.aw.model.index(0, i), role=qt.Qt.BackgroundRole
+                ),
                 qt.QColor(i, i, i),
-                "Unexpected background color"
+                "Unexpected background color",
             )
 
             # all RGB channels for FG equal to XOR(data value, 255)
             self.assertEqual(
-                self.aw.model.data(self.aw.model.index(0, i),
-                                   role=qt.Qt.ForegroundRole),
+                self.aw.model.data(
+                    self.aw.model.index(0, i), role=qt.Qt.ForegroundRole
+                ),
                 qt.QColor(i ^ 255, i ^ 255, i ^ 255),
-                "Unexpected text color"
+                "Unexpected text color",
             )
 
         # test colors are reset to None when a new data array is loaded
@@ -141,30 +139,27 @@ class TestArrayWidget(TestCaseQt):
         for i in range(300):
             # all RGB channels for BG equal to data value
             self.assertIsNone(
-                self.aw.model.data(self.aw.model.index(0, i),
-                                   role=qt.Qt.BackgroundRole))
+                self.aw.model.data(self.aw.model.index(0, i), role=qt.Qt.BackgroundRole)
+            )
 
     def testDefaultFlagNotEditable(self):
         """editable should be False by default, in setArrayData"""
         self.aw.setArrayData([[0]])
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
-        self.assertFalse(
-                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        self.assertFalse(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
     def testFlagEditable(self):
         self.aw.setArrayData([[0]], editable=True)
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
-        self.assertTrue(
-                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        self.assertTrue(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
     def testFlagNotEditable(self):
         self.aw.setArrayData([[0]], editable=False)
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
-        self.assertFalse(
-                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        self.assertFalse(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
     def testReferenceReturned(self):
         """when setting the data with copy=False and
@@ -172,8 +167,7 @@ class TestArrayWidget(TestCaseQt):
         the same original object.
         """
         # n-D (n >=2)
-        a0 = numpy.reshape(numpy.linspace(0.213, 1.234, 1000),
-                           (10, 10, 10))
+        a0 = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
         self.aw.setArrayData(a0, copy=False)
         a1 = self.aw.getData(copy=False)
 
@@ -202,15 +196,15 @@ class TestH5pyArrayWidget(TestCaseQt):
     """Basic test for ArrayTableWidget with a dataset.
 
     Test flags, for dataset open in read-only or read-write modes"""
+
     def setUp(self):
         super(TestH5pyArrayWidget, self).setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
-        self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000),
-                                  (10, 10, 10))
+        self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
         # create an h5py file with a dataset
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "array.h5")
-        h5f = h5py.File(self.h5_fname, mode='w')
+        h5f = h5py.File(self.h5_fname, mode="w")
         h5f["my_array"] = self.data
         h5f["my_scalar"] = 3.14
         h5f["my_1D_array"] = numpy.array(numpy.arange(1000))
@@ -235,7 +229,7 @@ class TestH5pyArrayWidget(TestCaseQt):
 
         self.aw.setArrayData(a, copy=False, editable=True)
 
-        self.assertIsInstance(a, h5py.Dataset)   # simple sanity check
+        self.assertIsInstance(a, h5py.Dataset)  # simple sanity check
         # internal representation must be a reference to original data (copy=False)
         self.assertIsInstance(self.aw.model._array, h5py.Dataset)
         self.assertTrue(self.aw.model._array.file.mode == "r")
@@ -246,12 +240,12 @@ class TestH5pyArrayWidget(TestCaseQt):
         # model must have detected read-only dataset and disabled editing
         self.assertFalse(self.aw.model._editable)
         idx = self.aw.model.createIndex(0, 0)
-        self.assertFalse(
-                 self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        self.assertFalse(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
         # force editing read-only datasets raises IOError
-        self.assertRaises(IOError, self.aw.model.setData,
-                          idx, 123.4, role=qt.Qt.EditRole)
+        self.assertRaises(
+            IOError, self.aw.model.setData, idx, 123.4, role=qt.Qt.EditRole
+        )
         h5f.close()
 
     def testReadWrite(self):
@@ -265,8 +259,7 @@ class TestH5pyArrayWidget(TestCaseQt):
 
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
-        self.assertTrue(
-                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        self.assertTrue(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
         h5f.close()
 
     def testSetData0D(self):

@@ -46,9 +46,9 @@ class TestPlot(unittest.TestCase):
     def testPlotTitleLabels(self):
         """Create a Plot and set the labels"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
-        title, xlabel, ylabel = 'the title', 'x label', 'y label'
+        title, xlabel, ylabel = "the title", "x label", "y label"
         plot.setGraphTitle(title)
         plot.getXAxis().setLabel(xlabel)
         plot.getYAxis().setLabel(ylabel)
@@ -60,26 +60,29 @@ class TestPlot(unittest.TestCase):
     def testAddNoRemove(self):
         """add objects to the Plot"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
         plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))
-        plot.addImage(numpy.arange(100.).reshape(10, -1))
-        plot.addShape(numpy.array((1., 10.)),
-                      numpy.array((10., 10.)),
-                      shape="rectangle")
-        plot.addXMarker(10.)
+        plot.addImage(numpy.arange(100.0).reshape(10, -1))
+        plot.addShape(
+            numpy.array((1.0, 10.0)), numpy.array((10.0, 10.0)), shape="rectangle"
+        )
+        plot.addXMarker(10.0)
 
 
 class TestPlotRanges(ParametricTestCase):
     """Basic tests of Plot data ranges without backend"""
 
-    _getValidValues = {True: lambda ar: ar > 0,
-                       False: lambda ar: numpy.ones(shape=ar.shape,
-                                                    dtype=bool)}
+    _getValidValues = {
+        True: lambda ar: ar > 0,
+        False: lambda ar: numpy.ones(shape=ar.shape, dtype=bool),
+    }
 
     @staticmethod
     def _getRanges(arrays, are_logs):
-        gen = (TestPlotRanges._getValidValues[is_log](ar)
-               for (ar, is_log) in zip(arrays, are_logs))
+        gen = (
+            TestPlotRanges._getValidValues[is_log](ar)
+            for (ar, is_log) in zip(arrays, are_logs)
+        )
         indices = numpy.where(reduce(numpy.logical_and, gen))[0]
         if len(indices) > 0:
             ranges = [(ar[indices[0]], ar[indices[-1]]) for ar in arrays]
@@ -98,13 +101,15 @@ class TestPlotRanges(ParametricTestCase):
     def testDataRangeNoPlot(self):
         """empty plot data range"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
@@ -116,27 +121,25 @@ class TestPlotRanges(ParametricTestCase):
     def testDataRangeLeft(self):
         """left axis range"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         xData = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
         yData = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
 
-        plot.addCurve(x=xData,
-                      y=yData,
-                      legend='plot_0',
-                      yaxis='left')
+        plot.addCurve(x=xData, y=yData, legend="plot_0", yaxis="left")
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
-                xRange, yRange = self._getRanges([xData, yData],
-                                                 [logX, logY])
+                xRange, yRange = self._getRanges([xData, yData], [logX, logY])
                 self.assertSequenceEqual(dataRange.x, xRange)
                 self.assertSequenceEqual(dataRange.y, yRange)
                 self.assertIsNone(dataRange.yright)
@@ -144,25 +147,23 @@ class TestPlotRanges(ParametricTestCase):
     def testDataRangeRight(self):
         """right axis range"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
         xData = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
         yData = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
-        plot.addCurve(x=xData,
-                      y=yData,
-                      legend='plot_0',
-                      yaxis='right')
+        plot.addCurve(x=xData, y=yData, legend="plot_0", yaxis="right")
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
-                xRange, yRange = self._getRanges([xData, yData],
-                                                 [logX, logY])
+                xRange, yRange = self._getRanges([xData, yData], [logX, logY])
                 self.assertSequenceEqual(dataRange.x, xRange)
                 self.assertIsNone(dataRange.y)
                 self.assertSequenceEqual(dataRange.yright, yRange)
@@ -171,69 +172,70 @@ class TestPlotRanges(ParametricTestCase):
         """image data range"""
 
         origin = (-10, 25)
-        scale = (3., 8.)
-        image = numpy.arange(100.).reshape(20, 5)
+        scale = (3.0, 8.0)
+        image = numpy.arange(100.0).reshape(20, 5)
 
-        plot = PlotWidget(backend='none')
-        plot.addImage(image,
-                      origin=origin, scale=scale)
+        plot = PlotWidget(backend="none")
+        plot.addImage(image, origin=origin, scale=scale)
 
-        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
-        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        xRange = numpy.array([0.0, image.shape[1] * scale[0]]) + origin[0]
+        yRange = numpy.array([0.0, image.shape[0] * scale[1]]) + origin[1]
 
-        ranges = {(False, False): (xRange, yRange),
-                  (True, False): (None, None),
-                  (True, True): (None, None),
-                  (False, True): (None, None)}
+        ranges = {
+            (False, False): (xRange, yRange),
+            (True, False): (None, None),
+            (True, True): (None, None),
+            (False, True): (None, None),
+        }
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
-                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
-                                msg='{0} != {1}'.format(dataRange.x, xRange))
-                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertTrue(
+                    numpy.array_equal(dataRange.x, xRange),
+                    msg="{0} != {1}".format(dataRange.x, xRange),
+                )
+                self.assertTrue(
+                    numpy.array_equal(dataRange.y, yRange),
+                    msg="{0} != {1}".format(dataRange.y, yRange),
+                )
                 self.assertIsNone(dataRange.yright)
 
     def testDataRangeLeftRight(self):
         """right+left axis range"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         xData_l = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
         yData_l = numpy.arange(10) - 1.9  # range : -1.9 , 7.1
-        plot.addCurve(x=xData_l,
-                      y=yData_l,
-                      legend='plot_l',
-                      yaxis='left')
+        plot.addCurve(x=xData_l, y=yData_l, legend="plot_l", yaxis="left")
 
         xData_r = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
         yData_r = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
-        plot.addCurve(x=xData_r,
-                      y=yData_r,
-                      legend='plot_r',
-                      yaxis='right')
+        plot.addCurve(x=xData_r, y=yData_r, legend="plot_r", yaxis="right")
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
-                xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
-                                                   [logX, logY])
-                xRangeR, yRangeR = self._getRanges([xData_r, yData_r],
-                                                   [logX, logY])
+                xRangeL, yRangeL = self._getRanges([xData_l, yData_l], [logX, logY])
+                xRangeR, yRangeR = self._getRanges([xData_r, yData_r], [logX, logY])
                 xRangeLR = self._getRangesMinmax([xRangeL, xRangeR])
                 self.assertSequenceEqual(dataRange.x, xRangeLR)
                 self.assertSequenceEqual(dataRange.y, yRangeL)
@@ -246,51 +248,42 @@ class TestPlotRanges(ParametricTestCase):
         # image sets x min and y max
         # plot_left sets y min
         # plot_right sets x max (and yright)
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         origin = (-10, 5)
-        scale = (3., 8.)
-        image = numpy.arange(100.).reshape(20, 5)
+        scale = (3.0, 8.0)
+        image = numpy.arange(100.0).reshape(20, 5)
 
-        plot.addImage(image,
-                      origin=origin, scale=scale, legend='image')
+        plot.addImage(image, origin=origin, scale=scale, legend="image")
 
         xData_l = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
         yData_l = numpy.arange(10) - 1.9  # range : -1.9 , 7.1
-        plot.addCurve(x=xData_l,
-                      y=yData_l,
-                      legend='plot_l',
-                      yaxis='left')
+        plot.addCurve(x=xData_l, y=yData_l, legend="plot_l", yaxis="left")
 
         xData_r = numpy.arange(10) + 4.1  # range : 4.1 , 13.1
         yData_r = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
-        plot.addCurve(x=xData_r,
-                      y=yData_r,
-                      legend='plot_r',
-                      yaxis='right')
+        plot.addCurve(x=xData_r, y=yData_r, legend="plot_r", yaxis="right")
 
-        imgXRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
-        imgYRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        imgXRange = numpy.array([0.0, image.shape[1] * scale[0]]) + origin[0]
+        imgYRange = numpy.array([0.0, image.shape[0] * scale[1]]) + origin[1]
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
-                xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
-                                                   [logX, logY])
-                xRangeR, yRangeR = self._getRanges([xData_r, yData_r],
-                                                   [logX, logY])
+                xRangeL, yRangeL = self._getRanges([xData_l, yData_l], [logX, logY])
+                xRangeR, yRangeR = self._getRanges([xData_r, yData_r], [logX, logY])
                 if logX or logY:
                     xRangeLR = self._getRangesMinmax([xRangeL, xRangeR])
                 else:
-                    xRangeLR = self._getRangesMinmax([xRangeL,
-                                                      xRangeR,
-                                                      imgXRange])
+                    xRangeLR = self._getRangesMinmax([xRangeL, xRangeR, imgXRange])
                     yRangeL = self._getRangesMinmax([yRangeL, imgYRange])
                 self.assertSequenceEqual(dataRange.x, xRangeLR)
                 self.assertSequenceEqual(dataRange.y, yRangeL)
@@ -300,83 +293,97 @@ class TestPlotRanges(ParametricTestCase):
         """image data range, negative scale"""
 
         origin = (-10, 25)
-        scale = (-3., 8.)
-        image = numpy.arange(100.).reshape(20, 5)
+        scale = (-3.0, 8.0)
+        image = numpy.arange(100.0).reshape(20, 5)
 
-        plot = PlotWidget(backend='none')
-        plot.addImage(image,
-                      origin=origin, scale=scale)
+        plot = PlotWidget(backend="none")
+        plot.addImage(image, origin=origin, scale=scale)
 
-        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        xRange = numpy.array([0.0, image.shape[1] * scale[0]]) + origin[0]
         xRange.sort()  # negative scale!
-        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        yRange = numpy.array([0.0, image.shape[0] * scale[1]]) + origin[1]
 
-        ranges = {(False, False): (xRange, yRange),
-                  (True, False): (None, None),
-                  (True, True): (None, None),
-                  (False, True): (None, None)}
+        ranges = {
+            (False, False): (xRange, yRange),
+            (True, False): (None, None),
+            (True, True): (None, None),
+            (False, True): (None, None),
+        }
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
-                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
-                                msg='{0} != {1}'.format(dataRange.x, xRange))
-                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertTrue(
+                    numpy.array_equal(dataRange.x, xRange),
+                    msg="{0} != {1}".format(dataRange.x, xRange),
+                )
+                self.assertTrue(
+                    numpy.array_equal(dataRange.y, yRange),
+                    msg="{0} != {1}".format(dataRange.y, yRange),
+                )
                 self.assertIsNone(dataRange.yright)
 
     def testDataRangeImageNegativeScaleY(self):
         """image data range, negative scale"""
 
         origin = (-10, 25)
-        scale = (3., -8.)
-        image = numpy.arange(100.).reshape(20, 5)
+        scale = (3.0, -8.0)
+        image = numpy.arange(100.0).reshape(20, 5)
 
-        plot = PlotWidget(backend='none')
-        plot.addImage(image,
-                      origin=origin, scale=scale)
+        plot = PlotWidget(backend="none")
+        plot.addImage(image, origin=origin, scale=scale)
 
-        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
-        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        xRange = numpy.array([0.0, image.shape[1] * scale[0]]) + origin[0]
+        yRange = numpy.array([0.0, image.shape[0] * scale[1]]) + origin[1]
         yRange.sort()  # negative scale!
 
-        ranges = {(False, False): (xRange, yRange),
-                  (True, False): (None, None),
-                  (True, True): (None, None),
-                  (False, True): (None, None)}
+        ranges = {
+            (False, False): (xRange, yRange),
+            (True, False): (None, None),
+            (True, True): (None, None),
+            (False, True): (None, None),
+        }
 
-        for logX, logY in ((False, False),
-                           (True, False),
-                           (True, True),
-                           (False, True),
-                           (False, False)):
+        for logX, logY in (
+            (False, False),
+            (True, False),
+            (True, True),
+            (False, True),
+            (False, False),
+        ):
             with self.subTest(logX=logX, logY=logY):
                 plot.getXAxis()._setLogarithmic(logX)
                 plot.getYAxis()._setLogarithmic(logY)
                 dataRange = plot.getDataRange()
                 xRange, yRange = ranges[logX, logY]
-                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
-                                msg='{0} != {1}'.format(dataRange.x, xRange))
-                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertTrue(
+                    numpy.array_equal(dataRange.x, xRange),
+                    msg="{0} != {1}".format(dataRange.x, xRange),
+                )
+                self.assertTrue(
+                    numpy.array_equal(dataRange.y, yRange),
+                    msg="{0} != {1}".format(dataRange.y, yRange),
+                )
                 self.assertIsNone(dataRange.yright)
 
     def testDataRangeHiddenCurve(self):
         """curves with a hidden curve"""
-        plot = PlotWidget(backend='none')
-        plot.addCurve((0, 1), (0, 1), legend='shown')
-        plot.addCurve((0, 1, 2), (5, 5, 5), legend='hidden')
+        plot = PlotWidget(backend="none")
+        plot.addCurve((0, 1), (0, 1), legend="shown")
+        plot.addCurve((0, 1, 2), (5, 5, 5), legend="hidden")
         range1 = plot.getDataRange()
         self.assertEqual(range1.x, (0, 2))
         self.assertEqual(range1.y, (0, 5))
-        plot.hideCurve('hidden')
+        plot.hideCurve("hidden")
         range2 = plot.getDataRange()
         self.assertEqual(range2.x, (0, 1))
         self.assertEqual(range2.y, (0, 1))
@@ -388,108 +395,108 @@ class TestPlotGetCurveImage(unittest.TestCase):
     def testGetCurve(self):
         """PlotWidget.getCurve and Plot.getActiveCurve tests"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No curve
         curve = plot.getCurve()
         self.assertIsNone(curve)  # No curve
 
         plot.setActiveCurveHandling(True)
-        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 0')
-        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 1')
-        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 2')
-        plot.setActiveCurve('curve 0')
+        plot.addCurve(x=(0, 1), y=(0, 1), legend="curve 0")
+        plot.addCurve(x=(0, 1), y=(0, 1), legend="curve 1")
+        plot.addCurve(x=(0, 1), y=(0, 1), legend="curve 2")
+        plot.setActiveCurve("curve 0")
 
         # Active curve
         active = plot.getActiveCurve()
-        self.assertEqual(active.getName(), 'curve 0')
+        self.assertEqual(active.getName(), "curve 0")
         curve = plot.getCurve()
-        self.assertEqual(curve.getName(), 'curve 0')
+        self.assertEqual(curve.getName(), "curve 0")
 
         # No active curve and curves
         plot.setActiveCurveHandling(False)
         active = plot.getActiveCurve()
         self.assertIsNone(active)  # No active curve
         curve = plot.getCurve()
-        self.assertEqual(curve.getName(), 'curve 2')  # Last added curve
+        self.assertEqual(curve.getName(), "curve 2")  # Last added curve
 
         # Last curve hidden
-        plot.hideCurve('curve 2', True)
+        plot.hideCurve("curve 2", True)
         curve = plot.getCurve()
-        self.assertEqual(curve.getName(), 'curve 1')  # Last added curve
+        self.assertEqual(curve.getName(), "curve 1")  # Last added curve
 
         # All curves hidden
-        plot.hideCurve('curve 1', True)
-        plot.hideCurve('curve 0', True)
+        plot.hideCurve("curve 1", True)
+        plot.hideCurve("curve 0", True)
         curve = plot.getCurve()
         self.assertIsNone(curve)
 
     def testGetCurveOldApi(self):
         """old API PlotWidget.getCurve and Plot.getActiveCurve tests"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No curve
         curve = plot.getCurve()
         self.assertIsNone(curve)  # No curve
 
         plot.setActiveCurveHandling(True)
-        x = numpy.arange(10.).astype(numpy.float32)
+        x = numpy.arange(10.0).astype(numpy.float32)
         y = x * x
-        plot.addCurve(x=x, y=y, legend='curve 0', info=["whatever"])
-        plot.addCurve(x=x, y=2*x, legend='curve 1', info="anything")
-        plot.setActiveCurve('curve 0')
+        plot.addCurve(x=x, y=y, legend="curve 0", info=["whatever"])
+        plot.addCurve(x=x, y=2 * x, legend="curve 1", info="anything")
+        plot.setActiveCurve("curve 0")
 
         # Active curve (4 elements)
         xOut, yOut, legend, info = plot.getActiveCurve()[:4]
-        self.assertEqual(legend, 'curve 0')
-        self.assertTrue(numpy.allclose(xOut, x), 'curve 0 wrong x data')
-        self.assertTrue(numpy.allclose(yOut, y), 'curve 0 wrong y data')
+        self.assertEqual(legend, "curve 0")
+        self.assertTrue(numpy.allclose(xOut, x), "curve 0 wrong x data")
+        self.assertTrue(numpy.allclose(yOut, y), "curve 0 wrong y data")
 
         # Active curve (5 elements)
         xOut, yOut, legend, info, params = plot.getCurve("curve 1")
-        self.assertEqual(legend, 'curve 1')
-        self.assertEqual(info, 'anything')
-        self.assertTrue(numpy.allclose(xOut, x), 'curve 1 wrong x data')
-        self.assertTrue(numpy.allclose(yOut, 2 * x), 'curve 1 wrong y data')
+        self.assertEqual(legend, "curve 1")
+        self.assertEqual(info, "anything")
+        self.assertTrue(numpy.allclose(xOut, x), "curve 1 wrong x data")
+        self.assertTrue(numpy.allclose(yOut, 2 * x), "curve 1 wrong y data")
 
     def testGetImage(self):
         """PlotWidget.getImage and PlotWidget.getActiveImage tests"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No image
         image = plot.getImage()
         self.assertIsNone(image)
 
-        plot.addImage(((0, 1), (2, 3)), legend='image 0')
-        plot.addImage(((0, 1), (2, 3)), legend='image 1')
+        plot.addImage(((0, 1), (2, 3)), legend="image 0")
+        plot.addImage(((0, 1), (2, 3)), legend="image 1")
 
         # Active image
         active = plot.getActiveImage()
-        self.assertEqual(active.getName(), 'image 0')
+        self.assertEqual(active.getName(), "image 0")
         image = plot.getImage()
-        self.assertEqual(image.getName(), 'image 0')
+        self.assertEqual(image.getName(), "image 0")
 
         # No active image
-        plot.addImage(((0, 1), (2, 3)), legend='image 2')
+        plot.addImage(((0, 1), (2, 3)), legend="image 2")
         plot.setActiveImage(None)
         active = plot.getActiveImage()
         self.assertIsNone(active)
         image = plot.getImage()
-        self.assertEqual(image.getName(), 'image 2')
+        self.assertEqual(image.getName(), "image 2")
 
         # Active image
-        plot.setActiveImage('image 1')
+        plot.setActiveImage("image 1")
         active = plot.getActiveImage()
-        self.assertEqual(active.getName(), 'image 1')
+        self.assertEqual(active.getName(), "image 1")
         image = plot.getImage()
-        self.assertEqual(image.getName(), 'image 1')
+        self.assertEqual(image.getName(), "image 1")
 
     def testGetImageOldApi(self):
         """PlotWidget.getImage and PlotWidget.getActiveImage old API tests"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No image
         image = plot.getImage()
@@ -498,18 +505,18 @@ class TestPlotGetCurveImage(unittest.TestCase):
         image = numpy.arange(10).astype(numpy.float32)
         image.shape = 5, 2
 
-        plot.addImage(image, legend='image 0', info=["Hi!"])
+        plot.addImage(image, legend="image 0", info=["Hi!"])
 
         # Active image
         data, legend, info, something, params = plot.getActiveImage()
-        self.assertEqual(legend, 'image 0')
+        self.assertEqual(legend, "image 0")
         self.assertEqual(info, ["Hi!"])
         self.assertTrue(numpy.allclose(data, image), "image 0 data not correct")
 
     def testGetAllImages(self):
         """PlotWidget.getAllImages test"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No image
         images = plot.getAllImages()
@@ -517,35 +524,34 @@ class TestPlotGetCurveImage(unittest.TestCase):
 
         # 2 images
         data = numpy.arange(100).reshape(10, 10)
-        plot.addImage(data, legend='1')
-        plot.addImage(data, origin=(10, 10), legend='2')
+        plot.addImage(data, legend="1")
+        plot.addImage(data, origin=(10, 10), legend="2")
         images = plot.getAllImages(just_legend=True)
-        self.assertEqual(list(images), ['1', '2'])
+        self.assertEqual(list(images), ["1", "2"])
         images = plot.getAllImages(just_legend=False)
         self.assertEqual(len(images), 2)
-        self.assertEqual(images[0].getName(), '1')
-        self.assertEqual(images[1].getName(), '2')
+        self.assertEqual(images[0].getName(), "1")
+        self.assertEqual(images[1].getName(), "2")
 
 
 class TestPlotAddScatter(unittest.TestCase):
     """Test of plot addScatter"""
 
     def testAddGetScatter(self):
-
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         # No curve
         scatter = plot._getItem(kind="scatter")
         self.assertIsNone(scatter)  # No curve
 
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
-        plot._setActiveItem('scatter', 'scatter 0')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 0")
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 1")
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 2")
+        plot.setActiveScatter("scatter 0")
 
         # Active scatter
-        active = plot._getActiveItem(kind='scatter')
-        self.assertEqual(active.getName(), 'scatter 0')
+        active = plot.getActiveScatter()
+        self.assertEqual(active.getName(), "scatter 0")
 
         # check default values
         self.assertAlmostEqual(active.getSymbolSize(), active._DEFAULT_SYMBOL_SIZE)
@@ -563,26 +569,26 @@ class TestPlotAddScatter(unittest.TestCase):
         self.assertEqual(s0.getSymbol(), "d")
         self.assertAlmostEqual(s0.getAlpha(), 0.777)
 
-        scatter1 = plot._getItem(kind='scatter', legend='scatter 1')
-        self.assertEqual(scatter1.getName(), 'scatter 1')
+        scatter1 = plot._getItem(kind="scatter", legend="scatter 1")
+        self.assertEqual(scatter1.getName(), "scatter 1")
 
     def testGetAllScatters(self):
         """PlotWidget.getAllImages test"""
 
-        plot = PlotWidget(backend='none')
+        plot = PlotWidget(backend="none")
 
         items = plot.getItems()
         self.assertEqual(len(items), 0)
 
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 0')
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 1')
-        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend='scatter 2')
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 0")
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 1")
+        plot.addScatter(x=(0, 1), y=(0, 1), value=(0, 1), legend="scatter 2")
 
         items = plot.getItems()
         self.assertEqual(len(items), 3)
-        self.assertEqual(items[0].getName(), 'scatter 0')
-        self.assertEqual(items[1].getName(), 'scatter 1')
-        self.assertEqual(items[2].getName(), 'scatter 2')
+        self.assertEqual(items[0].getName(), "scatter 0")
+        self.assertEqual(items[1].getName(), "scatter 1")
+        self.assertEqual(items[2].getName(), "scatter 2")
 
 
 class TestPlotHistogram(unittest.TestCase):
@@ -595,13 +601,13 @@ class TestPlotHistogram(unittest.TestCase):
         edgesCenter = numpy.array([-0.5, 0.5, 1.5, 2.5])
 
         # testing x values for right
-        edges = _computeEdges(x, 'right')
+        edges = _computeEdges(x, "right")
         numpy.testing.assert_array_equal(edges, edgesRight)
 
-        edges = _computeEdges(x, 'center')
+        edges = _computeEdges(x, "center")
         numpy.testing.assert_array_equal(edges, edgesCenter)
 
-        edges = _computeEdges(x, 'left')
+        edges = _computeEdges(x, "left")
         numpy.testing.assert_array_equal(edges, edgesLeft)
 
     def testHistogramCurve(self):
@@ -609,14 +615,14 @@ class TestPlotHistogram(unittest.TestCase):
         edges = numpy.array([0, 1, 2, 3])
 
         xHisto, yHisto = _getHistogramCurve(y, edges)
-        numpy.testing.assert_array_equal(
-            yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
 
         y = numpy.array([-3, 2, 5, 0])
         edges = numpy.array([-2, -1, 0, 1, 2])
         xHisto, yHisto = _getHistogramCurve(y, edges)
         numpy.testing.assert_array_equal(
-            yHisto, numpy.array([-3, -3, 2, 2, 5, 5, 0, 0]))
+            yHisto, numpy.array([-3, -3, 2, 2, 5, 5, 0, 0])
+        )
 
 
 def testSetDefaultColors(qWidgetFactory):
@@ -624,16 +630,20 @@ def testSetDefaultColors(qWidgetFactory):
     plot = qWidgetFactory(PlotWidget)
 
     # By default using config
-    assert numpy.array_equal(plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS)
+    assert numpy.array_equal(
+        plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS
+    )
 
     # Use own colors
-    colors = 'red', 'green', 'blue'
+    colors = "red", "green", "blue"
     plot.setDefaultColors(colors)
     assert plot.getDefaultColors() == colors
 
     # Reset to default
     plot.setDefaultColors(None)
-    assert numpy.array_equal(plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS)
+    assert numpy.array_equal(
+        plot.getDefaultColors(), silx.config.DEFAULT_PLOT_CURVE_COLORS
+    )
 
 
 def testSetDefaultColorsAddCurve(qWidgetFactory):
@@ -644,7 +654,7 @@ def testSetDefaultColorsAddCurve(qWidgetFactory):
     plot.addCurve((0, 1), (1, 1), legend="curve1")
     plot.addCurve((0, 1), (2, 2), legend="curve2")
 
-    colors = '#123456', '#abcdef'
+    colors = "#123456", "#abcdef"
     plot.setDefaultColors(colors)
     assert plot.getDefaultColors() == colors
 
@@ -663,7 +673,7 @@ def testDefaultColorsUpdateConfig(qWidgetFactory):
 
     previous_colors = silx.config.DEFAULT_PLOT_CURVE_COLORS
     try:
-        colors = '#123456', '#abcdef'
+        colors = "#123456", "#abcdef"
         silx.config.DEFAULT_PLOT_CURVE_COLORS = colors
         assert plot.getDefaultColors() == colors
 

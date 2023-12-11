@@ -1,8 +1,13 @@
 [build-system]
 requires = [
     "wheel",
-    "setuptools<60.0.0",
+    "setuptools",
     "numpy>=1.12",
     "Cython>=0.21.1"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+required-version = 23
+target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+safe = true

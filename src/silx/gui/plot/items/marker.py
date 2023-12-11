@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2020 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
 # ###########################################################################*/
 """This module provides markers item of the :class:`Plot`.
 """
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -32,8 +33,16 @@ __date__ = "06/03/2017"
 import logging
 
 from ....utils.proxy import docstring
-from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
-                   ItemChangedType, YAxisMixIn)
+from .core import (
+    Item,
+    DraggableMixIn,
+    ColorMixIn,
+    LineMixIn,
+    SymbolMixIn,
+    ItemChangedType,
+    YAxisMixIn,
+)
+from silx import config
 from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
@@ -47,7 +56,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     sigDragFinished = qt.Signal()
     """Signal emitted when the marker is released"""
 
-    _DEFAULT_COLOR = (0., 0., 0., 1.)
+    _DEFAULT_COLOR = (0.0, 0.0, 0.0, 1.0)
     """Default color of the markers"""
 
     def __init__(self):
@@ -56,14 +65,20 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         ColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
 
-        self._text = ''
+        self._text = ""
+        self._font = None
+        if config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE is not None:
+            self._font = qt.QFont(
+                qt.QApplication.instance().font().family(),
+                config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE,
+            )
+
         self._x = None
         self._y = None
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
 
-    def _addRendererCall(self, backend,
-                         symbol=None, linestyle='-', linewidth=1):
+    def _addRendererCall(self, backend, symbol=None, linestyle="-", linewidth=1):
         """Perform the update of the backend renderer"""
         return backend.addMarker(
             x=self.getXPosition(),
@@ -74,7 +89,9 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             linestyle=linestyle,
             linewidth=linewidth,
             constraint=self.getConstraint(),
-            yaxis=self.getYAxis())
+            yaxis=self.getYAxis(),
+            font=self._font,  # Do not use getFont to spare creating a new QFont
+        )
 
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
@@ -108,6 +125,22 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             self._text = text
             self._updated(ItemChangedType.TEXT)
 
+    def getFont(self) -> qt.QFont | None:
+        """Returns a copy of the QFont used to render text.
+
+        To modify the text font, use :meth:`setFont`.
+        """
+        return None if self._font is None else qt.QFont(self._font)
+
+    def setFont(self, font: qt.QFont | None):
+        """Set the QFont used to render text, use None for default.
+
+        A copy is stored, so further modification of the provided font are not taken into account.
+        """
+        if font != self._font:
+            self._font = None if font is None else qt.QFont(font)
+            self._updated(ItemChangedType.FONT)
+
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates
 
@@ -122,14 +155,14 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         """
         return self._y
 
-    def getPosition(self):
+    def getPosition(self) -> tuple[float | None, float | None]:
         """Returns the (x, y) position of the marker in data coordinates
 
         :rtype: 2-tuple of float or None
         """
         return self._x, self._y
 
-    def setPosition(self, x, y):
+    def setPosition(self, x: float, y: float):
         """Set marker position in data coordinates
 
         Constraint are applied if any.
@@ -188,15 +221,15 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 class Marker(MarkerBase, SymbolMixIn):
     """Description of a marker"""
 
-    _DEFAULT_SYMBOL = '+'
+    _DEFAULT_SYMBOL = "+"
     """Default symbol of the marker"""
 
     def __init__(self):
         MarkerBase.__init__(self)
         SymbolMixIn.__init__(self)
 
-        self._x = 0.
-        self._y = 0.
+        self._x = 0.0
+        self._y = 0.0
 
     def _addBackendRenderer(self, backend):
         return self._addRendererCall(backend, symbol=self.getSymbol())
@@ -209,9 +242,9 @@ class Marker(MarkerBase, SymbolMixIn):
         :param constraint: The constraint of the dragging of this marker
         :type: constraint: callable or str
         """
-        if constraint == 'horizontal':
+        if constraint == "horizontal":
             constraint = self._horizontalConstraint
-        elif constraint == 'vertical':
+        elif constraint == "vertical":
             constraint = self._verticalConstraint
 
         super(Marker, self)._setConstraint(constraint)
@@ -231,9 +264,9 @@ class _LineMarker(MarkerBase, LineMixIn):
         LineMixIn.__init__(self)
 
     def _addBackendRenderer(self, backend):
-        return self._addRendererCall(backend,
-                                     linestyle=self.getLineStyle(),
-                                     linewidth=self.getLineWidth())
+        return self._addRendererCall(
+            backend, linestyle=self.getLineStyle(), linewidth=self.getLineWidth()
+        )
 
 
 class XMarker(_LineMarker):
@@ -241,7 +274,7 @@ class XMarker(_LineMarker):
 
     def __init__(self):
         _LineMarker.__init__(self)
-        self._x = 0.
+        self._x = 0.0
 
     def setPosition(self, x, y):
         """Set marker line position in data coordinates
@@ -263,7 +296,7 @@ class YMarker(_LineMarker):
 
     def __init__(self):
         _LineMarker.__init__(self)
-        self._y = 0.
+        self._y = 0.0
 
     def setPosition(self, x, y):
         """Set marker line position in data coordinates

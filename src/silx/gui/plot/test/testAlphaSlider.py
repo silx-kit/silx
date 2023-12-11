@@ -75,19 +75,16 @@ class TestActiveImageAlphaSlider(TestCaseQt):
 
     def testGetImage(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]))
-        self.assertEqual(self.plot.getActiveImage(),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getActiveImage(), self.aslider.getItem())
 
         self.plot.addImage(numpy.array([[0, 1, 3], [2, 4, 6]]), legend="2")
         self.plot.setActiveImage("2")
-        self.assertEqual(self.plot.getImage("2"),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getImage("2"), self.aslider.getItem())
 
     def testGetAlpha(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]), legend="1")
         self.aslider.setValue(137)
-        self.assertAlmostEqual(self.aslider.getAlpha(),
-                               137. / 255)
+        self.assertAlmostEqual(self.aslider.getAlpha(), 137.0 / 255)
 
 
 class TestNamedImageAlphaSlider(TestCaseQt):
@@ -129,19 +126,16 @@ class TestNamedImageAlphaSlider(TestCaseQt):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]), legend="1")
         self.plot.addImage(numpy.array([[0, 1, 3], [2, 4, 6]]), legend="2")
         self.aslider.setLegend("1")
-        self.assertEqual(self.plot.getImage("1"),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getImage("1"), self.aslider.getItem())
 
         self.aslider.setLegend("2")
-        self.assertEqual(self.plot.getImage("2"),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getImage("2"), self.aslider.getItem())
 
     def testGetAlpha(self):
         self.plot.addImage(numpy.array([[0, 1, 2], [3, 4, 5]]), legend="1")
         self.aslider.setLegend("1")
         self.aslider.setValue(128)
-        self.assertAlmostEqual(self.aslider.getAlpha(),
-                               128. / 255)
+        self.assertAlmostEqual(self.aslider.getAlpha(), 128.0 / 255)
 
 
 class TestNamedScatterAlphaSlider(TestCaseQt):
@@ -174,29 +168,22 @@ class TestNamedScatterAlphaSlider(TestCaseQt):
         # no Scatter set initially, slider must be deactivate
         self.assertFalse(self.aslider.isEnabled())
 
-        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7],
-                             legend="1")
+        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7], legend="1")
         self.aslider.setLegend("1")
         # now we have an image set
         self.assertTrue(self.aslider.isEnabled())
 
     def testGetScatter(self):
-        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7],
-                             legend="1")
-        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70],
-                             legend="2")
+        self.plot.addScatter([0, 1, 2], [2, 3, 4], [5, 6, 7], legend="1")
+        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70], legend="2")
         self.aslider.setLegend("1")
-        self.assertEqual(self.plot.getScatter("1"),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getScatter("1"), self.aslider.getItem())
 
         self.aslider.setLegend("2")
-        self.assertEqual(self.plot.getScatter("2"),
-                         self.aslider.getItem())
+        self.assertEqual(self.plot.getScatter("2"), self.aslider.getItem())
 
     def testGetAlpha(self):
-        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70],
-                             legend="1")
+        self.plot.addScatter([0, 10, 20], [20, 30, 40], [50, 60, 70], legend="1")
         self.aslider.setLegend("1")
         self.aslider.setValue(128)
-        self.assertAlmostEqual(self.aslider.getAlpha(),
-                               128. / 255)
+        self.assertAlmostEqual(self.aslider.getAlpha(), 128.0 / 255)

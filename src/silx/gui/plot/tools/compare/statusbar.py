@@ -48,6 +48,7 @@ class CompareImagesStatusBar(qt.QStatusBar):
 
     :param Union[qt.QWidget,None] parent: Parent of this widget.
     """
+
     def __init__(self, parent=None):
         qt.QStatusBar.__init__(self, parent)
         self.setSizeGripEnabled(False)
@@ -146,10 +147,12 @@ class CompareImagesStatusBar(qt.QStatusBar):
             transform = widget.getTransformation()
             self._transform.setVisible(transform is not None)
             if transform is not None:
-                has_notable_translation = not numpy.isclose(transform.tx, 0.0, atol=0.01) \
-                    or not numpy.isclose(transform.ty, 0.0, atol=0.01)
-                has_notable_scale = not numpy.isclose(transform.sx, 1.0, atol=0.01) \
-                    or not numpy.isclose(transform.sy, 1.0, atol=0.01)
+                has_notable_translation = not numpy.isclose(
+                    transform.tx, 0.0, atol=0.01
+                ) or not numpy.isclose(transform.ty, 0.0, atol=0.01)
+                has_notable_scale = not numpy.isclose(
+                    transform.sx, 1.0, atol=0.01
+                ) or not numpy.isclose(transform.sy, 1.0, atol=0.01)
                 has_notable_rotation = not numpy.isclose(transform.rot, 0.0, atol=0.01)
 
                 strings = []
@@ -160,10 +163,12 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 if has_notable_rotation:
                     strings.append("Rotation")
                 if strings == []:
-                    has_translation = not numpy.isclose(transform.tx, 0.0) \
-                        or not numpy.isclose(transform.ty, 0.0)
-                    has_scale = not numpy.isclose(transform.sx, 1.0) \
-                        or not numpy.isclose(transform.sy, 1.0)
+                    has_translation = not numpy.isclose(
+                        transform.tx, 0.0
+                    ) or not numpy.isclose(transform.ty, 0.0)
+                    has_scale = not numpy.isclose(
+                        transform.sx, 1.0
+                    ) or not numpy.isclose(transform.sy, 1.0)
                     has_rotation = not numpy.isclose(transform.rot, 0.0)
                     if has_translation or has_scale or has_rotation:
                         text = "No big changes"
@@ -183,7 +188,9 @@ class CompareImagesStatusBar(qt.QStatusBar):
                 if not numpy.isclose(transform.sy, 1.0):
                     strings.append("Scale y: %0.3f" % transform.sy)
                 if not numpy.isclose(transform.rot, 0.0):
-                    strings.append("Rotation: %0.3fdeg" % (transform.rot * 180 / numpy.pi))
+                    strings.append(
+                        "Rotation: %0.3fdeg" % (transform.rot * 180 / numpy.pi)
+                    )
                 if strings == []:
                     text = "No transformation"
                 else:

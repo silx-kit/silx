@@ -73,15 +73,17 @@ class ItemProxyRow(ProxyRow):
     :param editorHint: Data to provide as UserRole for editor selection/setup
     """
 
-    def __init__(self,
-                 item,
-                 name='',
-                 fget=None,
-                 fset=None,
-                 events=None,
-                 toModelData=None,
-                 fromModelData=None,
-                 editorHint=None):
+    def __init__(
+        self,
+        item,
+        name="",
+        fget=None,
+        fset=None,
+        events=None,
+        toModelData=None,
+        fromModelData=None,
+        editorHint=None,
+    ):
         super(ItemProxyRow, self).__init__(
             name=name,
             fget=fget,
@@ -89,10 +91,10 @@ class ItemProxyRow(ProxyRow):
             notify=None,
             toModelData=toModelData,
             fromModelData=fromModelData,
-            editorHint=editorHint)
+            editorHint=editorHint,
+        )
 
-        if isinstance(events, (items.ItemChangedType,
-                               items.Item3DChangedType)):
+        if isinstance(events, (items.ItemChangedType, items.Item3DChangedType)):
             events = (events,)
         self.__events = events
         item.sigItemChanged.connect(self._itemChanged)
@@ -121,8 +123,7 @@ class ItemAngleDegreeRow(AngleDegreeRow, ItemProxyRow):
 
 
 class _DirectionalLightProxy(qt.QObject):
-    """Proxy to handle directional light with angles rather than vector.
-    """
+    """Proxy to handle directional light with angles rather than vector."""
 
     sigAzimuthAngleChanged = qt.Signal()
     """Signal sent when the azimuth angle has changed."""
@@ -183,11 +184,11 @@ class _DirectionalLightProxy(qt.QObject):
         """Handle light direction update in the scene"""
         # Invert direction to manipulate the 'source' pointing to
         # the center of the viewport
-        x, y, z = - self._light.direction
+        x, y, z = -self._light.direction
 
         # Horizontal plane is plane xz
         azimuth = int(round(numpy.degrees(numpy.arctan2(x, z))))
-        altitude = int(round(numpy.degrees(numpy.pi/2. - numpy.arccos(y))))
+        altitude = int(round(numpy.degrees(numpy.pi / 2.0 - numpy.arccos(y))))
 
         if azimuth != self.getAzimuthAngle():
             self.setAzimuthAngle(azimuth)
@@ -198,12 +199,12 @@ class _DirectionalLightProxy(qt.QObject):
     def _updateLight(self):
         """Update light direction in the scene"""
         azimuth = numpy.radians(self._azimuth)
-        delta = numpy.pi/2. - numpy.radians(self._altitude)
-        if delta == 0.:  # Avoids zenith position
+        delta = numpy.pi / 2.0 - numpy.radians(self._altitude)
+        if delta == 0.0:  # Avoids zenith position
             delta = 0.0001
-        z = - numpy.sin(delta) * numpy.cos(azimuth)
-        x = - numpy.sin(delta) * numpy.sin(azimuth)
-        y = - numpy.cos(delta)
+        z = -numpy.sin(delta) * numpy.cos(azimuth)
+        x = -numpy.sin(delta) * numpy.sin(azimuth)
+        y = -numpy.cos(delta)
         self._light.direction = x, y, z
 
 
@@ -215,69 +216,87 @@ class Settings(StaticRow):
 
     def __init__(self, sceneWidget):
         background = ColorProxyRow(
-            name='Background',
+            name="Background",
             fget=sceneWidget.getBackgroundColor,
             fset=sceneWidget.setBackgroundColor,
-            notify=sceneWidget.sigStyleChanged)
+            notify=sceneWidget.sigStyleChanged,
+        )
 
         foreground = ColorProxyRow(
-            name='Foreground',
+            name="Foreground",
             fget=sceneWidget.getForegroundColor,
             fset=sceneWidget.setForegroundColor,
-            notify=sceneWidget.sigStyleChanged)
+            notify=sceneWidget.sigStyleChanged,
+        )
 
         text = ColorProxyRow(
-            name='Text',
+            name="Text",
             fget=sceneWidget.getTextColor,
             fset=sceneWidget.setTextColor,
-            notify=sceneWidget.sigStyleChanged)
+            notify=sceneWidget.sigStyleChanged,
+        )
 
         highlight = ColorProxyRow(
-            name='Highlight',
+            name="Highlight",
             fget=sceneWidget.getHighlightColor,
             fset=sceneWidget.setHighlightColor,
-            notify=sceneWidget.sigStyleChanged)
+            notify=sceneWidget.sigStyleChanged,
+        )
 
         axesIndicator = ProxyRow(
-            name='Axes Indicator',
+            name="Axes Indicator",
             fget=sceneWidget.isOrientationIndicatorVisible,
             fset=sceneWidget.setOrientationIndicatorVisible,
-            notify=sceneWidget.sigStyleChanged)
+            notify=sceneWidget.sigStyleChanged,
+        )
 
         # Light direction
 
         self._lightProxy = _DirectionalLightProxy(sceneWidget.viewport.light)
 
         azimuthNode = ProxyRow(
-            name='Azimuth',
+            name="Azimuth",
             fget=self._lightProxy.getAzimuthAngle,
             fset=self._lightProxy.setAzimuthAngle,
             notify=self._lightProxy.sigAzimuthAngleChanged,
-            editorHint=(-90, 90))
+            editorHint=(-90, 90),
+        )
 
         altitudeNode = ProxyRow(
-            name='Altitude',
+            name="Altitude",
             fget=self._lightProxy.getAltitudeAngle,
             fset=self._lightProxy.setAltitudeAngle,
             notify=self._lightProxy.sigAltitudeAngleChanged,
-            editorHint=(-90, 90))
+            editorHint=(-90, 90),
+        )
 
-        lightDirection = StaticRow(('Light Direction', None),
-                                   children=(azimuthNode, altitudeNode))
+        lightDirection = StaticRow(
+            ("Light Direction", None), children=(azimuthNode, altitudeNode)
+        )
 
         # Fog
         fog = ProxyRow(
-            name='Fog',
+            name="Fog",
             fget=sceneWidget.getFogMode,
             fset=sceneWidget.setFogMode,
             notify=sceneWidget.sigStyleChanged,
             toModelData=lambda mode: mode is Plot3DWidget.FogMode.LINEAR,
-            fromModelData=lambda mode: Plot3DWidget.FogMode.LINEAR if mode else Plot3DWidget.FogMode.NONE)
+            fromModelData=lambda mode: Plot3DWidget.FogMode.LINEAR
+            if mode
+            else Plot3DWidget.FogMode.NONE,
+        )
 
         # Settings row
-        children = (background, foreground, text, highlight,
-                    axesIndicator, lightDirection, fog)
-        super(Settings, self).__init__(('Settings', None), children=children)
+        children = (
+            background,
+            foreground,
+            text,
+            highlight,
+            axesIndicator,
+            lightDirection,
+            fog,
+        )
+        super(Settings, self).__init__(("Settings", None), children=children)
 
 
 class Item3DRow(BaseRow):
@@ -295,8 +314,8 @@ class Item3DRow(BaseRow):
         super(Item3DRow, self).__init__()
 
         self.setFlags(
-            self.flags(0) | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable,
-            0)
+            self.flags(0) | qt.Qt.ItemIsUserCheckable | qt.Qt.ItemIsSelectable, 0
+        )
         self.setFlags(self.flags(1) | qt.Qt.ItemIsSelectable, 1)
 
         self._item = weakref.ref(item)
@@ -324,12 +343,12 @@ class Item3DRow(BaseRow):
                     return qt.Qt.Unchecked
 
             elif role == qt.Qt.DecorationRole:
-                return icons.getQIcon('item-3dim')
+                return icons.getQIcon("item-3dim")
 
             elif role == qt.Qt.DisplayRole:
                 if self.__name is None:
                     item = self.item()
-                    return '' if item is None else item.getLabel()
+                    return "" if item is None else item.getLabel()
                 else:
                     return self.__name
 
@@ -339,7 +358,7 @@ class Item3DRow(BaseRow):
         if column == 0 and role == qt.Qt.CheckStateRole:
             item = self.item()
             if item is not None:
-                item.setVisible(value == qt.Qt.Checked)
+                item.setVisible(qt.Qt.CheckState(value) == qt.Qt.Checked)
                 return True
             else:
                 return False
@@ -358,10 +377,11 @@ class DataItem3DBoundingBoxRow(ItemProxyRow):
     def __init__(self, item):
         super(DataItem3DBoundingBoxRow, self).__init__(
             item=item,
-            name='Bounding box',
+            name="Bounding box",
             fget=item.isBoundingBoxVisible,
             fset=item.setBoundingBoxVisible,
-            events=items.Item3DChangedType.BOUNDING_BOX_VISIBLE)
+            events=items.Item3DChangedType.BOUNDING_BOX_VISIBLE,
+        )
 
 
 class MatrixProxyRow(ItemProxyRow):
@@ -377,10 +397,11 @@ class MatrixProxyRow(ItemProxyRow):
 
         super(MatrixProxyRow, self).__init__(
             item=item,
-            name='',
+            name="",
             fget=self._getMatrixRow,
             fset=self._setMatrixRow,
-            events=items.Item3DChangedType.TRANSFORM)
+            events=items.Item3DChangedType.TRANSFORM,
+        )
 
     def _getMatrixRow(self):
         """Returns the matrix row.
@@ -421,19 +442,20 @@ class DataItem3DTransformRow(StaticRow):
     :param DataItem3D item: The item for which to display/control transform
     """
 
-    _ROTATION_CENTER_OPTIONS = 'Origin', 'Lower', 'Center', 'Upper'
+    _ROTATION_CENTER_OPTIONS = "Origin", "Lower", "Center", "Upper"
 
     def __init__(self, item):
-        super(DataItem3DTransformRow, self).__init__(('Transform', None))
+        super(DataItem3DTransformRow, self).__init__(("Transform", None))
         self._item = weakref.ref(item)
 
         translation = ItemProxyRow(
             item=item,
-            name='Translation',
+            name="Translation",
             fget=item.getTranslation,
             fset=self._setTranslation,
             events=items.Item3DChangedType.TRANSFORM,
-            toModelData=lambda data: qt.QVector3D(*data))
+            toModelData=lambda data: qt.QVector3D(*data),
+        )
         self.addRow(translation)
 
         # Here to keep a reference
@@ -442,69 +464,80 @@ class DataItem3DTransformRow(StaticRow):
         self._zSetCenter = functools.partial(self._setCenter, index=2)
 
         rotateCenter = StaticRow(
-            ('Center', None),
+            ("Center", None),
             children=(
-                ItemProxyRow(item=item,
-                             name='X axis',
-                             fget=item.getRotationCenter,
-                             fset=self._xSetCenter,
-                             events=items.Item3DChangedType.TRANSFORM,
-                             toModelData=functools.partial(
-                                 self._centerToModelData, index=0),
-                             editorHint=self._ROTATION_CENTER_OPTIONS),
-                ItemProxyRow(item=item,
-                             name='Y axis',
-                             fget=item.getRotationCenter,
-                             fset=self._ySetCenter,
-                             events=items.Item3DChangedType.TRANSFORM,
-                             toModelData=functools.partial(
-                                 self._centerToModelData, index=1),
-                             editorHint=self._ROTATION_CENTER_OPTIONS),
-                ItemProxyRow(item=item,
-                             name='Z axis',
-                             fget=item.getRotationCenter,
-                             fset=self._zSetCenter,
-                             events=items.Item3DChangedType.TRANSFORM,
-                             toModelData=functools.partial(
-                                 self._centerToModelData, index=2),
-                             editorHint=self._ROTATION_CENTER_OPTIONS),
-            ))
+                ItemProxyRow(
+                    item=item,
+                    name="X axis",
+                    fget=item.getRotationCenter,
+                    fset=self._xSetCenter,
+                    events=items.Item3DChangedType.TRANSFORM,
+                    toModelData=functools.partial(self._centerToModelData, index=0),
+                    editorHint=self._ROTATION_CENTER_OPTIONS,
+                ),
+                ItemProxyRow(
+                    item=item,
+                    name="Y axis",
+                    fget=item.getRotationCenter,
+                    fset=self._ySetCenter,
+                    events=items.Item3DChangedType.TRANSFORM,
+                    toModelData=functools.partial(self._centerToModelData, index=1),
+                    editorHint=self._ROTATION_CENTER_OPTIONS,
+                ),
+                ItemProxyRow(
+                    item=item,
+                    name="Z axis",
+                    fget=item.getRotationCenter,
+                    fset=self._zSetCenter,
+                    events=items.Item3DChangedType.TRANSFORM,
+                    toModelData=functools.partial(self._centerToModelData, index=2),
+                    editorHint=self._ROTATION_CENTER_OPTIONS,
+                ),
+            ),
+        )
 
         rotate = StaticRow(
-            ('Rotation', None),
+            ("Rotation", None),
             children=(
                 ItemAngleDegreeRow(
                     item=item,
-                    name='Angle',
+                    name="Angle",
                     fget=item.getRotation,
                     fset=self._setAngle,
                     events=items.Item3DChangedType.TRANSFORM,
-                    toModelData=lambda data: data[0]),
+                    toModelData=lambda data: data[0],
+                ),
                 ItemProxyRow(
                     item=item,
-                    name='Axis',
+                    name="Axis",
                     fget=item.getRotation,
                     fset=self._setAxis,
                     events=items.Item3DChangedType.TRANSFORM,
-                    toModelData=lambda data: qt.QVector3D(*data[1])),
-                rotateCenter
-            ))
+                    toModelData=lambda data: qt.QVector3D(*data[1]),
+                ),
+                rotateCenter,
+            ),
+        )
         self.addRow(rotate)
 
         scale = ItemProxyRow(
             item=item,
-            name='Scale',
+            name="Scale",
             fget=item.getScale,
             fset=self._setScale,
             events=items.Item3DChangedType.TRANSFORM,
-            toModelData=lambda data: qt.QVector3D(*data))
+            toModelData=lambda data: qt.QVector3D(*data),
+        )
         self.addRow(scale)
 
         matrix = StaticRow(
-            ('Matrix', None),
-            children=(MatrixProxyRow(item, 0),
-                      MatrixProxyRow(item, 1),
-                      MatrixProxyRow(item, 2)))
+            ("Matrix", None),
+            children=(
+                MatrixProxyRow(item, 0),
+                MatrixProxyRow(item, 1),
+                MatrixProxyRow(item, 2),
+            ),
+        )
         self.addRow(matrix)
 
     def item(self):
@@ -521,8 +554,8 @@ class DataItem3DTransformRow(StaticRow):
         value = center[index]
         if isinstance(value, str):
             return value.title()
-        elif value == 0.:
-            return 'Origin'
+        elif value == 0.0:
+            return "Origin"
         else:
             return str(value)
 
@@ -534,8 +567,8 @@ class DataItem3DTransformRow(StaticRow):
         """
         item = self.item()
         if item is not None:
-            if value == 'Origin':
-                value = 0.
+            if value == "Origin":
+                value = 0.0
             elif value not in self._ROTATION_CENTER_OPTIONS:
                 value = float(value)
             else:
@@ -582,8 +615,8 @@ class DataItem3DTransformRow(StaticRow):
         item = self.item()
         if item is not None:
             sx, sy, sz = scale.x(), scale.y(), scale.z()
-            if sx == 0. or sy == 0. or sz == 0.:
-                _logger.warning('Cannot set scale to 0: ignored')
+            if sx == 0.0 or sy == 0.0 or sz == 0.0:
+                _logger.warning("Cannot set scale to 0: ignored")
             else:
                 item.setScale(scale.x(), scale.y(), scale.z())
 
@@ -649,13 +682,14 @@ class InterpolationRow(ItemProxyRow):
         modes = [mode.title() for mode in item.INTERPOLATION_MODES]
         super(InterpolationRow, self).__init__(
             item=item,
-            name='Interpolation',
+            name="Interpolation",
             fget=item.getInterpolation,
             fset=item.setInterpolation,
             events=items.Item3DChangedType.INTERPOLATION,
             toModelData=lambda mode: mode.title(),
             fromModelData=lambda mode: mode.lower(),
-            editorHint=modes)
+            editorHint=modes,
+        )
 
 
 class _ColormapBaseProxyRow(ProxyRow):
@@ -735,15 +769,14 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
     def __init__(self, item, name, index):
         self._index = index
         _ColormapBaseProxyRow.__init__(
-            self,
-            item,
-            name=name,
-            fget=self._getBound,
-            fset=self._setBound)
+            self, item, name=name, fget=self._getBound, fset=self._setBound
+        )
 
-        self.setToolTip('Colormap %s bound:\n'
-                        'Check to set bound manually, '
-                        'uncheck for autoscale' % name.lower())
+        self.setToolTip(
+            "Colormap %s bound:\n"
+            "Check to set bound manually, "
+            "uncheck for autoscale" % name.lower()
+        )
 
     def _getRawBound(self):
         """Proxy to get raw colormap bound
@@ -769,7 +802,7 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
                 bound = self._getColormapRange()[self._index]
             return bound
         else:
-            return 1.  # Fallback
+            return 1.0  # Fallback
 
     def _setBound(self, value):
         """Proxy to set colormap bound.
@@ -815,7 +848,11 @@ class _ColormapBoundRow(_ColormapBaseProxyRow):
     def setData(self, column, value, role):
         if column == 0 and role == qt.Qt.CheckStateRole:
             if self._colormap is not None:
-                bound = self._getBound() if value == qt.Qt.Checked else None
+                bound = (
+                    self._getBound()
+                    if qt.Qt.CheckState(value) == qt.Qt.Checked
+                    else None
+                )
                 self._setBound(bound)
                 return True
             else:
@@ -837,10 +874,13 @@ class _ColormapGammaRow(_ColormapBaseProxyRow):
             item,
             name="Gamma",
             fget=self._getGammaNormalizationParameter,
-            fset=self._setGammaNormalizationParameter)
+            fset=self._setGammaNormalizationParameter,
+        )
 
-        self.setToolTip('Colormap gamma correction parameter:\n'
-                        'Only meaningful for gamma normalization.')
+        self.setToolTip(
+            "Colormap gamma correction parameter:\n"
+            "Only meaningful for gamma normalization."
+        )
 
     def _getGammaNormalizationParameter(self):
         """Proxy for :meth:`Colormap.getGammaNormalizationParameter`"""
@@ -859,11 +899,11 @@ class _ColormapGammaRow(_ColormapBaseProxyRow):
         if self._colormap is not None:
             return self._colormap.getNormalization()
         else:
-            return ''
+            return ""
 
     def flags(self, column):
         if column in (0, 1):
-            if self._getNormalization() == 'gamma':
+            if self._getNormalization() == "gamma":
                 flags = qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled
             else:
                 flags = qt.Qt.NoItemFlags  # Disabled if not gamma correction
@@ -880,10 +920,7 @@ class ColormapRow(_ColormapBaseProxyRow):
     """
 
     def __init__(self, item):
-        super(ColormapRow, self).__init__(
-            item,
-            name='Colormap',
-            fget=self._get)
+        super(ColormapRow, self).__init__(item, name="Colormap", fget=self._get)
 
         self._colormapImage = None
 
@@ -891,33 +928,42 @@ class ColormapRow(_ColormapBaseProxyRow):
         for cmap in preferredColormaps():
             self._colormapsMapping[cmap.title()] = cmap
 
-        self.addRow(ProxyRow(
-            name='Name',
-            fget=self._getName,
-            fset=self._setName,
-            notify=self._sigColormapChanged,
-            editorHint=list(self._colormapsMapping.keys())))
+        self.addRow(
+            ProxyRow(
+                name="Name",
+                fget=self._getName,
+                fset=self._setName,
+                notify=self._sigColormapChanged,
+                editorHint=list(self._colormapsMapping.keys()),
+            )
+        )
 
         norms = [norm.title() for norm in self._colormap.NORMALIZATIONS]
-        self.addRow(ProxyRow(
-            name='Normalization',
-            fget=self._getNormalization,
-            fset=self._setNormalization,
-            notify=self._sigColormapChanged,
-            editorHint=norms))
+        self.addRow(
+            ProxyRow(
+                name="Normalization",
+                fget=self._getNormalization,
+                fset=self._setNormalization,
+                notify=self._sigColormapChanged,
+                editorHint=norms,
+            )
+        )
 
         self.addRow(_ColormapGammaRow(item))
 
         modes = [mode.title() for mode in self._colormap.AUTOSCALE_MODES]
-        self.addRow(ProxyRow(
-            name='Autoscale Mode',
-            fget=self._getAutoscaleMode,
-            fset=self._setAutoscaleMode,
-            notify=self._sigColormapChanged,
-            editorHint=modes))
+        self.addRow(
+            ProxyRow(
+                name="Autoscale Mode",
+                fget=self._getAutoscaleMode,
+                fset=self._setAutoscaleMode,
+                notify=self._sigColormapChanged,
+                editorHint=modes,
+            )
+        )
 
-        self.addRow(_ColormapBoundRow(item, name='Min.', index=0))
-        self.addRow(_ColormapBoundRow(item, name='Max.', index=1))
+        self.addRow(_ColormapBoundRow(item, name="Min.", index=0))
+        self.addRow(_ColormapBoundRow(item, name="Max.", index=1))
 
         self._sigColormapChanged.connect(self._updateColormapImage)
 
@@ -941,7 +987,7 @@ class ColormapRow(_ColormapBaseProxyRow):
         if self._colormap is not None and self._colormap.getName() is not None:
             return self._colormap.getName().title()
         else:
-            return ''
+            return ""
 
     def _setName(self, name):
         """Proxy for :meth:`Colormap.setName`"""
@@ -955,7 +1001,7 @@ class ColormapRow(_ColormapBaseProxyRow):
         if self._colormap is not None:
             return self._colormap.getNormalization().title()
         else:
-            return ''
+            return ""
 
     def _setNormalization(self, normalization):
         """Proxy for :meth:`Colormap.setNormalization`"""
@@ -967,7 +1013,7 @@ class ColormapRow(_ColormapBaseProxyRow):
         if self._colormap is not None:
             return self._colormap.getAutoscaleMode().title()
         else:
-            return ''
+            return ""
 
     def _setAutoscaleMode(self, mode):
         """Proxy for :meth:`Colormap.setAutoscaleMode`"""
@@ -1000,11 +1046,12 @@ class SymbolRow(ItemProxyRow):
         names = [item.getSymbolName(s) for s in item.getSupportedSymbols()]
         super(SymbolRow, self).__init__(
             item=item,
-            name='Marker',
+            name="Marker",
             fget=item.getSymbolName,
             fset=item.setSymbol,
             events=items.ItemChangedType.SYMBOL,
-            editorHint=names)
+            editorHint=names,
+        )
 
 
 class SymbolSizeRow(ItemProxyRow):
@@ -1016,11 +1063,12 @@ class SymbolSizeRow(ItemProxyRow):
     def __init__(self, item):
         super(SymbolSizeRow, self).__init__(
             item=item,
-            name='Marker size',
+            name="Marker size",
             fget=item.getSymbolSize,
             fset=item.setSymbolSize,
             events=items.ItemChangedType.SYMBOL_SIZE,
-            editorHint=(1, 20))  # TODO link with OpenGL max point size
+            editorHint=(1, 20),
+        )  # TODO link with OpenGL max point size
 
 
 class PlaneEquationRow(ItemProxyRow):
@@ -1032,12 +1080,13 @@ class PlaneEquationRow(ItemProxyRow):
     def __init__(self, item):
         super(PlaneEquationRow, self).__init__(
             item=item,
-            name='Equation',
+            name="Equation",
             fget=item.getParameters,
             fset=item.setParameters,
             events=items.ItemChangedType.POSITION,
             toModelData=lambda data: qt.QVector4D(*data),
-            fromModelData=lambda data: (data.x(), data.y(), data.z(), data.w()))
+            fromModelData=lambda data: (data.x(), data.y(), data.z(), data.w()),
+        )
         self._item = weakref.ref(item)
 
     def data(self, column, role):
@@ -1045,8 +1094,12 @@ class PlaneEquationRow(ItemProxyRow):
             item = self._item()
             if item is not None:
                 params = item.getParameters()
-                return ('%gx %+gy %+gz %+g = 0' %
-                        (params[0], params[1], params[2], params[3]))
+                return "%gx %+gy %+gz %+g = 0" % (
+                    params[0],
+                    params[1],
+                    params[2],
+                    params[3],
+                )
         return super(PlaneEquationRow, self).data(column, role)
 
 
@@ -1058,28 +1111,31 @@ class PlaneRow(ItemProxyRow):
 
     _PLANES = dict(
         (
-            ('Plane 0', (1., 0., 0.)),
-            ('Plane 1', (0., 1., 0.)),
-            ('Plane 2', (0., 0., 1.)),
-            ('-', None),
+            ("Plane 0", (1.0, 0.0, 0.0)),
+            ("Plane 1", (0.0, 1.0, 0.0)),
+            ("Plane 2", (0.0, 0.0, 1.0)),
+            ("-", None),
         )
     )
     """Mapping of plane names to normals"""
 
-    _PLANE_ICONS = {'Plane 0': '3d-plane-normal-x',
-                    'Plane 1': '3d-plane-normal-y',
-                    'Plane 2': '3d-plane-normal-z',
-                    '-': '3d-plane'}
+    _PLANE_ICONS = {
+        "Plane 0": "3d-plane-normal-x",
+        "Plane 1": "3d-plane-normal-y",
+        "Plane 2": "3d-plane-normal-z",
+        "-": "3d-plane",
+    }
     """Mapping of plane names to normals"""
 
     def __init__(self, item):
         super(PlaneRow, self).__init__(
             item=item,
-            name='Plane',
+            name="Plane",
             fget=self.__getPlaneName,
             fset=self.__setPlaneName,
             events=items.ItemChangedType.POSITION,
-            editorHint=tuple(self._PLANES.keys()))
+            editorHint=tuple(self._PLANES.keys()),
+        )
         self._item = weakref.ref(item)
         self._lastName = None
 
@@ -1104,7 +1160,7 @@ class PlaneRow(ItemProxyRow):
         for name, normal in self._PLANES.items():
             if numpy.array_equal(planeNormal, normal):
                 return name
-        return '-'
+        return "-"
 
     def __setPlaneName(self, data):
         """Set plane normal according to given plane name
@@ -1132,18 +1188,20 @@ class ComplexModeRow(ItemProxyRow):
     :param Item3D item: Scene item with symbol property
     """
 
-    def __init__(self, item, name='Mode'):
-        names = [m.value.replace('_', ' ').title()
-                 for m in item.supportedComplexModes()]
+    def __init__(self, item, name="Mode"):
+        names = [
+            m.value.replace("_", " ").title() for m in item.supportedComplexModes()
+        ]
         super(ComplexModeRow, self).__init__(
             item=item,
             name=name,
             fget=item.getComplexMode,
             fset=item.setComplexMode,
             events=items.ItemChangedType.COMPLEX_MODE,
-            toModelData=lambda data: data.value.replace('_', ' ').title(),
-            fromModelData=lambda data: data.lower().replace(' ', '_'),
-            editorHint=names)
+            toModelData=lambda data: data.value.replace("_", " ").title(),
+            fromModelData=lambda data: data.lower().replace(" ", "_"),
+            editorHint=names,
+        )
 
 
 class RemoveIsosurfaceRow(BaseRow):
@@ -1164,7 +1222,7 @@ class RemoveIsosurfaceRow(BaseRow):
         layout.setSpacing(0)
 
         removeBtn = qt.QToolButton()
-        removeBtn.setText('Delete')
+        removeBtn.setText("Delete")
         removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(removeBtn)
         removeBtn.clicked.connect(self._removeClicked)
@@ -1219,28 +1277,37 @@ class IsosurfaceRow(Item3DRow):
 
         item.sigItemChanged.connect(self._levelChanged)
 
-        self.addRow(ItemProxyRow(
-            item=item,
-            name='Level',
-            fget=self._getValueForLevelSlider,
-            fset=self._setLevelFromSliderValue,
-            events=items.Item3DChangedType.ISO_LEVEL,
-            editorHint=self._LEVEL_SLIDER_RANGE))
+        self.addRow(
+            ItemProxyRow(
+                item=item,
+                name="Level",
+                fget=self._getValueForLevelSlider,
+                fset=self._setLevelFromSliderValue,
+                events=items.Item3DChangedType.ISO_LEVEL,
+                editorHint=self._LEVEL_SLIDER_RANGE,
+            )
+        )
 
-        self.addRow(ItemColorProxyRow(
-            item=item,
-            name='Color',
-            fget=self._rgbColor,
-            fset=self._setRgbColor,
-            events=items.ItemChangedType.COLOR))
+        self.addRow(
+            ItemColorProxyRow(
+                item=item,
+                name="Color",
+                fget=self._rgbColor,
+                fset=self._setRgbColor,
+                events=items.ItemChangedType.COLOR,
+            )
+        )
 
-        self.addRow(ItemProxyRow(
-            item=item,
-            name='Opacity',
-            fget=self._opacity,
-            fset=self._setOpacity,
-            events=items.ItemChangedType.COLOR,
-            editorHint=(0, 255)))
+        self.addRow(
+            ItemProxyRow(
+                item=item,
+                name="Opacity",
+                fget=self._opacity,
+                fset=self._setOpacity,
+                events=items.ItemChangedType.COLOR,
+                editorHint=(0, 255),
+            )
+        )
 
         self.addRow(RemoveIsosurfaceRow(item))
 
@@ -1259,7 +1326,7 @@ class IsosurfaceRow(Item3DRow):
                     if dataMax != dataMin:
                         offset = (item.getLevel() - dataMin) / (dataMax - dataMin)
                     else:
-                        offset = 0.
+                        offset = 0.0
 
                     sliderMin, sliderMax = self._LEVEL_SLIDER_RANGE
                     value = sliderMin + (sliderMax - sliderMin) * offset
@@ -1345,8 +1412,8 @@ class IsosurfaceRow(Item3DRow):
                 return self._rgbColor()
 
         elif column == 1 and role in (qt.Qt.DisplayRole, qt.Qt.EditRole):
-                item = self.item()
-                return None if item is None else item.getLevel()
+            item = self.item()
+            return None if item is None else item.getLevel()
 
         return super(IsosurfaceRow, self).data(column, role)
 
@@ -1366,9 +1433,11 @@ class ComplexIsosurfaceRow(IsosurfaceRow):
     :param ComplexIsosurface item:
     """
 
-    _EVENTS = (items.ItemChangedType.VISIBLE,
-               items.ItemChangedType.COLOR,
-               items.ItemChangedType.COMPLEX_MODE)
+    _EVENTS = (
+        items.ItemChangedType.VISIBLE,
+        items.ItemChangedType.COLOR,
+        items.ItemChangedType.COMPLEX_MODE,
+    )
     """Events for which to update the first column in the tree"""
 
     def __init__(self, item):
@@ -1418,8 +1487,10 @@ class ComplexIsosurfaceRow(IsosurfaceRow):
     def data(self, column, role):
         if column == 0 and role == qt.Qt.DecorationRole:
             item = self.item()
-            if (item is not None and
-                    item.getComplexMode() != items.ComplexMixIn.ComplexMode.NONE):
+            if (
+                item is not None
+                and item.getComplexMode() != items.ComplexMixIn.ComplexMode.NONE
+            ):
                 return self._colormapRow.getColormapImage()
 
         return super(ComplexIsosurfaceRow, self).data(column, role)
@@ -1444,7 +1515,7 @@ class AddIsosurfaceRow(BaseRow):
         layout.setSpacing(0)
 
         addBtn = qt.QToolButton()
-        addBtn.setText('+')
+        addBtn.setText("+")
         addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
         layout.addWidget(addBtn)
         addBtn.clicked.connect(self._addClicked)
@@ -1477,11 +1548,9 @@ class AddIsosurfaceRow(BaseRow):
         if volume is not None:
             dataRange = volume.getDataRange()
             if dataRange is None:
-                dataRange = 0., 1.
+                dataRange = 0.0, 1.0
 
-            volume.addIsosurface(
-                numpy.mean((dataRange[0], dataRange[-1])),
-                '#0000FF')
+            volume.addIsosurface(numpy.mean((dataRange[0], dataRange[-1])), "#0000FF")
 
 
 class VolumeIsoSurfacesRow(StaticRow):
@@ -1492,8 +1561,7 @@ class VolumeIsoSurfacesRow(StaticRow):
     """
 
     def __init__(self, volume):
-        super(VolumeIsoSurfacesRow, self).__init__(
-            ('Isosurfaces', None))
+        super(VolumeIsoSurfacesRow, self).__init__(("Isosurfaces", None))
         self._volume = weakref.ref(volume)
 
         volume.sigIsosurfaceAdded.connect(self._isosurfaceAdded)
@@ -1554,7 +1622,7 @@ class Scatter2DPropertyMixInRow(object):
     """
 
     def __init__(self, item, propertyName):
-        assert propertyName in ('lineWidth', 'symbol', 'symbolSize')
+        assert propertyName in ("lineWidth", "symbol", "symbolSize")
         self.__propertyName = propertyName
 
         self.__isEnabled = item.isPropertyEnabled(propertyName)
@@ -1603,7 +1671,7 @@ class Scatter2DSymbolRow(Scatter2DPropertyMixInRow, SymbolRow):
 
     def __init__(self, item):
         SymbolRow.__init__(self, item)
-        Scatter2DPropertyMixInRow.__init__(self, item, 'symbol')
+        Scatter2DPropertyMixInRow.__init__(self, item, "symbol")
 
 
 class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
@@ -1616,7 +1684,7 @@ class Scatter2DSymbolSizeRow(Scatter2DPropertyMixInRow, SymbolSizeRow):
 
     def __init__(self, item):
         SymbolSizeRow.__init__(self, item)
-        Scatter2DPropertyMixInRow.__init__(self, item, 'symbolSize')
+        Scatter2DPropertyMixInRow.__init__(self, item, "symbolSize")
 
 
 class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ItemProxyRow):
@@ -1629,14 +1697,16 @@ class Scatter2DLineWidth(Scatter2DPropertyMixInRow, ItemProxyRow):
 
     def __init__(self, item):
         # TODO link editorHint with OpenGL max line width
-        ItemProxyRow.__init__(self,
-                              item=item,
-                              name='Line width',
-                              fget=item.getLineWidth,
-                              fset=item.setLineWidth,
-                              events=items.ItemChangedType.LINE_WIDTH,
-                              editorHint=(1, 10))
-        Scatter2DPropertyMixInRow.__init__(self, item, 'lineWidth')
+        ItemProxyRow.__init__(
+            self,
+            item=item,
+            name="Line width",
+            fget=item.getLineWidth,
+            fset=item.setLineWidth,
+            events=items.ItemChangedType.LINE_WIDTH,
+            editorHint=(1, 10),
+        )
+        Scatter2DPropertyMixInRow.__init__(self, item, "lineWidth")
 
 
 def initScatter2DNode(node, item):
@@ -1645,22 +1715,28 @@ def initScatter2DNode(node, item):
     :param Item3DRow node: The model node to setup
     :param Scatter2D item: The Scatter2D the node is representing
     """
-    node.addRow(ItemProxyRow(
-        item=item,
-        name='Mode',
-        fget=item.getVisualization,
-        fset=item.setVisualization,
-        events=items.ItemChangedType.VISUALIZATION_MODE,
-        editorHint=[m.value.title() for m in item.supportedVisualizations()],
-        toModelData=lambda data: data.value.title(),
-        fromModelData=lambda data: data.lower()))
+    node.addRow(
+        ItemProxyRow(
+            item=item,
+            name="Mode",
+            fget=item.getVisualization,
+            fset=item.setVisualization,
+            events=items.ItemChangedType.VISUALIZATION_MODE,
+            editorHint=[m.value.title() for m in item.supportedVisualizations()],
+            toModelData=lambda data: data.value.title(),
+            fromModelData=lambda data: data.lower(),
+        )
+    )
 
-    node.addRow(ItemProxyRow(
-        item=item,
-        name='Height map',
-        fget=item.isHeightMap,
-        fset=item.setHeightMap,
-        events=items.Item3DChangedType.HEIGHT_MAP))
+    node.addRow(
+        ItemProxyRow(
+            item=item,
+            name="Height map",
+            fget=item.isHeightMap,
+            fset=item.setHeightMap,
+            events=items.Item3DChangedType.HEIGHT_MAP,
+        )
+    )
 
     node.addRow(ColormapRow(item))
 
@@ -1694,12 +1770,15 @@ def initVolumeCutPlaneNode(node, item):
 
     node.addRow(ColormapRow(item))
 
-    node.addRow(ItemProxyRow(
-        item=item,
-        name='Show <=Min',
-        fget=item.getDisplayValuesBelowMin,
-        fset=item.setDisplayValuesBelowMin,
-        events=items.ItemChangedType.ALPHA))
+    node.addRow(
+        ItemProxyRow(
+            item=item,
+            name="Show <=Min",
+            fget=item.getDisplayValuesBelowMin,
+            fset=item.setDisplayValuesBelowMin,
+            events=items.ItemChangedType.ALPHA,
+        )
+    )
 
     node.addRow(InterpolationRow(item))
 

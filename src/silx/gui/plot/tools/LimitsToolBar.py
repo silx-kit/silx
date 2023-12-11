@@ -56,7 +56,7 @@ class LimitsToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     """
 
-    def __init__(self, parent=None, plot=None, title='Limits'):
+    def __init__(self, parent=None, plot=None, title="Limits"):
         super(LimitsToolBar, self).__init__(title, parent)
         assert plot is not None
         self._plot = plot
@@ -74,32 +74,28 @@ class LimitsToolBar(qt.QToolBar):
         xMin, xMax = self.plot.getXAxis().getLimits()
         yMin, yMax = self.plot.getYAxis().getLimits()
 
-        self.addWidget(qt.QLabel('Limits: '))
-        self.addWidget(qt.QLabel(' X: '))
+        self.addWidget(qt.QLabel("Limits: "))
+        self.addWidget(qt.QLabel(" X: "))
         self._xMinFloatEdit = FloatEdit(self, xMin)
-        self._xMinFloatEdit.editingFinished[()].connect(
-            self._xFloatEditChanged)
+        self._xMinFloatEdit.editingFinished[()].connect(self._xFloatEditChanged)
         self.addWidget(self._xMinFloatEdit)
 
         self._xMaxFloatEdit = FloatEdit(self, xMax)
-        self._xMaxFloatEdit.editingFinished[()].connect(
-            self._xFloatEditChanged)
+        self._xMaxFloatEdit.editingFinished[()].connect(self._xFloatEditChanged)
         self.addWidget(self._xMaxFloatEdit)
 
-        self.addWidget(qt.QLabel(' Y: '))
+        self.addWidget(qt.QLabel(" Y: "))
         self._yMinFloatEdit = FloatEdit(self, yMin)
-        self._yMinFloatEdit.editingFinished[()].connect(
-            self._yFloatEditChanged)
+        self._yMinFloatEdit.editingFinished[()].connect(self._yFloatEditChanged)
         self.addWidget(self._yMinFloatEdit)
 
         self._yMaxFloatEdit = FloatEdit(self, yMax)
-        self._yMaxFloatEdit.editingFinished[()].connect(
-            self._yFloatEditChanged)
+        self._yMaxFloatEdit.editingFinished[()].connect(self._yFloatEditChanged)
         self.addWidget(self._yMaxFloatEdit)
 
     def _plotWidgetSlot(self, event):
         """Listen to :class:`PlotWidget` events."""
-        if event['event'] not in ('limitsChanged',):
+        if event["event"] not in ("limitsChanged",):
             return
 
         xMin, xMax = self.plot.getXAxis().getLimits()

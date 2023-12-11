@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/07/2022"
+__date__ = "22/11/2023"
 
 
 import gc
@@ -42,14 +42,14 @@ from silx.gui import qt
 from silx.gui.qt import inspect as _inspect
 
 
-if qt.BINDING == 'PyQt5':
+if qt.BINDING == "PyQt5":
     from PyQt5.QtTest import QTest
-elif qt.BINDING == 'PySide6':
+elif qt.BINDING == "PySide6":
     from PySide6.QtTest import QTest
-elif qt.BINDING == 'PyQt6':
+elif qt.BINDING == "PyQt6":
     from PyQt6.QtTest import QTest
 else:
-    raise ImportError('Unsupported Qt bindings')
+    raise ImportError("Unsupported Qt bindings")
 
 
 def qWaitForWindowExposedAndActivate(window, timeout=None):
@@ -109,8 +109,9 @@ class TestCaseQt(unittest.TestCase):
     @classmethod
     def exceptionHandler(cls, exceptionClass, exception, stack):
         import traceback
-        message = (''.join(traceback.format_tb(stack)))
-        template = 'Traceback (most recent call last):\n{2}{0}: {1}'
+
+        message = "".join(traceback.format_tb(stack))
+        template = "Traceback (most recent call last):\n{2}{0}: {1}"
         message = template.format(exceptionClass.__name__, exception, message)
         cls._exceptions.append(message)
 
@@ -131,30 +132,30 @@ class TestCaseQt(unittest.TestCase):
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
-        if qt.BINDING == 'PySide6':
+        if qt.BINDING == "PySide6":
             self.__previousWidgets = None
         else:
             self.__previousWidgets = self.qapp.allWidgets()
         self.__class__._exceptions = []
 
     def _currentTestSucceeded(self):
-        if hasattr(self, '_outcome'):
-            if hasattr(self, '_feedErrorsToResult'):
-                # For Python 3.4 -3.10
-                result = self.defaultTestResult()  # these 2 methods have no side effects
-                if hasattr(self._outcome, 'errors'):
-                    self._feedErrorsToResult(result, self._outcome.errors)
-            else:
-                # Python 3.11+
-                result = self._outcome.result
-        else:
-            # For Python < 3.4
-            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+        if hasattr(self, "_feedErrorsToResult"):
+            # Python 3.4 - 3.10  (These two methods have no side effects)
+            result = self.defaultTestResult()
+            if hasattr(self._outcome, "errors"):
+                self._feedErrorsToResult(result, self._outcome.errors)
+        elif hasattr(self._outcome, "result"):
+            # Python 3.11+
+            result = self._outcome.result
 
-        skipped = self.id() in [case.id() for case, _ in result.skipped]
-        error = self.id() in [case.id() for case, _ in result.errors]
-        failure = self.id() in [case.id() for case, _ in result.failures]
-        return not error and not failure and not skipped
+        if self._outcome is None:
+            return True
+        elif hasattr(self._outcome, "success"):
+            # using pytest
+            return self._outcome.success
+        else:
+            # using unittest
+            return all(test != self for test, text in result.errors + result.failures)
 
     def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
@@ -163,9 +164,14 @@ class TestCaseQt(unittest.TestCase):
 
         gc.collect()
 
-        widgets = [widget for widget in self.qapp.allWidgets()
-                   if (widget not in self.__previousWidgets and
-                       _inspect.createdByPython(widget))]
+        widgets = [
+            widget
+            for widget in self.qapp.allWidgets()
+            if (
+                widget not in self.__previousWidgets
+                and _inspect.createdByPython(widget)
+            )
+        ]
         self.__previousWidgets = None
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
@@ -173,12 +179,11 @@ class TestCaseQt(unittest.TestCase):
 
         if widgets and len(widgets) <= allowedLeakingWidgets:
             _logger.info(
-                '%s: %d remaining widgets after test' % (self.id(),
-                                                         len(widgets)))
+                "%s: %d remaining widgets after test" % (self.id(), len(widgets))
+            )
 
         if len(widgets) > allowedLeakingWidgets:
-            raise RuntimeError(
-                "Test ended with widgets alive: %s" % str(widgets))
+            raise RuntimeError("Test ended with widgets alive: %s" % str(widgets))
 
     def tearDown(self):
         self.qapp.processEvents()
@@ -206,8 +211,9 @@ class TestCaseQt(unittest.TestCase):
     Click = QTest.Click
     """Key click action code"""
 
-    QTest = property(lambda self: QTest,
-                     doc="""The Qt QTest class from the used Qt binding.""")
+    QTest = property(
+        lambda self: QTest, doc="""The Qt QTest class from the used Qt binding."""
+    )
 
     def keyClick(self, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
         """Simulate clicking a key.
@@ -225,8 +231,7 @@ class TestCaseQt(unittest.TestCase):
         QTest.keyClicks(widget, sequence, modifier, delay)
         self.qWait(20)
 
-    def keyEvent(self, action, widget, key,
-                 modifier=qt.Qt.NoModifier, delay=-1):
+    def keyEvent(self, action, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
         """Sends a Qt key event.
 
         See QTest.keyEvent for details.
@@ -319,14 +324,13 @@ class TestCaseQt(unittest.TestCase):
         if ms is None:
             ms = cls.DEFAULT_TIMEOUT_WAIT
 
-        if qt.BINDING == 'PySide6':
+        if qt.BINDING == "PySide6":
             # PySide has no qWait, provide a replacement
             timeout = int(ms)
             endTimeMS = int(time.time() * 1000) + timeout
             qapp = qt.QApplication.instance()
             while timeout > 0:
-                qapp.processEvents(qt.QEventLoop.AllEvents,
-                                   timeout)
+                qapp.processEvents(qt.QEventLoop.AllEvents, timeout)
                 timeout = endTimeMS - int(time.time() * 1000)
         else:
             QTest.qWait(int(ms) + cls.TIMEOUT_WAIT)
@@ -418,8 +422,7 @@ class TestCaseQt(unittest.TestCase):
 
 
 class SignalListener(object):
-    """Util to listen a Qt event and store parameters
-    """
+    """Util to listen a Qt event and store parameters"""
 
     def __init__(self):
         self.__calls = []

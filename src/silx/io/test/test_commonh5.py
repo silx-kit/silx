@@ -46,6 +46,7 @@ except ImportError:
 
 class _TestCommonFeatures(unittest.TestCase):
     """Test common features supported by h5py and our implementation."""
+
     __test__ = False  # ignore abstract class tests
 
     @classmethod
@@ -108,7 +109,7 @@ class _TestCommonFeatures(unittest.TestCase):
         self.assertTrue(isinstance(link, (h5py.SoftLink, commonh5.SoftLink)))
         self.assertTrue(silx.io.utils.is_softlink(link))
         self.assertEqual(classlink, h5py.SoftLink)
- 
+
     def test_external_link(self):
         node = self.h5["link/external_link"]
         self.assertEqual(node.name, "/target/dataset")
@@ -121,7 +122,9 @@ class _TestCommonFeatures(unittest.TestCase):
         node = self.h5["link/external_link_to_link"]
         self.assertEqual(node.name, "/target/link")
         class_ = self.h5.get("link/external_link_to_link", getclass=True)
-        classlink = self.h5.get("link/external_link_to_link", getlink=True, getclass=True)
+        classlink = self.h5.get(
+            "link/external_link_to_link", getlink=True, getclass=True
+        )
         self.assertEqual(class_, h5py.Dataset)
         self.assertEqual(classlink, h5py.ExternalLink)
 
@@ -156,6 +159,7 @@ class _TestCommonFeatures(unittest.TestCase):
 
 class TestCommonFeatures_h5py(_TestCommonFeatures):
     """Check if h5py is compliant with what we expect."""
+
     __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
@@ -171,7 +175,9 @@ class TestCommonFeatures_h5py(_TestCommonFeatures):
         h5["group/dataset"] = 50
         h5["link/soft_link"] = h5py.SoftLink("/group/dataset")
         h5["link/external_link"] = h5py.ExternalLink("external.h5", "/target/dataset")
-        h5["link/external_link_to_link"] = h5py.ExternalLink("external.h5", "/target/link")
+        h5["link/external_link_to_link"] = h5py.ExternalLink(
+            "external.h5", "/target/link"
+        )
 
         return h5
 
@@ -184,6 +190,7 @@ class TestCommonFeatures_h5py(_TestCommonFeatures):
 
 class TestCommonFeatures_commonH5(_TestCommonFeatures):
     """Check if commonh5 is compliant with h5py."""
+
     __test__ = True  # because _TestCommonFeatures is ignored
 
     @classmethod
@@ -265,7 +272,7 @@ class TestSpecificCommonH5(unittest.TestCase):
     def test_create_unicode_dataset(self):
         f = commonh5.File(name="Foo", mode="w")
         try:
-            f.create_dataset("foo", data=numpy.array(u"aaaa"))
+            f.create_dataset("foo", data=numpy.array("aaaa"))
             self.fail()
         except TypeError:
             pass

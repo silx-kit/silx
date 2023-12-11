@@ -51,8 +51,8 @@ def console(qapp_utils):
         pytest.skip("IPythonDockWidget is not available")
 
     console = IPythonDockWidget(
-        available_vars={"a": _a, "f": _f},
-        custom_banner="Welcome!\n")
+        available_vars={"a": _a, "f": _f}, custom_banner="Welcome!\n"
+    )
     console.show()
     qapp_utils.qWaitForWindowExposed(console)
     yield console
@@ -67,6 +67,6 @@ def testShow(console):
 
 def testInteract(console, qapp_utils):
     qapp_utils.mouseClick(console, qt.Qt.LeftButton)
-    qapp_utils.keyClicks(console, 'import silx')
+    qapp_utils.keyClicks(console, "import silx")
     qapp_utils.keyClick(console, qt.Qt.Key_Enter)
     qapp_utils.qapp.processEvents()

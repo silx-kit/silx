@@ -85,8 +85,10 @@ def drop_indices_before_begin(filenames, regex, begin):
         m = re.match(regex, fname)
         file_indices = list(map(int, m.groups()))
         if len(file_indices) != len(begin_indices):
-            raise IOError("Number of indices found in filename "
-                          "does not match number of parsed end indices.")
+            raise IOError(
+                "Number of indices found in filename "
+                "does not match number of parsed end indices."
+            )
         good_indices = True
         for i, fidx in enumerate(file_indices):
             if fidx < begin_indices[i]:
@@ -110,8 +112,10 @@ def drop_indices_after_end(filenames, regex, end):
         m = re.match(regex, fname)
         file_indices = list(map(int, m.groups()))
         if len(file_indices) != len(end_indices):
-            raise IOError("Number of indices found in filename "
-                          "does not match number of parsed end indices.")
+            raise IOError(
+                "Number of indices found in filename "
+                "does not match number of parsed end indices."
+            )
         good_indices = True
         for i, fidx in enumerate(file_indices):
             if fidx > end_indices[i]:
@@ -133,15 +137,17 @@ def are_files_missing_in_series(filenames, regex):
     previous_indices = None
     for fname in filenames:
         m = re.match(regex, fname)
-        assert m is not None, \
-            "regex %s does not match filename %s" % (fname, regex)
+        assert m is not None, "regex %s does not match filename %s" % (fname, regex)
         new_indices = list(map(int, m.groups()))
         if previous_indices is not None:
             for old_idx, new_idx in zip(previous_indices, new_indices):
                 if (new_idx - old_idx) > 1:
-                    _logger.error("Index increment > 1 in file series: "
-                                  "previous idx %d, next idx %d",
-                                  old_idx, new_idx)
+                    _logger.error(
+                        "Index increment > 1 in file series: "
+                        "previous idx %d, next idx %d",
+                        old_idx,
+                        new_idx,
+                    )
                     return True
         previous_indices = new_indices
     return False
@@ -196,116 +202,134 @@ def main(argv):
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        'input_files',
+        "input_files",
         nargs="*",
-        help='Input files (EDF, TIFF, FIO, SPEC...). When specifying '
-             'multiple files, you cannot specify both fabio images '
-             'and SPEC (or FIO) files. Multiple SPEC or FIO files will '
-             'simply be concatenated, with one entry per scan. '
-             'Multiple image files will be merged into a single '
-             'entry with a stack of images.')
+        help="Input files (EDF, TIFF, FIO, SPEC...). When specifying "
+        "multiple files, you cannot specify both fabio images "
+        "and SPEC (or FIO) files. Multiple SPEC or FIO files will "
+        "simply be concatenated, with one entry per scan. "
+        "Multiple image files will be merged into a single "
+        "entry with a stack of images.",
+    )
     # input_files and --filepattern are mutually exclusive
     parser.add_argument(
-        '--file-pattern',
-        help='File name pattern for loading a series of indexed image files '
-             '(toto_%%04d.edf). This argument is incompatible with argument '
-             'input_files. If an output URI with a HDF5 path is provided, '
-             'only the content of the NXdetector group will be copied there. '
-             'If no HDF5 path, or just "/", is given, a complete NXdata '
-             'structure will be created.')
+        "--file-pattern",
+        help="File name pattern for loading a series of indexed image files "
+        "(toto_%%04d.edf). This argument is incompatible with argument "
+        "input_files. If an output URI with a HDF5 path is provided, "
+        "only the content of the NXdetector group will be copied there. "
+        'If no HDF5 path, or just "/", is given, a complete NXdata '
+        "structure will be created.",
+    )
     parser.add_argument(
-        '-o', '--output-uri',
-        default=time.strftime("%Y%m%d-%H%M%S") + '.h5',
-        help='Output file name (HDF5). An URI can be provided to write'
-             ' the data into a specific group in the output file: '
-             '/path/to/file::/path/to/group. '
-             'If not provided, the filename defaults to a timestamp:'
-             ' YYYYmmdd-HHMMSS.h5')
+        "-o",
+        "--output-uri",
+        default=time.strftime("%Y%m%d-%H%M%S") + ".h5",
+        help="Output file name (HDF5). An URI can be provided to write"
+        " the data into a specific group in the output file: "
+        "/path/to/file::/path/to/group. "
+        "If not provided, the filename defaults to a timestamp:"
+        " YYYYmmdd-HHMMSS.h5",
+    )
     parser.add_argument(
-        '-m', '--mode',
+        "-m",
+        "--mode",
         default="w-",
         help='Write mode: "r+" (read/write, file must exist), '
-             '"w" (write, existing file is lost), '
-             '"w-" (write, fail if file exists) or '
-             '"a" (read/write if exists, create otherwise)')
+        '"w" (write, existing file is lost), '
+        '"w-" (write, fail if file exists) or '
+        '"a" (read/write if exists, create otherwise)',
+    )
     parser.add_argument(
-        '--begin',
-        help='First file index, or first file indices to be considered. '
-             'This argument only makes sense when used together with '
-             '--file-pattern. Provide as many start indices as there '
-             'are indices in the file pattern, separated by commas. '
-             'Examples: "--filepattern toto_%%d.edf --begin 100", '
-             ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".')
+        "--begin",
+        help="First file index, or first file indices to be considered. "
+        "This argument only makes sense when used together with "
+        "--file-pattern. Provide as many start indices as there "
+        "are indices in the file pattern, separated by commas. "
+        'Examples: "--filepattern toto_%%d.edf --begin 100", '
+        ' "--filepattern toto_%%d_%%04d_%%02d.edf --begin 100,2000,5".',
+    )
     parser.add_argument(
-        '--end',
-        help='Last file index, or last file indices to be considered. '
-             'The same rules as with argument --begin apply. '
-             'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"')
+        "--end",
+        help="Last file index, or last file indices to be considered. "
+        "The same rules as with argument --begin apply. "
+        'Example: "--filepattern toto_%%d_%%d.edf --end 199,1999"',
+    )
     parser.add_argument(
-        '--add-root-group',
+        "--add-root-group",
         action="store_true",
-        help='This option causes each input file to be written to a '
-             'specific root group with the same name as the file. When '
-             'merging multiple input files, this can help preventing conflicts'
-             ' when datasets have the same name (see --overwrite-data). '
-             'This option is ignored when using --file-pattern.')
+        help="This option causes each input file to be written to a "
+        "specific root group with the same name as the file. When "
+        "merging multiple input files, this can help preventing conflicts"
+        " when datasets have the same name (see --overwrite-data). "
+        "This option is ignored when using --file-pattern.",
+    )
     parser.add_argument(
-        '--overwrite-data',
+        "--overwrite-data",
         action="store_true",
-        help='If the output path exists and an input dataset has the same'
-             ' name as an existing output dataset, overwrite the output '
-             'dataset (in modes "r+" or "a").')
+        help="If the output path exists and an input dataset has the same"
+        " name as an existing output dataset, overwrite the output "
+        'dataset (in modes "r+" or "a").',
+    )
     parser.add_argument(
-        '--min-size',
+        "--min-size",
         type=int,
         default=500,
-        help='Minimum number of elements required to be in a dataset to '
-             'apply compression or chunking (default 500).')
+        help="Minimum number of elements required to be in a dataset to "
+        "apply compression or chunking (default 500).",
+    )
     parser.add_argument(
-        '--chunks',
+        "--chunks",
         nargs="?",
         const="auto",
-        help='Chunk shape. Provide an argument that evaluates as a python '
-             'tuple (e.g. "(1024, 768)"). If this option is provided without '
-             'specifying an argument, the h5py library will guess a chunk for '
-             'you. Note that if you specify an explicit chunking shape, it '
-             'will be applied identically to all datasets with a large enough '
-             'size (see --min-size). ')
+        help="Chunk shape. Provide an argument that evaluates as a python "
+        'tuple (e.g. "(1024, 768)"). If this option is provided without '
+        "specifying an argument, the h5py library will guess a chunk for "
+        "you. Note that if you specify an explicit chunking shape, it "
+        "will be applied identically to all datasets with a large enough "
+        "size (see --min-size). ",
+    )
     parser.add_argument(
-        '--compression',
+        "--compression",
         nargs="?",
         const="gzip",
-        help='Compression filter. By default, the datasets in the output '
-             'file are not compressed. If this option is specified without '
-             'argument, the GZIP compression is used. Additional compression '
-             'filters may be available, depending on your HDF5 installation.')
+        help="Compression filter. By default, the datasets in the output "
+        "file are not compressed. If this option is specified without "
+        "argument, the GZIP compression is used. Additional compression "
+        "filters may be available, depending on your HDF5 installation.",
+    )
 
     def check_gzip_compression_opts(value):
         ivalue = int(value)
         if ivalue < 0 or ivalue > 9:
             raise argparse.ArgumentTypeError(
-                "--compression-opts must be an int from 0 to 9")
+                "--compression-opts must be an int from 0 to 9"
+            )
         return ivalue
 
     parser.add_argument(
-        '--compression-opts',
+        "--compression-opts",
         type=check_gzip_compression_opts,
         help='Compression options. For "gzip", this may be an integer from '
-             '0 to 9, with a default of 4. This is only supported for GZIP.')
+        "0 to 9, with a default of 4. This is only supported for GZIP.",
+    )
     parser.add_argument(
-        '--shuffle',
+        "--shuffle",
         action="store_true",
-        help='Enables the byte shuffle filter. This may improve the compression '
-             'ratio for block oriented compressors like GZIP or LZF.')
+        help="Enables the byte shuffle filter. This may improve the compression "
+        "ratio for block oriented compressors like GZIP or LZF.",
+    )
     parser.add_argument(
-        '--fletcher32',
+        "--fletcher32",
         action="store_true",
-        help='Adds a checksum to each chunk to detect data corruption.')
+        help="Adds a checksum to each chunk to detect data corruption.",
+    )
     parser.add_argument(
-        '--debug',
+        "--debug",
         action="store_true",
         default=False,
-        help='Set logging system in debug mode')
+        help="Set logging system in debug mode",
+    )
 
     options = parser.parse_args(argv[1:])
 
@@ -329,8 +353,10 @@ def main(argv):
         write_to_h5 = None
 
     if hdf5plugin is None:
-        message = "Module 'hdf5plugin' is not installed. It supports additional hdf5"\
-            + " compressions. You can install it using \"pip install hdf5plugin\"."
+        message = (
+            "Module 'hdf5plugin' is not installed. It supports additional hdf5"
+            + ' compressions. You can install it using "pip install hdf5plugin".'
+        )
         _logger.debug(message)
 
     # Process input arguments (mutually exclusive arguments)
@@ -360,33 +386,40 @@ def main(argv):
         dirname = os.path.dirname(options.file_pattern)
         file_pattern_re = c_format_string_to_re(options.file_pattern) + "$"
         files_in_dir = glob(os.path.join(dirname, "*"))
-        _logger.debug("""
+        _logger.debug(
+            """
             Processing file_pattern
             dirname: %s
             file_pattern_re: %s
             files_in_dir: %s
-            """, dirname, file_pattern_re, files_in_dir)
+            """,
+            dirname,
+            file_pattern_re,
+            files_in_dir,
+        )
 
-        options.input_files = sorted(list(filter(lambda name: re.match(file_pattern_re, name),
-                                                 files_in_dir)))
+        options.input_files = sorted(
+            list(filter(lambda name: re.match(file_pattern_re, name), files_in_dir))
+        )
         _logger.debug("options.input_files: %s", options.input_files)
 
         if options.begin is not None:
-            options.input_files = drop_indices_before_begin(options.input_files,
-                                                            file_pattern_re,
-                                                            options.begin)
-            _logger.debug("options.input_files after applying --begin: %s",
-                          options.input_files)
+            options.input_files = drop_indices_before_begin(
+                options.input_files, file_pattern_re, options.begin
+            )
+            _logger.debug(
+                "options.input_files after applying --begin: %s", options.input_files
+            )
 
         if options.end is not None:
-            options.input_files = drop_indices_after_end(options.input_files,
-                                                         file_pattern_re,
-                                                         options.end)
-            _logger.debug("options.input_files after applying --end: %s",
-                          options.input_files)
+            options.input_files = drop_indices_after_end(
+                options.input_files, file_pattern_re, options.end
+            )
+            _logger.debug(
+                "options.input_files after applying --end: %s", options.input_files
+            )
 
-        if are_files_missing_in_series(options.input_files,
-                                       file_pattern_re):
+        if are_files_missing_in_series(options.input_files, file_pattern_re):
             _logger.error("File missing in the file series. Aborting.")
             return -1
 
@@ -402,37 +435,39 @@ def main(argv):
 
     if os.path.isfile(output_name):
         if options.mode == "w-":
-            _logger.error("Output file %s exists and mode is 'w-' (default)."
-                          " Aborting. To append data to an existing file, "
-                          "use 'a' or 'r+'.",
-                          output_name)
+            _logger.error(
+                "Output file %s exists and mode is 'w-' (default)."
+                " Aborting. To append data to an existing file, "
+                "use 'a' or 'r+'.",
+                output_name,
+            )
             return -1
         elif not os.access(output_name, os.W_OK):
-            _logger.error("Output file %s exists and is not writeable.",
-                          output_name)
+            _logger.error("Output file %s exists and is not writeable.", output_name)
             return -1
         elif options.mode == "w":
-            _logger.info("Output file %s exists and mode is 'w'. "
-                         "Overwriting existing file.", output_name)
+            _logger.info(
+                "Output file %s exists and mode is 'w'. " "Overwriting existing file.",
+                output_name,
+            )
         elif options.mode in ["a", "r+"]:
-            _logger.info("Appending data to existing file %s.",
-                         output_name)
+            _logger.info("Appending data to existing file %s.", output_name)
     else:
         if options.mode == "r+":
-            _logger.error("Output file %s does not exist and mode is 'r+'"
-                          " (append, file must exist). Aborting.",
-                          output_name)
+            _logger.error(
+                "Output file %s does not exist and mode is 'r+'"
+                " (append, file must exist). Aborting.",
+                output_name,
+            )
             return -1
         else:
-            _logger.info("Creating new output file %s.",
-                         output_name)
+            _logger.info("Creating new output file %s.", output_name)
 
     # Test that all input files exist and are readable
     bad_input = False
     for fname in options.input_files:
         if not os.access(fname, os.R_OK):
-            _logger.error("Cannot read input file %s.",
-                          fname)
+            _logger.error("Cannot read input file %s.", fname)
             bad_input = True
     if bad_input:
         _logger.error("Aborting.")
@@ -456,10 +491,12 @@ def main(argv):
                 nitems = numpy.prod(chunks)
                 nbytes = nitems * 8
                 if nbytes > 10**6:
-                    _logger.warning("Requested chunk size might be larger than"
-                                    " the default 1MB chunk cache, for float64"
-                                    " data. This can dramatically affect I/O "
-                                    "performances.")
+                    _logger.warning(
+                        "Requested chunk size might be larger than"
+                        " the default 1MB chunk cache, for float64"
+                        " data. This can dramatically affect I/O "
+                        "performances."
+                    )
                 create_dataset_args["chunks"] = chunks
 
     if options.compression is not None:
@@ -478,61 +515,78 @@ def main(argv):
     if options.fletcher32:
         create_dataset_args["fletcher32"] = True
 
-    if (len(options.input_files) > 1 and
-            not contains_specfile(options.input_files) and
-            not contains_fiofile(options.input_files) and
-            not options.add_root_group) or options.file_pattern is not None:
+    if (
+        len(options.input_files) > 1
+        and not contains_specfile(options.input_files)
+        and not contains_fiofile(options.input_files)
+        and not options.add_root_group
+    ) or options.file_pattern is not None:
         # File series -> stack of images
         input_group = fabioh5.File(file_series=options.input_files)
         if hdf5_path != "/":
             # we want to append only data and headers to an existing file
             input_group = input_group["/scan_0/instrument/detector_0"]
         with h5py.File(output_name, mode=options.mode) as h5f:
-            write_to_h5(input_group, h5f,
-                        h5path=hdf5_path,
-                        overwrite_data=options.overwrite_data,
-                        create_dataset_args=create_dataset_args,
-                        min_size=options.min_size)
+            write_to_h5(
+                input_group,
+                h5f,
+                h5path=hdf5_path,
+                overwrite_data=options.overwrite_data,
+                create_dataset_args=create_dataset_args,
+                min_size=options.min_size,
+            )
 
-    elif len(options.input_files) == 1 or \
-            are_all_specfile(options.input_files) or\
-            are_all_fiofile(options.input_files) or\
-            options.add_root_group:
+    elif (
+        len(options.input_files) == 1
+        or are_all_specfile(options.input_files)
+        or are_all_fiofile(options.input_files)
+        or options.add_root_group
+    ):
         # single file, or spec files
         h5paths_and_groups = []
         for input_name in options.input_files:
             hdf5_path_for_file = hdf5_path
             if options.add_root_group:
-                hdf5_path_for_file = hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+                hdf5_path_for_file = (
+                    hdf5_path.rstrip("/") + "/" + os.path.basename(input_name)
+                )
             try:
-                h5paths_and_groups.append((hdf5_path_for_file,
-                                           silx.io.open(input_name)))
+                h5paths_and_groups.append(
+                    (hdf5_path_for_file, silx.io.open(input_name))
+                )
             except IOError:
-                _logger.error("Cannot read file %s. If this is a file format "
-                              "supported by the fabio library, you can try to"
-                              " install fabio (`pip install fabio`)."
-                              " Aborting conversion.",
-                              input_name)
+                _logger.error(
+                    "Cannot read file %s. If this is a file format "
+                    "supported by the fabio library, you can try to"
+                    " install fabio (`pip install fabio`)."
+                    " Aborting conversion.",
+                    input_name,
+                )
                 return -1
 
         with h5py.File(output_name, mode=options.mode) as h5f:
             for hdf5_path_for_file, input_group in h5paths_and_groups:
-                write_to_h5(input_group, h5f,
-                            h5path=hdf5_path_for_file,
-                            overwrite_data=options.overwrite_data,
-                            create_dataset_args=create_dataset_args,
-                            min_size=options.min_size)
+                write_to_h5(
+                    input_group,
+                    h5f,
+                    h5path=hdf5_path_for_file,
+                    overwrite_data=options.overwrite_data,
+                    create_dataset_args=create_dataset_args,
+                    min_size=options.min_size,
+                )
 
     else:
         # multiple file, SPEC and fabio images mixed
-        _logger.error("Multiple files with incompatible formats specified. "
-                      "You can provide multiple SPEC files or multiple image "
-                      "files, but not both.")
+        _logger.error(
+            "Multiple files with incompatible formats specified. "
+            "You can provide multiple SPEC files or multiple image "
+            "files, but not both."
+        )
         return -1
 
     with h5py.File(output_name, mode="r+") as h5f:
         # append "silx convert" to the creator attribute, for NeXus files
-        previous_creator = h5f.attrs.get("creator", u"")
+        previous_creator = h5f.attrs.get("creator", "")
         creator = "silx convert (v%s)" % silx.version
         # only if it not already there
         if creator not in previous_creator:
@@ -541,7 +595,7 @@ def main(argv):
             else:
                 new_creator = previous_creator + "; " + creator
             h5f.attrs["creator"] = numpy.array(
-                    new_creator,
-                    dtype=h5py.special_dtype(vlen=str))
+                new_creator, dtype=h5py.special_dtype(vlen=str)
+            )
 
     return 0

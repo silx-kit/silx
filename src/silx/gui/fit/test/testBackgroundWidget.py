@@ -34,8 +34,7 @@ class TestBackgroundWidget(TestCaseQt):
     def setUp(self):
         super(TestBackgroundWidget, self).setUp()
         self.bgdialog = BackgroundWidget.BackgroundDialog()
-        self.bgdialog.setData(list([0, 1, 2, 3]),
-                              list([0, 1, 4, 8]))
+        self.bgdialog.setData(list([0, 1, 2, 3]), list([0, 1, 4, 8]))
         self.qWaitForWindowExposed(self.bgdialog)
 
     def tearDown(self):
@@ -58,9 +57,17 @@ class TestBackgroundWidget(TestCaseQt):
         self.bgdialog.accept()
         output = self.bgdialog.output
 
-        for key in ["algorithm", "StripThreshold",  "SnipWidth",
-                    "StripIterations", "StripWidth", "SmoothingFlag",
-                    "SmoothingWidth", "AnchorsFlag", "AnchorsList"]:
+        for key in [
+            "algorithm",
+            "StripThreshold",
+            "SnipWidth",
+            "StripIterations",
+            "StripWidth",
+            "SmoothingFlag",
+            "SmoothingWidth",
+            "AnchorsFlag",
+            "AnchorsList",
+        ]:
             self.assertIn(key, output)
 
         self.assertFalse(output["AnchorsFlag"])

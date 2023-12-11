@@ -91,6 +91,7 @@ class SafeFileIconProvider(qt.QFileIconProvider):
     def __windowsDriveTypeId(self, info):
         try:
             import ctypes
+
             path = info.filePath()
             dtype = ctypes.cdll.kernel32.GetDriveTypeW(path)
         except Exception:

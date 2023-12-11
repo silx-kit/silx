@@ -62,29 +62,28 @@ class _GLPlotData2D(GLPlotItem):
     @property
     def xMin(self):
         ox, sx = self.origin[0], self.scale[0]
-        return ox if sx >= 0. else ox + sx * self.data.shape[1]
+        return ox if sx >= 0.0 else ox + sx * self.data.shape[1]
 
     @property
     def yMin(self):
         oy, sy = self.origin[1], self.scale[1]
-        return oy if sy >= 0. else oy + sy * self.data.shape[0]
+        return oy if sy >= 0.0 else oy + sy * self.data.shape[0]
 
     @property
     def xMax(self):
         ox, sx = self.origin[0], self.scale[0]
-        return ox + sx * self.data.shape[1] if sx >= 0. else ox
+        return ox + sx * self.data.shape[1] if sx >= 0.0 else ox
 
     @property
     def yMax(self):
         oy, sy = self.origin[1], self.scale[1]
-        return oy + sy * self.data.shape[0] if sy >= 0. else oy
+        return oy + sy * self.data.shape[0] if sy >= 0.0 else oy
 
 
 class GLPlotColormap(_GLPlotData2D):
-
     _SHADERS = {
-        'linear': {
-            'vertex': """
+        "linear": {
+            "vertex": """
     #version 120
 
     uniform mat4 matrix;
@@ -98,14 +97,14 @@ class GLPlotColormap(_GLPlotData2D):
         gl_Position = matrix * vec4(position, 0.0, 1.0);
     }
     """,
-            'fragTransform': """
+            "fragTransform": """
     vec2 textureCoords(void) {
         return coords;
     }
-    """},
-
-        'log': {
-            'vertex': """
+    """,
+        },
+        "log": {
+            "vertex": """
     #version 120
 
     attribute vec2 position;
@@ -129,7 +128,7 @@ class GLPlotColormap(_GLPlotData2D):
         gl_Position = matrix * dataPos;
     }
     """,
-            'fragTransform': """
+            "fragTransform": """
     uniform bvec2 isLog;
     uniform vec2 bounds_oneOverRange;
     uniform vec2 bounds_originOverRange;
@@ -145,9 +144,9 @@ class GLPlotColormap(_GLPlotData2D):
         return pos * bounds_oneOverRange - bounds_originOverRange;
         // TODO texture coords in range different from [0, 1]
     }
-    """},
-
-        'fragment': """
+    """,
+        },
+        "fragment": """
     #version 120
 
     /* isnan declaration for compatibility with GLSL 1.20 */
@@ -207,7 +206,7 @@ class GLPlotColormap(_GLPlotData2D):
         }
         gl_FragColor.a *= alpha;
     }
-    """
+    """,
     }
 
     _DATA_TEX_UNIT = 0
@@ -221,21 +220,32 @@ class GLPlotColormap(_GLPlotData2D):
         numpy.dtype(numpy.uint8): gl.GL_R8,
     }
 
-    _linearProgram = Program(_SHADERS['linear']['vertex'],
-                             _SHADERS['fragment'] %
-                             _SHADERS['linear']['fragTransform'],
-                             attrib0='position')
+    _linearProgram = Program(
+        _SHADERS["linear"]["vertex"],
+        _SHADERS["fragment"] % _SHADERS["linear"]["fragTransform"],
+        attrib0="position",
+    )
 
-    _logProgram = Program(_SHADERS['log']['vertex'],
-                          _SHADERS['fragment'] %
-                          _SHADERS['log']['fragTransform'],
-                          attrib0='position')
+    _logProgram = Program(
+        _SHADERS["log"]["vertex"],
+        _SHADERS["fragment"] % _SHADERS["log"]["fragTransform"],
+        attrib0="position",
+    )
 
-    SUPPORTED_NORMALIZATIONS = 'linear', 'log', 'sqrt', 'gamma', 'arcsinh'
+    SUPPORTED_NORMALIZATIONS = "linear", "log", "sqrt", "gamma", "arcsinh"
 
-    def __init__(self, data, origin, scale,
-                 colormap, normalization='linear', gamma=0., cmapRange=None,
-                 alpha=1.0, nancolor=(1., 1., 1., 0.)):
+    def __init__(
+        self,
+        data,
+        origin,
+        scale,
+        colormap,
+        normalization="linear",
+        gamma=0.0,
+        cmapRange=None,
+        alpha=1.0,
+        nancolor=(1.0, 1.0, 1.0, 0.0),
+    ):
         """Create a 2D colormap
 
         :param data: The 2D scalar data array to display
@@ -265,10 +275,10 @@ class GLPlotColormap(_GLPlotData2D):
         self.colormap = numpy.array(colormap, copy=False)
         self.normalization = normalization
         self.gamma = gamma
-        self._cmapRange = (1., 10.)  # Colormap range
+        self._cmapRange = (1.0, 10.0)  # Colormap range
         self.cmapRange = cmapRange  # Update _cmapRange
-        self._alpha = numpy.clip(alpha, 0., 1.)
-        self._nancolor = numpy.clip(nancolor, 0., 1.)
+        self._alpha = numpy.clip(alpha, 0.0, 1.0)
+        self._nancolor = numpy.clip(nancolor, 0.0, 1.0)
 
         self._cmap_texture = None
         self._texture = None
@@ -285,15 +295,14 @@ class GLPlotColormap(_GLPlotData2D):
         self._textureIsDirty = False
 
     def isInitialized(self):
-        return (self._cmap_texture is not None or
-                self._texture is not None)
+        return self._cmap_texture is not None or self._texture is not None
 
     @property
     def cmapRange(self):
-        if self.normalization == 'log':
-            assert self._cmapRange[0] > 0. and self._cmapRange[1] > 0.
-        elif self.normalization == 'sqrt':
-            assert self._cmapRange[0] >= 0. and self._cmapRange[1] >= 0.
+        if self.normalization == "log":
+            assert self._cmapRange[0] > 0.0 and self._cmapRange[1] > 0.0
+        elif self.normalization == "sqrt":
+            assert self._cmapRange[0] >= 0.0 and self._cmapRange[1] >= 0.0
         return self._cmapRange
 
     @cmapRange.setter
@@ -312,8 +321,7 @@ class GLPlotColormap(_GLPlotData2D):
         self.data = data
 
         if self._texture is not None:
-            if (self.data.shape != oldData.shape or
-                    self.data.dtype != oldData.dtype):
+            if self.data.shape != oldData.shape or self.data.dtype != oldData.dtype:
                 self.discard()
             else:
                 self._textureIsDirty = True
@@ -322,74 +330,77 @@ class GLPlotColormap(_GLPlotData2D):
         if self._cmap_texture is None:
             # TODO share cmap texture accross Images
             # put all cmaps in one texture
-            colormap = numpy.empty((16, 256, self.colormap.shape[1]),
-                                   dtype=self.colormap.dtype)
+            colormap = numpy.empty(
+                (16, 256, self.colormap.shape[1]), dtype=self.colormap.dtype
+            )
             colormap[:] = self.colormap
             format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
-            self._cmap_texture = Texture(internalFormat=format_,
-                                         data=colormap,
-                                         format_=format_,
-                                         texUnit=self._CMAP_TEX_UNIT,
-                                         minFilter=gl.GL_NEAREST,
-                                         magFilter=gl.GL_NEAREST,
-                                         wrap=(gl.GL_CLAMP_TO_EDGE,
-                                               gl.GL_CLAMP_TO_EDGE))
+            self._cmap_texture = Texture(
+                internalFormat=format_,
+                data=colormap,
+                format_=format_,
+                texUnit=self._CMAP_TEX_UNIT,
+                minFilter=gl.GL_NEAREST,
+                magFilter=gl.GL_NEAREST,
+                wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
+            )
             self._cmap_texture.prepare()
 
         if self._texture is None:
             internalFormat = self._INTERNAL_FORMATS[self.data.dtype]
 
-            self._texture = Image(internalFormat,
-                                  self.data,
-                                  format_=gl.GL_RED,
-                                  texUnit=self._DATA_TEX_UNIT)
+            self._texture = Image(
+                internalFormat,
+                self.data,
+                format_=gl.GL_RED,
+                texUnit=self._DATA_TEX_UNIT,
+            )
         elif self._textureIsDirty:
             self._textureIsDirty = True
             self._texture.updateAll(format_=gl.GL_RED, data=self.data)
 
     def _setCMap(self, prog):
         dataMin, dataMax = self.cmapRange  # If log, it is stricly positive
-        param = 0.
+        param = 0.0
 
         if self.data.dtype in (numpy.uint16, numpy.uint8):
             # Using unsigned int as normalized integer in OpenGL
             # So revert normalization in the shader
             dataScale = float(numpy.iinfo(self.data.dtype).max)
         else:
-            dataScale = 1.
+            dataScale = 1.0
 
-        if self.normalization == 'log':
+        if self.normalization == "log":
             dataMin = math.log10(dataMin)
             dataMax = math.log10(dataMax)
             normID = 1
-        elif self.normalization == 'sqrt':
+        elif self.normalization == "sqrt":
             dataMin = math.sqrt(dataMin)
             dataMax = math.sqrt(dataMax)
             normID = 2
-        elif self.normalization == 'gamma':
+        elif self.normalization == "gamma":
             # Keep dataMin, dataMax as is
             param = self.gamma
             normID = 3
-        elif self.normalization == 'arcsinh':
+        elif self.normalization == "arcsinh":
             dataMin = numpy.arcsinh(dataMin)
             dataMax = numpy.arcsinh(dataMax)
             normID = 4
         else:  # Linear and fallback
             normID = 0
 
-        gl.glUniform1f(prog.uniforms['data_scale'], dataScale)
-        gl.glUniform1i(prog.uniforms['cmap_texture'],
-                       self._cmap_texture.texUnit)
-        gl.glUniform1i(prog.uniforms['cmap_normalization'], normID)
-        gl.glUniform1f(prog.uniforms['cmap_parameter'], param)
-        gl.glUniform1f(prog.uniforms['cmap_min'], dataMin)
+        gl.glUniform1f(prog.uniforms["data_scale"], dataScale)
+        gl.glUniform1i(prog.uniforms["cmap_texture"], self._cmap_texture.texUnit)
+        gl.glUniform1i(prog.uniforms["cmap_normalization"], normID)
+        gl.glUniform1f(prog.uniforms["cmap_parameter"], param)
+        gl.glUniform1f(prog.uniforms["cmap_min"], dataMin)
         if dataMax > dataMin:
-            oneOverRange = 1. / (dataMax - dataMin)
+            oneOverRange = 1.0 / (dataMax - dataMin)
         else:
-            oneOverRange = 0.  # Fall-back
-        gl.glUniform1f(prog.uniforms['cmap_oneOverRange'], oneOverRange)
+            oneOverRange = 0.0  # Fall-back
+        gl.glUniform1f(prog.uniforms["cmap_oneOverRange"], oneOverRange)
 
-        gl.glUniform4f(prog.uniforms['nancolor'], *self._nancolor)
+        gl.glUniform4f(prog.uniforms["nancolor"], *self._nancolor)
 
         self._cmap_texture.bind()
 
@@ -403,21 +414,25 @@ class GLPlotColormap(_GLPlotData2D):
         prog = self._linearProgram
         prog.use()
 
-        gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms["data"], self._DATA_TEX_UNIT)
 
-        mat = numpy.dot(numpy.dot(context.matrix,
-                                  mat4Translate(*self.origin)),
-                        mat4Scale(*self.scale))
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat.astype(numpy.float32))
+        mat = numpy.dot(
+            numpy.dot(context.matrix, mat4Translate(*self.origin)),
+            mat4Scale(*self.scale),
+        )
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
 
-        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+        gl.glUniform1f(prog.uniforms["alpha"], self.alpha)
 
         self._setCMap(prog)
 
-        self._texture.render(prog.attributes['position'],
-                             prog.attributes['texCoords'],
-                             self._DATA_TEX_UNIT)
+        self._texture.render(
+            prog.attributes["position"],
+            prog.attributes["texCoords"],
+            self._DATA_TEX_UNIT,
+        )
 
     def _renderLog10(self, context):
         """Perform rendering when one axis has log scale
@@ -425,8 +440,9 @@ class GLPlotColormap(_GLPlotData2D):
         :param RenderContext context: Rendering information
         """
         xMin, yMin = self.xMin, self.yMin
-        if ((context.isXLog and xMin < FLOAT32_MINPOS) or
-                (context.isYLog and yMin < FLOAT32_MINPOS)):
+        if (context.isXLog and xMin < FLOAT32_MINPOS) or (
+            context.isYLog and yMin < FLOAT32_MINPOS
+        ):
             # Do not render images that are partly or totally <= 0
             return
 
@@ -437,27 +453,33 @@ class GLPlotColormap(_GLPlotData2D):
 
         ox, oy = self.origin
 
-        gl.glUniform1i(prog.uniforms['data'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms["data"], self._DATA_TEX_UNIT)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              context.matrix.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, context.matrix.astype(numpy.float32)
+        )
         mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
-        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
-                              mat.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matOffset"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
 
-        gl.glUniform2i(prog.uniforms['isLog'], context.isXLog, context.isYLog)
+        gl.glUniform2i(prog.uniforms["isLog"], context.isXLog, context.isYLog)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
 
-        xOneOverRange = 1. / (ex - ox)
-        yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
-                       ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
-                       xOneOverRange, yOneOverRange)
+        xOneOverRange = 1.0 / (ex - ox)
+        yOneOverRange = 1.0 / (ey - oy)
+        gl.glUniform2f(
+            prog.uniforms["bounds_originOverRange"],
+            ox * xOneOverRange,
+            oy * yOneOverRange,
+        )
+        gl.glUniform2f(
+            prog.uniforms["bounds_oneOverRange"], xOneOverRange, yOneOverRange
+        )
 
-        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+        gl.glUniform1f(prog.uniforms["alpha"], self.alpha)
 
         self._setCMap(prog)
 
@@ -467,20 +489,19 @@ class GLPlotColormap(_GLPlotData2D):
             raise RuntimeError("No texture, discard has already been called")
         if len(tiles) > 1:
             raise NotImplementedError(
-                "Image over multiple textures not supported with log scale")
+                "Image over multiple textures not supported with log scale"
+            )
 
         texture, vertices, info = tiles[0]
 
         texture.bind(self._DATA_TEX_UNIT)
 
-        posAttrib = prog.attributes['position']
+        posAttrib = prog.attributes["position"]
         stride = vertices.shape[-1] * vertices.itemsize
         gl.glEnableVertexAttribArray(posAttrib)
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 stride, vertices)
+        gl.glVertexAttribPointer(
+            posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, stride, vertices
+        )
 
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 
@@ -501,11 +522,11 @@ class GLPlotColormap(_GLPlotData2D):
 
 # image #######################################################################
 
-class GLPlotRGBAImage(_GLPlotData2D):
 
+class GLPlotRGBAImage(_GLPlotData2D):
     _SHADERS = {
-        'linear': {
-            'vertex': """
+        "linear": {
+            "vertex": """
     #version 120
 
     attribute vec2 position;
@@ -519,7 +540,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         coords = texCoords;
     }
     """,
-            'fragment': """
+            "fragment": """
     #version 120
 
     uniform sampler2D tex;
@@ -531,10 +552,10 @@ class GLPlotRGBAImage(_GLPlotData2D):
         gl_FragColor = texture2D(tex, coords);
         gl_FragColor.a *= alpha;
     }
-    """},
-
-        'log': {
-            'vertex': """
+    """,
+        },
+        "log": {
+            "vertex": """
     #version 120
 
     attribute vec2 position;
@@ -558,7 +579,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         gl_Position = matrix * dataPos;
     }
     """,
-            'fragment': """
+            "fragment": """
     #version 120
 
     uniform sampler2D tex;
@@ -585,22 +606,25 @@ class GLPlotRGBAImage(_GLPlotData2D):
         gl_FragColor = texture2D(tex, textureCoords());
         gl_FragColor.a *= alpha;
     }
-    """}
+    """,
+        },
     }
 
     _DATA_TEX_UNIT = 0
 
-    _SUPPORTED_DTYPES = (numpy.dtype(numpy.float32),
-                         numpy.dtype(numpy.uint8),
-                         numpy.dtype(numpy.uint16))
+    _SUPPORTED_DTYPES = (
+        numpy.dtype(numpy.float32),
+        numpy.dtype(numpy.uint8),
+        numpy.dtype(numpy.uint16),
+    )
 
-    _linearProgram = Program(_SHADERS['linear']['vertex'],
-                             _SHADERS['linear']['fragment'],
-                             attrib0='position')
+    _linearProgram = Program(
+        _SHADERS["linear"]["vertex"], _SHADERS["linear"]["fragment"], attrib0="position"
+    )
 
-    _logProgram = Program(_SHADERS['log']['vertex'],
-                          _SHADERS['log']['fragment'],
-                          attrib0='position')
+    _logProgram = Program(
+        _SHADERS["log"]["vertex"], _SHADERS["log"]["fragment"], attrib0="position"
+    )
 
     def __init__(self, data, origin, scale, alpha):
         """Create a 2D RGB(A) image from data
@@ -619,7 +643,7 @@ class GLPlotRGBAImage(_GLPlotData2D):
         super(GLPlotRGBAImage, self).__init__(data, origin, scale)
         self._texture = None
         self._textureIsDirty = False
-        self._alpha = numpy.clip(alpha, 0., 1.)
+        self._alpha = numpy.clip(alpha, 0.0, 1.0)
 
     @property
     def alpha(self):
@@ -647,17 +671,16 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
     def prepare(self):
         if self._texture is None:
-            formatName = 'GL_RGBA' if self.data.shape[2] == 4 else 'GL_RGB'
+            formatName = "GL_RGBA" if self.data.shape[2] == 4 else "GL_RGB"
             format_ = getattr(gl, formatName)
 
             if self.data.dtype == numpy.uint16:
-                formatName += '16'  # Use sized internal format for uint16
+                formatName += "16"  # Use sized internal format for uint16
             internalFormat = getattr(gl, formatName)
 
-            self._texture = Image(internalFormat,
-                                  self.data,
-                                  format_=format_,
-                                  texUnit=self._DATA_TEX_UNIT)
+            self._texture = Image(
+                internalFormat, self.data, format_=format_, texUnit=self._DATA_TEX_UNIT
+            )
         elif self._textureIsDirty:
             self._textureIsDirty = False
 
@@ -675,18 +698,23 @@ class GLPlotRGBAImage(_GLPlotData2D):
         prog = self._linearProgram
         prog.use()
 
-        gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms["tex"], self._DATA_TEX_UNIT)
 
-        mat = numpy.dot(numpy.dot(context.matrix, mat4Translate(*self.origin)),
-                        mat4Scale(*self.scale))
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              mat.astype(numpy.float32))
+        mat = numpy.dot(
+            numpy.dot(context.matrix, mat4Translate(*self.origin)),
+            mat4Scale(*self.scale),
+        )
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
 
-        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+        gl.glUniform1f(prog.uniforms["alpha"], self.alpha)
 
-        self._texture.render(prog.attributes['position'],
-                             prog.attributes['texCoords'],
-                             self._DATA_TEX_UNIT)
+        self._texture.render(
+            prog.attributes["position"],
+            prog.attributes["texCoords"],
+            self._DATA_TEX_UNIT,
+        )
 
     def _renderLog(self, context):
         """Perform rendering with axes having log scale
@@ -700,27 +728,33 @@ class GLPlotRGBAImage(_GLPlotData2D):
 
         ox, oy = self.origin
 
-        gl.glUniform1i(prog.uniforms['tex'], self._DATA_TEX_UNIT)
+        gl.glUniform1i(prog.uniforms["tex"], self._DATA_TEX_UNIT)
 
-        gl.glUniformMatrix4fv(prog.uniforms['matrix'], 1, gl.GL_TRUE,
-                              context.matrix.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, context.matrix.astype(numpy.float32)
+        )
         mat = numpy.dot(mat4Translate(ox, oy), mat4Scale(*self.scale))
-        gl.glUniformMatrix4fv(prog.uniforms['matOffset'], 1, gl.GL_TRUE,
-                              mat.astype(numpy.float32))
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matOffset"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
 
-        gl.glUniform2i(prog.uniforms['isLog'], context.isXLog, context.isYLog)
+        gl.glUniform2i(prog.uniforms["isLog"], context.isXLog, context.isYLog)
 
-        gl.glUniform1f(prog.uniforms['alpha'], self.alpha)
+        gl.glUniform1f(prog.uniforms["alpha"], self.alpha)
 
         ex = ox + self.scale[0] * self.data.shape[1]
         ey = oy + self.scale[1] * self.data.shape[0]
 
-        xOneOverRange = 1. / (ex - ox)
-        yOneOverRange = 1. / (ey - oy)
-        gl.glUniform2f(prog.uniforms['bounds_originOverRange'],
-                       ox * xOneOverRange, oy * yOneOverRange)
-        gl.glUniform2f(prog.uniforms['bounds_oneOverRange'],
-                       xOneOverRange, yOneOverRange)
+        xOneOverRange = 1.0 / (ex - ox)
+        yOneOverRange = 1.0 / (ey - oy)
+        gl.glUniform2f(
+            prog.uniforms["bounds_originOverRange"],
+            ox * xOneOverRange,
+            oy * yOneOverRange,
+        )
+        gl.glUniform2f(
+            prog.uniforms["bounds_oneOverRange"], xOneOverRange, yOneOverRange
+        )
 
         try:
             tiles = self._texture.tiles
@@ -728,20 +762,19 @@ class GLPlotRGBAImage(_GLPlotData2D):
             raise RuntimeError("No texture, discard has already been called")
         if len(tiles) > 1:
             raise NotImplementedError(
-                "Image over multiple textures not supported with log scale")
+                "Image over multiple textures not supported with log scale"
+            )
 
         texture, vertices, info = tiles[0]
 
         texture.bind(self._DATA_TEX_UNIT)
 
-        posAttrib = prog.attributes['position']
+        posAttrib = prog.attributes["position"]
         stride = vertices.shape[-1] * vertices.itemsize
         gl.glEnableVertexAttribArray(posAttrib)
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 stride, vertices)
+        gl.glVertexAttribPointer(
+            posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, stride, vertices
+        )
 
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(vertices))
 

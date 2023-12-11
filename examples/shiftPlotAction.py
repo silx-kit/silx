@@ -45,14 +45,17 @@ class ShiftUpAction(PlotAction):
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
+
     def __init__(self, plot, parent=None):
-        PlotAction.__init__(self,
-                            plot,
-                            icon='shape-circle',
-                            text='Shift up',
-                            tooltip='Shift active curve up by one unit',
-                            triggered=self.shiftActiveCurveUp,
-                            parent=parent)
+        PlotAction.__init__(
+            self,
+            plot,
+            icon="shape-circle",
+            text="Shift up",
+            tooltip="Shift active curve up by one unit",
+            triggered=self.shiftActiveCurveUp,
+            parent=parent,
+        )
 
     def shiftActiveCurveUp(self):
         """Get the active curve, add 1 to all y values, use this new y
@@ -62,9 +65,9 @@ class ShiftUpAction(PlotAction):
         activeCurve = self.plot.getActiveCurve()
 
         if activeCurve is None:
-            qt.QMessageBox.information(self.plot,
-                                       'Shift Curve',
-                                       'Please select a curve.')
+            qt.QMessageBox.information(
+                self.plot, "Shift Curve", "Please select a curve."
+            )
         else:
             # Unpack curve data.
             # Each curve is represented by an object with methods to access:

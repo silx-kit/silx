@@ -119,13 +119,12 @@ class TestConvertCommand(unittest.TestCase):
         # write a temporary SPEC file
         specname = os.path.join(tempdir, "input.dat")
         with io.open(specname, "wb") as fd:
-            fd.write(bytes(sftext, 'ascii'))
+            fd.write(bytes(sftext, "ascii"))
 
         # convert it
         h5name = os.path.join(tempdir, "output.h5")
         assert not os.path.isfile(h5name)
-        command_list = ["convert", "-m", "w",
-                        specname, "-o", h5name]
+        command_list = ["convert", "-m", "w", specname, "-o", h5name]
         result = convert.main(command_list)
 
         self.assertEqual(result, 0)
@@ -133,8 +132,7 @@ class TestConvertCommand(unittest.TestCase):
 
         with h5py.File(h5name, "r") as h5f:
             title12 = h5py_read_dataset(h5f["/1.2/title"])
-            self.assertEqual(title12,
-                             "aaaaaa")
+            self.assertEqual(title12, "aaaaaa")
 
             creator = h5f.attrs.get("creator")
             self.assertIsNotNone(creator, "No creator attribute in NXroot group")

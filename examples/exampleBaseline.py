@@ -43,13 +43,15 @@ def stacked_histogran(plot, edges, histograms, colors, legend):
 
     for histogram, color, layer_index in zip(histograms, colors, range(len(colors))):
         stacked_histo = histogram + current_baseline
-        plot.addHistogram(histogram=stacked_histo,
-                          edges=edges,
-                          legend='_'.join((legend, str(layer_index))),
-                          color=color,
-                          baseline=current_baseline,
-                          z=len(histograms)-layer_index,
-                          fill=True)
+        plot.addHistogram(
+            histogram=stacked_histo,
+            edges=edges,
+            legend="_".join((legend, str(layer_index))),
+            color=color,
+            baseline=current_baseline,
+            z=len(histograms) - layer_index,
+            fill=True,
+        )
         current_baseline = stacked_histo
 
 
@@ -63,11 +65,13 @@ def get_plot_std(backend):
     histo = mean[y >= 3.0] - 1.8
 
     plot = Plot1D(backend=backend)
-    plot.addCurve(x=x, y=y, baseline=baseline, color='grey',
-                  legend='std-curve', fill=True)
-    plot.addCurve(x=x, y=mean, color='red', legend='mean')
-    plot.addHistogram(histogram=histo, edges=edges, color='red',
-                      legend='mean2', fill=True)
+    plot.addCurve(
+        x=x, y=y, baseline=baseline, color="grey", legend="std-curve", fill=True
+    )
+    plot.addCurve(x=x, y=mean, color="red", legend="mean")
+    plot.addHistogram(
+        histogram=histo, edges=edges, color="red", legend="mean2", fill=True
+    )
     return plot
 
 
@@ -79,20 +83,25 @@ def get_plot_stacked_histogram(backend):
     histo_2 = numpy.random.random(len(edges))
     histo_3 = numpy.random.random(len(edges))
     histo_4 = numpy.random.random(len(edges))
-    stacked_histogran(plot=plot,
-                      edges=edges,
-                      histograms=(histo_1, histo_2, histo_3, histo_4),
-                      colors=('blue', 'green', 'red', 'yellow'),
-                      legend='first_stacked_histo')
+    stacked_histogran(
+        plot=plot,
+        edges=edges,
+        histograms=(histo_1, histo_2, histo_3, histo_4),
+        colors=("blue", "green", "red", "yellow"),
+        legend="first_stacked_histo",
+    )
 
     # second histogram
     edges = numpy.arange(10, 25, step=1.0)
     histo_1 = -numpy.random.random(len(edges))
     histo_2 = -numpy.random.random(len(edges))
-    stacked_histogran(plot=plot, histograms=(histo_1, histo_2),
-                      edges=edges,
-                      colors=('gray', 'black'),
-                      legend='second_stacked_histo')
+    stacked_histogran(
+        plot=plot,
+        histograms=(histo_1, histo_2),
+        edges=edges,
+        colors=("gray", "black"),
+        legend="second_stacked_histo",
+    )
 
     # last histogram
     edges = [30, 40]
@@ -103,11 +112,13 @@ def get_plot_stacked_histogram(backend):
         [0.2, 0.0],
         [0.6, 0.4],
     ]
-    stacked_histogran(plot=plot,
-                      histograms=histograms,
-                      edges=edges,
-                      colors=('blue', 'green', 'red', 'yellow', 'cyan'),
-                      legend='third_stacked_histo')
+    stacked_histogran(
+        plot=plot,
+        histograms=histograms,
+        edges=edges,
+        colors=("blue", "green", "red", "yellow", "cyan"),
+        legend="third_stacked_histo",
+    )
 
     return plot
 
@@ -134,14 +145,15 @@ def get_plot_log(backend):
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--backend',
+        "--backend",
         dest="backend",
         action="store",
         default=None,
-        help='Set plot backend. Should be "matplotlib" (default) or "opengl"')
+        help='Set plot backend. Should be "matplotlib" (default) or "opengl"',
+    )
 
     options = parser.parse_args(argv[1:])
-    assert options.backend in (None, 'matplotlib', 'opengl')
+    assert options.backend in (None, "matplotlib", "opengl")
     qapp = qt.QApplication([])
 
     plot_std = get_plot_std(backend=options.backend)
@@ -159,5 +171,5 @@ def main(argv):
     qapp.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

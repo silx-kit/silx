@@ -112,53 +112,55 @@ class TestConvertSpecHDF5(unittest.TestCase):
     def testAppendToHDF5(self):
         write_to_h5(self.sfh5, self.h5f, h5path="/foo/bar/spam")
         self.assertTrue(
-            array_equal(self.h5f["/1.2/measurement/mca_1/data"],
-                        self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
+            array_equal(
+                self.h5f["/1.2/measurement/mca_1/data"],
+                self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"],
+            )
         )
 
     def testWriteSpecH5Group(self):
         """Test passing a SpecH5Group as parameter, instead of a Spec filename
         or a SpecH5."""
         g = self.sfh5["1.1/instrument"]
-        self.assertIsInstance(g, SpecH5Group)        # let's be paranoid
+        self.assertIsInstance(g, SpecH5Group)  # let's be paranoid
         write_to_h5(g, self.h5f, h5path="my instruments")
 
-        self.assertAlmostEqual(self.h5f["my instruments/positioners/Sslit1 HOff"][tuple()],
-                               16.197579, places=4)
+        self.assertAlmostEqual(
+            self.h5f["my instruments/positioners/Sslit1 HOff"][tuple()],
+            16.197579,
+            places=4,
+        )
 
     def testTitle(self):
         """Test the value of a dataset"""
         title12 = h5py_read_dataset(self.h5f["/1.2/title"])
-        self.assertEqual(title12,
-                         u"aaaaaa")
+        self.assertEqual(title12, "aaaaaa")
 
     def testAttrs(self):
         # Test root group (file) attributes
-        self.assertEqual(self.h5f.attrs["NX_class"],
-                         u"NXroot")
+        self.assertEqual(self.h5f.attrs["NX_class"], "NXroot")
         # Test dataset attributes
         ds = self.h5f["/1.2/instrument/mca_1/data"]
         self.assertTrue("interpretation" in ds.attrs)
-        self.assertEqual(list(ds.attrs.values()),
-                         [u"spectrum"])
+        self.assertEqual(list(ds.attrs.values()), ["spectrum"])
         # Test group attributes
         grp = self.h5f["1.1"]
-        self.assertEqual(grp.attrs["NX_class"],
-                         u"NXentry")
-        self.assertEqual(len(list(grp.attrs.keys())),
-                         1)
+        self.assertEqual(grp.attrs["NX_class"], "NXentry")
+        self.assertEqual(len(list(grp.attrs.keys())), 1)
 
     def testHdf5HasSameMembers(self):
         spec_member_list = []
 
         def append_spec_members(name):
             spec_member_list.append(name)
+
         self.sfh5.visit(append_spec_members)
 
         hdf5_member_list = []
 
         def append_hdf5_members(name):
             hdf5_member_list.append(name)
+
         self.h5f.visit(append_hdf5_members)
 
         # 1. For some reason, h5py visit method doesn't include the leading
@@ -167,15 +169,18 @@ class TestConvertSpecHDF5(unittest.TestCase):
         # have a leading "/"
         spec_member_list = [m.lstrip("/") for m in spec_member_list]
 
-        self.assertEqual(set(hdf5_member_list),
-                         set(spec_member_list))
+        self.assertEqual(set(hdf5_member_list), set(spec_member_list))
 
     def testLinks(self):
         self.assertTrue(
-            array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
-                        self.h5f["/1.2/measurement/mca_0/data"])
+            array_equal(
+                self.sfh5["/1.2/measurement/mca_0/data"],
+                self.h5f["/1.2/measurement/mca_0/data"],
+            )
         )
         self.assertTrue(
-            array_equal(self.h5f["/1.2/instrument/mca_1/channels"],
-                        self.h5f["/1.2/measurement/mca_1/info/channels"])
+            array_equal(
+                self.h5f["/1.2/instrument/mca_1/channels"],
+                self.h5f["/1.2/measurement/mca_1/info/channels"],
+            )
         )

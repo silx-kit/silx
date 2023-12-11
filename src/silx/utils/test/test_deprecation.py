@@ -44,11 +44,15 @@ class TestDeprecation(unittest.TestCase):
     def deprecatedWithParams(self):
         pass
 
-    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=True)
+    @deprecation.deprecated(
+        reason="r", replacement="r", since_version="v", only_once=True
+    )
     def deprecatedOnlyOnce(self):
         pass
 
-    @deprecation.deprecated(reason="r", replacement="r", since_version="v", only_once=False)
+    @deprecation.deprecated(
+        reason="r", replacement="r", since_version="v", only_once=False
+    )
     def deprecatedEveryTime(self):
         pass
 
@@ -71,6 +75,7 @@ class TestDeprecation(unittest.TestCase):
     def testLoggedSingleTime(self):
         def log():
             self.deprecatedOnlyOnce()
+
         log()
         log()
         log()

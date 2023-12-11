@@ -105,7 +105,6 @@ def tearDownModule():
 
 
 class _UtilsMixin(object):
-
     def createDialog(self):
         self._deleteDialog()
         self._dialog = self._createDialog()
@@ -145,7 +144,6 @@ class _UtilsMixin(object):
 
 
 class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -200,6 +198,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.assertEqual(dialog.result(), qt.QDialog.Accepted)
 
     def testClickOnShortcut(self):
+        if qt.BINDING == "PySide6":
+            self.skipTest("Avoid segmentation fault with PySide6")
+
         dialog = self.createDialog()
         dialog.show()
         self.qWaitForWindowExposed(dialog)
@@ -263,12 +264,16 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         self.assertSamePath(url.text(), path)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         self.assertSamePath(url.text(), path)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
@@ -290,7 +295,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
         self.assertSamePath(url.text(), path)
@@ -298,7 +305,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         self.assertSamePath(url.text(), path)
         # self.assertFalse(button.isEnabled())
 
@@ -316,7 +325,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         self.assertSamePath(url.text(), path)
         self.assertTrue(button.isEnabled())
         # test
@@ -335,8 +346,12 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        forwardAction = testutils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
-        backwardAction = testutils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
+        forwardAction = testutils.findChildren(
+            dialog, qt.QAction, name="forwardAction"
+        )[0]
+        backwardAction = testutils.findChildren(
+            dialog, qt.QAction, name="backwardAction"
+        )[0]
         filename = _tmpDirectory + "/data.h5"
 
         dialog.setDirectory(_tmpDirectory)
@@ -345,10 +360,14 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
         self.qWaitForPendingActions(dialog)
-        path2 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path2 = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         dialog.selectUrl(path2)
         self.qWaitForPendingActions(dialog)
-        path3 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group").path()
+        path3 = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group"
+        ).path()
         dialog.selectUrl(path3)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
@@ -411,7 +430,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/multiframe.edf"
-        path = silx.io.url.DataUrl(scheme="fabio", file_path=filename, data_slice=(1,)).path()
+        path = silx.io.url.DataUrl(
+            scheme="fabio", file_path=filename, data_slice=(1,)
+        ).path()
         dialog.selectUrl(path)
         # test
         image = dialog.selectedImage()
@@ -441,7 +462,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/image"
+        ).path()
         dialog.selectUrl(path)
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
@@ -458,7 +481,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -475,7 +500,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/cube", data_slice=(1, )).path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/cube", data_slice=(1,)
+        ).path()
         dialog.selectUrl(path)
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
@@ -490,7 +517,12 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/single_frame", data_slice=(0, )).path()
+        path = silx.io.url.DataUrl(
+            scheme="silx",
+            file_path=filename,
+            data_path="/single_frame",
+            data_slice=(0,),
+        ).path()
         dialog.selectUrl(path)
         # test
         self.assertEqual(dialog.selectedImage().shape, (100, 100))
@@ -533,25 +565,30 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 6)
+        self.assertEqual(
+            self._countSelectableItems(browser.model(), browser.rootIndex()), 6
+        )
 
         codecName = fabio.edfimage.EdfImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 4)
+        self.assertEqual(
+            self._countSelectableItems(browser.model(), browser.rootIndex()), 4
+        )
 
         codecName = fabio.fit2dmaskimage.Fit2dMaskImage.codec_name()
         index = filters.indexFromCodec(codecName)
         filters.setCurrentIndex(index)
         filters.activated[int].emit(index)
         self.qWait(50)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 2)
+        self.assertEqual(
+            self._countSelectableItems(browser.model(), browser.rootIndex()), 2
+        )
 
 
 class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -605,51 +642,55 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         print()
         print("\\\n".join(strings))
 
-    STATE_VERSION1_QT4 = b''\
-        b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F'\
-        b'\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00'\
-        b'a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g'\
-        b'\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00'\
-        b'\x00\x00\x00}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00'\
-        b'r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00'\
-        b'\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00'\
-        b'\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00'\
-        b'o\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
-        b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    STATE_VERSION1_QT4 = (
+        b""
+        b"\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00"
+        b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F"
+        b"\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00"
+        b"a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g"
+        b'\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00'
+        b"\xFF\x00\x00\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+        b"\xFF\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00"
+        b"\x00\x00\x00}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00"
+        b"r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00"
+        b"\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00"
+        b"\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00"
+        b"\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00"
+        b"\x00\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00"
+        b"o\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00"
+        b"r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g"
+    )
     """Serialized state on Qt4. Generated using :meth:`printState`"""
 
-    STATE_VERSION1_QT5 = b''\
-        b'\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F'\
-        b'\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00'\
-        b'a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g'\
-        b'\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00'\
-        b'\xFF\x00\x00\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\xFF\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C'\
-        b'\x00\x00\x00\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s'\
-        b'\x00e\x00r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87'\
-        b'\x00\x00\x00\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF'\
-        b'\xFF\xFF\x00\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00'\
-        b'\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00'\
-        b'\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03'\
-        b'\xE8\x00\xFF\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00'\
-        b'\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00o'\
-        b'\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00'\
-        b'r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g'
+    STATE_VERSION1_QT5 = (
+        b""
+        b"\x00\x00\x00^\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00"
+        b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00a\x00g\x00e\x00F"
+        b"\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00I\x00m\x00"
+        b"a\x00g\x00e\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g"
+        b"\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00"
+        b"\xFF\x00\x00\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+        b"\xFF\xFF\xFF\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C"
+        b"\x00\x00\x00\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s"
+        b"\x00e\x00r\x00\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87"
+        b"\x00\x00\x00\xFF\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF"
+        b"\xFF\xFF\x00\x00\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00"
+        b"\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00"
+        b"\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00"
+        b"\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03"
+        b"\xE8\x00\xFF\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00"
+        b"\x00\x0C\x00\x00\x00\x000\x00\x00\x00\x10\x00C\x00o\x00l\x00o"
+        b"\x00r\x00m\x00a\x00p\x00\x00\x00\x01\x00\x00\x00\x08\x00g\x00"
+        b"r\x00a\x00y\x01\x01\x00\x00\x00\x06\x00l\x00o\x00g"
+    )
     """Serialized state on Qt5. Generated using :meth:`printState`"""
 
     def testAvoidRestoreRegression_Version1(self):
@@ -756,7 +797,9 @@ class TestImageFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
         filename = _tmpDirectory + "/data.h5"
-        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
+        url = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/foobar"
+        )
         dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
         self.assertIsNone(dialog._selectedData())

@@ -62,7 +62,7 @@ class TestSceneWidget(TestCaseQt, ParametricTestCase):
         scatter.setTranslation(10, 10)
         scatter.setScale(10, 10, 10)
 
-        self.widget.resetZoom('front')
+        self.widget.resetZoom("front")
         self.qapp.processEvents()
 
         self.widget.setFogMode(self.widget.FogMode.LINEAR)

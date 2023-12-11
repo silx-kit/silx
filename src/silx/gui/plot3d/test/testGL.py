@@ -53,14 +53,18 @@ class TestOpenGL(TestCaseQt):
             """Perform the rendering and logging"""
             if not self._dump:
                 self._dump = True
-                _logger.info('OpenGL info:')
-                _logger.info('\tQt OpenGL context version: %d.%d', *self.getOpenGLVersion())
-                _logger.info('\tGL_VERSION: %s' % gl.glGetString(gl.GL_VERSION))
-                _logger.info('\tGL_SHADING_LANGUAGE_VERSION: %s' %
-                             gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION))
-                _logger.debug('\tGL_EXTENSIONS: %s' % gl.glGetString(gl.GL_EXTENSIONS))
+                _logger.info("OpenGL info:")
+                _logger.info(
+                    "\tQt OpenGL context version: %d.%d", *self.getOpenGLVersion()
+                )
+                _logger.info("\tGL_VERSION: %s" % gl.glGetString(gl.GL_VERSION))
+                _logger.info(
+                    "\tGL_SHADING_LANGUAGE_VERSION: %s"
+                    % gl.glGetString(gl.GL_SHADING_LANGUAGE_VERSION)
+                )
+                _logger.debug("\tGL_EXTENSIONS: %s" % gl.glGetString(gl.GL_EXTENSIONS))
 
-            gl.glClearColor(1., 1., 1., 1.)
+            gl.glClearColor(1.0, 1.0, 1.0, 1.0)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
     def testOpenGL(self):

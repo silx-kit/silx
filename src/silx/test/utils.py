@@ -41,15 +41,16 @@ import tempfile
 from ..resources import ExternalResources
 
 
-utilstest = ExternalResources(project="silx",
-                              url_base="http://www.silx.org/pub/silx/",
-                              env_key="SILX_DATA",
-                              timeout=60)
+utilstest = ExternalResources(
+    project="silx",
+    url_base="http://www.silx.org/pub/silx/",
+    env_key="SILX_DATA",
+    timeout=60,
+)
 "This is the instance to be used. Singleton-like feature provided by module"
 
 
 class _TestOptions(object):
-
     def __init__(self):
         self.WITH_QT_TEST = True
         """Qt tests are included"""
@@ -82,32 +83,32 @@ class _TestOptions(object):
         if parsed_options is not None and not parsed_options.gui:
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "Skipped by command line"
-        elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+        elif os.environ.get("WITH_QT_TEST", "True") == "False":
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "Skipped by WITH_QT_TEST env var"
-        elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        elif sys.platform.startswith("linux") and not os.environ.get("DISPLAY", ""):
             self.WITH_QT_TEST = False
             self.WITH_QT_TEST_REASON = "DISPLAY env variable not set"
 
         if parsed_options is not None and not parsed_options.opencl:
             self.WITH_OPENCL_TEST_REASON = "Skipped by command line"
             self.WITH_OPENCL_TEST = False
-        elif os.environ.get('SILX_OPENCL', 'True') == 'False':
+        elif os.environ.get("SILX_OPENCL", "True") == "False":
             self.WITH_OPENCL_TEST_REASON = "Skipped by SILX_OPENCL env var"
             self.WITH_OPENCL_TEST = False
 
         if not self.WITH_OPENCL_TEST:
             # That's an easy way to skip OpenCL tests
             # It disable the use of OpenCL on the full silx project
-            os.environ['SILX_OPENCL'] = "False"
+            os.environ["SILX_OPENCL"] = "False"
 
         if parsed_options is not None and not parsed_options.opengl:
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by command line"
-        elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+        elif os.environ.get("WITH_GL_TEST", "True") == "False":
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "Skipped by WITH_GL_TEST env var"
-        elif sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        elif sys.platform.startswith("linux") and not os.environ.get("DISPLAY", ""):
             self.WITH_GL_TEST = False
             self.WITH_GL_TEST_REASON = "DISPLAY env variable not set"
         else:
@@ -120,7 +121,7 @@ class _TestOptions(object):
         if parsed_options is not None and parsed_options.low_mem:
             self.TEST_LOW_MEM = True
             self.TEST_LOW_MEM_REASON = "Skipped by command line"
-        elif os.environ.get('SILX_TEST_LOW_MEM', 'True') == 'False':
+        elif os.environ.get("SILX_TEST_LOW_MEM", "True") == "False":
             self.TEST_LOW_MEM = True
             self.TEST_LOW_MEM_REASON = "Skipped by SILX_TEST_LOW_MEM env var"
 
@@ -136,6 +137,7 @@ class _TestOptions(object):
 
 
 # Temporary directory context #################################################
+
 
 @contextlib.contextmanager
 def temp_dir():
@@ -153,7 +155,7 @@ def temp_dir():
 
 
 # Synthetic data and random noise #############################################
-def add_gaussian_noise(y, stdev=1., mean=0.):
+def add_gaussian_noise(y, stdev=1.0, mean=0.0):
     """Add random gaussian noise to synthetic data.
 
     :param ndarray y: Array of synthetic data
@@ -178,7 +180,7 @@ def add_poisson_noise(y):
     return yn
 
 
-def add_relative_noise(y, max_noise=5.):
+def add_relative_noise(y, max_noise=5.0):
     """Add relative random noise to synthetic data. The maximum noise level
     is given in percents.
 
@@ -194,4 +196,4 @@ def add_relative_noise(y, max_noise=5.):
     """
     noise = max_noise * (2 * numpy.random.random(size=y.size) - 1)
     noise.shape = y.shape
-    return y * (1. + noise / 100.)
+    return y * (1.0 + noise / 100.0)

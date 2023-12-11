@@ -35,9 +35,19 @@ import numpy
 
 from ....utils.deprecation import deprecated_warning
 from ... import colors
-from .core import (PointsBase, LabelsMixIn, ColorMixIn, YAxisMixIn,
-                   FillMixIn, LineMixIn, SymbolMixIn,
-                   BaselineMixIn, HighlightedMixIn, _Style)
+from .core import (
+    PointsBase,
+    LabelsMixIn,
+    ColorMixIn,
+    YAxisMixIn,
+    FillMixIn,
+    LineMixIn,
+    LineGapColorMixIn,
+    SymbolMixIn,
+    BaselineMixIn,
+    HighlightedMixIn,
+    _Style,
+)
 
 
 _logger = logging.getLogger(__name__)
@@ -53,10 +63,18 @@ class CurveStyle(_Style):
     :param Union[float,None] linewidth: Width of the line
     :param Union[str,None] symbol: Symbol for markers
     :param Union[float,None] symbolsize: Size of the markers
+    :param gapcolor: Color of gaps of dashed line
     """
 
-    def __init__(self, color=None, linestyle=None, linewidth=None,
-                 symbol=None, symbolsize=None):
+    def __init__(
+        self,
+        color=None,
+        linestyle=None,
+        linewidth=None,
+        symbol=None,
+        symbolsize=None,
+        gapcolor=None,
+    ):
         if color is None:
             self._color = None
         else:
@@ -80,6 +98,8 @@ class CurveStyle(_Style):
 
         self._symbolsize = None if symbolsize is None else float(symbolsize)
 
+        self._gapcolor = None if gapcolor is None else colors.rgba(gapcolor)
+
     def getColor(self, copy=True):
         """Returns the color or None if not set.
 
@@ -92,6 +112,13 @@ class CurveStyle(_Style):
             return numpy.array(self._color, copy=copy)
         else:
             return self._color
+
+    def getLineGapColor(self):
+        """Returns the color of dashed line gaps or None if not set.
+
+        :rtype: Union[List[float],None]
+        """
+        return self._gapcolor
 
     def getLineStyle(self):
         """Return the type of the line or None if not set.
@@ -141,17 +168,29 @@ class CurveStyle(_Style):
 
     def __eq__(self, other):
         if isinstance(other, CurveStyle):
-            return (numpy.array_equal(self.getColor(), other.getColor()) and
-                    self.getLineStyle() == other.getLineStyle() and
-                    self.getLineWidth() == other.getLineWidth() and
-                    self.getSymbol() == other.getSymbol() and
-                    self.getSymbolSize() == other.getSymbolSize())
+            return (
+                numpy.array_equal(self.getColor(), other.getColor())
+                and self.getLineStyle() == other.getLineStyle()
+                and self.getLineWidth() == other.getLineWidth()
+                and self.getSymbol() == other.getSymbol()
+                and self.getSymbolSize() == other.getSymbolSize()
+                and self.getLineGapColor() == other.getLineGapColor()
+            )
         else:
             return False
 
 
-class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
-            LineMixIn, BaselineMixIn, HighlightedMixIn):
+class Curve(
+    PointsBase,
+    ColorMixIn,
+    YAxisMixIn,
+    FillMixIn,
+    LabelsMixIn,
+    LineMixIn,
+    LineGapColorMixIn,
+    BaselineMixIn,
+    HighlightedMixIn,
+):
     """Description of a curve"""
 
     _DEFAULT_Z_LAYER = 1
@@ -160,13 +199,13 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
     _DEFAULT_SELECTABLE = True
     """Default selectable state for curves"""
 
-    _DEFAULT_LINEWIDTH = 1.
+    _DEFAULT_LINEWIDTH = 1.0
     """Default line width of the curve"""
 
-    _DEFAULT_LINESTYLE = '-'
+    _DEFAULT_LINESTYLE = "-"
     """Default line style of the curve"""
 
-    _DEFAULT_HIGHLIGHT_STYLE = CurveStyle(color='black')
+    _DEFAULT_HIGHLIGHT_STYLE = CurveStyle(color="black")
     """Default highlight style of the item"""
 
     _DEFAULT_BASELINE = None
@@ -178,6 +217,7 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         FillMixIn.__init__(self)
         LabelsMixIn.__init__(self)
         LineMixIn.__init__(self)
+        LineGapColorMixIn.__init__(self)
         BaselineMixIn.__init__(self)
         HighlightedMixIn.__init__(self)
 
@@ -186,30 +226,38 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
     def _addBackendRenderer(self, backend):
         """Update backend renderer"""
         # Filter-out values <= 0
-        xFiltered, yFiltered, xerror, yerror = self.getData(
-            copy=False, displayed=True)
+        xFiltered, yFiltered, xerror, yerror = self.getData(copy=False, displayed=True)
 
         if len(xFiltered) == 0 or not numpy.any(numpy.isfinite(xFiltered)):
             return None  # No data to display, do not add renderer to backend
 
         style = self.getCurrentStyle()
 
-        return backend.addCurve(xFiltered, yFiltered,
-                                color=style.getColor(),
-                                symbol=style.getSymbol(),
-                                linestyle=style.getLineStyle(),
-                                linewidth=style.getLineWidth(),
-                                yaxis=self.getYAxis(),
-                                xerror=xerror,
-                                yerror=yerror,
-                                fill=self.isFill(),
-                                alpha=self.getAlpha(),
-                                symbolsize=style.getSymbolSize(),
-                                baseline=self.getBaseline(copy=False))
+        return backend.addCurve(
+            xFiltered,
+            yFiltered,
+            color=style.getColor(),
+            gapcolor=style.getLineGapColor(),
+            symbol=style.getSymbol(),
+            linestyle=style.getLineStyle(),
+            linewidth=style.getLineWidth(),
+            yaxis=self.getYAxis(),
+            xerror=xerror,
+            yerror=yerror,
+            fill=self.isFill(),
+            alpha=self.getAlpha(),
+            symbolsize=style.getSymbolSize(),
+            baseline=self.getBaseline(copy=False),
+        )
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
-        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use Curve methods")
+        deprecated_warning(
+            "Attributes",
+            "__getitem__",
+            since_version="2.0.0",
+            replacement="Use Curve methods",
+        )
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
@@ -223,19 +271,19 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
             return {} if info is None else info
         elif item == 4:
             params = {
-                'info': self.getInfo(),
-                'color': self.getColor(),
-                'symbol': self.getSymbol(),
-                'linewidth': self.getLineWidth(),
-                'linestyle': self.getLineStyle(),
-                'xlabel': self.getXLabel(),
-                'ylabel': self.getYLabel(),
-                'yaxis': self.getYAxis(),
-                'xerror': self.getXErrorData(copy=False),
-                'yerror': self.getYErrorData(copy=False),
-                'z': self.getZValue(),
-                'selectable': self.isSelectable(),
-                'fill': self.isFill(),
+                "info": self.getInfo(),
+                "color": self.getColor(),
+                "symbol": self.getSymbol(),
+                "linewidth": self.getLineWidth(),
+                "linestyle": self.getLineStyle(),
+                "xlabel": self.getXLabel(),
+                "ylabel": self.getYLabel(),
+                "yaxis": self.getYAxis(),
+                "xerror": self.getXErrorData(copy=False),
+                "yerror": self.getYErrorData(copy=False),
+                "z": self.getZValue(),
+                "selectable": self.isSelectable(),
+                "fill": self.isFill(),
             }
             return params
         else:
@@ -255,20 +303,26 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
             linewidth = style.getLineWidth()
             symbol = style.getSymbol()
             symbolsize = style.getSymbolSize()
+            gapcolor = style.getLineGapColor()
 
             return CurveStyle(
                 color=self.getColor() if color is None else color,
                 linestyle=self.getLineStyle() if linestyle is None else linestyle,
                 linewidth=self.getLineWidth() if linewidth is None else linewidth,
                 symbol=self.getSymbol() if symbol is None else symbol,
-                symbolsize=self.getSymbolSize() if symbolsize is None else symbolsize)
+                symbolsize=self.getSymbolSize() if symbolsize is None else symbolsize,
+                gapcolor=self.getLineGapColor() if gapcolor is None else gapcolor,
+            )
 
         else:
-            return CurveStyle(color=self.getColor(),
-                              linestyle=self.getLineStyle(),
-                              linewidth=self.getLineWidth(),
-                              symbol=self.getSymbol(),
-                              symbolsize=self.getSymbolSize())
+            return CurveStyle(
+                color=self.getColor(),
+                linestyle=self.getLineStyle(),
+                linewidth=self.getLineWidth(),
+                symbol=self.getSymbol(),
+                symbolsize=self.getSymbolSize(),
+                gapcolor=self.getLineGapColor(),
+            )
 
     def setData(self, x, y, xerror=None, yerror=None, baseline=None, copy=True):
         """Set the data of the curve.
@@ -288,6 +342,5 @@ class Curve(PointsBase, ColorMixIn, YAxisMixIn, FillMixIn, LabelsMixIn,
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
-        PointsBase.setData(self, x=x, y=y, xerror=xerror, yerror=yerror,
-                           copy=copy)
+        PointsBase.setData(self, x=x, y=y, xerror=xerror, yerror=yerror, copy=copy)
         self._setBaseline(baseline=baseline)

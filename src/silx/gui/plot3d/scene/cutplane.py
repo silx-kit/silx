@@ -42,7 +42,8 @@ from . import transform, utils
 class ColormapMesh3D(Geometry):
     """A 3D mesh with color from a 3D texture."""
 
-    _shaders = ("""
+    _shaders = (
+        """
     attribute vec3 position;
     attribute vec3 normal;
 
@@ -67,7 +68,8 @@ class ColormapMesh3D(Geometry):
         gl_Position = matrix * vec4(position, 1.0);
     }
     """,
-                string.Template("""
+        string.Template(
+            """
     varying vec4 vCameraPosition;
     varying vec3 vPosition;
     varying vec3 vNormal;
@@ -91,32 +93,41 @@ class ColormapMesh3D(Geometry):
 
         $scenePostCall(vCameraPosition);
     }
-    """))
+    """
+        ),
+    )
 
-    def __init__(self, position, normal, data, copy=True,
-                 mode='triangles', indices=None, colormap=None):
+    def __init__(
+        self,
+        position,
+        normal,
+        data,
+        copy=True,
+        mode="triangles",
+        indices=None,
+        colormap=None,
+    ):
         assert mode in self._TRIANGLE_MODES
-        data = numpy.array(data, copy=copy, order='C')
+        data = numpy.array(data, copy=copy, order="C")
         assert data.ndim == 3
         self._data = data
         self._texture = None
         self._update_texture = True
         self._update_texture_filter = False
-        self._alpha = 1.
+        self._alpha = 1.0
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
-        self._interpolation = 'linear'
-        super(ColormapMesh3D, self).__init__(mode,
-                                             indices,
-                                             position=position,
-                                             normal=normal)
+        self._interpolation = "linear"
+        super(ColormapMesh3D, self).__init__(
+            mode, indices, position=position, normal=normal
+        )
 
         self.isBackfaceVisible = True
-        self.textureOffset = 0., 0., 0.
+        self.textureOffset = 0.0, 0.0, 0.0
         """Offset to add to texture coordinates"""
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order='C')
+        data = numpy.array(data, copy=copy, order="C")
         assert data.ndim == 3
         self._data = data
         self._update_texture = True
@@ -131,7 +142,7 @@ class ColormapMesh3D(Geometry):
 
     @interpolation.setter
     def interpolation(self, interpolation):
-        assert interpolation in ('linear', 'nearest')
+        assert interpolation in ("linear", "nearest")
         self._interpolation = interpolation
         self._update_texture_filter = True
         self.notify()
@@ -159,21 +170,24 @@ class ColormapMesh3D(Geometry):
             if self._texture is not None:
                 self._texture.discard()
 
-            if self.interpolation == 'nearest':
+            if self.interpolation == "nearest":
                 filter_ = gl.GL_NEAREST
             else:
                 filter_ = gl.GL_LINEAR
             self._update_texture = False
             self._update_texture_filter = False
             self._texture = _glutils.Texture(
-                gl.GL_R32F, self._data, gl.GL_RED,
+                gl.GL_R32F,
+                self._data,
+                gl.GL_RED,
                 minFilter=filter_,
                 magFilter=filter_,
-                wrap=gl.GL_CLAMP_TO_EDGE)
+                wrap=gl.GL_CLAMP_TO_EDGE,
+            )
 
         if self._update_texture_filter:
             self._update_texture_filter = False
-            if self.interpolation == 'nearest':
+            if self.interpolation == "nearest":
                 filter_ = gl.GL_NEAREST
             else:
                 filter_ = gl.GL_LINEAR
@@ -190,8 +204,8 @@ class ColormapMesh3D(Geometry):
             lightingFunction=ctx.viewport.light.fragmentDef,
             lightingCall=ctx.viewport.light.fragmentCall,
             colormapDecl=self.colormap.decl,
-            colormapCall=self.colormap.call
-            )
+            colormapCall=self.colormap.call,
+        )
         program = ctx.glCtx.prog(self._shaders[0], fragment)
         program.use()
 
@@ -202,18 +216,16 @@ class ColormapMesh3D(Geometry):
             gl.glCullFace(gl.GL_BACK)
             gl.glEnable(gl.GL_CULL_FACE)
 
-        program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
-        program.setUniformMatrix('transformMat',
-                                 ctx.objectToCamera.matrix,
-                                 safe=True)
-        gl.glUniform1f(program.uniforms['alpha'], self._alpha)
+        program.setUniformMatrix("matrix", ctx.objectToNDC.matrix)
+        program.setUniformMatrix("transformMat", ctx.objectToCamera.matrix, safe=True)
+        gl.glUniform1f(program.uniforms["alpha"], self._alpha)
 
         shape = self._data.shape
-        scales = 1./shape[2], 1./shape[1], 1./shape[0]
-        gl.glUniform3f(program.uniforms['dataScale'], *scales)
-        gl.glUniform3f(program.uniforms['texCoordsOffset'], *self.textureOffset)
+        scales = 1.0 / shape[2], 1.0 / shape[1], 1.0 / shape[0]
+        gl.glUniform3f(program.uniforms["dataScale"], *scales)
+        gl.glUniform3f(program.uniforms["texCoordsOffset"], *self.textureOffset)
 
-        gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
+        gl.glUniform1i(program.uniforms["data"], self._texture.texUnit)
 
         ctx.setupProgram(program)
 
@@ -227,11 +239,11 @@ class ColormapMesh3D(Geometry):
 class CutPlane(PlaneInGroup):
     """A cutting plane in a 3D texture"""
 
-    def __init__(self, point=(0., 0., 0.), normal=(0., 0., 1.)):
+    def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0)):
         self._data = None
         self._mesh = None
-        self._alpha = 1.
-        self._interpolation = 'linear'
+        self._alpha = 1.0
+        self._interpolation = "linear"
         self._colormap = Colormap()
         super(CutPlane, self).__init__(point, normal)
 
@@ -243,7 +255,7 @@ class CutPlane(PlaneInGroup):
             self._mesh = None
 
         else:
-            data = numpy.array(data, copy=copy, order='C')
+            data = numpy.array(data, copy=copy, order="C")
             assert data.ndim == 3
             self._data = data
             if self._mesh is not None:
@@ -273,7 +285,7 @@ class CutPlane(PlaneInGroup):
 
     @interpolation.setter
     def interpolation(self, interpolation):
-        assert interpolation in ('nearest', 'linear')
+        assert interpolation in ("nearest", "linear")
         if interpolation != self.interpolation:
             self._interpolation = interpolation
             if self._mesh is not None:
@@ -282,45 +294,47 @@ class CutPlane(PlaneInGroup):
 
     def prepareGL2(self, ctx):
         if self.isValid:
-
             contourVertices = self.contourVertices
 
             if self._mesh is None and self._data is not None:
-                self._mesh = ColormapMesh3D(contourVertices,
-                                            normal=self.plane.normal,
-                                            data=self._data,
-                                            copy=False,
-                                            mode='fan',
-                                            colormap=self.colormap)
+                self._mesh = ColormapMesh3D(
+                    contourVertices,
+                    normal=self.plane.normal,
+                    data=self._data,
+                    copy=False,
+                    mode="fan",
+                    colormap=self.colormap,
+                )
                 self._mesh.alpha = self._alpha
                 self._mesh.interpolation = self.interpolation
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:
-                if (contourVertices is None or
-                        len(contourVertices) == 0):
+                if contourVertices is None or len(contourVertices) == 0:
                     self._mesh.visible = False
                 else:
                     self._mesh.visible = True
-                    self._mesh.setAttribute('normal', self.plane.normal)
-                    self._mesh.setAttribute('position', contourVertices)
+                    self._mesh.setAttribute("normal", self.plane.normal)
+                    self._mesh.setAttribute("position", contourVertices)
 
             needTextureOffset = False
-            if self.interpolation == 'nearest':
+            if self.interpolation == "nearest":
                 # If cut plane is co-linear with array bin edges add texture offset
                 planePt = self.plane.point
-                for index, normal in enumerate(((1., 0., 0.),
-                                                (0., 1., 0.),
-                                                (0., 0., 1.))):
-                    if (numpy.all(numpy.equal(self.plane.normal, normal)) and
-                            int(planePt[index]) == planePt[index]):
+                for index, normal in enumerate(
+                    ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
+                ):
+                    if (
+                        numpy.all(numpy.equal(self.plane.normal, normal))
+                        and int(planePt[index]) == planePt[index]
+                    ):
                         needTextureOffset = True
                         break
 
             if needTextureOffset:
                 self._mesh.textureOffset = self.plane.normal * 1e-6
             else:
-                self._mesh.textureOffset = 0., 0., 0.
+                self._mesh.textureOffset = 0.0, 0.0, 0.0
 
         super(CutPlane, self).prepareGL2(ctx)
 
@@ -333,8 +347,8 @@ class CutPlane(PlaneInGroup):
             vertices = self.contourVertices
             if vertices is not None:
                 return numpy.array(
-                    (vertices.min(axis=0), vertices.max(axis=0)),
-                    dtype=numpy.float32)
+                    (vertices.min(axis=0), vertices.max(axis=0)), dtype=numpy.float32
+                )
             else:
                 return None  # Plane in not slicing the data volume
         else:
@@ -342,9 +356,9 @@ class CutPlane(PlaneInGroup):
                 return None
             else:
                 depth, height, width = self._data.shape
-                return numpy.array(((0., 0., 0.),
-                                    (width, height, depth)),
-                                   dtype=numpy.float32)
+                return numpy.array(
+                    ((0.0, 0.0, 0.0), (width, height, depth)), dtype=numpy.float32
+                )
 
     @property
     def contourVertices(self):
@@ -364,7 +378,8 @@ class CutPlane(PlaneInGroup):
         boxVertices = bounds[0] + boxVertices * (bounds[1] - bounds[0])
         lineIndices = Box.getLineIndices(copy=False)
         vertices = utils.boxPlaneIntersect(
-            boxVertices, lineIndices, self.plane.normal, self.plane.point)
+            boxVertices, lineIndices, self.plane.normal, self.plane.point
+        )
 
         self._cache = bounds, vertices if len(vertices) != 0 else None
 
@@ -382,6 +397,6 @@ class CutPlane(PlaneInGroup):
             # If it is a TransformList, do not create one to enable sharing.
             self._transforms = iterable
         else:
-            assert hasattr(iterable, '__iter__')
+            assert hasattr(iterable, "__iter__")
             self._transforms = transform.TransformList(iterable)
         self._transforms.addListener(self._transformChanged)

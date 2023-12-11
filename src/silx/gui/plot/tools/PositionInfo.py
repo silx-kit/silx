@@ -55,11 +55,12 @@ class _PositionInfoLabel(ElidedLabel):
 
     def sizeHint(self):
         hint = super().sizeHint()
-        width = self.fontMetrics().boundingRect('##############').width()
+        width = self.fontMetrics().boundingRect("##############").width()
         return qt.QSize(max(hint.width(), width), hint.height())
 
 
 # PositionInfo ################################################################
+
 
 class PositionInfo(qt.QWidget):
     """QWidget displaying coords converted from data coords of the mouse.
@@ -114,7 +115,7 @@ class PositionInfo(qt.QWidget):
         super(PositionInfo, self).__init__(parent)
 
         if converters is None:
-            converters = (('X', lambda x, y: x), ('Y', lambda x, y: y))
+            converters = (("X", lambda x, y: x), ("Y", lambda x, y: y))
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
 
@@ -125,10 +126,10 @@ class PositionInfo(qt.QWidget):
 
         # Create all QLabel and store them with the corresponding converter
         for name, func in converters:
-            layout.addWidget(qt.QLabel('<b>' + name + ':</b>'))
+            layout.addWidget(qt.QLabel("<b>" + name + ":</b>"))
 
             contentWidget = _PositionInfoLabel(self)
-            contentWidget.setText('------')
+            contentWidget.setText("------")
             layout.addWidget(contentWidget)
             self._fields.append((contentWidget, name, func))
 
@@ -154,17 +155,18 @@ class PositionInfo(qt.QWidget):
 
         :param dict event: Plot event
         """
-        if event['event'] == 'mouseMoved':
-            x, y = event['x'], event['y']
-            xPixel, yPixel = event['xpixel'], event['ypixel']
+        if event["event"] == "mouseMoved":
+            x, y = event["x"], event["y"]
+            xPixel, yPixel = event["xpixel"], event["ypixel"]
             self._updateStatusBar(x, y, xPixel, yPixel)
 
     def updateInfo(self):
         """Update displayed information"""
         plot = self.getPlotWidget()
         if plot is None:
-            _logger.error("Trying to update PositionInfo "
-                          "while PlotWidget no longer exists")
+            _logger.error(
+                "Trying to update PositionInfo " "while PlotWidget no longer exists"
+            )
             return
 
         widget = plot.getWidgetHandle()
@@ -187,15 +189,15 @@ class PositionInfo(qt.QWidget):
         if plot is None:
             return
 
-        styleSheet = "color: rgb(0, 0, 0);"  # Default style
+        styleSheet = ""  # Default style
         xData, yData = x, y
 
         snappingMode = self.getSnappingMode()
 
         # Snapping when crosshair either not requested or active
-        if (snappingMode & (self.SNAPPING_CURVE | self.SNAPPING_SCATTER) and
-                (not (snappingMode & self.SNAPPING_CROSSHAIR) or
-                 plot.getGraphCursor())):
+        if snappingMode & (self.SNAPPING_CURVE | self.SNAPPING_SCATTER) and (
+            not (snappingMode & self.SNAPPING_CROSSHAIR) or plot.getGraphCursor()
+        ):
             styleSheet = "color: rgb(255, 0, 0);"  # Style far from item
 
             if snappingMode & self.SNAPPING_ACTIVE_ONLY:
@@ -207,7 +209,7 @@ class PositionInfo(qt.QWidget):
                         selectedItems.append(activeCurve)
 
                 if snappingMode & self.SNAPPING_SCATTER:
-                    activeScatter = plot._getActiveItem(kind='scatter')
+                    activeScatter = plot.getActiveScatter()
                     if activeScatter:
                         selectedItems.append(activeScatter)
 
@@ -218,8 +220,11 @@ class PositionInfo(qt.QWidget):
                     kinds.append(items.Histogram)
                 if snappingMode & self.SNAPPING_SCATTER:
                     kinds.append(items.Scatter)
-                selectedItems = [item for item in plot.getItems()
-                                 if isinstance(item, tuple(kinds)) and item.isVisible()]
+                selectedItems = [
+                    item
+                    for item in plot.getItems()
+                    if isinstance(item, tuple(kinds)) and item.isVisible()
+                ]
 
             # Compute distance threshold
             window = plot.window()
@@ -230,12 +235,12 @@ class PositionInfo(qt.QWidget):
                 ratio = qt.QGuiApplication.primaryScreen().devicePixelRatio()
 
             # Baseline squared distance threshold
-            sqDistInPixels = (self.SNAP_THRESHOLD_DIST * ratio)**2
+            sqDistInPixels = (self.SNAP_THRESHOLD_DIST * ratio) ** 2
 
             for item in selectedItems:
-                if (snappingMode & self.SNAPPING_SYMBOLS_ONLY and (
-                        not isinstance(item, items.SymbolMixIn) or
-                        not item.getSymbol())):
+                if snappingMode & self.SNAPPING_SYMBOLS_ONLY and (
+                    not isinstance(item, items.SymbolMixIn) or not item.getSymbol()
+                ):
                     # Only handled if item symbols are visible
                     continue
 
@@ -250,7 +255,7 @@ class PositionInfo(qt.QWidget):
                         yData = item.getValueData(copy=False)[index]
 
                         # Update label style sheet
-                        styleSheet = "color: rgb(0, 0, 0);"
+                        styleSheet = ""
                         break
 
                 else:  # Curve, Scatter
@@ -264,14 +269,16 @@ class PositionInfo(qt.QWidget):
                     if isinstance(item, items.YAxisMixIn):
                         axis = item.getYAxis()
                     else:
-                        axis = 'left'
+                        axis = "left"
 
                     xArray = item.getXData(copy=False)[indices]
                     yArray = item.getYData(copy=False)[indices]
                     pixelPositions = plot.dataToPixel(xArray, yArray, axis=axis)
                     if pixelPositions is None:
                         continue
-                    sqDistances = (pixelPositions[0] - xPixel)**2 + (pixelPositions[1] - yPixel)**2
+                    sqDistances = (pixelPositions[0] - xPixel) ** 2 + (
+                        pixelPositions[1] - yPixel
+                    ) ** 2
                     if not numpy.any(numpy.isfinite(sqDistances)):
                         continue
                     closestIndex = numpy.nanargmin(sqDistances)
@@ -279,7 +286,7 @@ class PositionInfo(qt.QWidget):
 
                     if closestSqDistInPixels <= sqDistInPixels:
                         # Update label style sheet
-                        styleSheet = "color: rgb(0, 0, 0);"
+                        styleSheet = ""
 
                         # if close enough, snap to data point coord
                         xData, yData = xArray[closestIndex], yArray[closestIndex]
@@ -293,10 +300,11 @@ class PositionInfo(qt.QWidget):
                 text = self.valueToString(value)
                 label.setText(text)
             except:
-                label.setText('Error')
+                label.setText("Error")
                 _logger.error(
                     "Error while converting coordinates (%f, %f)"
-                    "with converter '%s'" % (xPixel, yPixel, name))
+                    "with converter '%s'" % (xPixel, yPixel, name)
+                )
                 _logger.error(traceback.format_exc())
 
     def valueToString(self, value):
@@ -305,7 +313,7 @@ class PositionInfo(qt.QWidget):
             return ", ".join(value)
         elif isinstance(value, numbers.Real):
             # Use this for floats and int
-            return '%.7g' % value
+            return "%.7g" % value
         else:
             # Fallback for other types
             return str(value)

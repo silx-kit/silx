@@ -31,7 +31,6 @@ from silx.gui import qt
 
 
 class TableModel(HierarchicalTableView.HierarchicalTableModel):
-
     def __init__(self, parent):
         HierarchicalTableView.HierarchicalTableModel.__init__(self, parent)
         self.__content = {}

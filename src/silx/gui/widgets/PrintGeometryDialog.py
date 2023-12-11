@@ -34,6 +34,7 @@ class PrintGeometryWidget(qt.QWidget):
     Use methods :meth:`setPrintGeometry` and :meth:`getPrintGeometry`
     to interact with the widget.
     """
+
     def __init__(self, parent=None):
         super(PrintGeometryWidget, self).__init__(parent)
         self.mainLayout = qt.QGridLayout(self)
@@ -107,21 +108,21 @@ class PrintGeometryWidget(qt.QWidget):
         print geometry dictionary."""
         ddict = {}
         if self._inchButton.isChecked():
-            ddict['units'] = "inches"
+            ddict["units"] = "inches"
         elif self._cmButton.isChecked():
-            ddict['units'] = "centimeters"
+            ddict["units"] = "centimeters"
         else:
-            ddict['units'] = "page"
+            ddict["units"] = "page"
 
-        ddict['xOffset'] = self._xOffset.value()
-        ddict['yOffset'] = self._yOffset.value()
-        ddict['width'] = self._width.value()
-        ddict['height'] = self._height.value()
+        ddict["xOffset"] = self._xOffset.value()
+        ddict["yOffset"] = self._yOffset.value()
+        ddict["width"] = self._width.value()
+        ddict["height"] = self._height.value()
 
         if self._aspect.isChecked():
-            ddict['keepAspectRatio'] = True
+            ddict["keepAspectRatio"] = True
         else:
-            ddict['keepAspectRatio'] = False
+            ddict["keepAspectRatio"] = False
         return ddict
 
     def setPrintGeometry(self, geometry=None):
@@ -144,22 +145,28 @@ class PrintGeometryWidget(qt.QWidget):
         if geometry is None:
             geometry = {}
         oldDict = self.getPrintGeometry()
-        for key in ["units", "xOffset", "yOffset",
-                    "width", "height", "keepAspectRatio"]:
+        for key in [
+            "units",
+            "xOffset",
+            "yOffset",
+            "width",
+            "height",
+            "keepAspectRatio",
+        ]:
             geometry[key] = geometry.get(key, oldDict[key])
 
-        if geometry['units'].lower().startswith("inc"):
+        if geometry["units"].lower().startswith("inc"):
             self._inchButton.setChecked(True)
-        elif geometry['units'].lower().startswith("c"):
+        elif geometry["units"].lower().startswith("c"):
             self._cmButton.setChecked(True)
         else:
             self._pageButton.setChecked(True)
 
-        self._xOffset.setText("%s" % float(geometry['xOffset']))
-        self._yOffset.setText("%s" % float(geometry['yOffset']))
-        self._width.setText("%s" % float(geometry['width']))
-        self._height.setText("%s" % float(geometry['height']))
-        if geometry['keepAspectRatio']:
+        self._xOffset.setText("%s" % float(geometry["xOffset"]))
+        self._yOffset.setText("%s" % float(geometry["yOffset"]))
+        self._width.setText("%s" % float(geometry["width"]))
+        self._height.setText("%s" % float(geometry["height"]))
+        if geometry["keepAspectRatio"]:
             self._aspect.setChecked(True)
         else:
             self._aspect.setChecked(False)

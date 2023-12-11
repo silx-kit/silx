@@ -59,6 +59,7 @@ class ArrayCurvePlot(qt.QWidget):
     This widget also handles simple 2D or 3D scatter plots (third dimension
     displayed as colour of points).
     """
+
     def __init__(self, parent=None):
         """
 
@@ -97,10 +98,18 @@ class ArrayCurvePlot(qt.QWidget):
         """
         return self._plot
 
-    def setCurvesData(self, ys, x=None,
-                      yerror=None, xerror=None,
-                      ylabels=None, xlabel=None, title=None,
-                      xscale=None, yscale=None):
+    def setCurvesData(
+        self,
+        ys,
+        x=None,
+        yerror=None,
+        xerror=None,
+        ylabels=None,
+        xlabel=None,
+        title=None,
+        xscale=None,
+        yscale=None,
+    ):
         """
 
         :param List[ndarray] ys: List of arrays to be represented by the y (vertical) axis.
@@ -139,11 +148,9 @@ class ArrayCurvePlot(qt.QWidget):
 
         self._plot.setGraphTitle(title or "")
         if xscale is not None:
-            self._plot.getXAxis().setScale(
-                'log' if xscale == 'log' else 'linear')
+            self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
         if yscale is not None:
-            self._plot.getYAxis().setScale(
-                'log' if yscale == 'log' else 'linear')
+            self._plot.getYAxis().setScale("log" if yscale == "log" else "linear")
         self._updateCurve()
 
         if not self.__selector_is_connected:
@@ -168,8 +175,10 @@ class ArrayCurvePlot(qt.QWidget):
         # Only remove curves that will no longer belong to the plot
         # So remaining curves keep their settings
         for item in self._plot.getItems():
-            if (isinstance(item, items.Curve) and
-                    item.getName() not in self.__signals_names):
+            if (
+                isinstance(item, items.Curve)
+                and item.getName() not in self.__signals_names
+            ):
                 self._plot.remove(item)
 
         for i in range(len(self.__signals)):
@@ -179,9 +188,9 @@ class ArrayCurvePlot(qt.QWidget):
             y_errors = None
             if i == 0 and self.__signal_errors is not None:
                 y_errors = self.__signal_errors[self._selector.selection()]
-            self._plot.addCurve(x, ys[i], legend=legend,
-                                xerror=self.__x_axis_errors,
-                                yerror=y_errors)
+            self._plot.addCurve(
+                x, ys[i], legend=legend, xerror=self.__x_axis_errors, yerror=y_errors
+            )
             if i == 0:
                 self._plot.setActiveCurve(legend)
 
@@ -207,6 +216,7 @@ class XYVScatterPlot(qt.QWidget):
     Widget for plotting one or more scatters
     (with identical x, y coordinates).
     """
+
     def __init__(self, parent=None):
         """
 
@@ -229,9 +239,11 @@ class XYVScatterPlot(qt.QWidget):
         self.__y_axis_errors = None
 
         self._plot = ScatterView(self)
-        self._plot.setColormap(Colormap(name="viridis",
-                                        vmin=None, vmax=None,
-                                        normalization=Colormap.LINEAR))
+        self._plot.setColormap(
+            Colormap(
+                name="viridis", vmin=None, vmax=None, normalization=Colormap.LINEAR
+            )
+        )
 
         self._slider = HorizontalSliderWithBrowser(parent=self)
         self._slider.setMinimum(0)
@@ -263,11 +275,20 @@ class XYVScatterPlot(qt.QWidget):
         """
         return self._plot.getPlotWidget()
 
-    def setScattersData(self, y, x, values,
-                        yerror=None, xerror=None,
-                        ylabel=None, xlabel=None,
-                        title="", scatter_titles=None,
-                        xscale=None, yscale=None):
+    def setScattersData(
+        self,
+        y,
+        x,
+        values,
+        yerror=None,
+        xerror=None,
+        ylabel=None,
+        xlabel=None,
+        title="",
+        scatter_titles=None,
+        xscale=None,
+        yscale=None,
+    ):
         """
 
         :param ndarray y: 1D array  for y (vertical) coordinates.
@@ -306,11 +327,9 @@ class XYVScatterPlot(qt.QWidget):
         self._slider.valueChanged[int].connect(self._sliderIdxChanged)
 
         if xscale is not None:
-            self._plot.getXAxis().setScale(
-                'log' if xscale == 'log' else 'linear')
+            self._plot.getXAxis().setScale("log" if xscale == "log" else "linear")
         if yscale is not None:
-            self._plot.getYAxis().setScale(
-                'log' if yscale == 'log' else 'linear')
+            self._plot.getYAxis().setScale("log" if yscale == "log" else "linear")
 
         self._updateScatter()
 
@@ -324,14 +343,18 @@ class XYVScatterPlot(qt.QWidget):
             title = self.__graph_title  # main NXdata @title
             if len(self.__scatter_titles) > 1:
                 # Append dataset name only when there is many datasets
-                title += '\n' + self.__scatter_titles[idx]
+                title += "\n" + self.__scatter_titles[idx]
         else:
             title = self.__scatter_titles[idx]  # scatter dataset name
 
         self._plot.setGraphTitle(title)
-        self._plot.setData(x, y, self.__values[idx],
-                           xerror=self.__x_axis_errors,
-                           yerror=self.__y_axis_errors)
+        self._plot.setData(
+            x,
+            y,
+            self.__values[idx],
+            xerror=self.__x_axis_errors,
+            yerror=self.__y_axis_errors,
+        )
         self._plot.resetZoom()
         self._plot.getXAxis().setLabel(self.__x_axis_name)
         self._plot.getYAxis().setLabel(self.__y_axis_name)
@@ -356,6 +379,7 @@ class ArrayImagePlot(qt.QWidget):
     If one or both of the axes does not have regularly spaced values, the
     the image is plotted as a coloured scatter plot.
     """
+
     def __init__(self, parent=None):
         """
 
@@ -371,9 +395,11 @@ class ArrayImagePlot(qt.QWidget):
         self.__y_axis_name = None
 
         self._plot = Plot2D(self)
-        self._plot.setDefaultColormap(Colormap(name="viridis",
-                                               vmin=None, vmax=None,
-                                               normalization=Colormap.LINEAR))
+        self._plot.setDefaultColormap(
+            Colormap(
+                name="viridis", vmin=None, vmax=None, normalization=Colormap.LINEAR
+            )
+        )
         self._plot.getIntensityHistogramAction().setVisible(True)
         self._plot.setKeepDataAspectRatio(True)
         maskToolWidget = self._plot.getMaskToolsDockWidget().widget()
@@ -407,13 +433,20 @@ class ArrayImagePlot(qt.QWidget):
         """
         return self._plot
 
-    def setImageData(self, signals,
-                     x_axis=None, y_axis=None,
-                     signals_names=None,
-                     xlabel=None, ylabel=None,
-                     title=None, isRgba=False,
-                     xscale=None, yscale=None,
-                     keep_ratio: bool=True):
+    def setImageData(
+        self,
+        signals,
+        x_axis=None,
+        y_axis=None,
+        signals_names=None,
+        xlabel=None,
+        ylabel=None,
+        title=None,
+        isRgba=False,
+        xscale=None,
+        yscale=None,
+        keep_ratio: bool = True,
+    ):
         """
 
         :param signals: list of n-D datasets, whose last 2 dimensions are used as the
@@ -495,7 +528,7 @@ class ArrayImagePlot(qt.QWidget):
                 x_axis = numpy.arange(image.shape[1])
             elif numpy.isscalar(x_axis) or len(x_axis) == 1:
                 # constant axis
-                x_axis = x_axis * numpy.ones((image.shape[1], ))
+                x_axis = x_axis * numpy.ones((image.shape[1],))
             elif len(x_axis) == 2:
                 # linear calibration
                 x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
@@ -503,7 +536,7 @@ class ArrayImagePlot(qt.QWidget):
             if y_axis is None:
                 y_axis = numpy.arange(image.shape[0])
             elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((image.shape[0], ))
+                y_axis = y_axis * numpy.ones((image.shape[0],))
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
@@ -516,7 +549,12 @@ class ArrayImagePlot(qt.QWidget):
             except ValueError:
                 ycalib = NoCalibration()
 
-        self._plot.remove(kind=("scatter", "image",))
+        self._plot.remove(
+            kind=(
+                "scatter",
+                "image",
+            )
+        )
         if xcalib.is_affine() and ycalib.is_affine():
             # regular image
             xorigin, xscale = xcalib(0), xcalib.get_slope()
@@ -524,33 +562,42 @@ class ArrayImagePlot(qt.QWidget):
             origin = (xorigin, yorigin)
             scale = (xscale, yscale)
 
-            self._plot.getXAxis().setScale('linear')
-            self._plot.getYAxis().setScale('linear')
-            self._plot.addImage(image, legend=legend,
-                                origin=origin, scale=scale,
-                                replace=True, resetzoom=False)
+            self._plot.getXAxis().setScale("linear")
+            self._plot.getYAxis().setScale("linear")
+            self._plot.addImage(
+                image,
+                legend=legend,
+                origin=origin,
+                scale=scale,
+                replace=True,
+                resetzoom=False,
+            )
         else:
             xaxisscale, yaxisscale = self._axis_scales
 
             if xaxisscale is not None:
                 self._plot.getXAxis().setScale(
-                    'log' if xaxisscale == 'log' else 'linear')
+                    "log" if xaxisscale == "log" else "linear"
+                )
             if yaxisscale is not None:
                 self._plot.getYAxis().setScale(
-                    'log' if yaxisscale == 'log' else 'linear')
+                    "log" if yaxisscale == "log" else "linear"
+                )
 
             scatterx, scattery = numpy.meshgrid(x_axis, y_axis)
             # fixme: i don't think this can handle "irregular" RGBA images
-            self._plot.addScatter(numpy.ravel(scatterx),
-                                  numpy.ravel(scattery),
-                                  numpy.ravel(image),
-                                  legend=legend)
+            self._plot.addScatter(
+                numpy.ravel(scatterx),
+                numpy.ravel(scattery),
+                numpy.ravel(image),
+                legend=legend,
+            )
 
         if self.__title:
             title = self.__title
             if len(self.__signals_names) > 1:
                 # Append dataset name only when there is many datasets
-                title += '\n' + self.__signals_names[auxSigIdx]
+                title += "\n" + self.__signals_names[auxSigIdx]
         else:
             title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
@@ -580,6 +627,7 @@ class ArrayComplexImagePlot(qt.QWidget):
     If one or both of the axes does not have regularly spaced values, the
     the image is plotted as a coloured scatter plot.
     """
+
     def __init__(self, parent=None, colormap=None):
         """
 
@@ -596,10 +644,12 @@ class ArrayComplexImagePlot(qt.QWidget):
 
         self._plot = ComplexImageView(self)
         if colormap is not None:
-            for mode in (ComplexImageView.ComplexMode.ABSOLUTE,
-                         ComplexImageView.ComplexMode.SQUARE_AMPLITUDE,
-                         ComplexImageView.ComplexMode.REAL,
-                         ComplexImageView.ComplexMode.IMAGINARY):
+            for mode in (
+                ComplexImageView.ComplexMode.ABSOLUTE,
+                ComplexImageView.ComplexMode.SQUARE_AMPLITUDE,
+                ComplexImageView.ComplexMode.REAL,
+                ComplexImageView.ComplexMode.IMAGINARY,
+            ):
                 self._plot.setColormap(colormap, mode)
 
         self._plot.getPlot().getIntensityHistogramAction().setVisible(True)
@@ -635,12 +685,17 @@ class ArrayComplexImagePlot(qt.QWidget):
         """
         return self._plot.getPlot()
 
-    def setImageData(self, signals,
-                     x_axis=None, y_axis=None,
-                     signals_names=None,
-                     xlabel=None, ylabel=None,
-                     title=None,
-                     keep_ratio: bool=True):
+    def setImageData(
+        self,
+        signals,
+        x_axis=None,
+        y_axis=None,
+        signals_names=None,
+        xlabel=None,
+        ylabel=None,
+        title=None,
+        keep_ratio: bool = True,
+    ):
         """
 
         :param signals: list of n-D datasets, whose last 2 dimensions are used as the
@@ -710,7 +765,7 @@ class ArrayComplexImagePlot(qt.QWidget):
                 x_axis = numpy.arange(image.shape[1])
             elif numpy.isscalar(x_axis) or len(x_axis) == 1:
                 # constant axis
-                x_axis = x_axis * numpy.ones((image.shape[1], ))
+                x_axis = x_axis * numpy.ones((image.shape[1],))
             elif len(x_axis) == 2:
                 # linear calibration
                 x_axis = x_axis[0] * numpy.arange(image.shape[1]) + x_axis[1]
@@ -718,7 +773,7 @@ class ArrayComplexImagePlot(qt.QWidget):
             if y_axis is None:
                 y_axis = numpy.arange(image.shape[0])
             elif numpy.isscalar(y_axis) or len(y_axis) == 1:
-                y_axis = y_axis * numpy.ones((image.shape[0], ))
+                y_axis = y_axis * numpy.ones((image.shape[0],))
             elif len(y_axis) == 2:
                 y_axis = y_axis[0] * numpy.arange(image.shape[0]) + y_axis[1]
 
@@ -736,13 +791,13 @@ class ArrayComplexImagePlot(qt.QWidget):
             xorigin, xscale = xcalib(0), xcalib.get_slope()
         else:
             _logger.warning("Unsupported complex image X axis calibration")
-            xorigin, xscale = 0., 1.
+            xorigin, xscale = 0.0, 1.0
 
         if ycalib.is_affine():
             yorigin, yscale = ycalib(0), ycalib.get_slope()
         else:
             _logger.warning("Unsupported complex image Y axis calibration")
-            yorigin, yscale = 0., 1.
+            yorigin, yscale = 0.0, 1.0
 
         self._plot.setOrigin((xorigin, yorigin))
         self._plot.setScale((xscale, yscale))
@@ -751,7 +806,7 @@ class ArrayComplexImagePlot(qt.QWidget):
             title = self.__title
             if len(self.__signals_names) > 1:
                 # Append dataset name only when there is many datasets
-                title += '\n' + self.__signals_names[auxSigIdx]
+                title += "\n" + self.__signals_names[auxSigIdx]
         else:
             title = self.__signals_names[auxSigIdx]
         self._plot.setGraphTitle(title)
@@ -778,6 +833,7 @@ class ArrayStackPlot(qt.QWidget):
     the signal array, and the plot is updated to load the stack corresponding
     to the selection.
     """
+
     def __init__(self, parent=None):
         """
 
@@ -797,7 +853,9 @@ class ArrayStackPlot(qt.QWidget):
         self.__x_axis_name = None
 
         self._stack_view = StackView(self)
-        maskToolWidget = self._stack_view.getPlotWidget().getMaskToolsDockWidget().widget()
+        maskToolWidget = (
+            self._stack_view.getPlotWidget().getMaskToolsDockWidget().widget()
+        )
         maskToolWidget.setItemMaskUpdated(True)
 
         self._hline = qt.QFrame(self)
@@ -823,11 +881,18 @@ class ArrayStackPlot(qt.QWidget):
         """
         return self._stack_view
 
-    def setStackData(self, signal,
-                     x_axis=None, y_axis=None, z_axis=None,
-                     signal_name=None,
-                     xlabel=None, ylabel=None, zlabel=None,
-                     title=None):
+    def setStackData(
+        self,
+        signal,
+        x_axis=None,
+        y_axis=None,
+        z_axis=None,
+        signal_name=None,
+        xlabel=None,
+        ylabel=None,
+        zlabel=None,
+        title=None,
+    ):
         """
 
         :param signal: n-D dataset, whose last 3 dimensions are used as the
@@ -909,13 +974,12 @@ class ArrayStackPlot(qt.QWidget):
 
         calibrations = []
         for axis in [z_axis, y_axis, x_axis]:
-
             if axis is None:
                 calibrations.append(NoCalibration())
             elif len(axis) == 2:
                 calibrations.append(
-                        LinearCalibration(y_intercept=axis[0],
-                                          slope=axis[1]))
+                    LinearCalibration(y_intercept=axis[0], slope=axis[1])
+                )
             else:
                 calibrations.append(ArrayCalibration(axis))
 
@@ -930,9 +994,8 @@ class ArrayStackPlot(qt.QWidget):
 
         self._stack_view.setStack(stk, calibrations=calibrations)
         self._stack_view.setLabels(
-                labels=[self.__z_axis_name,
-                        self.__y_axis_name,
-                        self.__x_axis_name])
+            labels=[self.__z_axis_name, self.__y_axis_name, self.__x_axis_name]
+        )
 
     def clear(self):
         old = self._selector.blockSignals(True)
@@ -954,6 +1017,7 @@ class ArrayVolumePlot(qt.QWidget):
     the signal array, and the plot is updated to load the stack corresponding
     to the selection.
     """
+
     def __init__(self, parent=None):
         """
 
@@ -999,11 +1063,18 @@ class ArrayVolumePlot(qt.QWidget):
         """
         return self._view
 
-    def setData(self, signal,
-                x_axis=None, y_axis=None, z_axis=None,
-                signal_name=None,
-                xlabel=None, ylabel=None, zlabel=None,
-                title=None):
+    def setData(
+        self,
+        signal,
+        x_axis=None,
+        y_axis=None,
+        z_axis=None,
+        signal_name=None,
+        xlabel=None,
+        ylabel=None,
+        zlabel=None,
+        title=None,
+    ):
         """
 
         :param signal: n-D dataset, whose last 3 dimensions are used as the
@@ -1069,14 +1140,13 @@ class ArrayVolumePlot(qt.QWidget):
             if axis is None:
                 calibration = NoCalibration()
             elif len(axis) == 2:
-                calibration = LinearCalibration(
-                    y_intercept=axis[0], slope=axis[1])
+                calibration = LinearCalibration(y_intercept=axis[0], slope=axis[1])
             else:
                 calibration = ArrayCalibration(axis)
             if not calibration.is_affine():
                 _logger.warning("Axis has not linear values, ignored")
-                offset.append(0.)
-                scale.append(1.)
+                offset.append(0.0)
+                scale.append(1.0)
             else:
                 offset.append(calibration(0))
                 scale.append(calibration.get_slope())
@@ -1096,7 +1166,8 @@ class ArrayVolumePlot(qt.QWidget):
         volumeView = self.getVolumeView()
         volumeView.setData(data, offset=offset, scale=scale)
         volumeView.setAxesLabels(
-            self.__x_axis_name, self.__y_axis_name, self.__z_axis_name)
+            self.__x_axis_name, self.__y_axis_name, self.__z_axis_name
+        )
 
     def clear(self):
         old = self._selector.blockSignals(True)

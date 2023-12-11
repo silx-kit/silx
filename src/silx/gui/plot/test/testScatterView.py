@@ -81,7 +81,7 @@ class TestScatterView(PlotWidgetTestCase):
         scale = self.plot.getYAxis().getScale()
         self.assertEqual(scale, Axis.LINEAR)
 
-        title = 'Test ScatterView'
+        title = "Test ScatterView"
         self.plot.setGraphTitle(title)
         self.assertEqual(self.plot.getGraphTitle(), title)
 
@@ -105,13 +105,15 @@ class TestScatterView(PlotWidgetTestCase):
         _pts = 100
         _levels = 100
         _fwhm = 50
-        x = numpy.random.rand(_pts)*_levels
-        y = numpy.random.rand(_pts)*_levels
-        value = numpy.random.rand(_pts)*_levels
-        x0 = x[int(_pts/2)]
-        y0 = x[int(_pts/2)]
-        #2D Gaussian kernel
-        alpha = numpy.exp(-4*numpy.log(2) * ((x-x0)**2 + (y-y0)**2) / _fwhm**2)
+        x = numpy.random.rand(_pts) * _levels
+        y = numpy.random.rand(_pts) * _levels
+        value = numpy.random.rand(_pts) * _levels
+        x0 = x[int(_pts / 2)]
+        y0 = x[int(_pts / 2)]
+        # 2D Gaussian kernel
+        alpha = numpy.exp(
+            -4 * numpy.log(2) * ((x - x0) ** 2 + (y - y0) ** 2) / _fwhm**2
+        )
 
         self.plot.setData(x, y, value, alpha=alpha)
         self.qapp.processEvents()

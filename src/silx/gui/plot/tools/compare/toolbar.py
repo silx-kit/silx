@@ -116,15 +116,13 @@ class AlignmentModeToolButton(qt.QToolButton):
             action.setVisible(mode in modes)
 
     def __selectionChanged(self, selectedAction: qt.QAction):
-        """Called when user requesting changes of the alignment mode.
-        """
+        """Called when user requesting changes of the alignment mode."""
         self.__updateMenu()
         mode = self.getSelected()
         self.sigSelected.emit(mode)
 
     def __updateMenu(self):
-        """Update the state of the action containing alignment menu.
-        """
+        """Update the state of the action containing alignment menu."""
         selectedAction = self.__group.checkedAction()
         if selectedAction is not None:
             self.setText(selectedAction.text())
@@ -260,15 +258,13 @@ class VisualizationModeToolButton(qt.QToolButton):
             action.setVisible(mode in modes)
 
     def __selectionChanged(self, selectedAction: qt.QAction):
-        """Called when user requesting changes of the visualization mode.
-        """
+        """Called when user requesting changes of the visualization mode."""
         self.__updateMenu()
         mode = self.getSelected()
         self.sigSelected.emit(mode)
 
     def __updateMenu(self):
-        """Update the state of the action containing visualization menu.
-        """
+        """Update the state of the action containing visualization menu."""
         selectedAction = self.__group.checkedAction()
         if selectedAction is not None:
             self.setText(selectedAction.text())
@@ -309,6 +305,7 @@ class CompareImagesToolBar(qt.QToolBar):
 
     :param Union[qt.QWidget,None] parent: Parent of this widget.
     """
+
     def __init__(self, parent=None):
         qt.QToolBar.__init__(self, parent)
         self.setWindowTitle("Compare images")
@@ -350,7 +347,9 @@ class CompareImagesToolBar(qt.QToolBar):
         """
         compareWidget = self.getCompareWidget()
         if compareWidget is not None:
-            compareWidget.sigConfigurationChanged.disconnect(self.__updateSelectedActions)
+            compareWidget.sigConfigurationChanged.disconnect(
+                self.__updateSelectedActions
+            )
         compareWidget = widget
         self.setEnabled(compareWidget is not None)
         if compareWidget is None:

@@ -93,7 +93,9 @@ class FrameBrowser(qt.QWidget):
         else:
             first, last = 0, n
 
-        self._lineEdit.setFixedWidth(self._lineEdit.fontMetrics().boundingRect('%05d' % last).width())
+        self._lineEdit.setFixedWidth(
+            self._lineEdit.fontMetrics().boundingRect("%05d" % last).width()
+        )
         validator = qt.QIntValidator(first, last, self._lineEdit)
         self._lineEdit.setValidator(validator)
         self._lineEdit.setText("%d" % first)
@@ -151,7 +153,7 @@ class FrameBrowser(qt.QWidget):
             "event": "indexChanged",
             "old": self._index,
             "new": new_value,
-            "id": id(self)
+            "id": id(self),
         }
         self._index = new_value
         self.sigIndexChanged.emit(ddict)
@@ -232,6 +234,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
     :param QWidget parent: Optional parent widget
     """
+
     def __init__(self, parent=None):
         qt.QAbstractSlider.__init__(self, parent)
         self.setOrientation(qt.Qt.Horizontal)
@@ -291,14 +294,13 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._browser.setRange(first, last)
 
     def _sliderSlot(self, value):
-        """Emit selected value when slider is activated
-        """
+        """Emit selected value when slider is activated"""
         self._browser.setValue(value)
         self.valueChanged.emit(value)
 
     def _browserSlot(self, ddict):
         """Emit selected value when browser state is changed"""
-        self._slider.setValue(ddict['new'])
+        self._slider.setValue(ddict["new"])
 
     def setValue(self, value):
         """Set value

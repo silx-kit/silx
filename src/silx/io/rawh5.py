@@ -37,7 +37,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _FreeDataset(commonh5.Dataset):
-
     def _check_data(self, data):
         """Release the constriants checked on types cause we can reach more
         types than the one available on h5py, and it is not supposed to be
@@ -55,6 +54,7 @@ class NumpyFile(commonh5.File):
 
     :param str name: Filename to load
     """
+
     def __init__(self, name=None):
         commonh5.File.__init__(self, name=name, mode="w")
         np_file = numpy.load(name)

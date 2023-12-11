@@ -54,6 +54,7 @@ class QComboTableItem(qt.QComboBox):
 
     :param row: Row number of the table cell containing this widget
     :param col: Column number of the table cell containing this widget"""
+
     sigCellChanged = qt.Signal(int, int)
     """Signal emitted when this ``QComboBox`` is activated.
     A ``(row, column)`` tuple is passed."""
@@ -77,6 +78,7 @@ class QCheckBoxItem(qt.QCheckBox):
 
     :param row: Row number of the table cell containing this widget
     :param col: Column number of the table cell containing this widget"""
+
     sigCellChanged = qt.Signal(int, int)
     """Signal emitted when this ``QCheckBox`` is clicked.
     A ``(row, column)`` tuple is passed."""
@@ -105,22 +107,39 @@ class Parameters(TableWidget):
         peak.
     :type paramlist: list[str] or None
     """
+
     def __init__(self, parent=None, paramlist=None):
         TableWidget.__init__(self, parent)
         self.setContentsMargins(0, 0, 0, 0)
 
-        labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
-                  'Constraints', 'Min/Parame', 'Max/Factor/Delta']
-        tooltips = ["Fit parameter name",
-                    "Estimated value for fit parameter. You can edit this column.",
-                    "Actual value for parameter, after fit",
-                    "Uncertainty (same unit as the parameter)",
-                    "Constraint to be applied to the parameter for fit",
-                    "First parameter for constraint (name of another param or min value)",
-                    "Second parameter for constraint (max value, or factor/delta)"]
+        labels = [
+            "Parameter",
+            "Estimation",
+            "Fit Value",
+            "Sigma",
+            "Constraints",
+            "Min/Parame",
+            "Max/Factor/Delta",
+        ]
+        tooltips = [
+            "Fit parameter name",
+            "Estimated value for fit parameter. You can edit this column.",
+            "Actual value for parameter, after fit",
+            "Uncertainty (same unit as the parameter)",
+            "Constraint to be applied to the parameter for fit",
+            "First parameter for constraint (name of another param or min value)",
+            "Second parameter for constraint (max value, or factor/delta)",
+        ]
 
-        self.columnKeys = ['name', 'estimation', 'fitresult',
-                           'sigma', 'code', 'val1', 'val2']
+        self.columnKeys = [
+            "name",
+            "estimation",
+            "fitresult",
+            "sigma",
+            "code",
+            "val1",
+            "val2",
+        ]
         """This list assigns shorter keys to refer to columns than the
         displayed labels."""
 
@@ -132,8 +151,7 @@ class Parameters(TableWidget):
         for i, label in enumerate(labels):
             item = self.horizontalHeaderItem(i)
             if item is None:
-                item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
+                item = qt.QTableWidgetItem(label, qt.QTableWidgetItem.Type)
                 self.setHorizontalHeaderItem(i, item)
 
             item.setText(label)
@@ -183,8 +201,17 @@ class Parameters(TableWidget):
         for line, param in enumerate(paramlist):
             self.newParameterLine(param, line)
 
-        self.code_options = ["FREE", "POSITIVE", "QUOTED", "FIXED",
-                             "FACTOR", "DELTA", "SUM", "IGNORE", "ADD"]
+        self.code_options = [
+            "FREE",
+            "POSITIVE",
+            "QUOTED",
+            "FIXED",
+            "FACTOR",
+            "DELTA",
+            "SUM",
+            "IGNORE",
+            "ADD",
+        ]
         """Possible values in the combo boxes in the 'Constraints' column.
         """
 
@@ -211,45 +238,44 @@ class Parameters(TableWidget):
         # default configuration for fit parameters
         self.parameters[param] = dict(
             (
-                ('line', line),
-                ('estimation', '0'),
-                ('fitresult', ''),
-                ('sigma', ''),
-                ('code', 'FREE'),
-                ('val1', ''),
-                ('val2', ''),
-                ('cons1', 0),
-                ('cons2', 0),
-                ('vmin', '0'),
-                ('vmax', '1'),
-                ('relatedto', ''),
-                ('factor', '1.0'),
-                ('delta', '0.0'),
-                ('sum', '0.0'),
-                ('group', ''),
-                ('name', param),
-                ('xmin', None),
-                ('xmax', None),
+                ("line", line),
+                ("estimation", "0"),
+                ("fitresult", ""),
+                ("sigma", ""),
+                ("code", "FREE"),
+                ("val1", ""),
+                ("val2", ""),
+                ("cons1", 0),
+                ("cons2", 0),
+                ("vmin", "0"),
+                ("vmax", "1"),
+                ("relatedto", ""),
+                ("factor", "1.0"),
+                ("delta", "0.0"),
+                ("sum", "0.0"),
+                ("group", ""),
+                ("name", param),
+                ("xmin", None),
+                ("xmax", None),
             )
         )
-        self.setReadWrite(param, 'estimation')
-        self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
+        self.setReadWrite(param, "estimation")
+        self.setReadOnly(param, ["name", "fitresult", "sigma", "val1", "val2"])
 
         # Constraint codes
         a = []
         for option in self.code_options:
             a.append(option)
 
-        code_column_index = self.columnIndexByField('code')
+        code_column_index = self.columnIndexByField("code")
         cellWidget = self.cellWidget(line, code_column_index)
         if cellWidget is None:
-            cellWidget = QComboTableItem(self, row=line,
-                                         col=code_column_index)
+            cellWidget = QComboTableItem(self, row=line, col=code_column_index)
             cellWidget.addItems(a)
             self.setCellWidget(line, code_column_index, cellWidget)
             cellWidget.sigCellChanged[int, int].connect(self.onCellChanged)
-        self.parameters[param]['code_item'] = cellWidget
-        self.parameters[param]['relatedto_item'] = None
+        self.parameters[param]["code_item"] = cellWidget
+        self.parameters[param]["relatedto_item"] = None
         self.__configuring = False
 
     def columnIndexByField(self, field):
@@ -272,43 +298,47 @@ class Parameters(TableWidget):
 
         # Reinitialize and fill self.parameters
         self.parameters = {}
-        for (line, param) in enumerate(fitresults):
-            self.newParameterLine(param['name'], line)
+        for line, param in enumerate(fitresults):
+            self.newParameterLine(param["name"], line)
 
         for param in fitresults:
-            name = param['name']
-            code = str(param['code'])
+            name = param["name"]
+            code = str(param["code"])
             if code not in self.code_options:
                 # convert code from int to descriptive string
                 code = self.code_options[int(code)]
-            val1 = param['cons1']
-            val2 = param['cons2']
-            estimation = param['estimation']
-            group = param['group']
-            sigma = param['sigma']
-            fitresult = param['fitresult']
+            val1 = param["cons1"]
+            val2 = param["cons2"]
+            estimation = param["estimation"]
+            group = param["group"]
+            sigma = param["sigma"]
+            fitresult = param["fitresult"]
 
-            xmin = param.get('xmin')
-            xmax = param.get('xmax')
+            xmin = param.get("xmin")
+            xmax = param.get("xmax")
 
-            self.configureLine(name=name,
-                               code=code,
-                               val1=val1, val2=val2,
-                               estimation=estimation,
-                               fitresult=fitresult,
-                               sigma=sigma,
-                               group=group,
-                               xmin=xmin, xmax=xmax)
+            self.configureLine(
+                name=name,
+                code=code,
+                val1=val1,
+                val2=val2,
+                estimation=estimation,
+                fitresult=fitresult,
+                sigma=sigma,
+                group=group,
+                xmin=xmin,
+                xmax=xmax,
+            )
 
     def getConfiguration(self):
         """Return ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
-        return {'parameters': self.getFitResults()}
+        return {"parameters": self.getFitResults()}
 
     def setConfiguration(self, ddict):
         """Fill table with values from a ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
-        self.fillFromFit(ddict['parameters'])
+        self.fillFromFit(ddict["parameters"])
 
     def getFitResults(self):
         """Return fit parameters as a list of dictionaries in the format used
@@ -319,33 +349,33 @@ class Parameters(TableWidget):
             fitparam = {}
             name = param
             estimation, [code, cons1, cons2] = self.getEstimationConstraints(name)
-            buf = str(self.parameters[param]['fitresult'])
-            xmin = self.parameters[param]['xmin']
-            xmax = self.parameters[param]['xmax']
+            buf = str(self.parameters[param]["fitresult"])
+            xmin = self.parameters[param]["xmin"]
+            xmax = self.parameters[param]["xmax"]
             if len(buf):
                 fitresult = float(buf)
             else:
                 fitresult = 0.0
-            buf = str(self.parameters[param]['sigma'])
+            buf = str(self.parameters[param]["sigma"])
             if len(buf):
                 sigma = float(buf)
             else:
                 sigma = 0.0
-            buf = str(self.parameters[param]['group'])
+            buf = str(self.parameters[param]["group"])
             if len(buf):
                 group = float(buf)
             else:
                 group = 0
-            fitparam['name'] = name
-            fitparam['estimation'] = estimation
-            fitparam['fitresult'] = fitresult
-            fitparam['sigma'] = sigma
-            fitparam['group'] = group
-            fitparam['code'] = code
-            fitparam['cons1'] = cons1
-            fitparam['cons2'] = cons2
-            fitparam['xmin'] = xmin
-            fitparam['xmax'] = xmax
+            fitparam["name"] = name
+            fitparam["estimation"] = estimation
+            fitparam["fitresult"] = fitresult
+            fitparam["sigma"] = sigma
+            fitparam["group"] = group
+            fitparam["code"] = code
+            fitparam["cons1"] = cons1
+            fitparam["cons2"] = cons2
+            fitparam["xmin"] = xmin
+            fitparam["xmax"] = xmax
             fitparameterslist.append(fitparam)
         return fitparameterslist
 
@@ -373,7 +403,7 @@ class Parameters(TableWidget):
             if item is not None:
                 newvalue = item.text()
             else:
-                newvalue = ''
+                newvalue = ""
         else:
             # this is the combobox
             widget = self.cellWidget(row, col)
@@ -382,12 +412,12 @@ class Parameters(TableWidget):
             paramdict = {"name": param, field: newvalue}
             self.configureLine(**paramdict)
         else:
-            if field == 'code':
+            if field == "code":
                 # New code not valid, try restoring the old one
                 index = self.code_options.index(oldvalue)
                 self.__configuring = True
                 try:
-                    self.parameters[param]['code_item'].setCurrentIndex(index)
+                    self.parameters[param]["code_item"].setCurrentIndex(index)
                 finally:
                     self.__configuring = False
             else:
@@ -403,10 +433,14 @@ class Parameters(TableWidget):
         :param newvalue: New value to be validated
         :return: True if new cell value is valid, else False
         """
-        if field == 'code':
+        if field == "code":
             return self.setCodeValue(param, oldvalue, newvalue)
             # FIXME: validate() shouldn't have side effects. Move this bit to configureLine()?
-        if field == 'val1' and str(self.parameters[param]['code']) in ['DELTA', 'FACTOR', 'SUM']:
+        if field == "val1" and str(self.parameters[param]["code"]) in [
+            "DELTA",
+            "FACTOR",
+            "SUM",
+        ]:
             _, candidates = self.getRelatedCandidates(param)
             # We expect val1 to be a fit parameter name
             if str(newvalue) in candidates:
@@ -432,52 +466,48 @@ class Parameters(TableWidget):
         :return: ``True`` if code was successfully updated
         """
 
-        if str(newvalue) in ['FREE', 'POSITIVE', 'QUOTED', 'FIXED']:
-            self.configureLine(name=param,
-                               code=newvalue)
-            if str(oldvalue) == 'IGNORE':
+        if str(newvalue) in ["FREE", "POSITIVE", "QUOTED", "FIXED"]:
+            self.configureLine(name=param, code=newvalue)
+            if str(oldvalue) == "IGNORE":
                 self.freeRestOfGroup(param)
             return True
-        elif str(newvalue) in ['FACTOR', 'DELTA', 'SUM']:
+        elif str(newvalue) in ["FACTOR", "DELTA", "SUM"]:
             # I should check here that some parameter is set
             best, candidates = self.getRelatedCandidates(param)
             if len(candidates) == 0:
                 return False
-            self.configureLine(name=param,
-                               code=newvalue,
-                               relatedto=best)
-            if str(oldvalue) == 'IGNORE':
+            self.configureLine(name=param, code=newvalue, relatedto=best)
+            if str(oldvalue) == "IGNORE":
                 self.freeRestOfGroup(param)
             return True
 
-        elif str(newvalue) == 'IGNORE':
+        elif str(newvalue) == "IGNORE":
             # I should check if the group can be ignored
             # for the time being I just fix all of them to ignore
-            group = int(float(str(self.parameters[param]['group'])))
+            group = int(float(str(self.parameters[param]["group"])))
             candidates = []
             for param in self.parameters.keys():
-                if group == int(float(str(self.parameters[param]['group']))):
+                if group == int(float(str(self.parameters[param]["group"]))):
                     candidates.append(param)
             # print candidates
             # I should check here if there is any relation to them
             for param in candidates:
-                self.configureLine(name=param,
-                                   code=newvalue)
+                self.configureLine(name=param, code=newvalue)
             return True
-        elif str(newvalue) == 'ADD':
-            group = int(float(str(self.parameters[param]['group'])))
+        elif str(newvalue) == "ADD":
+            group = int(float(str(self.parameters[param]["group"])))
             if group == 0:
                 # One cannot add a background group
                 return False
             i = 0
             for param in self.parameters:
-                if i <= int(float(str(self.parameters[param]['group']))):
+                if i <= int(float(str(self.parameters[param]["group"]))):
                     i += 1
-            if (group == 0) and (i == 1):   # FIXME: why +1?
+            if (group == 0) and (i == 1):  # FIXME: why +1?
                 i += 1
             self.addGroup(i, group)
             return False
-        elif str(newvalue) == 'SHOW':
+        elif str(newvalue) == "SHOW":
             print(self.getEstimationConstraints(param))
             return False
 
@@ -495,14 +525,14 @@ class Parameters(TableWidget):
         newparam = []
         # loop through parameters until we encounter group number `gtype`
         for param in list(self.parameters):
-            paramgroup = int(float(str(self.parameters[param]['group'])))
+            paramgroup = int(float(str(self.parameters[param]["group"])))
             # copy parameter names in group number `gtype`
             if paramgroup == gtype:
                 # but replace `gtype` with `newg`
                 newparam.append(param.rstrip("0123456789") + "%d" % newg)
 
-                xmin = self.parameters[param]['xmin']
-                xmax = self.parameters[param]['xmax']
+                xmin = self.parameters[param]["xmin"]
+                xmax = self.parameters[param]["xmax"]
 
         # Add new parameters (one table line per parameter) and configureLine each
         # one by updating xmin and xmax to the same values as group `gtype`
@@ -522,16 +552,14 @@ class Parameters(TableWidget):
         :param workparam: Fit parameter name
         """
         if workparam in self.parameters.keys():
-            group = int(float(str(self.parameters[workparam]['group'])))
+            group = int(float(str(self.parameters[workparam]["group"])))
             for param in self.parameters:
-                if param != workparam and\
-                        group == int(float(str(self.parameters[param]['group']))):
-                    self.configureLine(name=param,
-                                       code='FREE',
-                                       cons1=0,
-                                       cons2=0,
-                                       val1='',
-                                       val2='')
+                if param != workparam and group == int(
+                    float(str(self.parameters[param]["group"]))
+                ):
+                    self.configureLine(
+                        name=param, code="FREE", cons1=0, cons2=0, val1="", val2=""
+                    )
 
     def getRelatedCandidates(self, workparam):
         """If fit parameter ``workparam`` has a constraint that involves other
@@ -546,12 +574,16 @@ class Parameters(TableWidget):
         for param_name in self.parameters:
             if param_name != workparam:
                 # ignore parameters that are fixed by a constraint
-                if str(self.parameters[param_name]['code']) not in\
-                        ['IGNORE', 'FACTOR', 'DELTA', 'SUM']:
+                if str(self.parameters[param_name]["code"]) not in [
+                    "IGNORE",
+                    "FACTOR",
+                    "DELTA",
+                    "SUM",
+                ]:
                     candidates.append(param_name)
         # take the previous one (before code cell changed) if possible
-        if str(self.parameters[workparam]['relatedto']) in candidates:
-            best = str(self.parameters[workparam]['relatedto'])
+        if str(self.parameters[workparam]["relatedto"]) in candidates:
+            best = str(self.parameters[workparam]["relatedto"])
             return best, candidates
         # take the first with same base name (after removing numbers)
         for param_name in candidates:
@@ -587,9 +619,7 @@ class Parameters(TableWidget):
         :param fields: Field names identifying the columns
         :type fields: str or list[str]
         """
-        editflags = qt.Qt.ItemIsSelectable |\
-            qt.Qt.ItemIsEnabled |\
-            qt.Qt.ItemIsEditable
+        editflags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled | qt.Qt.ItemIsEditable
         self.setField(parameter, fields, editflags)
 
     def setField(self, parameter, fields, edit_flags):
@@ -604,13 +634,11 @@ class Parameters(TableWidget):
             qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled |
             qt.Qt.ItemIsEditable
         """
-        if isinstance(parameter, list) or \
-           isinstance(parameter, tuple):
+        if isinstance(parameter, list) or isinstance(parameter, tuple):
             paramlist = parameter
         else:
             paramlist = [parameter]
-        if isinstance(fields, list) or \
-           isinstance(fields, tuple):
+        if isinstance(fields, list) or isinstance(fields, tuple):
             fieldlist = fields
         else:
             fieldlist = [fields]
@@ -626,7 +654,7 @@ class Parameters(TableWidget):
             row = list(self.parameters.keys()).index(param)
             for field in fieldlist:
                 col = self.columnIndexByField(field)
-                if field != 'code':
+                if field != "code":
                     key = field + "_item"
                     item = self.item(row, col)
                     if item is None:
@@ -641,10 +669,22 @@ class Parameters(TableWidget):
         # Restore previous _configuring flag
         self.__configuring = _oldvalue
 
-    def configureLine(self, name, code=None, val1=None, val2=None,
-                      sigma=None, estimation=None, fitresult=None,
-                      group=None, xmin=None, xmax=None, relatedto=None,
-                      cons1=None, cons2=None):
+    def configureLine(
+        self,
+        name,
+        code=None,
+        val1=None,
+        val2=None,
+        sigma=None,
+        estimation=None,
+        fitresult=None,
+        group=None,
+        xmin=None,
+        xmax=None,
+        relatedto=None,
+        cons1=None,
+        cons2=None,
+    ):
         """This function updates values in a line of the table
 
         :param name: Name of the parameter (serves as unique identifier for
@@ -678,73 +718,88 @@ class Parameters(TableWidget):
         # update code first, if specified
         if code is not None:
             code = str(code)
-            self.parameters[name]['code'] = code
+            self.parameters[name]["code"] = code
             # update combobox
-            index = self.parameters[name]['code_item'].findText(code)
-            self.parameters[name]['code_item'].setCurrentIndex(index)
+            index = self.parameters[name]["code_item"].findText(code)
+            self.parameters[name]["code_item"].setCurrentIndex(index)
         else:
             # set code to previous value, used later for setting val1 val2
-            code = self.parameters[name]['code']
+            code = self.parameters[name]["code"]
 
         # val1 and sigma have special formats
         if val1 is not None:
-            fmt = None if self.parameters[name]['code'] in\
-                          ['DELTA', 'FACTOR', 'SUM'] else "%8g"
+            fmt = (
+                None
+                if self.parameters[name]["code"] in ["DELTA", "FACTOR", "SUM"]
+                else "%8g"
+            )
             self._updateField(name, "val1", val1, fmat=fmt)
 
         if sigma is not None:
             self._updateField(name, "sigma", sigma, fmat="%6.3g")
 
         # other fields are formatted as "%8g"
-        keys_params = (("val2", val2), ("estimation", estimation),
-                       ("fitresult", fitresult))
+        keys_params = (
+            ("val2", val2),
+            ("estimation", estimation),
+            ("fitresult", fitresult),
+        )
         for key, value in keys_params:
             if value is not None:
                 self._updateField(name, key, value, fmat="%8g")
 
         # the rest of the parameters are treated as strings and don't need
         # validation
-        keys_params = (("group", group), ("xmin", xmin),
-                       ("xmax", xmax), ("relatedto", relatedto),
-                       ("cons1", cons1), ("cons2", cons2))
+        keys_params = (
+            ("group", group),
+            ("xmin", xmin),
+            ("xmax", xmax),
+            ("relatedto", relatedto),
+            ("cons1", cons1),
+            ("cons2", cons2),
+        )
         for key, value in keys_params:
             if value is not None:
                 self.parameters[name][key] = str(value)
 
         # val1 and val2 have different meanings depending on the code
-        if code == 'QUOTED':
+        if code == "QUOTED":
             if val1 is not None:
-                self.parameters[name]['vmin'] = self.parameters[name]['val1']
+                self.parameters[name]["vmin"] = self.parameters[name]["val1"]
             else:
-                self.parameters[name]['val1'] = self.parameters[name]['vmin']
+                self.parameters[name]["val1"] = self.parameters[name]["vmin"]
             if val2 is not None:
-                self.parameters[name]['vmax'] = self.parameters[name]['val2']
+                self.parameters[name]["vmax"] = self.parameters[name]["val2"]
             else:
-                self.parameters[name]['val2'] = self.parameters[name]['vmax']
+                self.parameters[name]["val2"] = self.parameters[name]["vmax"]
 
             # cons1 and cons2 are scalar representations of val1 and val2
-            self.parameters[name]['cons1'] =\
-                float_else_zero(self.parameters[name]['val1'])
-            self.parameters[name]['cons2'] =\
-                float_else_zero(self.parameters[name]['val2'])
+            self.parameters[name]["cons1"] = float_else_zero(
+                self.parameters[name]["val1"]
+            )
+            self.parameters[name]["cons2"] = float_else_zero(
+                self.parameters[name]["val2"]
+            )
 
             # cons1, cons2 = min(val1, val2), max(val1, val2)
-            if self.parameters[name]['cons1'] > self.parameters[name]['cons2']:
-                self.parameters[name]['cons1'], self.parameters[name]['cons2'] =\
-                    self.parameters[name]['cons2'], self.parameters[name]['cons1']
+            if self.parameters[name]["cons1"] > self.parameters[name]["cons2"]:
+                self.parameters[name]["cons1"], self.parameters[name]["cons2"] = (
+                    self.parameters[name]["cons2"],
+                    self.parameters[name]["cons1"],
+                )
 
-        elif code in ['DELTA', 'SUM', 'FACTOR']:
+        elif code in ["DELTA", "SUM", "FACTOR"]:
             # For these codes, val1 is the fit parameter name on which the
             # constraint depends
             if val1 is not None and val1 in paramlist:
-                self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
+                self.parameters[name]["relatedto"] = self.parameters[name]["val1"]
 
             elif val1 is not None:
                 # val1 could be the index of the fit parameter
                 try:
-                    self.parameters[name]['relatedto'] = paramlist[int(val1)]
+                    self.parameters[name]["relatedto"] = paramlist[int(val1)]
                 except ValueError:
-                    self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
+                    self.parameters[name]["relatedto"] = self.parameters[name]["val1"]
 
             elif relatedto is not None:
                 # code changed, val1 not specified but relatedto specified:
@@ -756,25 +811,27 @@ class Parameters(TableWidget):
             self.parameters[name][key] = self.parameters[name]["val2"]
 
             # FIXME: val1 is sometimes specified as an index rather than a param name
-            self.parameters[name]['val1'] = self.parameters[name]['relatedto']
+            self.parameters[name]["val1"] = self.parameters[name]["relatedto"]
 
             # cons1 is the index of the fit parameter in the ordered dictionary
-            if self.parameters[name]['val1'] in paramlist:
-                self.parameters[name]['cons1'] =\
-                    paramlist.index(self.parameters[name]['val1'])
+            if self.parameters[name]["val1"] in paramlist:
+                self.parameters[name]["cons1"] = paramlist.index(
+                    self.parameters[name]["val1"]
+                )
 
             # cons2 is the constraint value (factor, delta or sum)
             try:
-                self.parameters[name]['cons2'] =\
-                    float(str(self.parameters[name]['val2']))
+                self.parameters[name]["cons2"] = float(
+                    str(self.parameters[name]["val2"])
+                )
             except ValueError:
-                self.parameters[name]['cons2'] = 1.0 if code == "FACTOR" else 0.0
+                self.parameters[name]["cons2"] = 1.0 if code == "FACTOR" else 0.0
 
-        elif code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
-            self.parameters[name]['val1'] = ""
-            self.parameters[name]['val2'] = ""
-            self.parameters[name]['cons1'] = 0
-            self.parameters[name]['cons2'] = 0
+        elif code in ["FREE", "POSITIVE", "IGNORE", "FIXED"]:
+            self.parameters[name]["val1"] = ""
+            self.parameters[name]["val2"] = ""
+            self.parameters[name]["cons1"] = 0
+            self.parameters[name]["cons2"] = 0
 
         self._updateCellRWFlags(name, code)
 
@@ -796,9 +853,9 @@ class Parameters(TableWidget):
                 newvalue = fmat % float(value) if value != "" else ""
             else:
                 newvalue = value
-            self.parameters[name][field] = newvalue if\
-                self.validate(name, field, oldvalue, newvalue) else\
-                oldvalue
+            self.parameters[name][field] = (
+                newvalue if self.validate(name, field, oldvalue, newvalue) else oldvalue
+            )
 
     def _updateCellRWFlags(self, name, code=None):
         """Set read-only or read-write flags in a row,
@@ -809,12 +866,12 @@ class Parameters(TableWidget):
             `'FIXED', 'FACTOR', 'DELTA', 'SUM', 'ADD'`
         :return:
         """
-        if code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
-            self.setReadWrite(name, 'estimation')
-            self.setReadOnly(name, ['fitresult', 'sigma', 'val1', 'val2'])
+        if code in ["FREE", "POSITIVE", "IGNORE", "FIXED"]:
+            self.setReadWrite(name, "estimation")
+            self.setReadOnly(name, ["fitresult", "sigma", "val1", "val2"])
         else:
-            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
-            self.setReadOnly(name, ['fitresult', 'sigma'])
+            self.setReadWrite(name, ["estimation", "val1", "val2"])
+            self.setReadOnly(name, ["fitresult", "sigma"])
 
     def getEstimationConstraints(self, param):
         """
@@ -825,18 +882,17 @@ class Parameters(TableWidget):
         estimation = None
         constraints = None
         if param in self.parameters.keys():
-            buf = str(self.parameters[param]['estimation'])
+            buf = str(self.parameters[param]["estimation"])
             if len(buf):
                 estimation = float(buf)
             else:
                 estimation = 0
-            if str(self.parameters[param]['code']) in self.code_options:
-                code = self.code_options.index(
-                    str(self.parameters[param]['code']))
+            if str(self.parameters[param]["code"]) in self.code_options:
+                code = self.code_options.index(str(self.parameters[param]["code"]))
             else:
-                code = str(self.parameters[param]['code'])
-            cons1 = self.parameters[param]['cons1']
-            cons2 = self.parameters[param]['cons2']
+                code = str(self.parameters[param]["code"])
+            cons1 = self.parameters[param]["cons1"]
+            cons2 = self.parameters[param]["cons2"]
             constraints = [code, cons1, cons2]
         return estimation, constraints
 
@@ -844,21 +900,24 @@ class Parameters(TableWidget):
 def main(args):
     from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
+
     try:
         from PyMca5 import PyMcaDataDir
     except ImportError:
         raise ImportError("This demo requires PyMca data. Install PyMca5.")
     import numpy
     import os
-    app = qt.QApplication(args)
-    tab = Parameters(paramlist=['Height', 'Position', 'FWHM'])
-    tab.showGrid()
-    tab.configureLine(name='Height', estimation='1234', group=0)
-    tab.configureLine(name='Position', code='FIXED', group=1)
-    tab.configureLine(name='FWHM', group=1)
 
-    y = numpy.loadtxt(os.path.join(PyMcaDataDir.PYMCA_DATA_DIR,
-                      "XRFSpectrum.mca"))    # FIXME
+    app = qt.QApplication(args)
+    tab = Parameters(paramlist=["Height", "Position", "FWHM"])
+    tab.showGrid()
+    tab.configureLine(name="Height", estimation="1234", group=0)
+    tab.configureLine(name="Position", code="FIXED", group=1)
+    tab.configureLine(name="FWHM", group=1)
+
+    y = numpy.loadtxt(
+        os.path.join(PyMcaDataDir.PYMCA_DATA_DIR, "XRFSpectrum.mca")
+    )  # FIXME
 
     x = numpy.arange(len(y)) * 0.0502883 - 0.492773
     fit = fitmanager.FitManager()
@@ -866,19 +925,22 @@ def main(args):
 
     fit.loadtheories(fittheories)
 
-    fit.settheory('ahypermet')
-    fit.configure(Yscaling=1.,
-                  PositiveFwhmFlag=True,
-                  PositiveHeightAreaFlag=True,
-                  FwhmPoints=16,
-                  QuotedPositionFlag=1,
-                  HypermetTails=1)
-    fit.setbackground('Linear')
+    fit.settheory("ahypermet")
+    fit.configure(
+        Yscaling=1.0,
+        PositiveFwhmFlag=True,
+        PositiveHeightAreaFlag=True,
+        FwhmPoints=16,
+        QuotedPositionFlag=1,
+        HypermetTails=1,
+    )
+    fit.setbackground("Linear")
     fit.estimate()
     fit.runfit()
     tab.fillFromFit(fit.fit_results)
     tab.show()
     app.exec()
+
 
 if __name__ == "__main__":
     main(sys.argv)

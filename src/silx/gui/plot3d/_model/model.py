@@ -176,6 +176,6 @@ class SceneModel(qt.QAbstractItemModel):
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """See :meth:`QAbstractItemModel.headerData`"""
         if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
-            return 'Item' if section == 0 else 'Value'
+            return "Item" if section == 0 else "Value"
         else:
             return None

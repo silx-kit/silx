@@ -31,6 +31,7 @@ __date__ = "11/07/2019"
 import unittest
 
 import numpy
+
 try:
     from scipy.interpolate import interpn
 except ImportError:
@@ -55,7 +56,8 @@ class TestInterp3d(ParametricTestCase):
             [numpy.arange(dim, dtype=data.dtype) for dim in data.shape],
             data,
             points,
-            method='linear')
+            method="linear",
+        )
 
     def test_random_data(self):
         """Test interp3d with random data"""
@@ -63,14 +65,14 @@ class TestInterp3d(ParametricTestCase):
         npoints = 10
 
         ref_data = numpy.random.random((size, size, size))
-        ref_points = numpy.random.random(npoints*3).reshape(npoints, 3) * (size -1)
+        ref_points = numpy.random.random(npoints * 3).reshape(npoints, 3) * (size - 1)
 
         for dtype in (numpy.float32, numpy.float64):
             data = ref_data.astype(dtype)
             points = ref_points.astype(dtype)
             ref_result = self.ref_interp3d(data, points)
 
-            for method in (u'linear', u'linear_omp'):
+            for method in ("linear", "linear_omp"):
                 with self.subTest(method=method):
                     result = interpolate.interp3d(data, points, method=method)
                     self.assertTrue(numpy.allclose(ref_result, result))
@@ -80,29 +82,27 @@ class TestInterp3d(ParametricTestCase):
         data = numpy.ones((3, 3, 3), dtype=numpy.float64)
         data[0, 0, 0] = numpy.nan
         data[2, 2, 2] = numpy.inf
-        points = numpy.array([(0.5, 0.5, 0.5),
-                              (1.5, 1.5, 1.5)])
+        points = numpy.array([(0.5, 0.5, 0.5), (1.5, 1.5, 1.5)])
 
-        for method in (u'linear', u'linear_omp'):
+        for method in ("linear", "linear_omp"):
             with self.subTest(method=method):
-                result = interpolate.interp3d(
-                    data, points, method=method)
+                result = interpolate.interp3d(data, points, method=method)
                 self.assertTrue(numpy.isnan(result[0]))
                 self.assertTrue(result[1] == numpy.inf)
 
     def test_points_outside(self):
         """Test interp3d with points outside the volume"""
         data = numpy.ones((4, 4, 4), dtype=numpy.float64)
-        points = numpy.array([(-0.1, -0.1, -0.1),
-                              (3.1, 3.1, 3.1),
-                              (-0.1, 1., 1.),
-                              (1., 1., 3.1)])
+        points = numpy.array(
+            [(-0.1, -0.1, -0.1), (3.1, 3.1, 3.1), (-0.1, 1.0, 1.0), (1.0, 1.0, 3.1)]
+        )
 
-        for method in (u'linear', u'linear_omp'):
-            for fill_value in (numpy.nan, 0., -1.):
+        for method in ("linear", "linear_omp"):
+            for fill_value in (numpy.nan, 0.0, -1.0):
                 with self.subTest(method=method):
                     result = interpolate.interp3d(
-                        data, points, method=method, fill_value=fill_value)
+                        data, points, method=method, fill_value=fill_value
+                    )
                     if numpy.isnan(fill_value):
                         self.assertTrue(numpy.all(numpy.isnan(result)))
                     else:
@@ -111,14 +111,13 @@ class TestInterp3d(ParametricTestCase):
     def test_integer_points(self):
         """Test interp3d with integer points coord"""
         data = numpy.arange(4**3, dtype=numpy.float64).reshape(4, 4, 4)
-        points = numpy.array([(0., 0., 0.),
-                              (0., 0., 1.),
-                              (2., 3., 0.),
-                              (3., 3., 3.)])
+        points = numpy.array(
+            [(0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (2.0, 3.0, 0.0), (3.0, 3.0, 3.0)]
+        )
 
         ref_result = data[tuple(points.T.astype(numpy.int32))]
 
-        for method in (u'linear', u'linear_omp'):
+        for method in ("linear", "linear_omp"):
             with self.subTest(method=method):
                 result = interpolate.interp3d(data, points, method=method)
                 self.assertTrue(numpy.allclose(ref_result, result))

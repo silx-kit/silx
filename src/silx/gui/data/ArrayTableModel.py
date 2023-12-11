@@ -192,8 +192,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             dim = self._getRowDim()
         else:
             dim = self._getColumnDim()
-        return (dim is not None and
-                self._array.shape[dim] > self.MAX_NUMBER_OF_SECTIONS)
+        return dim is not None and self._array.shape[dim] > self.MAX_NUMBER_OF_SECTIONS
 
     def __isClippedIndex(self, index) -> bool:
         """Returns whether or not index's cell represents clipped data."""
@@ -224,17 +223,23 @@ class ArrayTableModel(qt.QAbstractTableModel):
             row, column = index.row(), index.column()
 
             # When clipped, display last data of the array in last column of the table
-            if (self.__isClipped(qt.Qt.Vertical) and
-                    row == self.MAX_NUMBER_OF_SECTIONS - 1):
+            if (
+                self.__isClipped(qt.Qt.Vertical)
+                and row == self.MAX_NUMBER_OF_SECTIONS - 1
+            ):
                 row = self._array.shape[self._getRowDim()] - 1
-            if (self.__isClipped(qt.Qt.Horizontal) and
-                    column == self.MAX_NUMBER_OF_SECTIONS - 1):
+            if (
+                self.__isClipped(qt.Qt.Horizontal)
+                and column == self.MAX_NUMBER_OF_SECTIONS - 1
+            ):
                 column = self._array.shape[self._getColumnDim()] - 1
 
             selection = self._getIndexTuple(row, column)
 
             if role == qt.Qt.DisplayRole or role == qt.Qt.EditRole:
-                return self._formatter.toString(self._array[selection], self._array.dtype)
+                return self._formatter.toString(
+                    self._array[selection], self._array.dtype
+                )
 
             if role == qt.Qt.BackgroundRole and self._bgcolors is not None:
                 r, g, b = self._bgcolors[selection][0:3]
@@ -305,8 +310,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             except ValueError:
                 return False
 
-            selection = self._getIndexTuple(index.row(),
-                                            index.column())
+            selection = self._getIndexTuple(index.row(), index.column())
             self._array[selection] = v
             self.dataChanged.emit(index, index)
             return True
@@ -314,8 +318,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             return False
 
     # Public methods
-    def setArrayData(self, data, copy=True,
-                     perspective=None, editable=False):
+    def setArrayData(self, data, copy=True, perspective=None, editable=False):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
@@ -352,9 +355,11 @@ class ArrayTableModel(qt.QAbstractTableModel):
                 # Avoid to lose the monkey-patched h5py dtype
                 self._array.dtype = data.dtype
         elif not _is_array(data):
-            raise TypeError("data is not a proper array. Try setting" +
-                            " copy=True to convert it into a numpy array" +
-                            " (this will cause the data to be copied!)")
+            raise TypeError(
+                "data is not a proper array. Try setting"
+                + " copy=True to convert it into a numpy array"
+                + " (this will cause the data to be copied!)"
+            )
             # # copy not requested, but necessary
             # _logger.warning(
             #         "data is not an array-like object. " +
@@ -366,8 +371,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self._array = data
 
         # reset colors to None if new data shape is inconsistent
-        valid_color_shapes = (self._array.shape + (3,),
-                              self._array.shape + (4,))
+        valid_color_shapes = (self._array.shape + (3,), self._array.shape + (4,))
         if self._bgcolors is not None:
             if self._bgcolors.shape not in valid_color_shapes:
                 self._bgcolors = None
@@ -378,8 +382,11 @@ class ArrayTableModel(qt.QAbstractTableModel):
         self.setEditable(editable)
 
         self._index = [0 for _i in range((len(self._array.shape) - 2))]
-        self._perspective = tuple(perspective) if perspective is not None else\
-            tuple(range(0, len(self._array.shape) - 2))
+        self._perspective = (
+            tuple(perspective)
+            if perspective is not None
+            else tuple(range(0, len(self._array.shape) - 2))
+        )
 
         self.endResetModel()
 
@@ -442,8 +449,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
             if hasattr(self._array.file, "mode"):
                 if editable and self._array.file.mode == "r":
                     _logger.warning(
-                            "Data is a HDF5 dataset open in read-only " +
-                            "mode. Editing must be disabled.")
+                        "Data is a HDF5 dataset open in read-only "
+                        + "mode. Editing must be disabled."
+                    )
                     self._editable = False
                     return False
         return True
@@ -489,14 +497,17 @@ class ArrayTableModel(qt.QAbstractTableModel):
             else:
                 self._index = index
             if not 0 <= self._index[0] < len_:
-                raise ValueError("Index must be a positive integer " +
-                                 "lower than %d" % len_)
+                raise ValueError(
+                    "Index must be a positive integer " + "lower than %d" % len_
+                )
         else:
             # general n-D case
             for i_, idx in enumerate(index):
                 if not 0 <= idx < shape[self._perspective[i_]]:
-                    raise IndexError("Invalid index %d " % idx +
-                                     "not in range 0-%d" % (shape[i_] - 1))
+                    raise IndexError(
+                        "Invalid index %d " % idx
+                        + "not in range 0-%d" % (shape[i_] - 1)
+                    )
             self._index = index
 
         self.endResetModel()
@@ -528,8 +539,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         return self._formatter
 
     def __formatChanged(self):
-        """Called when the format changed.
-        """
+        """Called when the format changed."""
         self.reset()
 
     def setPerspective(self, perspective):
@@ -562,8 +572,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         """
         n_dimensions = len(self._array.shape)
         if n_dimensions < 3:
-            _logger.warning(
-                    "perspective is not relevant for 1D and 2D arrays")
+            _logger.warning("perspective is not relevant for 1D and 2D arrays")
             return
 
         if not hasattr(perspective, "__len__"):
@@ -576,12 +585,18 @@ class ArrayTableModel(qt.QAbstractTableModel):
         # ensure unicity of dimensions in perspective
         perspective = tuple(set(perspective))
 
-        if len(perspective) != n_dimensions - 2 or\
-                min(perspective) < 0 or max(perspective) >= n_dimensions:
+        if (
+            len(perspective) != n_dimensions - 2
+            or min(perspective) < 0
+            or max(perspective) >= n_dimensions
+        ):
             raise IndexError(
-                    "Invalid perspective " + str(perspective) +
-                    " for %d-D array " % n_dimensions +
-                    "with shape " + str(self._array.shape))
+                "Invalid perspective "
+                + str(perspective)
+                + " for %d-D array " % n_dimensions
+                + "with shape "
+                + str(self._array.shape)
+            )
 
         self.beginResetModel()
 
@@ -606,24 +621,31 @@ class ArrayTableModel(qt.QAbstractTableModel):
         :raise: IndexError if axes are invalid
         """
         if row_axis > col_axis:
-            _logger.warning("The dimension of the row axis must be lower " +
-                            "than the dimension of the column axis. Swapping.")
+            _logger.warning(
+                "The dimension of the row axis must be lower "
+                + "than the dimension of the column axis. Swapping."
+            )
             row_axis, col_axis = min(row_axis, col_axis), max(row_axis, col_axis)
 
         n_dimensions = len(self._array.shape)
         if n_dimensions < 3:
-            _logger.warning(
-                    "Frame axes cannot be changed for 1D and 2D arrays")
+            _logger.warning("Frame axes cannot be changed for 1D and 2D arrays")
             return
 
         perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
 
-        if len(perspective) != n_dimensions - 2 or\
-                min(perspective) < 0 or max(perspective) >= n_dimensions:
+        if (
+            len(perspective) != n_dimensions - 2
+            or min(perspective) < 0
+            or max(perspective) >= n_dimensions
+        ):
             raise IndexError(
-                    "Invalid perspective " + str(perspective) +
-                    " for %d-D array " % n_dimensions +
-                    "with shape " + str(self._array.shape))
+                "Invalid perspective "
+                + str(perspective)
+                + " for %d-D array " % n_dimensions
+                + "with shape "
+                + str(self._array.shape)
+            )
 
         self.beginResetModel()
 

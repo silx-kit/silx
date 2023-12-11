@@ -31,12 +31,14 @@ This module contains:
   :class:`FloatEditor`, :class:`Vector3DEditor`,
   :class:`Vector4DEditor`, :class:`IntSliderEditor`, :class:`BooleanEditor`
 """
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "05/12/2017"
 
 
+from collections.abc import Sequence
 import numbers
 import sys
 
@@ -49,25 +51,19 @@ class FloatEditor(_FloatEdit):
     """Editor widget for float.
 
     :param parent: The widget's parent
-    :param float value: The initial editor value
+    :param value: The initial editor value
     """
 
-    valueChanged = qt.Signal(float)
-    """Signal emitted when the float value has changed"""
-
-    def __init__(self, parent=None, value=None):
+    def __init__(self, parent: qt.QWidget | None = None, value: float | None = None):
         super(FloatEditor, self).__init__(parent, value)
         self.setAlignment(qt.Qt.AlignLeft)
-        self.editingFinished.connect(self._emit)
 
-    def _emit(self):
-        self.valueChanged.emit(self.value)
-
-    value = qt.Property(float,
-                        fget=_FloatEdit.value,
-                        fset=_FloatEdit.setValue,
-                        user=True,
-                        notify=valueChanged)
+    valueProperty = qt.Property(
+        float,
+        fget=_FloatEdit.value,
+        fset=_FloatEdit.setValue,
+        user=True,
+    )
     """Qt user property of the float value this widget edits"""
 
 
@@ -78,59 +74,49 @@ class Vector3DEditor(qt.QWidget):
     :param flags: The widgets's flags
     """
 
-    valueChanged = qt.Signal(qt.QVector3D)
-    """Signal emitted when the QVector3D value has changed"""
-
-    def __init__(self, parent=None, flags=qt.Qt.Widget):
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+        flags: qt.Qt.WindowType = qt.Qt.Widget,
+    ):
         super(Vector3DEditor, self).__init__(parent, flags)
         layout = qt.QHBoxLayout(self)
         # layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-        self._xEdit = _FloatEdit(parent=self, value=0.)
+
+        self._xEdit = _FloatEdit(parent=self, value=0.0)
         self._xEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._xEdit.editingFinished.connect(self._emit)
-        self._yEdit = _FloatEdit(parent=self, value=0.)
+        self._yEdit = _FloatEdit(parent=self, value=0.0)
         self._yEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._yEdit.editingFinished.connect(self._emit)
-        self._zEdit = _FloatEdit(parent=self, value=0.)
+        self._zEdit = _FloatEdit(parent=self, value=0.0)
         self._zEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._zEdit.editingFinished.connect(self._emit)
-        layout.addWidget(qt.QLabel('x:'))
+
+        layout.addWidget(qt.QLabel("x:"))
         layout.addWidget(self._xEdit)
-        layout.addWidget(qt.QLabel('y:'))
+        layout.addWidget(qt.QLabel("y:"))
         layout.addWidget(self._yEdit)
-        layout.addWidget(qt.QLabel('z:'))
+        layout.addWidget(qt.QLabel("z:"))
         layout.addWidget(self._zEdit)
         layout.addStretch(1)
 
-    def _emit(self):
-        vector = self.value
-        self.valueChanged.emit(vector)
-
-    def getValue(self):
-        """Returns the QVector3D value of this widget
-
-        :rtype: QVector3D
-        """
+    def getValue(self) -> qt.QVector3D:
+        """Returns the QVector3D value of this widget"""
         return qt.QVector3D(
-            self._xEdit.value(), self._yEdit.value(), self._zEdit.value())
+            self._xEdit.value(), self._yEdit.value(), self._zEdit.value()
+        )
 
-    def setValue(self, value):
-        """Set the QVector3D value
-
-        :param QVector3D value: The new value
-        """
+    def setValue(self, value: qt.QVector3D):
+        """Set the QVector3D value"""
         self._xEdit.setValue(value.x())
         self._yEdit.setValue(value.y())
         self._zEdit.setValue(value.z())
-        self.valueChanged.emit(value)
 
-    value = qt.Property(qt.QVector3D,
-                        fget=getValue,
-                        fset=setValue,
-                        user=True,
-                        notify=valueChanged)
+    value = qt.Property(
+        qt.QVector3D,
+        fget=getValue,
+        fset=setValue,
+        user=True,
+    )
     """Qt user property of the QVector3D value this widget edits"""
 
 
@@ -141,65 +127,57 @@ class Vector4DEditor(qt.QWidget):
     :param flags: The widgets's flags
     """
 
-    valueChanged = qt.Signal(qt.QVector4D)
-    """Signal emitted when the QVector4D value has changed"""
-
-    def __init__(self, parent=None, flags=qt.Qt.Widget):
+    def __init__(
+        self,
+        parent: qt.QWidget | None = None,
+        flags: qt.Qt.WindowType = qt.Qt.Widget,
+    ):
         super(Vector4DEditor, self).__init__(parent, flags)
         layout = qt.QHBoxLayout(self)
         # layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-        self._xEdit = _FloatEdit(parent=self, value=0.)
+
+        self._xEdit = _FloatEdit(parent=self, value=0.0)
         self._xEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._xEdit.editingFinished.connect(self._emit)
-        self._yEdit = _FloatEdit(parent=self, value=0.)
+        self._yEdit = _FloatEdit(parent=self, value=0.0)
         self._yEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._yEdit.editingFinished.connect(self._emit)
-        self._zEdit = _FloatEdit(parent=self, value=0.)
+        self._zEdit = _FloatEdit(parent=self, value=0.0)
         self._zEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._zEdit.editingFinished.connect(self._emit)
-        self._wEdit = _FloatEdit(parent=self, value=0.)
+        self._wEdit = _FloatEdit(parent=self, value=0.0)
         self._wEdit.setAlignment(qt.Qt.AlignLeft)
-        # self._wEdit.editingFinished.connect(self._emit)
-        layout.addWidget(qt.QLabel('x:'))
+
+        layout.addWidget(qt.QLabel("x:"))
         layout.addWidget(self._xEdit)
-        layout.addWidget(qt.QLabel('y:'))
+        layout.addWidget(qt.QLabel("y:"))
         layout.addWidget(self._yEdit)
-        layout.addWidget(qt.QLabel('z:'))
+        layout.addWidget(qt.QLabel("z:"))
         layout.addWidget(self._zEdit)
-        layout.addWidget(qt.QLabel('w:'))
+        layout.addWidget(qt.QLabel("w:"))
         layout.addWidget(self._wEdit)
         layout.addStretch(1)
 
-    def _emit(self):
-        vector = self.value
-        self.valueChanged.emit(vector)
+    def getValue(self) -> qt.QVector4D:
+        """Returns the QVector4D value of this widget"""
+        return qt.QVector4D(
+            self._xEdit.value(),
+            self._yEdit.value(),
+            self._zEdit.value(),
+            self._wEdit.value(),
+        )
 
-    def getValue(self):
-        """Returns the QVector4D value of this widget
-
-        :rtype: QVector4D
-        """
-        return qt.QVector4D(self._xEdit.value(), self._yEdit.value(),
-                            self._zEdit.value(), self._wEdit.value())
-
-    def setValue(self, value):
-        """Set the QVector4D value
-
-        :param QVector4D value: The new value
-        """
+    def setValue(self, value: qt.QVector4D):
+        """Set the QVector4D value"""
         self._xEdit.setValue(value.x())
         self._yEdit.setValue(value.y())
         self._zEdit.setValue(value.z())
         self._wEdit.setValue(value.w())
-        self.valueChanged.emit(value)
 
-    value = qt.Property(qt.QVector4D,
-                        fget=getValue,
-                        fset=setValue,
-                        user=True,
-                        notify=valueChanged)
+    value = qt.Property(
+        qt.QVector4D,
+        fget=getValue,
+        fset=setValue,
+        user=True,
+    )
     """Qt user property of the QVector4D value this widget edits"""
 
 
@@ -211,7 +189,7 @@ class IntSliderEditor(qt.QSlider):
     :param parent: The widget's parent
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super(IntSliderEditor, self).__init__(parent)
         self.setOrientation(qt.Qt.Horizontal)
         self.setSingleStep(1)
@@ -222,14 +200,39 @@ class IntSliderEditor(qt.QSlider):
 class BooleanEditor(qt.QCheckBox):
     """Checkbox editor for bool.
 
-    This is a QCheckBox with white background.
+    Wrap a QCheckBox to define a different user property with `clicked` signal.
 
     :param parent: The widget's parent
     """
 
-    def __init__(self, parent=None):
+    valueChanged = qt.Signal(bool)
+    """Signal emitted when value is changed by the user"""
+
+    def __init__(self, parent: qt.QWidget | None = None):
         super(BooleanEditor, self).__init__(parent)
-        self.setStyleSheet("background: white;")
+        self.setBackgroundRole(qt.QPalette.Base)
+        self.setAutoFillBackground(True)
+
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.__checkbox = qt.QCheckBox(self)
+        self.__checkbox.clicked.connect(self.valueChanged)
+        layout.addWidget(self.__checkbox)
+
+    def getValue(self) -> bool:
+        return self.__checkbox.isChecked()
+
+    def setValue(self, value: bool):
+        self.__checkbox.setChecked(value)
+
+    value = qt.Property(
+        bool,
+        fget=getValue,
+        fset=setValue,
+        user=True,
+        notify=valueChanged,
+    )
+    """Qt user property of the bool value this widget edits"""
 
 
 class ParameterTreeDelegate(qt.QStyledItemDelegate):
@@ -248,77 +251,60 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
     }
     """Specific editors for different type of data"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super(ParameterTreeDelegate, self).__init__(parent)
 
-    def paint(self, painter, option, index):
+    def paint(
+        self,
+        painter: qt.QPainter,
+        option: qt.QStyleOptionViewItem,
+        index: qt.QModelIndex,
+    ):
         """See :meth:`QStyledItemDelegate.paint`"""
         data = index.data(qt.Qt.DisplayRole)
 
-        if isinstance(data, (qt.QVector3D, qt.QVector4D)):
-            if isinstance(data, qt.QVector3D):
-                text = '(x: %g; y: %g; z: %g)' % (data.x(), data.y(), data.z())
-            elif isinstance(data, qt.QVector4D):
-                text = '(%g; %g; %g; %g)' % (data.x(), data.y(), data.z(), data.w())
-            else:
-                text = ''
-
-            painter.save()
-            painter.setRenderHint(qt.QPainter.Antialiasing, True)
-
-            # Select palette color group
-            colorGroup = qt.QPalette.Inactive
-            if option.state & qt.QStyle.State_Active:
-                colorGroup = qt.QPalette.Active
-            if not option.state & qt.QStyle.State_Enabled:
-                colorGroup = qt.QPalette.Disabled
-
-            # Draw background if selected
-            if option.state & qt.QStyle.State_Selected:
-                brush = option.palette.brush(colorGroup,
-                                             qt.QPalette.Highlight)
-                painter.fillRect(option.rect, brush)
-
-            # Draw text
-            if option.state & qt.QStyle.State_Selected:
-                colorRole = qt.QPalette.HighlightedText
-            else:
-                colorRole = qt.QPalette.WindowText
-            color = option.palette.color(colorGroup, colorRole)
-            painter.setPen(qt.QPen(color))
-            painter.drawText(option.rect, qt.Qt.AlignLeft, text)
-
-            painter.restore()
-
-            # The following commented code does the same as QPainter based code
-            # but it does not work with PySide
-            # self.initStyleOption(option, index)
-            # option.text = text
-            # widget = option.widget
-            # style = qt.QApplication.style() if not widget else widget.style()
-            # style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
-
-        else:
+        if not isinstance(data, (qt.QVector3D, qt.QVector4D)):
             super(ParameterTreeDelegate, self).paint(painter, option, index)
+            return
+
+        if isinstance(data, qt.QVector3D):
+            text = "(x: %g; y: %g; z: %g)" % (data.x(), data.y(), data.z())
+        elif isinstance(data, qt.QVector4D):
+            text = "(%g; %g; %g; %g)" % (data.x(), data.y(), data.z(), data.w())
+        else:
+            text = ""
+
+        self.initStyleOption(option, index)
+        option.text = text
+        widget = option.widget
+        style = qt.QApplication.style() if not widget else widget.style()
+        style.drawControl(qt.QStyle.CE_ItemViewItem, option, painter, widget)
 
     def _commit(self, *args):
         """Commit data to the model from editors"""
         sender = self.sender()
         self.commitData.emit(sender)
 
-    def editorEvent(self, event, model, option, index):
+    def editorEvent(
+        self,
+        event: qt.QEvent,
+        model: qt.QAbstractItemModel,
+        option: qt.QStyleOptionViewItem,
+        index: qt.QModelIndex,
+    ):
         """See :meth:`QStyledItemDelegate.editorEvent`"""
-        if (event.type() == qt.QEvent.MouseButtonPress and
-                isinstance(index.data(qt.Qt.EditRole), qt.QColor)):
+        if event.type() == qt.QEvent.MouseButtonPress and isinstance(
+            index.data(qt.Qt.EditRole), qt.QColor
+        ):
             initialColor = index.data(qt.Qt.EditRole)
 
-            def callback(color):
+            def callback(color: qt.QColor):
                 theModel = index.model()
                 theModel.setData(index, color, qt.Qt.EditRole)
 
             dialog = qt.QColorDialog(self.parent())
             # dialog.setOption(qt.QColorDialog.ShowAlphaChannel, True)
-            if sys.platform == 'darwin':
+            if sys.platform == "darwin":
                 # Use of native color dialog on macos might cause problems
                 dialog.setOption(qt.QColorDialog.DontUseNativeDialog, True)
             dialog.setCurrentColor(initialColor)
@@ -330,9 +316,15 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
             return True
         else:
             return super(ParameterTreeDelegate, self).editorEvent(
-                event, model, option, index)
+                event, model, option, index
+            )
 
-    def createEditor(self, parent, option, index):
+    def createEditor(
+        self,
+        parent: qt.QWidget,
+        option: qt.QStyleOptionViewItem,
+        index: qt.QModelIndex,
+    ):
         """See :meth:`QStyledItemDelegate.createEditor`"""
         data = index.data(qt.Qt.EditRole)
         editorHint = index.data(qt.Qt.UserRole)
@@ -372,8 +364,8 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
                     if userProperty.isValid() and userProperty.hasNotifySignal():
                         notifySignal = userProperty.notifySignal()
                         signature = notifySignal.methodSignature()
-                        signature = bytes(signature).decode('ascii')
-                        signalName = signature.split('(')[0]
+                        signature = bytes(signature).decode("ascii")
+                        signalName = signature.split("(")[0]
 
                         signal = getattr(editor, signalName)
                         signal.connect(self._commit)
@@ -381,12 +373,18 @@ class ParameterTreeDelegate(qt.QStyledItemDelegate):
 
             else:  # Default handling for default types
                 return super(ParameterTreeDelegate, self).createEditor(
-                    parent, option, index)
+                    parent, option, index
+                )
 
         editor.setAutoFillBackground(True)
         return editor
 
-    def setModelData(self, editor, model, index):
+    def setModelData(
+        self,
+        editor: qt.QWidget,
+        model: qt.QAbstractItemModel,
+        index: qt.QModelIndex,
+    ):
         """See :meth:`QStyledItemDelegate.setModelData`"""
         if isinstance(editor, tuple(self.EDITORS.values())):
             # Special handling of Python classes
@@ -414,7 +412,7 @@ class ParamTreeView(qt.QTreeView):
     :param parent: The widget's parent.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: qt.QWidget | None = None):
         super(ParamTreeView, self).__init__(parent)
 
         header = self.header()
@@ -429,65 +427,67 @@ class ParamTreeView(qt.QTreeView):
 
         self.expanded.connect(self._expanded)
 
-        self.setEditTriggers(qt.QAbstractItemView.CurrentChanged |
-                             qt.QAbstractItemView.DoubleClicked)
+        self.setEditTriggers(
+            qt.QAbstractItemView.CurrentChanged | qt.QAbstractItemView.DoubleClicked
+        )
 
         self.__persistentEditors = set()
 
-    def _openEditorForIndex(self, index):
+    def _openEditorForIndex(self, index: qt.QModelIndex):
         """Check if it has to open a persistent editor for a specific cell.
 
-        :param QModelIndex index: The cell index
+        :param index: The cell index
         """
         if index.flags() & qt.Qt.ItemIsEditable:
             data = index.data(qt.Qt.EditRole)
             editorHint = index.data(qt.Qt.UserRole)
-            if (isinstance(data, bool) or
-                    callable(editorHint) or
-                    (isinstance(data, numbers.Number) and editorHint)):
+            if (
+                isinstance(data, bool)
+                or callable(editorHint)
+                or (isinstance(data, numbers.Number) and editorHint)
+            ):
                 self.openPersistentEditor(index)
                 self.__persistentEditors.add(index)
 
-    def _openEditors(self, parent=qt.QModelIndex()):
+    def _openEditors(self, parent: qt.QModelIndex = qt.QModelIndex()):
         """Open persistent editors in a subtree starting at parent.
 
-        :param QModelIndex parent: The root of the subtree to process.
+        :param parent: The root of the subtree to process.
         """
         model = self.model()
         if model is not None:
             for index in visitQAbstractItemModel(model, parent):
                 self._openEditorForIndex(index)
 
-    def setModel(self, model):
-        """Set the model this TreeView is displaying
-
-        :param QAbstractItemModel model:
-        """
+    def setModel(self, model: qt.QAbstractItemModel):
+        """Set the model this TreeView is displaying"""
         super(ParamTreeView, self).setModel(model)
         self._openEditors()
 
-    def rowsInserted(self, parent, start, end):
+    def rowsInserted(self, parent: qt.QModelIndex, start: int, end: int):
         """See :meth:`QTreeView.rowsInserted`"""
         super(ParamTreeView, self).rowsInserted(parent, start, end)
         model = self.model()
         if model is not None:
-            for row in range(start, end+1):
+            for row in range(start, end + 1):
                 self._openEditorForIndex(model.index(row, 1, parent))
                 self._openEditors(model.index(row, 0, parent))
 
-    def _expanded(self, index):
+    def _expanded(self, index: qt.QModelIndex):
         """Handle QTreeView expanded signal"""
         name = index.data(qt.Qt.DisplayRole)
-        if name == 'Transform':
+        if name == "Transform":
             rotateIndex = self.model().index(1, 0, index)
             self.setExpanded(rotateIndex, True)
 
-    def dataChanged(self, topLeft, bottomRight, roles=()):
+    def dataChanged(
+        self,
+        topLeft: qt.QModelIndex,
+        bottomRight: qt.QModelIndex,
+        roles: Sequence[int] = (),
+    ):
         """Handle model dataChanged signal eventually closing editors"""
-        if roles:  # Qt 5
-            super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
-        else:  # Qt4 compatibility
-            super(ParamTreeView, self).dataChanged(topLeft, bottomRight)
+        super(ParamTreeView, self).dataChanged(topLeft, bottomRight, roles)
         if not roles or qt.Qt.UserRole in roles:  # Check editorHint update
             for row in range(topLeft.row(), bottomRight.row() + 1):
                 for column in range(topLeft.column(), bottomRight.column() + 1):
@@ -497,15 +497,15 @@ class ParamTreeView(qt.QTreeView):
                             self.closePersistentEditor(index)
                         self._openEditorForIndex(index)
 
-    def _isPersistentEditorOpen(self, index):
-        """Returns True if a persistent editor is opened for index
-
-        :param QModelIndex index:
-        :rtype: bool
-        """
+    def _isPersistentEditorOpen(self, index: qt.QModelIndex) -> bool:
+        """Returns True if a persistent editor is opened for index"""
         return index in self.__persistentEditors
 
-    def selectionCommand(self, index, event=None):
+    def selectionCommand(
+        self,
+        index: qt.QModelIndex,
+        event: qt.QEvent | None = None,
+    ) -> qt.QItemSelectionModel.SelectionFlag:
         """Filter out selection of not selectable items"""
         if index.flags() & qt.Qt.ItemIsSelectable:
             return super(ParamTreeView, self).selectionCommand(index, event)

@@ -51,7 +51,6 @@ class Mode(enum.Enum):
 
 
 class DialogExample(qt.QMainWindow):
-
     def __init__(self, parent=None):
         super(DialogExample, self).__init__(parent)
 
@@ -174,7 +173,7 @@ class DialogExample(qt.QMainWindow):
                 node = h5[url.data_path()]
                 print("- Node: %s" % node)
         else:
-            assert(False)
+            assert False
 
     def createDialog(self):
         print("")
@@ -197,15 +196,17 @@ class DialogExample(qt.QMainWindow):
             dialog = DataFileDialog(self)
             dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
         elif mode == Mode.DATAFILEDIALOG_NXENTRY:
+
             def customFilter(obj):
                 if "NX_class" in obj.attrs:
-                    return obj.attrs["NX_class"] in [b"NXentry", u"NXentry"]
+                    return obj.attrs["NX_class"] in [b"NXentry", "NXentry"]
                 return False
+
             dialog = DataFileDialog(self)
             dialog.setFilterMode(DataFileDialog.FilterMode.ExistingGroup)
             dialog.setFilterCallback(customFilter)
         else:
-            assert(False)
+            assert False
         return dialog
 
     def openDialog(self):

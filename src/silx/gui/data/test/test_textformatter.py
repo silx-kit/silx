@@ -39,7 +39,6 @@ import pytest
 
 
 class TestTextFormatter(TestCaseQt):
-
     def test_copy(self):
         formatter = TextFormatter()
         copy = TextFormatter(formatter=formatter)
@@ -96,11 +95,10 @@ class TestTextFormatter(TestCaseQt):
         # degree character in cp1252
         formatter = TextFormatter()
         result = formatter.toString(numpy.bytes_(b"\xB0"))
-        self.assertEqual(result, u'"\u00B0"')
+        self.assertEqual(result, '"\u00B0"')
 
 
 class TestTextFormatterWithH5py(TestCaseQt):
-
     @classmethod
     def setUpClass(cls):
         super(TestTextFormatterWithH5py, cls).setUpClass()
@@ -130,10 +128,10 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, '"abc"')
 
     def testUnicode(self):
-        d = self.create_dataset(data=u"i\u2661cookies")
+        d = self.create_dataset(data="i\u2661cookies")
         result = self.read_dataset(d)
         self.assertEqual(len(result), 11)
-        self.assertEqual(result, u'"i\u2661cookies"')
+        self.assertEqual(result, '"i\u2661cookies"')
 
     def testBadAscii(self):
         d = self.create_dataset(data=b"\xF0\x9F\x92\x94")
@@ -146,18 +144,18 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, 'b"\\x61\\x62\\x63\\xF0"')
 
     def testEnum(self):
-        dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
+        dtype = h5py.special_dtype(enum=("i", {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array(42, dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
-        self.assertEqual(result, 'BLUE(42)')
+        self.assertEqual(result, "BLUE(42)")
 
     def testRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array(self.h5File.ref, dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
-        self.assertEqual(result, 'REF')
+        self.assertEqual(result, "REF")
 
     def testArrayAscii(self):
         d = self.create_dataset(data=[b"abc"])
@@ -166,11 +164,11 @@ class TestTextFormatterWithH5py(TestCaseQt):
 
     def testArrayUnicode(self):
         dtype = h5py.special_dtype(vlen=str)
-        d = numpy.array([u"i\u2661cookies"], dtype=dtype)
+        d = numpy.array(["i\u2661cookies"], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
         self.assertEqual(len(result), 13)
-        self.assertEqual(result, u'["i\u2661cookies"]')
+        self.assertEqual(result, '["i\u2661cookies"]')
 
     def testArrayBadAscii(self):
         d = self.create_dataset(data=[b"\xF0\x9F\x92\x94"])
@@ -183,29 +181,32 @@ class TestTextFormatterWithH5py(TestCaseQt):
         self.assertEqual(result, '[b"\\x61\\x62\\x63\\xF0"]')
 
     def testArrayEnum(self):
-        dtype = h5py.special_dtype(enum=('i', {"RED": 0, "GREEN": 1, "BLUE": 42}))
+        dtype = h5py.special_dtype(enum=("i", {"RED": 0, "GREEN": 1, "BLUE": 42}))
         d = numpy.array([42, 1, 100], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
-        self.assertEqual(result, '[BLUE(42) GREEN(1) 100]')
+        self.assertEqual(result, "[BLUE(42) GREEN(1) 100]")
 
     def testArrayRef(self):
         dtype = h5py.special_dtype(ref=h5py.Reference)
         d = numpy.array([self.h5File.ref, None], dtype=dtype)
         d = self.create_dataset(data=d)
         result = self.read_dataset(d)
-        self.assertEqual(result, '[REF NULL_REF]')
+        self.assertEqual(result, "[REF NULL_REF]")
 
 
-@pytest.mark.parametrize("data, expected", [
-    (b"bytes", '"bytes"'),
-    ("unicode", '"unicode"'),
-    ((b'elem0', b'elem1'), '["elem0" "elem1"]'),
-    (('elem0', 'elem1'), '["elem0" "elem1"]'),
-])
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        (b"bytes", '"bytes"'),
+        ("unicode", '"unicode"'),
+        ((b"elem0", b"elem1"), '["elem0" "elem1"]'),
+        (("elem0", "elem1"), '["elem0" "elem1"]'),
+    ],
+)
 def test_formatter_h5py_attr(tmp_h5py_file, data, expected):
     """Test formatter with h5py attributes"""
-    tmp_h5py_file.attrs['attr'] = data
+    tmp_h5py_file.attrs["attr"] = data
     formatter = TextFormatter()
-    result = formatter.toString(tmp_h5py_file.attrs['attr'])
+    result = formatter.toString(tmp_h5py_file.attrs["attr"])
     assert result == expected

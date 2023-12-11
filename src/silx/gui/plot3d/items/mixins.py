@@ -50,24 +50,21 @@ class InterpolationMixIn(ItemMixInBase):
         This object MUST have an interpolation property that is updated.
     """
 
-    NEAREST_INTERPOLATION = 'nearest'
+    NEAREST_INTERPOLATION = "nearest"
     """Nearest interpolation mode (see :meth:`setInterpolation`)"""
 
-    LINEAR_INTERPOLATION = 'linear'
+    LINEAR_INTERPOLATION = "linear"
     """Linear interpolation mode (see :meth:`setInterpolation`)"""
 
     INTERPOLATION_MODES = NEAREST_INTERPOLATION, LINEAR_INTERPOLATION
     """Supported interpolation modes for :meth:`setInterpolation`"""
 
-    def __init__(self, mode=NEAREST_INTERPOLATION, primitive=None):
-        self.__primitive = primitive
+    def __init__(self):
+        self.__primitive = None
+        self.__interpolationMode = self.NEAREST_INTERPOLATION
         self._syncPrimitiveInterpolation()
 
-        self.__interpolationMode = None
-        self.setInterpolation(mode)
-
     def _setPrimitive(self, primitive):
-
         """Set the scene object for which to sync interpolation"""
         self.__primitive = primitive
         self._syncPrimitiveInterpolation()
@@ -148,25 +145,28 @@ class ComplexMixIn(_ComplexMixIn):
         _ComplexMixIn.ComplexMode.IMAGINARY,
         _ComplexMixIn.ComplexMode.ABSOLUTE,
         _ComplexMixIn.ComplexMode.PHASE,
-        _ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+        _ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE,
+    )
     """Overrides supported ComplexMode"""
 
 
 class SymbolMixIn(_SymbolMixIn):
     """Mix-in class for symbol and symbolSize properties for Item3D"""
 
-    _SUPPORTED_SYMBOLS = dict((
-        ('o', 'Circle'),
-        ('d', 'Diamond'),
-        ('s', 'Square'),
-        ('+', 'Plus'),
-        ('x', 'Cross'),
-        ('*', 'Star'),
-        ('|', 'Vertical Line'),
-        ('_', 'Horizontal Line'),
-        ('.', 'Point'),
-        (',', 'Pixel'),
-    ))
+    _SUPPORTED_SYMBOLS = dict(
+        (
+            ("o", "Circle"),
+            ("d", "Diamond"),
+            ("s", "Square"),
+            ("+", "Plus"),
+            ("x", "Cross"),
+            ("*", "Star"),
+            ("|", "Vertical Line"),
+            ("_", "Horizontal Line"),
+            (".", "Point"),
+            (",", "Pixel"),
+        )
+    )
 
     def _getSceneSymbol(self):
         """Returns a symbol name and size suitable for scene primitives.
@@ -175,11 +175,11 @@ class SymbolMixIn(_SymbolMixIn):
         """
         symbol = self.getSymbol()
         size = self.getSymbolSize()
-        if symbol == ',':  # pixel
-            return 's', 1.
-        elif symbol == '.':  # point
+        if symbol == ",":  # pixel
+            return "s", 1.0
+        elif symbol == ".":  # point
             # Size as in plot OpenGL backend, mimic matplotlib
-            return 'o', numpy.ceil(0.5 * size) + 1.
+            return "o", numpy.ceil(0.5 * size) + 1.0
         else:
             return symbol, size
 
@@ -187,18 +187,24 @@ class SymbolMixIn(_SymbolMixIn):
 class PlaneMixIn(ItemMixInBase):
     """Mix-in class for plane items (based on PlaneInGroup primitive)"""
 
-    def __init__(self, plane):
+    def __init__(self):
+        self.__plane = None
+        self._setPlane(primitives.PlaneInGroup())
+
+    def _setPlane(self, plane: primitives.PlaneInGroup):
+        """Set plane primitive"""
+        if self.__plane is not None:
+            self.__plane.removeListener(self._planeChanged)
+            self.__plane.plane.removeListener(self._planePositionChanged)
+
         assert isinstance(plane, primitives.PlaneInGroup)
         self.__plane = plane
-        self.__plane.alpha = 1.
+        self.__plane.alpha = 1.0
         self.__plane.addListener(self._planeChanged)
         self.__plane.plane.addListener(self._planePositionChanged)
 
-    def _getPlane(self):
-        """Returns plane primitive
-
-        :rtype: primitives.PlaneInGroup
-        """
+    def _getPlane(self) -> primitives.PlaneInGroup:
+        """Returns plane primitive"""
         return self.__plane
 
     def _planeChanged(self, source, *args, **kwargs):
@@ -209,7 +215,9 @@ class PlaneMixIn(ItemMixInBase):
 
     def _planePositionChanged(self, source, *args, **kwargs):
         """Handle update of cut plane position and normal"""
-        if self.__plane.visible:  # TODO send even if hidden? or send also when showing if moved while hidden
+        if (
+            self.__plane.visible
+        ):  # TODO send even if hidden? or send also when showing if moved while hidden
             self._updated(ItemChangedType.POSITION)
 
     # Plane position
@@ -281,5 +289,5 @@ class PlaneMixIn(ItemMixInBase):
         :param color: RGBA color as 4 floats in [0, 1]
         """
         self.__plane.color = rgba(color)
-        if hasattr(super(PlaneMixIn, self), '_setForegroundColor'):
+        if hasattr(super(PlaneMixIn, self), "_setForegroundColor"):
             super(PlaneMixIn, self)._setForegroundColor(color)

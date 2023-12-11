@@ -40,16 +40,17 @@ import pytest
 
 import unittest
 from ..common import ocl, _measure_workgroup_size, query_kernel_info
+
 if ocl:
     import pyopencl
     import pyopencl.array
 from ..utils import get_opencl_code
+
 logger = logging.getLogger(__name__)
 
 
 @unittest.skipUnless(ocl, "PyOpenCl is missing")
 class TestAddition(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestAddition, cls).setUpClass()
@@ -58,8 +59,9 @@ class TestAddition(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(
-                                cls.ctx,
-                                properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -68,7 +70,10 @@ class TestAddition(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         super(TestAddition, cls).tearDownClass()
-        print("Maximum valid workgroup size %s on device %s" % (cls.max_valid_wg, cls.ctx.devices[0]))
+        print(
+            "Maximum valid workgroup size %s on device %s"
+            % (cls.max_valid_wg, cls.ctx.devices[0])
+        )
         cls.ctx = None
         cls.queue = None
 
@@ -95,11 +100,20 @@ class TestAddition(unittest.TestCase):
             d_array_result = pyopencl.array.empty_like(self.d_array_img)
             wg = 1 << i
             try:
-                evt = self.program.addition(self.queue, (self.shape,), (wg,),
-                       self.d_array_img.data, self.d_array_5.data, d_array_result.data, numpy.int32(self.shape))
+                evt = self.program.addition(
+                    self.queue,
+                    (self.shape,),
+                    (wg,),
+                    self.d_array_img.data,
+                    self.d_array_5.data,
+                    d_array_result.data,
+                    numpy.int32(self.shape),
+                )
                 evt.wait()
             except Exception as error:
-                max_valid_wg = self.program.addition.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0])
+                max_valid_wg = self.program.addition.get_work_group_info(
+                    pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0]
+                )
                 msg = "Error %s on WG=%s: %s" % (error, wg, max_valid_wg)
                 self.assertLess(max_valid_wg, wg, msg)
                 break
@@ -117,23 +131,39 @@ class TestAddition(unittest.TestCase):
         for platform in ocl.platforms:
             for did, device in enumerate(platform.devices):
                 meas = _measure_workgroup_size((platform.id, device.id))
-                self.assertEqual(meas, device.max_work_group_size,
-                                 "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
+                self.assertEqual(
+                    meas,
+                    device.max_work_group_size,
+                    "Workgroup size for %s/%s: %s == %s"
+                    % (platform, device, meas, device.max_work_group_size),
+                )
 
     def test_query(self):
         """
         tests that all devices are working properly ... lengthy and error prone
         """
-        for what in ("COMPILE_WORK_GROUP_SIZE",
-                     "LOCAL_MEM_SIZE",
-                     "PREFERRED_WORK_GROUP_SIZE_MULTIPLE",
-                     "PRIVATE_MEM_SIZE",
-                     "WORK_GROUP_SIZE"):
-            logger.info("%s: %s", what, query_kernel_info(program=self.program, kernel="addition", what=what))
+        for what in (
+            "COMPILE_WORK_GROUP_SIZE",
+            "LOCAL_MEM_SIZE",
+            "PREFERRED_WORK_GROUP_SIZE_MULTIPLE",
+            "PRIVATE_MEM_SIZE",
+            "WORK_GROUP_SIZE",
+        ):
+            logger.info(
+                "%s: %s",
+                what,
+                query_kernel_info(program=self.program, kernel="addition", what=what),
+            )
 
-        # Not all ICD work properly ....    
-        #self.assertEqual(3, len(query_kernel_info(program=self.program, kernel="addition", what="COMPILE_WORK_GROUP_SIZE")), "3D kernel")
+        # Not all ICD work properly ....
+        # self.assertEqual(3, len(query_kernel_info(program=self.program, kernel="addition", what="COMPILE_WORK_GROUP_SIZE")), "3D kernel")
 
-        min_wg = query_kernel_info(program=self.program, kernel="addition", what="PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
-        max_wg = query_kernel_info(program=self.program, kernel="addition", what="WORK_GROUP_SIZE")
+        min_wg = query_kernel_info(
+            program=self.program,
+            kernel="addition",
+            what="PREFERRED_WORK_GROUP_SIZE_MULTIPLE",
+        )
+        max_wg = query_kernel_info(
+            program=self.program, kernel="addition", what="WORK_GROUP_SIZE"
+        )
         self.assertEqual(max_wg % min_wg, 0, msg="max_wg is a multiple of min_wg")

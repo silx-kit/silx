@@ -30,11 +30,13 @@ __date__ = "17/01/2018"
 from collections import defaultdict
 from copy import deepcopy
 import os
+import re
 import tempfile
 import unittest
 
 import h5py
 import numpy
+
 try:
     import pint
 except ImportError:
@@ -74,20 +76,17 @@ link_attrs["links"]["group"]["dataset"] = 10
 link_attrs["links"]["group"]["relative_softlink"] = h5py.SoftLink("dataset")
 link_attrs["links"]["relative_softlink"] = h5py.SoftLink("group/dataset")
 link_attrs["links"]["absolute_softlink"] = h5py.SoftLink("/links/group/dataset")
-link_attrs["links"]["external_link"] = h5py.ExternalLink(ext_filename, "/ext_group/dataset")
+link_attrs["links"]["external_link"] = h5py.ExternalLink(
+    ext_filename, "/ext_group/dataset"
+)
 
 
 class DictTestCase(unittest.TestCase):
-
     def assertRecursiveEqual(self, expected, actual, nodes=tuple()):
         err_msg = "\n\n Tree nodes: {}".format(nodes)
         if isinstance(expected, dict):
             self.assertTrue(isinstance(actual, dict), msg=err_msg)
-            self.assertEqual(
-                set(expected.keys()),
-                set(actual.keys()),
-                msg=err_msg
-            )
+            self.assertEqual(set(expected.keys()), set(actual.keys()), msg=err_msg)
             for k in actual:
                 self.assertRecursiveEqual(
                     expected[k],
@@ -104,7 +103,6 @@ class DictTestCase(unittest.TestCase):
 
 
 class H5DictTestCase(DictTestCase):
-
     def _dictRoundTripNormalize(self, treedict):
         """Convert the dictionary as expected from a round-trip
         treedict -> dicttoh5 -> h5todict -> newtreedict
@@ -147,12 +145,16 @@ class TestDictToH5(H5DictTestCase):
         os.rmdir(self.tempdir)
 
     def testH5CityAttrs(self):
-        filters = {'shuffle': True,
-                   'fletcher32': True}
-        dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
-                 mode="w", create_dataset_args=filters)
+        filters = {"shuffle": True, "fletcher32": True}
+        dicttoh5(
+            city_attrs,
+            self.h5_fname,
+            h5path="/city attributes",
+            mode="w",
+            create_dataset_args=filters,
+        )
 
-        h5f = h5py.File(self.h5_fname, mode='r')
+        h5f = h5py.File(self.h5_fname, mode="r")
 
         self.assertIn("Tourcoing/area", h5f["/city attributes/Europe/France"])
         ds = h5f["/city attributes/Europe/France/Grenoble/inhabitants"]
@@ -160,7 +162,7 @@ class TestDictToH5(H5DictTestCase):
 
         # filters only apply to datasets that are not scalars (shape != () )
         ds = h5f["/city attributes/Europe/France/Grenoble/coordinates"]
-        #self.assertEqual(ds.compression, "gzip")
+        # self.assertEqual(ds.compression, "gzip")
         self.assertTrue(ds.fletcher32)
         self.assertTrue(ds.shuffle)
 
@@ -168,8 +170,11 @@ class TestDictToH5(H5DictTestCase):
 
         ddict = load(self.h5_fname, fmat="hdf5")
         self.assertAlmostEqual(
-                min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
-                5.7196)
+            min(
+                ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]
+            ),
+            5.7196,
+        )
 
     def testAttributes(self):
         """Any kind of attribute can be described"""
@@ -182,15 +187,15 @@ class TestDictToH5(H5DictTestCase):
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
-            self.assertEqual(h5file["group"].attrs['group_attr'], 10)
-            self.assertEqual(h5file.attrs['root_attr'], 11)
-            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], 12)
-            self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
+            self.assertEqual(h5file["group"].attrs["group_attr"], 10)
+            self.assertEqual(h5file.attrs["root_attr"], 11)
+            self.assertEqual(h5file["dataset"].attrs["dataset_attr"], 12)
+            self.assertEqual(h5file["group"].attrs["group_attr2"], 13)
 
     def testPathAttributes(self):
         """A group is requested at a path"""
         ddict = {
-            ("", "NX_class"): 'NXcollection',
+            ("", "NX_class"): "NXcollection",
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             # This should not warn
@@ -209,8 +214,8 @@ class TestDictToH5(H5DictTestCase):
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict1, h5file, h5path="g1")
             dictdump.dicttoh5(ddict2, h5file, h5path="g2")
-            self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
-            self.assertEqual(h5file["g2/d"].attrs['a'], "ox")
+            self.assertEqual(h5file["g1/d"].attrs["a"], "ox")
+            self.assertEqual(h5file["g2/d"].attrs["a"], "ox")
 
     def testAttributeValues(self):
         """Any NX data types can be used"""
@@ -244,7 +249,7 @@ class TestDictToH5(H5DictTestCase):
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
-            self.assertEqual(h5file["group"].attrs['attr'], 10)
+            self.assertEqual(h5file["group"].attrs["attr"], 10)
 
     def testFlatDict(self):
         """Description of a tree with a single level of keys"""
@@ -256,8 +261,8 @@ class TestDictToH5(H5DictTestCase):
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
             self.assertEqual(h5file["group/group/dataset"][()], 10)
-            self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
-            self.assertEqual(h5file["group/group"].attrs['attr'], 12)
+            self.assertEqual(h5file["group/group/dataset"].attrs["attr"], 11)
+            self.assertEqual(h5file["group/group"].attrs["attr"], 12)
 
     def testLinks(self):
         with h5py.File(self.h5_ext_fname, "w") as h5file:
@@ -273,15 +278,14 @@ class TestDictToH5(H5DictTestCase):
 
     def testDumpNumpyArray(self):
         ddict = {
-            'darks': {
-                '0': numpy.array([[0, 0, 0], [0, 0, 0]], dtype=numpy.uint16)
-            }
+            "darks": {"0": numpy.array([[0, 0, 0], [0, 0, 0]], dtype=numpy.uint16)}
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttoh5(ddict, h5file)
         with h5py.File(self.h5_fname, "r") as h5file:
-            numpy.testing.assert_array_equal(h5py_read_dataset(h5file["darks"]["0"]),
-                                             ddict['darks']['0'])
+            numpy.testing.assert_array_equal(
+                h5py_read_dataset(h5file["darks"]["0"]), ddict["darks"]["0"]
+            )
 
     def testOverwrite(self):
         # Tree structure that will be tested
@@ -298,17 +302,17 @@ class TestDictToH5(H5DictTestCase):
             "subgroup1": group1.copy(),
             "subgroup2": group1.copy(),
             ("subgroup1", "attr1"): "original1",
-            ("subgroup2", "attr1"): "original1"
+            ("subgroup2", "attr1"): "original1",
         }
         group2.update(group1)
         # initial HDF5 tree
         otreedict = {
-            ('', 'attr1'): "original1",
-            ('', 'attr2'): "original2",
-            'group1': group1,
-            'group2': group2,
-            ('group1', 'attr1'): "original1",
-            ('group2', 'attr1'): "original1"
+            ("", "attr1"): "original1",
+            ("", "attr2"): "original2",
+            "group1": group1,
+            "group2": group2,
+            ("group1", "attr1"): "original1",
+            ("group2", "attr1"): "original1",
         }
         wtreedict = None  # dumped dictionary
         etreedict = None  # expected HDF5 tree after dump
@@ -321,24 +325,16 @@ class TestDictToH5(H5DictTestCase):
             )
 
         def append_file(update_mode):
-            dicttoh5(
-                wtreedict,
-                h5file=self.h5_fname,
-                mode="a",
-                update_mode=update_mode
-            )
+            dicttoh5(wtreedict, h5file=self.h5_fname, mode="a", update_mode=update_mode)
 
         def assert_file():
-            rtreedict = h5todict(
-                self.h5_fname,
-                include_attributes=True,
-                asarray=False
-            )
+            rtreedict = h5todict(self.h5_fname, include_attributes=True, asarray=False)
             netreedict = self.dictRoundTripNormalize(etreedict)
             try:
                 self.assertRecursiveEqual(netreedict, rtreedict)
             except AssertionError:
                 from pprint import pprint
+
                 print("\nDUMP:")
                 pprint(wtreedict)
                 print("\nEXPECTED:")
@@ -354,10 +350,7 @@ class TestDictToH5(H5DictTestCase):
         # Test wrong arguments
         with self.assertRaises(ValueError):
             dicttoh5(
-                otreedict,
-                h5file=self.h5_fname,
-                mode="w",
-                update_mode="wrong-value"
+                otreedict, h5file=self.h5_fname, mode="w", update_mode="wrong-value"
             )
 
         # No writing
@@ -515,6 +508,13 @@ def test_dicttoh5_pint(tmp_h5py_file):
         assert numpy.array_equal(result[key], value.magnitude)
 
 
+def test_dicttoh5_not_serializable(tmp_h5py_file):
+    treedict = {"group": {"dset": [{"a": 1}]}}
+    err_msg = "Failed to create dataset '/group/dset' with data (numpy.ndarray-object) = [{'a': 1}]"
+    with pytest.raises(ValueError, match=re.escape(err_msg)):
+        dicttoh5(treedict, tmp_h5py_file)
+
+
 class TestH5ToDict(H5DictTestCase):
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -532,8 +532,11 @@ class TestH5ToDict(H5DictTestCase):
         os.rmdir(self.tempdir)
 
     def testExcludeNames(self):
-        ddict = h5todict(self.h5_fname, path="/Europe/France",
-                         exclude_names=["ourcoing", "inhab", "toto"])
+        ddict = h5todict(
+            self.h5_fname,
+            path="/Europe/France",
+            exclude_names=["ourcoing", "inhab", "toto"],
+        )
         self.assertNotIn("Tourcoing", ddict)
         self.assertIn("Grenoble", ddict)
 
@@ -544,7 +547,9 @@ class TestH5ToDict(H5DictTestCase):
     def testAsArrayTrue(self):
         """Test with asarray=True, the default"""
         ddict = h5todict(self.h5_fname, path="/Europe/France/Grenoble")
-        self.assertTrue(numpy.array_equal(ddict["inhabitants"], numpy.array(inhabitants)))
+        self.assertTrue(
+            numpy.array_equal(ddict["inhabitants"], numpy.array(inhabitants))
+        )
 
     def testAsArrayFalse(self):
         """Test with asarray=False"""
@@ -566,14 +571,16 @@ class TestH5ToDict(H5DictTestCase):
         self.assertTrue(is_link(ddict["group"]["relative_softlink"]))
 
     def testStrings(self):
-        ddict = {"dset_bytes": b"bytes",
-                 "dset_utf8": "utf8",
-                 "dset_2bytes": [b"bytes", b"bytes"],
-                 "dset_2utf8": ["utf8", "utf8"],
-                 ("", "attr_bytes"): b"bytes",
-                 ("", "attr_utf8"): "utf8",
-                 ("", "attr_2bytes"): [b"bytes", b"bytes"],
-                 ("", "attr_2utf8"): ["utf8", "utf8"]}
+        ddict = {
+            "dset_bytes": b"bytes",
+            "dset_utf8": "utf8",
+            "dset_2bytes": [b"bytes", b"bytes"],
+            "dset_2utf8": ["utf8", "utf8"],
+            ("", "attr_bytes"): b"bytes",
+            ("", "attr_utf8"): "utf8",
+            ("", "attr_2bytes"): [b"bytes", b"bytes"],
+            ("", "attr_2utf8"): ["utf8", "utf8"],
+        }
         dicttoh5(ddict, self.h5_fname, mode="w")
         adict = h5todict(self.h5_fname, include_attributes=True, asarray=False)
         self.assertEqual(ddict["dset_bytes"], adict["dset_bytes"])
@@ -582,8 +589,12 @@ class TestH5ToDict(H5DictTestCase):
         self.assertEqual(ddict[("", "attr_utf8")], adict[("", "attr_utf8")])
         numpy.testing.assert_array_equal(ddict["dset_2bytes"], adict["dset_2bytes"])
         numpy.testing.assert_array_equal(ddict["dset_2utf8"], adict["dset_2utf8"])
-        numpy.testing.assert_array_equal(ddict[("", "attr_2bytes")], adict[("", "attr_2bytes")])
-        numpy.testing.assert_array_equal(ddict[("", "attr_2utf8")], adict[("", "attr_2utf8")])
+        numpy.testing.assert_array_equal(
+            ddict[("", "attr_2bytes")], adict[("", "attr_2bytes")]
+        )
+        numpy.testing.assert_array_equal(
+            ddict[("", "attr_2utf8")], adict[("", "attr_2utf8")]
+        )
 
 
 class TestDictToNx(H5DictTestCase):
@@ -610,10 +621,10 @@ class TestDictToNx(H5DictTestCase):
         }
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
-            self.assertEqual(h5file["group"].attrs['group_attr1'], 10)
-            self.assertEqual(h5file.attrs['root_attr'], 11)
-            self.assertEqual(h5file["dataset"].attrs['dataset_attr'], "12")
-            self.assertEqual(h5file["group"].attrs['group_attr2'], 13)
+            self.assertEqual(h5file["group"].attrs["group_attr1"], 10)
+            self.assertEqual(h5file.attrs["root_attr"], 11)
+            self.assertEqual(h5file["dataset"].attrs["dataset_attr"], "12")
+            self.assertEqual(h5file["group"].attrs["group_attr2"], 13)
 
     def testKeyOrder(self):
         ddict1 = {
@@ -627,8 +638,8 @@ class TestDictToNx(H5DictTestCase):
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict1, h5file, h5path="g1")
             dictdump.dicttonx(ddict2, h5file, h5path="g2")
-            self.assertEqual(h5file["g1/d"].attrs['a'], "ox")
-            self.assertEqual(h5file["g2/d"].attrs['a'], "ox")
+            self.assertEqual(h5file["g1/d"].attrs["a"], "ox")
+            self.assertEqual(h5file["g2/d"].attrs["a"], "ox")
 
     def testAttributeValues(self):
         """Any NX data types can be used"""
@@ -664,16 +675,20 @@ class TestDictToNx(H5DictTestCase):
         with h5py.File(self.h5_fname, "w") as h5file:
             dictdump.dicttonx(ddict, h5file)
             self.assertEqual(h5file["group/group/dataset"][()], 10)
-            self.assertEqual(h5file["group/group/dataset"].attrs['attr'], 11)
-            self.assertEqual(h5file["group/group"].attrs['attr'], 12)
+            self.assertEqual(h5file["group/group/dataset"].attrs["attr"], 11)
+            self.assertEqual(h5file["group/group"].attrs["attr"], 12)
 
     def testLinks(self):
         ddict = {"ext_group": {"dataset": 10}}
         dictdump.dicttonx(ddict, self.h5_ext_fname)
-        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
-                           ">relative_softlink": "group/dataset",
-                           ">absolute_softlink": "/links/group/dataset",
-                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        ddict = {
+            "links": {
+                "group": {"dataset": 10, ">relative_softlink": "dataset"},
+                ">relative_softlink": "group/dataset",
+                ">absolute_softlink": "/links/group/dataset",
+                ">external_link": "nx_ext.h5::/ext_group/dataset",
+            }
+        }
         dictdump.dicttonx(ddict, self.h5_fname)
         with h5py.File(self.h5_fname, "r") as h5file:
             self.assertEqual(h5file["links/group/dataset"][()], 10)
@@ -683,8 +698,14 @@ class TestDictToNx(H5DictTestCase):
             self.assertEqual(h5file["links/external_link"][()], 10)
 
     def testUpLinks(self):
-        ddict = {"data": {"group": {"dataset": 10, ">relative_softlink": "dataset"}},
-                 "links": {"group": {"subgroup": {">relative_softlink": "../../../data/group/dataset"}}}}
+        ddict = {
+            "data": {"group": {"dataset": 10, ">relative_softlink": "dataset"}},
+            "links": {
+                "group": {
+                    "subgroup": {">relative_softlink": "../../../data/group/dataset"}
+                }
+            },
+        }
         dictdump.dicttonx(ddict, self.h5_fname)
         with h5py.File(self.h5_fname, "r") as h5file:
             self.assertEqual(h5file["/links/group/subgroup/relative_softlink"][()], 10)
@@ -741,7 +762,7 @@ class TestDictToNx(H5DictTestCase):
                 mode="a",
                 h5path=entry_name,
                 update_mode=update_mode,
-                add_nx_class=add_nx_class
+                add_nx_class=add_nx_class,
             )
 
         def assert_file():
@@ -755,6 +776,7 @@ class TestDictToNx(H5DictTestCase):
                 self.assertRecursiveEqual(netreedict, rtreedict)
             except AssertionError:
                 from pprint import pprint
+
                 print("\nDUMP:")
                 pprint(wtreedict)
                 print("\nEXPECTED:")
@@ -852,10 +874,14 @@ class TestNxToDict(H5DictTestCase):
         """Write links and dereference on read"""
         ddict = {"ext_group": {"dataset": 10}}
         dictdump.dicttonx(ddict, self.h5_ext_fname)
-        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
-                           ">relative_softlink": "group/dataset",
-                           ">absolute_softlink": "/links/group/dataset",
-                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        ddict = {
+            "links": {
+                "group": {"dataset": 10, ">relative_softlink": "dataset"},
+                ">relative_softlink": "group/dataset",
+                ">absolute_softlink": "/links/group/dataset",
+                ">external_link": "nx_ext.h5::/ext_group/dataset",
+            }
+        }
         dictdump.dicttonx(ddict, self.h5_fname)
 
         ddict = dictdump.h5todict(self.h5_fname, dereference_links=True)
@@ -868,48 +894,57 @@ class TestNxToDict(H5DictTestCase):
         """Write/read links"""
         ddict = {"ext_group": {"dataset": 10}}
         dictdump.dicttonx(ddict, self.h5_ext_fname)
-        ddict = {"links": {"group": {"dataset": 10, ">relative_softlink": "dataset"},
-                           ">relative_softlink": "group/dataset",
-                           ">absolute_softlink": "/links/group/dataset",
-                           ">external_link": "nx_ext.h5::/ext_group/dataset"}}
+        ddict = {
+            "links": {
+                "group": {"dataset": 10, ">relative_softlink": "dataset"},
+                ">relative_softlink": "group/dataset",
+                ">absolute_softlink": "/links/group/dataset",
+                ">external_link": "nx_ext.h5::/ext_group/dataset",
+            }
+        }
         dictdump.dicttonx(ddict, self.h5_fname)
 
         ddict = dictdump.nxtodict(self.h5_fname, dereference_links=False)
         self.assertTrue(ddict["links"][">absolute_softlink"], "dataset")
         self.assertTrue(ddict["links"][">relative_softlink"], "group/dataset")
         self.assertTrue(ddict["links"][">external_link"], "/links/group/dataset")
-        self.assertTrue(ddict["links"]["group"][">relative_softlink"], "nx_ext.h5::/ext_group/datase")
+        self.assertTrue(
+            ddict["links"]["group"][">relative_softlink"],
+            "nx_ext.h5::/ext_group/datase",
+        )
 
     def testNotExistingPath(self):
         """Test converting not existing path"""
-        with h5py.File(self.h5_fname, 'a') as f:
-            f['data'] = 1
+        with h5py.File(self.h5_fname, "a") as f:
+            f["data"] = 1
 
-        ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='ignore')
+        ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors="ignore")
         self.assertFalse(ddict)
 
         with LoggingValidator(dictdump_logger, error=1):
-            ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors='log')
+            ddict = h5todict(self.h5_fname, path="/I/am/not/a/path", errors="log")
             self.assertFalse(ddict)
 
         with self.assertRaises(KeyError):
-            h5todict(self.h5_fname, path="/I/am/not/a/path", errors='raise')
+            h5todict(self.h5_fname, path="/I/am/not/a/path", errors="raise")
 
     def testBrokenLinks(self):
         """Test with broken links"""
-        with h5py.File(self.h5_fname, 'a') as f:
+        with h5py.File(self.h5_fname, "a") as f:
             f["/Mars/BrokenSoftLink"] = h5py.SoftLink("/Idontexists")
-            f["/Mars/BrokenExternalLink"] = h5py.ExternalLink("notexistingfile.h5", "/Idontexists")
+            f["/Mars/BrokenExternalLink"] = h5py.ExternalLink(
+                "notexistingfile.h5", "/Idontexists"
+            )
 
-        ddict = h5todict(self.h5_fname, path="/Mars", errors='ignore')
+        ddict = h5todict(self.h5_fname, path="/Mars", errors="ignore")
         self.assertFalse(ddict)
 
         with LoggingValidator(dictdump_logger, error=2):
-            ddict = h5todict(self.h5_fname, path="/Mars", errors='log')
+            ddict = h5todict(self.h5_fname, path="/Mars", errors="log")
             self.assertFalse(ddict)
 
         with self.assertRaises(KeyError):
-            h5todict(self.h5_fname, path="/Mars", errors='raise')
+            h5todict(self.h5_fname, path="/Mars", errors="raise")
 
 
 class TestDictToJson(DictTestCase):
@@ -943,86 +978,92 @@ class TestDictToIni(DictTestCase):
         """Ensure values and types of data is preserved when dictionary is
         written to file and read back."""
         testdict = {
-            'simple_types': {
-                'float': 1.0,
-                'int': 1,
-                'percent string': '5 % is too much',
-                'backslash string': 'i can use \\',
-                'empty_string': '',
-                'nonestring': 'None',
-                'nonetype': None,
-                'interpstring': 'interpolation: %(percent string)s',
+            "simple_types": {
+                "float": 1.0,
+                "int": 1,
+                "percent string": "5 % is too much",
+                "backslash string": "i can use \\",
+                "empty_string": "",
+                "nonestring": "None",
+                "nonetype": None,
+                "interpstring": "interpolation: %(percent string)s",
             },
-            'containers': {
-                'list': [-1, 'string', 3.0, False, None],
-                'array': numpy.array([1.0, 2.0, 3.0]),
-                'dict': {
-                    'key1': 'Hello World',
-                    'key2': 2.0,
-                }
-            }
+            "containers": {
+                "list": [-1, "string", 3.0, False, None],
+                "array": numpy.array([1.0, 2.0, 3.0]),
+                "dict": {
+                    "key1": "Hello World",
+                    "key2": 2.0,
+                },
+            },
         }
 
         dump(testdict, self.ini_fname)
 
-        #read the data back
+        # read the data back
         readdict = load(self.ini_fname)
 
         testdictkeys = list(testdict.keys())
         readkeys = list(readdict.keys())
 
-        self.assertTrue(len(readkeys) == len(testdictkeys),
-                        "Number of read keys not equal")
+        self.assertTrue(
+            len(readkeys) == len(testdictkeys), "Number of read keys not equal"
+        )
 
-        self.assertEqual(readdict['simple_types']["interpstring"],
-                         "interpolation: 5 % is too much")
+        self.assertEqual(
+            readdict["simple_types"]["interpstring"], "interpolation: 5 % is too much"
+        )
 
-        testdict['simple_types']["interpstring"] = "interpolation: 5 % is too much"
+        testdict["simple_types"]["interpstring"] = "interpolation: 5 % is too much"
 
         for key in testdict["simple_types"]:
-            original = testdict['simple_types'][key]
-            read = readdict['simple_types'][key]
-            self.assertEqual(read, original,
-                             "Read <%s> instead of <%s>" % (read, original))
+            original = testdict["simple_types"][key]
+            read = readdict["simple_types"][key]
+            self.assertEqual(
+                read, original, "Read <%s> instead of <%s>" % (read, original)
+            )
 
         for key in testdict["containers"]:
             original = testdict["containers"][key]
             read = readdict["containers"][key]
-            if key == 'array':
-                self.assertEqual(read.all(), original.all(),
-                            "Read <%s> instead of <%s>" % (read, original))
+            if key == "array":
+                self.assertEqual(
+                    read.all(),
+                    original.all(),
+                    "Read <%s> instead of <%s>" % (read, original),
+                )
             else:
-                self.assertEqual(read, original,
-                            "Read <%s> instead of <%s>" % (read, original))
+                self.assertEqual(
+                    read, original, "Read <%s> instead of <%s>" % (read, original)
+                )
 
     def testConfigDictOrder(self):
         """Ensure order is preserved when dictionary is
         written to file and read back."""
-        test_dict = {'banana': 3, 'apple': 4, 'pear': 1, 'orange': 2}
+        test_dict = {"banana": 3, "apple": 4, "pear": 1, "orange": 2}
         # sort by key
-        test_ordered_dict1 = dict(sorted(test_dict.items(),
-                                         key=lambda t: t[0]))
+        test_ordered_dict1 = dict(sorted(test_dict.items(), key=lambda t: t[0]))
         # sort by value
-        test_ordered_dict2 = dict(sorted(test_dict.items(),
-                                         key=lambda t: t[1]))
+        test_ordered_dict2 = dict(sorted(test_dict.items(), key=lambda t: t[1]))
         # add the two ordered dict as sections of a third ordered dict
         test_ordered_dict3 = {}
         test_ordered_dict3["section1"] = test_ordered_dict1
         test_ordered_dict3["section2"] = test_ordered_dict2
 
         # write to ini and read back as a ConfigDict
-        dump(test_ordered_dict3,
-             self.ini_fname, fmat="ini")
+        dump(test_ordered_dict3, self.ini_fname, fmat="ini")
         read_instance = ConfigDict()
         read_instance.read(self.ini_fname)
 
         # loop through original and read-back dictionaries,
         # test identical order for key/value pairs
-        for orig_key, section in zip(test_ordered_dict3.keys(),
-                                     read_instance.keys()):
+        for orig_key, section in zip(test_ordered_dict3.keys(), read_instance.keys()):
             self.assertEqual(orig_key, section)
-            for orig_key2, read_key in zip(test_ordered_dict3[section].keys(),
-                                           read_instance[section].keys()):
+            for orig_key2, read_key in zip(
+                test_ordered_dict3[section].keys(), read_instance[section].keys()
+            ):
                 self.assertEqual(orig_key2, read_key)
-                self.assertEqual(test_ordered_dict3[section][orig_key2],
-                                 read_instance[section][read_key])
+                self.assertEqual(
+                    test_ordered_dict3[section][orig_key2],
+                    read_instance[section][read_key],
+                )

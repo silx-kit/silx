@@ -46,6 +46,7 @@ class PlotWidgetTestCase(TestCaseQt):
 
     plot attribute is the PlotWidget created for the test.
     """
+
     __screenshot_already_taken = False
     backend = None
 

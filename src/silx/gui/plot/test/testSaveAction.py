@@ -39,9 +39,8 @@ from silx.gui.plot.actions.io import SaveAction
 
 
 class TestSaveActionSaveCurvesAsSpec(unittest.TestCase):
-
     def setUp(self):
-        self.plot = PlotWidget(backend='none')
+        self.plot = PlotWidget(backend="none")
         self.saveAction = SaveAction(plot=self.plot)
 
         self.tempdir = tempfile.mkdtemp()
@@ -56,17 +55,16 @@ class TestSaveActionSaveCurvesAsSpec(unittest.TestCase):
         self.plot.setGraphXLabel("graph x label")
         self.plot.setGraphYLabel("graph y label")
 
-        self.plot.addCurve([0, 1], [1, 2], "curve with labels",
-                           xlabel="curve0 X", ylabel="curve0 Y")
-        self.plot.addCurve([-1, 3], [-6, 2], "curve with X label",
-                           xlabel="curve1 X")
-        self.plot.addCurve([-2, 0], [8, 12], "curve with Y label",
-                           ylabel="curve2 Y")
+        self.plot.addCurve(
+            [0, 1], [1, 2], "curve with labels", xlabel="curve0 X", ylabel="curve0 Y"
+        )
+        self.plot.addCurve([-1, 3], [-6, 2], "curve with X label", xlabel="curve1 X")
+        self.plot.addCurve([-2, 0], [8, 12], "curve with Y label", ylabel="curve2 Y")
         self.plot.addCurve([3, 1], [7, 6], "curve with no labels")
 
-        self.saveAction._saveCurves(self.plot,
-                                    self.out_fname,
-                                    SaveAction.DEFAULT_ALL_CURVES_FILTERS[0])  # "All curves as SpecFile (*.dat)"
+        self.saveAction._saveCurves(
+            self.plot, self.out_fname, SaveAction.DEFAULT_ALL_CURVES_FILTERS[0]
+        )  # "All curves as SpecFile (*.dat)"
 
         with open(self.out_fname, "rb") as f:
             file_content = f.read()
@@ -99,33 +97,35 @@ class TestSaveActionExtension(PlotWidgetTestCase):
         saveAction = SaveAction(plot=self.plot, parent=self.plot)
 
         # Add a new file filter
-        nameFilter = 'Dummy file (*.dummy)'
-        saveAction.setFileFilter('all', nameFilter, self._dummySaveFunction)
-        self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
-        self.assertEqual(saveAction.getFileFilters('all')[nameFilter],
-                         self._dummySaveFunction)
+        nameFilter = "Dummy file (*.dummy)"
+        saveAction.setFileFilter("all", nameFilter, self._dummySaveFunction)
+        self.assertTrue(nameFilter in saveAction.getFileFilters("all"))
+        self.assertEqual(
+            saveAction.getFileFilters("all")[nameFilter], self._dummySaveFunction
+        )
 
         # Add a new file filter at a particular position
-        nameFilter = 'Dummy file2 (*.dummy)'
-        saveAction.setFileFilter('all', nameFilter,
-                                 self._dummySaveFunction, index=3)
-        self.assertTrue(nameFilter in saveAction.getFileFilters('all'))
-        filters = saveAction.getFileFilters('all')
+        nameFilter = "Dummy file2 (*.dummy)"
+        saveAction.setFileFilter("all", nameFilter, self._dummySaveFunction, index=3)
+        self.assertTrue(nameFilter in saveAction.getFileFilters("all"))
+        filters = saveAction.getFileFilters("all")
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters.keys()).index(nameFilter),3)
+        self.assertEqual(list(filters.keys()).index(nameFilter), 3)
 
         # Update an existing file filter
         nameFilter = SaveAction.IMAGE_FILTER_EDF
-        saveAction.setFileFilter('image', nameFilter, self._dummySaveFunction)
-        self.assertEqual(saveAction.getFileFilters('image')[nameFilter],
-                         self._dummySaveFunction)
+        saveAction.setFileFilter("image", nameFilter, self._dummySaveFunction)
+        self.assertEqual(
+            saveAction.getFileFilters("image")[nameFilter], self._dummySaveFunction
+        )
 
         # Change the position of an existing file filter
-        nameFilter = 'Dummy file2 (*.dummy)'
-        oldIndex = list(saveAction.getFileFilters('all')).index(nameFilter)
+        nameFilter = "Dummy file2 (*.dummy)"
+        oldIndex = list(saveAction.getFileFilters("all")).index(nameFilter)
         newIndex = oldIndex - 1
-        saveAction.setFileFilter('all', nameFilter,
-                                 self._dummySaveFunction, index=newIndex)
-        filters = saveAction.getFileFilters('all')
+        saveAction.setFileFilter(
+            "all", nameFilter, self._dummySaveFunction, index=newIndex
+        )
+        filters = saveAction.getFileFilters("all")
         self.assertEqual(filters[nameFilter], self._dummySaveFunction)
         self.assertEqual(list(filters.keys()).index(nameFilter), newIndex)

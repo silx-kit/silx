@@ -40,38 +40,40 @@ class TestInteraction(unittest.TestCase):
 
         class TestClickOrDrag(Interaction.ClickOrDrag):
             def click(self, x, y, btn):
-                events.append(('click', x, y, btn))
+                events.append(("click", x, y, btn))
 
             def beginDrag(self, x, y, btn):
-                events.append(('beginDrag', x, y, btn))
+                events.append(("beginDrag", x, y, btn))
 
             def drag(self, x, y, btn):
-                events.append(('drag', x, y, btn))
+                events.append(("drag", x, y, btn))
 
             def endDrag(self, start, end, btn):
-                events.append(('endDrag', start, end, btn))
+                events.append(("endDrag", start, end, btn))
 
         clickOrDrag = TestClickOrDrag()
 
         # click
-        clickOrDrag.handleEvent('press', 10, 10, Interaction.LEFT_BTN)
+        clickOrDrag.handleEvent("press", 10, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 0)
 
-        clickOrDrag.handleEvent('release', 10, 10, Interaction.LEFT_BTN)
+        clickOrDrag.handleEvent("release", 10, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 1)
-        self.assertEqual(events[0], ('click', 10, 10, Interaction.LEFT_BTN))
+        self.assertEqual(events[0], ("click", 10, 10, Interaction.LEFT_BTN))
 
         # drag
         events = []
-        clickOrDrag.handleEvent('press', 10, 10, Interaction.LEFT_BTN)
+        clickOrDrag.handleEvent("press", 10, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 0)
-        clickOrDrag.handleEvent('move', 15, 10)
+        clickOrDrag.handleEvent("move", 15, 10)
         self.assertEqual(len(events), 2)  # Received beginDrag and drag
-        self.assertEqual(events[0], ('beginDrag', 10, 10, Interaction.LEFT_BTN))
-        self.assertEqual(events[1], ('drag', 15, 10, Interaction.LEFT_BTN))
-        clickOrDrag.handleEvent('move', 20, 10)
+        self.assertEqual(events[0], ("beginDrag", 10, 10, Interaction.LEFT_BTN))
+        self.assertEqual(events[1], ("drag", 15, 10, Interaction.LEFT_BTN))
+        clickOrDrag.handleEvent("move", 20, 10)
         self.assertEqual(len(events), 3)
-        self.assertEqual(events[-1], ('drag', 20, 10, Interaction.LEFT_BTN))
-        clickOrDrag.handleEvent('release', 20, 10, Interaction.LEFT_BTN)
+        self.assertEqual(events[-1], ("drag", 20, 10, Interaction.LEFT_BTN))
+        clickOrDrag.handleEvent("release", 20, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 4)
-        self.assertEqual(events[-1], ('endDrag', (10, 10), (20, 10), Interaction.LEFT_BTN))
+        self.assertEqual(
+            events[-1], ("endDrag", (10, 10), (20, 10), Interaction.LEFT_BTN)
+        )

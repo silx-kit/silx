@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2004-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Module contains a float editor
 """
+from __future__ import annotations
+
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
@@ -35,9 +37,10 @@ class FloatEdit(qt.QLineEdit):
     """Field to edit a float value.
 
     :param parent: See :class:`QLineEdit`
-    :param float value: The value to set the QLineEdit to.
+    :param value: The value to set the QLineEdit to.
     """
-    def __init__(self, parent=None, value=None):
+
+    def __init__(self, parent: qt.QWidget | None = None, value: float | None = None):
         qt.QLineEdit.__init__(self, parent)
         validator = qt.QDoubleValidator(self)
         self.setValidator(validator)
@@ -45,7 +48,7 @@ class FloatEdit(qt.QLineEdit):
         if value is not None:
             self.setValue(value)
 
-    def value(self):
+    def value(self) -> float:
         """Return the QLineEdit current value as a float."""
         text = self.text()
         value, validated = self.validator().locale().toDouble(text)
@@ -53,15 +56,15 @@ class FloatEdit(qt.QLineEdit):
             self.setValue(value)
         return value
 
-    def setValue(self, value):
+    def setValue(self, value: float):
         """Set the current value of the LineEdit
 
-        :param float value: The value to set the QLineEdit to.
+        :param value: The value to set the QLineEdit to.
         """
         locale = self.validator().locale()
         if qt.BINDING == "PySide6":
             # Fix for PySide6 not selecting the right method
-            text = locale.toString(float(value), 'g')
+            text = locale.toString(float(value), "g")
         else:
             text = locale.toString(float(value))
 

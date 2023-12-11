@@ -45,6 +45,7 @@ def log_method(func, class_name=None):
     :param callable func: The function to patch
     :param str class_name: In case a method, provide the class name
     """
+
     def wrapper(*args, **kwargs):
         global _indent
 
@@ -60,6 +61,7 @@ def log_method(func, class_name=None):
         _indent -= 1
         debug_logger.warning("%sreturn  (%s)" % (indent, name))
         return result
+
     return wrapper
 
 
@@ -89,7 +91,12 @@ def log_all_methods(base_class):
 
     :param class base_class: The class to patch
     """
-    methodTypes = (types.MethodType, types.FunctionType, types.BuiltinFunctionType, types.BuiltinMethodType)
+    methodTypes = (
+        types.MethodType,
+        types.FunctionType,
+        types.BuiltinFunctionType,
+        types.BuiltinMethodType,
+    )
     for name, func in inspect.getmembers(base_class):
         if isinstance(func, methodTypes):
             if func.__name__ not in ["__subclasshook__", "__new__"]:

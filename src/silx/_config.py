@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_COLORMAP_NAME = 'gray'
+    DEFAULT_COLORMAP_NAME = "gray"
     """Default LUT for the plot widgets.
 
     The available list of names are available in the module
@@ -64,7 +64,7 @@ class Config(object):
     .. versionadded:: 0.8
     """
 
-    DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = 'upward'
+    DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION = "upward"
     """Default Y-axis orientation for plot widget displaying images.
 
     This attribute can be set with:
@@ -84,16 +84,16 @@ class Config(object):
     """
 
     DEFAULT_PLOT_CURVE_COLORS = [
-        '#1f77b4', # tab:blue
-        '#ff7f0e', # tab:orange
-        '#2ca02c', # tab:green
-        '#d62728', # tab:red
-        '#9467bd', # tab:purple
-        '#8c564b', # tab:brown
-        '#e377c2', # tab:pink
-        '#7f7f7f', # tab:gray
-        '#bcbd22', # tab:olive
-        '#17becf', # tab:cyan
+        "#1f77b4",  # tab:blue
+        "#ff7f0e",  # tab:orange
+        "#2ca02c",  # tab:green
+        "#d62728",  # tab:red
+        "#9467bd",  # tab:purple
+        "#8c564b",  # tab:brown
+        "#e377c2",  # tab:pink
+        "#7f7f7f",  # tab:gray
+        "#bcbd22",  # tab:olive
+        "#17becf",  # tab:cyan
     ]
     """Default list of colors for plot widget displaying curves.
 
@@ -115,7 +115,7 @@ class Config(object):
     .. versionadded:: 0.10
     """
 
-    DEFAULT_PLOT_SYMBOL = 'o'
+    DEFAULT_PLOT_SYMBOL = "o"
     """Default marker of the item.
 
     It will have an influence on PlotWidget items
@@ -154,6 +154,21 @@ class Config(object):
     """Default line width for the active curve.
 
     It will have an influence on PlotWidget curve items
+
+    .. versionadded:: 2.0
+    """
+
+    DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE = None
+    """Default font size for marker text.
+
+    It will have an influence on PlotWidget marker items
+
+    .. versionadded:: 2.0
+    """
+
+    _MPL_TIGHT_LAYOUT = False
+    """If true the matplotlib backend will use the
+    experimental tight layout.
 
     .. versionadded:: 2.0
     """

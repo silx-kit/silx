@@ -62,7 +62,7 @@ TESTCASES = (  # dtype, shape
 
 @pytest.mark.skipif(
     not ocl or not pyopencl or bitshuffle is None,
-    reason="PyOpenCl or bitshuffle is missing"
+    reason="PyOpenCl or bitshuffle is missing",
 )
 class TestBitshuffleLz4:
     """Test pyopencl bishuffle+LZ4 decompression"""
@@ -76,7 +76,11 @@ class TestBitshuffleLz4:
         :return: (reference image array, compressed stream)
         """
         ref = numpy.random.poisson(lam, size=shape).astype(dtype)
-        raw = struct.pack(">Q", ref.nbytes) + b"\x00"*4 + bitshuffle.compress_lz4(ref).tobytes()
+        raw = (
+            struct.pack(">Q", ref.nbytes)
+            + b"\x00" * 4
+            + bitshuffle.compress_lz4(ref).tobytes()
+        )
         return ref, raw
 
     @pytest.mark.parametrize("dtype,shape", TESTCASES)

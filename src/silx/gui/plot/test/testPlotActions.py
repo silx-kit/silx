@@ -40,17 +40,13 @@ import numpy
 
 @pytest.fixture
 def colormap1():
-    colormap = Colormap(name='gray',
-                        vmin=10.0, vmax=20.0,
-                        normalization='linear')
+    colormap = Colormap(name="gray", vmin=10.0, vmax=20.0, normalization="linear")
     yield colormap
 
 
 @pytest.fixture
 def colormap2():
-    colormap = Colormap(name='red',
-                        vmin=10.0, vmax=20.0,
-                        normalization='linear')
+    colormap = Colormap(name="red", vmin=10.0, vmax=20.0, normalization="linear")
     yield colormap
 
 
@@ -70,25 +66,25 @@ def test_action_active_colormap(qapp_utils, plot, colormap1, colormap2):
     defaultColormap = plot.getDefaultColormap()
     assert colormapDialog.getColormap() is defaultColormap
 
-    plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                  origin=(0, 0),
-                  colormap=colormap1)
-    plot.setActiveImage('img1')
+    plot.addImage(
+        data=numpy.random.rand(10, 10), legend="img1", origin=(0, 0), colormap=colormap1
+    )
+    plot.setActiveImage("img1")
     assert colormapDialog.getColormap() is colormap1
 
-    plot.addImage(data=numpy.random.rand(10, 10), legend='img2',
-                  origin=(0, 0), colormap=colormap2)
-    plot.addImage(data=numpy.random.rand(10, 10), legend='img3',
-                  origin=(0, 0))
+    plot.addImage(
+        data=numpy.random.rand(10, 10), legend="img2", origin=(0, 0), colormap=colormap2
+    )
+    plot.addImage(data=numpy.random.rand(10, 10), legend="img3", origin=(0, 0))
 
-    plot.setActiveImage('img3')
+    plot.setActiveImage("img3")
     assert colormapDialog.getColormap() is defaultColormap
     plot.getActiveImage().setColormap(colormap2)
     assert colormapDialog.getColormap() is colormap2
 
-    plot.remove('img2')
-    plot.remove('img3')
-    plot.remove('img1')
+    plot.remove("img2")
+    plot.remove("img3")
+    plot.remove("img1")
     assert colormapDialog.getColormap() is defaultColormap
 
 
@@ -100,10 +96,11 @@ def test_action_show_hide_colormap_dialog(qapp_utils, plot, colormap1):
     assert not plot.getColormapAction().isChecked()
     plot.getColormapAction()._actionTriggered(checked=True)
     assert plot.getColormapAction().isChecked()
-    plot.addImage(data=numpy.random.rand(10, 10), legend='img1',
-                  origin=(0, 0), colormap=colormap1)
-    colormap1.setName('red')
+    plot.addImage(
+        data=numpy.random.rand(10, 10), legend="img1", origin=(0, 0), colormap=colormap1
+    )
+    colormap1.setName("red")
     plot.getColormapAction()._actionTriggered()
-    colormap1.setName('blue')
+    colormap1.setName("blue")
     colormapDialog.close()
     assert not plot.getColormapAction().isChecked()

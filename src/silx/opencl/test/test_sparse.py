@@ -29,6 +29,7 @@ import unittest
 import logging
 from itertools import product
 from ..common import ocl
+
 if ocl:
     import pyopencl.array as parray
     from silx.opencl.sparse import CSR
@@ -39,13 +40,14 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-
 def generate_sparse_random_data(
     shape=(1000,),
-    data_min=0, data_max=100,
+    data_min=0,
+    data_max=100,
     density=0.1,
     use_only_integers=True,
-    dtype="f"):
+    dtype="f",
+):
     """
     Generate random sparse data where.
 
@@ -75,7 +77,6 @@ def generate_sparse_random_data(
     return (d * mask).astype(dtype)
 
 
-
 @unittest.skipUnless(ocl and sp, "PyOpenCl/scipy is missing")
 class TestCSR(unittest.TestCase):
     """Test CSR format"""
@@ -87,20 +88,19 @@ class TestCSR(unittest.TestCase):
         dtypes = [np.float32, np.int32, np.uint16]
         self._test_configs = list(product(input_on_device, output_on_device, dtypes))
 
-
     def compute_ref_sparsification(self, array):
         ref_sparse = sp.csr_matrix(array)
         return ref_sparse
-
 
     def test_sparsification(self):
         for input_on_device, output_on_device, dtype in self._test_configs:
             self._test_sparsification(input_on_device, output_on_device, dtype)
 
-
     def _test_sparsification(self, input_on_device, output_on_device, dtype):
         current_config = "input on device: %s, output on device: %s, dtype: %s" % (
-            str(input_on_device), str(output_on_device), str(dtype)
+            str(input_on_device),
+            str(output_on_device),
+            str(dtype),
         )
         logger.debug("CSR: %s" % current_config)
         # Generate data and reference CSR
@@ -132,29 +132,27 @@ class TestCSR(unittest.TestCase):
         nnz = ref_sparse.nnz
         self.assertTrue(
             np.allclose(data[:nnz], ref_sparse.data),
-            "something wrong with sparsified data (%s)"
-            % current_config
+            "something wrong with sparsified data (%s)" % current_config,
         )
         self.assertTrue(
             np.allclose(indices[:nnz], ref_sparse.indices),
-            "something wrong with sparsified indices (%s)"
-            % current_config
+            "something wrong with sparsified indices (%s)" % current_config,
         )
         self.assertTrue(
             np.allclose(indptr, ref_sparse.indptr),
             "something wrong with sparsified indices pointers (indptr) (%s)"
-            % current_config
+            % current_config,
         )
-
 
     def test_desparsification(self):
         for input_on_device, output_on_device, dtype in self._test_configs:
             self._test_desparsification(input_on_device, output_on_device, dtype)
 
-
     def _test_desparsification(self, input_on_device, output_on_device, dtype):
         current_config = "input on device: %s, output on device: %s, dtype: %s" % (
-            str(input_on_device), str(output_on_device), str(dtype)
+            str(input_on_device),
+            str(output_on_device),
+            str(dtype),
         )
         logger.debug("CSR: %s" % current_config)
         # Generate data and reference CSR
@@ -182,6 +180,5 @@ class TestCSR(unittest.TestCase):
         # Compare
         self.assertTrue(
             np.allclose(arr.reshape(array.shape), array),
-            "something wrong with densified data (%s)"
-            % current_config
+            "something wrong with densified data (%s)" % current_config,
         )

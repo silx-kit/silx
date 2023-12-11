@@ -35,35 +35,70 @@ class TestSmooth(unittest.TestCase):
     noise and the result of smoothing that signal is less than 5%. We compare
     the sum of all samples in each curve.
     """
+
     def setUp(self):
         x = numpy.arange(5000)
         # (height1, center1, fwhm1, beamfwhm...)
-        slit_params = (50, 500, 200, 100,
-                       50, 600, 80, 30,
-                       20, 2000, 150, 150,
-                       50, 2250, 110, 100,
-                       40, 3000, 50, 10,
-                       23, 4980, 250, 20)
+        slit_params = (
+            50,
+            500,
+            200,
+            100,
+            50,
+            600,
+            80,
+            30,
+            20,
+            2000,
+            150,
+            150,
+            50,
+            2250,
+            110,
+            100,
+            40,
+            3000,
+            50,
+            10,
+            23,
+            4980,
+            250,
+            20,
+        )
 
         self.y1 = functions.sum_slit(x, *slit_params)
         # 5% noise
-        self.y1 = add_relative_noise(self.y1, 5.)
+        self.y1 = add_relative_noise(self.y1, 5.0)
 
         # (height1, center1, fwhm1...)
-        step_params = (50, 500, 200,
-                       50, 600, 80,
-                       20, 2000, 150,
-                       50, 2250, 110,
-                       40, 3000, 50,
-                       23, 4980, 250,)
+        step_params = (
+            50,
+            500,
+            200,
+            50,
+            600,
+            80,
+            20,
+            2000,
+            150,
+            50,
+            2250,
+            110,
+            40,
+            3000,
+            50,
+            23,
+            4980,
+            250,
+        )
 
         self.y2 = functions.sum_stepup(x, *step_params)
         # 5% noise
-        self.y2 = add_relative_noise(self.y2, 5.)
+        self.y2 = add_relative_noise(self.y2, 5.0)
 
         self.y3 = functions.sum_stepdown(x, *step_params)
         # 5% noise
-        self.y3 = add_relative_noise(self.y3, 5.)
+        self.y3 = add_relative_noise(self.y3, 5.0)
 
     def tearDown(self):
         pass
@@ -76,9 +111,12 @@ class TestSmooth(unittest.TestCase):
             # we added +-5% of random noise. The difference must be much lower
             # than 5%.
             diff = abs(sum(smoothed_y) - sum(y)) / sum(y)
-            self.assertLess(diff, 0.05,
-                            "Difference between data with 5%% noise and " +
-                            "smoothed data is > 5%% (%f %%)" % (diff * 100))
+            self.assertLess(
+                diff,
+                0.05,
+                "Difference between data with 5%% noise and "
+                + "smoothed data is > 5%% (%f %%)" % (diff * 100),
+            )
 
             # Try various smoothing levels
             npts += 25
@@ -89,8 +127,9 @@ class TestSmooth(unittest.TestCase):
         smoothed_y = filters.smooth1d(self.y1)
 
         for i in range(1, len(self.y1) - 1):
-            self.assertAlmostEqual(4 * smoothed_y[i],
-                                   self.y1[i-1] + 2 * self.y1[i] + self.y1[i+1])
+            self.assertAlmostEqual(
+                4 * smoothed_y[i], self.y1[i - 1] + 2 * self.y1[i] + self.y1[i + 1]
+            )
 
     def testSmooth2d(self):
         """Test that a 2D smoothing is the same as two successive and
@@ -117,5 +156,4 @@ class TestSmooth(unittest.TestCase):
 
         for i in range(0, y.shape[0]):
             for j in range(0, y.shape[1]):
-                self.assertAlmostEqual(smoothed_y[i, j],
-                                       expected_smooth[i, j])
+                self.assertAlmostEqual(smoothed_y[i, j], expected_smooth[i, j])

@@ -54,6 +54,7 @@ class AxesSelector(qt.QWidget):
     The two axes can be used to select the row axis and the column axis t
     display a slice of the array data in a table view.
     """
+
     sigDimensionsChanged = qt.Signal(int, int)
     """Signal emitted whenever one of the comboboxes is changed.
     The signal carries the two selected dimensions."""
@@ -126,7 +127,9 @@ class AxesSelector(qt.QWidget):
         if not (0 <= row_dim < self.n - 1):
             raise IndexError("Row dimension must be between 0 and %d" % (self.n - 2))
         if not (row_dim < col_dim <= self.n - 1):
-            raise IndexError("Col dimension must be between %d and %d" % (row_dim + 1, self.n - 1))
+            raise IndexError(
+                "Col dimension must be between %d and %d" % (row_dim + 1, self.n - 1)
+            )
 
         # set the rows dimension; this triggers an update of columnsCB
         self.rowsCB.setCurrentIndex(row_dim)
@@ -147,8 +150,7 @@ class AxesSelector(qt.QWidget):
         self.columnsCB.clear()
 
     def _getRowDim(self):
-        """Get rows dimension, selected in :attr:`rowsCB`
-        """
+        """Get rows dimension, selected in :attr:`rowsCB`"""
         # rows combobox contains elements "0", ..."n-2",
         # so the selected dim is always equal to the index
         return self.rowsCB.currentIndex()
@@ -231,6 +233,7 @@ class ArrayTableWidget(qt.QWidget):
 
     .. image:: img/ArrayTableWidget.png
     """
+
     def __init__(self, parent=None):
         """
 
@@ -468,6 +471,7 @@ class ArrayTableWidget(qt.QWidget):
 
 def main():
     import numpy
+
     a = qt.QApplication([])
     d = numpy.random.normal(0, 1, (4, 5, 1000, 1000))
     for j in range(4):
@@ -485,6 +489,7 @@ def main():
         w.setArrayData(d, labels=True)
     w.show()
     a.exec()
+
 
 if __name__ == "__main__":
     main()

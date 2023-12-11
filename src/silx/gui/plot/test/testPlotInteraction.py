@@ -79,85 +79,86 @@ class TestSelectPolygon(PlotWidgetTestCase):
 
     def test(self):
         """Test draw polygons + events"""
-        self.plot.sigInteractiveModeChanged.connect(
-            self._interactionModeChanged)
+        self.plot.sigInteractiveModeChanged.connect(self._interactionModeChanged)
 
-        self.plot.setInteractiveMode(
-            'draw', shape='polygon', label='test', source=self)
+        self.plot.setInteractiveMode("draw", shape="polygon", label="test", source=self)
         interaction = self.plot.getInteractiveMode()
 
-        self.assertEqual(interaction['mode'], 'draw')
-        self.assertEqual(interaction['shape'], 'polygon')
+        self.assertEqual(interaction["mode"], "draw")
+        self.assertEqual(interaction["shape"], "polygon")
 
-        self.plot.sigInteractiveModeChanged.disconnect(
-            self._interactionModeChanged)
+        self.plot.sigInteractiveModeChanged.disconnect(self._interactionModeChanged)
 
         plot = self.plot.getWidgetHandle()
         xCenter, yCenter = plot.width() // 2, plot.height() // 2
         offset = min(plot.width(), plot.height()) // 10
 
         # Star polygon
-        star = [(xCenter, yCenter + offset),
-                (xCenter - offset, yCenter - offset),
-                (xCenter + offset, yCenter),
-                (xCenter - offset, yCenter),
-                (xCenter + offset, yCenter - offset),
-                (xCenter, yCenter + offset)]  # Close polygon
+        star = [
+            (xCenter, yCenter + offset),
+            (xCenter - offset, yCenter - offset),
+            (xCenter + offset, yCenter),
+            (xCenter - offset, yCenter),
+            (xCenter + offset, yCenter - offset),
+            (xCenter, yCenter + offset),
+        ]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(star)
 
         # Test last event
-        drawEvents = [event for event in events
-                      if event['event'].startswith('drawing')]
-        self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
-        self.assertEqual(len(drawEvents[-1]['points']), 6)
+        drawEvents = [event for event in events if event["event"].startswith("drawing")]
+        self.assertEqual(drawEvents[-1]["event"], "drawingFinished")
+        self.assertEqual(len(drawEvents[-1]["points"]), 6)
 
         # Large square
-        largeSquare = [(xCenter - offset, yCenter - offset),
-                       (xCenter + offset, yCenter - offset),
-                       (xCenter + offset, yCenter + offset),
-                       (xCenter - offset, yCenter + offset),
-                       (xCenter - offset, yCenter - offset)]  # Close polygon
+        largeSquare = [
+            (xCenter - offset, yCenter - offset),
+            (xCenter + offset, yCenter - offset),
+            (xCenter + offset, yCenter + offset),
+            (xCenter - offset, yCenter + offset),
+            (xCenter - offset, yCenter - offset),
+        ]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(largeSquare)
 
         # Test last event
-        drawEvents = [event for event in events
-                      if event['event'].startswith('drawing')]
-        self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
-        self.assertEqual(len(drawEvents[-1]['points']), 5)
+        drawEvents = [event for event in events if event["event"].startswith("drawing")]
+        self.assertEqual(drawEvents[-1]["event"], "drawingFinished")
+        self.assertEqual(len(drawEvents[-1]["points"]), 5)
 
         # Rectangle too thin along X: Some points are ignored
-        thinRectX = [(xCenter, yCenter - offset),
-                     (xCenter, yCenter + offset),
-                     (xCenter + 1, yCenter + offset),
-                     (xCenter + 1, yCenter - offset)]  # Close polygon
+        thinRectX = [
+            (xCenter, yCenter - offset),
+            (xCenter, yCenter + offset),
+            (xCenter + 1, yCenter + offset),
+            (xCenter + 1, yCenter - offset),
+        ]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(thinRectX)
 
         # Test last event
-        drawEvents = [event for event in events
-                      if event['event'].startswith('drawing')]
-        self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
-        self.assertEqual(len(drawEvents[-1]['points']), 3)
+        drawEvents = [event for event in events if event["event"].startswith("drawing")]
+        self.assertEqual(drawEvents[-1]["event"], "drawingFinished")
+        self.assertEqual(len(drawEvents[-1]["points"]), 3)
 
         # Rectangle too thin along Y: Some points are ignored
-        thinRectY = [(xCenter - offset, yCenter),
-                     (xCenter + offset, yCenter),
-                     (xCenter + offset, yCenter + 1),
-                     (xCenter - offset, yCenter + 1)]  # Close polygon
+        thinRectY = [
+            (xCenter - offset, yCenter),
+            (xCenter + offset, yCenter),
+            (xCenter + offset, yCenter + 1),
+            (xCenter - offset, yCenter + 1),
+        ]  # Close polygon
 
         # Draw while dumping signals
         events = self._draw(thinRectY)
 
         # Test last event
-        drawEvents = [event for event in events
-                      if event['event'].startswith('drawing')]
-        self.assertEqual(drawEvents[-1]['event'], 'drawingFinished')
-        self.assertEqual(len(drawEvents[-1]['points']), 3)
+        drawEvents = [event for event in events if event["event"].startswith("drawing")]
+        self.assertEqual(drawEvents[-1]["event"], "drawingFinished")
+        self.assertEqual(len(drawEvents[-1]["points"]), 3)
 
 
 @pytest.mark.parametrize("scale", ["linear", "log"])

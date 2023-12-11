@@ -53,6 +53,7 @@ int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
 int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y);
 int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y);
 int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y);
+int sum_splitpvoigt2(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y);
 
 int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y);
 int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y);

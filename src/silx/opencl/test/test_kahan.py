@@ -47,6 +47,7 @@ except ImportError as error:
     pyopencl = None
 
 from .. import ocl
+
 if ocl is not None:
     from ..utils import read_cl_file
     from .. import pyopencl
@@ -61,14 +62,21 @@ class TestKahan(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         if pyopencl is None or ocl is None:
-            raise unittest.SkipTest("OpenCL module (pyopencl) is not present or no device available")
+            raise unittest.SkipTest(
+                "OpenCL module (pyopencl) is not present or no device available"
+            )
 
         cls.ctx = ocl.create_context(devicetype="GPU")
-        cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+        cls.queue = pyopencl.CommandQueue(
+            cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE
+        )
 
         # this is running 32 bits OpenCL woth POCL
-        if (platform.machine() in ("i386", "i686", "x86_64") and (tuple.__itemsize__ == 4) and
-                cls.ctx.devices[0].platform.name == 'Portable Computing Language'):
+        if (
+            platform.machine() in ("i386", "i686", "x86_64")
+            and (tuple.__itemsize__ == 4)
+            and cls.ctx.devices[0].platform.name == "Portable Computing Language"
+        ):
             cls.args = "-DX87_VOLATILE=volatile"
         else:
             cls.args = ""
@@ -80,7 +88,7 @@ class TestKahan(unittest.TestCase):
 
     @staticmethod
     def dummy_sum(ary, dtype=None):
-        "perform the actual sum in a dummy way "
+        "perform the actual sum in a dummy way"
         if dtype is None:
             dtype = ary.dtype.type
         sum_ = dtype(0)
@@ -95,8 +103,10 @@ class TestKahan(unittest.TestCase):
 
         ref64 = numpy.sum(data, dtype=numpy.float64)
         ref32 = self.dummy_sum(data)
-        if (ref64 == ref32):
-            logger.warning("Kahan: invalid tests as float32 provides the same result as float64")
+        if ref64 == ref32:
+            logger.warning(
+                "Kahan: invalid tests as float32 provides the same result as float64"
+            )
         # Dummy kernel to evaluate
         src = """
         kernel void summation(global float* data,
@@ -112,11 +122,15 @@ class TestKahan(unittest.TestCase):
             result[1] = acc.s1;
         }
         """
-        prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(self.args)
+        prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(
+            self.args
+        )
         ones_d = pyopencl.array.to_device(self.queue, data)
         res_d = pyopencl.array.empty(self.queue, 2, numpy.float32)
         res_d.fill(0)
-        evt = prg.summation(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        evt = prg.summation(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype=numpy.float64)
         self.assertEqual(ref64, res, "test_kahan")
@@ -128,8 +142,10 @@ class TestKahan(unittest.TestCase):
 
         ref64 = numpy.dot(data.astype(numpy.float64), data.astype(numpy.float64))
         ref32 = numpy.dot(data, data)
-        if (ref64 == ref32):
-            logger.warning("dot16: invalid tests as float32 provides the same result as float64")
+        if ref64 == ref32:
+            logger.warning(
+                "dot16: invalid tests as float32 provides the same result as float64"
+            )
         # Dummy kernel to evaluate
         src = """
         kernel void test_dot16(global float* data,
@@ -195,11 +211,15 @@ class TestKahan(unittest.TestCase):
 
         """
 
-        prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(self.args)
+        prg = pyopencl.Program(self.ctx, read_cl_file("kahan.cl") + src).build(
+            self.args
+        )
         ones_d = pyopencl.array.to_device(self.queue, data)
         res_d = pyopencl.array.empty(self.queue, 2, numpy.float32)
         res_d.fill(0)
-        evt = prg.test_dot16(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        evt = prg.test_dot16(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot16")
@@ -209,9 +229,13 @@ class TestKahan(unittest.TestCase):
         data1 = data[1::2]
         ref64 = numpy.dot(data0.astype(numpy.float64), data1.astype(numpy.float64))
         ref32 = numpy.dot(data0, data1)
-        if (ref64 == ref32):
-            logger.warning("dot8: invalid tests as float32 provides the same result as float64")
-        evt = prg.test_dot8(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        if ref64 == ref32:
+            logger.warning(
+                "dot8: invalid tests as float32 provides the same result as float64"
+            )
+        evt = prg.test_dot8(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot8")
@@ -221,9 +245,13 @@ class TestKahan(unittest.TestCase):
         data1 = data[3::4]
         ref64 = numpy.dot(data0.astype(numpy.float64), data1.astype(numpy.float64))
         ref32 = numpy.dot(data0, data1)
-        if (ref64 == ref32):
-            logger.warning("dot4: invalid tests as float32 provides the same result as float64")
-        evt = prg.test_dot4(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        if ref64 == ref32:
+            logger.warning(
+                "dot4: invalid tests as float32 provides the same result as float64"
+            )
+        evt = prg.test_dot4(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot4")
@@ -233,9 +261,13 @@ class TestKahan(unittest.TestCase):
         data1 = numpy.array([data[3], data[11], data[15]])
         ref64 = numpy.dot(data0.astype(numpy.float64), data1.astype(numpy.float64))
         ref32 = numpy.dot(data0, data1)
-        if (ref64 == ref32):
-            logger.warning("dot3: invalid tests as float32 provides the same result as float64")
-        evt = prg.test_dot3(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        if ref64 == ref32:
+            logger.warning(
+                "dot3: invalid tests as float32 provides the same result as float64"
+            )
+        evt = prg.test_dot3(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot3")
@@ -245,9 +277,13 @@ class TestKahan(unittest.TestCase):
         data1 = numpy.array([data[1], data[15]])
         ref64 = numpy.dot(data0.astype(numpy.float64), data1.astype(numpy.float64))
         ref32 = numpy.dot(data0, data1)
-        if (ref64 == ref32):
-            logger.warning("dot2: invalid tests as float32 provides the same result as float64")
-        evt = prg.test_dot2(self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data)
+        if ref64 == ref32:
+            logger.warning(
+                "dot2: invalid tests as float32 provides the same result as float64"
+            )
+        evt = prg.test_dot2(
+            self.queue, (1,), (1,), ones_d.data, numpy.int32(N), res_d.data
+        )
         evt.wait()
         res = res_d.get().sum(dtype="float64")
         self.assertEqual(ref64, res, "test_dot2")

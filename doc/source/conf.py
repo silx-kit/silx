@@ -39,7 +39,7 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
-project = u'silx'
+project = "silx"
 import silx
 
 # Disable deprecation warnings:
@@ -47,10 +47,11 @@ import silx
 # If we want to generate the documentation of deprecated features it should
 # not make the logs durty.
 from silx.utils.deprecation import depreclog
+
 depreclog.disabled = 1
 
 # Add local sphinx extension directory
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ext"))
 
 # -- General configuration -----------------------------------------------------
 
@@ -60,40 +61,44 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ext'))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.doctest',
-    'sphinx.ext.inheritance_diagram',
-    'sphinxext-archive',
-    'snapshotqt_directive',
-    'nbsphinx'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.doctest",
+    "sphinx.ext.inheritance_diagram",
+    "sphinxext-archive",
+    "snapshotqt_directive",
+    "nbsphinx",
 ]
 
-if importlib.util.find_spec('sphinx_autodoc_typehints'):
-    extensions.append('sphinx_autodoc_typehints')
+if importlib.util.find_spec("sphinx_autodoc_typehints"):
+    extensions.append("sphinx_autodoc_typehints")
 
     always_document_param_types = True
 
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
 from silx._version import strictversion, version, __date__ as _date
+
 year = _date.split("/")[-1]
-copyright = u'2015-%s, Data analysis unit, European Synchrotron Radiation Facility, Grenoble' % year
+copyright = (
+    "2015-%s, Data analysis unit, European Synchrotron Radiation Facility, Grenoble"
+    % year
+)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -133,7 +138,7 @@ add_module_names = False
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -143,7 +148,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'default'
+html_theme = "default"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -216,19 +221,17 @@ html_favicon = "img/silx.ico"
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'silxdoc'
+htmlhelp_basename = "silxdoc"
 
 
 # -- Options for LaTeX output --------------------------------------------------
 
-latex_elements = {'papersize': 'a4paper',
-                  'pointsize': '10pt'}
+latex_elements = {"papersize": "a4paper", "pointsize": "10pt"}
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'silx.tex', u'silx Documentation',
-   u'Data analysis unit', 'manual'),
+    ("index", "silx.tex", "silx Documentation", "Data analysis unit", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -256,10 +259,7 @@ latex_logo = "img/silx_large.png"
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'silx', u'silx Documentation',
-     [u'Data analysis unit'], 1)
-]
+man_pages = [("index", "silx", "silx Documentation", ["Data analysis unit"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -271,9 +271,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'silx', u'silx Documentation',
-   u'Data analysis unit', 'silx', 'One line description of project.',
-   'Miscellaneous'),
+    (
+        "index",
+        "silx",
+        "silx Documentation",
+        "Data analysis unit",
+        "silx",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -286,4 +292,4 @@ texinfo_documents = [
 # texinfo_show_urls = 'footnote'
 
 # Do not test code in >>> by default
-doctest_test_doctest_blocks = ''
+doctest_test_doctest_blocks = ""

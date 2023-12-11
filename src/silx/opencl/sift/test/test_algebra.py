@@ -42,9 +42,11 @@ import numpy
 
 import unittest
 from silx.opencl import ocl, kernel_workgroup_size
+
 if ocl:
     import pyopencl.array
 from ..utils import calc_size, get_opencl_code
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,9 +58,9 @@ def my_combine(mat1, a1, mat2, a2):
 
 
 def my_compact(keypoints, nbkeypoints):
-    '''
+    """
     Reference compacting
-    '''
+    """
     output = -numpy.ones_like(keypoints)
     idx = numpy.where(keypoints[:, 1] != -1)[0]
     length = idx.size
@@ -78,15 +80,21 @@ class TestAlgebra(unittest.TestCase):
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+            cls.maxwg = (
+                ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            )
+
+    #             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -95,7 +103,9 @@ class TestAlgebra(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        kernel_src = os.linesep.join(get_opencl_code(os.path.join("sift", i)) for i in ("sift.cl", "algebra.cl"))
+        kernel_src = os.linesep.join(
+            get_opencl_code(os.path.join("sift", i)) for i in ("sift.cl", "algebra.cl")
+        )
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg_compact = kernel_workgroup_size(self.program, "compact")
 
@@ -117,13 +127,24 @@ class TestAlgebra(unittest.TestCase):
 
         gpu_mat1 = pyopencl.array.to_device(self.queue, mat1)
         gpu_mat2 = pyopencl.array.to_device(self.queue, mat2)
-        gpu_out = pyopencl.array.empty(self.queue, mat1.shape, dtype=numpy.float32, order="C")
+        gpu_out = pyopencl.array.empty(
+            self.queue, mat1.shape, dtype=numpy.float32, order="C"
+        )
         t0 = time.time()
         try:
-            k1 = self.program.combine(self.queue, (int(width), int(height)), None,
-                                      gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
-                                      gpu_out.data, numpy.int32(0),
-                                      width, height)
+            k1 = self.program.combine(
+                self.queue,
+                (int(width), int(height)),
+                None,
+                gpu_mat1.data,
+                coeff1,
+                gpu_mat2.data,
+                coeff2,
+                gpu_out.data,
+                numpy.int32(0),
+                width,
+                height,
+            )
         except pyopencl.LogicError as error:
             logger.warning("%s in test_combine", error)
         res = gpu_out.get()
@@ -134,8 +155,14 @@ class TestAlgebra(unittest.TestCase):
         logger.debug("delta=%s" % delta)
         self.assertLess(delta, 1e-4, "delta=%s" % (delta))
         if self.PROFILE:
-            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug(
+                "Global execution time: CPU %.3fms, GPU: %.3fms."
+                % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+            )
+            logger.debug(
+                "Linear combination took %.3fms"
+                % (1e-6 * (k1.profile.end - k1.profile.start))
+            )
 
     def test_compact(self):
         """
@@ -146,25 +173,35 @@ class TestAlgebra(unittest.TestCase):
         keypoints = numpy.random.rand(nbkeypoints, 4).astype(numpy.float32)
         nb_ones = 0
         for i in range(nbkeypoints):
-            if ((numpy.random.rand(1))[0] < 0.25):  # discard about 1 out of 4
+            if (numpy.random.rand(1))[0] < 0.25:  # discard about 1 out of 4
                 keypoints[i] = (-1, -1, i, -1)
                 nb_ones += 1
             else:
                 keypoints[i, 2] = i
 
         gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
-        output = pyopencl.array.empty(self.queue, (nbkeypoints, 4), dtype=numpy.float32, order="C")
+        output = pyopencl.array.empty(
+            self.queue, (nbkeypoints, 4), dtype=numpy.float32, order="C"
+        )
         output.fill(-1.0, self.queue)
         counter = pyopencl.array.empty(self.queue, (1,), dtype=numpy.int32)
         counter.fill(0)
-        wg = self.wg_compact,
+        wg = (self.wg_compact,)
         shape = calc_size((keypoints.shape[0],), wg)
         nbkeypoints = numpy.int32(nbkeypoints)
         startkeypoints = numpy.int32(0)
         t0 = time.time()
         try:
-            k1 = self.program.compact(self.queue, shape, wg,
-                                      gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
+            k1 = self.program.compact(
+                self.queue,
+                shape,
+                wg,
+                gpu_keypoints.data,
+                output.data,
+                counter.data,
+                startkeypoints,
+                nbkeypoints,
+            )
         except pyopencl.LogicError as error:
             logger.warning("%s in test_compact", error)
         res = output.get()
@@ -173,8 +210,12 @@ class TestAlgebra(unittest.TestCase):
         ref, count_ref = my_compact(keypoints, nbkeypoints)
         t2 = time.time()
 
-        logger.debug("Kernel counter : %s / Python counter : %s / True value : %s",
-                     count, count_ref, nbkeypoints - nb_ones)
+        logger.debug(
+            "Kernel counter : %s / Python counter : %s / True value : %s",
+            count,
+            count_ref,
+            nbkeypoints - nb_ones,
+        )
 
         res_sort_arg = res[:, 2].argsort(axis=0)
         res_sort = res[res_sort_arg]
@@ -185,5 +226,12 @@ class TestAlgebra(unittest.TestCase):
         self.assertEqual(count, count_ref, "counters are the same")
         logger.debug("delta=%s", delta)
         if self.PROFILE:
-            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
-            logger.debug("Compact operation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
+            logger.debug(
+                "Global execution time: CPU %.3fms, GPU: %.3fms.",
+                1000.0 * (t2 - t1),
+                1000.0 * (t1 - t0),
+            )
+            logger.debug(
+                "Compact operation took %.3fms",
+                1e-6 * (k1.profile.end - k1.profile.start),
+            )

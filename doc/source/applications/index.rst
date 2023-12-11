@@ -15,3 +15,4 @@ To see the list of all available commands, type the following command in a termi
 
    view
    convert
+   compare

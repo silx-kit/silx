@@ -57,9 +57,9 @@ class CopyAction(Plot3DAction):
     def __init__(self, parent, plot3d=None):
         super(CopyAction, self).__init__(parent, plot3d)
 
-        self.setIcon(getQIcon('edit-copy'))
-        self.setText('Copy')
-        self.setToolTip('Copy a snapshot of the 3D scene to the clipboard')
+        self.setIcon(getQIcon("edit-copy"))
+        self.setText("Copy")
+        self.setToolTip("Copy a snapshot of the 3D scene to the clipboard")
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Copy)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
@@ -68,7 +68,7 @@ class CopyAction(Plot3DAction):
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error('Cannot copy widget, no associated Plot3DWidget')
+            _logger.error("Cannot copy widget, no associated Plot3DWidget")
         else:
             image = plot3d.grabGL()
             qt.QApplication.clipboard().setImage(image)
@@ -85,9 +85,9 @@ class SaveAction(Plot3DAction):
     def __init__(self, parent, plot3d=None):
         super(SaveAction, self).__init__(parent, plot3d)
 
-        self.setIcon(getQIcon('document-save'))
-        self.setText('Save...')
-        self.setToolTip('Save a snapshot of the 3D scene')
+        self.setIcon(getQIcon("document-save"))
+        self.setText("Save...")
+        self.setToolTip("Save a snapshot of the 3D scene")
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Save)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
@@ -96,13 +96,14 @@ class SaveAction(Plot3DAction):
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error('Cannot save widget, no associated Plot3DWidget')
+            _logger.error("Cannot save widget, no associated Plot3DWidget")
         else:
             dialog = qt.QFileDialog(self.parent())
-            dialog.setWindowTitle('Save snapshot as')
+            dialog.setWindowTitle("Save snapshot as")
             dialog.setModal(True)
-            dialog.setNameFilters(('Plot3D Snapshot PNG (*.png)',
-                                   'Plot3D Snapshot JPEG (*.jpg)'))
+            dialog.setNameFilters(
+                ("Plot3D Snapshot PNG (*.png)", "Plot3D Snapshot JPEG (*.jpg)")
+            )
 
             dialog.setFileMode(qt.QFileDialog.AnyFile)
             dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
@@ -116,17 +117,18 @@ class SaveAction(Plot3DAction):
 
             # Forces the filename extension to match the chosen filter
             extension = nameFilter.split()[-1][2:-1]
-            if (len(filename) <= len(extension) or
-                    filename[-len(extension):].lower() != extension.lower()):
+            if (
+                len(filename) <= len(extension)
+                or filename[-len(extension) :].lower() != extension.lower()
+            ):
                 filename += extension
 
             image = plot3d.grabGL()
             if not image.save(filename):
-                _logger.error('Failed to save image as %s', filename)
+                _logger.error("Failed to save image as %s", filename)
                 qt.QMessageBox.critical(
-                    self.parent(),
-                    'Save snapshot as',
-                    'Failed to save snapshot')
+                    self.parent(), "Save snapshot as", "Failed to save snapshot"
+                )
 
 
 class PrintAction(Plot3DAction):
@@ -140,9 +142,9 @@ class PrintAction(Plot3DAction):
     def __init__(self, parent, plot3d=None):
         super(PrintAction, self).__init__(parent, plot3d)
 
-        self.setIcon(getQIcon('document-print'))
-        self.setText('Print...')
-        self.setToolTip('Print a snapshot of the 3D scene')
+        self.setIcon(getQIcon("document-print"))
+        self.setText("Print...")
+        self.setToolTip("Print a snapshot of the 3D scene")
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Print)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
@@ -158,11 +160,11 @@ class PrintAction(Plot3DAction):
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error('Cannot print widget, no associated Plot3DWidget')
+            _logger.error("Cannot print widget, no associated Plot3DWidget")
         else:
             printer = self.getPrinter()
             dialog = qt.QPrintDialog(printer, plot3d)
-            dialog.setWindowTitle('Print Plot3D snapshot')
+            dialog.setWindowTitle("Print Plot3D snapshot")
             if not dialog.exec():
                 return
 
@@ -174,19 +176,15 @@ class PrintAction(Plot3DAction):
                 return
 
             pageRect = printer.pageRect(qt.QPrinter.DevicePixel)
-            if (pageRect.width() < image.width() or
-                    pageRect.height() < image.height()):
+            if pageRect.width() < image.width() or pageRect.height() < image.height():
                 # Downscale to page
                 xScale = pageRect.width() / image.width()
                 yScale = pageRect.height() / image.height()
                 scale = min(xScale, yScale)
             else:
-                scale = 1.
+                scale = 1.0
 
-            rect = qt.QRectF(0,
-                             0,
-                             scale * image.width(),
-                             scale * image.height())
+            rect = qt.QRectF(0, 0, scale * image.width(), scale * image.height())
             painter.drawImage(rect, image)
             painter.end()
 
@@ -201,15 +199,14 @@ class VideoAction(Plot3DAction):
         Plot3DWidget the action is associated with
     """
 
-    PNG_SERIE_FILTER = 'Serie of PNG files (*.png)'
-    MNG_FILTER = 'Multiple-image Network Graphics file (*.mng)'
+    PNG_SERIE_FILTER = "Serie of PNG files (*.png)"
+    MNG_FILTER = "Multiple-image Network Graphics file (*.mng)"
 
     def __init__(self, parent, plot3d=None):
         super(VideoAction, self).__init__(parent, plot3d)
-        self.setText('Record video..')
-        self.setIcon(getQIcon('camera'))
-        self.setToolTip(
-            'Record a video of a 360 degrees rotation of the 3D scene.')
+        self.setText("Record video..")
+        self.setIcon(getQIcon("camera"))
+        self.setToolTip("Record a video of a 360 degrees rotation of the 3D scene.")
         self.setCheckable(False)
         self.triggered[bool].connect(self._triggered)
 
@@ -217,15 +214,13 @@ class VideoAction(Plot3DAction):
         """Action triggered callback"""
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.warning(
-                'Ignoring action triggered without Plot3DWidget set')
+            _logger.warning("Ignoring action triggered without Plot3DWidget set")
             return
 
         dialog = qt.QFileDialog(parent=plot3d)
-        dialog.setWindowTitle('Save video as...')
+        dialog.setWindowTitle("Save video as...")
         dialog.setModal(True)
-        dialog.setNameFilters([self.PNG_SERIE_FILTER,
-                               self.MNG_FILTER])
+        dialog.setNameFilters([self.PNG_SERIE_FILTER, self.MNG_FILTER])
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
 
@@ -237,18 +232,20 @@ class VideoAction(Plot3DAction):
 
         # Forces the filename extension to match the chosen filter
         extension = nameFilter.split()[-1][2:-1]
-        if (len(filename) <= len(extension) or
-                filename[-len(extension):].lower() != extension.lower()):
+        if (
+            len(filename) <= len(extension)
+            or filename[-len(extension) :].lower() != extension.lower()
+        ):
             filename += extension
 
-        nbFrames = int(4. * 25)  # 4 seconds, 25 fps
+        nbFrames = int(4.0 * 25)  # 4 seconds, 25 fps
 
         if nameFilter == self.PNG_SERIE_FILTER:
             self._saveAsPNGSerie(filename, nbFrames)
         elif nameFilter == self.MNG_FILTER:
             self._saveAsMNG(filename, nbFrames)
         else:
-            _logger.error('Unsupported file filter: %s', nameFilter)
+            _logger.error("Unsupported file filter: %s", nameFilter)
 
     def _saveAsPNGSerie(self, filename, nbFrames):
         """Save video as serie of PNG files.
@@ -263,10 +260,11 @@ class VideoAction(Plot3DAction):
 
         # Define filename template
         nbDigits = int(numpy.log10(nbFrames)) + 1
-        indexFormat = '%%0%dd' % nbDigits
-        extensionIndex = filename.rfind('.')
-        filenameFormat = \
+        indexFormat = "%%0%dd" % nbDigits
+        extensionIndex = filename.rfind(".")
+        filenameFormat = (
             filename[:extensionIndex] + indexFormat + filename[extensionIndex:]
+        )
 
         try:
             for index, image in enumerate(self._video360(nbFrames)):
@@ -285,7 +283,7 @@ class VideoAction(Plot3DAction):
 
         frames = (convertQImageToArray(im) for im in self._video360(nbFrames))
         try:
-            with open(filename, 'wb') as file_:
+            with open(filename, "wb") as file_:
                 for chunk in mng.convert(frames, nb_images=nbFrames):
                     file_.write(chunk)
         except GeneratorExit:
@@ -300,11 +298,11 @@ class VideoAction(Plot3DAction):
         plot3d = self.getPlot3DWidget()
         assert plot3d is not None
 
-        angleStep = 360. / nbFrames
+        angleStep = 360.0 / nbFrames
 
         # Create progress bar dialog
         dialog = qt.QDialog(plot3d)
-        dialog.setWindowTitle('Record Video')
+        dialog.setWindowTitle("Record Video")
         layout = qt.QVBoxLayout(dialog)
         progress = qt.QProgressBar()
         progress.setRange(0, nbFrames)
@@ -323,7 +321,7 @@ class VideoAction(Plot3DAction):
             progress.setValue(frame)
             image = plot3d.grabGL()
             yield image
-            plot3d.viewport.orbitCamera('left', angleStep)
+            plot3d.viewport.orbitCamera("left", angleStep)
             qapp.processEvents()
             if not dialog.isVisible():
                 break  # It as been rejected by the abort button
@@ -331,4 +329,4 @@ class VideoAction(Plot3DAction):
             dialog.accept()
 
         if dialog.result() == qt.QDialog.Rejected:
-            raise GeneratorExit('Aborted')
+            raise GeneratorExit("Aborted")

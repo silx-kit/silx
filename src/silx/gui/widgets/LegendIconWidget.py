@@ -47,24 +47,24 @@ _Symbols = None
 """Cache supported symbols as Qt paths"""
 
 
-_NoSymbols = (None, 'None', 'none', '', ' ')
+_NoSymbols = (None, "None", "none", "", " ")
 """List of values resulting in no symbol being displayed for a curve"""
 
 
 _LineStyles = {
     None: qt.Qt.NoPen,
-    'None': qt.Qt.NoPen,
-    'none': qt.Qt.NoPen,
-    '': qt.Qt.NoPen,
-    ' ': qt.Qt.NoPen,
-    '-': qt.Qt.SolidLine,
-    '--': qt.Qt.DashLine,
-    ':': qt.Qt.DotLine,
-    '-.': qt.Qt.DashDotLine
+    "None": qt.Qt.NoPen,
+    "none": qt.Qt.NoPen,
+    "": qt.Qt.NoPen,
+    " ": qt.Qt.NoPen,
+    "-": qt.Qt.SolidLine,
+    "--": qt.Qt.DashLine,
+    ":": qt.Qt.DotLine,
+    "-.": qt.Qt.DashDotLine,
 }
 """Conversion from matplotlib-like linestyle to Qt"""
 
-_NoLineStyle = (None, 'None', 'none', '', ' ')
+_NoLineStyle = (None, "None", "none", "", " ")
 """List of style values resulting in no line being displayed for a curve"""
 
 
@@ -82,22 +82,45 @@ def _initSymbols():
     if _Symbols is not None:
         return
 
-    symbols = dict([(name, qt.QPainterPath())
-                    for name in ['o', 's', 't', 'd', '+', 'x', '.', ',']])
-    symbols['o'].addEllipse(qt.QRectF(.1, .1, .8, .8))
-    symbols['.'].addEllipse(qt.QRectF(.3, .3, .4, .4))
-    symbols[','].addEllipse(qt.QRectF(.4, .4, .2, .2))
-    symbols['s'].addRect(qt.QRectF(.1, .1, .8, .8))
+    symbols = dict(
+        [(name, qt.QPainterPath()) for name in ["o", "s", "t", "d", "+", "x", ".", ","]]
+    )
+    symbols["o"].addEllipse(qt.QRectF(0.1, 0.1, 0.8, 0.8))
+    symbols["."].addEllipse(qt.QRectF(0.3, 0.3, 0.4, 0.4))
+    symbols[","].addEllipse(qt.QRectF(0.4, 0.4, 0.2, 0.2))
+    symbols["s"].addRect(qt.QRectF(0.1, 0.1, 0.8, 0.8))
 
     coords = {
-        't': [(0.5, 0.), (.1, .8), (.9, .8)],
-        'd': [(0.1, 0.5), (0.5, 0.), (0.9, 0.5), (0.5, 1.)],
-        '+': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-              (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-              (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)],
-        'x': [(0.0, 0.40), (0.40, 0.40), (0.40, 0.), (0.60, 0.),
-              (0.60, 0.40), (1., 0.40), (1., 0.60), (0.60, 0.60),
-              (0.60, 1.), (0.40, 1.), (0.40, 0.60), (0., 0.60)]
+        "t": [(0.5, 0.0), (0.1, 0.8), (0.9, 0.8)],
+        "d": [(0.1, 0.5), (0.5, 0.0), (0.9, 0.5), (0.5, 1.0)],
+        "+": [
+            (0.0, 0.40),
+            (0.40, 0.40),
+            (0.40, 0.0),
+            (0.60, 0.0),
+            (0.60, 0.40),
+            (1.0, 0.40),
+            (1.0, 0.60),
+            (0.60, 0.60),
+            (0.60, 1.0),
+            (0.40, 1.0),
+            (0.40, 0.60),
+            (0.0, 0.60),
+        ],
+        "x": [
+            (0.0, 0.40),
+            (0.40, 0.40),
+            (0.40, 0.0),
+            (0.60, 0.0),
+            (0.60, 0.40),
+            (1.0, 0.40),
+            (1.0, 0.60),
+            (0.60, 0.60),
+            (0.60, 1.0),
+            (0.40, 1.0),
+            (0.40, 0.60),
+            (0.0, 0.60),
+        ],
     }
     for s, c in coords.items():
         symbols[s].moveTo(*c[0])
@@ -106,9 +129,9 @@ def _initSymbols():
         symbols[s].closeSubpath()
     tr = qt.QTransform()
     tr.rotate(45)
-    symbols['x'].translate(qt.QPointF(-0.5, -0.5))
-    symbols['x'] = tr.map(symbols['x'])
-    symbols['x'].translate(qt.QPointF(0.5, 0.5))
+    symbols["x"].translate(qt.QPointF(-0.5, -0.5))
+    symbols["x"] = tr.map(symbols["x"])
+    symbols["x"].translate(qt.QPointF(0.5, 0.5))
 
     _Symbols = symbols
 
@@ -130,10 +153,10 @@ class LegendIconWidget(qt.QWidget):
 
         # Line attributes
         self.lineStyle = qt.Qt.NoPen
-        self.lineWidth = 1.
+        self.lineWidth = 1.0
         self.lineColor = qt.Qt.green
 
-        self.symbol = ''
+        self.symbol = ""
         # Symbol attributes
         self.symbolStyle = qt.Qt.SolidPattern
         self.symbolColor = qt.Qt.green
@@ -147,8 +170,7 @@ class LegendIconWidget(qt.QWidget):
         # Control widget size: sizeHint "is the only acceptable
         # alternative, so the widget can never grow or shrink"
         # (c.f. Qt Doc, enum QSizePolicy::Policy)
-        self.setSizePolicy(qt.QSizePolicy.Fixed,
-                           qt.QSizePolicy.Fixed)
+        self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
 
     def sizeHint(self):
         return qt.QSize(50, 15)
@@ -194,7 +216,7 @@ class LegendIconWidget(qt.QWidget):
         :param str style: The linestyle to use
         """
         if style not in _LineStyles:
-            raise ValueError('Unknown style: %s', style)
+            raise ValueError("Unknown style: %s", style)
         self.lineStyle = _LineStyles[style]
         self.update()
 
@@ -308,7 +330,7 @@ class LegendIconWidget(qt.QWidget):
         # current -> width = 2.5, height = 1.0
         scale = float(self.height())
         ratio = float(self.width()) / scale
-        symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
+        symbolOffset = qt.QPointF(0.5 * (ratio - 1.0), 0.0)
         # Determine and scale offset
         offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
 
@@ -316,8 +338,7 @@ class LegendIconWidget(qt.QWidget):
         if self.isEnabled():
             overrideColor = None
         else:
-            overrideColor = palette.color(qt.QPalette.Disabled,
-                                          qt.QPalette.WindowText)
+            overrideColor = palette.color(qt.QPalette.Disabled, qt.QPalette.WindowText)
 
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
@@ -349,21 +370,21 @@ class LegendIconWidget(qt.QWidget):
         llist = []
         if self.showLine:
             linePath = qt.QPainterPath()
-            linePath.moveTo(0., 0.5)
+            linePath.moveTo(0.0, 0.5)
             linePath.lineTo(ratio, 0.5)
             # linePath.lineTo(2.5, 0.5)
             lineBrush = qt.QBrush(
-                self.lineColor if overrideColor is None else overrideColor)
+                self.lineColor if overrideColor is None else overrideColor
+            )
             linePen = qt.QPen(
                 lineBrush,
                 (self.lineWidth / self.height()),
                 self.lineStyle,
-                qt.Qt.FlatCap
+                qt.Qt.FlatCap,
             )
             llist.append((linePath, linePen, lineBrush))
 
-        isValidSymbol = (len(self.symbol) and
-                         self.symbol not in _NoSymbols)
+        isValidSymbol = len(self.symbol) and self.symbol not in _NoSymbols
         if self.showSymbol and isValidSymbol:
             if self.symbolColormap is None:
                 # PITFALL ahead: Let this be a warning to others
@@ -373,15 +394,14 @@ class LegendIconWidget(qt.QWidget):
                 symbolPath.translate(symbolOffset)
                 symbolBrush = qt.QBrush(
                     self.symbolColor if overrideColor is None else overrideColor,
-                    self.symbolStyle)
+                    self.symbolStyle,
+                )
                 symbolPen = qt.QPen(
                     self.symbolOutlineBrush,  # Brush
-                    1. / self.height(),       # Width
-                    qt.Qt.SolidLine           # Style
+                    1.0 / self.height(),  # Width
+                    qt.Qt.SolidLine,  # Style
                 )
-                llist.append((symbolPath,
-                              symbolPen,
-                              symbolBrush))
+                llist.append((symbolPath, symbolPen, symbolBrush))
             else:
                 nbSymbols = int(ratio + 2)
                 for i in range(nbSymbols):
@@ -390,21 +410,21 @@ class LegendIconWidget(qt.QWidget):
                     else:
                         image = self.getGrayedColormapImage(self.symbolColormap)
                     pos = int((_COLORMAP_PIXMAP_SIZE / nbSymbols) * i)
-                    pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE-1)
+                    pos = numpy.clip(pos, 0, _COLORMAP_PIXMAP_SIZE - 1)
                     color = image.pixelColor(pos, 0)
-                    delta = qt.QPointF(ratio * ((i - (nbSymbols-1)/2) / nbSymbols), 0)
+                    delta = qt.QPointF(
+                        ratio * ((i - (nbSymbols - 1) / 2) / nbSymbols), 0
+                    )
 
                     symbolPath = qt.QPainterPath(_Symbols[self.symbol])
                     symbolPath.translate(symbolOffset + delta)
                     symbolBrush = qt.QBrush(color, self.symbolStyle)
                     symbolPen = qt.QPen(
                         self.symbolOutlineBrush,  # Brush
-                        1. / self.height(),       # Width
-                        qt.Qt.SolidLine           # Style
+                        1.0 / self.height(),  # Width
+                        qt.Qt.SolidLine,  # Style
                     )
-                    llist.append((symbolPath,
-                                  symbolPen,
-                                  symbolBrush))
+                    llist.append((symbolPath, symbolPen, symbolBrush))
 
         # Draw
         for path, pen, brush in llist:

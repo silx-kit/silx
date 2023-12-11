@@ -49,6 +49,7 @@ from .viewport import Viewport
 
 # Nodes #######################################################################
 
+
 class Base(event.Notifier):
     """A scene node with common features."""
 
@@ -64,10 +65,8 @@ class Base(event.Notifier):
 
     # notifying properties
 
-    visible = event.notifyProperty('_visible',
-                                   doc="Visibility flag of the node")
-    pickable = event.notifyProperty('_pickable',
-                                    doc="True to make node pickable")
+    visible = event.notifyProperty("_visible", doc="Visibility flag of the node")
+    pickable = event.notifyProperty("_pickable", doc="True to make node pickable")
 
     # Access to tree path
 
@@ -84,7 +83,7 @@ class Base(event.Notifier):
         :param Base parent: The parent.
         """
         if parent is not None and self._parentRef is not None:
-            raise RuntimeError('Trying to add a node at two places.')
+            raise RuntimeError("Trying to add a node at two places.")
             # Alternative: remove it from previous children list
         self._parentRef = None if parent is None else weakref.ref(parent)
 
@@ -96,11 +95,11 @@ class Base(event.Notifier):
         then the :class:`Viewport` is the first element of path.
         """
         if self.parent is None:
-            return self,
+            return (self,)
         elif isinstance(self.parent, Viewport):
             return self.parent, self
         else:
-            return self.parent.path + (self, )
+            return self.parent.path + (self,)
 
     @property
     def viewport(self):
@@ -154,7 +153,7 @@ class Base(event.Notifier):
             # If it is a TransformList, do not create one to enable sharing.
             self._transforms = iterable
         else:
-            assert hasattr(iterable, '__iter__')
+            assert hasattr(iterable, "__iter__")
             self._transforms = transform.TransformList(iterable)
         self._transforms.addListener(self._transformChanged)
 
@@ -163,8 +162,9 @@ class Base(event.Notifier):
 
     # Bounds
 
-    _CUBE_CORNERS = numpy.array(list(itertools.product((0., 1.), repeat=3)),
-                                dtype=numpy.float32)
+    _CUBE_CORNERS = numpy.array(
+        list(itertools.product((0.0, 1.0), repeat=3)), dtype=numpy.float32
+    )
     """Unit cube corners used to transform bounds"""
 
     def _bounds(self, dataBounds=False):
@@ -256,7 +256,8 @@ class PrivateGroup(Base):
 
         def _listWillChangeHook(self, methodName, *args, **kwargs):
             super(PrivateGroup.ChildrenList, self)._listWillChangeHook(
-                methodName, *args, **kwargs)
+                methodName, *args, **kwargs
+            )
             for item in self:
                 item._setParent(None)
 
@@ -264,7 +265,8 @@ class PrivateGroup(Base):
             for item in self:
                 item._setParent(self._parentRef())
             super(PrivateGroup.ChildrenList, self)._listWasChangedHook(
-                methodName, *args, **kwargs)
+                methodName, *args, **kwargs
+            )
 
         def __init__(self, parent, children):
             self._parentRef = weakref.ref(parent)
@@ -303,8 +305,7 @@ class PrivateGroup(Base):
         bounds = []
         for child in self._children:
             if child.visible:
-                childBounds = child.bounds(
-                    transformed=True, dataBounds=dataBounds)
+                childBounds = child.bounds(transformed=True, dataBounds=dataBounds)
                 if childBounds is not None:
                     bounds.append(childBounds)
 
@@ -312,9 +313,10 @@ class PrivateGroup(Base):
             return None
         else:
             bounds = numpy.array(bounds, dtype=numpy.float32)
-            return numpy.array((bounds[:, 0, :].min(axis=0),
-                                bounds[:, 1, :].max(axis=0)),
-                               dtype=numpy.float32)
+            return numpy.array(
+                (bounds[:, 0, :].min(axis=0), bounds[:, 1, :].max(axis=0)),
+                dtype=numpy.float32,
+            )
 
     def prepareGL2(self, ctx):
         pass

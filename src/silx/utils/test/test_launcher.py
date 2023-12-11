@@ -34,8 +34,7 @@ from silx.utils.testutils import ParametricTestCase
 from .. import launcher
 
 
-class CallbackMock():
-
+class CallbackMock:
     def __init__(self, result=None):
         self._execute_count = 0
         self._execute_argv = None
@@ -83,7 +82,6 @@ class TestLauncherCommand(unittest.TestCase):
 
 
 class TestModuleCommand(ParametricTestCase):
-
     def setUp(self):
         module_name = "silx.utils.test.test_launcher_command"
         command = launcher.LauncherCommand("foo", module_name=module_name)

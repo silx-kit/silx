@@ -58,7 +58,7 @@ class PhantomGenerator(object):
         _Ellipsoid(0.046, 0.046, 0.02, 0.0, -0.10, -0.25, 0.0, 0.01),
         _Ellipsoid(0.046, 0.023, 0.02, -0.08, -0.605, -0.25, 0.0, 0.01),
         _Ellipsoid(0.023, 0.023, 0.10, 0.0, -0.605, -0.25, 0.0, 0.01),
-        _Ellipsoid(0.023, 0.046, 0.10, 0.06, -0.605, -0.25, 0.0, 0.01)
+        _Ellipsoid(0.023, 0.046, 0.10, 0.06, -0.605, -0.25, 0.0, 0.01),
     ]
 
     @staticmethod
@@ -71,13 +71,15 @@ class PhantomGenerator(object):
                             produce every ellipsoid
         :return numpy.ndarray: shepp logan phantom
         """
-        assert(ellipsoidID is None or (ellipsoidID >= 0 and ellipsoidID < len(PhantomGenerator.SHEPP_LOGAN)))
+        assert ellipsoidID is None or (
+            ellipsoidID >= 0 and ellipsoidID < len(PhantomGenerator.SHEPP_LOGAN)
+        )
         if ellipsoidID is None:
-            area = PhantomGenerator._get2DPhantom(n,
-                                                  PhantomGenerator.SHEPP_LOGAN)
+            area = PhantomGenerator._get2DPhantom(n, PhantomGenerator.SHEPP_LOGAN)
         else:
-            area = PhantomGenerator._get2DPhantom(n,
-                                                  [PhantomGenerator.SHEPP_LOGAN[ellipsoidID]])
+            area = PhantomGenerator._get2DPhantom(
+                n, [PhantomGenerator.SHEPP_LOGAN[ellipsoidID]]
+            )
 
         indices = numpy.abs(area) > 0
         area[indices] = numpy.multiply(area[indices] + 0.1, 5)
@@ -86,11 +88,11 @@ class PhantomGenerator(object):
     @staticmethod
     def _get2DPhantom(n, phantomSpec):
         area = numpy.ndarray(shape=(n, n))
-        area.fill(0.)
+        area.fill(0.0)
 
         count = 0
         for ell in phantomSpec:
-            count = count+1
+            count = count + 1
             for x in range(n):
                 sumSquareXandY = PhantomGenerator._getSquareXandYsum(n, x, ell)
                 indices = sumSquareXandY <= 1
@@ -99,18 +101,18 @@ class PhantomGenerator(object):
 
     @staticmethod
     def _getSquareXandYsum(n, x, ell):
-        supportX1 = numpy.ndarray(shape=(n, ))
-        supportX2 = numpy.ndarray(shape=(n, ))
-        support_consts = numpy.ndarray(shape=(n, ))
+        supportX1 = numpy.ndarray(shape=(n,))
+        supportX2 = numpy.ndarray(shape=(n,))
+        support_consts = numpy.ndarray(shape=(n,))
 
-        xScaled = float(2*x-n)/float(n)
+        xScaled = float(2 * x - n) / float(n)
         xCos = xScaled * ell.cosAlpha
         xSin = -xScaled * ell.sinAlpha
         supportX1.fill(xCos)
         supportX2.fill(xSin)
 
         supportY1 = numpy.arange(n)
-        support_consts.fill(2.)
+        support_consts.fill(2.0)
         supportY1 = numpy.multiply(support_consts, supportY1)
         support_consts.fill(n)
         supportY1 = numpy.subtract(supportY1, support_consts)
@@ -119,11 +121,9 @@ class PhantomGenerator(object):
         supportY2 = numpy.array(supportY1)
 
         support_consts.fill(ell.sinAlpha)
-        supportY1 = numpy.add(supportX1,
-                              numpy.multiply(supportY1, support_consts))
+        supportY1 = numpy.add(supportX1, numpy.multiply(supportY1, support_consts))
         support_consts.fill(ell.cosAlpha)
-        supportY2 = numpy.add(supportX2,
-                              numpy.multiply(supportY2, support_consts))
+        supportY2 = numpy.add(supportX2, numpy.multiply(supportY2, support_consts))
 
         support_consts.fill(ell.x0)
         supportY1 = numpy.subtract(supportY1, support_consts)
@@ -131,19 +131,17 @@ class PhantomGenerator(object):
         supportY2 = numpy.subtract(supportY2, support_consts)
 
         support_consts.fill(ell.a)
-        supportY1 = numpy.power((numpy.divide(supportY1, support_consts)),
-                                2)
+        supportY1 = numpy.power((numpy.divide(supportY1, support_consts)), 2)
         support_consts.fill(ell.b)
-        supportY2 = numpy.power(numpy.divide(supportY2, support_consts),
-                                2)
+        supportY2 = numpy.power(numpy.divide(supportY2, support_consts), 2)
 
         return numpy.add(supportY1, supportY2)
 
     @staticmethod
     def _getSquareZ(n, ell):
         supportZ1 = numpy.arange(n)
-        support_consts = numpy.ndarray(shape=(n, ))
-        support_consts.fill(2.)
+        support_consts = numpy.ndarray(shape=(n,))
+        support_consts.fill(2.0)
         supportZ1 = numpy.multiply(support_consts, supportZ1)
         support_consts.fill(n)
         supportZ1 = numpy.subtract(supportZ1, support_consts)
@@ -154,6 +152,4 @@ class PhantomGenerator(object):
         supportZ1 = numpy.subtract(supportZ1, ell.z0)
 
         support_consts.fill(ell.c)
-        return numpy.power(numpy.divide(supportZ1, support_consts),
-                           2)
-
+        return numpy.power(numpy.divide(supportZ1, support_consts), 2)

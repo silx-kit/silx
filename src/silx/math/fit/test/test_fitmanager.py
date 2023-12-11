@@ -114,6 +114,7 @@ class TestFitmanager(ParametricTestCase):
     """
     Unit tests of multi-peak functions.
     """
+
     def setUp(self):
         pass
 
@@ -126,9 +127,7 @@ class TestFitmanager(ParametricTestCase):
         # Create synthetic data with a sum of gaussian functions
         x = numpy.arange(1000).astype(numpy.float64)
 
-        p = [1000, 100., 250,
-             255, 650., 45,
-             1500, 800.5, 95]
+        p = [1000, 100.0, 250, 255, 650.0, 45, 1500, 800.5, 95]
         linear_bg = 2.65 * x + 13
         y = linear_bg + sum_gauss(x, *p)
 
@@ -139,10 +138,10 @@ class TestFitmanager(ParametricTestCase):
         x_with_nans[5::15] = numpy.nan
 
         tests = {
-            'all finite': (x, y),
-            'y with NaNs': (x, y_with_nans),
-            'x with NaNs': (x_with_nans, y),
-            }
+            "all finite": (x, y),
+            "y with NaNs": (x, y_with_nans),
+            "x with NaNs": (x_with_nans, y),
+        }
 
         for name, (xdata, ydata) in tests.items():
             with self.subTest(name=name):
@@ -151,8 +150,8 @@ class TestFitmanager(ParametricTestCase):
                 fit.setdata(x=xdata, y=ydata)
                 fit.loadtheories(fittheories)
                 # Use one of the default fit functions
-                fit.settheory('Gaussians')
-                fit.setbackground('Linear')
+                fit.settheory("Gaussians")
+                fit.setbackground("Linear")
                 fit.estimate()
                 fit.runfit()
 
@@ -167,19 +166,17 @@ class TestFitmanager(ParametricTestCase):
                 for i, param in enumerate(fit.fit_results[2:]):
                     param_number = i // 3 + 1
                     if i % 3 == 0:
-                        self.assertEqual(param["name"],
-                                         "Height%d" % param_number)
+                        self.assertEqual(param["name"], "Height%d" % param_number)
                     elif i % 3 == 1:
-                        self.assertEqual(param["name"],
-                                         "Position%d" % param_number)
+                        self.assertEqual(param["name"], "Position%d" % param_number)
                     elif i % 3 == 2:
-                        self.assertEqual(param["name"],
-                                         "FWHM%d" % param_number)
+                        self.assertEqual(param["name"], "FWHM%d" % param_number)
 
-                    self.assertAlmostEqual(param["fitresult"],
-                                           p[i])
-                    self.assertAlmostEqual(_order_of_magnitude(param["estimation"]),
-                                           _order_of_magnitude(p[i]))
+                    self.assertAlmostEqual(param["fitresult"], p[i])
+                    self.assertAlmostEqual(
+                        _order_of_magnitude(param["estimation"]),
+                        _order_of_magnitude(p[i]),
+                    )
 
     def testLoadCustomFitFunction(self):
         """Test FitManager using a custom fit function defined in an external
@@ -198,35 +195,29 @@ class TestFitmanager(ParametricTestCase):
 
         # Create a temporary function definition file, and import it
         with temp_dir() as tmpDir:
-            tmpfile = os.path.join(tmpDir, 'customfun.py')
+            tmpfile = os.path.join(tmpDir, "customfun.py")
             # custom_function_definition
             fd = open(tmpfile, "w")
             fd.write(custom_function_definition)
             fd.close()
             fit.loadtheories(tmpfile)
-            tmpfile_pyc = os.path.join(tmpDir, 'customfun.pyc')
+            tmpfile_pyc = os.path.join(tmpDir, "customfun.pyc")
             if os.path.exists(tmpfile_pyc):
                 os.unlink(tmpfile_pyc)
             os.unlink(tmpfile)
 
-        fit.settheory('my fit theory')
+        fit.settheory("my fit theory")
         # Test configure
         fit.configure(d=4.5)
         fit.estimate()
         fit.runfit()
 
-        self.assertEqual(fit.fit_results[0]["name"],
-                         "A1")
-        self.assertAlmostEqual(fit.fit_results[0]["fitresult"],
-                               1.5)
-        self.assertEqual(fit.fit_results[1]["name"],
-                         "B1")
-        self.assertAlmostEqual(fit.fit_results[1]["fitresult"],
-                               2.5)
-        self.assertEqual(fit.fit_results[2]["name"],
-                         "C1")
-        self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
-                               3.5)
+        self.assertEqual(fit.fit_results[0]["name"], "A1")
+        self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 1.5)
+        self.assertEqual(fit.fit_results[1]["name"], "B1")
+        self.assertAlmostEqual(fit.fit_results[1]["fitresult"], 2.5)
+        self.assertEqual(fit.fit_results[2]["name"], "C1")
+        self.assertAlmostEqual(fit.fit_results[2]["fitresult"], 3.5)
 
     def testLoadOldCustomFitFunction(self):
         """Test FitManager using a custom fit function defined in an external
@@ -245,34 +236,28 @@ class TestFitmanager(ParametricTestCase):
 
         # Create a temporary function definition file, and import it
         with temp_dir() as tmpDir:
-            tmpfile = os.path.join(tmpDir, 'oldcustomfun.py')
+            tmpfile = os.path.join(tmpDir, "oldcustomfun.py")
             # custom_function_definition
             fd = open(tmpfile, "w")
             fd.write(old_custom_function_definition)
             fd.close()
             fit.loadtheories(tmpfile)
-            tmpfile_pyc = os.path.join(tmpDir, 'oldcustomfun.pyc')
+            tmpfile_pyc = os.path.join(tmpDir, "oldcustomfun.pyc")
             if os.path.exists(tmpfile_pyc):
                 os.unlink(tmpfile_pyc)
             os.unlink(tmpfile)
 
-        fit.settheory('my fit theory')
+        fit.settheory("my fit theory")
         fit.configure(d=4.5)
         fit.estimate()
         fit.runfit()
 
-        self.assertEqual(fit.fit_results[0]["name"],
-                         "A1")
-        self.assertAlmostEqual(fit.fit_results[0]["fitresult"],
-                               1.5)
-        self.assertEqual(fit.fit_results[1]["name"],
-                         "B1")
-        self.assertAlmostEqual(fit.fit_results[1]["fitresult"],
-                               2.5)
-        self.assertEqual(fit.fit_results[2]["name"],
-                         "C1")
-        self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
-                               3.5)
+        self.assertEqual(fit.fit_results[0]["name"], "A1")
+        self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 1.5)
+        self.assertEqual(fit.fit_results[1]["name"], "B1")
+        self.assertAlmostEqual(fit.fit_results[1]["fitresult"], 2.5)
+        self.assertEqual(fit.fit_results[2]["name"], "C1")
+        self.assertAlmostEqual(fit.fit_results[2]["fitresult"], 3.5)
 
     def testAddTheory(self, estimate=True):
         """Test FitManager using a custom fit function imported with
@@ -290,19 +275,19 @@ class TestFitmanager(ParametricTestCase):
         fit.setdata(x=x, y=y)
 
         # Define and add the fit theory
-        CONFIG = {'d': 1.}
+        CONFIG = {"d": 1.0}
 
         def myfun(x_, a_, b_, c_):
             """Model function"""
-            return (a_ * x_**2 + b_ * x_ + c_) / CONFIG['d']
+            return (a_ * x_**2 + b_ * x_ + c_) / CONFIG["d"]
 
         def myesti(x_, y_):
             """Initial parameters for iterative fit:
                  (a, b, c) = (1, 1, 1)
             Constraints all set to 0 (FREE)"""
-            return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
+            return (1.0, 1.0, 1.0), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
-        def myconfig(d_=1., **kw):
+        def myconfig(d_=1.0, **kw):
             """This function can modify CONFIG"""
             CONFIG["d"] = d_
             return CONFIG
@@ -320,41 +305,41 @@ class TestFitmanager(ParametricTestCase):
 
             return delta_fun / delta_par
 
-        fit.addtheory("polynomial",
-                      FitTheory(function=myfun,
-                                parameters=["A", "B", "C"],
-                                estimate=myesti if estimate else None,
-                                configure=myconfig,
-                                derivative=myderiv))
+        fit.addtheory(
+            "polynomial",
+            FitTheory(
+                function=myfun,
+                parameters=["A", "B", "C"],
+                estimate=myesti if estimate else None,
+                configure=myconfig,
+                derivative=myderiv,
+            ),
+        )
 
-        fit.settheory('polynomial')
+        fit.settheory("polynomial")
         fit.configure(d_=4.5)
         fit.estimate()
         params1, sigmas, infodict = fit.runfit()
 
-        self.assertEqual(fit.fit_results[0]["name"],
-                         "A1")
-        self.assertAlmostEqual(fit.fit_results[0]["fitresult"],
-                               -3.14)
-        self.assertEqual(fit.fit_results[1]["name"],
-                         "B1")
+        self.assertEqual(fit.fit_results[0]["name"], "A1")
+        self.assertAlmostEqual(fit.fit_results[0]["fitresult"], -3.14)
+        self.assertEqual(fit.fit_results[1]["name"], "B1")
         # params1[1] is the same as fit.fit_results[1]["fitresult"]
-        self.assertAlmostEqual(params1[1],
-                               1234.5)
-        self.assertEqual(fit.fit_results[2]["name"],
-                         "C1")
-        self.assertAlmostEqual(params1[2],
-                               10000)
+        self.assertAlmostEqual(params1[1], 1234.5)
+        self.assertEqual(fit.fit_results[2]["name"], "C1")
+        self.assertAlmostEqual(params1[2], 10000)
 
         # change configuration scaling factor and check that the fit returns
         # different values
-        fit.configure(d_=5.)
+        fit.configure(d_=5.0)
         fit.estimate()
         params2, sigmas, infodict = fit.runfit()
         for p1, p2 in zip(params1, params2):
-            self.assertFalse(numpy.array_equal(p1, p2),
-                             "Fit parameters are equal even though the " +
-                             "configuration has been changed")
+            self.assertFalse(
+                numpy.array_equal(p1, p2),
+                "Fit parameters are equal even though the "
+                + "configuration has been changed",
+            )
 
     def testNoEstimate(self):
         """Ensure that the in the absence of the estimation function,
@@ -365,8 +350,10 @@ class TestFitmanager(ParametricTestCase):
     def testStep(self):
         """Test fit manager on a step function with a more complex estimate
         function than the gaussian (convolution filter)"""
-        for theory_name, theory_fun in (('Step Down', sum_stepdown),
-                                        ('Step Up', sum_stepup)):
+        for theory_name, theory_fun in (
+            ("Step Down", sum_stepdown),
+            ("Step Up", sum_stepup),
+        ):
             # Create synthetic data with a sum of gaussian functions
             x = numpy.arange(1000).astype(numpy.float64)
 
@@ -381,7 +368,7 @@ class TestFitmanager(ParametricTestCase):
             fit.setdata(x=x, y=y)
             fit.loadtheories(fittheories)
             fit.settheory(theory_name)
-            fit.setbackground('Constant')
+            fit.setbackground("Constant")
 
             fit.estimate()
 
@@ -391,8 +378,10 @@ class TestFitmanager(ParametricTestCase):
             self.assertAlmostEqual(params[0], 13, places=5)
             for i, param in enumerate(params[1:]):
                 self.assertAlmostEqual(param, p[i], places=5)
-                self.assertAlmostEqual(_order_of_magnitude(fit.fit_results[i+1]["estimation"]),
-                                       _order_of_magnitude(p[i]))
+                self.assertAlmostEqual(
+                    _order_of_magnitude(fit.fit_results[i + 1]["estimation"]),
+                    _order_of_magnitude(p[i]),
+                )
 
 
 def quadratic(x, a, b, c):
@@ -405,6 +394,7 @@ def cubic(x, a, b, c, d):
 
 class TestPolynomials(unittest.TestCase):
     """Test polynomial fit theories and fit background"""
+
     def setUp(self):
         self.x = numpy.arange(100).astype(numpy.float64)
 
@@ -424,8 +414,7 @@ class TestPolynomials(unittest.TestCase):
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
-            self.assertAlmostEqual(p,
-                                   pfit)
+            self.assertAlmostEqual(p, pfit)
 
     def testCubicBg(self):
         gaussian_params = [1000, 45, 8]
@@ -442,8 +431,7 @@ class TestPolynomials(unittest.TestCase):
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
-            self.assertAlmostEqual(p,
-                                   pfit)
+            self.assertAlmostEqual(p, pfit)
 
     def testQuarticcBg(self):
         gaussian_params = [10000, 69, 25]
@@ -460,9 +448,7 @@ class TestPolynomials(unittest.TestCase):
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params + gaussian_params, fit_params):
-            self.assertAlmostEqual(p,
-                                   pfit,
-                                   places=5)
+            self.assertAlmostEqual(p, pfit, places=5)
 
     def _testPoly(self, poly_params, theory, places=5):
         p = numpy.poly1d(poly_params)
@@ -480,18 +466,13 @@ class TestPolynomials(unittest.TestCase):
             self.assertAlmostEqual(p, pfit, places=places)
 
     def testQuadratic(self):
-        self._testPoly([0.05, -2, 3],
-                       "Degree 2 Polynomial")
+        self._testPoly([0.05, -2, 3], "Degree 2 Polynomial")
 
     def testCubic(self):
-        self._testPoly([0.0005, -0.05, 3, -4],
-                       "Degree 3 Polynomial")
+        self._testPoly([0.0005, -0.05, 3, -4], "Degree 3 Polynomial")
 
     def testQuartic(self):
-        self._testPoly([1, -2, 3, -4, -5],
-                       "Degree 4 Polynomial")
+        self._testPoly([1, -2, 3, -4, -5], "Degree 4 Polynomial")
 
     def testQuintic(self):
-        self._testPoly([1, -2, 3, -4, -5, 6],
-                       "Degree 5 Polynomial",
-                       places=4)
+        self._testPoly([1, -2, 3, -4, -5, 6], "Degree 5 Polynomial", places=4)

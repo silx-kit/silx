@@ -434,7 +434,7 @@ int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
     *area* is the area underneath both G(x) and L(x)
     *centroid* is the peak x-coordinate for both functions
     *fwhm* is the full-width at half maximum of both functions
-    *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+    *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     Parameters:
     -----------
@@ -504,7 +504,7 @@ int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
     *height* is the peak amplitude of G(x) and L(x)
     *centroid* is the peak x-coordinate for both functions
     *fwhm* is the full-width at half maximum of both functions
-    *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+    *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     Parameters:
     -----------
@@ -573,7 +573,7 @@ int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
     *centroid* is the peak x-coordinate for both functions
     *fwhm1* is the full-width at half maximum of both functions for x < centroid
     *fwhm2* is the full-width at half maximum of both functions for x > centroid
-    *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+    *eta* is the Lorentzian fraction: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     Parameters:
     -----------
@@ -643,6 +643,98 @@ int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double
                 dhelp = x_minus_centroid / sigma1;
                 if (dhelp <= 35) {
                     y[j] += (1.0 - eta) * height * exp (-0.5 * dhelp * dhelp);
+                }
+            }
+        }
+    }
+    return(0);
+}
+
+/*  sum_splitpvoigt2
+    Sum of split pseudo-Voigt functions, defined by
+    (height, centroid, fwhm1, fwhm2, eta1, eta2).
+
+    The pseudo-Voigt profile PV(x) is an approximation of the Voigt profile
+    using a linear combination of a Gaussian curve G(x) and a Lorentzian curve
+    L(x) instead of their convolution.
+
+    *height* is the peak amplitude of G(x) and L(x)
+    *centroid* is the peak x-coordinate for both functions
+    *fwhm1* is the full-width at half maximum of both functions for x < centroid
+    *fwhm2* is the full-width at half maximum of both functions for x > centroid
+    *eta1* is the Lorentzian fraction for x < centroid
+    *eta2* is the Lorentzian fraction for x > centroid
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the gaussians are calculated.
+        - len_x: Number of elements in the x array.
+        - pvoigt: Array of Voigt function parameters:
+          (height1, centroid1, fwhm11, fwhm21, eta11, eta21, ...)
+        - len_voigt: Number of elements in the pvoigt array. Must be
+          a multiple of 6.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+
+*/
+int sum_splitpvoigt2(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
+{
+    int i, j;
+    double dhelp, x_minus_centroid, inv_two_sqrt_two_log2, sigma1, sigma2;
+    double height, centroid, fwhm1, fwhm2, eta1, eta2;
+
+    if (test_params(len_pvoigt, 6, "sum_splitpvoigt2", "height, centroid, fwhm1, fwhm2, eta1, eta2")) {
+        return(1);
+    }
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    inv_two_sqrt_two_log2 = 1.0 / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_pvoigt/6; i++) {
+        height = pvoigt[6*i];
+        centroid = pvoigt[6*i+1];
+        fwhm1 = pvoigt[6*i+2];
+        fwhm2 = pvoigt[6*i+3];
+        eta1 = pvoigt[6*i+4];
+        eta2 = pvoigt[6*i+5];
+
+        sigma1 = fwhm1 * inv_two_sqrt_two_log2;
+        sigma2 = fwhm2 * inv_two_sqrt_two_log2;
+
+        for (j=0; j<len_x;  j++) {
+            x_minus_centroid = (x[j] - centroid);
+
+            /* Use fwhm2 and eta2 when x > centroid */
+            if (x_minus_centroid > 0) {
+                /*  Lorentzian term */
+                dhelp = (2.0 * x_minus_centroid) / fwhm2;
+                dhelp = 1.0 + (dhelp * dhelp);
+                y[j] += eta2 * height / dhelp;
+
+                /* Gaussian term */
+                dhelp = x_minus_centroid / sigma2;
+                if (dhelp <= 35) {
+                    dhelp = exp(-0.5 * dhelp * dhelp);
+                    y[j] += (1 - eta2) * height * dhelp;
+                }
+            }
+            /* Use fwhm1 and eta1 when x < centroid */
+            else {
+                /*  Lorentzian term */
+                dhelp = (2.0 * x_minus_centroid) / fwhm1;
+                dhelp = 1.0 + (dhelp * dhelp);
+                y[j] += eta1 * height / dhelp;
+
+                /* Gaussian term */
+                dhelp = x_minus_centroid / sigma1;
+                if (dhelp <= 35) {
+                    dhelp = exp(-0.5 * dhelp * dhelp);
+                    y[j] += (1 - eta1) * height * dhelp;
                 }
             }
         }

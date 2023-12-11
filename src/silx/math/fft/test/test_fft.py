@@ -28,9 +28,10 @@ from os import path
 import logging
 import numpy as np
 import unittest
-from pkg_resources import parse_version
+from packaging.version import Version
 import pytest
 from tempfile import TemporaryDirectory
+
 try:
     try:
         from scipy.misc import ascent
@@ -43,12 +44,18 @@ from silx.utils.testutils import ParametricTestCase
 from silx.math.fft.fft import FFT
 from silx.math.fft.clfft import __have_clfft__
 from silx.math.fft.cufft import __have_cufft__
-from silx.math.fft.fftw import __have_fftw__, import_wisdom, export_wisdom, get_wisdom_file
+from silx.math.fft.fftw import (
+    __have_fftw__,
+    import_wisdom,
+    export_wisdom,
+    get_wisdom_file,
+)
 
 if __have_cufft__:
     import atexit
     import pycuda.driver as cuda
     from pycuda.tools import clear_context_caches
+
 
 def get_cuda_context(device_id=None, cleanup_at_exit=True):
     """
@@ -69,17 +76,21 @@ def get_cuda_context(device_id=None, cleanup_at_exit=True):
     # Unlike Context.make_context(), the newly-created context is not made current.
     context = cuda.Device(device_id).retain_primary_context()
     context.push()
+
     # Register a clean-up function at exit
     def _finish_up(context):
         if context is not None:
             context.pop()
             context = None
         clear_context_caches()
+
     if cleanup_at_exit:
         atexit.register(_finish_up, context)
     return context
 
+
 logger = logging.getLogger(__name__)
+
 
 class TransformInfos(object):
     def __init__(self):
@@ -99,8 +110,16 @@ class TransformInfos(object):
         self.sizes = {
             "1D": [(128,), (127,)],
             "2D": [(128, 128), (128, 127), (127, 128), (127, 127)],
-            "3D": [(64, 64, 64), (64, 64, 63), (64, 63, 64), (63, 64, 64),
-                 (64, 63, 63), (63, 64, 63), (63, 63, 64), (63, 63, 63)]
+            "3D": [
+                (64, 64, 64),
+                (64, 64, 63),
+                (64, 63, 64),
+                (63, 64, 64),
+                (64, 63, 63),
+                (63, 64, 63),
+                (63, 63, 64),
+                (63, 63, 63),
+            ],
         }
         self.axes = {
             "1D": None,
@@ -147,8 +166,9 @@ class TestFFT(ParametricTestCase):
         """
         return np.max(np.abs(arr1 - arr2))
 
-    @unittest.skipIf(not __have_cufft__,
-                     "cuda back-end requires pycuda and scikit-cuda")
+    @unittest.skipIf(
+        not __have_cufft__, "cuda back-end requires pycuda and scikit-cuda"
+    )
     def test_cuda(self):
         get_cuda_context()
 
@@ -157,15 +177,14 @@ class TestFFT(ParametricTestCase):
 
         self.__run_tests(backend="cuda")
 
-    @unittest.skipIf(not __have_clfft__,
-                     "opencl back-end requires pyopencl and gpyfft")
+    @unittest.skipIf(not __have_clfft__, "opencl back-end requires pyopencl and gpyfft")
     def test_opencl(self):
         from silx.opencl.common import ocl
+
         if ocl is not None:
             self.__run_tests(backend="opencl", ctx=ocl.create_context())
 
-    @unittest.skipIf(not __have_fftw__,
-                     "fftw back-end requires pyfftw")
+    @unittest.skipIf(not __have_fftw__, "fftw back-end requires pyfftw")
     def test_fftw(self):
         self.__run_tests(backend="fftw")
 
@@ -183,14 +202,20 @@ class TestFFT(ParametricTestCase):
 
     def __test(self, backend, trdim, mode, size, **extra_args):
         """Compare given backend with numpy for given conditions"""
-        logger.debug("backend: %s, trdim: %s, mode: %s, size: %s",
-                     backend, trdim, mode, str(size))
+        logger.debug(
+            "backend: %s, trdim: %s, mode: %s, size: %s",
+            backend,
+            trdim,
+            mode,
+            str(size),
+        )
         if size == "3D" and self.test_options.TEST_LOW_MEM:
             self.skipTest("low mem")
 
         ndim = len(size)
         input_data = self.test_data.data_refs[ndim].astype(
-            self.transform_infos.modes[mode])
+            self.transform_infos.modes[mode]
+        )
         tol = self.tol[np.dtype(input_data.dtype)]
         if trdim == "3D":
             tol *= 10  # Error is relatively high in high dimensions
@@ -205,33 +230,28 @@ class TestFFT(ParametricTestCase):
             "backend": backend,
         }
         fft_args.update(extra_args)
-        F = FFT(
-            **fft_args
-        )
+        F = FFT(**fft_args)
         F_np = FFT(
-            template=input_data,
-            axes=self.transform_infos.axes[trdim],
-            backend="numpy"
+            template=input_data, axes=self.transform_infos.axes[trdim], backend="numpy"
         )
 
         # Forward FFT
         res = F.fft(input_data)
         res_np = F_np.fft(input_data)
         mae = self.calc_mae(res, res_np)
-        all_close = np.allclose(res, res_np, atol=tol, rtol=tol),
+        all_close = (np.allclose(res, res_np, atol=tol, rtol=tol),)
         self.assertTrue(
             all_close,
-            "FFT %s:%s, MAE(%s, numpy) = %f (tol = %.2e)" % (mode, trdim, backend, mae, tol)
+            "FFT %s:%s, MAE(%s, numpy) = %f (tol = %.2e)"
+            % (mode, trdim, backend, mae, tol),
         )
 
         # Inverse FFT
         res2 = F.ifft(res)
         mae = self.calc_mae(res2, input_data)
         self.assertTrue(
-            mae < tol,
-            "IFFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
+            mae < tol, "IFFT %s:%s, MAE(%s, numpy) = %f" % (mode, trdim, backend, mae)
         )
-
 
     # Test normalizations. silx FFT has three normalization modes:
     #    - "rescale" (default). FFT is unscaled, IFFT is scaled by 1/N.
@@ -251,7 +271,7 @@ class TestFFT(ParametricTestCase):
         },
         "cuda": {
             "supported_normalizations": ["rescale", "none"],
-        }
+        },
     }
 
     @staticmethod
@@ -270,7 +290,7 @@ class TestFFT(ParametricTestCase):
         elif silx_normalization_mode == "ortho":
             return np.fft.irfftn(data, axes=axes, norm="ortho")
         elif silx_normalization_mode == "none":
-            res =  np.fft.irfftn(data, axes=axes, norm=None)
+            res = np.fft.irfftn(data, axes=axes, norm=None)
             # This assumes a FFT on all the axes, won't work on batched FFT
             N = res.size
             return res * N
@@ -282,8 +302,8 @@ class TestFFT(ParametricTestCase):
         return self._test_norms_with_backend("fftw")
 
     @unittest.skipIf(
-        parse_version(np.version.version) <= parse_version("1.19.5"),
-        "normalization does not work for numpy <= 1.19.5"
+        Version(np.version.version) <= Version("1.19.5"),
+        "normalization does not work for numpy <= 1.19.5",
     )
     def test_norms_numpy(self):
         return self._test_norms_with_backend("numpy")
@@ -291,10 +311,13 @@ class TestFFT(ParametricTestCase):
     @unittest.skipIf(not __have_clfft__, "opencl back-end requires pyopencl and gpyfft")
     def test_norms_opencl(self):
         from silx.opencl.common import ocl
+
         if ocl is not None:
             return self._test_norms_with_backend("opencl")
 
-    @unittest.skipIf(not __have_cufft__, "cuda back-end requires pycuda and scikit-cuda")
+    @unittest.skipIf(
+        not __have_cufft__, "cuda back-end requires pycuda and scikit-cuda"
+    )
     def test_norms_cuda(self):
         get_cuda_context()
         return self._test_norms_with_backend("cuda")
@@ -309,12 +332,16 @@ class TestFFT(ParametricTestCase):
             fft = FFT(template=data, backend=backend_name, normalize=norm)
             res = fft.fft(data)
             ref = self._compute_numpy_normalized_fft(data, fft.axes, norm)
-            assert np.allclose(res, ref, atol=tol, rtol=tol), "Something wrong with %s norm=%s" % (backend_name, norm)
+            assert np.allclose(
+                res, ref, atol=tol, rtol=tol
+            ), "Something wrong with %s norm=%s" % (backend_name, norm)
 
             res2 = fft.ifft(res)
             ref2 = self._compute_numpy_normalized_ifft(ref, fft.axes, norm)
             # unscaled IFFT yields very large values. Use a relatively high "atol"
-            assert np.allclose(res2, ref2, atol=res2.max()/1e6), "Something wrong with I%s norm=%s" % (backend_name, norm)
+            assert np.allclose(
+                res2, ref2, atol=res2.max() / 1e6
+            ), "Something wrong with I%s norm=%s" % (backend_name, norm)
 
 
 @unittest.skipUnless(__have_scipy, "scipy is missing")
@@ -359,13 +386,12 @@ class TestNumpyFFT(ParametricTestCase):
         logger.debug("trdim: %s, mode: %s, size: %s", trdim, mode, str(size))
         ndim = len(size)
         input_data = self.test_data.data_refs[ndim].astype(
-            self.transform_infos.modes[mode])
+            self.transform_infos.modes[mode]
+        )
         np_fft, np_ifft = self.transforms[trdim][np.isrealobj(input_data)]
 
         F = FFT(
-            template=input_data,
-            axes=self.transform_infos.axes[trdim],
-            backend="numpy"
+            template=input_data, axes=self.transform_infos.axes[trdim], backend="numpy"
         )
         # Test FFT
         res = F.fft(input_data)
@@ -378,21 +404,20 @@ class TestNumpyFFT(ParametricTestCase):
         self.assertTrue(np.allclose(res2, ref2))
 
 
-@pytest.mark.skipif(not(__have_fftw__), reason="Need fftw/pyfftw for this test")
+@pytest.mark.skipif(not (__have_fftw__), reason="Need fftw/pyfftw for this test")
 def test_fftw_wisdom():
     """
     Test FFTW wisdom import/export mechanism
     """
 
-    assert path.isdir(path.dirname(get_wisdom_file())) # Default: tempdir.gettempdir()
+    assert path.isdir(path.dirname(get_wisdom_file()))  # Default: tempdir.gettempdir()
 
     with TemporaryDirectory(prefix="test_fftw_wisdom") as dname:
         subdir = path.join(dname, "subdir")
         get_wisdom_file(directory=subdir, create_dirs=False)
-        assert not(path.isdir(subdir))
+        assert not (path.isdir(subdir))
         fname = get_wisdom_file(directory=subdir, create_dirs=True)
         assert path.isdir(subdir)
         export_wisdom(fname)
         assert path.isfile(fname)
         import_wisdom(fname)
-

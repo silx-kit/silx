@@ -219,8 +219,9 @@ def _motor_in_scan(sf, scan_key, motor_name):
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
     if scan_key not in sf:
-        raise KeyError("Scan key %s " % scan_key +
-                       "does not exist in SpecFile %s" % sf.filename)
+        raise KeyError(
+            "Scan key %s " % scan_key + "does not exist in SpecFile %s" % sf.filename
+        )
     ret = motor_name in sf[scan_key].motor_names
     if not ret and "%" in motor_name:
         motor_name = motor_name.replace("%", "/")
@@ -237,8 +238,9 @@ def _column_label_in_scan(sf, scan_key, column_label):
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
     if scan_key not in sf:
-        raise KeyError("Scan key %s " % scan_key +
-                       "does not exist in SpecFile %s" % sf.filename)
+        raise KeyError(
+            "Scan key %s " % scan_key + "does not exist in SpecFile %s" % sf.filename
+        )
     ret = column_label in sf[scan_key].labels
     if not ret and "%" in column_label:
         column_label = column_label.replace("%", "/")
@@ -323,8 +325,9 @@ def _parse_ctime(ctime_lines, analyser_index=0):
     else:
         ctime_line = ctimes_lines_list[analyser_index]
     if not len(ctime_line.split()) == 3:
-        raise ValueError("Incorrect format for @CTIME header line " +
-                         '(expected "@CTIME %f %f %f").')
+        raise ValueError(
+            "Incorrect format for @CTIME header line " + '(expected "@CTIME %f %f %f").'
+        )
     return list(map(float, ctime_line.split()))
 
 
@@ -354,36 +357,52 @@ def spec_date_to_iso8601(date, zone=None):
         >>> spec_date_to_iso8601("Sat 2015/03/14 03:53:50")
         '2015-03-14T03:53:50'
     """
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
-              'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-    days_rx = '(?P<day>' + '|'.join(days) + ')'
-    months_rx = '(?P<month>' + '|'.join(months) + ')'
-    year_rx = r'(?P<year>\d{4})'
-    day_nb_rx = r'(?P<day_nb>[0-3 ]\d)'
-    month_nb_rx = r'(?P<month_nb>[0-1]\d)'
-    hh_rx = r'(?P<hh>[0-2]\d)'
-    mm_rx = r'(?P<mm>[0-5]\d)'
-    ss_rx = r'(?P<ss>[0-5]\d)'
-    tz_rx = r'(?P<tz>[+-]\d\d:\d\d){0,1}'
+    days_rx = "(?P<day>" + "|".join(days) + ")"
+    months_rx = "(?P<month>" + "|".join(months) + ")"
+    year_rx = r"(?P<year>\d{4})"
+    day_nb_rx = r"(?P<day_nb>[0-3 ]\d)"
+    month_nb_rx = r"(?P<month_nb>[0-1]\d)"
+    hh_rx = r"(?P<hh>[0-2]\d)"
+    mm_rx = r"(?P<mm>[0-5]\d)"
+    ss_rx = r"(?P<ss>[0-5]\d)"
+    tz_rx = r"(?P<tz>[+-]\d\d:\d\d){0,1}"
 
     # date formats must have either month_nb (1..12) or month (Jan, Feb, ...)
-    re_tpls = ['{days} {months} {day_nb} {hh}:{mm}:{ss}{tz} {year}',
-               '{days} {year}/{month_nb}/{day_nb} {hh}:{mm}:{ss}{tz}']
+    re_tpls = [
+        "{days} {months} {day_nb} {hh}:{mm}:{ss}{tz} {year}",
+        "{days} {year}/{month_nb}/{day_nb} {hh}:{mm}:{ss}{tz}",
+    ]
 
     grp_d = None
 
     for rx in re_tpls:
-        full_rx = rx.format(days=days_rx,
-                            months=months_rx,
-                            year=year_rx,
-                            day_nb=day_nb_rx,
-                            month_nb=month_nb_rx,
-                            hh=hh_rx,
-                            mm=mm_rx,
-                            ss=ss_rx,
-                            tz=tz_rx)
+        full_rx = rx.format(
+            days=days_rx,
+            months=months_rx,
+            year=year_rx,
+            day_nb=day_nb_rx,
+            month_nb=month_nb_rx,
+            hh=hh_rx,
+            mm=mm_rx,
+            ss=ss_rx,
+            tz=tz_rx,
+        )
         m = re.match(full_rx, date)
 
         if m:
@@ -391,30 +410,24 @@ def spec_date_to_iso8601(date, zone=None):
             break
 
     if not grp_d:
-        raise ValueError('Date format not recognized : {0}'.format(date))
+        raise ValueError("Date format not recognized : {0}".format(date))
 
-    year = grp_d['year']
+    year = grp_d["year"]
 
-    month = grp_d.get('month_nb')
+    month = grp_d.get("month_nb")
 
     if not month:
-        month = '{0:02d}'.format(months.index(grp_d.get('month')) + 1)
+        month = "{0:02d}".format(months.index(grp_d.get("month")) + 1)
 
-    day = grp_d['day_nb']
+    day = grp_d["day_nb"]
 
-    tz = grp_d['tz']
+    tz = grp_d["tz"]
     if not tz:
         tz = zone
 
-    time = '{0}:{1}:{2}'.format(grp_d['hh'],
-                                grp_d['mm'],
-                                grp_d['ss'])
+    time = "{0}:{1}:{2}".format(grp_d["hh"], grp_d["mm"], grp_d["ss"])
 
-    full_date = '{0}-{1}-{2}T{3}{4}'.format(year,
-                                            month,
-                                            day,
-                                            time,
-                                            tz if tz else '')
+    full_date = "{0}-{1}-{2}T{3}{4}".format(year, month, day, time, tz if tz else "")
     return full_date
 
 
@@ -457,6 +470,7 @@ class SpecH5Dataset(object):
     Datasets must also inherit :class:`SpecH5NodeDataset` or
     :class:`SpecH5LazyNodeDataset` which actually implement all the
     API."""
+
     pass
 
 
@@ -466,6 +480,7 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
     proxy behavior that allows to mimic the numpy array stored in this
     class.
     """
+
     def __init__(self, name, data, parent=None, attrs=None):
         # get proper value types, to inherit from numpy
         # attributes (dtype, shape, size)
@@ -483,8 +498,7 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
             data_kind = array.dtype.kind
 
             if data_kind in ["S", "U"]:
-                value = numpy.asarray(array,
-                                      dtype=text_dtype)
+                value = numpy.asarray(array, dtype=text_dtype)
             elif data_kind in ["f"]:
                 value = numpy.asarray(array, dtype=numpy.float32)
             else:
@@ -492,8 +506,7 @@ class SpecH5NodeDataset(commonh5.Dataset, SpecH5Dataset):
         commonh5.Dataset.__init__(self, name, value, parent, attrs)
 
     def __getattr__(self, item):
-        """Proxy to underlying numpy array methods.
-        """
+        """Proxy to underlying numpy array methods."""
         if hasattr(self[()], item):
             return getattr(self[()], item)
 
@@ -509,9 +522,9 @@ class SpecH5LazyNodeDataset(commonh5.LazyLoadableDataset, SpecH5Dataset):
     implemented to return the numpy data exposed by the dataset. This factory
     method is only called once, when the data is needed.
     """
+
     def __getattr__(self, item):
-        """Proxy to underlying numpy array methods.
-        """
+        """Proxy to underlying numpy array methods."""
         if hasattr(self[()], item):
             return getattr(self[()], item)
 
@@ -538,6 +551,7 @@ class SpecH5Group(object):
 
     Groups must also inherit :class:`silx.io.commonh5.Group`, which
     actually implements all the methods and attributes."""
+
     pass
 
 
@@ -559,11 +573,12 @@ class SpecH5(commonh5.File, SpecH5Group):
 
         self._sf = SpecFile(filename)
 
-        attrs = {"NX_class": to_h5py_utf8("NXroot"),
-                 "file_time": to_h5py_utf8(
-                         datetime.datetime.now().isoformat()),
-                 "file_name": to_h5py_utf8(filename),
-                 "creator": to_h5py_utf8("silx spech5 %s" % silx_version)}
+        attrs = {
+            "NX_class": to_h5py_utf8("NXroot"),
+            "file_time": to_h5py_utf8(datetime.datetime.now().isoformat()),
+            "file_name": to_h5py_utf8(filename),
+            "creator": to_h5py_utf8("silx spech5 %s" % silx_version),
+        }
         commonh5.File.__init__(self, filename, attrs=attrs)
 
         for scan_key in self._sf.keys():
@@ -584,42 +599,51 @@ class ScanGroup(commonh5.Group, SpecH5Group):
         :param str scan_key: Scan key (e.g. "1.1")
         :param scan: specfile.Scan object
         """
-        commonh5.Group.__init__(self, scan_key, parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXentry")})
+        commonh5.Group.__init__(
+            self, scan_key, parent=parent, attrs={"NX_class": to_h5py_utf8("NXentry")}
+        )
 
         # take title in #S after stripping away scan number and spaces
         s_hdr_line = scan.scan_header_dict["S"]
         title = s_hdr_line.lstrip("0123456789").lstrip()
-        self.add_node(SpecH5NodeDataset(name="title",
-                                        data=to_h5py_utf8(title),
-                                        parent=self))
+        self.add_node(
+            SpecH5NodeDataset(name="title", data=to_h5py_utf8(title), parent=self)
+        )
 
         if "D" in scan.scan_header_dict:
             try:
                 start_time_str = spec_date_to_iso8601(scan.scan_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warning("Could not parse date format in scan %s header." +
-                                " Using original date not converted to ISO-8601",
-                                scan_key)
+                logger1.warning(
+                    "Could not parse date format in scan %s header."
+                    + " Using original date not converted to ISO-8601",
+                    scan_key,
+                )
                 start_time_str = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
-            logger1.warning("No #D line in scan %s header. " +
-                            "Using file header for start_time.",
-                            scan_key)
+            logger1.warning(
+                "No #D line in scan %s header. " + "Using file header for start_time.",
+                scan_key,
+            )
             try:
                 start_time_str = spec_date_to_iso8601(scan.file_header_dict["D"])
             except (IndexError, ValueError):
-                logger1.warning("Could not parse date format in scan %s header. " +
-                                "Using original date not converted to ISO-8601",
-                                scan_key)
+                logger1.warning(
+                    "Could not parse date format in scan %s header. "
+                    + "Using original date not converted to ISO-8601",
+                    scan_key,
+                )
                 start_time_str = scan.file_header_dict["D"]
         else:
-            logger1.warning("No #D line in %s header. Setting date to empty string.",
-                            scan_key)
+            logger1.warning(
+                "No #D line in %s header. Setting date to empty string.", scan_key
+            )
             start_time_str = ""
-        self.add_node(SpecH5NodeDataset(name="start_time",
-                                        data=to_h5py_utf8(start_time_str),
-                                        parent=self))
+        self.add_node(
+            SpecH5NodeDataset(
+                name="start_time", data=to_h5py_utf8(start_time_str), parent=self
+            )
+        )
 
         self.add_node(InstrumentGroup(parent=self, scan=scan))
         self.add_node(MeasurementGroup(parent=self, scan=scan))
@@ -634,42 +658,60 @@ class InstrumentGroup(commonh5.Group, SpecH5Group):
         :param parent: parent Group
         :param scan: specfile.Scan object
         """
-        commonh5.Group.__init__(self, name="instrument", parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXinstrument")})
+        commonh5.Group.__init__(
+            self,
+            name="instrument",
+            parent=parent,
+            attrs={"NX_class": to_h5py_utf8("NXinstrument")},
+        )
 
         self.add_node(InstrumentSpecfileGroup(parent=self, scan=scan))
         self.add_node(PositionersGroup(parent=self, scan=scan))
 
         num_analysers = _get_number_of_mca_analysers(scan)
         for anal_idx in range(num_analysers):
-            self.add_node(InstrumentMcaGroup(parent=self,
-                                             analyser_index=anal_idx,
-                                             scan=scan))
+            self.add_node(
+                InstrumentMcaGroup(parent=self, analyser_index=anal_idx, scan=scan)
+            )
 
 
 class InstrumentSpecfileGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
-        commonh5.Group.__init__(self, name="specfile", parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXcollection")})
-        self.add_node(SpecH5NodeDataset(
+        commonh5.Group.__init__(
+            self,
+            name="specfile",
+            parent=parent,
+            attrs={"NX_class": to_h5py_utf8("NXcollection")},
+        )
+        self.add_node(
+            SpecH5NodeDataset(
                 name="file_header",
                 data=to_h5py_utf8(scan.file_header),
                 parent=self,
-                attrs={}))
-        self.add_node(SpecH5NodeDataset(
+                attrs={},
+            )
+        )
+        self.add_node(
+            SpecH5NodeDataset(
                 name="scan_header",
                 data=to_h5py_utf8(scan.scan_header),
                 parent=self,
-                attrs={}))
+                attrs={},
+            )
+        )
 
 
 class PositionersGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, scan):
-        commonh5.Group.__init__(self, name="positioners", parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXcollection")})
+        commonh5.Group.__init__(
+            self,
+            name="positioners",
+            parent=parent,
+            attrs={"NX_class": to_h5py_utf8("NXcollection")},
+        )
 
         dataset_info = []  # Store list of positioner's (name, value)
-        is_error = False   # True if error encountered
+        is_error = False  # True if error encountered
 
         for motor_name in scan.motor_names:
             safe_motor_name = motor_name.replace("/", "%")
@@ -683,31 +725,34 @@ class PositionersGroup(commonh5.Group, SpecH5Group):
                     motor_value = scan.motor_position_by_name(motor_name)
                 except SfErrColNotFound:
                     is_error = True
-                    motor_value = float('inf')
+                    motor_value = float("inf")
             dataset_info.append((safe_motor_name, motor_value))
 
         if is_error:  # Filter-out scalar values
             logger1.warning("Mismatching number of elements in #P and #O: Ignoring")
             dataset_info = [
-                (name, value) for name, value in dataset_info
-                if not isinstance(value, float)]
+                (name, value)
+                for name, value in dataset_info
+                if not isinstance(value, float)
+            ]
 
         for name, value in dataset_info:
-            self.add_node(SpecH5NodeDataset(
-                name=name,
-                data=value,
-                parent=self))
+            self.add_node(SpecH5NodeDataset(name=name, data=value, parent=self))
 
 
 class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, analyser_index, scan):
         name = "mca_%d" % analyser_index
-        commonh5.Group.__init__(self, name=name, parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXdetector")})
+        commonh5.Group.__init__(
+            self,
+            name=name,
+            parent=parent,
+            attrs={"NX_class": to_h5py_utf8("NXdetector")},
+        )
 
-        mcaDataDataset = McaDataDataset(parent=self,
-                                     analyser_index=analyser_index,
-                                     scan=scan)
+        mcaDataDataset = McaDataDataset(
+            parent=self, analyser_index=analyser_index, scan=scan
+        )
         self.add_node(mcaDataDataset)
         spectrum_length = mcaDataDataset.shape[-1]
         mcaDataDataset = None
@@ -720,7 +765,7 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
             calibration_dataset = scan.mca.calibration[analyser_index]
             channels_dataset = scan.mca.channels[analyser_index]
 
-        channels_length = len(channels_dataset) 
+        channels_length = len(channels_dataset)
         if (channels_length > 1) and (spectrum_length > 0):
             logger1.info("Spectrum and channels length mismatch")
             # this should always be the case
@@ -730,37 +775,48 @@ class InstrumentMcaGroup(commonh5.Group, SpecH5Group):
                 # only trust first channel and increment
                 channel0 = channels_dataset[0]
                 increment = channels_dataset[1] - channels_dataset[0]
-                channels_dataset = numpy.linspace(channel0,
-                                        channel0 + increment * spectrum_length,
-                                        spectrum_length, endpoint=False)
+                channels_dataset = numpy.linspace(
+                    channel0,
+                    channel0 + increment * spectrum_length,
+                    spectrum_length,
+                    endpoint=False,
+                )
 
-        self.add_node(SpecH5NodeDataset(name="calibration",
-                                        data=calibration_dataset,
-                                        parent=self))
-        self.add_node(SpecH5NodeDataset(name="channels",
-                                        data=channels_dataset,
-                                        parent=self))
+        self.add_node(
+            SpecH5NodeDataset(name="calibration", data=calibration_dataset, parent=self)
+        )
+        self.add_node(
+            SpecH5NodeDataset(name="channels", data=channels_dataset, parent=self)
+        )
 
         if "CTIME" in scan.mca_header_dict:
-            ctime_line = scan.mca_header_dict['CTIME']
-            preset_time, live_time, elapsed_time = _parse_ctime(ctime_line, analyser_index)
-            self.add_node(SpecH5NodeDataset(name="preset_time",
-                                            data=preset_time,
-                                            parent=self))
-            self.add_node(SpecH5NodeDataset(name="live_time",
-                                            data=live_time,
-                                            parent=self))
-            self.add_node(SpecH5NodeDataset(name="elapsed_time",
-                                            data=elapsed_time,
-                                            parent=self))
+            ctime_line = scan.mca_header_dict["CTIME"]
+            preset_time, live_time, elapsed_time = _parse_ctime(
+                ctime_line, analyser_index
+            )
+            self.add_node(
+                SpecH5NodeDataset(name="preset_time", data=preset_time, parent=self)
+            )
+            self.add_node(
+                SpecH5NodeDataset(name="live_time", data=live_time, parent=self)
+            )
+            self.add_node(
+                SpecH5NodeDataset(name="elapsed_time", data=elapsed_time, parent=self)
+            )
 
 
 class McaDataDataset(SpecH5LazyNodeDataset):
     """Lazy loadable dataset for MCA data"""
+
     def __init__(self, parent, analyser_index, scan):
         commonh5.LazyLoadableDataset.__init__(
-            self, name="data", parent=parent,
-            attrs={"interpretation": to_h5py_utf8("spectrum"),})
+            self,
+            name="data",
+            parent=parent,
+            attrs={
+                "interpretation": to_h5py_utf8("spectrum"),
+            },
+        )
         self._scan = scan
         self._analyser_index = analyser_index
         self._shape = None
@@ -786,7 +842,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
     def dtype(self):
         # we initialize the data with numpy.empty() without specifying a dtype
         # in _demultiplex_mca()
-        return numpy.empty((1, )).dtype
+        return numpy.empty((1,)).dtype
 
     def __len__(self):
         return self.shape[0]
@@ -798,8 +854,7 @@ class McaDataDataset(SpecH5LazyNodeDataset):
                 if item < 0:
                     # negative indexing
                     item += len(self)
-                return self._scan.mca[self._analyser_index +
-                                      item * self._num_analysers]
+                return self._scan.mca[self._analyser_index + item * self._num_analysers]
             # accessing a slice or element of a single spectrum [i, j:k]
             try:
                 spectrum_idx, channel_idx_or_slice = item
@@ -822,13 +877,21 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
         :param parent: parent Group
         :param scan: specfile.Scan object
         """
-        commonh5.Group.__init__(self, name="measurement", parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXcollection"),})
+        commonh5.Group.__init__(
+            self,
+            name="measurement",
+            parent=parent,
+            attrs={
+                "NX_class": to_h5py_utf8("NXcollection"),
+            },
+        )
         for label in scan.labels:
             safe_label = label.replace("/", "%")
-            self.add_node(SpecH5NodeDataset(name=safe_label,
-                                            data=scan.data_column_by_name(label),
-                                            parent=self))
+            self.add_node(
+                SpecH5NodeDataset(
+                    name=safe_label, data=scan.data_column_by_name(label), parent=self
+                )
+            )
 
         num_analysers = _get_number_of_mca_analysers(scan)
         for anal_idx in range(num_analysers):
@@ -838,16 +901,13 @@ class MeasurementGroup(commonh5.Group, SpecH5Group):
 class MeasurementMcaGroup(commonh5.Group, SpecH5Group):
     def __init__(self, parent, analyser_index):
         basename = "mca_%d" % analyser_index
-        commonh5.Group.__init__(self, name=basename, parent=parent,
-                                attrs={})
+        commonh5.Group.__init__(self, name=basename, parent=parent, attrs={})
 
         target_name = self.name.replace("measurement", "instrument")
-        self.add_node(commonh5.SoftLink(name="data",
-                                        path=target_name + "/data",
-                                        parent=self))
-        self.add_node(commonh5.SoftLink(name="info",
-                                        path=target_name,
-                                        parent=self))
+        self.add_node(
+            commonh5.SoftLink(name="data", path=target_name + "/data", parent=self)
+        )
+        self.add_node(commonh5.SoftLink(name="info", path=target_name, parent=self))
 
 
 class SampleGroup(commonh5.Group, SpecH5Group):
@@ -857,24 +917,46 @@ class SampleGroup(commonh5.Group, SpecH5Group):
         :param parent: parent Group
         :param scan: specfile.Scan object
         """
-        commonh5.Group.__init__(self, name="sample", parent=parent,
-                                attrs={"NX_class": to_h5py_utf8("NXsample"),})
+        commonh5.Group.__init__(
+            self,
+            name="sample",
+            parent=parent,
+            attrs={
+                "NX_class": to_h5py_utf8("NXsample"),
+            },
+        )
 
         if _unit_cell_in_scan(scan):
-            self.add_node(SpecH5NodeDataset(name="unit_cell",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"]),
-                                            parent=self,
-                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
-            self.add_node(SpecH5NodeDataset(name="unit_cell_abc",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
-                                            parent=self,
-                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
-            self.add_node(SpecH5NodeDataset(name="unit_cell_alphabetagamma",
-                                            data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
-                                            parent=self,
-                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
+            self.add_node(
+                SpecH5NodeDataset(
+                    name="unit_cell",
+                    data=_parse_unit_cell(scan.scan_header_dict["G1"]),
+                    parent=self,
+                    attrs={"interpretation": to_h5py_utf8("scalar")},
+                )
+            )
+            self.add_node(
+                SpecH5NodeDataset(
+                    name="unit_cell_abc",
+                    data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 0:3],
+                    parent=self,
+                    attrs={"interpretation": to_h5py_utf8("scalar")},
+                )
+            )
+            self.add_node(
+                SpecH5NodeDataset(
+                    name="unit_cell_alphabetagamma",
+                    data=_parse_unit_cell(scan.scan_header_dict["G1"])[0, 3:6],
+                    parent=self,
+                    attrs={"interpretation": to_h5py_utf8("scalar")},
+                )
+            )
         if _ub_matrix_in_scan(scan):
-            self.add_node(SpecH5NodeDataset(name="ub_matrix",
-                                            data=_parse_UB_matrix(scan.scan_header_dict["G3"]),
-                                            parent=self,
-                                            attrs={"interpretation": to_h5py_utf8("scalar")}))
+            self.add_node(
+                SpecH5NodeDataset(
+                    name="ub_matrix",
+                    data=_parse_UB_matrix(scan.scan_header_dict["G3"]),
+                    parent=self,
+                    attrs={"interpretation": to_h5py_utf8("scalar")},
+                )
+            )

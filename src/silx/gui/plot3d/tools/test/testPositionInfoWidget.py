@@ -66,12 +66,11 @@ class TestPositionInfoWidget(TestCaseQt):
 
     def test(self):
         """Test PositionInfoWidget"""
-        self.assertIs(self.positionInfoWidget.getSceneWidget(),
-                      self.sceneWidget)
+        self.assertIs(self.positionInfoWidget.getSceneWidget(), self.sceneWidget)
 
         data = numpy.arange(100)
         self.sceneWidget.add2DScatter(x=data, y=data, value=data)
-        self.sceneWidget.resetZoom('front')
+        self.sceneWidget.resetZoom("front")
 
         # Double click at the center
         self.mouseDClick(self.sceneWidget, button=qt.Qt.LeftButton)

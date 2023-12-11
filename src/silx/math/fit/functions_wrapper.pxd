@@ -102,6 +102,12 @@ cdef extern from "functions.h":
                          int len_pvoigt,
                          double* y)
 
+    int  sum_splitpvoigt2(double* x,
+                           int len_x,
+                           double* pvoigt,
+                           int len_pvoigt,
+                           double* y)
+
     int  sum_lorentz(double* x,
                      int len_x,
                      double* plorentz,

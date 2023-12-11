@@ -37,13 +37,13 @@ def test_with_commonh5(tmp_path):
     fobj = commonh5.File("filename.txt", mode="w")
     group = fobj.create_group("group")
     dataset = group.create_dataset("dataset", data=numpy.array(50))
-    group["soft_link"] = dataset # Create softlink
+    group["soft_link"] = dataset  # Create softlink
 
     output_filepath = tmp_path / "output.h5"
     write_to_h5(fobj, str(output_filepath))
 
     assert h5todict(str(output_filepath)) == {
-        'group': {'dataset': numpy.array(50), 'soft_link': numpy.array(50)},
+        "group": {"dataset": numpy.array(50), "soft_link": numpy.array(50)},
     }
     with h5py.File(output_filepath, mode="r") as h5file:
         soft_link = h5file.get("/group/soft_link", getlink=True)
@@ -62,7 +62,7 @@ def test_with_hdf5(tmp_path):
     output_filepath = tmp_path / "output.h5"
     write_to_h5(str(filepath), str(output_filepath))
     assert h5todict(str(output_filepath)) == {
-        'group': {'dataset': 50, 'soft_link': 50},
+        "group": {"dataset": 50, "soft_link": 50},
     }
     with h5py.File(output_filepath, mode="r") as h5file:
         soft_link = h5file.get("group/soft_link", getlink=True)
@@ -75,13 +75,14 @@ def test_with_spech5(tmp_path):
     filepath = tmp_path / "file.spec"
     filepath.write_bytes(
         bytes(
-"""#F /tmp/sf.dat
+            """#F /tmp/sf.dat
 
 #S 1 cmd
 #L a  b
 1 2
 """,
-        encoding='ascii')
+            encoding="ascii",
+        )
     )
 
     output_filepath = tmp_path / "output.h5"
@@ -97,20 +98,23 @@ def test_with_spech5(tmp_path):
         else:
             numpy.array_equal(item1, item2)
 
-    assert_equal(h5todict(str(output_filepath)), {
-        '1.1': {
-            'instrument': {
-                'positioners': {},
-                'specfile': {
-                    'file_header': ['#F /tmp/sf.dat'],
-                    'scan_header': ['#S 1 cmd', '#L a  b'],
+    assert_equal(
+        h5todict(str(output_filepath)),
+        {
+            "1.1": {
+                "instrument": {
+                    "positioners": {},
+                    "specfile": {
+                        "file_header": ["#F /tmp/sf.dat"],
+                        "scan_header": ["#S 1 cmd", "#L a  b"],
+                    },
                 },
+                "measurement": {
+                    "a": [1.0],
+                    "b": [2.0],
+                },
+                "start_time": "",
+                "title": "cmd",
             },
-            'measurement': {
-                'a': [1.],
-                'b': [2.],
-            },
-            'start_time': '',
-            'title': 'cmd',
         },
-    })
+    )

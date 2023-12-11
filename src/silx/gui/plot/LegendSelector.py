@@ -86,11 +86,10 @@ class LegendIcon(LegendIconWidget):
         self._update()
 
     def _update(self):
-        """Update widget according to current curve state.
-        """
+        """Update widget according to current curve state."""
         curve = self.getCurve()
         if curve is None:
-            _logger.error('Curve no more exists')
+            _logger.error("Curve no more exists")
             self.setEnabled(False)
             return
 
@@ -104,11 +103,10 @@ class LegendIcon(LegendIconWidget):
         color = style.getColor()
         if numpy.array(color, copy=False).ndim != 1:
             # array of colors, use transparent black
-            color = 0., 0., 0., 0.
+            color = 0.0, 0.0, 0.0, 0.0
         color = colors.rgba(color)  # Make sure it is float in [0, 1]
         alpha = curve.getAlpha()
-        color = qt.QColor.fromRgbF(
-            color[0], color[1], color[2], color[3] * alpha)
+        color = qt.QColor.fromRgbF(color[0], color[1], color[2], color[3] * alpha)
         self.setLineColor(color)
         self.setSymbolColor(color)
         self.update()  # TODO this should not be needed
@@ -118,15 +116,17 @@ class LegendIcon(LegendIconWidget):
 
         :param event: Kind of change
         """
-        if event in (items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.SYMBOL,
-                     items.ItemChangedType.SYMBOL_SIZE,
-                     items.ItemChangedType.LINE_WIDTH,
-                     items.ItemChangedType.LINE_STYLE,
-                     items.ItemChangedType.COLOR,
-                     items.ItemChangedType.ALPHA,
-                     items.ItemChangedType.HIGHLIGHTED,
-                     items.ItemChangedType.HIGHLIGHTED_STYLE):
+        if event in (
+            items.ItemChangedType.VISIBLE,
+            items.ItemChangedType.SYMBOL,
+            items.ItemChangedType.SYMBOL_SIZE,
+            items.ItemChangedType.LINE_WIDTH,
+            items.ItemChangedType.LINE_STYLE,
+            items.ItemChangedType.COLOR,
+            items.ItemChangedType.ALPHA,
+            items.ItemChangedType.HIGHLIGHTED,
+            items.ItemChangedType.HIGHLIGHTED_STYLE,
+        ):
             self._update()
 
 
@@ -142,6 +142,7 @@ class LegendModel(qt.QAbstractListModel):
     - symbol
     - visibility of the symbols
     """
+
     iconColorRole = qt.Qt.UserRole + 0
     iconLineWidthRole = qt.Qt.UserRole + 1
     iconLineStyleRole = qt.Qt.UserRole + 2
@@ -159,16 +160,14 @@ class LegendModel(qt.QAbstractListModel):
 
     def __getitem__(self, idx):
         if idx >= len(self.legendList):
-            raise IndexError('list index out of range')
+            raise IndexError("list index out of range")
         return self.legendList[idx]
 
     def rowCount(self, modelIndex=None):
         return len(self.legendList)
 
     def flags(self, index):
-        return (qt.Qt.ItemIsEditable |
-                qt.Qt.ItemIsEnabled |
-                qt.Qt.ItemIsSelectable)
+        return qt.Qt.ItemIsEditable | qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable
 
     def data(self, modelIndex, role):
         if modelIndex.isValid:
@@ -176,7 +175,7 @@ class LegendModel(qt.QAbstractListModel):
         else:
             return None
         if idx >= len(self.legendList):
-            raise IndexError('list index out of range')
+            raise IndexError("list index out of range")
 
         item = self.legendList[idx]
         isActive = item[1].get("active", False)
@@ -186,7 +185,7 @@ class LegendModel(qt.QAbstractListModel):
             return legend
         elif role == qt.Qt.SizeHintRole:
             # size = qt.QSize(200,50)
-            _logger.warning('LegendModel -- size hint role not implemented')
+            _logger.warning("LegendModel -- size hint role not implemented")
             return qt.QSize()
         elif role == qt.Qt.TextAlignmentRole:
             alignment = qt.Qt.AlignVCenter | qt.Qt.AlignLeft
@@ -194,7 +193,7 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.BackgroundRole:
             # Background color, must be QBrush
             if isActive:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.Highlight)
+                brush = self._palette.brush(qt.QPalette.Active, qt.QPalette.Highlight)
             elif idx % 2:
                 brush = qt.QBrush(qt.QColor(240, 240, 240))
             else:
@@ -203,28 +202,30 @@ class LegendModel(qt.QAbstractListModel):
         elif role == qt.Qt.ForegroundRole:
             # ForegroundRole color, must be QBrush
             if isActive:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.HighlightedText)
+                brush = self._palette.brush(
+                    qt.QPalette.Active, qt.QPalette.HighlightedText
+                )
             else:
-                brush = self._palette.brush(qt.QPalette.Normal, qt.QPalette.WindowText)
+                brush = self._palette.brush(qt.QPalette.Active, qt.QPalette.WindowText)
             return brush
         elif role == qt.Qt.CheckStateRole:
             return bool(item[2])  # item[2] == True
         elif role == qt.Qt.ToolTipRole or role == qt.Qt.StatusTipRole:
-            return ''
+            return ""
         elif role == self.iconColorRole:
-            return item[1]['color']
+            return item[1]["color"]
         elif role == self.iconLineWidthRole:
-            return item[1]['linewidth']
+            return item[1]["linewidth"]
         elif role == self.iconLineStyleRole:
-            return item[1]['linestyle']
+            return item[1]["linestyle"]
         elif role == self.iconSymbolRole:
-            return item[1]['symbol']
+            return item[1]["symbol"]
         elif role == self.showLineRole:
             return item[3]
         elif role == self.showSymbolRole:
             return item[4]
         else:
-            _logger.info('Unkown role requested: %s', str(role))
+            _logger.info("Unkown role requested: %s", str(role))
             return None
 
     def setData(self, modelIndex, value, role):
@@ -234,8 +235,7 @@ class LegendModel(qt.QAbstractListModel):
             return None
         if idx >= len(self.legendList):
             # raise IndexError('list index out of range')
-            _logger.warning(
-                'setData -- List index out of range, idx: %d', idx)
+            _logger.warning("setData -- List index out of range, idx: %d", idx)
             return None
 
         item = self.legendList[idx]
@@ -244,13 +244,13 @@ class LegendModel(qt.QAbstractListModel):
                 # Set legend
                 item[0] = str(value)
             elif role == self.iconColorRole:
-                item[1]['color'] = qt.QColor(value)
+                item[1]["color"] = qt.QColor(value)
             elif role == self.iconLineWidthRole:
-                item[1]['linewidth'] = int(value)
+                item[1]["linewidth"] = int(value)
             elif role == self.iconLineStyleRole:
-                item[1]['linestyle'] = str(value)
+                item[1]["linestyle"] = str(value)
             elif role == self.iconSymbolRole:
-                item[1]['symbol'] = str(value)
+                item[1]["symbol"] = str(value)
             elif role == qt.Qt.CheckStateRole:
                 item[2] = value
             elif role == self.showLineRole:
@@ -258,8 +258,9 @@ class LegendModel(qt.QAbstractListModel):
             elif role == self.showSymbolRole:
                 item[4] = value
         except ValueError:
-            _logger.warning('Conversion failed:\n\tvalue: %s\n\trole: %s',
-                            str(value), str(role))
+            _logger.warning(
+                "Conversion failed:\n\tvalue: %s\n\trole: %s", str(value), str(role)
+            )
         # Can that be right? Read docs again..
         self.dataChanged.emit(modelIndex, modelIndex)
         return True
@@ -272,44 +273,38 @@ class LegendModel(qt.QAbstractListModel):
         """
         modelIndex = self.createIndex(row, 0)
         count = len(llist)
-        super(LegendModel, self).beginInsertRows(modelIndex,
-                                                 row,
-                                                 row + count)
+        super(LegendModel, self).beginInsertRows(modelIndex, row, row + count)
         head = self.legendList[0:row]
         tail = self.legendList[row:]
         new = []
-        for (legend, icon) in llist:
-            linestyle = icon.get('linestyle', None)
+        for legend, icon in llist:
+            linestyle = icon.get("linestyle", None)
             if LegendIconWidget.isEmptyLineStyle(linestyle):
                 # Curve had no line, give it one and hide it
                 # So when toggle line, it will display a solid line
                 showLine = False
-                icon['linestyle'] = '-'
+                icon["linestyle"] = "-"
             else:
                 showLine = True
 
-            symbol = icon.get('symbol', None)
+            symbol = icon.get("symbol", None)
             if LegendIconWidget.isEmptySymbol(symbol):
                 # Curve had no symbol, give it one and hide it
                 # So when toggle symbol, it will display 'o'
                 showSymbol = False
-                icon['symbol'] = 'o'
+                icon["symbol"] = "o"
             else:
                 showSymbol = True
 
-            selected = icon.get('selected', True)
-            item = [legend,
-                    icon,
-                    selected,
-                    showLine,
-                    showSymbol]
+            selected = icon.get("selected", True)
+            item = [legend, icon, selected, showLine, showSymbol]
             new.append(item)
         self.legendList = head + new + tail
         super(LegendModel, self).endInsertRows()
         return True
 
     def insertRows(self, row, count, modelIndex=qt.QModelIndex()):
-        raise NotImplementedError('Use LegendModel.insertLegendList instead')
+        raise NotImplementedError("Use LegendModel.insertLegendList instead")
 
     def removeRow(self, row):
         return self.removeRows(row, 1)
@@ -320,14 +315,13 @@ class LegendModel(qt.QAbstractListModel):
             # Nothing to do..
             return True
         if row < 0 or row >= length:
-            raise IndexError('Index out of range -- ' +
-                             'idx: %d, len: %d' % (row, length))
+            raise IndexError(
+                "Index out of range -- " + "idx: %d, len: %d" % (row, length)
+            )
         if count == 0:
             return False
-        super(LegendModel, self).beginRemoveRows(modelIndex,
-                                                 row,
-                                                 row + count)
-        del(self.legendList[row:row + count])
+        super(LegendModel, self).beginRemoveRows(modelIndex, row, row + count)
+        del self.legendList[row : row + count]
         super(LegendModel, self).endRemoveRows()
         return True
 
@@ -338,8 +332,7 @@ class LegendModel(qt.QAbstractListModel):
         :type editor: QWidget
         """
         if event not in self.eventList:
-            raise ValueError('setEditor -- Event must be in %s' %
-                             str(self.eventList))
+            raise ValueError("setEditor -- Event must be in %s" % str(self.eventList))
         self.editorDict[event] = editor
 
 
@@ -380,12 +373,11 @@ class LegendListItemWidget(qt.QItemDelegate):
         iconSize = self.icon.sizeHint()
         # Calculate icon position
         x = rect.left() + 2
-        y = rect.top() + int(.5 * (rect.height() - iconSize.height()))
+        y = rect.top() + int(0.5 * (rect.height() - iconSize.height()))
         iconRect = qt.QRect(qt.QPoint(x, y), iconSize)
 
         # Calculate label rectangle
-        legendSize = qt.QSize(rect.width() - iconSize.width() - 30,
-                              rect.height())
+        legendSize = qt.QSize(rect.width() - iconSize.width() - 30, rect.height())
         # Calculate label position
         x = rect.left() + iconRect.width()
         y = rect.top()
@@ -443,8 +435,7 @@ class LegendListItemWidget(qt.QItemDelegate):
         else:
             checkState = qt.Qt.Unchecked
 
-        self.drawCheck(
-            painter, qt.QStyleOptionViewItem(), chBoxRect, checkState)
+        self.drawCheck(painter, qt.QStyleOptionViewItem(), chBoxRect, checkState)
 
         painter.restore()
 
@@ -453,7 +444,11 @@ class LegendListItemWidget(qt.QItemDelegate):
         # Mouse events are sent to editorEvent()
         # even if they don't start editing of the item.
         if event.button() == qt.Qt.RightButton and self.contextMenu:
-            self.contextMenu.exec(event.globalPos(), modelIndex)
+            if qt.BINDING == "PyQt5":
+                position = event.globalPos()
+            else:  # Qt6
+                position = event.globalPosition().toPoint()
+            self.contextMenu.exec(position, modelIndex)
             return True
         elif event.button() == qt.Qt.LeftButton:
             # Check if checkbox was clicked
@@ -461,26 +456,29 @@ class LegendListItemWidget(qt.QItemDelegate):
             cbRect = self.cbDict[idx]
             if cbRect.contains(event.pos()):
                 # Toggle checkbox
-                model.setData(modelIndex,
-                              not modelIndex.data(qt.Qt.CheckStateRole),
-                              qt.Qt.CheckStateRole)
+                model.setData(
+                    modelIndex,
+                    not modelIndex.data(qt.Qt.CheckStateRole),
+                    qt.Qt.CheckStateRole,
+                )
             event.ignore()
             return True
         else:
             return super(LegendListItemWidget, self).editorEvent(
-                event, model, option, modelIndex)
+                event, model, option, modelIndex
+            )
 
     def createEditor(self, parent, option, idx):
-        _logger.info('### Editor request ###')
+        _logger.info("### Editor request ###")
 
     def sizeHint(self, option, idx):
         # return qt.QSize(68,24)
         iconSize = self.icon.sizeHint()
         legendSize = self.legend.sizeHint()
         checkboxSize = self.checkbox.sizeHint()
-        height = max([iconSize.height(),
-                      legendSize.height(),
-                      checkboxSize.height()]) + 4
+        height = (
+            max([iconSize.height(), legendSize.height(), checkboxSize.height()]) + 4
+        )
         width = iconSize.width() + legendSize.width() + checkboxSize.width()
         return qt.QSize(width, height)
 
@@ -491,9 +489,9 @@ class LegendListView(qt.QListView):
     sigLegendSignal = qt.Signal(object)
     """Signal emitting a dict when an action is triggered by the user."""
 
-    __mouseClickedEvent = 'mouseClicked'
-    __checkBoxClickedEvent = 'checkBoxClicked'
-    __legendClickedEvent = 'legendClicked'
+    __mouseClickedEvent = "mouseClicked"
+    __checkBoxClickedEvent = "checkBoxClicked"
+    __legendClickedEvent = "legendClicked"
 
     def __init__(self, parent=None, model=None, contextMenu=None):
         super(LegendListView, self).__init__(parent)
@@ -539,47 +537,50 @@ class LegendListView(qt.QListView):
                     model.setData(modelIndex, new_legend, qt.Qt.DisplayRole)
 
                 color = modelIndex.data(LegendModel.iconColorRole)
-                new_color = icon.get('color', None)
+                new_color = icon.get("color", None)
                 if new_color != color:
                     model.setData(modelIndex, new_color, LegendModel.iconColorRole)
 
                 linewidth = modelIndex.data(LegendModel.iconLineWidthRole)
-                new_linewidth = icon.get('linewidth', 1.0)
+                new_linewidth = icon.get("linewidth", 1.0)
                 if new_linewidth != linewidth:
-                    model.setData(modelIndex, new_linewidth, LegendModel.iconLineWidthRole)
+                    model.setData(
+                        modelIndex, new_linewidth, LegendModel.iconLineWidthRole
+                    )
 
                 linestyle = modelIndex.data(LegendModel.iconLineStyleRole)
-                new_linestyle = icon.get('linestyle', None)
+                new_linestyle = icon.get("linestyle", None)
                 visible = not LegendIconWidget.isEmptyLineStyle(new_linestyle)
                 model.setData(modelIndex, visible, LegendModel.showLineRole)
                 if new_linestyle != linestyle:
-                    model.setData(modelIndex, new_linestyle, LegendModel.iconLineStyleRole)
+                    model.setData(
+                        modelIndex, new_linestyle, LegendModel.iconLineStyleRole
+                    )
 
                 symbol = modelIndex.data(LegendModel.iconSymbolRole)
-                new_symbol = icon.get('symbol', None)
+                new_symbol = icon.get("symbol", None)
                 visible = not LegendIconWidget.isEmptySymbol(new_symbol)
                 model.setData(modelIndex, visible, LegendModel.showSymbolRole)
                 if new_symbol != symbol:
                     model.setData(modelIndex, new_symbol, LegendModel.iconSymbolRole)
 
                 selected = modelIndex.data(qt.Qt.CheckStateRole)
-                new_selected = icon.get('selected', True)
+                new_selected = icon.get("selected", True)
                 if new_selected != selected:
                     model.setData(modelIndex, new_selected, qt.Qt.CheckStateRole)
-        _logger.debug('LegendListView.setLegendList(legendList) finished')
+        _logger.debug("LegendListView.setLegendList(legendList) finished")
 
     def clear(self):
         model = self.model()
         model.removeRows(0, model.rowCount())
-        _logger.debug('LegendListView.clear() finished')
+        _logger.debug("LegendListView.clear() finished")
 
     def setContextMenu(self, contextMenu=None):
         delegate = self.itemDelegate()
         if isinstance(delegate, LegendListItemWidget) and self.model():
             if contextMenu is None:
                 delegate.contextMenu = LegendListContextMenu(self.model())
-                delegate.contextMenu.sigContextMenu.connect(
-                    self._contextMenuSlot)
+                delegate.contextMenu.sigContextMenu.connect(self._contextMenuSlot)
             else:
                 delegate.contextMenu = contextMenu
 
@@ -632,12 +633,11 @@ class LegendListView(qt.QListView):
 
         :param QModelIndex modelIndex: index of the clicked item
         """
-        _logger.debug('self._handleMouseClick called')
-        if self.__lastButton not in [qt.Qt.LeftButton,
-                                     qt.Qt.RightButton]:
+        _logger.debug("self._handleMouseClick called")
+        if self.__lastButton not in [qt.Qt.LeftButton, qt.Qt.RightButton]:
             return
         if not modelIndex.isValid():
-            _logger.debug('_handleMouseClick -- Invalid QModelIndex')
+            _logger.debug("_handleMouseClick -- Invalid QModelIndex")
             return
         # model = self.model()
         idx = modelIndex.row()
@@ -653,30 +653,28 @@ class LegendListView(qt.QListView):
         # TODO: Check for doubleclicks on legend/icon and spawn editors
 
         ddict = {
-            'legend': str(modelIndex.data(qt.Qt.DisplayRole)),
-            'icon': {
-                'linewidth': str(modelIndex.data(
-                    LegendModel.iconLineWidthRole)),
-                'linestyle': str(modelIndex.data(
-                    LegendModel.iconLineStyleRole)),
-                'symbol': str(modelIndex.data(LegendModel.iconSymbolRole))
+            "legend": str(modelIndex.data(qt.Qt.DisplayRole)),
+            "icon": {
+                "linewidth": str(modelIndex.data(LegendModel.iconLineWidthRole)),
+                "linestyle": str(modelIndex.data(LegendModel.iconLineStyleRole)),
+                "symbol": str(modelIndex.data(LegendModel.iconSymbolRole)),
             },
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data())
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
         }
         if self.__lastButton == qt.Qt.RightButton:
-            _logger.debug('Right clicked')
-            ddict['button'] = "right"
-            ddict['event'] = self.__mouseClickedEvent
+            _logger.debug("Right clicked")
+            ddict["button"] = "right"
+            ddict["event"] = self.__mouseClickedEvent
         elif cbClicked:
-            _logger.debug('CheckBox clicked')
-            ddict['button'] = "left"
-            ddict['event'] = self.__checkBoxClickedEvent
+            _logger.debug("CheckBox clicked")
+            ddict["button"] = "left"
+            ddict["event"] = self.__checkBoxClickedEvent
         else:
-            _logger.debug('Legend clicked')
-            ddict['button'] = "left"
-            ddict['event'] = self.__legendClickedEvent
-        _logger.debug('  idx: %d\n  ddict: %s', idx, str(ddict))
+            _logger.debug("Legend clicked")
+            ddict["button"] = "left"
+            ddict["event"] = self.__legendClickedEvent
+        _logger.debug("  idx: %d\n  ddict: %s", idx, str(ddict))
         self.sigLegendSignal.emit(ddict)
 
 
@@ -690,29 +688,26 @@ class LegendListContextMenu(qt.QMenu):
         super(LegendListContextMenu, self).__init__(parent=None)
         self.model = model
 
-        self.addAction('Set Active', self.setActiveAction)
-        self.addAction('Map to left', self.mapToLeftAction)
-        self.addAction('Map to right', self.mapToRightAction)
+        self.addAction("Set Active", self.setActiveAction)
+        self.addAction("Map to left", self.mapToLeftAction)
+        self.addAction("Map to right", self.mapToRightAction)
 
-        self._pointsAction = self.addAction(
-            'Points', self.togglePointsAction)
+        self._pointsAction = self.addAction("Points", self.togglePointsAction)
         self._pointsAction.setCheckable(True)
 
-        self._linesAction = self.addAction('Lines', self.toggleLinesAction)
+        self._linesAction = self.addAction("Lines", self.toggleLinesAction)
         self._linesAction.setCheckable(True)
 
-        self.addAction('Remove curve', self.removeItemAction)
-        self.addAction('Rename curve', self.renameItemAction)
+        self.addAction("Remove curve", self.removeItemAction)
+        self.addAction("Rename curve", self.renameItemAction)
 
     def exec(self, pos, idx):
         self.__currentIdx = idx
 
         # Set checkable action state
         modelIndex = self.currentIdx()
-        self._pointsAction.setChecked(
-            modelIndex.data(LegendModel.showSymbolRole))
-        self._linesAction.setChecked(
-            modelIndex.data(LegendModel.showLineRole))
+        self._pointsAction.setChecked(modelIndex.data(LegendModel.showSymbolRole))
+        self._linesAction.setChecked(modelIndex.data(LegendModel.showLineRole))
 
         super(LegendListContextMenu, self).popup(pos)
 
@@ -723,55 +718,55 @@ class LegendListContextMenu(qt.QMenu):
         return self.__currentIdx
 
     def mapToLeftAction(self):
-        _logger.debug('LegendListContextMenu.mapToLeftAction called')
+        _logger.debug("LegendListContextMenu.mapToLeftAction called")
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
-            'event': "mapToLeft"
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
+            "event": "mapToLeft",
         }
         self.sigContextMenu.emit(ddict)
 
     def mapToRightAction(self):
-        _logger.debug('LegendListContextMenu.mapToRightAction called')
+        _logger.debug("LegendListContextMenu.mapToRightAction called")
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
-            'event': "mapToRight"
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
+            "event": "mapToRight",
         }
         self.sigContextMenu.emit(ddict)
 
     def removeItemAction(self):
-        _logger.debug('LegendListContextMenu.removeCurveAction called')
+        _logger.debug("LegendListContextMenu.removeCurveAction called")
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
-            'event': "removeCurve"
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
+            "event": "removeCurve",
         }
         self.model.removeRow(modelIndex.row())
         self.sigContextMenu.emit(ddict)
 
     def renameItemAction(self):
-        _logger.debug('LegendListContextMenu.renameCurveAction called')
+        _logger.debug("LegendListContextMenu.renameCurveAction called")
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
-            'event': "renameCurve"
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
+            "event": "renameCurve",
         }
         self.sigContextMenu.emit(ddict)
 
@@ -779,17 +774,17 @@ class LegendListContextMenu(qt.QMenu):
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
         }
         linestyle = modelIndex.data(LegendModel.iconLineStyleRole)
         visible = not modelIndex.data(LegendModel.showLineRole)
-        _logger.debug('toggleLinesAction -- lines visible: %s', str(visible))
-        ddict['event'] = "toggleLine"
-        ddict['line'] = visible
-        ddict['linestyle'] = linestyle if visible else ''
+        _logger.debug("toggleLinesAction -- lines visible: %s", str(visible))
+        ddict["event"] = "toggleLine"
+        ddict["line"] = visible
+        ddict["linestyle"] = linestyle if visible else ""
         self.model.setData(modelIndex, visible, LegendModel.showLineRole)
         self.sigContextMenu.emit(ddict)
 
@@ -797,33 +792,32 @@ class LegendListContextMenu(qt.QMenu):
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
         }
         flag = modelIndex.data(LegendModel.showSymbolRole)
         symbol = modelIndex.data(LegendModel.iconSymbolRole)
         visible = not flag or LegendIconWidget.isEmptySymbol(symbol)
-        _logger.debug(
-            'togglePointsAction -- Symbols visible: %s', str(visible))
+        _logger.debug("togglePointsAction -- Symbols visible: %s", str(visible))
 
-        ddict['event'] = "togglePoints"
-        ddict['points'] = visible
-        ddict['symbol'] = symbol if visible else ''
+        ddict["event"] = "togglePoints"
+        ddict["points"] = visible
+        ddict["symbol"] = symbol if visible else ""
         self.model.setData(modelIndex, visible, LegendModel.showSymbolRole)
         self.sigContextMenu.emit(ddict)
 
     def setActiveAction(self):
         modelIndex = self.currentIdx()
         legend = str(modelIndex.data(qt.Qt.DisplayRole))
-        _logger.debug('setActiveAction -- active curve: %s', legend)
+        _logger.debug("setActiveAction -- active curve: %s", legend)
         ddict = {
-            'legend': legend,
-            'label': legend,
-            'selected': modelIndex.data(qt.Qt.CheckStateRole),
-            'type': str(modelIndex.data()),
-            'event': "setActiveCurve",
+            "legend": legend,
+            "label": legend,
+            "selected": modelIndex.data(qt.Qt.CheckStateRole),
+            "type": str(modelIndex.data()),
+            "event": "setActiveCurve",
         }
         self.sigContextMenu.emit(ddict)
 
@@ -842,10 +836,10 @@ class RenameCurveDialog(qt.QDialog):
         self.hboxLayout = qt.QHBoxLayout(self.hbox)
         self.hboxLayout.addStretch(1)
         self.okButton = qt.QPushButton(self.hbox)
-        self.okButton.setText('OK')
+        self.okButton.setText("OK")
         self.hboxLayout.addWidget(self.okButton)
         self.cancelButton = qt.QPushButton(self.hbox)
-        self.cancelButton.setText('Cancel')
+        self.cancelButton.setText("Cancel")
         self.hboxLayout.addWidget(self.cancelButton)
         self.hboxLayout.addStretch(1)
         layout.addWidget(self.lineEdit)
@@ -895,8 +889,7 @@ class LegendsDockWidget(qt.QDockWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self._legendWidget)
 
-        self.visibilityChanged.connect(
-            self._visibilityChangedHandler)
+        self.visibilityChanged.connect(self._visibilityChangedHandler)
 
         self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
 
@@ -913,23 +906,25 @@ class LegendsDockWidget(qt.QDockWidget):
         """
         is_active = self.plot.getActiveCurve(just_legend=True) == oldLegend
         curve = self.plot.getCurve(oldLegend)
-        self.plot.remove(oldLegend, kind='curve')
-        self.plot.addCurve(curve.getXData(copy=False),
-                           curve.getYData(copy=False),
-                           legend=newLegend,
-                           info=curve.getInfo(),
-                           color=curve.getColor(),
-                           symbol=curve.getSymbol(),
-                           linewidth=curve.getLineWidth(),
-                           linestyle=curve.getLineStyle(),
-                           xlabel=curve.getXLabel(),
-                           ylabel=curve.getYLabel(),
-                           xerror=curve.getXErrorData(copy=False),
-                           yerror=curve.getYErrorData(copy=False),
-                           z=curve.getZValue(),
-                           selectable=curve.isSelectable(),
-                           fill=curve.isFill(),
-                           resetzoom=False)
+        self.plot.remove(oldLegend, kind="curve")
+        self.plot.addCurve(
+            curve.getXData(copy=False),
+            curve.getYData(copy=False),
+            legend=newLegend,
+            info=curve.getInfo(),
+            color=curve.getColor(),
+            symbol=curve.getSymbol(),
+            linewidth=curve.getLineWidth(),
+            linestyle=curve.getLineStyle(),
+            xlabel=curve.getXLabel(),
+            ylabel=curve.getYLabel(),
+            xerror=curve.getXErrorData(copy=False),
+            yerror=curve.getYErrorData(copy=False),
+            z=curve.getZValue(),
+            selectable=curve.isSelectable(),
+            fill=curve.isFill(),
+            resetzoom=False,
+        )
         if is_active:
             self.plot.setActiveCurve(newLegend)
 
@@ -937,64 +932,69 @@ class LegendsDockWidget(qt.QDockWidget):
         """Handles events from the LegendListView signal"""
         _logger.debug("Legend signal ddict = %s", str(ddict))
 
-        if ddict['event'] == "legendClicked":
-            if ddict['button'] == "left":
-                self.plot.setActiveCurve(ddict['legend'])
+        if ddict["event"] == "legendClicked":
+            if ddict["button"] == "left":
+                self.plot.setActiveCurve(ddict["legend"])
 
-        elif ddict['event'] == "removeCurve":
-            self.plot.removeCurve(ddict['legend'])
+        elif ddict["event"] == "removeCurve":
+            self.plot.removeCurve(ddict["legend"])
 
-        elif ddict['event'] == "renameCurve":
+        elif ddict["event"] == "renameCurve":
             curveList = self.plot.getAllCurves(just_legend=True)
-            oldLegend = ddict['legend']
+            oldLegend = ddict["legend"]
             dialog = RenameCurveDialog(self.plot, oldLegend, curveList)
             ret = dialog.exec()
             if ret:
                 newLegend = dialog.getText()
                 self.renameCurve(oldLegend, newLegend)
 
-        elif ddict['event'] == "setActiveCurve":
-            self.plot.setActiveCurve(ddict['legend'])
+        elif ddict["event"] == "setActiveCurve":
+            self.plot.setActiveCurve(ddict["legend"])
 
-        elif ddict['event'] == "checkBoxClicked":
-            self.plot.hideCurve(ddict['legend'], not ddict['selected'])
+        elif ddict["event"] == "checkBoxClicked":
+            self.plot.hideCurve(ddict["legend"], not ddict["selected"])
 
-        elif ddict['event'] in ["mapToRight", "mapToLeft"]:
-            legend = ddict['legend']
+        elif ddict["event"] in ["mapToRight", "mapToLeft"]:
+            legend = ddict["legend"]
             curve = self.plot.getCurve(legend)
-            yaxis = 'right' if ddict['event'] == 'mapToRight' else 'left'
-            self.plot.addCurve(x=curve.getXData(copy=False),
-                               y=curve.getYData(copy=False),
-                               legend=curve.getName(),
-                               info=curve.getInfo(),
-                               yaxis=yaxis)
+            yaxis = "right" if ddict["event"] == "mapToRight" else "left"
+            self.plot.addCurve(
+                x=curve.getXData(copy=False),
+                y=curve.getYData(copy=False),
+                legend=curve.getName(),
+                info=curve.getInfo(),
+                yaxis=yaxis,
+            )
 
-        elif ddict['event'] == "togglePoints":
-            legend = ddict['legend']
+        elif ddict["event"] == "togglePoints":
+            legend = ddict["legend"]
             curve = self.plot.getCurve(legend)
-            symbol = ddict['symbol'] if ddict['points'] else ''
-            self.plot.addCurve(x=curve.getXData(copy=False),
-                               y=curve.getYData(copy=False),
-                               legend=curve.getName(),
-                               info=curve.getInfo(),
-                               symbol=symbol)
+            symbol = ddict["symbol"] if ddict["points"] else ""
+            self.plot.addCurve(
+                x=curve.getXData(copy=False),
+                y=curve.getYData(copy=False),
+                legend=curve.getName(),
+                info=curve.getInfo(),
+                symbol=symbol,
+            )
 
-        elif ddict['event'] == "toggleLine":
-            legend = ddict['legend']
+        elif ddict["event"] == "toggleLine":
+            legend = ddict["legend"]
             curve = self.plot.getCurve(legend)
-            linestyle = ddict['linestyle'] if ddict['line'] else ''
-            self.plot.addCurve(x=curve.getXData(copy=False),
-                               y=curve.getYData(copy=False),
-                               legend=curve.getName(),
-                               info=curve.getInfo(),
-                               linestyle=linestyle)
+            linestyle = ddict["linestyle"] if ddict["line"] else ""
+            self.plot.addCurve(
+                x=curve.getXData(copy=False),
+                y=curve.getYData(copy=False),
+                legend=curve.getName(),
+                info=curve.getInfo(),
+                linestyle=linestyle,
+            )
 
         else:
-            _logger.debug("unhandled event %s", str(ddict['event']))
+            _logger.debug("unhandled event %s", str(ddict["event"]))
 
     def updateLegends(self, *args):
-        """Sync the LegendSelector widget displayed info with the plot.
-        """
+        """Sync the LegendSelector widget displayed info with the plot."""
         legendList = []
         for curve in self.plot.getAllCurves(withhidden=True):
             legend = curve.getName()
@@ -1004,15 +1004,16 @@ class LegendsDockWidget(qt.QDockWidget):
             color = style.getColor()
             if numpy.array(color, copy=False).ndim != 1:
                 # array of colors, use transparent black
-                color = 0., 0., 0., 0.
+                color = 0.0, 0.0, 0.0, 0.0
 
             curveInfo = {
-                'color': qt.QColor.fromRgbF(*color),
-                'linewidth': style.getLineWidth(),
-                'linestyle': style.getLineStyle(),
-                'symbol': style.getSymbol(),
-                'selected': not self.plot.isCurveHidden(legend),
-                'active': isActive}
+                "color": qt.QColor.fromRgbF(*color),
+                "linewidth": style.getLineWidth(),
+                "linestyle": style.getLineStyle(),
+                "symbol": style.getSymbol(),
+                "selected": not self.plot.isCurveHidden(legend),
+                "active": isActive,
+            }
             legendList.append((legend, curveInfo))
 
         self._legendWidget.setLegendList(legendList)

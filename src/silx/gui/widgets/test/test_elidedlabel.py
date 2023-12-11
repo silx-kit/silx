@@ -32,7 +32,6 @@ from silx.gui.utils import testutils
 
 
 class TestElidedLabel(testutils.TestCaseQt):
-
     def setUp(self):
         self.label = ElidedLabel()
         self.label.show()

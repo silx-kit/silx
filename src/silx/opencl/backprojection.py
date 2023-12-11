@@ -59,12 +59,23 @@ def _idivup(a, b):
 
 class Backprojection(OpenclProcessing):
     """A class for performing the backprojection using OpenCL"""
+
     kernel_files = ["backproj.cl", "array_utils.cl"]
 
-    def __init__(self, sino_shape, slice_shape=None, axis_position=None,
-                 angles=None, filter_name=None, ctx=None, devicetype="all",
-                 platformid=None, deviceid=None, profile=False,
-                 extra_options=None):
+    def __init__(
+        self,
+        sino_shape,
+        slice_shape=None,
+        axis_position=None,
+        angles=None,
+        filter_name=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+        extra_options=None,
+    ):
         """Constructor of the OpenCL (filtered) backprojection
 
         :param sino_shape: shape of the sinogram. The sinogram is in the format
@@ -96,19 +107,26 @@ class Backprojection(OpenclProcessing):
         #  assuming no discrete GPU
         #    raise NotImplementedError("Backprojection is not implemented on CPU for OS X yet")
 
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
 
-        self._init_geometry(sino_shape, slice_shape, angles, axis_position,
-                           extra_options)
+        self._init_geometry(
+            sino_shape, slice_shape, angles, axis_position, extra_options
+        )
         self._allocate_memory()
         self._compute_angles()
         self._init_kernels()
         self._init_filter(filter_name)
 
-    def _init_geometry(self, sino_shape, slice_shape, angles, axis_position,
-                      extra_options):
+    def _init_geometry(
+        self, sino_shape, slice_shape, angles, axis_position, extra_options
+    ):
         """Geometry Initialization
 
         :param sino_shape: shape of the sinogram. The sinogram is in the format
@@ -132,12 +150,12 @@ class Backprojection(OpenclProcessing):
             self.slice_shape = slice_shape
         self.dimrec_shape = (
             _idivup(self.slice_shape[0], 32) * 32,
-            _idivup(self.slice_shape[1], 32) * 32
+            _idivup(self.slice_shape[1], 32) * 32,
         )
         if axis_position:
             self.axis_pos = np.float32(axis_position)
         else:
-            self.axis_pos = np.float32((sino_shape[1] - 1.) / 2)
+            self.axis_pos = np.float32((sino_shape[1] - 1.0) / 2)
         self.axis_array = None  # TODO: add axis correction front-end
         self._init_extra_options(extra_options)
 
@@ -147,11 +165,11 @@ class Backprojection(OpenclProcessing):
         :param dict extra_options: Advanced extra options
         """
         self.extra_options = {
-            "cutoff": 1.,
+            "cutoff": 1.0,
             "use_numpy_fft": False,
             # It is  axis_pos - (num_bins-1)/2  in PyHST
-            "gpu_offset_x": 0., #self.axis_pos - (self.num_bins - 1) / 2.,
-            "gpu_offset_y": 0., #self.axis_pos - (self.num_bins - 1) / 2.
+            "gpu_offset_x": 0.0,  # self.axis_pos - (self.num_bins - 1) / 2.,
+            "gpu_offset_y": 0.0,  # self.axis_pos - (self.num_bins - 1) / 2.
         }
         if extra_options is not None:
             self.extra_options.update(extra_options)
@@ -164,7 +182,9 @@ class Backprojection(OpenclProcessing):
         # Device memory
         self.buffers = [
             BufferDescription("_d_slice", self.dimrec_shape, np.float32, mf.READ_WRITE),
-            BufferDescription("d_sino", self.shape, np.float32, mf.READ_WRITE),  # before transferring to texture (if available)
+            BufferDescription(
+                "d_sino", self.shape, np.float32, mf.READ_WRITE
+            ),  # before transferring to texture (if available)
             BufferDescription("d_cos", (self.num_projs,), np.float32, mf.READ_ONLY),
             BufferDescription("d_sin", (self.num_projs,), np.float32, mf.READ_ONLY),
             BufferDescription("d_axes", (self.num_projs,), np.float32, mf.READ_ONLY),
@@ -189,27 +209,29 @@ class Backprojection(OpenclProcessing):
         if self.axis_array:
             self.cl_mem["d_axes"][:] = self.axis_array.astype(np.float32)[:]
         else:
-            self.cl_mem["d_axes"][:] = np.ones(self.num_projs, dtype="f") * self.axis_pos
+            self.cl_mem["d_axes"][:] = (
+                np.ones(self.num_projs, dtype="f") * self.axis_pos
+            )
 
     def _init_kernels(self):
         compile_options = None
-        if not(self._use_textures):
+        if not (self._use_textures):
             compile_options = "-DDONT_USE_TEXTURES"
         OpenclProcessing.compile_kernels(
-            self,
-            self.kernel_files,
-            compile_options=compile_options
+            self, self.kernel_files, compile_options=compile_options
         )
         # check that workgroup can actually be (16, 16)
-        self.compiletime_workgroup_size = self.kernels.max_workgroup_size("backproj_cpu_kernel")
+        self.compiletime_workgroup_size = self.kernels.max_workgroup_size(
+            "backproj_cpu_kernel"
+        )
         # Workgroup and ndrange sizes are always the same
         self.wg = (16, 16)
         self.ndrange = (
             _idivup(int(self.dimrec_shape[1]), 32) * self.wg[0],
-            _idivup(int(self.dimrec_shape[0]), 32) * self.wg[1]
+            _idivup(int(self.dimrec_shape[0]), 32) * self.wg[1],
         )
         # Prepare arguments for the kernel call
-        if not(self._use_textures):
+        if not (self._use_textures):
             d_sino_ref = self.d_sino.data
         else:
             d_sino_ref = self.d_sino_tex
@@ -224,7 +246,7 @@ class Backprojection(OpenclProcessing):
             self.cl_mem["_d_slice"].data,
             # d_sino (__read_only image2d_t or float*)
             d_sino_ref,
-            # gpu_offset_x (float32) 
+            # gpu_offset_x (float32)
             np.float32(self.extra_options["gpu_offset_x"]),
             # gpu_offset_y (float32)
             np.float32(self.extra_options["gpu_offset_y"]),
@@ -235,7 +257,7 @@ class Backprojection(OpenclProcessing):
             # d_axis  (__global float32*)
             self.cl_mem["d_axes"].data,
             # shared mem (__local float32*)
-            self._get_local_mem()
+            self._get_local_mem(),
         )
 
     def _allocate_textures(self):
@@ -271,7 +293,7 @@ class Backprojection(OpenclProcessing):
             np.int32(self.dimrec_shape[1]),
             np.int32((0, 0)),
             np.int32((0, 0)),
-            slice_shape_ocl
+            slice_shape_ocl,
         )
         return self.kernels.cpy2d(self.queue, ndrange, wg, *kernel_args)
 
@@ -279,47 +301,39 @@ class Backprojection(OpenclProcessing):
         if isinstance(sino, parray.Array):
             return self._transfer_device_to_texture(sino)
         sino2 = sino
-        if not(sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
+        if not (sino.flags["C_CONTIGUOUS"] and sino.dtype == np.float32):
             sino2 = np.ascontiguousarray(sino, dtype=np.float32)
-        if not(self._use_textures):
-            ev = pyopencl.enqueue_copy(
-                                        self.queue,
-                                        self.d_sino.data,
-                                        sino2
-                                        )
+        if not (self._use_textures):
+            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, sino2)
             what = "transfer filtered sino H->D buffer"
             ev.wait()
         else:
             ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino_tex,
-                                       sino2,
-                                       origin=(0, 0),
-                                       region=self.shape[::-1]
-                                       )
+                self.queue,
+                self.d_sino_tex,
+                sino2,
+                origin=(0, 0),
+                region=self.shape[::-1],
+            )
             what = "transfer filtered sino H->D texture"
         return EventDescription(what, ev)
 
     def _transfer_device_to_texture(self, d_sino):
-        if not(self._use_textures):
+        if not (self._use_textures):
             if id(self.d_sino) == id(d_sino):
                 return
-            ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino.data,
-                                       d_sino
-                                       )
+            ev = pyopencl.enqueue_copy(self.queue, self.d_sino.data, d_sino)
             what = "transfer filtered sino D->D buffer"
             ev.wait()
         else:
             ev = pyopencl.enqueue_copy(
-                                       self.queue,
-                                       self.d_sino_tex,
-                                       d_sino.data,
-                                       offset=0,
-                                       origin=(0, 0),
-                                       region=self.shape[::-1]
-                                       )
+                self.queue,
+                self.d_sino_tex,
+                d_sino.data,
+                offset=0,
+                origin=(0, 0),
+                region=self.shape[::-1],
+            )
             what = "transfer filtered sino D->D texture"
         return EventDescription(what, ev)
 
@@ -335,20 +349,17 @@ class Backprojection(OpenclProcessing):
         with self.sem:
             events.append(self._transfer_to_texture(sino))
             # Call the backprojection kernel
-            if not(self._use_textures):
+            if not (self._use_textures):
                 kernel_to_call = self.kernels.backproj_cpu_kernel
             else:
                 kernel_to_call = self.kernels.backproj_kernel
             kernel_to_call(
-                self.queue,
-                self.ndrange,
-                self.wg,
-                *self._backproj_kernel_args
+                self.queue, self.ndrange, self.wg, *self._backproj_kernel_args
             )
             # Return
             if output is None:
                 res = self.cl_mem["_d_slice"].get()
-                res = res[:self.slice_shape[0], :self.slice_shape[1]]
+                res = res[: self.slice_shape[0], : self.slice_shape[1]]
             else:
                 res = output
                 self._cpy2d_to_slice(output)

@@ -45,7 +45,7 @@ from silx.gui.plot import items
 class _CustomProfileManager(manager.ProfileManager):
     """This custom profile manager uses a single predefined profile window
     if it is specified. Else the behavior is the same as the default
-    ProfileManager """
+    ProfileManager"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -69,7 +69,10 @@ class _CustomProfileManager(manager.ProfileManager):
         self.__profileWindow = profileWindow
 
     def createProfileWindow(self, plot, roi):
-        for roiClass, specializedProfileWindow in self.__specializedProfileWindows.items():
+        for (
+            roiClass,
+            specializedProfileWindow,
+        ) in self.__specializedProfileWindows.items():
             if isinstance(roi, roiClass):
                 return specializedProfileWindow
 
@@ -166,11 +169,21 @@ class ProfileToolBar(qt.QToolBar):
         return _CustomProfileManager(parent, plot)
 
     def _createProfileActions(self):
-        self.hLineAction = self._manager.createProfileAction(rois.ProfileImageHorizontalLineROI, self)
-        self.vLineAction = self._manager.createProfileAction(rois.ProfileImageVerticalLineROI, self)
-        self.lineAction = self._manager.createProfileAction(rois.ProfileImageLineROI, self)
-        self.freeLineAction = self._manager.createProfileAction(rois.ProfileImageDirectedLineROI, self)
-        self.crossAction = self._manager.createProfileAction(rois.ProfileImageCrossROI, self)
+        self.hLineAction = self._manager.createProfileAction(
+            rois.ProfileImageHorizontalLineROI, self
+        )
+        self.vLineAction = self._manager.createProfileAction(
+            rois.ProfileImageVerticalLineROI, self
+        )
+        self.lineAction = self._manager.createProfileAction(
+            rois.ProfileImageLineROI, self
+        )
+        self.freeLineAction = self._manager.createProfileAction(
+            rois.ProfileImageDirectedLineROI, self
+        )
+        self.crossAction = self._manager.createProfileAction(
+            rois.ProfileImageCrossROI, self
+        )
         self.clearAction = self._manager.createClearAction(self)
 
     def getPlotWidget(self):
@@ -218,15 +231,24 @@ class Profile3DToolBar(ProfileToolBar):
         :param parent: See :class:`QToolBar`.
         """
         # TODO: add param profileWindow (specify the plot used for profiles)
-        super(Profile3DToolBar, self).__init__(parent=parent,
-                                               plot=stackview.getPlotWidget())
+        super(Profile3DToolBar, self).__init__(
+            parent=parent, plot=stackview.getPlotWidget()
+        )
 
         self.stackView = stackview
         """:class:`StackView` instance"""
 
     def _createProfileActions(self):
-        self.hLineAction = self._manager.createProfileAction(rois.ProfileImageStackHorizontalLineROI, self)
-        self.vLineAction = self._manager.createProfileAction(rois.ProfileImageStackVerticalLineROI, self)
-        self.lineAction = self._manager.createProfileAction(rois.ProfileImageStackLineROI, self)
-        self.crossAction = self._manager.createProfileAction(rois.ProfileImageStackCrossROI, self)
+        self.hLineAction = self._manager.createProfileAction(
+            rois.ProfileImageStackHorizontalLineROI, self
+        )
+        self.vLineAction = self._manager.createProfileAction(
+            rois.ProfileImageStackVerticalLineROI, self
+        )
+        self.lineAction = self._manager.createProfileAction(
+            rois.ProfileImageStackLineROI, self
+        )
+        self.crossAction = self._manager.createProfileAction(
+            rois.ProfileImageStackCrossROI, self
+        )
         self.clearAction = self._manager.createClearAction(self)

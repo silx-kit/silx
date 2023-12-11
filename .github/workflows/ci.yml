@@ -24,47 +24,47 @@ jobs:
           - name-suffix: "PyQt5 sdist"
             os: ubuntu-20.04
             python-version: '3.7'
-            BUILD_COMMAND: sdist
+            BUILD_OPTION: --sdist
             QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl --low-mem
           - name-suffix: "PyQt5 wheel"
             os: macos-latest
             python-version: '3.10'
-            BUILD_COMMAND: bdist_wheel
+            BUILD_OPTION: --wheel
             QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --qt-binding=PyQt5 --no-opencl --low-mem
 
           - name-suffix: "PySide6 sdist"
             os: ubuntu-latest
             python-version: '3.8'
-            BUILD_COMMAND: sdist
+            BUILD_OPTION: --sdist
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl --low-mem
           - name-suffix: "PySide6 wheel"
             os: macos-latest
             python-version: '3.9'
-            BUILD_COMMAND: bdist_wheel
+            BUILD_OPTION: --wheel
             QT_BINDING: PySide6
             RUN_TESTS_OPTIONS: --qt-binding=PySide6 --no-opencl --low-mem
 
           - name-suffix: "PyQt6 wheel"
             os: ubuntu-latest
-            python-version: '3.7'
-            BUILD_COMMAND: bdist_wheel
+            python-version: '3.11'
+            BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opengl --low-mem
           - name-suffix: "PyQt6 wheel"
             os: macos-latest
             python-version: '3.10'
-            BUILD_COMMAND: bdist_wheel
+            BUILD_OPTION: --wheel
             QT_BINDING: PyQt6
             RUN_TESTS_OPTIONS: --qt-binding=PyQt6 --no-opencl --low-mem
 
           - name-suffix: "No GUI wheel"
             os: windows-latest
             python-version: '3.9'
-            BUILD_COMMAND: bdist_wheel
-            QT_BINDING:
+            BUILD_COMMAND: --wheel
+            QT_BINDING: PyQt5
             RUN_TESTS_OPTIONS: --no-gui --low-mem
             # No GUI tests on Windows
 
@@ -93,11 +93,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Use latest setuptools using Python's distutils
       - name: Upgrade distribution modules
         run: |
-          pip install --upgrade "setuptools<60.0.0"
-          python -m pip install --upgrade pip wheel
+          python -m pip install --upgrade pip
+          pip install --upgrade build setuptools wheel
           pip install --upgrade --pre numpy cython
 
       - name: Print python info used for build
@@ -110,7 +109,7 @@ jobs:
           if [ ${{ runner.os }} == 'macOS' ]; then
               export MACOSX_DEPLOYMENT_TARGET=10.9;
           fi
-          python setup.py ${{ matrix.BUILD_COMMAND }}
+          python -m build --no-isolation ${{ matrix.BUILD_OPTION }}
           ls dist
 
       - name: Pre-install dependencies
@@ -120,6 +119,10 @@ jobs:
             pip install -r ci/requirements-pinned.txt;
           fi
           pip install --pre -r requirements.txt
+          pip uninstall -y PyQt5 PyQt6 PySide6
+          if [ "${{ matrix.QT_BINDING }}" == "PyQt5" ]; then
+            pip install --pre pyqt5;
+          fi
           if [ "${{ matrix.QT_BINDING }}" == "PySide6" ]; then
             pip install --pre pyside6;
           fi

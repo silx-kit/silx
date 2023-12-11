@@ -69,7 +69,7 @@ class ImageDataAggregated(ImageDataBase):
         self.__currentLOD = 0, 0
         self.__aggregationMode = self.Aggregation.NONE
 
-    def setAggregationMode(self, mode: Union[str,Aggregation]):
+    def setAggregationMode(self, mode: Union[str, Aggregation]):
         """Set the aggregation method used to reduce the data to screen resolution.
 
         :param Aggregation mode: The aggregation method
@@ -117,11 +117,11 @@ class ImageDataAggregated(ImageDataBase):
             if (lodx, lody) not in self.__cacheLODData:
                 height, width = data.shape
                 with warnings.catch_warnings():
-                    warnings.simplefilter('ignore', category=RuntimeWarning)
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
                     self.__cacheLODData[(lodx, lody)] = aggregator(
-                        data[: (height // lody) * lody, : (width // lodx) * lodx].reshape(
-                            height // lody, lody, width // lodx, lodx
-                        ),
+                        data[
+                            : (height // lody) * lody, : (width // lodx) * lodx
+                        ].reshape(height // lody, lody, width // lodx, lodx),
                         axis=(1, 3),
                     )
 
@@ -156,10 +156,7 @@ class ImageDataAggregated(ImageDataBase):
         xaxis = plot.getXAxis()
         yaxis = plot.getYAxis(axis)
 
-        if (
-            xaxis.getScale() != Axis.LINEAR
-            or yaxis.getScale() != Axis.LINEAR
-        ):
+        if xaxis.getScale() != Axis.LINEAR or yaxis.getScale() != Axis.LINEAR:
             raise RuntimeError("Only available with linear axes")
 
         xmin, xmax = xaxis.getLimits()
@@ -203,8 +200,10 @@ class ImageDataAggregated(ImageDataBase):
 
     def __plotLimitsChanged(self):
         """Trigger update if level of details has changed"""
-        if (self.getAggregationMode() != self.Aggregation.NONE and
-                self.__currentLOD != self._getLevelOfDetails()):
+        if (
+            self.getAggregationMode() != self.Aggregation.NONE
+            and self.__currentLOD != self._getLevelOfDetails()
+        ):
             self._updated()
 
     @docstring(ImageDataBase)

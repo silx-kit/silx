@@ -44,7 +44,7 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
         self.legends.setPlotWidget(self.plot)
 
         dock = qt.QDockWidget()
-        dock.setWindowTitle('Curve Legends')
+        dock.setWindowTitle("Curve Legends")
         dock.setWidget(self.legends)
         self.plot.addTabbedDockWidget(dock)
 
@@ -66,9 +66,9 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
 
     def testAddRemoveCurves(self):
         """Test CurveLegendsWidget while adding/removing curves"""
-        self.plot.addCurve((0, 1), (1, 2), legend='a')
+        self.plot.addCurve((0, 1), (1, 2), legend="a")
         self._assertNbLegends(1)
-        self.plot.addCurve((0, 1), (2, 3), legend='b')
+        self.plot.addCurve((0, 1), (2, 3), legend="b")
         self._assertNbLegends(2)
 
         # Detached/attach
@@ -82,28 +82,28 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
         self._assertNbLegends(0)
 
     def testUpdateCurves(self):
-        """Test CurveLegendsWidget while updating curves """
-        self.plot.addCurve((0, 1), (1, 2), legend='a')
+        """Test CurveLegendsWidget while updating curves"""
+        self.plot.addCurve((0, 1), (1, 2), legend="a")
         self._assertNbLegends(1)
-        self.plot.addCurve((0, 1), (2, 3), legend='b')
+        self.plot.addCurve((0, 1), (2, 3), legend="b")
         self._assertNbLegends(2)
 
         # Activate curve
-        self.plot.setActiveCurve('a')
+        self.plot.setActiveCurve("a")
         self.qapp.processEvents()
-        self.plot.setActiveCurve('b')
+        self.plot.setActiveCurve("b")
         self.qapp.processEvents()
 
         # Change curve style
-        curve = self.plot.getCurve('a')
+        curve = self.plot.getCurve("a")
         curve.setLineWidth(2)
-        for linestyle in (':', '', '--', '-'):
+        for linestyle in (":", "", "--", "-"):
             with self.subTest(linestyle=linestyle):
                 curve.setLineStyle(linestyle)
                 self.qapp.processEvents()
                 self.qWait(1000)
 
-        for symbol in ('o', 'd', '', 's'):
+        for symbol in ("o", "d", "", "s"):
             with self.subTest(symbol=symbol):
                 curve.setSymbol(symbol)
                 self.qapp.processEvents()

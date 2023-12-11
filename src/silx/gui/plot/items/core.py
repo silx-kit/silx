@@ -43,7 +43,7 @@ from ....utils.enum import Enum as _Enum
 from ....math.combo import min_max
 from ... import qt
 from ... import colors
-from ...colors import Colormap
+from ...colors import Colormap, _Colormappable
 from ._pick import PickingResult
 
 from silx import config
@@ -54,97 +54,106 @@ _logger = logging.getLogger(__name__)
 @enum.unique
 class ItemChangedType(enum.Enum):
     """Type of modification provided by :attr:`Item.sigItemChanged` signal."""
+
     # Private setters and setInfo are not emitting sigItemChanged signal.
     # Signals to consider:
     # COLORMAP_SET emitted when setColormap is called but not forward colormap object signal
     # CURRENT_COLOR_CHANGED emitted current color changed because highlight changed,
     # highlighted color changed or color changed depending on hightlight state.
 
-    VISIBLE = 'visibleChanged'
+    VISIBLE = "visibleChanged"
     """Item's visibility changed flag."""
 
-    ZVALUE = 'zValueChanged'
+    ZVALUE = "zValueChanged"
     """Item's Z value changed flag."""
 
-    COLORMAP = 'colormapChanged'  # Emitted when set + forward events from the colormap object
+    COLORMAP = (
+        "colormapChanged"  # Emitted when set + forward events from the colormap object
+    )
     """Item's colormap changed flag.
 
     This is emitted both when setting a new colormap and
     when the current colormap object is updated.
     """
 
-    SYMBOL = 'symbolChanged'
+    SYMBOL = "symbolChanged"
     """Item's symbol changed flag."""
 
-    SYMBOL_SIZE = 'symbolSizeChanged'
+    SYMBOL_SIZE = "symbolSizeChanged"
     """Item's symbol size changed flag."""
 
-    LINE_WIDTH = 'lineWidthChanged'
+    LINE_WIDTH = "lineWidthChanged"
     """Item's line width changed flag."""
 
-    LINE_STYLE = 'lineStyleChanged'
+    LINE_STYLE = "lineStyleChanged"
     """Item's line style changed flag."""
 
-    COLOR = 'colorChanged'
+    COLOR = "colorChanged"
     """Item's color changed flag."""
 
-    LINE_BG_COLOR = 'lineBgColorChanged'
+    LINE_BG_COLOR = "lineBgColorChanged"
     """Item's line background color changed flag."""
 
-    YAXIS = 'yAxisChanged'
+    LINE_GAP_COLOR = "lineGapColorChanged"
+    """Item's dashed line gap color changed flag."""
+
+    YAXIS = "yAxisChanged"
     """Item's Y axis binding changed flag."""
 
-    FILL = 'fillChanged'
+    FILL = "fillChanged"
     """Item's fill changed flag."""
 
-    ALPHA = 'alphaChanged'
+    ALPHA = "alphaChanged"
     """Item's transparency alpha changed flag."""
 
-    DATA = 'dataChanged'
+    DATA = "dataChanged"
     """Item's data changed flag"""
 
-    MASK = 'maskChanged'
+    MASK = "maskChanged"
     """Item's mask changed flag"""
 
-    HIGHLIGHTED = 'highlightedChanged'
+    HIGHLIGHTED = "highlightedChanged"
     """Item's highlight state changed flag."""
 
-    HIGHLIGHTED_COLOR = 'highlightedColorChanged'
+    HIGHLIGHTED_COLOR = "highlightedColorChanged"
     """Deprecated, use HIGHLIGHTED_STYLE instead."""
 
-    HIGHLIGHTED_STYLE = 'highlightedStyleChanged'
+    HIGHLIGHTED_STYLE = "highlightedStyleChanged"
     """Item's highlighted style changed flag."""
 
-    SCALE = 'scaleChanged'
+    SCALE = "scaleChanged"
     """Item's scale changed flag."""
 
-    TEXT = 'textChanged'
+    TEXT = "textChanged"
     """Item's text changed flag."""
 
-    POSITION = 'positionChanged'
+    POSITION = "positionChanged"
     """Item's position changed flag.
 
     This is emitted when a marker position changed and
     when an image origin changed.
     """
 
-    OVERLAY = 'overlayChanged'
+    OVERLAY = "overlayChanged"
     """Item's overlay state changed flag."""
 
-    VISUALIZATION_MODE = 'visualizationModeChanged'
+    VISUALIZATION_MODE = "visualizationModeChanged"
     """Item's visualization mode changed flag."""
 
-    COMPLEX_MODE = 'complexModeChanged'
+    COMPLEX_MODE = "complexModeChanged"
     """Item's complex data visualization mode changed flag."""
 
-    NAME = 'nameChanged'
+    NAME = "nameChanged"
     """Item's name changed flag."""
 
-    EDITABLE = 'editableChanged'
+    EDITABLE = "editableChanged"
     """Item's editable state changed flags."""
 
-    SELECTABLE = 'selectableChanged'
+    SELECTABLE = "selectableChanged"
     """Item's selectable state changed flags."""
+
+    FONT = "fontChanged"
+    """Item's text font changed flag."""
 
 
 class Item(qt.QObject):
@@ -180,7 +189,7 @@ class Item(qt.QObject):
         self._info = None
         self._xlabel = None
         self._ylabel = None
-        self.__name = ''
+        self.__name = ""
 
         self.__visibleBoundsTracking = False
         self.__previousVisibleBounds = None
@@ -202,7 +211,7 @@ class Item(qt.QObject):
         :param Union[~silx.gui.plot.PlotWidget,None] plot: The Plot instance.
         """
         if plot is not None and self._plotRef is not None:
-            raise RuntimeError('Trying to add a node at two places.')
+            raise RuntimeError("Trying to add a node at two places.")
         self.__disconnectFromPlotWidget()
         self._plotRef = None if plot is None else weakref.ref(plot)
         self.__connectToPlotWidget()
@@ -236,8 +245,7 @@ class Item(qt.QObject):
         if visible != self._visible:
             self._visible = visible
             # When visibility has changed, always mark as dirty
-            self._updated(ItemChangedType.VISIBLE,
-                          checkVisibility=False)
+            self._updated(ItemChangedType.VISIBLE, checkVisibility=False)
             if visible:
                 self._visibleBoundsChanged()
 
@@ -264,8 +272,7 @@ class Item(qt.QObject):
         name = str(name)
         if self.__name != name:
             if self.getPlot() is not None:
-                raise RuntimeError(
-                    "Cannot change name while item is in a PlotWidget")
+                raise RuntimeError("Cannot change name while item is in a PlotWidget")
 
             self.__name = name
             self._updated(ItemChangedType.NAME)
@@ -323,7 +330,8 @@ class Item(qt.QObject):
 
         xmin, xmax = numpy.clip(bounds[:2], *plot.getXAxis().getLimits())
         ymin, ymax = numpy.clip(
-            bounds[2:], *plot.getYAxis(self.__getYAxis()).getLimits())
+            bounds[2:], *plot.getYAxis(self.__getYAxis()).getLimits()
+        )
 
         if xmin == xmax or ymin == ymax:  # Outside the plot area
             return None
@@ -351,7 +359,7 @@ class Item(qt.QObject):
 
     def __getYAxis(self) -> str:
         """Returns current Y axis ('left' or 'right')"""
-        return self.getYAxis() if isinstance(self, YAxisMixIn) else 'left'
+        return self.getYAxis() if isinstance(self, YAxisMixIn) else "left"
 
     def __connectToPlotWidget(self) -> None:
         """Connect to PlotWidget signals and install event filter"""
@@ -477,7 +485,7 @@ class Item(qt.QObject):
 class DataItem(Item):
     """Item with a data extent in the plot"""
 
-    def _boundsChanged(self, checkVisibility: bool=True) -> None:
+    def _boundsChanged(self, checkVisibility: bool = True) -> None:
         """Call this method in subclass when data bounds has changed.
 
         :param bool checkVisibility:
@@ -497,6 +505,7 @@ class DataItem(Item):
             self._boundsChanged(checkVisibility=False)
         super().setVisible(visible)
 
+
 # Mix-in classes ##############################################################
 
 
@@ -513,8 +522,7 @@ class ItemMixInBase(object):
         :param bool checkVisibility: True to only mark as dirty if visible,
                                      False to always mark as dirty.
         """
-        raise RuntimeError(
-            "Issue with Mix-In class inheritance order")
+        raise RuntimeError("Issue with Mix-In class inheritance order")
 
 
 class LabelsMixIn(ItemMixInBase):
@@ -588,7 +596,7 @@ class DraggableMixIn(ItemMixInBase):
         raise NotImplementedError("Must be implemented in subclass")
 
 
-class ColormapMixIn(ItemMixInBase):
+class ColormapMixIn(_Colormappable, ItemMixInBase):
     """Mix-in class for items with colormap"""
 
     def __init__(self):
@@ -622,8 +630,9 @@ class ColormapMixIn(ItemMixInBase):
         """Handle updates of the colormap"""
         self._updated(ItemChangedType.COLORMAP)
 
-    def _setColormappedData(self, data, copy=True,
-                            min_=None, minPositive=None, max_=None):
+    def _setColormappedData(
+        self, data, copy=True, min_=None, minPositive=None, max_=None
+    ):
         """Set the data used to compute the colormapped display.
 
         It also resets the cache of data ranges.
@@ -644,7 +653,10 @@ class ColormapMixIn(ItemMixInBase):
             if min_ is not None and numpy.isfinite(min_):
                 self.__cacheColormapRange[Colormap.LINEAR, Colormap.MINMAX] = min_, max_
             if minPositive is not None and numpy.isfinite(minPositive):
-                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX] = minPositive, max_
+                self.__cacheColormapRange[Colormap.LOGARITHM, Colormap.MINMAX] = (
+                    minPositive,
+                    max_,
+                )
 
         colormap = self.getColormap()
         if None in (colormap.getVMin(), colormap.getVMax()):
@@ -696,26 +708,29 @@ class SymbolMixIn(ItemMixInBase):
     _DEFAULT_SYMBOL_SIZE = config.DEFAULT_PLOT_SYMBOL_SIZE
     """Default marker size of the item"""
 
-    _SUPPORTED_SYMBOLS = dict((
-        ('o', 'Circle'),
-        ('d', 'Diamond'),
-        ('s', 'Square'),
-        ('+', 'Plus'),
-        ('x', 'Cross'),
-        ('.', 'Point'),
-        (',', 'Pixel'),
-        ('|', 'Vertical line'),
-        ('_', 'Horizontal line'),
-        ('tickleft', 'Tick left'),
-        ('tickright', 'Tick right'),
-        ('tickup', 'Tick up'),
-        ('tickdown', 'Tick down'),
-        ('caretleft', 'Caret left'),
-        ('caretright', 'Caret right'),
-        ('caretup', 'Caret up'),
-        ('caretdown', 'Caret down'),
-        (u'\u2665', 'Heart'),
-        ('', 'None')))
+    _SUPPORTED_SYMBOLS = dict(
+        (
+            ("o", "Circle"),
+            ("d", "Diamond"),
+            ("s", "Square"),
+            ("+", "Plus"),
+            ("x", "Cross"),
+            (".", "Point"),
+            (",", "Pixel"),
+            ("|", "Vertical line"),
+            ("_", "Horizontal line"),
+            ("tickleft", "Tick left"),
+            ("tickright", "Tick right"),
+            ("tickup", "Tick up"),
+            ("tickdown", "Tick down"),
+            ("caretleft", "Caret left"),
+            ("caretright", "Caret right"),
+            ("caretup", "Caret up"),
+            ("caretdown", "Caret down"),
+            ("\u2665", "Heart"),
+            ("", "None"),
+        )
+    )
     """Dict of supported symbols"""
 
     def __init__(self):
@@ -790,7 +805,7 @@ class SymbolMixIn(ItemMixInBase):
                     symbol = symbolCode
                     break
             else:
-                raise ValueError('Unsupported symbol %s' % str(symbol))
+                raise ValueError("Unsupported symbol %s" % str(symbol))
 
         if symbol != self._symbol:
             self._symbol = symbol
@@ -820,13 +835,13 @@ class SymbolMixIn(ItemMixInBase):
 class LineMixIn(ItemMixInBase):
     """Mix-in class for item with line"""
 
-    _DEFAULT_LINEWIDTH = 1.
+    _DEFAULT_LINEWIDTH = 1.0
     """Default line width"""
 
-    _DEFAULT_LINESTYLE = '-'
+    _DEFAULT_LINESTYLE = "-"
     """Default line style"""
 
-    _SUPPORTED_LINESTYLE = '', ' ', '-', '--', '-.', ':', None
+    _SUPPORTED_LINESTYLE = "", " ", "-", "--", "-.", ":", None
     """Supported line styles"""
 
     def __init__(self):
@@ -894,7 +909,7 @@ class LineMixIn(ItemMixInBase):
 class ColorMixIn(ItemMixInBase):
     """Mix-in class for item with color"""
 
-    _DEFAULT_COLOR = (0., 0., 0., 1.)
+    _DEFAULT_COLOR = (0.0, 0.0, 0.0, 1.0)
     """Default color of the item"""
 
     def __init__(self):
@@ -932,10 +947,43 @@ class ColorMixIn(ItemMixInBase):
         self._updated(ItemChangedType.COLOR)
 
 
+class LineGapColorMixIn(ItemMixInBase):
+    """Mix-in class for dashed line gap color"""
+
+    _DEFAULT_LINE_GAP_COLOR = None
+    """Default dashed line gap color of the item"""
+
+    def __init__(self):
+        self.__lineGapColor = self._DEFAULT_LINE_GAP_COLOR
+
+    def getLineGapColor(self):
+        """Returns the RGBA color of dashed line gap of the item
+
+        :rtype: 4-tuple of float in [0, 1] or None
+        """
+        return self.__lineGapColor
+
+    def setLineGapColor(self, color):
+        """Set dashed line gap color
+
+        It supports:
+        - color names: e.g., 'green'
+        - color codes: '#RRGGBB' and '#RRGGBBAA'
+        - indexed color names: e.g., 'C0'
+        - RGB(A) sequence of uint8 in [0, 255] or float in [0, 1]
+        - QColor
+
+        :param color: line background color to be used
+        :type color: Union[str, List[int], List[float], QColor, None]
+        """
+        self.__lineGapColor = colors.rgba(color)
+        self._updated(ItemChangedType.LINE_GAP_COLOR)
+
+
 class YAxisMixIn(ItemMixInBase):
     """Mix-in class for item with yaxis"""
 
-    _DEFAULT_YAXIS = 'left'
+    _DEFAULT_YAXIS = "left"
     """Default Y axis the item belongs to"""
 
     def __init__(self):
@@ -956,7 +1004,7 @@ class YAxisMixIn(ItemMixInBase):
         :param str yaxis: 'left' or 'right'
         """
         yaxis = str(yaxis)
-        assert yaxis in ('left', 'right')
+        assert yaxis in ("left", "right")
         if yaxis != self._yaxis:
             self._yaxis = yaxis
             # Handle data extent changed for DataItem
@@ -968,11 +1016,13 @@ class YAxisMixIn(ItemMixInBase):
                 # Switch Y axis signal connection
                 plot = self.getPlot()
                 if plot is not None:
-                    previousYAxis = 'left' if self.getXAxis() == 'right' else 'right'
+                    previousYAxis = "left" if self.getXAxis() == "right" else "right"
                     plot.getYAxis(previousYAxis).sigLimitsChanged.disconnect(
-                        self._visibleBoundsChanged)
+                        self._visibleBoundsChanged
+                    )
                     plot.getYAxis(self.getYAxis()).sigLimitsChanged.connect(
-                        self._visibleBoundsChanged)
+                        self._visibleBoundsChanged
+                    )
                 self._visibleBoundsChanged()
 
             self._updated(ItemChangedType.YAXIS)
@@ -1006,7 +1056,7 @@ class AlphaMixIn(ItemMixInBase):
     """Mix-in class for item with opacity"""
 
     def __init__(self):
-        self._alpha = 1.
+        self._alpha = 1.0
 
     def getAlpha(self):
         """Returns the opacity of the item
@@ -1029,7 +1079,7 @@ class AlphaMixIn(ItemMixInBase):
         :type alpha: float
         """
         alpha = float(alpha)
-        alpha = max(0., min(alpha, 1.))  # Clip alpha to [0., 1.] range
+        alpha = max(0.0, min(alpha, 1.0))  # Clip alpha to [0., 1.] range
         if alpha != self._alpha:
             self._alpha = alpha
             self._updated(ItemChangedType.ALPHA)
@@ -1043,14 +1093,15 @@ class ComplexMixIn(ItemMixInBase):
 
     class ComplexMode(_Enum):
         """Identify available display mode for complex"""
-        NONE = 'none'
-        ABSOLUTE = 'amplitude'
-        PHASE = 'phase'
-        REAL = 'real'
-        IMAGINARY = 'imaginary'
-        AMPLITUDE_PHASE = 'amplitude_phase'
-        LOG10_AMPLITUDE_PHASE = 'log10_amplitude_phase'
-        SQUARE_AMPLITUDE = 'square_amplitude'
+
+        NONE = "none"
+        ABSOLUTE = "amplitude"
+        PHASE = "phase"
+        REAL = "real"
+        IMAGINARY = "imaginary"
+        AMPLITUDE_PHASE = "amplitude_phase"
+        LOG10_AMPLITUDE_PHASE = "log10_amplitude_phase"
+        SQUARE_AMPLITUDE = "square_amplitude"
 
     def __init__(self):
         self.__complex_mode = self.ComplexMode.ABSOLUTE
@@ -1106,7 +1157,7 @@ class ComplexMixIn(ItemMixInBase):
         elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
             return numpy.absolute(data) ** 2
         else:
-            raise ValueError('Unsupported conversion mode: %s', str(mode))
+            raise ValueError("Unsupported conversion mode: %s", str(mode))
 
     @classmethod
     def supportedComplexModes(cls):
@@ -1132,22 +1183,22 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     class Visualization(_Enum):
         """Different modes of scatter plot visualizations"""
 
-        POINTS = 'points'
+        POINTS = "points"
         """Display scatter plot as a point cloud"""
 
-        LINES = 'lines'
+        LINES = "lines"
         """Display scatter plot as a wireframe.
 
         This is based on Delaunay triangulation
         """
 
-        SOLID = 'solid'
+        SOLID = "solid"
         """Display scatter plot as a set of filled triangles.
 
         This is based on Delaunay triangulation
         """
 
-        REGULAR_GRID = 'regular_grid'
+        REGULAR_GRID = "regular_grid"
         """Display scatter plot as an image.
 
         It expects the points to be the intersection of a regular grid,
@@ -1156,7 +1207,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
-        IRREGULAR_GRID = 'irregular_grid'
+        IRREGULAR_GRID = "irregular_grid"
         """Display scatter plot as contiguous quadrilaterals.
 
         It expects the points to be the intersection of an irregular grid,
@@ -1165,7 +1216,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         (either all lines from left to right or all from right to left).
         """
 
-        BINNED_STATISTIC = 'binned_statistic'
+        BINNED_STATISTIC = "binned_statistic"
         """Display scatter plot as 2D binned statistic (i.e., generalized histogram).
         """
 
@@ -1173,13 +1224,13 @@ class ScatterVisualizationMixIn(ItemMixInBase):
     class VisualizationParameter(_Enum):
         """Different parameter names for scatter plot visualizations"""
 
-        GRID_MAJOR_ORDER = 'grid_major_order'
+        GRID_MAJOR_ORDER = "grid_major_order"
         """The major order of points in the regular grid.
 
         Either 'row' (row-major, fast X) or 'column' (column-major, fast Y).
         """
 
-        GRID_BOUNDS = 'grid_bounds'
+        GRID_BOUNDS = "grid_bounds"
         """The expected range in data coordinates of the regular grid.
 
         A 2-tuple of 2-tuple: (begin (x, y), end (x, y)).
@@ -1188,24 +1239,24 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         As for `GRID_SHAPE`, this can be wider than the current data.
         """
 
-        GRID_SHAPE = 'grid_shape'
+        GRID_SHAPE = "grid_shape"
         """The expected size of the regular grid (height, width).
 
         The given shape can be wider than the number of points,
         in which case the grid is not fully filled.
         """
 
-        BINNED_STATISTIC_SHAPE = 'binned_statistic_shape'
+        BINNED_STATISTIC_SHAPE = "binned_statistic_shape"
         """The number of bins in each dimension (height, width).
         """
 
-        BINNED_STATISTIC_FUNCTION = 'binned_statistic_function'
+        BINNED_STATISTIC_FUNCTION = "binned_statistic_function"
         """The reduction function to apply to each bin (str).
 
         Available reduction functions are: 'mean' (default), 'count', 'sum'.
         """
 
-        DATA_BOUNDS_HINT = 'data_bounds_hint'
+        DATA_BOUNDS_HINT = "data_bounds_hint"
         """The expected bounds of the data in data coordinates.
 
         A 2-tuple of 2-tuple: ((ymin, ymax), (xmin, xmax)).
@@ -1216,8 +1267,8 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         """
 
     _SUPPORTED_VISUALIZATION_PARAMETER_VALUES = {
-        VisualizationParameter.GRID_MAJOR_ORDER: ('row', 'column'),
-        VisualizationParameter.BINNED_STATISTIC_FUNCTION: ('mean', 'count', 'sum'),
+        VisualizationParameter.GRID_MAJOR_ORDER: ("row", "column"),
+        VisualizationParameter.BINNED_STATISTIC_FUNCTION: ("mean", "count", "sum"),
     }
     """Supported visualization parameter values.
 
@@ -1226,9 +1277,12 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 
     def __init__(self):
         self.__visualization = self.Visualization.POINTS
-        self.__parameters = dict(# Init parameters to None
-            (parameter, None) for parameter in self.VisualizationParameter)
-        self.__parameters[self.VisualizationParameter.BINNED_STATISTIC_FUNCTION] = 'mean'
+        self.__parameters = dict(  # Init parameters to None
+            (parameter, None) for parameter in self.VisualizationParameter
+        )
+        self.__parameters[
+            self.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+        ] = "mean"
 
     @classmethod
     def supportedVisualizations(cls):
@@ -1254,8 +1308,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
         :returns: tuple of supported of values or None if not defined.
         """
         parameter = cls.VisualizationParameter(parameter)
-        return cls._SUPPORTED_VISUALIZATION_PARAMETER_VALUES.get(
-            parameter, None)
+        return cls._SUPPORTED_VISUALIZATION_PARAMETER_VALUES.get(parameter, None)
 
     def setVisualization(self, mode):
         """Set the scatter plot visualization mode to use.
@@ -1342,6 +1395,7 @@ class ScatterVisualizationMixIn(ItemMixInBase):
 
 class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     """Base class for :class:`Curve` and :class:`Scatter`"""
+
     # note: _logFilterData must be overloaded if you overload
     #       getData to change its signature
 
@@ -1389,22 +1443,18 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             errorClipped[mask] = valueMinusError[mask] <= 0
 
             if numpy.any(errorClipped):  # Need filtering
-
                 # expand errorbars to 2xN
                 if error.size == 1:  # Scalar
-                    error = numpy.full(
-                        (2, len(value)), error, dtype=numpy.float64)
+                    error = numpy.full((2, len(value)), error, dtype=numpy.float64)
 
                 elif error.ndim == 1:  # N array
-                    newError = numpy.empty((2, len(value)),
-                                           dtype=numpy.float64)
-                    newError[0,:] = error
-                    newError[1,:] = error
+                    newError = numpy.empty((2, len(value)), dtype=numpy.float64)
+                    newError[0, :] = error
+                    newError[1, :] = error
                     error = newError
 
                 elif error.size == 2 * len(value):  # 2xN array
-                    error = numpy.array(
-                        error, copy=True, dtype=numpy.float64)
+                    error = numpy.array(error, copy=True, dtype=numpy.float64)
 
                 else:
                     _logger.error("Unhandled error array")
@@ -1428,16 +1478,17 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
             if xPositive:
                 x = self.getXData(copy=False)
-                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
+                with numpy.errstate(invalid="ignore"):  # Ignore NaN warnings
                     xclipped = x <= 0
 
             if yPositive:
                 y = self.getYData(copy=False)
-                with numpy.errstate(invalid='ignore'):  # Ignore NaN warnings
+                with numpy.errstate(invalid="ignore"):  # Ignore NaN warnings
                     yclipped = y <= 0
 
-            self._clippedCache[(xPositive, yPositive)] = \
-                numpy.logical_or(xclipped, yclipped)
+            self._clippedCache[(xPositive, yPositive)] = numpy.logical_or(
+                xclipped, yclipped
+            )
         return self._clippedCache[(xPositive, yPositive)]
 
     def _logFilterData(self, xPositive, yPositive):
@@ -1475,7 +1526,7 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
     def __minMaxDataWithError(
         data: numpy.ndarray,
         error: Optional[Union[float, numpy.ndarray]],
-        positiveOnly: bool
+        positiveOnly: bool,
     ) -> Tuple[float]:
         if error is None:
             min_, max_ = min_max(data, finite=True)
@@ -1523,9 +1574,12 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             xmin, xmax = self.__minMaxDataWithError(x, xerror, xPositive)
             ymin, ymax = self.__minMaxDataWithError(y, yerror, yPositive)
 
-            self._boundsCache[(xPositive, yPositive)] = tuple([
-                (bound if bound is not None else numpy.nan)
-                for bound in (xmin, xmax, ymin, ymax)])
+            self._boundsCache[(xPositive, yPositive)] = tuple(
+                [
+                    (bound if bound is not None else numpy.nan)
+                    for bound in (xmin, xmax, ymin, ymax)
+                ]
+            )
         return self._boundsCache[(xPositive, yPositive)]
 
     def _getCachedData(self):
@@ -1539,8 +1593,9 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             if xPositive or yPositive:
                 # At least one axis has log scale, filter data
                 if (xPositive, yPositive) not in self._filteredCache:
-                    self._filteredCache[(xPositive, yPositive)] = \
-                        self._logFilterData(xPositive, yPositive)
+                    self._filteredCache[(xPositive, yPositive)] = self._logFilterData(
+                        xPositive, yPositive
+                    )
                 return self._filteredCache[(xPositive, yPositive)]
         return None
 
@@ -1561,10 +1616,12 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
             if cached_data is not None:
                 return cached_data
 
-        return (self.getXData(copy),
-                self.getYData(copy),
-                self.getXErrorData(copy),
-                self.getYErrorData(copy))
+        return (
+            self.getXData(copy),
+            self.getYData(copy),
+            self.getXErrorData(copy),
+            self.getYErrorData(copy),
+        )
 
     def getXData(self, copy=True):
         """Returns the x coordinates of the data points
@@ -1631,12 +1688,10 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
 
         # Convert complex data
         if numpy.iscomplexobj(x):
-            _logger.warning(
-                'Converting x data to absolute value to plot it.')
+            _logger.warning("Converting x data to absolute value to plot it.")
             x = numpy.absolute(x)
         if numpy.iscomplexobj(y):
-            _logger.warning(
-                'Converting y data to absolute value to plot it.')
+            _logger.warning("Converting y data to absolute value to plot it.")
             y = numpy.absolute(y)
 
         if xerror is not None:
@@ -1644,7 +1699,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 xerror = numpy.array(xerror, copy=copy)
                 if numpy.iscomplexobj(xerror):
                     _logger.warning(
-                        'Converting xerror data to absolute value to plot it.')
+                        "Converting xerror data to absolute value to plot it."
+                    )
                     xerror = numpy.absolute(xerror)
             else:
                 xerror = float(xerror)
@@ -1653,7 +1709,8 @@ class PointsBase(DataItem, SymbolMixIn, AlphaMixIn):
                 yerror = numpy.array(yerror, copy=copy)
                 if numpy.iscomplexobj(yerror):
                     _logger.warning(
-                        'Converting yerror data to absolute value to plot it.')
+                        "Converting yerror data to absolute value to plot it."
+                    )
                     yerror = numpy.absolute(yerror)
             else:
                 yerror = float(yerror)
@@ -1682,7 +1739,7 @@ class BaselineMixIn(object):
         :param baseline: baseline value(s)
         :type: Union[None,float,numpy.ndarray]
         """
-        if (isinstance(baseline, abc.Iterable)):
+        if isinstance(baseline, abc.Iterable):
             baseline = numpy.array(baseline)
         self._baseline = baseline
 
@@ -1704,7 +1761,6 @@ class _Style:
 
 
 class HighlightedMixIn(ItemMixInBase):
-
     def __init__(self):
         self._highlightStyle = self._DEFAULT_HIGHLIGHT_STYLE
         self._highlighted = False

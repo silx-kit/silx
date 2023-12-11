@@ -39,8 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 def main(argv=None):
-    """Display few lines with markers.
-    """
+    """Display few lines with markers."""
     global app  # QApplication must be global to avoid seg fault on quit
     app = qt.QApplication([])
     sys.excepthook = qt.exceptionHandler
@@ -50,16 +49,26 @@ def main(argv=None):
     plot = mainWindow
     plot.setDataMargins(0.1, 0.1, 0.1, 0.1)
 
-    plot.addCurve(x=[-10,0,0,-10,-10], y=[90,90,10,10,90], legend="box1", color="gray")
-    plot.addCurve(x=[110,100,100,110,110], y=[90,90,10,10,90], legend="box2", color="gray")
-    plot.addCurve(y=[-10,0,0,-10,-10], x=[90,90,10,10,90], legend="box3", color="gray")
-    plot.addCurve(y=[110,100,100,110,110], x=[90,90,10,10,90], legend="box4", color="gray")
+    plot.addCurve(
+        x=[-10, 0, 0, -10, -10], y=[90, 90, 10, 10, 90], legend="box1", color="gray"
+    )
+    plot.addCurve(
+        x=[110, 100, 100, 110, 110], y=[90, 90, 10, 10, 90], legend="box2", color="gray"
+    )
+    plot.addCurve(
+        y=[-10, 0, 0, -10, -10], x=[90, 90, 10, 10, 90], legend="box3", color="gray"
+    )
+    plot.addCurve(
+        y=[110, 100, 100, 110, 110], x=[90, 90, 10, 10, 90], legend="box4", color="gray"
+    )
 
     def addLine(source, destination, symbolSource, symbolDestination, legend, color):
         line = numpy.array([source, destination]).T
-        plot.addCurve(x=line[0,:], y=line[1,:], color=color, legend=legend)
+        plot.addCurve(x=line[0, :], y=line[1, :], color=color, legend=legend)
         plot.addMarker(x=source[0], y=source[1], symbol=symbolSource, color=color)
-        plot.addMarker(x=destination[0], y=destination[1], symbol=symbolDestination, color=color)
+        plot.addMarker(
+            x=destination[0], y=destination[1], symbol=symbolDestination, color=color
+        )
 
     addLine([0, 50], [100, 50], "caretleft", "caretright", "l1", "red")
     addLine([0, 30], [100, 30], "tickup", "tickdown", "l2", "blue")
@@ -75,4 +84,5 @@ def main(argv=None):
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main(argv=sys.argv[1:]))

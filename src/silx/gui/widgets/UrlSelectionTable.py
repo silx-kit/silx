@@ -71,7 +71,6 @@ class _IntegratedRadioButton(qt.QWidget):
 
 
 class _DataUrlItem(qt.QTableWidgetItem):
-
     FILENAME = 0
     DATAPATH = 1
     SLICE = 2
@@ -173,8 +172,8 @@ class UrlSelectionTable(TableWidget):
         """
         Append this DataUrl to the end of the list of URLs.
 
-        :param url: 
-        :param args: 
+        :param url:
+        :param args:
         :return: index of the created items row
         :rtype int
         """
@@ -206,7 +205,7 @@ class UrlSelectionTable(TableWidget):
 
         self._checkBoxes[row] = {
             self.IMG_A_COLUMN: widgetImgA,
-            self.IMG_B_COLUMN: widgetImgB
+            self.IMG_B_COLUMN: widgetImgB,
         }
         self.resizeColumnsToContents()
         return row
@@ -258,7 +257,11 @@ class UrlSelectionTable(TableWidget):
             with qtutils.blockSignals(c):
                 c.setChecked(False)
 
-    @deprecated(replacement="getUrlSelection", since_version="2.0", reason="Conflict with Qt API")
+    @deprecated(
+        replacement="getUrlSelection",
+        since_version="2.0",
+        reason="Conflict with Qt API",
+    )
     def getSelection(self):
         return self.getUrlSelection()
 
@@ -266,8 +269,8 @@ class UrlSelectionTable(TableWidget):
         if isinstance(url_img_a, qt.QRect):
             return super().setSelection(url_img_a, url_img_b)
         deprecated_warning(
-            'Function',
-            'setSelection',
+            "Function",
+            "setSelection",
             replacement="setUrlSelection",
             since_version="2.0",
             reason="Conflict with Qt API",
@@ -306,7 +309,6 @@ class UrlSelectionTable(TableWidget):
             if url.path() == url_img_b:
                 rowB = row
 
-
         if rowA is not None:
             c = self._checkBoxes[rowA][self.IMG_A_COLUMN]
             with qtutils.blockSignals(c):
@@ -331,12 +333,15 @@ class UrlSelectionTable(TableWidget):
         """Inherited method to redefine draggable mime types."""
         return [constants.SILX_URI_MIMETYPE]
 
-    def dropMimeData(self, row: int, column: int, mimedata: qt.QMimeType, action: qt.Qt.DropAction):
+    def dropMimeData(
+        self, row: int, column: int, mimedata: qt.QMimeType, action: qt.Qt.DropAction
+    ):
         """Inherited method to handle a drop operation to this model."""
         if action == qt.Qt.IgnoreAction:
             return True
         if mimedata.hasFormat(constants.SILX_URI_MIMETYPE):
-            url = DataUrl(mimedata.text())
+            urlText = str(mimedata.data(constants.SILX_URI_MIMETYPE), "utf-8")
+            url = DataUrl(urlText)
             self.addUrl(url)
             return True
         return False

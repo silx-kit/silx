@@ -46,6 +46,7 @@ _logger = logging.getLogger(__name__)
 
 # Widgets
 
+
 class _AmplitudeRangeDialog(qt.QDialog):
     """QDialog asking for the amplitude range to display."""
 
@@ -55,12 +56,9 @@ class _AmplitudeRangeDialog(qt.QDialog):
     It provides the new range as a 2-tuple: (max, delta)
     """
 
-    def __init__(self,
-                 parent=None,
-                 amplitudeRange=None,
-                 displayedRange=(None, 2)):
+    def __init__(self, parent=None, amplitudeRange=None, displayedRange=(None, 2)):
         super(_AmplitudeRangeDialog, self).__init__(parent)
-        self.setWindowTitle('Set Displayed Amplitude Range')
+        self.setWindowTitle("Set Displayed Amplitude Range")
 
         if amplitudeRange is not None:
             amplitudeRange = min(amplitudeRange), max(amplitudeRange)
@@ -72,25 +70,24 @@ class _AmplitudeRangeDialog(qt.QDialog):
 
         if self._amplitudeRange is not None:
             min_, max_ = self._amplitudeRange
-            layout.addRow(
-                qt.QLabel('Data Amplitude Range: [%g, %g]' % (min_, max_)))
+            layout.addRow(qt.QLabel("Data Amplitude Range: [%g, %g]" % (min_, max_)))
 
         self._maxLineEdit = FloatEdit(parent=self)
-        self._maxLineEdit.validator().setBottom(0.)
+        self._maxLineEdit.validator().setBottom(0.0)
         self._maxLineEdit.setAlignment(qt.Qt.AlignRight)
 
         self._maxLineEdit.editingFinished.connect(self._rangeUpdated)
-        layout.addRow('Displayed Max.:', self._maxLineEdit)
+        layout.addRow("Displayed Max.:", self._maxLineEdit)
 
-        self._autoscale = qt.QCheckBox('autoscale')
+        self._autoscale = qt.QCheckBox("autoscale")
         self._autoscale.toggled.connect(self._autoscaleCheckBoxToggled)
-        layout.addRow('', self._autoscale)
+        layout.addRow("", self._autoscale)
 
         self._deltaLineEdit = FloatEdit(parent=self)
-        self._deltaLineEdit.validator().setBottom(1.)
+        self._deltaLineEdit.validator().setBottom(1.0)
         self._deltaLineEdit.setAlignment(qt.Qt.AlignRight)
         self._deltaLineEdit.editingFinished.connect(self._rangeUpdated)
-        layout.addRow('Displayed delta (log10 unit):', self._deltaLineEdit)
+        layout.addRow("Displayed delta (log10 unit):", self._deltaLineEdit)
 
         buttons = qt.QDialogButtonBox(self)
         buttons.addButton(qt.QDialogButtonBox.Ok)
@@ -105,8 +102,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
         self.rejected.connect(self._handleRejected)
 
     def _resetDialogToDefault(self):
-        """Set Widgets of the dialog from range information
-        """
+        """Set Widgets of the dialog from range information"""
         max_, delta = self._defaultDisplayedRange
 
         if max_ is not None:  # Not in autoscale
@@ -114,7 +110,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
         elif self._amplitudeRange is not None:  # Autoscale with data
             displayedMax = self._amplitudeRange[1]
         else:  # Autoscale without data
-            displayedMax = ''
+            displayedMax = ""
         if displayedMax == "":
             self._maxLineEdit.setText("")
         else:
@@ -147,7 +143,7 @@ class _AmplitudeRangeDialog(qt.QDialog):
         """Handle autoscale checkbox state changes"""
         if checked:  # Use default values
             if self._amplitudeRange is None:
-                max_ = ''
+                max_ = ""
             else:
                 max_ = self._amplitudeRange[1]
             if max_ == "":
@@ -165,21 +161,31 @@ class _ComplexDataToolButton(qt.QToolButton):
     :param plot: The :class:`ComplexImageView` to control
     """
 
-    _MODES = dict([
-        (ImageComplexData.ComplexMode.ABSOLUTE, ('math-amplitude', 'Amplitude')),
-        (ImageComplexData.ComplexMode.SQUARE_AMPLITUDE,
-         ('math-square-amplitude', 'Square amplitude')),
-        (ImageComplexData.ComplexMode.PHASE, ('math-phase', 'Phase')),
-        (ImageComplexData.ComplexMode.REAL, ('math-real', 'Real part')),
-        (ImageComplexData.ComplexMode.IMAGINARY,
-         ('math-imaginary', 'Imaginary part')),
-        (ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
-         ('math-phase-color', 'Amplitude and Phase')),
-        (ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE,
-         ('math-phase-color-log', 'Log10(Amp.) and Phase'))
-    ])
+    _MODES = dict(
+        [
+            (ImageComplexData.ComplexMode.ABSOLUTE, ("math-amplitude", "Amplitude")),
+            (
+                ImageComplexData.ComplexMode.SQUARE_AMPLITUDE,
+                ("math-square-amplitude", "Square amplitude"),
+            ),
+            (ImageComplexData.ComplexMode.PHASE, ("math-phase", "Phase")),
+            (ImageComplexData.ComplexMode.REAL, ("math-real", "Real part")),
+            (
+                ImageComplexData.ComplexMode.IMAGINARY,
+                ("math-imaginary", "Imaginary part"),
+            ),
+            (
+                ImageComplexData.ComplexMode.AMPLITUDE_PHASE,
+                ("math-phase-color", "Amplitude and Phase"),
+            ),
+            (
+                ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE,
+                ("math-phase-color-log", "Log10(Amp.) and Phase"),
+            ),
+        ]
+    )
 
-    _RANGE_DIALOG_TEXT = 'Set Amplitude Range...'
+    _RANGE_DIALOG_TEXT = "Set Amplitude Range..."
 
     def __init__(self, parent=None, plot=None):
         super(_ComplexDataToolButton, self).__init__(parent=parent)
@@ -205,16 +211,16 @@ class _ComplexDataToolButton(qt.QToolButton):
         self.setPopupMode(qt.QToolButton.InstantPopup)
 
         self._modeChanged(self._plot2DComplex.getComplexMode())
-        self._plot2DComplex.sigVisualizationModeChanged.connect(
-            self._modeChanged)
+        self._plot2DComplex.sigVisualizationModeChanged.connect(self._modeChanged)
 
     def _modeChanged(self, mode):
         """Handle change of visualization modes"""
         icon, text = self._MODES[mode]
         self.setIcon(icons.getQIcon(icon))
-        self.setToolTip('Display the ' + text.lower())
+        self.setToolTip("Display the " + text.lower())
         self._rangeDialogAction.setEnabled(
-            mode == ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE)
+            mode == ImageComplexData.ComplexMode.LOG10_AMPLITUDE_PHASE
+        )
 
     def _triggered(self, action):
         """Handle triggering of menu actions"""
@@ -234,7 +240,8 @@ class _ComplexDataToolButton(qt.QToolButton):
             dialog = _AmplitudeRangeDialog(
                 parent=self,
                 amplitudeRange=dataRange,
-                displayedRange=self._plot2DComplex._getAmplitudeRangeInfo())
+                displayedRange=self._plot2DComplex._getAmplitudeRangeInfo(),
+            )
             dialog.sigRangeChanged.connect(self._rangeChanged)
             dialog.exec()
             dialog.sigRangeChanged.disconnect(self._rangeChanged)
@@ -270,7 +277,7 @@ class ComplexImageView(qt.QWidget):
     def __init__(self, parent=None):
         super(ComplexImageView, self).__init__(parent)
         if parent is None:
-            self.setWindowTitle('ComplexImageView')
+            self.setWindowTitle("ComplexImageView")
 
         self._plot2D = Plot2D(self)
 
@@ -282,14 +289,13 @@ class ComplexImageView(qt.QWidget):
 
         # Create and add image to the plot
         self._plotImage = ImageComplexData()
-        self._plotImage.setName('__ComplexImageView__complex_image__')
+        self._plotImage.setName("__ComplexImageView__complex_image__")
         self._plotImage.sigItemChanged.connect(self._itemChanged)
         self._plot2D.addItem(self._plotImage)
         self._plot2D.setActiveImage(self._plotImage.getName())
 
-        toolBar = qt.QToolBar('Complex', self)
-        toolBar.addWidget(
-            _ComplexDataToolButton(parent=self, plot=self))
+        toolBar = qt.QToolBar("Complex", self)
+        toolBar.addWidget(_ComplexDataToolButton(parent=self, plot=self))
 
         self._plot2D.insertToolBar(self._plot2D.getProfileToolbar(), toolBar)
 
@@ -342,8 +348,10 @@ class ComplexImageView(qt.QWidget):
         :rtype: numpy.ndarray of float with 2 dims or RGBA image (uint8).
         """
         mode = self.getComplexMode()
-        if mode in (self.ComplexMode.AMPLITUDE_PHASE,
-                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
+        if mode in (
+            self.ComplexMode.AMPLITUDE_PHASE,
+            self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+        ):
             return self._plotImage.getRgbaImageData(copy=copy)
         else:
             return self._plotImage.getData(copy=copy)
@@ -475,7 +483,7 @@ class ComplexImageView(qt.QWidget):
 
         :rtype: :class:`.items.Axis`
         """
-        return self.getPlot().getYAxis(axis='left')
+        return self.getPlot().getYAxis(axis="left")
 
     def getGraphTitle(self):
         """Return the plot main title as a str."""

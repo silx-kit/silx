@@ -80,13 +80,9 @@ class TestFitWidget(TestCaseQt):
         y = [fitfun(x_, 2, 3) for x_ in x]
 
         def conf(**kw):
-            return {"spam": "eggs",
-                    "hello": "world!"}
+            return {"spam": "eggs", "hello": "world!"}
 
-        theory = FitTheory(
-            function=fitfun,
-            parameters=["a", "b"],
-            configure=conf)
+        theory = FitTheory(function=fitfun, parameters=["a", "b"], configure=conf)
 
         fitmngr = FitManager()
         fitmngr.setdata(x, y)
@@ -95,8 +91,9 @@ class TestFitWidget(TestCaseQt):
         fitmngr.addbgtheory("spam", theory)
 
         fw = FitWidget(fitmngr=fitmngr)
-        fw.associateConfigDialog("spam", CustomConfigWidget(),
-                                 theory_is_background=True)
+        fw.associateConfigDialog(
+            "spam", CustomConfigWidget(), theory_is_background=True
+        )
         fw.associateConfigDialog("foo", CustomConfigWidget())
         fw.show()
         self.qWaitForWindowExposed(fw)
@@ -104,8 +101,7 @@ class TestFitWidget(TestCaseQt):
         fw.bgconfigdialogs["spam"].accept()
         self.assertTrue(fw.bgconfigdialogs["spam"].result())
 
-        self.assertEqual(fw.bgconfigdialogs["spam"].output,
-                         {"hello": "world"})
+        self.assertEqual(fw.bgconfigdialogs["spam"].output, {"hello": "world"})
 
         fw.bgconfigdialogs["spam"].reject()
         self.assertFalse(fw.bgconfigdialogs["spam"].result())

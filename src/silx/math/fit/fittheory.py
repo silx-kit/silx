@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 #
 # Copyright (c) 2004-2018 European Synchrotron Radiation Facility
 #
@@ -35,19 +35,28 @@ __date__ = "09/08/2016"
 class FitTheory(object):
     """This class defines a fit theory, which consists of:
 
-        - a model function, the actual function to be fitted
-        - parameters names
-        - an estimation function, that return the estimated initial parameters
-          that serve as input for :func:`silx.math.fit.leastsq`
-        - an optional configuration function, that can be used to modify
-          configuration parameters to alter the behavior of the fit function
-          and the estimation function
-        - an optional derivative function, that replaces the default model
-          derivative used in :func:`silx.math.fit.leastsq`
+    - a model function, the actual function to be fitted
+    - parameters names
+    - an estimation function, that return the estimated initial parameters
+      that serve as input for :func:`silx.math.fit.leastsq`
+    - an optional configuration function, that can be used to modify
+      configuration parameters to alter the behavior of the fit function
+      and the estimation function
+    - an optional derivative function, that replaces the default model
+      derivative used in :func:`silx.math.fit.leastsq`
     """
-    def __init__(self, function, parameters,
-                 estimate=None, configure=None, derivative=None,
-                 description=None, pymca_legacy=False, is_background=False):
+
+    def __init__(
+        self,
+        function,
+        parameters,
+        estimate=None,
+        configure=None,
+        derivative=None,
+        description=None,
+        pymca_legacy=False,
+        is_background=False,
+    ):
         """
         :param function function: Actual function. See documentation for
             :attr:`function`.
@@ -155,6 +164,6 @@ class FitTheory(object):
         """Default estimate function. Return an array of *ones* as the
         initial estimated parameters, and set all constraints to zero
         (FREE)"""
-        estimated_parameters = [1. for _ in self.parameters]
+        estimated_parameters = [1.0 for _ in self.parameters]
         estimated_constraints = [[0, 0, 0] for _ in self.parameters]
         return estimated_parameters, estimated_constraints

@@ -63,7 +63,7 @@ class ScatterView(qt.QMainWindow):
     :type backend: Union[str,~silx.gui.plot.backends.BackendBase.BackendBase]
     """
 
-    _SCATTER_LEGEND = ' '
+    _SCATTER_LEGEND = " "
     """Legend used for the scatter item"""
 
     def __init__(self, parent=None, backend=None):
@@ -72,7 +72,7 @@ class ScatterView(qt.QMainWindow):
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
         else:
-            self.setWindowTitle('ScatterView')
+            self.setWindowTitle("ScatterView")
 
         # Create plot widget
         plot = PlotWidget(parent=self, backend=backend)
@@ -93,10 +93,13 @@ class ScatterView(qt.QMainWindow):
         self.__pickingCache = None
         self._positionInfo = tools.PositionInfo(
             plot=plot,
-            converters=(('X', WeakMethodProxy(self._getPickedX)),
-                        ('Y', WeakMethodProxy(self._getPickedY)),
-                        ('Data', WeakMethodProxy(self._getPickedValue)),
-                        ('Index', WeakMethodProxy(self._getPickedIndex))))
+            converters=(
+                ("X", WeakMethodProxy(self._getPickedX)),
+                ("Y", WeakMethodProxy(self._getPickedY)),
+                ("Data", WeakMethodProxy(self._getPickedValue)),
+                ("Index", WeakMethodProxy(self._getPickedIndex)),
+            ),
+        )
 
         # Combine plot, position info and colorbar into central widget
         gridLayout = qt.QGridLayout()
@@ -114,23 +117,25 @@ class ScatterView(qt.QMainWindow):
         # Create mask tool dock widget
         self._maskToolsWidget = ScatterMaskToolsWidget(parent=self, plot=plot)
         self._maskDock = BoxLayoutDockWidget()
-        self._maskDock.setWindowTitle('Scatter Mask')
+        self._maskDock.setWindowTitle("Scatter Mask")
         self._maskDock.setWidget(self._maskToolsWidget)
         self._maskDock.setVisible(False)
         self.addDockWidget(qt.Qt.BottomDockWidgetArea, self._maskDock)
 
         self._maskAction = self._maskDock.toggleViewAction()
-        self._maskAction.setIcon(icons.getQIcon('image-mask'))
+        self._maskAction.setIcon(icons.getQIcon("image-mask"))
         self._maskAction.setToolTip("Display/hide mask tools")
 
-        self._intensityHistoAction = actions_histogram.PixelIntensitiesHistoAction(plot=plot, parent=self)
+        self._intensityHistoAction = actions_histogram.PixelIntensitiesHistoAction(
+            plot=plot, parent=self
+        )
 
         # Create toolbars
         self._interactiveModeToolBar = tools.InteractiveModeToolBar(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
 
-        self._scatterToolBar = tools.ScatterToolBar(
-            parent=self, plot=plot)
+        self._scatterToolBar = tools.ScatterToolBar(parent=self, plot=plot)
         self._scatterToolBar.addAction(self._maskAction)
         self._scatterToolBar.addAction(self._intensityHistoAction)
 
@@ -139,14 +144,15 @@ class ScatterView(qt.QMainWindow):
         self._outputToolBar = tools.OutputToolBar(parent=self, plot=plot)
 
         # Activate shortcuts in PlotWindow widget:
-        for toolbar in (self._interactiveModeToolBar,
-                        self._scatterToolBar,
-                        self._profileToolBar,
-                        self._outputToolBar):
+        for toolbar in (
+            self._interactiveModeToolBar,
+            self._scatterToolBar,
+            self._profileToolBar,
+            self._outputToolBar,
+        ):
             self.addToolBar(toolbar)
             for action in toolbar.actions():
                 self.addAction(action)
-
 
     def __createEmptyScatter(self):
         """Create an empty scatter item that is used to display the data
@@ -155,8 +161,7 @@ class ScatterView(qt.QMainWindow):
         """
         plot = self.getPlotWidget()
         plot.addScatter(x=(), y=(), value=(), legend=self._SCATTER_LEGEND)
-        scatter = plot._getItem(
-            kind='scatter', legend=self._SCATTER_LEGEND)
+        scatter = plot._getItem(kind="scatter", legend=self._SCATTER_LEGEND)
         # Profile is not selectable,
         # so it does not interfere with profile interaction
         scatter._setSelectable(False)
@@ -180,16 +185,24 @@ class ScatterView(qt.QMainWindow):
                 if pixelPos is not None:
                     # Start from top-most item
                     result = plot._pickTopMost(
-                        pixelPos[0], pixelPos[1],
-                        lambda item: isinstance(item, items.Scatter))
+                        pixelPos[0],
+                        pixelPos[1],
+                        lambda item: isinstance(item, items.Scatter),
+                    )
                     if result is not None:
                         item = result.getItem()
-                        if item.getVisualization() is items.Scatter.Visualization.BINNED_STATISTIC:
+                        if (
+                            item.getVisualization()
+                            is items.Scatter.Visualization.BINNED_STATISTIC
+                        ):
                             # Get highest index of closest points
                             selected = result.getIndices(copy=False)[::-1]
-                            dataIndex = selected[numpy.argmin(
-                                (item.getXData(copy=False)[selected] - x)**2 +
-                                (item.getYData(copy=False)[selected] - y)**2)]
+                            dataIndex = selected[
+                                numpy.argmin(
+                                    (item.getXData(copy=False)[selected] - x) ** 2
+                                    + (item.getYData(copy=False)[selected] - y) ** 2
+                                )
+                            ]
                         else:
                             # Get last index
                             # with matplotlib it should be the top-most point
@@ -198,7 +211,8 @@ class ScatterView(qt.QMainWindow):
                             dataIndex,
                             item.getXData(copy=False)[dataIndex],
                             item.getYData(copy=False)[dataIndex],
-                            item.getValueData(copy=False)[dataIndex])
+                            item.getValueData(copy=False)[dataIndex],
+                        )
 
         return self.__pickingCache
 
@@ -210,7 +224,7 @@ class ScatterView(qt.QMainWindow):
         :return: The data index at that point or '-'
         """
         picking = self._pickScatterData(x, y)
-        return '-' if picking is None else picking[0]
+        return "-" if picking is None else picking[0]
 
     def _getPickedX(self, x, y):
         """Returns X position snapped to scatter plot when close enough
@@ -240,7 +254,7 @@ class ScatterView(qt.QMainWindow):
         :return: The data value at that point or '-'
         """
         picking = self._pickScatterData(x, y)
-        return '-' if picking is None else picking[3]
+        return "-" if picking is None else picking[3]
 
     def _mouseInPlotArea(self, x, y):
         """Clip mouse coordinates to plot area coordinates
@@ -344,7 +358,7 @@ class ScatterView(qt.QMainWindow):
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param alpha: Values with the transparency (between 0 and 1)
-        :type alpha: A float, or a numpy.ndarray of float32 
+        :type alpha: A float, or a numpy.ndarray of float32
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
@@ -353,7 +367,8 @@ class ScatterView(qt.QMainWindow):
         value = () if value is None else value
 
         self.getScatterItem().setData(
-            x=x, y=y, value=value, xerror=xerror, yerror=yerror, alpha=alpha, copy=copy)
+            x=x, y=y, value=value, xerror=xerror, yerror=yerror, alpha=alpha, copy=copy
+        )
 
     @docstring(items.Scatter)
     def getData(self, *args, **kwargs):
@@ -367,7 +382,7 @@ class ScatterView(qt.QMainWindow):
         :rtype: ~silx.gui.plot.items.Scatter
         """
         plot = self.getPlotWidget()
-        scatter = plot._getItem(kind='scatter', legend=self._SCATTER_LEGEND)
+        scatter = plot._getItem(kind="scatter", legend=self._SCATTER_LEGEND)
         if scatter is None:  # Resilient to call to PlotWidget API (e.g., clear)
             scatter = self.__createEmptyScatter()
         return scatter

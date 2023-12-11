@@ -41,11 +41,13 @@ import logging
 import numpy
 import unittest
 from collections import namedtuple
+
 try:
     import mako
 except ImportError:
     mako = None
 from ..common import ocl
+
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -61,20 +63,23 @@ except:
     try:
         from scipy.datasets import ascent
     except:
+
         def ascent():
             """Dummy image from random data"""
             return numpy.random.random((512, 512))
 
+
 try:
     from scipy.ndimage import median_filter
+
     HAS_SCIPY = True
 except:
     HAS_SCIPY = False
     from silx.math import medfilt2d as median_filter
 
+
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestMedianFilter(unittest.TestCase):
-
     def setUp(self):
         if ocl is None:
             return
@@ -111,10 +116,15 @@ class TestMedianFilter(unittest.TestCase):
         if r is None:
             logger.info("test_medfilt: size: %s: skipped")
         else:
-            logger.info("test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r)
-            if self.medianfilter.device.platform.name.lower() != 'portable computing language':
-                #Known broken
-                self.assertEqual(r.error, 0, 'Results are correct')
+            logger.info(
+                "test_medfilt: size: %s error %s, t_ref: %.3fs, t_ocl: %.3fs" % r
+            )
+            if (
+                self.medianfilter.device.platform.name.lower()
+                != "portable computing language"
+            ):
+                # Known broken
+                self.assertEqual(r.error, 0, "Results are correct")
 
     def benchmark(self, limit=36):
         "Run some benchmarking"

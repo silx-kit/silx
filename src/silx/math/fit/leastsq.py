@@ -46,21 +46,31 @@ import copy
 _logger = logging.getLogger(__name__)
 
 # codes understood by the routine
-CFREE       = 0
-CPOSITIVE   = 1
-CQUOTED     = 2
-CFIXED      = 3
-CFACTOR     = 4
-CDELTA      = 5
-CSUM        = 6
-CIGNORED    = 7
+CFREE = 0
+CPOSITIVE = 1
+CQUOTED = 2
+CFIXED = 3
+CFACTOR = 4
+CDELTA = 5
+CSUM = 6
+CIGNORED = 7
 
-def leastsq(model, xdata, ydata, p0, sigma=None,
-              constraints=None, model_deriv=None, epsfcn=None,
-              deltachi=None, full_output=None,
-              check_finite=True,
-              left_derivative=False,
-              max_iter=100):
+
+def leastsq(
+    model,
+    xdata,
+    ydata,
+    p0,
+    sigma=None,
+    constraints=None,
+    model_deriv=None,
+    epsfcn=None,
+    deltachi=None,
+    full_output=None,
+    check_finite=True,
+    left_derivative=False,
+    max_iter=100,
+):
     """
     Use non-linear least squares Levenberg-Marquardt algorithm to fit a function, f, to
     data with optional constraints on the fitted parameters.
@@ -272,7 +282,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 filter_xdata = True
         if filter_xdata:
             if xdata.size != ydata.size:
-                raise ValueError("xdata contains non-finite data that cannot be filtered")
+                raise ValueError(
+                    "xdata contains non-finite data that cannot be filtered"
+                )
             else:
                 # we leave the xdata as they where
                 old_shape = xdata.shape
@@ -324,25 +336,27 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 elif txt in ["IGNORED", "IGNORE"]:
                     constraints[i][0] = CIGNORED
                 else:
-                    #I should raise an exception
+                    # I should raise an exception
                     raise ValueError("Unknown constraint %s" % constraints[i][0])
             if constraints[i][0] > 0:
                 constrained_fit = True
     if constrained_fit:
         if full_output is None:
-            _logger.info("Recommended to set full_output to True when using constraints")
+            _logger.info(
+                "Recommended to set full_output to True when using constraints"
+            )
 
     # Levenberg-Marquardt algorithm
     fittedpar = parameters.__copy__()
     flambda = 0.001
     iiter = max_iter
-    #niter = 0
-    last_evaluation=None
+    # niter = 0
+    last_evaluation = None
     x = xdata
     y = ydata
     chisq0 = -1
     iteration_counter = 0
-    while (iiter > 0):
+    while iiter > 0:
         weight = weight0
         """
         I cannot evaluate the initial chisq here because I do not know
@@ -357,60 +371,67 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         """
         iteration_counter += 1
         chisq0, alpha0, beta, internal_output = chisq_alpha_beta(
-                                                 model, fittedpar,
-                                                 x, y, weight, constraints=constraints,
-                                                 model_deriv=model_deriv,
-                                                 epsfcn=epsfcn,
-                                                 left_derivative=left_derivative,
-                                                 last_evaluation=last_evaluation,
-                                                 full_output=True)
+            model,
+            fittedpar,
+            x,
+            y,
+            weight,
+            constraints=constraints,
+            model_deriv=model_deriv,
+            epsfcn=epsfcn,
+            left_derivative=left_derivative,
+            last_evaluation=last_evaluation,
+            full_output=True,
+        )
         n_free = internal_output["n_free"]
         free_index = internal_output["free_index"]
         noigno = internal_output["noigno"]
         fitparam = internal_output["fitparam"]
         function_calls = internal_output["function_calls"]
         function_call_counter += function_calls
-        #print("chisq0 = ", chisq0, n_free, fittedpar)
-        #raise
+        # print("chisq0 = ", chisq0, n_free, fittedpar)
+        # raise
         nr, nc = alpha0.shape
         flag = 0
-        #lastdeltachi = chisq0
+        # lastdeltachi = chisq0
         while flag == 0:
             alpha = alpha0 * (1.0 + flambda * numpy.identity(nr))
             deltapar = numpy.dot(beta, inv(alpha))
             if constraints is None:
-                newpar = fitparam + deltapar [0]
+                newpar = fitparam + deltapar[0]
             else:
                 newpar = parameters.__copy__()
                 pwork = numpy.zeros(deltapar.shape, numpy.float64)
                 for i in range(n_free):
                     if constraints is None:
-                        pwork [0] [i] = fitparam [i] + deltapar [0] [i]
-                    elif constraints [free_index[i]][0] == CFREE:
-                        pwork [0] [i] = fitparam [i] + deltapar [0] [i]
-                    elif constraints [free_index[i]][0] == CPOSITIVE:
-                        #abs method
-                        pwork [0] [i] = fitparam [i] + deltapar [0] [i]
-                        #square method
-                        #pwork [0] [i] = (numpy.sqrt(fitparam [i]) + deltapar [0] [i]) * \
+                        pwork[0][i] = fitparam[i] + deltapar[0][i]
+                    elif constraints[free_index[i]][0] == CFREE:
+                        pwork[0][i] = fitparam[i] + deltapar[0][i]
+                    elif constraints[free_index[i]][0] == CPOSITIVE:
+                        # abs method
+                        pwork[0][i] = fitparam[i] + deltapar[0][i]
+                        # square method
+                        # pwork [0] [i] = (numpy.sqrt(fitparam [i]) + deltapar [0] [i]) * \
                         #                (numpy.sqrt(fitparam [i]) + deltapar [0] [i])
                     elif constraints[free_index[i]][0] == CQUOTED:
-                        pmax = max(constraints[free_index[i]][1],
-                                   constraints[free_index[i]][2])
-                        pmin = min(constraints[free_index[i]][1],
-                                   constraints[free_index[i]][2])
+                        pmax = max(
+                            constraints[free_index[i]][1], constraints[free_index[i]][2]
+                        )
+                        pmin = min(
+                            constraints[free_index[i]][1], constraints[free_index[i]][2]
+                        )
                         A = 0.5 * (pmax + pmin)
                         B = 0.5 * (pmax - pmin)
                         if B != 0:
-                            pwork [0] [i] = A + \
-                                        B * numpy.sin(numpy.arcsin((fitparam[i] - A)/B)+ \
-                                        deltapar [0] [i])
+                            pwork[0][i] = A + B * numpy.sin(
+                                numpy.arcsin((fitparam[i] - A) / B) + deltapar[0][i]
+                            )
                         else:
                             txt = "Error processing constrained fit\n"
                             txt += "Parameter limits are %g and %g\n" % (pmin, pmax)
-                            txt += "A = %g B = %g"  % (A, B)
+                            txt += "A = %g B = %g" % (A, B)
                             raise ValueError("Invalid parameter limits")
-                    newpar[free_index[i]] = pwork [0] [i]
+                    newpar[free_index[i]] = pwork[0][i]
                 newpar = numpy.array(_get_parameters(newpar, constraints))
             workpar = numpy.take(newpar, noigno)
             yfit = model(x, *workpar)
@@ -422,7 +443,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     _logger.warning(msg)
             yfit.shape = -1
             function_call_counter += 1
-            chisq = (weight * pow(y-yfit, 2)).sum()
+            chisq = (weight * pow(y - yfit, 2)).sum()
             absdeltachi = chisq0 - chisq
             if absdeltachi < 0:
                 flambda *= 10.0
@@ -440,7 +461,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
                     iiter = 0
-                    _logger.info("Iteration finished due to too small absolute chi decrement")
+                    _logger.info(
+                        "Iteration finished due to too small absolute chi decrement"
+                    )
                 chisq0 = chisq
                 flambda = flambda / 10.0
                 last_evaluation = yfit
@@ -462,13 +485,18 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 new_constraints[idx][1] = 0
                 new_constraints[idx][2] = 0
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
-                                                 model, fittedpar,
-                                                 x, y, weight, constraints=new_constraints,
-                                                 model_deriv=model_deriv,
-                                                 epsfcn=epsfcn,
-                                                 left_derivative=left_derivative,
-                                                 last_evaluation=last_evaluation,
-                                                 full_output=True)
+            model,
+            fittedpar,
+            x,
+            y,
+            weight,
+            constraints=new_constraints,
+            model_deriv=model_deriv,
+            epsfcn=epsfcn,
+            left_derivative=left_derivative,
+            last_evaluation=last_evaluation,
+            full_output=True,
+        )
         # obtained chisq should be identical to chisq0
         try:
             cov = inv(alpha)
@@ -478,7 +506,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         if cov is not None:
             for idx, value in enumerate(flag_special):
                 if value in [CFIXED, CIGNORED]:
-                    cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=0)
+                    cov = numpy.insert(
+                        numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=0
+                    )
                     cov[idx, idx] = fittedpar[idx] * fittedpar[idx]
 
     if not full_output:
@@ -488,18 +518,32 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         sigmapar = _get_sigma_parameters(fittedpar, sigma0, constraints)
         ddict = {}
         ddict["chisq"] = chisq0
-        ddict["reduced_chisq"] = chisq0 / (len(yfit)-n_free)
+        ddict["reduced_chisq"] = chisq0 / (len(yfit) - n_free)
         ddict["covariance"] = cov0
         ddict["uncertainties"] = sigmapar
         ddict["fvec"] = last_evaluation
         ddict["nfev"] = function_call_counter
         ddict["niter"] = iteration_counter
-        return fittedpar, cov, ddict #, chisq/(len(yfit)-len(sigma0)), sigmapar,niter,lastdeltachi
+        return (
+            fittedpar,
+            cov,
+            ddict,
+        )  # , chisq/(len(yfit)-len(sigma0)), sigmapar,niter,lastdeltachi
 
-def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
-                   model_deriv=None, epsfcn=None, left_derivative=False,
-                   last_evaluation=None, full_output=False):
 
+def chisq_alpha_beta(
+    model,
+    parameters,
+    x,
+    y,
+    weight,
+    constraints=None,
+    model_deriv=None,
+    epsfcn=None,
+    left_derivative=False,
+    last_evaluation=None,
+    full_output=False,
+):
     """
     Get chi square, the curvature matrix alpha and the matrix beta according to the input parameters.
     If all the parameters are unconstrained, the covariance matrix is the inverse of the alpha matrix.
@@ -597,10 +641,10 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         epsfcn = numpy.finfo(numpy.float64).eps
     else:
         epsfcn = max(epsfcn, numpy.finfo(numpy.float64).eps)
-    #nr0, nc = data.shape
+    # nr0, nc = data.shape
     n_param = len(parameters)
     if constraints is None:
-        derivfactor = numpy.ones((n_param, ))
+        derivfactor = numpy.ones((n_param,))
         n_free = n_param
         noigno = numpy.arange(n_param)
         free_index = noigno * 1
@@ -615,30 +659,34 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             if constraints[i][0] != CIGNORED:
                 noigno.append(i)
             if constraints[i][0] == CFREE:
-                fitparam.append(parameters [i])
+                fitparam.append(parameters[i])
                 derivfactor.append(1.0)
                 free_index.append(i)
                 n_free += 1
             elif constraints[i][0] == CPOSITIVE:
                 fitparam.append(abs(parameters[i]))
                 derivfactor.append(1.0)
-                #fitparam.append(numpy.sqrt(abs(parameters[i])))
-                #derivfactor.append(2.0*numpy.sqrt(abs(parameters[i])))
+                # fitparam.append(numpy.sqrt(abs(parameters[i])))
+                # derivfactor.append(2.0*numpy.sqrt(abs(parameters[i])))
                 free_index.append(i)
                 n_free += 1
             elif constraints[i][0] == CQUOTED:
                 pmax = max(constraints[i][1], constraints[i][2])
-                pmin  =min(constraints[i][1], constraints[i][2])
-                if ((pmax-pmin) > 0) & \
-                   (parameters[i] <= pmax) & \
-                   (parameters[i] >= pmin):
+                pmin = min(constraints[i][1], constraints[i][2])
+                if (
+                    ((pmax - pmin) > 0)
+                    & (parameters[i] <= pmax)
+                    & (parameters[i] >= pmin)
+                ):
                     A = 0.5 * (pmax + pmin)
                     B = 0.5 * (pmax - pmin)
                     fitparam.append(parameters[i])
-                    derivfactor.append(B*numpy.cos(numpy.arcsin((parameters[i] - A)/B)))
+                    derivfactor.append(
+                        B * numpy.cos(numpy.arcsin((parameters[i] - A) / B))
+                    )
                     free_index.append(i)
                     n_free += 1
-                elif (pmax-pmin) > 0:
+                elif (pmax - pmin) > 0:
                     print("WARNING: Quoted parameter outside boundaries")
                     print("Initial value = %f" % parameters[i])
                     print("Limits are %f and %f" % (pmin, pmax))
@@ -646,15 +694,15 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     fitparam = numpy.array(fitparam, numpy.float64)
     alpha = numpy.zeros((n_free, n_free), numpy.float64)
     beta = numpy.zeros((1, n_free), numpy.float64)
-    #delta = (fitparam + numpy.equal(fitparam, 0.0)) * 0.00001
+    # delta = (fitparam + numpy.equal(fitparam, 0.0)) * 0.00001
     delta = (fitparam + numpy.equal(fitparam, 0.0)) * numpy.sqrt(epsfcn)
-    nr  = y.size
+    nr = y.size
     ##############
     # Prior to each call to the function one has to re-calculate the
     # parameters
     pwork = parameters.__copy__()
     for i in range(n_free):
-        pwork [free_index[i]] = fitparam [i]
+        pwork[free_index[i]] = fitparam[i]
     if n_free == 0:
         raise ValueError("No free parameters to fit")
     function_calls = 0
@@ -667,26 +715,26 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             function_calls += 1
     for i in range(n_free):
         if model_deriv is None:
-            #pwork = parameters.__copy__()
-            pwork[free_index[i]] = fitparam [i] + delta [i]
+            # pwork = parameters.__copy__()
+            pwork[free_index[i]] = fitparam[i] + delta[i]
             newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar, noigno)
             f1 = model(x, *newpar)
             f1.shape = -1
             function_calls += 1
             if left_derivative:
-                pwork[free_index[i]] = fitparam [i] - delta [i]
+                pwork[free_index[i]] = fitparam[i] - delta[i]
                 newpar = _get_parameters(pwork.tolist(), constraints)
-                newpar=numpy.take(newpar, noigno)
+                newpar = numpy.take(newpar, noigno)
                 f2 = model(x, *newpar)
                 function_calls += 1
                 help0 = (f1 - f2) / (2.0 * delta[i])
             else:
                 help0 = (f1 - f2) / (delta[i])
             help0 = help0 * derivfactor[i]
-            pwork[free_index[i]] = fitparam [i]
-            #removed I resize outside the loop:
-            #help0 = numpy.resize(help0, (1, nr))
+            pwork[free_index[i]] = fitparam[i]
+            # removed I resize outside the loop:
+            # help0 = numpy.resize(help0, (1, nr))
         else:
             help0 = model_deriv(x, pwork, free_index[i])
             help0 = help0 * derivfactor[i]
@@ -696,7 +744,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         else:
             deriv = numpy.concatenate((deriv, help0), 0)
 
-    #line added to resize outside the loop
+    # line added to resize outside the loop
     deriv = numpy.resize(deriv, (n_free, nr))
     if last_evaluation is None:
         if constraints is None:
@@ -719,7 +767,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             beta = help1
         else:
             beta = numpy.concatenate((beta, help1), 1)
-        help1 = numpy.inner(deriv, weight*derivi)
+        help1 = numpy.inner(deriv, weight * derivi)
         if i == 0:
             alpha = help1
         else:
@@ -752,13 +800,13 @@ def _get_parameters(parameters, constraints):
     if constraints is None:
         return parameters * 1
     newparam = []
-    #first I make the free parameters
-    #because the quoted ones put troubles
+    # first I make the free parameters
+    # because the quoted ones put troubles
     for i in range(len(constraints)):
         if constraints[i][0] == CFREE:
             newparam.append(parameters[i])
         elif constraints[i][0] == CPOSITIVE:
-            #newparam.append(parameters[i] * parameters[i])
+            # newparam.append(parameters[i] * parameters[i])
             newparam.append(abs(parameters[i]))
         elif constraints[i][0] == CQUOTED:
             newparam.append(parameters[i])
@@ -779,7 +827,7 @@ def _get_parameters(parameters, constraints):
             # using this module
             newparam[i] = 0
         elif constraints[i][0] == CSUM:
-            newparam[i] = constraints[i][2]-newparam[int(constraints[i][1])]
+            newparam[i] = constraints[i][2] - newparam[int(constraints[i][1])]
     return newparam
 
 
@@ -805,31 +853,31 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
     sigma_par = numpy.zeros(parameters.shape, numpy.float64)
     for i in range(len(constraints)):
         if constraints[i][0] == CFREE:
-            sigma_par [i] = sigma0[n_free]
+            sigma_par[i] = sigma0[n_free]
             n_free += 1
         elif constraints[i][0] == CPOSITIVE:
-            #sigma_par [i] = 2.0 * sigma0[n_free]
-            sigma_par [i] = sigma0[n_free]
+            # sigma_par [i] = 2.0 * sigma0[n_free]
+            sigma_par[i] = sigma0[n_free]
             n_free += 1
         elif constraints[i][0] == CQUOTED:
-            pmax = max(constraints [i][1], constraints [i][2])
-            pmin = min(constraints [i][1], constraints [i][2])
+            pmax = max(constraints[i][1], constraints[i][2])
+            pmin = min(constraints[i][1], constraints[i][2])
             # A = 0.5 * (pmax + pmin)
             B = 0.5 * (pmax - pmin)
-            if (B > 0) & (parameters [i] < pmax) & (parameters [i] > pmin):
-                sigma_par [i] = abs(B * numpy.cos(parameters[i]) * sigma0[n_free])
+            if (B > 0) & (parameters[i] < pmax) & (parameters[i] > pmin):
+                sigma_par[i] = abs(B * numpy.cos(parameters[i]) * sigma0[n_free])
                 n_free += 1
             else:
-                sigma_par [i] = parameters[i]
+                sigma_par[i] = parameters[i]
         elif abs(constraints[i][0]) == CFIXED:
             sigma_par[i] = parameters[i]
     for i in range(len(constraints)):
         if constraints[i][0] == CFACTOR:
-            sigma_par [i] = constraints[i][2]*sigma_par[int(constraints[i][1])]
+            sigma_par[i] = constraints[i][2] * sigma_par[int(constraints[i][1])]
         elif constraints[i][0] == CDELTA:
-            sigma_par [i] = sigma_par[int(constraints[i][1])]
+            sigma_par[i] = sigma_par[int(constraints[i][1])]
         elif constraints[i][0] == CSUM:
-            sigma_par [i] = sigma_par[int(constraints[i][1])]
+            sigma_par[i] = sigma_par[int(constraints[i][1])]
     return sigma_par
 
 
@@ -852,24 +900,29 @@ def main(argv=None):
         dummy = 2.3548200450309493 * (t - param[3]) / param[4]
         return param[0] + param[1] * t + param[2] * myexp(-0.5 * dummy * dummy)
 
-
     def myexp(x):
         # put a (bad) filter to avoid over/underflows
         # with no python looping
-        return numpy.exp(x * numpy.less(abs(x), 250)) -\
-               1.0 * numpy.greater_equal(abs(x), 250)
+        return numpy.exp(x * numpy.less(abs(x), 250)) - 1.0 * numpy.greater_equal(
+            abs(x), 250
+        )
 
     xx = numpy.arange(npoints, dtype=numpy.float64)
-    yy = gauss(xx, *[10.5, 2, 1000.0, 20., 15])
+    yy = gauss(xx, *[10.5, 2, 1000.0, 20.0, 15])
     sy = numpy.sqrt(abs(yy))
-    parameters = [0.0, 1.0, 900.0, 25., 10]
+    parameters = [0.0, 1.0, 900.0, 25.0, 10]
     stime = time.time()
 
-    fittedpar, cov, ddict = leastsq(gauss, xx, yy, parameters,
-                                                 sigma=sy,
-                                                 left_derivative=False,
-                                                 full_output=True,
-                                                 check_finite=True)
+    fittedpar, cov, ddict = leastsq(
+        gauss,
+        xx,
+        yy,
+        parameters,
+        sigma=sy,
+        left_derivative=False,
+        full_output=True,
+        check_finite=True,
+    )
     etime = time.time()
     sigmapars = numpy.sqrt(numpy.diag(cov))
     print("Took ", etime - stime, "seconds")
@@ -879,22 +932,20 @@ def main(argv=None):
     print("Sigma pars  = ", sigmapars)
     try:
         from scipy.optimize import curve_fit as cfit
+
         SCIPY = True
     except ImportError:
         SCIPY = False
     if SCIPY:
         counter = 0
         stime = time.time()
-        scipy_fittedpar, scipy_cov = cfit(gauss,
-                                      xx,
-                                      yy,
-                                      parameters,
-                                      sigma=sy)
+        scipy_fittedpar, scipy_cov = cfit(gauss, xx, yy, parameters, sigma=sy)
         etime = time.time()
         print("Scipy Took ", etime - stime, "seconds")
         print("Counter = ", counter)
         print("scipy = ", scipy_fittedpar)
         print("Sigma = ", numpy.sqrt(numpy.diag(scipy_cov)))
+
 
 if __name__ == "__main__":
     main()

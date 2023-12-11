@@ -334,4 +334,4 @@ class DataFileDialog(AbstractDataFileDialog):
             selection widget (basically the data from the browsing widget)
         :rtype: bool
         """
-        return u""
+        return ""

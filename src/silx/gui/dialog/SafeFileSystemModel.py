@@ -41,7 +41,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _Item(object):
-
     def __init__(self, fileInfo):
         self.__fileInfo = fileInfo
         self.__parent = None
@@ -101,7 +100,9 @@ class _Item(object):
             elif self.isDrive():
                 path = self.__fileInfo.filePath()
             else:
-                path = os.path.join(self.parent().absoluteFilePath(), self.__fileInfo.fileName())
+                path = os.path.join(
+                    self.parent().absoluteFilePath(), self.__fileInfo.fileName()
+                )
                 if path == "":
                     return "/"
             self.__absolutePath = path
@@ -236,7 +237,9 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         self.__header = "Name", "Size", "Type", "Last modification"
         self.__currentPath = ""
         self.__iconProvider = SafeFileIconProvider()
-        self.__directoryLoadedSync.connect(self.__emitDirectoryLoaded, qt.Qt.QueuedConnection)
+        self.__directoryLoadedSync.connect(
+            self.__emitDirectoryLoaded, qt.Qt.QueuedConnection
+        )
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         if orientation == qt.Qt.Horizontal:
@@ -496,7 +499,7 @@ class _RawFileSystemModel(qt.QAbstractItemModel):
         return
 
     def setReadOnly(self, enable):
-        assert(enable is True)
+        assert enable is True
 
     def isReadOnly(self):
         return False
@@ -612,20 +615,20 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
 
         filterPermissions = (filters & qt.QDir.PermissionMask) != 0
         if filterPermissions and (filters & (qt.QDir.Dirs | qt.QDir.Files)):
-            if (filters & qt.QDir.Readable):
+            if filters & qt.QDir.Readable:
                 # Hide unreadable
                 if not fileInfo.isReadable():
                     return False
-            if (filters & qt.QDir.Writable):
+            if filters & qt.QDir.Writable:
                 # Hide unwritable
                 if not fileInfo.isWritable():
                     return False
-            if (filters & qt.QDir.Executable):
+            if filters & qt.QDir.Executable:
                 # Hide unexecutable
                 if not fileInfo.isExecutable():
                     return False
 
-        if (filters & qt.QDir.NoSymLinks):
+        if filters & qt.QDir.NoSymLinks:
             # Hide sym links
             if fileInfo.isSymLink():
                 return False
@@ -711,7 +714,9 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
     def setNameFilters(self, filters):
         self.__nameFilters = []
         isCaseSensitive = self.__filters & qt.QDir.CaseSensitive
-        caseSensitive = qt.Qt.CaseSensitive if isCaseSensitive else qt.Qt.CaseInsensitive
+        caseSensitive = (
+            qt.Qt.CaseSensitive if isCaseSensitive else qt.Qt.CaseInsensitive
+        )
         for f in filters:
             reg = qt.QRegExp(f, caseSensitive, qt.QRegExp.Wildcard)
             self.__nameFilters.append(reg)
@@ -730,7 +735,7 @@ class SafeFileSystemModel(qt.QSortFilterProxyModel):
         self.invalidate()
 
     def setReadOnly(self, enable):
-        assert(enable is True)
+        assert enable is True
 
     def isReadOnly(self):
         return False

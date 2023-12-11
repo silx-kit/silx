@@ -44,6 +44,7 @@ _logger = logging.getLogger(__name__)
 
 # Complex colormap functions
 
+
 def _phase2rgb(colormap, data):
     """Creates RGBA image with colour-coded phase.
 
@@ -59,7 +60,7 @@ def _phase2rgb(colormap, data):
     return colormap.applyToData(phase)
 
 
-def _complex2rgbalog(phaseColormap, data, amin=0., dlogs=2, smax=None):
+def _complex2rgbalog(phaseColormap, data, amin=0.0, dlogs=2, smax=None):
     """Returns RGBA colors: colour-coded phases and log10(amplitude) in alpha.
 
     :param Colormap phaseColormap: Colormap to use for the phase
@@ -116,7 +117,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         ComplexMixIn.ComplexMode.IMAGINARY,
         ComplexMixIn.ComplexMode.AMPLITUDE_PHASE,
         ComplexMixIn.ComplexMode.LOG10_AMPLITUDE_PHASE,
-        ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE)
+        ComplexMixIn.ComplexMode.SQUARE_AMPLITUDE,
+    )
     """Overrides supported ComplexMode"""
 
     def __init__(self):
@@ -129,10 +131,7 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         # Use default from ColormapMixIn
         colormap = super(ImageComplexData, self).getColormap()
 
-        phaseColormap = Colormap(
-            name='hsv',
-            vmin=-numpy.pi,
-            vmax=numpy.pi)
+        phaseColormap = Colormap(name="hsv", vmin=-numpy.pi, vmax=numpy.pi)
 
         self._colormaps = {  # Default colormaps for all modes
             self.ComplexMode.ABSOLUTE: colormap,
@@ -153,8 +152,10 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             return None
 
         mode = self.getComplexMode()
-        if mode in (self.ComplexMode.AMPLITUDE_PHASE,
-                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
+        if mode in (
+            self.ComplexMode.AMPLITUDE_PHASE,
+            self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+        ):
             # For those modes, compute RGBA image here
             colormap = None
             data = self.getRgbaImageData(copy=False)
@@ -170,11 +171,13 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(data,
-                                origin=self.getOrigin(),
-                                scale=self.getScale(),
-                                colormap=colormap,
-                                alpha=self.getAlpha())
+        return backend.addImage(
+            data,
+            origin=self.getOrigin(),
+            scale=self.getScale(),
+            colormap=colormap,
+            alpha=self.getAlpha(),
+        )
 
     @docstring(ComplexMixIn)
     def setComplexMode(self, mode):
@@ -256,7 +259,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         assert data.ndim == 2
         if not numpy.issubdtype(data.dtype, numpy.complexfloating):
             _logger.warning(
-                'Image is not complex, converting it to complex to plot it.')
+                "Image is not complex, converting it to complex to plot it."
+            )
             data = numpy.array(data, dtype=numpy.complex64)
 
         # Compute current mode data and set colormap data
@@ -273,8 +277,9 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
         if event in (ItemChangedType.DATA, ItemChangedType.MASK):
             # Color-mapped data is NOT the `getValueData` for some modes
             if self.getComplexMode() in (
-                    self.ComplexMode.AMPLITUDE_PHASE,
-                    self.ComplexMode.LOG10_AMPLITUDE_PHASE):
+                self.ComplexMode.AMPLITUDE_PHASE,
+                self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+            ):
                 data = self.getData(copy=False, mode=self.ComplexMode.PHASE)
                 mask = self.getMaskData(copy=False)
                 if mask is not None:
@@ -307,16 +312,18 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
             return numpy.real(data)
         elif mode is self.ComplexMode.IMAGINARY:
             return numpy.imag(data)
-        elif mode in (self.ComplexMode.ABSOLUTE,
-                      self.ComplexMode.LOG10_AMPLITUDE_PHASE,
-                      self.ComplexMode.AMPLITUDE_PHASE):
+        elif mode in (
+            self.ComplexMode.ABSOLUTE,
+            self.ComplexMode.LOG10_AMPLITUDE_PHASE,
+            self.ComplexMode.AMPLITUDE_PHASE,
+        ):
             return numpy.absolute(data)
         elif mode is self.ComplexMode.SQUARE_AMPLITUDE:
             return numpy.absolute(data) ** 2
         else:
             _logger.error(
-                'Unsupported conversion mode: %s, fallback to absolute',
-                str(mode))
+                "Unsupported conversion mode: %s, fallback to absolute", str(mode)
+            )
             return numpy.absolute(data)
 
     def getData(self, copy=True, mode=None):
@@ -339,7 +346,8 @@ class ImageComplexData(ImageBase, ColormapMixIn, ComplexMixIn):
 
         if mode not in self._dataByModesCache:
             self._dataByModesCache[mode] = self.__convertComplexData(
-                self.getComplexData(copy=False), mode)
+                self.getComplexData(copy=False), mode
+            )
 
         return numpy.array(self._dataByModesCache[mode], copy=copy)
 

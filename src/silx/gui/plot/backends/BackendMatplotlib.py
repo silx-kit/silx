@@ -33,7 +33,7 @@ import datetime as dt
 from typing import Tuple, Union
 import numpy
 
-from pkg_resources import parse_version as _parse_version
+from packaging.version import Version
 
 
 _logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ...utils.matplotlib import FigureCanvasQTAgg
+from ...utils.matplotlib import FigureCanvasQTAgg, qFontToFontProperties
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -62,13 +62,14 @@ from .. import items
 from .._utils import FLOAT32_MINPOS
 from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
 from ...qt import inspect as qt_inspect
+from .... import config
 
 _PATCH_LINESTYLE = {
-    "-": 'solid',
-    "--": 'dashed',
-    '-.': 'dashdot',
-    ':': 'dotted',
-    '': "solid",
+    "-": "solid",
+    "--": "dashed",
+    "-.": "dashdot",
+    ":": "dotted",
+    "": "solid",
     None: "solid",
 }
 """Patches do not uses the same matplotlib syntax"""
@@ -77,20 +78,21 @@ _MARKER_PATHS = {}
 """Store cached extra marker paths"""
 
 _SPECIAL_MARKERS = {
-    'tickleft': 0,
-    'tickright': 1,
-    'tickup': 2,
-    'tickdown': 3,
-    'caretleft': 4,
-    'caretright': 5,
-    'caretup': 6,
-    'caretdown': 7,
+    "tickleft": 0,
+    "tickright": 1,
+    "tickup": 2,
+    "tickdown": 3,
+    "caretleft": 4,
+    "caretright": 5,
+    "caretup": 6,
+    "caretdown": 7,
 }
 
 
 def normalize_linestyle(linestyle):
     """Normalize known old-style linestyle, else return the provided value."""
     return _PATCH_LINESTYLE.get(linestyle, linestyle)
+
 
 def get_path_from_symbol(symbol):
     """Get the path representation of a symbol, else None if
@@ -99,21 +101,40 @@ def get_path_from_symbol(symbol):
     :param str symbol: Symbol description used by silx
     :rtype: Union[None,matplotlib.path.Path]
     """
-    if symbol == u'\u2665':
+    if symbol == "\u2665":
         path = _MARKER_PATHS.get(symbol, None)
         if path is not None:
             return path
-        vertices = numpy.array([
-            [0,-99],
-            [31,-73], [47,-55], [55,-46],
-            [63,-37], [94,-2], [94,33],
-            [94,69], [71,89], [47,89],
-            [24,89], [8,74], [0,58],
-            [-8,74], [-24,89], [-47,89],
-            [-71,89], [-94,69], [-94,33],
-            [-94,-2], [-63,-37], [-55,-46],
-            [-47,-55], [-31,-73], [0,-99],
-            [0,-99]])
+        vertices = numpy.array(
+            [
+                [0, -99],
+                [31, -73],
+                [47, -55],
+                [55, -46],
+                [63, -37],
+                [94, -2],
+                [94, 33],
+                [94, 69],
+                [71, 89],
+                [47, 89],
+                [24, 89],
+                [8, 74],
+                [0, 58],
+                [-8, 74],
+                [-24, 89],
+                [-47, 89],
+                [-71, 89],
+                [-94, 69],
+                [-94, 33],
+                [-94, -2],
+                [-63, -37],
+                [-55, -46],
+                [-47, -55],
+                [-31, -73],
+                [0, -99],
+                [0, -99],
+            ]
+        )
         codes = [mpath.Path.CURVE4] * len(vertices)
         codes[0] = mpath.Path.MOVETO
         codes[-1] = mpath.Path.CLOSEPOLY
@@ -121,6 +142,7 @@ def get_path_from_symbol(symbol):
         _MARKER_PATHS[symbol] = path
         return path
     return None
+
 
 class NiceDateLocator(Locator):
     """
@@ -130,6 +152,7 @@ class NiceDateLocator(Locator):
 
     Expects the data to be posix timestampes (i.e. seconds since 1970)
     """
+
     def __init__(self, numTicks=5, tz=None):
         """
         :param numTicks: target number of ticks
@@ -144,12 +167,12 @@ class NiceDateLocator(Locator):
 
     @property
     def spacing(self):
-        """ The current spacing. Will be updated when new tick value are made"""
+        """The current spacing. Will be updated when new tick value are made"""
         return self._spacing
 
     @property
     def unit(self):
-        """ The current DtUnit. Will be updated when new tick value are made"""
+        """The current DtUnit. Will be updated when new tick value are made"""
         return self._unit
 
     def __call__(self):
@@ -158,8 +181,7 @@ class NiceDateLocator(Locator):
         return self.tick_values(vmin, vmax)
 
     def tick_values(self, vmin, vmax):
-        """ Calculates tick values
-        """
+        """Calculates tick values"""
         if vmax < vmin:
             vmin, vmax = vmax, vmin
 
@@ -171,8 +193,7 @@ class NiceDateLocator(Locator):
             _logger.warning("Data range cannot be displayed with time axis")
             return []
 
-        dtTicks, self._spacing, self._unit = \
-            calcTicks(dtMin, dtMax, self.numTicks)
+        dtTicks, self._spacing, self._unit = calcTicks(dtMin, dtMax, self.numTicks)
 
         # Convert datetime back to time stamps.
         ticks = [timestamp(dtTick) for dtTick in dtTicks]
@@ -204,7 +225,7 @@ class NiceAutoDateFormatter(Formatter):
 
     def __call__(self, x, pos=None):
         """Return the format for tick val *x* at position *pos*
-           Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
+        Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
         """
         dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
         tickStr = dateTime.strftime(self.formatString)
@@ -222,7 +243,7 @@ class _PickableContainer(Container):
     def axes(self):
         """Mimin Artist.axes"""
         for child in self.get_children():
-            if hasattr(child, 'axes'):
+            if hasattr(child, "axes"):
                 return child.axes
         return None
 
@@ -354,18 +375,19 @@ class _MarkerContainer(_PickableContainer):
         :param yinverted: True if the y axis is inverted
         """
         if self.text is not None:
-            visible = ((self.x is None or xmin <= self.x <= xmax) and
-                       (self.y is None or ymin <= self.y <= ymax))
+            visible = (self.x is None or xmin <= self.x <= xmax) and (
+                self.y is None or ymin <= self.y <= ymax
+            )
             self.text.set_visible(visible)
 
             if self.x is not None and self.y is not None:
                 if self.symbol is None:
-                    valign = 'baseline'
+                    valign = "baseline"
                 else:
                     if yinverted:
-                        valign = 'bottom'
+                        valign = "bottom"
                     else:
-                        valign = 'top'
+                        valign = "top"
                 self.text.set_verticalalignment(valign)
 
             elif self.y is None:  # vertical line
@@ -393,42 +415,47 @@ class _MarkerContainer(_PickableContainer):
         return self.line.contains(mouseevent)
 
 
-class _DoubleColoredLinePatch(matplotlib.patches.Patch):
-    """Matplotlib patch to display any patch using double color."""
+class SecondEdgeColorPatchMixIn:
+    """Mix-in class to add a second color for patches with dashed lines"""
 
-    def __init__(self, patch):
-        super(_DoubleColoredLinePatch, self).__init__()
-        self.__patch = patch
-        self.linebgcolor = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._second_edgecolor = None
 
-    def __getattr__(self, name):
-        return getattr(self.__patch, name)
+    def set_second_edgecolor(self, color):
+        """Set the second color used to fill dashed edges"""
+        self._second_edgecolor = color
+
+    def get_second_edgecolor(self):
+        """Returns the second color used to fill dashed edges"""
+        return self._second_edgecolor
 
     def draw(self, renderer):
-        oldLineStype = self.__patch.get_linestyle()
-        if self.linebgcolor is not None and oldLineStype != "solid":
-            oldLineColor = self.__patch.get_edgecolor()
-            oldHatch = self.__patch.get_hatch()
-            self.__patch.set_linestyle("solid")
-            self.__patch.set_edgecolor(self.linebgcolor)
-            self.__patch.set_hatch(None)
-            self.__patch.draw(renderer)
-            self.__patch.set_linestyle(oldLineStype)
-            self.__patch.set_edgecolor(oldLineColor)
-            self.__patch.set_hatch(oldHatch)
-        self.__patch.draw(renderer)
+        linestyle = self.get_linestyle()
+        if linestyle == "solid" or self.get_second_edgecolor() is None:
+            super().draw(renderer)
+            return
 
-    def set_transform(self, transform):
-        self.__patch.set_transform(transform)
+        edgecolor = self.get_edgecolor()
+        hatch = self.get_hatch()
 
-    def get_path(self):
-        return self.__patch.get_path()
+        self.set_linestyle("solid")
+        self.set_edgecolor(self.get_second_edgecolor())
+        self.set_hatch(None)
+        super().draw(renderer)
 
-    def contains(self, mouseevent, radius=None):
-        return self.__patch.contains(mouseevent, radius)
+        self.set_linestyle(linestyle)
+        self.set_edgecolor(edgecolor)
+        self.set_hatch(hatch)
+        super().draw(renderer)
 
-    def contains_point(self, point, radius=None):
-        return self.__patch.contains_point(point, radius)
+
+class Rectangle2EdgeColor(SecondEdgeColorPatchMixIn, Rectangle):
+    """Rectangle patch with a second edge color for dashed line"""
+
+
+class Polygon2EdgeColor(SecondEdgeColorPatchMixIn, Polygon):
+    """Polygon patch with a second edge color for dashed line"""
 
 
 class Image(AxesImage):
@@ -438,10 +465,7 @@ class Image(AxesImage):
     :param List[float] silx_scale: (sx, sy) Scale of the image.
     """
 
-    def __init__(self, *args,
-                 silx_origin=(0., 0.),
-                 silx_scale=(1., 1.),
-                 **kwargs):
+    def __init__(self, *args, silx_origin=(0.0, 0.0), silx_scale=(1.0, 1.0), **kwargs):
         super().__init__(*args, **kwargs)
         self.__silx_origin = silx_origin
         self.__silx_scale = silx_scale
@@ -456,7 +480,7 @@ class Image(AxesImage):
             height, width = self.get_size()
             column = numpy.clip(int((x - ox) / sx), 0, width - 1)
             row = numpy.clip(int((y - oy) / sy), 0, height - 1)
-            info['ind'] = (row,), (column,)
+            info["ind"] = (row,), (column,)
         return inside, info
 
     def set_data(self, A):
@@ -489,12 +513,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # when getting the limits at the expense of a replot
         self._dirtyLimits = True
         self._axesDisplayed = True
-        self._matplotlibVersion = _parse_version(matplotlib.__version__)
+        self._matplotlibVersion = Version(matplotlib.__version__)
 
-        self.fig = Figure()
+        self.fig = Figure(
+            tight_layout=config._MPL_TIGHT_LAYOUT,
+        )
         self.fig.set_facecolor("w")
 
-        self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
+        if config._MPL_TIGHT_LAYOUT:
+            self.ax = self.fig.add_subplot(label="left")
+        else:
+            self.ax = self.fig.add_axes([0.15, 0.15, 0.75, 0.75], label="left")
         self.ax2 = self.ax.twinx()
         self.ax2.set_label("right")
         # Make sure background of Axes is displayed
@@ -516,16 +545,17 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 axis.set_useOffset(False)
                 axis.set_scientific(False)
         except:
-            _logger.warning('Cannot disabled axes offsets in %s '
-                            % matplotlib.__version__)
+            _logger.warning(
+                "Cannot disabled axes offsets in %s " % matplotlib.__version__
+            )
 
         self.ax2.set_autoscaley_on(True)
 
         # this works but the figure color is left
-        if self._matplotlibVersion < _parse_version('2'):
-            self.ax.set_axis_bgcolor('none')
+        if self._matplotlibVersion < Version("2"):
+            self.ax.set_axis_bgcolor("none")
         else:
-            self.ax.set_facecolor('none')
+            self.ax.set_facecolor("none")
         self.fig.sca(self.ax)
 
         self._background = None
@@ -534,30 +564,33 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._graphCursor = tuple()
 
-        self._enableAxis('right', False)
+        self._enableAxis("right", False)
         self._isXAxisTimeSeries = False
 
     def getItemsFromBackToFront(self, condition=None):
         """Order as BackendBase + take into account matplotlib Axes structure"""
+
         def axesOrder(item):
             if item.isOverlay():
                 return 2
-            elif isinstance(item, items.YAxisMixIn) and item.getYAxis() == 'right':
+            elif isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
                 return 1
             else:
                 return 0
 
         return sorted(
-            BackendBase.BackendBase.getItemsFromBackToFront(
-                self, condition=condition),
-            key=axesOrder)
+            BackendBase.BackendBase.getItemsFromBackToFront(self, condition=condition),
+            key=axesOrder,
+        )
 
     def _overlayItems(self):
         """Generator of backend renderer for overlay items"""
         for item in self._plot.getItems():
-            if (item.isOverlay() and
-                    item.isVisible() and
-                    item._backendRenderer is not None):
+            if (
+                item.isOverlay()
+                and item.isVisible()
+                and item._backendRenderer is not None
+            ):
                 yield item._backendRenderer
 
     def _hasOverlays(self):
@@ -591,19 +624,40 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # This symbol must be supported by matplotlib
         return symbol
 
-    def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
-                 yaxis,
-                 xerror, yerror,
-                 fill, alpha, symbolsize, baseline):
-        for parameter in (x, y, color, symbol, linewidth, linestyle,
-                          yaxis, fill, alpha, symbolsize):
+    def addCurve(
+        self,
+        x,
+        y,
+        color,
+        gapcolor,
+        symbol,
+        linewidth,
+        linestyle,
+        yaxis,
+        xerror,
+        yerror,
+        fill,
+        alpha,
+        symbolsize,
+        baseline,
+    ):
+        for parameter in (
+            x,
+            y,
+            color,
+            symbol,
+            linewidth,
+            linestyle,
+            yaxis,
+            fill,
+            alpha,
+            symbolsize,
+        ):
             assert parameter is not None
-        assert yaxis in ('left', 'right')
+        assert yaxis in ("left", "right")
 
-        if (len(color) == 4 and
-                type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
-            color = numpy.array(color, dtype=numpy.float64) / 255.
+        if len(color) == 4 and type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
+            color = numpy.array(color, dtype=numpy.float64) / 255.0
 
         if yaxis == "right":
             axes = self.ax2
@@ -617,50 +671,62 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # First add errorbars if any so they are behind the curve
         if xerror is not None or yerror is not None:
-            if hasattr(color, 'dtype') and len(color) == len(x):
-                errorbarColor = 'k'
+            if hasattr(color, "dtype") and len(color) == len(x):
+                errorbarColor = "k"
             else:
                 errorbarColor = color
 
             # Nx1 error array deprecated in matplotlib >=3.1 (removed in 3.3)
-            if (isinstance(xerror, numpy.ndarray) and xerror.ndim == 2 and
-                        xerror.shape[1] == 1):
+            if (
+                isinstance(xerror, numpy.ndarray)
+                and xerror.ndim == 2
+                and xerror.shape[1] == 1
+            ):
                 xerror = numpy.ravel(xerror)
-            if (isinstance(yerror, numpy.ndarray) and yerror.ndim == 2 and
-                    yerror.shape[1] == 1):
+            if (
+                isinstance(yerror, numpy.ndarray)
+                and yerror.ndim == 2
+                and yerror.shape[1] == 1
+            ):
                 yerror = numpy.ravel(yerror)
 
-            errorbars = axes.errorbar(x, y,
-                                      xerr=xerror, yerr=yerror,
-                                      linestyle=' ', color=errorbarColor)
+            errorbars = axes.errorbar(
+                x, y, xerr=xerror, yerr=yerror, linestyle=" ", color=errorbarColor
+            )
             artists += list(errorbars.get_children())
 
-        if hasattr(color, 'dtype') and len(color) == len(x):
+        if hasattr(color, "dtype") and len(color) == len(x):
             # scatter plot
             if color.dtype not in [numpy.float32, numpy.float64]:
-                actualColor = color / 255.
+                actualColor = color / 255.0
             else:
                 actualColor = color
 
             if linestyle not in ["", " ", None]:
                 # scatter plot with an actual line ...
                 # we need to assign a color ...
-                curveList = axes.plot(x, y,
-                                      linestyle=linestyle,
-                                      color=actualColor[0],
-                                      linewidth=linewidth,
-                                      picker=True,
-                                      pickradius=pickradius,
-                                      marker=None)
+                curveList = axes.plot(
+                    x,
+                    y,
+                    linestyle=linestyle,
+                    color=actualColor[0],
+                    linewidth=linewidth,
+                    picker=True,
+                    pickradius=pickradius,
+                    marker=None,
+                )
                 artists += list(curveList)
 
             marker = self._getMarkerFromSymbol(symbol)
-            scatter = axes.scatter(x, y,
-                                   color=actualColor,
-                                   marker=marker,
-                                   picker=True,
-                                   pickradius=pickradius,
-                                   s=symbolsize**2)
+            scatter = axes.scatter(
+                x,
+                y,
+                color=actualColor,
+                marker=marker,
+                picker=True,
+                pickradius=pickradius,
+                s=symbolsize**2,
+            )
             artists.append(scatter)
 
             if fill:
@@ -668,18 +734,28 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     _baseline = FLOAT32_MINPOS
                 else:
                     _baseline = baseline
-                artists.append(axes.fill_between(
-                    x, _baseline, y, facecolor=actualColor[0], linestyle=''))
+                artists.append(
+                    axes.fill_between(
+                        x, _baseline, y, facecolor=actualColor[0], linestyle=""
+                    )
+                )
 
         else:  # Curve
-            curveList = axes.plot(x, y,
-                                  linestyle=linestyle,
-                                  color=color,
-                                  linewidth=linewidth,
-                                  marker=symbol,
-                                  picker=True,
-                                  pickradius=pickradius,
-                                  markersize=symbolsize)
+            curveList = axes.plot(
+                x,
+                y,
+                linestyle=linestyle,
+                color=color,
+                linewidth=linewidth,
+                marker=symbol,
+                picker=True,
+                pickradius=pickradius,
+                markersize=symbolsize,
+            )
+
+            if gapcolor is not None and self._matplotlibVersion >= Version("3.6.0"):
+                for line2d in curveList:
+                    line2d.set_gapcolor(gapcolor)
             artists += list(curveList)
 
             if fill:
@@ -687,8 +763,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     _baseline = FLOAT32_MINPOS
                 else:
                     _baseline = baseline
-                artists.append(
-                    axes.fill_between(x, _baseline, y, facecolor=color))
+                artists.append(axes.fill_between(x, _baseline, y, facecolor=color))
 
         for artist in artists:
             if alpha < 1:
@@ -709,12 +784,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         height, width = data.shape[0:2]
 
         # All image are shown as RGBA image
-        image = Image(self.ax,
-                      interpolation='nearest',
-                      picker=True,
-                      origin='lower',
-                      silx_origin=origin,
-                      silx_scale=scale)
+        image = Image(
+            self.ax,
+            interpolation="nearest",
+            picker=True,
+            origin="lower",
+            silx_origin=origin,
+            silx_scale=scale,
+        )
 
         if alpha < 1:
             image.set_alpha(alpha)
@@ -722,21 +799,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Set image extent
         xmin = origin[0]
         xmax = xmin + scale[0] * width
-        if scale[0] < 0.:
+        if scale[0] < 0.0:
             xmin, xmax = xmax, xmin
 
         ymin = origin[1]
         ymax = ymin + scale[1] * height
-        if scale[1] < 0.:
+        if scale[1] < 0.0:
             ymin, ymax = ymax, ymin
 
         image.set_extent((xmin, xmax, ymin, ymax))
 
         # Set image data
-        if scale[0] < 0. or scale[1] < 0.:
+        if scale[0] < 0.0 or scale[1] < 0.0:
             # For negative scale, step by -1
-            xstep = 1 if scale[0] >= 0. else -1
-            ystep = 1 if scale[1] >= 0. else -1
+            xstep = 1 if scale[0] >= 0.0 else -1
+            ystep = 1 if scale[1] >= 0.0 else -1
             data = data[::ystep, ::xstep]
 
         if data.ndim == 2:  # Data image, convert to RGBA image
@@ -745,7 +822,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # Normalize uint16 data to have a similar behavior as opengl backend
             data = data.astype(numpy.float32)
             data /= 65535
-        
+
         image.set_data(data)
         self.ax.add_artist(image)
         return image
@@ -758,87 +835,92 @@ class BackendMatplotlib(BackendBase.BackendBase):
         assert color.ndim == 2 and len(color) == len(x)
 
         if color.dtype not in [numpy.float32, numpy.float64]:
-            color = color.astype(numpy.float32) / 255.
+            color = color.astype(numpy.float32) / 255.0
 
         collection = TriMesh(
-            Triangulation(x, y, triangles),
-            alpha=alpha,
-            pickradius=0)  # 0 enables picking on filled triangle
+            Triangulation(x, y, triangles), alpha=alpha, pickradius=0
+        )  # 0 enables picking on filled triangle
         collection.set_color(color)
         self.ax.add_collection(collection)
 
         return collection
 
-    def addShape(self, x, y, shape, color, fill, overlay,
-                 linestyle, linewidth, linebgcolor):
-        if (linebgcolor is not None and
-                shape not in ('rectangle', 'polygon', 'polylines')):
+    def addShape(
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+    ):
+        if linebgcolor is not None and shape not in (
+            "rectangle",
+            "polygon",
+            "polylines",
+        ):
             _logger.warning(
-                'linebgcolor not implemented for %s with matplotlib backend',
-                shape)
+                "linebgcolor not implemented for %s with matplotlib backend", shape
+            )
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
         linestyle = normalize_linestyle(linestyle)
 
         if shape == "line":
-            item = self.ax.plot(x, y, color=color,
-                                linestyle=linestyle, linewidth=linewidth,
-                                marker=None)[0]
+            item = self.ax.plot(
+                x, y, color=color, linestyle=linestyle, linewidth=linewidth, marker=None
+            )[0]
 
         elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
-            item = self.ax.axhline(y, color=color,
-                                   linestyle=linestyle, linewidth=linewidth)
+            item = self.ax.axhline(
+                y, color=color, linestyle=linestyle, linewidth=linewidth
+            )
 
         elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
-            item = self.ax.axvline(x, color=color,
-                                   linestyle=linestyle, linewidth=linewidth)
+            item = self.ax.axvline(
+                x, color=color, linestyle=linestyle, linewidth=linewidth
+            )
 
-        elif shape == 'rectangle':
+        elif shape == "rectangle":
             xMin = numpy.nanmin(xView)
             xMax = numpy.nanmax(xView)
             yMin = numpy.nanmin(yView)
             yMax = numpy.nanmax(yView)
             w = xMax - xMin
             h = yMax - yMin
-            item = Rectangle(xy=(xMin, yMin),
-                             width=w,
-                             height=h,
-                             fill=False,
-                             color=color,
-                             linestyle=linestyle,
-                             linewidth=linewidth)
-            if fill:
-                item.set_hatch('.')
+            item = Rectangle2EdgeColor(
+                xy=(xMin, yMin),
+                width=w,
+                height=h,
+                fill=False,
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+            )
+            item.set_second_edgecolor(linebgcolor)
 
-            if linestyle != "solid" and linebgcolor is not None:
-                item = _DoubleColoredLinePatch(item)
-                item.linebgcolor = linebgcolor
+            if fill:
+                item.set_hatch(".")
 
             self.ax.add_patch(item)
 
-        elif shape in ('polygon', 'polylines'):
+        elif shape in ("polygon", "polylines"):
             points = numpy.array((xView, yView)).T
-            if shape == 'polygon':
+            if shape == "polygon":
                 closed = True
             else:  # shape == 'polylines'
                 closed = numpy.all(numpy.equal(points[0], points[-1]))
-            item = Polygon(points,
-                           closed=closed,
-                           fill=False,
-                           color=color,
-                           linestyle=linestyle,
-                           linewidth=linewidth)
-            if fill and shape == 'polygon':
-                item.set_hatch('/')
+            item = Polygon2EdgeColor(
+                points,
+                closed=closed,
+                fill=False,
+                color=color,
+                linestyle=linestyle,
+                linewidth=linewidth,
+            )
+            item.set_second_edgecolor(linebgcolor)
 
-            if linestyle != "solid" and linebgcolor is not None:
-                item = _DoubleColoredLinePatch(item)
-                item.linebgcolor = linebgcolor
+            if fill and shape == "polygon":
+                item.set_hatch("/")
 
             self.ax.add_patch(item)
 
@@ -850,61 +932,70 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return item
 
-    def addMarker(self, x, y, text, color,
-                  symbol, linestyle, linewidth, constraint, yaxis):
+    def addMarker(
+        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+    ):
         textArtist = None
+        fontProperties = None if font is None else qFontToFontProperties(font)
 
         xmin, xmax = self.getGraphXLimits()
         ymin, ymax = self.getGraphYLimits(axis=yaxis)
 
-        if yaxis == 'left':
+        if yaxis == "left":
             ax = self.ax
-        elif yaxis == 'right':
+        elif yaxis == "right":
             ax = self.ax2
         else:
-            assert(False)
+            assert False
 
         marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
-            line = ax.plot(x, y,
-                           linestyle=" ",
-                           color=color,
-                           marker=marker,
-                           markersize=10.)[-1]
+            line = ax.plot(
+                x, y, linestyle=" ", color=color, marker=marker, markersize=10.0
+            )[-1]
 
             if text is not None:
-                textArtist = _TextWithOffset(x, y, text,
-                                             color=color,
-                                             horizontalalignment='left')
+                textArtist = _TextWithOffset(
+                    x,
+                    y,
+                    text,
+                    color=color,
+                    horizontalalignment="left",
+                    fontproperties=fontProperties,
+                )
                 if symbol is not None:
                     textArtist.pixel_offset = 10, 3
         elif x is not None:
-            line = ax.axvline(x,
-                              color=color,
-                              linewidth=linewidth,
-                              linestyle=linestyle)
+            line = ax.axvline(x, color=color, linewidth=linewidth, linestyle=linestyle)
             if text is not None:
                 # Y position will be updated in updateMarkerText call
-                textArtist = _TextWithOffset(x, 1., text,
-                                             color=color,
-                                             horizontalalignment='left',
-                                             verticalalignment='top')
+                textArtist = _TextWithOffset(
+                    x,
+                    1.0,
+                    text,
+                    color=color,
+                    horizontalalignment="left",
+                    verticalalignment="top",
+                    fontproperties=fontProperties,
+                )
                 textArtist.pixel_offset = 5, 3
         elif y is not None:
-            line = ax.axhline(y,
-                              color=color,
-                              linewidth=linewidth,
-                              linestyle=linestyle)
+            line = ax.axhline(y, color=color, linewidth=linewidth, linestyle=linestyle)
 
             if text is not None:
                 # X position will be updated in updateMarkerText call
-                textArtist = _TextWithOffset(1., y, text,
-                                             color=color,
-                                             horizontalalignment='right',
-                                             verticalalignment='top')
+                textArtist = _TextWithOffset(
+                    1.0,
+                    y,
+                    text,
+                    color=color,
+                    horizontalalignment="right",
+                    verticalalignment="top",
+                    fontproperties=fontProperties,
+                )
                 textArtist.pixel_offset = 5, 3
         else:
-            raise RuntimeError('A marker must at least have one coordinate')
+            raise RuntimeError("A marker must at least have one coordinate")
 
         line.set_picker(True)
         line.set_pickradius(5)
@@ -928,7 +1019,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         yinverted = self.isYAxisInverted()
         for item in self._overlayItems():
             if isinstance(item, _MarkerContainer):
-                if item.yAxis == 'left':
+                if item.yAxis == "left":
                     item.updateMarkerText(xmin, xmax, ymin1, ymax1, yinverted)
                 else:
                     item.updateMarkerText(xmin, xmax, ymin2, ymax2, yinverted)
@@ -946,13 +1037,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if flag:
             lineh = self.ax.axhline(
-                self.ax.get_ybound()[0], visible=False, color=color,
-                linewidth=linewidth, linestyle=linestyle)
+                self.ax.get_ybound()[0],
+                visible=False,
+                color=color,
+                linewidth=linewidth,
+                linestyle=linestyle,
+            )
             lineh.set_animated(True)
 
             linev = self.ax.axvline(
-                self.ax.get_xbound()[0], visible=False, color=color,
-                linewidth=linewidth, linestyle=linestyle)
+                self.ax.get_xbound()[0],
+                visible=False,
+                color=color,
+                linewidth=linewidth,
+                linestyle=linestyle,
+            )
             linev.set_animated(True)
 
             self._graphCursor = lineh, linev
@@ -974,8 +1073,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 artist.set_facecolors(color)
                 artist.set_edgecolors(color)
             else:
-                _logger.warning(
-                    'setActiveCurve ignoring artist %s', str(artist))
+                _logger.warning("setActiveCurve ignoring artist %s", str(artist))
 
     # Misc.
 
@@ -988,8 +1086,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         :param str axis: Axis name: 'left' or 'right'
         :param bool flag: Default, True
         """
-        assert axis in ('right', 'left')
-        axes = self.ax2 if axis == 'right' else self.ax
+        assert axis in ("right", "left")
+        axes = self.ax2 if axis == "right" else self.ax
         axes.get_yaxis().set_visible(flag)
 
     def replot(self):
@@ -1007,18 +1105,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Hide right Y axis if no line is present
         self._dirtyLimits = False
         if not self.ax2.lines:
-            self._enableAxis('right', False)
+            self._enableAxis("right", False)
 
     def _drawOverlays(self):
         """Draw overlays if any."""
+
         def condition(item):
-            return (item.isVisible() and
-                    item._backendRenderer is not None and
-                    item.isOverlay())
+            return (
+                item.isVisible()
+                and item._backendRenderer is not None
+                and item.isOverlay()
+            )
 
         for item in self.getItemsFromBackToFront(condition=condition):
-            if (isinstance(item, items.YAxisMixIn) and
-                    item.getYAxis() == 'right'):
+            if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
                 axes = self.ax2
             else:
                 axes = self.ax
@@ -1030,14 +1130,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def updateZOrder(self):
         """Reorder all items with z order from 0 to 1"""
         items = self.getItemsFromBackToFront(
-            lambda item: item.isVisible() and item._backendRenderer is not None)
+            lambda item: item.isVisible() and item._backendRenderer is not None
+        )
         count = len(items)
         for index, item in enumerate(items):
             if item.getZValue() < 0.5:
                 # Make sure matplotlib z order is below the grid (with z=0.5)
                 zorder = 0.5 * index / count
             else:  # Make sure matplotlib z order is above the grid (> 0.5)
-                zorder = 1. + index / count
+                zorder = 1.0 + index / count
             if zorder != item._backendRenderer.get_zorder():
                 item._backendRenderer.set_zorder(zorder)
 
@@ -1060,7 +1161,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.set_xlabel(label)
 
     def setGraphYLabel(self, label, axis):
-        axes = self.ax if axis == 'left' else self.ax2
+        axes = self.ax if axis == "left" else self.ax2
         axes.set_ylabel(label)
 
     # Graph limits
@@ -1096,8 +1197,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._updateMarkers()
 
     def getGraphYLimits(self, axis):
-        assert axis in ('left', 'right')
-        ax = self.ax2 if axis == 'right' else self.ax
+        assert axis in ("left", "right")
+        ax = self.ax2 if axis == "right" else self.ax
 
         if not ax.get_visible():
             return None
@@ -1110,7 +1211,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return ax.get_ybound()
 
     def setGraphYLimits(self, ymin, ymax, axis):
-        ax = self.ax2 if axis == 'right' else self.ax
+        ax = self.ax2 if axis == "right" else self.ax
         if ymax < ymin:
             ymin, ymax = ymax, ymin
         self._dirtyLimits = True
@@ -1155,13 +1256,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
             locator = NiceDateLocator(tz=self.getXAxisTimeZone())
             self.ax.xaxis.set_major_locator(locator)
             self.ax.xaxis.set_major_formatter(
-                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone()))
+                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
+            )
         else:
             try:
                 scalarFormatter = ScalarFormatter(useOffset=False)
             except:
-                _logger.warning('Cannot disabled axes offsets in %s ' %
-                                matplotlib.__version__)
+                _logger.warning(
+                    "Cannot disabled axes offsets in %s " % matplotlib.__version__
+                )
                 scalarFormatter = ScalarFormatter()
             self.ax.xaxis.set_major_formatter(scalarFormatter)
 
@@ -1169,19 +1272,19 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
         # to log scale with both limits <= 0
         # In this case a draw with positive limits is needed first
-        if flag and self._matplotlibVersion >= _parse_version('2.1.0'):
+        if flag and self._matplotlibVersion >= Version("2.1.0"):
             xlim = self.ax.get_xlim()
             if xlim[0] <= 0 and xlim[1] <= 0:
                 self.ax.set_xlim(1, 10)
                 self.draw()
 
-        self.ax2.set_xscale('log' if flag else 'linear')
-        self.ax.set_xscale('log' if flag else 'linear')
+        self.ax2.set_xscale("log" if flag else "linear")
+        self.ax.set_xscale("log" if flag else "linear")
 
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
         # before switching to log scale
-        if flag and self._matplotlibVersion >= _parse_version('2.0.0'):
+        if flag and self._matplotlibVersion >= Version("2.0.0"):
             redraw = False
             for axis, dataRangeIndex in ((self.ax, 1), (self.ax2, 2)):
                 ylim = axis.get_ylim()
@@ -1194,8 +1297,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if redraw:
                 self.draw()
 
-        self.ax2.set_yscale('log' if flag else 'linear')
-        self.ax.set_yscale('log' if flag else 'linear')
+        self.ax2.set_yscale("log" if flag else "linear")
+        self.ax.set_yscale("log" if flag else "linear")
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
@@ -1209,14 +1312,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return self.ax2.yaxis.get_visible()
 
     def isKeepDataAspectRatio(self):
-        return self.ax.get_aspect() in (1.0, 'equal')
+        return self.ax.get_aspect() in (1.0, "equal")
 
     def setKeepDataAspectRatio(self, flag):
-        self.ax.set_aspect(1.0 if flag else 'auto')
-        self.ax2.set_aspect(1.0 if flag else 'auto')
+        self.ax.set_aspect(1.0 if flag else "auto")
+        self.ax2.set_aspect(1.0 if flag else "auto")
 
     def setGraphGrid(self, which):
-        self.ax.grid(False, which='both')  # Disable all grid first
+        self.ax.grid(False, which="both")  # Disable all grid first
         if which is not None:
             self.ax.grid(True, which=which)
 
@@ -1224,23 +1327,19 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def _getDevicePixelRatio(self) -> float:
         """Compatibility wrapper for devicePixelRatioF"""
-        return 1.
+        return 1.0
 
     def _mplToQtPosition(
-        self,
-        x: Union[float,numpy.ndarray],
-        y: Union[float,numpy.ndarray]
-    ) -> Tuple[Union[float,numpy.ndarray], Union[float,numpy.ndarray]]:
-        """Convert matplotlib "display" space coord to Qt widget logical pixel
-        """
+        self, x: Union[float, numpy.ndarray], y: Union[float, numpy.ndarray]
+    ) -> Tuple[Union[float, numpy.ndarray], Union[float, numpy.ndarray]]:
+        """Convert matplotlib "display" space coord to Qt widget logical pixel"""
         ratio = self._getDevicePixelRatio()
         # Convert from matplotlib origin (bottom) to Qt origin (top)
         # and apply device pixel ratio
         return x / ratio, (self.fig.get_window_extent().height - y) / ratio
 
     def _qtToMplPosition(self, x: float, y: float) -> Tuple[float, float]:
-        """Convert Qt widget logical pixel to matplotlib "display" space coord
-        """
+        """Convert Qt widget logical pixel to matplotlib "display" space coord"""
         ratio = self._getDevicePixelRatio()
         # Apply device pixel ration and
         # convert from Qt origin (top) to matplotlib origin (bottom)
@@ -1261,18 +1360,33 @@ class BackendMatplotlib(BackendBase.BackendBase):
         bbox = self.ax.get_window_extent()
         # Warning this is not returning int...
         ratio = self._getDevicePixelRatio()
-        return tuple(int(value / ratio) for value in (
-            bbox.xmin,
-            self.fig.get_window_extent().height - bbox.ymax,
-            bbox.width,
-            bbox.height))
+        return tuple(
+            int(value / ratio)
+            for value in (
+                bbox.xmin,
+                self.fig.get_window_extent().height - bbox.ymax,
+                bbox.width,
+                bbox.height,
+            )
+        )
 
     def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
-        width, height = 1. - left - right, 1. - top - bottom
+        width, height = 1.0 - left - right, 1.0 - top - bottom
         position = left, bottom, width, height
 
+        istight = config._MPL_TIGHT_LAYOUT and (left, top, right, bottom) != (
+            0,
+            0,
+            0,
+            0,
+        )
+        if self._matplotlibVersion >= Version("3.6"):
+            self.fig.set_layout_engine("tight" if istight else None)
+        else:
+            self.fig.set_tight_layout(True if istight else None)
+
         # Toggle display of axes and viewbox rect
-        isFrameOn = position != (0., 0., 1., 1.)
+        isFrameOn = position != (0.0, 0.0, 1.0, 1.0)
         self.ax.set_frame_on(isFrameOn)
         self.ax2.set_frame_on(isFrameOn)
 
@@ -1294,7 +1408,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if self.ax.get_frame_on():
             self.fig.patch.set_facecolor(backgroundColor)
-            if self._matplotlibVersion < _parse_version('2'):
+            if self._matplotlibVersion < Version("2"):
                 self.ax.set_axis_bgcolor(dataBackgroundColor)
             else:
                 self.ax.set_facecolor(dataBackgroundColor)
@@ -1312,12 +1426,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         for axes in (self.ax, self.ax2):
             if axes.get_frame_on():
-                axes.spines['bottom'].set_color(foregroundColor)
-                axes.spines['top'].set_color(foregroundColor)
-                axes.spines['right'].set_color(foregroundColor)
-                axes.spines['left'].set_color(foregroundColor)
-                axes.tick_params(axis='x', colors=foregroundColor)
-                axes.tick_params(axis='y', colors=foregroundColor)
+                axes.spines["bottom"].set_color(foregroundColor)
+                axes.spines["top"].set_color(foregroundColor)
+                axes.spines["right"].set_color(foregroundColor)
+                axes.spines["left"].set_color(foregroundColor)
+                axes.tick_params(axis="x", colors=foregroundColor)
+                axes.tick_params(axis="y", colors=foregroundColor)
                 axes.yaxis.label.set_color(foregroundColor)
                 axes.xaxis.label.set_color(foregroundColor)
                 axes.title.set_color(foregroundColor)
@@ -1353,19 +1467,19 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         self._limitsBeforeResize = None
 
         FigureCanvasQTAgg.setSizePolicy(
-            self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+            self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding
+        )
         FigureCanvasQTAgg.updateGeometry(self)
 
         # Make postRedisplay asynchronous using Qt signal
-        self._sigPostRedisplay.connect(
-            self.__deferredReplot, qt.Qt.QueuedConnection)
+        self._sigPostRedisplay.connect(self.__deferredReplot, qt.Qt.QueuedConnection)
 
         self._picked = None
 
-        self.mpl_connect('button_press_event', self._onMousePress)
-        self.mpl_connect('button_release_event', self._onMouseRelease)
-        self.mpl_connect('motion_notify_event', self._onMouseMove)
-        self.mpl_connect('scroll_event', self._onMouseWheel)
+        self.mpl_connect("button_press_event", self._onMousePress)
+        self.mpl_connect("button_release_event", self._onMouseRelease)
+        self.mpl_connect("motion_notify_event", self._onMouseMove)
+        self.mpl_connect("scroll_event", self._onMouseWheel)
 
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
@@ -1373,23 +1487,21 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     def __deferredReplot(self):
         # Since this is deferred, makes sure it is still needed
         plot = self._plotRef()
-        if (plot is not None and
-                plot._getDirtyPlot() and
-                plot.getBackend() is self):
+        if plot is not None and plot._getDirtyPlot() and plot.getBackend() is self:
             self.replot()
 
     def _getDevicePixelRatio(self) -> float:
         """Compatibility wrapper for devicePixelRatioF"""
-        if hasattr(self, 'devicePixelRatioF'):
+        if hasattr(self, "devicePixelRatioF"):
             ratio = self.devicePixelRatioF()
         else:  # Qt < 5.6 compatibility
             ratio = float(self.devicePixelRatio())
         # Safety net: avoid returning 0
-        return ratio if ratio != 0. else 1.
+        return ratio if ratio != 0.0 else 1.0
 
     # Mouse event forwarding
 
-    _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
+    _MPL_TO_PLOT_BUTTONS = {1: "left", 2: "middle", 3: "right"}
 
     def _onMousePress(self, event):
         button = self._MPL_TO_PLOT_BUTTONS.get(event.button, None)
@@ -1400,8 +1512,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     def _onMouseMove(self, event):
         x, y = self._mplToQtPosition(event.x, event.y)
         if self._graphCursor:
-            position = self._plot.pixelToData(
-                x, y, axis='left', check=True)
+            position = self._plot.pixelToData(x, y, axis="left", check=True)
             lineh, linev = self._graphCursor
             if position is not None:
                 linev.set_visible(True)
@@ -1410,9 +1521,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
                 lineh.set_ydata((position[1], position[1]))
                 self._plot._setDirtyPlot(overlayOnly=True)
             elif lineh.get_visible():
-                    lineh.set_visible(False)
-                    linev.set_visible(False)
-                    self._plot._setDirtyPlot(overlayOnly=True)
+                lineh.set_visible(False)
+                linev.set_visible(False)
+                self._plot._setDirtyPlot(overlayOnly=True)
             # onMouseMove must trigger replot if dirty flag is raised
 
         self._plot.onMouseMove(int(x), int(y))
@@ -1441,11 +1552,13 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
     def pickItem(self, x, y, item):
         xDisplay, yDisplay = self._qtToMplPosition(x, y)
         mouseEvent = MouseEvent(
-            'button_press_event', self, int(xDisplay), int(yDisplay))
+            "button_press_event", self, int(xDisplay), int(yDisplay)
+        )
         # Override axes and data position with the axes
         mouseEvent.inaxes = item.axes
         mouseEvent.xdata, mouseEvent.ydata = self.pixelToData(
-            x, y, axis='left' if item.axes is self.ax else 'right')
+            x, y, axis="left" if item.axes is self.ax else "right"
+        )
         picked, info = item.contains(mouseEvent)
 
         if not picked:
@@ -1454,26 +1567,30 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         elif isinstance(item, TriMesh):
             # Convert selected triangle to data point indices
             triangulation = item._triangulation
-            indices = triangulation.get_masked_triangles()[info['ind'][0]]
+            indices = triangulation.get_masked_triangles()[info["ind"][0]]
 
             # Sort picked triangle points by distance to mouse
             # from furthest to closest to put closest point last
             # This is to be somewhat consistent with last scatter point
             # being the top one.
-            xdata, ydata = self.pixelToData(x, y, axis='left')
-            dists = ((triangulation.x[indices] - xdata) ** 2 +
-                     (triangulation.y[indices] - ydata) ** 2)
+            xdata, ydata = self.pixelToData(x, y, axis="left")
+            dists = (triangulation.x[indices] - xdata) ** 2 + (
+                triangulation.y[indices] - ydata
+            ) ** 2
             return indices[numpy.flip(numpy.argsort(dists), axis=0)]
 
         else:  # Returns indices if any
-            return info.get('ind', ())
+            return info.get("ind", ())
 
     # replot control
 
     def resizeEvent(self, event):
         # Store current limits
         self._limitsBeforeResize = (
-            self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound())
+            self.ax.get_xbound(),
+            self.ax.get_ybound(),
+            self.ax2.get_ybound(),
+        )
 
         FigureCanvasQTAgg.resizeEvent(self, event)
         if self.isKeepDataAspectRatio() or self._hasOverlays():
@@ -1495,13 +1612,14 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
-        if self._matplotlibVersion >= _parse_version("2.0.0"):
+        if self._matplotlibVersion >= Version("2.0.0"):
             try:
                 FigureCanvasQTAgg.draw(self)
             except ValueError as err:
                 _logger.debug(
-                    "ValueError caught while calling FigureCanvasQTAgg.draw: "
-                    "'%s'", err)
+                    "ValueError caught while calling FigureCanvasQTAgg.draw: " "'%s'",
+                    err,
+                )
         else:
             FigureCanvasQTAgg.draw(self)
 
@@ -1516,16 +1634,15 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             xLimits, yLimits, yRightLimits = self._limitsBeforeResize
             self._limitsBeforeResize = None
 
-            if (xLimits != self.ax.get_xbound() or
-                    yLimits != self.ax.get_ybound()):
+            if xLimits != self.ax.get_xbound() or yLimits != self.ax.get_ybound():
                 self._updateMarkers()
 
             if xLimits != self.ax.get_xbound():
                 self._plot.getXAxis()._emitLimitsChanged()
             if yLimits != self.ax.get_ybound():
-                self._plot.getYAxis(axis='left')._emitLimitsChanged()
+                self._plot.getYAxis(axis="left")._emitLimitsChanged()
             if yRightLimits != self.ax2.get_ybound():
-                self._plot.getYAxis(axis='right')._emitLimitsChanged()
+                self._plot.getYAxis(axis="right")._emitLimitsChanged()
 
         self._drawOverlays()
 
@@ -1539,7 +1656,7 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
             dirtyFlag = self._plot._getDirtyPlot()
 
-            if dirtyFlag == 'overlay':
+            if dirtyFlag == "overlay":
                 # Only redraw overlays using fast rendering path
                 if self._background is None:
                     self._background = self.copy_from_bbox(self.fig.bbox)
@@ -1551,8 +1668,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
                 self.draw()
 
             # Workaround issue of rendering overlays with some matplotlib versions
-            if (_parse_version('1.5') <= self._matplotlibVersion < _parse_version('2.1') and
-                    not hasattr(self, '_firstReplot')):
+            if Version("1.5") <= self._matplotlibVersion < Version(
+                "2.1"
+            ) and not hasattr(self, "_firstReplot"):
                 self._firstReplot = False
                 if self._hasOverlays():
                     qt.QTimer.singleShot(0, self.draw)  # Request async draw

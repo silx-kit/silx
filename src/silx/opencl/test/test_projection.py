@@ -34,11 +34,13 @@ import time
 import logging
 import numpy as np
 import unittest
+
 try:
     import mako
 except ImportError:
     mako = None
 from ..common import ocl
+
 if ocl:
     from .. import projection
 from silx.test.utils import utilstest
@@ -48,17 +50,18 @@ logger = logging.getLogger(__name__)
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestProj(unittest.TestCase):
-
     def setUp(self):
         if ocl is None:
             return
         # ~ if sys.platform.startswith('darwin'):
-            # ~ self.skipTest("Projection is not implemented on CPU for OS X yet")
+        # ~ self.skipTest("Projection is not implemented on CPU for OS X yet")
         self.getfiles()
         n_angles = self.sino.shape[0]
         self.proj = projection.Projection(self.phantom.shape, n_angles)
         if self.proj.compiletime_workgroup_size < 16 * 16:
-            self.skipTest("Current implementation of OpenCL projection is not supported on this platform yet")
+            self.skipTest(
+                "Current implementation of OpenCL projection is not supported on this platform yet"
+            )
 
     def tearDown(self):
         self.phantom = None
@@ -108,11 +111,11 @@ class TestProj(unittest.TestCase):
             msg = str("Max error = %e" % err)
             logger.info(msg)
             # Interpolation differs at some lines, giving relative error of 10/50000
-            self.assertTrue(err < 20., "Max error is too high")
+            self.assertTrue(err < 20.0, "Max error is too high")
         # Test multiple reconstructions
         # -----------------------------
         res0 = np.copy(res)
         for i in range(10):
             res = self.proj.projection(self.phantom)
             errmax = np.max(np.abs(res - res0))
-            self.assertTrue(errmax < 1.e-6, "Max error is too high")
+            self.assertTrue(errmax < 1.0e-6, "Max error is too high")

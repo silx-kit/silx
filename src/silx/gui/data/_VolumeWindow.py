@@ -56,16 +56,16 @@ class VolumeWindow(SceneWindow):
         """
         sceneWidget = self.getSceneWidget()
         sceneWidget.getSceneGroup().setAxesLabels(
-            'X' if xlabel is None else xlabel,
-            'Y' if ylabel is None else ylabel,
-            'Z' if zlabel is None else zlabel)
+            "X" if xlabel is None else xlabel,
+            "Y" if ylabel is None else ylabel,
+            "Z" if zlabel is None else zlabel,
+        )
 
     def clear(self):
         """Clear any currently displayed data"""
         sceneWidget = self.getSceneWidget()
         items = sceneWidget.getItems()
-        if (len(items) == 1 and
-                isinstance(items[0], (ScalarField3D, ComplexField3D))):
+        if len(items) == 1 and isinstance(items[0], (ScalarField3D, ComplexField3D)):
             items[0].setData(None)
         else:  # Safety net
             sceneWidget.clearItems()
@@ -83,7 +83,7 @@ class VolumeWindow(SceneWindow):
         else:
             return numpy.mean(data) + numpy.std(data)
 
-    def setData(self, data, offset=(0., 0., 0.), scale=(1., 1., 1.)):
+    def setData(self, data, offset=(0.0, 0.0, 0.0), scale=(1.0, 1.0, 1.0)):
         """Set the 3D array data to display.
 
         :param numpy.ndarray data: 3D array of float or complex
@@ -94,9 +94,11 @@ class VolumeWindow(SceneWindow):
         dataMaxCoords = numpy.array(list(reversed(data.shape))) - 1
 
         previousItems = sceneWidget.getItems()
-        if (len(previousItems) == 1 and
-                isinstance(previousItems[0], (ScalarField3D, ComplexField3D)) and
-                numpy.iscomplexobj(data) == isinstance(previousItems[0], ComplexField3D)):
+        if (
+            len(previousItems) == 1
+            and isinstance(previousItems[0], (ScalarField3D, ComplexField3D))
+            and numpy.iscomplexobj(data) == isinstance(previousItems[0], ComplexField3D)
+        ):
             # Reuse existing volume item
             volume = sceneWidget.getItems()[0]
             volume.setData(data, copy=False)
@@ -109,13 +111,13 @@ class VolumeWindow(SceneWindow):
             # Add a new volume
             sceneWidget.clearItems()
             volume = sceneWidget.addVolume(data, copy=False)
-            volume.setLabel('Volume')
+            volume.setLabel("Volume")
             for plane in volume.getCutPlanes():
                 # Make plane going through the center of the data
                 plane.setPoint(dataMaxCoords // 2)
                 plane.setVisible(False)
                 plane.sigItemChanged.connect(self.__cutPlaneUpdated)
-            volume.addIsosurface(self.__computeIsolevel, '#FF0000FF')
+            volume.addIsosurface(self.__computeIsolevel, "#FF0000FF")
 
             # Expand the parameter tree
             model = self.getParamTreeView().model()

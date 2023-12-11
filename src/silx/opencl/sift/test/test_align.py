@@ -39,22 +39,26 @@ __date__ = "25/06/2018"
 import unittest
 import logging
 import numpy
+
 try:
     import scipy
 except ImportError:
     scipy = None
 else:
     import scipy.ndimage
+
     try:
         from scipy.misc import ascent
     except:
         from scipy.datasets import ascent
 
 from ...common import ocl
+
 if ocl:
     import pyopencl
 
 from ..alignment import LinearAlign
+
 logger = logging.getLogger(__name__)
 PRINT_KEYPOINTS = False
 
@@ -69,8 +73,10 @@ class TestLinalign(unittest.TestCase):
 
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx,
-                                                  properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -89,7 +95,9 @@ class TestLinalign(unittest.TestCase):
 
         self.shape = self.ascent.shape
         self.extra = (10, 11)
-        self.img = scipy.ndimage.affine_transform(self.ascent, [[1.1, -0.1], [0.05, 0.9]], [7, 5])
+        self.img = scipy.ndimage.affine_transform(
+            self.ascent, [[1.1, -0.1], [0.05, 0.9]], [7, 5]
+        )
         self.align = LinearAlign(self.ascent, ctx=self.ctx)
 
     def tearDown(self):
@@ -106,4 +114,11 @@ class TestLinalign(unittest.TestCase):
 
         if self.PROFILE and (out is not None):
             delta = (out - self.ascent)[100:400, 100:400]
-            logger.info({"min": delta.min(), "max:": delta.max(), "mean": delta.mean(), "std:": delta.std()})
+            logger.info(
+                {
+                    "min": delta.min(),
+                    "max:": delta.max(),
+                    "mean": delta.mean(),
+                    "std:": delta.std(),
+                }
+            )
