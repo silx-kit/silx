@@ -66,6 +66,7 @@ from . import _utils
 from . import items
 from .items.curve import CurveStyle
 from .items.axis import TickMode  # noqa
+from .items.axis import View
 
 from .. import qt
 from ._utils.panzoom import ViewConstraints
@@ -375,6 +376,7 @@ class PlotWidget(qt.QMainWindow):
         self.__muteActiveItemChanged = False
 
         self._panWithArrowKeys = True
+        self._view = None
         self._viewConstrains = None
 
         super(PlotWidget, self).__init__(parent)
@@ -641,6 +643,15 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._backend
 
+    def getView(self):
+        """Returns an object that represent the data view visualized by the plot.
+
+        :rtype: View
+        """
+        if self._view is None:
+            self._view = View(self)
+        return self._view
+
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
 
@@ -895,7 +906,11 @@ class PlotWidget(qt.QMainWindow):
         """
         if self._dataRange is None:
             self._updateDataRange()
-        return self._dataRange
+
+        dataRange = self._dataRange
+        if self._view is not None:
+            dataRange = self._view.updateDataRange(dataRange)
+        return dataRange
 
     # Content management
 
@@ -3288,6 +3303,11 @@ class PlotWidget(qt.QMainWindow):
             y2min, y2max = ranges.yright
             if ranges.y is None:
                 ymin, ymax = ranges.yright
+
+        if ymin is None and ymax is None:
+            # FIXME: Workaround y1 can be None if y2 contains something
+            ymin = 0
+            ymax = 1
 
         self.setLimits(
             xmin,
