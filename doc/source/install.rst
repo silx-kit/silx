@@ -330,6 +330,11 @@ To build the documentation, using  `Sphinx <http://www.sphinx-doc.org/>`_:
     To re-generate the example script screenshots, build the documentation with the
     environment variable ``DIRECTIVE_SNAPSHOT_QT`` set to ``True``.
 
+Formatting
+++++++++++
+
+To format the code, use `black <https://black.readthedocs.io>`_.
+
 Testing
 +++++++
 
