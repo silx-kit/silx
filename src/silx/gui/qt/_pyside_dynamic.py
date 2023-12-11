@@ -66,7 +66,8 @@
 import logging
 
 from ._qt import BINDING
-if BINDING != 'PySide6':
+
+if BINDING != "PySide6":
     raise RuntimeError("Unsupported Qt binding: %s", BINDING)
 
 from PySide6.QtCore import QMetaObject, Property, Qt
@@ -79,8 +80,10 @@ _logger = logging.getLogger(__name__)
 
 # Specific custom widgets
 
+
 class _Line(QFrame):
     """Widget to use as 'Line' Qt designer"""
+
     def __init__(self, parent=None):
         super(_Line, self).__init__(parent)
         self.setFrameShape(QFrame.HLine)
@@ -147,7 +150,7 @@ class UiLoader(QUiLoader):
         else:
             self.customWidgets = customWidgets
 
-    def createWidget(self, class_name, parent=None, name=''):
+    def createWidget(self, class_name, parent=None, name=""):
         """
         Function that is called for each widget defined in ui file,
         overridden here to populate baseinstance instead.
@@ -159,10 +162,9 @@ class UiLoader(QUiLoader):
             return self.baseinstance
 
         else:
-
             # For some reason, Line is not in the list of available
             # widgets, but works fine, so we have to special case it here.
-            if class_name in self.availableWidgets() or class_name == 'Line':
+            if class_name in self.availableWidgets() or class_name == "Line":
                 # create a new widget for child widgets
                 widget = QUiLoader.createWidget(self, class_name, parent, name)
 
@@ -175,9 +177,8 @@ class UiLoader(QUiLoader):
                     widget = self.customWidgets[class_name](parent)
                 except KeyError as error:
                     raise Exception(
-                        f'No custom widget {class_name} '
-                        'found in customWidgets'
-                        ) from error
+                        f"No custom widget {class_name} " "found in customWidgets"
+                    ) from error
 
             if self.baseinstance:
                 # set an attribute for the new child widget on the base
@@ -185,6 +186,7 @@ class UiLoader(QUiLoader):
                 setattr(self.baseinstance, name, widget)
 
             return widget
+
 
 def _get_custom_widgets(ui_file):
     """
@@ -201,7 +203,7 @@ def _get_custom_widgets(ui_file):
     ui = etree.parse(ui_file)
 
     # Get the customwidgets section
-    custom_widgets = ui.find('customwidgets')
+    custom_widgets = ui.find("customwidgets")
 
     if custom_widgets is None:
         return {}
@@ -209,9 +211,8 @@ def _get_custom_widgets(ui_file):
     custom_widget_classes = {}
 
     for custom_widget in list(custom_widgets):
-
-        cw_class = custom_widget.find('class').text
-        cw_header = custom_widget.find('header').text
+        cw_class = custom_widget.find("class").text
+        cw_header = custom_widget.find("header").text
 
         module = importlib.import_module(cw_header)
 
@@ -243,11 +244,9 @@ def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
     return the newly created instance of the user interface.
     """
     if package is not None:
-        _logger.warning(
-            "loadUi package parameter not implemented with PySide")
+        _logger.warning("loadUi package parameter not implemented with PySide")
     if resource_suffix is not None:
-        _logger.warning(
-            "loadUi resource_suffix parameter not implemented with PySide")
+        _logger.warning("loadUi resource_suffix parameter not implemented with PySide")
 
     # We parse the UI file and import any required custom widgets
     customWidgets = _get_custom_widgets(uifile)

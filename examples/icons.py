@@ -72,7 +72,6 @@ class AnimatedToolButton(qt.QToolButton):
 
 
 class IconPreview(qt.QMainWindow):
-
     def __init__(self, *args, **kwargs):
         qt.QMainWindow.__init__(self, *args, **kwargs)
 
@@ -111,6 +110,7 @@ class IconPreview(qt.QMainWindow):
                 return False
             _, ext = os.path.splitext(name)
             return ext in [".svg", ".png"]
+
         icons = silx.resources.list_dir("gui/icons")
         # filter out sub-directories
         icons = filter(isAnIcon, icons)
@@ -123,8 +123,12 @@ class IconPreview(qt.QMainWindow):
 
     def getAllAvailableAnimatedIcons(self):
         icons = silx.resources.list_dir("gui/icons")
-        icons = filter(lambda x: silx.resources.exists("gui/icons/%s/00.png" % x), icons)
-        icons = filter(lambda x: not silx.resources.is_dir("gui/icons/%s/00.png" % x), icons)
+        icons = filter(
+            lambda x: silx.resources.exists("gui/icons/%s/00.png" % x), icons
+        )
+        icons = filter(
+            lambda x: not silx.resources.is_dir("gui/icons/%s/00.png" % x), icons
+        )
         return icons
 
     def createIconPanel(self, parent):

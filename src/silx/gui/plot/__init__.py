@@ -66,5 +66,13 @@ from .ImageView import ImageView  # noqa
 from .StackView import StackView  # noqa
 from .ScatterView import ScatterView  # noqa
 
-__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
-           'StackView', 'ScatterView', 'TickMode']
+__all__ = [
+    "ImageView",
+    "PlotWidget",
+    "PlotWindow",
+    "Plot1D",
+    "Plot2D",
+    "StackView",
+    "ScatterView",
+    "TickMode",
+]

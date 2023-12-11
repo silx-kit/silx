@@ -123,7 +123,7 @@ sftext = """#F /tmp/sf.dat
 
 loc = locale.getlocale(locale.LC_NUMERIC)
 try:
-    locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
+    locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
 except locale.Error:
     try_DE = False
 else:
@@ -135,16 +135,16 @@ class TestSpecFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
-        os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, "ascii"))
         os.close(fd)
 
         fd2, cls.fname2 = tempfile.mkstemp(text=False)
-        os.write(fd2, bytes(sftext[370:923], 'ascii'))
+        os.write(fd2, bytes(sftext[370:923], "ascii"))
         os.close(fd2)
 
         fd3, cls.fname3 = tempfile.mkstemp(text=False)
         txt = sftext[371:923]
-        os.write(fd3, bytes(txt, 'ascii'))
+        os.write(fd3, bytes(txt, "ascii"))
         os.close(fd3)
 
     @classmethod
@@ -182,7 +182,7 @@ class TestSpecFile(unittest.TestCase):
         except TypeError:
             self.fail("failed to handle filename as python3 str")
         try:
-            SpecFile(bytes(self.fname1, 'utf-8'))
+            SpecFile(bytes(self.fname1, "utf-8"))
         except TypeError:
             self.fail("failed to handle filename as python3 bytes")
 
@@ -190,15 +190,13 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(4, len(self.sf))
 
     def test_list_of_scan_indices(self):
-        self.assertEqual(self.sf.list(),
-                         [1, 25, 26, 1])
-        self.assertEqual(self.sf.keys(),
-                         ["1.1", "25.1", "26.1", "1.2"])
+        self.assertEqual(self.sf.list(), [1, 25, 26, 1])
+        self.assertEqual(self.sf.keys(), ["1.1", "25.1", "26.1", "1.2"])
 
     def test_index_number_order(self):
         self.assertEqual(self.sf.index(1, 2), 3)  # sf["1.2"]==sf[3]
-        self.assertEqual(self.sf.number(1), 25)   # sf[1]==sf["25"]
-        self.assertEqual(self.sf.order(3), 2)     # sf[3]==sf["1.2"]
+        self.assertEqual(self.sf.number(1), 25)  # sf[1]==sf["25"]
+        self.assertEqual(self.sf.order(3), 2)  # sf[3]==sf["1.2"]
         with self.assertRaises(specfile.SfErrScanNotFound):
             self.sf.index(3, 2)
         with self.assertRaises(specfile.SfErrScanNotFound):
@@ -211,10 +209,10 @@ class TestSpecFile(unittest.TestCase):
         self.assertIsInstance(self.sf[2], Scan)
         self.assertIsInstance(self.sf["1.2"], Scan)
         # int out of range
-        with self.assertRaisesRegex(IndexError, 'Scan index must be in ran'):
+        with self.assertRaisesRegex(IndexError, "Scan index must be in ran"):
             self.sf[107]
         # float indexing not allowed
-        with self.assertRaisesRegex(TypeError, 'The scan identification k'):
+        with self.assertRaisesRegex(TypeError, "The scan identification k"):
             self.sf[1.2]
         # non existant scan with "N.M" indexing
         with self.assertRaises(KeyError):
@@ -224,8 +222,7 @@ class TestSpecFile(unittest.TestCase):
         i = 0
         for scan in self.sf:
             if i == 1:
-                self.assertEqual(scan.motor_positions,
-                                 self.sf[1].motor_positions)
+                self.assertEqual(scan.motor_positions, self.sf[1].motor_positions)
             i += 1
         # number of returned scans
         self.assertEqual(i, len(self.sf))
@@ -236,63 +233,64 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
-        self.assertEqual(self.scan25.scan_header_dict['S'],
-                         "25  ascan  c3th 1.33245 1.52245  40 0.15")
-        self.assertEqual(self.scan1.header[17], '#G0 0')
+        self.assertEqual(
+            self.scan25.scan_header_dict["S"],
+            "25  ascan  c3th 1.33245 1.52245  40 0.15",
+        )
+        self.assertEqual(self.scan1.header[17], "#G0 0")
         self.assertEqual(len(self.scan1.header), 29)
         # parsing headers with long keys
-        self.assertEqual(self.scan1.scan_header_dict['UMI0'],
-                         'Current AutoM      Shutter')
+        self.assertEqual(
+            self.scan1.scan_header_dict["UMI0"], "Current AutoM      Shutter"
+        )
         # parsing empty headers
-        self.assertEqual(self.scan1.scan_header_dict['Q'], '')
+        self.assertEqual(self.scan1.scan_header_dict["Q"], "")
         # duplicate headers: concatenated (with newline)
-        self.assertEqual(self.scan1_2.scan_header_dict["U"],
-                         "first duplicate line\nsecond duplicate line")
+        self.assertEqual(
+            self.scan1_2.scan_header_dict["U"],
+            "first duplicate line\nsecond duplicate line",
+        )
 
     def test_file_headers(self):
-        self.assertEqual(self.scan1.header[1],
-                         '#E 1455180875')
-        self.assertEqual(self.scan1.file_header_dict['F'],
-                         '/tmp/sf.dat')
+        self.assertEqual(self.scan1.header[1], "#E 1455180875")
+        self.assertEqual(self.scan1.file_header_dict["F"], "/tmp/sf.dat")
 
     def test_multiple_file_headers(self):
         """Scan 1.2 is after the second file header, with a different
         Epoch"""
-        self.assertEqual(self.scan1_2.header[1],
-                         '#E 1455180876')
+        self.assertEqual(self.scan1_2.header[1], "#E 1455180876")
 
     def test_scan_labels(self):
-        self.assertEqual(self.scan1.labels,
-                         ['first column', 'second column', '3rd_col'])
+        self.assertEqual(
+            self.scan1.labels, ["first column", "second column", "3rd_col"]
+        )
 
     def test_data(self):
         # data_line() and data_col() take 1-based indices as arg
-        self.assertAlmostEqual(self.scan1.data_line(1)[2],
-                               1.56)
+        self.assertAlmostEqual(self.scan1.data_line(1)[2], 1.56)
         # tests for data transposition between original file and .data attr
-        self.assertAlmostEqual(self.scan1.data[2, 0],
-                               8)
+        self.assertAlmostEqual(self.scan1.data[2, 0], 8)
         self.assertEqual(self.scan1.data.shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
     def test_data_column_by_name(self):
-        self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1],
-                               1.2)
+        self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1], 1.2)
         # Scan.data is transposed after readinq, so column is the first index
-        self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
-                               numpy.sum(self.scan25.data[2, :]))
+        self.assertAlmostEqual(
+            numpy.sum(self.scan25.data_column_by_name("col2")),
+            numpy.sum(self.scan25.data[2, :]),
+        )
         with self.assertRaises(specfile.SfErrColNotFound):
             self.scan25.data_column_by_name("ygfxgfyxg")
 
     def test_motors(self):
         self.assertEqual(len(self.scan1.motor_names), 6)
         self.assertEqual(len(self.scan1.motor_positions), 6)
-        self.assertAlmostEqual(sum(self.scan1.motor_positions),
-                               223.385912)
-        self.assertEqual(self.scan1.motor_names[1], 'MRTSlit UP')
+        self.assertAlmostEqual(sum(self.scan1.motor_positions), 223.385912)
+        self.assertEqual(self.scan1.motor_names[1], "MRTSlit UP")
         self.assertAlmostEqual(
-            self.scan25.motor_position_by_name('MRTSlit UP'),
-            -1.66875)
+            self.scan25.motor_position_by_name("MRTSlit UP"), -1.66875
+        )
 
     def test_absence_of_file_header(self):
         """We expect Scan.file_header to be an empty list in the absence
@@ -301,8 +299,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
         # motor positions can still be read in the scan header
         # even in the absence of motor names
-        self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
-                               223.385912)
+        self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions), 223.385912)
         self.assertEqual(len(self.scan1_no_fhdr.header), 15)
         self.assertEqual(len(self.scan1_no_fhdr.scan_header), 15)
         self.assertEqual(len(self.scan1_no_fhdr.file_header), 0)
@@ -314,8 +311,9 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_no_fhdr_crash.motor_names), 0)
         # motor positions can still be read in the scan header
         # even in the absence of motor names
-        self.assertAlmostEqual(sum(self.scan1_no_fhdr_crash.motor_positions),
-                               223.385912)
+        self.assertAlmostEqual(
+            sum(self.scan1_no_fhdr_crash.motor_positions), 223.385912
+        )
         self.assertEqual(len(self.scan1_no_fhdr_crash.scan_header), 15)
         self.assertEqual(len(self.scan1_no_fhdr_crash.file_header), 0)
 
@@ -326,8 +324,9 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(sum(self.scan1_2.mca[2]), 21.7)
 
         # Negative indexing
-        self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca) - 1]),
-                         sum(self.scan1_2.mca[-1]))
+        self.assertEqual(
+            sum(self.scan1_2.mca[len(self.scan1_2.mca) - 1]), sum(self.scan1_2.mca[-1])
+        )
 
         # Test iterator
         line_count, total_sum = (0, 0)
@@ -341,31 +340,26 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.mca_header_dict, {})
         self.assertEqual(len(self.scan1_2.mca_header_dict), 4)
         self.assertEqual(self.scan1_2.mca_header_dict["CALIB"], "1 2 3")
-        self.assertEqual(self.scan1_2.mca.calibration,
-                         [[1., 2., 3.]])
+        self.assertEqual(self.scan1_2.mca.calibration, [[1.0, 2.0, 3.0]])
         # default calib in the absence of #@CALIB
-        self.assertEqual(self.scan25.mca.calibration,
-                         [[0., 1., 0.]])
-        self.assertEqual(self.scan1_2.mca.channels,
-                         [[0, 1, 2]])
+        self.assertEqual(self.scan25.mca.calibration, [[0.0, 1.0, 0.0]])
+        self.assertEqual(self.scan1_2.mca.channels, [[0, 1, 2]])
         # absence of #@CHANN and spectra
-        self.assertEqual(self.scan25.mca.channels,
-                         [])
+        self.assertEqual(self.scan25.mca.channels, [])
 
     @testutils.validate_logging(specfile._logger.name, warning=1)
     def test_empty_scan(self):
         """Test reading a scan with no data points"""
-        self.assertEqual(len(self.empty_scan.labels),
-                         3)
+        self.assertEqual(len(self.empty_scan.labels), 3)
         col1 = self.empty_scan.data_column_by_name("second column")
-        self.assertEqual(col1.shape, (0, ))
+        self.assertEqual(col1.shape, (0,))
 
 
 class TestSFLocale(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -375,19 +369,18 @@ class TestSFLocale(unittest.TestCase):
 
     def crunch_data(self):
         self.sf3 = SpecFile(self.fname)
-        self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
-                               1.56)
+        self.assertAlmostEqual(self.sf3[0].data_line(1)[2], 1.56)
         self.sf3.close()
 
     @unittest.skipIf(not try_DE, "de_DE.utf8 locale not installed")
     def test_locale_de_DE(self):
-        locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
+        locale.setlocale(locale.LC_NUMERIC, "de_DE.utf8")
         self.crunch_data()
 
     def test_locale_user(self):
-        locale.setlocale(locale.LC_NUMERIC, '')  # use user's preferred locale
+        locale.setlocale(locale.LC_NUMERIC, "")  # use user's preferred locale
         self.crunch_data()
 
     def test_locale_C(self):
-        locale.setlocale(locale.LC_NUMERIC, 'C')  # use default (C) locale
+        locale.setlocale(locale.LC_NUMERIC, "C")  # use default (C) locale
         self.crunch_data()

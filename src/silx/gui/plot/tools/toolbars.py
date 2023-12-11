@@ -43,17 +43,15 @@ class InteractiveModeToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, plot=None, title='Plot Interaction'):
+    def __init__(self, parent=None, plot=None, title="Plot Interaction"):
         super(InteractiveModeToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
 
-        self._zoomModeAction = actions.mode.ZoomModeAction(
-            parent=self, plot=plot)
+        self._zoomModeAction = actions.mode.ZoomModeAction(parent=self, plot=plot)
         self.addAction(self._zoomModeAction)
 
-        self._panModeAction = actions.mode.PanModeAction(
-            parent=self, plot=plot)
+        self._panModeAction = actions.mode.PanModeAction(parent=self, plot=plot)
         self.addAction(self._panModeAction)
 
     def getZoomModeAction(self):
@@ -79,7 +77,7 @@ class OutputToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, plot=None, title='Plot Output'):
+    def __init__(self, parent=None, plot=None, title="Plot Output"):
         super(OutputToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
@@ -123,25 +121,25 @@ class ImageToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, plot=None, title='Image'):
+    def __init__(self, parent=None, plot=None, title="Image"):
         super(ImageToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
 
-        self._resetZoomAction = actions.control.ResetZoomAction(
-            parent=self, plot=plot)
+        self._resetZoomAction = actions.control.ResetZoomAction(parent=self, plot=plot)
         self.addAction(self._resetZoomAction)
 
-        self._colormapAction = actions.control.ColormapAction(
-            parent=self, plot=plot)
+        self._colormapAction = actions.control.ColormapAction(parent=self, plot=plot)
         self.addAction(self._colormapAction)
 
         self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addWidget(self._keepDataAspectRatioButton)
 
         self._yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addWidget(self._yAxisInvertedButton)
 
     def getResetZoomAction(self):
@@ -181,37 +179,40 @@ class CurveToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, plot=None, title='Image'):
+    def __init__(self, parent=None, plot=None, title="Image"):
         super(CurveToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
 
-        self._resetZoomAction = actions.control.ResetZoomAction(
-            parent=self, plot=plot)
+        self._resetZoomAction = actions.control.ResetZoomAction(parent=self, plot=plot)
         self.addAction(self._resetZoomAction)
 
         self._xAxisAutoScaleAction = actions.control.XAxisAutoScaleAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._xAxisAutoScaleAction)
 
         self._yAxisAutoScaleAction = actions.control.YAxisAutoScaleAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._yAxisAutoScaleAction)
 
         self._xAxisLogarithmicAction = actions.control.XAxisLogarithmicAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._xAxisLogarithmicAction)
 
         self._yAxisLogarithmicAction = actions.control.YAxisLogarithmicAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._yAxisLogarithmicAction)
 
-        self._gridAction = actions.control.GridAction(
-            parent=self, plot=plot)
+        self._gridAction = actions.control.GridAction(parent=self, plot=plot)
         self.addAction(self._gridAction)
 
         self._curveStyleAction = actions.control.CurveStyleAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._curveStyleAction)
 
     def getResetZoomAction(self):
@@ -272,37 +273,38 @@ class ScatterToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, plot=None, title='Scatter Tools'):
+    def __init__(self, parent=None, plot=None, title="Scatter Tools"):
         super(ScatterToolBar, self).__init__(title, parent)
 
         assert isinstance(plot, PlotWidget)
 
-        self._resetZoomAction = actions.control.ResetZoomAction(
-            parent=self, plot=plot)
+        self._resetZoomAction = actions.control.ResetZoomAction(parent=self, plot=plot)
         self.addAction(self._resetZoomAction)
 
         self._xAxisLogarithmicAction = actions.control.XAxisLogarithmicAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._xAxisLogarithmicAction)
 
         self._yAxisLogarithmicAction = actions.control.YAxisLogarithmicAction(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addAction(self._yAxisLogarithmicAction)
 
         self._keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=self, plot=plot)
+            parent=self, plot=plot
+        )
         self.addWidget(self._keepDataAspectRatioButton)
 
-        self._gridAction = actions.control.GridAction(
-            parent=self, plot=plot)
+        self._gridAction = actions.control.GridAction(parent=self, plot=plot)
         self.addAction(self._gridAction)
 
-        self._colormapAction = actions.control.ColormapAction(
-            parent=self, plot=plot)
+        self._colormapAction = actions.control.ColormapAction(parent=self, plot=plot)
         self.addAction(self._colormapAction)
 
-        self._visualizationToolButton = \
-            PlotToolButtons.ScatterVisualizationToolButton(parent=self, plot=plot)
+        self._visualizationToolButton = PlotToolButtons.ScatterVisualizationToolButton(
+            parent=self, plot=plot
+        )
         self.addWidget(self._visualizationToolButton)
 
     def getResetZoomAction(self):

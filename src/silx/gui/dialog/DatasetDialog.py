@@ -60,17 +60,22 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
             print("Operation cancelled :(")
 
     """
+
     def __init__(self, parent=None):
         _Hdf5ItemSelectionDialog.__init__(self, parent)
 
         # customization for groups
         self.setWindowTitle("HDF5 dataset selection")
 
-        self._header.setSections([self._model.NAME_COLUMN,
-                                  self._model.NODE_COLUMN,
-                                  self._model.LINK_COLUMN,
-                                  self._model.TYPE_COLUMN,
-                                  self._model.SHAPE_COLUMN])
+        self._header.setSections(
+            [
+                self._model.NAME_COLUMN,
+                self._model.NODE_COLUMN,
+                self._model.LINK_COLUMN,
+                self._model.TYPE_COLUMN,
+                self._model.SHAPE_COLUMN,
+            ]
+        )
         self._selectDatasetStatusText = "Select a dataset or type a new dataset name"
 
     def setMode(self, mode):
@@ -80,7 +85,9 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
         """
         _Hdf5ItemSelectionDialog.setMode(self, mode)
         if mode == DatasetDialog.SaveMode:
-            self._selectDatasetStatusText = "Select a dataset or type a new dataset name"
+            self._selectDatasetStatusText = (
+                "Select a dataset or type a new dataset name"
+            )
         elif mode == DatasetDialog.LoadMode:
             self._selectDatasetStatusText = "Select a dataset"
 
@@ -110,11 +117,11 @@ class DatasetDialog(_Hdf5ItemSelectionDialog):
                     isDatasetSelected = True
 
             if isDatasetSelected:
-                self._selectedUrl = DataUrl(file_path=node.local_filename,
-                                            data_path=data_path)
+                self._selectedUrl = DataUrl(
+                    file_path=node.local_filename, data_path=data_path
+                )
                 self._okButton.setEnabled(True)
-                self._labelSelection.setText(
-                        self._selectedUrl.path())
+                self._labelSelection.setText(self._selectedUrl.path())
             else:
                 self._selectedUrl = None
                 self._okButton.setEnabled(False)

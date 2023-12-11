@@ -145,8 +145,12 @@ class DatasetSlice(commonh5.Dataset):
         self.__file = dataset.file  # Keep a ref on file to fix issue recovering it
         self.__indices = indices
         self.__expanded_indices = _expand_indices(len(self.__dataset.shape), indices)
-        self.__shape = _get_selection_shape(self.__dataset.shape, self.__expanded_indices)
-        super().__init__(self.__dataset.name, data=None, parent=self.__file, attrs=attrs)
+        self.__shape = _get_selection_shape(
+            self.__dataset.shape, self.__expanded_indices
+        )
+        super().__init__(
+            self.__dataset.name, data=None, parent=self.__file, attrs=attrs
+        )
 
     def _get_data(self) -> Union[h5py.Dataset, commonh5.Dataset]:
         # Give access to the underlying (h5py) dataset, not the selected data

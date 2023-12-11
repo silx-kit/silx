@@ -39,11 +39,13 @@ import numpy
 
 import unittest
 from ..common import ocl, _measure_workgroup_size
+
 if ocl:
     import pyopencl
     import pyopencl.array
 from ...test.utils import utilstest
 from ..image import ImageProcessing
+
 logger = logging.getLogger(__name__)
 try:
     from PIL import Image
@@ -53,7 +55,6 @@ except ImportError:
 
 @unittest.skipUnless(ocl and Image, "PyOpenCl/Image is missing")
 class TestImage(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(TestImage, cls).setUpClass()
@@ -99,7 +100,9 @@ class TestImage(unittest.TestCase):
         tmp = pyopencl.array.empty(self.ip.ctx, self.data.shape, "float32")
         res = self.ip.to_float(self.data, out=tmp)
         res2 = self.ip.normalize(tmp, -100, 100, copy=False)
-        norm = (self.data.astype(numpy.float32) - self.data.min()) / (self.data.max() - self.data.min())
+        norm = (self.data.astype(numpy.float32) - self.data.min()) / (
+            self.data.max() - self.data.min()
+        )
         ref2 = 200 * norm - 100
         self.assertLess(abs(res2 - ref2).max(), 3e-5, "content")
 
@@ -108,15 +111,21 @@ class TestImage(unittest.TestCase):
         """
         Test on a greyscaled image ... of Lena :)
         """
-        lena_bw = (0.2126 * self.data[:, :, 0] +
-                   0.7152 * self.data[:, :, 1] +
-                   0.0722 * self.data[:, :, 2]).astype("int32")
+        lena_bw = (
+            0.2126 * self.data[:, :, 0]
+            + 0.7152 * self.data[:, :, 1]
+            + 0.0722 * self.data[:, :, 2]
+        ).astype("int32")
         ref = numpy.histogram(lena_bw, 255)
         ip = ImageProcessing(ctx=self.ctx, template=lena_bw, profile=True)
         res = ip.histogram(lena_bw, 255)
         ip.log_profile()
-        delta = (ref[0] - res[0])
-        deltap = (ref[1] - res[1])
+        delta = ref[0] - res[0]
+        deltap = ref[1] - res[1]
         self.assertEqual(delta.sum(), 0, "errors are self-compensated")
         self.assertLessEqual(abs(delta).max(), 1, "errors are small")
-        self.assertLessEqual(abs(deltap).max(), 3e-5, "errors on position are small: %s" % (abs(deltap).max()))
+        self.assertLessEqual(
+            abs(deltap).max(),
+            3e-5,
+            "errors on position are small: %s" % (abs(deltap).max()),
+        )

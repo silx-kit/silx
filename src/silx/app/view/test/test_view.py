@@ -115,7 +115,6 @@ class TestAbout(TestCaseQt):
 @pytest.mark.usefixtures("qapp")
 @pytest.mark.usefixtures("data_class_attr")
 class TestDataPanel(TestCaseQt):
-
     def testConstruct(self):
         widget = DataPanel()
         self.qWaitForWindowExposed(widget)
@@ -169,7 +168,7 @@ class TestDataPanel(TestCaseQt):
         self.assertIs(widget.getCustomNxdataItem(), data)
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(self.data_h5, mode='r')
+        f = h5py.File(self.data_h5, mode="r")
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -180,8 +179,8 @@ class TestDataPanel(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(self.data_h5, mode='r')
-        f2 = h5py.File(self.data2_h5, mode='r')
+        f = h5py.File(self.data_h5, mode="r")
+        f2 = h5py.File(self.data2_h5, mode="r")
         try:
             widget = DataPanel()
             widget.setData(f["arrays/scalar"])
@@ -197,7 +196,6 @@ class TestDataPanel(TestCaseQt):
 @pytest.mark.usefixtures("qapp")
 @pytest.mark.usefixtures("data_class_attr")
 class TestCustomNxdataWidget(TestCaseQt):
-
     def testConstruct(self):
         widget = CustomNxdataWidget()
         self.qWaitForWindowExposed(widget)
@@ -250,7 +248,7 @@ class TestCustomNxdataWidget(TestCaseQt):
         self.assertFalse(item.isValid())
 
     def testRemoveDatasetsFrom(self):
-        f = h5py.File(self.data_h5, mode='r')
+        f = h5py.File(self.data_h5, mode="r")
         try:
             widget = CustomNxdataWidget()
             model = widget.model()
@@ -262,8 +260,8 @@ class TestCustomNxdataWidget(TestCaseQt):
             f.close()
 
     def testReplaceDatasetsFrom(self):
-        f = h5py.File(self.data_h5, mode='r')
-        f2 = h5py.File(self.data2_h5, mode='r')
+        f = h5py.File(self.data_h5, mode="r")
+        f2 = h5py.File(self.data2_h5, mode="r")
         try:
             widget = CustomNxdataWidget()
             model = widget.model()
@@ -299,14 +297,18 @@ class TestCustomNxdataWidgetInteraction(TestCaseQt):
 
     def testSelectedNxdata(self):
         index = self.model.index(0, 0)
-        self.selectionModel.setCurrentIndex(index, qt.QItemSelectionModel.ClearAndSelect)
+        self.selectionModel.setCurrentIndex(
+            index, qt.QItemSelectionModel.ClearAndSelect
+        )
         nxdata = self.widget.selectedNxdata()
         self.assertEqual(len(nxdata), 1)
         self.assertIsNot(nxdata[0], None)
 
     def testSelectedItems(self):
         index = self.model.index(0, 0)
-        self.selectionModel.setCurrentIndex(index, qt.QItemSelectionModel.ClearAndSelect)
+        self.selectionModel.setCurrentIndex(
+            index, qt.QItemSelectionModel.ClearAndSelect
+        )
         items = self.widget.selectedItems()
         self.assertEqual(len(items), 1)
         self.assertIsNot(items[0], None)

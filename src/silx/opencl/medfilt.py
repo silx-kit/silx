@@ -52,23 +52,33 @@ logger = logging.getLogger(__name__)
 
 class MedianFilter2D(OpenclProcessing):
     """A class for doing median filtering using OpenCL"""
-    buffers = [
-               BufferDescription("result", 1, numpy.float32, mf.WRITE_ONLY),
-               BufferDescription("image_raw", 1, numpy.float32, mf.READ_ONLY),
-               BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
-               ]
-    kernel_files = ["preprocess.cl", "bitonic.cl", "medfilt.cl"]
-    mapping = {numpy.int8: "s8_to_float",
-               numpy.uint8: "u8_to_float",
-               numpy.int16: "s16_to_float",
-               numpy.uint16: "u16_to_float",
-               numpy.uint32: "u32_to_float",
-               numpy.int32: "s32_to_float"}
 
-    def __init__(self, shape, kernel_size=(3, 3),
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False
-                 ):
+    buffers = [
+        BufferDescription("result", 1, numpy.float32, mf.WRITE_ONLY),
+        BufferDescription("image_raw", 1, numpy.float32, mf.READ_ONLY),
+        BufferDescription("image", 1, numpy.float32, mf.READ_WRITE),
+    ]
+    kernel_files = ["preprocess.cl", "bitonic.cl", "medfilt.cl"]
+    mapping = {
+        numpy.int8: "s8_to_float",
+        numpy.uint8: "u8_to_float",
+        numpy.int16: "s16_to_float",
+        numpy.uint16: "u16_to_float",
+        numpy.uint32: "u32_to_float",
+        numpy.int32: "s32_to_float",
+    }
+
+    def __init__(
+        self,
+        shape,
+        kernel_size=(3, 3),
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        block_size=None,
+        profile=False,
+    ):
         """Constructor of the OpenCL 2D median filtering class
 
         :param shape: shape of the images to treat
@@ -82,34 +92,56 @@ class MedianFilter2D(OpenclProcessing):
         :param profile: switch on profiling to be able to profile at the kernel level,
                         store profiling elements (makes code slightly slower)
         """
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  block_size=block_size, profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            block_size=block_size,
+            profile=profile,
+        )
         self.shape = shape
         self.size = self.shape[0] * self.shape[1]
         self.kernel_size = self.calc_kernel_size(kernel_size)
         self.workgroup_size = (self.calc_wg(self.kernel_size), 1)  # 3D kernel
-        self.buffers = [BufferDescription(i.name, i.size * self.size, i.dtype, i.flags)
-                        for i in self.__class__.buffers]
+        self.buffers = [
+            BufferDescription(i.name, i.size * self.size, i.dtype, i.flags)
+            for i in self.__class__.buffers
+        ]
 
         self.allocate_buffers()
         self.local_mem = self._get_local_mem(self.workgroup_size[0])
-        OpenclProcessing.compile_kernels(self, self.kernel_files, "-D NIMAGE=%i" % self.size)
+        OpenclProcessing.compile_kernels(
+            self, self.kernel_files, "-D NIMAGE=%i" % self.size
+        )
         self.set_kernel_arguments()
 
     def set_kernel_arguments(self):
-        """Parametrize all kernel arguments
-        """
+        """Parametrize all kernel arguments"""
         for val in self.mapping.values():
-            self.cl_kernel_args[val] = dict(((i, self.cl_mem[i]) for i in ("image_raw", "image")))
-        self.cl_kernel_args["medfilt2d"] = dict((("image", self.cl_mem["image"]),
-                                                 ("result", self.cl_mem["result"]),
-                                                 ("local", self.local_mem),
-                                                 ("khs1", numpy.int32(self.kernel_size[0] // 2)),  # Kernel half-size along dim1 (lines)
-                                                 ("khs2", numpy.int32(self.kernel_size[1] // 2)),  # Kernel half-size along dim2 (columns)
-                                                 ("height", numpy.int32(self.shape[0])),  # Image size along dim1 (lines)
-                                                 ("width", numpy.int32(self.shape[1]))))
-#                                                ('debug', self.cl_mem["debug"])))  # Image size along dim2 (columns))
+            self.cl_kernel_args[val] = dict(
+                ((i, self.cl_mem[i]) for i in ("image_raw", "image"))
+            )
+        self.cl_kernel_args["medfilt2d"] = dict(
+            (
+                ("image", self.cl_mem["image"]),
+                ("result", self.cl_mem["result"]),
+                ("local", self.local_mem),
+                (
+                    "khs1",
+                    numpy.int32(self.kernel_size[0] // 2),
+                ),  # Kernel half-size along dim1 (lines)
+                (
+                    "khs2",
+                    numpy.int32(self.kernel_size[1] // 2),
+                ),  # Kernel half-size along dim2 (columns)
+                ("height", numpy.int32(self.shape[0])),  # Image size along dim1 (lines)
+                ("width", numpy.int32(self.shape[1])),
+            )
+        )
+
+    #                                                ('debug', self.cl_mem["debug"])))  # Image size along dim2 (columns))
 
     def _get_local_mem(self, wg):
         return pyopencl.LocalMemory(wg * 32)  # 4byte per float, 8 element per thread
@@ -124,13 +156,26 @@ class MedianFilter2D(OpenclProcessing):
         dest_type = numpy.dtype([i.dtype for i in self.buffers if i.name == dest][0])
         events = []
         if (data.dtype == dest_type) or (data.dtype.itemsize > dest_type.itemsize):
-            copy_image = pyopencl.enqueue_copy(self.queue, self.cl_mem[dest], numpy.ascontiguousarray(data, dest_type))
+            copy_image = pyopencl.enqueue_copy(
+                self.queue, self.cl_mem[dest], numpy.ascontiguousarray(data, dest_type)
+            )
             events.append(EventDescription("copy H->D %s" % dest, copy_image))
         else:
-            copy_image = pyopencl.enqueue_copy(self.queue, self.cl_mem["image_raw"], numpy.ascontiguousarray(data))
+            copy_image = pyopencl.enqueue_copy(
+                self.queue, self.cl_mem["image_raw"], numpy.ascontiguousarray(data)
+            )
             kernel = getattr(self.program, self.mapping[data.dtype.type])
-            cast_to_float = kernel(self.queue, (self.size,), None, self.cl_mem["image_raw"], self.cl_mem[dest])
-            events += [EventDescription("copy H->D %s" % dest, copy_image), EventDescription("cast to float", cast_to_float)]
+            cast_to_float = kernel(
+                self.queue,
+                (self.size,),
+                None,
+                self.cl_mem["image_raw"],
+                self.cl_mem[dest],
+            )
+            events += [
+                EventDescription("copy H->D %s" % dest, copy_image),
+                EventDescription("cast to float", cast_to_float),
+            ]
         if self.profile:
             self.events += events
 
@@ -179,7 +224,9 @@ class MedianFilter2D(OpenclProcessing):
         amws = kernel_workgroup_size(self.program, "medfilt2d")
         logger.warning("max actual workgroup size: %s, expected: %s", amws, wg)
         if wg > amws:
-            raise RuntimeError("Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws))
+            raise RuntimeError(
+                "Workgroup size is too big for medfilt2d: %s>%s" % (wg, amws)
+            )
 
         localmem = self._get_local_mem(wg)
 
@@ -196,11 +243,11 @@ class MedianFilter2D(OpenclProcessing):
             kwargs["khs2"] = kernel_half_size[1]
             kwargs["height"] = numpy.int32(image.shape[0])
             kwargs["width"] = numpy.int32(image.shape[1])
-#             for k, v in kwargs.items():
-#                 print("%s: %s (%s)" % (k, v, type(v)))
-            mf2d = self.kernels.medfilt2d(self.queue,
-                                          (wg, image.shape[1]),
-                                          (wg, 1), *list(kwargs.values()))
+            #             for k, v in kwargs.items():
+            #                 print("%s: %s (%s)" % (k, v, type(v)))
+            mf2d = self.kernels.medfilt2d(
+                self.queue, (wg, image.shape[1]), (wg, 1), *list(kwargs.values())
+            )
             events.append(EventDescription("median filter 2d", mf2d))
 
             result = numpy.empty(image.shape, numpy.float32)
@@ -210,12 +257,12 @@ class MedianFilter2D(OpenclProcessing):
         if self.profile:
             self.events += events
         return result
+
     __call__ = medfilt2d
 
     @staticmethod
     def calc_kernel_size(kernel_size):
-        """format the kernel size to be a 2-length numpy array of int32
-        """
+        """format the kernel size to be a 2-length numpy array of int32"""
         kernel_size = numpy.asarray(kernel_size, dtype=numpy.int32)
         if kernel_size.shape == ():
             kernel_size = numpy.repeat(kernel_size.item(), 2).astype(numpy.int32)
@@ -261,5 +308,6 @@ class _MedFilt2d(object):
             ctx = cls.median_filter.ctx
             cls.median_filter = MedianFilter2D(new_shape, kernel_size, ctx=ctx)
         return cls.median_filter.medfilt2d(image, kernel_size=kernel_size)
+
 
 medfilt2d = _MedFilt2d.medfilt2d

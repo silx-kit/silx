@@ -71,12 +71,14 @@ class TestPlotWindow(TestCaseQt):
             toolButton = getQToolButtonFromAction(action)
             self.assertIsNot(toolButton, None)
             self.mouseClick(toolButton, qt.Qt.LeftButton)
-            self.assertNotEqual(getter(), initialState,
-                                msg='"%s" state not changed' % action.text())
+            self.assertNotEqual(
+                getter(), initialState, msg='"%s" state not changed' % action.text()
+            )
 
             self.mouseClick(toolButton, qt.Qt.LeftButton)
-            self.assertEqual(getter(), initialState,
-                             msg='"%s" state not changed' % action.text())
+            self.assertEqual(
+                getter(), initialState, msg='"%s" state not changed' % action.text()
+            )
 
         # Trigger a zoom reset
         self.mouseMove(self.plot)
@@ -87,8 +89,8 @@ class TestPlotWindow(TestCaseQt):
 
     def testDockWidgets(self):
         """Test add/remove dock widgets"""
-        dock1 = qt.QDockWidget('Test 1')
-        dock1.setWidget(qt.QLabel('Test 1'))
+        dock1 = qt.QDockWidget("Test 1")
+        dock1.setWidget(qt.QLabel("Test 1"))
 
         self.plot.addTabbedDockWidget(dock1)
         self.qapp.processEvents()
@@ -96,8 +98,8 @@ class TestPlotWindow(TestCaseQt):
         self.plot.removeDockWidget(dock1)
         self.qapp.processEvents()
 
-        dock2 = qt.QDockWidget('Test 2')
-        dock2.setWidget(qt.QLabel('Test 2'))
+        dock2 = qt.QDockWidget("Test 2")
+        dock2.setWidget(qt.QLabel("Test 2"))
 
         self.plot.addTabbedDockWidget(dock2)
         self.qapp.processEvents()
@@ -127,12 +129,14 @@ class TestPlotWindow(TestCaseQt):
 
         old = Colormap._computeAutoscaleRange
         self._count = 0
+
         def _computeAutoscaleRange(colormap, data):
             self._count = self._count + 1
             return 10, 20
+
         Colormap._computeAutoscaleRange = _computeAutoscaleRange
         try:
-            colormap = Colormap(name='red')
+            colormap = Colormap(name="red")
             self.plot.setVisible(True)
 
             # Add an image
@@ -162,11 +166,10 @@ class TestPlotWindow(TestCaseQt):
         ylimits = self.plot.getYAxis().getLimits()
         isKeepAspectRatio = self.plot.isKeepDataAspectRatio()
 
-        for backend in ('gl', 'mpl'):
+        for backend in ("gl", "mpl"):
             with self.subTest():
                 self.plot.setBackend(backend)
                 self.plot.replot()
                 self.assertEqual(self.plot.getXAxis().getLimits(), xlimits)
                 self.assertEqual(self.plot.getYAxis().getLimits(), ylimits)
-                self.assertEqual(
-                    self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)
+                self.assertEqual(self.plot.isKeepDataAspectRatio(), isKeepAspectRatio)

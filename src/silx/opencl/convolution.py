@@ -34,14 +34,25 @@ import pyopencl.array as parray
 from .processing import OpenclProcessing, EventDescription
 from .utils import ConvolutionInfos
 
+
 class Convolution(OpenclProcessing):
     """
     A class for performing convolution on CPU/GPU with OpenCL.
     """
 
-    def __init__(self, shape, kernel, axes=None, mode=None, ctx=None,
-                 devicetype="all", platformid=None, deviceid=None,
-                 profile=False, extra_options=None):
+    def __init__(
+        self,
+        shape,
+        kernel,
+        axes=None,
+        mode=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+        extra_options=None,
+    ):
         """Constructor of OpenCL Convolution.
 
         :param shape: shape of the array.
@@ -69,9 +80,14 @@ class Convolution(OpenclProcessing):
             "allocate_tmp_array": True,
             "dont_use_textures": False,
         """
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
 
         self._configure_extra_options(extra_options)
         self._determine_use_case(shape, kernel, axes)
@@ -87,7 +103,7 @@ class Convolution(OpenclProcessing):
         }
         extra_opts = extra_options or {}
         self.extra_options.update(extra_opts)
-        self.use_textures = not(self.extra_options["dont_use_textures"])
+        self.use_textures = not (self.extra_options["dont_use_textures"])
         self.use_textures &= self.check_textures_availability()
 
     def _get_dimensions(self, shape, kernel):
@@ -141,8 +157,7 @@ class Convolution(OpenclProcessing):
         # TODO implement this use case
         if self.use_case_name == "batched_separable_2D_1D_3D":
             raise NotImplementedError(
-                "The use case %s is not implemented"
-                % self.use_case_name
+                "The use case %s is not implemented" % self.use_case_name
             )
         #
         self.axes = axes
@@ -166,7 +181,7 @@ class Convolution(OpenclProcessing):
             "allocate_tmp_array": "data_tmp",
         }
         # Nonseparable transforms do not need tmp array
-        if not(self.separable):
+        if not (self.separable):
             self.extra_options["allocate_tmp_array"] = False
         # Allocate arrays
         for option_name, array_name in option_array_names.items():
@@ -180,7 +195,7 @@ class Convolution(OpenclProcessing):
         if isinstance(self.kernel, np.ndarray):
             self.d_kernel = parray.to_device(self.queue, self.kernel)
         else:
-            if not(isinstance(self.kernel, parray.Array)):
+            if not (isinstance(self.kernel, parray.Array)):
                 raise ValueError("kernel must be either numpy array or pyopencl array")
             self.d_kernel = self.kernel
         self._old_input_ref = None
@@ -205,7 +220,7 @@ class Convolution(OpenclProcessing):
                 % (self.mode, str(mp.keys()))
             )
         # TODO
-        if not(self.use_textures) and self.mode.lower() == "constant":
+        if not (self.use_textures) and self.mode.lower() == "constant":
             raise NotImplementedError(
                 "mode='constant' is not implemented without textures yet"
             )
@@ -226,28 +241,30 @@ class Convolution(OpenclProcessing):
         compile_options = [str("-DUSED_CONV_MODE=%d" % self._c_conv_mode)]
         if self.use_textures:
             kernel_files = ["convolution_textures.cl"]
-            compile_options.extend([
-                str("-DIMAGE_DIMS=%d" % self.data_ndim),
-                str("-DFILTER_DIMS=%d" % self.kernel_ndim),
-            ])
+            compile_options.extend(
+                [
+                    str("-DIMAGE_DIMS=%d" % self.data_ndim),
+                    str("-DFILTER_DIMS=%d" % self.kernel_ndim),
+                ]
+            )
             d_kernel_ref = self.d_kernel_tex
         else:
             kernel_files = ["convolution.cl"]
             d_kernel_ref = self.d_kernel.data
-        self.compile_kernels(
-            kernel_files=kernel_files,
-            compile_options=compile_options
-        )
+        self.compile_kernels(kernel_files=kernel_files, compile_options=compile_options)
         self.ndrange = self.shape[::-1]
         self.wg = None
         kernel_args = [
             self.queue,
-            self.ndrange, self.wg,
+            self.ndrange,
+            self.wg,
             None,
             None,
             d_kernel_ref,
             np.int32(self.kernel.shape[0]),
-            self.Nx, self.Ny, self.Nz
+            self.Nx,
+            self.Ny,
+            self.Nz,
         ]
         if self.kernel_ndim == 2:
             kernel_args.insert(6, np.int32(self.kernel.shape[1]))
@@ -261,10 +278,7 @@ class Convolution(OpenclProcessing):
         if self.separable:
             if self.data_tmp is not None:
                 self.swap_pattern = {
-                    2: [
-                        ("data_in", "data_tmp"),
-                        ("data_tmp", "data_out")
-                    ],
+                    2: [("data_in", "data_tmp"), ("data_tmp", "data_out")],
                     3: [
                         ("data_in", "data_out"),
                         ("data_out", "data_tmp"),
@@ -320,14 +334,14 @@ class Convolution(OpenclProcessing):
         else:
             raise ValueError("Please provide either arr= or shape=")
         if ndim < dim_min or ndim > dim_max:
-            raise ValueError("%s dimensions should be between %d and %d"
-                % (name, dim_min, dim_max)
+            raise ValueError(
+                "%s dimensions should be between %d and %d" % (name, dim_min, dim_max)
             )
         return ndim
 
     def _check_array(self, arr):
         # TODO allow cl.Buffer
-        if not(isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
+        if not (isinstance(arr, parray.Array) or isinstance(arr, np.ndarray)):
             raise TypeError("Expected either pyopencl.array.Array or numpy.ndarray")
         # TODO composition with ImageProcessing/cast
         if arr.dtype != np.float32:
@@ -349,14 +363,12 @@ class Convolution(OpenclProcessing):
                 self.data_in = array
             data_in_ref = self.data_in
         if output is not None:
-            if not(isinstance(output, np.ndarray)):
+            if not (isinstance(output, np.ndarray)):
                 self._old_output_ref = self.data_out
                 self.data_out = output
         # Update OpenCL kernel arguments with new array references
         self.kernel_args = self._configure_kernel_args(
-            self.kernel_args,
-            data_in_ref,
-            self.data_out
+            self.kernel_args, data_in_ref, self.data_out
         )
 
     def _separable_convolution(self):
@@ -370,9 +382,7 @@ class Convolution(OpenclProcessing):
         # Batched: one kernel call in total
         opencl_kernel = self.kernels.get_kernel(self.use_case_kernels[axis])
         opencl_kernel_args = self._configure_kernel_args(
-            self.kernel_args,
-            input_ref,
-            output_ref
+            self.kernel_args, input_ref, output_ref
         )
         ev = opencl_kernel(*opencl_kernel_args)
         if self.profile:
@@ -393,9 +403,7 @@ class Convolution(OpenclProcessing):
             self.data_out = self._old_output_ref
             self._old_output_ref = None
         self.kernel_args = self._configure_kernel_args(
-            self.kernel_args,
-            self.data_in,
-            self.data_out
+            self.kernel_args, self.data_in, self.data_out
         )
 
     def _get_output(self, output):
@@ -431,7 +439,4 @@ class Convolution(OpenclProcessing):
         res = self._get_output(output)
         return res
 
-
     __call__ = convolve
-
-

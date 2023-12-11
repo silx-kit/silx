@@ -35,6 +35,7 @@ from silx.image._boundingbox import _BoundingBox
 
 class TestBB(unittest.TestCase):
     """Some simple test on the bounding box class"""
+
     def test_creation(self):
         """test some constructors"""
         pts = numpy.array([(0, 0), (10, 20), (20, 0)])
@@ -60,14 +61,24 @@ class TestBB(unittest.TestCase):
     def test_collide(self):
         """test the collide function"""
         bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.collide(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
+        self.assertTrue(
+            bb1.collide(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6)))
+        )
         bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertFalse(bb1.collide(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
+        self.assertFalse(
+            bb1.collide(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2)))
+        )
 
     def test_isIn_bb(self):
         """test the isIn function with other bounding box"""
         bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.contains(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6))))
+        self.assertTrue(
+            bb1.contains(_BoundingBox(bottom_left=(6, 2), top_right=(12, 6)))
+        )
         bb1 = _BoundingBox(bottom_left=(6, 2), top_right=(12, 6))
-        self.assertTrue(bb1.contains(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2))))
-        self.assertFalse(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2)).contains(bb1))
+        self.assertTrue(
+            bb1.contains(_BoundingBox(bottom_left=(12, 2), top_right=(12, 2)))
+        )
+        self.assertFalse(
+            _BoundingBox(bottom_left=(12, 2), top_right=(12, 2)).contains(bb1)
+        )

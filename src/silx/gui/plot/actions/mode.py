@@ -51,10 +51,14 @@ class ZoomModeAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomModeAction, self).__init__(
-            plot, icon='zoom', text='Zoom mode',
-            tooltip='Zoom-in on mouse selection',
+            plot,
+            icon="zoom",
+            text="Zoom mode",
+            tooltip="Zoom-in on mouse selection",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
 
         self.__menu = ZoomEnabledAxesMenu(self.plot, self.plot)
 
@@ -81,7 +85,9 @@ class ZoomModeAction(PlotAction):
         widget = parent.widgetForAction(self)
         if not isinstance(widget, qt.QToolButton):
             return
-        widget.setPopupMode(qt.QToolButton.MenuButtonPopup if enabled else qt.QToolButton.DelayedPopup)
+        widget.setPopupMode(
+            qt.QToolButton.MenuButtonPopup if enabled else qt.QToolButton.DelayedPopup
+        )
         widget.update()
 
     def _interactionChanged(self):
@@ -96,7 +102,7 @@ class ZoomModeAction(PlotAction):
         if plot is None:
             return
 
-        plot.setInteractiveMode('zoom', source=self)
+        plot.setInteractiveMode("zoom", source=self)
 
 
 class PanModeAction(PlotAction):
@@ -108,10 +114,14 @@ class PanModeAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(PanModeAction, self).__init__(
-            plot, icon='pan', text='Pan mode',
-            tooltip='Pan the view',
+            plot,
+            icon="pan",
+            text="Pan mode",
+            tooltip="Pan the view",
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
+            checkable=True,
+            parent=parent,
+        )
         # Listen to mode change
         self.plot.sigInteractiveModeChanged.connect(self._modeChanged)
         # Init the state
@@ -126,4 +136,4 @@ class PanModeAction(PlotAction):
     def _actionTriggered(self, checked=False):
         plot = self.plot
         if plot is not None:
-            plot.setInteractiveMode('pan', source=self)
+            plot.setInteractiveMode("pan", source=self)

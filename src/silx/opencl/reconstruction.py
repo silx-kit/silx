@@ -39,6 +39,7 @@ from .linalg import LinAlg
 
 import pyopencl.array as parray
 from pyopencl.elementwise import ElementwiseKernel
+
 logger = logging.getLogger(__name__)
 
 cl = pyopencl
@@ -65,13 +66,26 @@ class ReconstructionAlgorithm(OpenclProcessing):
                     store profiling elements (makes code slightly slower)
     """
 
-    def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 profile=False
-                 ):
-        OpenclProcessing.__init__(self, ctx=ctx, devicetype=devicetype,
-                                  platformid=platformid, deviceid=deviceid,
-                                  profile=profile)
+    def __init__(
+        self,
+        sino_shape,
+        slice_shape=None,
+        axis_position=None,
+        angles=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+    ):
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
 
         # Create a backprojector
         self.backprojector = Backprojection(
@@ -80,7 +94,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             axis_position=axis_position,
             angles=angles,
             ctx=self.ctx,
-            profile=profile
+            profile=profile,
         )
         # Create a projector
         self.projector = Projection(
@@ -90,7 +104,7 @@ class ReconstructionAlgorithm(OpenclProcessing):
             detector_width=self.backprojector.num_bins,
             normalize=False,
             ctx=self.ctx,
-            profile=profile
+            profile=profile,
         )
         self.sino_shape = sino_shape
         self.is_cpu = self.backprojector.is_cpu
@@ -99,32 +113,34 @@ class ReconstructionAlgorithm(OpenclProcessing):
         self.d_data.fill(0.0)
         self.d_sino = parray.empty_like(self.d_data)
         self.d_sino.fill(0.0)
-        self.d_x = parray.empty(self.queue,
-                                self.backprojector.slice_shape,
-                                dtype=np.float32)
+        self.d_x = parray.empty(
+            self.queue, self.backprojector.slice_shape, dtype=np.float32
+        )
         self.d_x.fill(0.0)
         self.d_x_old = parray.empty_like(self.d_x)
         self.d_x_old.fill(0.0)
 
-        self.add_to_cl_mem({
-                            "d_data": self.d_data,
-                            "d_sino": self.d_sino,
-                            "d_x": self.d_x,
-                            "d_x_old": self.d_x_old,
-                            })
+        self.add_to_cl_mem(
+            {
+                "d_data": self.d_data,
+                "d_sino": self.d_sino,
+                "d_x": self.d_x,
+                "d_x_old": self.d_x_old,
+            }
+        )
 
     def proj(self, d_slice, d_sino):
         """
         Project d_slice to d_sino
         """
-        self.projector.transfer_device_to_texture(d_slice.data)  #.wait()
+        self.projector.transfer_device_to_texture(d_slice.data)  # .wait()
         self.projector.projection(dst=d_sino)
 
     def backproj(self, d_sino, d_slice):
         """
         Backproject d_sino to d_slice
         """
-        self.backprojector.transfer_device_to_texture(d_sino.data)  #.wait()
+        self.backprojector.transfer_device_to_texture(d_sino.data)  # .wait()
         self.backprojector.backprojection(dst=d_slice)
 
 
@@ -153,15 +169,30 @@ class SIRT(ReconstructionAlgorithm):
             implementation.
     """
 
-    def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 profile=False
-                 ):
-
-        ReconstructionAlgorithm.__init__(self, sino_shape, slice_shape=slice_shape,
-                                         axis_position=axis_position, angles=angles,
-                                         ctx=ctx, devicetype=devicetype, platformid=platformid,
-                                         deviceid=deviceid, profile=profile)
+    def __init__(
+        self,
+        sino_shape,
+        slice_shape=None,
+        axis_position=None,
+        angles=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+    ):
+        ReconstructionAlgorithm.__init__(
+            self,
+            sino_shape,
+            slice_shape=slice_shape,
+            axis_position=axis_position,
+            angles=angles,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
         self.compute_preconditioners()
 
     def compute_preconditioners(self):
@@ -178,26 +209,31 @@ class SIRT(ReconstructionAlgorithm):
 
         # r_{i,i} = 1/(sum_j a_{i,j})
         slice_ones = np.ones(self.backprojector.slice_shape, dtype=np.float32)
-        R = 1./self.projector.projection(slice_ones)  # could be all done on GPU, but I want extra checks
-        R[np.logical_not(np.isfinite(R))] = 1.  # In the case where the rotation axis is excentred
+        R = 1.0 / self.projector.projection(
+            slice_ones
+        )  # could be all done on GPU, but I want extra checks
+        R[
+            np.logical_not(np.isfinite(R))
+        ] = 1.0  # In the case where the rotation axis is excentred
         self.d_R = parray.to_device(self.queue, R)
         # c_{j,j} = 1/(sum_i a_{i,j})
         sino_ones = np.ones(self.sino_shape, dtype=np.float32)
-        C = 1./self.backprojector.backprojection(sino_ones)
-        C[np.logical_not(np.isfinite(C))] = 1.  # In the case where the rotation axis is excentred
+        C = 1.0 / self.backprojector.backprojection(sino_ones)
+        C[
+            np.logical_not(np.isfinite(C))
+        ] = 1.0  # In the case where the rotation axis is excentred
         self.d_C = parray.to_device(self.queue, C)
 
-        self.add_to_cl_mem({
-            "d_R": self.d_R,
-            "d_C": self.d_C
-        })
+        self.add_to_cl_mem({"d_R": self.d_R, "d_C": self.d_C})
 
     # TODO: compute and possibly return the residual
     def run(self, data, n_it):
         """
         Run n_it iterations of the SIRT algorithm.
         """
-        cl.enqueue_copy(self.queue, self.d_data.data, np.ascontiguousarray(data.astype(np.float32)))
+        cl.enqueue_copy(
+            self.queue, self.d_data.data, np.ascontiguousarray(data.astype(np.float32))
+        )
 
         d_x_old = self.d_x_old
         d_x = self.d_x
@@ -254,26 +290,44 @@ class TV(ReconstructionAlgorithm):
             the AMD opencl implementation.
     """
 
-    def __init__(self, sino_shape, slice_shape=None, axis_position=None, angles=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 profile=False
-                 ):
-        ReconstructionAlgorithm.__init__(self, sino_shape, slice_shape=slice_shape,
-                                         axis_position=axis_position, angles=angles,
-                                         ctx=ctx, devicetype=devicetype, platformid=platformid,
-                                         deviceid=deviceid, profile=profile)
+    def __init__(
+        self,
+        sino_shape,
+        slice_shape=None,
+        axis_position=None,
+        angles=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        profile=False,
+    ):
+        ReconstructionAlgorithm.__init__(
+            self,
+            sino_shape,
+            slice_shape=slice_shape,
+            axis_position=axis_position,
+            angles=angles,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            profile=profile,
+        )
         self.compute_preconditioners()
 
         # Create a LinAlg instance
         self.linalg = LinAlg(self.backprojector.slice_shape, ctx=self.ctx)
         # Positivity constraint
-        self.elwise_clamp = ElementwiseKernel(self.ctx, "float *a", "a[i] = max(a[i], 0.0f);")
+        self.elwise_clamp = ElementwiseKernel(
+            self.ctx, "float *a", "a[i] = max(a[i], 0.0f);"
+        )
         # Projection onto the L-infinity ball of radius Lambda
         self.elwise_proj_linf = ElementwiseKernel(
             self.ctx,
             "float2* a, float Lambda",
             "a[i].x = copysign(min(fabs(a[i].x), Lambda), a[i].x); a[i].y = copysign(min(fabs(a[i].y), Lambda), a[i].y);",
-            "elwise_proj_linf"
+            "elwise_proj_linf",
         )
         # Additional arrays
         self.linalg.gradient(self.d_x)
@@ -284,11 +338,13 @@ class TV(ReconstructionAlgorithm):
         self.d_p.fill(0)
         self.d_q.fill(0)
         self.d_tmp.fill(0)
-        self.add_to_cl_mem({
-            "d_p": self.d_p,
-            "d_q": self.d_q,
-            "d_tmp": self.d_tmp,
-        })
+        self.add_to_cl_mem(
+            {
+                "d_p": self.d_p,
+                "d_q": self.d_q,
+                "d_tmp": self.d_tmp,
+            }
+        )
 
         self.theta = 1.0
 
@@ -308,30 +364,36 @@ class TV(ReconstructionAlgorithm):
 
         # Compute the diagonal preconditioner "Sigma"
         slice_ones = np.ones(self.backprojector.slice_shape, dtype=np.float32)
-        Sigma_k = 1./self.projector.projection(slice_ones)
-        Sigma_k[np.logical_not(np.isfinite(Sigma_k))] = 1.
+        Sigma_k = 1.0 / self.projector.projection(slice_ones)
+        Sigma_k[np.logical_not(np.isfinite(Sigma_k))] = 1.0
         self.d_Sigma_k = parray.to_device(self.queue, Sigma_k)
         self.d_Sigma_kp1 = self.d_Sigma_k + 1  # TODO: memory vs computation
-        self.Sigma_grad = 1/2.0  # For discrete gradient, sum|D_i,j| = 2 along lines or cols
+        self.Sigma_grad = (
+            1 / 2.0
+        )  # For discrete gradient, sum|D_i,j| = 2 along lines or cols
 
         # Compute the diagonal preconditioner "Tau"
         sino_ones = np.ones(self.sino_shape, dtype=np.float32)
         C = self.backprojector.backprojection(sino_ones)
-        Tau = 1./(C + 2.)
+        Tau = 1.0 / (C + 2.0)
         self.d_Tau = parray.to_device(self.queue, Tau)
 
-        self.add_to_cl_mem({
-            "d_Sigma_k": self.d_Sigma_k,
-            "d_Sigma_kp1": self.d_Sigma_kp1,
-            "d_Tau": self.d_Tau
-        })
+        self.add_to_cl_mem(
+            {
+                "d_Sigma_k": self.d_Sigma_k,
+                "d_Sigma_kp1": self.d_Sigma_kp1,
+                "d_Tau": self.d_Tau,
+            }
+        )
 
     def run(self, data, n_it, Lambda, pos_constraint=False):
         """
         Run n_it iterations of the TV-regularized reconstruction,
         with the regularization parameter Lambda.
         """
-        cl.enqueue_copy(self.queue, self.d_data.data, np.ascontiguousarray(data.astype(np.float32)))
+        cl.enqueue_copy(
+            self.queue, self.d_data.data, np.ascontiguousarray(data.astype(np.float32))
+        )
 
         d_x = self.d_x
         d_x_old = self.d_x_old
@@ -348,7 +410,7 @@ class TV(ReconstructionAlgorithm):
         for k in range(0, n_it):
             # Update primal variables
             d_x_old[:] = d_x[:]
-            #~ x = x + Tau*div(p) - Tau*Kadj(q)
+            # ~ x = x + Tau*div(p) - Tau*Kadj(q)
             self.backproj(d_q, d_tmp)
             self.linalg.divergence(d_p)
             # TODO: this in less than three ops (one kernel ?)
@@ -360,20 +422,20 @@ class TV(ReconstructionAlgorithm):
                 self.elwise_clamp(d_x)
 
             # Update dual variables
-            #~ p = proj_linf(p + Sigma_grad*gradient(x + theta*(x - x_old)), Lambda)
+            # ~ p = proj_linf(p + Sigma_grad*gradient(x + theta*(x - x_old)), Lambda)
             d_tmp[:] = d_x[:]
             # FIXME: mul_add is out of place, put an equivalent thing in linalg...
-            #~ d_tmp.mul_add(1 + theta, d_x_old, -theta)
-            d_tmp *= 1+self.theta
-            d_tmp -= self.theta*d_x_old
+            # ~ d_tmp.mul_add(1 + theta, d_x_old, -theta)
+            d_tmp *= 1 + self.theta
+            d_tmp -= self.theta * d_x_old
             self.linalg.gradient(d_tmp)
             # TODO: out of place mul_add
-            #~ d_p.mul_add(1, L.cl_mem["d_gradient"], Sigma_grad)
+            # ~ d_p.mul_add(1, L.cl_mem["d_gradient"], Sigma_grad)
             self.linalg.cl_mem["d_gradient"] *= self.Sigma_grad
             d_p += self.linalg.cl_mem["d_gradient"]
             self.elwise_proj_linf(d_p, Lambda)
 
-            #~ q = (q + Sigma_k*K(x + theta*(x - x_old)) - Sigma_k*data)/(1.0 + Sigma_k)
+            # ~ q = (q + Sigma_k*K(x + theta*(x - x_old)) - Sigma_k*data)/(1.0 + Sigma_k)
             self.proj(d_tmp, d_sino)
             # TODO: this in less instructions
             d_sino -= self.d_data

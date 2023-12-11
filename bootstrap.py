@@ -35,8 +35,12 @@ def _setuptools_dir_name(dname="lib"):
     Returns the name of a setuptools build directory
     """
     platform = sysconfig.get_platform()
-    architecture = "%s.%s-%i.%i" % (dname, platform,
-                                    sys.version_info[0], sys.version_info[1])
+    architecture = "%s.%s-%i.%i" % (
+        dname,
+        platform,
+        sys.version_info[0],
+        sys.version_info[1],
+    )
     if is_debug_python():
         architecture += "-pydebug"
     return architecture
@@ -51,10 +55,12 @@ def _setuptools_scripts_name():
 def _get_available_scripts(path):
     res = []
     try:
-        res = " ".join([s.rstrip('.py') for s in os.listdir(path)])
+        res = " ".join([s.rstrip(".py") for s in os.listdir(path)])
     except OSError:
-        res = ["no script available, did you ran "
-               "'python setup.py build' before bootstrapping ?"]
+        res = [
+            "no script available, did you ran "
+            "'python setup.py build' before bootstrapping ?"
+        ]
     return res
 
 
@@ -65,7 +71,7 @@ def execfile(fullpath, globals=None, locals=None):
             data = f.read()
         except UnicodeDecodeError:
             raise SyntaxError("Not a Python script")
-        code = compile(data, fullpath, 'exec')
+        code = compile(data, fullpath, "exec")
         exec(code, globals, locals)
 
 
@@ -92,7 +98,7 @@ def run_file(filename, argv):
             logger.info("Executing %s.main()", filename)
             print("########### EXECFILE ###########")
             module_globals = globals().copy()
-            module_globals['__file__'] = filename
+            module_globals["__file__"] = filename
             execfile(filename, module_globals, module_globals)
         finally:
             sys.argv = old_argv
@@ -100,8 +106,12 @@ def run_file(filename, argv):
         logger.error(error)
         logger.info("Execute target using subprocess")
         env = os.environ.copy()
-        env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
-                    "PATH": os.environ.get("PATH", "")})
+        env.update(
+            {
+                "PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
+                "PATH": os.environ.get("PATH", ""),
+            }
+        )
         print("########### SUBPROCESS ###########")
         run = subprocess.Popen(full_args, shell=False, env=env)
         run.wait()
@@ -116,6 +126,7 @@ def run_entry_point(entry_point, argv):
         (NAME = PACKAGE.MODULE:FUNCTION [EXTRA])
     """
     import importlib
+
     elements = entry_point.split("=")
     target_name = elements[0].strip()
     elements = elements[1].split(":")
@@ -123,7 +134,12 @@ def run_entry_point(entry_point, argv):
     # Take care of entry_point optional "extra" requirements declaration
     function_name = elements[1].split()[0].strip()
 
-    logger.info("Execute target %s (function %s from module %s) using importlib", target_name, function_name, module_name)
+    logger.info(
+        "Execute target %s (function %s from module %s) using importlib",
+        target_name,
+        function_name,
+        module_name,
+    )
     full_args = [target_name]
     full_args.extend(argv)
     try:
@@ -155,6 +171,7 @@ def find_executable(target):
 
     # search the file from setup.py
     import setup
+
     config = setup.get_project_configuration()
     # scripts from project configuration
     if "scripts" in config:
@@ -181,15 +198,22 @@ def find_executable(target):
 
 def main(argv):
     parser = argparse.ArgumentParser(
-        prog="bootstrap", usage="./bootstrap.py <script>", description=__doc__)
+        prog="bootstrap", usage="./bootstrap.py <script>", description=__doc__
+    )
     parser.add_argument("script", nargs=argparse.REMAINDER)
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
-        "-m", nargs=argparse.REMAINDER, dest='module',
-        help="run library module as a script (terminates option list)")
+        "-m",
+        nargs=argparse.REMAINDER,
+        dest="module",
+        help="run library module as a script (terminates option list)",
+    )
     group.add_argument(
-        "-j", "--jupyter", action='store_true',
-        help="Start jupyter notebook rather than IPython console")
+        "-j",
+        "--jupyter",
+        action="store_true",
+        help="Start jupyter notebook rather than IPython console",
+    )
     options = parser.parse_args()
 
     if options.jupyter:
@@ -200,7 +224,10 @@ def main(argv):
 
         logger.info("Start Jupyter notebook")
         from notebook.notebookapp import main as notebook_main
-        os.environ["PYTHONPATH"] = LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
+
+        os.environ["PYTHONPATH"] = (
+            LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", "")
+        )
         notebook_main(argv=[])
 
     elif options.script:
@@ -218,6 +245,7 @@ def main(argv):
     elif options.module:
         logging.info("Running module %s", options.module)
         import runpy
+
         module = options.module[0]
         try:
             old = sys.argv
@@ -234,6 +262,7 @@ def main(argv):
             logger.error("Unable to execute iPython, using normal Python")
             logger.error(err)
             import code
+
             code.interact()
         else:
             start_ipython(argv=[])
@@ -241,7 +270,7 @@ def main(argv):
 
 if __name__ == "__main__":
     home = os.path.dirname(os.path.abspath(__file__))
-    LIBPATH = os.path.join(home, 'build', _setuptools_dir_name('lib'))
+    LIBPATH = os.path.join(home, "build", _setuptools_dir_name("lib"))
     cwd = os.getcwd()
     os.chdir(home)
     build = subprocess.Popen(
@@ -264,4 +293,3 @@ if __name__ == "__main__":
     logger.info("Patched sys.path with %s", LIBPATH)
 
     main(sys.argv)
-

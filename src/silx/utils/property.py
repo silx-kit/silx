@@ -45,5 +45,6 @@ class classproperty(property):
             def VALUE(self):
                 return 10
     """
+
     def __get__(self, cls, owner):
         return classmethod(self.fget).__get__(None, owner)()

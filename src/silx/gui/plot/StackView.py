@@ -126,6 +126,7 @@ class StackView(qt.QMainWindow):
                      See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool mask: Toggle visibilty of mask action.
     """
+
     # Qt signals
     valueChanged = qt.Signal(object, object, object)
     """Signals that the data value under the cursor has changed.
@@ -159,20 +160,34 @@ class StackView(qt.QMainWindow):
     This signal provides the current frame number.
     """
 
-    IMAGE_STACK_FILTER_NXDATA = 'Stack of images as NXdata (%s)' % silx_io._NEXUS_HDF5_EXT_STR
+    IMAGE_STACK_FILTER_NXDATA = (
+        "Stack of images as NXdata (%s)" % silx_io._NEXUS_HDF5_EXT_STR
+    )
 
-
-    def __init__(self, parent=None, resetzoom=True, backend=None,
-                 autoScale=False, logScale=False, grid=False,
-                 colormap=True, aspectRatio=True, yinverted=True,
-                 copy=True, save=True, print_=True, control=False,
-                 position=None, mask=True):
+    def __init__(
+        self,
+        parent=None,
+        resetzoom=True,
+        backend=None,
+        autoScale=False,
+        logScale=False,
+        grid=False,
+        colormap=True,
+        aspectRatio=True,
+        yinverted=True,
+        copy=True,
+        save=True,
+        print_=True,
+        control=False,
+        position=None,
+        mask=True,
+    ):
         qt.QMainWindow.__init__(self, parent)
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
         else:
-            self.setWindowTitle('StackView')
+            self.setWindowTitle("StackView")
 
         self._stack = None
         """Loaded stack, as a 3D array, a 3D dataset or a list of 2D arrays."""
@@ -184,11 +199,10 @@ class StackView(qt.QMainWindow):
 
         self._stackItem = ImageStack()
         """Hold the item displaying the stack"""
-        imageLegend = '__StackView__image' + str(id(self))
+        imageLegend = "__StackView__image" + str(id(self))
         self._stackItem.setName(imageLegend)
 
-        self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
-                                   "Dimension 2"]
+        self.__dimensionsLabels = ["Dimension 0", "Dimension 1", "Dimension 2"]
         """These labels are displayed on the X and Y axes.
         :meth:`setLabels` updates this attribute."""
 
@@ -199,39 +213,56 @@ class StackView(qt.QMainWindow):
         """Function returning the plot title based on the frame index.
         It can be set to a custom function using :meth:`setTitleCallback`"""
 
-        self.calibrations3D = (calibration.NoCalibration(),
-                               calibration.NoCalibration(),
-                               calibration.NoCalibration())
+        self.calibrations3D = (
+            calibration.NoCalibration(),
+            calibration.NoCalibration(),
+            calibration.NoCalibration(),
+        )
 
         central_widget = qt.QWidget(self)
 
-        self._plot = PlotWindow(parent=central_widget, backend=backend,
-                                resetzoom=resetzoom, autoScale=autoScale,
-                                logScale=logScale, grid=grid,
-                                curveStyle=False, colormap=colormap,
-                                aspectRatio=aspectRatio, yInverted=yinverted,
-                                copy=copy, save=save, print_=print_,
-                                control=control, position=position,
-                                roi=False, mask=mask)
+        self._plot = PlotWindow(
+            parent=central_widget,
+            backend=backend,
+            resetzoom=resetzoom,
+            autoScale=autoScale,
+            logScale=logScale,
+            grid=grid,
+            curveStyle=False,
+            colormap=colormap,
+            aspectRatio=aspectRatio,
+            yInverted=yinverted,
+            copy=copy,
+            save=save,
+            print_=print_,
+            control=control,
+            position=position,
+            roi=False,
+            mask=mask,
+        )
         self._plot.addItem(self._stackItem)
         self._plot.getIntensityHistogramAction().setVisible(True)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
 
-        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == 'downward':
+        if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
             self._plot.getYAxis().setInverted(True)
 
         self._plot.getColorBarAction().setVisible(True)
         self._plot.getColorBarWidget().setVisible(True)
 
-        self._profileToolBar = Profile3DToolBar(parent=self._plot,
-                                                stackview=self)
+        self._profileToolBar = Profile3DToolBar(parent=self._plot, stackview=self)
         self._plot.addToolBar(self._profileToolBar)
-        self._plot.getXAxis().setLabel('Columns')
-        self._plot.getYAxis().setLabel('Rows')
+        self._plot.getXAxis().setLabel("Columns")
+        self._plot.getYAxis().setLabel("Rows")
         self._plot.sigPlotSignal.connect(self._plotCallback)
-        self._plot.getSaveAction().setFileFilter('image', self.IMAGE_STACK_FILTER_NXDATA, func=self._saveImageStack, appendToFile=True)
+        self._plot.getSaveAction().setFileFilter(
+            "image",
+            self.IMAGE_STACK_FILTER_NXDATA,
+            func=self._saveImageStack,
+            appendToFile=True,
+        )
 
         self.__planeSelection = PlanesWidget(self._plot)
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
@@ -255,7 +286,8 @@ class StackView(qt.QMainWindow):
 
         # clear profile lines when the perspective changes (plane browsed changed)
         self.__planeSelection.sigPlaneSelectionChanged.connect(
-            self._profileToolBar.clearProfile)
+            self._profileToolBar.clearProfile
+        )
 
     def _saveImageStack(self, plot, filename, nameFilter):
         """Save all images from the stack into a volume.
@@ -267,21 +299,25 @@ class StackView(qt.QMainWindow):
         :raises: ValueError if nameFilter is invalid
         """
         if not nameFilter == self.IMAGE_STACK_FILTER_NXDATA:
-            raise ValueError('Wrong callback')
-        entryPath = silx_io.SaveAction._selectWriteableOutputGroup(filename, parent=self)
+            raise ValueError("Wrong callback")
+        entryPath = silx_io.SaveAction._selectWriteableOutputGroup(
+            filename, parent=self
+        )
         if entryPath is None:
             return False
-        return save_NXdata(filename,
-                           nxentry_name=entryPath,
-                           signal=self.getStack(copy=False, returnNumpyArray=True)[0],
-                           signal_name="image_stack")
+        return save_NXdata(
+            filename,
+            nxentry_name=entryPath,
+            signal=self.getStack(copy=False, returnNumpyArray=True)[0],
+            signal_name="image_stack",
+        )
 
     def _plotCallback(self, eventDict):
         """Callback for plot events.
 
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
         cursor location in the plot."""
-        if eventDict['event'] == 'mouseMoved':
+        if eventDict["event"] == "mouseMoved":
             activeImage = self.getActiveImage()
             if activeImage is not None:
                 data = activeImage.getData()
@@ -290,15 +326,13 @@ class StackView(qt.QMainWindow):
                 # Get corresponding coordinate in image
                 origin = activeImage.getOrigin()
                 scale = activeImage.getScale()
-                x = int((eventDict['x'] - origin[0]) / scale[0])
-                y = int((eventDict['y'] - origin[1]) / scale[1])
+                x = int((eventDict["x"] - origin[0]) / scale[0])
+                y = int((eventDict["y"] - origin[1]) / scale[1])
 
                 if 0 <= x < width and 0 <= y < height:
-                    self.valueChanged.emit(float(x), float(y),
-                                           data[y][x])
+                    self.valueChanged.emit(float(x), float(y), data[y][x])
                 else:
-                    self.valueChanged.emit(float(x), float(y),
-                                           None)
+                    self.valueChanged.emit(float(x), float(y), None)
 
     def getPerspective(self):
         """Returns the index of the dimension the stack is browsed with
@@ -322,8 +356,7 @@ class StackView(qt.QMainWindow):
             return
         else:
             if perspective > 2 or perspective < 0:
-                raise ValueError(
-                    "Perspective must be 0, 1 or 2, not %s" % perspective)
+                raise ValueError("Perspective must be 0, 1 or 2, not %s" % perspective)
 
             self._perspective = int(perspective)
             self.__createTransposedView()
@@ -331,20 +364,29 @@ class StackView(qt.QMainWindow):
             self._plot.resetZoom()
             self.__updatePlotLabels()
             self._updateTitle()
-            self._browser_label.setText("Image index (Dim%d):" %
-                                        (self._first_stack_dimension + perspective))
+            self._browser_label.setText(
+                "Image index (Dim%d):" % (self._first_stack_dimension + perspective)
+            )
 
             self.sigPlaneSelectionChanged.emit(perspective)
-            self.sigStackChanged.emit(self._stack.size if
-                                      self._stack is not None else 0)
-            self.__planeSelection.sigPlaneSelectionChanged.disconnect(self.setPerspective)
+            self.sigStackChanged.emit(
+                self._stack.size if self._stack is not None else 0
+            )
+            self.__planeSelection.sigPlaneSelectionChanged.disconnect(
+                self.setPerspective
+            )
             self.__planeSelection.setPerspective(self._perspective)
             self.__planeSelection.sigPlaneSelectionChanged.connect(self.setPerspective)
 
     def __updatePlotLabels(self):
         """Update plot axes labels depending on perspective"""
-        y, x = (1, 2) if self._perspective == 0 else \
-            (0, 2) if self._perspective == 1 else (0, 1)
+        y, x = (
+            (1, 2)
+            if self._perspective == 0
+            else (0, 2)
+            if self._perspective == 1
+            else (0, 1)
+        )
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])
 
@@ -402,9 +444,11 @@ class StackView(qt.QMainWindow):
         See setStack for parameter documentation
         """
         if calibrations is None:
-            self.calibrations3D = (calibration.NoCalibration(),
-                                   calibration.NoCalibration(),
-                                   calibration.NoCalibration())
+            self.calibrations3D = (
+                calibration.NoCalibration(),
+                calibration.NoCalibration(),
+                calibration.NoCalibration(),
+            )
         else:
             self.calibrations3D = []
             for i, calib in enumerate(calibrations):
@@ -413,17 +457,20 @@ class StackView(qt.QMainWindow):
                 elif calib is None:
                     calib = calibration.NoCalibration()
                 elif not isinstance(calib, calibration.AbstractCalibration):
-                    raise TypeError("calibration must be a 2-tuple, None or" +
-                                    " an instance of an AbstractCalibration " +
-                                    "subclass")
+                    raise TypeError(
+                        "calibration must be a 2-tuple, None or"
+                        + " an instance of an AbstractCalibration "
+                        + "subclass"
+                    )
                 elif not calib.is_affine():
                     _logger.warning(
-                            "Calibration for dimension %d is not linear, "
-                            "it will be ignored for scaling the graph axes.",
-                            i)
+                        "Calibration for dimension %d is not linear, "
+                        "it will be ignored for scaling the graph axes.",
+                        i,
+                    )
                 self.calibrations3D.append(calib)
 
-    def getCalibrations(self, order='array'):
+    def getCalibrations(self, order="array"):
         """Returns currently used calibrations for each axis
 
         Returned calibrations might differ from the ones that were set as
@@ -435,7 +482,7 @@ class StackView(qt.QMainWindow):
         :return: Calibrations ordered depending on order
         :rtype: List[~silx.math.calibration.AbstractCalibration]
         """
-        assert order in ('array', 'axes')
+        assert order in ("array", "axes")
         calibs = []
 
         # filter out non-linear calibration for graph axes
@@ -444,11 +491,13 @@ class StackView(qt.QMainWindow):
                 calib = calibration.NoCalibration()
             calibs.append(calib)
 
-        if order == 'axes':  # Move 'z' axis to the end
+        if order == "axes":  # Move 'z' axis to the end
             xy_dims = [d for d in (0, 1, 2) if d != self._perspective]
-            calibs = [calibs[max(xy_dims)],
-                      calibs[min(xy_dims)],
-                      calibs[self._perspective]]
+            calibs = [
+                calibs[max(xy_dims)],
+                calibs[min(xy_dims)],
+                calibs[self._perspective],
+            ]
 
         return tuple(calibs)
 
@@ -456,14 +505,14 @@ class StackView(qt.QMainWindow):
         """
         :return: 2-tuple (XScale, YScale) for current image view
         """
-        xcalib, ycalib, _zcalib = self.getCalibrations(order='axes')
+        xcalib, ycalib, _zcalib = self.getCalibrations(order="axes")
         return xcalib.get_slope(), ycalib.get_slope()
 
     def _getImageOrigin(self):
         """
         :return: 2-tuple (XOrigin, YOrigin) for current image view
         """
-        xcalib, ycalib, _zcalib = self.getCalibrations(order='axes')
+        xcalib, ycalib, _zcalib = self.getCalibrations(order="axes")
         return xcalib(0), ycalib(0)
 
     def _getImageZ(self, index):
@@ -471,7 +520,7 @@ class StackView(qt.QMainWindow):
         :param idx: 0-based image index in the stack
         :return: calibrated Z value corresponding to the image idx
         """
-        _xcalib, _ycalib, zcalib = self.getCalibrations(order='axes')
+        _xcalib, _ycalib, zcalib = self.getCalibrations(order="axes")
         return zcalib(index)
 
     def _updateTitle(self):
@@ -518,8 +567,8 @@ class StackView(qt.QMainWindow):
                         assert len(img.shape) == 2
                 except AssertionError:
                     raise ValueError(
-                        "Stack must be a 3D array/dataset or a list of " +
-                        "2D arrays.")
+                        "Stack must be a 3D array/dataset or a list of " + "2D arrays."
+                    )
                 stack = ListOfImages(stack)
 
         assert len(stack.shape) == 3, "data must be 3D"
@@ -554,7 +603,7 @@ class StackView(qt.QMainWindow):
         # enable and init browser
         self._browser.setEnabled(True)
 
-        if not perspective_changed:    # avoid double signal (see self.setPerspective)
+        if not perspective_changed:  # avoid double signal (see self.setPerspective)
             self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
@@ -580,15 +629,15 @@ class StackView(qt.QMainWindow):
         colormap = image.getColormap()
 
         params = {
-            'info': image.getInfo(),
-            'origin': image.getOrigin(),
-            'scale': image.getScale(),
-            'z': image.getZValue(),
-            'selectable': image.isSelectable(),
-            'draggable': image.isDraggable(),
-            'colormap': colormap,
-            'xlabel': image.getXLabel(),
-            'ylabel': image.getYLabel(),
+            "info": image.getInfo(),
+            "origin": image.getOrigin(),
+            "scale": image.getScale(),
+            "z": image.getZValue(),
+            "selectable": image.isSelectable(),
+            "draggable": image.isDraggable(),
+            "colormap": colormap,
+            "xlabel": image.getXLabel(),
+            "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
             return numpy.array(self._stack, copy=copy), params
@@ -631,15 +680,15 @@ class StackView(qt.QMainWindow):
             colormap = None
 
         params = {
-            'info': image.getInfo(),
-            'origin': image.getOrigin(),
-            'scale': image.getScale(),
-            'z': image.getZValue(),
-            'selectable': image.isSelectable(),
-            'draggable': image.isDraggable(),
-            'colormap': colormap,
-            'xlabel': image.getXLabel(),
-            'ylabel': image.getYLabel(),
+            "info": image.getInfo(),
+            "origin": image.getOrigin(),
+            "scale": image.getScale(),
+            "z": image.getZValue(),
+            "selectable": image.isSelectable(),
+            "draggable": image.isDraggable(),
+            "colormap": colormap,
+            "xlabel": image.getXLabel(),
+            "ylabel": image.getYLabel(),
         }
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
@@ -708,8 +757,8 @@ class StackView(qt.QMainWindow):
     def clear(self):
         """Clear the widget:
 
-         - clear the plot
-         - clear the loaded data volume
+        - clear the plot
+        - clear the loaded data volume
         """
         self._stack = None
         self.__transposed_view = None
@@ -732,9 +781,11 @@ class StackView(qt.QMainWindow):
              of the data volumes.
         """
 
-        default_labels = ["Dimension %d" % self._first_stack_dimension,
-                          "Dimension %d" % (self._first_stack_dimension + 1),
-                          "Dimension %d" % (self._first_stack_dimension + 2)]
+        default_labels = [
+            "Dimension %d" % self._first_stack_dimension,
+            "Dimension %d" % (self._first_stack_dimension + 1),
+            "Dimension %d" % (self._first_stack_dimension + 2),
+        ]
         if labels is None:
             new_labels = default_labels
         else:
@@ -781,8 +832,9 @@ class StackView(qt.QMainWindow):
         vmin, vmax = colormap.getColormapRange(data=stack[0])
         colormap.setVRange(vmin=vmin, vmax=vmax)
 
-    def setColormap(self, colormap=None, normalization=None,
-                    vmin=None, vmax=None, colors=None):
+    def setColormap(
+        self, colormap=None, normalization=None, vmin=None, vmax=None, colors=None
+    ):
         """Set the colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -816,7 +868,9 @@ class StackView(qt.QMainWindow):
         # if is a colormap object or a dictionary
         if isinstance(colormap, Colormap) or isinstance(colormap, dict):
             # Support colormap parameter as a dict
-            errmsg = "If colormap is provided as a Colormap object, all other parameters"
+            errmsg = (
+                "If colormap is provided as a Colormap object, all other parameters"
+            )
             errmsg += " must not be specified when calling setColormap"
             assert normalization is None, errmsg
             assert vmin is None, errmsg
@@ -825,16 +879,14 @@ class StackView(qt.QMainWindow):
 
             _colormap = colormap
         else:
-            norm = normalization if normalization is not None else 'linear'
-            name = colormap if colormap is not None else 'gray'
-            _colormap = Colormap(name=name,
-                                 normalization=norm,
-                                 vmin=vmin,
-                                 vmax=vmax,
-                                 colors=colors)
+            norm = normalization if normalization is not None else "linear"
+            name = colormap if colormap is not None else "gray"
+            _colormap = Colormap(
+                name=name, normalization=norm, vmin=vmin, vmax=vmax, colors=colors
+            )
 
         cursorColor = cursorColorForColormap(_colormap.getName())
-        self._plot.setInteractiveMode('zoom', color=cursorColor)
+        self._plot.setInteractiveMode("zoom", color=cursorColor)
 
         self._plot.setDefaultColormap(_colormap)
 
@@ -866,13 +918,11 @@ class StackView(qt.QMainWindow):
 
     # proxies to PlotWidget or PlotWindow methods
     def getProfileToolbar(self):
-        """Profile tools attached to this plot
-        """
+        """Profile tools attached to this plot"""
         return self._profileToolBar
 
     def getGraphTitle(self):
-        """Return the plot main title as a str.
-        """
+        """Return the plot main title as a str."""
         return self._plot.getGraphTitle()
 
     def setGraphTitle(self, title=""):
@@ -883,8 +933,7 @@ class StackView(qt.QMainWindow):
         return self._plot.setGraphTitle(title)
 
     def getGraphXLabel(self):
-        """Return the current horizontal axis label as a str.
-        """
+        """Return the current horizontal axis label as a str."""
         return self._plot.getXAxis().getLabel()
 
     def setGraphXLabel(self, label=None):
@@ -896,14 +945,14 @@ class StackView(qt.QMainWindow):
             label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
         self._plot.getXAxis().setLabel(label)
 
-    def getGraphYLabel(self, axis='left'):
+    def getGraphYLabel(self, axis="left"):
         """Return the current vertical axis label as a str.
 
         :param str axis: The Y axis for which to get the label (left or right)
         """
         return self._plot.getYAxis().getLabel(axis)
 
-    def setGraphYLabel(self, label=None, axis='left'):
+    def setGraphYLabel(self, label=None, axis="left"):
         """Set the vertical axis label on the plot.
 
         :param str label: The Y axis label
@@ -987,8 +1036,7 @@ class StackView(qt.QMainWindow):
 
     # kind of private methods, but needed by Profile
     def getActiveImage(self, just_legend=False):
-        """Returns the stack image object.
-        """
+        """Returns the stack image object."""
         if just_legend:
             return self._stackItem.getName()
         return self._stackItem
@@ -1003,8 +1051,7 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.getColorBarAction()
 
-    def remove(self, legend=None,
-               kind=('curve', 'image', 'item', 'marker')):
+    def remove(self, legend=None, kind=("curve", "image", "item", "marker")):
         """See :meth:`Plot.Plot.remove`"""
         self._plot.remove(legend, kind)
 
@@ -1026,6 +1073,7 @@ class PlanesWidget(qt.QWidget):
 
     :param parent: the parent QWidget
     """
+
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
@@ -1048,7 +1096,8 @@ class PlanesWidget(qt.QWidget):
         self.qcbAxisSelection = qt.QComboBox(self)
         self._setCBChoices(first_stack_dimension=0)
         self.qcbAxisSelection.currentIndexChanged[int].connect(
-            self.__planeSelectionChanged)
+            self.__planeSelectionChanged
+        )
 
         layout0.addWidget(self.qcbAxisSelection)
 
@@ -1067,12 +1116,12 @@ class PlanesWidget(qt.QWidget):
     def _setCBChoices(self, first_stack_dimension):
         self.qcbAxisSelection.clear()
 
-        dim1dim2 = 'Dim%d-Dim%d' % (first_stack_dimension + 1,
-                                    first_stack_dimension + 2)
-        dim0dim2 = 'Dim%d-Dim%d' % (first_stack_dimension,
-                                    first_stack_dimension + 2)
-        dim0dim1 = 'Dim%d-Dim%d' % (first_stack_dimension,
-                                    first_stack_dimension + 1)
+        dim1dim2 = "Dim%d-Dim%d" % (
+            first_stack_dimension + 1,
+            first_stack_dimension + 2,
+        )
+        dim0dim2 = "Dim%d-Dim%d" % (first_stack_dimension, first_stack_dimension + 2)
+        dim0dim1 = "Dim%d-Dim%d" % (first_stack_dimension, first_stack_dimension + 1)
 
         self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"), dim1dim2)
         self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"), dim0dim2)
@@ -1110,25 +1159,25 @@ class StackViewMainWindow(StackView):
 
     :param QWidget parent: Parent widget, or None
     """
+
     def __init__(self, parent=None):
         self._dataInfo = None
         super(StackViewMainWindow, self).__init__(parent)
         self.setWindowFlags(qt.Qt.Window)
 
         # Add toolbars and status bar
-        self.addToolBar(qt.Qt.BottomToolBarArea,
-                        LimitsToolBar(plot=self._plot))
+        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self._plot))
 
         self.statusBar()
 
-        menu = self.menuBar().addMenu('File')
+        menu = self.menuBar().addMenu("File")
         menu.addAction(self._plot.getOutputToolBar().getSaveAction())
         menu.addAction(self._plot.getOutputToolBar().getPrintAction())
         menu.addSeparator()
-        action = menu.addAction('Quit')
+        action = menu.addAction("Quit")
         action.triggered[bool].connect(qt.QApplication.instance().quit)
 
-        menu = self.menuBar().addMenu('Edit')
+        menu = self.menuBar().addMenu("Edit")
         menu.addAction(self._plot.getOutputToolBar().getCopyAction())
         menu.addSeparator()
         menu.addAction(self._plot.getResetZoomAction())
@@ -1138,7 +1187,7 @@ class StackViewMainWindow(StackView):
         menu.addAction(actions.control.KeepAspectRatioAction(self._plot, self))
         menu.addAction(actions.control.YAxisInvertedAction(self._plot, self))
 
-        menu = self.menuBar().addMenu('Profile')
+        menu = self.menuBar().addMenu("Profile")
         profileToolBar = self._profileToolBar
         menu.addAction(profileToolBar.hLineAction)
         menu.addAction(profileToolBar.vLineAction)
@@ -1168,11 +1217,11 @@ class StackViewMainWindow(StackView):
             elif self._perspective == 2:
                 dim0, dim1, dim2 = int(y), int(x), img_idx
 
-            msg = 'Position: (%d, %d, %d)' % (dim0, dim1, dim2)
+            msg = "Position: (%d, %d, %d)" % (dim0, dim1, dim2)
         if value is not None:
-            msg += ', Value: %g' % value
+            msg += ", Value: %g" % value
         if self._dataInfo is not None:
-            msg = self._dataInfo + ', ' + msg
+            msg = self._dataInfo + ", " + msg
 
         self.statusBar().showMessage(msg)
 
@@ -1181,11 +1230,15 @@ class StackViewMainWindow(StackView):
 
         See :meth:`StackView.setStack` for details.
         """
-        if hasattr(stack, 'dtype') and hasattr(stack, 'shape'):
+        if hasattr(stack, "dtype") and hasattr(stack, "shape"):
             assert len(stack.shape) == 3
             nframes, height, width = stack.shape
-            self._dataInfo = 'Data: %dx%dx%d (%s)' % (nframes, height, width,
-                                                      str(stack.dtype))
+            self._dataInfo = "Data: %dx%dx%d (%s)" % (
+                nframes,
+                height,
+                width,
+                str(stack.dtype),
+            )
             self.statusBar().showMessage(self._dataInfo)
         else:
             self._dataInfo = None

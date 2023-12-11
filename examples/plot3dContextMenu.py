@@ -60,8 +60,7 @@ class ScalarFieldViewWithContextMenu(ScalarFieldView):
 
         # Set Plot3DWidget custom context menu
         self.getPlot3DWidget().setContextMenuPolicy(qt.Qt.CustomContextMenu)
-        self.getPlot3DWidget().customContextMenuRequested.connect(
-            self._contextMenu)
+        self.getPlot3DWidget().customContextMenuRequested.connect(self._contextMenu)
 
     def _contextMenu(self, pos):
         """Handle plot area customContextMenuRequested signal.
@@ -70,13 +69,16 @@ class ScalarFieldViewWithContextMenu(ScalarFieldView):
         """
         # Create the context menu
         menu = qt.QMenu(self)
-        menu.addAction(actions.mode.PanAction(
-            parent=menu, plot3d=self.getPlot3DWidget()))
-        menu.addAction(actions.mode.RotateArcballAction(
-            parent=menu, plot3d=self.getPlot3DWidget()))
+        menu.addAction(
+            actions.mode.PanAction(parent=menu, plot3d=self.getPlot3DWidget())
+        )
+        menu.addAction(
+            actions.mode.RotateArcballAction(parent=menu, plot3d=self.getPlot3DWidget())
+        )
         menu.addSeparator()
-        menu.addAction(actions.io.CopyAction(
-            parent=menu, plot3d=self.getPlot3DWidget()))
+        menu.addAction(
+            actions.io.CopyAction(parent=menu, plot3d=self.getPlot3DWidget())
+        )
 
         # Displaying the context menu at the mouse position requires
         # a global position.
@@ -103,7 +105,7 @@ data = numpy.sin(x * y * z) / (x * y * z)
 window.setData(data)
 
 # Add an iso-surface
-window.addIsosurface(0.2, '#FF0000FF')
+window.addIsosurface(0.2, "#FF0000FF")
 
 window.show()
 app.exec()

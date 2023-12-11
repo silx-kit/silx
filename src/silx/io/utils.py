@@ -59,6 +59,7 @@ NEXUS_HDF5_EXT = [".h5", ".nx5", ".nxs", ".hdf", ".hdf5", ".cxi"]
 
 class H5Type(enum.Enum):
     """Identify a set of HDF5 concepts"""
+
     DATASET = 1
     GROUP = 2
     FILE = 3
@@ -95,7 +96,9 @@ def supported_extensions(flat_formats=True):
         except ImportError:
             fabioh5 = None
         if fabioh5 is not None:
-            formats["NeXus layout from fabio files"] = set(fabioh5.supported_extensions())
+            formats["NeXus layout from fabio files"] = set(
+                fabioh5.supported_extensions()
+            )
 
     extensions = ["*.npz"]
     if flat_formats:
@@ -107,9 +110,21 @@ def supported_extensions(flat_formats=True):
     return formats
 
 
-def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
-           fmt="%.7g", csvdelim=";", newline="\n", header="",
-           footer="", comments="#", autoheader=False):
+def save1D(
+    fname,
+    x,
+    y,
+    xlabel=None,
+    ylabels=None,
+    filetype=None,
+    fmt="%.7g",
+    csvdelim=";",
+    newline="\n",
+    header="",
+    footer="",
+    comments="#",
+    autoheader=False,
+):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
     `txt` or `npy`. All curves must have the same number of points and share
     the same ``x`` values.
@@ -168,19 +183,17 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     available_formats = ["spec", "csv", "txt", "ndarray"]
 
     if filetype is None:
-        exttypes = {".dat": "spec",
-                    ".csv": "csv",
-                    ".txt": "txt",
-                    ".npy": "ndarray"}
-        outfname = (fname if not hasattr(fname, "name") else
-                    fname.name)
+        exttypes = {".dat": "spec", ".csv": "csv", ".txt": "txt", ".npy": "ndarray"}
+        outfname = fname if not hasattr(fname, "name") else fname.name
         fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
         else:
-            raise IOError("File type unspecified and could not be " +
-                          "inferred from file extension (not in " +
-                          "txt, dat, csv, npy)")
+            raise IOError(
+                "File type unspecified and could not be "
+                + "inferred from file extension (not in "
+                + "txt, dat, csv, npy)"
+            )
     else:
         filetype = filetype.lower()
 
@@ -198,8 +211,9 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
     elif isinstance(ylabels, (list, tuple)):
         # if ylabels is provided as a list, every element must
         # be a string
-        ylabels = [ylabel if isinstance(ylabel, str) else "y%d" % i
-                   for ylabel in ylabels]
+        ylabels = [
+            ylabel if isinstance(ylabel, str) else "y%d" % i for ylabel in ylabels
+        ]
 
     if filetype.lower() == "spec":
         # Check if we have regular data:
@@ -210,9 +224,18 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         if regular:
             if isinstance(fmt, (list, tuple)) and len(fmt) < (len(ylabels) + 1):
                 fmt = fmt + [fmt[-1] * (1 + len(ylabels) - len(fmt))]
-            specf = savespec(fname, x, y, xlabel, ylabels, fmt=fmt,
-                     scan_number=1, mode="w", write_file_header=True,
-                     close_file=False)
+            specf = savespec(
+                fname,
+                x,
+                y,
+                xlabel,
+                ylabels,
+                fmt=fmt,
+                scan_number=1,
+                mode="w",
+                write_file_header=True,
+                close_file=False,
+            )
         else:
             y_array = numpy.asarray(y)
             # make sure y_array is a 2D array even for a single curve
@@ -222,14 +245,32 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
                 raise IndexError("y must be a 1D or 2D array")
 
             # First curve
-            specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
-                             scan_number=1, mode="w", write_file_header=True,
-                             close_file=False)
+            specf = savespec(
+                fname,
+                x,
+                y_array[0],
+                xlabel,
+                ylabels[0],
+                fmt=fmt,
+                scan_number=1,
+                mode="w",
+                write_file_header=True,
+                close_file=False,
+            )
             # Other curves
             for i in range(1, y_array.shape[0]):
-                specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                                 fmt=fmt, scan_number=i + 1, mode="w",
-                                 write_file_header=False, close_file=False)
+                specf = savespec(
+                    specf,
+                    x,
+                    y_array[i],
+                    xlabel,
+                    ylabels[i],
+                    fmt=fmt,
+                    scan_number=i + 1,
+                    mode="w",
+                    write_file_header=False,
+                    close_file=False,
+                )
 
         # close file if we created it
         if not hasattr(fname, "write"):
@@ -260,9 +301,16 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
 
         if filetype.lower() in ["csv", "txt"]:
             X = X.transpose()
-            savetxt(fname, X, fmt=fmt, delimiter=csvdelim,
-                    newline=newline, header=header, footer=footer,
-                    comments=comments)
+            savetxt(
+                fname,
+                X,
+                fmt=fmt,
+                delimiter=csvdelim,
+                newline=newline,
+                header=header,
+                footer=footer,
+                comments=comments,
+            )
 
         elif filetype.lower() == "ndarray":
             if xlabel is not None and ylabels is not None:
@@ -270,14 +318,21 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
 
                 # .transpose is needed here because recarray labels
                 # apply to columns
-                X = numpy.core.records.fromrecords(X.transpose(),
-                                                   names=labels)
+                X = numpy.core.records.fromrecords(X.transpose(), names=labels)
             numpy.save(fname, X)
 
 
 # Replace with numpy.savetxt when dropping support of numpy < 1.7.0
-def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
-            header="", footer="", comments="#"):
+def savetxt(
+    fname,
+    X,
+    fmt="%.7g",
+    delimiter=";",
+    newline="\n",
+    header="",
+    footer="",
+    comments="#",
+):
     """``numpy.savetxt`` backport of header and footer arguments from
     numpy=1.7.0.
 
@@ -285,7 +340,7 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html
     """
     if not hasattr(fname, "name"):
-        ffile = builtin_open(fname, 'wb')
+        ffile = builtin_open(fname, "wb")
     else:
         ffile = fname
 
@@ -295,17 +350,25 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     numpy.savetxt(ffile, X, fmt, delimiter, newline)
 
     if footer:
-        footer = (comments + footer.replace(newline, newline + comments) +
-                  newline)
+        footer = comments + footer.replace(newline, newline + comments) + newline
         ffile.write(footer.encode("utf-8"))
 
     if not hasattr(fname, "name"):
         ffile.close()
 
 
-def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
-             scan_number=1, mode="w", write_file_header=True,
-             close_file=False):
+def savespec(
+    specfile,
+    x,
+    y,
+    xlabel="X",
+    ylabel="Y",
+    fmt="%.7g",
+    scan_number=1,
+    mode="w",
+    write_file_header=True,
+    close_file=False,
+):
     """Saves one curve to a SpecFile.
 
     The curve is saved as a scan with two data columns. To save multiple
@@ -319,7 +382,7 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     :param y: 1D-array (or list), or list of them of ordinates values.
         All dataset must have the same length as x
     :param xlabel: Abscissa label (default ``"X"``)
-    :param ylabel: Ordinate label, may be a list of labels when multiple curves 
+    :param ylabel: Ordinate label, may be a list of labels when multiple curves
         are to be saved together.
     :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
@@ -366,8 +429,10 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     elif isinstance(fmt, (list, tuple)) and len(fmt) == ncol:
         full_fmt_string = "  ".join(fmt)
     else:
-        raise ValueError("`fmt` must be a single format string or a list of " +
-                         "format strings with as many format as ncolumns")
+        raise ValueError(
+            "`fmt` must be a single format string or a list of "
+            + "format strings with as many format as ncolumns"
+        )
 
     if not hasattr(specfile, "write"):
         f = builtin_open(specfile, mode)
@@ -376,14 +441,16 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
 
     current_date = "#D %s" % (time.ctime(time.time()))
     if write_file_header:
-        lines = [ "#F %s" % f.name, current_date, ""]
+        lines = ["#F %s" % f.name, current_date, ""]
     else:
         lines = [""]
 
-    lines += [  "#S %d %s" % (scan_number, labels[1]),
-                current_date,
-                "#N %d" % ncol,
-                "#L " + "  ".join(labels)]
+    lines += [
+        "#S %d %s" % (scan_number, labels[1]),
+        current_date,
+        "#N %d" % ncol,
+        "#L " + "  ".join(labels),
+    ]
 
     for i in data.T:
         lines.append(full_fmt_string % tuple(i))
@@ -424,7 +491,7 @@ def h5ls(h5group, lvl=0):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
     """
-    h5repr = ''
+    h5repr = ""
     if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, str):
@@ -434,15 +501,15 @@ def h5ls(h5group, lvl=0):
 
     for key in h5f.keys():
         # group
-        if hasattr(h5f[key], 'keys'):
-            h5repr += '\t' * lvl + '+' + key
-            h5repr += '\n'
+        if hasattr(h5f[key], "keys"):
+            h5repr += "\t" * lvl + "+" + key
+            h5repr += "\n"
             h5repr += h5ls(h5f[key], lvl + 1)
         # dataset
         else:
-            h5repr += '\t' * lvl
+            h5repr += "\t" * lvl
             h5repr += str(h5f[key])
-            h5repr += '\n'
+            h5repr += "\n"
 
     if isinstance(h5group, str):
         h5f.close()
@@ -477,39 +544,49 @@ def _open_local_file(filename):
         if extension in [".npz", ".npy"]:
             try:
                 from . import rawh5
+
                 return rawh5.NumpyFile(filename)
             except (IOError, ValueError) as e:
-                debugging_info.append((sys.exc_info(),
-                                      "File '%s' can't be read as a numpy file." % filename))
+                debugging_info.append(
+                    (
+                        sys.exc_info(),
+                        "File '%s' can't be read as a numpy file." % filename,
+                    )
+                )
 
         if h5py.is_hdf5(filename):
             return h5py_utils.File(filename, "r")
 
         try:
             from . import fabioh5
+
             return fabioh5.File(filename)
         except ImportError:
             debugging_info.append((sys.exc_info(), "fabioh5 can't be loaded."))
         except Exception:
-            debugging_info.append((sys.exc_info(),
-                                   "File '%s' can't be read as fabio file." % filename))
+            debugging_info.append(
+                (sys.exc_info(), "File '%s' can't be read as fabio file." % filename)
+            )
 
         try:
             from . import spech5
+
             return spech5.SpecH5(filename)
         except ImportError:
-            debugging_info.append((sys.exc_info(),
-                                   "spech5 can't be loaded."))
+            debugging_info.append((sys.exc_info(), "spech5 can't be loaded."))
         except IOError:
-            debugging_info.append((sys.exc_info(),
-                                   "File '%s' can't be read as spec file." % filename))
+            debugging_info.append(
+                (sys.exc_info(), "File '%s' can't be read as spec file." % filename)
+            )
 
         try:
             from . import fioh5
+
             return fioh5.FioH5(filename)
         except IOError:
-            debugging_info.append((sys.exc_info(),
-                                   "File '%s' can't be read as fio file." % filename))
+            debugging_info.append(
+                (sys.exc_info(), "File '%s' can't be read as fio file." % filename)
+            )
 
     finally:
         for exc_info, message in debugging_info:
@@ -604,7 +681,7 @@ def open(filename):  # pylint:disable=redefined-builtin
         endpoint = "%s://%s" % (uri.scheme, uri.netloc)
         if path.startswith("/"):
             path = path[1:]
-        return h5pyd.File(path, 'r', endpoint=endpoint)
+        return h5pyd.File(path, "r", endpoint=endpoint)
 
     if url.data_path() in [None, "/", ""]:  # The full file is requested
         if url.data_slice():
@@ -619,10 +696,13 @@ def open(filename):  # pylint:disable=redefined-builtin
 
         if url.data_slice() is not None:
             from . import _sliceh5  # Lazy-import to avoid circular dependency
+
             try:
                 return _sliceh5.DatasetSlice(node, url.data_slice(), attrs=node.attrs)
             except ValueError:
-                raise IOError(f"URL {filename} contains slicing, but it is not a dataset")
+                raise IOError(
+                    f"URL {filename} contains slicing, but it is not a dataset"
+                )
 
         proxy = _MainNode(node, h5_file)
         return proxy
@@ -791,7 +871,7 @@ def is_link(obj):
     return t in {H5Type.SOFT_LINK, H5Type.EXTERNAL_LINK}
 
 
-def _visitall(item, path=''):
+def _visitall(item, path=""):
     """Helper function for func:`visitall`.
 
     :param item: Item to visit
@@ -805,7 +885,7 @@ def _visitall(item, path=''):
             link = item.get(name, getlink=True)
         else:
             link = child_item
-        child_path = '/'.join((path, name))
+        child_path = "/".join((path, name))
 
         ret = link if link is not None and is_link(link) else child_item
         yield child_path, ret
@@ -820,7 +900,7 @@ def visitall(item):
 
     :param item: The item to visit.
     """
-    yield from _visitall(item, '')
+    yield from _visitall(item, "")
 
 
 def iter_groups(group, _root=None):
@@ -911,7 +991,9 @@ def get_data(url: Union[str, DataUrl]):
             data = h5[data_path]
 
             if not is_dataset(data):
-                raise ValueError("Data path from URL '%s' is not a dataset" % url.path())
+                raise ValueError(
+                    "Data path from URL '%s' is not a dataset" % url.path()
+                )
 
             if data_slice is not None:
                 data = h5py_read_dataset(data, index=data_slice)
@@ -921,24 +1003,36 @@ def get_data(url: Union[str, DataUrl]):
 
     elif url.scheme() == "fabio":
         import fabio
+
         data_slice = url.data_slice()
         if data_slice is None:
             data_slice = (0,)
         if data_slice is None or len(data_slice) != 1:
-            raise ValueError("Fabio slice expect a single frame, but %s found" % data_slice)
+            raise ValueError(
+                "Fabio slice expect a single frame, but %s found" % data_slice
+            )
         index = data_slice[0]
         if not isinstance(index, int):
-            raise ValueError("Fabio slice expect a single integer, but %s found" % data_slice)
+            raise ValueError(
+                "Fabio slice expect a single integer, but %s found" % data_slice
+            )
 
         try:
             fabio_file = fabio.open(url.file_path())
         except Exception:
-            logger.debug("Error while opening %s with fabio", url.file_path(), exc_info=True)
-            raise IOError("Error while opening %s with fabio (use debug for more information)" % url.path())
+            logger.debug(
+                "Error while opening %s with fabio", url.file_path(), exc_info=True
+            )
+            raise IOError(
+                "Error while opening %s with fabio (use debug for more information)"
+                % url.path()
+            )
 
         if fabio_file.nframes == 1:
             if index != 0:
-                raise ValueError("Only a single frame available. Slice %s out of range" % index)
+                raise ValueError(
+                    "Only a single frame available. Slice %s out of range" % index
+                )
             data = fabio_file.data
         else:
             data = fabio_file.getframe(index).data
@@ -947,18 +1041,19 @@ def get_data(url: Union[str, DataUrl]):
         fabio_file = None
 
     elif url.scheme() is None:
-        for scheme in ('silx', 'fabio'):
+        for scheme in ("silx", "fabio"):
             specificUrl = DataUrl(
                 file_path=url.file_path(),
                 data_slice=url.data_slice(),
                 data_path=url.data_path(),
-                scheme=scheme
+                scheme=scheme,
             )
             try:
                 data = get_data(specificUrl)
             except Exception:
-                logger.debug("Error while trying to loading %s as %s",
-                             url, scheme, exc_info=True)
+                logger.debug(
+                    "Error while trying to loading %s as %s", url, scheme, exc_info=True
+                )
             else:
                 break
         else:
@@ -969,8 +1064,7 @@ def get_data(url: Union[str, DataUrl]):
     return data
 
 
-def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
-                                   overwrite=False):
+def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype, overwrite=False):
     """
     Create a HDF5 dataset at `output_url` pointing to the given vol_file.
 
@@ -984,27 +1078,32 @@ def rawfile_to_h5_external_dataset(bin_file, output_url, shape, dtype,
     """
     assert isinstance(output_url, DataUrl)
     assert isinstance(shape, (tuple, list))
-    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
-    if calc_hexversion(v_majeur, v_mineur, v_micro)< calc_hexversion(2,9,0):
-        raise Exception('h5py >= 2.9 should be installed to access the '
-                        'external feature.')
+    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split(".")[:3]]
+    if calc_hexversion(v_majeur, v_mineur, v_micro) < calc_hexversion(2, 9, 0):
+        raise Exception(
+            "h5py >= 2.9 should be installed to access the " "external feature."
+        )
 
     with h5py.File(output_url.file_path(), mode="a") as _h5_file:
         if output_url.data_path() in _h5_file:
             if overwrite is False:
-                raise ValueError('data_path already exists')
+                raise ValueError("data_path already exists")
             else:
-                logger.warning('will overwrite path %s' % output_url.data_path())
+                logger.warning("will overwrite path %s" % output_url.data_path())
                 del _h5_file[output_url.data_path()]
         external = [(bin_file, 0, h5py.h5f.UNLIMITED)]
-        _h5_file.create_dataset(output_url.data_path(),
-                                shape,
-                                dtype=dtype,
-                                external=external)
+        _h5_file.create_dataset(
+            output_url.data_path(), shape, dtype=dtype, external=external
+        )
 
 
-def vol_to_h5_external_dataset(vol_file, output_url: DataUrl, info_file: Optional[str]=None,
-                               vol_dtype=numpy.float32, overwrite=False):
+def vol_to_h5_external_dataset(
+    vol_file,
+    output_url: DataUrl,
+    info_file: Optional[str] = None,
+    vol_dtype=numpy.float32,
+    overwrite=False,
+):
     """
     Create a HDF5 dataset at `output_url` pointing to the given vol_file.
 
@@ -1021,10 +1120,12 @@ def vol_to_h5_external_dataset(vol_file, output_url: DataUrl, info_file: Optiona
     """
     _info_file = info_file
     if _info_file is None:
-        _info_file = vol_file + '.info'
+        _info_file = vol_file + ".info"
         if not os.path.exists(_info_file):
-            logger.error('info_file not given and %s does not exists, please'
-                         'specify .vol.info file' % _info_file)
+            logger.error(
+                "info_file not given and %s does not exists, please"
+                "specify .vol.info file" % _info_file
+            )
             return
 
     def info_file_to_dict():
@@ -1032,29 +1133,30 @@ def vol_to_h5_external_dataset(vol_file, output_url: DataUrl, info_file: Optiona
         with builtin_open(info_file, "r") as _file:
             lines = _file.readlines()
             for line in lines:
-                if not '=' in line:
+                if not "=" in line:
                     continue
-                l = line.rstrip().replace(' ', '')
-                l = l.split('#')[0]
-                key, value = l.split('=')
+                l = line.rstrip().replace(" ", "")
+                l = l.split("#")[0]
+                key, value = l.split("=")
                 ddict[key.lower()] = value
         return ddict
 
     ddict = info_file_to_dict()
-    if 'num_x' not in ddict or 'num_y' not in ddict or 'num_z' not in ddict:
-        raise ValueError(
-            'Unable to retrieve volume shape from %s' % info_file)
+    if "num_x" not in ddict or "num_y" not in ddict or "num_z" not in ddict:
+        raise ValueError("Unable to retrieve volume shape from %s" % info_file)
 
-    dimX = int(ddict['num_x'])
-    dimY = int(ddict['num_y'])
-    dimZ = int(ddict['num_z'])
+    dimX = int(ddict["num_x"])
+    dimY = int(ddict["num_y"])
+    dimZ = int(ddict["num_z"])
     shape = (dimZ, dimY, dimX)
 
-    return rawfile_to_h5_external_dataset(bin_file=vol_file,
-                                          output_url=output_url,
-                                          shape=shape,
-                                          dtype=vol_dtype,
-                                          overwrite=overwrite)
+    return rawfile_to_h5_external_dataset(
+        bin_file=vol_file,
+        output_url=output_url,
+        shape=shape,
+        dtype=vol_dtype,
+        overwrite=overwrite,
+    )
 
 
 def hdf5_to_python_type(value, decode_ascii, encoding):

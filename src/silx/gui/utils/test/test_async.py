@@ -49,7 +49,7 @@ class TestSubmitToQtThread(TestCaseQt):
         return value1, value2
 
     def _taskWithException(self, *args, **kwargs):
-        raise RuntimeError('task exception')
+        raise RuntimeError("task exception")
 
     def testFromMainThread(self):
         """Call submitToQtMainThread from the main thread"""
@@ -95,10 +95,11 @@ class TestSubmitToQtThread(TestCaseQt):
             if not thread.is_alive():
                 break
         else:
-            self.fail(('Thread task still running'))
+            self.fail(("Thread task still running"))
 
     def testFromQtThread(self):
         """Call submitToQtMainThread from a Qt thread pool"""
+
         class Runner(qt.QRunnable):
             def __init__(self, fn):
                 super(Runner, self).__init__()
@@ -119,4 +120,4 @@ class TestSubmitToQtThread(TestCaseQt):
             if done:
                 break
         else:
-            self.fail('Thread pool task still running')
+            self.fail("Thread pool task still running")

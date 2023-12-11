@@ -73,7 +73,9 @@ class CompareImagesWindow(qt.QMainWindow):
         virtualItem = self._plot._getVirtualPlotItem()
         self.__manager.setPlotItem(virtualItem)
 
-        directedLineAction = self.__manager.createProfileAction(ProfileImageDirectedLineROI, self)
+        directedLineAction = self.__manager.createProfileAction(
+            ProfileImageDirectedLineROI, self
+        )
 
         profileToolBar = qt.QToolBar(self)
         profileToolBar.setWindowTitle("Profile")
@@ -107,10 +109,7 @@ class CompareImagesWindow(qt.QMainWindow):
             self._selectionTable.addUrl(url)
         url1 = urls[0].path() if len(urls) >= 1 else None
         url2 = urls[1].path() if len(urls) >= 2 else None
-        self._selectionTable.setUrlSelection(
-            url_img_a=url1,
-            url_img_b=url2
-        )
+        self._selectionTable.setUrlSelection(url_img_a=url1, url_img_b=url2)
         self._plot.resetZoom()
         self._plot.centerLines()
 
@@ -137,8 +136,7 @@ class CompareImagesWindow(qt.QMainWindow):
         self._plot.setImage2(data)
 
     def readData(self, urlPath: str):
-        """Read an URL as an image
-        """
+        """Read an URL as an image"""
         if urlPath in ("", None):
             return None
 
@@ -189,7 +187,9 @@ class CompareImagesWindow(qt.QMainWindow):
         settings.setValue("full-screen", isFullScreen)
         settings.setValue("spliter", self.__splitter.sizes())
         # NOTE: isInverted returns a numpy bool
-        settings.setValue("y-axis-inverted", bool(self._plot.getPlot().getYAxis().isInverted()))
+        settings.setValue(
+            "y-axis-inverted", bool(self._plot.getPlot().getYAxis().isInverted())
+        )
 
         settings.setValue("visualization-mode", self._plot.getVisualizationMode().name)
         settings.setValue("alignment-mode", self._plot.getAlignmentMode().name)
@@ -223,12 +223,14 @@ class CompareImagesWindow(qt.QMainWindow):
         visualizationMode = parseutils.to_enum(
             visualizationMode,
             CompareImages.VisualizationMode,
-            CompareImages.VisualizationMode.VERTICAL_LINE)
+            CompareImages.VisualizationMode.VERTICAL_LINE,
+        )
         alignmentMode = settings.value("alignment-mode", "")
         alignmentMode = parseutils.to_enum(
             alignmentMode,
             CompareImages.AlignmentMode,
-            CompareImages.AlignmentMode.ORIGIN)
+            CompareImages.AlignmentMode.ORIGIN,
+        )
         displayKeypoints = settings.value("display-keypoints", False)
         displayKeypoints = parseutils.to_bool(displayKeypoints, False)
 

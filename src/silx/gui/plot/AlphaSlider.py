@@ -96,6 +96,7 @@ class BaseAlphaSlider(qt.QSlider):
 
     You must subclass this class and implement :meth:`getItem`.
     """
+
     sigAlphaChanged = qt.Signal(float)
     """Emits the alpha value when the slider's value changes,
     as a float between 0. and 1."""
@@ -119,7 +120,7 @@ class BaseAlphaSlider(qt.QSlider):
             self.setEnabled(False)
         else:
             alpha = self.getItem().getAlpha()
-            self.setValue(round(255*alpha))
+            self.setValue(round(255 * alpha))
 
         self.valueChanged.connect(self._valueChanged)
 
@@ -132,8 +133,8 @@ class BaseAlphaSlider(qt.QSlider):
         :rtype: :class:`silx.plot.items.Item`
         """
         raise NotImplementedError(
-                "BaseAlphaSlider must be subclassed to " +
-                "implement getItem()")
+            "BaseAlphaSlider must be subclassed to " + "implement getItem()"
+        )
 
     def getAlpha(self):
         """Get the opacity, as a float between 0. and 1.
@@ -141,15 +142,14 @@ class BaseAlphaSlider(qt.QSlider):
         :return: Alpha value in [0., 1.]
         :rtype: float
         """
-        return self.value() / 255.
+        return self.value() / 255.0
 
     def _valueChanged(self, value):
         self._updateItem()
-        self.sigAlphaChanged.emit(value / 255.)
+        self.sigAlphaChanged.emit(value / 255.0)
 
     def _updateItem(self):
-        """Update the item's alpha channel.
-        """
+        """Update the item's alpha channel."""
         item = self.getItem()
         if item is not None:
             item.setAlpha(self.getAlpha())
@@ -164,6 +164,7 @@ class ActiveImageAlphaSlider(BaseAlphaSlider):
 
     See documentation of :class:`BaseAlphaSlider`
     """
+
     def __init__(self, parent=None, plot=None):
         """
 
@@ -203,8 +204,8 @@ class NamedItemAlphaSlider(BaseAlphaSlider):
     :param str legend: Legend of item whose transparency is to be
         controlled.
     """
-    def __init__(self, parent=None, plot=None,
-                 kind=None, legend=None):
+
+    def __init__(self, parent=None, plot=None, kind=None, legend=None):
         self._item_legend = legend
         self._item_kind = kind
 
@@ -234,8 +235,7 @@ class NamedItemAlphaSlider(BaseAlphaSlider):
         :rtype: subclass of :class:`silx.gui.plot.items.Item`"""
         if self._item_legend is None or self._item_kind is None:
             return None
-        return self.plot._getItem(kind=self._item_kind,
-                                  legend=self._item_legend)
+        return self.plot._getItem(kind=self._item_kind, legend=self._item_legend)
 
     def setLegend(self, legend):
         """Associate a different item (of the same kind) to the slider.
@@ -280,9 +280,9 @@ class NamedImageAlphaSlider(NamedItemAlphaSlider):
     :param str legend: Legend of image whose transparency is to be
         controlled.
     """
+
     def __init__(self, parent=None, plot=None, legend=None):
-        NamedItemAlphaSlider.__init__(self, parent, plot,
-                                      kind="image", legend=legend)
+        NamedItemAlphaSlider.__init__(self, parent, plot, kind="image", legend=legend)
 
 
 class NamedScatterAlphaSlider(NamedItemAlphaSlider):
@@ -294,6 +294,6 @@ class NamedScatterAlphaSlider(NamedItemAlphaSlider):
     :param str legend: Legend of scatter whose transparency is to be
         controlled.
     """
+
     def __init__(self, parent=None, plot=None, legend=None):
-        NamedItemAlphaSlider.__init__(self, parent, plot,
-                                      kind="scatter", legend=legend)
+        NamedItemAlphaSlider.__init__(self, parent, plot, kind="scatter", legend=legend)

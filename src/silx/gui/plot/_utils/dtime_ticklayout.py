@@ -48,14 +48,15 @@ SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE
 SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR
 SECONDS_PER_YEAR = 365.25 * SECONDS_PER_DAY
-SECONDS_PER_MONTH_AVERAGE = SECONDS_PER_YEAR / 12 # Seconds per average month
+SECONDS_PER_MONTH_AVERAGE = SECONDS_PER_YEAR / 12  # Seconds per average month
 
 
 # No dt.timezone in Python 2.7 so we use dateutil.tz.tzutc
 _EPOCH = dt.datetime(1970, 1, 1, tzinfo=dateutil.tz.tzutc())
 
+
 def timestamp(dtObj):
-    """ Returns POSIX timestamp of a datetime objects.
+    """Returns POSIX timestamp of a datetime objects.
 
     If the dtObj object has a timestamp() method (python 3.3), this is
     used. Otherwise (e.g. python 2.7) it is calculated here.
@@ -73,9 +74,22 @@ def timestamp(dtObj):
     else:
         # Back ported from Python 3.5
         if dtObj.tzinfo is None:
-            return time.mktime((dtObj.year, dtObj.month, dtObj.day,
-                                dtObj.hour, dtObj.minute, dtObj.second,
-                                -1, -1, -1)) + dtObj.microsecond / 1e6
+            return (
+                time.mktime(
+                    (
+                        dtObj.year,
+                        dtObj.month,
+                        dtObj.day,
+                        dtObj.hour,
+                        dtObj.minute,
+                        dtObj.second,
+                        -1,
+                        -1,
+                        -1,
+                    )
+                )
+                + dtObj.microsecond / 1e6
+            )
         else:
             return (dtObj - _EPOCH).total_seconds()
 
@@ -92,7 +106,7 @@ class DtUnit(enum.Enum):
 
 
 def getDateElement(dateTime, unit):
-    """ Picks the date element with the unit from the dateTime
+    """Picks the date element with the unit from the dateTime
 
     E.g. getDateElement(datetime(1970, 5, 6), DtUnit.Day) will return 6
 
@@ -118,7 +132,7 @@ def getDateElement(dateTime, unit):
 
 
 def setDateElement(dateTime, value, unit):
-    """ Returns a copy of dateTime with the tickStep unit set to value
+    """Returns a copy of dateTime with the tickStep unit set to value
 
     :param datetime.datetime: date time object
     :param int value: value to set
@@ -126,8 +140,9 @@ def setDateElement(dateTime, value, unit):
     :return: datetime.datetime
     """
     intValue = int(value)
-    _logger.debug("setDateElement({}, {} (int={}), {})"
-                  .format(dateTime, value, intValue, unit))
+    _logger.debug(
+        "setDateElement({}, {} (int={}), {})".format(dateTime, value, intValue, unit)
+    )
 
     year = dateTime.year
     month = dateTime.month
@@ -154,16 +169,19 @@ def setDateElement(dateTime, value, unit):
     else:
         raise ValueError("Unexpected DtUnit: {}".format(unit))
 
-    _logger.debug("creating date time {}"
-        .format((year, month, day, hour, minute, second, microsecond)))
+    _logger.debug(
+        "creating date time {}".format(
+            (year, month, day, hour, minute, second, microsecond)
+        )
+    )
 
-    return dt.datetime(year, month, day, hour, minute, second, microsecond,
-                       tzinfo=dateTime.tzinfo)
-
+    return dt.datetime(
+        year, month, day, hour, minute, second, microsecond, tzinfo=dateTime.tzinfo
+    )
 
 
 def roundToElement(dateTime, unit):
-    """ Returns a copy of dateTime rounded to given unit
+    """Returns a copy of dateTime rounded to given unit
 
     :param datetime.datetime: date time object
     :param DtUnit unit: unit
@@ -178,7 +196,7 @@ def roundToElement(dateTime, unit):
     microsecond = dateTime.microsecond
 
     if unit.value < DtUnit.YEARS.value:
-        pass # Never round years
+        pass  # Never round years
     if unit.value < DtUnit.MONTHS.value:
         month = 1
     if unit.value < DtUnit.DAYS.value:
@@ -192,14 +210,15 @@ def roundToElement(dateTime, unit):
     if unit.value < DtUnit.MICRO_SECONDS.value:
         microsecond = 0
 
-    result = dt.datetime(year, month, day, hour, minute, second, microsecond,
-                         tzinfo=dateTime.tzinfo)
+    result = dt.datetime(
+        year, month, day, hour, minute, second, microsecond, tzinfo=dateTime.tzinfo
+    )
 
     return result
 
 
 def addValueToDate(dateTime, value, unit):
-    """ Adds a value with unit to a dateTime.
+    """Adds a value with unit to a dateTime.
 
     Uses dateutil.relativedelta.relativedelta from the standard library to do
     the actual math. This function doesn't allow for fractional month or years,
@@ -211,13 +230,13 @@ def addValueToDate(dateTime, value, unit):
     :return:
     :raises ValueError: unit is unsupported or result is out of datetime bounds
     """
-    #logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
+    # logger.debug("addValueToDate({}, {}, {})".format(dateTime, value, unit))
 
     if unit == DtUnit.YEARS:
-        intValue = int(value) # floats not implemented in relativeDelta(years)
+        intValue = int(value)  # floats not implemented in relativeDelta(years)
         return dateTime + relativedelta(years=intValue)
     elif unit == DtUnit.MONTHS:
-        intValue = int(value) # floats not implemented in relativeDelta(mohths)
+        intValue = int(value)  # floats not implemented in relativeDelta(mohths)
         return dateTime + relativedelta(months=intValue)
     elif unit == DtUnit.DAYS:
         return dateTime + relativedelta(days=value)
@@ -234,7 +253,7 @@ def addValueToDate(dateTime, value, unit):
 
 
 def bestUnit(durationInSeconds):
-    """ Gets the best tick spacing given a duration in seconds.
+    """Gets the best tick spacing given a duration in seconds.
 
     :param durationInSeconds: time span duration in seconds
     :return: DtUnit enumeration.
@@ -264,8 +283,7 @@ def bestUnit(durationInSeconds):
     elif durationInSeconds > 1 * 2:
         return (durationInSeconds, DtUnit.SECONDS)
     else:
-        return (durationInSeconds * MICROSECONDS_PER_SECOND,
-                DtUnit.MICRO_SECONDS)
+        return (durationInSeconds * MICROSECONDS_PER_SECOND, DtUnit.MICRO_SECONDS)
 
 
 NICE_DATE_VALUES = {
@@ -275,12 +293,12 @@ NICE_DATE_VALUES = {
     DtUnit.HOURS: [1, 2, 3, 4, 6, 12],
     DtUnit.MINUTES: [1, 2, 3, 5, 10, 15, 30],
     DtUnit.SECONDS: [1, 2, 3, 5, 10, 15, 30],
-    DtUnit.MICRO_SECONDS : [1.0, 2.0, 5.0, 10.0], # floats for microsec
+    DtUnit.MICRO_SECONDS: [1.0, 2.0, 5.0, 10.0],  # floats for microsec
 }
 
 
 def bestFormatString(spacing, unit):
-    """ Finds the best format string given the spacing and DtUnit.
+    """Finds the best format string given the spacing and DtUnit.
 
     If the spacing is a fractional number < 1 the format string will take this
     into account
@@ -311,7 +329,7 @@ def bestFormatString(spacing, unit):
 
 
 def niceDateTimeElement(value, unit, isRound=False):
-    """ Uses the Nice Numbers algorithm to determine a nice value.
+    """Uses the Nice Numbers algorithm to determine a nice value.
 
     The fractions are optimized for the unit of the date element.
     """
@@ -326,10 +344,8 @@ def niceDateTimeElement(value, unit, isRound=False):
 
 
 def findStartDate(dMin, dMax, nTicks):
-    """ Rounds a date down to the nearest nice number of ticks
-    """
-    assert dMax >= dMin, \
-        "dMin ({}) should come before dMax ({})".format(dMin, dMax)
+    """Rounds a date down to the nearest nice number of ticks"""
+    assert dMax >= dMin, "dMin ({}) should come before dMax ({})".format(dMin, dMax)
 
     if dMin == dMax:
         # Fallback when range is smaller than microsecond resolution
@@ -337,34 +353,42 @@ def findStartDate(dMin, dMax, nTicks):
 
     delta = dMax - dMin
     lengthSec = delta.total_seconds()
-    _logger.debug("findStartDate: {}, {} (duration = {} sec, {} days)"
-                  .format(dMin, dMax, lengthSec, lengthSec / SECONDS_PER_DAY))
+    _logger.debug(
+        "findStartDate: {}, {} (duration = {} sec, {} days)".format(
+            dMin, dMax, lengthSec, lengthSec / SECONDS_PER_DAY
+        )
+    )
 
     length, unit = bestUnit(lengthSec)
     niceLength = niceDateTimeElement(length, unit)
 
-    _logger.debug("Length: {:8.3f} {} (nice = {})"
-                  .format(length, unit.name, niceLength))
+    _logger.debug(
+        "Length: {:8.3f} {} (nice = {})".format(length, unit.name, niceLength)
+    )
 
     niceSpacing = niceDateTimeElement(niceLength / nTicks, unit, isRound=True)
 
-    _logger.debug("Spacing: {:8.3f} {} (nice = {})"
-                  .format(niceLength / nTicks, unit.name, niceSpacing))
+    _logger.debug(
+        "Spacing: {:8.3f} {} (nice = {})".format(
+            niceLength / nTicks, unit.name, niceSpacing
+        )
+    )
 
     dVal = getDateElement(dMin, unit)
 
-    if unit == DtUnit.MONTHS: # TODO: better rounding?
-        niceVal = math.floor((dVal-1) / niceSpacing) * niceSpacing + 1
+    if unit == DtUnit.MONTHS:  # TODO: better rounding?
+        niceVal = math.floor((dVal - 1) / niceSpacing) * niceSpacing + 1
     elif unit == DtUnit.DAYS:
-        niceVal = math.floor((dVal-1) / niceSpacing) * niceSpacing + 1
+        niceVal = math.floor((dVal - 1) / niceSpacing) * niceSpacing + 1
     else:
         niceVal = math.floor(dVal / niceSpacing) * niceSpacing
 
     if unit == DtUnit.YEARS and niceVal <= dt.MINYEAR:
         niceVal = max(1, niceSpacing)
 
-    _logger.debug("StartValue: dVal = {}, niceVal: {} ({})"
-                  .format(dVal, niceVal, unit.name))
+    _logger.debug(
+        "StartValue: dVal = {}, niceVal: {} ({})".format(dVal, niceVal, unit.name)
+    )
 
     startDate = roundToElement(dMin, unit)
     startDate = setDateElement(startDate, niceVal, unit)
@@ -372,8 +396,8 @@ def findStartDate(dMin, dMax, nTicks):
     return startDate, niceSpacing, unit
 
 
-def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
-    """ Generates a range of dates
+def dateRange(dMin, dMax, step, unit, includeFirstBeyond=False):
+    """Generates a range of dates
 
     :param datetime dMin: start date
     :param datetime dMax: end date
@@ -384,8 +408,7 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
         datetime will always be smaller than dMax.
     :return:
     """
-    if (unit == DtUnit.YEARS or unit == DtUnit.MONTHS or
-        unit == DtUnit.MICRO_SECONDS):
+    if unit == DtUnit.YEARS or unit == DtUnit.MONTHS or unit == DtUnit.MICRO_SECONDS:
         # No support for fractional month or year and resolution is microsecond
         # In those cases, make sure the step is at least 1
         step = max(1, step)
@@ -404,7 +427,6 @@ def dateRange(dMin, dMax, step, unit, includeFirstBeyond = False):
         yield dateTime
 
 
-
 def calcTicks(dMin, dMax, nTicks):
     """Returns tick positions.
 
@@ -414,27 +436,19 @@ def calcTicks(dMin, dMax, nTicks):
         ticks may differ.
     :returns: (list of datetimes, DtUnit) tuple
     """
-    _logger.debug("Calc calcTicks({}, {}, nTicks={})"
-                  .format(dMin, dMax, nTicks))
+    _logger.debug("Calc calcTicks({}, {}, nTicks={})".format(dMin, dMax, nTicks))
 
     startDate, niceSpacing, unit = findStartDate(dMin, dMax, nTicks)
 
     result = []
-    for d in dateRange(startDate, dMax, niceSpacing, unit,
-                       includeFirstBeyond=True):
+    for d in dateRange(startDate, dMax, niceSpacing, unit, includeFirstBeyond=True):
         result.append(d)
 
     return result, niceSpacing, unit
 
 
 def calcTicksAdaptive(dMin, dMax, axisLength, tickDensity):
-    """ Calls calcTicks with a variable number of ticks, depending on axisLength
-    """
+    """Calls calcTicks with a variable number of ticks, depending on axisLength"""
     # At least 2 ticks
     nticks = max(2, int(round(tickDensity * axisLength)))
-    return  calcTicks(dMin, dMax, nticks)
-
-
-
-
-
+    return calcTicks(dMin, dMax, nticks)

@@ -41,18 +41,19 @@ class ClearPlotAction(PlotAction):
     def __init__(self, plot, parent=None):
         super(ClearPlotAction, self).__init__(
             plot,
-            icon='close',
-            text='Clear',
-            tooltip='Clear the plot',
+            icon="close",
+            text="Clear",
+            tooltip="Clear the plot",
             triggered=self._clear,
-            parent=parent)
+            parent=parent,
+        )
 
     def _clear(self):
         """Handle action triggered and clear the plot"""
         self.plot.clear()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from silx.gui import qt
     from silx.gui.plot import Plot1D
 

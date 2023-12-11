@@ -33,11 +33,13 @@ __date__ = "01/08/2019"
 import logging
 import numpy as np
 import unittest
+
 try:
     import mako
 except ImportError:
     mako = None
 from ..common import ocl
+
 if ocl:
     import pyopencl as cl
     import pyopencl.array as parray
@@ -47,6 +49,7 @@ from silx.test.utils import utilstest
 logger = logging.getLogger(__name__)
 try:
     from scipy.ndimage import laplace
+
     _has_scipy = True
 except ImportError:
     _has_scipy = False
@@ -54,13 +57,18 @@ except ImportError:
 
 # TODO move this function in math or image ?
 def gradient(img):
-    '''
+    """
     Compute the gradient of an image as a numpy array
     Code from https://github.com/emmanuelle/tomo-tv/
-    '''
-    shape = [img.ndim, ] + list(img.shape)
+    """
+    shape = [
+        img.ndim,
+    ] + list(img.shape)
     gradient = np.zeros(shape, dtype=img.dtype)
-    slice_all = [0, slice(None, -1),]
+    slice_all = [
+        0,
+        slice(None, -1),
+    ]
     for d in range(img.ndim):
         gradient[tuple(slice_all)] = np.diff(img, axis=d)
         slice_all[0] = d + 1
@@ -70,10 +78,10 @@ def gradient(img):
 
 # TODO move this function in math or image ?
 def divergence(grad):
-    '''
+    """
     Compute the divergence of a gradient
     Code from https://github.com/emmanuelle/tomo-tv/
-    '''
+    """
     res = np.zeros(grad.shape[1:])
     for d in range(grad.shape[0]):
         this_grad = np.rollaxis(grad[d], d)
@@ -86,7 +94,6 @@ def divergence(grad):
 
 @unittest.skipUnless(ocl and mako, "PyOpenCl is missing")
 class TestLinAlg(unittest.TestCase):
-
     def setUp(self):
         if ocl is None:
             return
@@ -105,7 +112,9 @@ class TestLinAlg(unittest.TestCase):
         self.div_ref = divergence(self.grad_ref)
         self.image2 = np.zeros_like(self.image)
         # Device images
-        self.gradient_parray = parray.empty(self.la.queue, self.image.shape, np.complex64)
+        self.gradient_parray = parray.empty(
+            self.la.queue, self.image.shape, np.complex64
+        )
         self.gradient_parray.fill(0)
         # we should be using cl.Buffer(self.la.ctx, cl.mem_flags.READ_WRITE, size=self.image.nbytes*2),
         # but platforms not suporting openCL 1.2 have a problem with enqueue_fill_buffer,
@@ -152,46 +161,78 @@ class TestLinAlg(unittest.TestCase):
         arrays = {
             "numpy.ndarray": self.image,
             "buffer": self.image_buffer,
-            "parray": self.image_parray
+            "parray": self.image_parray,
         }
         for desc, image in arrays.items():
             # Test with dst on host (numpy.ndarray)
             res = self.la.gradient(image, return_to_host=True)
-            self.compare(res, self.grad_ref, 1e-6, str("gradient[src=%s, dst=numpy.ndarray]" % desc))
+            self.compare(
+                res,
+                self.grad_ref,
+                1e-6,
+                str("gradient[src=%s, dst=numpy.ndarray]" % desc),
+            )
             # Test with dst on device (pyopencl.Buffer)
             self.la.gradient(image, dst=self.gradient_buffer)
             cl.enqueue_copy(self.la.queue, self.grad, self.gradient_buffer)
             self.grad2[0] = self.grad.real
             self.grad2[1] = self.grad.imag
-            self.compare(self.grad2, self.grad_ref, 1e-6, str("gradient[src=%s, dst=buffer]" % desc))
+            self.compare(
+                self.grad2,
+                self.grad_ref,
+                1e-6,
+                str("gradient[src=%s, dst=buffer]" % desc),
+            )
             # Test with dst on device (pyopencl.Array)
             self.la.gradient(image, dst=self.gradient_parray)
             self.grad = self.gradient_parray.get()
             self.grad2[0] = self.grad.real
             self.grad2[1] = self.grad.imag
-            self.compare(self.grad2, self.grad_ref, 1e-6, str("gradient[src=%s, dst=parray]" % desc))
+            self.compare(
+                self.grad2,
+                self.grad_ref,
+                1e-6,
+                str("gradient[src=%s, dst=parray]" % desc),
+            )
 
     @unittest.skipUnless(ocl and mako, "pyopencl is missing")
     def test_divergence(self):
         arrays = {
             "numpy.ndarray": self.grad_ref,
             "buffer": self.grad_ref_buffer,
-            "parray": self.grad_ref_parray
+            "parray": self.grad_ref_parray,
         }
         for desc, grad in arrays.items():
             # Test with dst on host (numpy.ndarray)
             res = self.la.divergence(grad, return_to_host=True)
-            self.compare(res, self.div_ref, 1e-6, str("divergence[src=%s, dst=numpy.ndarray]" % desc))
+            self.compare(
+                res,
+                self.div_ref,
+                1e-6,
+                str("divergence[src=%s, dst=numpy.ndarray]" % desc),
+            )
             # Test with dst on device (pyopencl.Buffer)
             self.la.divergence(grad, dst=self.image_buffer)
             cl.enqueue_copy(self.la.queue, self.image2, self.image_buffer)
-            self.compare(self.image2, self.div_ref, 1e-6, str("divergence[src=%s, dst=buffer]" % desc))
+            self.compare(
+                self.image2,
+                self.div_ref,
+                1e-6,
+                str("divergence[src=%s, dst=buffer]" % desc),
+            )
             # Test with dst on device (pyopencl.Array)
             self.la.divergence(grad, dst=self.image_parray)
             self.image2 = self.image_parray.get()
-            self.compare(self.image2, self.div_ref, 1e-6, str("divergence[src=%s, dst=parray]" % desc))
+            self.compare(
+                self.image2,
+                self.div_ref,
+                1e-6,
+                str("divergence[src=%s, dst=parray]" % desc),
+            )
 
-    @unittest.skipUnless(ocl and mako and _has_scipy, "pyopencl and/or scipy is missing")
+    @unittest.skipUnless(
+        ocl and mako and _has_scipy, "pyopencl and/or scipy is missing"
+    )
     def test_laplacian(self):
         laplacian_ref = laplace(self.image)
         # Laplacian = div(grad)

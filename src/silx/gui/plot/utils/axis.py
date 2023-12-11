@@ -56,14 +56,16 @@ class SyncAxes(object):
     .. versionadded:: 0.6
     """
 
-    def __init__(self, axes,
-                 syncLimits=True,
-                 syncScale=True,
-                 syncDirection=True,
-                 syncCenter=False,
-                 syncZoom=False,
-                 filterHiddenPlots=False
-                 ):
+    def __init__(
+        self,
+        axes,
+        syncLimits=True,
+        syncScale=True,
+        syncDirection=True,
+        syncCenter=False,
+        syncZoom=False,
+        filterHiddenPlots=False,
+    ):
         """
         Constructor
 
@@ -79,12 +81,13 @@ class SyncAxes(object):
         """
         object.__init__(self)
 
-        def implies(x, y): return bool(y ** x)
+        def implies(x, y):
+            return bool(y**x)
 
-        assert(implies(syncZoom, not syncLimits))
-        assert(implies(syncCenter, not syncLimits))
-        assert(implies(syncLimits, not syncCenter))
-        assert(implies(syncLimits, not syncZoom))
+        assert implies(syncZoom, not syncLimits)
+        assert implies(syncCenter, not syncLimits)
+        assert implies(syncLimits, not syncCenter)
+        assert implies(syncLimits, not syncZoom)
 
         self.__filterHiddenPlots = filterHiddenPlots
         self.__locked = False
@@ -313,7 +316,7 @@ class SyncAxes(object):
         elif isinstance(axis, YAxis):
             return bounds[3]
         else:
-            assert(False)
+            assert False
 
     def __getLimitsFromCenter(self, axis, pos, pixelSize=None):
         """Returns the limits to apply to this axis to move the `pos` into the

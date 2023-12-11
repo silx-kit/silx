@@ -36,11 +36,13 @@ import glob
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-ICONS_RST_DIR = os.path.join(PROJECT_ROOT, 'doc', 'source', 'modules', 'gui')
+ICONS_RST_DIR = os.path.join(PROJECT_ROOT, "doc", "source", "modules", "gui")
 
-ICONS_RST_FILENAME = os.path.join(ICONS_RST_DIR, 'icons.rst')
+ICONS_RST_FILENAME = os.path.join(ICONS_RST_DIR, "icons.rst")
 
-ICONS_DIR = os.path.join(PROJECT_ROOT, 'src', 'silx', 'resources', 'gui', 'icons', '*.png')
+ICONS_DIR = os.path.join(
+    PROJECT_ROOT, "src", "silx", "resources", "gui", "icons", "*.png"
+)
 
 
 ICONS_RST_HEADER = """
@@ -64,7 +66,9 @@ Available icons
 
    * - Icon
      - Name
-""" % os.path.basename(__file__)
+""" % os.path.basename(
+    __file__
+)
 
 
 def main():
@@ -73,19 +77,21 @@ def main():
     icons = [os.path.relpath(f, ICONS_RST_DIR) for f in icons]
     icons = sorted(icons)
 
-    icons_table = '\n'.join(
-        '   * - |%s|\n     - %s' % (os.path.basename(f)[:-4],
-                                    os.path.basename(f)[:-4]) for f in icons)
+    icons_table = "\n".join(
+        "   * - |%s|\n     - %s" % (os.path.basename(f)[:-4], os.path.basename(f)[:-4])
+        for f in icons
+    )
 
-    icon_definitions = '\n'.join(
-        '.. |%s| image:: %s' % (os.path.basename(f)[:-4], f) for f in icons)
+    icon_definitions = "\n".join(
+        ".. |%s| image:: %s" % (os.path.basename(f)[:-4], f) for f in icons
+    )
 
-    content = ICONS_RST_HEADER + icons_table + '\n\n' + icon_definitions + '\n'
+    content = ICONS_RST_HEADER + icons_table + "\n\n" + icon_definitions + "\n"
 
     # Write to file
-    with open(ICONS_RST_FILENAME, 'w') as f:
+    with open(ICONS_RST_FILENAME, "w") as f:
         f.write(content)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

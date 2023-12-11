@@ -48,8 +48,10 @@ class TestStackView(TestCaseQt):
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
-            lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
-            (10, 20, 30)
+            lambda i, j, k: numpy.sin(i / 15.0)
+            + numpy.cos(j / 4.0)
+            + 2 * numpy.sin(k / 6.0),
+            (10, 20, 30),
         )
 
     def tearDown(self):
@@ -76,10 +78,8 @@ class TestStackView(TestCaseQt):
         self.stackview.setColormap("viridis")
         my_trans_stack, params = self.stackview.getStack()
         self.assertEqual(my_trans_stack.shape, self.mystack.shape)
-        self.assertTrue(numpy.array_equal(self.mystack,
-                                          my_trans_stack))
-        self.assertEqual(params["colormap"]["name"],
-                         "viridis")
+        self.assertTrue(numpy.array_equal(self.mystack, my_trans_stack))
+        self.assertEqual(params["colormap"]["name"], "viridis")
 
     def testSetStackPerspective(self):
         self.stackview.setStack(self.mystack, perspective=1)
@@ -87,10 +87,15 @@ class TestStackView(TestCaseQt):
         my_trans_stack, params = self.stackview.getCurrentView()
 
         # get stack returns the transposed data, depending on the perspective
-        self.assertEqual(my_trans_stack.shape,
-                         (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))
-        self.assertTrue(numpy.array_equal(numpy.transpose(self.mystack, axes=(1, 0, 2)),
-                                          my_trans_stack))
+        self.assertEqual(
+            my_trans_stack.shape,
+            (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]),
+        )
+        self.assertTrue(
+            numpy.array_equal(
+                numpy.transpose(self.mystack, axes=(1, 0, 2)), my_trans_stack
+            )
+        )
 
     def testSetStackListOfImages(self):
         loi = [self.mystack[i] for i in range(self.mystack.shape[0])]
@@ -99,10 +104,8 @@ class TestStackView(TestCaseQt):
         my_orig_stack, params = self.stackview.getStack(returnNumpyArray=True)
         my_trans_stack, params = self.stackview.getStack(returnNumpyArray=True)
         self.assertEqual(my_trans_stack.shape, self.mystack.shape)
-        self.assertTrue(numpy.array_equal(self.mystack,
-                                          my_trans_stack))
-        self.assertTrue(numpy.array_equal(self.mystack,
-                                          my_orig_stack))
+        self.assertTrue(numpy.array_equal(self.mystack, my_trans_stack))
+        self.assertTrue(numpy.array_equal(self.mystack, my_orig_stack))
         self.assertIsInstance(my_trans_stack, numpy.ndarray)
 
         self.stackview.setStack(loi, perspective=2)
@@ -112,88 +115,100 @@ class TestStackView(TestCaseQt):
         self.assertIs(my_orig_stack, loi)
         # getCurrentView(copy=False) returns a ListOfImages whose .images
         # attr is the original data
-        self.assertEqual(my_trans_stack.shape,
-                         (self.mystack.shape[2], self.mystack.shape[0], self.mystack.shape[1]))
-        self.assertTrue(numpy.array_equal(numpy.array(my_trans_stack),
-                                          numpy.transpose(self.mystack, axes=(2, 0, 1))))
-        self.assertIsInstance(my_trans_stack,
-                              ListOfImages)  # returnNumpyArray=False by default in getStack
+        self.assertEqual(
+            my_trans_stack.shape,
+            (self.mystack.shape[2], self.mystack.shape[0], self.mystack.shape[1]),
+        )
+        self.assertTrue(
+            numpy.array_equal(
+                numpy.array(my_trans_stack),
+                numpy.transpose(self.mystack, axes=(2, 0, 1)),
+            )
+        )
+        self.assertIsInstance(
+            my_trans_stack, ListOfImages
+        )  # returnNumpyArray=False by default in getStack
         self.assertIs(my_trans_stack.images, loi)
 
     def testPerspective(self):
         self.stackview.setStack(numpy.arange(24).reshape((2, 3, 4)))
-        self.assertEqual(self.stackview._perspective, 0,
-                         "Default perspective is not 0 (dim1-dim2).")
+        self.assertEqual(
+            self.stackview._perspective, 0, "Default perspective is not 0 (dim1-dim2)."
+        )
 
         self.stackview._StackView__planeSelection.setPerspective(1)
-        self.assertEqual(self.stackview._perspective, 1,
-                         "Plane selection combobox not updating perspective")
+        self.assertEqual(
+            self.stackview._perspective,
+            1,
+            "Plane selection combobox not updating perspective",
+        )
 
         self.stackview.setStack(numpy.arange(6).reshape((1, 2, 3)))
-        self.assertEqual(self.stackview._perspective, 1,
-                         "Perspective not preserved when calling setStack "
-                         "without specifying the perspective parameter.")
+        self.assertEqual(
+            self.stackview._perspective,
+            1,
+            "Perspective not preserved when calling setStack "
+            "without specifying the perspective parameter.",
+        )
 
         self.stackview.setStack(numpy.arange(24).reshape((2, 3, 4)), perspective=2)
-        self.assertEqual(self.stackview._perspective, 2,
-                         "Perspective not set in setStack(..., perspective=2).")
+        self.assertEqual(
+            self.stackview._perspective,
+            2,
+            "Perspective not set in setStack(..., perspective=2).",
+        )
 
     def testDefaultTitle(self):
         """Test that the plot title contains the proper Z information"""
-        self.stackview.setStack(numpy.arange(24).reshape((4, 3, 2)),
-                                calibrations=[(0, 1), (-10, 10), (3.14, 3.14)])
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=0")
+        self.stackview.setStack(
+            numpy.arange(24).reshape((4, 3, 2)),
+            calibrations=[(0, 1), (-10, 10), (3.14, 3.14)],
+        )
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=0")
         self.stackview.setFrameNumber(2)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=2")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=2")
 
         self.stackview._StackView__planeSelection.setPerspective(1)
         self.stackview.setFrameNumber(0)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=-10")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=-10")
         self.stackview.setFrameNumber(2)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=10")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=10")
 
         self.stackview._StackView__planeSelection.setPerspective(2)
         self.stackview.setFrameNumber(0)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=3.14")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=3.14")
         self.stackview.setFrameNumber(1)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Image z=6.28")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Image z=6.28")
 
     def testCustomTitle(self):
         """Test setting the plot title with a user defined callback"""
-        self.stackview.setStack(numpy.arange(24).reshape((4, 3, 2)),
-                                calibrations=[(0, 1), (-10, 10), (3.14, 3.14)])
+        self.stackview.setStack(
+            numpy.arange(24).reshape((4, 3, 2)),
+            calibrations=[(0, 1), (-10, 10), (3.14, 3.14)],
+        )
 
         def title_callback(frame_idx):
             return "Cubed index title %d" % (frame_idx**3)
 
         self.stackview.setTitleCallback(title_callback)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Cubed index title 0")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Cubed index title 0")
         self.stackview.setFrameNumber(2)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Cubed index title 8")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Cubed index title 8")
 
         # perspective should not matter, only frame index
         self.stackview._StackView__planeSelection.setPerspective(1)
         self.stackview.setFrameNumber(0)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Cubed index title 0")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Cubed index title 0")
         self.stackview.setFrameNumber(2)
-        self.assertEqual(self.stackview._plot.getGraphTitle(),
-                         "Cubed index title 8")
+        self.assertEqual(self.stackview._plot.getGraphTitle(), "Cubed index title 8")
 
         with self.assertRaises(TypeError):
             # setTitleCallback should not accept non-callable objects like strings
             self.stackview.setTitleCallback(
-                    "Là, vous faites sirop de vingt-et-un et vous dites : "
-                    "beau sirop, mi-sirop, siroté, gagne-sirop, sirop-grelot,"
-                    " passe-montagne, sirop au bon goût.")
+                "Là, vous faites sirop de vingt-et-un et vous dites : "
+                "beau sirop, mi-sirop, siroté, gagne-sirop, sirop-grelot,"
+                " passe-montagne, sirop au bon goût."
+            )
 
     def testStackFrameNumber(self):
         self.stackview.setStack(self.mystack)
@@ -216,8 +231,10 @@ class TestStackViewMainWindow(TestCaseQt):
         self.stackview.show()
         self.qWaitForWindowExposed(self.stackview)
         self.mystack = numpy.fromfunction(
-            lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
-            (10, 20, 30)
+            lambda i, j, k: numpy.sin(i / 15.0)
+            + numpy.cos(j / 4.0)
+            + 2 * numpy.sin(k / 6.0),
+            (10, 20, 30),
         )
 
     def tearDown(self):
@@ -231,16 +248,19 @@ class TestStackViewMainWindow(TestCaseQt):
         self.stackview.setColormap("viridis")
         my_trans_stack, params = self.stackview.getStack()
         self.assertEqual(my_trans_stack.shape, self.mystack.shape)
-        self.assertTrue(numpy.array_equal(self.mystack,
-                                          my_trans_stack))
-        self.assertEqual(params["colormap"]["name"],
-                         "viridis")
+        self.assertTrue(numpy.array_equal(self.mystack, my_trans_stack))
+        self.assertEqual(params["colormap"]["name"], "viridis")
 
     def testSetStackPerspective(self):
         self.stackview.setStack(self.mystack, perspective=1)
         my_trans_stack, params = self.stackview.getCurrentView()
         # get stack returns the transposed data, depending on the perspective
-        self.assertEqual(my_trans_stack.shape,
-                         (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))
-        self.assertTrue(numpy.array_equal(numpy.transpose(self.mystack, axes=(1, 0, 2)),
-                                          my_trans_stack))
+        self.assertEqual(
+            my_trans_stack.shape,
+            (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]),
+        )
+        self.assertTrue(
+            numpy.array_equal(
+                numpy.transpose(self.mystack, axes=(1, 0, 2)), my_trans_stack
+            )
+        )

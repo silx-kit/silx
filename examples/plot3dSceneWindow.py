@@ -59,61 +59,61 @@ window = SceneWindow()
 
 # Get the SceneWidget contained in the window and set its colors
 sceneWidget = window.getSceneWidget()
-sceneWidget.setBackgroundColor((0.8, 0.8, 0.8, 1.))
-sceneWidget.setForegroundColor((1., 1., 1., 1.))
-sceneWidget.setTextColor((0.1, 0.1, 0.1, 1.))
+sceneWidget.setBackgroundColor((0.8, 0.8, 0.8, 1.0))
+sceneWidget.setForegroundColor((1.0, 1.0, 1.0, 1.0))
+sceneWidget.setTextColor((0.1, 0.1, 0.1, 1.0))
 
 
 # 2D Image ###
 
 # Add a dummy RGBA image
-img = numpy.random.random(3 * SIZE ** 2).reshape(SIZE, SIZE, 3)  # Dummy image
+img = numpy.random.random(3 * SIZE**2).reshape(SIZE, SIZE, 3)  # Dummy image
 
 imageRgba = sceneWidget.addImage(img)  # Add ImageRgba item to the scene
-imageRgba.setLabel('Random RGBA image')  # Set name displayed in parameter tree
+imageRgba.setLabel("Random RGBA image")  # Set name displayed in parameter tree
 
 # Set imageRgba transform
-imageRgba.setTranslation(SIZE*.15, SIZE*.15, 0.)  # Translate the image
+imageRgba.setTranslation(SIZE * 0.15, SIZE * 0.15, 0.0)  # Translate the image
 # Rotate the image by 45 degrees around its center
-imageRgba.setRotationCenter('center', 'center', 0.)
-imageRgba.setRotation(45., axis=(0., 0., 1.))
+imageRgba.setRotationCenter("center", "center", 0.0)
+imageRgba.setRotation(45.0, axis=(0.0, 0.0, 1.0))
 imageRgba.setScale(0.7, 0.7, 0.7)  # Scale down image
 
 
 # Add a data image
-data = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)  # Dummy data
+data = numpy.arange(SIZE**2).reshape(SIZE, SIZE)  # Dummy data
 imageData = sceneWidget.addImage(data)  # Add ImageData item to the scene
 
 # Set imageData transform
-imageData.setTranslation(0., SIZE, 0.)  # Translate the image
+imageData.setTranslation(0.0, SIZE, 0.0)  # Translate the image
 
 # Set imageData properties
-imageData.setInterpolation('linear')  # 'linear' or 'nearest' interpolation
-imageData.getColormap().setName('magma')  # Use magma colormap
+imageData.setInterpolation("linear")  # 'linear' or 'nearest' interpolation
+imageData.getColormap().setName("magma")  # Use magma colormap
 
 
 # 2D scatter data ###
 
 # Create 2D scatter dummy data
-x = numpy.random.random(10 ** 3)
+x = numpy.random.random(10**3)
 y = numpy.random.random(len(x))
-values = numpy.exp(- 11. * ((x - .5) ** 2 + (y - .5) ** 2))
+values = numpy.exp(-11.0 * ((x - 0.5) ** 2 + (y - 0.5) ** 2))
 
 # Add 2D scatter data with 6 different visualisations
 for row, heightMap in enumerate((False, True)):
-    for col, mode in enumerate(('points', 'lines', 'solid')):
+    for col, mode in enumerate(("points", "lines", "solid")):
         # Add a new scatter
         item = sceneWidget.add2DScatter(x, y, values)
 
         # Set 2D scatter item tranform
-        item.setTranslation(SIZE + col * SIZE, row * SIZE, 0.)
+        item.setTranslation(SIZE + col * SIZE, row * SIZE, 0.0)
         item.setScale(SIZE, SIZE, SIZE)
 
         # Set 2D scatter item properties
         item.setHeightMap(heightMap)
         item.setVisualization(mode)
-        item.getColormap().setName('viridis')
-        item.setLineWidth(2.)
+        item.getColormap().setName("viridis")
+        item.setLineWidth(2.0)
 
 
 # Group  ###
@@ -121,7 +121,7 @@ for row, heightMap in enumerate((False, True)):
 # Create a group item and add it to the scene
 # The group children share the group transform
 group = items.GroupItem()  # Create a new group item
-group.setTranslation(SIZE * 4, 0., 0.)  # Translate the group
+group.setTranslation(SIZE * 4, 0.0, 0.0)  # Translate the group
 
 
 # Clipping plane ###
@@ -131,8 +131,8 @@ group.setTranslation(SIZE * 4, 0., 0.)  # Translate the group
 # Clipped items are those belonging to the same group (i.e., brothers) that
 # comes after the clipping plane.
 clipPlane = items.ClipPlane()  # Create a new clipping plane item
-clipPlane.setNormal((1., -0.35, 0.))  # Set its normal
-clipPlane.setPoint((0., 0., 0.))  # Set a point on the plane
+clipPlane.setNormal((1.0, -0.35, 0.0))  # Set its normal
+clipPlane.setPoint((0.0, 0.0, 0.0))  # Set a point on the plane
 group.addItem(clipPlane)  # Add clipping plane to the group
 
 
@@ -152,8 +152,8 @@ scatter3d.setData(x, y, z, values)
 scatter3d.setScale(SIZE, SIZE, SIZE)
 
 # Set scatter3d properties
-scatter3d.getColormap().setName('magma')  # Use 'magma' colormap
-scatter3d.setSymbol('d')  # Use diamond markers
+scatter3d.getColormap().setName("magma")  # Use 'magma' colormap
+scatter3d.setSymbol("d")  # Use diamond markers
 scatter3d.setSymbolSize(11)  # Set the size of the markers
 
 # Add scatter3d to the group (and thus to the scene)
@@ -163,9 +163,11 @@ group.addItem(scatter3d)
 # 3D scalar volume ###
 
 # Create dummy 3D array data
-x, y, z = numpy.meshgrid(numpy.linspace(-10, 10, 64),
-                         numpy.linspace(-10, 10, 64),
-                         numpy.linspace(-10, 10, 64))
+x, y, z = numpy.meshgrid(
+    numpy.linspace(-10, 10, 64),
+    numpy.linspace(-10, 10, 64),
+    numpy.linspace(-10, 10, 64),
+)
 data = numpy.sin(x * y * z) / (x * y * z)
 
 # Create a 3D scalar field item and set its data
@@ -174,18 +176,18 @@ volume.setData(data)  # Set its data
 group.addItem(volume)  # Add it to the group (and thus to the scene)
 
 # Set volume tranform
-volume.setTranslation(0., SIZE, 0.)
-volume.setScale(SIZE/data.shape[2], SIZE/data.shape[1], SIZE/data.shape[0])
+volume.setTranslation(0.0, SIZE, 0.0)
+volume.setScale(SIZE / data.shape[2], SIZE / data.shape[1], SIZE / data.shape[0])
 
 # Add isosurfaces to the volume item given isolevel and color
-volume.addIsosurface(0.2, '#FF000080')
-volume.addIsosurface(0.5, '#0000FFFF')
+volume.addIsosurface(0.2, "#FF000080")
+volume.addIsosurface(0.5, "#0000FFFF")
 
 # Set the volume cut plane
 cutPlane = volume.getCutPlanes()[0]  # Get the volume's cut plane
 cutPlane.setVisible(True)  # Set it to be visible
-cutPlane.getColormap().setName('jet')  # Set cut plane's colormap
-cutPlane.setNormal((0., 0., 1.))  # Set cut plane's normal
+cutPlane.getColormap().setName("jet")  # Set cut plane's colormap
+cutPlane.setNormal((0.0, 0.0, 1.0))  # Set cut plane's normal
 cutPlane.moveToCenter()  # Place the cut plane at the center of the volume
 
 sceneWidget.addItem(group)  # Add the group as an item of the scene

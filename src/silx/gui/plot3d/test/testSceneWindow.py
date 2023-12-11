@@ -62,23 +62,25 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
         items = []
 
         # RGB image
-        image = sceneWidget.addImage(numpy.random.random(
-            10*10*3).astype(numpy.float32).reshape(10, 10, 3))
-        image.setLabel('RGB image')
+        image = sceneWidget.addImage(
+            numpy.random.random(10 * 10 * 3).astype(numpy.float32).reshape(10, 10, 3)
+        )
+        image.setLabel("RGB image")
         items.append(image)
         self.assertEqual(sceneWidget.getItems(), tuple(items))
 
         # Data image
         image = sceneWidget.addImage(
-            numpy.arange(100, dtype=numpy.float32).reshape(10, 10))
-        image.setTranslation(10.)
+            numpy.arange(100, dtype=numpy.float32).reshape(10, 10)
+        )
+        image.setTranslation(10.0)
         items.append(image)
         self.assertEqual(sceneWidget.getItems(), tuple(items))
 
         # 2D scatter
         scatter = sceneWidget.add2DScatter(
-            *numpy.random.random(3000).astype(numpy.float32).reshape(3, -1),
-            index=0)
+            *numpy.random.random(3000).astype(numpy.float32).reshape(3, -1), index=0
+        )
         scatter.setTranslation(0, 10)
         scatter.setScale(10, 10, 10)
         items.insert(0, scatter)
@@ -86,7 +88,8 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
 
         # 3D scatter
         scatter = sceneWidget.add3DScatter(
-            *numpy.random.random(4000).astype(numpy.float32).reshape(4, -1))
+            *numpy.random.random(4000).astype(numpy.float32).reshape(4, -1)
+        )
         scatter.setTranslation(10, 10)
         scatter.setScale(10, 10, 10)
         items.append(scatter)
@@ -94,44 +97,48 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
 
         # 3D array of float
         volume = sceneWidget.addVolume(
-            numpy.arange(10**3, dtype=numpy.float32).reshape(10, 10, 10))
+            numpy.arange(10**3, dtype=numpy.float32).reshape(10, 10, 10)
+        )
         volume.setTranslation(0, 0, 10)
         volume.setRotation(45, (0, 0, 1))
-        volume.addIsosurface(500, 'red')
-        volume.getCutPlanes()[0].getColormap().setName('viridis')
+        volume.addIsosurface(500, "red")
+        volume.getCutPlanes()[0].getColormap().setName("viridis")
         items.append(volume)
         self.assertEqual(sceneWidget.getItems(), tuple(items))
 
         # 3D array of complex
         volume = sceneWidget.addVolume(
-            numpy.arange(10**3).reshape(10, 10, 10).astype(numpy.complex64))
+            numpy.arange(10**3).reshape(10, 10, 10).astype(numpy.complex64)
+        )
         volume.setTranslation(10, 0, 10)
         volume.setRotation(45, (0, 0, 1))
         volume.setComplexMode(volume.ComplexMode.REAL)
-        volume.addIsosurface(500, (1., 0., 0., .5))
+        volume.addIsosurface(500, (1.0, 0.0, 0.0, 0.5))
         items.append(volume)
         self.assertEqual(sceneWidget.getItems(), tuple(items))
 
-        sceneWidget.resetZoom('front')
+        sceneWidget.resetZoom("front")
         self.qapp.processEvents()
 
     def testHeightMap(self):
         """Test height map items"""
         sceneWidget = self.window.getSceneWidget()
 
-        height = numpy.arange(10000).reshape(100, 100) /100.
+        height = numpy.arange(10000).reshape(100, 100) / 100.0
 
         for shape in ((100, 100), (4, 5), (150, 20), (110, 110)):
             with self.subTest(shape=shape):
                 items = []
 
                 # Colormapped data height map
-                data = numpy.arange(numpy.prod(shape)).astype(numpy.float32).reshape(shape)
+                data = (
+                    numpy.arange(numpy.prod(shape)).astype(numpy.float32).reshape(shape)
+                )
 
                 heightmap = HeightMapData()
                 heightmap.setData(height)
                 heightmap.setColormappedData(data)
-                heightmap.getColormap().setName('viridis')
+                heightmap.getColormap().setName("viridis")
                 items.append(heightmap)
                 sceneWidget.addItem(heightmap)
 
@@ -142,12 +149,12 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
                 heightmap = HeightMapRGBA()
                 heightmap.setData(height)
                 heightmap.setColorData(colors)
-                heightmap.setTranslation(100., 0., 0.)
+                heightmap.setTranslation(100.0, 0.0, 0.0)
                 items.append(heightmap)
                 sceneWidget.addItem(heightmap)
 
                 self.assertEqual(sceneWidget.getItems(), tuple(items))
-                sceneWidget.resetZoom('front')
+                sceneWidget.resetZoom("front")
                 self.qapp.processEvents()
                 sceneWidget.clearItems()
 
@@ -203,17 +210,18 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
     def testInteractiveMode(self):
         """Test changing interactive mode"""
         sceneWidget = self.window.getSceneWidget()
-        center = numpy.array((sceneWidget.width() //2, sceneWidget.height() // 2))
+        center = numpy.array((sceneWidget.width() // 2, sceneWidget.height() // 2))
 
         self.mouseMove(sceneWidget, pos=center)
         self.mouseClick(sceneWidget, qt.Qt.LeftButton, pos=center)
 
         volume = sceneWidget.addVolume(
-            numpy.arange(10**3).astype(numpy.float32).reshape(10, 10, 10))
-        sceneWidget.selection().setCurrentItem( volume.getCutPlanes()[0])
-        sceneWidget.resetZoom('side')
+            numpy.arange(10**3).astype(numpy.float32).reshape(10, 10, 10)
+        )
+        sceneWidget.selection().setCurrentItem(volume.getCutPlanes()[0])
+        sceneWidget.resetZoom("side")
 
-        for mode in (None, 'rotate', 'pan', 'panSelectedPlane'):
+        for mode in (None, "rotate", "pan", "panSelectedPlane"):
             with self.subTest(mode=mode):
                 sceneWidget.setInteractiveMode(mode)
                 self.qapp.processEvents()
@@ -221,14 +229,14 @@ class TestSceneWindow(TestCaseQt, ParametricTestCase):
 
                 self.mouseMove(sceneWidget, pos=center)
                 self.mousePress(sceneWidget, qt.Qt.LeftButton, pos=center)
-                self.mouseMove(sceneWidget, pos=center-10)
-                self.mouseMove(sceneWidget, pos=center-20)
-                self.mouseRelease(sceneWidget, qt.Qt.LeftButton, pos=center-20)
+                self.mouseMove(sceneWidget, pos=center - 10)
+                self.mouseMove(sceneWidget, pos=center - 20)
+                self.mouseRelease(sceneWidget, qt.Qt.LeftButton, pos=center - 20)
 
                 self.keyPress(sceneWidget, qt.Qt.Key_Control)
                 self.mouseMove(sceneWidget, pos=center)
                 self.mousePress(sceneWidget, qt.Qt.LeftButton, pos=center)
-                self.mouseMove(sceneWidget, pos=center-10)
-                self.mouseMove(sceneWidget, pos=center-20)
-                self.mouseRelease(sceneWidget, qt.Qt.LeftButton, pos=center-20)
+                self.mouseMove(sceneWidget, pos=center - 10)
+                self.mouseMove(sceneWidget, pos=center - 20)
+                self.mouseRelease(sceneWidget, qt.Qt.LeftButton, pos=center - 20)
                 self.keyRelease(sceneWidget, qt.Qt.Key_Control)

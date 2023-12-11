@@ -50,9 +50,10 @@ class _SetViewpointAction(Plot3DAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
+
     def __init__(self, parent, face, plot3d=None):
         super(_SetViewpointAction, self).__init__(parent, plot3d)
-        assert face in ('side', 'front', 'back', 'left', 'right', 'top', 'bottom')
+        assert face in ("side", "front", "back", "left", "right", "top", "bottom")
         self._face = face
 
         self.setIconVisibleInMenu(True)
@@ -62,8 +63,7 @@ class _SetViewpointAction(Plot3DAction):
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error(
-                'Cannot start/stop rotation, no associated Plot3DWidget')
+            _logger.error("Cannot start/stop rotation, no associated Plot3DWidget")
         else:
             plot3d.viewport.camera.extrinsic.reset(face=self._face)
             plot3d.centerScene()
@@ -76,12 +76,13 @@ class FrontViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(FrontViewpointAction, self).__init__(parent, 'front', plot3d)
 
-        self.setIcon(getQIcon('cube-front'))
-        self.setText('Front')
-        self.setToolTip('View along the -Z axis')
+    def __init__(self, parent, plot3d=None):
+        super(FrontViewpointAction, self).__init__(parent, "front", plot3d)
+
+        self.setIcon(getQIcon("cube-front"))
+        self.setText("Front")
+        self.setToolTip("View along the -Z axis")
 
 
 class BackViewpointAction(_SetViewpointAction):
@@ -91,12 +92,13 @@ class BackViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(BackViewpointAction, self).__init__(parent, 'back', plot3d)
 
-        self.setIcon(getQIcon('cube-back'))
-        self.setText('Back')
-        self.setToolTip('View along the +Z axis')
+    def __init__(self, parent, plot3d=None):
+        super(BackViewpointAction, self).__init__(parent, "back", plot3d)
+
+        self.setIcon(getQIcon("cube-back"))
+        self.setText("Back")
+        self.setToolTip("View along the +Z axis")
 
 
 class LeftViewpointAction(_SetViewpointAction):
@@ -106,12 +108,13 @@ class LeftViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(LeftViewpointAction, self).__init__(parent, 'left', plot3d)
 
-        self.setIcon(getQIcon('cube-left'))
-        self.setText('Left')
-        self.setToolTip('View along the +X axis')
+    def __init__(self, parent, plot3d=None):
+        super(LeftViewpointAction, self).__init__(parent, "left", plot3d)
+
+        self.setIcon(getQIcon("cube-left"))
+        self.setText("Left")
+        self.setToolTip("View along the +X axis")
 
 
 class RightViewpointAction(_SetViewpointAction):
@@ -121,12 +124,13 @@ class RightViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(RightViewpointAction, self).__init__(parent, 'right', plot3d)
 
-        self.setIcon(getQIcon('cube-right'))
-        self.setText('Right')
-        self.setToolTip('View along the -X axis')
+    def __init__(self, parent, plot3d=None):
+        super(RightViewpointAction, self).__init__(parent, "right", plot3d)
+
+        self.setIcon(getQIcon("cube-right"))
+        self.setText("Right")
+        self.setToolTip("View along the -X axis")
 
 
 class TopViewpointAction(_SetViewpointAction):
@@ -136,12 +140,13 @@ class TopViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(TopViewpointAction, self).__init__(parent, 'top', plot3d)
 
-        self.setIcon(getQIcon('cube-top'))
-        self.setText('Top')
-        self.setToolTip('View along the -Y axis')
+    def __init__(self, parent, plot3d=None):
+        super(TopViewpointAction, self).__init__(parent, "top", plot3d)
+
+        self.setIcon(getQIcon("cube-top"))
+        self.setText("Top")
+        self.setToolTip("View along the -Y axis")
 
 
 class BottomViewpointAction(_SetViewpointAction):
@@ -151,12 +156,13 @@ class BottomViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(BottomViewpointAction, self).__init__(parent, 'bottom', plot3d)
 
-        self.setIcon(getQIcon('cube-bottom'))
-        self.setText('Bottom')
-        self.setToolTip('View along the +Y axis')
+    def __init__(self, parent, plot3d=None):
+        super(BottomViewpointAction, self).__init__(parent, "bottom", plot3d)
+
+        self.setIcon(getQIcon("cube-bottom"))
+        self.setText("Bottom")
+        self.setToolTip("View along the +Y axis")
 
 
 class SideViewpointAction(_SetViewpointAction):
@@ -166,12 +172,13 @@ class SideViewpointAction(_SetViewpointAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
-    def __init__(self, parent, plot3d=None):
-        super(SideViewpointAction, self).__init__(parent, 'side', plot3d)
 
-        self.setIcon(getQIcon('cube'))
-        self.setText('Side')
-        self.setToolTip('Side view')
+    def __init__(self, parent, plot3d=None):
+        super(SideViewpointAction, self).__init__(parent, "side", plot3d)
+
+        self.setIcon(getQIcon("cube"))
+        self.setText("Side")
+        self.setToolTip("Side view")
 
 
 class RotateViewpoint(Plot3DAction):
@@ -185,7 +192,7 @@ class RotateViewpoint(Plot3DAction):
     _TIMEOUT_MS = 50
     """Time interval between to frames (in milliseconds)"""
 
-    _DEGREE_PER_SECONDS = 360. / 5.
+    _DEGREE_PER_SECONDS = 360.0 / 5.0
     """Rotation speed of the animation"""
 
     def __init__(self, parent, plot3d=None):
@@ -197,18 +204,16 @@ class RotateViewpoint(Plot3DAction):
         self._timer.setInterval(self._TIMEOUT_MS)  # 20fps
         self._timer.timeout.connect(self._rotate)
 
-        self.setIcon(getQIcon('cube-rotate'))
-        self.setText('Rotate scene')
-        self.setToolTip('Rotate the 3D scene around the vertical axis')
+        self.setIcon(getQIcon("cube-rotate"))
+        self.setText("Rotate scene")
+        self.setToolTip("Rotate the 3D scene around the vertical axis")
         self.setCheckable(True)
         self.triggered[bool].connect(self._triggered)
-
 
     def _triggered(self, checked=False):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error(
-                'Cannot start/stop rotation, no associated Plot3DWidget')
+            _logger.error("Cannot start/stop rotation, no associated Plot3DWidget")
         elif checked:
             self._previousTime = time.time()
             self._timer.start()
@@ -219,10 +224,10 @@ class RotateViewpoint(Plot3DAction):
     def _rotate(self):
         """Perform a step of the rotation"""
         if self._previousTime is None:
-            _logger.error('Previous time not set!')
-            angleStep = 0.
+            _logger.error("Previous time not set!")
+            angleStep = 0.0
         else:
             angleStep = self._DEGREE_PER_SECONDS * (time.time() - self._previousTime)
 
-        self.getPlot3DWidget().viewport.orbitCamera('left', angleStep)
+        self.getPlot3DWidget().viewport.orbitCamera("left", angleStep)
         self._previousTime = time.time()

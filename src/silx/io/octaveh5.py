@@ -48,6 +48,7 @@ Here is an example of a simple read and write :
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 import numpy as np
 import h5py
@@ -58,20 +59,19 @@ __date__ = "05/10/2016"
 
 
 class Octaveh5(object):
-    """This class allows communication between octave and python using hdf5 format.
-    """
+    """This class allows communication between octave and python using hdf5 format."""
 
     def __init__(self, octave_targetted_version=3.8):
         """Constructor
 
         :param octave_targetted_version: the version of Octave for which we want to write this hdf5 file.
-        
+
         This is needed because for old Octave version we need to had a hack(adding one extra character)
         """
         self.file = None
         self.octave_targetted_version = octave_targetted_version
 
-    def open(self, h5file, mode='r'):
+    def open(self, h5file, mode="r"):
         """Open the h5 file which has been write by octave
 
         :param h5file: The path of the file to read
@@ -81,7 +81,7 @@ class Octaveh5(object):
             self.file = h5py.File(h5file, mode)
             return self
         except IOError as e:
-            if mode == 'a':
+            if mode == "a":
                 reason = "\n %s: Can t find or create " % h5file
             else:
                 reason = "\n %s: File not found" % h5file
@@ -113,15 +113,17 @@ class Octaveh5(object):
         for key, val in iter(dict(gr_level2).items()):
             data_dict[str(key)] = list(val.items())[1][1][()]
 
-            if list(val.items())[0][1][()] != np.string_('sq_string'):
+            if list(val.items())[0][1][()] != np.string_("sq_string"):
                 data_dict[str(key)] = float(data_dict[str(key)])
             else:
-                if list(val.items())[0][1][()] == np.string_('sq_string'):
+                if list(val.items())[0][1][()] == np.string_("sq_string"):
                     # in the case the string has been stored as an nd-array of char
                     if type(data_dict[str(key)]) is np.ndarray:
-                        data_dict[str(key)] = "".join(chr(item) for item in data_dict[str(key)])
+                        data_dict[str(key)] = "".join(
+                            chr(item) for item in data_dict[str(key)]
+                        )
                     else:
-                        data_dict[str(key)] = data_dict[str(key)].decode('UTF-8')
+                        data_dict[str(key)] = data_dict[str(key)].decode("UTF-8")
 
                 # In the case Octave have added an extra character at the end
                 if self.octave_targetted_version < 3.8:
@@ -141,30 +143,36 @@ class Octaveh5(object):
             return
 
         group_l1 = self.file.create_group(struct_name)
-        group_l1.attrs['OCTAVE_GLOBAL'] = np.uint8(1)
-        group_l1.attrs['OCTAVE_NEW_FORMAT'] = np.uint8(1)
-        group_l1.create_dataset("type", data=np.string_('scalar struct'), dtype="|S14")
-        group_l2 = group_l1.create_group('value')
+        group_l1.attrs["OCTAVE_GLOBAL"] = np.uint8(1)
+        group_l1.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
+        group_l1.create_dataset("type", data=np.string_("scalar struct"), dtype="|S14")
+        group_l2 = group_l1.create_group("value")
         for ftparams in data_dict:
             group_l3 = group_l2.create_group(ftparams)
-            group_l3.attrs['OCTAVE_NEW_FORMAT'] = np.uint8(1)
+            group_l3.attrs["OCTAVE_NEW_FORMAT"] = np.uint8(1)
             if type(data_dict[ftparams]) == str:
-                group_l3.create_dataset("type", (), data=np.string_('sq_string'), dtype="|S10")
+                group_l3.create_dataset(
+                    "type", (), data=np.string_("sq_string"), dtype="|S10"
+                )
                 if self.octave_targetted_version < 3.8:
-                    group_l3.create_dataset("value", data=np.string_(data_dict[ftparams] + '0'))
+                    group_l3.create_dataset(
+                        "value", data=np.string_(data_dict[ftparams] + "0")
+                    )
                 else:
-                    group_l3.create_dataset("value", data=np.string_(data_dict[ftparams]))
+                    group_l3.create_dataset(
+                        "value", data=np.string_(data_dict[ftparams])
+                    )
             else:
-                group_l3.create_dataset("type", (), data=np.string_('scalar'), dtype="|S7")
+                group_l3.create_dataset(
+                    "type", (), data=np.string_("scalar"), dtype="|S7"
+                )
                 group_l3.create_dataset("value", data=data_dict[ftparams])
 
     def close(self):
-        """Close the file after calling read function
-        """
+        """Close the file after calling read function"""
         if self.file:
             self.file.close()
 
     def __del__(self):
-        """Destructor
-        """
+        """Destructor"""
         self.close()

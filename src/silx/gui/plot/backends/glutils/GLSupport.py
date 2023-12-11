@@ -54,8 +54,7 @@ def buildFillMaskIndices(nIndices, dtype=None):
     splitIndex = lastIndex // 2 + 1
     indices = numpy.empty(nIndices, dtype=dtype)
     indices[::2] = numpy.arange(0, splitIndex, step=1, dtype=dtype)
-    indices[1::2] = numpy.arange(lastIndex, splitIndex - 1, step=-1,
-                                 dtype=dtype)
+    indices[1::2] = numpy.arange(lastIndex, splitIndex - 1, step=-1, dtype=dtype)
     return indices
 
 
@@ -63,16 +62,17 @@ class FilledShape2D(object):
     _NO_HATCH = 0
     _HATCH_STEP = 20
 
-    def __init__(self, points, style='solid', color=(0., 0., 0., 1.)):
+    def __init__(self, points, style="solid", color=(0.0, 0.0, 0.0, 1.0)):
         self.vertices = numpy.array(points, dtype=numpy.float32, copy=False)
         self._indices = buildFillMaskIndices(len(self.vertices))
 
         tVertex = numpy.transpose(self.vertices)
         xMin, xMax = min(tVertex[0]), max(tVertex[0])
         yMin, yMax = min(tVertex[1]), max(tVertex[1])
-        self.bboxVertices = numpy.array(((xMin, yMin), (xMin, yMax),
-                                         (xMax, yMin), (xMax, yMax)),
-                                        dtype=numpy.float32)
+        self.bboxVertices = numpy.array(
+            ((xMin, yMin), (xMin, yMax), (xMax, yMin), (xMax, yMax)),
+            dtype=numpy.float32,
+        )
         self._xMin, self._xMax = xMin, xMax
         self._yMin, self._yMax = yMin, yMax
 
@@ -80,18 +80,16 @@ class FilledShape2D(object):
         self.color = color
 
     def render(self, posAttrib, colorUnif, hatchStepUnif):
-        assert self.style in ('hatch', 'solid')
+        assert self.style in ("hatch", "solid")
         gl.glUniform4f(colorUnif, *self.color)
-        step = self._HATCH_STEP if self.style == 'hatch' else self._NO_HATCH
+        step = self._HATCH_STEP if self.style == "hatch" else self._NO_HATCH
         gl.glUniform1i(hatchStepUnif, step)
 
         # Prepare fill mask
         gl.glEnableVertexAttribArray(posAttrib)
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0, self.vertices)
+        gl.glVertexAttribPointer(
+            posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, self.vertices
+        )
 
         gl.glEnable(gl.GL_STENCIL_TEST)
         gl.glStencilMask(1)
@@ -100,8 +98,12 @@ class FilledShape2D(object):
         gl.glColorMask(gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE, gl.GL_FALSE)
         gl.glDepthMask(gl.GL_FALSE)
 
-        gl.glDrawElements(gl.GL_TRIANGLE_STRIP, len(self._indices),
-                          gl.GL_UNSIGNED_SHORT, self._indices)
+        gl.glDrawElements(
+            gl.GL_TRIANGLE_STRIP,
+            len(self._indices),
+            gl.GL_UNSIGNED_SHORT,
+            self._indices,
+        )
 
         gl.glStencilFunc(gl.GL_EQUAL, 1, 1)
         # Reset stencil while drawing
@@ -109,11 +111,9 @@ class FilledShape2D(object):
         gl.glColorMask(gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE, gl.GL_TRUE)
         gl.glDepthMask(gl.GL_TRUE)
 
-        gl.glVertexAttribPointer(posAttrib,
-                                 2,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0, self.bboxVertices)
+        gl.glVertexAttribPointer(
+            posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, self.bboxVertices
+        )
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self.bboxVertices))
 
         gl.glDisable(gl.GL_STENCIL_TEST)
@@ -121,37 +121,54 @@ class FilledShape2D(object):
 
 # matrix ######################################################################
 
+
 def mat4Ortho(left, right, bottom, top, near, far):
     """Orthographic projection matrix (row-major)"""
-    return numpy.array((
-        (2./(right - left), 0., 0., -(right+left)/float(right-left)),
-        (0., 2./(top - bottom), 0., -(top+bottom)/float(top-bottom)),
-        (0., 0., -2./(far-near),    -(far+near)/float(far-near)),
-        (0., 0., 0., 1.)), dtype=numpy.float64)
+    return numpy.array(
+        (
+            (2.0 / (right - left), 0.0, 0.0, -(right + left) / float(right - left)),
+            (0.0, 2.0 / (top - bottom), 0.0, -(top + bottom) / float(top - bottom)),
+            (0.0, 0.0, -2.0 / (far - near), -(far + near) / float(far - near)),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float64,
+    )
 
 
-def mat4Translate(x=0., y=0., z=0.):
+def mat4Translate(x=0.0, y=0.0, z=0.0):
     """Translation matrix (row-major)"""
-    return numpy.array((
-        (1., 0., 0., x),
-        (0., 1., 0., y),
-        (0., 0., 1., z),
-        (0., 0., 0., 1.)), dtype=numpy.float64)
+    return numpy.array(
+        (
+            (1.0, 0.0, 0.0, x),
+            (0.0, 1.0, 0.0, y),
+            (0.0, 0.0, 1.0, z),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float64,
+    )
 
 
-def mat4Scale(sx=1., sy=1., sz=1.):
+def mat4Scale(sx=1.0, sy=1.0, sz=1.0):
     """Scale matrix (row-major)"""
-    return numpy.array((
-        (sx, 0., 0., 0.),
-        (0., sy, 0., 0.),
-        (0., 0., sz, 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float64)
+    return numpy.array(
+        (
+            (sx, 0.0, 0.0, 0.0),
+            (0.0, sy, 0.0, 0.0),
+            (0.0, 0.0, sz, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float64,
+    )
 
 
 def mat4Identity():
     """Identity matrix"""
-    return numpy.array((
-        (1., 0., 0., 0.),
-        (0., 1., 0., 0.),
-        (0., 0., 1., 0.),
-        (0., 0., 0., 1.)), dtype=numpy.float64)
+    return numpy.array(
+        (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=numpy.float64,
+    )

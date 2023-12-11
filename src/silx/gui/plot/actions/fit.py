@@ -62,10 +62,8 @@ def _getUniqueCurveOrHistogram(plot):
         return curve
 
     visibleItems = [item for item in plot.getItems() if item.isVisible()]
-    histograms = [item for item in visibleItems
-                  if isinstance(item, items.Histogram)]
-    curves = [item for item in visibleItems
-              if isinstance(item, items.Curve)]
+    histograms = [item for item in visibleItems if isinstance(item, items.Histogram)]
+    curves = [item for item in visibleItems if isinstance(item, items.Curve)]
 
     if len(histograms) == 1 and len(curves) == 0:
         return histograms[0]
@@ -113,12 +111,11 @@ class _FitItemSelector(qt.QObject):
         # disconnect from previous plot
         previousPlotWidget = self.getPlotWidget()
         if previousPlotWidget is not None:
-            previousPlotWidget.sigItemAdded.disconnect(
-                self.__plotWidgetUpdated)
-            previousPlotWidget.sigItemRemoved.disconnect(
-                self.__plotWidgetUpdated)
+            previousPlotWidget.sigItemAdded.disconnect(self.__plotWidgetUpdated)
+            previousPlotWidget.sigItemRemoved.disconnect(self.__plotWidgetUpdated)
             previousPlotWidget.sigActiveCurveChanged.disconnect(
-                self.__plotWidgetUpdated)
+                self.__plotWidgetUpdated
+            )
 
         if plotWidget is None:
             self.__plotWidgetRef = None
@@ -183,13 +180,15 @@ class FitAction(PlotToolAction):
         self.__legend = None
 
         super(FitAction, self).__init__(
-            plot, icon='math-fit', text='Fit curve',
-            tooltip='Open a fit dialog',
-            parent=parent)
+            plot,
+            icon="math-fit",
+            text="Fit curve",
+            tooltip="Open a fit dialog",
+            parent=parent,
+        )
 
         self.__fitItemSelector = _FitItemSelector()
-        self.__fitItemSelector.sigCurrentItemChanged.connect(
-            self._setFittedItem)
+        self.__fitItemSelector.sigCurrentItemChanged.connect(self._setFittedItem)
 
     def _createToolWindow(self):
         # import done here rather than at module level to avoid circular import
@@ -262,11 +261,10 @@ class FitAction(PlotToolAction):
 
         else:
             xmin, xmax = self.getXRange()
-            fitWidget.setData(
-                xdata, ydata, xmin=xmin, xmax=xmax)
+            fitWidget.setData(xdata, ydata, xmin=xmin, xmax=xmax)
             fitWidget.setWindowTitle(
-                "Fitting " + item.getName() +
-                " on x range %f-%f" % (xmin, xmax))
+                "Fitting " + item.getName() + " on x range %f-%f" % (xmin, xmax)
+            )
 
     # X Range management
 
@@ -360,12 +358,12 @@ class FitAction(PlotToolAction):
             self.__updateFitWidget()
             return
 
-        axis = item.getYAxis() if isinstance(item, items.YAxisMixIn) else 'left'
+        axis = item.getYAxis() if isinstance(item, items.YAxisMixIn) else "left"
         self.__curveParams = {
-            'yaxis': axis,
-            'xlabel': plot.getXAxis().getLabel(),
-            'ylabel': plot.getYAxis(axis).getLabel(),
-            }
+            "yaxis": axis,
+            "xlabel": plot.getXAxis().getLabel(),
+            "ylabel": plot.getYAxis(axis).getLabel(),
+        }
         self.__legend = item.getName()
 
         if isinstance(item, items.Histogram):
@@ -378,7 +376,7 @@ class FitAction(PlotToolAction):
             self.__x = item.getXData(copy=False)
             self.__y = item.getYData(copy=False)
 
-        self.__item  = item
+        self.__item = item
         self.__updateFitWidget()
 
     def __setFittedItemAutoUpdateEnabled(self, enabled):
@@ -431,14 +429,13 @@ class FitAction(PlotToolAction):
                 return
             y_fit = fit_widget.fitmanager.gendata()
             if fit_curve is None:
-                self.plot.addCurve(x_fit, y_fit,
-                                   fit_legend,
-                                   resetzoom=False,
-                                   **self.__curveParams)
+                self.plot.addCurve(
+                    x_fit, y_fit, fit_legend, resetzoom=False, **self.__curveParams
+                )
             else:
                 fit_curve.setData(x_fit, y_fit)
                 fit_curve.setVisible(True)
-                fit_curve.setYAxis(self.__curveParams.get('yaxis', 'left'))
+                fit_curve.setYAxis(self.__curveParams.get("yaxis", "left"))
 
         if ddict["event"] in ["FitStarted", "FitFailed"]:
             if fit_curve is not None:

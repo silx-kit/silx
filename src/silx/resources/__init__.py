@@ -87,24 +87,23 @@ _RESOURCES_DIR = None
 
 # cx_Freeze frozen support
 # See http://cx-freeze.readthedocs.io/en/latest/faq.html#using-data-files
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # Running in a frozen application:
     # We expect resources to be located either in a silx/resources/ dir
     # relative to the executable or within this package.
-    _dir = os.path.join(os.path.dirname(sys.executable), 'silx', 'resources')
+    _dir = os.path.join(os.path.dirname(sys.executable), "silx", "resources")
     if os.path.isdir(_dir):
         _RESOURCES_DIR = _dir
 
 
 class _ResourceDirectory(NamedTuple):
     """Store a source of resources"""
-    package_name : str
-    forced_path : Optional[str] = None
+
+    package_name: str
+    forced_path: Optional[str] = None
 
 
-_SILX_DIRECTORY = _ResourceDirectory(
-    package_name=__name__,
-    forced_path=_RESOURCES_DIR)
+_SILX_DIRECTORY = _ResourceDirectory(package_name=__name__, forced_path=_RESOURCES_DIR)
 
 _RESOURCE_DIRECTORIES = {}
 _RESOURCE_DIRECTORIES["silx"] = _SILX_DIRECTORY
@@ -132,8 +131,8 @@ def register_resource_directory(
     if name in _RESOURCE_DIRECTORIES:
         raise ValueError("Resource directory name %s already exists" % name)
     resource_directory = _ResourceDirectory(
-        package_name=package_name,
-        forced_path=forced_path)
+        package_name=package_name, forced_path=forced_path
+    )
     _RESOURCE_DIRECTORIES[name] = resource_directory
 
 
@@ -157,7 +156,9 @@ def list_dir(resource: str) -> list[str]:
         return os.listdir(path)
 
     if sys.version_info < (3, 9):
-        return pkg_resources.resource_listdir(resource_directory.package_name, resource_name)
+        return pkg_resources.resource_listdir(
+            resource_directory.package_name, resource_name
+        )
 
     path = importlib.resources.files(resource_directory.package_name) / resource_name
     return [entry.name for entry in path.iterdir()]
@@ -248,14 +249,13 @@ def _get_resource_filename(package: str, resource: str) -> str:
 
     # Caching prevents extracting the resource twice
     file_context = importlib.resources.as_file(
-        importlib.resources.files(package) / resource)
+        importlib.resources.files(package) / resource
+    )
     path = _file_manager.enter_context(file_context)
     return str(path.absolute())
 
 
-def _resource_filename(
-    resource: str, default_directory: Optional[str] = None
-) -> str:
+def _resource_filename(resource: str, default_directory: Optional[str] = None) -> str:
     """Return filename corresponding to resource.
 
     The existence of the resource is not checked.
@@ -272,13 +272,14 @@ def _resource_filename(
         directory. It should only be used internally by silx.
     :return: Absolute resource path in the file system
     """
-    resource_directory, resource_name = _get_package_and_resource(resource,
-                                                                  default_directory=default_directory)
+    resource_directory, resource_name = _get_package_and_resource(
+        resource, default_directory=default_directory
+    )
 
     if resource_directory.forced_path is not None:
         # if set, use this directory
         base_dir = resource_directory.forced_path
-        resource_path = os.path.join(base_dir, *resource_name.split('/'))
+        resource_path = os.path.join(base_dir, *resource_name.split("/"))
         return resource_path
 
     return _get_resource_filename(resource_directory.package_name, resource_name)

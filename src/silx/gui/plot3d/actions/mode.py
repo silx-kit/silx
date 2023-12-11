@@ -63,8 +63,9 @@ class InteractiveModeAction(Plot3DAction):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
             _logger.error(
-                'Cannot set %s interaction, no associated Plot3DWidget' %
-                self._interaction)
+                "Cannot set %s interaction, no associated Plot3DWidget"
+                % self._interaction
+            )
         else:
             plot3d.setInteractiveMode(self._interaction)
             self.setChecked(True)
@@ -74,8 +75,7 @@ class InteractiveModeAction(Plot3DAction):
         # Disconnect from previous Plot3DWidget
         plot3d = self.getPlot3DWidget()
         if plot3d is not None:
-            plot3d.sigInteractiveModeChanged.disconnect(
-                self._interactiveModeChanged)
+            plot3d.sigInteractiveModeChanged.disconnect(self._interactiveModeChanged)
 
         super(InteractiveModeAction, self).setPlot3DWidget(widget)
 
@@ -84,13 +84,12 @@ class InteractiveModeAction(Plot3DAction):
             self.setChecked(False)
         else:
             self.setChecked(widget.getInteractiveMode() == self._interaction)
-            widget.sigInteractiveModeChanged.connect(
-                self._interactiveModeChanged)
+            widget.sigInteractiveModeChanged.connect(self._interactiveModeChanged)
 
     def _interactiveModeChanged(self):
         plot3d = self.getPlot3DWidget()
         if plot3d is None:
-            _logger.error('Received a signal while there is no widget')
+            _logger.error("Received a signal while there is no widget")
         else:
             self.setChecked(plot3d.getInteractiveMode() == self._interaction)
 
@@ -104,11 +103,11 @@ class RotateArcballAction(InteractiveModeAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(RotateArcballAction, self).__init__(parent, 'rotate', plot3d)
+        super(RotateArcballAction, self).__init__(parent, "rotate", plot3d)
 
-        self.setIcon(getQIcon('rotate-3d'))
-        self.setText('Rotate')
-        self.setToolTip('Rotate the view. Press <b>Ctrl</b> to pan.')
+        self.setIcon(getQIcon("rotate-3d"))
+        self.setText("Rotate")
+        self.setToolTip("Rotate the view. Press <b>Ctrl</b> to pan.")
 
 
 class PanAction(InteractiveModeAction):
@@ -120,11 +119,11 @@ class PanAction(InteractiveModeAction):
     """
 
     def __init__(self, parent, plot3d=None):
-        super(PanAction, self).__init__(parent, 'pan', plot3d)
+        super(PanAction, self).__init__(parent, "pan", plot3d)
 
-        self.setIcon(getQIcon('pan'))
-        self.setText('Pan')
-        self.setToolTip('Pan the view. Press <b>Ctrl</b> to rotate.')
+        self.setIcon(getQIcon("pan"))
+        self.setText("Pan")
+        self.setToolTip("Pan the view. Press <b>Ctrl</b> to rotate.")
 
 
 class PickingModeAction(Plot3DAction):
@@ -145,9 +144,9 @@ class PickingModeAction(Plot3DAction):
 
     def __init__(self, parent, plot3d=None):
         super(PickingModeAction, self).__init__(parent, plot3d)
-        self.setIcon(getQIcon('pointing-hand'))
-        self.setText('Picking')
-        self.setToolTip('Toggle picking with left button click')
+        self.setIcon(getQIcon("pointing-hand"))
+        self.setText("Picking")
+        self.setToolTip("Toggle picking with left button click")
         self.setCheckable(True)
         self.triggered[bool].connect(self._triggered)
 

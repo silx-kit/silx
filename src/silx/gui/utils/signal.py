@@ -30,8 +30,8 @@ import weakref
 from time import time
 from silx.gui.utils import concurrent
 
-__all__ = ['SignalProxy']
-__authors__ = ['L. Campagnola', 'M. Liberty']
+__all__ = ["SignalProxy"]
+__authors__ = ["L. Campagnola", "M. Liberty"]
 __license__ = "MIT"
 
 
@@ -91,7 +91,9 @@ class SignalProxy(qt.QObject):
                 leakTime = max(0, (lastFlush + (1.0 / self.rateLimit)) - now)
 
             concurrent.submitToQtMainThread(self.timer.stop)
-            concurrent.submitToQtMainThread(self.timer.start, (min(leakTime, self.delay) * 1000) + 1)
+            concurrent.submitToQtMainThread(
+                self.timer.start, (min(leakTime, self.delay) * 1000) + 1
+            )
             # self.timer.stop()
             # self.timer.start((min(leakTime, self.delay) * 1000) + 1)
 
@@ -119,21 +121,18 @@ class SignalProxy(qt.QObject):
             pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = qt.QApplication([])
     win = qt.QMainWindow()
     spin = qt.QSpinBox()
     win.setCentralWidget(spin)
     win.show()
 
-
     def fn(*args):
         print("Raw signal:", args)
 
-
     def fn2(*args):
         print("Delayed signal:", args)
-
 
     spin.valueChanged.connect(fn)
     # proxy = proxyConnect(spin, QtCore.SIGNAL('valueChanged(int)'), fn)

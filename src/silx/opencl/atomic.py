@@ -59,7 +59,7 @@ int res = atom_inc(ary);
     d = cla.to_device(queue, a)
     prg.check_atomic32(queue, (1024,), (32,), d.data).wait()
     value = d.get()[0]
-    return value==1024, f"Got the proper value 1024=={value}"
+    return value == 1024, f"Got the proper value 1024=={value}"
 
 
 def check_atomic64(device):
@@ -69,8 +69,10 @@ def check_atomic64(device):
         return False, f"Unable to create context on {device}"
     else:
         queue = pyopencl.CommandQueue(ctx)
-    if device.platform.name == 'Portable Computing Language' and \
-       "GPU" in pyopencl.device_type.to_string(device.type).upper():
+    if (
+        device.platform.name == "Portable Computing Language"
+        and "GPU" in pyopencl.device_type.to_string(device.type).upper()
+    ):
         # this configuration is known to seg-fault
         return False, "PoCL + GPU do not support atomic64"
     src = """
@@ -88,4 +90,4 @@ long res = atom_inc(ary);
     d = cla.to_device(queue, a)
     prg.check_atomic64(queue, (1024,), (32,), d.data).wait()
     value = d.get()[0]
-    return value==1024, f"Got the proper value 1024=={value}"
+    return value == 1024, f"Got the proper value 1024=={value}"

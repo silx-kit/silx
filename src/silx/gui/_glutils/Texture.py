@@ -58,10 +58,17 @@ class Texture(object):
     :type wrap: OpenGL wrap mode or 2 or 3-tuple of wrap mode
     """
 
-    def __init__(self, internalFormat, data=None, format_=None,
-                 shape=None, texUnit=0,
-                 minFilter=None, magFilter=None, wrap=None):
-
+    def __init__(
+        self,
+        internalFormat,
+        data=None,
+        format_=None,
+        shape=None,
+        texUnit=0,
+        minFilter=None,
+        magFilter=None,
+        wrap=None,
+    ):
         self._internalFormat = internalFormat
         if format_ is None:
             format_ = self.internalFormat
@@ -70,7 +77,7 @@ class Texture(object):
             assert shape is not None
         else:
             assert shape is None
-            data = numpy.array(data, copy=False, order='C')
+            data = numpy.array(data, copy=False, order="C")
             if format_ != gl.GL_RED:
                 shape = data.shape[:-1]  # Last dimension is channels
             else:
@@ -160,9 +167,7 @@ class Texture(object):
 
         :rtype: bool
         """
-        return (self._name is None or
-                self._texParameterUpdates or
-                self._deferredUpdates)
+        return self._name is None or self._texParameterUpdates or self._deferredUpdates
 
     def _prepareAndBind(self, texUnit=None):
         """Synchronizes the OpenGL texture"""
@@ -196,10 +201,14 @@ class Texture(object):
             if offset is None:  # Initialize texture
                 if self.ndim == 2:
                     _logger.debug(
-                        'Creating 2D texture shape: (%d, %d),'
-                        ' internal format: %s, format: %s, type: %s',
-                        self.shape[0], self.shape[1],
-                        str(self.internalFormat), str(format_), str(type_))
+                        "Creating 2D texture shape: (%d, %d),"
+                        " internal format: %s, format: %s, type: %s",
+                        self.shape[0],
+                        self.shape[1],
+                        str(self.internalFormat),
+                        str(format_),
+                        str(type_),
+                    )
 
                     gl.glTexImage2D(
                         gl.GL_TEXTURE_2D,
@@ -210,14 +219,20 @@ class Texture(object):
                         0,
                         format_,
                         type_,
-                        data)
+                        data,
+                    )
 
                 else:
                     _logger.debug(
-                        'Creating 3D texture shape: (%d, %d, %d),'
-                        ' internal format: %s, format: %s, type: %s',
-                        self.shape[0], self.shape[1], self.shape[2],
-                        str(self.internalFormat), str(format_), str(type_))
+                        "Creating 3D texture shape: (%d, %d, %d),"
+                        " internal format: %s, format: %s, type: %s",
+                        self.shape[0],
+                        self.shape[1],
+                        self.shape[2],
+                        str(self.internalFormat),
+                        str(format_),
+                        str(type_),
+                    )
 
                     gl.glTexImage3D(
                         gl.GL_TEXTURE_3D,
@@ -229,32 +244,37 @@ class Texture(object):
                         0,
                         format_,
                         type_,
-                        data)
+                        data,
+                    )
 
             else:  # Update already existing texture
                 if self.ndim == 2:
-                    gl.glTexSubImage2D(gl.GL_TEXTURE_2D,
-                                       0,
-                                       offset[1],
-                                       offset[0],
-                                       data.shape[1],
-                                       data.shape[0],
-                                       format_,
-                                       type_,
-                                       data)
+                    gl.glTexSubImage2D(
+                        gl.GL_TEXTURE_2D,
+                        0,
+                        offset[1],
+                        offset[0],
+                        data.shape[1],
+                        data.shape[0],
+                        format_,
+                        type_,
+                        data,
+                    )
 
                 else:
-                    gl.glTexSubImage3D(gl.GL_TEXTURE_3D,
-                                       0,
-                                       offset[2],
-                                       offset[1],
-                                       offset[0],
-                                       data.shape[2],
-                                       data.shape[1],
-                                       data.shape[0],
-                                       format_,
-                                       type_,
-                                       data)
+                    gl.glTexSubImage3D(
+                        gl.GL_TEXTURE_3D,
+                        0,
+                        offset[2],
+                        offset[1],
+                        offset[0],
+                        data.shape[2],
+                        data.shape[1],
+                        data.shape[0],
+                        format_,
+                        type_,
+                        data,
+                    )
 
         self._deferredUpdates = []
 
@@ -336,7 +356,7 @@ class Texture(object):
         :param bool copy:
             True (default) to copy data, False to use as is (do not modify)
         """
-        data = numpy.array(data, copy=copy, order='C')
+        data = numpy.array(data, copy=copy, order="C")
         offset = tuple(offset)
 
         assert data.ndim == self.ndim

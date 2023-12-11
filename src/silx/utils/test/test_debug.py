@@ -35,7 +35,6 @@ from silx.utils import testutils
 
 @debug.log_all_methods
 class _Foobar(object):
-
     def a(self):
         return None
 

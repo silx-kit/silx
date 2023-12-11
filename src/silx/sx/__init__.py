@@ -52,11 +52,11 @@ _logger = _logging.getLogger(__name__)
 
 
 # Init logging when used from the console
-if hasattr(_sys, 'ps1'):
+if hasattr(_sys, "ps1"):
     _logging.basicConfig()
 
 # Probe DISPLAY available on linux
-_NO_DISPLAY = _sys.platform.startswith('linux') and not _os.environ.get('DISPLAY')
+_NO_DISPLAY = _sys.platform.startswith("linux") and not _os.environ.get("DISPLAY")
 
 # Probe ipython
 try:
@@ -66,10 +66,10 @@ except (NameError, ImportError):
 
 # Probe ipython/jupyter notebook
 if _get_ipython is not None and _get_ipython() is not None:
-
     # Notebook detection probably fragile
-    _IS_NOTEBOOK = ('parent_appname' in _get_ipython().config['IPKernelApp'] or
-                    hasattr(_get_ipython(), 'kernel'))
+    _IS_NOTEBOOK = "parent_appname" in _get_ipython().config["IPKernelApp"] or hasattr(
+        _get_ipython(), "kernel"
+    )
 else:
     _IS_NOTEBOOK = False
 
@@ -81,30 +81,39 @@ _qapp = None
 def enable_gui():
     """Populate silx.sx module with silx.gui features and initialise Qt"""
     if _NO_DISPLAY:  # Missing DISPLAY under linux
-        _logger.warning(
-            'Not loading silx.gui features: No DISPLAY available')
+        _logger.warning("Not loading silx.gui features: No DISPLAY available")
         return
 
     global qt, _qapp
 
     if _get_ipython is not None and _get_ipython() is not None:
-        _get_ipython().enable_pylab(gui='qt', import_all=False)
+        _get_ipython().enable_pylab(gui="qt", import_all=False)
 
     from silx.gui import qt
+
     # Create QApplication and keep reference only if needed
     if not qt.QApplication.instance():
         _qapp = qt.QApplication([])
 
-    if hasattr(_sys, 'ps1'):  # If from console, change windows icon
+    if hasattr(_sys, "ps1"):  # If from console, change windows icon
         # Change windows default icon
         from silx.gui import icons
+
         app = qt.QApplication.instance()
-        app.setWindowIcon(icons.getQIcon('silx'))
+        app.setWindowIcon(icons.getQIcon("silx"))
 
     global ImageView, PlotWidget, PlotWindow, Plot1D
     global Plot2D, StackView, ScatterView, TickMode
-    from silx.gui.plot import (ImageView, PlotWidget, PlotWindow, Plot1D,
-                               Plot2D, StackView, ScatterView, TickMode)  # noqa
+    from silx.gui.plot import (
+        ImageView,
+        PlotWidget,
+        PlotWindow,
+        Plot1D,
+        Plot2D,
+        StackView,
+        ScatterView,
+        TickMode,
+    )  # noqa
 
     global plot, imshow, scatter, ginput
     from ._plot import plot, imshow, scatter, ginput  # noqa
@@ -113,7 +122,8 @@ def enable_gui():
         import OpenGL
     except ImportError:
         _logger.warning(
-            'Not loading silx.gui.plot3d features: PyOpenGL is not installed')
+            "Not loading silx.gui.plot3d features: PyOpenGL is not installed"
+        )
     else:
         global contour3d, points3d
         from ._plot3d import contour3d, points3d  # noqa
@@ -121,8 +131,7 @@ def enable_gui():
 
 # Load Qt and widgets only if running from console and display available
 if _IS_NOTEBOOK:
-    _logger.warning(
-        'Not loading silx.gui features: Running from the notebook')
+    _logger.warning("Not loading silx.gui features: Running from the notebook")
 else:
     enable_gui()
 
@@ -131,6 +140,7 @@ else:
 if _get_ipython is not None and _get_ipython() is not None:
     if not _NO_DISPLAY:  # Not loading pylab without display
         from IPython.core.pylabtools import import_pylab as _import_pylab
+
         _import_pylab(_get_ipython().user_ns, import_all=False)
 
 

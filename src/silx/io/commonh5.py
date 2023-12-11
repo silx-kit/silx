@@ -177,8 +177,7 @@ class Node(object):
 
     @property
     def name(self):
-        """Returns the HDF5 name of this node.
-        """
+        """Returns the HDF5 name of this node."""
         parent = self.parent
         if parent is None:
             return "/"
@@ -188,8 +187,7 @@ class Node(object):
 
     @property
     def basename(self):
-        """Returns the HDF5 basename of this node.
-        """
+        """Returns the HDF5 basename of this node."""
         return self.__basename
 
     def _is_editable(self):
@@ -319,13 +317,18 @@ class Dataset(Node):
             elif item == tuple():
                 return self._get_data()
             else:
-                raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
+                raise ValueError(
+                    "Scalar can only be reached with an ellipsis or an empty tuple"
+                )
         return self._get_data().__getitem__(item)
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<HDF5-like dataset "%s": shape %s, type "%s">' % \
-               (basename, self.shape, self.dtype.str)
+        return '<HDF5-like dataset "%s": shape %s, type "%s">' % (
+            basename,
+            self.shape,
+            self.dtype.str,
+        )
 
     def __getslice__(self, i, j):
         """Returns the slice of the data exposed by this dataset.
@@ -487,8 +490,7 @@ class Dataset(Node):
             return self[()] >= other
 
     def __getattr__(self, item):
-        """Proxy to underlying numpy array methods.
-        """
+        """Proxy to underlying numpy array methods."""
         data = self._get_data()
         if hasattr(data, item):
             return getattr(data, item)
@@ -584,6 +586,7 @@ class SoftLink(Node):
 
     In this implementation, the path to the target must be absolute.
     """
+
     def __init__(self, name, path, parent=None):
         assert str(path).startswith("/")  # TODO: h5py also allows a relative path
 
@@ -657,8 +660,9 @@ class Group(Node):
                     result = result.file.get(l_target)
                     if result is None:
                         raise KeyError(
-                            "Unable to open object (broken SoftLink %s -> %s)" %
-                            (l_name, l_target))
+                            "Unable to open object (broken SoftLink %s -> %s)"
+                            % (l_name, l_target)
+                        )
                 if not item_name:
                     # trailing "/" in name (legal for accessing Groups only)
                     if isinstance(result, Group):
@@ -675,9 +679,13 @@ class Group(Node):
                 raise KeyError(msg % (link.name, link.path))
             # Convert SoftLink into typed group/dataset
             if isinstance(target, Group):
-                result = _LinkToGroup(name=link.basename, target=target, parent=link.parent)
+                result = _LinkToGroup(
+                    name=link.basename, target=target, parent=link.parent
+                )
             elif isinstance(target, Dataset):
-                result = _LinkToDataset(name=link.basename, target=target, parent=link.parent)
+                result = _LinkToDataset(
+                    name=link.basename, target=target, parent=link.parent
+                )
             else:
                 raise TypeError("Unexpected target type %s" % type(target))
 
@@ -871,11 +879,9 @@ class Group(Node):
             call `func(name)` for links and recurse into target groups.
         """
         origin_name = self.name
-        return self._visit(func, origin_name, visit_links,
-                           visititems=True)
+        return self._visit(func, origin_name, visit_links, visititems=True)
 
-    def _visit(self, func, origin_name,
-               visit_links=False, visititems=False):
+    def _visit(self, func, origin_name, visit_links=False, visititems=False):
         """
 
         :param origin_name: name of first group that initiated the recursion
@@ -885,7 +891,7 @@ class Group(Node):
         for member in self.values():
             ret = None
             if not isinstance(member, SoftLink) or visit_links:
-                relative_name = member.name[len(origin_name):]
+                relative_name = member.name[len(origin_name) :]
                 # remove leading slash and unnecessary trailing slash
                 relative_name = relative_name.strip("/")
                 if visititems:
@@ -914,13 +920,15 @@ class Group(Node):
             name = name[1:]
             return self.file.create_group(name)
 
-        elements = name.split('/')
+        elements = name.split("/")
         group = self
         for basename in elements:
             if basename in group:
                 group = group[basename]
                 if not isinstance(group, Group):
-                    raise RuntimeError("Unable to create group (group parent is missing")
+                    raise RuntimeError(
+                        "Unable to create group (group parent is missing"
+                    )
             else:
                 node = Group(basename)
                 group.add_node(node)
@@ -1027,7 +1035,7 @@ class File(Group):
         self._file_name = name
         if mode is None:
             mode = "r"
-        assert(mode in ["r", "w"])
+        assert mode in ["r", "w"]
         self._mode = mode
 
     @property
@@ -1050,7 +1058,6 @@ class File(Group):
         self.close()
 
     def close(self):
-        """Close the object, and free up associated resources.
-        """
+        """Close the object, and free up associated resources."""
         # should be implemented in subclass
         pass

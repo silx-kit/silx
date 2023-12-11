@@ -81,19 +81,19 @@ class FitManager(object):
         uncertainties are set to 1.
     :type weight_flag: boolean
     """
+
     def __init__(self, x=None, y=None, sigmay=None, weight_flag=False):
-        """
-        """
+        """ """
         self.fitconfig = {
-            'WeightFlag': weight_flag,
-            'fitbkg': 'No Background',
-            'fittheory': None,
+            "WeightFlag": weight_flag,
+            "fitbkg": "No Background",
+            "fittheory": None,
             # Next few parameters are defined for compatibility with legacy theories
             # which take the background as argument for their estimation function
-            'StripWidth': 2,
-            'StripIterations': 5000,
-            'StripThresholdFactor': 1.0,
-            'SmoothingFlag': False
+            "StripWidth": 2,
+            "StripIterations": 5000,
+            "StripThresholdFactor": 1.0,
+            "SmoothingFlag": False,
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -142,7 +142,7 @@ class FitManager(object):
         # Load default theories (constant, linear, strip)
         self.loadbgtheories(bgtheories)
 
-        self.selectedbg = 'No Background'
+        self.selectedbg = "No Background"
         """Name of currently selected background theory. This name must be
         an existing key in :attr:`bgtheories`."""
 
@@ -219,10 +219,18 @@ class FitManager(object):
         """
         self.bgtheories[bgname] = bgtheory
 
-    def addtheory(self, name, theory=None,
-                  function=None, parameters=None,
-                  estimate=None, configure=None, derivative=None,
-                  description=None, pymca_legacy=False):
+    def addtheory(
+        self,
+        name,
+        theory=None,
+        function=None,
+        parameters=None,
+        estimate=None,
+        configure=None,
+        derivative=None,
+        description=None,
+        pymca_legacy=False,
+    ):
         """Add a new theory to dictionary :attr:`theories`.
 
         You can pass a name and a :class:`FitTheory` object as arguments, or
@@ -266,17 +274,26 @@ class FitManager(object):
                 estimate=estimate,
                 configure=configure,
                 derivative=derivative,
-                pymca_legacy=pymca_legacy
+                pymca_legacy=pymca_legacy,
             )
 
         else:
-            raise TypeError("You must supply a FitTheory object or define " +
-                            "a fit function and its parameters.")
+            raise TypeError(
+                "You must supply a FitTheory object or define "
+                + "a fit function and its parameters."
+            )
 
-    def addbgtheory(self, name, theory=None,
-                    function=None, parameters=None,
-                    estimate=None, configure=None,
-                    derivative=None, description=None):
+    def addbgtheory(
+        self,
+        name,
+        theory=None,
+        function=None,
+        parameters=None,
+        estimate=None,
+        configure=None,
+        derivative=None,
+        description=None,
+    ):
         """Add a new theory to dictionary :attr:`bgtheories`.
 
         You can pass a name and a :class:`FitTheory` object as arguments, or
@@ -313,12 +330,14 @@ class FitManager(object):
                 estimate=estimate,
                 configure=configure,
                 derivative=derivative,
-                is_background=True
+                is_background=True,
             )
 
         else:
-            raise TypeError("You must supply a FitTheory object or define " +
-                            "a background function and its parameters.")
+            raise TypeError(
+                "You must supply a FitTheory object or define "
+                + "a background function and its parameters."
+            )
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
@@ -393,21 +412,22 @@ class FitManager(object):
             update a widget displaying a status message.
         :return: Estimated parameters
         """
-        self.state = 'Estimate in progress'
+        self.state = "Estimate in progress"
         self.chisq = None
 
         if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
+            callback(data={"chisq": self.chisq, "status": self.state})
 
-        CONS = {0: 'FREE',
-                1: 'POSITIVE',
-                2: 'QUOTED',
-                3: 'FIXED',
-                4: 'FACTOR',
-                5: 'DELTA',
-                6: 'SUM',
-                7: 'IGNORE'}
+        CONS = {
+            0: "FREE",
+            1: "POSITIVE",
+            2: "QUOTED",
+            3: "FIXED",
+            4: "FACTOR",
+            5: "DELTA",
+            6: "SUM",
+            7: "IGNORE",
+        }
 
         # Filter-out not finite data
         xwork = self.xdata[self._finite_mask]
@@ -420,9 +440,9 @@ class FitManager(object):
         try:
             fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
         except LinAlgError:
-            self.state = 'Estimate failed'
+            self.state = "Estimate failed"
             if callback is not None:
-                callback(data={'status': self.state})
+                callback(data={"status": self.state})
             raise
 
         # build the names
@@ -445,7 +465,7 @@ class FitManager(object):
         xmin = min(xwork)
         xmax = max(xwork)
         nb_bg_params = len(bg_params)
-        for (pindex, pname) in enumerate(self.parameter_names):
+        for pindex, pname in enumerate(self.parameter_names):
             # First come background parameters
             if pindex < nb_bg_params:
                 estimation_value = bg_params[pindex]
@@ -470,24 +490,27 @@ class FitManager(object):
                     cons1 += nb_bg_params
                 cons2 = fun_constraints[fun_param_index][2]
 
-            self.fit_results.append({'name': pname,
-                                     'estimation': estimation_value,
-                                     'group': group_number,
-                                     'code': constraint_code,
-                                     'cons1': cons1,
-                                     'cons2': cons2,
-                                     'fitresult': 0.0,
-                                     'sigma': 0.0,
-                                     'xmin': xmin,
-                                     'xmax': xmax})
+            self.fit_results.append(
+                {
+                    "name": pname,
+                    "estimation": estimation_value,
+                    "group": group_number,
+                    "code": constraint_code,
+                    "cons1": cons1,
+                    "cons2": cons2,
+                    "fitresult": 0.0,
+                    "sigma": 0.0,
+                    "xmin": xmin,
+                    "xmax": xmax,
+                }
+            )
 
-        self.state = 'Ready to Fit'
+        self.state = "Ready to Fit"
         self.chisq = None
         self.niter = 0
 
         if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
+            callback(data={"chisq": self.chisq, "status": self.state})
         return numpy.append(bg_params, fun_params)
 
     def fit(self):
@@ -521,11 +544,11 @@ class FitManager(object):
             paramlist = self.fit_results
         active_params = []
         for param in paramlist:
-            if param['code'] not in ['IGNORE', 7]:
+            if param["code"] not in ["IGNORE", 7]:
                 if not estimated:
-                    active_params.append(param['fitresult'])
+                    active_params.append(param["fitresult"])
                 else:
-                    active_params.append(param['estimation'])
+                    active_params.append(param["estimation"])
 
         # Mask x with not finite (support nD x)
         finite_mask = numpy.all(numpy.isfinite(x), axis=tuple(range(1, x.ndim)))
@@ -537,7 +560,8 @@ class FitManager(object):
             # Create result with same number as elements as x, filling holes with NaNs
             result = numpy.full((x.shape[0],), numpy.nan, dtype=numpy.float64)
             result[finite_mask] = self.fitfunction(
-                numpy.array(x[finite_mask], copy=True), *active_params)
+                numpy.array(x[finite_mask], copy=True), *active_params
+            )
             return result
 
     def get_estimation(self):
@@ -594,13 +618,16 @@ class FitManager(object):
         :raise: ImportError if theories cannot be imported
         """
         from types import ModuleType
+
         if isinstance(theories, ModuleType):
             theories_module = theories
         else:
             # if theories is not a module, it must be a string
             if not isinstance(theories, str):
-                raise ImportError("theory must be a python module, a module" +
-                                  "name or a python filename")
+                raise ImportError(
+                    "theory must be a python module, a module"
+                    + "name or a python filename"
+                )
             # if theories is a filename
             if os.path.isfile(theories):
                 sys.path.append(os.path.dirname(theories))
@@ -652,13 +679,16 @@ class FitManager(object):
         :raise: ImportError if theories cannot be imported
         """
         from types import ModuleType
+
         if isinstance(theories, ModuleType):
             theories_module = theories
         else:
             # if theories is not a module, it must be a string
             if not isinstance(theories, str):
-                raise ImportError("theory must be a python module, a module" +
-                                  "name or a python filename")
+                raise ImportError(
+                    "theory must be a python module, a module"
+                    + "name or a python filename"
+                )
             # if theories is a filename
             if os.path.isfile(theories):
                 sys.path.append(os.path.dirname(theories))
@@ -743,10 +773,14 @@ class FitManager(object):
             # default weight
             if sigmay is None:
                 self.sigmay0 = None
-                self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+                self.sigmay = (
+                    numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+                )
             else:
                 self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
+                self.sigmay = (
+                    numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
+                )
 
             # take the data between limits, using boolean array indexing
             if (xmin is not None or xmax is not None) and len(self.xdata):
@@ -758,8 +792,11 @@ class FitManager(object):
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
 
         self._finite_mask = numpy.logical_and(
-            numpy.all(numpy.isfinite(self.xdata), axis=tuple(range(1, self.xdata.ndim))),
-            numpy.isfinite(self.ydata))
+            numpy.all(
+                numpy.isfinite(self.xdata), axis=tuple(range(1, self.xdata.ndim))
+            ),
+            numpy.isfinite(self.ydata),
+        )
 
     def enableweight(self):
         """This method can be called to set :attr:`sigmay`. If :attr:`sigmay0` was filled with
@@ -767,7 +804,9 @@ class FitManager(object):
         Else, use ``sqrt(self.ydata)``.
         """
         if self.sigmay0 is None:
-            self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+            self.sigmay = (
+                numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+            )
         else:
             self.sigmay = self.sigmay0
 
@@ -819,19 +858,18 @@ class FitManager(object):
         """
         # self.dataupdate()
 
-        self.state = 'Fit in progress'
+        self.state = "Fit in progress"
         self.chisq = None
 
         if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
+            callback(data={"chisq": self.chisq, "status": self.state})
 
         param_val = []
         param_constraints = []
         # Initial values are set to the ones computed in estimate()
         for param in self.fit_results:
-            param_val.append(param['estimation'])
-            param_constraints.append([param['code'], param['cons1'], param['cons2']])
+            param_val.append(param["estimation"])
+            param_constraints.append([param["code"], param["cons1"], param["cons2"]])
 
         # Filter-out not finite data
         ywork = self.ydata[self._finite_mask]
@@ -839,31 +877,34 @@ class FitManager(object):
 
         try:
             params, covariance_matrix, infodict = leastsq(
-                    self.fitfunction,  # bg + actual model function
-                    xwork, ywork, param_val,
-                    sigma=self.sigmay,
-                    constraints=param_constraints,
-                    model_deriv=self.theories[self.selectedtheory].derivative,
-                    full_output=True, left_derivative=True)
+                self.fitfunction,  # bg + actual model function
+                xwork,
+                ywork,
+                param_val,
+                sigma=self.sigmay,
+                constraints=param_constraints,
+                model_deriv=self.theories[self.selectedtheory].derivative,
+                full_output=True,
+                left_derivative=True,
+            )
         except LinAlgError:
-            self.state = 'Fit failed'
-            callback(data={'status': self.state})
+            self.state = "Fit failed"
+            callback(data={"status": self.state})
             raise
 
-        sigmas = infodict['uncertainties']
+        sigmas = infodict["uncertainties"]
 
         for i, param in enumerate(self.fit_results):
-            if param['code'] != 'IGNORE':
-                param['fitresult'] = params[i]
-                param['sigma'] = sigmas[i]
+            if param["code"] != "IGNORE":
+                param["fitresult"] = params[i]
+                param["sigma"] = sigmas[i]
 
         self.chisq = infodict["reduced_chisq"]
         self.niter = infodict["niter"]
-        self.state = 'Ready'
+        self.state = "Ready"
 
         if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
+            callback(data={"chisq": self.chisq, "status": self.state})
 
         return params, sigmas, infodict
 
@@ -961,7 +1002,7 @@ class FitManager(object):
 
         """
         estimatefunction = self.theories[self.selectedtheory].estimate
-        if hasattr(estimatefunction, '__call__'):
+        if hasattr(estimatefunction, "__call__"):
             if not self.theories[self.selectedtheory].pymca_legacy:
                 return estimatefunction(x, y)
             else:
@@ -971,59 +1012,76 @@ class FitManager(object):
                 else:
                     if self.fitconfig["SmoothingFlag"]:
                         y = smooth1d(y)
-                    bg = strip(y,
-                               w=self.fitconfig["StripWidth"],
-                               niterations=self.fitconfig["StripIterations"],
-                               factor=self.fitconfig["StripThresholdFactor"])
+                    bg = strip(
+                        y,
+                        w=self.fitconfig["StripWidth"],
+                        niterations=self.fitconfig["StripIterations"],
+                        factor=self.fitconfig["StripThresholdFactor"],
+                    )
                 # fitconfig can be filled by user defined config function
-                xscaling = self.fitconfig.get('Xscaling', 1.0)
-                yscaling = self.fitconfig.get('Yscaling', 1.0)
+                xscaling = self.fitconfig.get("Xscaling", 1.0)
+                yscaling = self.fitconfig.get("Yscaling", 1.0)
                 return estimatefunction(x, y, bg, xscaling, yscaling)
         else:
-            raise TypeError("Estimation function in attribute " +
-                            "theories[%s]" % self.selectedtheory +
-                            " must be callable.")
+            raise TypeError(
+                "Estimation function in attribute "
+                + "theories[%s]" % self.selectedtheory
+                + " must be callable."
+            )
 
     def _load_legacy_theories(self, theories_module):
         """Load theories from a custom module in the old PyMca format.
 
         See PyMca5.PyMcaMath.fitting.SpecfitFunctions for an example.
         """
-        mandatory_attributes = ["THEORY", "PARAMETERS",
-                                "FUNCTION", "ESTIMATE"]
+        mandatory_attributes = ["THEORY", "PARAMETERS", "FUNCTION", "ESTIMATE"]
         err_msg = "Custom fit function file must define: "
         err_msg += ", ".join(mandatory_attributes)
         for attr in mandatory_attributes:
             if not hasattr(theories_module, attr):
                 raise ImportError(err_msg)
 
-        derivative = theories_module.DERIVATIVE if hasattr(theories_module, "DERIVATIVE") else None
-        configure = theories_module.CONFIGURE if hasattr(theories_module, "CONFIGURE") else None
-        estimate = theories_module.ESTIMATE if hasattr(theories_module, "ESTIMATE") else None
+        derivative = (
+            theories_module.DERIVATIVE
+            if hasattr(theories_module, "DERIVATIVE")
+            else None
+        )
+        configure = (
+            theories_module.CONFIGURE if hasattr(theories_module, "CONFIGURE") else None
+        )
+        estimate = (
+            theories_module.ESTIMATE if hasattr(theories_module, "ESTIMATE") else None
+        )
         if isinstance(theories_module.THEORY, (list, tuple)):
             # multiple fit functions
             for i in range(len(theories_module.THEORY)):
                 deriv = derivative[i] if derivative is not None else None
                 config = configure[i] if configure is not None else None
                 estim = estimate[i] if estimate is not None else None
-                self.addtheory(theories_module.THEORY[i],
-                               FitTheory(
-                                   theories_module.FUNCTION[i],
-                                   theories_module.PARAMETERS[i],
-                                   estim,
-                                   config,
-                                   deriv,
-                                   pymca_legacy=True))
+                self.addtheory(
+                    theories_module.THEORY[i],
+                    FitTheory(
+                        theories_module.FUNCTION[i],
+                        theories_module.PARAMETERS[i],
+                        estim,
+                        config,
+                        deriv,
+                        pymca_legacy=True,
+                    ),
+                )
         else:
             # single fit function
-            self.addtheory(theories_module.THEORY,
-                           FitTheory(
-                               theories_module.FUNCTION,
-                               theories_module.PARAMETERS,
-                               estimate,
-                               configure,
-                               derivative,
-                               pymca_legacy=True))
+            self.addtheory(
+                theories_module.THEORY,
+                FitTheory(
+                    theories_module.FUNCTION,
+                    theories_module.PARAMETERS,
+                    estimate,
+                    configure,
+                    derivative,
+                    pymca_legacy=True,
+                ),
+            )
 
 
 def test():
@@ -1034,9 +1092,7 @@ def test():
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float64)
 
-    p = [1000, 100., 250,
-         255, 690., 45,
-         1500, 800.5, 95]
+    p = [1000, 100.0, 250, 255, 690.0, 45, 1500, 800.5, 95]
     y = 0.5 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
@@ -1045,9 +1101,9 @@ def test():
     # overlapping peaks at x=690 and x=800.5
     fit.setdata(x=x, y=y)
     fit.loadtheories(fittheories)
-    fit.settheory('Gaussians')
+    fit.settheory("Gaussians")
     fit.loadbgtheories(bgtheories)
-    fit.setbackground('Linear')
+    fit.setbackground("Linear")
     fit.estimate()
     fit.runfit()
 
@@ -1055,8 +1111,8 @@ def test():
     print("Obtained parameters : ")
     dummy_list = []
     for param in fit.fit_results:
-        print(param['name'], ' = ', param['fitresult'])
-        dummy_list.append(param['fitresult'])
+        print(param["name"], " = ", param["fitresult"])
+        dummy_list.append(param["fitresult"])
     print("chisq = ", fit.chisq)
 
     # Plot
@@ -1068,6 +1124,7 @@ def test():
     try:
         from silx.gui import qt
         from silx.gui.plot.PlotWindow import PlotWindow
+
         app = qt.QApplication([])
         pw = PlotWindow(control=True)
         pw.addCurve(x, y, "Original")

@@ -54,8 +54,8 @@ _logger = logging.getLogger(__name__)
 
 @enum.unique
 class UpdateMode(_Enum):
-    AUTO = 'auto'
-    MANUAL = 'manual'
+    AUTO = "auto"
+    MANUAL = "manual"
 
 
 # Helper class to handle specific calls to PlotWidget and SceneWidget
@@ -125,7 +125,7 @@ class _Wrapper(qt.QObject):
         :param item:
         :rtype: str
         """
-        return ''
+        return ""
 
     def getKind(self, item):
         """Returns the kind of an item or None if not supported
@@ -163,18 +163,18 @@ class _PlotWidgetWrapper(_Wrapper):
                 self.sigCurrentChanged.emit(item)
 
     def _activeCurveChanged(self, previous, current):
-        self._activeChanged(kind='curve')
+        self._activeChanged(kind="curve")
 
     def _activeImageChanged(self, previous, current):
-        self._activeChanged(kind='image')
+        self._activeChanged(kind="image")
 
     def _activeScatterChanged(self, previous, current):
-        self._activeChanged(kind='scatter')
+        self._activeChanged(kind="scatter")
 
     def _limitsChanged(self, event):
         """Handle change of plot area limits."""
-        if event['event'] == 'limitsChanged':
-                self.sigVisibleDataChanged.emit()
+        if event["event"] == "limitsChanged":
+            self.sigVisibleDataChanged.emit()
 
     def getItems(self):
         plot = self.getPlot()
@@ -206,13 +206,13 @@ class _PlotWidgetWrapper(_Wrapper):
 
     def getKind(self, item):
         if isinstance(item, plotitems.Curve):
-            return 'curve'
+            return "curve"
         elif isinstance(item, plotitems.ImageData):
-            return 'image'
+            return "image"
         elif isinstance(item, plotitems.Scatter):
-            return 'scatter'
+            return "scatter"
         elif isinstance(item, plotitems.Histogram):
-            return 'histogram'
+            return "histogram"
         else:
             return None
 
@@ -258,12 +258,10 @@ class _SceneWidgetWrapper(_Wrapper):
     def getKind(self, item):
         from ..plot3d import items as plot3ditems
 
-        if isinstance(item, (plot3ditems.ImageData,
-                             plot3ditems.ScalarField3D)):
-            return 'image'
-        elif isinstance(item, (plot3ditems.Scatter2D,
-                               plot3ditems.Scatter3D)):
-            return 'scatter'
+        if isinstance(item, (plot3ditems.ImageData, plot3ditems.ScalarField3D)):
+            return "image"
+        elif isinstance(item, (plot3ditems.Scatter2D, plot3ditems.Scatter3D)):
+            return "scatter"
         else:
             return None
 
@@ -305,10 +303,10 @@ class _ScalarFieldViewWrapper(_Wrapper):
         pass
 
     def getLabel(self, item):
-        return 'Data'
+        return "Data"
 
     def getKind(self, item):
-        return 'image'
+        return "image"
 
 
 class _Container(object):
@@ -318,6 +316,7 @@ class _Container(object):
 
     :param QObject obj:
     """
+
     def __init__(self, obj):
         self._obj = obj
 
@@ -382,7 +381,10 @@ class _StatsWidgetBase(object):
                 else:  # Expect a ScalarFieldView
                     self._plotWrapper = _ScalarFieldViewWrapper(plot)
             else:
-                _logger.warning('OpenGL not installed, %s not managed' % ('SceneWidget qnd ScalarFieldView'))
+                _logger.warning(
+                    "OpenGL not installed, %s not managed"
+                    % ("SceneWidget qnd ScalarFieldView")
+                )
         self._dealWithPlotConnection(create=True)
 
     def setStats(self, statsHandler):
@@ -421,16 +423,19 @@ class _StatsWidgetBase(object):
         connections = []  # List of (signal, slot) to connect/disconnect
         if self._statsOnVisibleData:
             connections.append(
-                (self._plotWrapper.sigVisibleDataChanged, self._updateAllStats))
+                (self._plotWrapper.sigVisibleDataChanged, self._updateAllStats)
+            )
 
         if self._displayOnlyActItem:
             connections.append(
-                (self._plotWrapper.sigCurrentChanged, self._updateCurrentItem))
+                (self._plotWrapper.sigCurrentChanged, self._updateCurrentItem)
+            )
         else:
             connections += [
                 (self._plotWrapper.sigItemAdded, self._addItem),
                 (self._plotWrapper.sigItemRemoved, self._removeItem),
-                (self._plotWrapper.sigCurrentChanged, self._plotCurrentChanged)]
+                (self._plotWrapper.sigCurrentChanged, self._plotCurrentChanged),
+            ]
 
         for signal, slot in connections:
             if create:
@@ -440,12 +445,12 @@ class _StatsWidgetBase(object):
 
     def _updateItemObserve(self, *args):
         """Reload table depending on mode"""
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _updateCurrentItem(self, *args):
         """specific callback for the sigCurrentChanged and with the
         _displayOnlyActItem option."""
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _updateStats(self, item, data_changed=False, roi_changed=False):
         """Update displayed information for given plot item
@@ -454,11 +459,11 @@ class _StatsWidgetBase(object):
         :param bool data_changed: is the item data changed.
         :param bool roi_changed: is the associated roi changed.
         """
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _updateAllStats(self):
         """Update stats for all rows in the table"""
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def setDisplayOnlyActiveItem(self, displayOnlyActItem):
         """Toggle display off all items or only the active/selected one
@@ -493,21 +498,21 @@ class _StatsWidgetBase(object):
         :returns: True if the item is added to the widget.
         :rtype: bool
         """
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _removeItem(self, item):
         """Remove table items corresponding to given plot item from the table.
 
         :param item: The plot item
         """
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _plotCurrentChanged(self, current):
         """Handle change of current item and update selection in table
 
         :param current:
         """
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def clear(self):
         """clear GUI"""
@@ -561,16 +566,17 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         :class:`PlotWidget` or :class:`SceneWidget` instance on which to operate
     """
 
-    _LEGEND_HEADER_DATA = 'legend'
-    _KIND_HEADER_DATA = 'kind'
+    _LEGEND_HEADER_DATA = "legend"
+    _KIND_HEADER_DATA = "kind"
 
     sigUpdateModeChanged = qt.Signal(object)
     """Signal emitted when the update mode changed"""
 
     def __init__(self, parent=None, plot=None):
         TableWidget.__init__(self, parent)
-        _StatsWidgetBase.__init__(self, statsOnVisibleData=False,
-                                  displayOnlyActItem=False)
+        _StatsWidgetBase.__init__(
+            self, statsOnVisibleData=False, displayOnlyActItem=False
+        )
 
         # Init for _displayOnlyActItem == False
         assert self._displayOnlyActItem is False
@@ -668,7 +674,15 @@ class StatsTable(_StatsWidgetBase, TableWidget):
          If exists, update it only when we are in 'auto' mode"""
         if self.getUpdateMode() is UpdateMode.MANUAL:
             # when sigCurrentChanged is giving the current item
-            if len(args) > 0 and isinstance(args[0], (plotitems.Curve, plotitems.Histogram, plotitems.ImageData, plotitems.Scatter)):
+            if len(args) > 0 and isinstance(
+                args[0],
+                (
+                    plotitems.Curve,
+                    plotitems.Histogram,
+                    plotitems.ImageData,
+                    plotitems.Scatter,
+                ),
+            ):
                 item = args[0]
                 tableItems = self._itemToTableItems(item)
                 # if the table does not exists yet
@@ -775,9 +789,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             return False
 
         # Prepare table items
-        tableItems = [
-            qt.QTableWidgetItem(),  # Legend
-            qt.QTableWidgetItem()]  # Kind
+        tableItems = [qt.QTableWidgetItem(), qt.QTableWidgetItem()]  # Legend  # Kind
 
         for column in range(2, self.columnCount()):
             header = self.horizontalHeaderItem(column)
@@ -804,8 +816,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             row = self.rowCount() - 1
             for column, tableItem in enumerate(tableItems):
                 tableItem.setData(qt.Qt.UserRole, _Container(item))
-                tableItem.setFlags(
-                    qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
+                tableItem.setFlags(qt.Qt.ItemIsEnabled | qt.Qt.ItemIsSelectable)
                 self.setItem(row, column, tableItem)
 
             # Update table items content
@@ -814,8 +825,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
         # Listen for item changes
         # Using queued connection to avoid issue with sender
         # being that of the signal calling the signal
-        item.sigItemChanged.connect(self._plotItemChanged,
-                                    qt.Qt.QueuedConnection)
+        item.sigItemChanged.connect(self._plotItemChanged, qt.Qt.QueuedConnection)
 
         return True
 
@@ -870,8 +880,12 @@ class StatsTable(_StatsWidgetBase, TableWidget):
             else:
                 roi_changed = False
             stats = statsHandler.calculate(
-                item, plot, self._statsOnVisibleData,
-                data_changed=data_changed, roi_changed=roi_changed)
+                item,
+                plot,
+                self._statsOnVisibleData,
+                data_changed=data_changed,
+                roi_changed=roi_changed,
+            )
         else:
             stats = {}
 
@@ -886,7 +900,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
                     value = stats.get(name)
                     if value is None:
                         _logger.error("Value not found for: %s", name)
-                        tableItem.setText('-')
+                        tableItem.setText("-")
                     else:
                         tableItem.setText(str(value))
 
@@ -942,6 +956,7 @@ class StatsTable(_StatsWidgetBase, TableWidget):
 
 class UpdateModeWidget(qt.QWidget):
     """Widget used to select the mode of update"""
+
     sigUpdateModeChanged = qt.Signal(object)
     """signal emitted when the mode for update changed"""
     sigUpdateRequested = qt.Signal()
@@ -953,22 +968,22 @@ class UpdateModeWidget(qt.QWidget):
         self._buttonGrp = qt.QButtonGroup(parent=self)
         self._buttonGrp.setExclusive(True)
 
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Minimum)
+        spacer = qt.QSpacerItem(
+            20, 20, qt.QSizePolicy.Expanding, qt.QSizePolicy.Minimum
+        )
         self.layout().addItem(spacer)
 
-        self._autoRB = qt.QRadioButton('auto', parent=self)
+        self._autoRB = qt.QRadioButton("auto", parent=self)
         self.layout().addWidget(self._autoRB)
         self._buttonGrp.addButton(self._autoRB)
 
-        self._manualRB = qt.QRadioButton('manual', parent=self)
+        self._manualRB = qt.QRadioButton("manual", parent=self)
         self.layout().addWidget(self._manualRB)
         self._buttonGrp.addButton(self._manualRB)
         self._manualRB.setChecked(True)
 
-        refresh_icon = icons.getQIcon('view-refresh')
-        self._updatePB = qt.QPushButton(refresh_icon, '', parent=self)
+        refresh_icon = icons.getQIcon("view-refresh")
+        self._updatePB = qt.QPushButton(refresh_icon, "", parent=self)
         self.layout().addWidget(self._updatePB)
 
         # connect signal / SLOT
@@ -1005,7 +1020,7 @@ class UpdateModeWidget(qt.QWidget):
             if not self._manualRB.isChecked():
                 self._manualRB.setChecked(True)
         else:
-            raise ValueError('mode', mode, 'is not recognized')
+            raise ValueError("mode", mode, "is not recognized")
 
     def getUpdateMode(self):
         """Returns update mode (See :meth:`setUpdateMode`).
@@ -1030,7 +1045,6 @@ class UpdateModeWidget(qt.QWidget):
 
 
 class _OptionsWidget(qt.QToolBar):
-
     def __init__(self, parent=None, updateMode=None, displayOnlyActItem=False):
         assert updateMode is not None
         qt.QToolBar.__init__(self, parent)
@@ -1054,12 +1068,14 @@ class _OptionsWidget(qt.QToolBar):
         action = qt.QAction(self)
         action.setIcon(icons.getQIcon("stats-visible-data"))
         action.setText("Use the visible data range")
-        action.setToolTip("Use the visible data range.<br/>"
-                          "If activated the data is filtered to only use"
-                          "visible data of the plot."
-                          "The filtering is a data sub-sampling."
-                          "No interpolation is made to fit data to"
-                          "boundaries.")
+        action.setToolTip(
+            "Use the visible data range.<br/>"
+            "If activated the data is filtered to only use"
+            "visible data of the plot."
+            "The filtering is a data sub-sampling."
+            "No interpolation is made to fit data to"
+            "boundaries."
+        )
         action.setCheckable(True)
         self.__useVisibleData = action
 
@@ -1155,7 +1171,7 @@ class StatsWidget(qt.QWidget):
     It Provides the visibility of the widget.
     """
 
-    NUMBER_FORMAT = '{0:.3f}'
+    NUMBER_FORMAT = "{0:.3f}"
 
     def __init__(self, parent=None, plot=None, stats=None):
         qt.QWidget.__init__(self, parent)
@@ -1171,15 +1187,15 @@ class StatsWidget(qt.QWidget):
         self.layout().addWidget(self._statsTable)
 
         old = self._statsTable.blockSignals(True)
-        self._options.itemSelection.triggered.connect(
-            self._optSelectionChanged)
-        self._options.dataRangeSelection.triggered.connect(
-            self._optDataRangeChanged)
+        self._options.itemSelection.triggered.connect(self._optSelectionChanged)
+        self._options.dataRangeSelection.triggered.connect(self._optDataRangeChanged)
         self._optDataRangeChanged()
         self._statsTable.blockSignals(old)
 
         self._statsTable.sigUpdateModeChanged.connect(self._options._setUpdateMode)
-        callback = functools.partial(self._getStatsTable()._updateAllStats, is_request=True)
+        callback = functools.partial(
+            self._getStatsTable()._updateAllStats, is_request=True
+        )
         self._options.sigUpdateStats.connect(callback)
 
     def _getStatsTable(self):
@@ -1198,12 +1214,12 @@ class StatsWidget(qt.QWidget):
         qt.QWidget.hideEvent(self, event)
 
     def _optSelectionChanged(self, action=None):
-        self._getStatsTable().setDisplayOnlyActiveItem(
-            self._options.isActiveItemMode())
+        self._getStatsTable().setDisplayOnlyActiveItem(self._options.isActiveItemMode())
 
     def _optDataRangeChanged(self, action=None):
         self._getStatsTable().setStatsOnVisibleData(
-            self._options.isVisibleDataRangeMode())
+            self._options.isVisibleDataRangeMode()
+        )
 
     # Proxy methods
 
@@ -1214,7 +1230,8 @@ class StatsWidget(qt.QWidget):
     @docstring(StatsTable)
     def setPlot(self, plot):
         self._options.setVisibleDataRangeModeEnabled(
-            plot is None or isinstance(plot, PlotWidget))
+            plot is None or isinstance(plot, PlotWidget)
+        )
         return self._getStatsTable().setPlot(plot=plot)
 
     @docstring(StatsTable)
@@ -1228,7 +1245,8 @@ class StatsWidget(qt.QWidget):
         self._options.setDisplayActiveItems(displayOnlyActItem)
         self._options.blockSignals(old)
         return self._getStatsTable().setDisplayOnlyActiveItem(
-            displayOnlyActItem=displayOnlyActItem)
+            displayOnlyActItem=displayOnlyActItem
+        )
 
     @docstring(StatsTable)
     def setStatsOnVisibleData(self, b):
@@ -1243,15 +1261,17 @@ class StatsWidget(qt.QWidget):
         self._statsTable.setUpdateMode(mode)
 
 
-DEFAULT_STATS = StatsHandler((
-    (statsmdl.StatMin(), StatFormatter()),
-    statsmdl.StatCoordMin(),
-    (statsmdl.StatMax(), StatFormatter()),
-    statsmdl.StatCoordMax(),
-    statsmdl.StatCOM(),
-    (('mean', numpy.mean), StatFormatter()),
-    (('std', numpy.std), StatFormatter()),
-))
+DEFAULT_STATS = StatsHandler(
+    (
+        (statsmdl.StatMin(), StatFormatter()),
+        statsmdl.StatCoordMin(),
+        (statsmdl.StatMax(), StatFormatter()),
+        statsmdl.StatCoordMax(),
+        statsmdl.StatCOM(),
+        (("mean", numpy.mean), StatFormatter()),
+        (("std", numpy.std), StatFormatter()),
+    )
+)
 
 
 class BasicStatsWidget(StatsWidget):
@@ -1281,9 +1301,9 @@ class BasicStatsWidget(StatsWidget):
      widget = BasicStatsWidget(plot=plot)
      widget.show()
     """
+
     def __init__(self, parent=None, plot=None):
-        StatsWidget.__init__(self, parent=parent, plot=plot,
-                             stats=DEFAULT_STATS)
+        StatsWidget.__init__(self, parent=parent, plot=plot, stats=DEFAULT_STATS)
 
 
 class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
@@ -1305,8 +1325,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     sigUpdateModeChanged = qt.Signal(object)
     """Signal emitted when the update mode changed"""
 
-    def __init__(self, parent=None, plot=None, kind='curve', stats=None,
-                 statsOnVisibleData=False):
+    def __init__(
+        self, parent=None, plot=None, kind="curve", stats=None, statsOnVisibleData=False
+    ):
         self._item_kind = kind
         """The item displayed"""
         self._statQlineEdit = {}
@@ -1314,9 +1335,9 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._n_statistics_per_line = 4
         """number of statistics displayed per line in the grid layout"""
         qt.QWidget.__init__(self, parent)
-        _StatsWidgetBase.__init__(self,
-                                  statsOnVisibleData=statsOnVisibleData,
-                                  displayOnlyActItem=True)
+        _StatsWidgetBase.__init__(
+            self, statsOnVisibleData=statsOnVisibleData, displayOnlyActItem=True
+        )
         self.setLayout(self._createLayout())
         self.setPlot(plot)
         if stats is not None:
@@ -1335,8 +1356,8 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
             widget = qt.QWidget(parent=self)
             parent = widget
 
-        qLabel = qt.QLabel(statistic.name + ':', parent=parent)
-        qLineEdit = qt.QLineEdit('', parent=parent)
+        qLabel = qt.QLabel(statistic.name + ":", parent=parent)
+        qLineEdit = qt.QLineEdit("", parent=parent)
         qLineEdit.setReadOnly(True)
 
         self._addStatsWidgetsToLayout(qLabel=qLabel, qLineEdit=qLineEdit)
@@ -1352,7 +1373,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
         self._updateAllStats()
 
     def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def setStats(self, statsHandler):
         """Set which stats to display and the associated formatting.
@@ -1378,6 +1399,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
             def kind_filter(_item):
                 return self._plotWrapper.getKind(_item) == self.getKind()
+
             items = list(filter(kind_filter, _items))
             assert len(items) in (0, 1)
             if len(items) == 1:
@@ -1401,15 +1423,13 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
     def _setItem(self, item, data_changed=True):
         if item is None:
             for stat_name, stat_widget in self._statQlineEdit.items():
-                stat_widget.setText('')
-        elif (self._statsHandler is not None and len(
-                self._statsHandler.stats) > 0):
+                stat_widget.setText("")
+        elif self._statsHandler is not None and len(self._statsHandler.stats) > 0:
             plot = self.getPlot()
             if plot is not None:
-                statsValDict = self._statsHandler.calculate(item,
-                                                            plot,
-                                                            self._statsOnVisibleData,
-                                                            data_changed=data_changed)
+                statsValDict = self._statsHandler.calculate(
+                    item, plot, self._statsOnVisibleData, data_changed=data_changed
+                )
                 for statName, statVal in list(statsValDict.items()):
                     self._statQlineEdit[statName].setText(statVal)
 
@@ -1421,6 +1441,7 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
         def kind_filter(_item):
             return self._plotWrapper.getKind(_item) == self.getKind()
+
         items = list(filter(kind_filter, _items))
         assert len(items) in (0, 1)
         _item = items[0] if len(items) == 1 else None
@@ -1431,27 +1452,38 @@ class _BaseLineStatsWidget(_StatsWidgetBase, qt.QWidget):
 
     def _createLayout(self):
         """create an instance of the main QLayout"""
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def _addItem(self, item):
-        raise NotImplementedError('Display only the active item')
+        raise NotImplementedError("Display only the active item")
 
     def _removeItem(self, item):
-        raise NotImplementedError('Display only the active item')
+        raise NotImplementedError("Display only the active item")
 
     def _plotCurrentChanged(self, current):
-        raise NotImplementedError('Display only the active item')
+        raise NotImplementedError("Display only the active item")
 
     def _updateModeHasChanged(self):
         self.sigUpdateModeChanged.emit(self._updateMode)
 
 
 class _BasicLineStatsWidget(_BaseLineStatsWidget):
-    def __init__(self, parent=None, plot=None, kind='curve',
-                 stats=DEFAULT_STATS, statsOnVisibleData=False):
-        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind,
-                                      plot=plot, stats=stats,
-                                      statsOnVisibleData=statsOnVisibleData)
+    def __init__(
+        self,
+        parent=None,
+        plot=None,
+        kind="curve",
+        stats=DEFAULT_STATS,
+        statsOnVisibleData=False,
+    ):
+        _BaseLineStatsWidget.__init__(
+            self,
+            parent=parent,
+            kind=kind,
+            plot=plot,
+            stats=stats,
+            statsOnVisibleData=statsOnVisibleData,
+        )
 
     def _createLayout(self):
         return FlowLayout()
@@ -1487,15 +1519,26 @@ class BasicLineStatsWidget(qt.QWidget):
     :param bool statsOnVisibleData: compute statistics for the whole data or
                                     only visible ones.
     """
-    def __init__(self, parent=None, plot=None, kind='curve',
-                 stats=DEFAULT_STATS, statsOnVisibleData=False):
+
+    def __init__(
+        self,
+        parent=None,
+        plot=None,
+        kind="curve",
+        stats=DEFAULT_STATS,
+        statsOnVisibleData=False,
+    ):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QHBoxLayout())
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self._lineStatsWidget = _BasicLineStatsWidget(parent=self, plot=plot,
-                                                      kind=kind, stats=stats,
-                                                      statsOnVisibleData=statsOnVisibleData)
+        self._lineStatsWidget = _BasicLineStatsWidget(
+            parent=self,
+            plot=plot,
+            kind=kind,
+            stats=stats,
+            statsOnVisibleData=statsOnVisibleData,
+        )
         self.layout().addWidget(self._lineStatsWidget)
 
         self._options = UpdateModeWidget()
@@ -1547,12 +1590,23 @@ class BasicLineStatsWidget(qt.QWidget):
 
 
 class _BasicGridStatsWidget(_BaseLineStatsWidget):
-    def __init__(self, parent=None, plot=None, kind='curve',
-                 stats=DEFAULT_STATS, statsOnVisibleData=False,
-                 statsPerLine=4):
-        _BaseLineStatsWidget.__init__(self, parent=parent, kind=kind,
-                                      plot=plot, stats=stats,
-                                      statsOnVisibleData=statsOnVisibleData)
+    def __init__(
+        self,
+        parent=None,
+        plot=None,
+        kind="curve",
+        stats=DEFAULT_STATS,
+        statsOnVisibleData=False,
+        statsPerLine=4,
+    ):
+        _BaseLineStatsWidget.__init__(
+            self,
+            parent=parent,
+            kind=kind,
+            plot=plot,
+            stats=stats,
+            statsOnVisibleData=statsOnVisibleData,
+        )
         self._n_statistics_per_line = statsPerLine
 
     def _addStatsWidgetsToLayout(self, qLabel, qLineEdit):
@@ -1596,8 +1650,14 @@ class BasicGridStatsWidget(qt.QWidget):
      widget.show()
     """
 
-    def __init__(self, parent=None, plot=None, kind='curve',
-                 stats=DEFAULT_STATS, statsOnVisibleData=False):
+    def __init__(
+        self,
+        parent=None,
+        plot=None,
+        kind="curve",
+        stats=DEFAULT_STATS,
+        statsOnVisibleData=False,
+    ):
         qt.QWidget.__init__(self, parent)
         self.setLayout(qt.QVBoxLayout())
         self.layout().setSpacing(0)
@@ -1607,9 +1667,13 @@ class BasicGridStatsWidget(qt.QWidget):
         self._options.showRadioButtons(False)
         self.layout().addWidget(self._options)
 
-        self._lineStatsWidget = _BasicGridStatsWidget(parent=self, plot=plot,
-                                                      kind=kind, stats=stats,
-                                                      statsOnVisibleData=statsOnVisibleData)
+        self._lineStatsWidget = _BasicGridStatsWidget(
+            parent=self,
+            plot=plot,
+            kind=kind,
+            stats=stats,
+            statsOnVisibleData=statsOnVisibleData,
+        )
         self.layout().addWidget(self._lineStatsWidget)
 
         # tune options

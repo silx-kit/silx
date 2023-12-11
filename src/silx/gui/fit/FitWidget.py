@@ -46,8 +46,12 @@ import traceback
 from silx.math.fit import fittheories
 from silx.math.fit import fitmanager, functions
 from silx.gui import qt
-from .FitWidgets import (FitActionsButtons, FitStatusLines,
-                         FitConfigWidget, ParametersTab)
+from .FitWidgets import (
+    FitActionsButtons,
+    FitStatusLines,
+    FitConfigWidget,
+    ParametersTab,
+)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
 
@@ -87,6 +91,7 @@ class FitWidget(qt.QWidget):
 
     .. image:: img/FitWidget.png
     """
+
     sigFitWidgetSignal = qt.Signal(object)
     """This signal is emitted by the estimation and fit methods.
     It carries a dictionary with two items:
@@ -104,8 +109,15 @@ class FitWidget(qt.QWidget):
           :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
     """
 
-    def __init__(self, parent=None, title=None, fitmngr=None,
-                 enableconfig=True, enablestatus=True, enablebuttons=True):
+    def __init__(
+        self,
+        parent=None,
+        title=None,
+        fitmngr=None,
+        enableconfig=True,
+        enablestatus=True,
+        enablebuttons=True,
+    ):
         """
 
         :param parent: Parent widget
@@ -198,15 +210,16 @@ class FitWidget(qt.QWidget):
             """Function selector and configuration widget"""
 
             self.guiConfig.FunConfigureButton.clicked.connect(
-                self.__funConfigureGuiSlot)
-            self.guiConfig.BgConfigureButton.clicked.connect(
-                self.__bgConfigureGuiSlot)
+                self.__funConfigureGuiSlot
+            )
+            self.guiConfig.BgConfigureButton.clicked.connect(self.__bgConfigureGuiSlot)
 
             self.guiConfig.WeightCheckBox.setChecked(
-                    self.fitconfig.get("WeightFlag", False))
+                self.fitconfig.get("WeightFlag", False)
+            )
             self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            if qt.BINDING == 'PyQt5':
+            if qt.BINDING == "PyQt5":
                 self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
                 self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
             else:  # Qt6
@@ -261,21 +274,21 @@ class FitWidget(qt.QWidget):
         # associate silx.gui.fit.FitConfig with all theories
         # Users can later associate their own custom dialogs to
         # replace the default.
-        configdialog = getFitConfigDialog(parent=self,
-                                          default=self.fitconfig)
+        configdialog = getFitConfigDialog(parent=self, default=self.fitconfig)
         for theory in self.fitmanager.theories:
             self.associateConfigDialog(theory, configdialog)
         for bgtheory in self.fitmanager.bgtheories:
-            self.associateConfigDialog(bgtheory, configdialog,
-                                       theory_is_background=True)
+            self.associateConfigDialog(
+                bgtheory, configdialog, theory_is_background=True
+            )
 
         # associate silx.gui.fit.BackgroundWidget with Strip and Snip
-        bgdialog = getBgDialog(parent=self,
-                               default=self.fitconfig)
+        bgdialog = getBgDialog(parent=self, default=self.fitconfig)
         for bgtheory in ["Strip", "Snip"]:
             if bgtheory in self.fitmanager.bgtheories:
-                self.associateConfigDialog(bgtheory, bgdialog,
-                                           theory_is_background=True)
+                self.associateConfigDialog(
+                    bgtheory, bgdialog, theory_is_background=True
+                )
 
     def _populateFunctions(self):
         """Fill combo-boxes with fit theories and background theories
@@ -285,16 +298,18 @@ class FitWidget(qt.QWidget):
         for theory_name in self.fitmanager.bgtheories:
             self.guiConfig.BkgComBox.addItem(theory_name)
             self.guiConfig.BkgComBox.setItemData(
-                    self.guiConfig.BkgComBox.findText(theory_name),
-                    self.fitmanager.bgtheories[theory_name].description,
-                    qt.Qt.ToolTipRole)
+                self.guiConfig.BkgComBox.findText(theory_name),
+                self.fitmanager.bgtheories[theory_name].description,
+                qt.Qt.ToolTipRole,
+            )
 
         for theory_name in self.fitmanager.theories:
             self.guiConfig.FunComBox.addItem(theory_name)
             self.guiConfig.FunComBox.setItemData(
-                    self.guiConfig.FunComBox.findText(theory_name),
-                    self.fitmanager.theories[theory_name].description,
-                    qt.Qt.ToolTipRole)
+                self.guiConfig.FunComBox.findText(theory_name),
+                self.fitmanager.theories[theory_name].description,
+                qt.Qt.ToolTipRole,
+            )
 
         # - activate selected fit theory (if any)
         #    - activate selected bg theory (if any)
@@ -340,14 +355,14 @@ class FitWidget(qt.QWidget):
         else:
             self.guibuttons.EstimateButton.setEnabled(True)
             self.guibuttons.StartFitButton.setEnabled(True)
-            self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
-                                    xmin=xmin, xmax=xmax)
+            self.fitmanager.setdata(x=x, y=y, sigmay=sigmay, xmin=xmin, xmax=xmax)
             for config_dialog in self.bgconfigdialogs.values():
                 if isinstance(config_dialog, BackgroundDialog):
                     config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
 
-    def associateConfigDialog(self, theory_name, config_widget,
-                              theory_is_background=False):
+    def associateConfigDialog(
+        self, theory_name, config_widget, theory_is_background=False
+    ):
         """Associate an instance of custom configuration dialog widget to
         a fit theory or to a background theory.
 
@@ -367,23 +382,30 @@ class FitWidget(qt.QWidget):
             methods (*show*, *exec*, *result*, *setDefault*) or the mandatory
             attribute (*output*).
         """
-        theories = self.fitmanager.bgtheories if theory_is_background else\
-            self.fitmanager.theories
+        theories = (
+            self.fitmanager.bgtheories
+            if theory_is_background
+            else self.fitmanager.theories
+        )
 
         if theory_name not in theories:
             raise KeyError("%s does not match an existing fitmanager theory")
 
         if config_widget is not None:
-            if (not hasattr(config_widget, "exec") and
-                    not hasattr(config_widget, "exec_")):
+            if not hasattr(config_widget, "exec") and not hasattr(
+                config_widget, "exec_"
+            ):
                 raise AttributeError(
-                    "Custom configuration widget must define exec or exec_")
+                    "Custom configuration widget must define exec or exec_"
+                )
 
             for mandatory_attr in ["show", "result", "output"]:
                 if not hasattr(config_widget, mandatory_attr):
                     raise AttributeError(
-                            "Custom configuration widget must define " +
-                            "attribute or method " + mandatory_attr)
+                        "Custom configuration widget must define "
+                        + "attribute or method "
+                        + mandatory_attr
+                    )
 
         if theory_is_background:
             self.bgconfigdialogs[theory_name] = config_widget
@@ -422,25 +444,23 @@ class FitWidget(qt.QWidget):
         configuration.update(self.configure(**newconfiguration))
         # set fit function theory
         try:
-            i = 1 + \
-                list(self.fitmanager.theories.keys()).index(
-                        self.fitmanager.selectedtheory)
+            i = 1 + list(self.fitmanager.theories.keys()).index(
+                self.fitmanager.selectedtheory
+            )
             self.guiConfig.FunComBox.setCurrentIndex(i)
             self.funEvent(self.fitmanager.selectedtheory)
         except ValueError:
-            _logger.error("Function not in list %s",
-                          self.fitmanager.selectedtheory)
+            _logger.error("Function not in list %s", self.fitmanager.selectedtheory)
             self.funEvent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
-            i = 1 + \
-                list(self.fitmanager.bgtheories.keys()).index(
-                        self.fitmanager.selectedbg)
+            i = 1 + list(self.fitmanager.bgtheories.keys()).index(
+                self.fitmanager.selectedbg
+            )
             self.guiConfig.BkgComBox.setCurrentIndex(i)
             self.bkgEvent(self.fitmanager.selectedbg)
         except ValueError:
-            _logger.error("Background not in list %s",
-                          self.fitmanager.selectedbg)
+            _logger.error("Background not in list %s", self.fitmanager.selectedbg)
             self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
 
         # update the Gui
@@ -504,8 +524,7 @@ class FitWidget(qt.QWidget):
             theory_name = self.fitmanager.selectedtheory
             estimation_function = self.fitmanager.theories[theory_name].estimate
             if estimation_function is not None:
-                ddict = {'event': 'EstimateStarted',
-                         'data': None}
+                ddict = {"event": "EstimateStarted", "data": None}
                 self._emitSignal(ddict)
                 self.fitmanager.estimate(callback=self.fitStatus)
             else:
@@ -515,28 +534,23 @@ class FitWidget(qt.QWidget):
                 text += "the initial parameters. Please, fill them\n"
                 text += "yourself in the table and press Start Fit\n"
                 msg.setText(text)
-                msg.setWindowTitle('FitWidget Message')
+                msg.setWindowTitle("FitWidget Message")
                 msg.exec()
                 return
-        except Exception as e:    # noqa (we want to catch and report all errors)
-            _logger.warning('Estimate error: %s', traceback.format_exc())
+        except Exception as e:  # noqa (we want to catch and report all errors)
+            _logger.warning("Estimate error: %s", traceback.format_exc())
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Estimate Error")
             msg.setText("Error on estimate: %s" % e)
             msg.exec()
-            ddict = {
-                'event': 'EstimateFailed',
-                'data': None}
+            ddict = {"event": "EstimateFailed", "data": None}
             self._emitSignal(ddict)
             return
 
-        self.guiParameters.fillFromFit(
-            self.fitmanager.fit_results, view='Fit')
-        self.guiParameters.removeAllViews(keep='Fit')
-        ddict = {
-            'event': 'EstimateFinished',
-            'data': self.fitmanager.fit_results}
+        self.guiParameters.fillFromFit(self.fitmanager.fit_results, view="Fit")
+        self.guiParameters.removeAllViews(keep="Fit")
+        ddict = {"event": "EstimateFinished", "data": self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
     def startFit(self):
@@ -554,31 +568,23 @@ class FitWidget(qt.QWidget):
         """
         self.fitmanager.fit_results = self.guiParameters.getFitResults()
         try:
-            ddict = {'event': 'FitStarted',
-                     'data': None}
+            ddict = {"event": "FitStarted", "data": None}
             self._emitSignal(ddict)
             self.fitmanager.runfit(callback=self.fitStatus)
         except Exception as e:  # noqa (we want to catch and report all errors)
-            _logger.warning('Estimate error: %s', traceback.format_exc())
+            _logger.warning("Estimate error: %s", traceback.format_exc())
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setWindowTitle("Fit Error")
             msg.setText("Error on Fit: %s" % e)
             msg.exec()
-            ddict = {
-                'event': 'FitFailed',
-                'data': None
-            }
+            ddict = {"event": "FitFailed", "data": None}
             self._emitSignal(ddict)
             return
 
-        self.guiParameters.fillFromFit(
-            self.fitmanager.fit_results, view='Fit')
-        self.guiParameters.removeAllViews(keep='Fit')
-        ddict = {
-            'event': 'FitFinished',
-            'data': self.fitmanager.fit_results
-        }
+        self.guiParameters.fillFromFit(self.fitmanager.fit_results, view="Fit")
+        self.guiParameters.removeAllViews(keep="Fit")
+        ddict = {"event": "FitFinished", "data": self.fitmanager.fit_results}
         self._emitSignal(ddict)
         return
 
@@ -589,15 +595,17 @@ class FitWidget(qt.QWidget):
             self.fitmanager.setbackground(bgtheory)
         else:
             functionsfile = qt.QFileDialog.getOpenFileName(
-                self, "Select python module with your function(s)", "",
-                "Python Files (*.py);;All Files (*)")
+                self,
+                "Select python module with your function(s)",
+                "",
+                "Python Files (*.py);;All Files (*)",
+            )
 
             if len(functionsfile):
                 try:
                     self.fitmanager.loadbgtheories(functionsfile)
                 except ImportError:
-                    qt.QMessageBox.critical(self, "ERROR",
-                                            "Function not imported")
+                    qt.QMessageBox.critical(self, "ERROR", "Function not imported")
                     return
                 else:
                     # empty the ComboBox
@@ -607,9 +615,9 @@ class FitWidget(qt.QWidget):
                     for key in self.fitmanager.bgtheories:
                         self.guiConfig.BkgComBox.addItem(str(key))
 
-            i = 1 + \
-                list(self.fitmanager.bgtheories.keys()).index(
-                    self.fitmanager.selectedbg)
+            i = 1 + list(self.fitmanager.bgtheories.keys()).index(
+                self.fitmanager.selectedbg
+            )
             self.guiConfig.BkgComBox.setCurrentIndex(i)
         self.__initialParameters()
 
@@ -628,15 +636,17 @@ class FitWidget(qt.QWidget):
         else:
             # open a load file dialog
             functionsfile = qt.QFileDialog.getOpenFileName(
-                self, "Select python module with your function(s)", "",
-                "Python Files (*.py);;All Files (*)")
+                self,
+                "Select python module with your function(s)",
+                "",
+                "Python Files (*.py);;All Files (*)",
+            )
 
             if len(functionsfile):
                 try:
                     self.fitmanager.loadtheories(functionsfile)
                 except ImportError:
-                    qt.QMessageBox.critical(self, "ERROR",
-                                            "Function not imported")
+                    qt.QMessageBox.critical(self, "ERROR", "Function not imported")
                     return
                 else:
                     # empty the ComboBox
@@ -646,9 +656,9 @@ class FitWidget(qt.QWidget):
                     for key in self.fitmanager.theories:
                         self.guiConfig.FunComBox.addItem(str(key))
 
-            i = 1 + \
-                list(self.fitmanager.theories.keys()).index(
-                    self.fitmanager.selectedtheory)
+            i = 1 + list(self.fitmanager.theories.keys()).index(
+                self.fitmanager.selectedtheory
+            )
             self.guiConfig.FunComBox.setCurrentIndex(i)
         self.__initialParameters()
 
@@ -673,45 +683,52 @@ class FitWidget(qt.QWidget):
         self.fitmanager.fit_results = []
         for pname in self.fitmanager.bgtheories[self.fitmanager.selectedbg].parameters:
             self.fitmanager.parameter_names.append(pname)
-            self.fitmanager.fit_results.append({'name': pname,
-                                           'estimation': 0,
-                                           'group': 0,
-                                           'code': 'FREE',
-                                           'cons1': 0,
-                                           'cons2': 0,
-                                           'fitresult': 0.0,
-                                           'sigma': 0.0,
-                                           'xmin': None,
-                                           'xmax': None})
+            self.fitmanager.fit_results.append(
+                {
+                    "name": pname,
+                    "estimation": 0,
+                    "group": 0,
+                    "code": "FREE",
+                    "cons1": 0,
+                    "cons2": 0,
+                    "fitresult": 0.0,
+                    "sigma": 0.0,
+                    "xmin": None,
+                    "xmax": None,
+                }
+            )
         if self.fitmanager.selectedtheory is not None:
             theory = self.fitmanager.selectedtheory
             for pname in self.fitmanager.theories[theory].parameters:
                 self.fitmanager.parameter_names.append(pname + "1")
-                self.fitmanager.fit_results.append({'name': pname + "1",
-                                               'estimation': 0,
-                                               'group': 1,
-                                               'code': 'FREE',
-                                               'cons1': 0,
-                                               'cons2': 0,
-                                               'fitresult': 0.0,
-                                               'sigma': 0.0,
-                                               'xmin': None,
-                                               'xmax': None})
+                self.fitmanager.fit_results.append(
+                    {
+                        "name": pname + "1",
+                        "estimation": 0,
+                        "group": 1,
+                        "code": "FREE",
+                        "cons1": 0,
+                        "cons2": 0,
+                        "fitresult": 0.0,
+                        "sigma": 0.0,
+                        "xmin": None,
+                        "xmax": None,
+                    }
+                )
 
-        self.guiParameters.fillFromFit(
-            self.fitmanager.fit_results, view='Fit')
+        self.guiParameters.fillFromFit(self.fitmanager.fit_results, view="Fit")
 
     def fitStatus(self, data):
         """Set *status* and *chisq* in status bar"""
-        if 'chisq' in data:
-            if data['chisq'] is None:
+        if "chisq" in data:
+            if data["chisq"] is None:
                 self.guistatus.ChisqLine.setText(" ")
             else:
-                chisq = data['chisq']
+                chisq = data["chisq"]
                 self.guistatus.ChisqLine.setText("%6.2f" % chisq)
 
-        if 'status' in data:
-            status = data['status']
+        if "status" in data:
+            status = data["status"]
             self.guistatus.StatusLine.setText(str(status))
 
     def dismiss(self):
@@ -725,13 +742,29 @@ if __name__ == "__main__":
     x = numpy.arange(1500).astype(numpy.float64)
     constant_bg = 3.14
 
-    p = [1000, 100., 30.0,
-         500, 300., 25.,
-         1700, 500., 35.,
-         750, 700., 30.0,
-         1234, 900., 29.5,
-         302, 1100., 30.5,
-         75, 1300., 21.]
+    p = [
+        1000,
+        100.0,
+        30.0,
+        500,
+        300.0,
+        25.0,
+        1700,
+        500.0,
+        35.0,
+        750,
+        700.0,
+        30.0,
+        1234,
+        900.0,
+        29.5,
+        302,
+        1100.0,
+        30.5,
+        75,
+        1300.0,
+        21.0,
+    ]
     y = functions.sum_gauss(x, *p) + constant_bg
 
     a = qt.QApplication(sys.argv)

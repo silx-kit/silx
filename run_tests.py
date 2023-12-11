@@ -45,7 +45,8 @@ import sysconfig
 # Capture all default warnings
 logging.captureWarnings(True)
 import warnings
-warnings.simplefilter('default')
+
+warnings.simplefilter("default")
 
 logger = logging.getLogger("run_tests")
 logger.setLevel(logging.WARNING)
@@ -75,11 +76,15 @@ def get_project_name(root_dir):
     :return: The name of the project stored in root_dir
     """
     logger.debug("Getting project name in %s", root_dir)
-    p = subprocess.Popen([sys.executable, "setup.py", "--name"],
-                         shell=False, cwd=root_dir, stdout=subprocess.PIPE)
+    p = subprocess.Popen(
+        [sys.executable, "setup.py", "--name"],
+        shell=False,
+        cwd=root_dir,
+        stdout=subprocess.PIPE,
+    )
     name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
-    return name.split()[-1].decode('ascii')
+    return name.split()[-1].decode("ascii")
 
 
 def is_debug_python():
@@ -100,8 +105,7 @@ def build_project(name, root_dir):
     :return: The path to the directory were build was performed
     """
     platform = sysconfig.get_platform()
-    architecture = "lib.%s-%i.%i" % (platform,
-                                     sys.version_info[0], sys.version_info[1])
+    architecture = "lib.%s-%i.%i" % (platform, sys.version_info[0], sys.version_info[1])
     if is_debug_python():
         architecture += "-pydebug"
 
@@ -133,8 +137,10 @@ def import_project_module(project_name, project_dir):
         try:
             module = importlib.import_module(project_name)
         except Exception:
-            logger.error("Cannot run tests on installed version: %s not installed or raising error.",
-                         project_name)
+            logger.error(
+                "Cannot run tests on installed version: %s not installed or raising error.",
+                project_name,
+            )
             raise
     else:  # Use built source
         build_dir = build_project(project_name, project_dir)
@@ -154,7 +160,7 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
     logger.info("Project name: %s", PROJECT_NAME)
 
     project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
-    PROJECT_VERSION = getattr(project_module, 'version', '')
+    PROJECT_VERSION = getattr(project_module, "version", "")
     PROJECT_PATH = project_module.__path__[0]
 
     def normalize_option(option):

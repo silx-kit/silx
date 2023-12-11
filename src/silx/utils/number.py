@@ -52,7 +52,9 @@ if _biggest_float is None:
     _float_types = (numpy.float64, numpy.float32, numpy.float16)
 
 
-_parse_numeric_value = re.compile(r"^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$")
+_parse_numeric_value = re.compile(
+    r"^\s*[-+]?0*(\d+?)?(?:\.(\d+))?(?:[eE]([-+]?\d+))?\s*$"
+)
 
 
 def is_longdouble_64bits():
@@ -129,14 +131,24 @@ def min_numerical_convertible_type(string, check_accuracy=True):
         expected = number + decimal
         # This format the number without python convertion
         try:
-            result = numpy.array2string(value, precision=len(number) + len(decimal), floatmode="fixed")
+            result = numpy.array2string(
+                value, precision=len(number) + len(decimal), floatmode="fixed"
+            )
         except TypeError:
             # numpy 1.8.2 do not have floatmode argument
-            _logger.warning("Not able to check accuracy of the conversion of '%s' using %s", string, _biggest_float)
+            _logger.warning(
+                "Not able to check accuracy of the conversion of '%s' using %s",
+                string,
+                _biggest_float,
+            )
             return numpy_type
 
         result = result.replace(".", "").replace("-", "")
         if not result.startswith(expected):
-            _logger.warning("Not able to convert '%s' using %s without losing precision", string, _biggest_float)
+            _logger.warning(
+                "Not able to convert '%s' using %s without losing precision",
+                string,
+                _biggest_float,
+            )
 
     return numpy_type

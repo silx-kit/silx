@@ -26,11 +26,11 @@ from .. import gl
 
 
 def test_version_bytes(mocker):
-    mocker.patch('silx.gui._glutils.gl.glGetString', return_value=b"3.0 Mock")
+    mocker.patch("silx.gui._glutils.gl.glGetString", return_value=b"3.0 Mock")
     assert gl.getVersion() == (3, 0)
 
 
 def test_version_str(mocker):
     """In case glGetString returns str"""
-    mocker.patch('silx.gui._glutils.gl.glGetString', return_value="3.0 Mock")
+    mocker.patch("silx.gui._glutils.gl.glGetString", return_value="3.0 Mock")
     assert gl.getVersion() == (3, 0)

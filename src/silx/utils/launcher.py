@@ -140,12 +140,9 @@ class Launcher(object):
     and execute the commands.
     """
 
-    def __init__(self,
-                 prog=None,
-                 usage=None,
-                 description=None,
-                 epilog=None,
-                 version=None):
+    def __init__(
+        self, prog=None, usage=None, description=None, epilog=None, version=None
+    ):
         """
         :param str prog: Name of the program. If it is not defined it uses the
             first argument of `sys.argv`
@@ -168,7 +165,8 @@ class Launcher(object):
         help_command = LauncherCommand(
             "help",
             description="Show help of the following command",
-            function=self.execute_help)
+            function=self.execute_help,
+        )
         self.add_command(command=help_command)
 
     def add_command(self, name=None, module_name=None, description=None, command=None):
@@ -183,17 +181,15 @@ class Launcher(object):
         :param LauncherCommand command: A `LauncherCommand`
         """
         if command is not None:
-            assert(name is None and module_name is None and description is None)
+            assert name is None and module_name is None and description is None
         else:
             command = LauncherCommand(
-                name=name,
-                description=description,
-                module_name=module_name)
+                name=name, description=description, module_name=module_name
+            )
         self._commands[command.name] = command
 
     def print_help(self):
-        """Print the help to stdout.
-        """
+        """Print the help to stdout."""
         usage = self.usage
         if usage is None:
             usage = "usage: {0.prog} [--version|--help] <command> [<args>]"
@@ -226,10 +222,11 @@ class Launcher(object):
         description = "Display help information about %s" % self.prog
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument(
-            'command',
+            "command",
             default=None,
             nargs=argparse.OPTIONAL,
-            help='Command in which aving help')
+            help="Command in which aving help",
+        )
 
         try:
             options = parser.parse_args(argv[1:])

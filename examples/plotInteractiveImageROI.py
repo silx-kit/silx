@@ -47,7 +47,7 @@ def dummy_image():
     """Create a dummy image"""
     x = numpy.linspace(-1.5, 1.5, 1024)
     xv, yv = numpy.meshgrid(x, x)
-    signal = numpy.exp(- (xv ** 2 / 0.15 ** 2 + yv ** 2 / 0.25 ** 2))
+    signal = numpy.exp(-(xv**2 / 0.15**2 + yv**2 / 0.25**2))
     # add noise
     signal += 0.3 * numpy.random.random(size=signal.shape)
     return signal
@@ -57,7 +57,7 @@ app = qt.QApplication([])  # Start QApplication
 
 # Create the plot widget and add an image
 plot = Plot2D()
-plot.getDefaultColormap().setName('viridis')
+plot.getDefaultColormap().setName("viridis")
 plot.setKeepDataAspectRatio(True)
 plot.addImage(dummy_image())
 
@@ -67,17 +67,17 @@ plot.addToolBar(toolbar)
 
 # Create the object controlling the ROIs and set it up
 roiManager = RegionOfInterestManager(plot)
-roiManager.setColor('pink')  # Set the color of ROI
+roiManager.setColor("pink")  # Set the color of ROI
 
 
 # Set the name of each created region of interest
 def updateAddedRegionOfInterest(roi):
     """Called for each added region of interest: set the name"""
-    if roi.getName() == '':
-        roi.setName('ROI %d' % len(roiManager.getRois()))
+    if roi.getName() == "":
+        roi.setName("ROI %d" % len(roiManager.getRois()))
     if isinstance(roi, LineMixIn):
         roi.setLineWidth(1)
-        roi.setLineStyle('--')
+        roi.setLineStyle("--")
     if isinstance(roi, SymbolMixIn):
         roi.setSymbolSize(5)
     roi.setSelectable(True)
@@ -90,7 +90,7 @@ roiManager.sigRoiAdded.connect(updateAddedRegionOfInterest)
 # Add a rectangular region of interest
 roi = RectangleROI()
 roi.setGeometry(origin=(50, 50), size=(200, 200))
-roi.setName('Initial ROI')
+roi.setName("Initial ROI")
 roiManager.addRoi(roi)
 
 # Create the table widget displaying
@@ -105,6 +105,7 @@ for roiClass in roiManager.getSupportedRoiClasses():
     # Create a tool button and associate it with the QAction of each mode
     action = roiManager.getInteractionModeAction(roiClass)
     roiToolbar.addAction(action)
+
 
 class AutoHideToolBar(qt.QToolBar):
     """A toolbar which hide itself if no actions are visible"""
@@ -121,6 +122,7 @@ class AutoHideToolBar(qt.QToolBar):
                 visible = True
                 break
         self.setVisible(visible)
+
 
 roiToolbarEdit = AutoHideToolBar()
 modeSelectorAction = RoiModeSelectorAction()
@@ -145,7 +147,7 @@ def roiDockVisibilityChanged(visible):
         roiManager.stop()
 
 
-dock = qt.QDockWidget('Image ROI')
+dock = qt.QDockWidget("Image ROI")
 dock.setWidget(widget)
 dock.visibilityChanged.connect(roiDockVisibilityChanged)
 plot.addTabbedDockWidget(dock)

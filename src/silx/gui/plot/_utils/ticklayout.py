@@ -33,6 +33,7 @@ import math
 
 # utils #######################################################################
 
+
 def numberOfDigits(tickSpacing):
     """Returns the number of digits to display for text label.
 
@@ -76,7 +77,7 @@ def numberOfDigits(tickSpacing):
 
 
 def niceNumGeneric(value, niceFractions=None, isRound=False):
-    """ A more generic implementation of the _niceNum function
+    """A more generic implementation of the _niceNum function
 
     Allows the user to specify the fractions instead of using a hardcoded
     list of [1, 2, 5, 10.0].
@@ -85,15 +86,15 @@ def niceNumGeneric(value, niceFractions=None, isRound=False):
         return value
 
     if niceFractions is None:  # Use default values
-        niceFractions = 1., 2., 5., 10.
-        roundFractions = (1.5, 3., 7., 10.) if isRound else niceFractions
+        niceFractions = 1.0, 2.0, 5.0, 10.0
+        roundFractions = (1.5, 3.0, 7.0, 10.0) if isRound else niceFractions
 
     else:
         roundFractions = list(niceFractions)
         if isRound:
             # Take the average with the next element. The last remains the same.
             for i in range(len(roundFractions) - 1):
-                roundFractions[i] = (niceFractions[i] + niceFractions[i+1]) / 2
+                roundFractions[i] = (niceFractions[i] + niceFractions[i + 1]) / 2
 
     highest = niceFractions[-1]
     value = float(value)
@@ -133,7 +134,7 @@ def niceNumbers(vMin, vMax, nTicks=5):
 
 def _frange(start, stop, step):
     """range for float (including stop)."""
-    assert step >= 0.
+    assert step >= 0.0
     while start <= stop:
         yield start
         start += step
@@ -166,7 +167,7 @@ def ticks(vMin, vMax, nbTicks=5):
             nfrac = numberOfDigits(vMax - vMin)
 
     # Generate labels
-    format_ = '%g' if nfrac == 0 else '%.{}f'.format(nfrac)
+    format_ = "%g" if nfrac == 0 else "%.{}f".format(nfrac)
     labels = [format_ % tick for tick in positions]
     return positions, labels
 
@@ -194,6 +195,7 @@ def niceNumbersAdaptative(vMin, vMax, axisLength, tickDensity):
 
 # Nice Numbers for log scale ##################################################
 
+
 def niceNumbersForLog10(minLog, maxLog, nTicks=5):
     """Return tick positions for logarithmic scale
 
@@ -209,7 +211,7 @@ def niceNumbersForLog10(minLog, maxLog, nTicks=5):
     rangelog = graphmaxlog - graphminlog
 
     if rangelog <= nTicks:
-        spacing = 1.
+        spacing = 1.0
     else:
         spacing = math.floor(rangelog / nTicks)
 

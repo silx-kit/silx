@@ -36,8 +36,7 @@ from silx.math import marchingcubes
 class TestMarchingCubes(ParametricTestCase):
     """Tests of marching cubes"""
 
-    def assertAllClose(self, array1, array2, msg=None,
-                       rtol=1e-05, atol=1e-08):
+    def assertAllClose(self, array1, array2, msg=None, rtol=1e-05, atol=1e-08):
         """Assert that the 2 numpy.ndarrays are almost equal.
 
         :param str msg: Message to provide when assert fails
@@ -53,9 +52,9 @@ class TestMarchingCubes(ParametricTestCase):
         # No isosurface
         cube_zero = numpy.zeros((2, 2, 2), dtype=numpy.float32)
 
-        result = marchingcubes.MarchingCubes(cube_zero, 1.)
+        result = marchingcubes.MarchingCubes(cube_zero, 1.0)
         self.assertEqual(result.shape, cube_zero.shape)
-        self.assertEqual(result.isolevel, 1.)
+        self.assertEqual(result.isolevel, 1.0)
         self.assertEqual(result.invert_normals, True)
 
         vertices, normals, indices = result
@@ -82,43 +81,45 @@ class TestMarchingCubes(ParametricTestCase):
 
         # isosurface perpendicular to dim 0 (Z)
         cube = numpy.array(
-            (((0., 0.), (0., 0.)),
-             ((1., 1.), (1., 1.))), dtype=numpy.float32)
+            (((0.0, 0.0), (0.0, 0.0)), ((1.0, 1.0), (1.0, 1.0))), dtype=numpy.float32
+        )
         level = 0.5
         vertices, normals, indices = marchingcubes.MarchingCubes(
-            cube, level, invert_normals=False)
+            cube, level, invert_normals=False
+        )
         self.assertAllClose(vertices[:, 0], level)
-        self.assertAllClose(normals, (1., 0., 0.))
+        self.assertAllClose(normals, (1.0, 0.0, 0.0))
         self.assertEqual(len(indices), 2)
 
         # isosurface perpendicular to dim 1 (Y)
         cube = numpy.array(
-            (((0., 0.), (1., 1.)),
-             ((0., 0.), (1., 1.))), dtype=numpy.float32)
+            (((0.0, 0.0), (1.0, 1.0)), ((0.0, 0.0), (1.0, 1.0))), dtype=numpy.float32
+        )
         level = 0.2
         vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
         self.assertAllClose(vertices[:, 1], level)
-        self.assertAllClose(normals, (0., -1., 0.))
+        self.assertAllClose(normals, (0.0, -1.0, 0.0))
         self.assertEqual(len(indices), 2)
 
         # isosurface perpendicular to dim 2 (X)
         cube = numpy.array(
-            (((0., 1.), (0., 1.)),
-             ((0., 1.), (0., 1.))), dtype=numpy.float32)
+            (((0.0, 1.0), (0.0, 1.0)), ((0.0, 1.0), (0.0, 1.0))), dtype=numpy.float32
+        )
         level = 0.9
         vertices, normals, indices = marchingcubes.MarchingCubes(
-            cube, level, invert_normals=False)
+            cube, level, invert_normals=False
+        )
         self.assertAllClose(vertices[:, 2], level)
-        self.assertAllClose(normals, (0., 0., 1.))
+        self.assertAllClose(normals, (0.0, 0.0, 1.0))
         self.assertEqual(len(indices), 2)
 
         # isosurface normal in dim1, dim 0 (Y, Z) plane
         cube = numpy.array(
-            (((0., 0.), (0., 0.)),
-             ((0., 0.), (1., 1.))), dtype=numpy.float32)
+            (((0.0, 0.0), (0.0, 0.0)), ((0.0, 0.0), (1.0, 1.0))), dtype=numpy.float32
+        )
         level = 0.5
         vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
-        self.assertAllClose(normals[:, 2], 0.)
+        self.assertAllClose(normals[:, 2], 0.0)
         self.assertEqual(len(indices), 2)
 
     def test_sampling(self):
@@ -144,26 +145,26 @@ class TestMarchingCubes(ParametricTestCase):
             with self.subTest(sampling=sampling):
                 sampling = numpy.array(sampling)
 
-                data = 1e6 * numpy.ones(
-                    sampling * size, dtype=numpy.float32)
+                data = 1e6 * numpy.ones(sampling * size, dtype=numpy.float32)
                 # Copy ref chessboard in data according to sampling
-                data[::sampling[0], ::sampling[1], ::sampling[2]] = chessboard
+                data[:: sampling[0], :: sampling[1], :: sampling[2]] = chessboard
 
-                result = marchingcubes.MarchingCubes(data, isolevel,
-                                                     sampling=sampling)
+                result = marchingcubes.MarchingCubes(data, isolevel, sampling=sampling)
                 # Compare vertices normalized with shape
                 self.assertAllClose(
                     ref_result.get_vertices() / ref_result.shape,
                     result.get_vertices() / result.shape,
-                    atol=0., rtol=0.)
+                    atol=0.0,
+                    rtol=0.0,
+                )
 
                 # Compare normals
                 # This comparison only works for normals aligned with axes
                 # otherwise non uniform sampling would make different normals
-                self.assertAllClose(ref_result.get_normals(),
-                                    result.get_normals(),
-                                    atol=0., rtol=0.)
+                self.assertAllClose(
+                    ref_result.get_normals(), result.get_normals(), atol=0.0, rtol=0.0
+                )
 
-                self.assertAllClose(ref_result.get_indices(),
-                                    result.get_indices(),
-                                    atol=0., rtol=0.)
+                self.assertAllClose(
+                    ref_result.get_indices(), result.get_indices(), atol=0.0, rtol=0.0
+                )

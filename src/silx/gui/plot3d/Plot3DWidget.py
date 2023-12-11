@@ -66,10 +66,9 @@ class _OverviewViewport(scene.Viewport):
 
         # Add a point to draw the background (in a group with depth mask)
         backgroundPoint = primitives.ColorPoints(
-            x=0., y=0., z=0.,
-            color=(1., 1., 1., 0.5),
-            size=self._SIZE)
-        backgroundPoint.marker = 'o'
+            x=0.0, y=0.0, z=0.0, color=(1.0, 1.0, 1.0, 0.5), size=self._SIZE
+        )
+        backgroundPoint.marker = "o"
         noDepthGroup = primitives.GroupNoDepth(mask=True, notest=True)
         noDepthGroup.children.append(backgroundPoint)
         self.scene.children.append(noDepthGroup)
@@ -86,11 +85,12 @@ class _OverviewViewport(scene.Viewport):
         Sync the overview camera to point in the same direction
         but from a sphere centered on origin.
         """
-        position = -12. * source.extrinsic.direction
+        position = -12.0 * source.extrinsic.direction
         self.camera.extrinsic.position = position
 
         self.camera.extrinsic.setOrientation(
-            source.extrinsic.direction, source.extrinsic.up)
+            source.extrinsic.direction, source.extrinsic.up
+        )
 
 
 class Plot3DWidget(glu.OpenGLWidget):
@@ -116,10 +116,10 @@ class Plot3DWidget(glu.OpenGLWidget):
     class FogMode(_Enum):
         """Different mode to render the scene with fog"""
 
-        NONE = 'none'
+        NONE = "none"
         """No fog effect"""
 
-        LINEAR = 'linear'
+        LINEAR = "linear"
         """Linear fog through the whole scene"""
 
     def __init__(self, parent=None, f=qt.Qt.Widget):
@@ -131,7 +131,8 @@ class Plot3DWidget(glu.OpenGLWidget):
             depthBufferSize=0,
             stencilBufferSize=0,
             version=(2, 1),
-            f=f)
+            f=f,
+        )
 
         self.setAutoFillBackground(False)
         self.setMouseTracking(True)
@@ -145,22 +146,24 @@ class Plot3DWidget(glu.OpenGLWidget):
         # Main viewport
         self.viewport = scene.Viewport()
 
-        self._sceneScale = transform.Scale(1., 1., 1.)
-        self.viewport.scene.transforms = [self._sceneScale,
-                                          transform.Translate(0., 0., 0.)]
+        self._sceneScale = transform.Scale(1.0, 1.0, 1.0)
+        self.viewport.scene.transforms = [
+            self._sceneScale,
+            transform.Translate(0.0, 0.0, 0.0),
+        ]
 
         # Overview area
         self.overview = _OverviewViewport(self.viewport.camera)
 
-        self.setBackgroundColor((0.2, 0.2, 0.2, 1.))
+        self.setBackgroundColor((0.2, 0.2, 0.2, 1.0))
 
         # Window describing on screen area to render
-        self._window = scene.Window(mode='framebuffer')
+        self._window = scene.Window(mode="framebuffer")
         self._window.viewports = [self.viewport, self.overview]
         self._window.addListener(self._redraw)
 
         self.eventHandler = None
-        self.setInteractiveMode('rotate')
+        self.setInteractiveMode("rotate")
 
     def __clickHandler(self, *args):
         """Handle interaction state machine click"""
@@ -180,31 +183,35 @@ class Plot3DWidget(glu.OpenGLWidget):
         if mode is None:
             self.eventHandler = None
 
-        elif mode == 'rotate':
+        elif mode == "rotate":
             self.eventHandler = interaction.RotateCameraControl(
                 self.viewport,
                 orbitAroundCenter=False,
-                mode='position',
+                mode="position",
                 scaleTransform=self._sceneScale,
-                selectCB=self.__clickHandler)
+                selectCB=self.__clickHandler,
+            )
 
-        elif mode == 'pan':
+        elif mode == "pan":
             self.eventHandler = interaction.PanCameraControl(
                 self.viewport,
                 orbitAroundCenter=False,
-                mode='position',
+                mode="position",
                 scaleTransform=self._sceneScale,
-                selectCB=self.__clickHandler)
+                selectCB=self.__clickHandler,
+            )
 
         elif isinstance(mode, interaction.StateMachine):
             self.eventHandler = mode
 
         else:
-            raise ValueError('Unsupported interactive mode %s', str(mode))
+            raise ValueError("Unsupported interactive mode %s", str(mode))
 
-        if (self.eventHandler is not None and
-                qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier):
-            self.eventHandler.handleEvent('keyPress', qt.Qt.Key_Control)
+        if (
+            self.eventHandler is not None
+            and qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier
+        ):
+            self.eventHandler.handleEvent("keyPress", qt.Qt.Key_Control)
 
         self.sigInteractiveModeChanged.emit()
 
@@ -216,9 +223,9 @@ class Plot3DWidget(glu.OpenGLWidget):
         if self.eventHandler is None:
             return None
         if isinstance(self.eventHandler, interaction.RotateCameraControl):
-            return 'rotate'
+            return "rotate"
         elif isinstance(self.eventHandler, interaction.PanCameraControl):
-            return 'pan'
+            return "pan"
         else:
             return None
 
@@ -227,13 +234,12 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         :param str projection: In 'perspective', 'orthographic'.
         """
-        if projection == 'orthographic':
+        if projection == "orthographic":
             projection = transform.Orthographic(size=self.viewport.size)
-        elif projection == 'perspective':
-            projection = transform.Perspective(fovy=30.,
-                                               size=self.viewport.size)
+        elif projection == "perspective":
+            projection = transform.Perspective(fovy=30.0, size=self.viewport.size)
         else:
-            raise RuntimeError('Unsupported projection: %s' % projection)
+            raise RuntimeError("Unsupported projection: %s" % projection)
 
         self.viewport.camera.intrinsic = projection
         self.viewport.resetCamera()
@@ -245,11 +251,11 @@ class Plot3DWidget(glu.OpenGLWidget):
         """
         projection = self.viewport.camera.intrinsic
         if isinstance(projection, transform.Orthographic):
-            return 'orthographic'
+            return "orthographic"
         elif isinstance(projection, transform.Perspective):
-            return 'perspective'
+            return "perspective"
         else:
-            raise RuntimeError('Unknown projection in use')
+            raise RuntimeError("Unknown projection in use")
 
     def setBackgroundColor(self, color):
         """Set the background color of the OpenGL view.
@@ -261,7 +267,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         color = rgba(color)
         if color != self.viewport.background:
             self.viewport.background = color
-            self.sigStyleChanged.emit('backgroundColor')
+            self.sigStyleChanged.emit("backgroundColor")
 
     def getBackgroundColor(self):
         """Returns the RGBA background color (QColor)."""
@@ -276,7 +282,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         mode = self.FogMode.from_value(mode)
         if mode != self.getFogMode():
             self.viewport.fog.isOn = mode is self.FogMode.LINEAR
-            self.sigStyleChanged.emit('fogMode')
+            self.sigStyleChanged.emit("fogMode")
 
     def getFogMode(self):
         """Returns the kind of fog in use
@@ -307,13 +313,13 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self._window.viewports = [self.viewport, self.overview]
             else:
                 self._window.viewports = [self.viewport]
-            self.sigStyleChanged.emit('orientationIndicatorVisible')
+            self.sigStyleChanged.emit("orientationIndicatorVisible")
 
     def centerScene(self):
         """Position the center of the scene at the center of rotation."""
         self.viewport.resetCamera()
 
-    def resetZoom(self, face='front'):
+    def resetZoom(self, face="front"):
         """Reset the camera position to a default.
 
         :param str face: The direction the camera is looking at:
@@ -366,7 +372,7 @@ class Plot3DWidget(glu.OpenGLWidget):
         :rtype: QImage
         """
         if not self.isValid():
-            _logger.error('OpenGL 2.1 not available, cannot save OpenGL image')
+            _logger.error("OpenGL 2.1 not available, cannot save OpenGL image")
             height, width = self._window.shape
             image = numpy.zeros((height, width, 3), dtype=numpy.uint8)
 
@@ -380,22 +386,22 @@ class Plot3DWidget(glu.OpenGLWidget):
         x, y = qt.getMouseEventPosition(event)
         xpixel = x * self.getDevicePixelRatio()
         ypixel = y * self.getDevicePixelRatio()
-        angle = event.angleDelta().y() / 8.
+        angle = event.angleDelta().y() / 8.0
         event.accept()
 
         if self.eventHandler is not None and angle != 0 and self.isValid():
             self.makeCurrent()
-            self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
+            self.eventHandler.handleEvent("wheel", xpixel, ypixel, angle)
 
     def keyPressEvent(self, event):
         keyCode = event.key()
         # No need to accept QKeyEvent
 
         converter = {
-            qt.Qt.Key_Left: 'left',
-            qt.Qt.Key_Right: 'right',
-            qt.Qt.Key_Up: 'up',
-            qt.Qt.Key_Down: 'down'
+            qt.Qt.Key_Left: "left",
+            qt.Qt.Key_Right: "right",
+            qt.Qt.Key_Up: "up",
+            qt.Qt.Key_Down: "down",
         }
         direction = converter.get(keyCode, None)
         if direction is not None:
@@ -407,10 +413,12 @@ class Plot3DWidget(glu.OpenGLWidget):
                 self.viewport.orbitCamera(direction)
 
         else:
-            if (keyCode == qt.Qt.Key_Control and
-                    self.eventHandler is not None and
-                    self.isValid()):
-                self.eventHandler.handleEvent('keyPress', keyCode)
+            if (
+                keyCode == qt.Qt.Key_Control
+                and self.eventHandler is not None
+                and self.isValid()
+            ):
+                self.eventHandler.handleEvent("keyPress", keyCode)
 
             # Key not handled, call base class implementation
             super(Plot3DWidget, self).keyPressEvent(event)
@@ -418,17 +426,19 @@ class Plot3DWidget(glu.OpenGLWidget):
     def keyReleaseEvent(self, event):
         """Catch Ctrl key release"""
         keyCode = event.key()
-        if (keyCode == qt.Qt.Key_Control and
-                self.eventHandler is not None and
-                self.isValid()):
-            self.eventHandler.handleEvent('keyRelease', keyCode)
+        if (
+            keyCode == qt.Qt.Key_Control
+            and self.eventHandler is not None
+            and self.isValid()
+        ):
+            self.eventHandler.handleEvent("keyRelease", keyCode)
         super(Plot3DWidget, self).keyReleaseEvent(event)
 
     # Mouse events #
     _MOUSE_BTNS = {
-        qt.Qt.LeftButton: 'left',
-        qt.Qt.RightButton: 'right',
-        qt.Qt.MiddleButton: 'middle',
+        qt.Qt.LeftButton: "left",
+        qt.Qt.RightButton: "right",
+        qt.Qt.MiddleButton: "middle",
     }
 
     def mousePressEvent(self, event):
@@ -440,7 +450,7 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
-            self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
+            self.eventHandler.handleEvent("press", xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
         x, y = qt.getMouseEventPosition(event)
@@ -450,7 +460,7 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
-            self.eventHandler.handleEvent('move', xpixel, ypixel)
+            self.eventHandler.handleEvent("move", xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
         x, y = qt.getMouseEventPosition(event)
@@ -461,4 +471,4 @@ class Plot3DWidget(glu.OpenGLWidget):
 
         if self.eventHandler is not None and self.isValid():
             self.makeCurrent()
-            self.eventHandler.handleEvent('release', xpixel, ypixel, btn)
+            self.eventHandler.handleEvent("release", xpixel, ypixel, btn)

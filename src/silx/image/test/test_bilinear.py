@@ -28,18 +28,20 @@ __date__ = "25/11/2020"
 import unittest
 import numpy
 import logging
+
 logger = logging.getLogger(__name__)
 from ..bilinear import BilinearImage
 
 
 class TestBilinear(unittest.TestCase):
     """basic maximum search test"""
+
     N = 1000
 
     def test_max_search_round(self):
         """test maximum search using random points: maximum is at the pixel center"""
-        a = numpy.arange(100) - 40.
-        b = numpy.arange(100) - 60.
+        a = numpy.arange(100) - 40.0
+        b = numpy.arange(100) - 60.0
         ga = numpy.exp(-a * a / 4000)
         gb = numpy.exp(-b * b / 6000)
         gg = numpy.outer(ga, gb)
@@ -57,7 +59,7 @@ class TestBilinear(unittest.TestCase):
             else:
                 logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
                 ok += 1
-        logger.debug("Success rate: %.1f", 100. * ok / self.N)
+        logger.debug("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")
 
     def test_max_search_half(self):
@@ -77,12 +79,12 @@ class TestBilinear(unittest.TestCase):
             else:
                 logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)", i, j, k, l)
                 ok += 1
-        logger.debug("Success rate: %.1f", 100. * ok / self.N)
+        logger.debug("Success rate: %.1f", 100.0 * ok / self.N)
         self.assertEqual(ok, self.N, "Maximum is always found")
 
     def test_map(self):
         N = 6
-        y, x = numpy.ogrid[:N,:N + 10]
+        y, x = numpy.ogrid[:N, : N + 10]
         img = x + y
         b = BilinearImage(img)
         x2d = numpy.zeros_like(y) + x
@@ -90,15 +92,19 @@ class TestBilinear(unittest.TestCase):
         res1 = b.map_coordinates((y2d, x2d))
         self.assertEqual(abs(res1 - img).max(), 0, "images are the same (corners)")
 
-        x2d = numpy.zeros_like(y) + (x[:,:-1] + 0.5)
-        y2d = numpy.zeros_like(x[:,:-1]) + y
+        x2d = numpy.zeros_like(y) + (x[:, :-1] + 0.5)
+        y2d = numpy.zeros_like(x[:, :-1]) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEqual(abs(res1 - img[:,:-1] - 0.5).max(), 0, "images are the same (middle)")
+        self.assertEqual(
+            abs(res1 - img[:, :-1] - 0.5).max(), 0, "images are the same (middle)"
+        )
 
-        x2d = numpy.zeros_like(y[:-1,:]) + (x[:,:-1] + 0.5)
-        y2d = numpy.zeros_like(x[:,:-1]) + (y[:-1,:] + 0.5)
+        x2d = numpy.zeros_like(y[:-1, :]) + (x[:, :-1] + 0.5)
+        y2d = numpy.zeros_like(x[:, :-1]) + (y[:-1, :] + 0.5)
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEqual(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
+        self.assertEqual(
+            abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)"
+        )
 
     def test_mask_grad(self):
         N = 100
@@ -114,22 +120,30 @@ class TestBilinear(unittest.TestCase):
         self.assertEqual(b.maxi, N * N - 1, "maxi is N²-1")
         self.assertEqual(b.mini, 0, "mini is 0")
 
-        y, x = numpy.ogrid[:N,:N]
+        y, x = numpy.ogrid[:N, :N]
         x2d = numpy.zeros_like(y) + x
         y2d = numpy.zeros_like(x) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertEqual(numpy.nanmax(abs(res1 - img)), 0, "images are the same (corners), or Nan ")
+        self.assertEqual(
+            numpy.nanmax(abs(res1 - img)), 0, "images are the same (corners), or Nan "
+        )
 
-        x2d = numpy.zeros_like(y) + (x[:,:-1] + 0.5)
-        y2d = numpy.zeros_like(x[:,:-1]) + y
+        x2d = numpy.zeros_like(y) + (x[:, :-1] + 0.5)
+        y2d = numpy.zeros_like(x[:, :-1]) + y
         res1 = b.map_coordinates((y2d, x2d))
-        self.assertLessEqual(numpy.max(abs(res1 - img[:, 1:] + 1 / 2.)), 0.5, "images are the same (middle) +/- 0.5")
+        self.assertLessEqual(
+            numpy.max(abs(res1 - img[:, 1:] + 1 / 2.0)),
+            0.5,
+            "images are the same (middle) +/- 0.5",
+        )
 
-        x2d = numpy.zeros_like(y[:-1]) + (x[:,:-1] + 0.5)
-        y2d = numpy.zeros_like(x[:,:-1]) + (y[:-1] + 0.5)
+        x2d = numpy.zeros_like(y[:-1]) + (x[:, :-1] + 0.5)
+        y2d = numpy.zeros_like(x[:, :-1]) + (y[:-1] + 0.5)
         res1 = b.map_coordinates((y2d, x2d))
-        exp = 0.25 * (img[:-1,:-1] + img[:-1, 1:] + img[1:,:-1] + img[1:, 1:])
-        self.assertLessEqual(abs(res1 - exp).max(), N / 4, "images are almost the same (center)")
+        exp = 0.25 * (img[:-1, :-1] + img[:-1, 1:] + img[1:, :-1] + img[1:, 1:])
+        self.assertLessEqual(
+            abs(res1 - exp).max(), N / 4, "images are almost the same (center)"
+        )
 
     def test_profile_grad(self):
         N = 100
@@ -138,7 +152,11 @@ class TestBilinear(unittest.TestCase):
         res1 = b.profile_line((0, 0), (N - 1, N - 1))
         l = numpy.ceil(numpy.sqrt(2) * N)
         self.assertEqual(len(res1), l, "Profile has correct length")
-        self.assertLess((res1[:-2] - res1[1:-1]).std(), 1e-3, "profile is linear (excluding last point)")
+        self.assertLess(
+            (res1[:-2] - res1[1:-1]).std(),
+            1e-3,
+            "profile is linear (excluding last point)",
+        )
 
     def test_profile_gaus(self):
         N = 100
@@ -154,13 +172,15 @@ class TestBilinear(unittest.TestCase):
         self.assertLess(abs(res_ver - g).max(), 1e-5, "correct vertical profile")
 
         # Profile with linewidth=3
-        expected_profile = img[:, N // 2 - 1:N // 2 + 2].mean(axis=1)
+        expected_profile = img[:, N // 2 - 1 : N // 2 + 2].mean(axis=1)
         res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1), linewidth=3)
         res_ver = b.profile_line((0, N // 2), (N - 1, N // 2), linewidth=3)
 
         self.assertEqual(len(res_hor), N, "Profile has correct length")
         self.assertEqual(len(res_ver), N, "Profile has correct length")
-        self.assertLess(abs(res_hor - expected_profile).max(), 1e-5,
-                        "correct horizontal profile")
-        self.assertLess(abs(res_ver - expected_profile).max(), 1e-5,
-                        "correct vertical profile")
+        self.assertLess(
+            abs(res_hor - expected_profile).max(), 1e-5, "correct horizontal profile"
+        )
+        self.assertLess(
+            abs(res_ver - expected_profile).max(), 1e-5, "correct vertical profile"
+        )

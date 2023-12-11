@@ -39,6 +39,7 @@ class FloatEdit(qt.QLineEdit):
     :param parent: See :class:`QLineEdit`
     :param value: The value to set the QLineEdit to.
     """
+
     def __init__(self, parent: qt.QWidget | None = None, value: float | None = None):
         qt.QLineEdit.__init__(self, parent)
         validator = qt.QDoubleValidator(self)
@@ -63,7 +64,7 @@ class FloatEdit(qt.QLineEdit):
         locale = self.validator().locale()
         if qt.BINDING == "PySide6":
             # Fix for PySide6 not selecting the right method
-            text = locale.toString(float(value), 'g')
+            text = locale.toString(float(value), "g")
         else:
             text = locale.toString(float(value))
 

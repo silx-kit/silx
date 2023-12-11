@@ -198,7 +198,9 @@ class _ImagePreview(qt.QWidget):
         axis = self.__plot.getXAxis()
         axis.setLimitsConstraints(midWidth - widthContraint, midWidth + widthContraint)
         axis = self.__plot.getYAxis()
-        axis.setLimitsConstraints(midHeight - heightContraint, midHeight + heightContraint)
+        axis.setLimitsConstraints(
+            midHeight - heightContraint, midHeight + heightContraint
+        )
 
     def __imageItem(self):
         image = self.__plot.getImage("data")
@@ -340,14 +342,14 @@ class ImageFileDialog(AbstractDataFileDialog):
         """
         destination = self.__formatShape(dataAfterSelection.shape)
         source = self.__formatShape(dataBeforeSelection.shape)
-        return u"%s \u2192 %s" % (source, destination)
+        return "%s \u2192 %s" % (source, destination)
 
     def __formatShape(self, shape):
         result = []
         for s in shape:
             if isinstance(s, slice):
-                v = u"\u2026"
+                v = "\u2026"
             else:
                 v = str(s)
             result.append(v)
-        return u" \u00D7 ".join(result)
+        return " \u00D7 ".join(result)

@@ -43,18 +43,21 @@ import time
 import logging
 import numpy
 import pytest
+
 try:
     import scipy
 except ImportError:
     scipy = None
 else:
     import scipy.ndimage
+
     try:
         from scipy.misc import ascent
     except:
         from scipy.datasets import ascent
 
 from silx.opencl import ocl, kernel_workgroup_size
+
 if ocl:
     import pyopencl.array
 # for Python implementation of tested functions
@@ -76,14 +79,19 @@ class TestTransform(unittest.TestCase):
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            cls.maxwg = (
+                ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            )
 
     @classmethod
     def tearDownClass(cls):
@@ -93,18 +101,22 @@ class TestTransform(unittest.TestCase):
 
     def setUp(self):
         kernel_src = get_opencl_code(os.path.join("sift", "transform"))
-        self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
+        self.program = pyopencl.Program(
+            self.ctx, kernel_src
+        ).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
         self.image = ascent().astype(numpy.float32)
 
     def tearDown(self):
         self.program = None
 
-    def image_reshape(self, img, output_height, output_width, image_height, image_width):
-        '''
+    def image_reshape(
+        self, img, output_height, output_width, image_height, image_width
+    ):
+        """
         Reshape the image to get a bigger image with the input image in the center
 
-        '''
+        """
         image3 = numpy.zeros((output_height, output_width), dtype=numpy.float32)
         d1 = (output_width - image_width) // 2
         d0 = (output_height - image_height) // 2
@@ -115,15 +127,17 @@ class TestTransform(unittest.TestCase):
 
     @pytest.mark.usefixtures("use_large_memory")
     def test_transform(self):
-        '''
+        """
         tests transform kernel
-        '''
+        """
 
         # Transformation
         # ---------------
         matrix = numpy.array([[1.0, -0.75], [0.7, 0.5]], dtype=numpy.float32)
         offset_value = numpy.array([250.0, -150.0], dtype=numpy.float32)
-        transformation = lambda img: scipy.ndimage.affine_transform(img, matrix, offset=offset_value, order=1, mode="constant")
+        transformation = lambda img: scipy.ndimage.affine_transform(
+            img, matrix, offset=offset_value, order=1, mode="constant"
+        )
         image_transformed = transformation(self.image)
 
         fill_value = numpy.float32(0.0)
@@ -132,7 +146,9 @@ class TestTransform(unittest.TestCase):
         # computing keypoints matching with SIFT
         sift_plan = SiftPlan(template=self.image, block_size=self.maxwg)
         kp1 = sift_plan.keypoints(self.image)
-        kp2 = sift_plan.keypoints(image_transformed)  # image2 and image must have the same size
+        kp2 = sift_plan.keypoints(
+            image_transformed
+        )  # image2 and image must have the same size
         match_plan = MatchPlan()  # cls.ctx
         matching = match_plan.match(kp2, kp1)
 
@@ -153,7 +169,9 @@ class TestTransform(unittest.TestCase):
         wg = maxwg, 1
         shape = calc_size(self.image.shape[::-1], wg)
         gpu_image = pyopencl.array.to_device(self.queue, image_transformed)
-        gpu_output = pyopencl.array.empty(self.queue, self.image.shape, dtype=numpy.float32, order="C")
+        gpu_output = pyopencl.array.empty(
+            self.queue, self.image.shape, dtype=numpy.float32, order="C"
+        )
         gpu_matrix = pyopencl.array.to_device(self.queue, matrix_for_gpu)
         gpu_offset = pyopencl.array.to_device(self.queue, offset_value)
         image_height, image_width = numpy.int32(self.image.shape)
@@ -167,7 +185,8 @@ class TestTransform(unittest.TestCase):
             image_height,
             output_width,
             output_height,
-            fill_value, mode
+            fill_value,
+            mode,
         ]
 
         # Call the kernel
@@ -177,12 +196,15 @@ class TestTransform(unittest.TestCase):
 
         # Reference result
         t1 = time.time()
-        ref = scipy.ndimage.affine_transform(image_transformed, correction_matrix,
-                                             offset=offset_value,
-                                             output_shape=(output_height, output_width),
-                                             order=1,
-                                             mode="constant",
-                                             cval=fill_value)
+        ref = scipy.ndimage.affine_transform(
+            image_transformed,
+            correction_matrix,
+            offset=offset_value,
+            output_shape=(output_height, output_width),
+            order=1,
+            mode="constant",
+            cval=fill_value,
+        )
         t2 = time.time()
 
         # Compare the implementations
@@ -193,5 +215,11 @@ class TestTransform(unittest.TestCase):
         logger.info("Max difference wrt scipy : %f at (%d, %d)", delta_max, at_0, at_1)
 
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
-            logger.info("Transformation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
+            logger.info(
+                "Global execution time: CPU %.3fms, GPU: %.3fms.",
+                1000.0 * (t2 - t1),
+                1000.0 * (t1 - t0),
+            )
+            logger.info(
+                "Transformation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start)
+            )

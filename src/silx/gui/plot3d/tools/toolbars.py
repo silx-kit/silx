@@ -58,7 +58,7 @@ class Plot3DWidgetToolBar(qt.QToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, title=''):
+    def __init__(self, parent=None, title=""):
         super(Plot3DWidgetToolBar, self).__init__(title, parent)
 
         self._plot3DRef = None
@@ -97,7 +97,7 @@ class InteractiveModeToolBar(Plot3DWidgetToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, title='Plot3D Interaction'):
+    def __init__(self, parent=None, title="Plot3D Interaction"):
         super(InteractiveModeToolBar, self).__init__(parent, title)
 
         self._rotateAction = actions.mode.RotateArcballAction(parent=self)
@@ -128,7 +128,7 @@ class OutputToolBar(Plot3DWidgetToolBar):
     :param str title: Title of the toolbar.
     """
 
-    def __init__(self, parent=None, title='Plot3D Output'):
+    def __init__(self, parent=None, title="Plot3D Output"):
         super(OutputToolBar, self).__init__(parent, title)
 
         self._copyAction = actions.io.CopyAction(parent=self)
@@ -179,7 +179,7 @@ class ViewpointToolBar(Plot3DWidgetToolBar):
     :param str title: Title of the toolbar
     """
 
-    def __init__(self, parent=None, title='Viewpoint control'):
+    def __init__(self, parent=None, title="Viewpoint control"):
         super(ViewpointToolBar, self).__init__(parent, title)
 
         self._viewpointToolButton = ViewpointToolButton(parent=self)

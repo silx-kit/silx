@@ -169,7 +169,7 @@ def rasterText(
     text: str,
     font: str | qt.QFont,
     size: int = -1,
-    weight = -1,
+    weight=-1,
     italic: bool = False,
     devicePixelRatio=1.0,
 ) -> tuple[numpy.ndarray, int]:

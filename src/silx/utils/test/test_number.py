@@ -36,7 +36,6 @@ _logger = logging.getLogger(__name__)
 
 
 class TestConversionTypes(testutils.ParametricTestCase):
-
     def testEmptyFail(self):
         self.assertRaises(ValueError, number.min_numerical_convertible_type, "")
 
@@ -121,7 +120,7 @@ class TestConversionTypes(testutils.ParametricTestCase):
             # It looks like the difference is done using float64 (diff == 0.0)
             expected = (numpy.longdouble, numpy.float64)
         else:
-            expected = (numpy.longdouble, )
+            expected = (numpy.longdouble,)
         self.assertIn(dtype, expected)
 
     def testExponent32(self):
@@ -155,18 +154,20 @@ class TestConversionTypes(testutils.ParametricTestCase):
         func = testutils.validate_logging(number._logger.name, warning=1)
         func = func(number.min_numerical_convertible_type)
         dtype = func(value)
-        self.assertIn(dtype, (numpy.longdouble, ))
+        self.assertIn(dtype, (numpy.longdouble,))
 
     def testMillisecondEpochTime(self):
-        datetimes = ['1465803236.495412',
-                     '1465803236.999362',
-                     '1465803237.504311',
-                     '1465803238.009261',
-                     '1465803238.512211',
-                     '1465803239.016160',
-                     '1465803239.520110',
-                     '1465803240.026059',
-                     '1465803240.529009']
+        datetimes = [
+            "1465803236.495412",
+            "1465803236.999362",
+            "1465803237.504311",
+            "1465803238.009261",
+            "1465803238.512211",
+            "1465803239.016160",
+            "1465803239.520110",
+            "1465803240.026059",
+            "1465803240.529009",
+        ]
         for datetime in datetimes:
             with self.subTest(datetime=datetime):
                 dtype = number.min_numerical_convertible_type(datetime)

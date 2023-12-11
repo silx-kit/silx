@@ -35,6 +35,7 @@ import logging
 
 from silx.math import medianfilter as medianfilter_cpp
 from silx.opencl import ocl as _ocl
+
 if _ocl is not None:
     from silx.opencl import medfilt as medfilt_opencl
 else:  # No OpenCL device or pyopencl not installed
@@ -44,15 +45,15 @@ else:  # No OpenCL device or pyopencl not installed
 _logger = logging.getLogger(__name__)
 
 
-MEDFILT_ENGINES = ['cpp', 'opencl']
+MEDFILT_ENGINES = ["cpp", "opencl"]
 
 
-def medfilt2d(image, kernel_size=3, engine='cpp'):
+def medfilt2d(image, kernel_size=3, engine="cpp"):
     """Apply a median filter on an image.
 
     This median filter is using a 'nearest' padding for values
     past the array edges. If you want more padding options or
-    functionalities for the median filter (conditional filter 
+    functionalities for the median filter (conditional filter
     for example) please have a look at
     :mod:`silx.math.medianfilter`.
 
@@ -73,41 +74,43 @@ def medfilt2d(image, kernel_size=3, engine='cpp'):
 
     """
     if engine not in MEDFILT_ENGINES:
-        err = 'silx doesn\'t have an implementation for the requested engine: '
-        err += '%s' % engine
+        err = "silx doesn't have an implementation for the requested engine: "
+        err += "%s" % engine
         raise ValueError(err)
 
     if len(image.shape) != 2:
-        raise ValueError('medfilt2d deals with arrays of dimension 2 only')
+        raise ValueError("medfilt2d deals with arrays of dimension 2 only")
 
-    if engine == 'cpp':
-        return medianfilter_cpp.medfilt(data=image,
-                                        kernel_size=kernel_size,
-                                        conditional=False)
-    elif engine == 'opencl':
+    if engine == "cpp":
+        return medianfilter_cpp.medfilt(
+            data=image, kernel_size=kernel_size, conditional=False
+        )
+    elif engine == "opencl":
         if medfilt_opencl is None:
-            wrn = 'opencl median filter not available. '
-            wrn += 'Launching cpp implementation.'
+            wrn = "opencl median filter not available. "
+            wrn += "Launching cpp implementation."
             _logger.warning(wrn)
             # instead call the cpp implementation
-            return medianfilter_cpp.medfilt(data=image,
-                                            kernel_size=kernel_size,
-                                            conditional=False)
+            return medianfilter_cpp.medfilt(
+                data=image, kernel_size=kernel_size, conditional=False
+            )
         else:
             try:
-                medianfilter = medfilt_opencl.MedianFilter2D(image.shape,
-                                                             devicetype="gpu")
+                medianfilter = medfilt_opencl.MedianFilter2D(
+                    image.shape, devicetype="gpu"
+                )
                 res = medianfilter.medfilt2d(image, kernel_size)
-            except(RuntimeError, MemoryError, ImportError):
-                wrn = 'Exception occured in opencl median filter. '
-                wrn += 'To get more information see debug log.'
-                wrn += 'Launching cpp implementation.'
+            except (RuntimeError, MemoryError, ImportError):
+                wrn = "Exception occured in opencl median filter. "
+                wrn += "To get more information see debug log."
+                wrn += "Launching cpp implementation."
                 _logger.warning(wrn)
-                _logger.debug("median filter - openCL implementation issue.",
-                              exc_info=True)
+                _logger.debug(
+                    "median filter - openCL implementation issue.", exc_info=True
+                )
                 # instead call the cpp implementation
-                res = medianfilter_cpp.medfilt(data=image,
-                                               kernel_size=kernel_size,
-                                               conditional=False)
+                res = medianfilter_cpp.medfilt(
+                    data=image, kernel_size=kernel_size, conditional=False
+                )
 
         return res

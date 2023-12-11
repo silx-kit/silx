@@ -39,6 +39,7 @@ class FormGridLayout(qt.QGridLayout):
     This allow a bit more flexibility, like allow vertical expanding
     of the rows.
     """
+
     def __init__(self, parent):
         super(FormGridLayout, self).__init__(parent)
         self.__cursor = 0
@@ -51,7 +52,11 @@ class FormGridLayout(qt.QGridLayout):
                 something = qt.QLabel(something)
             self.addWidget(something, row, column, rowSpan, columnSpan)
 
-    def addRow(self, label: typing.Union[str, qt.QWidget, qt.QLayout], field: typing.Union[None, qt.QWidget, qt.QLayout] = None):
+    def addRow(
+        self,
+        label: typing.Union[str, qt.QWidget, qt.QLayout],
+        field: typing.Union[None, qt.QWidget, qt.QLayout] = None,
+    ):
         """
         Adds a new row to the bottom of this form layout.
 

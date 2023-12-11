@@ -34,7 +34,6 @@ from silx.gui.plot3d.scene import transform
 
 
 class TestTransformList(unittest.TestCase):
-
     def assertSameArrays(self, a, b):
         return self.assertTrue(numpy.allclose(a, b, atol=1e-06))
 
@@ -45,25 +44,36 @@ class TestTransformList(unittest.TestCase):
         self.assertSameArrays(refmatrix, transforms.matrix)
 
         # Append translate
-        transforms.append(transform.Translate(1., 1., 1.))
-        refmatrix = numpy.array(((1., 0., 0., 1.),
-                                 (0., 1., 0., 1.),
-                                 (0., 0., 1., 1.),
-                                 (0., 0., 0., 1.)), dtype=numpy.float32)
+        transforms.append(transform.Translate(1.0, 1.0, 1.0))
+        refmatrix = numpy.array(
+            (
+                (1.0, 0.0, 0.0, 1.0),
+                (0.0, 1.0, 0.0, 1.0),
+                (0.0, 0.0, 1.0, 1.0),
+                (0.0, 0.0, 0.0, 1.0),
+            ),
+            dtype=numpy.float32,
+        )
         self.assertSameArrays(refmatrix, transforms.matrix)
 
         # Extend scale
-        transforms.extend([transform.Scale(0.1, 2., 1.)])
-        refmatrix = numpy.dot(refmatrix,
-                              numpy.array(((0.1, 0., 0., 0.),
-                                           (0., 2., 0., 0.),
-                                           (0., 0., 1., 0.),
-                                           (0., 0., 0., 1.)),
-                                          dtype=numpy.float32))
+        transforms.extend([transform.Scale(0.1, 2.0, 1.0)])
+        refmatrix = numpy.dot(
+            refmatrix,
+            numpy.array(
+                (
+                    (0.1, 0.0, 0.0, 0.0),
+                    (0.0, 2.0, 0.0, 0.0),
+                    (0.0, 0.0, 1.0, 0.0),
+                    (0.0, 0.0, 0.0, 1.0),
+                ),
+                dtype=numpy.float32,
+            ),
+        )
         self.assertSameArrays(refmatrix, transforms.matrix)
 
         # Insert rotate
-        transforms.insert(0, transform.Rotate(360.))
+        transforms.insert(0, transform.Rotate(360.0))
         self.assertSameArrays(refmatrix, transforms.matrix)
 
         # Update translate and check for listener called
@@ -71,6 +81,7 @@ class TestTransformList(unittest.TestCase):
 
         def listener(source):
             self._callCount += 1
+
         transforms.addListener(listener)
 
         transforms[1].tx += 1

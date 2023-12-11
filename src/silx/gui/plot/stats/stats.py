@@ -58,6 +58,7 @@ class Stats(dict):
 
     :param List statslist: List of the :class:`Stat` object to be computed.
     """
+
     def __init__(self, statslist=None):
         super().__init__()
         _statslist = statslist if not None else []
@@ -65,8 +66,9 @@ class Stats(dict):
             for stat in _statslist:
                 self.add(stat)
 
-    def calculate(self, item, plot, onlimits, roi, data_changed=False,
-                  roi_changed=False):
+    def calculate(
+        self, item, plot, onlimits, roi, data_changed=False, roi_changed=False
+    ):
         """
         Call all :class:`Stat` object registered and return the result of the
         computation.
@@ -85,20 +87,19 @@ class Stats(dict):
                       of the calculation as value
         """
         res = {}
-        context = self._getContext(item=item, plot=plot, onlimits=onlimits,
-                                   roi=roi)
+        context = self._getContext(item=item, plot=plot, onlimits=onlimits, roi=roi)
         for statName, stat in list(self.items()):
             if context.kind not in stat.compatibleKinds:
-                logger.debug('kind %s not managed by statistic %s'
-                             % (context.kind, stat.name))
+                logger.debug(
+                    "kind %s not managed by statistic %s" % (context.kind, stat.name)
+                )
                 res[statName] = None
             else:
                 if roi_changed is True:
                     context.clear_mask()
                 if data_changed is True or roi_changed is True:
                     # if data changed or mask changed
-                    context.clipData(item=item, plot=plot, onlimits=onlimits,
-                                     roi=roi)
+                    context.clipData(item=item, plot=plot, onlimits=onlimits, roi=roi)
                 # init roi and data
                 res[statName] = stat.calculate(context)
         return res
@@ -132,14 +133,11 @@ class Stats(dict):
             from ...plot3d import items as items3d  # Lazy import
 
             if isinstance(item, (items3d.Scatter2D, items3d.Scatter3D)):
-                context = _plot3DScatterContext(item, plot, onlimits,
-                                                roi=roi)
-            elif isinstance(item,
-                            (items3d.ImageData, items3d.ScalarField3D)):
-                context = _plot3DArrayContext(item, plot, onlimits,
-                                              roi=roi)
+                context = _plot3DScatterContext(item, plot, onlimits, roi=roi)
+            elif isinstance(item, (items3d.ImageData, items3d.ScalarField3D)):
+                context = _plot3DArrayContext(item, plot, onlimits, roi=roi)
         if context is None:
-            raise ValueError('Item type not managed')
+            raise ValueError("Item type not managed")
         return context
 
 
@@ -162,6 +160,7 @@ class _StatsContext(object):
                 For now, incompatible with `onlimits` calculation
     :type roi: Union[None,:class:`_RegionOfInterestBase`]
     """
+
     def __init__(self, item, kind, plot, onlimits, roi):
         assert item
         assert plot
@@ -262,15 +261,18 @@ class _StatsContext(object):
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
         if roi is not None and onlimits is True:
-            raise ValueError('Stats context is unable to manage both a ROI'
-                             'and the `onlimits` option')
+            raise ValueError(
+                "Stats context is unable to manage both a ROI"
+                "and the `onlimits` option"
+            )
 
 
 class _ScatterCurveHistoMixInContext(_StatsContext):
     def __init__(self, kind, item, plot, onlimits, roi):
         self.clear_mask()
-        _StatsContext.__init__(self, item=item, kind=kind,
-                               plot=plot, onlimits=onlimits, roi=roi)
+        _StatsContext.__init__(
+            self, item=item, kind=kind, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     def _set_mask_validity(self, onlimits, from_, to_):
         self._onlimits = onlimits
@@ -283,8 +285,7 @@ class _ScatterCurveHistoMixInContext(_StatsContext):
         self._to_ = None
 
     def is_mask_valid(self, onlimits, from_, to_):
-        return (onlimits == self.onlimits and from_ == self._from_ and
-                to_ == self._to_)
+        return onlimits == self.onlimits and from_ == self._from_ and to_ == self._to_
 
 
 class _CurveContext(_ScatterCurveHistoMixInContext):
@@ -299,15 +300,15 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
-        _ScatterCurveHistoMixInContext.__init__(self, kind='curve', item=item,
-                                                plot=plot, onlimits=onlimits,
-                                                roi=roi)
+        _ScatterCurveHistoMixInContext.__init__(
+            self, kind="curve", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         self.roi = roi
         self.onlimits = onlimits
         xData, yData = item.getData(copy=True)[0:2]
@@ -344,10 +345,11 @@ class _CurveContext(_ScatterCurveHistoMixInContext):
         self.axes = (xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                          onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
         if roi is not None and not isinstance(roi, ROI):
-            raise TypeError('curve `context` can ony manage 1D roi')
+            raise TypeError("curve `context` can ony manage 1D roi")
 
 
 class _HistogramContext(_ScatterCurveHistoMixInContext):
@@ -362,15 +364,15 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
-        _ScatterCurveHistoMixInContext.__init__(self, kind='histogram',
-                                                item=item, plot=plot,
-                                                onlimits=onlimits, roi=roi)
+        _ScatterCurveHistoMixInContext.__init__(
+            self, kind="histogram", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         yData, edges = item.getData(copy=True)[0:2]
         xData = item._revertComputeEdges(x=edges, histogramType=item.getAlignment())
 
@@ -383,13 +385,16 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
                 mask = mask == 0
                 self._set_mask_validity(onlimits=onlimits, from_=minX, to_=maxX)
         elif roi:
-            if self.is_mask_valid(onlimits=onlimits, from_=roi._fromdata, to_=roi._todata):
+            if self.is_mask_valid(
+                onlimits=onlimits, from_=roi._fromdata, to_=roi._todata
+            ):
                 mask = self.mask
             else:
                 mask = (roi._fromdata <= xData) & (xData <= roi._todata)
                 mask = mask == 0
-                self._set_mask_validity(onlimits=onlimits, from_=roi._fromdata,
-                                        to_=roi._todata)
+                self._set_mask_validity(
+                    onlimits=onlimits, from_=roi._fromdata, to_=roi._todata
+                )
         else:
             mask = numpy.zeros_like(yData)
         mask = mask.astype(numpy.uint32)
@@ -405,11 +410,12 @@ class _HistogramContext(_ScatterCurveHistoMixInContext):
         self.axes = (self.xData,)
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                      onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
         if roi is not None and not isinstance(roi, ROI):
-            raise TypeError('curve `context` can ony manage 1D roi')
+            raise TypeError("curve `context` can ony manage 1D roi")
 
 
 class _ScatterContext(_ScatterCurveHistoMixInContext):
@@ -425,15 +431,15 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
-        _ScatterCurveHistoMixInContext.__init__(self, kind='scatter',
-                                                item=item, plot=plot,
-                                                onlimits=onlimits, roi=roi)
+        _ScatterCurveHistoMixInContext.__init__(
+            self, kind="scatter", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     @docstring(_ScatterCurveHistoMixInContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         valueData = item.getValueData(copy=True)
         xData = item.getXData(copy=True)
         yData = item.getYData(copy=True)
@@ -452,8 +458,9 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
             yData = yData[(minY <= yData) & (yData <= maxY)]
 
         if roi:
-            if self.is_mask_valid(onlimits=onlimits, from_=roi.getFrom(),
-                                  to_=roi.getTo()):
+            if self.is_mask_valid(
+                onlimits=onlimits, from_=roi.getFrom(), to_=roi.getTo()
+            ):
                 mask = self.mask
             else:
                 mask = (xData < roi.getFrom()) | (xData > roi.getTo())
@@ -471,11 +478,12 @@ class _ScatterContext(_ScatterCurveHistoMixInContext):
             self.min, self.max = None, None
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                          onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
         if roi is not None and not isinstance(roi, ROI):
-            raise TypeError('curve `context` can ony manage 1D roi')
+            raise TypeError("curve `context` can ony manage 1D roi")
 
 
 class _ImageContext(_StatsContext):
@@ -502,13 +510,14 @@ class _ImageContext(_StatsContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
         self.clear_mask()
-        _StatsContext.__init__(self, kind='image', item=item,
-                               plot=plot, onlimits=onlimits, roi=roi)
+        _StatsContext.__init__(
+            self, kind="image", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
-    def _set_mask_validity(self, xmin: float, xmax: float, ymin: float, ymax
-                           : float):
+    def _set_mask_validity(self, xmin: float, xmax: float, ymin: float, ymax: float):
         self._mask_x_min = xmin
         self._mask_x_max = xmax
         self._mask_y_min = ymin
@@ -521,13 +530,16 @@ class _ImageContext(_StatsContext):
         self._mask_y_max = None
 
     def is_mask_valid(self, xmin, xmax, ymin, ymax):
-        return (xmin == self._mask_x_min and xmax == self._mask_x_max and
-                ymin == self._mask_y_min and ymax == self._mask_y_max)
+        return (
+            xmin == self._mask_x_min
+            and xmax == self._mask_x_max
+            and ymin == self._mask_y_min
+            and ymax == self._mask_y_max
+        )
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         self.origin = item.getOrigin()
         self.scale = item.getScale()
 
@@ -551,8 +563,9 @@ class _ImageContext(_StatsContext):
             if XMaxBound <= XMinBound or YMaxBound <= YMinBound:
                 self.data = None
             else:
-                self.data = self.data[YMinBound:YMaxBound + 1,
-                                      XMinBound:XMaxBound + 1]
+                self.data = self.data[
+                    YMinBound : YMaxBound + 1, XMinBound : XMaxBound + 1
+                ]
             mask = numpy.zeros_like(self.data)
         elif roi:
             minX, maxX = 0, self.data.shape[1]
@@ -563,8 +576,9 @@ class _ImageContext(_StatsContext):
             XMaxBound = min(maxX, self.data.shape[1])
             YMaxBound = min(maxY, self.data.shape[0])
 
-            if self.is_mask_valid(xmin=XMinBound, xmax=XMaxBound,
-                                  ymin=YMinBound, ymax=YMaxBound):
+            if self.is_mask_valid(
+                xmin=XMinBound, xmax=XMaxBound, ymin=YMinBound, ymax=YMaxBound
+            ):
                 mask = self.mask
             else:
                 for x in range(XMinBound, XMaxBound):
@@ -572,8 +586,9 @@ class _ImageContext(_StatsContext):
                         _x = (x * self.scale[0]) + self.origin[0]
                         _y = (y * self.scale[1]) + self.origin[1]
                         mask[y, x] = not roi.contains((_x, _y))
-                self._set_mask_validity(xmin=XMinBound, xmax=XMaxBound,
-                                        ymin=YMinBound, ymax=YMaxBound)
+                self._set_mask_validity(
+                    xmin=XMinBound, xmax=XMaxBound, ymin=YMinBound, ymax=YMaxBound
+                )
         self.values = numpy.ma.array(self.data, mask=mask)
         if self.values.compressed().size > 0:
             self.min, self.max = min_max(self.values.compressed())
@@ -581,15 +596,18 @@ class _ImageContext(_StatsContext):
             self.min, self.max = None, None
 
         if self.values is not None:
-            self.axes = (self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
-                         self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]))
+            self.axes = (
+                self.origin[1] + self.scale[1] * numpy.arange(self.data.shape[0]),
+                self.origin[0] + self.scale[0] * numpy.arange(self.data.shape[1]),
+            )
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                              onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise TypeError('curve `context` can ony manage 2D roi')
+            raise TypeError("curve `context` can ony manage 2D roi")
 
 
 class _plot3DScatterContext(_StatsContext):
@@ -606,14 +624,15 @@ class _plot3DScatterContext(_StatsContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
-        _StatsContext.__init__(self, kind='scatter', item=item, plot=plot,
-                               onlimits=onlimits, roi=roi)
+        _StatsContext.__init__(
+            self, kind="scatter", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
         values = item.getValueData(copy=False)
@@ -637,11 +656,12 @@ class _plot3DScatterContext(_StatsContext):
             self.min, self.max = None, None
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                          onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise TypeError('curve `context` can ony manage 2D roi')
+            raise TypeError("curve `context` can ony manage 2D roi")
 
 
 class _plot3DArrayContext(_StatsContext):
@@ -658,14 +678,15 @@ class _plot3DArrayContext(_StatsContext):
                 For now, incompatible with `onlinits` calculation
     :type roi: Union[None, :class:`ROI`]
     """
+
     def __init__(self, item, plot, onlimits, roi):
-        _StatsContext.__init__(self, kind='image', item=item, plot=plot,
-                               onlimits=onlimits, roi=roi)
+        _StatsContext.__init__(
+            self, kind="image", item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
     @docstring(_StatsContext)
     def clipData(self, item, plot, onlimits, roi):
-        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits,
-                                 roi=roi)
+        self._checkContextInputs(item=item, plot=plot, onlimits=onlimits, roi=roi)
         if onlimits:
             raise RuntimeError("Unsupported plot %s" % str(plot))
 
@@ -687,14 +708,15 @@ class _plot3DArrayContext(_StatsContext):
             self.min, self.max = None, None
 
     def _checkContextInputs(self, item, plot, onlimits, roi):
-        _StatsContext._checkContextInputs(self, item=item, plot=plot,
-                                      onlimits=onlimits, roi=roi)
+        _StatsContext._checkContextInputs(
+            self, item=item, plot=plot, onlimits=onlimits, roi=roi
+        )
 
         if roi is not None and not isinstance(roi, RegionOfInterest):
-            raise TypeError('curve `context` can ony manage 2D roi')
+            raise TypeError("curve `context` can ony manage 2D roi")
 
 
-BASIC_COMPATIBLE_KINDS = 'curve', 'image', 'scatter', 'histogram'
+BASIC_COMPATIBLE_KINDS = "curve", "image", "scatter", "histogram"
 
 
 class StatBase(object):
@@ -705,6 +727,7 @@ class StatBase(object):
     :param List[str] compatibleKinds:
         The kind of items (curve, scatter...) for which the statistic apply.
     """
+
     def __init__(self, name, compatibleKinds=BASIC_COMPATIBLE_KINDS, description=None):
         self.name = name
         self.compatibleKinds = compatibleKinds
@@ -717,7 +740,7 @@ class StatBase(object):
         :param _StatsContext context:
         :return dict: key is stat name, statistic computed is the dict value
         """
-        raise NotImplementedError('Base class')
+        raise NotImplementedError("Base class")
 
     def getToolTip(self, kind):
         """
@@ -740,6 +763,7 @@ class Stat(StatBase):
     :param tuple kinds: the compatible item kinds of the function (curve,
                         image...)
     """
+
     def __init__(self, name, fct, kinds=BASIC_COMPATIBLE_KINDS):
         StatBase.__init__(self, name, kinds)
         self._fct = fct
@@ -750,16 +774,18 @@ class Stat(StatBase):
             if context.kind in self.compatibleKinds:
                 return self._fct(context.values)
             else:
-                raise ValueError('Kind %s not managed by %s'
-                                 '' % (context.kind, self.name))
+                raise ValueError(
+                    "Kind %s not managed by %s" "" % (context.kind, self.name)
+                )
         else:
             return None
 
 
 class StatMin(StatBase):
     """Compute the minimal value on data"""
+
     def __init__(self):
-        StatBase.__init__(self, name='min')
+        StatBase.__init__(self, name="min")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -768,8 +794,9 @@ class StatMin(StatBase):
 
 class StatMax(StatBase):
     """Compute the maximal value on data"""
+
     def __init__(self):
-        StatBase.__init__(self, name='max')
+        StatBase.__init__(self, name="max")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -778,8 +805,9 @@ class StatMax(StatBase):
 
 class StatDelta(StatBase):
     """Compute the delta between minimal and maximal on data"""
+
     def __init__(self):
-        StatBase.__init__(self, name='delta')
+        StatBase.__init__(self, name="delta")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -813,8 +841,9 @@ class _StatCoord(StatBase):
 
 class StatCoordMin(_StatCoord):
     """Compute the coordinates of the first minimum value of the data"""
+
     def __init__(self):
-        _StatCoord.__init__(self, name='coords min')
+        _StatCoord.__init__(self, name="coords min")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -831,8 +860,9 @@ class StatCoordMin(_StatCoord):
 
 class StatCoordMax(_StatCoord):
     """Compute the coordinates of the first maximum value of the data"""
+
     def __init__(self):
-        _StatCoord.__init__(self, name='coords max')
+        _StatCoord.__init__(self, name="coords max")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -851,8 +881,9 @@ class StatCoordMax(_StatCoord):
 
 class StatCOM(StatBase):
     """Compute data center of mass"""
+
     def __init__(self):
-        StatBase.__init__(self, name='COM', description='Center of mass')
+        StatBase.__init__(self, name="COM", description="Center of mass")
 
     @docstring(StatBase)
     def calculate(self, context):
@@ -861,7 +892,7 @@ class StatCOM(StatBase):
 
         values = numpy.ma.array(context.values, mask=context.mask, dtype=numpy.float64)
         sum_ = numpy.sum(values)
-        if sum_ == 0. or numpy.ma.is_masked(sum_):
+        if sum_ == 0.0 or numpy.ma.is_masked(sum_):
             return (numpy.nan,) * len(context.axes)
 
         if context.isStructuredData():
@@ -869,11 +900,11 @@ class StatCOM(StatBase):
             for index, axis in enumerate(context.axes):
                 axes = tuple([i for i in range(len(context.axes)) if i != index])
                 centerofmass.append(
-                    numpy.sum(axis * numpy.sum(values, axis=axes)) / sum_)
+                    numpy.sum(axis * numpy.sum(values, axis=axes)) / sum_
+                )
             return tuple(reversed(centerofmass))
         else:
-            return tuple(
-                numpy.sum(axis * values) / sum_ for axis in context.axes)
+            return tuple(numpy.sum(axis * values) / sum_ for axis in context.axes)
 
     @docstring(StatBase)
     def getToolTip(self, kind):

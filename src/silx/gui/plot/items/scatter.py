@@ -51,8 +51,7 @@ _logger = logging.getLogger(__name__)
 
 
 class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
-    """:class:`ThreadPoolExecutor` with an extra :meth:`submit_greedy` method.
-    """
+    """:class:`ThreadPoolExecutor` with an extra :meth:`submit_greedy` method."""
 
     def __init__(self, *args, **kwargs):
         super(_GreedyThreadPoolExecutor, self).__init__(*args, **kwargs)
@@ -76,14 +75,14 @@ class _GreedyThreadPoolExecutor(ThreadPoolExecutor):
                 if not future.done():
                     future.cancel()
 
-            future = super(_GreedyThreadPoolExecutor, self).submit(
-                fn, *args, **kwargs)
+            future = super(_GreedyThreadPoolExecutor, self).submit(fn, *args, **kwargs)
             self.__futures[queue].append(future)
 
         return future
 
 
 # Functions to guess grid shape from coordinates
+
 
 def _get_z_line_length(array):
     """Return length of line if array is a Z-like 2D regular grid.
@@ -97,7 +96,7 @@ def _get_z_line_length(array):
     if len(sign) == 0 or sign[0] == 0:  # We don't handle that
         return 0
     # Check this way to account for 0 sign (i.e., diff == 0)
-    beginnings = numpy.where(sign == - sign[0])[0] + 1
+    beginnings = numpy.where(sign == -sign[0])[0] + 1
     if len(beginnings) == 0:
         return 0
     length = beginnings[0]
@@ -121,11 +120,11 @@ def _guess_z_grid_shape(x, y):
     """
     width = _get_z_line_length(x)
     if width != 0:
-        return 'row', (int(numpy.ceil(len(x) / width)), width)
+        return "row", (int(numpy.ceil(len(x) / width)), width)
     else:
         height = _get_z_line_length(y)
         if height != 0:
-            return 'column', (height, int(numpy.ceil(len(y) / height)))
+            return "column", (height, int(numpy.ceil(len(y) / height)))
     return None
 
 
@@ -139,7 +138,7 @@ def is_monotonic(array):
     :rtype: int
     """
     diff = numpy.diff(numpy.ravel(array))
-    with numpy.errstate(invalid='ignore'):
+    with numpy.errstate(invalid="ignore"):
         if numpy.all(diff >= 0):
             return 1
         elif numpy.all(diff <= 0):
@@ -168,7 +167,7 @@ def _guess_grid(x, y):
     else:
         # Cannot guess a regular grid
         # Let's assume it's a single line
-        order = 'row'  # or 'column' doesn't matter for a single line
+        order = "row"  # or 'column' doesn't matter for a single line
         y_monotonic = is_monotonic(y)
         if is_monotonic(x) or y_monotonic:  # we can guess a line
             x_min, x_max = min_max(x)
@@ -211,18 +210,24 @@ def _quadrilateral_grid_coords(points):
     neighbour_view = numpy.lib.stride_tricks.as_strided(
         points,
         shape=(dim0 - 1, dim1 - 1, 2, 2, points.shape[2]),
-        strides=points.strides[:2] + points.strides[:2] + points.strides[-1:], writeable=False)
+        strides=points.strides[:2] + points.strides[:2] + points.strides[-1:],
+        writeable=False,
+    )
     inner_points = numpy.mean(neighbour_view, axis=(2, 3))
     grid_points[1:-1, 1:-1] = inner_points
 
     # Compute 'vertical' sides
     # Alternative: grid_points[1:-1, [0, -1]] = points[:-1, [0, -1]] + points[1:, [0, -1]] - inner_points[:, [0, -1]]
-    grid_points[1:-1, [0, -1], 0] = points[:-1, [0, -1], 0] + points[1:, [0, -1], 0] - inner_points[:, [0, -1], 0]
+    grid_points[1:-1, [0, -1], 0] = (
+        points[:-1, [0, -1], 0] + points[1:, [0, -1], 0] - inner_points[:, [0, -1], 0]
+    )
     grid_points[1:-1, [0, -1], 1] = inner_points[:, [0, -1], 1]
 
     # Compute 'horizontal' sides
     grid_points[[0, -1], 1:-1, 0] = inner_points[[0, -1], :, 0]
-    grid_points[[0, -1], 1:-1, 1] = points[[0, -1], :-1, 1] + points[[0, -1], 1:, 1] - inner_points[[0, -1], :, 1]
+    grid_points[[0, -1], 1:-1, 1] = (
+        points[[0, -1], :-1, 1] + points[[0, -1], 1:, 1] - inner_points[[0, -1], :, 1]
+    )
 
     # Compute corners
     d0, d1 = [0, 0, -1, -1], [0, -1, -1, 0]
@@ -259,11 +264,13 @@ def _quadrilateral_grid_as_triangles(points):
 
 
 _RegularGridInfo = namedtuple(
-    '_RegularGridInfo', ['bounds', 'origin', 'scale', 'shape', 'order'])
+    "_RegularGridInfo", ["bounds", "origin", "scale", "shape", "order"]
+)
 
 
 _HistogramInfo = namedtuple(
-    '_HistogramInfo', ['mean', 'count', 'sum', 'origin', 'scale', 'shape'])
+    "_HistogramInfo", ["mean", "count", "sum", "origin", "scale", "shape"]
+)
 
 
 class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
@@ -278,7 +285,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         ScatterVisualizationMixIn.Visualization.REGULAR_GRID,
         ScatterVisualizationMixIn.Visualization.IRREGULAR_GRID,
         ScatterVisualizationMixIn.Visualization.BINNED_STATISTIC,
-        )
+    )
     """Overrides supported Visualizations"""
 
     def __init__(self):
@@ -310,7 +317,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 data = getattr(
                     histoInfo,
                     self.getVisualizationParameter(
-                        self.VisualizationParameter.BINNED_STATISTIC_FUNCTION))
+                        self.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+                    ),
+                )
         else:
             data = self.getValueData(copy=False)
         self._setColormappedData(data, copy=False)
@@ -319,8 +328,9 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     def setVisualization(self, mode):
         previous = self.getVisualization()
         if super().setVisualization(mode):
-            if (bool(mode is self.Visualization.BINNED_STATISTIC) ^
-                    bool(previous is self.Visualization.BINNED_STATISTIC)):
+            if bool(mode is self.Visualization.BINNED_STATISTIC) ^ bool(
+                previous is self.Visualization.BINNED_STATISTIC
+            ):
                 self._updateColormappedData()
             return True
         else:
@@ -331,16 +341,22 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         parameter = self.VisualizationParameter.from_value(parameter)
 
         if super(Scatter, self).setVisualizationParameter(parameter, value):
-            if parameter in (self.VisualizationParameter.GRID_BOUNDS,
-                             self.VisualizationParameter.GRID_MAJOR_ORDER,
-                             self.VisualizationParameter.GRID_SHAPE):
+            if parameter in (
+                self.VisualizationParameter.GRID_BOUNDS,
+                self.VisualizationParameter.GRID_MAJOR_ORDER,
+                self.VisualizationParameter.GRID_SHAPE,
+            ):
                 self.__cacheRegularGridInfo = None
 
-            if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
-                             self.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
-                             self.VisualizationParameter.DATA_BOUNDS_HINT):
-                if parameter in (self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
-                                 self.VisualizationParameter.DATA_BOUNDS_HINT):
+            if parameter in (
+                self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                self.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
+                self.VisualizationParameter.DATA_BOUNDS_HINT,
+            ):
+                if parameter in (
+                    self.VisualizationParameter.BINNED_STATISTIC_SHAPE,
+                    self.VisualizationParameter.DATA_BOUNDS_HINT,
+                ):
                     self.__cacheHistogramInfo = None  # Clean-up cache
                 if self.getVisualization() is self.Visualization.BINNED_STATISTIC:
                     self._updateColormappedData()
@@ -351,14 +367,16 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
     @docstring(ScatterVisualizationMixIn)
     def getCurrentVisualizationParameter(self, parameter):
         value = self.getVisualizationParameter(parameter)
-        if (parameter is self.VisualizationParameter.DATA_BOUNDS_HINT or
-                value is not None):
+        if (
+            parameter is self.VisualizationParameter.DATA_BOUNDS_HINT
+            or value is not None
+        ):
             return value  # Value has been set, return it
 
         elif parameter is self.VisualizationParameter.GRID_BOUNDS:
             grid = self.__getRegularGridInfo()
             return None if grid is None else grid.bounds
-        
+
         elif parameter is self.VisualizationParameter.GRID_MAJOR_ORDER:
             grid = self.__getRegularGridInfo()
             return None if grid is None else grid.order
@@ -378,15 +396,19 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         """Get grid info"""
         if self.__cacheRegularGridInfo is None:
             shape = self.getVisualizationParameter(
-                self.VisualizationParameter.GRID_SHAPE)
+                self.VisualizationParameter.GRID_SHAPE
+            )
             order = self.getVisualizationParameter(
-                self.VisualizationParameter.GRID_MAJOR_ORDER)
+                self.VisualizationParameter.GRID_MAJOR_ORDER
+            )
             if shape is None or order is None:
-                guess = _guess_grid(self.getXData(copy=False),
-                                    self.getYData(copy=False))
+                guess = _guess_grid(
+                    self.getXData(copy=False), self.getYData(copy=False)
+                )
                 if guess is None:
                     _logger.warning(
-                        'Cannot guess a grid: Cannot display as regular grid image')
+                        "Cannot guess a grid: Cannot display as regular grid image"
+                    )
                     return None
                 if shape is None:
                     shape = guess[1]
@@ -397,16 +419,18 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if nbpoints > shape[0] * shape[1]:
                 # More data points that provided grid shape: enlarge grid
                 _logger.warning(
-                    "More data points than provided grid shape size: extends grid")
+                    "More data points than provided grid shape size: extends grid"
+                )
                 dim0, dim1 = shape
-                if order == 'row':  # keep dim1, enlarge dim0
+                if order == "row":  # keep dim1, enlarge dim0
                     dim0 = nbpoints // dim1 + (1 if nbpoints % dim1 else 0)
                 else:  # keep dim0, enlarge dim1
                     dim1 = nbpoints // dim0 + (1 if nbpoints % dim0 else 0)
                 shape = dim0, dim1
 
             bounds = self.getVisualizationParameter(
-                self.VisualizationParameter.GRID_BOUNDS)
+                self.VisualizationParameter.GRID_BOUNDS
+            )
             if bounds is None:
                 x, y = self.getXData(copy=False), self.getYData(copy=False)
                 min_, max_ = min_max(x)
@@ -416,10 +440,12 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 bounds = (xRange[0], yRange[0]), (xRange[1], yRange[1])
 
             begin, end = bounds
-            scale = ((end[0] - begin[0]) / max(1, shape[1] - 1),
-                     (end[1] - begin[1]) / max(1, shape[0] - 1))
+            scale = (
+                (end[0] - begin[0]) / max(1, shape[1] - 1),
+                (end[1] - begin[1]) / max(1, shape[0] - 1),
+            )
             if scale[0] == 0 and scale[1] == 0:
-                scale = 1., 1.
+                scale = 1.0, 1.0
             elif scale[0] == 0:
                 scale = scale[1], scale[1]
             elif scale[1] == 0:
@@ -428,7 +454,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             origin = begin[0] - 0.5 * scale[0], begin[1] - 0.5 * scale[1]
 
             self.__cacheRegularGridInfo = _RegularGridInfo(
-                bounds=bounds, origin=origin, scale=scale, shape=shape, order=order)
+                bounds=bounds, origin=origin, scale=scale, shape=shape, order=order
+            )
 
         return self.__cacheRegularGridInfo
 
@@ -436,9 +463,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         """Get histogram info"""
         if self.__cacheHistogramInfo is None:
             shape = self.getVisualizationParameter(
-                self.VisualizationParameter.BINNED_STATISTIC_SHAPE)
+                self.VisualizationParameter.BINNED_STATISTIC_SHAPE
+            )
             if shape is None:
-                shape = 100, 100 # TODO compute auto shape
+                shape = 100, 100  # TODO compute auto shape
 
             x, y, values = self.getData(copy=False)[:3]
             if len(x) == 0:  # No histogram
@@ -451,31 +479,40 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             if not numpy.issubdtype(values.dtype, numpy.floating):
                 values = values.astype(numpy.float64)
 
-            ranges = (tuple(min_max(y, finite=True)),
-                      tuple(min_max(x, finite=True)))
+            ranges = (tuple(min_max(y, finite=True)), tuple(min_max(x, finite=True)))
             rangesHint = self.getVisualizationParameter(
-                self.VisualizationParameter.DATA_BOUNDS_HINT)
+                self.VisualizationParameter.DATA_BOUNDS_HINT
+            )
             if rangesHint is not None:
-                ranges = tuple((min(dataMin, hintMin), max(dataMax, hintMax))
-                      for (dataMin, dataMax), (hintMin, hintMax) in zip(ranges, rangesHint))
+                ranges = tuple(
+                    (min(dataMin, hintMin), max(dataMax, hintMax))
+                    for (dataMin, dataMax), (hintMin, hintMax) in zip(
+                        ranges, rangesHint
+                    )
+                )
 
             points = numpy.transpose(numpy.array((y, x)))
             counts, sums, bin_edges = Histogramnd(
-                points,
-                histo_range=ranges,
-                n_bins=shape,
-                weights=values)
+                points, histo_range=ranges, n_bins=shape, weights=values
+            )
             yEdges, xEdges = bin_edges
             origin = xEdges[0], yEdges[0]
-            scale = ((xEdges[-1] - xEdges[0]) / (len(xEdges) - 1),
-                     (yEdges[-1] - yEdges[0]) / (len(yEdges) - 1))
+            scale = (
+                (xEdges[-1] - xEdges[0]) / (len(xEdges) - 1),
+                (yEdges[-1] - yEdges[0]) / (len(yEdges) - 1),
+            )
 
-            with numpy.errstate(divide='ignore', invalid='ignore'):
+            with numpy.errstate(divide="ignore", invalid="ignore"):
                 histo = sums / counts
 
             self.__cacheHistogramInfo = _HistogramInfo(
-                mean=histo, count=counts, sum=sums,
-                origin=origin, scale=scale, shape=shape)
+                mean=histo,
+                count=counts,
+                sum=sums,
+                origin=origin,
+                scale=scale,
+                shape=shape,
+            )
 
         return self.__cacheHistogramInfo
 
@@ -495,7 +532,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         """Update backend renderer"""
         # Filter-out values <= 0
         xFiltered, yFiltered, valueFiltered, xerror, yerror = self.getData(
-            copy=False, displayed=True)
+            copy=False, displayed=True
+        )
 
         # Remove not finite numbers (this includes filtered out x, y <= 0)
         mask = numpy.logical_and(numpy.isfinite(xFiltered), numpy.isfinite(yFiltered))
@@ -509,46 +547,58 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         if visualization is self.Visualization.BINNED_STATISTIC:
             plot = self.getPlot()
-            if (plot is None or
-                    plot.getXAxis().getScale() != Axis.LINEAR or
-                    plot.getYAxis().getScale() != Axis.LINEAR):
+            if (
+                plot is None
+                or plot.getXAxis().getScale() != Axis.LINEAR
+                or plot.getYAxis().getScale() != Axis.LINEAR
+            ):
                 # Those visualizations are not available with log scaled axes
                 return None
 
             histoInfo = self.__getHistogramInfo()
             if histoInfo is None:
                 return None
-            data = getattr(histoInfo, self.getVisualizationParameter(
-                self.VisualizationParameter.BINNED_STATISTIC_FUNCTION))
+            data = getattr(
+                histoInfo,
+                self.getVisualizationParameter(
+                    self.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+                ),
+            )
 
             return backend.addImage(
                 data=data,
                 origin=histoInfo.origin,
                 scale=histoInfo.scale,
                 colormap=self.getColormap(),
-                alpha=self.getAlpha())
+                alpha=self.getAlpha(),
+            )
 
         elif visualization is self.Visualization.POINTS:
             rgbacolors = self.__applyColormapToData()
-            return backend.addCurve(xFiltered, yFiltered,
-                                    color=rgbacolors[mask],
-                                    gapcolor=None,
-                                    symbol=self.getSymbol(),
-                                    linewidth=0,
-                                    linestyle="",
-                                    yaxis='left',
-                                    xerror=xerror,
-                                    yerror=yerror,
-                                    fill=False,
-                                    alpha=self.getAlpha(),
-                                    symbolsize=self.getSymbolSize(),
-                                    baseline=None)
+            return backend.addCurve(
+                xFiltered,
+                yFiltered,
+                color=rgbacolors[mask],
+                gapcolor=None,
+                symbol=self.getSymbol(),
+                linewidth=0,
+                linestyle="",
+                yaxis="left",
+                xerror=xerror,
+                yerror=yerror,
+                fill=False,
+                alpha=self.getAlpha(),
+                symbolsize=self.getSymbolSize(),
+                baseline=None,
+            )
 
         else:
             plot = self.getPlot()
-            if (plot is None or
-                    plot.getXAxis().getScale() != Axis.LINEAR or
-                    plot.getYAxis().getScale() != Axis.LINEAR):
+            if (
+                plot is None
+                or plot.getXAxis().getScale() != Axis.LINEAR
+                or plot.getYAxis().getScale() != Axis.LINEAR
+            ):
                 # Those visualizations are not available with log scaled axes
                 return None
 
@@ -557,16 +607,19 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     triangulation = self._getTriangulationFuture().result()
                 except (RuntimeError, ValueError):
                     _logger.warning(
-                        'Cannot get a triangulation: Cannot display as solid surface')
+                        "Cannot get a triangulation: Cannot display as solid surface"
+                    )
                     return None
                 else:
                     rgbacolors = self.__applyColormapToData()
                     triangles = triangulation.triangles.astype(numpy.int32)
-                    return backend.addTriangles(xFiltered,
-                                                yFiltered,
-                                                triangles,
-                                                color=rgbacolors[mask],
-                                                alpha=self.getAlpha())
+                    return backend.addTriangles(
+                        xFiltered,
+                        yFiltered,
+                        triangles,
+                        color=rgbacolors[mask],
+                        alpha=self.getAlpha(),
+                    )
 
             elif visualization is self.Visualization.REGULAR_GRID:
                 gridInfo = self.__getRegularGridInfo()
@@ -574,7 +627,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     return None
 
                 dim0, dim1 = gridInfo.shape
-                if gridInfo.order == 'column':  # transposition needed
+                if gridInfo.order == "column":  # transposition needed
                     dim0, dim1 = dim1, dim0
 
                 values = self.getValueData(copy=False)
@@ -582,20 +635,21 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     image = values.reshape(dim0, dim1)
                 else:
                     # The points do not fill the whole image
-                    if (self.__alpha is None and
-                            numpy.issubdtype(values.dtype, numpy.floating)):
+                    if self.__alpha is None and numpy.issubdtype(
+                        values.dtype, numpy.floating
+                    ):
                         image = numpy.empty(dim0 * dim1, dtype=values.dtype)
-                        image[:len(values)] = values
-                        image[len(values):] = float('nan')  # Transparent pixels
+                        image[: len(values)] = values
+                        image[len(values) :] = float("nan")  # Transparent pixels
                         image.shape = dim0, dim1
                     else:  # Per value alpha or no NaN, so convert to RGBA
                         rgbacolors = self.__applyColormapToData()
                         image = numpy.empty((dim0 * dim1, 4), dtype=numpy.uint8)
-                        image[:len(rgbacolors)] = rgbacolors
-                        image[len(rgbacolors):] = (0, 0, 0, 0)  # Transparent pixels
+                        image[: len(rgbacolors)] = rgbacolors
+                        image[len(rgbacolors) :] = (0, 0, 0, 0)  # Transparent pixels
                         image.shape = dim0, dim1, 4
 
-                if gridInfo.order == 'column':
+                if gridInfo.order == "column":
                     if image.ndim == 2:
                         image = numpy.transpose(image)
                     else:
@@ -615,7 +669,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                     origin=gridInfo.origin,
                     scale=gridInfo.scale,
                     colormap=colormap,
-                    alpha=self.getAlpha())
+                    alpha=self.getAlpha(),
+                )
 
             elif visualization is self.Visualization.IRREGULAR_GRID:
                 gridInfo = self.__getRegularGridInfo()
@@ -631,34 +686,37 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 nbpoints = len(xFiltered)
                 if nbpoints == 1:
                     # single point, render as a square points
-                    return backend.addCurve(xFiltered, yFiltered,
-                                            color=rgbacolors[mask],
-                                            gapcolor=None,
-                                            symbol='s',
-                                            linewidth=0,
-                                            linestyle="",
-                                            yaxis='left',
-                                            xerror=None,
-                                            yerror=None,
-                                            fill=False,
-                                            alpha=self.getAlpha(),
-                                            symbolsize=7,
-                                            baseline=None)
+                    return backend.addCurve(
+                        xFiltered,
+                        yFiltered,
+                        color=rgbacolors[mask],
+                        gapcolor=None,
+                        symbol="s",
+                        linewidth=0,
+                        linestyle="",
+                        yaxis="left",
+                        xerror=None,
+                        yerror=None,
+                        fill=False,
+                        alpha=self.getAlpha(),
+                        symbolsize=7,
+                        baseline=None,
+                    )
 
                 # Make shape include all points
                 gridOrder = gridInfo.order
                 if nbpoints != numpy.prod(shape):
-                    if gridOrder == 'row':
+                    if gridOrder == "row":
                         shape = int(numpy.ceil(nbpoints / shape[1])), shape[1]
-                    else:   # column-major order
+                    else:  # column-major order
                         shape = shape[0], int(numpy.ceil(nbpoints / shape[0]))
 
                 if shape[0] < 2 or shape[1] < 2:  # Single line, at least 2 points
                     points = numpy.ones((2, nbpoints, 2), dtype=numpy.float64)
                     # Use row/column major depending on shape, not on info value
-                    gridOrder = 'row' if shape[0] == 1 else 'column'
+                    gridOrder = "row" if shape[0] == 1 else "column"
 
-                    if gridOrder == 'row':
+                    if gridOrder == "row":
                         points[0, :, 0] = xFiltered
                         points[0, :, 1] = yFiltered
                     else:  # column-major order
@@ -666,35 +724,51 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                         points[0, :, 1] = xFiltered
 
                     # Add a second line that will be clipped in the end
-                    points[1, :-1] = points[0, :-1] + numpy.cross(
-                        points[0, 1:] - points[0, :-1], (0., 0., 1.))[:, :2]
-                    points[1, -1] = points[0, -1] + numpy.cross(
-                        points[0, -1] - points[0, -2], (0., 0., 1.))[:2]
+                    points[1, :-1] = (
+                        points[0, :-1]
+                        + numpy.cross(points[0, 1:] - points[0, :-1], (0.0, 0.0, 1.0))[
+                            :, :2
+                        ]
+                    )
+                    points[1, -1] = (
+                        points[0, -1]
+                        + numpy.cross(points[0, -1] - points[0, -2], (0.0, 0.0, 1.0))[
+                            :2
+                        ]
+                    )
 
                     points.shape = 2, nbpoints, 2  # Use same shape for both orders
                     coords, indices = _quadrilateral_grid_as_triangles(points)
 
-                elif gridOrder == 'row':  # row-major order
+                elif gridOrder == "row":  # row-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
+                        points = numpy.empty(
+                            (numpy.prod(shape), 2), dtype=numpy.float64
+                        )
                         points[:nbpoints, 0] = xFiltered
                         points[:nbpoints, 1] = yFiltered
                         # Index of last element of last fully filled row
                         index = (nbpoints // shape[1]) * shape[1]
-                        points[nbpoints:, 0] = xFiltered[index - (numpy.prod(shape) - nbpoints):index]
+                        points[nbpoints:, 0] = xFiltered[
+                            index - (numpy.prod(shape) - nbpoints) : index
+                        ]
                         points[nbpoints:, 1] = yFiltered[-1]
                     else:
                         points = numpy.transpose((xFiltered, yFiltered))
                     points.shape = shape[0], shape[1], 2
 
-                else:   # column-major order
+                else:  # column-major order
                     if nbpoints != numpy.prod(shape):
-                        points = numpy.empty((numpy.prod(shape), 2), dtype=numpy.float64)
+                        points = numpy.empty(
+                            (numpy.prod(shape), 2), dtype=numpy.float64
+                        )
                         points[:nbpoints, 0] = yFiltered
                         points[:nbpoints, 1] = xFiltered
                         # Index of last element of last fully filled column
                         index = (nbpoints // shape[0]) * shape[0]
-                        points[nbpoints:, 0] = yFiltered[index - (numpy.prod(shape) - nbpoints):index]
+                        points[nbpoints:, 0] = yFiltered[
+                            index - (numpy.prod(shape) - nbpoints) : index
+                        ]
                         points[nbpoints:, 1] = xFiltered[-1]
                     else:
                         points = numpy.transpose((yFiltered, xFiltered))
@@ -703,25 +777,24 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 coords, indices = _quadrilateral_grid_as_triangles(points)
 
                 # Remove unused extra triangles
-                coords = coords[:4*nbpoints]
-                indices = indices[:2*nbpoints]
+                coords = coords[: 4 * nbpoints]
+                indices = indices[: 2 * nbpoints]
 
-                if gridOrder == 'row':
+                if gridOrder == "row":
                     x, y = coords[:, 0], coords[:, 1]
                 else:  # column-major order
                     y, x = coords[:, 0], coords[:, 1]
 
                 rgbacolors = rgbacolors[mask]  # Filter-out not finite points
                 gridcolors = numpy.empty(
-                    (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype)
+                    (4 * nbpoints, rgbacolors.shape[-1]), dtype=rgbacolors.dtype
+                )
                 for first in range(4):
                     gridcolors[first::4] = rgbacolors[:nbpoints]
 
-                return backend.addTriangles(x,
-                                            y,
-                                            indices,
-                                            color=gridcolors,
-                                            alpha=self.getAlpha())
+                return backend.addTriangles(
+                    x, y, indices, color=gridcolors, alpha=self.getAlpha()
+                )
 
             else:
                 _logger.error("Unhandled visualization %s", visualization)
@@ -750,11 +823,13 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 if gridInfo is None:
                     return None
 
-                if gridInfo.order == 'row':
+                if gridInfo.order == "row":
                     index = row * gridInfo.shape[1] + column
                 else:
                     index = row + column * gridInfo.shape[0]
-                if index >= len(self.getXData(copy=False)):  # OK as long as not log scale
+                if index >= len(
+                    self.getXData(copy=False)
+                ):  # OK as long as not log scale
                     return None  # Image can be larger than scatter
 
                 result = PickingResult(self, (index,))
@@ -771,9 +846,16 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 ox, oy = histoInfo.origin
                 xdata = self.getXData(copy=False)
                 ydata = self.getYData(copy=False)
-                indices = numpy.nonzero(numpy.logical_and(
-                    numpy.logical_and(xdata >= ox + sx * col, xdata < ox + sx * (col + 1)),
-                    numpy.logical_and(ydata >= oy + sy * row, ydata < oy + sy * (row + 1))))[0]
+                indices = numpy.nonzero(
+                    numpy.logical_and(
+                        numpy.logical_and(
+                            xdata >= ox + sx * col, xdata < ox + sx * (col + 1)
+                        ),
+                        numpy.logical_and(
+                            ydata >= oy + sy * row, ydata < oy + sy * (row + 1)
+                        ),
+                    )
+                )[0]
                 result = None if len(indices) == 0 else PickingResult(self, indices)
 
         return result
@@ -799,7 +881,8 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             mask = numpy.logical_and(numpy.isfinite(x), numpy.isfinite(y))
 
             self.__triangulationFuture = self.__getExecutor().submit_greedy(
-                'Triangulation', Triangulation, x[mask], y[mask])
+                "Triangulation", Triangulation, x[mask], y[mask]
+            )
 
         return self.__triangulationFuture
 
@@ -832,8 +915,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         :rtype: concurrent.futures.Future
         """
-        if (self.__interpolatorFuture is None or
-                self.__interpolatorFuture.cancelled()):
+        if self.__interpolatorFuture is None or self.__interpolatorFuture.cancelled():
             # Need to init a new interpolator
             x, y, values = self.getData(copy=False)[:3]
             # Remove not finite points
@@ -841,8 +923,11 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             x, y, values = x[mask], y[mask], values[mask]
 
             self.__interpolatorFuture = self.__getExecutor().submit_greedy(
-                'interpolator',
-                self.__initInterpolator, self._getTriangulationFuture(), values)
+                "interpolator",
+                self.__initInterpolator,
+                self._getTriangulationFuture(),
+                values,
+            )
         return self.__interpolatorFuture
 
     def _logFilterData(self, xPositive, yPositive):
@@ -904,11 +989,13 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
                 assert len(data) == 5
                 return data
 
-        return (self.getXData(copy),
-                self.getYData(copy),
-                self.getValueData(copy),
-                self.getXErrorData(copy),
-                self.getYErrorData(copy))
+        return (
+            self.getXData(copy),
+            self.getYData(copy),
+            self.getValueData(copy),
+            self.getXErrorData(copy),
+            self.getYErrorData(copy),
+        )
 
     # reimplemented from PointsBase to handle `value`
     def setData(self, x, y, value, xerror=None, yerror=None, alpha=None, copy=True):
@@ -927,7 +1014,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
         :param yerror: Values with the uncertainties on the y values
         :type yerror: A float, or a numpy.ndarray of float32. See xerror.
         :param alpha: Values with the transparency (between 0 and 1)
-        :type alpha: A float, or a numpy.ndarray of float32 
+        :type alpha: A float, or a numpy.ndarray of float32
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
         """
@@ -937,8 +1024,7 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
 
         # Convert complex data
         if numpy.iscomplexobj(value):
-            _logger.warning(
-                'Converting value data to absolute value to plot it.')
+            _logger.warning("Converting value data to absolute value to plot it.")
             value = numpy.absolute(value)
 
         # Reset triangulation and interpolator
@@ -960,10 +1046,10 @@ class Scatter(PointsBase, ColormapMixIn, ScatterVisualizationMixIn):
             alpha = numpy.array(alpha, copy=copy)
             assert alpha.ndim == 1
             assert len(x) == len(alpha)
-            if alpha.dtype.kind != 'f':
+            if alpha.dtype.kind != "f":
                 alpha = alpha.astype(numpy.float32)
-            if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
-                alpha = numpy.clip(alpha, 0., 1.)
+            if numpy.any(numpy.logical_or(alpha < 0.0, alpha > 1.0)):
+                alpha = numpy.clip(alpha, 0.0, 1.0)
         self.__alpha = alpha
 
         # set x, y, xerror, yerror

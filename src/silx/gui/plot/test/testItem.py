@@ -42,8 +42,8 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
     def testCurveChanged(self):
         """Test sigItemChanged for curve"""
-        self.plot.addCurve(numpy.arange(10), numpy.arange(10), legend='test')
-        curve = self.plot.getCurve('test')
+        self.plot.addCurve(numpy.arange(10), numpy.arange(10), legend="test")
+        curve = self.plot.getCurve("test")
 
         listener = SignalListener()
         curve.sigItemChanged.connect(listener)
@@ -57,8 +57,8 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         curve.setData(numpy.arange(100), numpy.arange(100))
 
         # SymbolMixIn
-        curve.setSymbol('Circle')
-        curve.setSymbol('d')
+        curve.setSymbol("Circle")
+        curve.setSymbol("d")
         curve.setSymbolSize(20)
 
         # AlphaMixIn
@@ -66,49 +66,51 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
 
         # Test for signals in Curve class
         # ColorMixIn
-        curve.setColor('yellow')
+        curve.setColor("yellow")
         # YAxisMixIn
-        curve.setYAxis('right')
+        curve.setYAxis("right")
         # FillMixIn
         curve.setFill(True)
         # LineMixIn
-        curve.setLineStyle(':')
-        curve.setLineStyle(':')  # Not sending event
+        curve.setLineStyle(":")
+        curve.setLineStyle(":")  # Not sending event
         curve.setLineWidth(2)
 
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.VISIBLE,
-                          ItemChangedType.VISIBLE,
-                          ItemChangedType.ZVALUE,
-                          ItemChangedType.DATA,
-                          ItemChangedType.SYMBOL,
-                          ItemChangedType.SYMBOL,
-                          ItemChangedType.SYMBOL_SIZE,
-                          ItemChangedType.ALPHA,
-                          ItemChangedType.COLOR,
-                          ItemChangedType.YAXIS,
-                          ItemChangedType.FILL,
-                          ItemChangedType.LINE_STYLE,
-                          ItemChangedType.LINE_WIDTH])
+        self.assertEqual(
+            listener.arguments(argumentIndex=0),
+            [
+                ItemChangedType.VISIBLE,
+                ItemChangedType.VISIBLE,
+                ItemChangedType.ZVALUE,
+                ItemChangedType.DATA,
+                ItemChangedType.SYMBOL,
+                ItemChangedType.SYMBOL,
+                ItemChangedType.SYMBOL_SIZE,
+                ItemChangedType.ALPHA,
+                ItemChangedType.COLOR,
+                ItemChangedType.YAXIS,
+                ItemChangedType.FILL,
+                ItemChangedType.LINE_STYLE,
+                ItemChangedType.LINE_WIDTH,
+            ],
+        )
 
     def testHistogramChanged(self):
         """Test sigItemChanged for Histogram"""
-        self.plot.addHistogram(
-            numpy.arange(10), edges=numpy.arange(11), legend='test')
-        histogram = self.plot.getHistogram('test')
+        self.plot.addHistogram(numpy.arange(10), edges=numpy.arange(11), legend="test")
+        histogram = self.plot.getHistogram("test")
         listener = SignalListener()
         histogram.sigItemChanged.connect(listener)
 
         # Test signals in Histogram class
         histogram.setData(numpy.zeros(10), numpy.arange(11))
 
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.DATA])
+        self.assertEqual(listener.arguments(argumentIndex=0), [ItemChangedType.DATA])
 
     def testImageDataChanged(self):
         """Test sigItemChanged for ImageData"""
-        self.plot.addImage(numpy.arange(100).reshape(10, 10), legend='test')
-        image = self.plot.getImage('test')
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), legend="test")
+        image = self.plot.getImage("test")
 
         listener = SignalListener()
         image.sigItemChanged.connect(listener)
@@ -116,7 +118,7 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         # ColormapMixIn
         colormap = self.plot.getDefaultColormap().copy()
         image.setColormap(colormap)
-        image.getColormap().setName('viridis')
+        image.getColormap().setName("viridis")
 
         # Test of signals in ImageBase class
         image.setOrigin(10)
@@ -125,18 +127,22 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         # Test of signals in ImageData class
         image.setData(numpy.ones((10, 10)))
 
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.COLORMAP,
-                          ItemChangedType.COLORMAP,
-                          ItemChangedType.POSITION,
-                          ItemChangedType.SCALE,
-                          ItemChangedType.COLORMAP,
-                          ItemChangedType.DATA])
+        self.assertEqual(
+            listener.arguments(argumentIndex=0),
+            [
+                ItemChangedType.COLORMAP,
+                ItemChangedType.COLORMAP,
+                ItemChangedType.POSITION,
+                ItemChangedType.SCALE,
+                ItemChangedType.COLORMAP,
+                ItemChangedType.DATA,
+            ],
+        )
 
     def testImageRgbaChanged(self):
         """Test sigItemChanged for ImageRgba"""
-        self.plot.addImage(numpy.ones((10, 10, 3)), legend='rgb')
-        image = self.plot.getImage('rgb')
+        self.plot.addImage(numpy.ones((10, 10, 3)), legend="rgb")
+        image = self.plot.getImage("rgb")
 
         listener = SignalListener()
         image.sigItemChanged.connect(listener)
@@ -144,13 +150,12 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         # Test of signals in ImageRgba class
         image.setData(numpy.zeros((10, 10, 3)))
 
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.DATA])
+        self.assertEqual(listener.arguments(argumentIndex=0), [ItemChangedType.DATA])
 
     def testMarkerChanged(self):
         """Test sigItemChanged for markers"""
-        self.plot.addMarker(10, 20, legend='test')
-        marker = self.plot._getMarker('test')
+        self.plot.addMarker(10, 20, legend="test")
+        marker = self.plot._getMarker("test")
 
         listener = SignalListener()
         marker.sigItemChanged.connect(listener)
@@ -158,42 +163,45 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         # Test signals in _BaseMarker
         marker.setPosition(10, 10)
         marker.setPosition(10, 10)  # Not sending event
-        marker.setText('toto')
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.POSITION,
-                          ItemChangedType.TEXT])
+        marker.setText("toto")
+        self.assertEqual(
+            listener.arguments(argumentIndex=0),
+            [ItemChangedType.POSITION, ItemChangedType.TEXT],
+        )
 
         # XMarker
-        self.plot.addXMarker(10, legend='x')
-        marker = self.plot._getMarker('x')
+        self.plot.addXMarker(10, legend="x")
+        marker = self.plot._getMarker("x")
 
         listener = SignalListener()
         marker.sigItemChanged.connect(listener)
         marker.setPosition(20, 20)
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.POSITION])
+        self.assertEqual(
+            listener.arguments(argumentIndex=0), [ItemChangedType.POSITION]
+        )
 
         # YMarker
-        self.plot.addYMarker(10, legend='x')
-        marker = self.plot._getMarker('x')
+        self.plot.addYMarker(10, legend="x")
+        marker = self.plot._getMarker("x")
 
         listener = SignalListener()
         marker.sigItemChanged.connect(listener)
         marker.setPosition(20, 20)
-        self.assertEqual(listener.arguments(argumentIndex=0),
-                         [ItemChangedType.POSITION])
+        self.assertEqual(
+            listener.arguments(argumentIndex=0), [ItemChangedType.POSITION]
+        )
 
     def testScatterChanged(self):
         """Test sigItemChanged for scatter"""
         data = numpy.arange(10)
-        self.plot.addScatter(data, data, data, legend='test')
-        scatter = self.plot.getScatter('test')
+        self.plot.addScatter(data, data, data, legend="test")
+        scatter = self.plot.getScatter("test")
 
         listener = SignalListener()
         scatter.sigItemChanged.connect(listener)
 
         # ColormapMixIn
-        scatter.getColormap().setName('viridis')
+        scatter.getColormap().setName("viridis")
 
         # Test of signals in Scatter class
         scatter.setData((0, 1, 2), (1, 0, 2), (0, 1, 2))
@@ -201,44 +209,48 @@ class TestSigItemChangedSignal(PlotWidgetTestCase):
         # Visualization mode changed
         scatter.setVisualization(scatter.Visualization.SOLID)
 
-        self.assertEqual(listener.arguments(),
-                         [(ItemChangedType.COLORMAP,),
-                          (ItemChangedType.DATA,),
-                          (ItemChangedType.COLORMAP,),
-                          (ItemChangedType.VISUALIZATION_MODE,)])
+        self.assertEqual(
+            listener.arguments(),
+            [
+                (ItemChangedType.COLORMAP,),
+                (ItemChangedType.DATA,),
+                (ItemChangedType.COLORMAP,),
+                (ItemChangedType.VISUALIZATION_MODE,),
+            ],
+        )
 
     def testShapeChanged(self):
         """Test sigItemChanged for shape"""
-        data = numpy.array((1., 10.))
-        self.plot.addShape(data, data, legend='test', shape='rectangle')
-        shape = self.plot._getItem(kind='item', legend='test')
+        data = numpy.array((1.0, 10.0))
+        self.plot.addShape(data, data, legend="test", shape="rectangle")
+        shape = self.plot._getItem(kind="item", legend="test")
 
         listener = SignalListener()
         shape.sigItemChanged.connect(listener)
 
         shape.setOverlay(True)
-        shape.setPoints(((2., 2.), (3., 3.)))
+        shape.setPoints(((2.0, 2.0), (3.0, 3.0)))
 
-        self.assertEqual(listener.arguments(),
-                         [(ItemChangedType.OVERLAY,),
-                          (ItemChangedType.DATA,)])
+        self.assertEqual(
+            listener.arguments(), [(ItemChangedType.OVERLAY,), (ItemChangedType.DATA,)]
+        )
 
 
 class TestSymbol(PlotWidgetTestCase):
-    """Test item's symbol """
+    """Test item's symbol"""
 
     def test(self):
         """Test sigItemChanged for curve"""
-        self.plot.addCurve(numpy.arange(10), numpy.arange(10), legend='test')
-        curve = self.plot.getCurve('test')
+        self.plot.addCurve(numpy.arange(10), numpy.arange(10), legend="test")
+        curve = self.plot.getCurve("test")
 
         # SymbolMixIn
-        curve.setSymbol('o')
+        curve.setSymbol("o")
         name = curve.getSymbolName()
-        self.assertEqual('Circle', name)
+        self.assertEqual("Circle", name)
 
-        name = curve.getSymbolName('d')
-        self.assertEqual('Diamond', name)
+        name = curve.getSymbolName("d")
+        self.assertEqual("Diamond", name)
 
 
 class TestVisibleExtent(PlotWidgetTestCase):
@@ -252,7 +264,7 @@ class TestVisibleExtent(PlotWidgetTestCase):
         curve.setData((1, 2, 3), (0, 1, 2))
 
         histogram = items.Histogram()
-        histogram.setData((0, 1, 2), (1, 5/3, 7/3, 3))
+        histogram.setData((0, 1, 2), (1, 5 / 3, 7 / 3, 3))
 
         image = items.ImageData()
         image.setOrigin((1, 0))
@@ -270,10 +282,10 @@ class TestVisibleExtent(PlotWidgetTestCase):
                 xaxis.setLimits(0, 100)
                 yaxis.setLimits(0, 100)
                 self.plot.addItem(item)
-                self.assertEqual(item.getVisibleBounds(), (1., 3., 0., 2.))
+                self.assertEqual(item.getVisibleBounds(), (1.0, 3.0, 0.0, 2.0))
 
                 xaxis.setLimits(0.5, 2.5)
-                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0., 2.))
+                self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0.0, 2.0))
 
                 yaxis.setLimits(0.5, 1.5)
                 self.assertEqual(item.getVisibleBounds(), (1, 2.5, 0.5, 1.5))
@@ -348,12 +360,12 @@ class TestImageDataAggregated(PlotWidgetTestCase):
                 # Zoom-out
                 for i in range(4):
                     xmin, xmax = self.plot.getXAxis().getLimits()
-                    ymin, ymax =  self.plot.getYAxis().getLimits()
+                    ymin, ymax = self.plot.getYAxis().getLimits()
                     self.plot.setLimits(
-                        xmin - (xmax - xmin)/2,
-                        xmax + (xmax - xmin)/2,
-                        ymin - (ymax - ymin)/2,
-                        ymax + (ymax - ymin)/2,
+                        xmin - (xmax - xmin) / 2,
+                        xmax + (xmax - xmin) / 2,
+                        ymin - (ymax - ymin) / 2,
+                        ymax + (ymax - ymin) / 2,
                     )
                     self.qapp.processEvents()
 
@@ -383,7 +395,8 @@ def testRegionOfInterestText():
 
     roi.setName("even_newer_name")
     assert listener.arguments(argumentIndex=0) == [
-        ItemChangedType.NAME, ItemChangedType.TEXT
+        ItemChangedType.NAME,
+        ItemChangedType.TEXT,
     ]
     assert roi.getText() == "even_newer_name"
 

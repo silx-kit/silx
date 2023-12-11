@@ -108,8 +108,8 @@ class UpdateScatterThread(threading.Thread):
 
             # Generate new data points
             inclination = numpy.random.random(1000).astype(numpy.float32) * numpy.pi
-            azimuth = numpy.random.random(1000).astype(numpy.float32) * 2. * numpy.pi
-            radius = numpy.random.normal(loc=10., scale=.5, size=1000)
+            azimuth = numpy.random.random(1000).astype(numpy.float32) * 2.0 * numpy.pi
+            radius = numpy.random.normal(loc=10.0, scale=0.5, size=1000)
             newX = radius * numpy.sin(inclination) * numpy.cos(azimuth)
             newY = radius * numpy.sin(inclination) * numpy.sin(azimuth)
             newZ = radius * numpy.cos(inclination)
@@ -126,13 +126,15 @@ class UpdateScatterThread(threading.Thread):
                 if count > MAX_NUMBER_OF_POINTS:
                     # Restart a new scatter plot asyn
                     self.future_result = concurrent.submitToQtMainThread(
-                        self.scatter3d.setData, x, y, z, value)
+                        self.scatter3d.setData, x, y, z, value
+                    )
 
                     count = len(x)
                 else:
                     # Append data asynchronously
                     self.future_result = concurrent.submitToQtMainThread(
-                        self._appendScatterData, x, y, z, value)
+                        self._appendScatterData, x, y, z, value
+                    )
 
                     count += len(x)
 
@@ -158,8 +160,8 @@ def main():
 
     sceneWidget = window.getSceneWidget()
     scatter = items.Scatter3D()
-    scatter.setSymbol(',')
-    scatter.getColormap().setName('magma')
+    scatter.setSymbol(",")
+    scatter.getColormap().setName("magma")
     sceneWidget.addItem(scatter)
 
     # Create the thread that calls submitToQtMainThread
@@ -171,5 +173,5 @@ def main():
     updateThread.stop()  # Stop updating the plot
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

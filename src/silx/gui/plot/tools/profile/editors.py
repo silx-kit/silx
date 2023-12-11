@@ -43,7 +43,6 @@ _logger = logging.getLogger(__name__)
 
 
 class _NoProfileRoiEditor(qt.QWidget):
-
     sigDataCommited = qt.Signal()
 
     def setEditorData(self, roi):
@@ -54,7 +53,6 @@ class _NoProfileRoiEditor(qt.QWidget):
 
 
 class _DefaultImageProfileRoiEditor(qt.QWidget):
-
     sigDataCommited = qt.Signal()
 
     def __init__(self, parent=None):
@@ -72,7 +70,7 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
         self._methodsButton = ProfileOptionToolButton(parent=self, plot=None)
         self._methodsButton.sigMethodChanged.connect(self._widgetChanged)
 
-        label = qt.QLabel('W:')
+        label = qt.QLabel("W:")
         label.setToolTip("Line width in pixels")
         layout.addWidget(label)
         layout.addWidget(self._lineWidth)
@@ -99,7 +97,6 @@ class _DefaultImageProfileRoiEditor(qt.QWidget):
 
 
 class _DefaultImageStackProfileRoiEditor(_DefaultImageProfileRoiEditor):
-
     def _initLayout(self, layout):
         super(_DefaultImageStackProfileRoiEditor, self)._initLayout(layout)
         self._profileDim = ProfileToolButton(parent=self, plot=None)
@@ -121,7 +118,6 @@ class _DefaultImageStackProfileRoiEditor(_DefaultImageProfileRoiEditor):
 
 
 class _DefaultScatterProfileRoiEditor(qt.QWidget):
-
     sigDataCommited = qt.Signal()
 
     def __init__(self, parent=None):
@@ -134,7 +130,7 @@ class _DefaultScatterProfileRoiEditor(qt.QWidget):
 
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        label = qt.QLabel('Samples:')
+        label = qt.QLabel("Samples:")
         label.setToolTip("Number of sample points of the profile")
         layout.addWidget(label)
         layout.addWidget(self._nPoints)
@@ -160,6 +156,7 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
 
     :param qt.QWidget parent: Parent widget
     """
+
     def __init__(self, parent=None):
         super(ProfileRoiEditorAction, self).__init__(parent)
         self.__roiManager = None
@@ -237,8 +234,7 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
         return self.__roi
 
     def __roiPropertyChanged(self):
-        """Handle changes on the property defining the ROI.
-        """
+        """Handle changes on the property defining the ROI."""
         self._updateWidgetValues()
 
     def __setEditor(self, widget, editor):
@@ -265,16 +261,20 @@ class ProfileRoiEditorAction(qt.QWidgetAction):
         """Returns the editor class to use according to the ROI."""
         if roi is None:
             editorClass = _NoProfileRoiEditor
-        elif isinstance(roi, (rois._DefaultImageStackProfileRoiMixIn,
-                              rois.ProfileImageStackCrossROI)):
+        elif isinstance(
+            roi,
+            (rois._DefaultImageStackProfileRoiMixIn, rois.ProfileImageStackCrossROI),
+        ):
             # Must be done before the default image ROI
             # Cause ImageStack ROIs inherit from Image ROIs
             editorClass = _DefaultImageStackProfileRoiEditor
-        elif isinstance(roi, (rois._DefaultImageProfileRoiMixIn,
-                              rois.ProfileImageCrossROI)):
+        elif isinstance(
+            roi, (rois._DefaultImageProfileRoiMixIn, rois.ProfileImageCrossROI)
+        ):
             editorClass = _DefaultImageProfileRoiEditor
-        elif isinstance(roi, (rois._DefaultScatterProfileRoiMixIn,
-                              rois.ProfileScatterCrossROI)):
+        elif isinstance(
+            roi, (rois._DefaultScatterProfileRoiMixIn, rois.ProfileScatterCrossROI)
+        ):
             editorClass = _DefaultScatterProfileRoiEditor
         else:
             # Unsupported

@@ -85,7 +85,7 @@ def patchToConsumeReturnKey(widget):
     Monkey-patch a widget to consume the return key instead of propagating it
     to the dialog.
     """
-    assert(not hasattr(widget, "_oldKeyPressEvent"))
+    assert not hasattr(widget, "_oldKeyPressEvent")
 
     def keyPressEvent(self, event):
         k = event.key()

@@ -56,7 +56,7 @@ class TestComplexImageView(PlotWidgetTestCase, ParametricTestCase):
 
         # Test colormap API
         colormap = self.plot.getColormap().copy()
-        colormap.setName('magma')
+        colormap.setName("magma")
         self.plot.setColormap(colormap)
         self.qWait(100)
 

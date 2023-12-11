@@ -90,7 +90,7 @@ class _TestAbstractDataViewer(TestCaseQt):
             self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
 
     def test_plot_1d_data(self):
-        data = numpy.arange(3 ** 1)
+        data = numpy.arange(3**1)
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
@@ -99,7 +99,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         self.assertIn(DataViews.PLOT1D_MODE, availableModes)
 
     def test_image_data(self):
-        data = numpy.arange(3 ** 2)
+        data = numpy.arange(3**2)
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
@@ -117,7 +117,7 @@ class _TestAbstractDataViewer(TestCaseQt):
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
     def test_image_complex_data(self):
-        data = numpy.arange(3 ** 2, dtype=numpy.complex64)
+        data = numpy.arange(3**2, dtype=numpy.complex64)
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
@@ -126,41 +126,42 @@ class _TestAbstractDataViewer(TestCaseQt):
         self.assertIn(DataViews.IMAGE_MODE, availableModes)
 
     def test_plot_3d_data(self):
-        data = numpy.arange(3 ** 3)
+        data = numpy.arange(3**3)
         data.shape = [3] * 3
         widget = self.create_widget()
         widget.setData(data)
         availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
         try:
             import silx.gui.plot3d  # noqa
+
             self.assertIn(DataViews.PLOT3D_MODE, availableModes)
         except ImportError:
             self.assertIn(DataViews.STACK_MODE, availableModes)
         self.assertEqual(DataViews.RAW_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
-        data = numpy.array(["aaa"] * (3 ** 1))
+        data = numpy.array(["aaa"] * (3**1))
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
         self.assertEqual(DataViews.RAW_MODE, widget.displayedView().modeId())
 
     def test_array_2d_data(self):
-        data = numpy.array(["aaa"] * (3 ** 2))
+        data = numpy.array(["aaa"] * (3**2))
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
         self.assertEqual(DataViews.RAW_MODE, widget.displayedView().modeId())
 
     def test_array_4d_data(self):
-        data = numpy.array(["aaa"] * (3 ** 4))
+        data = numpy.array(["aaa"] * (3**4))
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
         self.assertEqual(DataViews.RAW_MODE, widget.displayedView().modeId())
 
     def test_record_4d_data(self):
-        data = numpy.zeros(3 ** 4, dtype='3int8, float32, (2,3)float64')
+        data = numpy.zeros(3**4, dtype="3int8, float32, (2,3)float64")
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
@@ -192,7 +193,7 @@ class _TestAbstractDataViewer(TestCaseQt):
 
     def test_change_display_mode(self):
         listener = SignalListener()
-        data = numpy.arange(10 ** 4)
+        data = numpy.arange(10**4)
         data.shape = [10] * 4
         widget = self.create_widget()
         widget.selectionChanged.connect(listener)
@@ -245,8 +246,7 @@ class _TestAbstractDataViewer(TestCaseQt):
     def test_replace_view(self):
         widget = self.create_widget()
         view = _DataViewMock(widget)
-        widget.replaceView(DataViews.RAW_MODE,
-                           view)
+        widget.replaceView(DataViews.RAW_MODE, view)
         self.assertIsNone(widget.getViewFromModeId(DataViews.RAW_MODE))
         self.assertTrue(view in widget.availableViews())
         self.assertTrue(view in widget.currentAvailableViews())
@@ -255,29 +255,30 @@ class _TestAbstractDataViewer(TestCaseQt):
         # replace a view that is a child of a composite view
         widget = self.create_widget()
         view = _DataViewMock(widget)
-        replaced = widget.replaceView(DataViews.NXDATA_INVALID_MODE,
-                                      view)
+        replaced = widget.replaceView(DataViews.NXDATA_INVALID_MODE, view)
         self.assertTrue(replaced)
         nxdata_view = widget.getViewFromModeId(DataViews.NXDATA_MODE)
-        self.assertNotIn(DataViews.NXDATA_INVALID_MODE,
-                         [v.modeId() for v in nxdata_view.getViews()])
+        self.assertNotIn(
+            DataViews.NXDATA_INVALID_MODE, [v.modeId() for v in nxdata_view.getViews()]
+        )
         self.assertTrue(view in nxdata_view.getViews())
 
 
 class TestDataViewer(_TestAbstractDataViewer):
     __test__ = True  # because _TestAbstractDataViewer is ignored
+
     def create_widget(self):
         return DataViewer()
 
 
 class TestDataViewerFrame(_TestAbstractDataViewer):
     __test__ = True  # because _TestAbstractDataViewer is ignored
+
     def create_widget(self):
         return DataViewerFrame()
 
 
 class TestDataView(TestCaseQt):
-
     def createComplexData(self):
         line = [1, 2j, 3 + 3j, 4]
         image = [line, line, line, line]

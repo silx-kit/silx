@@ -112,6 +112,7 @@ class ContextGL2(Context):
 
     :param glContextHandle: System specific OpenGL context handle.
     """
+
     def __init__(self, glContextHandle):
         super(ContextGL2, self).__init__(glContextHandle)
 
@@ -121,7 +122,7 @@ class ContextGL2(Context):
 
     # programs
 
-    def prog(self, vertexShaderSrc, fragmentShaderSrc, attrib0='position'):
+    def prog(self, vertexShaderSrc, fragmentShaderSrc, attrib0="position"):
         """Cache program within context.
 
         WARNING: No clean-up.
@@ -138,14 +139,14 @@ class ContextGL2(Context):
         program = self._programs.get(key, None)
         if program is None:
             program = _glutils.Program(
-                vertexShaderSrc, fragmentShaderSrc, attrib0=attrib0)
+                vertexShaderSrc, fragmentShaderSrc, attrib0=attrib0
+            )
             self._programs[key] = program
         return program
 
     # VBOs
 
-    def makeVbo(self, data=None, sizeInBytes=None,
-                usage=None, target=None):
+    def makeVbo(self, data=None, sizeInBytes=None, usage=None, target=None):
         """Create a VBO in this context with the data.
 
         Current limitations:
@@ -193,7 +194,8 @@ class ContextGL2(Context):
             size=data.shape[0],
             dimension=dimension,
             offset=0,
-            stride=0)
+            stride=0,
+        )
 
     def _deadVbo(self, vboRef):
         """Callback handling dead VBOAttribs."""
@@ -228,13 +230,18 @@ class Window(event.Notifier):
           update the texture only when needed.
     """
 
-    _position = numpy.array(((-1., -1., 0., 0.),
-                             (1., -1., 1., 0.),
-                             (-1., 1., 0., 1.),
-                             (1., 1., 1., 1.)),
-                            dtype=numpy.float32)
+    _position = numpy.array(
+        (
+            (-1.0, -1.0, 0.0, 0.0),
+            (1.0, -1.0, 1.0, 0.0),
+            (-1.0, 1.0, 0.0, 1.0),
+            (1.0, 1.0, 1.0, 1.0),
+        ),
+        dtype=numpy.float32,
+    )
 
-    _shaders = ("""
+    _shaders = (
+        """
         attribute vec4 position;
         varying vec2 textureCoord;
 
@@ -243,7 +250,7 @@ class Window(event.Notifier):
             textureCoord = position.zw;
         }
         """,
-                """
+        """
         uniform sampler2D texture;
         varying vec2 textureCoord;
 
@@ -251,9 +258,10 @@ class Window(event.Notifier):
             gl_FragColor = texture2D(texture, textureCoord);
             gl_FragColor.a = 1.0;
         }
-        """)
+        """,
+    )
 
-    def __init__(self, mode='framebuffer'):
+    def __init__(self, mode="framebuffer"):
         super(Window, self).__init__()
         self._dirty = True
         self._size = 0, 0
@@ -263,8 +271,8 @@ class Window(event.Notifier):
         self._framebufferid = 0
         self._framebuffers = {}  # Cache of framebuffers
 
-        assert mode in ('direct', 'framebuffer')
-        self._isframebuffer = mode == 'framebuffer'
+        assert mode in ("direct", "framebuffer")
+        self._isframebuffer = mode == "framebuffer"
 
     @property
     def dirty(self):
@@ -316,8 +324,9 @@ class Window(event.Notifier):
         self._dirty = True
         self.notify(*args, **kwargs)
 
-    framebufferid = property(lambda self: self._framebufferid,
-                             doc="Framebuffer ID used to perform rendering")
+    framebufferid = property(
+        lambda self: self._framebufferid, doc="Framebuffer ID used to perform rendering"
+    )
 
     def grab(self, glcontext):
         """Returns the raster of the scene as an RGB numpy array
@@ -332,15 +341,14 @@ class Window(event.Notifier):
         previousFramebuffer = gl.glGetInteger(gl.GL_FRAMEBUFFER_BINDING)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebufferid)
         gl.glPixelStorei(gl.GL_PACK_ALIGNMENT, 1)
-        gl.glReadPixels(
-            0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, image)
+        gl.glReadPixels(0, 0, width, height, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, image)
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, previousFramebuffer)
 
         # glReadPixels gives bottom to top,
         # while images are stored as top to bottom
         image = numpy.flipud(image)
 
-        return numpy.array(image, copy=False, order='C')
+        return numpy.array(image, copy=False, order="C")
 
     def render(self, glcontext, devicePixelRatio):
         """Perform the rendering of attached viewports
@@ -384,18 +392,22 @@ class Window(event.Notifier):
         if self.dirty or context not in self._framebuffers:
             # Need to redraw framebuffer content
 
-            if (context not in self._framebuffers or
-                    self._framebuffers[context].shape != self.shape):
+            if (
+                context not in self._framebuffers
+                or self._framebuffers[context].shape != self.shape
+            ):
                 # Need to rebuild framebuffer
 
                 if context in self._framebuffers:
                     self._framebuffers[context].discard()
 
-                fbo = _glutils.FramebufferTexture(gl.GL_RGBA,
-                                                  shape=self.shape,
-                                                  minFilter=gl.GL_NEAREST,
-                                                  magFilter=gl.GL_NEAREST,
-                                                  wrap=gl.GL_CLAMP_TO_EDGE)
+                fbo = _glutils.FramebufferTexture(
+                    gl.GL_RGBA,
+                    shape=self.shape,
+                    minFilter=gl.GL_NEAREST,
+                    magFilter=gl.GL_NEAREST,
+                    wrap=gl.GL_CLAMP_TO_EDGE,
+                )
                 self._framebuffers[context] = fbo
                 self._framebufferid = fbo.name
 
@@ -415,16 +427,18 @@ class Window(event.Notifier):
         gl.glDisable(gl.GL_DEPTH_TEST)
         gl.glDisable(gl.GL_SCISSOR_TEST)
         # gl.glScissor(0, 0, width, height)
-        gl.glClearColor(0., 0., 0., 0.)
+        gl.glClearColor(0.0, 0.0, 0.0, 0.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        gl.glUniform1i(program.uniforms['texture'], fbo.texture.texUnit)
-        gl.glEnableVertexAttribArray(program.attributes['position'])
-        gl.glVertexAttribPointer(program.attributes['position'],
-                                 4,
-                                 gl.GL_FLOAT,
-                                 gl.GL_FALSE,
-                                 0,
-                                 self._position)
+        gl.glUniform1i(program.uniforms["texture"], fbo.texture.texUnit)
+        gl.glEnableVertexAttribArray(program.attributes["position"])
+        gl.glVertexAttribPointer(
+            program.attributes["position"],
+            4,
+            gl.GL_FLOAT,
+            gl.GL_FALSE,
+            0,
+            self._position,
+        )
         fbo.texture.bind()
         gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, len(self._position))
         gl.glBindTexture(gl.GL_TEXTURE_2D, 0)

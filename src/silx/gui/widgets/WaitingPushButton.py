@@ -104,8 +104,10 @@ class WaitingPushButton(qt.QPushButton):
             w += self.style().pixelMetric(qt.QStyle.PM_MenuButtonIndicator, opt, self)
 
         contentSize = qt.QSize(w, h)
-        sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
-        if qt.BINDING == 'PyQt5':  # Qt6: globalStrut not available
+        sizeHint = self.style().sizeFromContents(
+            qt.QStyle.CT_PushButton, opt, contentSize, self
+        )
+        if qt.BINDING == "PyQt5":  # Qt6: globalStrut not available
             sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
         return sizeHint
 
@@ -126,7 +128,9 @@ class WaitingPushButton(qt.QPushButton):
         """
         return self.__disabled_when_waiting
 
-    disabledWhenWaiting = qt.Property(bool, isDisabledWhenWaiting, setDisabledWhenWaiting)
+    disabledWhenWaiting = qt.Property(
+        bool, isDisabledWhenWaiting, setDisabledWhenWaiting
+    )
     """Property to enable/disable the auto disabled state when the button is waiting."""
 
     def __setWaitingIcon(self, icon):

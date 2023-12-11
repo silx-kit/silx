@@ -52,8 +52,18 @@ class _ArcGeometry:
     The aim is is to switch between consistent state without dealing with
     intermediate values.
     """
-    def __init__(self, center, startPoint, endPoint, radius,
-                 weight, startAngle, endAngle, closed=False):
+
+    def __init__(
+        self,
+        center,
+        startPoint,
+        endPoint,
+        radius,
+        weight,
+        startAngle,
+        endAngle,
+        closed=False,
+    ):
         """Constructor for a consistent arc geometry.
 
         There is also specific class method to create different kind of arc
@@ -70,46 +80,59 @@ class _ArcGeometry:
 
     @classmethod
     def createEmpty(cls):
-        """Create an arc geometry from an empty shape
-        """
+        """Create an arc geometry from an empty shape"""
         zero = numpy.array([0, 0])
         return cls(zero, zero.copy(), zero.copy(), 0, 0, 0, 0)
 
     @classmethod
     def createRect(cls, startPoint, endPoint, weight):
-        """Create an arc geometry from a definition of a rectangle
-        """
+        """Create an arc geometry from a definition of a rectangle"""
         return cls(None, startPoint, endPoint, None, weight, None, None, False)
 
     @classmethod
-    def createCircle(cls, center, startPoint, endPoint, radius,
-               weight, startAngle, endAngle):
-        """Create an arc geometry from a definition of a circle
-        """
-        return cls(center, startPoint, endPoint, radius,
-                   weight, startAngle, endAngle, True)
+    def createCircle(
+        cls, center, startPoint, endPoint, radius, weight, startAngle, endAngle
+    ):
+        """Create an arc geometry from a definition of a circle"""
+        return cls(
+            center, startPoint, endPoint, radius, weight, startAngle, endAngle, True
+        )
 
     def withWeight(self, weight):
-        """Return a new geometry based on this object, with a specific weight
-        """
-        return _ArcGeometry(self.center, self.startPoint, self.endPoint,
-                            self.radius, weight,
-                            self.startAngle, self.endAngle, self._closed)
+        """Return a new geometry based on this object, with a specific weight"""
+        return _ArcGeometry(
+            self.center,
+            self.startPoint,
+            self.endPoint,
+            self.radius,
+            weight,
+            self.startAngle,
+            self.endAngle,
+            self._closed,
+        )
 
     def withRadius(self, radius):
         """Return a new geometry based on this object, with a specific radius.
 
         The weight and the center is conserved.
         """
-        startPoint = self.center + (self.startPoint - self.center) / self.radius * radius
+        startPoint = (
+            self.center + (self.startPoint - self.center) / self.radius * radius
+        )
         endPoint = self.center + (self.endPoint - self.center) / self.radius * radius
-        return _ArcGeometry(self.center, startPoint, endPoint,
-                            radius, self.weight,
-                            self.startAngle, self.endAngle, self._closed)
+        return _ArcGeometry(
+            self.center,
+            startPoint,
+            endPoint,
+            radius,
+            self.weight,
+            self.startAngle,
+            self.endAngle,
+            self._closed,
+        )
 
     def withStartAngle(self, startAngle):
-        """Return a new geometry based on this object, with a specific start angle
-        """
+        """Return a new geometry based on this object, with a specific start angle"""
         vector = numpy.array([numpy.cos(startAngle), numpy.sin(startAngle)])
         startPoint = self.center + vector * self.radius
 
@@ -133,8 +156,7 @@ class _ArcGeometry:
         )
 
     def withEndAngle(self, endAngle):
-        """Return a new geometry based on this object, with a specific end angle
-        """
+        """Return a new geometry based on this object, with a specific end angle"""
         vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
         endPoint = self.center + vector * self.radius
 
@@ -163,9 +185,16 @@ class _ArcGeometry:
         center = None if self.center is None else self.center + delta
         startPoint = None if self.startPoint is None else self.startPoint + delta
         endPoint = None if self.endPoint is None else self.endPoint + delta
-        return _ArcGeometry(center, startPoint, endPoint,
-                            self.radius, self.weight,
-                            self.startAngle, self.endAngle, self._closed)
+        return _ArcGeometry(
+            center,
+            startPoint,
+            endPoint,
+            self.radius,
+            self.weight,
+            self.startAngle,
+            self.endAngle,
+            self._closed,
+        )
 
     def getKind(self):
         """Returns the kind of shape defined"""
@@ -193,14 +222,18 @@ class _ArcGeometry:
         return self._closed
 
     def __str__(self):
-        return str((self.center,
-                    self.startPoint,
-                    self.endPoint,
-                    self.radius,
-                    self.weight,
-                    self.startAngle,
-                    self.endAngle,
-                    self._closed))
+        return str(
+            (
+                self.center,
+                self.startPoint,
+                self.endPoint,
+                self.radius,
+                self.weight,
+                self.startAngle,
+                self.endAngle,
+                self._closed,
+            )
+        )
 
 
 class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
@@ -212,22 +245,29 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     - 1 anchor to translate the shape.
     """
 
-    ICON = 'add-shape-arc'
-    NAME = 'arc ROI'
+    ICON = "add-shape-arc"
+    NAME = "arc ROI"
     SHORT_NAME = "arc"
     """Metadata for this kind of ROI"""
 
     _plotShape = "line"
     """Plot shape which is used for the first interaction"""
 
-    ThreePointMode = RoiInteractionMode("3 points", "Provides 3 points to define the main radius circle")
-    PolarMode = RoiInteractionMode("Polar", "Provides anchors to edit the ROI in polar coords")
+    ThreePointMode = RoiInteractionMode(
+        "3 points", "Provides 3 points to define the main radius circle"
+    )
+    PolarMode = RoiInteractionMode(
+        "Polar", "Provides anchors to edit the ROI in polar coords"
+    )
     # FIXME: MoveMode was designed cause there is too much anchors
     # FIXME: It would be good replace it by a dnd on the shape
-    MoveMode = RoiInteractionMode("Translation", "Provides anchors to only move the ROI")
+    MoveMode = RoiInteractionMode(
+        "Translation", "Provides anchors to only move the ROI"
+    )
 
     class Role(enum.Enum):
         """Identify a set of roles which can be used for now to reach some positions"""
+
         START = 0
         """Location of the anchor at the start of the arc"""
         STOP = 1
@@ -386,7 +426,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             elif geometry.center is not None:
                 midAngle = (geometry.startAngle + geometry.endAngle) * 0.5
             vector = numpy.array([numpy.cos(midAngle), numpy.sin(midAngle)])
-            weightPos = geometry.center + (geometry.radius + geometry.weight * 0.5) * vector
+            weightPos = (
+                geometry.center + (geometry.radius + geometry.weight * 0.5) * vector
+            )
 
         with utils.blockSignals(self._handleWeight):
             self._handleWeight.setPosition(*weightPos)
@@ -412,7 +454,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         self._updateWeightHandle()
         self._updateShape()
 
-    def _updateCurvature(self, start, mid, end, updateCurveHandles, checkClosed=False, updateStart=False):
+    def _updateCurvature(
+        self, start, mid, end, updateCurveHandles, checkClosed=False, updateStart=False
+    ):
         """Update the curvature using 3 control points in the curve
 
         :param bool updateCurveHandles: If False curve handles are already at
@@ -437,7 +481,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 self._handleEnd.setPosition(*end)
 
         weight = self._geometry.weight
-        geometry = self._createGeometryFromControlPoints(start, mid, end, weight, closed=closed)
+        geometry = self._createGeometryFromControlPoints(
+            start, mid, end, weight, closed=closed
+        )
         self._geometry = geometry
 
         self._updateWeightHandle()
@@ -452,10 +498,10 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 sign = 1 if geometry.startAngle < geometry.endAngle else -1
                 if updateStart:
                     geometry.startPoint = geometry.endPoint
-                    geometry.startAngle = geometry.endAngle - sign * 2*numpy.pi
+                    geometry.startAngle = geometry.endAngle - sign * 2 * numpy.pi
                 else:
                     geometry.endPoint = geometry.startPoint
-                    geometry.endAngle = geometry.startAngle + sign * 2*numpy.pi
+                    geometry.endAngle = geometry.startAngle + sign * 2 * numpy.pi
 
     def handleDragUpdated(self, handle, origin, previous, current):
         modeId = self.getInteractionMode()
@@ -464,8 +510,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 mid = numpy.array(self._handleMid.getPosition())
                 end = numpy.array(self._handleEnd.getPosition())
                 self._updateCurvature(
-                    current, mid, end, checkClosed=True, updateStart=True,
-                    updateCurveHandles=False
+                    current,
+                    mid,
+                    end,
+                    checkClosed=True,
+                    updateStart=True,
+                    updateCurveHandles=False,
                 )
             elif modeId is self.PolarMode:
                 v = current - self._geometry.center
@@ -496,8 +546,12 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 start = numpy.array(self._handleStart.getPosition())
                 mid = numpy.array(self._handleMid.getPosition())
                 self._updateCurvature(
-                    start, mid, current, checkClosed=True, updateStart=False,
-                    updateCurveHandles=False
+                    start,
+                    mid,
+                    current,
+                    checkClosed=True,
+                    updateStart=False,
+                    updateCurveHandles=False,
                 )
             elif modeId is self.PolarMode:
                 v = current - self._geometry.center
@@ -530,8 +584,7 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1]) < 15
 
     def _normalizeGeometry(self):
-        """Keep the same phisical geometry, but with normalized parameters.
-        """
+        """Keep the same phisical geometry, but with normalized parameters."""
         geometry = self._geometry
         if geometry.weight * 0.5 >= geometry.radius:
             radius = (geometry.weight * 0.5 + geometry.radius) * 0.5
@@ -601,8 +654,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
                 if endAngle > startAngle:
                     endAngle -= 2 * numpy.pi
 
-            return _ArcGeometry(center, start, end,
-                                radius, weight, startAngle, endAngle)
+            return _ArcGeometry(
+                center, start, end, radius, weight, startAngle, endAngle
+            )
 
     def _createShapeFromGeometry(self, geometry):
         kind = geometry.getKind()
@@ -614,11 +668,14 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
             distance = numpy.linalg.norm(normal)
             if distance != 0:
                 normal /= distance
-            points = numpy.array([
-                geometry.startPoint + normal * geometry.weight * 0.5,
-                geometry.endPoint + normal * geometry.weight * 0.5,
-                geometry.endPoint - normal * geometry.weight * 0.5,
-                geometry.startPoint - normal * geometry.weight * 0.5])
+            points = numpy.array(
+                [
+                    geometry.startPoint + normal * geometry.weight * 0.5,
+                    geometry.endPoint + normal * geometry.weight * 0.5,
+                    geometry.endPoint - normal * geometry.weight * 0.5,
+                    geometry.startPoint - normal * geometry.weight * 0.5,
+                ]
+            )
         elif kind == "point":
             # It is not an arc
             # but we can display it as an intermediate shape
@@ -731,9 +788,15 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         geometry = self._geometry
         if geometry.center is None:
             raise ValueError("This ROI can't be represented as a section of circle")
-        return geometry.center, self.getInnerRadius(), self.getOuterRadius(), geometry.startAngle, geometry.endAngle
+        return (
+            geometry.center,
+            self.getInnerRadius(),
+            self.getOuterRadius(),
+            geometry.startAngle,
+            geometry.endAngle,
+        )
 
-    def getPosition(self, role: Role=Role.CENTER) -> Tuple[float, float]:
+    def getPosition(self, role: Role = Role.CENTER) -> Tuple[float, float]:
         """Returns a position by it's role.
 
         By default returns the center of the circle of the arc ROI.
@@ -830,9 +893,16 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
         vector = numpy.array([numpy.cos(endAngle), numpy.sin(endAngle)])
         endPoint = center + vector * radius
 
-        geometry = _ArcGeometry(center, startPoint, endPoint,
-                                radius, weight,
-                                startAngle, endAngle, closed=None)
+        geometry = _ArcGeometry(
+            center,
+            startPoint,
+            endPoint,
+            radius,
+            weight,
+            startAngle,
+            endAngle,
+            closed=None,
+        )
         self._geometry = geometry
         self._updateHandles()
 
@@ -840,7 +910,9 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     def contains(self, position):
         # first check distance, fastest
         center = self.getCenter()
-        distance = numpy.sqrt((position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2)
+        distance = numpy.sqrt(
+            (position[1] - center[1]) ** 2 + ((position[0] - center[0])) ** 2
+        )
         is_in_distance = self.getInnerRadius() <= distance <= self.getOuterRadius()
         if not is_in_distance:
             return False
@@ -906,8 +978,15 @@ class ArcROI(HandleBasedROI, items.LineMixIn, InteractionModeMixIn):
     def __str__(self):
         try:
             center, innerRadius, outerRadius, startAngle, endAngle = self.getGeometry()
-            params = center[0], center[1], innerRadius, outerRadius, startAngle, endAngle
-            params = 'center: %f %f; radius: %f %f; angles: %f %f' % params
+            params = (
+                center[0],
+                center[1],
+                innerRadius,
+                outerRadius,
+                startAngle,
+                endAngle,
+            )
+            params = "center: %f %f; radius: %f %f; angles: %f %f" % params
         except ValueError:
             params = "invalid"
         return "%s(%s)" % (self.__class__.__name__, params)

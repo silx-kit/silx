@@ -40,7 +40,7 @@ from silx.utils.ExternalResources import ExternalResources
 
 def isSilxWebsiteAvailable():
     try:
-        urllib.request.urlopen('http://www.silx.org', timeout=1)
+        urllib.request.urlopen("http://www.silx.org", timeout=1)
         return True
     except urllib.error.URLError:
         return False
@@ -58,7 +58,9 @@ class TestExternalResources(unittest.TestCase):
             raise unittest.SkipTest("Network or silx website not available")
 
     def setUp(self):
-        self.resources = ExternalResources("toto%d" % os.getpid(), "http://www.silx.org/pub/silx/")
+        self.resources = ExternalResources(
+            "toto%d" % os.getpid(), "http://www.silx.org/pub/silx/"
+        )
 
     def tearDown(self):
         if self.resources.data_home:

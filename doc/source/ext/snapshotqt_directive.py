@@ -44,34 +44,37 @@ from docutils.parsers.rst import directives
 # from docutils.par
 # note: conf.py is patching the PATH so this will be the 'current' qt version
 
-home = os.path.abspath(os.path.join(__file__, "..", "..", "..", '..'))
+home = os.path.abspath(os.path.join(__file__, "..", "..", "..", ".."))
 
 
-if not os.environ.get('DIRECTIVE_SNAPSHOT_QT') == 'True':
+if not os.environ.get("DIRECTIVE_SNAPSHOT_QT") == "True":
     """
     In case we don't wan't to regenerate screenshot, simply apply Figure
     directive
     """
+
     class SnapshotQtDirective(Image):
         option_spec = Image.option_spec.copy()
-        option_spec['script'] = directives.unchanged
+        option_spec["script"] = directives.unchanged
         has_content = True
 
         def run(self):
-            self.options['figwidth'] = 'image'
+            self.options["figwidth"] = "image"
             self.content = []
 
             # Create an image filename from arguments
             return Image.run(self)
 
     def makescreenshot(*args, **kwargs):
-        raise RuntimeError('not defined without env variable SILX_GENERATE_SCREENSHOT set to True')
+        raise RuntimeError(
+            "not defined without env variable SILX_GENERATE_SCREENSHOT set to True"
+        )
 
     def setup(app):
-        app.add_config_value('snapshotqt_image_type', 'png', 'env')
-        app.add_config_value('snapshotqt_script_dir', '..', 'env')
-        app.add_directive('snapshotqt', SnapshotQtDirective)
-        return {'version': '0.1'}
+        app.add_config_value("snapshotqt_image_type", "png", "env")
+        app.add_config_value("snapshotqt_script_dir", "..", "env")
+        app.add_directive("snapshotqt", SnapshotQtDirective)
+        return {"version": "0.1"}
 
 else:
     from silx.gui import qt
@@ -115,26 +118,29 @@ else:
                :height: 5cm
                :script: myscript.py
         """
+
         option_spec = Image.option_spec.copy()
-        option_spec['script'] = directives.unchanged
+        option_spec["script"] = directives.unchanged
         has_content = True
 
         def run(self):
             assert len(self.arguments) > 0
             # Run script stored in arguments and replace by snapshot filename
-            script = self.options.pop('script', None)
+            script = self.options.pop("script", None)
             env = self.state.document.settings.env
 
             image_ext = env.config.snapshotqt_image_type.lower()
-            script_name = self.arguments[0].replace(image_ext, 'py')
+            script_name = self.arguments[0].replace(image_ext, "py")
             output_script = os.path.join(env.app.outdir, script_name)
 
             image_file_source_path = env.relfn2path(self.arguments[0])[0]
-            image_file_source_path = os.path.join(home, env.srcdir, image_file_source_path)
+            image_file_source_path = os.path.join(
+                home, env.srcdir, image_file_source_path
+            )
 
             def createNeededDirs(_dir):
                 parentDir = os.path.dirname(_dir)
-                if parentDir not in ('', os.sep):
+                if parentDir not in ("", os.sep):
                     createNeededDirs(parentDir)
                 if os.path.exists(_dir) is False:
                     os.mkdir(_dir)
@@ -143,45 +149,53 @@ else:
 
             has_source_code = not (self.content is None or len(self.content) == 0)
             if has_source_code:
-                with open(output_script, 'w') as _file:
+                with open(output_script, "w") as _file:
                     _file.write("# from silx.gui import qt\n")
                     _file.write("# app = qt.QApplication([])\n")
                     for _line in self.content:
-                        _towrite = _line.lstrip(' ')
-                        if not _towrite.startswith(':'):
-                            _file.write(_towrite + '\n')
+                        _towrite = _line.lstrip(" ")
+                        if not _towrite.startswith(":"):
+                            _file.write(_towrite + "\n")
                     _file.write("app.exec()")
                 self.content = []
                 if script is not None:
-                    _logger.warning('Cannot specify a script if source code (content) is given.'
-                                    'Ignore script option')
-                makescreenshot(script_or_module=output_script,
-                               filename=image_file_source_path)
+                    _logger.warning(
+                        "Cannot specify a script if source code (content) is given."
+                        "Ignore script option"
+                    )
+                makescreenshot(
+                    script_or_module=output_script, filename=image_file_source_path
+                )
             else:
                 # script
                 if script is None:
-                    _logger.warning('no source code or script defined in the snapshot'
-                                    'directive, fail to generate a screenshot')
+                    _logger.warning(
+                        "no source code or script defined in the snapshot"
+                        "directive, fail to generate a screenshot"
+                    )
                 else:
                     script_path = os.path.join(home, script)
-                    makescreenshot(script_or_module=script_path,
-                                   filename=image_file_source_path)
+                    makescreenshot(
+                        script_or_module=script_path, filename=image_file_source_path
+                    )
 
             #
             # Use created image as in Figure
             return super(SnapshotQtDirective, self).run()
 
     def setup(app):
-        app.add_config_value('snapshotqt_image_type', 'png', 'env')
-        app.add_config_value('snapshotqt_script_dir', '..', 'env')
-        app.add_directive('snapshotqt', SnapshotQtDirective)
-        return {'version': '0.1'}
+        app.add_config_value("snapshotqt_image_type", "png", "env")
+        app.add_config_value("snapshotqt_script_dir", "..", "env")
+        app.add_directive("snapshotqt", SnapshotQtDirective)
+        return {"version": "0.1"}
 
     # screensImageFileDialogH5.hot function ########################################################
 
     def makescreenshot(script_or_module, filename):
-        _logger.info('generate screenshot for %s from %s, binding is %s'
-                     '' % (filename, script_or_module, qt.BINDING))
+        _logger.info(
+            "generate screenshot for %s from %s, binding is %s"
+            "" % (filename, script_or_module, qt.BINDING)
+        )
 
         def grabWindow(winID):
             screen = qt.QApplication.primaryScreen()
@@ -190,9 +204,9 @@ else:
         global _count
         _count = 15
         global _TIMEOUT
-        _TIMEOUT = 1000.  # in ms
+        _TIMEOUT = 1000.0  # in ms
         app = qt.QApplication.instance() or qt.QApplication([])
-        _logger.debug('Using Qt bindings: %s', qt)
+        _logger.debug("Using Qt bindings: %s", qt)
 
         def _grabActiveWindowAndClose():
             global _count
@@ -200,33 +214,32 @@ else:
             if activeWindow is not None:
                 if activeWindow.isVisible():
                     # hot fix since issue with pySide2 API
-                    if qt.BINDING == 'PySide2':
+                    if qt.BINDING == "PySide2":
                         pixmap = activeWindow.grab()
                     else:
                         pixmap = grabWindow(activeWindow.winId())
                     saveOK = pixmap.save(filename)
                     if not saveOK:
-                        _logger.error(
-                            'Cannot save snapshot to %s', filename)
+                        _logger.error("Cannot save snapshot to %s", filename)
                 else:
-                    _logger.error('activeWindow is not visible.')
+                    _logger.error("activeWindow is not visible.")
                 app.quit()
             else:
                 _count -= 1
                 if _count > 0:
                     # Only restart a timer if everything is OK
-                    qt.QTimer.singleShot(_TIMEOUT,
-                                         _grabActiveWindowAndClose)
+                    qt.QTimer.singleShot(_TIMEOUT, _grabActiveWindowAndClose)
                 else:
                     app.quit()
                     raise TimeoutError(
-                        'Aborted: It took too long to have an active window.')
+                        "Aborted: It took too long to have an active window."
+                    )
+
         script_or_module = os.path.abspath(script_or_module)
 
         sys.argv = [script_or_module]
-        sys.path.append(
-            os.path.abspath(os.path.dirname(script_or_module)))
+        sys.path.append(os.path.abspath(os.path.dirname(script_or_module)))
         qt.QTimer.singleShot(_TIMEOUT, _grabActiveWindowAndClose)
         with open(script_or_module) as f:
-            code = compile(f.read(), script_or_module, 'exec')
+            code = compile(f.read(), script_or_module, "exec")
             exec(code, globals(), locals())

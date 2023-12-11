@@ -32,7 +32,7 @@ from functools import partial
 from silx.utils import testutils
 
 from .. import spech5
-from ..spech5 import (SpecH5, SpecH5Dataset, spec_date_to_iso8601)
+from ..spech5 import SpecH5, SpecH5Dataset, spec_date_to_iso8601
 from .. import specfile
 
 import h5py
@@ -117,19 +117,22 @@ class TestSpecDate(unittest.TestCase):
     """
     Test of the spec_date_to_iso8601 function.
     """
+
     # TODO : time zone tests
     # TODO : error cases
 
     @classmethod
     def setUpClass(cls):
         import locale
+
         # FYI : not threadsafe
         cls.locale_saved = locale.setlocale(locale.LC_TIME)
-        locale.setlocale(locale.LC_TIME, 'C')
+        locale.setlocale(locale.LC_TIME, "C")
 
     @classmethod
     def tearDownClass(cls):
         import locale
+
         # FYI : not threadsafe
         locale.setlocale(locale.LC_TIME, cls.locale_saved)
 
@@ -144,72 +147,64 @@ class TestSpecDate(unittest.TestCase):
         self.n_minutes = [0, 9, 42, 59]
         self.n_hours = [0, 2, 17, 23]
 
-        self.formats = ['%a %b %d %H:%M:%S %Y', '%a %Y/%m/%d %H:%M:%S']
+        self.formats = ["%a %b %d %H:%M:%S %Y", "%a %Y/%m/%d %H:%M:%S"]
 
-        self.check_date_formats = partial(self.__check_date_formats,
-                                          year=self.n_years[0],
-                                          month=self.n_months[0],
-                                          day=self.n_days[0],
-                                          hour=self.n_hours[0],
-                                          minute=self.n_minutes[0],
-                                          second=self.n_seconds[0],
-                                          msg=None)
+        self.check_date_formats = partial(
+            self.__check_date_formats,
+            year=self.n_years[0],
+            month=self.n_months[0],
+            day=self.n_days[0],
+            hour=self.n_hours[0],
+            minute=self.n_minutes[0],
+            second=self.n_seconds[0],
+            msg=None,
+        )
 
-    def __check_date_formats(self,
-                             year,
-                             month,
-                             day,
-                             hour,
-                             minute,
-                             second,
-                             msg=None):
+    def __check_date_formats(self, year, month, day, hour, minute, second, msg=None):
         dt = datetime.datetime(year, month, day, hour, minute, second)
         expected_date = dt.isoformat()
 
         for i_fmt, fmt in enumerate(self.formats):
             spec_date = dt.strftime(fmt)
             iso_date = spec_date_to_iso8601(spec_date)
-            self.assertEqual(iso_date,
-                             expected_date,
-                             msg='Testing {0}. format={1}. '
-                                 'Expected "{2}", got "{3} ({4})" (dt={5}).'
-                                 ''.format(msg,
-                                           i_fmt,
-                                           expected_date,
-                                           iso_date,
-                                           spec_date,
-                                           dt))
+            self.assertEqual(
+                iso_date,
+                expected_date,
+                msg="Testing {0}. format={1}. "
+                'Expected "{2}", got "{3} ({4})" (dt={5}).'
+                "".format(msg, i_fmt, expected_date, iso_date, spec_date, dt),
+            )
 
     def testYearsNominal(self):
         for year in self.n_years:
-            self.check_date_formats(year=year, msg='year')
+            self.check_date_formats(year=year, msg="year")
 
     def testMonthsNominal(self):
         for month in self.n_months:
-            self.check_date_formats(month=month, msg='month')
+            self.check_date_formats(month=month, msg="month")
 
     def testDaysNominal(self):
         for day in self.n_days:
-            self.check_date_formats(day=day, msg='day')
+            self.check_date_formats(day=day, msg="day")
 
     def testHoursNominal(self):
         for hour in self.n_hours:
-            self.check_date_formats(hour=hour, msg='hour')
+            self.check_date_formats(hour=hour, msg="hour")
 
     def testMinutesNominal(self):
         for minute in self.n_minutes:
-            self.check_date_formats(minute=minute, msg='minute')
+            self.check_date_formats(minute=minute, msg="minute")
 
     def testSecondsNominal(self):
         for second in self.n_seconds:
-            self.check_date_formats(second=second, msg='second')
+            self.check_date_formats(second=second, msg="second")
 
 
 class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        os.write(fd, bytes(sftext, 'ascii'))
+        os.write(fd, bytes(sftext, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -247,25 +242,22 @@ class TestSpecH5(unittest.TestCase):
         self.assertNotIn("25.2", self.sfh5["/"])
         self.assertIn("instrument/positioners/Sslit1 HOff", self.sfh5["/1.1"])
         # illegal trailing "/" after dataset name
-        self.assertNotIn("instrument/positioners/Sslit1 HOff/",
-                         self.sfh5["/1.1"])
+        self.assertNotIn("instrument/positioners/Sslit1 HOff/", self.sfh5["/1.1"])
         # full path to element in group (OK)
-        self.assertIn("/1.1/instrument/positioners/Sslit1 HOff",
-                      self.sfh5["/1.1/instrument"])
+        self.assertIn(
+            "/1.1/instrument/positioners/Sslit1 HOff", self.sfh5["/1.1/instrument"]
+        )
 
     def testDataColumn(self):
-        self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
-                               12.0)
+        self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]), 12.0)
         self.assertAlmostEqual(
-                sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]),
-                87.891, places=4)
+            sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]), 87.891, places=4
+        )
 
     def testDate(self):
         # start time is in Iso8601 format
-        self.assertEqual(self.sfh5["/1.1/start_time"],
-                         u"2016-02-11T09:55:20")
-        self.assertEqual(self.sfh5["25.1/start_time"],
-                         u"2015-03-14T03:53:50")
+        self.assertEqual(self.sfh5["/1.1/start_time"], "2016-02-11T09:55:20")
+        self.assertEqual(self.sfh5["25.1/start_time"], "2015-03-14T03:53:50")
 
     def assertRaisesRegex(self, *args, **kwargs):
         return super(TestSpecH5, self).assertRaisesRegex(*args, **kwargs)
@@ -278,26 +270,24 @@ class TestSpecH5(unittest.TestCase):
 
         # error message must be explicit
         with self.assertRaisesRegex(
-                AttributeError,
-                "SpecH5Dataset has no attribute tOTo"):
+            AttributeError, "SpecH5Dataset has no attribute tOTo"
+        ):
             dummy = self.sfh5["/1.1/start_time"].tOTo
 
     def testGet(self):
         """Test :meth:`SpecH5Group.get`"""
         # default value of param *default* is None
         self.assertIsNone(self.sfh5.get("toto"))
-        self.assertEqual(self.sfh5["25.1"].get("toto", default=-3),
-                         -3)
+        self.assertEqual(self.sfh5["25.1"].get("toto", default=-3), -3)
 
-        self.assertEqual(self.sfh5.get("/1.1/start_time", default=-3),
-                         u"2016-02-11T09:55:20")
+        self.assertEqual(
+            self.sfh5.get("/1.1/start_time", default=-3), "2016-02-11T09:55:20"
+        )
 
     def testGetClass(self):
         """Test :meth:`SpecH5Group.get`"""
-        self.assertIs(self.sfh5["1.1"].get("start_time", getclass=True),
-                      h5py.Dataset)
-        self.assertIs(self.sfh5["1.1"].get("instrument", getclass=True),
-                      h5py.Group)
+        self.assertIs(self.sfh5["1.1"].get("start_time", getclass=True), h5py.Dataset)
+        self.assertIs(self.sfh5["1.1"].get("instrument", getclass=True), h5py.Group)
 
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
@@ -314,30 +304,37 @@ class TestSpecH5(unittest.TestCase):
 
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
-        self.assertEqual(list(group["positioners"].keys()),
-                         ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
-                          "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
+        self.assertEqual(
+            list(group["positioners"].keys()),
+            [
+                "Pslit HGap",
+                "MRTSlit UP",
+                "MRTSlit DOWN",
+                "Sslit1 VOff",
+                "Sslit1 HOff",
+                "Sslit1 VGap",
+            ],
+        )
         with self.assertRaises(KeyError):
             group["Holy Grail"]
 
     def testGetitemSpecH5(self):
-        self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
-                         self.sfh5["1.2"]["instrument"]["positioners"])
+        self.assertEqual(
+            self.sfh5["/1.2/instrument/positioners"],
+            self.sfh5["1.2"]["instrument"]["positioners"],
+        )
 
     def testH5pyClass(self):
         """Test :attr:`h5py_class` returns the corresponding h5py class
         (h5py.File, h5py.Group, h5py.Dataset)"""
         a_file = self.sfh5
-        self.assertIs(a_file.h5py_class,
-                      h5py.File)
+        self.assertIs(a_file.h5py_class, h5py.File)
 
         a_group = self.sfh5["/1.2/measurement"]
-        self.assertIs(a_group.h5py_class,
-                      h5py.Group)
+        self.assertIs(a_group.h5py_class, h5py.Group)
 
         a_dataset = self.sfh5["/1.1/instrument/positioners/Sslit1 HOff"]
-        self.assertIs(a_dataset.h5py_class,
-                      h5py.Dataset)
+        self.assertIs(a_dataset.h5py_class, h5py.Dataset)
 
     def testHeader(self):
         file_header = self.sfh5["/1.2/instrument/specfile/file_header"]
@@ -349,67 +346,79 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(len(scan_header), 9)
 
         # line 4 of file header
-        self.assertEqual(
-                file_header[3],
-                u"#C imaging  User = opid17")
+        self.assertEqual(file_header[3], "#C imaging  User = opid17")
         # line 4 of scan header
         scan_header = self.sfh5["25.1/instrument/specfile/scan_header"]
 
-        self.assertEqual(
-                scan_header[3],
-                u"#P1 4.74255 6.197579 2.238283")
+        self.assertEqual(scan_header[3], "#P1 4.74255 6.197579 2.238283")
 
     def testLinks(self):
-        self.assertTrue(numpy.array_equal(
-            self.sfh5["/1.2/measurement/mca_0/data"],
-            self.sfh5["/1.2/instrument/mca_0/data"])
+        self.assertTrue(
+            numpy.array_equal(
+                self.sfh5["/1.2/measurement/mca_0/data"],
+                self.sfh5["/1.2/instrument/mca_0/data"],
+            )
         )
-        self.assertTrue(numpy.array_equal(
-            self.sfh5["/1.2/measurement/mca_0/info/data"],
-            self.sfh5["/1.2/instrument/mca_0/data"])
+        self.assertTrue(
+            numpy.array_equal(
+                self.sfh5["/1.2/measurement/mca_0/info/data"],
+                self.sfh5["/1.2/instrument/mca_0/data"],
+            )
         )
-        self.assertTrue(numpy.array_equal(
-            self.sfh5["/1.2/measurement/mca_0/info/channels"],
-            self.sfh5["/1.2/instrument/mca_0/channels"])
+        self.assertTrue(
+            numpy.array_equal(
+                self.sfh5["/1.2/measurement/mca_0/info/channels"],
+                self.sfh5["/1.2/instrument/mca_0/channels"],
+            )
         )
-        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/"].keys(),
-                         self.sfh5["/1.2/instrument/mca_0/"].keys())
+        self.assertEqual(
+            self.sfh5["/1.2/measurement/mca_0/info/"].keys(),
+            self.sfh5["/1.2/instrument/mca_0/"].keys(),
+        )
 
-        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/preset_time"],
-                         self.sfh5["/1.2/instrument/mca_0/preset_time"])
-        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/live_time"],
-                         self.sfh5["/1.2/instrument/mca_0/live_time"])
-        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/elapsed_time"],
-                         self.sfh5["/1.2/instrument/mca_0/elapsed_time"])
+        self.assertEqual(
+            self.sfh5["/1.2/measurement/mca_0/info/preset_time"],
+            self.sfh5["/1.2/instrument/mca_0/preset_time"],
+        )
+        self.assertEqual(
+            self.sfh5["/1.2/measurement/mca_0/info/live_time"],
+            self.sfh5["/1.2/instrument/mca_0/live_time"],
+        )
+        self.assertEqual(
+            self.sfh5["/1.2/measurement/mca_0/info/elapsed_time"],
+            self.sfh5["/1.2/instrument/mca_0/elapsed_time"],
+        )
 
     def testListScanIndices(self):
-        self.assertEqual(list(self.sfh5.keys()),
-                         ["1.1", "25.1", "1.2", "1000.1", "1001.1"])
-        self.assertEqual(self.sfh5["1.2"].attrs,
-                         {"NX_class": "NXentry", })
+        self.assertEqual(
+            list(self.sfh5.keys()), ["1.1", "25.1", "1.2", "1000.1", "1001.1"]
+        )
+        self.assertEqual(
+            self.sfh5["1.2"].attrs,
+            {
+                "NX_class": "NXentry",
+            },
+        )
 
     def testMcaAbsent(self):
         def access_absent_mca():
             """This must raise a KeyError, because scan 1.1 has no MCA"""
             return self.sfh5["/1.1/measurement/mca_0/"]
+
         self.assertRaises(KeyError, access_absent_mca)
 
     def testMcaCalib(self):
         mca0_calib = self.sfh5["/1.2/measurement/mca_0/info/calibration"]
         mca1_calib = self.sfh5["/1.2/measurement/mca_1/info/calibration"]
-        self.assertEqual(mca0_calib.tolist(),
-                         [1, 2, 3])
+        self.assertEqual(mca0_calib.tolist(), [1, 2, 3])
         # calibration is unique in this scan and applies to all analysers
-        self.assertEqual(mca0_calib.tolist(),
-                         mca1_calib.tolist())
+        self.assertEqual(mca0_calib.tolist(), mca1_calib.tolist())
 
     def testMcaChannels(self):
         mca0_chann = self.sfh5["/1.2/measurement/mca_0/info/channels"]
         mca1_chann = self.sfh5["/1.2/measurement/mca_1/info/channels"]
-        self.assertEqual(mca0_chann.tolist(),
-                         [0, 1, 2])
-        self.assertEqual(mca0_chann.tolist(),
-                         mca1_chann.tolist())
+        self.assertEqual(mca0_chann.tolist(), [0, 1, 2])
+        self.assertEqual(mca0_chann.tolist(), mca1_chann.tolist())
 
     def testMcaCtime(self):
         """Tests for #@CTIME mca header"""
@@ -420,31 +429,26 @@ class TestSpecH5(unittest.TestCase):
 
         mca0_preset_time = self.sfh5["/1.2/instrument/mca_0/preset_time"]
         mca1_preset_time = self.sfh5["/1.2/instrument/mca_1/preset_time"]
-        self.assertLess(mca0_preset_time - 123.4,
-                        10**-5)
+        self.assertLess(mca0_preset_time - 123.4, 10**-5)
         # ctime is unique in a this scan and applies to all analysers
-        self.assertEqual(mca0_preset_time,
-                         mca1_preset_time)
+        self.assertEqual(mca0_preset_time, mca1_preset_time)
 
         mca0_live_time = self.sfh5["/1.2/instrument/mca_0/live_time"]
         mca1_live_time = self.sfh5["/1.2/instrument/mca_1/live_time"]
-        self.assertLess(mca0_live_time - 234.5,
-                        10**-5)
-        self.assertEqual(mca0_live_time,
-                         mca1_live_time)
+        self.assertLess(mca0_live_time - 234.5, 10**-5)
+        self.assertEqual(mca0_live_time, mca1_live_time)
 
         mca0_elapsed_time = self.sfh5["/1.2/instrument/mca_0/elapsed_time"]
         mca1_elapsed_time = self.sfh5["/1.2/instrument/mca_1/elapsed_time"]
-        self.assertLess(mca0_elapsed_time - 345.6,
-                        10**-5)
-        self.assertEqual(mca0_elapsed_time,
-                         mca1_elapsed_time)
+        self.assertLess(mca0_elapsed_time - 345.6, 10**-5)
+        self.assertEqual(mca0_elapsed_time, mca1_elapsed_time)
 
     def testMcaData(self):
         # sum 1st MCA in scan 1.2 over rows
         mca_0_data = self.sfh5["/1.2/measurement/mca_0/data"]
-        for summed_row, expected in zip(mca_0_data.sum(axis=1).tolist(),
-                                        [3.0, 12.1, 21.7]):
+        for summed_row, expected in zip(
+            mca_0_data.sum(axis=1).tolist(), [3.0, 12.1, 21.7]
+        ):
             self.assertAlmostEqual(summed_row, expected, places=4)
 
         # sum 3rd MCA in scan 1.2 along both axis
@@ -456,11 +460,11 @@ class TestSpecH5(unittest.TestCase):
     def testMotorPosition(self):
         positioners_group = self.sfh5["/1.1/instrument/positioners"]
         # MRTSlit DOWN position is defined in #P0 san header line
-        self.assertAlmostEqual(float(positioners_group["MRTSlit DOWN"]),
-                               0.87125)
+        self.assertAlmostEqual(float(positioners_group["MRTSlit DOWN"]), 0.87125)
         # MRTSlit UP position is defined in first data column
-        for a, b in zip(positioners_group["MRTSlit UP"].tolist(),
-                        [-1.23, 8.478100E+01, 3.14, 1.2]):
+        for a, b in zip(
+            positioners_group["MRTSlit UP"].tolist(), [-1.23, 8.478100e01, 3.14, 1.2]
+        ):
             self.assertAlmostEqual(float(a), b, places=4)
 
     def testNumberMcaAnalysers(self):
@@ -468,41 +472,38 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(len(self.sfh5["1.2"]["measurement"]), 5)
 
     def testTitle(self):
-        self.assertEqual(self.sfh5["/25.1/title"],
-                         u"ascan  c3th 1.33245 1.52245  40 0.15")
+        self.assertEqual(
+            self.sfh5["/25.1/title"], "ascan  c3th 1.33245 1.52245  40 0.15"
+        )
 
     def testValues(self):
         group = self.sfh5["/25.1"]
         self.assertTrue(hasattr(group, "values"))
         self.assertTrue(callable(group.values))
-        self.assertIn(self.sfh5["/25.1/title"],
-                      self.sfh5["/25.1"].values())
+        self.assertIn(self.sfh5["/25.1/title"], self.sfh5["/25.1"].values())
 
     # visit and visititems ignore links
     def testVisit(self):
         name_list = []
         self.sfh5.visit(name_list.append)
-        self.assertIn('1.2/instrument/positioners/Pslit HGap', name_list)
+        self.assertIn("1.2/instrument/positioners/Pslit HGap", name_list)
         self.assertIn("1.2/instrument/specfile/scan_header", name_list)
         self.assertEqual(len(name_list), 117)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
-        self.sfh5['/1.2/instrument/'].visit(name_list_leading_and_trailing_slash.append)
+        self.sfh5["/1.2/instrument/"].visit(name_list_leading_and_trailing_slash.append)
         name_list_leading_slash = []
-        self.sfh5['/1.2/instrument'].visit(name_list_leading_slash.append)
+        self.sfh5["/1.2/instrument"].visit(name_list_leading_slash.append)
         name_list_trailing_slash = []
-        self.sfh5['1.2/instrument/'].visit(name_list_trailing_slash.append)
+        self.sfh5["1.2/instrument/"].visit(name_list_trailing_slash.append)
         name_list_no_slash = []
-        self.sfh5['1.2/instrument'].visit(name_list_no_slash.append)
+        self.sfh5["1.2/instrument"].visit(name_list_no_slash.append)
 
         # no differences expected in the output names
-        self.assertEqual(name_list_leading_and_trailing_slash,
-                         name_list_leading_slash)
-        self.assertEqual(name_list_leading_slash,
-                         name_list_trailing_slash)
-        self.assertEqual(name_list_leading_slash,
-                         name_list_no_slash)
+        self.assertEqual(name_list_leading_and_trailing_slash, name_list_leading_slash)
+        self.assertEqual(name_list_leading_slash, name_list_trailing_slash)
+        self.assertEqual(name_list_leading_slash, name_list_no_slash)
         self.assertIn("positioners/Pslit HGap", name_list_no_slash)
         self.assertIn("positioners", name_list_no_slash)
 
@@ -511,32 +512,35 @@ class TestSpecH5(unittest.TestCase):
 
         def func_generator(l):
             """return a function appending names to list l"""
+
             def func(name, obj):
                 if isinstance(obj, SpecH5Dataset):
                     l.append(name)
+
             return func
 
         self.sfh5.visititems(func_generator(dataset_name_list))
-        self.assertIn('1.2/instrument/positioners/Pslit HGap', dataset_name_list)
+        self.assertIn("1.2/instrument/positioners/Pslit HGap", dataset_name_list)
         self.assertEqual(len(dataset_name_list), 85)
 
         # test also visit of a subgroup, with various group name formats
         name_list_leading_and_trailing_slash = []
-        self.sfh5['/1.2/instrument/'].visititems(func_generator(name_list_leading_and_trailing_slash))
+        self.sfh5["/1.2/instrument/"].visititems(
+            func_generator(name_list_leading_and_trailing_slash)
+        )
         name_list_leading_slash = []
-        self.sfh5['/1.2/instrument'].visititems(func_generator(name_list_leading_slash))
+        self.sfh5["/1.2/instrument"].visititems(func_generator(name_list_leading_slash))
         name_list_trailing_slash = []
-        self.sfh5['1.2/instrument/'].visititems(func_generator(name_list_trailing_slash))
+        self.sfh5["1.2/instrument/"].visititems(
+            func_generator(name_list_trailing_slash)
+        )
         name_list_no_slash = []
-        self.sfh5['1.2/instrument'].visititems(func_generator(name_list_no_slash))
+        self.sfh5["1.2/instrument"].visititems(func_generator(name_list_no_slash))
 
         # no differences expected in the output names
-        self.assertEqual(name_list_leading_and_trailing_slash,
-                         name_list_leading_slash)
-        self.assertEqual(name_list_leading_slash,
-                         name_list_trailing_slash)
-        self.assertEqual(name_list_leading_slash,
-                         name_list_no_slash)
+        self.assertEqual(name_list_leading_and_trailing_slash, name_list_leading_slash)
+        self.assertEqual(name_list_leading_slash, name_list_trailing_slash)
+        self.assertEqual(name_list_leading_slash, name_list_no_slash)
         self.assertIn("positioners/Pslit HGap", name_list_no_slash)
 
     def testNotSpecH5(self):
@@ -601,7 +605,7 @@ class TestSpecH5MultiMca(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
-        os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
+        os.write(fd, bytes(sftext_multi_mca_headers, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -617,43 +621,32 @@ class TestSpecH5MultiMca(unittest.TestCase):
     def testMcaCalib(self):
         mca0_calib = self.sfh5["/1.1/measurement/mca_0/info/calibration"]
         mca1_calib = self.sfh5["/1.1/measurement/mca_1/info/calibration"]
-        self.assertEqual(mca0_calib.tolist(),
-                         [1, 2, 3])
-        self.assertAlmostEqual(sum(mca1_calib.tolist()),
-                               sum([5.5, 6.6, 7.7]),
-                               places=5)
+        self.assertEqual(mca0_calib.tolist(), [1, 2, 3])
+        self.assertAlmostEqual(sum(mca1_calib.tolist()), sum([5.5, 6.6, 7.7]), places=5)
 
     def testMcaChannels(self):
         mca0_chann = self.sfh5["/1.1/measurement/mca_0/info/channels"]
         mca1_chann = self.sfh5["/1.1/measurement/mca_1/info/channels"]
-        self.assertEqual(mca0_chann.tolist(),
-                         [0., 1., 2.])
+        self.assertEqual(mca0_chann.tolist(), [0.0, 1.0, 2.0])
         # @CHANN is unique in this scan and applies to all analysers
-        self.assertEqual(mca1_chann.tolist(),
-                         [1., 2., 3.])
+        self.assertEqual(mca1_chann.tolist(), [1.0, 2.0, 3.0])
 
     def testMcaCtime(self):
         """Tests for #@CTIME mca header"""
         mca0_preset_time = self.sfh5["/1.1/instrument/mca_0/preset_time"]
         mca1_preset_time = self.sfh5["/1.1/instrument/mca_1/preset_time"]
-        self.assertLess(mca0_preset_time - 123.4,
-                        10**-5)
-        self.assertLess(mca1_preset_time - 10,
-                        10**-5)
+        self.assertLess(mca0_preset_time - 123.4, 10**-5)
+        self.assertLess(mca1_preset_time - 10, 10**-5)
 
         mca0_live_time = self.sfh5["/1.1/instrument/mca_0/live_time"]
         mca1_live_time = self.sfh5["/1.1/instrument/mca_1/live_time"]
-        self.assertLess(mca0_live_time - 234.5,
-                        10**-5)
-        self.assertLess(mca1_live_time - 11,
-                        10**-5)
+        self.assertLess(mca0_live_time - 234.5, 10**-5)
+        self.assertLess(mca1_live_time - 11, 10**-5)
 
         mca0_elapsed_time = self.sfh5["/1.1/instrument/mca_0/elapsed_time"]
         mca1_elapsed_time = self.sfh5["/1.1/instrument/mca_1/elapsed_time"]
-        self.assertLess(mca0_elapsed_time - 345.6,
-                        10**-5)
-        self.assertLess(mca1_elapsed_time - 12,
-                        10**-5)
+        self.assertLess(mca0_elapsed_time - 345.6, 10**-5)
+        self.assertLess(mca1_elapsed_time - 12, 10**-5)
 
 
 sftext_no_cols = r"""#F C:/DATA\test.mca
@@ -725,10 +718,11 @@ sftext_no_cols = r"""#F C:/DATA\test.mca
 
 class TestSpecH5NoDataCols(unittest.TestCase):
     """Test reading SPEC files with only MCA data"""
+
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        os.write(fd, bytes(sftext_no_cols, 'ascii'))
+        os.write(fd, bytes(sftext_no_cols, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -743,33 +737,23 @@ class TestSpecH5NoDataCols(unittest.TestCase):
 
     def testScan1(self):
         # 1.1: single analyser, single spectrum, 151 channels
-        self.assertIn("mca_0",
-                      self.sfh5["1.1/instrument/"])
-        self.assertEqual(self.sfh5["1.1/instrument/mca_0/data"].shape,
-                         (1, 151))
-        self.assertNotIn("mca_1",
-                         self.sfh5["1.1/instrument/"])
+        self.assertIn("mca_0", self.sfh5["1.1/instrument/"])
+        self.assertEqual(self.sfh5["1.1/instrument/mca_0/data"].shape, (1, 151))
+        self.assertNotIn("mca_1", self.sfh5["1.1/instrument/"])
 
     def testScan2(self):
         # 2.1: single analyser, 9 spectra, 3 channels
-        self.assertIn("mca_0",
-                      self.sfh5["2.1/instrument/"])
-        self.assertEqual(self.sfh5["2.1/instrument/mca_0/data"].shape,
-                         (9, 3))
-        self.assertNotIn("mca_1",
-                         self.sfh5["2.1/instrument/"])
+        self.assertIn("mca_0", self.sfh5["2.1/instrument/"])
+        self.assertEqual(self.sfh5["2.1/instrument/mca_0/data"].shape, (9, 3))
+        self.assertNotIn("mca_1", self.sfh5["2.1/instrument/"])
 
     def testScan3(self):
         # 3.1: 3 analysers, 3 spectra/analyser, 3 channels
         for i in range(3):
-            self.assertIn("mca_%d" % i,
-                          self.sfh5["3.1/instrument/"])
-            self.assertEqual(
-                self.sfh5["3.1/instrument/mca_%d/data" % i].shape,
-                (3, 3))
+            self.assertIn("mca_%d" % i, self.sfh5["3.1/instrument/"])
+            self.assertEqual(self.sfh5["3.1/instrument/mca_%d/data" % i].shape, (3, 3))
 
-        self.assertNotIn("mca_3",
-                         self.sfh5["3.1/instrument/"])
+        self.assertNotIn("mca_3", self.sfh5["3.1/instrument/"])
 
 
 sf_text_slash = r"""#F /data/id09/archive/logspecfiles/laue/2016/scan_231_laue_16-11-29.dat
@@ -793,10 +777,11 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
 
     The / character must be substituted with a %
     """
+
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp()
-        os.write(fd, bytes(sf_text_slash, 'ascii'))
+        os.write(fd, bytes(sf_text_slash, "ascii"))
         os.close(fd)
 
     @classmethod
@@ -812,66 +797,73 @@ class TestSpecH5SlashInLabels(unittest.TestCase):
     def testLabels(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(list(self.sfh5["1.1/measurement/"].keys()),
-                         ["GONY%mm", "PD3%A"])
+        self.assertEqual(
+            list(self.sfh5["1.1/measurement/"].keys()), ["GONY%mm", "PD3%A"]
+        )
 
         # substituted "%"
-        self.assertIn("GONY%mm",
-                      self.sfh5["1.1/measurement/"])
-        self.assertNotIn("GONY/mm",
-                         self.sfh5["1.1/measurement/"])
-        self.assertAlmostEqual(self.sfh5["1.1/measurement/GONY%mm"][0],
-                               -2.015, places=4)
+        self.assertIn("GONY%mm", self.sfh5["1.1/measurement/"])
+        self.assertNotIn("GONY/mm", self.sfh5["1.1/measurement/"])
+        self.assertAlmostEqual(
+            self.sfh5["1.1/measurement/GONY%mm"][0], -2.015, places=4
+        )
         # legitimate "%"
-        self.assertIn("PD3%A",
-                      self.sfh5["1.1/measurement/"])
+        self.assertIn("PD3%A", self.sfh5["1.1/measurement/"])
 
     def testMotors(self):
         """Ensure `/` is substituted with `%` and
         ensure legitimate `%` in names are still working"""
-        self.assertEqual(list(self.sfh5["1.1/instrument/positioners"].keys()),
-                         ["Pslit%HGap", "MRTSlit%UP"])
+        self.assertEqual(
+            list(self.sfh5["1.1/instrument/positioners"].keys()),
+            ["Pslit%HGap", "MRTSlit%UP"],
+        )
         # substituted "%"
-        self.assertIn("Pslit%HGap",
-                      self.sfh5["1.1/instrument/positioners"])
-        self.assertNotIn("Pslit/HGap",
-                         self.sfh5["1.1/instrument/positioners"])
+        self.assertIn("Pslit%HGap", self.sfh5["1.1/instrument/positioners"])
+        self.assertNotIn("Pslit/HGap", self.sfh5["1.1/instrument/positioners"])
         self.assertAlmostEqual(
-                self.sfh5["1.1/instrument/positioners/Pslit%HGap"],
-                180.005, places=4)
+            self.sfh5["1.1/instrument/positioners/Pslit%HGap"], 180.005, places=4
+        )
         # legitimate "%"
-        self.assertIn("MRTSlit%UP",
-                      self.sfh5["1.1/instrument/positioners"])
+        self.assertIn("MRTSlit%UP", self.sfh5["1.1/instrument/positioners"])
 
 
 def testUnitCellUBMatrix(tmp_path):
     """Test unit cell (#G1) and UB matrix (#G3)"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_bytes(bytes("""
+    file_path.write_bytes(
+        bytes(
+            """
 #S 1 OK
 #G1 0 1 2 3 4 5
 #G3 0 1 2 3 4 5 6 7 8
-""", encoding="ascii"))
+""",
+            encoding="ascii",
+        )
+    )
     with SpecH5(str(file_path)) as spech5:
         assert numpy.array_equal(
-            spech5["/1.1/sample/ub_matrix"],
-            numpy.arange(9).reshape(1, 3, 3))
+            spech5["/1.1/sample/ub_matrix"], numpy.arange(9).reshape(1, 3, 3)
+        )
+        assert numpy.array_equal(spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
+        assert numpy.array_equal(spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
         assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
-        assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
-        assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5])
+            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5]
+        )
 
 
 def testMalformedUnitCellUBMatrix(tmp_path):
     """Test malformed unit cell (#G1) and UB matrix (#G3): 1 value"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_bytes(bytes("""
+    file_path.write_bytes(
+        bytes(
+            """
 #S 1 all malformed=0
 #G1 0
 #G3 0
-""", encoding="ascii"))
+""",
+            encoding="ascii",
+        )
+    )
     with SpecH5(str(file_path)) as spech5:
         assert "sample" not in spech5["1.1"]
 
@@ -879,33 +871,42 @@ def testMalformedUnitCellUBMatrix(tmp_path):
 def testMalformedUBMatrix(tmp_path):
     """Test malformed UB matrix (#G3): all zeros"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_bytes(bytes("""
+    file_path.write_bytes(
+        bytes(
+            """
 #S 1 G3 all 0
 #G1 0 1 2 3 4 5
 #G3 0 0 0 0 0 0 0 0 0
-""", encoding="ascii"))
+""",
+            encoding="ascii",
+        )
+    )
     with SpecH5(str(file_path)) as spech5:
         assert "ub_matrix" not in spech5["/1.1/sample"]
+        assert numpy.array_equal(spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
+        assert numpy.array_equal(spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
         assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell"], [[0, 1, 2, 3, 4, 5]])
-        assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell_abc"], [0, 1, 2])
-        assert numpy.array_equal(
-            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5])
+            spech5["/1.1/sample/unit_cell_alphabetagamma"], [3, 4, 5]
+        )
 
 
 def testMalformedUnitCell(tmp_path):
     """Test malformed unit cell (#G1): missing values"""
     file_path = tmp_path / "spec.dat"
-    file_path.write_bytes(bytes("""
+    file_path.write_bytes(
+        bytes(
+            """
 #S 1 G1 malformed missing values
 #G1 0 1 2
 #G3 0 1 2 3 4 5 6 7 8
-""", encoding="ascii"))
+""",
+            encoding="ascii",
+        )
+    )
     with SpecH5(str(file_path)) as spech5:
         assert "unit_cell" not in spech5["/1.1/sample"]
         assert "unit_cell_abc" not in spech5["/1.1/sample"]
         assert "unit_cell_alphabetagamma" not in spech5["/1.1/sample"]
         assert numpy.array_equal(
-            spech5["/1.1/sample/ub_matrix"],
-            numpy.arange(9).reshape(1, 3, 3))
+            spech5["/1.1/sample/ub_matrix"], numpy.arange(9).reshape(1, 3, 3)
+        )

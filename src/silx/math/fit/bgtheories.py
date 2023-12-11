@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 #
 # Copyright (c) 2004-2023 European Synchrotron Radiation Facility
 #
@@ -70,8 +70,7 @@ __license__ = "MIT"
 __date__ = "16/01/2017"
 
 import numpy
-from silx.math.fit.filters import strip, snip1d,\
-    savitsky_golay
+from silx.math.fit.filters import strip, snip1d, savitsky_golay
 from silx.math.fit.fittheory import FitTheory
 
 CONFIG = {
@@ -83,7 +82,7 @@ CONFIG = {
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
     "SnipWidth": 16,
-    "EstimatePolyOnStrip": True
+    "EstimatePolyOnStrip": True,
 }
 
 # to avoid costly computations when parameters stay the same
@@ -114,9 +113,9 @@ def _convert_anchors_to_indices(x):
         of indices is empty, return None.
     """
     # convert anchor X abscissa to index
-    if CONFIG['AnchorsFlag'] and CONFIG['AnchorsList'] is not None:
+    if CONFIG["AnchorsFlag"] and CONFIG["AnchorsList"] is not None:
         anchors_indices = []
-        for anchor_x in CONFIG['AnchorsList']:
+        for anchor_x in CONFIG["AnchorsList"]:
             if anchor_x <= x[0]:
                 continue
             # take the first index where x > anchor_x
@@ -151,12 +150,13 @@ def strip_bg(x, y0, width, niter):
     global _BG_OLD_ANCHORS
     global _BG_OLD_ANCHORS_FLAG
 
-    parameters_changed =\
-        _BG_STRIP_OLDPARS != [width, niter] or\
-        _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"] or\
-        _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"] or\
-        _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"] or\
-        _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+    parameters_changed = (
+        _BG_STRIP_OLDPARS != [width, niter]
+        or _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"]
+        or _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"]
+        or _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"]
+        or _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+    )
 
     # same parameters
     if not parameters_changed:
@@ -176,11 +176,13 @@ def strip_bg(x, y0, width, niter):
 
     anchors_indices = _convert_anchors_to_indices(x)
 
-    background = strip(y1,
-                       w=width,
-                       niterations=niter,
-                       factor=CONFIG["StripThresholdFactor"],
-                       anchors=anchors_indices)
+    background = strip(
+        y1,
+        w=width,
+        niterations=niter,
+        factor=CONFIG["StripThresholdFactor"],
+        anchors=anchors_indices,
+    )
 
     _BG_STRIP_OLDBG = background
 
@@ -197,12 +199,13 @@ def snip_bg(x, y0, width):
     global _BG_OLD_ANCHORS
     global _BG_OLD_ANCHORS_FLAG
 
-    parameters_changed =\
-        _BG_SNIP_OLDWIDTH != width or\
-        _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"] or\
-        _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"] or\
-        _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"] or\
-        _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+    parameters_changed = (
+        _BG_SNIP_OLDWIDTH != width
+        or _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"]
+        or _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"]
+        or _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"]
+        or _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+    )
 
     # same parameters
     if not parameters_changed:
@@ -229,14 +232,13 @@ def snip_bg(x, y0, width):
     previous_anchor = 0
     for anchor_index in anchors_indices:
         if (anchor_index > previous_anchor) and (anchor_index < len(y1)):
-                background[previous_anchor:anchor_index] =\
-                            snip1d(y1[previous_anchor:anchor_index],
-                                   width)
-                previous_anchor = anchor_index
+            background[previous_anchor:anchor_index] = snip1d(
+                y1[previous_anchor:anchor_index], width
+            )
+            previous_anchor = anchor_index
 
     if previous_anchor < len(y1):
-        background[previous_anchor:] = snip1d(y1[previous_anchor:],
-                                              width)
+        background[previous_anchor:] = snip1d(y1[previous_anchor:], width)
 
     _BG_SNIP_OLDBG = background
 
@@ -249,9 +251,7 @@ def estimate_linear(x, y):
 
     Strip peaks, then perform a linear regression.
     """
-    bg = strip_bg(x, y,
-                  width=CONFIG["StripWidth"],
-                  niter=CONFIG["StripIterations"])
+    bg = strip_bg(x, y, width=CONFIG["StripWidth"], niter=CONFIG["StripIterations"])
     n = float(len(bg))
     Sy = numpy.sum(bg)
     Sx = float(numpy.sum(x))
@@ -277,8 +277,7 @@ def estimate_strip(x, y):
     Return parameters as defined in CONFIG dict,
     set constraints to FIXED.
     """
-    estimated_par = [CONFIG["StripWidth"],
-                     CONFIG["StripIterations"]]
+    estimated_par = [CONFIG["StripWidth"], CONFIG["StripIterations"]]
     constraints = numpy.zeros((len(estimated_par), 3), numpy.float64)
     # code = 3: FIXED
     constraints[0][0] = 3
@@ -310,46 +309,37 @@ def poly(x, y, *pars):
 
 
 def estimate_poly(x, y, deg=2):
-    """Estimate polynomial coefficients.
-
-    """
+    """Estimate polynomial coefficients."""
     # extract bg signal with strip, to estimate polynomial on background
     if CONFIG["EstimatePolyOnStrip"]:
-        y = strip_bg(x, y,
-                     CONFIG["StripWidth"],
-                     CONFIG["StripIterations"])
+        y = strip_bg(x, y, CONFIG["StripWidth"], CONFIG["StripIterations"])
     pcoeffs = numpy.polyfit(x, y, deg)
     cons = numpy.zeros((deg + 1, 3), numpy.float64)
     return pcoeffs, cons
 
 
 def estimate_quadratic_poly(x, y):
-    """Estimate quadratic polynomial coefficients.
-    """
+    """Estimate quadratic polynomial coefficients."""
     return estimate_poly(x, y, deg=2)
 
 
 def estimate_cubic_poly(x, y):
-    """Estimate cubic polynomial coefficients.
-    """
+    """Estimate cubic polynomial coefficients."""
     return estimate_poly(x, y, deg=3)
 
 
 def estimate_quartic_poly(x, y):
-    """Estimate degree 4 polynomial coefficients.
-    """
+    """Estimate degree 4 polynomial coefficients."""
     return estimate_poly(x, y, deg=4)
 
 
 def estimate_quintic_poly(x, y):
-    """Estimate degree 5 polynomial coefficients.
-    """
+    """Estimate degree 5 polynomial coefficients."""
     return estimate_poly(x, y, deg=5)
 
 
 def configure(**kw):
-    """Update the CONFIG dict
-    """
+    """Update the CONFIG dict"""
     # inspect **kw to find known keys, update them in CONFIG
     for key in CONFIG:
         if key in kw:
@@ -359,80 +349,111 @@ def configure(**kw):
 
 
 THEORY = dict(
-        (('No Background',
-          FitTheory(
+    (
+        (
+            "No Background",
+            FitTheory(
                 description="No background function",
                 function=lambda x, y0: numpy.zeros_like(x),
                 parameters=[],
-                is_background=True)),
-         ('Constant',
-          FitTheory(
-                description='Constant background',
+                is_background=True,
+            ),
+        ),
+        (
+            "Constant",
+            FitTheory(
+                description="Constant background",
                 function=lambda x, y0, c: c * numpy.ones_like(x),
-                parameters=['Constant', ],
+                parameters=[
+                    "Constant",
+                ],
                 estimate=lambda x, y: ([min(y)], [[0, 0, 0]]),
-                is_background=True)),
-         ('Linear',
-          FitTheory(
-                description="Linear background, parameters 'Constant' and"
-                            " 'Slope'",
+                is_background=True,
+            ),
+        ),
+        (
+            "Linear",
+            FitTheory(
+                description="Linear background, parameters 'Constant' and" " 'Slope'",
                 function=lambda x, y0, a, b: a + b * x,
-                parameters=['Constant', 'Slope'],
+                parameters=["Constant", "Slope"],
                 estimate=estimate_linear,
                 configure=configure,
-                is_background=True)),
-         ('Strip',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Strip",
+            FitTheory(
                 description="Compute background using a strip filter\n"
-                            "Parameters 'StripWidth', 'StripIterations'",
+                "Parameters 'StripWidth', 'StripIterations'",
                 function=strip_bg,
-                parameters=['StripWidth', 'StripIterations'],
+                parameters=["StripWidth", "StripIterations"],
                 estimate=estimate_strip,
                 configure=configure,
-                is_background=True)),
-         ('Snip',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Snip",
+            FitTheory(
                 description="Compute background using a snip filter\n"
-                            "Parameter 'SnipWidth'",
+                "Parameter 'SnipWidth'",
                 function=snip_bg,
-                parameters=['SnipWidth'],
+                parameters=["SnipWidth"],
                 estimate=estimate_snip,
                 configure=configure,
-                is_background=True)),
-         ('Degree 2 Polynomial',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Degree 2 Polynomial",
+            FitTheory(
                 description="Quadratic polynomial background, Parameters "
-                            "'a', 'b' and 'c'\ny = a*x^2 + b*x +c",
+                "'a', 'b' and 'c'\ny = a*x^2 + b*x +c",
                 function=poly,
-                parameters=['a', 'b', 'c'],
+                parameters=["a", "b", "c"],
                 estimate=estimate_quadratic_poly,
                 configure=configure,
-                is_background=True)),
-         ('Degree 3 Polynomial',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Degree 3 Polynomial",
+            FitTheory(
                 description="Cubic polynomial background, Parameters "
-                            "'a', 'b', 'c' and 'd'\n"
-                            "y = a*x^3 + b*x^2 + c*x + d",
+                "'a', 'b', 'c' and 'd'\n"
+                "y = a*x^3 + b*x^2 + c*x + d",
                 function=poly,
-                parameters=['a', 'b', 'c', 'd'],
+                parameters=["a", "b", "c", "d"],
                 estimate=estimate_cubic_poly,
                 configure=configure,
-                is_background=True)),
-         ('Degree 4 Polynomial',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Degree 4 Polynomial",
+            FitTheory(
                 description="Quartic polynomial background\n"
-                            "y = a*x^4 + b*x^3 + c*x^2 + d*x + e",
+                "y = a*x^4 + b*x^3 + c*x^2 + d*x + e",
                 function=poly,
-                parameters=['a', 'b', 'c', 'd', 'e'],
+                parameters=["a", "b", "c", "d", "e"],
                 estimate=estimate_quartic_poly,
                 configure=configure,
-                is_background=True)),
-         ('Degree 5 Polynomial',
-          FitTheory(
+                is_background=True,
+            ),
+        ),
+        (
+            "Degree 5 Polynomial",
+            FitTheory(
                 description="Quaintic polynomial background\n"
-                            "y = a*x^5 + b*x^4 + c*x^3 + d*x^2 + e*x + f",
+                "y = a*x^5 + b*x^4 + c*x^3 + d*x^2 + e*x + f",
                 function=poly,
-                parameters=['a', 'b', 'c', 'd', 'e', 'f'],
+                parameters=["a", "b", "c", "d", "e", "f"],
                 estimate=estimate_quintic_poly,
                 configure=configure,
-                is_background=True))))
+                is_background=True,
+            ),
+        ),
+    )
+)

@@ -43,23 +43,27 @@ from ._colormap import cmap  # noqa
 __all__ = ["apply_colormap", "cmap"]
 
 
-_LUT_DESCRIPTION = collections.namedtuple("_LUT_DESCRIPTION", ["source", "cursor_color"])
+_LUT_DESCRIPTION = collections.namedtuple(
+    "_LUT_DESCRIPTION", ["source", "cursor_color"]
+)
 """Description of a LUT for internal purpose."""
 
 
-_AVAILABLE_LUTS = dict([
-    ('gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
-    ('reversed gray', _LUT_DESCRIPTION('builtin', '#ff66ff')),
-    ('red', _LUT_DESCRIPTION('builtin', '#00ff00')),
-    ('green', _LUT_DESCRIPTION('builtin', '#ff66ff')),
-    ('blue', _LUT_DESCRIPTION('builtin', '#ffff00')),
-    ('viridis', _LUT_DESCRIPTION('resource', '#ff66ff')),
-    ('cividis', _LUT_DESCRIPTION('resource', '#ff66ff')),
-    ('magma', _LUT_DESCRIPTION('resource', '#00ff00')),
-    ('inferno', _LUT_DESCRIPTION('resource', '#00ff00')),
-    ('plasma', _LUT_DESCRIPTION('resource', '#00ff00')),
-    ('temperature', _LUT_DESCRIPTION('builtin', '#ff66ff')),
-])
+_AVAILABLE_LUTS = dict(
+    [
+        ("gray", _LUT_DESCRIPTION("builtin", "#ff66ff")),
+        ("reversed gray", _LUT_DESCRIPTION("builtin", "#ff66ff")),
+        ("red", _LUT_DESCRIPTION("builtin", "#00ff00")),
+        ("green", _LUT_DESCRIPTION("builtin", "#ff66ff")),
+        ("blue", _LUT_DESCRIPTION("builtin", "#ffff00")),
+        ("viridis", _LUT_DESCRIPTION("resource", "#ff66ff")),
+        ("cividis", _LUT_DESCRIPTION("resource", "#ff66ff")),
+        ("magma", _LUT_DESCRIPTION("resource", "#00ff00")),
+        ("inferno", _LUT_DESCRIPTION("resource", "#00ff00")),
+        ("plasma", _LUT_DESCRIPTION("resource", "#00ff00")),
+        ("temperature", _LUT_DESCRIPTION("builtin", "#ff66ff")),
+    ]
+)
 """Description for internal porpose of all the default LUT provided by the library."""
 
 
@@ -82,11 +86,11 @@ def array_to_rgba8888(colors):
 
     if colors.dtype == numpy.uint8:
         pass
-    elif colors.dtype.kind == 'f':
+    elif colors.dtype.kind == "f":
         # Each bin is [N, N+1[ except the last one: [255, 256]
-        colors = numpy.clip(colors.astype(numpy.float64) * 256, 0., 255.)
+        colors = numpy.clip(colors.astype(numpy.float64) * 256, 0.0, 255.0)
         colors = colors.astype(numpy.uint8)
-    elif colors.dtype.kind in 'iu':
+    elif colors.dtype.kind in "iu":
         colors = numpy.clip(colors, 0, 255)
         colors = colors.astype(numpy.uint8)
 
@@ -114,17 +118,17 @@ def _create_colormap_lut(name):
             lut = numpy.zeros((256, 4), dtype=numpy.uint8)
             lut[:, 3] = 255
 
-            if name == 'gray':
+            if name == "gray":
                 lut[:, :3] = numpy.arange(256, dtype=numpy.uint8).reshape(-1, 1)
-            elif name == 'reversed gray':
+            elif name == "reversed gray":
                 lut[:, :3] = numpy.arange(255, -1, -1, dtype=numpy.uint8).reshape(-1, 1)
-            elif name == 'red':
+            elif name == "red":
                 lut[:, 0] = numpy.arange(256, dtype=numpy.uint8)
-            elif name == 'green':
+            elif name == "green":
                 lut[:, 1] = numpy.arange(256, dtype=numpy.uint8)
-            elif name == 'blue':
+            elif name == "blue":
                 lut[:, 2] = numpy.arange(256, dtype=numpy.uint8)
-            elif name == 'temperature':
+            elif name == "temperature":
                 # Red
                 lut[128:192, 0] = numpy.arange(2, 255, 4, dtype=numpy.uint8)
                 lut[192:, 0] = 255
@@ -147,12 +151,14 @@ def _create_colormap_lut(name):
             return lut
 
         else:
-            raise RuntimeError("Internal LUT source '%s' unsupported" % description.source)
+            raise RuntimeError(
+                "Internal LUT source '%s' unsupported" % description.source
+            )
 
     raise ValueError("Unknown colormap '%s'" % name)
 
 
-def register_colormap(name, lut, cursor_color='#000000'):
+def register_colormap(name, lut, cursor_color="#000000"):
     """Register a custom colormap LUT
 
     It can override existing LUT names.
@@ -164,7 +170,7 @@ def register_colormap(name, lut, cursor_color='#000000'):
     :param str cursor_color: Color used to display overlay over images using
         colormap with this LUT.
     """
-    description = _LUT_DESCRIPTION('user', cursor_color)
+    description = _LUT_DESCRIPTION("user", cursor_color)
     colors = array_to_rgba8888(lut)
     _AVAILABLE_LUTS[name] = description
 
@@ -189,7 +195,7 @@ def get_colormap_cursor_color(name):
         color = description.cursor_color
         if color is not None:
             return color
-    return 'black'
+    return "black"
 
 
 def get_colormap_lut(name):
@@ -208,6 +214,7 @@ def get_colormap_lut(name):
 
 
 # Normalizations
+
 
 class _NormalizationMixIn:
     """Colormap normalization mix-in class"""
@@ -260,7 +267,7 @@ class _NormalizationMixIn:
                 vmax = min(dmax, stdmax)
 
         else:
-            raise ValueError('Unsupported mode: %s' % mode)
+            raise ValueError("Unsupported mode: %s" % mode)
 
         # Check returned range and handle fallbacks
         if vmin is None or not numpy.isfinite(vmin):
@@ -296,19 +303,21 @@ class _NormalizationMixIn:
         :rtype: Tuple[float,float]
         """
         # Use [0, 1] as data range for normalization not using range
-        normdata = self.apply(data, 0., 1.)
-        if normdata.dtype.kind == 'f':  # Replaces inf by NaN
+        normdata = self.apply(data, 0.0, 1.0)
+        if normdata.dtype.kind == "f":  # Replaces inf by NaN
             normdata[numpy.isfinite(normdata) == False] = numpy.nan
         if normdata.size == 0:  # Fallback
             return None, None
 
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=RuntimeWarning)
+            warnings.simplefilter("ignore", category=RuntimeWarning)
             # Ignore nanmean "Mean of empty slice" warning and
             # nanstd "Degrees of freedom <= 0 for slice" warning
             mean, std = numpy.nanmean(normdata), numpy.nanstd(normdata)
 
-        return self.revert(mean - 3 * std, 0., 1.), self.revert(mean + 3 * std, 0., 1.)
+        return self.revert(mean - 3 * std, 0.0, 1.0), self.revert(
+            mean + 3 * std, 0.0, 1.0
+        )
 
 
 class _LinearNormalizationMixIn(_NormalizationMixIn):
@@ -323,13 +332,13 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
         :returns: (vmin, vmax)
         :rtype: Tuple[float,float]
         """
-        if data.dtype.kind == 'f':  # Replaces inf by NaN
+        if data.dtype.kind == "f":  # Replaces inf by NaN
             data = numpy.array(data, copy=True)  # Work on a copy
             data[numpy.isfinite(data) == False] = numpy.nan
         if data.size == 0:  # Fallback
             return None, None
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=RuntimeWarning)
+            warnings.simplefilter("ignore", category=RuntimeWarning)
             # Ignore nanmean "Mean of empty slice" warning and
             # nanstd "Degrees of freedom <= 0 for slice" warning
             mean, std = numpy.nanmean(data), numpy.nanstd(data)
@@ -338,6 +347,7 @@ class _LinearNormalizationMixIn(_NormalizationMixIn):
 
 class LinearNormalization(_colormap.LinearNormalization, _LinearNormalizationMixIn):
     """Linear normalization"""
+
     def __init__(self):
         _colormap.LinearNormalization.__init__(self)
         _LinearNormalizationMixIn.__init__(self)
@@ -353,7 +363,7 @@ class LogarithmicNormalization(_colormap.LogarithmicNormalization, _Normalizatio
         _NormalizationMixIn.__init__(self)
 
     def is_valid(self, value):
-        return value > 0.
+        return value > 0.0
 
     def autoscale_minmax(self, data):
         result = _min_max(data, min_positive=True, finite=True)
@@ -370,7 +380,7 @@ class SqrtNormalization(_colormap.SqrtNormalization, _NormalizationMixIn):
         _NormalizationMixIn.__init__(self)
 
     def is_valid(self, value):
-        return value >= 0.
+        return value >= 0.0
 
 
 class GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn):
@@ -380,6 +390,7 @@ class GammaNormalization(_colormap.PowerNormalization, _LinearNormalizationMixIn
 
     :param gamma: Gamma correction factor
     """
+
     def __init__(self, gamma):
         _colormap.PowerNormalization.__init__(self, gamma)
         _LinearNormalizationMixIn.__init__(self)
@@ -428,13 +439,15 @@ def _get_range(normalizer, data, autoscale, vmin, vmax):
 _DEFAULT_NAN_COLOR = 255, 255, 255, 0
 
 
-def apply_colormap(data,
-                   colormap: str,
-                   norm: str="linear",
-                   autoscale: str="minmax",
-                   vmin=None,
-                   vmax=None,
-                   gamma=1.0):
+def apply_colormap(
+    data,
+    colormap: str,
+    norm: str = "linear",
+    autoscale: str = "minmax",
+    vmin=None,
+    vmax=None,
+    gamma=1.0,
+):
     """Apply colormap to data with given normalization and autoscale.
 
     :param numpy.ndarray data: Data on which to apply the colormap

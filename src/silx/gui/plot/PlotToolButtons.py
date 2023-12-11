@@ -57,8 +57,7 @@ _logger = logging.getLogger(__name__)
 
 
 class PlotToolButton(qt.QToolButton):
-    """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`.
-    """
+    """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`."""
 
     def __init__(self, parent=None, plot=None):
         super(PlotToolButton, self).__init__(parent)
@@ -118,11 +117,11 @@ class AspectToolButton(PlotToolButton):
         if self.STATE is None:
             self.STATE = {}
             # dont keep ratio
-            self.STATE[False, "icon"] = icons.getQIcon('shape-ellipse-solid')
+            self.STATE[False, "icon"] = icons.getQIcon("shape-ellipse-solid")
             self.STATE[False, "state"] = "Aspect ratio is not kept"
             self.STATE[False, "action"] = "Do no keep data aspect ratio"
             # keep ratio
-            self.STATE[True, "icon"] = icons.getQIcon('shape-circle-solid')
+            self.STATE[True, "icon"] = icons.getQIcon("shape-circle-solid")
             self.STATE[True, "state"] = "Aspect ratio is kept"
             self.STATE[True, "action"] = "Keep data aspect ratio"
 
@@ -170,7 +169,10 @@ class AspectToolButton(PlotToolButton):
 
     def _keepDataAspectRatioChanged(self, aspectRatio):
         """Handle Plot set keep aspect ratio signal"""
-        icon, toolTip = self.STATE[aspectRatio, "icon"], self.STATE[aspectRatio, "state"]
+        icon, toolTip = (
+            self.STATE[aspectRatio, "icon"],
+            self.STATE[aspectRatio, "state"],
+        )
         self.setIcon(icon)
         self.setToolTip(toolTip)
 
@@ -185,11 +187,11 @@ class YAxisOriginToolButton(PlotToolButton):
         if self.STATE is None:
             self.STATE = {}
             # is down
-            self.STATE[False, "icon"] = icons.getQIcon('plot-ydown')
+            self.STATE[False, "icon"] = icons.getQIcon("plot-ydown")
             self.STATE[False, "state"] = "Y-axis is oriented downward"
             self.STATE[False, "action"] = "Orient Y-axis downward"
             # keep ration
-            self.STATE[True, "icon"] = icons.getQIcon('plot-yup')
+            self.STATE[True, "icon"] = icons.getQIcon("plot-yup")
             self.STATE[True, "state"] = "Y-axis is oriented upward"
             self.STATE[True, "action"] = "Orient Y-axis upward"
 
@@ -246,28 +248,29 @@ class YAxisOriginToolButton(PlotToolButton):
 
 class ProfileOptionToolButton(PlotToolButton):
     """Button to define option on the profile"""
+
     sigMethodChanged = qt.Signal(str)
-    
+
     def __init__(self, parent=None, plot=None):
         PlotToolButton.__init__(self, parent=parent, plot=plot)
 
         self.STATE = {}
         # is down
-        self.STATE['sum', "icon"] = icons.getQIcon('math-sigma')
-        self.STATE['sum', "state"] = "Compute profile sum"
-        self.STATE['sum', "action"] = "Compute profile sum"
+        self.STATE["sum", "icon"] = icons.getQIcon("math-sigma")
+        self.STATE["sum", "state"] = "Compute profile sum"
+        self.STATE["sum", "action"] = "Compute profile sum"
         # keep ration
-        self.STATE['mean', "icon"] = icons.getQIcon('math-mean')
-        self.STATE['mean', "state"] = "Compute profile mean"
-        self.STATE['mean', "action"] = "Compute profile mean"
+        self.STATE["mean", "icon"] = icons.getQIcon("math-mean")
+        self.STATE["mean", "state"] = "Compute profile mean"
+        self.STATE["mean", "action"] = "Compute profile mean"
 
-        self.sumAction = self._createAction('sum')
+        self.sumAction = self._createAction("sum")
         self.sumAction.triggered.connect(self.setSum)
         self.sumAction.setIconVisibleInMenu(True)
         self.sumAction.setCheckable(True)
         self.sumAction.setChecked(True)
 
-        self.meanAction = self._createAction('mean')
+        self.meanAction = self._createAction("mean")
         self.meanAction.triggered.connect(self.setMean)
         self.meanAction.setIconVisibleInMenu(True)
         self.meanAction.setCheckable(True)
@@ -277,7 +280,7 @@ class ProfileOptionToolButton(PlotToolButton):
         menu.addAction(self.meanAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        self._method = 'mean'
+        self._method = "mean"
         self._update()
 
     def _createAction(self, method):
@@ -286,7 +289,7 @@ class ProfileOptionToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def setSum(self):
-        self.setMethod('sum')
+        self.setMethod("sum")
 
     def _update(self):
         icon = self.STATE[self._method, "icon"]
@@ -297,7 +300,7 @@ class ProfileOptionToolButton(PlotToolButton):
         self.meanAction.setChecked(self._method == "mean")
 
     def setMean(self):
-        self.setMethod('mean')
+        self.setMethod("mean")
 
     def setMethod(self, method):
         """Set the method to use.
@@ -305,13 +308,12 @@ class ProfileOptionToolButton(PlotToolButton):
         :param str method: Either 'sum' or 'mean'
         """
         if method != self._method:
-            if method in ('sum', 'mean'):
+            if method in ("sum", "mean"):
                 self._method = method
                 self.sigMethodChanged.emit(self._method)
                 self._update()
             else:
-                _logger.warning(
-                    "Unsupported method '%s'. Setting ignored.", method)
+                _logger.warning("Unsupported method '%s'. Setting ignored.", method)
 
     def getMethod(self):
         """Returns the current method in use (See :meth:`setMethod`).
@@ -324,6 +326,7 @@ class ProfileOptionToolButton(PlotToolButton):
 class ProfileToolButton(PlotToolButton):
     """Button used in Profile3DToolbar to switch between 2D profile
     and 1D profile."""
+
     STATE = None
     """Lazy loaded states used to feed ProfileToolButton"""
 
@@ -332,12 +335,16 @@ class ProfileToolButton(PlotToolButton):
     def __init__(self, parent=None, plot=None):
         if self.STATE is None:
             self.STATE = {
-                (1, "icon"): icons.getQIcon('profile1D'),
+                (1, "icon"): icons.getQIcon("profile1D"),
                 (1, "state"): "1D profile is computed on visible image",
                 (1, "action"): "1D profile on visible image",
-                (2, "icon"): icons.getQIcon('profile2D'),
-                (2, "state"): "2D profile is computed, one 1D profile for each image in the stack",
-                (2, "action"): "2D profile on image stack"}
+                (2, "icon"): icons.getQIcon("profile2D"),
+                (
+                    2,
+                    "state",
+                ): "2D profile is computed, one 1D profile for each image in the stack",
+                (2, "action"): "2D profile on image stack",
+            }
             # Compute 1D profile
             # Compute 2D profile
 
@@ -363,7 +370,7 @@ class ProfileToolButton(PlotToolButton):
         menu.addAction(profile2DAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
-        menu.setTitle('Select profile dimension')
+        menu.setTitle("Select profile dimension")
         self.computeProfileIn1D()
 
     def _createAction(self, profileDimension):
@@ -435,12 +442,12 @@ class _SymbolToolButtonBase(PlotToolButton):
 
         :param QMenu menu:
         """
-        for marker, name in zip(SymbolMixIn.getSupportedSymbols(),
-                                SymbolMixIn.getSupportedSymbolNames()):
+        for marker, name in zip(
+            SymbolMixIn.getSupportedSymbols(), SymbolMixIn.getSupportedSymbolNames()
+        ):
             action = qt.QAction(name, menu)
             action.setCheckable(False)
-            action.triggered.connect(
-                functools.partial(self._markerChanged, marker))
+            action.triggered.connect(functools.partial(self._markerChanged, marker))
             menu.addAction(action)
 
     def _sizeChanged(self, value):
@@ -480,8 +487,8 @@ class SymbolToolButton(_SymbolToolButtonBase):
     def __init__(self, parent=None, plot=None):
         super(SymbolToolButton, self).__init__(parent=parent, plot=plot)
 
-        self.setToolTip('Set symbol size and marker')
-        self.setIcon(icons.getQIcon('plot-symbols'))
+        self.setToolTip("Set symbol size and marker")
+        self.setIcon(icons.getQIcon("plot-symbols"))
 
         menu = qt.QMenu(self)
         self._addSizeSliderToMenu(menu)
@@ -500,12 +507,10 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
     """
 
     def __init__(self, parent=None, plot=None):
-        super(ScatterVisualizationToolButton, self).__init__(
-            parent=parent, plot=plot)
+        super(ScatterVisualizationToolButton, self).__init__(parent=parent, plot=plot)
 
-        self.setToolTip(
-            'Set scatter visualization mode, symbol marker and size')
-        self.setIcon(icons.getQIcon('eye'))
+        self.setToolTip("Set scatter visualization mode, symbol marker and size")
+        self.setIcon(icons.getQIcon("eye"))
 
         menu = qt.QMenu(self)
 
@@ -517,26 +522,33 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                 action = qt.QAction(name, menu)
                 action.setCheckable(False)
                 action.triggered.connect(
-                    functools.partial(self._visualizationChanged, mode, None))
+                    functools.partial(self._visualizationChanged, mode, None)
+                )
                 menu.addAction(action)
 
         if Scatter.Visualization.BINNED_STATISTIC in Scatter.supportedVisualizations():
             reductions = Scatter.supportedVisualizationParameterValues(
-                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION)
+                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+            )
             if reductions:
-                submenu = menu.addMenu('Binned Statistic')
+                submenu = menu.addMenu("Binned Statistic")
                 for reduction in reductions:
                     name = reduction.capitalize()
                     action = qt.QAction(name, menu)
                     action.setCheckable(False)
-                    action.triggered.connect(functools.partial(
-                        self._visualizationChanged,
-                        Scatter.Visualization.BINNED_STATISTIC,
-                        {Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction}))
+                    action.triggered.connect(
+                        functools.partial(
+                            self._visualizationChanged,
+                            Scatter.Visualization.BINNED_STATISTIC,
+                            {
+                                Scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION: reduction
+                            },
+                        )
+                    )
                     submenu.addAction(action)
 
                 submenu.addSeparator()
-                binsmenu = submenu.addMenu('N Bins')
+                binsmenu = submenu.addMenu("N Bins")
 
                 slider = qt.QSlider(qt.Qt.Horizontal)
                 slider.setRange(10, 1000)
@@ -549,10 +561,10 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
 
         menu.addSeparator()
 
-        submenu = menu.addMenu(icons.getQIcon('plot-symbols'), "Symbol")
+        submenu = menu.addMenu(icons.getQIcon("plot-symbols"), "Symbol")
         self._addSymbolsToMenu(submenu)
 
-        submenu = menu.addMenu(icons.getQIcon('plot-symbols'), "Symbol Size")
+        submenu = menu.addMenu(icons.getQIcon("plot-symbols"), "Symbol Size")
         self._addSizeSliderToMenu(submenu)
 
         self.setMenu(menu)
@@ -591,7 +603,8 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
             if isinstance(item, Scatter):
                 item.setVisualizationParameter(
                     Scatter.VisualizationParameter.BINNED_STATISTIC_SHAPE,
-                    (value, value))
+                    (value, value),
+                )
                 item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)
 
 
@@ -620,34 +633,34 @@ class RulerToolButton(PlotToolButton):
         def setEndPoints(self, startPoint, endPoint):
             super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
             if self._formatFunction is not None:
-                ruler_text = self._formatFunction(startPoint=startPoint, endPoint=endPoint)
+                ruler_text = self._formatFunction(
+                    startPoint=startPoint, endPoint=endPoint
+                )
                 self._updateText(ruler_text)
 
     def __init__(
-            self,
-            parent=None,
-            plot=None,
-            color: str="yellow",
+        self,
+        parent=None,
+        plot=None,
+        color: str = "yellow",
     ):
         self.__color = color
         super().__init__(parent=parent, plot=plot)
         self.setCheckable(True)
         self._roiManager = None
         self._lastRoiCreated = None
-        self.setIcon(
-            icons.getQIcon("ruler")
-        )
+        self.setIcon(icons.getQIcon("ruler"))
         self.toggled.connect(self._callback)
         self._connectPlot(plot)
-    
+
     def setPlot(self, plot):
         return super().setPlot(plot)
-    
+
     def _callback(self, *args, **kwargs):
         if not self._roiManager:
             return
         if self._lastRoiCreated is not None:
-                self._lastRoiCreated.setVisible(self.isChecked())
+            self._lastRoiCreated.setVisible(self.isChecked())
         if self.isChecked():
             self._roiManager.start(
                 self.RulerROI,
@@ -665,7 +678,9 @@ class RulerToolButton(PlotToolButton):
     def __interactiveModeFinished(self):
         roiManager = self._roiManager
         if roiManager is not None:
-            roiManager.sigInteractiveModeFinished.disconnect(self.__interactiveModeFinished)
+            roiManager.sigInteractiveModeFinished.disconnect(
+                self.__interactiveModeFinished
+            )
         self.setChecked(False)
 
     def _connectPlot(self, plot):

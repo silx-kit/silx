@@ -38,6 +38,7 @@ from silx.gui.colors import Colormap
 def sx(qapp):
     """Lazy loading to avoid it to create QApplication before qapp fixture"""
     from silx import sx
+
     if sx._IS_NOTEBOOK:
         pytest.skip("notebook context")
     if sx._NO_DISPLAY:
@@ -55,44 +56,43 @@ def test_plot(sx, qapp_utils):
     qapp_utils.exposeAndClose(plt)
 
     # y
-    plt = sx.plot(y, title='y')
+    plt = sx.plot(y, title="y")
     qapp_utils.exposeAndClose(plt)
 
     # y, style
-    plt = sx.plot(y, 'blued ', title='y, "blued "')
+    plt = sx.plot(y, "blued ", title='y, "blued "')
     qapp_utils.exposeAndClose(plt)
 
     # x, y
-    plt = sx.plot(x, y, title='x, y')
+    plt = sx.plot(x, y, title="x, y")
     qapp_utils.exposeAndClose(plt)
 
     # x, y, style
-    plt = sx.plot(x, y, 'ro-', xlabel='x', title='x, y, "ro-"')
+    plt = sx.plot(x, y, "ro-", xlabel="x", title='x, y, "ro-"')
     qapp_utils.exposeAndClose(plt)
 
     # x, y, style, y
-    plt = sx.plot(x, y, 'ro-', y ** 2, xlabel='x', ylabel='y',
-                  title='x, y, "ro-", y ** 2')
+    plt = sx.plot(
+        x, y, "ro-", y**2, xlabel="x", ylabel="y", title='x, y, "ro-", y ** 2'
+    )
     qapp_utils.exposeAndClose(plt)
 
     # x, y, style, y, style
-    plt = sx.plot(x, y, 'ro-', y ** 2, 'b--',
-                  title='x, y, "ro-", y ** 2, "b--"')
+    plt = sx.plot(x, y, "ro-", y**2, "b--", title='x, y, "ro-", y ** 2, "b--"')
     qapp_utils.exposeAndClose(plt)
 
     # x, y, style, x, y, style
-    plt = sx.plot(x, y, 'ro-', x, y ** 2, 'b--',
-                  title='x, y, "ro-", x, y ** 2, "b--"')
+    plt = sx.plot(x, y, "ro-", x, y**2, "b--", title='x, y, "ro-", x, y ** 2, "b--"')
     qapp_utils.exposeAndClose(plt)
 
     # x, y, x, y
-    plt = sx.plot(x, y, x, y ** 2, title='x, y, x, y ** 2')
+    plt = sx.plot(x, y, x, y**2, title="x, y, x, y ** 2")
     qapp_utils.exposeAndClose(plt)
 
 
 def test_imshow(sx, qapp_utils):
     """Test imshow function"""
-    img = numpy.arange(100.).reshape(10, 10) + 1
+    img = numpy.arange(100.0).reshape(10, 10) + 1
 
     # Nothing
     plt = sx.imshow()
@@ -103,34 +103,33 @@ def test_imshow(sx, qapp_utils):
     qapp_utils.exposeAndClose(plt)
 
     # image, named cmap
-    plt = sx.imshow(img, cmap='jet', title='jet cmap')
+    plt = sx.imshow(img, cmap="jet", title="jet cmap")
     qapp_utils.exposeAndClose(plt)
 
     # image, custom colormap
-    plt = sx.imshow(img, cmap=Colormap(), title='custom colormap')
+    plt = sx.imshow(img, cmap=Colormap(), title="custom colormap")
     qapp_utils.exposeAndClose(plt)
 
     # image, log cmap
-    plt = sx.imshow(img, norm='log', title='log cmap')
+    plt = sx.imshow(img, norm="log", title="log cmap")
     qapp_utils.exposeAndClose(plt)
 
     # image, fixed range
-    plt = sx.imshow(img, vmin=10, vmax=20,
-                    title='[10,20] cmap')
+    plt = sx.imshow(img, vmin=10, vmax=20, title="[10,20] cmap")
     qapp_utils.exposeAndClose(plt)
 
     # image, keep ratio
-    plt = sx.imshow(img, aspect=True,
-                    title='keep ratio')
+    plt = sx.imshow(img, aspect=True, title="keep ratio")
     qapp_utils.exposeAndClose(plt)
 
     # image, change origin and scale
-    plt = sx.imshow(img, origin=(10, 10), scale=(2, 2),
-                    title='origin=(10, 10), scale=(2, 2)')
+    plt = sx.imshow(
+        img, origin=(10, 10), scale=(2, 2), title="origin=(10, 10), scale=(2, 2)"
+    )
     qapp_utils.exposeAndClose(plt)
 
     # image, origin='lower'
-    plt = sx.imshow(img, origin='upper', title='origin="lower"')
+    plt = sx.imshow(img, origin="upper", title='origin="lower"')
     qapp_utils.exposeAndClose(plt)
 
 
@@ -149,7 +148,7 @@ def test_scatter(sx, qapp_utils):
     qapp_utils.exposeAndClose(plt)
 
     # single value
-    plt = sx.scatter(x, y, 10.)
+    plt = sx.scatter(x, y, 10.0)
     qapp_utils.exposeAndClose(plt)
 
     # set size
@@ -157,7 +156,7 @@ def test_scatter(sx, qapp_utils):
     qapp_utils.exposeAndClose(plt)
 
     # set colormap
-    plt = sx.scatter(x, y, values, cmap='jet')
+    plt = sx.scatter(x, y, values, cmap="jet")
     qapp_utils.exposeAndClose(plt)
 
     # set colormap range
@@ -165,7 +164,7 @@ def test_scatter(sx, qapp_utils):
     qapp_utils.exposeAndClose(plt)
 
     # set colormap normalisation
-    plt = sx.scatter(x, y, values, norm='log')
+    plt = sx.scatter(x, y, values, norm="log")
     qapp_utils.exposeAndClose(plt)
 
 
@@ -207,9 +206,8 @@ def test_contour3d(sx, qapp_utils):
         pytest.skip("OpenGL context is not valid")
 
     # N contours + color
-    colors = ['red', 'green', 'blue']
-    window = sx.contour3d(data, copy=False, contours=len(colors),
-                          color=colors)
+    colors = ["red", "green", "blue"]
+    window = sx.contour3d(data, copy=False, contours=len(colors), color=colors)
 
     isosurfaces = window.getIsosurfaces()
     assert len(isosurfaces) == len(colors)
@@ -218,23 +216,23 @@ def test_contour3d(sx, qapp_utils):
 
     # by isolevel, single color
     contours = 0.2, 0.5
-    window = sx.contour3d(data, copy=False, contours=contours,
-                          color='yellow')
+    window = sx.contour3d(data, copy=False, contours=contours, color="yellow")
 
     isosurfaces = window.getIsosurfaces()
     assert len(isosurfaces) == len(contours)
     for iso, level in zip(isosurfaces, contours):
         assert iso.getLevel() == level
-        assert rgba(iso.getColor()) == rgba('yellow')
+        assert rgba(iso.getColor()) == rgba("yellow")
 
     # Single isolevel, colormap
-    window = sx.contour3d(data, copy=False, contours=0.5,
-                          colormap='gray', vmin=0.6, opacity=0.4)
+    window = sx.contour3d(
+        data, copy=False, contours=0.5, colormap="gray", vmin=0.6, opacity=0.4
+    )
 
     isosurfaces = window.getIsosurfaces()
     assert len(isosurfaces) == 1
     assert isosurfaces[0].getLevel() == 0.5
-    assert rgba(isosurfaces[0].getColor()) == (0., 0., 0., 0.4)
+    assert rgba(isosurfaces[0].getColor()) == (0.0, 0.0, 0.0, 0.4)
 
 
 @pytest.mark.usefixtures("use_opengl")
@@ -253,12 +251,14 @@ def test_points3d(sx, qapp_utils):
         pytest.skip("OpenGL context is not valid")
 
     # 3D positions, values
-    window = sx.points3d(x, y, z, values, mode='2dsquare',
-                         colormap='magma', vmin=0.4, vmax=0.5)
+    window = sx.points3d(
+        x, y, z, values, mode="2dsquare", colormap="magma", vmin=0.4, vmax=0.5
+    )
 
     # 2D positions, no value
     window = sx.points3d(x, y)
 
     # 2D positions, values
-    window = sx.points3d(x, y, values=values, mode=',',
-                         colormap='magma', vmin=0.4, vmax=0.5)
+    window = sx.points3d(
+        x, y, values=values, mode=",", colormap="magma", vmin=0.4, vmax=0.5
+    )

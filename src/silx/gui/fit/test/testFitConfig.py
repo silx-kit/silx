@@ -59,22 +59,24 @@ class TestFitConfig(TestCaseQt):
         self.fit_config.accept()
         output = self.fit_config.output
 
-        for key in ["AutoFwhm",
-                    "PositiveHeightAreaFlag",
-                    "QuotedPositionFlag",
-                    "PositiveFwhmFlag",
-                    "SameFwhmFlag",
-                    "QuotedEtaFlag",
-                    "NoConstraintsFlag",
-                    "FwhmPoints",
-                    "Sensitivity",
-                    "Yscaling",
-                    "ForcePeakPresence",
-                    "StripBackgroundFlag",
-                    "StripWidth",
-                    "StripIterations",
-                    "StripThreshold",
-                    "SmoothingFlag"]:
+        for key in [
+            "AutoFwhm",
+            "PositiveHeightAreaFlag",
+            "QuotedPositionFlag",
+            "PositiveFwhmFlag",
+            "SameFwhmFlag",
+            "QuotedEtaFlag",
+            "NoConstraintsFlag",
+            "FwhmPoints",
+            "Sensitivity",
+            "Yscaling",
+            "ForcePeakPresence",
+            "StripBackgroundFlag",
+            "StripWidth",
+            "StripIterations",
+            "StripThreshold",
+            "SmoothingFlag",
+        ]:
             self.assertIn(key, output)
 
         self.assertTrue(output["AutoFwhm"])

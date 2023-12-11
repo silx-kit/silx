@@ -44,7 +44,7 @@ from .ParamTreeView import ParamTreeView
 from . import items  # noqa
 
 
-__all__ = ['items', 'SceneWidget', 'SceneWindow']
+__all__ = ["items", "SceneWidget", "SceneWindow"]
 
 
 class _PanPlaneAction(InteractiveModeAction):
@@ -54,27 +54,24 @@ class _PanPlaneAction(InteractiveModeAction):
     :param ~silx.gui.plot3d.Plot3DWidget.Plot3DWidget plot3d:
         Plot3DWidget the action is associated with
     """
+
     def __init__(self, parent, plot3d=None):
-        super(_PanPlaneAction, self).__init__(
-            parent, 'panSelectedPlane', plot3d)
-        self.setIcon(icons.getQIcon('3d-plane-pan'))
-        self.setText('Pan plane')
+        super(_PanPlaneAction, self).__init__(parent, "panSelectedPlane", plot3d)
+        self.setIcon(icons.getQIcon("3d-plane-pan"))
+        self.setText("Pan plane")
         self.setCheckable(True)
-        self.setToolTip(
-            'Pan selected plane. Press <b>Ctrl</b> to rotate the scene.')
+        self.setToolTip("Pan selected plane. Press <b>Ctrl</b> to rotate the scene.")
 
     def _planeChanged(self, event):
         """Handle plane updates"""
-        if event in (items.ItemChangedType.VISIBLE,
-                     items.ItemChangedType.POSITION):
+        if event in (items.ItemChangedType.VISIBLE, items.ItemChangedType.POSITION):
             plane = self.sender()
 
-            isPlaneInteractive = \
-                plane._getPlane().plane.isPlane and plane.isVisible()
+            isPlaneInteractive = plane._getPlane().plane.isPlane and plane.isVisible()
 
             if isPlaneInteractive != self.isEnabled():
                 self.setEnabled(isPlaneInteractive)
-                mode = 'panSelectedPlane' if isPlaneInteractive else 'rotate'
+                mode = "panSelectedPlane" if isPlaneInteractive else "rotate"
                 self.getPlot3DWidget().setInteractiveMode(mode)
 
     def _selectionChanged(self, current, previous):
@@ -85,24 +82,21 @@ class _PanPlaneAction(InteractiveModeAction):
         if isinstance(current, items.PlaneMixIn):
             current.sigItemChanged.connect(self._planeChanged)
             self.setEnabled(True)
-            self.getPlot3DWidget().setInteractiveMode('panSelectedPlane')
+            self.getPlot3DWidget().setInteractiveMode("panSelectedPlane")
         else:
             self.setEnabled(False)
 
     def setPlot3DWidget(self, widget):
         previous = self.getPlot3DWidget()
         if isinstance(previous, SceneWidget):
-            previous.selection().sigCurrentChanged.disconnect(
-                self._selectionChanged)
-            self._selectionChanged(
-                None, previous.selection().getCurrentItem())
+            previous.selection().sigCurrentChanged.disconnect(self._selectionChanged)
+            self._selectionChanged(None, previous.selection().getCurrentItem())
 
         super(_PanPlaneAction, self).setPlot3DWidget(widget)
 
         if isinstance(widget, SceneWidget):
             self._selectionChanged(widget.selection().getCurrentItem(), None)
-            widget.selection().sigCurrentChanged.connect(
-                self._selectionChanged)
+            widget.selection().sigCurrentChanged.connect(self._selectionChanged)
 
 
 class SceneWindow(qt.QMainWindow):
@@ -128,16 +122,17 @@ class SceneWindow(qt.QMainWindow):
 
         self._interactiveModeToolBar = InteractiveModeToolBar(parent=self)
         panPlaneAction = _PanPlaneAction(self, plot3d=self._sceneWidget)
-        self._interactiveModeToolBar.addAction(
-            self._positionInfo.toggleAction())
+        self._interactiveModeToolBar.addAction(self._positionInfo.toggleAction())
         self._interactiveModeToolBar.addAction(panPlaneAction)
 
         self._viewpointToolBar = ViewpointToolBar(parent=self)
         self._outputToolBar = OutputToolBar(parent=self)
 
-        for toolbar in (self._interactiveModeToolBar,
-                        self._viewpointToolBar,
-                        self._outputToolBar):
+        for toolbar in (
+            self._interactiveModeToolBar,
+            self._viewpointToolBar,
+            self._outputToolBar,
+        ):
             toolbar.setPlot3DWidget(self._sceneWidget)
             self.addToolBar(toolbar)
             self.addActions(toolbar.actions())
@@ -146,20 +141,18 @@ class SceneWindow(qt.QMainWindow):
         self._paramTreeView.setModel(self._sceneWidget.model())
 
         selectionModel = self._paramTreeView.selectionModel()
-        self._sceneWidget.selection()._setSyncSelectionModel(
-            selectionModel)
+        self._sceneWidget.selection()._setSyncSelectionModel(selectionModel)
 
         paramDock = qt.QDockWidget()
-        paramDock.setWindowTitle('Object parameters')
+        paramDock.setWindowTitle("Object parameters")
         paramDock.setWidget(self._paramTreeView)
         self.addDockWidget(qt.Qt.RightDockWidgetArea, paramDock)
 
         self._sceneGroupResetWidget = GroupPropertiesWidget()
-        self._sceneGroupResetWidget.setGroup(
-            self._sceneWidget.getSceneGroup())
+        self._sceneGroupResetWidget.setGroup(self._sceneWidget.getSceneGroup())
 
         resetDock = qt.QDockWidget()
-        resetDock.setWindowTitle('Global parameters')
+        resetDock.setWindowTitle("Global parameters")
         resetDock.setWidget(self._sceneGroupResetWidget)
         self.addDockWidget(qt.Qt.RightDockWidgetArea, resetDock)
         self.tabifyDockWidget(paramDock, resetDock)

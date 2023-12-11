@@ -39,8 +39,10 @@ try:
     # it should be loaded before h5py
     import hdf5plugin  # noqa
 except ImportError:
-    message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
-        + " compressions. You can install it using \"pip install hdf5plugin\"."
+    message = (
+        "Module 'hdf5plugin' is not installed. It supports some hdf5"
+        + ' compressions. You can install it using "pip install hdf5plugin".'
+    )
     _logger.warning(message)
 import h5py
 
@@ -74,10 +76,12 @@ def get_hdf5_with_all_types():
     g.create_dataset("scalar", data=10)
     g.create_dataset("list", data=numpy.arange(10))
     base_image = numpy.arange(10**2).reshape(10, 10)
-    images = [ base_image,
-               base_image.T,
-               base_image.size - 1 - base_image,
-               base_image.size - 1 - base_image.T]
+    images = [
+        base_image,
+        base_image.T,
+        base_image.size - 1 - base_image,
+        base_image.size - 1 - base_image.T,
+    ]
     dtype = images[0].dtype
     data = numpy.empty((10 * 10, 10, 10), dtype=dtype)
     for i in range(10 * 10):
@@ -125,8 +129,12 @@ def get_hdf5_with_all_links():
     alltypes_filename = get_hdf5_with_all_types()
 
     h5["external_link_to_group"] = h5py.ExternalLink(alltypes_filename, "/arrays")
-    h5["external_link_to_dataset"] = h5py.ExternalLink(alltypes_filename, "/arrays/cube")
-    h5["external_link_to_nothing"] = h5py.ExternalLink(alltypes_filename, "/foo/bar/2000")
+    h5["external_link_to_dataset"] = h5py.ExternalLink(
+        alltypes_filename, "/arrays/cube"
+    )
+    h5["external_link_to_nothing"] = h5py.ExternalLink(
+        alltypes_filename, "/foo/bar/2000"
+    )
     h5["external_link_to_missing_file"] = h5py.ExternalLink("missing_file.h5", "/")
     h5.close()
 
@@ -231,14 +239,18 @@ def get_hdf5_with_external_recursive_links():
     g.create_dataset("dataset", data=numpy.int64(10))
     h5_1["soft_link_to_group"] = h5py.SoftLink("/group")
     h5_1["external_link_to_link"] = h5py.ExternalLink(tmp2.name, "/soft_link_to_group")
-    h5_1["external_link_to_recursive_link"] = h5py.ExternalLink(tmp2.name, "/external_link_to_recursive_link")
+    h5_1["external_link_to_recursive_link"] = h5py.ExternalLink(
+        tmp2.name, "/external_link_to_recursive_link"
+    )
     h5_1.close()
 
     g = h5_2.create_group("group")
     g.create_dataset("dataset", data=numpy.int64(10))
     h5_2["soft_link_to_group"] = h5py.SoftLink("/group")
     h5_2["external_link_to_link"] = h5py.ExternalLink(tmp1.name, "/soft_link_to_group")
-    h5_2["external_link_to_recursive_link"] = h5py.ExternalLink(tmp1.name, "/external_link_to_recursive_link")
+    h5_2["external_link_to_recursive_link"] = h5py.ExternalLink(
+        tmp1.name, "/external_link_to_recursive_link"
+    )
     h5_2.close()
 
     _file_cache[ID] = (tmp1, tmp2)
@@ -258,186 +270,197 @@ def get_hdf5_with_nxdata():
     g0d = h5.create_group("scalars")
 
     g0d0 = g0d.create_group("0D_scalar")
-    g0d0.attrs["NX_class"] = u"NXdata"
-    g0d0.attrs["signal"] = u"scalar"
+    g0d0.attrs["NX_class"] = "NXdata"
+    g0d0.attrs["signal"] = "scalar"
     g0d0.create_dataset("scalar", data=10)
 
     g0d1 = g0d.create_group("2D_scalars")
-    g0d1.attrs["NX_class"] = u"NXdata"
-    g0d1.attrs["signal"] = u"scalars"
-    ds = g0d1.create_dataset("scalars", data=numpy.arange(3*10).reshape((3, 10)))
-    ds.attrs["interpretation"] = u"scalar"
+    g0d1.attrs["NX_class"] = "NXdata"
+    g0d1.attrs["signal"] = "scalars"
+    ds = g0d1.create_dataset("scalars", data=numpy.arange(3 * 10).reshape((3, 10)))
+    ds.attrs["interpretation"] = "scalar"
 
     g0d1 = g0d.create_group("4D_scalars")
-    g0d1.attrs["NX_class"] = u"NXdata"
-    g0d1.attrs["signal"] = u"scalars"
-    ds = g0d1.create_dataset("scalars", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
-    ds.attrs["interpretation"] = u"scalar"
+    g0d1.attrs["NX_class"] = "NXdata"
+    g0d1.attrs["signal"] = "scalars"
+    ds = g0d1.create_dataset(
+        "scalars", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10))
+    )
+    ds.attrs["interpretation"] = "scalar"
 
     # SPECTRA
     g1d = h5.create_group("spectra")
 
     g1d0 = g1d.create_group("1D_spectrum")
-    g1d0.attrs["NX_class"] = u"NXdata"
-    g1d0.attrs["signal"] = u"count"
+    g1d0.attrs["NX_class"] = "NXdata"
+    g1d0.attrs["signal"] = "count"
     g1d0.attrs["auxiliary_signals"] = str_attrs(["count.5", "count2"])
-    g1d0.attrs["axes"] = u"energy_calib"
+    g1d0.attrs["axes"] = "energy_calib"
     g1d0.attrs["uncertainties"] = str_attrs(["energy_errors"])
     g1d0.create_dataset("count", data=numpy.arange(10))
-    g1d0.create_dataset("count.5", data=.5*numpy.arange(10))
-    d2 = g1d0.create_dataset("count2", data=2*numpy.arange(10))
-    d2.attrs["long_name"] = u"count multiplied by 2"
-    g1d0.create_dataset("energy_calib", data=(10, 5))     # 10 * idx + 5
-    g1d0.create_dataset("energy_errors", data=3.14*numpy.random.rand(10))
+    g1d0.create_dataset("count.5", data=0.5 * numpy.arange(10))
+    d2 = g1d0.create_dataset("count2", data=2 * numpy.arange(10))
+    d2.attrs["long_name"] = "count multiplied by 2"
+    g1d0.create_dataset("energy_calib", data=(10, 5))  # 10 * idx + 5
+    g1d0.create_dataset("energy_errors", data=3.14 * numpy.random.rand(10))
     g1d0.create_dataset("title", data="Title example provided as dataset")
 
     g1d1 = g1d.create_group("2D_spectra")
-    g1d1.attrs["NX_class"] = u"NXdata"
-    g1d1.attrs["signal"] = u"counts"
-    ds = g1d1.create_dataset("counts", data=numpy.arange(3*10).reshape((3, 10)))
-    ds.attrs["interpretation"] = u"spectrum"
+    g1d1.attrs["NX_class"] = "NXdata"
+    g1d1.attrs["signal"] = "counts"
+    ds = g1d1.create_dataset("counts", data=numpy.arange(3 * 10).reshape((3, 10)))
+    ds.attrs["interpretation"] = "spectrum"
 
     g1d2 = g1d.create_group("4D_spectra")
-    g1d2.attrs["NX_class"] = u"NXdata"
-    g1d2.attrs["signal"] = u"counts"
+    g1d2.attrs["NX_class"] = "NXdata"
+    g1d2.attrs["signal"] = "counts"
     g1d2.attrs["axes"] = str_attrs(["energy"])
-    ds = g1d2.create_dataset("counts", data=numpy.arange(2*2*3*10).reshape((2, 2, 3, 10)))
-    ds.attrs["interpretation"] = u"spectrum"
-    g1d2.create_dataset("errors", data=4.5*numpy.random.rand(2, 2, 3, 10))
-    ds = g1d2.create_dataset("energy", data=5+10*numpy.arange(15),
-                             shuffle=True, compression="gzip")
-    ds.attrs["long_name"] = u"Calibrated energy"
+    ds = g1d2.create_dataset(
+        "counts", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10))
+    )
+    ds.attrs["interpretation"] = "spectrum"
+    g1d2.create_dataset("errors", data=4.5 * numpy.random.rand(2, 2, 3, 10))
+    ds = g1d2.create_dataset(
+        "energy", data=5 + 10 * numpy.arange(15), shuffle=True, compression="gzip"
+    )
+    ds.attrs["long_name"] = "Calibrated energy"
     ds.attrs["first_good"] = 3
     ds.attrs["last_good"] = 12
-    g1d2.create_dataset("energy_errors", data=10*numpy.random.rand(15))
+    g1d2.create_dataset("energy_errors", data=10 * numpy.random.rand(15))
 
     # IMAGES
     g2d = h5.create_group("images")
 
     g2d0 = g2d.create_group("2D_regular_image")
-    g2d0.attrs["NX_class"] = u"NXdata"
-    g2d0.attrs["signal"] = u"image"
+    g2d0.attrs["NX_class"] = "NXdata"
+    g2d0.attrs["signal"] = "image"
     g2d0.attrs["auxiliary_signals"] = str_attrs(["image2", "image3"])
     g2d0.attrs["axes"] = str_attrs(["rows_calib", "columns_coordinates"])
-    g2d0.attrs["title"] = u"Title example provided as group attr"
-    g2d0.create_dataset("image", data=numpy.arange(4*6).reshape((4, 6)))
-    g2d0.create_dataset("image2", data=1/(1.+numpy.arange(4*6).reshape((4, 6))))
-    ds = g2d0.create_dataset("image3", data=-numpy.arange(4*6).reshape((4, 6)))
-    ds.attrs["long_name"] = u"3rd image (2nd auxiliary)"
+    g2d0.attrs["title"] = "Title example provided as group attr"
+    g2d0.create_dataset("image", data=numpy.arange(4 * 6).reshape((4, 6)))
+    g2d0.create_dataset("image2", data=1 / (1.0 + numpy.arange(4 * 6).reshape((4, 6))))
+    ds = g2d0.create_dataset("image3", data=-numpy.arange(4 * 6).reshape((4, 6)))
+    ds.attrs["long_name"] = "3rd image (2nd auxiliary)"
     ds = g2d0.create_dataset("rows_calib", data=(10, 5))
-    ds.attrs["long_name"] = u"Calibrated Y"
-    g2d0.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
+    ds.attrs["long_name"] = "Calibrated Y"
+    g2d0.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
 
     g2d4 = g2d.create_group("RGBA_image")
-    g2d4.attrs["NX_class"] = u"NXdata"
-    g2d4.attrs["signal"] = u"image"
-    g2d4.attrs["auxiliary_signals"] = u"squared image"
+    g2d4.attrs["NX_class"] = "NXdata"
+    g2d4.attrs["signal"] = "image"
+    g2d4.attrs["auxiliary_signals"] = "squared image"
     g2d4.attrs["axes"] = str_attrs(["rows_calib", "columns_coordinates"])
-    rgba_image = numpy.linspace(0, 1, num=7*8*3).reshape((7, 8, 3))
-    rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]      # invert G channel to add some color
+    rgba_image = numpy.linspace(0, 1, num=7 * 8 * 3).reshape((7, 8, 3))
+    rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]  # invert G channel to add some color
     ds = g2d4.create_dataset("image", data=rgba_image)
-    ds.attrs["interpretation"] = u"rgba-image"
+    ds.attrs["interpretation"] = "rgba-image"
     ds = g2d4.create_dataset("squared image", data=rgba_image**2)
-    ds.attrs["interpretation"] = u"rgba-image"
+    ds.attrs["interpretation"] = "rgba-image"
     ds = g2d4.create_dataset("rows_calib", data=(10, 5))
-    ds.attrs["long_name"] = u"Calibrated Y"
-    g2d4.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(8))
+    ds.attrs["long_name"] = "Calibrated Y"
+    g2d4.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(8))
 
     g2d1 = g2d.create_group("2D_irregular_data")
-    g2d1.attrs["NX_class"] = u"NXdata"
-    g2d1.attrs["signal"] = u"data"
+    g2d1.attrs["NX_class"] = "NXdata"
+    g2d1.attrs["signal"] = "data"
     g2d1.attrs["axes"] = str_attrs(["rows_coordinates", "columns_coordinates"])
-    g2d1.create_dataset("data", data=numpy.arange(64*128).reshape((64, 128)))
-    g2d1.create_dataset("rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64))
-    g2d1.create_dataset("columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
+    g2d1.create_dataset("data", data=numpy.arange(64 * 128).reshape((64, 128)))
+    g2d1.create_dataset(
+        "rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64)
+    )
+    g2d1.create_dataset(
+        "columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128)
+    )
 
     g2d2 = g2d.create_group("3D_images")
-    g2d2.attrs["NX_class"] = u"NXdata"
-    g2d2.attrs["signal"] = u"images"
-    ds = g2d2.create_dataset("images", data=numpy.arange(2*4*6).reshape((2, 4, 6)))
-    ds.attrs["interpretation"] = u"image"
+    g2d2.attrs["NX_class"] = "NXdata"
+    g2d2.attrs["signal"] = "images"
+    ds = g2d2.create_dataset("images", data=numpy.arange(2 * 4 * 6).reshape((2, 4, 6)))
+    ds.attrs["interpretation"] = "image"
 
     g2d3 = g2d.create_group("5D_images")
-    g2d3.attrs["NX_class"] = u"NXdata"
-    g2d3.attrs["signal"] = u"images"
+    g2d3.attrs["NX_class"] = "NXdata"
+    g2d3.attrs["signal"] = "images"
     g2d3.attrs["axes"] = str_attrs(["rows_coordinates", "columns_coordinates"])
-    ds = g2d3.create_dataset("images", data=numpy.arange(2*2*2*4*6).reshape((2, 2, 2, 4, 6)))
-    ds.attrs["interpretation"] = u"image"
-    g2d3.create_dataset("rows_coordinates", data=5+10*numpy.arange(4))
-    g2d3.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(6))
+    ds = g2d3.create_dataset(
+        "images", data=numpy.arange(2 * 2 * 2 * 4 * 6).reshape((2, 2, 2, 4, 6))
+    )
+    ds.attrs["interpretation"] = "image"
+    g2d3.create_dataset("rows_coordinates", data=5 + 10 * numpy.arange(4))
+    g2d3.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
 
     # SCATTER
     g = h5.create_group("scatters")
 
     gd0 = g.create_group("x_y_scatter")
-    gd0.attrs["NX_class"] = u"NXdata"
-    gd0.attrs["signal"] = u"y"
+    gd0.attrs["NX_class"] = "NXdata"
+    gd0.attrs["signal"] = "y"
     gd0.attrs["axes"] = str_attrs(["x"])
-    gd0.attrs["title"] = u"simple y = f(x) scatters cannot be distinguished from curves"
+    gd0.attrs["title"] = "simple y = f(x) scatters cannot be distinguished from curves"
     gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
-    gd0.create_dataset("x", data=2*numpy.random.rand(128))
-    gd0.create_dataset("x_errors", data=0.05*numpy.random.rand(128))
-    gd0.create_dataset("errors", data=0.05*numpy.random.rand(128))
+    gd0.create_dataset("x", data=2 * numpy.random.rand(128))
+    gd0.create_dataset("x_errors", data=0.05 * numpy.random.rand(128))
+    gd0.create_dataset("errors", data=0.05 * numpy.random.rand(128))
 
     gd1 = g.create_group("x_y_value_scatter")
-    gd1.attrs["NX_class"] = u"NXdata"
-    gd1.attrs["signal"] = u"values"
+    gd1.attrs["NX_class"] = "NXdata"
+    gd1.attrs["signal"] = "values"
     gd1.attrs["auxiliary_signals"] = str_attrs(["values.5", "values2"])
     gd1.attrs["axes"] = str_attrs(["x", "y"])
-    gd1.attrs["title"] = u"x, y, values scatter with asymmetric y_errors"
-    gd1.create_dataset("values", data=3.14*numpy.random.rand(128))
-    gd1.create_dataset("values.5", data=0.5*3.14*numpy.random.rand(128))
-    gd1.create_dataset("values2", data=2.*3.14*numpy.random.rand(128))
+    gd1.attrs["title"] = "x, y, values scatter with asymmetric y_errors"
+    gd1.create_dataset("values", data=3.14 * numpy.random.rand(128))
+    gd1.create_dataset("values.5", data=0.5 * 3.14 * numpy.random.rand(128))
+    gd1.create_dataset("values2", data=2.0 * 3.14 * numpy.random.rand(128))
     gd1.create_dataset("y", data=numpy.random.rand(128))
-    y_errors = [0.03*numpy.random.rand(128), 0.04*numpy.random.rand(128)]
+    y_errors = [0.03 * numpy.random.rand(128), 0.04 * numpy.random.rand(128)]
     gd1.create_dataset("y_errors", data=y_errors)
-    ds = gd1.create_dataset("x", data=2*numpy.random.rand(128))
-    ds.attrs["long_name"] = u"horizontal axis"
-    gd1.create_dataset("x_errors", data=0.02*numpy.random.rand(128))
+    ds = gd1.create_dataset("x", data=2 * numpy.random.rand(128))
+    ds.attrs["long_name"] = "horizontal axis"
+    gd1.create_dataset("x_errors", data=0.02 * numpy.random.rand(128))
 
     # NDIM > 3
     g = h5.create_group("cubes")
 
     gd0 = g.create_group("3D_cube")
-    gd0.attrs["NX_class"] = u"NXdata"
-    gd0.attrs["signal"] = u"cube"
+    gd0.attrs["NX_class"] = "NXdata"
+    gd0.attrs["signal"] = "cube"
     gd0.attrs["axes"] = str_attrs(["img_idx", "rows_coordinates", "cols_coordinates"])
-    gd0.create_dataset("cube", data=numpy.arange(4*5*6).reshape((4, 5, 6)))
+    gd0.create_dataset("cube", data=numpy.arange(4 * 5 * 6).reshape((4, 5, 6)))
     gd0.create_dataset("img_idx", data=numpy.arange(4))
-    gd0.create_dataset("rows_coordinates", data=0.1*numpy.arange(5))
+    gd0.create_dataset("rows_coordinates", data=0.1 * numpy.arange(5))
     gd0.create_dataset("cols_coordinates", data=[0.2, 0.3])  # linear calibration
 
     gd1 = g.create_group("5D")
-    gd1.attrs["NX_class"] = u"NXdata"
-    gd1.attrs["signal"] = u"hypercube"
-    gd1.create_dataset("hypercube",
-                       data=numpy.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6)))
+    gd1.attrs["NX_class"] = "NXdata"
+    gd1.attrs["signal"] = "hypercube"
+    gd1.create_dataset(
+        "hypercube", data=numpy.arange(2 * 3 * 4 * 5 * 6).reshape((2, 3, 4, 5, 6))
+    )
 
     gd2 = g.create_group("3D_nonlinear_scaling")
-    gd2.attrs["NX_class"] = u"NXdata"
-    gd2.attrs["signal"] = u"cube"
+    gd2.attrs["NX_class"] = "NXdata"
+    gd2.attrs["signal"] = "cube"
     gd2.attrs["axes"] = str_attrs(["img_idx", "rows_coordinates", "cols_coordinates"])
-    gd2.create_dataset("cube", data=numpy.arange(4*5*6).reshape((4, 5, 6)))
-    gd2.create_dataset("img_idx", data=numpy.array([2., -0.1, 8, 3.14]))
-    gd2.create_dataset("rows_coordinates", data=0.1*numpy.arange(5))
-    gd2.create_dataset("cols_coordinates", data=[0.1, 0.6, 0.7, 8., 8.1, 8.2])
-
+    gd2.create_dataset("cube", data=numpy.arange(4 * 5 * 6).reshape((4, 5, 6)))
+    gd2.create_dataset("img_idx", data=numpy.array([2.0, -0.1, 8, 3.14]))
+    gd2.create_dataset("rows_coordinates", data=0.1 * numpy.arange(5))
+    gd2.create_dataset("cols_coordinates", data=[0.1, 0.6, 0.7, 8.0, 8.1, 8.2])
 
     # invalid NXdata
     g = h5.create_group("invalid")
     g0 = g.create_group("invalid NXdata")
-    g0.attrs["NX_class"] = u"NXdata"
+    g0.attrs["NX_class"] = "NXdata"
 
     g1 = g.create_group("invalid NXentry")
-    g1.attrs["NX_class"] = u"NXentry"
-    g1.attrs["default"] = u"missing NXdata group"
+    g1.attrs["NX_class"] = "NXentry"
+    g1.attrs["default"] = "missing NXdata group"
 
     g2 = g.create_group("invalid NXroot")
-    g2.attrs["NX_class"] = u"NXroot"
-    g2.attrs["default"] = u"invalid NXentry in NXroot"
+    g2.attrs["NX_class"] = "NXroot"
+    g2.attrs["default"] = "invalid NXentry in NXroot"
     g20 = g2.create_group("invalid NXentry in NXroot")
-    g20.attrs["NX_class"] = u"NXentry"
-    g20.attrs["default"] = u"missing NXdata group"
+    g20.attrs["NX_class"] = "NXentry"
+    g20.attrs["default"] = "missing NXdata group"
 
     h5.close()
 
@@ -542,11 +565,21 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             self.__treeview.findHdf5TreeModel().appendFile(file_name)
 
         self.__treeview.activated.connect(self.displayData)
-        self.__treeview.activated.connect(lambda index: self.displayEvent("activated", index))
-        self.__treeview.clicked.connect(lambda index: self.displayEvent("clicked", index))
-        self.__treeview.doubleClicked.connect(lambda index: self.displayEvent("doubleClicked", index))
-        self.__treeview.entered.connect(lambda index: self.displayEvent("entered", index))
-        self.__treeview.pressed.connect(lambda index: self.displayEvent("pressed", index))
+        self.__treeview.activated.connect(
+            lambda index: self.displayEvent("activated", index)
+        )
+        self.__treeview.clicked.connect(
+            lambda index: self.displayEvent("clicked", index)
+        )
+        self.__treeview.doubleClicked.connect(
+            lambda index: self.displayEvent("doubleClicked", index)
+        )
+        self.__treeview.entered.connect(
+            lambda index: self.displayEvent("entered", index)
+        )
+        self.__treeview.pressed.connect(
+            lambda index: self.displayEvent("pressed", index)
+        )
 
         self.__treeview.addContextMenuCallback(self.customContextMenu)
         # lambda function will never be called cause we store it as weakref
@@ -556,8 +589,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__treeview.addContextMenuCallback(self.__store_lambda)
 
     def displayData(self):
-        """Called to update the dataviewer with the selected data.
-        """
+        """Called to update the dataviewer with the selected data."""
         selected = list(self.__treeview.selectedH5Nodes())
         if len(selected) == 1:
             # Update the viewer for a single selection
@@ -568,8 +600,8 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             self.__dataViewer.setData(data)
 
     def displayEvent(self, eventName, index):
-        """Called to log event in widget
-        """
+        """Called to log event in widget"""
+
         def formatKey(name, value):
             name, value = html.escape(str(name)), html.escape(str(value))
             return "<li><b>%s</b>: %s</li>" % (name, value)
@@ -655,10 +687,20 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         for obj in selectedObjects:
             if obj.ntype is h5py.File:
                 action = qt.QAction("Remove %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(obj.h5py_object))
+                action.triggered.connect(
+                    lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(
+                        obj.h5py_object
+                    )
+                )
                 menu.addAction(action)
-                action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
-                action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(obj.h5py_object))
+                action = qt.QAction(
+                    "Synchronize %s" % obj.local_filename, event.source()
+                )
+                action.triggered.connect(
+                    lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(
+                        obj.h5py_object
+                    )
+                )
                 menu.addAction(action)
 
     def __hdf5ComboChanged(self, index):
@@ -685,7 +727,10 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         combo.addItem("Containing 10000 datasets", get_hdf5_with_10000_datasets)
         combo.addItem("Containing 100000 datasets", get_hdf5_with_100000_datasets)
         combo.addItem("Containing recursive links", get_hdf5_with_recursive_links)
-        combo.addItem("Containing external recursive links", get_hdf5_with_external_recursive_links)
+        combo.addItem(
+            "Containing external recursive links",
+            get_hdf5_with_external_recursive_links,
+        )
         combo.addItem("Containing NXdata groups", get_hdf5_with_nxdata)
         combo.activated.connect(self.__hdf5ComboChanged)
         content.layout().addWidget(combo)
@@ -730,26 +775,40 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         panel.layout().addWidget(option)
 
         sorting = qt.QCheckBox("Enable sorting", option)
-        sorting.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
+        sorting.setChecked(
+            treeview.selectionMode() == qt.QAbstractItemView.MultiSelection
+        )
         sorting.toggled.connect(lambda: treeview.setSortingEnabled(sorting.isChecked()))
         option.layout().addWidget(sorting)
 
         multiselection = qt.QCheckBox("Multi-selection", option)
-        multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
+        multiselection.setChecked(
+            treeview.selectionMode() == qt.QAbstractItemView.MultiSelection
+        )
         switch_selection = lambda: treeview.setSelectionMode(
-            qt.QAbstractItemView.MultiSelection if multiselection.isChecked()
-            else qt.QAbstractItemView.SingleSelection)
+            qt.QAbstractItemView.MultiSelection
+            if multiselection.isChecked()
+            else qt.QAbstractItemView.SingleSelection
+        )
         multiselection.toggled.connect(switch_selection)
         option.layout().addWidget(multiselection)
 
         filedrop = qt.QCheckBox("Drop external file", option)
         filedrop.setChecked(treeview.findHdf5TreeModel().isFileDropEnabled())
-        filedrop.toggled.connect(lambda: treeview.findHdf5TreeModel().setFileDropEnabled(filedrop.isChecked()))
+        filedrop.toggled.connect(
+            lambda: treeview.findHdf5TreeModel().setFileDropEnabled(
+                filedrop.isChecked()
+            )
+        )
         option.layout().addWidget(filedrop)
 
         filemove = qt.QCheckBox("Reorder files", option)
         filemove.setChecked(treeview.findHdf5TreeModel().isFileMoveEnabled())
-        filemove.toggled.connect(lambda: treeview.findHdf5TreeModel().setFileMoveEnabled(filedrop.isChecked()))
+        filemove.toggled.connect(
+            lambda: treeview.findHdf5TreeModel().setFileMoveEnabled(
+                filedrop.isChecked()
+            )
+        )
         option.layout().addWidget(filemove)
 
         option.layout().addStretch(1)
@@ -760,18 +819,32 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         autosize = qt.QCheckBox("Auto-size headers", option)
         autosize.setChecked(treeview.header().hasAutoResizeColumns())
-        autosize.toggled.connect(lambda: treeview.header().setAutoResizeColumns(autosize.isChecked()))
+        autosize.toggled.connect(
+            lambda: treeview.header().setAutoResizeColumns(autosize.isChecked())
+        )
         option.layout().addWidget(autosize)
 
         columnpopup = qt.QCheckBox("Popup to hide/show columns", option)
         columnpopup.setChecked(treeview.header().hasHideColumnsPopup())
-        columnpopup.toggled.connect(lambda: treeview.header().setEnableHideColumnsPopup(columnpopup.isChecked()))
+        columnpopup.toggled.connect(
+            lambda: treeview.header().setEnableHideColumnsPopup(columnpopup.isChecked())
+        )
         option.layout().addWidget(columnpopup)
 
         define_columns = qt.QComboBox()
-        define_columns.addItem("Default columns", treeview.findHdf5TreeModel().COLUMN_IDS)
-        define_columns.addItem("Only name and Value", [treeview.findHdf5TreeModel().NAME_COLUMN, treeview.findHdf5TreeModel().VALUE_COLUMN])
-        define_columns.activated.connect(lambda index: treeview.header().setSections(define_columns.itemData(index)))
+        define_columns.addItem(
+            "Default columns", treeview.findHdf5TreeModel().COLUMN_IDS
+        )
+        define_columns.addItem(
+            "Only name and Value",
+            [
+                treeview.findHdf5TreeModel().NAME_COLUMN,
+                treeview.findHdf5TreeModel().VALUE_COLUMN,
+            ],
+        )
+        define_columns.activated.connect(
+            lambda index: treeview.header().setSections(define_columns.itemData(index))
+        )
         option.layout().addWidget(define_columns)
 
         option.layout().addStretch(1)

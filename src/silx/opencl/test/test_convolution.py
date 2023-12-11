@@ -41,6 +41,7 @@ from silx.image.utils import gaussian_kernel
 
 try:
     from scipy.ndimage import convolve, convolve1d
+
     try:
         from scipy.misc import ascent
     except:
@@ -61,7 +62,6 @@ logger = logging.getLogger(__name__)
 
 
 class ConvolutionData:
-
     def __init__(self, param):
         self.param = param
         self.mode = param["boundary_handling"]
@@ -207,7 +207,7 @@ def convolution_data_params():
     )
     params = []
     for boundary_handling, use_texture, input_dev, output_dev in param_vals:
-        param={
+        param = {
             "boundary_handling": boundary_handling,
             "input_on_device": input_dev,
             "output_on_device": output_dev,
@@ -239,25 +239,30 @@ def convolution_data(request):
 def test_1D(convolution_data):
     convolution_data.template_test("test_1D")
 
+
 @pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
 @pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
 def test_separable_2D(convolution_data):
     convolution_data.template_test("test_separable_2D")
+
 
 @pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
 @pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
 def test_separable_3D(convolution_data):
     convolution_data.template_test("test_separable_3D")
 
+
 @pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
 @pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
 def test_nonseparable_2D(convolution_data):
     convolution_data.template_test("test_nonseparable_2D")
 
+
 @pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
 @pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")
 def test_nonseparable_3D(convolution_data):
     convolution_data.template_test("test_nonseparable_3D")
+
 
 @pytest.mark.skipif(ocl is None, reason="OpenCL is missing")
 @pytest.mark.skipif(scipy_convolve is None, reason="scipy is missing")

@@ -61,7 +61,7 @@ class _ElidedLabel(ElidedLabel):
     def sizeHint(self):
         hint = super().sizeHint()
         nbchar = max(len(self.text()), 12)
-        width = self.fontMetrics().boundingRect('#' * nbchar).width()
+        width = self.fontMetrics().boundingRect("#" * nbchar).width()
         return qt.QSize(max(hint.width(), width), hint.height())
 
 
@@ -72,7 +72,7 @@ class _StatWidget(qt.QWidget):
     :param name:
     """
 
-    def __init__(self, parent=None, name: str=''):
+    def __init__(self, parent=None, name: str = ""):
         super().__init__(parent)
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -83,7 +83,8 @@ class _StatWidget(qt.QWidget):
         self.__valueWidget = _ElidedLabel(parent=self)
         self.__valueWidget.setText("-")
         self.__valueWidget.setTextInteractionFlags(
-            qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard)
+            qt.Qt.TextSelectableByMouse | qt.Qt.TextSelectableByKeyboard
+        )
         layout.addWidget(self.__valueWidget)
 
     def setValue(self, value: Optional[float]):
@@ -91,8 +92,7 @@ class _StatWidget(qt.QWidget):
 
         :param value:
         """
-        self.__valueWidget.setText(
-            "-" if value is None else "{:.5g}".format(value))
+        self.__valueWidget.setText("-" if value is None else "{:.5g}".format(value))
 
 
 class _IntEdit(qt.QLineEdit):
@@ -123,9 +123,7 @@ class _IntEdit(qt.QLineEdit):
         font = self.font()
         font.setStyle(qt.QFont.StyleItalic)
         fontMetrics = qt.QFontMetrics(font)
-        self.setMaximumWidth(
-            fontMetrics.boundingRect('0' * (nbchar + 1)).width()
-        )
+        self.setMaximumWidth(fontMetrics.boundingRect("0" * (nbchar + 1)).width())
         self.setMaxLength(nbchar)
 
     def __textEdited(self, _):
@@ -190,7 +188,7 @@ class _IntEdit(qt.QLineEdit):
             self.setRange(min(value, bottom), max(value, top))
         return numpy.clip(value, *self.getRange())
 
-    def setDefaultValue(self, value: int, extend_range: bool=False):
+    def setDefaultValue(self, value: int, extend_range: bool = False):
         """Set default value when QLineEdit is empty
 
         :param int value:
@@ -209,7 +207,7 @@ class _IntEdit(qt.QLineEdit):
         except ValueError:
             return None
 
-    def setCurrentValue(self, value: int, extend_range: bool=False):
+    def setCurrentValue(self, value: int, extend_range: bool = False):
         """Set the currently displayed value
 
         :param int value:
@@ -235,7 +233,7 @@ class HistogramWidget(qt.QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setWindowTitle('Histogram')
+        self.setWindowTitle("Histogram")
 
         self.__itemRef = None  # weakref on the item to track
 
@@ -246,6 +244,7 @@ class HistogramWidget(qt.QWidget):
         # Plot
         # Lazy import to avoid circular dependencies
         from silx.gui.plot.PlotWindow import Plot1D
+
         self.__plot = Plot1D(self)
         layout.addWidget(self.__plot)
 
@@ -265,14 +264,12 @@ class HistogramWidget(qt.QWidget):
         controlsLayout.addWidget(qt.QLabel("N. bins:"))
         self.__nbinsLineEdit = _IntEdit(self)
         self.__nbinsLineEdit.setRange(2, 9999)
-        self.__nbinsLineEdit.sigValueChanged.connect(
-            self.__updateHistogramFromControls)
+        self.__nbinsLineEdit.sigValueChanged.connect(self.__updateHistogramFromControls)
         controlsLayout.addWidget(self.__nbinsLineEdit)
         self.__rangeLabel = qt.QLabel("Range:")
         controlsLayout.addWidget(self.__rangeLabel)
         self.__rangeSlider = RangeSlider(parent=self)
-        self.__rangeSlider.sigValueChanged.connect(
-            self.__updateHistogramFromControls)
+        self.__rangeSlider.sigValueChanged.connect(self.__updateHistogramFromControls)
         self.__rangeSlider.sigValueChanged.connect(self.__rangeChanged)
         controlsLayout.addWidget(self.__rangeSlider)
         self.__weightCheckBox = qt.QCheckBox(self)
@@ -289,7 +286,8 @@ class HistogramWidget(qt.QWidget):
 
         self.__statsWidgets = dict(
             (name, _StatWidget(parent=statsWidget, name=name))
-            for name in ("min", "max", "mean", "std", "sum"))
+            for name in ("min", "max", "mean", "std", "sum")
+        )
 
         for widget in self.__statsWidgets.values():
             statsLayout.addWidget(widget)
@@ -339,8 +337,10 @@ class HistogramWidget(qt.QWidget):
         hist = self.getHistogram(copy=False)
         if hist is not None:
             count, edges = hist
-            if (len(count) == self.__nbinsLineEdit.getValue() and
-                    (edges[0], edges[-1]) == self.__rangeSlider.getValues()):
+            if (
+                len(count) == self.__nbinsLineEdit.getValue()
+                and (edges[0], edges[-1]) == self.__rangeSlider.getValues()
+            ):
                 return  # Nothing has changed
 
         self._updateFromItem()
@@ -394,7 +394,7 @@ class HistogramWidget(qt.QWidget):
             if xmin == 0:
                 range_ = -0.01, 0.01
             else:
-                range_ = sorted((xmin * .99, xmin * 1.01))
+                range_ = sorted((xmin * 0.99, xmin * 1.01))
         else:
             range_ = xmin, xmax
 
@@ -425,7 +425,8 @@ class HistogramWidget(qt.QWidget):
             max_=xmax,
             mean=numpy.nanmean(array),
             std=numpy.nanstd(array),
-            sum_=numpy.nansum(array))
+            sum_=numpy.nansum(array),
+        )
 
     def setHistogram(self, histogram, edges):
         """Set displayed histogram
@@ -435,20 +436,21 @@ class HistogramWidget(qt.QWidget):
         """
         # Only useful if setHistogram is called directly
         # TODO
-        #nbins = len(histogram)
-        #if nbins != self.__nbinsLineEdit.getDefaultValue():
+        # nbins = len(histogram)
+        # if nbins != self.__nbinsLineEdit.getDefaultValue():
         #    self.__nbinsLineEdit.setValue(nbins, extend_range=True)
-        #self.__rangeSlider.setValues(edges[0], edges[-1])
+        # self.__rangeSlider.setValues(edges[0], edges[-1])
 
         self.getPlotWidget().addHistogram(
             histogram=histogram,
             edges=edges,
-            legend='histogram',
+            legend="histogram",
             fill=True,
-            color='#66aad7',
-            resetzoom=False)
+            color="#66aad7",
+            resetzoom=False,
+        )
 
-    def getHistogram(self, copy: bool=True):
+    def getHistogram(self, copy: bool = True):
         """Returns currently displayed histogram.
 
         :param copy: True to get a copy,
@@ -456,24 +458,25 @@ class HistogramWidget(qt.QWidget):
         :return: (histogram, edges) or None
         """
         for item in self.getPlotWidget().getItems():
-            if item.getName() == 'histogram':
-                return (item.getValueData(copy=copy),
-                        item.getBinEdgesData(copy=copy))
+            if item.getName() == "histogram":
+                return (item.getValueData(copy=copy), item.getBinEdgesData(copy=copy))
         else:
             return None
 
-    def setStatistics(self,
-            min_: Optional[float] = None,
-            max_: Optional[float] = None,
-            mean: Optional[float] = None,
-            std: Optional[float] = None,
-            sum_: Optional[float] = None):
+    def setStatistics(
+        self,
+        min_: Optional[float] = None,
+        max_: Optional[float] = None,
+        mean: Optional[float] = None,
+        std: Optional[float] = None,
+        sum_: Optional[float] = None,
+    ):
         """Set displayed statistic indicators."""
-        self.__statsWidgets['min'].setValue(min_)
-        self.__statsWidgets['max'].setValue(max_)
-        self.__statsWidgets['mean'].setValue(mean)
-        self.__statsWidgets['std'].setValue(std)
-        self.__statsWidgets['sum'].setValue(sum_)
+        self.__statsWidgets["min"].setValue(min_)
+        self.__statsWidgets["max"].setValue(max_)
+        self.__statsWidgets["mean"].setValue(mean)
+        self.__statsWidgets["std"].setValue(std)
+        self.__statsWidgets["sum"].setValue(sum_)
 
 
 class PixelIntensitiesHistoAction(PlotToolAction):
@@ -484,12 +487,14 @@ class PixelIntensitiesHistoAction(PlotToolAction):
     """
 
     def __init__(self, plot, parent=None):
-        PlotToolAction.__init__(self,
-                                plot,
-                                icon='pixel-intensities',
-                                text='pixels intensity',
-                                tooltip='Compute image intensity distribution',
-                                parent=parent)
+        PlotToolAction.__init__(
+            self,
+            plot,
+            icon="pixel-intensities",
+            text="pixels intensity",
+            tooltip="Compute image intensity distribution",
+            parent=parent,
+        )
 
     def _connectPlot(self, window):
         plot = self.plot

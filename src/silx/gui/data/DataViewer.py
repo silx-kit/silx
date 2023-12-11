@@ -43,9 +43,9 @@ __date__ = "12/02/2019"
 _logger = logging.getLogger(__name__)
 
 
-DataSelection = collections.namedtuple("DataSelection",
-                                       ["filename", "datapath",
-                                        "slice", "permutation"])
+DataSelection = collections.namedtuple(
+    "DataSelection", ["filename", "datapath", "slice", "permutation"]
+)
 
 
 class DataViewer(qt.QFrame):
@@ -172,7 +172,9 @@ class DataViewer(qt.QFrame):
                 view = viewClass(parent)
                 views.append(view)
             except Exception:
-                _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)
+                _logger.warning(
+                    "%s instantiation failed. View is ignored" % viewClass.__name__
+                )
                 _logger.debug("Backtrace", exc_info=True)
 
         return views
@@ -222,19 +224,25 @@ class DataViewer(qt.QFrame):
 
             info = self._getInfo()
             axisNames = self.__currentView.axesNames(self.__data, info)
-            if (info.isArray and info.size != 0 and
-                    self.__data is not None and axisNames is not None):
+            if (
+                info.isArray
+                and info.size != 0
+                and self.__data is not None
+                and axisNames is not None
+            ):
                 self.__useAxisSelection = True
                 self.__numpySelection.setAxisNames(axisNames)
                 self.__numpySelection.setCustomAxis(
-                    self.__currentView.customAxisNames())
+                    self.__currentView.customAxisNames()
+                )
                 data = self.normalizeData(self.__data)
                 self.__numpySelection.setData(data)
 
                 # Try to restore previous permutation and selection
                 try:
                     self.__numpySelection.setSelection(
-                        previousSelection, previousPermutation)
+                        previousSelection, previousPermutation
+                    )
                 except ValueError as e:
                     _logger.info("Not restoring selection because: %s", e)
 
@@ -277,8 +285,10 @@ class DataViewer(qt.QFrame):
         except:
             datapath = None
 
-        # FIXME: maybe use DataUrl, with added support of permutation
-        self.__displayedSelection = DataSelection(filename, datapath, slicing, permutation)
+        # FIXME: maybe use DataUrl, with added support of permutation
+        self.__displayedSelection = DataSelection(
+            filename, datapath, slicing, permutation
+        )
 
         # TODO: would be good to avoid that, it should be synchonous
         qt.QTimer.singleShot(10, self.__setDataInView)
@@ -291,11 +301,14 @@ class DataViewer(qt.QFrame):
             return
 
         # Emit signal only when selection has changed
-        if (self.__previousSelection.slice != self.__displayedSelection.slice or
-            self.__previousSelection.permutation != self.__displayedSelection.permutation
+        if (
+            self.__previousSelection.slice != self.__displayedSelection.slice
+            or self.__previousSelection.permutation
+            != self.__displayedSelection.permutation
         ):
             self.selectionChanged.emit(
-                self.__displayedSelection.slice, self.__displayedSelection.permutation)
+                self.__displayedSelection.slice, self.__displayedSelection.permutation
+            )
             self.__previousSelection = self.__displayedSelection
 
     def setDisplayedView(self, view):

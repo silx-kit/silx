@@ -48,8 +48,8 @@ class _FloatItem(qt.QTableWidgetItem):
         qt.QTableWidgetItem.__init__(self, type=type)
 
     def __lt__(self, other):
-        self_values = self.text().lstrip('(').rstrip(')').split(',')
-        other_values = other.text().lstrip('(').rstrip(')').split(',')
+        self_values = self.text().lstrip("(").rstrip(")").split(",")
+        other_values = other.text().lstrip("(").rstrip(")").split(",")
         for self_value, other_value in zip(self_values, other_values):
             f_self_value = float(self_value)
             f_other_value = float(other_value)
@@ -67,7 +67,8 @@ class StatFormatter(object):
                        which will be used to display the result of the
                        statistic computation.
     """
-    DEFAULT_FORMATTER = '{0:.3f}'
+
+    DEFAULT_FORMATTER = "{0:.3f}"
 
     def __init__(self, formatter=DEFAULT_FORMATTER, qItemClass=_FloatItem):
         self.formatter = formatter
@@ -121,9 +122,11 @@ class StatsHandler(object):
             if isinstance(arg[0], statsmdl.StatBase):
                 stat = arg[0]
                 if len(arg) > 2:
-                    raise ValueError('To many argument with %s. At most one '
-                                     'argument can be associated with the '
-                                     'BaseStat (the `StatFormatter`')
+                    raise ValueError(
+                        "To many argument with %s. At most one "
+                        "argument can be associated with the "
+                        "BaseStat (the `StatFormatter`"
+                    )
                 if len(arg) == 2:
                     assert arg[1] is None or isinstance(arg[1], (StatFormatter, str))
                     formatter = arg[1]
@@ -134,15 +137,20 @@ class StatsHandler(object):
                     arg = arg[0]
 
                 if type(arg[0]) is not str:
-                    raise ValueError('first element of the tuple should be a string'
-                                     ' or a StatBase instance')
+                    raise ValueError(
+                        "first element of the tuple should be a string"
+                        " or a StatBase instance"
+                    )
                 if len(arg) == 1:
-                    raise ValueError('A function should be associated with the'
-                                     'stat name')
+                    raise ValueError(
+                        "A function should be associated with the" "stat name"
+                    )
                 if len(arg) > 3:
-                    raise ValueError('Two much argument given for defining statistic.'
-                                     'Take at most three arguments (name, function, '
-                                     'kinds)')
+                    raise ValueError(
+                        "Two much argument given for defining statistic."
+                        "Take at most three arguments (name, function, "
+                        "kinds)"
+                    )
                 if len(arg) == 2:
                     stat = statsmdl.Stat(name=arg[0], fct=arg[1])
                 else:
@@ -180,12 +188,13 @@ class StatsHandler(object):
                 if isinstance(val, (tuple, list)):
                     res = []
                     [res.append(self.formatters[name].format(_val)) for _val in val]
-                    return ', '.join(res)
+                    return ", ".join(res)
                 else:
                     return self.formatters[name].format(val)
 
-    def calculate(self, item, plot, onlimits, roi=None, data_changed=False,
-                  roi_changed=False):
+    def calculate(
+        self, item, plot, onlimits, roi=None, data_changed=False, roi_changed=False
+    ):
         """
         compute all statistic registered and return the list of formatted
         statistics result.
@@ -200,8 +209,14 @@ class StatsHandler(object):
         :return: list of formatted statistics (as str)
         :rtype: dict
         """
-        res = self.stats.calculate(item, plot, onlimits, roi,
-                                   data_changed=data_changed, roi_changed=roi_changed)
+        res = self.stats.calculate(
+            item,
+            plot,
+            onlimits,
+            roi,
+            data_changed=data_changed,
+            roi_changed=roi_changed,
+        )
         for resName, resValue in list(res.items()):
             res[resName] = self.format(resName, res[resName])
         return res

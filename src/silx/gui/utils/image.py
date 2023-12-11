@@ -51,32 +51,28 @@ def convertArrayToQImage(array: numpy.ndarray) -> qt.QImage:
     :type array: numpy.ndarray of uint8
     :return: Corresponding Qt image with RGB888 or ARGB32 format.
     """
-    array = numpy.array(array, copy=False, order='C', dtype=numpy.uint8)
+    array = numpy.array(array, copy=False, order="C", dtype=numpy.uint8)
 
     if array.ndim != 3 or array.shape[2] not in (3, 4):
-        raise ValueError(
-            'Image must be a 3D array with 3 or 4 channels per pixel')
+        raise ValueError("Image must be a 3D array with 3 or 4 channels per pixel")
 
     if array.shape[2] == 4:
         format_ = qt.QImage.Format_ARGB32
         # RGBA -> ARGB + take care of endianness
-        if sys.byteorder == 'little':  # RGBA -> BGRA
+        if sys.byteorder == "little":  # RGBA -> BGRA
             array = array[:, :, (2, 1, 0, 3)]
         else:  # big endian: RGBA -> ARGB
             array = array[:, :, (3, 0, 1, 2)]
 
-        array = numpy.array(array, order='C')  # Make a contiguous array
+        array = numpy.array(array, order="C")  # Make a contiguous array
 
     else:  # array.shape[2] == 3
         format_ = qt.QImage.Format_RGB888
 
     height, width, depth = array.shape
     qimage = qt.QImage(
-        array.data,
-        width,
-        height,
-        array.strides[0],  # bytesPerLine
-        format_)
+        array.data, width, height, array.strides[0], format_  # bytesPerLine
+    )
 
     return qimage.copy()  # Making a copy of the image and its data
 
@@ -121,11 +117,11 @@ def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
         channels = 4
 
     ptr = image.bits()
-    if qt.BINDING == 'PyQt5':
+    if qt.BINDING == "PyQt5":
         ptr.setsize(image.byteCount())
-    elif qt.BINDING == 'PyQt6':
+    elif qt.BINDING == "PyQt6":
         ptr.setsize(image.sizeInBytes())
-    elif qt.BINDING == 'PySide6':
+    elif qt.BINDING == "PySide6":
         ptr = ptr.tobytes()
     else:
         raise RuntimeError("Unsupported Qt binding: %s" % qt.BINDING)
@@ -134,12 +130,13 @@ def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
     view = _as_strided(
         numpy.frombuffer(ptr, dtype=numpy.uint8),
         shape=(image.height(), image.width(), channels),
-        strides=(image.bytesPerLine(), channels, 1))
+        strides=(image.bytesPerLine(), channels, 1),
+    )
 
     if format_ == qt.QImage.Format_ARGB32:
         # Convert from ARGB to RGBA
         # Not a byte-ordered format: do care about endianness
-        if sys.byteorder == 'little':  # BGRA -> RGBA
+        if sys.byteorder == "little":  # BGRA -> RGBA
             view = view[:, :, (2, 1, 0, 3)]
         else:  # big endian: ARGB -> RGBA
             view = view[:, :, (1, 2, 3, 0)]
@@ -150,4 +147,4 @@ def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
     # Format_RGB888 and Format_RGBA8888 do not need reshuffling channels:
     # They are byte-ordered and already in the right order
 
-    return numpy.array(view, copy=True, order='C')
+    return numpy.array(view, copy=True, order="C")

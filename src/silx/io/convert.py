@@ -48,8 +48,7 @@ from . import fabioh5
 _logger = logging.getLogger(__name__)
 
 
-def _create_link(h5f, link_name, target_name,
-                 link_type="soft", overwrite_data=False):
+def _create_link(h5f, link_name, target_name, link_type="soft", overwrite_data=False):
     """Create a link in a HDF5 file
 
     If member with name ``link_name`` already exists, delete it first or
@@ -65,12 +64,12 @@ def _create_link(h5f, link_name, target_name,
     if link_name not in h5f:
         _logger.debug("Creating link " + link_name + " -> " + target_name)
     elif overwrite_data:
-        _logger.warning("Overwriting " + link_name + " with link to " +
-                     target_name)
+        _logger.warning("Overwriting " + link_name + " with link to " + target_name)
         del h5f[link_name]
     else:
-        _logger.warning(link_name + " already exist. Cannot create link to " +
-                     target_name)
+        _logger.warning(
+            link_name + " already exist. Cannot create link to " + target_name
+        )
         return None
 
     if link_type == "hard":
@@ -88,9 +87,7 @@ def _attr_utf8(attr_value):
     :return: Attr ready to be written by h5py as utf8
     """
     if isinstance(attr_value, (bytes, str)):
-        out_attr_value = numpy.array(
-            attr_value,
-            dtype=h5py.special_dtype(vlen=str))
+        out_attr_value = numpy.array(attr_value, dtype=h5py.special_dtype(vlen=str))
     else:
         out_attr_value = attr_value
 
@@ -98,14 +95,16 @@ def _attr_utf8(attr_value):
 
 
 class Hdf5Writer(object):
-    """Converter class to write the content of a data file to a HDF5 file.
-    """
-    def __init__(self,
-                 h5path='/',
-                 overwrite_data=False,
-                 link_type="soft",
-                 create_dataset_args=None,
-                 min_size=500):
+    """Converter class to write the content of a data file to a HDF5 file."""
+
+    def __init__(
+        self,
+        h5path="/",
+        overwrite_data=False,
+        link_type="soft",
+        create_dataset_args=None,
+        min_size=500,
+    ):
         """
 
         :param h5path: Target path where the scan groups will be written
@@ -135,7 +134,7 @@ class Hdf5Writer(object):
 
         self.min_size = min_size
 
-        self.overwrite_data = overwrite_data   # boolean
+        self.overwrite_data = overwrite_data  # boolean
 
         self.link_type = link_type
         """'soft' or 'hard' """
@@ -164,14 +163,17 @@ class Hdf5Writer(object):
         root_grp = h5f[self.h5path]
         for key in infile.attrs:
             if self.overwrite_data or key not in root_grp.attrs:
-                root_grp.attrs.create(key,
-                                      _attr_utf8(infile.attrs[key]))
+                root_grp.attrs.create(key, _attr_utf8(infile.attrs[key]))
 
         # Handle links at the end, when their targets are created
         for link_name, target_name in self._links:
-            _create_link(self._h5f, link_name, target_name,
-                         link_type=self.link_type,
-                         overwrite_data=self.overwrite_data)
+            _create_link(
+                self._h5f,
+                link_name,
+                target_name,
+                link_type=self.link_type,
+                overwrite_data=self.overwrite_data,
+            )
         self._links = []
 
     def append_member_to_h5(self, h5like_name, obj):
@@ -195,10 +197,12 @@ class Hdf5Writer(object):
                 if isinstance(obj, fabioh5.FrameData) and len(obj.shape) > 2:
                     # special case of multiframe data
                     # write frame by frame to save memory usage low
-                    ds = self._h5f.create_dataset(h5_name,
-                                                  shape=obj.shape,
-                                                  dtype=obj.dtype,
-                                                  **self.create_dataset_args)
+                    ds = self._h5f.create_dataset(
+                        h5_name,
+                        shape=obj.shape,
+                        dtype=obj.dtype,
+                        **self.create_dataset_args,
+                    )
                     for i, frame in enumerate(obj):
                         ds[i] = frame
                 else:
@@ -206,16 +210,16 @@ class Hdf5Writer(object):
                     if obj.size < self.min_size:
                         ds = self._h5f.create_dataset(h5_name, data=obj[()])
                     else:
-                        ds = self._h5f.create_dataset(h5_name, data=obj[()],
-                                                      **self.create_dataset_args)
+                        ds = self._h5f.create_dataset(
+                            h5_name, data=obj[()], **self.create_dataset_args
+                        )
             else:
                 ds = self._h5f[h5_name]
 
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in ds.attrs:
-                    ds.attrs.create(key,
-                                    _attr_utf8(obj.attrs[key]))
+                    ds.attrs.create(key, _attr_utf8(obj.attrs[key]))
 
             if not self.overwrite_data and member_initially_exists:
                 _logger.warning("Not overwriting existing dataset: " + h5_name)
@@ -230,15 +234,21 @@ class Hdf5Writer(object):
             # add HDF5 attributes
             for key in obj.attrs:
                 if self.overwrite_data or key not in grp.attrs:
-                    grp.attrs.create(key,
-                                     _attr_utf8(obj.attrs[key]))
+                    grp.attrs.create(key, _attr_utf8(obj.attrs[key]))
         else:
             _logger.warning("Unsuppored entity, ignoring: %s", h5_name)
 
 
-def write_to_h5(infile, h5file, h5path='/', mode="a",
-                overwrite_data=False, link_type="soft",
-                create_dataset_args=None, min_size=500):
+def write_to_h5(
+    infile,
+    h5file,
+    h5path="/",
+    mode="a",
+    overwrite_data=False,
+    link_type="soft",
+    create_dataset_args=None,
+    min_size=500,
+):
     """Write content of a h5py-like object into a HDF5 file.
 
     Warning: External links in `infile` are ignored.
@@ -267,11 +277,13 @@ def write_to_h5(infile, h5file, h5path='/', mode="a",
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.spech5`.
     """
-    writer = Hdf5Writer(h5path=h5path,
-                        overwrite_data=overwrite_data,
-                        link_type=link_type,
-                        create_dataset_args=create_dataset_args,
-                        min_size=min_size)
+    writer = Hdf5Writer(
+        h5path=h5path,
+        overwrite_data=overwrite_data,
+        link_type=link_type,
+        create_dataset_args=create_dataset_args,
+        min_size=min_size,
+    )
 
     # both infile and h5file can be either file handle or a file name: 4 cases
     if not isinstance(h5file, h5py.File) and not is_group(infile):
@@ -308,7 +320,10 @@ def convert(infile, h5file, mode="w-", create_dataset_args=None):
         compression parameters. Don't specify ``name`` and ``data``.
     """
     if mode not in ["w", "w-"]:
-        raise IOError("File mode must be 'w' or 'w-'. Use write_to_h5" +
-                      " to append data to an existing HDF5 file.")
-    write_to_h5(infile, h5file, h5path='/', mode=mode,
-                create_dataset_args=create_dataset_args)
+        raise IOError(
+            "File mode must be 'w' or 'w-'. Use write_to_h5"
+            + " to append data to an existing HDF5 file."
+        )
+    write_to_h5(
+        infile, h5file, h5path="/", mode=mode, create_dataset_args=create_dataset_args
+    )

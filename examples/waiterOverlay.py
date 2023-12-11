@@ -33,7 +33,6 @@ from silx.gui.plot import Plot2D
 
 
 class MyMainWindow(qt.QMainWindow):
-
     WAITING_TIME = 2000  # ms
 
     def __init__(self, parent=None):

@@ -20,6 +20,7 @@ print("- Machine: " + platform.machine())
 print(" ")
 
 from sysconfig import get_config_vars
+
 print("Config: " + str(get_config_vars("CONFIG_ARGS")))
 print("")
 
@@ -68,7 +69,7 @@ for binding_name in ("PyQt5", "PySide6", "PyQt6"):
         "import {0}.QtCore; print({0}.QtCore.qVersion())".format(binding_name),
     ]
     try:
-        version = subprocess.check_output(cmd, timeout=4).decode('ascii').rstrip("\n")
+        version = subprocess.check_output(cmd, timeout=4).decode("ascii").rstrip("\n")
     except subprocess.CalledProcessError:
         print("{0}: Not available".format(binding_name))
     else:

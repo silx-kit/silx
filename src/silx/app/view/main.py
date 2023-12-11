@@ -42,46 +42,53 @@ _logger = logging.getLogger(__name__)
 def createParser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        'files',
+        "files",
         nargs=argparse.ZERO_OR_MORE,
-        help='Data file to show (h5 file, edf files, spec files)')
-    parser.add_argument(
-        '--slices',
-        dest='slices',
-        default=tuple(),
-        type=int,
-        nargs='+',
-        help='List of slice indices to open (Only for dataset)',
+        help="Data file to show (h5 file, edf files, spec files)",
     )
     parser.add_argument(
-        '--debug',
+        "--slices",
+        dest="slices",
+        default=tuple(),
+        type=int,
+        nargs="+",
+        help="List of slice indices to open (Only for dataset)",
+    )
+    parser.add_argument(
+        "--debug",
         dest="debug",
         action="store_true",
         default=False,
-        help='Set logging system in debug mode')
+        help="Set logging system in debug mode",
+    )
     parser.add_argument(
-        '--use-opengl-plot',
+        "--use-opengl-plot",
         dest="use_opengl_plot",
         action="store_true",
         default=False,
-        help='Use OpenGL for plots (instead of matplotlib)')
+        help="Use OpenGL for plots (instead of matplotlib)",
+    )
     parser.add_argument(
-        '-f', '--fresh',
+        "-f",
+        "--fresh",
         dest="fresh_preferences",
         action="store_true",
         default=False,
-        help='Start the application using new fresh user preferences')
+        help="Start the application using new fresh user preferences",
+    )
     parser.add_argument(
-        '--hdf5-file-locking',
+        "--hdf5-file-locking",
         dest="hdf5_file_locking",
         action="store_true",
         default=False,
-        help='Start the application with HDF5 file locking enabled (it is disabled by default)')
+        help="Start the application with HDF5 file locking enabled (it is disabled by default)",
+    )
     return parser
 
 
 def createWindow(parent, settings):
     from .Viewer import Viewer
+
     window = Viewer(parent=None, settings=settings)
     return window
 
@@ -101,7 +108,7 @@ def mainQt(options):
     except ImportError:
         _logger.debug("No resource module available")
     else:
-        if hasattr(resource, 'RLIMIT_NOFILE'):
+        if hasattr(resource, "RLIMIT_NOFILE"):
             try:
                 hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
                 resource.setrlimit(resource.RLIMIT_NOFILE, (hard_nofile, hard_nofile))
@@ -111,9 +118,9 @@ def mainQt(options):
                 _logger.debug("Set max opened files to %d", hard_nofile)
 
     # This needs to be done prior to load HDF5
-    hdf5_file_locking = 'TRUE' if options.hdf5_file_locking else 'FALSE'
-    _logger.info('Set HDF5_USE_FILE_LOCKING=%s', hdf5_file_locking)
-    os.environ['HDF5_USE_FILE_LOCKING'] = hdf5_file_locking
+    hdf5_file_locking = "TRUE" if options.hdf5_file_locking else "FALSE"
+    _logger.info("Set HDF5_USE_FILE_LOCKING=%s", hdf5_file_locking)
+    os.environ["HDF5_USE_FILE_LOCKING"] = hdf5_file_locking
 
     try:
         # it should be loaded before h5py
@@ -125,6 +132,7 @@ def mainQt(options):
 
     import silx
     from silx.gui import qt
+
     # Make sure matplotlib is configured
     # Needed for Debian 8: compatibility between Qt4/Qt5 and old matplotlib
     import silx.gui.utils.matplotlib  # noqa
@@ -144,11 +152,9 @@ def mainQt(options):
     # catched
     timer.timeout.connect(lambda: None)
 
-    settings = qt.QSettings(qt.QSettings.IniFormat,
-                            qt.QSettings.UserScope,
-                            "silx",
-                            "silx-view",
-                            None)
+    settings = qt.QSettings(
+        qt.QSettings.IniFormat, qt.QSettings.UserScope, "silx", "silx-view", None
+    )
     if options.fresh_preferences:
         settings.clear()
 
@@ -157,13 +163,13 @@ def mainQt(options):
 
     def exceptHook(type_, value, trace):
         _logger.error("An error occured in silx view:")
-        _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
+        _logger.error("%s %s %s", type_, value, "".join(traceback.format_tb(trace)))
         try:
             window.setErrorFromException(type_, value, trace)
         except Exception:
             pass
-    sys.excepthook = exceptHook
 
+    sys.excepthook = exceptHook
 
     if options.use_opengl_plot:
         # It have to be done after the settings (after the Viewer creation)
@@ -196,5 +202,5 @@ def main(argv):
     mainQt(options)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(sys.argv)

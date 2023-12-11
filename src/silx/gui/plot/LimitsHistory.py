@@ -55,8 +55,8 @@ class LimitsHistory(qt.QObject):
         """Append current limits to the history."""
         plot = self.parent()
         xmin, xmax = plot.getXAxis().getLimits()
-        ymin, ymax = plot.getYAxis(axis='left').getLimits()
-        y2min, y2max = plot.getYAxis(axis='right').getLimits()
+        ymin, ymax = plot.getYAxis(axis="left").getLimits()
+        y2min, y2max = plot.getYAxis(axis="right").getLimits()
         self._history.append((xmin, xmax, ymin, ymax, y2min, y2max))
 
     def pop(self):

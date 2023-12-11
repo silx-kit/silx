@@ -39,7 +39,6 @@ import h5py
 
 
 class TestNumpyAxesSelector(TestCaseQt):
-
     def test_creation(self):
         data = numpy.arange(3 * 3 * 3)
         data.shape = 3, 3, 3

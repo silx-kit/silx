@@ -37,7 +37,9 @@ from silx.gui.utils.glutils import isOpenGLAvailable
 _logger = logging.getLogger(__name__)
 
 
-@pytest.mark.parametrize("params", (((2, 1), False), ((2, 1), False), ((1000, 1), False), ((2, 1), True)))
+@pytest.mark.parametrize(
+    "params", (((2, 1), False), ((2, 1), False), ((1000, 1), False), ((2, 1), True))
+)
 def testOpenGLAvailable(params):
     version, shareOpenGLContexts = params
     result = isOpenGLAvailable(version=version, shareOpenGLContexts=shareOpenGLContexts)

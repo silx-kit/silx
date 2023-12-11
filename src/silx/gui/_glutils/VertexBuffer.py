@@ -50,15 +50,12 @@ class VertexBuffer(object):
     :param target: Target buffer:
         GL_ARRAY_BUFFER (default) or GL_ELEMENT_ARRAY_BUFFER
     """
+
     # OpenGL|ES 2.0 subset:
     _USAGES = gl.GL_STREAM_DRAW, gl.GL_STATIC_DRAW, gl.GL_DYNAMIC_DRAW
     _TARGETS = gl.GL_ARRAY_BUFFER, gl.GL_ELEMENT_ARRAY_BUFFER
 
-    def __init__(self,
-                 data=None,
-                 size=None,
-                 usage=None,
-                 target=None):
+    def __init__(self, data=None, size=None, usage=None, target=None):
         if usage is None:
             usage = gl.GL_STATIC_DRAW
         assert usage in self._USAGES
@@ -76,20 +73,14 @@ class VertexBuffer(object):
         if data is None:
             assert size is not None
             self._size = size
-            gl.glBufferData(self._target,
-                            self._size,
-                            c_void_p(0),
-                            self._usage)
+            gl.glBufferData(self._target, self._size, c_void_p(0), self._usage)
         else:
-            data = numpy.array(data, copy=False, order='C')
+            data = numpy.array(data, copy=False, order="C")
             if size is not None:
                 assert size <= data.nbytes
 
             self._size = size or data.nbytes
-            gl.glBufferData(self._target,
-                            self._size,
-                            data,
-                            self._usage)
+            gl.glBufferData(self._target, self._size, data, self._usage)
 
         gl.glBindBuffer(self._target, 0)
 
@@ -109,8 +100,10 @@ class VertexBuffer(object):
         if self._name is not None:
             return self._name
         else:
-            raise RuntimeError("No OpenGL buffer resource, \
-                               discard has already been called")
+            raise RuntimeError(
+                "No OpenGL buffer resource, \
+                               discard has already been called"
+            )
 
     @property
     def size(self):
@@ -118,8 +111,10 @@ class VertexBuffer(object):
         if self._size is not None:
             return self._size
         else:
-            raise RuntimeError("No OpenGL buffer resource, \
-                               discard has already been called")
+            raise RuntimeError(
+                "No OpenGL buffer resource, \
+                               discard has already been called"
+            )
 
     def bind(self):
         """Bind the vertex buffer"""
@@ -132,7 +127,7 @@ class VertexBuffer(object):
         :param int offset: Offset in bytes in the buffer where to put the data
         :param int size: If provided, size of data to copy
         """
-        data = numpy.array(data, copy=False, order='C')
+        data = numpy.array(data, copy=False, order="C")
         if size is None:
             size = data.nbytes
         assert offset + size <= self.size
@@ -172,14 +167,9 @@ class VertexBufferAttrib(object):
 
     _GL_TYPES = gl.GL_UNSIGNED_BYTE, gl.GL_FLOAT, gl.GL_INT
 
-    def __init__(self,
-                 vbo,
-                 type_,
-                 size,
-                 dimension=1,
-                 offset=0,
-                 stride=0,
-                 normalization=False):
+    def __init__(
+        self, vbo, type_, size, dimension=1, offset=0, stride=0, normalization=False
+    ):
         self.vbo = vbo
         assert type_ in self._GL_TYPES
         self.type_ = type_
@@ -201,21 +191,25 @@ class VertexBufferAttrib(object):
         """Call glVertexAttribPointer with objects information"""
         normalization = gl.GL_TRUE if self.normalization else gl.GL_FALSE
         with self.vbo:
-            gl.glVertexAttribPointer(attribute,
-                                     self.dimension,
-                                     self.type_,
-                                     normalization,
-                                     self.stride,
-                                     c_void_p(self.offset))
+            gl.glVertexAttribPointer(
+                attribute,
+                self.dimension,
+                self.type_,
+                normalization,
+                self.stride,
+                c_void_p(self.offset),
+            )
 
     def copy(self):
-        return VertexBufferAttrib(self.vbo,
-                                  self.type_,
-                                  self.size,
-                                  self.dimension,
-                                  self.offset,
-                                  self.stride,
-                                  self.normalization)
+        return VertexBufferAttrib(
+            self.vbo,
+            self.type_,
+            self.size,
+            self.dimension,
+            self.offset,
+            self.stride,
+            self.normalization,
+        )
 
 
 def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
@@ -241,7 +235,7 @@ def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
         suffix = (0,) * len(arrays)
 
     for data, pre, post in zip(arrays, prefix, suffix):
-        data = numpy.array(data, copy=False, order='C')
+        data = numpy.array(data, copy=False, order="C")
         shape = data.shape
         assert len(shape) <= 2
         type_ = numpyToGLType(data.dtype)
@@ -250,8 +244,7 @@ def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
         sizeinbytes = size * dimension * sizeofGLType(type_)
         sizeinbytes = 4 * ((sizeinbytes + 3) >> 2)  # 4 bytes alignment
         copyoffset = vbosize + pre * dimension * sizeofGLType(type_)
-        info.append((data, type_, size, dimension,
-                     vbosize, sizeinbytes, copyoffset))
+        info.append((data, type_, size, dimension, vbosize, sizeinbytes, copyoffset))
         vbosize += sizeinbytes
 
     vbo = VertexBuffer(size=vbosize, usage=usage)
@@ -260,6 +253,5 @@ def vertexBuffer(arrays, prefix=None, suffix=None, usage=None):
     for data, type_, size, dimension, offset, sizeinbytes, copyoffset in info:
         copysize = data.shape[0] * dimension * sizeofGLType(type_)
         vbo.update(data, offset=copyoffset, size=copysize)
-        result.append(
-            VertexBufferAttrib(vbo, type_, size, dimension, offset, 0))
+        result.append(VertexBufferAttrib(vbo, type_, size, dimension, offset, 0))
     return result

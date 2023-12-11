@@ -49,7 +49,7 @@ from .utils import PlotWidgetTestCase
 SIZE = 1024
 """Size of the test image"""
 
-DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
+DATA_2D = numpy.arange(SIZE**2).reshape(SIZE, SIZE)
 """Image data set"""
 
 
@@ -57,8 +57,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestSpecialBackend(PlotWidgetTestCase, ParametricTestCase):
-
-    def __init__(self, methodName='runTest', backend=None):
+    def __init__(self, methodName="runTest", backend=None):
         TestCaseQt.__init__(self, methodName=methodName)
         self.__backend = backend
 
@@ -79,7 +78,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
     def testSetTitleLabels(self):
         """Set title and axes labels"""
 
-        title, xlabel, ylabel = 'the title', 'x label', 'y label'
+        title, xlabel, ylabel = "the title", "x label", "y label"
         self.plot.setGraphTitle(title)
         self.plot.getXAxis().setLabel(xlabel)
         self.plot.getYAxis().setLabel(ylabel)
@@ -89,10 +88,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertEqual(self.plot.getXAxis().getLabel(), xlabel)
         self.assertEqual(self.plot.getYAxis().getLabel(), ylabel)
 
-    def _checkLimits(self,
-                     expectedXLim=None,
-                     expectedYLim=None,
-                     expectedRatio=None):
+    def _checkLimits(self, expectedXLim=None, expectedYLim=None, expectedRatio=None):
         """Assert that limits are as expected"""
         xlim = self.plot.getXAxis().getLimits()
         ylim = self.plot.getYAxis().getLimits()
@@ -105,8 +101,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
             self.assertEqual(expectedYLim, ylim)
 
         if expectedRatio is not None:
-            self.assertTrue(
-                numpy.allclose(expectedRatio, ratio, atol=0.01))
+            self.assertTrue(numpy.allclose(expectedRatio, ratio, atol=0.01))
 
     def testChangeLimitsWithAspectRatio(self):
         self.plot.setKeepDataAspectRatio()
@@ -115,15 +110,15 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         ylim = self.plot.getYAxis().getLimits()
         defaultRatio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
 
-        self.plot.getXAxis().setLimits(1., 10.)
-        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self.plot.getXAxis().setLimits(1.0, 10.0)
+        self._checkLimits(expectedXLim=(1.0, 10.0), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        self._checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedXLim=(1.0, 10.0), expectedRatio=defaultRatio)
 
-        self.plot.getYAxis().setLimits(1., 10.)
-        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self.plot.getYAxis().setLimits(1.0, 10.0)
+        self._checkLimits(expectedYLim=(1.0, 10.0), expectedRatio=defaultRatio)
         self.qapp.processEvents()
-        self._checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self._checkLimits(expectedYLim=(1.0, 10.0), expectedRatio=defaultRatio)
 
     def testResizeWidget(self):
         """Test resizing the widget and receiving limitsChanged events"""
@@ -135,8 +130,8 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         ylim = self.plot.getYAxis().getLimits()
 
         listener = SignalListener()
-        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial('x'))
-        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial('y'))
+        self.plot.getXAxis().sigLimitsChanged.connect(listener.partial("x"))
+        self.plot.getYAxis().sigLimitsChanged.connect(listener.partial("y"))
 
         # Resize without aspect ratio
         self.plot.resize(200, 300)
@@ -159,17 +154,17 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
     def testAddRemoveItemSignals(self):
         """Test sigItemAdded and sigItemAboutToBeRemoved"""
         listener = SignalListener()
-        self.plot.sigItemAdded.connect(listener.partial('add'))
-        self.plot.sigItemAboutToBeRemoved.connect(listener.partial('remove'))
+        self.plot.sigItemAdded.connect(listener.partial("add"))
+        self.plot.sigItemAboutToBeRemoved.connect(listener.partial("remove"))
 
-        self.plot.addCurve((1, 2, 3), (3, 2, 1), legend='curve')
+        self.plot.addCurve((1, 2, 3), (3, 2, 1), legend="curve")
         self.assertEqual(listener.callCount(), 1)
 
-        curve = self.plot.getCurve('curve')
-        self.plot.remove('curve')
+        curve = self.plot.getCurve("curve")
+        self.plot.remove("curve")
         self.assertEqual(listener.callCount(), 2)
-        self.assertEqual(listener.arguments(callIndex=0), ('add', curve))
-        self.assertEqual(listener.arguments(callIndex=1), ('remove', curve))
+        self.assertEqual(listener.arguments(callIndex=0), ("add", curve))
+        self.assertEqual(listener.arguments(callIndex=1), ("remove", curve))
 
     def testGetItems(self):
         """Test getItems method"""
@@ -183,7 +178,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.plot.addMarker(*marker_pos)
         marker_x = 6
         self.plot.addXMarker(marker_x)
-        self.plot.addShape((0, 5), (2, 10), shape='rectangle')
+        self.plot.addShape((0, 5), (2, 10), shape="rectangle")
 
         items = self.plot.getItems()
         self.assertEqual(len(items), 6)
@@ -192,7 +187,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.assertTrue(numpy.all(numpy.equal(items[2].getXData(), scatter_x)))
         self.assertTrue(numpy.all(numpy.equal(items[3].getPosition(), marker_pos)))
         self.assertTrue(numpy.all(numpy.equal(items[4].getPosition()[0], marker_x)))
-        self.assertEqual(items[5].getType(), 'rectangle')
+        self.assertEqual(items[5].getType(), "rectangle")
 
     def testRemoveDiscardItem(self):
         """Test removeItem and discardItem"""
@@ -232,7 +227,7 @@ class TestPlotWidget(PlotWidgetTestCase, ParametricTestCase):
         self.qapp.processEvents()
 
         # Back to default
-        self.plot.setBackgroundColor('white')
+        self.plot.setBackgroundColor("white")
         self.plot.setDataBackgroundColor(None)
         color = self.plot.getBackgroundColor()
         self.assertTrue(color.isValid())
@@ -248,116 +243,132 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     def setUp(self):
         super(TestPlotImage, self).setUp()
 
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
+        self.plot.getYAxis().setLabel("Rows")
+        self.plot.getXAxis().setLabel("Columns")
 
     def testPlotColormapTemperature(self):
-        self.plot.setGraphTitle('Temp. Linear')
+        self.plot.setGraphTitle("Temp. Linear")
 
-        colormap = Colormap(name='temperature',
-                            normalization='linear',
-                            vmin=None,
-                            vmax=None)
+        colormap = Colormap(
+            name="temperature", normalization="linear", vmin=None, vmax=None
+        )
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapGray(self):
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setGraphTitle('Gray Linear')
+        self.plot.setGraphTitle("Gray Linear")
 
-        colormap = Colormap(name='gray',
-                            normalization='linear',
-                            vmin=None,
-                            vmax=None)
+        colormap = Colormap(name="gray", normalization="linear", vmin=None, vmax=None)
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapTemperatureLog(self):
-        self.plot.setGraphTitle('Temp. Log')
+        self.plot.setGraphTitle("Temp. Log")
 
-        colormap = Colormap(name='temperature',
-                            normalization=Colormap.LOGARITHM,
-                            vmin=None,
-                            vmax=None)
+        colormap = Colormap(
+            name="temperature", normalization=Colormap.LOGARITHM, vmin=None, vmax=None
+        )
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotRgbRgba(self):
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setGraphTitle('RGB + RGBA')
+        self.plot.setGraphTitle("RGB + RGBA")
 
         rgb = numpy.array(
-            (((0, 0, 0), (128, 0, 0), (255, 0, 0)),
-             ((0, 128, 0), (0, 128, 128), (0, 128, 255))),
-            dtype=numpy.uint8)
+            (
+                ((0, 0, 0), (128, 0, 0), (255, 0, 0)),
+                ((0, 128, 0), (0, 128, 128), (0, 128, 255)),
+            ),
+            dtype=numpy.uint8,
+        )
 
-        self.plot.addImage(rgb, legend="rgb_uint8",
-                           origin=(0, 0), scale=(1, 1),
-                           resetzoom=False)
+        self.plot.addImage(
+            rgb, legend="rgb_uint8", origin=(0, 0), scale=(1, 1), resetzoom=False
+        )
 
         rgb = numpy.array(
-            (((0, 0, 0), (32768, 0, 0), (65535, 0, 0)),
-             ((0, 32768, 0), (0, 32768, 32768), (0, 32768, 65535))),
-            dtype=numpy.uint16)
+            (
+                ((0, 0, 0), (32768, 0, 0), (65535, 0, 0)),
+                ((0, 32768, 0), (0, 32768, 32768), (0, 32768, 65535)),
+            ),
+            dtype=numpy.uint16,
+        )
 
-        self.plot.addImage(rgb, legend="rgb_uint16",
-                           origin=(3, 2), scale=(2, 2),
-                           resetzoom=False)
+        self.plot.addImage(
+            rgb, legend="rgb_uint16", origin=(3, 2), scale=(2, 2), resetzoom=False
+        )
 
         rgba = numpy.array(
-            (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
-             ((0, .5, 0, 1), (0, .5, .5, 1), (0, 1, 1, .5))),
-            dtype=numpy.float32)
+            (
+                ((0, 0, 0, 0.5), (0.5, 0, 0, 1), (1, 0, 0, 0.5)),
+                ((0, 0.5, 0, 1), (0, 0.5, 0.5, 1), (0, 1, 1, 0.5)),
+            ),
+            dtype=numpy.float32,
+        )
 
-        self.plot.addImage(rgba, legend="rgba_float32",
-                           origin=(9, 6), scale=(1, 1),
-                           resetzoom=False)
+        self.plot.addImage(
+            rgba, legend="rgba_float32", origin=(9, 6), scale=(1, 1), resetzoom=False
+        )
 
         self.plot.resetZoom()
 
     def testPlotColormapCustom(self):
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setGraphTitle('Custom colormap')
+        self.plot.setGraphTitle("Custom colormap")
 
-        colormap = Colormap(name=None,
-                            normalization=Colormap.LINEAR,
-                            vmin=None,
-                            vmax=None,
-                            colors=((0., 0., 0.), (1., 0., 0.),
-                               (0., 1., 0.), (0., 0., 1.)))
-        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap,
-                           resetzoom=False)
+        colormap = Colormap(
+            name=None,
+            normalization=Colormap.LINEAR,
+            vmin=None,
+            vmax=None,
+            colors=((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),
+        )
+        self.plot.addImage(
+            DATA_2D, legend="image 1", colormap=colormap, resetzoom=False
+        )
 
-        colormap = Colormap(name=None,
-                            normalization=Colormap.LINEAR,
-                            vmin=None,
-                            vmax=None,
-                            colors=numpy.array(
-                                ((0, 0, 0, 0), (0, 0, 0, 128),
-                                 (128, 128, 128, 128), (255, 255, 255, 255)),
-                                dtype=numpy.uint8))
-        self.plot.addImage(DATA_2D, legend="image 2", colormap=colormap,
-                           origin=(DATA_2D.shape[0], 0),
-                           resetzoom=False)
+        colormap = Colormap(
+            name=None,
+            normalization=Colormap.LINEAR,
+            vmin=None,
+            vmax=None,
+            colors=numpy.array(
+                (
+                    (0, 0, 0, 0),
+                    (0, 0, 0, 128),
+                    (128, 128, 128, 128),
+                    (255, 255, 255, 255),
+                ),
+                dtype=numpy.uint8,
+            ),
+        )
+        self.plot.addImage(
+            DATA_2D,
+            legend="image 2",
+            colormap=colormap,
+            origin=(DATA_2D.shape[0], 0),
+            resetzoom=False,
+        )
         self.plot.resetZoom()
 
     def testPlotColormapNaNColor(self):
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setGraphTitle('Colormap with NaN color')
+        self.plot.setGraphTitle("Colormap with NaN color")
 
         colormap = Colormap()
-        colormap.setNaNColor('red')
+        colormap.setNaNColor("red")
         self.assertEqual(colormap.getNaNColor(), qt.QColor(255, 0, 0))
         data = DATA_2D.astype(numpy.float32)
-        data[len(data)//2:] = numpy.nan
-        self.plot.addImage(data, legend="image 1", colormap=colormap,
-                           resetzoom=False)
+        data[len(data) // 2 :] = numpy.nan
+        self.plot.addImage(data, legend="image 1", colormap=colormap, resetzoom=False)
         self.plot.resetZoom()
 
-        colormap.setNaNColor((0., 1., 0., 1.))
+        colormap.setNaNColor((0.0, 1.0, 0.0, 1.0))
         self.assertEqual(colormap.getNaNColor(), qt.QColor(0, 255, 0))
         self.qapp.processEvents()
 
     def testImageOriginScale(self):
         """Test of image with different origin and scale"""
-        self.plot.setGraphTitle('origin and scale')
+        self.plot.setGraphTitle("origin and scale")
 
         tests = [  # (origin, scale)
             ((10, 20), (1, 1)),
@@ -367,7 +378,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
             (100, 2),
             (-100, (1, 1)),
             ((10, 20), 2),
-            ]
+        ]
 
         for origin, scale in tests:
             with self.subTest(origin=origin, scale=scale):
@@ -408,31 +419,30 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
     def testPlotColormapDictAPI(self):
         """Test that the addImage API using a colormap dictionary is still
         working"""
-        self.plot.setGraphTitle('Temp. Log')
+        self.plot.setGraphTitle("Temp. Log")
 
         colormap = {
-            'name': 'temperature',
-            'normalization': 'log',
-            'vmin': None,
-            'vmax': None
+            "name": "temperature",
+            "normalization": "log",
+            "vmin": None,
+            "vmax": None,
         }
         self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotComplexImage(self):
         """Test that a complex image is displayed as its absolute value."""
         data = numpy.linspace(1, 1j, 100).reshape(10, 10)
-        self.plot.addImage(data, legend='complex')
+        self.plot.addImage(data, legend="complex")
 
         image = self.plot.getActiveImage()
         retrievedData = image.getData(copy=False)
-        self.assertTrue(
-            numpy.all(numpy.equal(retrievedData, numpy.absolute(data))))
+        self.assertTrue(numpy.all(numpy.equal(retrievedData, numpy.absolute(data))))
 
     def testPlotBooleanImage(self):
         """Test that a boolean image is displayed and converted to int8."""
         data = numpy.zeros((10, 10), dtype=bool)
         data[::2, ::2] = True
-        self.plot.addImage(data, legend='boolean')
+        self.plot.addImage(data, legend="boolean")
 
         image = self.plot.getActiveImage()
         retrievedData = image.getData(copy=False)
@@ -443,7 +453,7 @@ class TestPlotImage(PlotWidgetTestCase, ParametricTestCase):
         """Test with an alpha image layer"""
         data = numpy.random.random((10, 10))
         alpha = numpy.linspace(0, 1, 100).reshape(10, 10)
-        self.plot.addImage(data, legend='image')
+        self.plot.addImage(data, legend="image")
         image = self.plot.getActiveImage()
         image.setData(data, alpha=alpha)
         self.qapp.processEvents()
@@ -461,19 +471,19 @@ class TestPlotCurve(PlotWidgetTestCase):
 
     def setUp(self):
         super(TestPlotCurve, self).setUp()
-        self.plot.setGraphTitle('Curve')
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
+        self.plot.setGraphTitle("Curve")
+        self.plot.getYAxis().setLabel("Rows")
+        self.plot.getXAxis().setLabel("Columns")
 
         self.plot.setActiveCurveHandling(False)
 
     def testPlotCurveInfinite(self):
         """Test plot curves with not finite data"""
         tests = {
-            'y all not finite': ([0, 1, 2], [numpy.inf, numpy.nan, -numpy.inf]),
-            'x all not finite': ([numpy.inf, numpy.nan, -numpy.inf], [0, 1, 2]),
-            'x some inf': ([0, numpy.inf, 2], [0, 1, 2]),
-            'y some inf': ([0, 1, 2], [0, numpy.inf, 2])
+            "y all not finite": ([0, 1, 2], [numpy.inf, numpy.nan, -numpy.inf]),
+            "x all not finite": ([numpy.inf, numpy.nan, -numpy.inf], [0, 1, 2]),
+            "x some inf": ([0, numpy.inf, 2], [0, 1, 2]),
+            "y some inf": ([0, 1, 2], [0, numpy.inf, 2]),
         }
         for name, args in tests.items():
             with self.subTest(name):
@@ -483,65 +493,111 @@ class TestPlotCurve(PlotWidgetTestCase):
                 self.plot.clear()
 
     def testPlotCurveColorFloat(self):
-        color = numpy.array(numpy.random.random(3 * 1000),
-                            dtype=numpy.float32).reshape(1000, 3)
+        color = numpy.array(numpy.random.random(3 * 1000), dtype=numpy.float32).reshape(
+            1000, 3
+        )
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 1",
-                           replace=False, resetzoom=False,
-                           color=color,
-                           linestyle="", symbol="s")
-        self.plot.addCurve(self.xData2, self.yData2,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 1",
+            replace=False,
+            resetzoom=False,
+            color=color,
+            linestyle="",
+            symbol="s",
+        )
+        self.plot.addCurve(
+            self.xData2,
+            self.yData2,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         self.plot.resetZoom()
 
     def testPlotCurveColorByte(self):
-        color = numpy.array(255 * numpy.random.random(3 * 1000),
-                            dtype=numpy.uint8).reshape(1000, 3)
+        color = numpy.array(
+            255 * numpy.random.random(3 * 1000), dtype=numpy.uint8
+        ).reshape(1000, 3)
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 1",
-                           replace=False, resetzoom=False,
-                           color=color,
-                           linestyle="", symbol="s")
-        self.plot.addCurve(self.xData2, self.yData2,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 1",
+            replace=False,
+            resetzoom=False,
+            color=color,
+            linestyle="",
+            symbol="s",
+        )
+        self.plot.addCurve(
+            self.xData2,
+            self.yData2,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         self.plot.resetZoom()
 
     def testPlotCurveColors(self):
-        color = numpy.array(numpy.random.random(3 * 1000),
-                            dtype=numpy.float32).reshape(1000, 3)
+        color = numpy.array(numpy.random.random(3 * 1000), dtype=numpy.float32).reshape(
+            1000, 3
+        )
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color=color, linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color=color,
+            linestyle="-",
+            symbol="o",
+        )
         self.plot.resetZoom()
 
         # Test updating color array
 
         # From array to array
         newColors = numpy.ones((len(self.xData), 3), dtype=numpy.float32)
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color=newColors, symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color=newColors,
+            symbol="o",
+        )
 
         # Array to single color
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color='green', symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            symbol="o",
+        )
 
         # single color to array
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve 2",
-                           replace=False, resetzoom=False,
-                           color=color, symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve 2",
+            replace=False,
+            resetzoom=False,
+            color=color,
+            symbol="o",
+        )
 
     def testPlotBaselineNumpyArray(self):
         """simple test of the API with baseline as a numpy array"""
@@ -550,8 +606,9 @@ class TestPlotCurve(PlotWidgetTestCase):
         y = numpy.arange(-4, 6, step=0.1) + my_sin
         baseline = y - 1.0
 
-        self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
-                           baseline=baseline)
+        self.plot.addCurve(
+            x=x, y=y, color="grey", legend="curve1", fill=True, baseline=baseline
+        )
 
     def testPlotBaselineScalar(self):
         """simple test of the API with baseline as an int"""
@@ -559,8 +616,9 @@ class TestPlotCurve(PlotWidgetTestCase):
         my_sin = numpy.sin(x)
         y = numpy.arange(-4, 6, step=0.1) + my_sin
 
-        self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
-                           baseline=0)
+        self.plot.addCurve(
+            x=x, y=y, color="grey", legend="curve1", fill=True, baseline=0
+        )
 
     def testPlotBaselineList(self):
         """simple test of the API with baseline as an int"""
@@ -568,44 +626,55 @@ class TestPlotCurve(PlotWidgetTestCase):
         my_sin = numpy.sin(x)
         y = numpy.arange(-4, 6, step=0.1) + my_sin
 
-        self.plot.addCurve(x=x, y=y, color='grey', legend='curve1', fill=True,
-                           baseline=list(range(0, 100, 1)))
+        self.plot.addCurve(
+            x=x,
+            y=y,
+            color="grey",
+            legend="curve1",
+            fill=True,
+            baseline=list(range(0, 100, 1)),
+        )
 
     def testPlotCurveComplexData(self):
         """Test curve with complex data"""
-        data = numpy.arange(100.) + 1j
+        data = numpy.arange(100.0) + 1j
         self.plot.addCurve(x=data, y=data, xerror=data, yerror=data)
 
     def testPlotCurveGapColor(self):
         """Test dashed curve with gap color"""
         data = numpy.arange(100)
-        self.plot.addCurve(x=data, y=data, legend='curve1', linestyle='--', color='blue')
-        curve = self.plot.getCurve('curve1')
+        self.plot.addCurve(
+            x=data, y=data, legend="curve1", linestyle="--", color="blue"
+        )
+        curve = self.plot.getCurve("curve1")
         assert curve.getLineGapColor() is None
-        curve.setLineGapColor('red')
-        assert curve.getLineGapColor() == (1., 0., 0., 1.)
+        curve.setLineGapColor("red")
+        assert curve.getLineGapColor() == (1.0, 0.0, 0.0, 1.0)
 
 
 class TestPlotHistogram(PlotWidgetTestCase):
     """Basic tests for add Histogram"""
+
     def setUp(self):
         super(TestPlotHistogram, self).setUp()
         self.edges = numpy.arange(0, 10, step=1)
         self.histogram = numpy.random.random(len(self.edges))
 
     def testPlot(self):
-        self.plot.addHistogram(histogram=self.histogram,
-                               edges=self.edges,
-                               legend='histogram1')
+        self.plot.addHistogram(
+            histogram=self.histogram, edges=self.edges, legend="histogram1"
+        )
 
     def testPlotBaseline(self):
-        self.plot.addHistogram(histogram=self.histogram,
-                               edges=self.edges,
-                               legend='histogram1',
-                               color='blue',
-                               baseline=-2,
-                               z=2,
-                               fill=True)
+        self.plot.addHistogram(
+            histogram=self.histogram,
+            edges=self.edges,
+            legend="histogram1",
+            color="blue",
+            baseline=-2,
+            z=2,
+            fill=True,
+        )
 
     def testPlotGapColor(self):
         """Test dashed histogram with gap color"""
@@ -613,14 +682,14 @@ class TestPlotHistogram(PlotWidgetTestCase):
         self.plot.addHistogram(
             histogram=self.histogram,
             edges=self.edges,
-            legend='histogram1',
-            color='blue',
+            legend="histogram1",
+            color="blue",
         )
         histogram = self.plot.getItems()[0]
         assert histogram.getLineGapColor() is None
-        histogram.setLineGapColor('red')
-        assert histogram.getLineGapColor() == (1., 0., 0., 1.)
-        histogram.setLineStyle(':')
+        histogram.setLineGapColor("red")
+        assert histogram.getLineGapColor() == (1.0, 0.0, 0.0, 1.0)
+        histogram.setLineStyle(":")
 
 
 class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
@@ -635,9 +704,8 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
     def testScatterComplexData(self):
         """Test scatter item with complex data"""
-        data = numpy.arange(100.) + 1j
-        self.plot.addScatter(
-            x=data, y=data, value=data, xerror=data, yerror=data)
+        data = numpy.arange(100.0) + 1j
+        self.plot.addScatter(x=data, y=data, value=data, xerror=data, yerror=data)
         self.plot.resetZoom()
 
     def testScatterVisualization(self):
@@ -647,16 +715,18 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
 
         scatter = self.plot.getItems()[0]
 
-        for visualization in ('solid',
-                              'points',
-                              'regular_grid',
-                              'irregular_grid',
-                              'binned_statistic',
-                              scatter.Visualization.SOLID,
-                              scatter.Visualization.POINTS,
-                              scatter.Visualization.REGULAR_GRID,
-                              scatter.Visualization.IRREGULAR_GRID,
-                              scatter.Visualization.BINNED_STATISTIC):
+        for visualization in (
+            "solid",
+            "points",
+            "regular_grid",
+            "irregular_grid",
+            "binned_statistic",
+            scatter.Visualization.SOLID,
+            scatter.Visualization.POINTS,
+            scatter.Visualization.REGULAR_GRID,
+            scatter.Visualization.IRREGULAR_GRID,
+            scatter.Visualization.BINNED_STATISTIC,
+        ):
             with self.subTest(visualization=visualization):
                 scatter.setVisualization(visualization)
                 self.qapp.processEvents()
@@ -664,28 +734,30 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
     def testGridVisualization(self):
         """Test regular and irregular grid mode with different points"""
         points = {  # name: (x, y, order)
-            'single point': ((1.,), (1.,), 'row'),
-            'horizontal line': ((0, 1, 2), (0, 0, 0), 'row'),
-            'horizontal line backward': ((2, 1, 0), (0, 0, 0), 'row'),
-            'vertical line': ((0, 0, 0), (0, 1, 2), 'row'),
-            'vertical line backward': ((0, 0, 0), (2, 1, 0), 'row'),
-            'grid fast x, +x +y': ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1), 'row'),
-            'grid fast x, +x -y': ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0), 'row'),
-            'grid fast x, -x -y': ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0), 'row'),
-            'grid fast x, -x +y': ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1), 'row'),
-            'grid fast y, +x +y': ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2), 'column'),
-            'grid fast y, +x -y': ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0), 'column'),
-            'grid fast y, -x -y': ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0), 'column'),
-            'grid fast y, -x +y': ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2), 'column'),
-            }
+            "single point": ((1.0,), (1.0,), "row"),
+            "horizontal line": ((0, 1, 2), (0, 0, 0), "row"),
+            "horizontal line backward": ((2, 1, 0), (0, 0, 0), "row"),
+            "vertical line": ((0, 0, 0), (0, 1, 2), "row"),
+            "vertical line backward": ((0, 0, 0), (2, 1, 0), "row"),
+            "grid fast x, +x +y": ((0, 1, 2, 0, 1, 2), (0, 0, 0, 1, 1, 1), "row"),
+            "grid fast x, +x -y": ((0, 1, 2, 0, 1, 2), (1, 1, 1, 0, 0, 0), "row"),
+            "grid fast x, -x -y": ((2, 1, 0, 2, 1, 0), (1, 1, 1, 0, 0, 0), "row"),
+            "grid fast x, -x +y": ((2, 1, 0, 2, 1, 0), (0, 0, 0, 1, 1, 1), "row"),
+            "grid fast y, +x +y": ((0, 0, 0, 1, 1, 1), (0, 1, 2, 0, 1, 2), "column"),
+            "grid fast y, +x -y": ((0, 0, 0, 1, 1, 1), (2, 1, 0, 2, 1, 0), "column"),
+            "grid fast y, -x -y": ((1, 1, 1, 0, 0, 0), (2, 1, 0, 2, 1, 0), "column"),
+            "grid fast y, -x +y": ((1, 1, 1, 0, 0, 0), (0, 1, 2, 0, 1, 2), "column"),
+        }
 
         self.plot.addScatter((), (), ())
         scatter = self.plot.getItems()[0]
 
         self.qapp.processEvents()
 
-        for visualization in (scatter.Visualization.REGULAR_GRID,
-                              scatter.Visualization.IRREGULAR_GRID):
+        for visualization in (
+            scatter.Visualization.REGULAR_GRID,
+            scatter.Visualization.IRREGULAR_GRID,
+        ):
             scatter.setVisualization(visualization)
             self.assertIs(scatter.getVisualization(), visualization)
 
@@ -697,16 +769,19 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
                     self.qapp.processEvents()
 
                     order = scatter.getCurrentVisualizationParameter(
-                        scatter.VisualizationParameter.GRID_MAJOR_ORDER)
+                        scatter.VisualizationParameter.GRID_MAJOR_ORDER
+                    )
                     self.assertEqual(ref_order, order)
 
                     ref_bounds = (x[0], y[0]), (x[-1], y[-1])
                     bounds = scatter.getCurrentVisualizationParameter(
-                        scatter.VisualizationParameter.GRID_BOUNDS)
+                        scatter.VisualizationParameter.GRID_BOUNDS
+                    )
                     self.assertEqual(ref_bounds, bounds)
 
                     shape = scatter.getCurrentVisualizationParameter(
-                        scatter.VisualizationParameter.GRID_SHAPE)
+                        scatter.VisualizationParameter.GRID_SHAPE
+                    )
 
                     self.plot.getXAxis().setLimits(numpy.min(x) - 1, numpy.max(x) + 1)
                     self.plot.getYAxis().setLimits(numpy.min(y) - 1, numpy.max(y) + 1)
@@ -724,12 +799,15 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         self.plot.addScatter((), (), ())
         scatter = self.plot.getItems()[0]
         scatter.setVisualization(scatter.Visualization.BINNED_STATISTIC)
-        self.assertIs(scatter.getVisualization(),
-                      scatter.Visualization.BINNED_STATISTIC)
+        self.assertIs(
+            scatter.getVisualization(), scatter.Visualization.BINNED_STATISTIC
+        )
         self.assertEqual(
             scatter.getVisualizationParameter(
-                scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
-            'mean')
+                scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+            ),
+            "mean",
+        )
 
         self.qapp.processEvents()
 
@@ -740,15 +818,17 @@ class TestPlotScatter(PlotWidgetTestCase, ParametricTestCase):
         scatter.setData(*numpy.random.random(3000).reshape(3, -1))
         self.qapp.processEvents()
 
-        for reduction in ('count', 'sum', 'mean'):
+        for reduction in ("count", "sum", "mean"):
             with self.subTest(reduction=reduction):
                 scatter.setVisualizationParameter(
-                    scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION,
-                    reduction)
+                    scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION, reduction
+                )
                 self.assertEqual(
                     scatter.getVisualizationParameter(
-                        scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION),
-                    reduction)
+                        scatter.VisualizationParameter.BINNED_STATISTIC_FUNCTION
+                    ),
+                    reduction,
+                )
 
                 self.qapp.processEvents()
 
@@ -758,23 +838,23 @@ class TestPlotMarker(PlotWidgetTestCase):
 
     def setUp(self):
         super(TestPlotMarker, self).setUp()
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
+        self.plot.getYAxis().setLabel("Rows")
+        self.plot.getXAxis().setLabel("Columns")
 
         self.plot.getXAxis().setAutoScale(False)
         self.plot.getYAxis().setAutoScale(False)
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setLimits(0., 100., -100., 100.)
+        self.plot.setLimits(0.0, 100.0, -100.0, 100.0)
 
     def testPlotMarkerX(self):
-        self.plot.setGraphTitle('Markers X')
+        self.plot.setGraphTitle("Markers X")
 
         markers = [
-            (10., 'blue', False, False),
-            (20., 'red', False, False),
-            (40., 'green', True, False),
-            (60., 'gray', True, True),
-            (80., 'black', False, True),
+            (10.0, "blue", False, False),
+            (20.0, "red", False, False),
+            (40.0, "green", True, False),
+            (60.0, "gray", True, True),
+            (80.0, "black", False, True),
         ]
 
         for x, color, select, drag in markers:
@@ -787,14 +867,14 @@ class TestPlotMarker(PlotWidgetTestCase):
         self.plot.resetZoom()
 
     def testPlotMarkerY(self):
-        self.plot.setGraphTitle('Markers Y')
+        self.plot.setGraphTitle("Markers Y")
 
         markers = [
-            (-50., 'blue', False, False),
-            (-30., 'red', False, False),
-            (0., 'green', True, False),
-            (10., 'gray', True, True),
-            (80., 'black', False, True),
+            (-50.0, "blue", False, False),
+            (-30.0, "red", False, False),
+            (0.0, "green", True, False),
+            (10.0, "gray", True, True),
+            (80.0, "black", False, True),
         ]
 
         for y, color, select, drag in markers:
@@ -807,14 +887,14 @@ class TestPlotMarker(PlotWidgetTestCase):
         self.plot.resetZoom()
 
     def testPlotMarkerPt(self):
-        self.plot.setGraphTitle('Markers Pt')
+        self.plot.setGraphTitle("Markers Pt")
 
         markers = [
-            (10., -50., 'blue', False, False),
-            (40., -30., 'red', False, False),
-            (50., 0., 'green', True, False),
-            (50., 20., 'gray', True, True),
-            (70., 50., 'black', False, True),
+            (10.0, -50.0, "blue", False, False),
+            (40.0, -30.0, "red", False, False),
+            (50.0, 0.0, "green", True, False),
+            (50.0, 20.0, "gray", True, True),
+            (70.0, 50.0, "black", False, True),
         ]
         for x, y, color, select, drag in markers:
             name = "{0},{1}".format(x, y)
@@ -827,20 +907,20 @@ class TestPlotMarker(PlotWidgetTestCase):
         self.plot.resetZoom()
 
     def testPlotMarkerWithoutLegend(self):
-        self.plot.setGraphTitle('Markers without legend')
+        self.plot.setGraphTitle("Markers without legend")
         self.plot.getYAxis().setInverted(True)
 
         # Markers without legend
         self.plot.addMarker(10, 10)
         self.plot.addMarker(10, 20)
-        self.plot.addMarker(40, 50, text='test', symbol=None)
-        self.plot.addMarker(40, 50, text='test', symbol='+')
+        self.plot.addMarker(40, 50, text="test", symbol=None)
+        self.plot.addMarker(40, 50, text="test", symbol="+")
         self.plot.addXMarker(25)
         self.plot.addXMarker(35)
-        self.plot.addXMarker(45, text='test')
+        self.plot.addXMarker(45, text="test")
         self.plot.addYMarker(55)
         self.plot.addYMarker(65)
-        self.plot.addYMarker(75, text='test')
+        self.plot.addYMarker(75, text="test")
 
         self.plot.resetZoom()
 
@@ -880,39 +960,72 @@ class TestPlotMarker(PlotWidgetTestCase):
 
 # TestPlotItem ################################################################
 
+
 class TestPlotItem(PlotWidgetTestCase):
     """Basic tests for addItem."""
 
     # Polygon coordinates and color
     POLYGONS = [  # legend, x coords, y coords, color
-        ('triangle', numpy.array((10, 30, 50)),
-         numpy.array((55, 70, 55)), 'red'),
-        ('square', numpy.array((10, 10, 50, 50)),
-         numpy.array((10, 50, 50, 10)), 'green'),
-        ('star', numpy.array((60, 70, 80, 60, 80)),
-         numpy.array((25, 50, 25, 40, 40)), 'blue'),
-        ('2 triangles-simple',
-         numpy.array((90., 95., 100., numpy.nan, 90., 95., 100.)),
-         numpy.array((25., 5., 25., numpy.nan, 30., 50., 30.)),
-         'pink'),
-        ('2 triangles-extra NaN',
-         numpy.array((numpy.nan, 90., 95., 100., numpy.nan, 0., 90., 95., 100., numpy.nan)),
-         numpy.array((0., 55., 70., 55., numpy.nan, numpy.nan, 75., 90., 75., numpy.nan)),
-         'black'),
+        ("triangle", numpy.array((10, 30, 50)), numpy.array((55, 70, 55)), "red"),
+        (
+            "square",
+            numpy.array((10, 10, 50, 50)),
+            numpy.array((10, 50, 50, 10)),
+            "green",
+        ),
+        (
+            "star",
+            numpy.array((60, 70, 80, 60, 80)),
+            numpy.array((25, 50, 25, 40, 40)),
+            "blue",
+        ),
+        (
+            "2 triangles-simple",
+            numpy.array((90.0, 95.0, 100.0, numpy.nan, 90.0, 95.0, 100.0)),
+            numpy.array((25.0, 5.0, 25.0, numpy.nan, 30.0, 50.0, 30.0)),
+            "pink",
+        ),
+        (
+            "2 triangles-extra NaN",
+            numpy.array(
+                (
+                    numpy.nan,
+                    90.0,
+                    95.0,
+                    100.0,
+                    numpy.nan,
+                    0.0,
+                    90.0,
+                    95.0,
+                    100.0,
+                    numpy.nan,
+                )
+            ),
+            numpy.array(
+                (
+                    0.0,
+                    55.0,
+                    70.0,
+                    55.0,
+                    numpy.nan,
+                    numpy.nan,
+                    75.0,
+                    90.0,
+                    75.0,
+                    numpy.nan,
+                )
+            ),
+            "black",
+        ),
     ]
 
     # Rectangle coordinantes and color
     RECTANGLES = [  # legend, x coords, y coords, color
-        ('square 1', numpy.array((1., 10.)),
-         numpy.array((1., 10.)), 'red'),
-        ('square 2', numpy.array((10., 20.)),
-         numpy.array((10., 20.)), 'green'),
-        ('square 3', numpy.array((20., 30.)),
-         numpy.array((20., 30.)), 'blue'),
-        ('rect 1', numpy.array((1., 30.)),
-         numpy.array((35., 40.)), 'black'),
-        ('line h', numpy.array((1., 30.)),
-         numpy.array((45., 45.)), 'darkRed'),
+        ("square 1", numpy.array((1.0, 10.0)), numpy.array((1.0, 10.0)), "red"),
+        ("square 2", numpy.array((10.0, 20.0)), numpy.array((10.0, 20.0)), "green"),
+        ("square 3", numpy.array((20.0, 30.0)), numpy.array((20.0, 30.0)), "blue"),
+        ("rect 1", numpy.array((1.0, 30.0)), numpy.array((35.0, 40.0)), "black"),
+        ("line h", numpy.array((1.0, 30.0)), numpy.array((45.0, 45.0)), "darkRed"),
     ]
 
     SCALES = Axis.LINEAR, Axis.LOGARITHMIC
@@ -920,12 +1033,12 @@ class TestPlotItem(PlotWidgetTestCase):
     def setUp(self):
         super(TestPlotItem, self).setUp()
 
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
+        self.plot.getYAxis().setLabel("Rows")
+        self.plot.getXAxis().setLabel("Columns")
         self.plot.getXAxis().setAutoScale(False)
         self.plot.getYAxis().setAutoScale(False)
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setLimits(0., 100., -100., 100.)
+        self.plot.setLimits(0.0, 100.0, -100.0, 100.0)
 
     def testPlotItemPolygonFill(self):
         for scale in self.SCALES:
@@ -933,12 +1046,19 @@ class TestPlotItem(PlotWidgetTestCase):
                 self.plot.clear()
                 self.plot.getXAxis().setScale(scale)
                 self.plot.getYAxis().setScale(scale)
-                self.plot.setGraphTitle('Item Fill %s' % scale)
+                self.plot.setGraphTitle("Item Fill %s" % scale)
 
                 for legend, xList, yList, color in self.POLYGONS:
-                    self.plot.addShape(xList, yList, legend=legend,
-                                       replace=False, linestyle='--',
-                                       shape="polygon", fill=True, color=color)
+                    self.plot.addShape(
+                        xList,
+                        yList,
+                        legend=legend,
+                        replace=False,
+                        linestyle="--",
+                        shape="polygon",
+                        fill=True,
+                        color=color,
+                    )
                 self.plot.resetZoom()
 
     def testPlotItemPolygonNoFill(self):
@@ -947,12 +1067,19 @@ class TestPlotItem(PlotWidgetTestCase):
                 self.plot.clear()
                 self.plot.getXAxis().setScale(scale)
                 self.plot.getYAxis().setScale(scale)
-                self.plot.setGraphTitle('Item No Fill %s' % scale)
+                self.plot.setGraphTitle("Item No Fill %s" % scale)
 
                 for legend, xList, yList, color in self.POLYGONS:
-                    self.plot.addShape(xList, yList, legend=legend,
-                                       replace=False, linestyle='--',
-                                       shape="polygon", fill=False, color=color)
+                    self.plot.addShape(
+                        xList,
+                        yList,
+                        legend=legend,
+                        replace=False,
+                        linestyle="--",
+                        shape="polygon",
+                        fill=False,
+                        color=color,
+                    )
                 self.plot.resetZoom()
 
     def testPlotItemRectangleFill(self):
@@ -961,12 +1088,18 @@ class TestPlotItem(PlotWidgetTestCase):
                 self.plot.clear()
                 self.plot.getXAxis().setScale(scale)
                 self.plot.getYAxis().setScale(scale)
-                self.plot.setGraphTitle('Rectangle Fill %s' % scale)
+                self.plot.setGraphTitle("Rectangle Fill %s" % scale)
 
                 for legend, xList, yList, color in self.RECTANGLES:
-                    self.plot.addShape(xList, yList, legend=legend,
-                                       replace=False,
-                                       shape="rectangle", fill=True, color=color)
+                    self.plot.addShape(
+                        xList,
+                        yList,
+                        legend=legend,
+                        replace=False,
+                        shape="rectangle",
+                        fill=True,
+                        color=color,
+                    )
                 self.plot.resetZoom()
 
     def testPlotItemRectangleNoFill(self):
@@ -975,17 +1108,24 @@ class TestPlotItem(PlotWidgetTestCase):
                 self.plot.clear()
                 self.plot.getXAxis().setScale(scale)
                 self.plot.getYAxis().setScale(scale)
-                self.plot.setGraphTitle('Rectangle No Fill %s' % scale)
+                self.plot.setGraphTitle("Rectangle No Fill %s" % scale)
 
                 for legend, xList, yList, color in self.RECTANGLES:
-                    self.plot.addShape(xList, yList, legend=legend,
-                                       replace=False,
-                                       shape="rectangle", fill=False, color=color)
+                    self.plot.addShape(
+                        xList,
+                        yList,
+                        legend=legend,
+                        replace=False,
+                        shape="rectangle",
+                        fill=False,
+                        color=color,
+                    )
                 self.plot.resetZoom()
 
 
 class TestPlotActiveCurveImage(PlotWidgetTestCase):
     """Basic tests for active curve and image handling"""
+
     xData = numpy.arange(1000)
     yData = -500 + 100 * numpy.sin(xData)
     xData2 = xData + 1000
@@ -998,57 +1138,54 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
     def testActiveCurveAndLabels(self):
         # Active curve handling off, no label change
         self.plot.setActiveCurveHandling(False)
-        self.plot.getXAxis().setLabel('XLabel')
-        self.plot.getYAxis().setLabel('YLabel')
+        self.plot.getXAxis().setLabel("XLabel")
+        self.plot.getYAxis().setLabel("YLabel")
         self.plot.addCurve((1, 2), (1, 2))
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
-        self.plot.addCurve((1, 2), (2, 3), xlabel='x1', ylabel='y1')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.plot.addCurve((1, 2), (2, 3), xlabel="x1", ylabel="y1")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
         self.plot.clear()
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
         # Active curve handling on, label changes
         self.plot.setActiveCurveHandling(True)
-        self.plot.getXAxis().setLabel('XLabel')
-        self.plot.getYAxis().setLabel('YLabel')
+        self.plot.getXAxis().setLabel("XLabel")
+        self.plot.getYAxis().setLabel("YLabel")
 
         # labels changed as active curve
-        self.plot.addCurve((1, 2), (1, 2), legend='1',
-                           xlabel='x1', ylabel='y1')
-        self.plot.setActiveCurve('1')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.addCurve((1, 2), (1, 2), legend="1", xlabel="x1", ylabel="y1")
+        self.plot.setActiveCurve("1")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         # labels not changed as not active curve
-        self.plot.addCurve((1, 2), (2, 3), legend='2')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.addCurve((1, 2), (2, 3), legend="2")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         # labels changed
-        self.plot.setActiveCurve('2')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.plot.setActiveCurve("2")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
-        self.plot.setActiveCurve('1')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.setActiveCurve("1")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         self.plot.clear()
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
     def testPlotActiveCurveSelectionMode(self):
         self.plot.clear()
         self.plot.setActiveCurveHandling(True)
         legend = "curve 1"
-        self.plot.addCurve(self.xData, self.yData,
-                           legend=legend,
-                           color="green")
+        self.plot.addCurve(self.xData, self.yData, legend=legend, color="green")
 
         # active curve should be None
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
@@ -1065,7 +1202,7 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.plot.setActiveCurveSelectionMode("legacy")
         current = self.plot.getActiveCurve(just_legend=True)
         self.assertEqual(current, legend)
-        
+
         # active curve should not change when None set as active curve
         self.assertEqual(self.plot.getActiveCurveSelectionMode(), "legacy")
         self.plot.setActiveCurve(None)
@@ -1076,34 +1213,26 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
         self.plot.clear()
         self.plot.setActiveCurveHandling(True)
         self.assertEqual(self.plot.getActiveCurveSelectionMode(), "atmostone")
-        self.plot.addCurve(self.xData, self.yData,
-                           legend=legend,
-                           color="green")
+        self.plot.addCurve(self.xData, self.yData, legend=legend, color="green")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
-        self.plot.addCurve(self.xData2, self.yData2,
-                           legend="curve 2",
-                           color="red")
+        self.plot.addCurve(self.xData2, self.yData2, legend="curve 2", color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
         self.plot.setActiveCurveSelectionMode("legacy")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), None)
 
         # the first curve added should be active
         self.plot.clear()
-        self.plot.addCurve(self.xData, self.yData,
-                           legend=legend,
-                           color="green")
+        self.plot.addCurve(self.xData, self.yData, legend=legend, color="green")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
-        self.plot.addCurve(self.xData2, self.yData2,
-                           legend="curve 2",
-                           color="red")
+        self.plot.addCurve(self.xData2, self.yData2, legend="curve 2", color="red")
         self.assertEqual(self.plot.getActiveCurve(just_legend=True), legend)
 
     def testActiveCurveStyle(self):
         """Test change of active curve style"""
         self.plot.setActiveCurveHandling(True)
-        self.plot.setActiveCurveStyle(color='black')
+        self.plot.setActiveCurveStyle(color="black")
         style = self.plot.getActiveCurveStyle()
-        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
+        self.assertEqual(style.getColor(), (0.0, 0.0, 0.0, 1.0))
         self.assertIsNone(style.getLineStyle())
         self.assertIsNone(style.getLineWidth())
         self.assertIsNone(style.getSymbol())
@@ -1111,36 +1240,37 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
 
         self.plot.addCurve(x=self.xData, y=self.yData, legend="curve1")
         curve = self.plot.getCurve("curve1")
-        curve.setColor('blue')
-        curve.setLineStyle('-')
+        curve.setColor("blue")
+        curve.setLineStyle("-")
         curve.setLineWidth(1)
-        curve.setSymbol('o')
+        curve.setSymbol("o")
         curve.setSymbolSize(5)
 
         # Check default current style
         defaultStyle = curve.getCurrentStyle()
-        self.assertEqual(defaultStyle, CurveStyle(color='blue',
-                                                  linestyle='-',
-                                                  linewidth=1,
-                                                  symbol='o',
-                                                  symbolsize=5))
+        self.assertEqual(
+            defaultStyle,
+            CurveStyle(
+                color="blue", linestyle="-", linewidth=1, symbol="o", symbolsize=5
+            ),
+        )
 
         # Activate curve with highlight color=black
         self.plot.setActiveCurve("curve1")
         style = curve.getCurrentStyle()
-        self.assertEqual(style.getColor(), (0., 0., 0., 1.))
-        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getColor(), (0.0, 0.0, 0.0, 1.0))
+        self.assertEqual(style.getLineStyle(), "-")
         self.assertEqual(style.getLineWidth(), 1)
-        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbol(), "o")
         self.assertEqual(style.getSymbolSize(), 5)
 
         # Change highlight to linewidth=2
         self.plot.setActiveCurveStyle(linewidth=2)
         style = curve.getCurrentStyle()
-        self.assertEqual(style.getColor(), (0., 0., 1., 1.))
-        self.assertEqual(style.getLineStyle(), '-')
+        self.assertEqual(style.getColor(), (0.0, 0.0, 1.0, 1.0))
+        self.assertEqual(style.getLineStyle(), "-")
         self.assertEqual(style.getLineWidth(), 2)
-        self.assertEqual(style.getSymbol(), 'o')
+        self.assertEqual(style.getSymbol(), "o")
         self.assertEqual(style.getSymbolSize(), 5)
 
         self.plot.setActiveCurve(None)
@@ -1148,57 +1278,58 @@ class TestPlotActiveCurveImage(PlotWidgetTestCase):
 
     def testActiveImageAndLabels(self):
         # Active image handling always on, no API for toggling it
-        self.plot.getXAxis().setLabel('XLabel')
-        self.plot.getYAxis().setLabel('YLabel')
+        self.plot.getXAxis().setLabel("XLabel")
+        self.plot.getYAxis().setLabel("YLabel")
 
         # labels changed as active curve
-        self.plot.addImage(numpy.arange(100).reshape(10, 10),
-                           legend='1', xlabel='x1', ylabel='y1')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.addImage(
+            numpy.arange(100).reshape(10, 10), legend="1", xlabel="x1", ylabel="y1"
+        )
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         # labels not changed as not active curve
-        self.plot.addImage(numpy.arange(100).reshape(10, 10),
-                           legend='2')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), legend="2")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         # labels changed
-        self.plot.setActiveImage('2')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.plot.setActiveImage("2")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
-        self.plot.setActiveImage('1')
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'x1')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'y1')
+        self.plot.setActiveImage("1")
+        self.assertEqual(self.plot.getXAxis().getLabel(), "x1")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "y1")
 
         self.plot.clear()
-        self.assertEqual(self.plot.getXAxis().getLabel(), 'XLabel')
-        self.assertEqual(self.plot.getYAxis().getLabel(), 'YLabel')
+        self.assertEqual(self.plot.getXAxis().getLabel(), "XLabel")
+        self.assertEqual(self.plot.getYAxis().getLabel(), "YLabel")
 
 
 ##############################################################################
 # Log
 ##############################################################################
 
+
 class TestPlotEmptyLog(PlotWidgetTestCase):
     """Basic tests for log plot"""
+
     def testEmptyPlotTitleLabelsLog(self):
-        self.plot.setGraphTitle('Empty Log Log')
-        self.plot.getXAxis().setLabel('X')
-        self.plot.getYAxis().setLabel('Y')
+        self.plot.setGraphTitle("Empty Log Log")
+        self.plot.getXAxis().setLabel("X")
+        self.plot.getYAxis().setLabel("Y")
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(True)
         self.plot.resetZoom()
 
 
 class TestPlotAxes(TestCaseQt, ParametricTestCase):
-
     # Test data
     xData = numpy.arange(1, 10)
-    yData = xData ** 2
+    yData = xData**2
 
-    def __init__(self, methodName='runTest', backend=None):
+    def __init__(self, methodName="runTest", backend=None):
         unittest.TestCase.__init__(self, methodName)
         self.__backend = backend
 
@@ -1258,7 +1389,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
             with self.subTest():
                 if setter is not None:
                     if not isinstance(value, tuple):
-                        value = (value, )
+                        value = (value,)
                     setter(*value)
                 if getter is not None:
                     self.assertEqual(getter(), expected)
@@ -1348,22 +1479,34 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(self.plot.isYAxisInverted(), False)
 
     def testLogXWithData(self):
-        self.plot.setGraphTitle('Curve X: Log Y: Linear')
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.setGraphTitle("Curve X: Log Y: Linear")
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         axis = self.plot.getXAxis()
         axis.setScale(axis.LOGARITHMIC)
 
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
 
     def testLogYWithData(self):
-        self.plot.setGraphTitle('Curve X: Linear Y: Log')
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.setGraphTitle("Curve X: Linear Y: Log")
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         axis = self.plot.getYAxis()
         axis.setScale(axis.LOGARITHMIC)
 
@@ -1372,11 +1515,17 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
 
     def testLogYRightWithData(self):
-        self.plot.setGraphTitle('Curve X: Linear Y: Log')
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.setGraphTitle("Curve X: Linear Y: Log")
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         axis = self.plot.getYAxis(axis="right")
         axis.setScale(axis.LOGARITHMIC)
 
@@ -1385,36 +1534,58 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(axis.getScale(), axis.LOGARITHMIC)
 
     def testLimitsChanged_setLimits(self):
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         listener = SignalListener()
         self.plot.getXAxis().sigLimitsChanged.connect(listener.partial(axis="x"))
         self.plot.getYAxis().sigLimitsChanged.connect(listener.partial(axis="y"))
-        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
+        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(
+            listener.partial(axis="y2")
+        )
         self.plot.setLimits(0, 1, 0, 1, 0, 1)
         # at least one event per axis
         self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_resetZoom(self):
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         listener = SignalListener()
         self.plot.getXAxis().sigLimitsChanged.connect(listener.partial(axis="x"))
         self.plot.getYAxis().sigLimitsChanged.connect(listener.partial(axis="y"))
-        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(listener.partial(axis="y2"))
+        self.plot.getYAxis(axis="right").sigLimitsChanged.connect(
+            listener.partial(axis="y2")
+        )
         self.plot.resetZoom()
         # at least one event per axis
         self.assertEqual(len(set(listener.karguments(argumentName="axis"))), 3)
 
     def testLimitsChanged_setXLimit(self):
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         listener = SignalListener()
         axis = self.plot.getXAxis()
         axis.sigLimitsChanged.connect(listener)
@@ -1424,10 +1595,16 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYLimit(self):
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         listener = SignalListener()
         axis = self.plot.getYAxis()
         axis.sigLimitsChanged.connect(listener)
@@ -1437,10 +1614,16 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.assertEqual(axis.getLimits(), (20.0, 30.0))
 
     def testLimitsChanged_setYRightLimit(self):
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=False,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=False,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
         listener = SignalListener()
         axis = self.plot.getYAxis(axis="right")
         axis.sigLimitsChanged.connect(listener)
@@ -1505,9 +1688,9 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         self.qWaitForWindowExposed(self.plot)
 
         margins = self.plot.getAxesMargins()
-        self.assertEqual(margins, (.15, .1, .1, .15))
+        self.assertEqual(margins, (0.15, 0.1, 0.1, 0.15))
 
-        for margins in ((0., 0., 0., 0.), (.15, .1, .1, .15)):
+        for margins in ((0.0, 0.0, 0.0, 0.0), (0.15, 0.1, 0.1, 0.15)):
             with self.subTest(margins=margins):
                 self.plot.setAxesMargins(*margins)
                 self.qapp.processEvents()
@@ -1562,18 +1745,21 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
 
     def testAxisExtent(self):
         """Test XAxisExtent and yAxisExtent"""
-        for cls, axis in ((XAxisExtent, self.plot.getXAxis()),
-                          (YAxisExtent, self.plot.getYAxis())):
-            for range_, logRange in (((2, 3), (2, 3)),
-                                     ((-2, -1), (1, 100)),
-                                     ((-1, 3), (3. * 0.9, 3. * 1.1))):
+        for cls, axis in (
+            (XAxisExtent, self.plot.getXAxis()),
+            (YAxisExtent, self.plot.getYAxis()),
+        ):
+            for range_, logRange in (
+                ((2, 3), (2, 3)),
+                ((-2, -1), (1, 100)),
+                ((-1, 3), (3.0 * 0.9, 3.0 * 1.1)),
+            ):
                 extent = cls()
                 extent.setRange(*range_)
                 self.plot.addItem(extent)
 
                 for isLog, plotRange in ((False, range_), (True, logRange)):
-                    with self.subTest(
-                            cls=cls.__name__, range=range_, isLog=isLog):
+                    with self.subTest(cls=cls.__name__, range=range_, isLog=isLog):
                         axis._setLogarithmic(isLog)
                         self.plot.resetZoom()
                         self.qapp.processEvents()
@@ -1588,9 +1774,7 @@ class TestPlotAxes(TestCaseQt, ParametricTestCase):
         for scale in ("linear", "log"):
             xaxis.setScale(scale)
             yaxis.setScale(scale)
-            for limits in ((1e300, 1e308),
-                           (-1e308, 1e308),
-                           (1e-300, 2e-300)):
+            for limits in ((1e300, 1e308), (-1e308, 1e308), (1e-300, 2e-300)):
                 with self.subTest(scale=scale, limits=limits):
                     xaxis.setLimits(*limits)
                     self.qapp.processEvents()
@@ -1605,44 +1789,62 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
 
     # Test data
     xData = numpy.arange(1000) + 1
-    yData = xData ** 2
+    yData = xData**2
 
     def _setLabels(self):
-        self.plot.getXAxis().setLabel('X')
-        self.plot.getYAxis().setLabel('X * X')
+        self.plot.getXAxis().setLabel("X")
+        self.plot.getYAxis().setLabel("X * X")
 
     def testPlotCurveLogX(self):
         self._setLabels()
         self.plot.getXAxis()._setLogarithmic(True)
-        self.plot.setGraphTitle('Curve X: Log Y: Linear')
+        self.plot.setGraphTitle("Curve X: Log Y: Linear")
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
 
     def testPlotCurveLogY(self):
         self._setLabels()
         self.plot.getYAxis()._setLogarithmic(True)
 
-        self.plot.setGraphTitle('Curve X: Linear Y: Log')
+        self.plot.setGraphTitle("Curve X: Linear Y: Log")
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
 
     def testPlotCurveLogXY(self):
         self._setLabels()
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(True)
 
-        self.plot.setGraphTitle('Curve X: Log Y: Log')
+        self.plot.setGraphTitle("Curve X: Log Y: Log")
 
-        self.plot.addCurve(self.xData, self.yData,
-                           legend="curve",
-                           replace=False, resetzoom=True,
-                           color='green', linestyle="-", symbol='o')
+        self.plot.addCurve(
+            self.xData,
+            self.yData,
+            legend="curve",
+            replace=False,
+            resetzoom=True,
+            color="green",
+            linestyle="-",
+            symbol="o",
+        )
 
     def testPlotCurveErrorLogXY(self):
         self.plot.getXAxis()._setLogarithmic(True)
@@ -1653,24 +1855,31 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
         errors[::2] = self.xData[::2] + 1
 
         tests = [  # name, xerror, yerror
-            ('xerror=3', 3, None),
-            ('xerror=N array', errors, None),
-            ('xerror=Nx1 array', errors.reshape(len(errors), 1), None),
-            ('xerror=2xN array', numpy.array((errors, errors)), None),
-            ('yerror=6', None, 6),
-            ('yerror=N array', None, errors ** 2),
-            ('yerror=Nx1 array', None, (errors ** 2).reshape(len(errors), 1)),
-            ('yerror=2xN array', None, numpy.array((errors, errors)) ** 2),
+            ("xerror=3", 3, None),
+            ("xerror=N array", errors, None),
+            ("xerror=Nx1 array", errors.reshape(len(errors), 1), None),
+            ("xerror=2xN array", numpy.array((errors, errors)), None),
+            ("yerror=6", None, 6),
+            ("yerror=N array", None, errors**2),
+            ("yerror=Nx1 array", None, (errors**2).reshape(len(errors), 1)),
+            ("yerror=2xN array", None, numpy.array((errors, errors)) ** 2),
         ]
 
         for name, xError, yError in tests:
             with self.subTest(name):
                 self.plot.setGraphTitle(name)
-                self.plot.addCurve(self.xData, self.yData,
-                                   legend=name,
-                                   xerror=xError, yerror=yError,
-                                   replace=False, resetzoom=True,
-                                   color='green', linestyle="-", symbol='o')
+                self.plot.addCurve(
+                    self.xData,
+                    self.yData,
+                    legend=name,
+                    xerror=xError,
+                    yerror=yError,
+                    replace=False,
+                    resetzoom=True,
+                    color="green",
+                    linestyle="-",
+                    symbol="o",
+                )
 
                 self.qapp.processEvents()
 
@@ -1702,12 +1911,12 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
         """Add a curve with negative data and toggle log axis"""
         arange = numpy.arange(1000) + 1
         tests = [  # name, xData, yData
-            ('x>0, some negative y', arange, arange - 500),
-            ('x>0, y<0', arange, -arange),
-            ('some negative x, y>0', arange - 500, arange),
-            ('x<0, y>0', -arange, arange),
-            ('some negative x and y', arange - 500, arange - 500),
-            ('x<0, y<0', -arange, -arange),
+            ("x>0, some negative y", arange, arange - 500),
+            ("x>0, y<0", arange, -arange),
+            ("some negative x, y>0", arange - 500, arange),
+            ("x<0, y>0", -arange, arange),
+            ("some negative x and y", arange - 500, arange - 500),
+            ("x<0, y<0", -arange, -arange),
         ]
 
         for name, xData, yData in tests:
@@ -1729,10 +1938,13 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                 yLim = self.plot.getYAxis().getLimits()
                 positives = xData > 0
                 if numpy.any(positives):
-                    self.assertTrue(numpy.allclose(
-                        xLim, (min(xData[positives]), max(xData[positives]))))
+                    self.assertTrue(
+                        numpy.allclose(
+                            xLim, (min(xData[positives]), max(xData[positives]))
+                        )
+                    )
                 else:  # No positive x in the curve
-                    self.assertEqual(xLim, (1., 100.))
+                    self.assertEqual(xLim, (1.0, 100.0))
                 self.assertEqual(yLim, (min(yData), max(yData)))
 
                 # x axis and y axis log
@@ -1755,7 +1967,7 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                         f"{yLim} != {expectedLimits}",
                     )
                 else:  # No positive x and y in the curve
-                    self.assertEqual(yLim, (1., 100.))
+                    self.assertEqual(yLim, (1.0, 100.0))
 
                 # y axis log
                 previousXLim = self.plot.getXAxis().getLimits()
@@ -1767,10 +1979,13 @@ class TestPlotCurveLog(PlotWidgetTestCase, ParametricTestCase):
                 self.assertEqual(xLim, previousXLim)
                 positives = yData > 0
                 if numpy.any(positives):
-                    self.assertTrue(numpy.allclose(
-                        yLim, (min(yData[positives]), max(yData[positives]))))
+                    self.assertTrue(
+                        numpy.allclose(
+                            yLim, (min(yData[positives]), max(yData[positives]))
+                        )
+                    )
                 else:  # No positive y in the curve
-                    self.assertEqual(yLim, (1., 100.))
+                    self.assertEqual(yLim, (1.0, 100.0))
 
                 # no log axis
                 previousXLim = self.plot.getXAxis().getLimits()
@@ -1794,71 +2009,83 @@ class TestPlotImageLog(PlotWidgetTestCase):
     def setUp(self):
         super(TestPlotImageLog, self).setUp()
 
-        self.plot.getXAxis().setLabel('Columns')
-        self.plot.getYAxis().setLabel('Rows')
+        self.plot.getXAxis().setLabel("Columns")
+        self.plot.getYAxis().setLabel("Rows")
 
     def testPlotColormapGrayLogX(self):
         self.plot.getXAxis()._setLogarithmic(True)
-        self.plot.setGraphTitle('CMap X: Log Y: Linear')
+        self.plot.setGraphTitle("CMap X: Log Y: Linear")
 
-        colormap = Colormap(name='gray',
-                            normalization='linear',
-                            vmin=None,
-                            vmax=None)
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(1., 1.), scale=(1., 1.),
-                           resetzoom=False, colormap=colormap)
+        colormap = Colormap(name="gray", normalization="linear", vmin=None, vmax=None)
+        self.plot.addImage(
+            DATA_2D,
+            legend="image 1",
+            origin=(1.0, 1.0),
+            scale=(1.0, 1.0),
+            resetzoom=False,
+            colormap=colormap,
+        )
         self.plot.resetZoom()
 
     def testPlotColormapGrayLogY(self):
         self.plot.getYAxis()._setLogarithmic(True)
-        self.plot.setGraphTitle('CMap X: Linear Y: Log')
+        self.plot.setGraphTitle("CMap X: Linear Y: Log")
 
-        colormap = Colormap(name='gray',
-                            normalization='linear',
-                            vmin=None,
-                            vmax=None)
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(1., 1.), scale=(1., 1.),
-                           resetzoom=False, colormap=colormap)
+        colormap = Colormap(name="gray", normalization="linear", vmin=None, vmax=None)
+        self.plot.addImage(
+            DATA_2D,
+            legend="image 1",
+            origin=(1.0, 1.0),
+            scale=(1.0, 1.0),
+            resetzoom=False,
+            colormap=colormap,
+        )
         self.plot.resetZoom()
 
     def testPlotColormapGrayLogXY(self):
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(True)
-        self.plot.setGraphTitle('CMap X: Log Y: Log')
+        self.plot.setGraphTitle("CMap X: Log Y: Log")
 
-        colormap = Colormap(name='gray',
-                            normalization='linear',
-                            vmin=None,
-                            vmax=None)
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(1., 1.), scale=(1., 1.),
-                           resetzoom=False, colormap=colormap)
+        colormap = Colormap(name="gray", normalization="linear", vmin=None, vmax=None)
+        self.plot.addImage(
+            DATA_2D,
+            legend="image 1",
+            origin=(1.0, 1.0),
+            scale=(1.0, 1.0),
+            resetzoom=False,
+            colormap=colormap,
+        )
         self.plot.resetZoom()
 
     def testPlotRgbRgbaLogXY(self):
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(True)
-        self.plot.setGraphTitle('RGB + RGBA X: Log Y: Log')
+        self.plot.setGraphTitle("RGB + RGBA X: Log Y: Log")
 
         rgb = numpy.array(
-            (((0, 0, 0), (128, 0, 0), (255, 0, 0)),
-             ((0, 128, 0), (0, 128, 128), (0, 128, 255))),
-            dtype=numpy.uint8)
+            (
+                ((0, 0, 0), (128, 0, 0), (255, 0, 0)),
+                ((0, 128, 0), (0, 128, 128), (0, 128, 255)),
+            ),
+            dtype=numpy.uint8,
+        )
 
-        self.plot.addImage(rgb, legend="rgb",
-                           origin=(1, 1), scale=(10, 10),
-                           resetzoom=False)
+        self.plot.addImage(
+            rgb, legend="rgb", origin=(1, 1), scale=(10, 10), resetzoom=False
+        )
 
         rgba = numpy.array(
-            (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
-             ((0, .5, 0, 1), (0, .5, .5, 1), (0, 1, 1, .5))),
-            dtype=numpy.float32)
+            (
+                ((0, 0, 0, 0.5), (0.5, 0, 0, 1), (1, 0, 0, 0.5)),
+                ((0, 0.5, 0, 1), (0, 0.5, 0.5, 1), (0, 1, 1, 0.5)),
+            ),
+            dtype=numpy.float32,
+        )
 
-        self.plot.addImage(rgba, legend="rgba",
-                           origin=(5., 5.), scale=(10., 10.),
-                           resetzoom=False)
+        self.plot.addImage(
+            rgba, legend="rgba", origin=(5.0, 5.0), scale=(10.0, 10.0), resetzoom=False
+        )
         self.plot.resetZoom()
 
 
@@ -1867,27 +2094,27 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
 
     # Test marker parameters
     markers = [  # x, y, color, selectable, draggable
-        (10., 10., 'blue', False, False),
-        (20., 20., 'red', False, False),
-        (40., 100., 'green', True, False),
-        (40., 500., 'gray', True, True),
-        (60., 800., 'black', False, True),
+        (10.0, 10.0, "blue", False, False),
+        (20.0, 20.0, "red", False, False),
+        (40.0, 100.0, "green", True, False),
+        (40.0, 500.0, "gray", True, True),
+        (60.0, 800.0, "black", False, True),
     ]
 
     def setUp(self):
         super(TestPlotMarkerLog, self).setUp()
 
-        self.plot.getYAxis().setLabel('Rows')
-        self.plot.getXAxis().setLabel('Columns')
+        self.plot.getYAxis().setLabel("Rows")
+        self.plot.getXAxis().setLabel("Columns")
         self.plot.getXAxis().setAutoScale(False)
         self.plot.getYAxis().setAutoScale(False)
         self.plot.setKeepDataAspectRatio(False)
-        self.plot.setLimits(1., 100., 1., 1000.)
+        self.plot.setLimits(1.0, 100.0, 1.0, 1000.0)
         self.plot.getXAxis()._setLogarithmic(True)
         self.plot.getYAxis()._setLogarithmic(True)
 
     def testPlotMarkerXLog(self):
-        self.plot.setGraphTitle('Markers X, Log axes')
+        self.plot.setGraphTitle("Markers X, Log axes")
 
         for x, _, color, select, drag in self.markers:
             name = str(x)
@@ -1899,7 +2126,7 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
     def testPlotMarkerYLog(self):
-        self.plot.setGraphTitle('Markers Y, Log axes')
+        self.plot.setGraphTitle("Markers Y, Log axes")
 
         for _, y, color, select, drag in self.markers:
             name = str(y)
@@ -1911,7 +2138,7 @@ class TestPlotMarkerLog(PlotWidgetTestCase):
         self.plot.resetZoom()
 
     def testPlotMarkerPtLog(self):
-        self.plot.setGraphTitle('Markers Pt, Log axes')
+        self.plot.setGraphTitle("Markers Pt, Log axes")
 
         for x, y, color, select, drag in self.markers:
             name = "{0},{1}".format(x, y)
@@ -1930,9 +2157,9 @@ class TestPlotWidgetSwitchBackend(PlotWidgetTestCase):
     @pytest.mark.usefixtures("test_options")
     def testSwitchBackend(self):
         """Test switching a plot with a few items"""
-        backends = {'none': 'BackendBase', 'mpl': 'BackendMatplotlibQt'}
+        backends = {"none": "BackendBase", "mpl": "BackendMatplotlibQt"}
         if self.test_options.WITH_GL_TEST:
-            backends['gl'] = 'BackendOpenGL'
+            backends["gl"] = "BackendOpenGL"
 
         self.plot.addImage(numpy.arange(100).reshape(10, 10))
         self.plot.addCurve((-3, -2, -1), (1, 2, 3))
@@ -1971,7 +2198,7 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self._checkSelection(selection)
 
         # Active item is current
-        self.plot.addImage(((0, 1), (2, 3)), legend='image')
+        self.plot.addImage(((0, 1), (2, 3)), legend="image")
         image = self.plot.getActiveImage()
         self.assertEqual(listener.callCount(), 1)
         self._checkSelection(selection, image, (image,))
@@ -1982,12 +2209,12 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self._checkSelection(selection)
 
         # Active item is current
-        self.plot.setActiveImage('image')
+        self.plot.setActiveImage("image")
         self.assertEqual(listener.callCount(), 3)
         self._checkSelection(selection, image, (image,))
 
         # Mosted recently "actived" item is current
-        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
         scatter = self.plot.getActiveScatter()
         self.assertEqual(listener.callCount(), 4)
         self._checkSelection(selection, scatter, (scatter, image))
@@ -1998,7 +2225,7 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self._checkSelection(selection, image, (image,))
 
         # Mosted recently "actived" item is current
-        self.plot.setActiveScatter('scatter')
+        self.plot.setActiveScatter("scatter")
         self.assertEqual(listener.callCount(), 6)
         self._checkSelection(selection, scatter, (scatter, image))
 
@@ -2009,31 +2236,31 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
         self._checkSelection(selection)
 
         # Mosted recently "actived" item is current
-        self.plot.setActiveScatter('scatter')
+        self.plot.setActiveScatter("scatter")
         self.assertEqual(listener.callCount(), 8)
-        self.plot.setActiveImage('image')
+        self.plot.setActiveImage("image")
         self.assertEqual(listener.callCount(), 9)
         self._checkSelection(selection, image, (image, scatter))
 
         # Add a curve which is not active by default
-        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
-        curve = self.plot.getCurve('curve')
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+        curve = self.plot.getCurve("curve")
         self.assertEqual(listener.callCount(), 9)
         self._checkSelection(selection, image, (image, scatter))
 
         # Mosted recently "actived" item is current
-        self.plot.setActiveCurve('curve')
+        self.plot.setActiveCurve("curve")
         self.assertEqual(listener.callCount(), 10)
         self._checkSelection(selection, curve, (curve, image, scatter))
 
         # Add a curve which is not active by default
-        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve2')
-        curve2 = self.plot.getCurve('curve2')
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve2")
+        curve2 = self.plot.getCurve("curve2")
         self.assertEqual(listener.callCount(), 10)
         self._checkSelection(selection, curve, (curve, image, scatter))
 
         # Mosted recently "actived" item is current, previous curve is removed
-        self.plot.setActiveCurve('curve2')
+        self.plot.setActiveCurve("curve2")
         self.assertEqual(listener.callCount(), 11)
         self._checkSelection(selection, curve2, (curve2, image, scatter))
 
@@ -2044,10 +2271,10 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
 
     def testPlotWidgetWithItems(self):
         """Test init of selection on a plot with items"""
-        self.plot.addImage(((0, 1), (2, 3)), legend='image')
-        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
-        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
-        self.plot.setActiveCurve('curve')
+        self.plot.addImage(((0, 1), (2, 3)), legend="image")
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+        self.plot.setActiveCurve("curve")
 
         selection = self.plot.selection()
         self.assertIsNotNone(selection.getCurrentItem())
@@ -2060,12 +2287,12 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
     def testSetCurrentItem(self):
         """Test setCurrentItem"""
         # Add items to the plot
-        self.plot.addImage(((0, 1), (2, 3)), legend='image')
+        self.plot.addImage(((0, 1), (2, 3)), legend="image")
         image = self.plot.getActiveImage()
-        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend='scatter')
+        self.plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
         scatter = self.plot.getActiveScatter()
-        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend='curve')
-        self.plot.setActiveCurve('curve')
+        self.plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+        self.plot.setActiveCurve("curve")
         curve = self.plot.getActiveCurve()
 
         selection = self.plot.selection()
@@ -2103,59 +2330,73 @@ class TestPlotWidgetSelection(PlotWidgetTestCase):
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotWidget_Gl(TestPlotWidget):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotImage_Gl(TestPlotImage):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotCurve_Gl(TestPlotCurve):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotHistogram_Gl(TestPlotHistogram):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotScatter_Gl(TestPlotScatter):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotMarker_Gl(TestPlotMarker):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotItem_Gl(TestPlotItem):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotAxes_Gl(TestPlotAxes):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotActiveCurveImage_Gl(TestPlotActiveCurveImage):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotEmptyLog_Gl(TestPlotEmptyLog):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotCurveLog_Gl(TestPlotCurveLog):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotImageLog_Gl(TestPlotImageLog):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotMarkerLog_Gl(TestPlotMarkerLog):
-    backend="gl"
+    backend = "gl"
+
 
 @pytest.mark.usefixtures("use_opengl")
 class TestPlotWidgetSelection_Gl(TestPlotWidgetSelection):
-    backend="gl"
+    backend = "gl"
+
 
 class TestSpecial_ExplicitMplBackend(TestSpecialBackend):
-    backend="mpl"
+    backend = "mpl"

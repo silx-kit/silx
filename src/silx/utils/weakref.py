@@ -164,6 +164,7 @@ class WeakMethodProxy(WeakMethod):
     """Wraps a callable object like a function or a bound method
     with a weakref proxy.
     """
+
     def __call__(self, *args, **kwargs):
         """Dereference the method and call it if the method is still alive.
         Else raises an ReferenceError.
@@ -199,8 +200,7 @@ class WeakList(list):
         self.__is_valid = False
 
     def __create_ref(self, obj):
-        """Create a weakref from an object. It uses the `ref` module function.
-        """
+        """Create a weakref from an object. It uses the `ref` module function."""
         return ref(obj, self.__invalidate)
 
     def __clean(self):
@@ -255,7 +255,7 @@ class WeakList(list):
 
         :param key: Index to delete
         :type key: int or slice
-         """
+        """
         self.__clean()
         del self.__list[key]
 

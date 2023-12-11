@@ -44,13 +44,12 @@ from silx.opencl.common import ocl, pyopencl
 from silx.opencl.codec import byte_offset
 import fabio
 import unittest
+
 logger = logging.getLogger(__name__)
 
 
-@unittest.skipUnless(ocl and pyopencl,
-                     "PyOpenCl is missing")
+@unittest.skipUnless(ocl and pyopencl, "PyOpenCl is missing")
 class TestByteOffset(unittest.TestCase):
-
     @staticmethod
     def _create_test_data(shape, nexcept, lam=200):
         """Create test (image, compressed stream) pair.
@@ -84,7 +83,9 @@ class TestByteOffset(unittest.TestCase):
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
-                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
+                raise unittest.SkipTest(
+                    "Byte-offset decompression is known to be buggy on MacOS-CPU"
+                )
             else:
                 raise err
         print(bo.block_size)
@@ -97,9 +98,11 @@ class TestByteOffset(unittest.TestCase):
         delta_cy = abs(ref.ravel() - res_cy).max()
         delta_cl = abs(ref.ravel() - res_cl.get()).max()
 
-        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0),
-                     1000.0 * (t2 - t1))
+        logger.debug(
+            "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+            1000.0 * (t1 - t0),
+            1000.0 * (t2 - t1),
+        )
         bo.log_profile()
         # print(ref)
         # print(res_cl.get())
@@ -108,8 +111,8 @@ class TestByteOffset(unittest.TestCase):
 
     def test_many_decompress(self, ntest=10):
         """
-        tests the byte offset decompression on GPU, many images to ensure there 
-        is not leaking in memory 
+        tests the byte offset decompression on GPU, many images to ensure there
+        is not leaking in memory
         """
         shape = (991, 997)
         size = numpy.prod(shape)
@@ -120,7 +123,9 @@ class TestByteOffset(unittest.TestCase):
         except (RuntimeError, pyopencl.RuntimeError) as err:
             logger.warning(err)
             if sys.platform == "darwin":
-                raise unittest.SkipTest("Byte-offset decompression is known to be buggy on MacOS-CPU")
+                raise unittest.SkipTest(
+                    "Byte-offset decompression is known to be buggy on MacOS-CPU"
+                )
             else:
                 raise err
         t0 = time.time()
@@ -132,9 +137,11 @@ class TestByteOffset(unittest.TestCase):
         delta_cl = abs(ref.ravel() - res_cl.get()).max()
         self.assertEqual(delta_cy, 0, "Checks fabio works")
         self.assertEqual(delta_cl, 0, "Checks opencl works")
-        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0),
-                     1000.0 * (t2 - t1))
+        logger.debug(
+            "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+            1000.0 * (t1 - t0),
+            1000.0 * (t2 - t1),
+        )
 
         for i in range(ntest):
             ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
@@ -149,9 +156,11 @@ class TestByteOffset(unittest.TestCase):
             self.assertEqual(delta_cy, 0, "Checks fabio works #%i" % i)
             self.assertEqual(delta_cl, 0, "Checks opencl works #%i" % i)
 
-            logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                         1000.0 * (t1 - t0),
-                         1000.0 * (t2 - t1))
+            logger.debug(
+                "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                1000.0 * (t1 - t0),
+                1000.0 * (t2 - t1),
+            )
         bo.log_profile(stats=True)
 
     def test_encode(self):
@@ -171,8 +180,7 @@ class TestByteOffset(unittest.TestCase):
         compressed_stream = compressed_array.get().tobytes()
         self.assertEqual(raw, compressed_stream)
 
-        logger.debug("Global execution time: OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0))
+        logger.debug("Global execution time: OpenCL: %.3fms.", 1000.0 * (t1 - t0))
         bo.log_profile()
 
     def test_encode_to_array(self):
@@ -222,14 +230,15 @@ class TestByteOffset(unittest.TestCase):
 
         self.assertEqual(raw, compressed_stream)
 
-        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0),
-                     1000.0 * (t2 - t1))
+        logger.debug(
+            "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+            1000.0 * (t1 - t0),
+            1000.0 * (t2 - t1),
+        )
         bo.log_profile()
 
     def test_encode_to_bytes_from_array(self):
-        """Test byte offset compression to bytes from a pyopencl array.
-        """
+        """Test byte offset compression to bytes from a pyopencl array."""
         ref, raw = self._create_test_data(shape=(2713, 2719), nexcept=2729)
 
         try:
@@ -238,8 +247,7 @@ class TestByteOffset(unittest.TestCase):
             logger.warning(err)
             raise err
 
-        d_ref = pyopencl.array.to_device(
-            bo.queue, ref.astype(numpy.int32).ravel())
+        d_ref = pyopencl.array.to_device(bo.queue, ref.astype(numpy.int32).ravel())
 
         t0 = time.time()
         res_fabio = fabio.compression.compByteOffset(ref)
@@ -249,9 +257,11 @@ class TestByteOffset(unittest.TestCase):
 
         self.assertEqual(raw, compressed_stream)
 
-        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0),
-                     1000.0 * (t2 - t1))
+        logger.debug(
+            "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+            1000.0 * (t1 - t0),
+            1000.0 * (t2 - t1),
+        )
         bo.log_profile()
 
     def test_many_encode(self, ntest=10):
@@ -275,9 +285,11 @@ class TestByteOffset(unittest.TestCase):
         bo_durations.append(1000.0 * (t2 - t1))
 
         self.assertEqual(raw, compressed_stream)
-        logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                     1000.0 * (t1 - t0),
-                     1000.0 * (t2 - t1))
+        logger.debug(
+            "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+            1000.0 * (t1 - t0),
+            1000.0 * (t2 - t1),
+        )
 
         for i in range(ntest):
             ref, raw = self._create_test_data(shape=shape, nexcept=2729, lam=200)
@@ -290,11 +302,15 @@ class TestByteOffset(unittest.TestCase):
             bo_durations.append(1000.0 * (t2 - t1))
 
             self.assertEqual(raw, compressed_stream)
-            logger.debug("Global execution time: fabio %.3fms, OpenCL: %.3fms.",
-                         1000.0 * (t1 - t0),
-                         1000.0 * (t2 - t1))
+            logger.debug(
+                "Global execution time: fabio %.3fms, OpenCL: %.3fms.",
+                1000.0 * (t1 - t0),
+                1000.0 * (t2 - t1),
+            )
 
-        logger.debug("OpenCL execution time: Mean: %fms, Min: %fms, Max: %fms",
-                     numpy.mean(bo_durations),
-                     numpy.min(bo_durations),
-                     numpy.max(bo_durations))
+        logger.debug(
+            "OpenCL execution time: Mean: %fms, Min: %fms, Max: %fms",
+            numpy.mean(bo_durations),
+            numpy.min(bo_durations),
+            numpy.max(bo_durations),
+        )

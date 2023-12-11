@@ -152,15 +152,17 @@ class Histogramnd(object):
     Computes the multidimensional histogram of some data.
     """
 
-    def __init__(self,
-                 sample,
-                 histo_range,
-                 n_bins,
-                 weights=None,
-                 weight_min=None,
-                 weight_max=None,
-                 last_bin_closed=False,
-                 wh_dtype=None):
+    def __init__(
+        self,
+        sample,
+        histo_range,
+        n_bins,
+        weights=None,
+        weight_min=None,
+        weight_max=None,
+        last_bin_closed=False,
+        wh_dtype=None,
+    ):
         """
         :param sample:
             The data to be histogrammed.
@@ -240,14 +242,16 @@ class Histogramnd(object):
         if sample is None:
             self.__data = [None, None, None]
         else:
-            self.__data = _chistogramnd(sample,
-                                        self.__histo_range,
-                                        self.__n_bins,
-                                        weights=weights,
-                                        weight_min=weight_min,
-                                        weight_max=weight_max,
-                                        last_bin_closed=self.__last_bin_closed,
-                                        wh_dtype=self.__wh_dtype)
+            self.__data = _chistogramnd(
+                sample,
+                self.__histo_range,
+                self.__n_bins,
+                weights=weights,
+                weight_min=weight_min,
+                weight_max=weight_max,
+                last_bin_closed=self.__last_bin_closed,
+                wh_dtype=self.__wh_dtype,
+            )
 
     def __getitem__(self, key):
         """
@@ -263,11 +267,7 @@ class Histogramnd(object):
         """
         return self.__data[key]
 
-    def accumulate(self,
-                   sample,
-                   weights=None,
-                   weight_min=None,
-                   weight_max=None):
+    def accumulate(self, sample, weights=None, weight_min=None, weight_max=None):
         """
         Computes the multidimensional histogram of some data and accumulates it
         into the histogram held by this instance of Histogramnd.
@@ -315,16 +315,18 @@ class Histogramnd(object):
                 as *weights*.
         :type weight_max: *optional*, scalar
         """
-        result = _chistogramnd(sample,
-                               self.__histo_range,
-                               self.__n_bins,
-                               weights=weights,
-                               weight_min=weight_min,
-                               weight_max=weight_max,
-                               last_bin_closed=self.__last_bin_closed,
-                               histo=self.__data[0],
-                               weighted_histo=self.__data[1],
-                               wh_dtype=self.__wh_dtype)
+        result = _chistogramnd(
+            sample,
+            self.__histo_range,
+            self.__n_bins,
+            weights=weights,
+            weight_min=weight_min,
+            weight_max=weight_max,
+            last_bin_closed=self.__last_bin_closed,
+            histo=self.__data[0],
+            weighted_histo=self.__data[1],
+            wh_dtype=self.__wh_dtype,
+        )
         if self.__data[0] is None:
             self.__data = result
         elif self.__data[1] is None and result[1] is not None:
@@ -357,12 +359,7 @@ class HistogramndLut(object):
     share the same coordinates (*sample*) have to be mapped onto the same grid.
     """
 
-    def __init__(self,
-                 sample,
-                 histo_range,
-                 n_bins,
-                 last_bin_closed=False,
-                 dtype=None):
+    def __init__(self, sample, histo_range, n_bins, last_bin_closed=False, dtype=None):
         """
         :param sample:
             The coordinates of the data to be histogrammed.
@@ -397,10 +394,9 @@ class HistogramndLut(object):
             the LAST bin to be closed.
         :type last_bin_closed: *optional*, :class:`python.boolean`
         """
-        lut, histo, edges = _histo_get_lut(sample,
-                                           histo_range,
-                                           n_bins,
-                                           last_bin_closed=last_bin_closed)
+        lut, histo, edges = _histo_get_lut(
+            sample, histo_range, n_bins, last_bin_closed=last_bin_closed
+        )
 
         self.__n_bins = np.array(histo.shape)
         self.__histo_range = histo_range
@@ -477,10 +473,7 @@ class HistogramndLut(object):
         """
         return self.__last_bin_closed
 
-    def accumulate(self,
-                   weights,
-                   weight_min=None,
-                   weight_max=None):
+    def accumulate(self, weights, weight_min=None, weight_max=None):
         """
         Computes the multidimensional histogram of some data and adds it to
         the current histogram stored by this instance. The results can be
@@ -513,14 +506,16 @@ class HistogramndLut(object):
         if self.__dtype is None:
             self.__dtype = weights.dtype
 
-        histo, w_histo = _histo_from_lut(weights,
-                                         self.__lut,
-                                         histo=self.__histo,
-                                         weighted_histo=self.__weighted_histo,
-                                         shape=self.__shape,
-                                         dtype=self.__dtype,
-                                         weight_min=weight_min,
-                                         weight_max=weight_max)
+        histo, w_histo = _histo_from_lut(
+            weights,
+            self.__lut,
+            histo=self.__histo,
+            weighted_histo=self.__weighted_histo,
+            shape=self.__shape,
+            dtype=self.__dtype,
+            weight_min=weight_min,
+            weight_max=weight_max,
+        )
 
         if self.__histo is None:
             self.__histo = histo
@@ -528,12 +523,9 @@ class HistogramndLut(object):
         if self.__weighted_histo is None:
             self.__weighted_histo = w_histo
 
-    def apply_lut(self,
-                  weights,
-                  histo=None,
-                  weighted_histo=None,
-                  weight_min=None,
-                  weight_max=None):
+    def apply_lut(
+        self, weights, histo=None, weighted_histo=None, weight_min=None, weight_max=None
+    ):
         """
         Computes the multidimensional histogram of some data and returns the
         result (it is NOT added to the current histogram stored by this
@@ -577,16 +569,19 @@ class HistogramndLut(object):
                 as *weights*.
         :type weight_max: *optional*, scalar
         """
-        histo, w_histo = _histo_from_lut(weights,
-                                         self.__lut,
-                                         histo=histo,
-                                         weighted_histo=weighted_histo,
-                                         shape=self.__shape,
-                                         dtype=self.__dtype,
-                                         weight_min=weight_min,
-                                         weight_max=weight_max)
+        histo, w_histo = _histo_from_lut(
+            weights,
+            self.__lut,
+            histo=histo,
+            weighted_histo=weighted_histo,
+            shape=self.__shape,
+            dtype=self.__dtype,
+            weight_min=weight_min,
+            weight_max=weight_max,
+        )
         self.__dtype = w_histo.dtype
         return histo, w_histo
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pass

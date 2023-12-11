@@ -120,7 +120,6 @@ class CheckPopup(object):
 
 
 class CheckWindowsPopup_NetworkDeviceDiscovery(CheckPopup):
-
     platform = "win32"
     name = "network device discovery"
 
@@ -141,7 +140,6 @@ class CheckWindowsPopup_NetworkDeviceDiscovery(CheckPopup):
 
 
 class CheckMacOsXPopup_NameAsBeenChanged(CheckPopup):
-
     platform = "darwin"
     name = "computer renamed"
 

@@ -63,6 +63,7 @@ _FONT_STYLES = {
     qt.QFont.StyleOblique: "oblique",
 }
 
+
 def qFontToFontProperties(font: qt.QFont):
     """Convert a QFont to a matplotlib FontProperties"""
     weightFactor = 10 if qt.BINDING == "PyQt5" else 1

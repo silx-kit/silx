@@ -47,6 +47,7 @@ from ..processing import OpenclProcessing
 from ..utils import calc_size, get_opencl_code
 from .utils import matching_correction
 import logging
+
 logger = logging.getLogger(__name__)
 
 from .match import MatchPlan
@@ -75,18 +76,28 @@ def transform_pts(matrix, offset, x, y):
 
 
 class LinearAlign(OpenclProcessing):
-    """Align images on a reference image based on an afine transformation (bi-linear + offset)
-    """
+    """Align images on a reference image based on an afine transformation (bi-linear + offset)"""
+
     kernel_files = {"transform": 128}
 
-    def __init__(self, image, mask=None, extra=0, init_sigma=None,
-                 ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False):
+    def __init__(
+        self,
+        image,
+        mask=None,
+        extra=0,
+        init_sigma=None,
+        ctx=None,
+        devicetype="all",
+        platformid=None,
+        deviceid=None,
+        block_size=None,
+        profile=False,
+    ):
         """
         Constructor of the class
 
         :param image: reference image on which other image should be aligned
-        :param mask: masked out region of the image 
+        :param mask: masked out region of the image
         :param devicetype: Kind of preferred devce
         :param profile:collect profiling information ?
         :param device: 2-tuple of integer. see clinfo
@@ -95,12 +106,15 @@ class LinearAlign(OpenclProcessing):
         :param extra: extra space around the image, can be an integer, or a 2 tuple in YX convention: TODO!
         :param init_sigma: blurring width, you should have good reasons to modify the 1.6 default value...
         """
-        OpenclProcessing.__init__(self, ctx=ctx,
-                                  devicetype=devicetype,
-                                  platformid=platformid,
-                                  deviceid=deviceid,
-                                  block_size=block_size,
-                                  profile=profile)
+        OpenclProcessing.__init__(
+            self,
+            ctx=ctx,
+            devicetype=devicetype,
+            platformid=platformid,
+            deviceid=deviceid,
+            block_size=block_size,
+            profile=profile,
+        )
         self.ref = numpy.ascontiguousarray(image)
         self.cl_mem = {}
         self.shape = image.shape
@@ -110,26 +124,45 @@ class LinearAlign(OpenclProcessing):
         elif len(self.shape) == 2:
             self.RGB = False
         else:
-            raise RuntimeError("Unable to process image of shape %s" % (tuple(self.shape,)))
+            raise RuntimeError(
+                "Unable to process image of shape %s"
+                % (
+                    tuple(
+                        self.shape,
+                    )
+                )
+            )
         if "__len__" not in dir(extra):
             self.extra = (int(extra), int(extra))
         else:
             self.extra = extra[:2]
         self.outshape = tuple(i + 2 * j for i, j in zip(self.shape, self.extra))
         self.mask = mask
-        self.sift = SiftPlan(template=image, ctx=self.ctx, profile=self.profile,
-                             block_size=self.block_size, init_sigma=init_sigma)
+        self.sift = SiftPlan(
+            template=image,
+            ctx=self.ctx,
+            profile=self.profile,
+            block_size=self.block_size,
+            init_sigma=init_sigma,
+        )
         self.ref_kp = self.sift.keypoints(image)
         # TODO: move to SIFT
         if self.mask is not None:
             kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
             kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
             masked = self.mask[(kpy, kpx)].astype(bool)
-            logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
+            logger.warning(
+                "Reducing keypoint list from %i to %i because of the ROI"
+                % (self.ref_kp.size, masked.sum())
+            )
             self.ref_kp = self.ref_kp[masked]
-        self.match = MatchPlan(ctx=self.ctx, profile=self.profile, block_size=self.block_size)
-#        Allocate reference keypoints on the GPU within match context:
-        self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
+        self.match = MatchPlan(
+            ctx=self.ctx, profile=self.profile, block_size=self.block_size
+        )
+        #        Allocate reference keypoints on the GPU within match context:
+        self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(
+            self.match.queue, self.ref_kp
+        )
         # TODO optimize match so that the keypoint2 can be optional
         self.fill_value = 0
         self.wg = {}
@@ -153,13 +186,25 @@ class LinearAlign(OpenclProcessing):
         All buffers are allocated here
         """
         if self.RGB:
-            self.cl_mem["input"] = pyopencl.array.empty(self.queue, shape=self.shape + (3,), dtype=numpy.uint8)
-            self.cl_mem["output"] = pyopencl.array.empty(self.queue, shape=self.outshape + (3,), dtype=numpy.uint8)
+            self.cl_mem["input"] = pyopencl.array.empty(
+                self.queue, shape=self.shape + (3,), dtype=numpy.uint8
+            )
+            self.cl_mem["output"] = pyopencl.array.empty(
+                self.queue, shape=self.outshape + (3,), dtype=numpy.uint8
+            )
         else:
-            self.cl_mem["input"] = pyopencl.array.empty(self.queue, shape=self.shape, dtype=numpy.float32)
-            self.cl_mem["output"] = pyopencl.array.empty(self.queue, shape=self.outshape, dtype=numpy.float32)
-        self.cl_mem["matrix"] = pyopencl.array.empty(self.queue, shape=(2, 2), dtype=numpy.float32)
-        self.cl_mem["offset"] = pyopencl.array.empty(self.queue, shape=(1, 2), dtype=numpy.float32)
+            self.cl_mem["input"] = pyopencl.array.empty(
+                self.queue, shape=self.shape, dtype=numpy.float32
+            )
+            self.cl_mem["output"] = pyopencl.array.empty(
+                self.queue, shape=self.outshape, dtype=numpy.float32
+            )
+        self.cl_mem["matrix"] = pyopencl.array.empty(
+            self.queue, shape=(2, 2), dtype=numpy.float32
+        )
+        self.cl_mem["offset"] = pyopencl.array.empty(
+            self.queue, shape=(1, 2), dtype=numpy.float32
+        )
 
     def _free_buffers(self):
         """
@@ -179,8 +224,10 @@ class LinearAlign(OpenclProcessing):
         """
         kernel_src = [os.path.join("sift", kernel) for kernel in self.kernel_files]
         OpenclProcessing.compile_kernels(self, kernel_src)
-        bs = min(self.kernel_files["transform"],
-                 min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()))
+        bs = min(
+            self.kernel_files["transform"],
+            min(self.check_workgroup_size(kn) for kn in self.kernels.get_kernels()),
+        )
         if self.block_size is not None:
             bs = min(self.block_size, bs)
         device = self.ctx.devices[0]
@@ -207,7 +254,15 @@ class LinearAlign(OpenclProcessing):
         """
         self.program = None
 
-    def align(self, img, shift_only=False, return_all=False, double_check=False, relative=False, orsa=False):
+    def align(
+        self,
+        img,
+        shift_only=False,
+        return_all=False,
+        double_check=False,
+        relative=False,
+        orsa=False,
+    ):
         """
         Align image on reference image
 
@@ -227,12 +282,16 @@ class LinearAlign(OpenclProcessing):
                 self.events.append(("Copy H->D", cpy))
             cpy.wait()
             kp = self.sift.keypoints(self.cl_mem["input"])
-#            print("ref %s img %s" % (self.cl_mem["ref_kp_gpu"].shape, kp.shape))
+            #            print("ref %s img %s" % (self.cl_mem["ref_kp_gpu"].shape, kp.shape))
             logger.debug("mod image keypoints: %s" % kp.size)
-            raw_matching = self.match.match(self.cl_mem["ref_kp_gpu"], kp, raw_results=True)
-#            print(raw_matching.max(axis=0))
+            raw_matching = self.match.match(
+                self.cl_mem["ref_kp_gpu"], kp, raw_results=True
+            )
+            #            print(raw_matching.max(axis=0))
 
-            matching = numpy.recarray(shape=raw_matching.shape, dtype=MatchPlan.dtype_kp)
+            matching = numpy.recarray(
+                shape=raw_matching.shape, dtype=MatchPlan.dtype_kp
+            )
             len_match = raw_matching.shape[0]
             if len_match == 0:
                 logger.warning("No matching keypoints")
@@ -254,16 +313,22 @@ class LinearAlign(OpenclProcessing):
                 dx = matching[:, 1].x - matching[:, 0].x
                 dy = matching[:, 1].y - matching[:, 0].y
                 matrix = numpy.identity(2, dtype=numpy.float32)
-                offset = numpy.array([+numpy.median(dy), +numpy.median(dx)], numpy.float32)
+                offset = numpy.array(
+                    [+numpy.median(dy), +numpy.median(dx)], numpy.float32
+                )
             else:
                 logger.debug("Common keypoints: %s" % len_match)
 
                 transform_matrix = matching_correction(matching)
-                offset = numpy.array([transform_matrix[5], transform_matrix[2]], dtype=numpy.float32)
+                offset = numpy.array(
+                    [transform_matrix[5], transform_matrix[2]], dtype=numpy.float32
+                )
                 matrix = numpy.empty((2, 2), dtype=numpy.float32)
                 matrix[0, 0], matrix[0, 1] = transform_matrix[4], transform_matrix[3]
                 matrix[1, 0], matrix[1, 1] = transform_matrix[1], transform_matrix[0]
-            if double_check and (len_match >= 3 * 6):  # and abs(matrix - numpy.identity(2)).max() > 0.1:
+            if double_check and (
+                len_match >= 3 * 6
+            ):  # and abs(matrix - numpy.identity(2)).max() > 0.1:
                 logger.warning("Validating keypoints, %s,%s" % (matrix, offset))
                 dx = matching[:, 1].x - matching[:, 0].x
                 dy = matching[:, 1].y - matching[:, 0].y
@@ -278,19 +343,32 @@ class LinearAlign(OpenclProcessing):
                 if outlayersum > 0 and not numpy.isinf(outlayersum):
                     matching2 = matching[outlayer == 0]
                     transform_matrix = matching_correction(matching2)
-                    offset = numpy.array([transform_matrix[5], transform_matrix[2]], dtype=numpy.float32)
+                    offset = numpy.array(
+                        [transform_matrix[5], transform_matrix[2]], dtype=numpy.float32
+                    )
                     matrix = numpy.empty((2, 2), dtype=numpy.float32)
-                    matrix[0, 0], matrix[0, 1] = transform_matrix[4], transform_matrix[3]
-                    matrix[1, 0], matrix[1, 1] = transform_matrix[1], transform_matrix[0]
+                    matrix[0, 0], matrix[0, 1] = (
+                        transform_matrix[4],
+                        transform_matrix[3],
+                    )
+                    matrix[1, 0], matrix[1, 1] = (
+                        transform_matrix[1],
+                        transform_matrix[0],
+                    )
             if relative:  # update stable part to perform a relative alignment
                 self.ref_kp = kp
                 if self.mask is not None:
                     kpx = numpy.round(self.ref_kp.x).astype(numpy.int32)
                     kpy = numpy.round(self.ref_kp.y).astype(numpy.int32)
                     masked = self.mask[(kpy, kpx)].astype(bool)
-                    logger.warning("Reducing keypoint list from %i to %i because of the ROI" % (self.ref_kp.size, masked.sum()))
+                    logger.warning(
+                        "Reducing keypoint list from %i to %i because of the ROI"
+                        % (self.ref_kp.size, masked.sum())
+                    )
                     self.ref_kp = self.ref_kp[masked]
-                self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(self.match.queue, self.ref_kp)
+                self.cl_mem["ref_kp_gpu"] = pyopencl.array.to_device(
+                    self.match.queue, self.ref_kp
+                )
                 transfo = numpy.zeros((3, 3), dtype=numpy.float64)
                 transfo[:2, :2] = matrix
                 transfo[0, 2] = offset[0]
@@ -300,8 +378,12 @@ class LinearAlign(OpenclProcessing):
                     self.relative_transfo = transfo
                 else:
                     self.relative_transfo = numpy.dot(transfo, self.relative_transfo)
-                matrix = numpy.ascontiguousarray(self.relative_transfo[:2, :2], dtype=numpy.float32)
-                offset = numpy.ascontiguousarray(self.relative_transfo[:2, 2], dtype=numpy.float32)
+                matrix = numpy.ascontiguousarray(
+                    self.relative_transfo[:2, :2], dtype=numpy.float32
+                )
+                offset = numpy.ascontiguousarray(
+                    self.relative_transfo[:2, 2], dtype=numpy.float32
+                )
             cpy1 = pyopencl.enqueue_copy(self.queue, self.cl_mem["matrix"].data, matrix)
             cpy2 = pyopencl.enqueue_copy(self.queue, self.cl_mem["offset"].data, offset)
             if self.profile:
@@ -315,17 +397,21 @@ class LinearAlign(OpenclProcessing):
                 shape = self.shape[1], self.shape[0]
                 kname = "transform"
             transform = self.kernels.get_kernel(kname)
-            ev = transform(self.queue, calc_size(shape, self.wg[kname]), self.wg[kname],
-                           self.cl_mem["input"].data,
-                           self.cl_mem["output"].data,
-                           self.cl_mem["matrix"].data,
-                           self.cl_mem["offset"].data,
-                           numpy.int32(self.shape[1]),
-                           numpy.int32(self.shape[0]),
-                           numpy.int32(self.outshape[1]),
-                           numpy.int32(self.outshape[0]),
-                           self.sift.cl_mem["min"].get()[0],
-                           numpy.int32(1))
+            ev = transform(
+                self.queue,
+                calc_size(shape, self.wg[kname]),
+                self.wg[kname],
+                self.cl_mem["input"].data,
+                self.cl_mem["output"].data,
+                self.cl_mem["matrix"].data,
+                self.cl_mem["offset"].data,
+                numpy.int32(self.shape[1]),
+                numpy.int32(self.shape[0]),
+                numpy.int32(self.outshape[1]),
+                numpy.int32(self.outshape[0]),
+                self.sift.cl_mem["min"].get()[0],
+                numpy.int32(1),
+            )
             if self.profile:
                 self.events += [(kname, ev)]
             result = self.cl_mem["output"].get()
@@ -333,11 +419,22 @@ class LinearAlign(OpenclProcessing):
         if return_all:
             # corr = numpy.dot(matrix, numpy.vstack((matching[:, 1].y, matching[:, 1].x))).T - \
             #        offset.T - numpy.vstack((matching[:, 0].y, matching[:, 0].x)).T
-            corr = numpy.dot(matrix, numpy.vstack((matching[:, 0].y, matching[:, 0].x))).T + offset.T - numpy.vstack((matching[:, 1].y, matching[:, 1].x)).T
+            corr = (
+                numpy.dot(matrix, numpy.vstack((matching[:, 0].y, matching[:, 0].x))).T
+                + offset.T
+                - numpy.vstack((matching[:, 1].y, matching[:, 1].x)).T
+            )
             rms = numpy.sqrt((corr * corr).sum(axis=-1).mean())
 
             # Todo: calculate the RMS of deplacement and return it:
-            return {"result": result, "keypoint": kp, "matching": matching, "offset": offset, "matrix": matrix, "rms": rms}
+            return {
+                "result": result,
+                "keypoint": kp,
+                "matching": matching,
+                "offset": offset,
+                "matrix": matrix,
+                "rms": rms,
+            }
         return result
 
     __call__ = align

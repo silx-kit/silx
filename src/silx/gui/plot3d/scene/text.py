@@ -62,24 +62,20 @@ class Font(event.Notifier):
         super(Font, self).__init__()
 
     name = event.notifyProperty(
-        '_name',
-        doc="""Name of the font (str)""",
-        converter=str)
+        "_name", doc="""Name of the font (str)""", converter=str
+    )
 
     size = event.notifyProperty(
-        '_size',
-        doc="""Font size in points (int)""",
-        converter=int)
+        "_size", doc="""Font size in points (int)""", converter=int
+    )
 
     weight = event.notifyProperty(
-        '_weight',
-        doc="""Font size in points (int)""",
-        converter=int)
+        "_weight", doc="""Font size in points (int)""", converter=int
+    )
 
     italic = event.notifyProperty(
-        '_italic',
-        doc="""True for italic (bool)""",
-        converter=bool)
+        "_italic", doc="""True for italic (bool)""", converter=bool
+    )
 
 
 class Text2D(primitives.Geometry):
@@ -90,14 +86,14 @@ class Text2D(primitives.Geometry):
     """
 
     # Text anchor values
-    CENTER = 'center'
+    CENTER = "center"
 
-    LEFT = 'left'
-    RIGHT = 'right'
+    LEFT = "left"
+    RIGHT = "right"
 
-    TOP = 'top'
-    BASELINE = 'baseline'
-    BOTTOM = 'bottom'
+    TOP = "top"
+    BASELINE = "baseline"
+    BOTTOM = "bottom"
 
     _ALIGN = LEFT, CENTER, RIGHT
     _VALIGN = TOP, BASELINE, CENTER, BOTTOM
@@ -106,30 +102,31 @@ class Text2D(primitives.Geometry):
     """Internal cache storing already rasterized text"""
     # TODO limit cache size and discard least recent used
 
-    def __init__(self, text='', font=None):
+    def __init__(self, text="", font=None):
         self._dirtyTexture = True
         self._dirtyAlign = True
         self._baselineOffset = 0
         self._text = text
         self._font = font if font is not None else Font()
-        self._foreground = 1., 1., 1., 1.
-        self._background = 0., 0., 0., 0.
+        self._foreground = 1.0, 1.0, 1.0, 1.0
+        self._background = 0.0, 0.0, 0.0, 0.0
         self._overlay = False
-        self._align = 'left'
-        self._valign = 'baseline'
+        self._align = "left"
+        self._valign = "baseline"
         self._devicePixelRatio = 1.0  # Store it to check for changes
 
         self._texture = None
         self._textureDirty = True
 
         super(Text2D, self).__init__(
-            'triangle_strip',
+            "triangle_strip",
             copy=False,
             # Keep an array for position as it is bound to attr 0 and MUST
             # be active and an array at least on Mac OS X
             position=numpy.zeros((4, 3), dtype=numpy.float32),
-            vertexID=numpy.arange(4., dtype=numpy.float32).reshape(4, 1),
-            offsetInViewportCoords=(0., 0.))
+            vertexID=numpy.arange(4.0, dtype=numpy.float32).reshape(4, 1),
+            offsetInViewportCoords=(0.0, 0.0),
+        )
 
     @property
     def text(self):
@@ -162,18 +159,22 @@ class Text2D(primitives.Geometry):
         self.notify()
 
     foreground = event.notifyProperty(
-        '_foreground', doc="""RGBA color of the text: 4 float in [0, 1]""",
-        converter=rgba)
+        "_foreground",
+        doc="""RGBA color of the text: 4 float in [0, 1]""",
+        converter=rgba,
+    )
 
     background = event.notifyProperty(
-        '_background',
+        "_background",
         doc="RGBA background color of the text field: 4 float in [0, 1]",
-        converter=rgba)
+        converter=rgba,
+    )
 
     overlay = event.notifyProperty(
-        '_overlay',
+        "_overlay",
         doc="True to always display text on top of the scene (default: False)",
-        converter=bool)
+        converter=bool,
+    )
 
     def _setAlign(self, align):
         assert align in self._ALIGN
@@ -186,7 +187,8 @@ class Text2D(primitives.Geometry):
         _setAlign,
         doc="""Horizontal anchor position of the text field (str).
 
-        Either 'left' (default), 'center' or 'right'.""")
+        Either 'left' (default), 'center' or 'right'.""",
+    )
 
     def _setVAlign(self, valign):
         assert valign in self._VALIGN
@@ -199,7 +201,8 @@ class Text2D(primitives.Geometry):
         _setVAlign,
         doc="""Vertical anchor position of the text field (str).
 
-        Either 'top', 'baseline' (default), 'center' or 'bottom'""")
+        Either 'top', 'baseline' (default), 'center' or 'bottom'""",
+    )
 
     def _raster(self, devicePixelRatio):
         """Raster current primitive to a bitmap
@@ -209,12 +212,14 @@ class Text2D(primitives.Geometry):
         :return: Corresponding image in grayscale and baseline offset from top
         :rtype: (HxW numpy.ndarray of uint8, int)
         """
-        params = (self.text,
-                  self.font.name,
-                  self.font.size,
-                  self.font.weight,
-                  self.font.italic,
-                  devicePixelRatio)
+        params = (
+            self.text,
+            self.font.name,
+            self.font.size,
+            self.font.weight,
+            self.font.italic,
+            devicePixelRatio,
+        )
 
         if params not in self._rasterTextCache:  # Add to cache
             self._rasterTextCache[params] = _font.rasterText(*params)
@@ -241,13 +246,15 @@ class Text2D(primitives.Geometry):
             self._baselineOffset = 0
 
             if self.text:
-                image, self._baselineOffset = self._raster(
-                    self._devicePixelRatio)
+                image, self._baselineOffset = self._raster(self._devicePixelRatio)
                 self._texture = _glutils.Texture(
-                    gl.GL_R8, image, gl.GL_RED,
+                    gl.GL_R8,
+                    image,
+                    gl.GL_RED,
                     minFilter=gl.GL_NEAREST,
                     magFilter=gl.GL_NEAREST,
-                    wrap=gl.GL_CLAMP_TO_EDGE)
+                    wrap=gl.GL_CLAMP_TO_EDGE,
+                )
                 self._texture.prepare()
                 self._dirtyAlign = True  # To force update of offset
 
@@ -257,32 +264,33 @@ class Text2D(primitives.Geometry):
             if self._texture is not None:
                 height, width = self._texture.shape
 
-                if self._align == 'left':
-                    ox = 0.
-                elif self._align == 'center':
-                    ox = - width // 2
-                elif self._align == 'right':
-                    ox = - width
+                if self._align == "left":
+                    ox = 0.0
+                elif self._align == "center":
+                    ox = -width // 2
+                elif self._align == "right":
+                    ox = -width
                 else:
                     _logger.error("Unsupported align: %s", self._align)
-                    ox = 0.
+                    ox = 0.0
 
-                if self._valign == 'top':
-                    oy = 0.
-                elif self._valign == 'baseline':
+                if self._valign == "top":
+                    oy = 0.0
+                elif self._valign == "baseline":
                     oy = self._baselineOffset
-                elif self._valign == 'center':
+                elif self._valign == "center":
                     oy = height // 2
-                elif self._valign == 'bottom':
+                elif self._valign == "bottom":
                     oy = height
                 else:
                     _logger.error("Unsupported valign: %s", self._valign)
-                    oy = 0.
+                    oy = 0.0
 
                 offsets = (ox, oy) + numpy.array(
-                    ((0., 0.), (width, 0.), (0., -height), (width, -height)),
-                    dtype=numpy.float32)
-                self.setAttribute('offsetInViewportCoords', offsets)
+                    ((0.0, 0.0), (width, 0.0), (0.0, -height), (width, -height)),
+                    dtype=numpy.float32,
+                )
+                self.setAttribute("offsetInViewportCoords", offsets)
 
         super(Text2D, self).prepareGL2(context)
 
@@ -293,14 +301,12 @@ class Text2D(primitives.Geometry):
         program = context.glCtx.prog(*self._shaders)
         program.use()
 
-        program.setUniformMatrix('matrix', context.objectToNDC.matrix)
-        gl.glUniform2f(
-            program.uniforms['viewportSize'], *context.viewport.size)
-        gl.glUniform4f(program.uniforms['foreground'], *self.foreground)
-        gl.glUniform4f(program.uniforms['background'], *self.background)
-        gl.glUniform1i(program.uniforms['texture'], self._texture.texUnit)
-        gl.glUniform1i(program.uniforms['isOverlay'],
-                       1 if self._overlay else 0)
+        program.setUniformMatrix("matrix", context.objectToNDC.matrix)
+        gl.glUniform2f(program.uniforms["viewportSize"], *context.viewport.size)
+        gl.glUniform4f(program.uniforms["foreground"], *self.foreground)
+        gl.glUniform4f(program.uniforms["background"], *self.background)
+        gl.glUniform1i(program.uniforms["texture"], self._texture.texUnit)
+        gl.glUniform1i(program.uniforms["isOverlay"], 1 if self._overlay else 0)
 
         self._texture.bind()
 
@@ -351,7 +357,6 @@ class Text2D(primitives.Geometry):
                          vertexID < 1.5 ? 0.0 : 1.0);
     }
     """,  # noqa
-
         """
     varying vec2 texCoords;
 
@@ -373,12 +378,12 @@ class Text2D(primitives.Geometry):
             }
         }
     }
-    """)
+    """,
+    )
 
 
 class LabelledAxes(primitives.GroupBBox):
-    """A group displaying a bounding box with axes labels around its children.
-    """
+    """A group displaying a bounding box with axes labels around its children."""
 
     def __init__(self):
         super(LabelledAxes, self).__init__()
@@ -389,26 +394,23 @@ class LabelledAxes(primitives.GroupBBox):
         # TODO offset labels from anchor in pixels
 
         self._xlabel = Text2D(font=self._font)
-        self._xlabel.align = 'center'
-        self._xlabel.transforms = [self._boxTransforms,
-                                   transform.Translate(tx=0.5)]
+        self._xlabel.align = "center"
+        self._xlabel.transforms = [self._boxTransforms, transform.Translate(tx=0.5)]
         self._children.append(self._xlabel)
 
         self._ylabel = Text2D(font=self._font)
-        self._ylabel.align = 'center'
-        self._ylabel.transforms = [self._boxTransforms,
-                                   transform.Translate(ty=0.5)]
+        self._ylabel.align = "center"
+        self._ylabel.transforms = [self._boxTransforms, transform.Translate(ty=0.5)]
         self._children.append(self._ylabel)
 
         self._zlabel = Text2D(font=self._font)
-        self._zlabel.align = 'center'
-        self._zlabel.transforms = [self._boxTransforms,
-                                   transform.Translate(tz=0.5)]
+        self._zlabel.align = "center"
+        self._zlabel.transforms = [self._boxTransforms, transform.Translate(tz=0.5)]
         self._children.append(self._zlabel)
 
         self._tickLines = primitives.Lines(  # Init tick lines with dummy pos
-            positions=((0., 0., 0.), (0., 0., 0.)),
-            mode='lines')
+            positions=((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)), mode="lines"
+        )
         self._tickLines.visible = False
         self._children.append(self._tickLines)
 
@@ -465,13 +467,14 @@ class LabelledAxes(primitives.GroupBBox):
                 self._tickLines.visible = False
                 self._tickLabels.children = []  # Reset previous labels
 
-        elif (self._ticksForBounds is None or
-                not numpy.all(numpy.equal(bounds, self._ticksForBounds))):
+        elif self._ticksForBounds is None or not numpy.all(
+            numpy.equal(bounds, self._ticksForBounds)
+        ):
             self._ticksForBounds = bounds
 
             # Update ticks
             # TODO make ticks having a constant length on the screen
-            ticklength = numpy.abs(bounds[1] - bounds[0]) / 20.
+            ticklength = numpy.abs(bounds[1] - bounds[0]) / 20.0
 
             xticks, xlabels = ticklayout.ticks(*bounds[:, 0])
             yticks, ylabels = ticklayout.ticks(*bounds[:, 1])
@@ -479,26 +482,26 @@ class LabelledAxes(primitives.GroupBBox):
 
             # Update tick lines
             coords = numpy.empty(
-                ((len(xticks) + len(yticks) + len(zticks)), 4, 3),
-                dtype=numpy.float32)
+                ((len(xticks) + len(yticks) + len(zticks)), 4, 3), dtype=numpy.float32
+            )
             coords[:, :, :] = bounds[0, :]  # account for offset from origin
 
-            xcoords = coords[:len(xticks)]
+            xcoords = coords[: len(xticks)]
             xcoords[:, :, 0] = numpy.asarray(xticks)[:, numpy.newaxis]
             xcoords[:, 1, 1] += ticklength[1]  # X ticks on XY plane
             xcoords[:, 3, 2] += ticklength[2]  # X ticks on XZ plane
 
-            ycoords = coords[len(xticks):len(xticks) + len(yticks)]
+            ycoords = coords[len(xticks) : len(xticks) + len(yticks)]
             ycoords[:, :, 1] = numpy.asarray(yticks)[:, numpy.newaxis]
             ycoords[:, 1, 0] += ticklength[0]  # Y ticks on XY plane
             ycoords[:, 3, 2] += ticklength[2]  # Y ticks on YZ plane
 
-            zcoords = coords[len(xticks) + len(yticks):]
+            zcoords = coords[len(xticks) + len(yticks) :]
             zcoords[:, :, 2] = numpy.asarray(zticks)[:, numpy.newaxis]
             zcoords[:, 1, 0] += ticklength[0]  # Z ticks on XZ plane
             zcoords[:, 3, 1] += ticklength[1]  # Z ticks on YZ plane
 
-            self._tickLines.setAttribute('position', coords.reshape(-1, 3))
+            self._tickLines.setAttribute("position", coords.reshape(-1, 3))
             self._tickLines.visible = True
 
             # Update labels
@@ -506,23 +509,26 @@ class LabelledAxes(primitives.GroupBBox):
             labels = []
             for tick, label in zip(xticks, xlabels):
                 text = Text2D(text=label, font=self.font)
-                text.align = 'center'
-                text.transforms = [transform.Translate(
-                    tx=tick, ty=offsets[1], tz=offsets[2])]
+                text.align = "center"
+                text.transforms = [
+                    transform.Translate(tx=tick, ty=offsets[1], tz=offsets[2])
+                ]
                 labels.append(text)
 
             for tick, label in zip(yticks, ylabels):
                 text = Text2D(text=label, font=self.font)
-                text.align = 'center'
-                text.transforms = [transform.Translate(
-                    tx=offsets[0], ty=tick, tz=offsets[2])]
+                text.align = "center"
+                text.transforms = [
+                    transform.Translate(tx=offsets[0], ty=tick, tz=offsets[2])
+                ]
                 labels.append(text)
 
             for tick, label in zip(zticks, zlabels):
                 text = Text2D(text=label, font=self.font)
-                text.align = 'center'
-                text.transforms = [transform.Translate(
-                    tx=offsets[0], ty=offsets[1], tz=tick)]
+                text.align = "center"
+                text.transforms = [
+                    transform.Translate(tx=offsets[0], ty=offsets[1], tz=tick)
+                ]
                 labels.append(text)
 
             self._tickLabels.children = labels  # Reset previous labels

@@ -53,17 +53,19 @@ def createTestData():
 def createParser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--debug',
+        "--debug",
         dest="debug",
         action="store_true",
         default=False,
-        help='Set logging system in debug mode')
+        help="Set logging system in debug mode",
+    )
     parser.add_argument(
-        '--use-opengl-plot',
+        "--use-opengl-plot",
         dest="use_opengl_plot",
         action="store_true",
         default=False,
-        help='Use OpenGL for plots (instead of matplotlib)')
+        help="Use OpenGL for plots (instead of matplotlib)",
+    )
     return parser
 
 

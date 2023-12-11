@@ -69,8 +69,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
         :param silx.gui.plot.items.Curve curve:
         """
         plot = curve.getPlot()
-        plot.setActiveCurve(
-            curve.getName() if curve != plot.getActiveCurve() else None)
+        plot.setActiveCurve(curve.getName() if curve != plot.getActiveCurve() else None)
 
     def _switchCurveVisibility(self, curve):
         """Toggle the visibility of a curve
@@ -85,7 +84,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
         :param silx.gui.plot.items.Curve curve:
         """
         yaxis = curve.getYAxis()
-        curve.setYAxis('left' if yaxis == 'right' else 'right')
+        curve.setYAxis("left" if yaxis == "right" else "right")
 
     def _contextMenu(self, pos):
         """Create a show the context menu.
@@ -98,17 +97,22 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
 
             # Add an action to activate the curve
             activeCurve = curve.getPlot().getActiveCurve()
-            menu.addAction('Unselect' if curve == activeCurve else 'Select',
-                           functools.partial(self._switchCurveActive, curve))
+            menu.addAction(
+                "Unselect" if curve == activeCurve else "Select",
+                functools.partial(self._switchCurveActive, curve),
+            )
 
             # Add an action to switch the Y axis of a curve
-            yaxis = 'right' if curve.getYAxis() == 'left' else 'left'
-            menu.addAction('Map to %s' % yaxis,
-                           functools.partial(self._switchCurveYAxis, curve))
+            yaxis = "right" if curve.getYAxis() == "left" else "left"
+            menu.addAction(
+                "Map to %s" % yaxis, functools.partial(self._switchCurveYAxis, curve)
+            )
 
             # Add an action to show/hide the curve
-            menu.addAction('Hide' if curve.isVisible() else 'Show',
-                           functools.partial(self._switchCurveVisibility, curve))
+            menu.addAction(
+                "Hide" if curve.isVisible() else "Show",
+                functools.partial(self._switchCurveVisibility, curve),
+            )
 
             globalPosition = self.mapToGlobal(pos)
             menu.exec(globalPosition)
@@ -122,18 +126,16 @@ window = Plot1D()
 window.setWindowTitle("CurveLegendWidgets demo")
 
 x = numpy.linspace(-numpy.pi, numpy.pi, 100)
-window.addCurve(x, 2. * numpy.random.random(100) - 1.,
-                legend='random',
-                symbol='s', linestyle='--',
-                color='red')
-window.addCurve(x, numpy.sin(x),
-                legend='sin',
-                symbol='o', linestyle=':',
-                color='blue')
-window.addCurve(x, numpy.cos(x),
-                legend='cos',
-                symbol='', linestyle='-',
-                color='blue')
+window.addCurve(
+    x,
+    2.0 * numpy.random.random(100) - 1.0,
+    legend="random",
+    symbol="s",
+    linestyle="--",
+    color="red",
+)
+window.addCurve(x, numpy.sin(x), legend="sin", symbol="o", linestyle=":", color="blue")
+window.addCurve(x, numpy.cos(x), legend="cos", symbol="", linestyle="-", color="blue")
 
 
 # Create a MyCurveLegendWidget associated to the plot
@@ -142,7 +144,7 @@ curveLegendsWidget.setPlotWidget(window)
 
 # Add the CurveLegendsWidget as a dock widget to the plot
 dock = BoxLayoutDockWidget()
-dock.setWindowTitle('Curve legends')
+dock.setWindowTitle("Curve legends")
 dock.setWidget(curveLegendsWidget)
 window.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 

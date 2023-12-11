@@ -33,7 +33,6 @@ import silx.test.utils
 
 
 class ConstrainedViewPlot(qt.QMainWindow):
-
     def __init__(self):
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Plot with constrained axes")
@@ -55,14 +54,14 @@ class ConstrainedViewPlot(qt.QMainWindow):
 
         self.plot2d = plot.Plot2D(parent=widget, backend=backend)
         self.plot2d.setGraphTitle("A pixel can't be too big")
-        self.plot2d.setInteractiveMode('pan')
+        self.plot2d.setInteractiveMode("pan")
         self.plot2d.addImage(data)
         self.plot2d.getXAxis().setRangeConstraints(minRange=10)
         self.plot2d.getYAxis().setRangeConstraints(minRange=10)
 
         self.plot2d2 = plot.Plot2D(parent=widget, backend=backend)
         self.plot2d2.setGraphTitle("The image can't be too small")
-        self.plot2d2.setInteractiveMode('pan')
+        self.plot2d2.setInteractiveMode("pan")
         self.plot2d2.addImage(data)
         self.plot2d2.getXAxis().setRangeConstraints(maxRange=200)
         self.plot2d2.getYAxis().setRangeConstraints(maxRange=200)
@@ -71,13 +70,17 @@ class ConstrainedViewPlot(qt.QMainWindow):
         self.plot1d.setGraphTitle("The curve is clamped into the view")
         self.plot1d.addCurve(x=numpy.arange(100), y=data1d, legend="mean")
         self.plot1d.getXAxis().setLimitsConstraints(minPos=0, maxPos=100)
-        self.plot1d.getYAxis().setLimitsConstraints(minPos=data1d.min(), maxPos=data1d.max())
+        self.plot1d.getYAxis().setLimitsConstraints(
+            minPos=data1d.min(), maxPos=data1d.max()
+        )
 
         self.plot1d2 = plot.Plot1D(parent=widget, backend=backend)
         self.plot1d2.setGraphTitle("Only clamp y-axis")
-        self.plot1d2.setInteractiveMode('pan')
+        self.plot1d2.setInteractiveMode("pan")
         self.plot1d2.addCurve(x=numpy.arange(100), y=data1d, legend="mean")
-        self.plot1d2.getYAxis().setLimitsConstraints(minPos=data1d.min(), maxPos=data1d.max())
+        self.plot1d2.getYAxis().setLimitsConstraints(
+            minPos=data1d.min(), maxPos=data1d.max()
+        )
 
         layout.addWidget(self.plot2d, 0, 0)
         layout.addWidget(self.plot1d, 0, 1)

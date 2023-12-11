@@ -44,14 +44,16 @@ from ..gui.colors import rgba
 _logger = logging.getLogger(__name__)
 
 
-def contour3d(scalars,
-              contours=1,
-              copy=True,
-              color=None,
-              colormap='viridis',
-              vmin=None,
-              vmax=None,
-              opacity=1.):
+def contour3d(
+    scalars,
+    contours=1,
+    copy=True,
+    color=None,
+    colormap="viridis",
+    vmin=None,
+    vmax=None,
+    opacity=1.0,
+):
     """
     Plot isosurfaces of a 3D scalar field in a :class:`~silx.gui.plot3d.ScalarFieldView.ScalarFieldView` widget.
 
@@ -132,7 +134,7 @@ def contour3d(scalars,
 
     # Prepare and apply opacity
     assert isinstance(opacity, float)
-    opacity = min(max(0., opacity), 1.)  # Clip opacity
+    opacity = min(max(0.0, opacity), 1.0)  # Clip opacity
     colors[:, -1] = (colors[:, -1] * opacity).astype(numpy.uint8)
 
     # Prepare widget
@@ -148,7 +150,7 @@ def contour3d(scalars,
 
     # Add the parameter tree to the main window in a dock widget
     dock = qt.QDockWidget(scalarField)
-    dock.setWindowTitle('Parameters')
+    dock.setWindowTitle("Parameters")
     dock.setWidget(treeView)
     scalarField.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
 
@@ -161,22 +163,26 @@ def contour3d(scalars,
 
 
 _POINTS3D_MODE_CONVERSION = {
-    '2dcircle': 'o',
-    '2dcross': 'x',
-    '2ddash': '_',
-    '2ddiamond': 'd',
-    '2dsquare': 's',
-    'point': ','
+    "2dcircle": "o",
+    "2dcross": "x",
+    "2ddash": "_",
+    "2ddiamond": "d",
+    "2dsquare": "s",
+    "point": ",",
 }
 
 
-def points3d(x, y, z=None,
-             values=0.,
-             copy=True,
-             colormap='viridis',
-             vmin=None,
-             vmax=None,
-             mode=None):
+def points3d(
+    x,
+    y,
+    z=None,
+    values=0.0,
+    copy=True,
+    colormap="viridis",
+    vmin=None,
+    vmax=None,
+    mode=None,
+):
     """
     Plot a 3D scatter plot in a :class:`~silx.gui.plot3d.SceneWindow.SceneWindow` widget.
 

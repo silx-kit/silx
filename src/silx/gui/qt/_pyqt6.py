@@ -45,7 +45,7 @@ def patch_enums(*modules):
     for module in modules:
         for clsName in dir(module):
             cls = getattr(module, clsName, None)
-            if isinstance(cls, PyQt6.sip.wrappertype) and clsName.startswith('Q'):
+            if isinstance(cls, PyQt6.sip.wrappertype) and clsName.startswith("Q"):
                 for qenumName in dir(cls):
                     if qenumName[0].isupper():
                         qenum = getattr(cls, qenumName, None)
@@ -54,10 +54,12 @@ def patch_enums(*modules):
                                 continue  # Only handle it once
                             for item in qenum:
                                 # Special cases to avoid overrides and mimic PySide6
-                                if clsName == 'QColorSpace' and qenumName in (
-                                        'Primaries', 'TransferFunction'):
+                                if clsName == "QColorSpace" and qenumName in (
+                                    "Primaries",
+                                    "TransferFunction",
+                                ):
                                     break
-                                if qenumName in ('DeviceType', 'PointerType'):
+                                if qenumName in ("DeviceType", "PointerType"):
                                     break
 
                                 setattr(cls, item.name, item)

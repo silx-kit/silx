@@ -32,11 +32,10 @@ import unittest
 import tempfile
 import numpy
 import shutil
-from ..import rawh5
+from .. import rawh5
 
 
 class TestNumpyFile(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.tmpDirectory = tempfile.mkdtemp()
@@ -55,11 +54,11 @@ class TestNumpyFile(unittest.TestCase):
 
     def testNumpyZFile(self):
         filename = "%s/%s.npz" % (self.tmpDirectory, self.id())
-        a = numpy.array(u"aaaaa")
+        a = numpy.array("aaaaa")
         b = numpy.array([1, 2, 3, 4])
         c = numpy.random.rand(5, 5)
         d = numpy.array(b"aaaaa")
-        e = numpy.array(u"i \u2661 my mother")
+        e = numpy.array("i \u2661 my mother")
         numpy.savez(filename, a, b=b, c=c, d=d, e=e)
         h5 = rawh5.NumpyFile(filename)
         self.assertIn("arr_0", h5)
@@ -76,8 +75,8 @@ class TestNumpyFile(unittest.TestCase):
     def testNumpyZFileContainingDirectories(self):
         filename = "%s/%s.npz" % (self.tmpDirectory, self.id())
         data = {}
-        data['a/b/c'] = numpy.arange(10)
-        data['a/b/e'] = numpy.arange(10)
+        data["a/b/c"] = numpy.arange(10)
+        data["a/b/e"] = numpy.arange(10)
         numpy.savez(filename, **data)
         h5 = rawh5.NumpyFile(filename)
         self.assertIn("a/b/c", h5)

@@ -105,6 +105,7 @@ class Specfile(SpecFile):
         - :meth:`epoch`
         - :meth:`title`
     """
+
     def __init__(self, filename):
         SpecFile.__init__(self, filename)
 
@@ -167,8 +168,7 @@ class Specfile(SpecFile):
         except (ValueError, IndexError):
             # self.index can raise an index error
             # int() can raise a value error
-            raise KeyError(msg + "\nValid keys: '" +
-                           "', '".join(self.keys()) + "'")
+            raise KeyError(msg + "\nValid keys: '" + "', '".join(self.keys()) + "'")
         except AttributeError:
             # e.g. "AttrErr: 'float' object has no attribute 'split'"
             raise TypeError(msg)
@@ -258,6 +258,7 @@ class scandata(Scan):  # noqa
         - :meth:`fileheader`
         - :meth:`nbmca`
     """
+
     def __init__(self, specfile, scan_index):
         Scan.__init__(self, specfile, scan_index)
 
@@ -317,7 +318,7 @@ class scandata(Scan):  # noqa
         """Return the date from the scan header line ``#D``"""
         return self._specfile.date(self._index)
 
-    def fileheader(self, key=''):  # noqa
+    def fileheader(self, key=""):  # noqa
         """Return a list of file header lines"""
         # key is there for compatibility
         return self.file_header

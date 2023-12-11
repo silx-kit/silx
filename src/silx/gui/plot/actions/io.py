@@ -56,7 +56,7 @@ from ...utils.image import convertArrayToQImage
 
 _logger = logging.getLogger(__name__)
 
-_NEXUS_HDF5_EXT_STR = ' '.join(['*' + ext for ext in NEXUS_HDF5_EXT])
+_NEXUS_HDF5_EXT_STR = " ".join(["*" + ext for ext in NEXUS_HDF5_EXT])
 
 
 def selectOutputGroup(h5filename):
@@ -84,72 +84,93 @@ class SaveAction(PlotAction):
     :param parent: See :class:`QAction`.
     """
 
-    SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
-    SNAPSHOT_FILTER_PNG = 'Plot Snapshot as PNG (*.png)'
+    SNAPSHOT_FILTER_SVG = "Plot Snapshot as SVG (*.svg)"
+    SNAPSHOT_FILTER_PNG = "Plot Snapshot as PNG (*.png)"
 
     DEFAULT_ALL_FILTERS = (SNAPSHOT_FILTER_PNG, SNAPSHOT_FILTER_SVG)
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
-    CURVE_FILTERS_TXT = dict((
-        ('Curve as Raw ASCII (*.txt)',
-         {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ";"-separated CSV (*.csv)',
-         {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
-        ('Curve as ","-separated CSV (*.csv)',
-         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
-        ('Curve as tab-separated CSV (*.csv)',
-         {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        ('Curve as OMNIC CSV (*.csv)',
-         {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
-        ('Curve as SpecFile (*.dat)',
-         {'fmt': '%.10g', 'delimiter': '', 'header': False})
-    ))
+    CURVE_FILTERS_TXT = dict(
+        (
+            (
+                "Curve as Raw ASCII (*.txt)",
+                {"fmt": "%.18e", "delimiter": " ", "header": False},
+            ),
+            (
+                'Curve as ";"-separated CSV (*.csv)',
+                {"fmt": "%.18e", "delimiter": ";", "header": True},
+            ),
+            (
+                'Curve as ","-separated CSV (*.csv)',
+                {"fmt": "%.18e", "delimiter": ",", "header": True},
+            ),
+            (
+                "Curve as tab-separated CSV (*.csv)",
+                {"fmt": "%.18e", "delimiter": "\t", "header": True},
+            ),
+            (
+                "Curve as OMNIC CSV (*.csv)",
+                {"fmt": "%.7E", "delimiter": ",", "header": False},
+            ),
+            (
+                "Curve as SpecFile (*.dat)",
+                {"fmt": "%.10g", "delimiter": "", "header": False},
+            ),
+        )
+    )
 
-    CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
+    CURVE_FILTER_NPY = "Curve as NumPy binary file (*.npy)"
 
-    CURVE_FILTER_NXDATA = 'Curve as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+    CURVE_FILTER_NXDATA = "Curve as NXdata (%s)" % _NEXUS_HDF5_EXT_STR
 
     DEFAULT_CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [
-        CURVE_FILTER_NPY, CURVE_FILTER_NXDATA]
+        CURVE_FILTER_NPY,
+        CURVE_FILTER_NXDATA,
+    ]
 
     DEFAULT_ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)",)
 
-    IMAGE_FILTER_EDF = 'Image data as EDF (*.edf)'
-    IMAGE_FILTER_TIFF = 'Image data as TIFF (*.tif)'
-    IMAGE_FILTER_NUMPY = 'Image data as NumPy binary file (*.npy)'
-    IMAGE_FILTER_ASCII = 'Image data as ASCII (*.dat)'
-    IMAGE_FILTER_CSV_COMMA = 'Image data as ,-separated CSV (*.csv)'
-    IMAGE_FILTER_CSV_SEMICOLON = 'Image data as ;-separated CSV (*.csv)'
-    IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
-    IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
-    IMAGE_FILTER_NXDATA = 'Image as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+    IMAGE_FILTER_EDF = "Image data as EDF (*.edf)"
+    IMAGE_FILTER_TIFF = "Image data as TIFF (*.tif)"
+    IMAGE_FILTER_NUMPY = "Image data as NumPy binary file (*.npy)"
+    IMAGE_FILTER_ASCII = "Image data as ASCII (*.dat)"
+    IMAGE_FILTER_CSV_COMMA = "Image data as ,-separated CSV (*.csv)"
+    IMAGE_FILTER_CSV_SEMICOLON = "Image data as ;-separated CSV (*.csv)"
+    IMAGE_FILTER_CSV_TAB = "Image data as tab-separated CSV (*.csv)"
+    IMAGE_FILTER_RGB_PNG = "Image as PNG (*.png)"
+    IMAGE_FILTER_NXDATA = "Image as NXdata (%s)" % _NEXUS_HDF5_EXT_STR
 
-    DEFAULT_IMAGE_FILTERS = (IMAGE_FILTER_EDF,
-                             IMAGE_FILTER_TIFF,
-                             IMAGE_FILTER_NUMPY,
-                             IMAGE_FILTER_ASCII,
-                             IMAGE_FILTER_CSV_COMMA,
-                             IMAGE_FILTER_CSV_SEMICOLON,
-                             IMAGE_FILTER_CSV_TAB,
-                             IMAGE_FILTER_RGB_PNG,
-                             IMAGE_FILTER_NXDATA)
+    DEFAULT_IMAGE_FILTERS = (
+        IMAGE_FILTER_EDF,
+        IMAGE_FILTER_TIFF,
+        IMAGE_FILTER_NUMPY,
+        IMAGE_FILTER_ASCII,
+        IMAGE_FILTER_CSV_COMMA,
+        IMAGE_FILTER_CSV_SEMICOLON,
+        IMAGE_FILTER_CSV_TAB,
+        IMAGE_FILTER_RGB_PNG,
+        IMAGE_FILTER_NXDATA,
+    )
 
-    SCATTER_FILTER_NXDATA = 'Scatter as NXdata (%s)' % _NEXUS_HDF5_EXT_STR
+    SCATTER_FILTER_NXDATA = "Scatter as NXdata (%s)" % _NEXUS_HDF5_EXT_STR
     DEFAULT_SCATTER_FILTERS = (SCATTER_FILTER_NXDATA,)
 
     # filters for which we don't want an "overwrite existing file" warning
-    DEFAULT_APPEND_FILTERS = (CURVE_FILTER_NXDATA, IMAGE_FILTER_NXDATA,
-                              SCATTER_FILTER_NXDATA)
+    DEFAULT_APPEND_FILTERS = (
+        CURVE_FILTER_NXDATA,
+        IMAGE_FILTER_NXDATA,
+        SCATTER_FILTER_NXDATA,
+    )
 
     def __init__(self, plot, parent=None):
         self._filters = {
-            'all': {},
-            'curve': {},
-            'curves': {},
-            'image': {},
-            'scatter': {},
+            "all": {},
+            "curve": {},
+            "curves": {},
+            "image": {},
+            "scatter": {},
         }
 
         self._appendFilters = list(self.DEFAULT_APPEND_FILTERS)
@@ -157,39 +178,48 @@ class SaveAction(PlotAction):
         # Initialize filters
         for nameFilter in self.DEFAULT_ALL_FILTERS:
             self.setFileFilter(
-                dataKind='all', nameFilter=nameFilter, func=self._saveSnapshot)
+                dataKind="all", nameFilter=nameFilter, func=self._saveSnapshot
+            )
 
         for nameFilter in self.DEFAULT_CURVE_FILTERS:
             self.setFileFilter(
-                dataKind='curve', nameFilter=nameFilter, func=self._saveCurve)
+                dataKind="curve", nameFilter=nameFilter, func=self._saveCurve
+            )
 
         for nameFilter in self.DEFAULT_ALL_CURVES_FILTERS:
             self.setFileFilter(
-                dataKind='curves', nameFilter=nameFilter, func=self._saveCurves)
+                dataKind="curves", nameFilter=nameFilter, func=self._saveCurves
+            )
 
         for nameFilter in self.DEFAULT_IMAGE_FILTERS:
             self.setFileFilter(
-                dataKind='image', nameFilter=nameFilter, func=self._saveImage)
+                dataKind="image", nameFilter=nameFilter, func=self._saveImage
+            )
 
         for nameFilter in self.DEFAULT_SCATTER_FILTERS:
             self.setFileFilter(
-                dataKind='scatter', nameFilter=nameFilter, func=self._saveScatter)
+                dataKind="scatter", nameFilter=nameFilter, func=self._saveScatter
+            )
 
         super(SaveAction, self).__init__(
-            plot, icon='document-save', text='Save as...',
-            tooltip='Save curve/image/plot snapshot dialog',
+            plot,
+            icon="document-save",
+            text="Save as...",
+            tooltip="Save curve/image/plot snapshot dialog",
             triggered=self._actionTriggered,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcut(qt.QKeySequence.Save)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     @staticmethod
-    def _errorMessage(informativeText='', parent=None):
+    def _errorMessage(informativeText="", parent=None):
         """Display an error message."""
         # TODO issue with QMessageBox size fixed and too small
         msg = qt.QMessageBox(parent)
         msg.setIcon(qt.QMessageBox.Critical)
-        msg.setInformativeText(informativeText + ' ' + str(sys.exc_info()[1]))
+        msg.setInformativeText(informativeText + " " + str(sys.exc_info()[1]))
         msg.setDetailedText(traceback.format_exc())
         msg.exec()
 
@@ -202,12 +232,11 @@ class SaveAction(PlotAction):
                  True otherwise.
         """
         if nameFilter == self.SNAPSHOT_FILTER_PNG:
-            fileFormat = 'png'
+            fileFormat = "png"
         elif nameFilter == self.SNAPSHOT_FILTER_SVG:
-            fileFormat = 'svg'
+            fileFormat = "svg"
         else:  # Format not supported
-            _logger.error(
-                'Saving plot snapshot failed: format not supported')
+            _logger.error("Saving plot snapshot failed: format not supported")
             return False
 
         plot.saveGraph(filename, fileFormat=fileFormat)
@@ -258,8 +287,11 @@ class SaveAction(PlotAction):
 
     @staticmethod
     def _selectWriteableOutputGroup(filename, parent):
-        if os.path.exists(filename) and os.path.isfile(filename) \
-                and os.access(filename, os.W_OK):
+        if (
+            os.path.exists(filename)
+            and os.path.isfile(filename)
+            and os.access(filename, os.W_OK)
+        ):
             entryPath = selectOutputGroup(filename)
             if entryPath is None:
                 _logger.info("Save operation cancelled")
@@ -269,7 +301,7 @@ class SaveAction(PlotAction):
             # create new entry in new file
             return "/entry"
         else:
-            SaveAction._errorMessage('Save failed (file access issue)\n', parent=parent)
+            SaveAction._errorMessage("Save failed (file access issue)\n", parent=parent)
             return None
 
     def _saveCurveAsNXdata(self, curve, filename):
@@ -290,7 +322,8 @@ class SaveAction(PlotAction):
             axes_long_names=[xlabel],
             signal_errors=curve.getYErrorData(copy=False),
             axes_errors=[curve.getXErrorData(copy=True)],
-            title=self.plot.getGraphTitle())
+            title=self.plot.getGraphTitle(),
+        )
 
     def _saveCurve(self, plot, filename, nameFilter):
         """Save a curve from the plot.
@@ -316,9 +349,9 @@ class SaveAction(PlotAction):
 
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
-            fmt = filter_['fmt']
-            csvdelim = filter_['delimiter']
-            autoheader = filter_['header']
+            fmt = filter_["fmt"]
+            csvdelim = filter_["delimiter"]
+            autoheader = filter_["header"]
         else:
             # .npy or nxdata
             fmt, csvdelim, autoheader = ("", "", False)
@@ -329,13 +362,18 @@ class SaveAction(PlotAction):
         xdata, data, xlabel, labels = self._get1dData(curve)
 
         try:
-            save1D(filename,
-                   xdata, data,
-                   xlabel, labels,
-                   fmt=fmt, csvdelim=csvdelim,
-                   autoheader=autoheader)
+            save1D(
+                filename,
+                xdata,
+                data,
+                xlabel,
+                labels,
+                fmt=fmt,
+                csvdelim=csvdelim,
+                autoheader=autoheader,
+            )
         except IOError:
-            self._errorMessage('Save failed\n', parent=self.plot)
+            self._errorMessage("Save failed\n", parent=self.plot)
             return False
 
         return True
@@ -361,28 +399,39 @@ class SaveAction(PlotAction):
         try:
             xdata, data, xlabel, labels = self._get1dData(curve)
 
-            specfile = savespec(filename,
-                                xdata, data,
-                                xlabel, labels,
-                                fmt="%.7g", scan_number=1, mode="w",
-                                write_file_header=True,
-                                close_file=False)
+            specfile = savespec(
+                filename,
+                xdata,
+                data,
+                xlabel,
+                labels,
+                fmt="%.7g",
+                scan_number=1,
+                mode="w",
+                write_file_header=True,
+                close_file=False,
+            )
         except IOError:
-            self._errorMessage('Save failed\n', parent=self.plot)
+            self._errorMessage("Save failed\n", parent=self.plot)
             return False
 
         for curve in curves[1:]:
             try:
                 scanno += 1
                 xdata, data, xlabel, labels = self._get1dData(curve)
-                specfile = savespec(specfile,
-                                    xdata, data,
-                                    xlabel, labels,
-                                    fmt="%.7g", scan_number=scanno,
-                                    write_file_header=False,
-                                    close_file=False)
+                specfile = savespec(
+                    specfile,
+                    xdata,
+                    data,
+                    xlabel,
+                    labels,
+                    fmt="%.7g",
+                    scan_number=scanno,
+                    write_file_header=False,
+                    close_file=False,
+                )
             except IOError:
-                self._errorMessage('Save failed\n', parent=self.plot)
+                self._errorMessage("Save failed\n", parent=self.plot)
                 return False
         specfile.close()
 
@@ -401,8 +450,7 @@ class SaveAction(PlotAction):
 
         image = plot.getActiveImage()
         if image is None:
-            qt.QMessageBox.warning(
-                plot, "No Data", "No image to be saved")
+            qt.QMessageBox.warning(plot, "No Data", "No image to be saved")
             return False
 
         data = image.getData(copy=False)
@@ -413,15 +461,15 @@ class SaveAction(PlotAction):
             return True
 
         elif nameFilter == self.IMAGE_FILTER_TIFF:
-            tiffFile = TiffIO(filename, mode='w')
-            tiffFile.writeImage(data, software='silx')
+            tiffFile = TiffIO(filename, mode="w")
+            tiffFile.writeImage(data, software="silx")
             return True
 
         elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
                 numpy.save(filename, data)
             except IOError:
-                self._errorMessage('Save failed\n', parent=self.plot)
+                self._errorMessage("Save failed\n", parent=self.plot)
                 return False
             return True
 
@@ -436,39 +484,47 @@ class SaveAction(PlotAction):
             xlabel, ylabel = self._getAxesLabels(image)
             interpretation = "image" if len(data.shape) == 2 else "rgba-image"
 
-            return save_NXdata(filename,
-                               nxentry_name=entryPath,
-                               signal=data,
-                               axes=[yaxis, xaxis],
-                               signal_name="image",
-                               axes_names=["y", "x"],
-                               axes_long_names=[ylabel, xlabel],
-                               title=plot.getGraphTitle(),
-                               interpretation=interpretation)
+            return save_NXdata(
+                filename,
+                nxentry_name=entryPath,
+                signal=data,
+                axes=[yaxis, xaxis],
+                signal_name="image",
+                axes_names=["y", "x"],
+                axes_long_names=[ylabel, xlabel],
+                title=plot.getGraphTitle(),
+                interpretation=interpretation,
+            )
 
-        elif nameFilter in (self.IMAGE_FILTER_ASCII,
-                            self.IMAGE_FILTER_CSV_COMMA,
-                            self.IMAGE_FILTER_CSV_SEMICOLON,
-                            self.IMAGE_FILTER_CSV_TAB):
+        elif nameFilter in (
+            self.IMAGE_FILTER_ASCII,
+            self.IMAGE_FILTER_CSV_COMMA,
+            self.IMAGE_FILTER_CSV_SEMICOLON,
+            self.IMAGE_FILTER_CSV_TAB,
+        ):
             csvdelim, filetype = {
-                self.IMAGE_FILTER_ASCII: (' ', 'txt'),
-                self.IMAGE_FILTER_CSV_COMMA: (',', 'csv'),
-                self.IMAGE_FILTER_CSV_SEMICOLON: (';', 'csv'),
-                self.IMAGE_FILTER_CSV_TAB: ('\t', 'csv'),
-                }[nameFilter]
+                self.IMAGE_FILTER_ASCII: (" ", "txt"),
+                self.IMAGE_FILTER_CSV_COMMA: (",", "csv"),
+                self.IMAGE_FILTER_CSV_SEMICOLON: (";", "csv"),
+                self.IMAGE_FILTER_CSV_TAB: ("\t", "csv"),
+            }[nameFilter]
 
             height, width = data.shape
             rows, cols = numpy.mgrid[0:height, 0:width]
             try:
-                save1D(filename, rows.ravel(), (cols.ravel(), data.ravel()),
-                       filetype=filetype,
-                       xlabel='row',
-                       ylabels=['column', 'value'],
-                       csvdelim=csvdelim,
-                       autoheader=True)
+                save1D(
+                    filename,
+                    rows.ravel(),
+                    (cols.ravel(), data.ravel()),
+                    filetype=filetype,
+                    xlabel="row",
+                    ylabels=["column", "value"],
+                    csvdelim=csvdelim,
+                    autoheader=True,
+                )
 
             except IOError:
-                self._errorMessage('Save failed\n', parent=self.plot)
+                self._errorMessage("Save failed\n", parent=self.plot)
                 return False
             return True
 
@@ -478,14 +534,13 @@ class SaveAction(PlotAction):
             # Convert RGB QImage
             qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
-            if qimage.save(filename, 'PNG'):
+            if qimage.save(filename, "PNG"):
                 return True
             else:
-                _logger.error('Failed to save image as %s', filename)
+                _logger.error("Failed to save image as %s", filename)
                 qt.QMessageBox.critical(
-                    self.parent(),
-                    'Save image as',
-                    'Failed to save image')
+                    self.parent(), "Save image as", "Failed to save image"
+                )
 
         return False
 
@@ -530,7 +585,8 @@ class SaveAction(PlotAction):
                 axes_names=["x", "y"],
                 axes_long_names=[xlabel, ylabel],
                 axes_errors=[xerror, yerror],
-                title=plot.getGraphTitle())
+                title=plot.getGraphTitle(),
+            )
 
     def setFileFilter(self, dataKind, nameFilter, func, index=None, appendToFile=False):
         """Set a name filter to add/replace a file format support
@@ -547,7 +603,7 @@ class SaveAction(PlotAction):
             file.
         :param integer index: Index of the filter in the final list (or None)
         """
-        assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+        assert dataKind in ("all", "curve", "curves", "image", "scatter")
 
         if appendToFile:
             self._appendFilters.append(nameFilter)
@@ -569,7 +625,7 @@ class SaveAction(PlotAction):
 
         if index >= len(keyList):
             # nothing to be done, already at the end
-            txt = 'Requested index %d impossible, already at the end' % index
+            txt = "Requested index %d impossible, already at the end" % index
             _logger.info(txt)
             return
 
@@ -596,7 +652,7 @@ class SaveAction(PlotAction):
         :return: {nameFilter: function} associations.
         :rtype: dict
         """
-        assert dataKind in ('all', 'curve', 'curves', 'image', 'scatter')
+        assert dataKind in ("all", "curve", "curves", "image", "scatter")
 
         return self._filters[dataKind].copy()
 
@@ -607,21 +663,20 @@ class SaveAction(PlotAction):
 
         # Add image filters if there is an active image
         if self.plot.getActiveImage() is not None:
-            filters.update(self._filters['image'].items())
+            filters.update(self._filters["image"].items())
 
         # Add curve filters if there is a curve to save
-        if (self.plot.getActiveCurve() is not None or
-                len(self.plot.getAllCurves()) == 1):
-            filters.update(self._filters['curve'].items())
+        if self.plot.getActiveCurve() is not None or len(self.plot.getAllCurves()) == 1:
+            filters.update(self._filters["curve"].items())
         if len(self.plot.getAllCurves()) >= 1:
-            filters.update(self._filters['curves'].items())
+            filters.update(self._filters["curves"].items())
 
         # Add scatter filters if there is a scatter
         # todo: CSV
         if self.plot.getScatter() is not None:
-            filters.update(self._filters['scatter'].items())
+            filters.update(self._filters["scatter"].items())
 
-        filters.update(self._filters['all'].items())
+        filters.update(self._filters["all"].items())
 
         # Create and run File dialog
         dialog = qt.QFileDialog(self.plot)
@@ -650,14 +705,18 @@ class SaveAction(PlotAction):
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
-        if '(' in nameFilter and ')' == nameFilter.strip()[-1]:
+        if "(" in nameFilter and ")" == nameFilter.strip()[-1]:
             # Check for correct file extension
             # Extract file extensions as .something
-            extensions = [ext[ext.find('.'):] for ext in
-                          nameFilter[nameFilter.find('(') + 1:-1].split()]
+            extensions = [
+                ext[ext.find(".") :]
+                for ext in nameFilter[nameFilter.find("(") + 1 : -1].split()
+            ]
             for ext in extensions:
-                if (len(filename) > len(ext) and
-                        filename[-len(ext):].lower() == ext.lower()):
+                if (
+                    len(filename) > len(ext)
+                    and filename[-len(ext) :].lower() == ext.lower()
+                ):
                     break
             else:  # filename has no extension supported in nameFilter, add one
                 if len(extensions) >= 1:
@@ -668,7 +727,7 @@ class SaveAction(PlotAction):
         if func is not None:
             return func(self.plot, filename, nameFilter)
         else:
-            _logger.error('Unsupported file filter: %s', nameFilter)
+            _logger.error("Unsupported file filter: %s", nameFilter)
             return False
 
 
@@ -678,7 +737,7 @@ def _plotAsPNG(plot):
     :param plot: The :class:`Plot` to save
     """
     pngFile = BytesIO()
-    plot.saveGraph(pngFile, fileFormat='png')
+    plot.saveGraph(pngFile, fileFormat="png")
     pngFile.flush()
     pngFile.seek(0)
     data = pngFile.read()
@@ -700,10 +759,14 @@ class PrintAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
-            plot, icon='document-print', text='Print...',
-            tooltip='Open print dialog',
+            plot,
+            icon="document-print",
+            text="Print...",
+            tooltip="Open print dialog",
             triggered=self.printPlot,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcut(qt.QKeySequence.Print)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
@@ -722,7 +785,7 @@ class PrintAction(PlotAction):
         :return: True if successful
         """
         dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
-        dialog.setWindowTitle('Print Plot')
+        dialog.setWindowTitle("Print Plot")
         if not dialog.exec():
             return False
 
@@ -738,9 +801,9 @@ class PrintAction(PlotAction):
         yScale = pageRect.height() / widget.height()
         scale = min(xScale, yScale)
 
-        painter.translate(pageRect.width() / 2., 0.)
+        painter.translate(pageRect.width() / 2.0, 0.0)
         painter.scale(scale, scale)
-        painter.translate(-widget.width() / 2., 0.)
+        painter.translate(-widget.width() / 2.0, 0.0)
         widget.render(painter)
         painter.end()
 
@@ -755,7 +818,7 @@ class PrintAction(PlotAction):
         """
         # Init printer and start printer dialog
         dialog = qt.QPrintDialog(self.getPrinter(), self.plot)
-        dialog.setWindowTitle('Print Plot')
+        dialog.setWindowTitle("Print Plot")
         if not dialog.exec():
             return False
 
@@ -763,7 +826,7 @@ class PrintAction(PlotAction):
         pngData = _plotAsPNG(self.plot)
 
         pixmap = qt.QPixmap()
-        pixmap.loadFromData(pngData, 'png')
+        pixmap.loadFromData(pngData, "png")
 
         pageRect = self.getPrinter().pageRect(qt.QPrinter.DevicePixel)
         xScale = pageRect.width() / pixmap.width()
@@ -775,10 +838,9 @@ class PrintAction(PlotAction):
         if not painter.begin(self.getPrinter()):
             return False
 
-        painter.drawPixmap(0, 0,
-                           pixmap.width() * scale,
-                           pixmap.height() * scale,
-                           pixmap)
+        painter.drawPixmap(
+            0, 0, pixmap.width() * scale, pixmap.height() * scale, pixmap
+        )
         painter.end()
 
         return True
@@ -793,10 +855,14 @@ class CopyAction(PlotAction):
 
     def __init__(self, plot, parent=None):
         super(CopyAction, self).__init__(
-            plot, icon='edit-copy', text='Copy plot',
-            tooltip='Copy a snapshot of the plot into the clipboard',
+            plot,
+            icon="edit-copy",
+            text="Copy plot",
+            tooltip="Copy a snapshot of the plot into the clipboard",
             triggered=self.copyPlot,
-            checkable=False, parent=parent)
+            checkable=False,
+            parent=parent,
+        )
         self.setShortcut(qt.QKeySequence.Copy)
         self.setShortcutContext(qt.Qt.WidgetShortcut)
 
@@ -804,5 +870,5 @@ class CopyAction(PlotAction):
         """Copy plot content to the clipboard as a bitmap."""
         # Save Plot as PNG and make a QImage from it with default dpi
         pngData = _plotAsPNG(self.plot)
-        image = qt.QImage.fromData(pngData, 'png')
+        image = qt.QImage.fromData(pngData, "png")
         qt.QApplication.clipboard().setImage(image)

@@ -34,7 +34,6 @@ from silx.gui.plot.utils.axis import SyncAxes
 
 
 class SyncPlot(qt.QMainWindow):
-
     def __init__(self):
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Plot with synchronized axes")
@@ -46,7 +45,7 @@ class SyncPlot(qt.QMainWindow):
 
         backend = "mpl"
         self.plot2d = plot.Plot2D(parent=widget, backend=backend)
-        self.plot2d.setInteractiveMode('pan')
+        self.plot2d.setInteractiveMode("pan")
         self.plot1d_x1 = plot.Plot1D(parent=widget, backend=backend)
         self.plot1d_x2 = plot.PlotWidget(parent=widget, backend=backend)
         self.plot1d_y1 = plot.Plot1D(parent=widget, backend=backend)
@@ -59,32 +58,60 @@ class SyncPlot(qt.QMainWindow):
         data.shape = 100, 100
 
         self.plot2d.addImage(data)
-        self.plot1d_x1.addCurve(x=numpy.arange(100), y=numpy.mean(data, axis=0), legend="mean")
-        self.plot1d_x1.addCurve(x=numpy.arange(100), y=numpy.max(data, axis=0), legend="max")
-        self.plot1d_x1.addCurve(x=numpy.arange(100), y=numpy.min(data, axis=0), legend="min")
+        self.plot1d_x1.addCurve(
+            x=numpy.arange(100), y=numpy.mean(data, axis=0), legend="mean"
+        )
+        self.plot1d_x1.addCurve(
+            x=numpy.arange(100), y=numpy.max(data, axis=0), legend="max"
+        )
+        self.plot1d_x1.addCurve(
+            x=numpy.arange(100), y=numpy.min(data, axis=0), legend="min"
+        )
         self.plot1d_x2.addCurve(x=numpy.arange(100), y=numpy.std(data, axis=0))
 
-        self.plot1d_y1.addCurve(y=numpy.arange(100), x=numpy.mean(data, axis=1), legend="mean")
-        self.plot1d_y1.addCurve(y=numpy.arange(100), x=numpy.max(data, axis=1), legend="max")
-        self.plot1d_y1.addCurve(y=numpy.arange(100), x=numpy.min(data, axis=1), legend="min")
+        self.plot1d_y1.addCurve(
+            y=numpy.arange(100), x=numpy.mean(data, axis=1), legend="mean"
+        )
+        self.plot1d_y1.addCurve(
+            y=numpy.arange(100), x=numpy.max(data, axis=1), legend="max"
+        )
+        self.plot1d_y1.addCurve(
+            y=numpy.arange(100), x=numpy.min(data, axis=1), legend="min"
+        )
         self.plot1d_y2.addCurve(y=numpy.arange(100), x=numpy.std(data, axis=1))
 
-        self.constraint1 = SyncAxes([self.plot2d.getXAxis(), self.plot1d_x1.getXAxis(), self.plot1d_x2.getXAxis()])
-        self.constraint2 = SyncAxes([self.plot2d.getYAxis(), self.plot1d_y1.getYAxis(), self.plot1d_y2.getYAxis()])
-        self.constraint3 = SyncAxes([self.plot1d_x1.getYAxis(), self.plot1d_y1.getXAxis()])
-        self.constraint4 = SyncAxes([self.plot1d_x2.getYAxis(), self.plot1d_y2.getXAxis()])
+        self.constraint1 = SyncAxes(
+            [
+                self.plot2d.getXAxis(),
+                self.plot1d_x1.getXAxis(),
+                self.plot1d_x2.getXAxis(),
+            ]
+        )
+        self.constraint2 = SyncAxes(
+            [
+                self.plot2d.getYAxis(),
+                self.plot1d_y1.getYAxis(),
+                self.plot1d_y2.getYAxis(),
+            ]
+        )
+        self.constraint3 = SyncAxes(
+            [self.plot1d_x1.getYAxis(), self.plot1d_y1.getXAxis()]
+        )
+        self.constraint4 = SyncAxes(
+            [self.plot1d_x2.getYAxis(), self.plot1d_y2.getXAxis()]
+        )
 
         layout.addWidget(self.plot2d, 0, 0)
-        layout.addWidget(self.createCenteredLabel(u"↓↑"), 1, 0)
+        layout.addWidget(self.createCenteredLabel("↓↑"), 1, 0)
         layout.addWidget(self.plot1d_x1, 2, 0)
-        layout.addWidget(self.createCenteredLabel(u"↓↑"), 3, 0)
+        layout.addWidget(self.createCenteredLabel("↓↑"), 3, 0)
         layout.addWidget(self.plot1d_x2, 4, 0)
-        layout.addWidget(self.createCenteredLabel(u"→\n←"), 0, 1)
+        layout.addWidget(self.createCenteredLabel("→\n←"), 0, 1)
         layout.addWidget(self.plot1d_y1, 0, 2)
-        layout.addWidget(self.createCenteredLabel(u"→\n←"), 0, 3)
+        layout.addWidget(self.createCenteredLabel("→\n←"), 0, 3)
         layout.addWidget(self.plot1d_y2, 0, 4)
-        layout.addWidget(self.createCenteredLabel(u"↗↙"), 2, 2)
-        layout.addWidget(self.createCenteredLabel(u"↗↙"), 4, 4)
+        layout.addWidget(self.createCenteredLabel("↗↙"), 2, 2)
+        layout.addWidget(self.createCenteredLabel("↗↙"), 4, 4)
 
     def createCenteredLabel(self, text):
         label = qt.QLabel(self)

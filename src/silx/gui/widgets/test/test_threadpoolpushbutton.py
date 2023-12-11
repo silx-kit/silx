@@ -37,7 +37,6 @@ from silx.utils.testutils import LoggingValidator
 
 
 class TestThreadPoolPushButton(TestCaseQt):
-
     def setUp(self):
         super(TestThreadPoolPushButton, self).setUp()
         self._result = []
@@ -112,7 +111,7 @@ class TestThreadPoolPushButton(TestCaseQt):
         button.succeeded.connect(listener.partial(test="Unexpected success"))
         button.failed.connect(listener.partial(test="exception"))
         button.finished.connect(listener.partial(test="f"))
-        with LoggingValidator('silx.gui.widgets.ThreadPoolPushButton', error=1):
+        with LoggingValidator("silx.gui.widgets.ThreadPoolPushButton", error=1):
             button.executeCallable()
             self.qapp.processEvents()
             time.sleep(0.1)

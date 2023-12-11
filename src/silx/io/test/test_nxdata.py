@@ -43,7 +43,9 @@ text_dtype = h5py.special_dtype(vlen=str)
 
 class TestNXdata(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.NamedTemporaryFile(prefix="nxdata_examples_", suffix=".h5", delete=True)
+        tmp = tempfile.NamedTemporaryFile(
+            prefix="nxdata_examples_", suffix=".h5", delete=True
+        )
         tmp.file.close()
         self.h5fname = tmp.name
         self.h5f = h5py.File(tmp.name, "w")
@@ -66,7 +68,9 @@ class TestNXdata(unittest.TestCase):
         g0d1 = g0d.create_group("4D_scalars")
         g0d1.attrs["NX_class"] = "NXdata"
         g0d1.attrs["signal"] = "scalars"
-        ds = g0d1.create_dataset("scalars", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10)))
+        ds = g0d1.create_dataset(
+            "scalars", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10))
+        )
         ds.attrs["interpretation"] = "scalar"
 
         # SPECTRA
@@ -75,11 +79,16 @@ class TestNXdata(unittest.TestCase):
         g1d0 = g1d.create_group("1D_spectrum")
         g1d0.attrs["NX_class"] = "NXdata"
         g1d0.attrs["signal"] = "count"
-        g1d0.attrs["auxiliary_signals"] = numpy.array(["count2", "count3"],
-                                                      dtype=text_dtype)
+        g1d0.attrs["auxiliary_signals"] = numpy.array(
+            ["count2", "count3"], dtype=text_dtype
+        )
         g1d0.attrs["axes"] = "energy_calib"
-        g1d0.attrs["uncertainties"] = numpy.array(["energy_errors", ],
-                                                  dtype=text_dtype)
+        g1d0.attrs["uncertainties"] = numpy.array(
+            [
+                "energy_errors",
+            ],
+            dtype=text_dtype,
+        )
         g1d0.create_dataset("count", data=numpy.arange(10))
         g1d0.create_dataset("count2", data=0.5 * numpy.arange(10))
         d = g1d0.create_dataset("count3", data=0.4 * numpy.arange(10))
@@ -97,12 +106,20 @@ class TestNXdata(unittest.TestCase):
         g1d2 = g1d.create_group("4D_spectra")
         g1d2.attrs["NX_class"] = "NXdata"
         g1d2.attrs["signal"] = "counts"
-        g1d2.attrs["axes"] = numpy.array(["energy", ], dtype=text_dtype)
-        ds = g1d2.create_dataset("counts", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10)))
+        g1d2.attrs["axes"] = numpy.array(
+            [
+                "energy",
+            ],
+            dtype=text_dtype,
+        )
+        ds = g1d2.create_dataset(
+            "counts", data=numpy.arange(2 * 2 * 3 * 10).reshape((2, 2, 3, 10))
+        )
         ds.attrs["interpretation"] = "spectrum"
         ds = g1d2.create_dataset("errors", data=4.5 * numpy.random.rand(2, 2, 3, 10))
-        ds = g1d2.create_dataset("energy", data=5 + 10 * numpy.arange(15),
-                                 shuffle=True, compression="gzip")
+        ds = g1d2.create_dataset(
+            "energy", data=5 + 10 * numpy.arange(15), shuffle=True, compression="gzip"
+        )
         ds.attrs["long_name"] = "Calibrated energy"
         ds.attrs["first_good"] = 3
         ds.attrs["last_good"] = 12
@@ -115,8 +132,9 @@ class TestNXdata(unittest.TestCase):
         g2d0.attrs["NX_class"] = "NXdata"
         g2d0.attrs["signal"] = "image"
         g2d0.attrs["auxiliary_signals"] = "image2"
-        g2d0.attrs["axes"] = numpy.array(["rows_calib", "columns_coordinates"],
-                                         dtype=text_dtype)
+        g2d0.attrs["axes"] = numpy.array(
+            ["rows_calib", "columns_coordinates"], dtype=text_dtype
+        )
         g2d0.create_dataset("image", data=numpy.arange(4 * 6).reshape((4, 6)))
         g2d0.create_dataset("image2", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds = g2d0.create_dataset("rows_calib", data=(10, 5))
@@ -127,24 +145,34 @@ class TestNXdata(unittest.TestCase):
         g2d1.attrs["NX_class"] = "NXdata"
         g2d1.attrs["signal"] = "data"
         g2d1.attrs["title"] = "Title as group attr"
-        g2d1.attrs["axes"] = numpy.array(["rows_coordinates", "columns_coordinates"],
-                                         dtype=text_dtype)
+        g2d1.attrs["axes"] = numpy.array(
+            ["rows_coordinates", "columns_coordinates"], dtype=text_dtype
+        )
         g2d1.create_dataset("data", data=numpy.arange(64 * 128).reshape((64, 128)))
-        g2d1.create_dataset("rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64))
-        g2d1.create_dataset("columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128))
+        g2d1.create_dataset(
+            "rows_coordinates", data=numpy.arange(64) + numpy.random.rand(64)
+        )
+        g2d1.create_dataset(
+            "columns_coordinates", data=numpy.arange(128) + 2.5 * numpy.random.rand(128)
+        )
 
         g2d2 = g2d.create_group("3D_images")
         g2d2.attrs["NX_class"] = "NXdata"
         g2d2.attrs["signal"] = "images"
-        ds = g2d2.create_dataset("images", data=numpy.arange(2 * 4 * 6).reshape((2, 4, 6)))
+        ds = g2d2.create_dataset(
+            "images", data=numpy.arange(2 * 4 * 6).reshape((2, 4, 6))
+        )
         ds.attrs["interpretation"] = "image"
 
         g2d3 = g2d.create_group("5D_images")
         g2d3.attrs["NX_class"] = "NXdata"
         g2d3.attrs["signal"] = "images"
-        g2d3.attrs["axes"] = numpy.array(["rows_coordinates", "columns_coordinates"],
-                                         dtype=text_dtype)
-        ds = g2d3.create_dataset("images", data=numpy.arange(2 * 2 * 2 * 4 * 6).reshape((2, 2, 2, 4, 6)))
+        g2d3.attrs["axes"] = numpy.array(
+            ["rows_coordinates", "columns_coordinates"], dtype=text_dtype
+        )
+        ds = g2d3.create_dataset(
+            "images", data=numpy.arange(2 * 2 * 2 * 4 * 6).reshape((2, 2, 2, 4, 6))
+        )
         ds.attrs["interpretation"] = "image"
         g2d3.create_dataset("rows_coordinates", data=5 + 10 * numpy.arange(4))
         g2d3.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(6))
@@ -152,15 +180,18 @@ class TestNXdata(unittest.TestCase):
         g2d4 = g2d.create_group("RGBA_image")
         g2d4.attrs["NX_class"] = "NXdata"
         g2d4.attrs["signal"] = "image"
-        g2d4.attrs["axes"] = numpy.array(["rows_calib", "columns_coordinates"],
-                                         dtype=text_dtype)
-        rgba_image = numpy.linspace(0, 1, num=7*8*3).reshape((7, 8, 3))
-        rgba_image[:, :, 1] = 1 - rgba_image[:, :, 1]      # invert G channel to add some color
+        g2d4.attrs["axes"] = numpy.array(
+            ["rows_calib", "columns_coordinates"], dtype=text_dtype
+        )
+        rgba_image = numpy.linspace(0, 1, num=7 * 8 * 3).reshape((7, 8, 3))
+        rgba_image[:, :, 1] = (
+            1 - rgba_image[:, :, 1]
+        )  # invert G channel to add some color
         ds = g2d4.create_dataset("image", data=rgba_image)
         ds.attrs["interpretation"] = "rgba-image"
         ds = g2d4.create_dataset("rows_calib", data=(10, 5))
         ds.attrs["long_name"] = "Calibrated Y"
-        g2d4.create_dataset("columns_coordinates", data=0.5+0.02*numpy.arange(8))
+        g2d4.create_dataset("columns_coordinates", data=0.5 + 0.02 * numpy.arange(8))
 
         # SCATTER
         g = self.h5f.create_group("scatters")
@@ -168,7 +199,12 @@ class TestNXdata(unittest.TestCase):
         gd0 = g.create_group("x_y_scatter")
         gd0.attrs["NX_class"] = "NXdata"
         gd0.attrs["signal"] = "y"
-        gd0.attrs["axes"] = numpy.array(["x", ], dtype=text_dtype)
+        gd0.attrs["axes"] = numpy.array(
+            [
+                "x",
+            ],
+            dtype=text_dtype,
+        )
         gd0.create_dataset("y", data=numpy.random.rand(128) - 0.5)
         gd0.create_dataset("x", data=2 * numpy.random.rand(128))
         gd0.create_dataset("x_errors", data=0.05 * numpy.random.rand(128))
@@ -191,8 +227,9 @@ class TestNXdata(unittest.TestCase):
         for group in self.h5f:
             for subgroup in self.h5f[group]:
                 self.assertTrue(
-                        nxdata.is_valid_nxdata(self.h5f[group][subgroup]),
-                        "%s/%s not found to be a valid NXdata group" % (group, subgroup))
+                    nxdata.is_valid_nxdata(self.h5f[group][subgroup]),
+                    "%s/%s not found to be a valid NXdata group" % (group, subgroup),
+                )
 
     def testScalars(self):
         nxd = nxdata.NXdata(self.h5f["scalars/0D_scalar"])
@@ -216,8 +253,9 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.interpretation, "scalar")
 
         nxd = nxdata.NXdata(self.h5f["scalars/4D_scalars"])
-        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
-                         nxd.signal_is_2d or nxd.signal_is_3d)
+        self.assertFalse(
+            nxd.signal_is_0d or nxd.signal_is_1d or nxd.signal_is_2d or nxd.signal_is_3d
+        )
         self.assertEqual(nxd.signal[1, 0, 1, 4], 74)
         self.assertEqual(nxd.axes_names, [None, None, None, None])
         self.assertEqual(nxd.axes_dataset_names, [None, None, None, None])
@@ -230,8 +268,7 @@ class TestNXdata(unittest.TestCase):
         nxd = nxdata.NXdata(self.h5f["spectra/1D_spectrum"])
         self.assertTrue(nxd.signal_is_1d)
         self.assertTrue(nxd.is_curve)
-        self.assertTrue(numpy.array_equal(numpy.array(nxd.signal),
-                                          numpy.arange(10)))
+        self.assertTrue(numpy.array_equal(numpy.array(nxd.signal), numpy.arange(10)))
         self.assertEqual(nxd.axes_names, ["energy_calib"])
         self.assertEqual(nxd.axes_dataset_names, ["energy_calib"])
         self.assertEqual(nxd.axes[0][0], 10)
@@ -241,12 +278,11 @@ class TestNXdata(unittest.TestCase):
         self.assertIsNone(nxd.interpretation)
         self.assertEqual(nxd.title, "Title as dataset (like nexpy)")
 
-        self.assertEqual(nxd.auxiliary_signals_dataset_names,
-                         ["count2", "count3"])
-        self.assertEqual(nxd.auxiliary_signals_names,
-                         ["count2", "3rd counter"])
-        self.assertAlmostEqual(nxd.auxiliary_signals[1][2],
-                               0.8)      # numpy.arange(10) * 0.4
+        self.assertEqual(nxd.auxiliary_signals_dataset_names, ["count2", "count3"])
+        self.assertEqual(nxd.auxiliary_signals_names, ["count2", "3rd counter"])
+        self.assertAlmostEqual(
+            nxd.auxiliary_signals[1][2], 0.8
+        )  # numpy.arange(10) * 0.4
 
         nxd = nxdata.NXdata(self.h5f["spectra/2D_spectra"])
         self.assertTrue(nxd.signal_is_2d)
@@ -259,34 +295,39 @@ class TestNXdata(unittest.TestCase):
         self.assertEqual(nxd.interpretation, "spectrum")
 
         nxd = nxdata.NXdata(self.h5f["spectra/4D_spectra"])
-        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
-                         nxd.signal_is_2d or nxd.signal_is_3d)
+        self.assertFalse(
+            nxd.signal_is_0d or nxd.signal_is_1d or nxd.signal_is_2d or nxd.signal_is_3d
+        )
         self.assertTrue(nxd.is_curve)
-        self.assertEqual(nxd.axes_names,
-                         [None, None, None, "Calibrated energy"])
-        self.assertEqual(nxd.axes_dataset_names,
-                         [None, None, None, "energy"])
+        self.assertEqual(nxd.axes_names, [None, None, None, "Calibrated energy"])
+        self.assertEqual(nxd.axes_dataset_names, [None, None, None, "energy"])
         self.assertEqual(nxd.axes[:3], [None, None, None])
-        self.assertEqual(nxd.axes[3].shape, (10, ))    # dataset shape (15, ) sliced [3:12]
+        self.assertEqual(nxd.axes[3].shape, (10,))  # dataset shape (15, ) sliced [3:12]
         self.assertIsNotNone(nxd.errors)
         self.assertEqual(nxd.errors.shape, (2, 2, 3, 10))
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertEqual(nxd.interpretation, "spectrum")
-        self.assertEqual(nxd.get_axis_errors("energy").shape,
-                         (10,))
+        self.assertEqual(nxd.get_axis_errors("energy").shape, (10,))
         # test getting axis errors by long_name
-        self.assertTrue(numpy.array_equal(nxd.get_axis_errors("Calibrated energy"),
-                                          nxd.get_axis_errors("energy")))
-        self.assertTrue(numpy.array_equal(nxd.get_axis_errors(b"Calibrated energy"),
-                                          nxd.get_axis_errors("energy")))
+        self.assertTrue(
+            numpy.array_equal(
+                nxd.get_axis_errors("Calibrated energy"), nxd.get_axis_errors("energy")
+            )
+        )
+        self.assertTrue(
+            numpy.array_equal(
+                nxd.get_axis_errors(b"Calibrated energy"), nxd.get_axis_errors("energy")
+            )
+        )
 
     def testImages(self):
         nxd = nxdata.NXdata(self.h5f["images/2D_regular_image"])
         self.assertTrue(nxd.signal_is_2d)
         self.assertTrue(nxd.is_image)
         self.assertEqual(nxd.axes_names, ["Calibrated Y", "columns_coordinates"])
-        self.assertEqual(list(nxd.axes_dataset_names),
-                         ["rows_calib", "columns_coordinates"])
+        self.assertEqual(
+            list(nxd.axes_dataset_names), ["rows_calib", "columns_coordinates"]
+        )
         self.assertIsNone(nxd.errors)
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertIsNone(nxd.interpretation)
@@ -298,8 +339,9 @@ class TestNXdata(unittest.TestCase):
         self.assertTrue(nxd.is_image)
 
         self.assertEqual(nxd.axes_dataset_names, nxd.axes_names)
-        self.assertEqual(list(nxd.axes_dataset_names),
-                         ["rows_coordinates", "columns_coordinates"])
+        self.assertEqual(
+            list(nxd.axes_dataset_names), ["rows_coordinates", "columns_coordinates"]
+        )
         self.assertEqual(len(nxd.axes), 2)
         self.assertIsNone(nxd.errors)
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
@@ -308,12 +350,17 @@ class TestNXdata(unittest.TestCase):
 
         nxd = nxdata.NXdata(self.h5f["images/5D_images"])
         self.assertTrue(nxd.is_image)
-        self.assertFalse(nxd.signal_is_0d or nxd.signal_is_1d or
-                         nxd.signal_is_2d or nxd.signal_is_3d)
-        self.assertEqual(nxd.axes_names,
-                         [None, None, None, 'rows_coordinates', 'columns_coordinates'])
-        self.assertEqual(nxd.axes_dataset_names,
-                         [None, None, None, 'rows_coordinates', 'columns_coordinates'])
+        self.assertFalse(
+            nxd.signal_is_0d or nxd.signal_is_1d or nxd.signal_is_2d or nxd.signal_is_3d
+        )
+        self.assertEqual(
+            nxd.axes_names,
+            [None, None, None, "rows_coordinates", "columns_coordinates"],
+        )
+        self.assertEqual(
+            nxd.axes_dataset_names,
+            [None, None, None, "rows_coordinates", "columns_coordinates"],
+        )
         self.assertIsNone(nxd.errors)
         self.assertFalse(nxd.is_scatter or nxd.is_x_y_value_scatter)
         self.assertEqual(nxd.interpretation, "image")
@@ -322,35 +369,28 @@ class TestNXdata(unittest.TestCase):
         self.assertTrue(nxd.is_image)
         self.assertEqual(nxd.interpretation, "rgba-image")
         self.assertTrue(nxd.signal_is_3d)
-        self.assertEqual(nxd.axes_names, ["Calibrated Y",
-                                          "columns_coordinates",
-                                          None])
-        self.assertEqual(list(nxd.axes_dataset_names),
-                         ["rows_calib", "columns_coordinates", None])
+        self.assertEqual(nxd.axes_names, ["Calibrated Y", "columns_coordinates", None])
+        self.assertEqual(
+            list(nxd.axes_dataset_names), ["rows_calib", "columns_coordinates", None]
+        )
 
     def testScatters(self):
         nxd = nxdata.NXdata(self.h5f["scatters/x_y_scatter"])
         self.assertTrue(nxd.signal_is_1d)
         self.assertEqual(nxd.axes_names, ["x"])
-        self.assertEqual(nxd.axes_dataset_names,
-                         ["x"])
+        self.assertEqual(nxd.axes_dataset_names, ["x"])
         self.assertIsNotNone(nxd.errors)
-        self.assertEqual(nxd.get_axis_errors("x").shape,
-                         (128, ))
+        self.assertEqual(nxd.get_axis_errors("x").shape, (128,))
         self.assertTrue(nxd.is_scatter)
         self.assertFalse(nxd.is_x_y_value_scatter)
         self.assertIsNone(nxd.interpretation)
 
         nxd = nxdata.NXdata(self.h5f["scatters/x_y_value_scatter"])
         self.assertFalse(nxd.signal_is_1d)
-        self.assertTrue(nxd.axes_dataset_names,
-                        nxd.axes_names)
-        self.assertEqual(nxd.axes_dataset_names,
-                         ["x", "y"])
-        self.assertEqual(nxd.get_axis_errors("x").shape,
-                         (128, ))
-        self.assertEqual(nxd.get_axis_errors("y").shape,
-                         (128, ))
+        self.assertTrue(nxd.axes_dataset_names, nxd.axes_names)
+        self.assertEqual(nxd.axes_dataset_names, ["x", "y"])
+        self.assertEqual(nxd.get_axis_errors("x").shape, (128,))
+        self.assertEqual(nxd.get_axis_errors("y").shape, (128,))
         self.assertEqual(len(nxd.axes), 2)
         self.assertIsNone(nxd.errors)
         self.assertTrue(nxd.is_scatter)
@@ -360,8 +400,9 @@ class TestNXdata(unittest.TestCase):
 
 class TestLegacyNXdata(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.NamedTemporaryFile(prefix="nxdata_legacy_examples_",
-                                          suffix=".h5", delete=True)
+        tmp = tempfile.NamedTemporaryFile(
+            prefix="nxdata_legacy_examples_", suffix=".h5", delete=True
+        )
         tmp.file.close()
         self.h5fname = tmp.name
         self.h5f = h5py.File(tmp.name, "w")
@@ -373,80 +414,61 @@ class TestLegacyNXdata(unittest.TestCase):
         g = self.h5f.create_group("2D")
         g.attrs["NX_class"] = "NXdata"
 
-        ds0 = g.create_dataset("image0",
-                               data=numpy.arange(4 * 6).reshape((4, 6)))
+        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds0.attrs["signal"] = 1
         ds0.attrs["long_name"] = "My first image"
 
-        ds1 = g.create_dataset("image1",
-                               data=numpy.arange(4 * 6).reshape((4, 6)))
+        ds1 = g.create_dataset("image1", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds1.attrs["signal"] = "2"
         ds1.attrs["long_name"] = "My 2nd image"
 
-        ds2 = g.create_dataset("image2",
-                               data=numpy.arange(4 * 6).reshape((4, 6)))
+        ds2 = g.create_dataset("image2", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds2.attrs["signal"] = 3
 
         nxd = nxdata.NXdata(self.h5f["2D"])
 
         self.assertEqual(nxd.signal_dataset_name, "image0")
         self.assertEqual(nxd.signal_name, "My first image")
-        self.assertEqual(nxd.signal.shape,
-                         (4, 6))
+        self.assertEqual(nxd.signal.shape, (4, 6))
 
         self.assertEqual(len(nxd.auxiliary_signals), 2)
-        self.assertEqual(nxd.auxiliary_signals[1].shape,
-                         (4, 6))
+        self.assertEqual(nxd.auxiliary_signals[1].shape, (4, 6))
 
-        self.assertEqual(nxd.auxiliary_signals_dataset_names,
-                         ["image1", "image2"])
-        self.assertEqual(nxd.auxiliary_signals_names,
-                         ["My 2nd image", "image2"])
+        self.assertEqual(nxd.auxiliary_signals_dataset_names, ["image1", "image2"])
+        self.assertEqual(nxd.auxiliary_signals_names, ["My 2nd image", "image2"])
 
     def testAxesOnSignalDataset(self):
         g = self.h5f.create_group("2D")
         g.attrs["NX_class"] = "NXdata"
 
-        ds0 = g.create_dataset("image0",
-                               data=numpy.arange(4 * 6).reshape((4, 6)))
+        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds0.attrs["signal"] = 1
         ds0.attrs["axes"] = "yaxis:xaxis"
 
-        ds1 = g.create_dataset("yaxis",
-                               data=numpy.arange(4))
-        ds2 = g.create_dataset("xaxis",
-                               data=numpy.arange(6))
+        ds1 = g.create_dataset("yaxis", data=numpy.arange(4))
+        ds2 = g.create_dataset("xaxis", data=numpy.arange(6))
 
         nxd = nxdata.NXdata(self.h5f["2D"])
 
-        self.assertEqual(nxd.axes_dataset_names,
-                         ["yaxis", "xaxis"])
-        self.assertTrue(numpy.array_equal(nxd.axes[0],
-                                          numpy.arange(4)))
-        self.assertTrue(numpy.array_equal(nxd.axes[1],
-                                          numpy.arange(6)))
+        self.assertEqual(nxd.axes_dataset_names, ["yaxis", "xaxis"])
+        self.assertTrue(numpy.array_equal(nxd.axes[0], numpy.arange(4)))
+        self.assertTrue(numpy.array_equal(nxd.axes[1], numpy.arange(6)))
 
     def testAxesOnAxesDatasets(self):
         g = self.h5f.create_group("2D")
         g.attrs["NX_class"] = "NXdata"
 
-        ds0 = g.create_dataset("image0",
-                               data=numpy.arange(4 * 6).reshape((4, 6)))
+        ds0 = g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
         ds0.attrs["signal"] = 1
-        ds1 = g.create_dataset("yaxis",
-                               data=numpy.arange(4))
+        ds1 = g.create_dataset("yaxis", data=numpy.arange(4))
         ds1.attrs["axis"] = 0
-        ds2 = g.create_dataset("xaxis",
-                               data=numpy.arange(6))
+        ds2 = g.create_dataset("xaxis", data=numpy.arange(6))
         ds2.attrs["axis"] = "1"
 
         nxd = nxdata.NXdata(self.h5f["2D"])
-        self.assertEqual(nxd.axes_dataset_names,
-                         ["yaxis", "xaxis"])
-        self.assertTrue(numpy.array_equal(nxd.axes[0],
-                                          numpy.arange(4)))
-        self.assertTrue(numpy.array_equal(nxd.axes[1],
-                                          numpy.arange(6)))
+        self.assertEqual(nxd.axes_dataset_names, ["yaxis", "xaxis"])
+        self.assertTrue(numpy.array_equal(nxd.axes[0], numpy.arange(4)))
+        self.assertTrue(numpy.array_equal(nxd.axes[1], numpy.arange(6)))
 
     def testAsciiUndefinedAxesAttrs(self):
         """Some files may not be using utf8 for str attrs"""
@@ -455,20 +477,16 @@ class TestLegacyNXdata(unittest.TestCase):
         g.attrs["signal"] = b"image0"
         g.attrs["axes"] = b"yaxis", b"."
 
-        g.create_dataset("image0",
-                         data=numpy.arange(4 * 6).reshape((4, 6)))
-        g.create_dataset("yaxis",
-                         data=numpy.arange(4))
+        g.create_dataset("image0", data=numpy.arange(4 * 6).reshape((4, 6)))
+        g.create_dataset("yaxis", data=numpy.arange(4))
 
         nxd = nxdata.NXdata(self.h5f["bytes_attrs"])
-        self.assertEqual(nxd.axes_dataset_names,
-                         ["yaxis", None])
+        self.assertEqual(nxd.axes_dataset_names, ["yaxis", None])
 
 
 class TestSaveNXdata(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.NamedTemporaryFile(prefix="nxdata",
-                                          suffix=".h5", delete=True)
+        tmp = tempfile.NamedTemporaryFile(prefix="nxdata", suffix=".h5", delete=True)
         tmp.file.close()
         self.h5fname = tmp.name
 
@@ -476,64 +494,60 @@ class TestSaveNXdata(unittest.TestCase):
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
-        nxdata.save_NXdata(filename=self.h5fname,
-                           signal=sig,
-                           axes=[a0, a1],
-                           signal_name="sig",
-                           axes_names=["a0", "a1"],
-                           nxentry_name="a",
-                           nxdata_name="mydata")
+        nxdata.save_NXdata(
+            filename=self.h5fname,
+            signal=sig,
+            axes=[a0, a1],
+            signal_name="sig",
+            axes_names=["a0", "a1"],
+            nxentry_name="a",
+            nxdata_name="mydata",
+        )
 
         h5f = h5py.File(self.h5fname, "r")
         self.assertTrue(nxdata.is_valid_nxdata(h5f["a/mydata"]))
 
         nxd = nxdata.NXdata(h5f["/a/mydata"])
-        self.assertTrue(numpy.array_equal(nxd.signal,
-                                          sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0],
-                                          a0))
+        self.assertTrue(numpy.array_equal(nxd.signal, sig))
+        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
 
         h5f.close()
 
     def testSimplestSave(self):
         sig = numpy.array([0, 1, 2])
-        nxdata.save_NXdata(filename=self.h5fname,
-                           signal=sig)
+        nxdata.save_NXdata(filename=self.h5fname, signal=sig)
 
         h5f = h5py.File(self.h5fname, "r")
 
         self.assertTrue(nxdata.is_valid_nxdata(h5f["/entry/data0"]))
 
         nxd = nxdata.NXdata(h5f["/entry/data0"])
-        self.assertTrue(numpy.array_equal(nxd.signal,
-                                          sig))
+        self.assertTrue(numpy.array_equal(nxd.signal, sig))
         h5f.close()
 
     def testSaveDefaultAxesNames(self):
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
-        nxdata.save_NXdata(filename=self.h5fname,
-                           signal=sig,
-                           axes=[a0, a1],
-                           signal_name="sig",
-                           axes_names=None,
-                           axes_long_names=["a", "b"],
-                           nxentry_name="a",
-                           nxdata_name="mydata")
+        nxdata.save_NXdata(
+            filename=self.h5fname,
+            signal=sig,
+            axes=[a0, a1],
+            signal_name="sig",
+            axes_names=None,
+            axes_long_names=["a", "b"],
+            nxentry_name="a",
+            nxdata_name="mydata",
+        )
 
         h5f = h5py.File(self.h5fname, "r")
         self.assertTrue(nxdata.is_valid_nxdata(h5f["a/mydata"]))
 
         nxd = nxdata.NXdata(h5f["/a/mydata"])
-        self.assertTrue(numpy.array_equal(nxd.signal,
-                                          sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0],
-                                          a0))
-        self.assertEqual(nxd.axes_dataset_names,
-                         [u"dim0", u"dim1"])
-        self.assertEqual(nxd.axes_names,
-                         [u"a", u"b"])
+        self.assertTrue(numpy.array_equal(nxd.signal, sig))
+        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
+        self.assertEqual(nxd.axes_dataset_names, ["dim0", "dim1"])
+        self.assertEqual(nxd.axes_names, ["a", "b"])
 
         h5f.close()
 
@@ -546,22 +560,22 @@ class TestSaveNXdata(unittest.TestCase):
         sig = numpy.array([0, 1, 2])
         a0 = numpy.array([2, 3, 4])
         a1 = numpy.array([3, 4, 5])
-        nxdata.save_NXdata(filename=self.h5fname,
-                           signal=sig,
-                           axes=[a0, a1],
-                           signal_name="sig",
-                           axes_names=["a0", "a1"],
-                           nxentry_name="myentry",
-                           nxdata_name="toto")
+        nxdata.save_NXdata(
+            filename=self.h5fname,
+            signal=sig,
+            axes=[a0, a1],
+            signal_name="sig",
+            axes_names=["a0", "a1"],
+            nxentry_name="myentry",
+            nxdata_name="toto",
+        )
 
         h5f = h5py.File(self.h5fname, "r")
         self.assertTrue(nxdata.is_valid_nxdata(h5f["myentry/toto"]))
 
         nxd = nxdata.NXdata(h5f["myentry/toto"])
-        self.assertTrue(numpy.array_equal(nxd.signal,
-                                          sig))
-        self.assertTrue(numpy.array_equal(nxd.axes[0],
-                                          a0))
+        self.assertTrue(numpy.array_equal(nxd.signal, sig))
+        self.assertTrue(numpy.array_equal(nxd.axes[0], a0))
         h5f.close()
 
 
@@ -585,9 +599,10 @@ class TestGetDefault:
                             "data": (1, 2, 3),
                         }
                     }
-                }
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxprocess/nxdata"
@@ -604,10 +619,11 @@ class TestGetDefault:
                             ("", "signal"): "data",
                             "data": (1, 2, 3),
                         }
-                    }
-                }
+                    },
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxprocess/nxdata"
@@ -622,10 +638,11 @@ class TestGetDefault:
                         ("", "NX_class"): "NXdata",
                         ("", "signal"): "data",
                         "data": (1, 2, 3),
-                    }
-                }
+                    },
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxdata"
@@ -642,10 +659,11 @@ class TestGetDefault:
                             ("", "signal"): "data",
                             "data": (1, 2, 3),
                         }
-                    }
-                }
+                    },
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxprocess/nxdata"
@@ -662,11 +680,12 @@ class TestGetDefault:
                             ("", "NX_class"): "NXdata",
                             ("", "signal"): "data",
                             "data": (1, 2, 3),
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxprocess/nxdata"
@@ -683,11 +702,12 @@ class TestGetDefault:
                             ("", "NX_class"): "NXdata",
                             ("", "signal"): "data",
                             "data": (1, 2, 3),
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert isinstance(default, nxdata.NXdata)
         assert default.group.name == "/nxentry/nxprocess/nxdata"
@@ -699,8 +719,9 @@ class TestGetDefault:
                 ("", "default"): "/nxentry",
                 "nxentry": {
                     ("", "default"): "/nxentry",
-                }
+                },
             },
-            hdf5_file)
+            hdf5_file,
+        )
         default = nxdata.get_default(hdf5_file)
         assert default is None

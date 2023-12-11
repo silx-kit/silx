@@ -32,7 +32,6 @@ import sys
 
 
 def main(argv):
-
     if "--help" in argv:
         # Common behaviour of ArgumentParser
         sys.exit(0)

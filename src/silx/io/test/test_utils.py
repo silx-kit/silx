@@ -57,7 +57,9 @@ expected_spec1 = r"""#F .*
 3  6\.00
 """
 
-expected_spec2 = expected_spec1 + r"""
+expected_spec2 = (
+    expected_spec1
+    + r"""
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -66,6 +68,7 @@ expected_spec2 = expected_spec1 + r"""
 2  8\.00
 3  9\.00
 """
+)
 
 expected_spec2reg = r"""#F .*
 #D .*
@@ -79,7 +82,9 @@ expected_spec2reg = r"""#F .*
 3  6\.00  9\.00
 """
 
-expected_spec2irr = expected_spec1 + r"""
+expected_spec2irr = (
+    expected_spec1
+    + r"""
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -87,6 +92,7 @@ expected_spec2irr = expected_spec1 + r"""
 1  7\.00
 2  8\.00
 """
+)
 
 expected_csv = r"""Abscissa;Ordinate1;Ordinate2
 1;4\.00;7\.00e\+00
@@ -102,8 +108,7 @@ expected_csv2 = r"""x;y0;y1
 
 
 class TestSave(unittest.TestCase):
-    """Test saving curves as SpecFile:
-    """
+    """Test saving curves as SpecFile:"""
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
@@ -127,10 +132,17 @@ class TestSave(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def test_save_csv(self):
-        utils.save1D(self.csv_fname, self.x, self.y,
-                     xlabel=self.xlab, ylabels=self.ylabs,
-                     filetype="csv", fmt=["%d", "%.2f", "%.2e"],
-                     csvdelim=";", autoheader=True)
+        utils.save1D(
+            self.csv_fname,
+            self.x,
+            self.y,
+            xlabel=self.xlab,
+            ylabels=self.ylabs,
+            filetype="csv",
+            fmt=["%d", "%.2f", "%.2e"],
+            csvdelim=";",
+            autoheader=True,
+        )
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -142,21 +154,28 @@ class TestSave(unittest.TestCase):
         """npy file is saved with numpy.save after building a numpy array
         and converting it to a named record array"""
         npyf = open(self.npy_fname, "wb")
-        utils.save1D(npyf, self.x, self.y,
-                     xlabel=self.xlab, ylabels=self.ylabs)
+        utils.save1D(npyf, self.x, self.y, xlabel=self.xlab, ylabels=self.ylabs)
         npyf.close()
 
         npy_recarray = numpy.load(self.npy_fname)
 
         self.assertEqual(npy_recarray.shape, (3,))
-        self.assertTrue(numpy.array_equal(npy_recarray['Ordinate1'],
-                                          numpy.array((4, 5, 6))))
+        self.assertTrue(
+            numpy.array_equal(npy_recarray["Ordinate1"], numpy.array((4, 5, 6)))
+        )
 
     def test_savespec_filename(self):
         """Save SpecFile using savespec()"""
-        utils.savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
-                       ylabel=self.ylabs[0], fmt=["%d", "%.2f"],
-                       close_file=True, scan_number=1)
+        utils.savespec(
+            self.spec_fname,
+            self.x,
+            self.y[0],
+            xlabel=self.xlab,
+            ylabel=self.ylabs[0],
+            fmt=["%d", "%.2f"],
+            close_file=True,
+            scan_number=1,
+        )
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -167,15 +186,28 @@ class TestSave(unittest.TestCase):
         """Save SpecFile using savespec(), passing a file handle"""
         # first savespec: open, write file header, save y[0] as scan 1,
         #                 return file handle
-        specf = utils.savespec(self.spec_fname, self.x, self.y[0],
-                               xlabel=self.xlab, ylabel=self.ylabs[0],
-                               fmt=["%d", "%.2f"], close_file=False)
+        specf = utils.savespec(
+            self.spec_fname,
+            self.x,
+            self.y[0],
+            xlabel=self.xlab,
+            ylabel=self.ylabs[0],
+            fmt=["%d", "%.2f"],
+            close_file=False,
+        )
 
         # second savespec: save y[1] as scan 2, close file
-        utils.savespec(specf, self.x, self.y[1], xlabel=self.xlab,
-                       ylabel=self.ylabs[1], fmt=["%d", "%.2f"],
-                       write_file_header=False, close_file=True,
-                       scan_number=2)
+        utils.savespec(
+            specf,
+            self.x,
+            self.y[1],
+            xlabel=self.xlab,
+            ylabel=self.ylabs[1],
+            fmt=["%d", "%.2f"],
+            write_file_header=False,
+            close_file=True,
+            scan_number=2,
+        )
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -184,8 +216,15 @@ class TestSave(unittest.TestCase):
 
     def test_save_spec_reg(self):
         """Save SpecFile using save() on a regular pattern"""
-        utils.save1D(self.spec_fname, self.x, self.y, xlabel=self.xlab,
-                     ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
+        utils.save1D(
+            self.spec_fname,
+            self.x,
+            self.y,
+            xlabel=self.xlab,
+            ylabels=self.ylabs,
+            filetype="spec",
+            fmt=["%d", "%.2f"],
+        )
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -197,8 +236,15 @@ class TestSave(unittest.TestCase):
         """Save SpecFile using save() on an irregular pattern"""
         # invalid  test case ?!
         return
-        utils.save1D(self.spec_fname, self.x, self.y_irr, xlabel=self.xlab,
-                     ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
+        utils.save1D(
+            self.spec_fname,
+            self.x,
+            self.y_irr,
+            xlabel=self.xlab,
+            ylabels=self.ylabs,
+            filetype="spec",
+            fmt=["%d", "%.2f"],
+        )
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -218,8 +264,9 @@ class TestSave(unittest.TestCase):
         self.xlab = "Abscissa"
         self.y = [[4, 5, 6], [7, 8, 9]]
         self.ylabs = ["Ordinate1", "Ordinate2"]
-        utils.save1D(self.csv_fname, self.x, self.y,
-                     autoheader=True, fmt=["%d", "%.2f", "%.2e"])
+        utils.save1D(
+            self.csv_fname, self.x, self.y, autoheader=True, fmt=["%d", "%.2f", "%.2e"]
+        )
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -237,11 +284,11 @@ def assert_match_any_string_in_list(test, pattern, list_of_strings):
 class TestH5Ls(unittest.TestCase):
     """Test displaying the following HDF5 file structure:
 
-        +foo
-            +bar
-                <HDF5 dataset "spam": shape (2, 2), type "<i8">
-                <HDF5 dataset "tmp": shape (3,), type "<i8">
-            <HDF5 dataset "data": shape (1,), type "<f8">
+    +foo
+        +bar
+            <HDF5 dataset "spam": shape (2, 2), type "<i8">
+            <HDF5 dataset "tmp": shape (3,), type "<i8">
+        <HDF5 dataset "data": shape (1,), type "<f8">
 
     """
 
@@ -249,8 +296,11 @@ class TestH5Ls(unittest.TestCase):
         for string_ in list_of_strings:
             if re.match(pattern, string_):
                 return None
-        raise AssertionError("regex pattern %s does not match any" % pattern +
-                             " string in list " + str(list_of_strings))
+        raise AssertionError(
+            "regex pattern %s does not match any" % pattern
+            + " string in list "
+            + str(list_of_strings)
+        )
 
     def testHdf5(self):
         fd, self.h5_fname = tempfile.mkstemp(text=False)
@@ -321,15 +371,22 @@ class TestOpen(unittest.TestCase):
 
     @classmethod
     def createResources(cls, directory):
-
         cls.h5_filename = os.path.join(directory, "test.h5")
         h5 = h5py.File(cls.h5_filename, mode="w")
         h5["group/group/dataset"] = 50
         h5.close()
 
         cls.spec_filename = os.path.join(directory, "test.dat")
-        utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
-                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+        utils.savespec(
+            cls.spec_filename,
+            [1],
+            [1.1],
+            xlabel="x",
+            ylabel="y",
+            fmt=["%d", "%.2f"],
+            close_file=True,
+            scan_number=1,
+        )
 
         cls.edf_filename = os.path.join(directory, "test.edf")
         header = fabio.fabioimage.OrderedDict()
@@ -340,7 +397,7 @@ class TestOpen(unittest.TestCase):
 
         cls.txt_filename = os.path.join(directory, "test.txt")
         f = io.open(cls.txt_filename, "w+t")
-        f.write(u"Kikoo")
+        f.write("Kikoo")
         f.close()
 
         cls.missing_filename = os.path.join(directory, "test.missing")
@@ -403,7 +460,9 @@ class TestOpen(unittest.TestCase):
         self.assertRaises(IOError, utils.open, self.missing_filename)
 
     def test_silx_scheme(self):
-        url = silx.io.url.DataUrl(scheme="silx", file_path=self.h5_filename, data_path="/")
+        url = silx.io.url.DataUrl(
+            scheme="silx", file_path=self.h5_filename, data_path="/"
+        )
         with utils.open(url.path()) as f:
             self.assertIsNotNone(f)
             self.assertTrue(silx.io.utils.is_file(f))
@@ -446,9 +505,7 @@ class TestNodes(unittest.TestCase):
             os.unlink(name)
 
     def test_h5py_like_file(self):
-
         class Foo(object):
-
             def __init__(self):
                 self.h5_class = utils.H5Type.FILE
 
@@ -458,9 +515,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_group(self):
-
         class Foo(object):
-
             def __init__(self):
                 self.h5_class = utils.H5Type.GROUP
 
@@ -470,9 +525,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_h5py_like_dataset(self):
-
         class Foo(object):
-
             def __init__(self):
                 self.h5_class = utils.H5Type.DATASET
 
@@ -482,9 +535,7 @@ class TestNodes(unittest.TestCase):
         self.assertTrue(utils.is_dataset(obj))
 
     def test_bad(self):
-
         class Foo(object):
-
             def __init__(self):
                 pass
 
@@ -494,9 +545,7 @@ class TestNodes(unittest.TestCase):
         self.assertFalse(utils.is_dataset(obj))
 
     def test_bad_api(self):
-
         class Foo(object):
-
             def __init__(self):
                 self.h5_class = int
 
@@ -516,7 +565,6 @@ class TestGetData(unittest.TestCase):
 
     @classmethod
     def createResources(cls, directory):
-
         cls.h5_filename = os.path.join(directory, "test.h5")
         h5 = h5py.File(cls.h5_filename, mode="w")
         h5["group/group/scalar"] = 50
@@ -525,8 +573,16 @@ class TestGetData(unittest.TestCase):
         h5.close()
 
         cls.spec_filename = os.path.join(directory, "test.dat")
-        utils.savespec(cls.spec_filename, [1], [1.1], xlabel="x", ylabel="y",
-                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+        utils.savespec(
+            cls.spec_filename,
+            [1],
+            [1.1],
+            xlabel="x",
+            ylabel="y",
+            fmt=["%d", "%.2f"],
+            close_file=True,
+            scan_number=1,
+        )
 
         cls.edf_filename = os.path.join(directory, "test.edf")
         cls.edf_multiframe_filename = os.path.join(directory, "test_multi.edf")
@@ -540,7 +596,7 @@ class TestGetData(unittest.TestCase):
 
         cls.txt_filename = os.path.join(directory, "test.txt")
         f = io.open(cls.txt_filename, "w+t")
-        f.write(u"Kikoo")
+        f.write("Kikoo")
         f.close()
 
         cls.missing_filename = os.path.join(directory, "test.missing")
@@ -614,109 +670,150 @@ class TestGetData(unittest.TestCase):
 
 
 def _h5_py_version_older_than(version):
-    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split('.')[:3]]
-    r_majeur, r_mineur, r_micro = [int(i) for i in version.split('.')]
-    return calc_hexversion(v_majeur, v_mineur, v_micro) >= calc_hexversion(r_majeur, r_mineur, r_micro) 
+    v_majeur, v_mineur, v_micro = [int(i) for i in h5py.version.version.split(".")[:3]]
+    r_majeur, r_mineur, r_micro = [int(i) for i in version.split(".")]
+    return calc_hexversion(v_majeur, v_mineur, v_micro) >= calc_hexversion(
+        r_majeur, r_mineur, r_micro
+    )
 
 
-@unittest.skipUnless(_h5_py_version_older_than('2.9.0'), 'h5py version < 2.9.0')
+@unittest.skipUnless(_h5_py_version_older_than("2.9.0"), "h5py version < 2.9.0")
 class TestRawFileToH5(unittest.TestCase):
     """Test conversion of .vol file to .h5 external dataset"""
 
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
-        self._vol_file = os.path.join(self.tempdir, 'test_vol.vol')
-        self._file_info = os.path.join(self.tempdir, 'test_vol.info.vol')
+        self._vol_file = os.path.join(self.tempdir, "test_vol.vol")
+        self._file_info = os.path.join(self.tempdir, "test_vol.info.vol")
         self._dataset_shape = 100, 20, 5
-        data = numpy.random.random(self._dataset_shape[0] *
-                                   self._dataset_shape[1] *
-                                   self._dataset_shape[2]).astype(dtype=numpy.float32).reshape(self._dataset_shape)
+        data = (
+            numpy.random.random(
+                self._dataset_shape[0] * self._dataset_shape[1] * self._dataset_shape[2]
+            )
+            .astype(dtype=numpy.float32)
+            .reshape(self._dataset_shape)
+        )
         numpy.save(file=self._vol_file, arr=data)
         # those are storing into .noz file
-        assert os.path.exists(self._vol_file + '.npy')
-        os.rename(self._vol_file + '.npy', self._vol_file)
-        self.h5_file = os.path.join(self.tempdir, 'test_h5.h5')
-        self.external_dataset_path = '/root/my_external_dataset'
-        self._data_url = silx.io.url.DataUrl(file_path=self.h5_file,
-                                             data_path=self.external_dataset_path)
-        with open(self._file_info, 'w') as _fi:
-            _fi.write('NUM_X = %s\n' % self._dataset_shape[2])
-            _fi.write('NUM_Y = %s\n' % self._dataset_shape[1])
-            _fi.write('NUM_Z = %s\n' % self._dataset_shape[0])
+        assert os.path.exists(self._vol_file + ".npy")
+        os.rename(self._vol_file + ".npy", self._vol_file)
+        self.h5_file = os.path.join(self.tempdir, "test_h5.h5")
+        self.external_dataset_path = "/root/my_external_dataset"
+        self._data_url = silx.io.url.DataUrl(
+            file_path=self.h5_file, data_path=self.external_dataset_path
+        )
+        with open(self._file_info, "w") as _fi:
+            _fi.write("NUM_X = %s\n" % self._dataset_shape[2])
+            _fi.write("NUM_Y = %s\n" % self._dataset_shape[1])
+            _fi.write("NUM_Z = %s\n" % self._dataset_shape[0])
 
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
     def check_dataset(self, h5_file, data_path, shape):
         """Make sure the external dataset is valid"""
-        with h5py.File(h5_file, 'r') as _file:
+        with h5py.File(h5_file, "r") as _file:
             return data_path in _file and _file[data_path].shape == shape
 
     def test_h5_file_not_existing(self):
         """Test that can create a file with external dataset from scratch"""
-        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                             output_url=self._data_url,
-                                             shape=(100, 20, 5),
-                                             dtype=numpy.float32)
-        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
-                                           data_path=self.external_dataset_path,
-                                           shape=self._dataset_shape))
+        utils.rawfile_to_h5_external_dataset(
+            bin_file=self._vol_file,
+            output_url=self._data_url,
+            shape=(100, 20, 5),
+            dtype=numpy.float32,
+        )
+        self.assertTrue(
+            self.check_dataset(
+                h5_file=self.h5_file,
+                data_path=self.external_dataset_path,
+                shape=self._dataset_shape,
+            )
+        )
         os.remove(self.h5_file)
-        utils.vol_to_h5_external_dataset(vol_file=self._vol_file,
-                                         output_url=self._data_url,
-                                         info_file=self._file_info)
-        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
-                                           data_path=self.external_dataset_path,
-                                           shape=self._dataset_shape))
+        utils.vol_to_h5_external_dataset(
+            vol_file=self._vol_file,
+            output_url=self._data_url,
+            info_file=self._file_info,
+        )
+        self.assertTrue(
+            self.check_dataset(
+                h5_file=self.h5_file,
+                data_path=self.external_dataset_path,
+                shape=self._dataset_shape,
+            )
+        )
 
     def test_h5_file_existing(self):
         """Test that can add the external dataset from an existing file"""
-        with h5py.File(self.h5_file, 'w') as _file:
-            _file['/root/dataset1'] = numpy.zeros((100, 100))
-            _file['/root/group/dataset2'] = numpy.ones((100, 100))
-        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                             output_url=self._data_url,
-                                             shape=(100, 20, 5),
-                                             dtype=numpy.float32)
-        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
-                                           data_path=self.external_dataset_path,
-                                           shape=self._dataset_shape))
+        with h5py.File(self.h5_file, "w") as _file:
+            _file["/root/dataset1"] = numpy.zeros((100, 100))
+            _file["/root/group/dataset2"] = numpy.ones((100, 100))
+        utils.rawfile_to_h5_external_dataset(
+            bin_file=self._vol_file,
+            output_url=self._data_url,
+            shape=(100, 20, 5),
+            dtype=numpy.float32,
+        )
+        self.assertTrue(
+            self.check_dataset(
+                h5_file=self.h5_file,
+                data_path=self.external_dataset_path,
+                shape=self._dataset_shape,
+            )
+        )
 
     def test_vol_file_not_existing(self):
         """Make sure error is raised if .vol file does not exists"""
         os.remove(self._vol_file)
-        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                             output_url=self._data_url,
-                                             shape=(100, 20, 5),
-                                             dtype=numpy.float32)
+        utils.rawfile_to_h5_external_dataset(
+            bin_file=self._vol_file,
+            output_url=self._data_url,
+            shape=(100, 20, 5),
+            dtype=numpy.float32,
+        )
 
-        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
-                                           data_path=self.external_dataset_path,
-                                           shape=self._dataset_shape))
+        self.assertTrue(
+            self.check_dataset(
+                h5_file=self.h5_file,
+                data_path=self.external_dataset_path,
+                shape=self._dataset_shape,
+            )
+        )
 
     def test_conflicts(self):
         """Test several conflict cases"""
         # test if path already exists
-        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                             output_url=self._data_url,
-                                             shape=(100, 20, 5),
-                                             dtype=numpy.float32)
+        utils.rawfile_to_h5_external_dataset(
+            bin_file=self._vol_file,
+            output_url=self._data_url,
+            shape=(100, 20, 5),
+            dtype=numpy.float32,
+        )
         with self.assertRaises(ValueError):
-            utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                                 output_url=self._data_url,
-                                                 shape=(100, 20, 5),
-                                                 overwrite=False,
-                                                 dtype=numpy.float32)
+            utils.rawfile_to_h5_external_dataset(
+                bin_file=self._vol_file,
+                output_url=self._data_url,
+                shape=(100, 20, 5),
+                overwrite=False,
+                dtype=numpy.float32,
+            )
 
-        utils.rawfile_to_h5_external_dataset(bin_file=self._vol_file,
-                                             output_url=self._data_url,
-                                             shape=(100, 20, 5),
-                                             overwrite=True,
-                                             dtype=numpy.float32)
+        utils.rawfile_to_h5_external_dataset(
+            bin_file=self._vol_file,
+            output_url=self._data_url,
+            shape=(100, 20, 5),
+            overwrite=True,
+            dtype=numpy.float32,
+        )
 
-        self.assertTrue(self.check_dataset(h5_file=self.h5_file,
-                                           data_path=self.external_dataset_path,
-                                           shape=self._dataset_shape))
+        self.assertTrue(
+            self.check_dataset(
+                h5_file=self.h5_file,
+                data_path=self.external_dataset_path,
+                shape=self._dataset_shape,
+            )
+        )
 
 
 class TestH5Strings(unittest.TestCase):
@@ -731,7 +828,7 @@ class TestH5Strings(unittest.TestCase):
         shutil.rmtree(cls.tempdir)
 
     def setUp(self):
-        self.file = h5py.File(os.path.join(self.tempdir, 'file.h5'), mode="w")
+        self.file = h5py.File(os.path.join(self.tempdir, "file.h5"), mode="w")
 
     def tearDown(self):
         self.file.close()
@@ -785,24 +882,34 @@ class TestH5Strings(unittest.TestCase):
             assert self.file["data"].id.get_type().get_cset() == charset
 
         # Write+read variable length
-        no_unicode_support = isinstance(value, str) and not hasattr(h5py, "string_dtype")
+        no_unicode_support = isinstance(value, str) and not hasattr(
+            h5py, "string_dtype"
+        )
         if no_unicode_support:
             decode_ascii = True
         self.file["vlen_data"] = self._make_array(value, 2)
-        data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii, index=0)
+        data = utils.h5py_read_dataset(
+            self.file["vlen_data"], decode_ascii=decode_ascii, index=0
+        )
         assert isinstance(data, type(result)), data
         assert data == result, data
-        data = utils.h5py_read_dataset(self.file["vlen_data"], decode_ascii=decode_ascii)
+        data = utils.h5py_read_dataset(
+            self.file["vlen_data"], decode_ascii=decode_ascii
+        )
         numpy.testing.assert_array_equal(data, [result] * 2)
         if charset is not None:
             assert self.file["vlen_data"].id.get_type().get_cset() == charset
 
         # Write+read fixed length
         self.file["flen_data"] = self._make_array(value, 2, vlen=False)
-        data = utils.h5py_read_dataset(self.file["flen_data"], decode_ascii=decode_ascii, index=0)
+        data = utils.h5py_read_dataset(
+            self.file["flen_data"], decode_ascii=decode_ascii, index=0
+        )
         assert isinstance(data, type(result)), data
         assert data == result, data
-        data = utils.h5py_read_dataset(self.file["flen_data"], decode_ascii=decode_ascii)
+        data = utils.h5py_read_dataset(
+            self.file["flen_data"], decode_ascii=decode_ascii
+        )
         numpy.testing.assert_array_equal(data, [result] * 2)
         if charset is not None and not no_unicode_support:
             assert self.file["flen_data"].id.get_type().get_cset() == charset
@@ -816,33 +923,45 @@ class TestH5Strings(unittest.TestCase):
 
         # Write+read scalar
         self.file.attrs["data"] = value
-        data = utils.h5py_read_attribute(self.file.attrs, "data", decode_ascii=decode_ascii)
+        data = utils.h5py_read_attribute(
+            self.file.attrs, "data", decode_ascii=decode_ascii
+        )
         assert isinstance(data, type(result)), data
         assert data == result, data
 
         # Write+read variable length
-        no_unicode_support = isinstance(value, str) and not hasattr(h5py, "string_dtype")
+        no_unicode_support = isinstance(value, str) and not hasattr(
+            h5py, "string_dtype"
+        )
         if no_unicode_support:
             decode_ascii = True
         self.file.attrs["vlen_data"] = self._make_array(value, 2)
-        data = utils.h5py_read_attribute(self.file.attrs, "vlen_data", decode_ascii=decode_ascii)
+        data = utils.h5py_read_attribute(
+            self.file.attrs, "vlen_data", decode_ascii=decode_ascii
+        )
         assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
 
-        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["vlen_data"]
+        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)[
+            "vlen_data"
+        ]
         assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
 
         # Write+read fixed length
         self.file.attrs["flen_data"] = self._make_array(value, 2, vlen=False)
-        data = utils.h5py_read_attribute(self.file.attrs, "flen_data", decode_ascii=decode_ascii)
+        data = utils.h5py_read_attribute(
+            self.file.attrs, "flen_data", decode_ascii=decode_ascii
+        )
         assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
 
-        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)["flen_data"]
+        data = utils.h5py_read_attributes(self.file.attrs, decode_ascii=decode_ascii)[
+            "flen_data"
+        ]
         assert isinstance(data[0], type(result)), data[0]
         assert data[0] == result, data[0]
         numpy.testing.assert_array_equal(data, [result] * 2)
@@ -920,7 +1039,9 @@ def test_visitall_hdf5(tmp_path):
     with h5py.File(filepath, mode="w") as h5file:
         h5file["group/dataset"] = 50
         h5file["link/soft_link"] = h5py.SoftLink("/group/dataset")
-        h5file["link/external_link"] = h5py.ExternalLink("external.h5", "/target/dataset")
+        h5file["link/external_link"] = h5py.ExternalLink(
+            "external.h5", "/target/dataset"
+        )
 
     with h5py.File(filepath, mode="r") as h5file:
         visited_items = {}
@@ -945,12 +1066,13 @@ def test_visitall_hdf5(tmp_path):
         "/link/external_link": (h5py.ExternalLink, ("external.h5", "/target/dataset")),
     }
 
+
 def test_visitall_commonh5():
     """Visit commonh5 File object"""
     fobj = commonh5.File("filename.file", mode="w")
     group = fobj.create_group("group")
     dataset = group.create_dataset("dataset", data=numpy.array(50))
-    group["soft_link"] = dataset # Create softlink
+    group["soft_link"] = dataset  # Create softlink
 
     visited_items = dict(utils.visitall(fobj))
     assert len(visited_items) == 3
@@ -973,7 +1095,12 @@ def test_match_hdf5(tmp_path):
 
         result = list(utils.match(h5f, "/entry_*/*"))
 
-        assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
+        assert sorted(result) == [
+            "entry_0000/data",
+            "entry_0000/group",
+            "entry_0001/data",
+            "entry_0001/group",
+        ]
 
 
 def test_match_commonh5():
@@ -988,7 +1115,12 @@ def test_match_commonh5():
 
         result = list(utils.match(fobj, "/entry_*/*"))
 
-        assert sorted(result) == ['entry_0000/data', 'entry_0000/group', 'entry_0001/data', 'entry_0001/group']
+        assert sorted(result) == [
+            "entry_0000/data",
+            "entry_0000/group",
+            "entry_0001/data",
+            "entry_0001/group",
+        ]
 
 
 def test_recursive_match_commonh5():
@@ -1000,4 +1132,4 @@ def test_recursive_match_commonh5():
         fobj["entry_0003"] = 3
 
         result = list(utils.match(fobj, "**/data"))
-        assert result == ['entry_0000/bar/data', 'entry_0001/foo/data']
+        assert result == ["entry_0000/bar/data", "entry_0001/foo/data"]

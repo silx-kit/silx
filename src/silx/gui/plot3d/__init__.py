@@ -35,4 +35,4 @@ __date__ = "18/01/2017"
 try:
     import OpenGL as _OpenGL
 except ImportError:
-    raise ImportError('PyOpenGL is not installed')
+    raise ImportError("PyOpenGL is not installed")

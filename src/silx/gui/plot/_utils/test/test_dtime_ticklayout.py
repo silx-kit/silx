@@ -57,7 +57,6 @@ def testNoCrash():
     value = 100e-6  # Start at 100 micro sec range.
 
     while value <= 200 * SECONDS_PER_YEAR:
-
         d2 = d1 + dt.timedelta(microseconds=value * 1e6)  # end date range
 
         for numTicks in range(2, 12):

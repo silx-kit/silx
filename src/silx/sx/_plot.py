@@ -114,17 +114,17 @@ def plot(*args, **kwargs):
     :rtype: silx.gui.plot.Plot1D
     """
     plt = Plot1D()
-    if 'title' in kwargs:
-        plt.setGraphTitle(kwargs['title'])
-    if 'xlabel' in kwargs:
-        plt.getXAxis().setLabel(kwargs['xlabel'])
-    if 'ylabel' in kwargs:
-        plt.getYAxis().setLabel(kwargs['ylabel'])
+    if "title" in kwargs:
+        plt.setGraphTitle(kwargs["title"])
+    if "xlabel" in kwargs:
+        plt.getXAxis().setLabel(kwargs["xlabel"])
+    if "ylabel" in kwargs:
+        plt.getYAxis().setLabel(kwargs["ylabel"])
 
-    color = kwargs.get('color')
-    linestyle = kwargs.get('linestyle')
-    linewidth = kwargs.get('linewidth')
-    marker = kwargs.get('marker')
+    color = kwargs.get("color")
+    linestyle = kwargs.get("linestyle")
+    linewidth = kwargs.get("linewidth")
+    marker = kwargs.get("marker")
 
     # Parse args and store curves as (x, y, style string)
     args = list(args)
@@ -168,43 +168,54 @@ def plot(*args, **kwargs):
                 for c in possible_colors[1:]:
                     if len(c) > len(curve_color):
                         curve_color = c
-                style = style[len(curve_color):]
+                style = style[len(curve_color) :]
 
             if style:
                 # Run twice to handle inversion symbol/linestyle
                 for _i in range(2):
                     # Handle linestyle
-                    for line in (' ', '--', '-', '-.', ':'):
+                    for line in (" ", "--", "-", "-.", ":"):
                         if style.endswith(line):
                             curve_linestyle = line
-                            style = style[:-len(line)]
+                            style = style[: -len(line)]
                             break
 
                     # Handle symbol
-                    for curve_marker in ('o', '.', ',', '+', 'x', 'd', 's'):
+                    for curve_marker in ("o", ".", ",", "+", "x", "d", "s"):
                         if style.endswith(curve_marker):
                             curve_symbol = style[-1]
                             style = style[:-1]
                             break
 
         # As in matplotlib, marker, linestyle and color override other style
-        plt.addCurve(x, y,
-                     legend=('curve_%d' % index),
-                     symbol=marker or curve_symbol,
-                     linestyle=linestyle or curve_linestyle,
-                     linewidth=linewidth,
-                     color=color or curve_color)
+        plt.addCurve(
+            x,
+            y,
+            legend=("curve_%d" % index),
+            symbol=marker or curve_symbol,
+            linestyle=linestyle or curve_linestyle,
+            linewidth=linewidth,
+            color=color or curve_color,
+        )
 
     plt.show()
     _plots.insert(0, plt)
     return plt
 
 
-def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
-           vmin=None, vmax=None,
-           aspect=False,
-           origin='upper', scale=(1., 1.),
-           title='', xlabel='X', ylabel='Y'):
+def imshow(
+    data=None,
+    cmap=None,
+    norm=colors.Colormap.LINEAR,
+    vmin=None,
+    vmax=None,
+    aspect=False,
+    origin="upper",
+    scale=(1.0, 1.0),
+    title="",
+    xlabel="X",
+    ylabel="Y",
+):
     """
     Plot an image in a :class:`~silx.gui.plot.PlotWindow.Plot2D` widget.
 
@@ -269,18 +280,17 @@ def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
     colormap.setVMax(vmax)
 
     # Handle aspect
-    if aspect in (None, False, 'auto', 'normal'):
+    if aspect in (None, False, "auto", "normal"):
         plt.setKeepDataAspectRatio(False)
-    elif aspect in (True, 'equal') or aspect == 1:
+    elif aspect in (True, "equal") or aspect == 1:
         plt.setKeepDataAspectRatio(True)
     else:
-        _logger.warning(
-            'imshow: Unhandled aspect argument: %s', str(aspect))
+        _logger.warning("imshow: Unhandled aspect argument: %s", str(aspect))
 
     # Handle matplotlib-like origin
-    if origin in ('upper', 'lower'):
-        plt.setYAxisInverted(origin == 'upper')
-        origin = 0., 0.  # Set origin to the definition of silx
+    if origin in ("upper", "lower"):
+        plt.setYAxisInverted(origin == "upper")
+        origin = 0.0, 0.0  # Set origin to the definition of silx
 
     if data is not None:
         data = numpy.array(data, copy=True)
@@ -296,10 +306,17 @@ def imshow(data=None, cmap=None, norm=colors.Colormap.LINEAR,
     return plt
 
 
-def scatter(x=None, y=None, value=None, size=None,
-            marker=None,
-            cmap=None, norm=colors.Colormap.LINEAR,
-            vmin=None, vmax=None):
+def scatter(
+    x=None,
+    y=None,
+    value=None,
+    size=None,
+    marker=None,
+    cmap=None,
+    norm=colors.Colormap.LINEAR,
+    vmin=None,
+    vmax=None,
+):
     """
     Plot scattered data in a :class:`~silx.gui.plot.ScatterView` widget.
 
@@ -477,7 +494,9 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
             window.addToolBar(toolbar)
         toolbar.addAction(self.getInteractionModeAction(roi_items.PointROI))
 
-        super(_GInputHandler, self).exec(roiClass=roi_items.PointROI, timeout=self._timeout)
+        super(_GInputHandler, self).exec(
+            roiClass=roi_items.PointROI, timeout=self._timeout
+        )
 
         if isinstance(toolbar, InteractiveModeToolBar):
             toolbar.removeAction(self.getInteractionModeAction(roi_items.PointROI))
@@ -503,18 +522,19 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
             raise RuntimeError("Unexpected item")
 
         x, y = roi.getPosition()
-        xPixel, yPixel = plot.dataToPixel(x, y, axis='left', check=False)
+        xPixel, yPixel = plot.dataToPixel(x, y, axis="left", check=False)
 
         # Pick item at selected position
         pickingResult = plot._pickTopMost(
-            xPixel, yPixel,
-            lambda item: isinstance(item, (items.ImageBase, items.Curve)))
+            xPixel,
+            yPixel,
+            lambda item: isinstance(item, (items.ImageBase, items.Curve)),
+        )
 
         if pickingResult is None:
-            result = _GInputResult((x, y),
-                                   item=None,
-                                   indices=numpy.array((), dtype=int),
-                                   data=None)
+            result = _GInputResult(
+                (x, y), item=None, indices=numpy.array((), dtype=int), data=None
+            )
         else:
             item = pickingResult.getItem()
             indices = pickingResult.getIndices(copy=True)
@@ -522,18 +542,19 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
             if isinstance(item, items.Curve):
                 xData = item.getXData(copy=False)[indices]
                 yData = item.getYData(copy=False)[indices]
-                result = _GInputResult((x, y),
-                                       item=item,
-                                       indices=indices,
-                                       data=numpy.array((xData, yData)).T)
+                result = _GInputResult(
+                    (x, y),
+                    item=item,
+                    indices=indices,
+                    data=numpy.array((xData, yData)).T,
+                )
 
             elif isinstance(item, items.ImageBase):
                 row, column = indices[0][0], indices[1][0]
                 data = item.getData(copy=False)[row, column]
-                result = _GInputResult((x, y),
-                                       item=item,
-                                       indices=(row, column),
-                                       data=data)
+                result = _GInputResult(
+                    (x, y), item=item, indices=(row, column), data=data
+                )
 
         self.__selections[roi] = result
 
@@ -544,7 +565,7 @@ class _GInputHandler(roi.InteractiveRegionOfInterestManager):
         """
         if isinstance(roi, roi_items.PointROI):
             # Only handle points
-            roi.setName('%d' % len(self.__selections))
+            roi.setName("%d" % len(self.__selections))
             self.__updateSelection(roi)
             roi.sigRegionChanged.connect(self.__regionChanged)
 
@@ -606,14 +627,14 @@ def ginput(n=1, timeout=30, plot=None):
                 plot.show()
 
         if plot is None:
-            _logger.warning('No plot available to perform ginput, create one')
+            _logger.warning("No plot available to perform ginput, create one")
             plot = Plot1D()
             plot.show()
             _plots.insert(0, plot)
 
     plot.raise_()  # So window becomes the top level one
 
-    _logger.info('Performing ginput with plot widget %s', str(plot))
+    _logger.info("Performing ginput with plot widget %s", str(plot))
     handler = _GInputHandler(plot, n, timeout)
     points = handler.exec()
 

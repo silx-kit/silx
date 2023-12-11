@@ -45,7 +45,6 @@ class Color(enum.Enum):
 
 
 class MyColorView(DataView):
-
     def __init__(self, parent):
         DataView.__init__(self, parent)
 
@@ -64,14 +63,14 @@ class MyColorView(DataView):
         painter.setPen(qt.QColor(0, 255, 255))
         painter.drawPoint(qt.QPoint(1, 1))
         painter.end()
-        pixmap = pixmap.scaled(32, 32, qt.Qt.IgnoreAspectRatio, qt.Qt.FastTransformation)
+        pixmap = pixmap.scaled(
+            32, 32, qt.Qt.IgnoreAspectRatio, qt.Qt.FastTransformation
+        )
         return qt.QIcon(pixmap)
 
     def setData(self, data):
         widget = self.getWidget()
-        colors = {Color.RED: "#FF0000",
-                  Color.GREEN: "#00FF00",
-                  Color.BLUE: "#0000FF"}
+        colors = {Color.RED: "#FF0000", Color.GREEN: "#00FF00", Color.BLUE: "#0000FF"}
         color = colors.get(data, "#000000")
         text = "<span style='color:%s'>%s</span>" % (color, str(data))
         widget.setText(text)

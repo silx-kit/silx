@@ -42,13 +42,13 @@ def assert_url(url, expected):
 
 def test_fabio_absolute():
     url = DataUrl("fabio:///data/image.edf?slice=2")
-    expected = [True, True, "fabio", "/data/image.edf", None, (2, )]
+    expected = [True, True, "fabio", "/data/image.edf", None, (2,)]
     assert_url(url, expected)
 
 
 def test_fabio_absolute_windows():
     url = DataUrl("fabio:///C:/data/image.edf?slice=2")
-    expected = [True, True, "fabio", "C:/data/image.edf", None, (2, )]
+    expected = [True, True, "fabio", "C:/data/image.edf", None, (2,)]
     assert_url(url, expected)
 
 
@@ -186,13 +186,13 @@ def test_slice3():
 
 def test_slice_ellipsis():
     url = DataUrl("/a.h5?path=/b&slice=...")
-    expected = [True, True, None, "/a.h5", "/b", (Ellipsis, )]
+    expected = [True, True, None, "/a.h5", "/b", (Ellipsis,)]
     assert_url(url, expected)
 
 
 def test_slice_slicing():
     url = DataUrl("/a.h5?path=/b&slice=:")
-    expected = [True, True, None, "/a.h5", "/b", (slice(None), )]
+    expected = [True, True, None, "/a.h5", "/b", (slice(None),)]
     assert_url(url, expected)
 
 
@@ -222,13 +222,20 @@ def test_create_absolute_url():
 
 
 def test_create_absolute_windows_url():
-    url = DataUrl(scheme="silx", file_path="C:/foo.h5", data_path="/", data_slice=(5, 1))
+    url = DataUrl(
+        scheme="silx", file_path="C:/foo.h5", data_path="/", data_slice=(5, 1)
+    )
     url2 = DataUrl(url.path())
     assert url == url2
 
 
 def test_create_slice_url():
-    url = DataUrl(scheme="silx", file_path="/foo.h5", data_path="/", data_slice=(5, 1, Ellipsis, slice(None)))
+    url = DataUrl(
+        scheme="silx",
+        file_path="/foo.h5",
+        data_path="/",
+        data_slice=(5, 1, Ellipsis, slice(None)),
+    )
     url2 = DataUrl(url.path())
     assert url == url2
 
@@ -238,7 +245,8 @@ def test_wrong_url():
     assert not url.is_valid()
 
 
-@pytest.mark.parametrize("data",
+@pytest.mark.parametrize(
+    "data",
     [
         (1, "silx:///foo.h5?slice=1"),
         ((1,), "silx:///foo.h5?slice=1"),
@@ -249,8 +257,8 @@ def test_wrong_url():
         (slice(None, 2, 3), "silx:///foo.h5?slice=:2:3"),
         (slice(None, None, 3), "silx:///foo.h5?slice=::3"),
         (slice(1, 2, 3), "silx:///foo.h5?slice=1:2:3"),
-        ((1,slice(1,2)), "silx:///foo.h5?slice=1,1:2"),
-    ]
+        ((1, slice(1, 2)), "silx:///foo.h5?slice=1,1:2"),
+    ],
 )
 def test_path_creation(data):
     """make sure the construction of path succeed and that we can

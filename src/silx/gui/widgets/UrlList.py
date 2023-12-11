@@ -56,10 +56,7 @@ class UrlList(qt.QListWidget):
 
         # menu to be triggered when in edition from right-click
         self._menu = qt.QMenu()
-        self._removeAction = qt.QAction(
-            text="Remove",
-            parent=self
-        )
+        self._removeAction = qt.QAction(text="Remove", parent=self)
         self._removeAction.setShortcuts(
             [
                 # qt.Qt.Key_Delete,
@@ -118,7 +115,7 @@ class UrlList(qt.QListWidget):
             assert isinstance(url, DataUrl)
             sel_items = self.findItems(url.path(), qt.Qt.MatchExactly)
             if sel_items is None:
-                _logger.warning(url.path(), ' is not registered in the list.')
+                _logger.warning(url.path(), " is not registered in the list.")
             elif len(sel_items) > 0:
                 item = sel_items[0]
                 self.setCurrentItem(item)

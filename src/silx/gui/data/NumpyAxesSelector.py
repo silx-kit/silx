@@ -268,8 +268,9 @@ class NumpyAxesSelector(qt.QWidget):
         :param List[str] axesNames: List of distinct strings identifying axis names
         """
         self.__axisNames = list(axesNames)
-        assert len(set(self.__axisNames)) == len(self.__axisNames),\
+        assert len(set(self.__axisNames)) == len(self.__axisNames), (
             "Non-unique axes names: %s" % self.__axisNames
+        )
 
         delta = len(self.__axis) - len(self.__axisNames)
         if delta < 0:
@@ -318,10 +319,14 @@ class NumpyAxesSelector(qt.QWidget):
                 if index >= delta and index - delta < len(self.__axisNames):
                     axis.setAxisName(self.__axisNames[index - delta])
                 # this weak method was expected to be able to delete sub widget
-                callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisValueChanged), axis)
+                callback = functools.partial(
+                    silx.utils.weakref.WeakMethodProxy(self.__axisValueChanged), axis
+                )
                 axis.valueChanged.connect(callback)
                 # this weak method was expected to be able to delete sub widget
-                callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis)
+                callback = functools.partial(
+                    silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis
+                )
                 axis.axisNameChanged.connect(callback)
                 axis.setNamedAxisSelectorVisibility(self.__namedAxesVisibility)
                 self.layout().addWidget(axis)
@@ -335,8 +340,12 @@ class NumpyAxesSelector(qt.QWidget):
         """Update axes geometry to align all axes components together."""
         if len(self.__axis) <= 0:
             return
-        lineEditWidth = max([a.slider().lineEdit().minimumSize().width() for a in self.__axis])
-        limitWidth = max([a.slider().limitWidget().minimumSizeHint().width() for a in self.__axis])
+        lineEditWidth = max(
+            [a.slider().lineEdit().minimumSize().width() for a in self.__axis]
+        )
+        limitWidth = max(
+            [a.slider().limitWidget().minimumSizeHint().width() for a in self.__axis]
+        )
         for a in self.__axis:
             a.slider().lineEdit().setFixedWidth(lineEditWidth)
             a.slider().limitWidget().setFixedWidth(limitWidth)
@@ -418,7 +427,9 @@ class NumpyAxesSelector(qt.QWidget):
         # get a view with few fixed dimensions
         # with a h5py dataset, it create a copy
         # TODO we can reuse the same memory in case of a copy
-        self.__selectedData = numpy.transpose(self.__data[self.selection()], permutation)
+        self.__selectedData = numpy.transpose(
+            self.__data[self.selection()], permutation
+        )
         self.selectionChanged.emit()
 
     def data(self):
@@ -477,8 +488,12 @@ class NumpyAxesSelector(qt.QWidget):
         if self.__data is None:
             return tuple()
         else:
-            return tuple([axis.value() if axis.axisName() == "" else slice(None)
-                          for axis in self.__axis])
+            return tuple(
+                [
+                    axis.value() if axis.axisName() == "" else slice(None)
+                    for axis in self.__axis
+                ]
+            )
 
     def setSelection(self, selection, permutation=None):
         """Set the selection along each dimension.
@@ -501,8 +516,9 @@ class NumpyAxesSelector(qt.QWidget):
         # Check selection
         if len(selection) != len(data_shape):
             raise ValueError(
-                "Selection length (%d) and data ndim (%d) mismatch" %
-                (len(selection), len(data_shape)))
+                "Selection length (%d) and data ndim (%d) mismatch"
+                % (len(selection), len(data_shape))
+            )
 
         # Check selection type
         selectedDataNDim = 0
@@ -510,8 +526,9 @@ class NumpyAxesSelector(qt.QWidget):
             if isinstance(element, int):
                 if not 0 <= element < size:
                     raise ValueError(
-                        "Selected index (%d) outside data dimension range [0-%d]" %
-                        (element, size))
+                        "Selected index (%d) outside data dimension range [0-%d]"
+                        % (element, size)
+                    )
             elif element is None or element == slice(None):
                 selectedDataNDim += 1
             else:
@@ -520,8 +537,9 @@ class NumpyAxesSelector(qt.QWidget):
         ndim = len(self.__axisNames)
         if selectedDataNDim != ndim:
             raise ValueError(
-                "Selection dimensions (%d) and number of axes (%d) mismatch" %
-                (selectedDataNDim, ndim))
+                "Selection dimensions (%d) and number of axes (%d) mismatch"
+                % (selectedDataNDim, ndim)
+            )
 
         # check permutation
         if permutation is None:
@@ -530,7 +548,8 @@ class NumpyAxesSelector(qt.QWidget):
         if set(permutation) != set(range(ndim)):
             raise ValueError(
                 "Error in provided permutation: "
-                "Wrong size, elements out of range or duplicates")
+                "Wrong size, elements out of range or duplicates"
+            )
 
         inversePermutation = numpy.argsort(permutation)
 

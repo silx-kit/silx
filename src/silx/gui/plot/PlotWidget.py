@@ -49,6 +49,7 @@ import numpy
 
 import silx
 from silx.utils.weakref import WeakMethodProxy
+
 try:
     # Import matplotlib now to init matplotlib our way
     import silx.gui.utils.matplotlib  # noqa
@@ -74,8 +75,7 @@ from ...gui.plot._utils.dtime_ticklayout import timestamp
 """
 Object returned when requesting the data range.
 """
-_PlotDataRange = namedtuple('PlotDataRange',
-                            ['x', 'y', 'yright'])
+_PlotDataRange = namedtuple("PlotDataRange", ["x", "y", "yright"])
 
 
 class _PlotWidgetSelection(qt.QObject):
@@ -101,10 +101,14 @@ class _PlotWidgetSelection(qt.QObject):
 
         # Init history
         self.__history = [  # Store active items from most recent to oldest
-            item for item in (parent.getActiveCurve(),
-                              parent.getActiveImage(),
-                              parent.getActiveScatter())
-            if item is not None]
+            item
+            for item in (
+                parent.getActiveCurve(),
+                parent.getActiveImage(),
+                parent.getActiveScatter(),
+            )
+            if item is not None
+        ]
 
         self.__current = self.__mostRecentActiveItem()
 
@@ -134,7 +138,7 @@ class _PlotWidgetSelection(qt.QObject):
         return active
 
     def getCurrentItem(self) -> Optional[items.Item]:
-        """Returns the current item in the :class:`PlotWidget` or None. """
+        """Returns the current item in the :class:`PlotWidget` or None."""
         return self.__current
 
     def setCurrentItem(self, item: Optional[items.Item]):
@@ -163,19 +167,20 @@ class _PlotWidgetSelection(qt.QObject):
         elif isinstance(item, items.Item):
             plot = self.parent()
             if plot is None or item.getPlot() is not plot:
-                raise ValueError(
-                    "Item is not in the PlotWidget: %s" % str(item))
+                raise ValueError("Item is not in the PlotWidget: %s" % str(item))
             self.__current = item
 
             kind = plot._itemKind(item)
 
             # Clean-up history to be safe
-            self.__history = [item for item in self.__history
-                              if PlotWidget._itemKind(item) != kind]
+            self.__history = [
+                item for item in self.__history if PlotWidget._itemKind(item) != kind
+            ]
 
             # Sync active item if needed
-            if (kind in plot._ACTIVE_ITEM_KINDS and
-                    item is not plot._getActiveItem(kind)):
+            if kind in plot._ACTIVE_ITEM_KINDS and item is not plot._getActiveItem(
+                kind
+            ):
                 plot._setActiveItem(kind, item.getName())
         else:
             raise ValueError("Not an Item: %s" % str(item))
@@ -185,10 +190,9 @@ class _PlotWidgetSelection(qt.QObject):
         if previousSelected != self.getSelectedItems():
             self.sigSelectedItemsChanged.emit()
 
-    def __activeItemChanged(self,
-                            kind: str,
-                            previous: Optional[str],
-                            legend: Optional[str]):
+    def __activeItemChanged(
+        self, kind: str, previous: Optional[str], legend: Optional[str]
+    ):
         """Set current item from kind and legend"""
         if previous == legend:
             return  # No-op for update of item
@@ -200,8 +204,9 @@ class _PlotWidgetSelection(qt.QObject):
         previousSelected = self.getSelectedItems()
 
         # Remove items of this kind from the history
-        self.__history = [item for item in self.__history
-                          if PlotWidget._itemKind(item) != kind]
+        self.__history = [
+            item for item in self.__history if PlotWidget._itemKind(item) != kind
+        ]
 
         # Retrieve current item
         if legend is None:  # Use most recent active item
@@ -227,15 +232,15 @@ class _PlotWidgetSelection(qt.QObject):
 
     def _activeImageChanged(self, previous, current):
         """Handle active image change"""
-        self.__activeItemChanged('image', previous, current)
+        self.__activeItemChanged("image", previous, current)
 
     def _activeCurveChanged(self, previous, current):
         """Handle active curve change"""
-        self.__activeItemChanged('curve', previous, current)
+        self.__activeItemChanged("curve", previous, current)
 
     def _activeScatterChanged(self, previous, current):
         """Handle active scatter change"""
-        self.__activeItemChanged('scatter', previous, current)
+        self.__activeItemChanged("scatter", previous, current)
 
 
 class PlotWidget(qt.QMainWindow):
@@ -377,7 +382,7 @@ class PlotWidget(qt.QMainWindow):
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
         else:
-            self.setWindowTitle('PlotWidget')
+            self.setWindowTitle("PlotWidget")
 
         # Init the backend
         self._backend = self.__getBackendClass(backend)(self, self)
@@ -392,7 +397,7 @@ class PlotWidget(qt.QMainWindow):
 
         # line types
         self._defaultColors = None
-        self._styleList = ['-', '--', '-.', ':']
+        self._styleList = ["-", "--", "-.", ":"]
         self._colorIndex = 0
         self._styleIndex = 0
 
@@ -401,13 +406,12 @@ class PlotWidget(qt.QMainWindow):
             color=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_COLOR,
             linewidth=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_LINEWIDTH,
         )
-        self._activeLegend = {'curve': None, 'image': None,
-                              'scatter': None}
+        self._activeLegend = {"curve": None, "image": None, "scatter": None}
 
         # plot colors (updated later to sync backend)
-        self._foregroundColor = 0., 0., 0., 1.
-        self._gridColor = .7, .7, .7, 1.
-        self._backgroundColor = 1., 1., 1., 1.
+        self._foregroundColor = 0.0, 0.0, 0.0, 1.0
+        self._gridColor = 0.7, 0.7, 0.7, 1.0
+        self._backgroundColor = 1.0, 1.0, 1.0, 1.0
         self._dataBackgroundColor = None
 
         # default properties
@@ -418,18 +422,18 @@ class PlotWidget(qt.QMainWindow):
         self._yRightAxis = items.YRightAxis(self, self._yAxis)
 
         self._grid = None
-        self._graphTitle = ''
-        self.__graphCursorShape = 'default'
+        self._graphTitle = ""
+        self.__graphCursorShape = "default"
 
         # Set axes margins
         self.__axesDisplayed = True
-        self.__axesMargins = 0., 0., 0., 0.
-        self.setAxesMargins(.15, .1, .1, .15)
+        self.__axesMargins = 0.0, 0.0, 0.0, 0.0
+        self.setAxesMargins(0.15, 0.1, 0.1, 0.15)
 
         self.setGraphTitle()
         self.setGraphXLabel()
         self.setGraphYLabel()
-        self.setGraphYLabel('', axis='right')
+        self.setGraphYLabel("", axis="right")
 
         self.setDefaultColormap()  # Init default colormap
 
@@ -439,14 +443,14 @@ class PlotWidget(qt.QMainWindow):
         self._limitsHistory = LimitsHistory(self)
 
         self._eventHandler = PlotInteraction.PlotInteraction(self)
-        self._eventHandler._setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+        self._eventHandler._setInteractiveMode("zoom", color=(0.0, 0.0, 0.0, 1.0))
         self._eventHandler.sigChanged.connect(self.__interactionChanged)
         self.__isInteractionSignalForwarded = True
         self._previousDefaultMode = "zoom", True
 
         self._pressedButtons = []  # Currently pressed mouse buttons
 
-        self._defaultDataMargins = (0., 0., 0., 0.)
+        self._defaultDataMargins = (0.0, 0.0, 0.0, 0.0)
 
         # Only activate autoreplot at the end
         # This avoids errors when loaded in Qt designer
@@ -463,9 +467,9 @@ class PlotWidget(qt.QMainWindow):
         self.setFocus(qt.Qt.OtherFocusReason)
 
         # Set default limits
-        self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='right')
-        self.setGraphYLimits(0., 100., axis='left')
+        self.setGraphXLimits(0.0, 100.0)
+        self.setGraphYLimits(0.0, 100.0, axis="right")
+        self.setGraphYLimits(0.0, 100.0, axis="left")
 
         # Sync backend colors with default ones
         self._foregroundColorsUpdated()
@@ -493,30 +497,32 @@ class PlotWidget(qt.QMainWindow):
 
         elif isinstance(backend, str):
             backend = backend.lower()
-            if backend in ('matplotlib', 'mpl'):
+            if backend in ("matplotlib", "mpl"):
                 try:
-                    from .backends.BackendMatplotlib import \
-                        BackendMatplotlibQt as backendClass
+                    from .backends.BackendMatplotlib import (
+                        BackendMatplotlibQt as backendClass,
+                    )
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
                     raise RuntimeError("matplotlib backend is not available")
 
-            elif backend in ('gl', 'opengl'):
+            elif backend in ("gl", "opengl"):
                 from ..utils.glutils import isOpenGLAvailable
+
                 checkOpenGL = isOpenGLAvailable(version=(2, 1), runtimeCheck=False)
                 if not checkOpenGL:
                     _logger.debug("OpenGL check failed")
                     raise RuntimeError(
-                        "OpenGL backend is not available: %s" % checkOpenGL.error)
+                        "OpenGL backend is not available: %s" % checkOpenGL.error
+                    )
 
                 try:
-                    from .backends.BackendOpenGL import \
-                        BackendOpenGL as backendClass
+                    from .backends.BackendOpenGL import BackendOpenGL as backendClass
                 except ImportError:
                     _logger.debug("Backtrace", exc_info=True)
                     raise RuntimeError("OpenGL backend is not available")
 
-            elif backend == 'none':
+            elif backend == "none":
                 from .backends.BackendBase import BackendBase as backendClass
 
             else:
@@ -563,8 +569,8 @@ class PlotWidget(qt.QMainWindow):
         # First save state that is stored in the backend
         xaxis = self.getXAxis()
         xmin, xmax = xaxis.getLimits()
-        ymin, ymax = self.getYAxis(axis='left').getLimits()
-        y2min, y2max = self.getYAxis(axis='right').getLimits()
+        ymin, ymax = self.getYAxis(axis="left").getLimits()
+        y2min, y2max = self.getYAxis(axis="right").getLimits()
         isKeepDataAspectRatio = self.isKeepDataAspectRatio()
         xTimeZone = xaxis.getTimeZone()
         isXAxisTimeSeries = xaxis.getTickMode() == TickMode.TIME_SERIES
@@ -593,7 +599,7 @@ class PlotWidget(qt.QMainWindow):
         self._backend.setGraphCursorShape(self.getGraphCursorShape())
         crosshairConfig = self.getGraphCursor()
         if crosshairConfig is None:
-            self._backend.setGraphCursor(False, 'black', 1, '-')
+            self._backend.setGraphCursor(False, "black", 1, "-")
         else:
             self._backend.setGraphCursor(True, *crosshairConfig)
 
@@ -602,21 +608,21 @@ class PlotWidget(qt.QMainWindow):
         if self.isAxesDisplayed():
             self._backend.setAxesMargins(*self.getAxesMargins())
         else:
-            self._backend.setAxesMargins(0., 0., 0., 0.)
+            self._backend.setAxesMargins(0.0, 0.0, 0.0, 0.0)
 
         # Set axes
         xaxis = self.getXAxis()
         self._backend.setGraphXLabel(xaxis.getLabel())
         self._backend.setXAxisTimeZone(xTimeZone)
         self._backend.setXAxisTimeSeries(isXAxisTimeSeries)
-        self._backend.setXAxisLogarithmic(
-            xaxis.getScale() == items.Axis.LOGARITHMIC)
+        self._backend.setXAxisLogarithmic(xaxis.getScale() == items.Axis.LOGARITHMIC)
 
-        for axis in ('left', 'right'):
+        for axis in ("left", "right"):
             self._backend.setGraphYLabel(self.getYAxis(axis).getLabel(), axis)
         self._backend.setYAxisInverted(isYAxisInverted)
         self._backend.setYAxisLogarithmic(
-            self.getYAxis().getScale() == items.Axis.LOGARITHMIC)
+            self.getYAxis().getScale() == items.Axis.LOGARITHMIC
+        )
 
         # Finally restore aspect ratio and limits
         self._backend.setKeepDataAspectRatio(isKeepDataAspectRatio)
@@ -654,12 +660,16 @@ class PlotWidget(qt.QMainWindow):
         """Override QWidget.contextMenuEvent to implement the context menu"""
         menu = qt.QMenu(self)
         from .actions.control import ZoomBackAction  # Avoid cyclic import
+
         zoomBackAction = ZoomBackAction(plot=self, parent=menu)
         menu.addAction(zoomBackAction)
 
         mode = self.getInteractiveMode()
         if "shape" in mode and mode["shape"] == "polygon":
-            from .actions.control import ClosePolygonInteractionAction  # Avoid cyclic import
+            from .actions.control import (
+                ClosePolygonInteractionAction,
+            )  # Avoid cyclic import
+
             action = ClosePolygonInteractionAction(plot=self, parent=menu)
             menu.addAction(action)
 
@@ -680,7 +690,7 @@ class PlotWidget(qt.QMainWindow):
         wasDirty = self._dirty
 
         if not self._dirty and overlayOnly:
-            self._dirty = 'overlay'
+            self._dirty = "overlay"
         else:
             self._dirty = True
 
@@ -693,8 +703,7 @@ class PlotWidget(qt.QMainWindow):
             gridColor = self._foregroundColor
         else:
             gridColor = self._gridColor
-        self._backend.setForegroundColors(
-            self._foregroundColor, gridColor)
+        self._backend.setForegroundColors(self._foregroundColor, gridColor)
         self._setDirtyPlot()
 
     def getForegroundColor(self):
@@ -748,8 +757,7 @@ class PlotWidget(qt.QMainWindow):
             dataBGColor = self._backgroundColor
         else:
             dataBGColor = self._dataBackgroundColor
-        self._backend.setBackgroundColors(
-            self._backgroundColor, dataBGColor)
+        self._backend.setBackgroundColors(self._backgroundColor, dataBGColor)
         self._setDirtyPlot()
 
     def getBackgroundColor(self):
@@ -838,42 +846,43 @@ class PlotWidget(qt.QMainWindow):
         """
         Recomputes the range of the data displayed on this PlotWidget.
         """
-        xMin = yMinLeft = yMinRight = float('nan')
-        xMax = yMaxLeft = yMaxRight = float('nan')
+        xMin = yMinLeft = yMinRight = float("nan")
+        xMax = yMaxLeft = yMaxRight = float("nan")
 
         for item in self.getItems():
             if item.isVisible():
                 bounds = item.getBounds()
                 if bounds is not None:
                     with warnings.catch_warnings():
-                        warnings.simplefilter('ignore', category=RuntimeWarning)
+                        warnings.simplefilter("ignore", category=RuntimeWarning)
                         # Ignore All-NaN slice encountered
                         xMin = numpy.nanmin([xMin, bounds[0]])
                         xMax = numpy.nanmax([xMax, bounds[1]])
                     # Take care of right axis
-                    if (isinstance(item, items.YAxisMixIn) and
-                            item.getYAxis() == 'right'):
+                    if (
+                        isinstance(item, items.YAxisMixIn)
+                        and item.getYAxis() == "right"
+                    ):
                         with warnings.catch_warnings():
-                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            warnings.simplefilter("ignore", category=RuntimeWarning)
                             # Ignore All-NaN slice encountered
                             yMinRight = numpy.nanmin([yMinRight, bounds[2]])
                             yMaxRight = numpy.nanmax([yMaxRight, bounds[3]])
                     else:
                         with warnings.catch_warnings():
-                            warnings.simplefilter('ignore', category=RuntimeWarning)
+                            warnings.simplefilter("ignore", category=RuntimeWarning)
                             # Ignore All-NaN slice encountered
                             yMinLeft = numpy.nanmin([yMinLeft, bounds[2]])
                             yMaxLeft = numpy.nanmax([yMaxLeft, bounds[3]])
 
         def lGetRange(x, y):
             return None if numpy.isnan(x) and numpy.isnan(y) else (x, y)
+
         xRange = lGetRange(xMin, xMax)
         yLeftRange = lGetRange(yMinLeft, yMaxLeft)
         yRightRange = lGetRange(yMinRight, yMaxRight)
 
-        self._dataRange = _PlotDataRange(x=xRange,
-                                         y=yLeftRange,
-                                         yright=yRightRange)
+        self._dataRange = _PlotDataRange(x=xRange, y=yLeftRange, yright=yRightRange)
 
     def getDataRange(self):
         """
@@ -891,19 +900,19 @@ class PlotWidget(qt.QMainWindow):
     # Content management
 
     _KIND_TO_CLASSES = {
-        'curve': (items.Curve,),
-        'image': (items.ImageBase,),
-        'scatter': (items.Scatter,),
-        'marker': (items.MarkerBase,),
-        'item': (
+        "curve": (items.Curve,),
+        "image": (items.ImageBase,),
+        "scatter": (items.Scatter,),
+        "marker": (items.MarkerBase,),
+        "item": (
             items.Line,
             items.Shape,
             items.BoundingRect,
             items.XAxisExtent,
             items.YAxisExtent,
         ),
-        'histogram': (items.Histogram,),
-        }
+        "histogram": (items.Histogram,),
+    }
     """Mapping kind to item classes of this kind"""
 
     @classmethod
@@ -916,11 +925,15 @@ class PlotWidget(qt.QMainWindow):
         for kind, itemClasses in cls._KIND_TO_CLASSES.items():
             if isinstance(item, itemClasses):
                 return kind
-        return 'other'
+        return "other"
 
     def _notifyContentChanged(self, item):
-        self.notify('contentChanged', action='add',
-                    kind=self._itemKind(item), legend=item.getName())
+        self.notify(
+            "contentChanged",
+            action="add",
+            kind=self._itemKind(item),
+            legend=item.getName(),
+        )
 
     def _itemRequiresUpdate(self, item):
         """Called by items in the plot for asynchronous update
@@ -944,7 +957,7 @@ class PlotWidget(qt.QMainWindow):
             raise ValueError(f"argument must be a subclass of Item")
 
         if item in self.getItems():
-            raise ValueError('Item already in the plot')
+            raise ValueError("Item already in the plot")
 
         # Add item to plot
         self.__items.append(item)
@@ -966,7 +979,7 @@ class PlotWidget(qt.QMainWindow):
             raise ValueError("argument must be an Item")
 
         if item not in self.getItems():
-            raise ValueError('Item not in the plot')
+            raise ValueError("Item not in the plot")
 
         self.sigItemAboutToBeRemoved.emit(item)
 
@@ -988,14 +1001,12 @@ class PlotWidget(qt.QMainWindow):
         item._removeBackendRenderer(self._backend)
         item._setPlot(None)
 
-        if (kind == 'curve' and not self.getAllCurves(just_legend=True,
-                                                      withhidden=True)):
+        if kind == "curve" and not self.getAllCurves(just_legend=True, withhidden=True):
             self._resetColorAndStyle()
 
         self.sigItemRemoved.emit(item)
 
-        self.notify('contentChanged', action='remove',
-                    kind=kind, legend=item.getName())
+        self.notify("contentChanged", action="remove", kind=kind, legend=item.getName())
 
     def discardItem(self, item) -> bool:
         """Remove the item from the plot.
@@ -1035,15 +1046,30 @@ class PlotWidget(qt.QMainWindow):
     # Store used value.
     # This value is used when curve is updated either internally or by user.
 
-    def addCurve(self, x, y, legend=None, info=None,
-                 replace=False,
-                 color=None, symbol=None,
-                 linewidth=None, linestyle=None,
-                 xlabel=None, ylabel=None, yaxis=None,
-                 xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, resetzoom=True,
-                 histogram=None, copy=True,
-                 baseline=None):
+    def addCurve(
+        self,
+        x,
+        y,
+        legend=None,
+        info=None,
+        replace=False,
+        color=None,
+        symbol=None,
+        linewidth=None,
+        linestyle=None,
+        xlabel=None,
+        ylabel=None,
+        yaxis=None,
+        xerror=None,
+        yerror=None,
+        z=None,
+        selectable=None,
+        fill=None,
+        resetzoom=True,
+        histogram=None,
+        copy=True,
+        baseline=None,
+    ):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -1130,13 +1156,15 @@ class PlotWidget(qt.QMainWindow):
         """
         # This is an histogram, use addHistogram
         if histogram is not None:
-            histoLegend = self.addHistogram(histogram=y,
-                                            edges=x,
-                                            legend=legend,
-                                            color=color,
-                                            fill=fill,
-                                            align=histogram,
-                                            copy=copy)
+            histoLegend = self.addHistogram(
+                histogram=y,
+                edges=x,
+                legend=legend,
+                color=color,
+                fill=fill,
+                align=histogram,
+                copy=copy,
+            )
             histo = self.getHistogram(histoLegend)
 
             histo.setInfo(info)
@@ -1145,22 +1173,21 @@ class PlotWidget(qt.QMainWindow):
             if linestyle is not None:
                 histo.setLineStyle(linestyle)
             if xlabel is not None:
-                _logger.warning(
-                    'addCurve: Histogram does not support xlabel argument')
+                _logger.warning("addCurve: Histogram does not support xlabel argument")
             if ylabel is not None:
-                _logger.warning(
-                    'addCurve: Histogram does not support ylabel argument')
+                _logger.warning("addCurve: Histogram does not support ylabel argument")
             if yaxis is not None:
                 histo.setYAxis(yaxis)
             if z is not None:
                 histo.setZValue(z)
             if selectable is not None:
                 _logger.warning(
-                    'addCurve: Histogram does not support selectable argument')
+                    "addCurve: Histogram does not support selectable argument"
+                )
 
             return
 
-        legend = 'Unnamed curve 1.1' if legend is None else str(legend)
+        legend = "Unnamed curve 1.1" if legend is None else str(legend)
 
         # Check if curve was previously active
         wasActive = self.getActiveCurve(just_legend=True) == legend
@@ -1190,7 +1217,8 @@ class PlotWidget(qt.QMainWindow):
             if color is not None:
                 curve.setColor(
                     colors.rgba(color, colors=self.getDefaultColors())
-                    if isinstance(color, str) else color
+                    if isinstance(color, str)
+                    else color
                 )
             if symbol is not None:
                 curve.setSymbol(symbol)
@@ -1242,8 +1270,7 @@ class PlotWidget(qt.QMainWindow):
             self.setActiveCurve(curve.getName())
         elif self.getActiveCurveSelectionMode() == "legacy":
             if self.getActiveCurve(just_legend=True) is None:
-                if len(self.getAllCurves(just_legend=True,
-                                     withhidden=False)) == 1:
+                if len(self.getAllCurves(just_legend=True, withhidden=False)) == 1:
                     if curve.isVisible():
                         self.setActiveCurve(curve.getName())
 
@@ -1255,17 +1282,19 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
-    def addHistogram(self,
-                     histogram,
-                     edges,
-                     legend=None,
-                     color=None,
-                     fill=None,
-                     align='center',
-                     resetzoom=True,
-                     copy=True,
-                     z=None,
-                     baseline=None):
+    def addHistogram(
+        self,
+        histogram,
+        edges,
+        legend=None,
+        color=None,
+        fill=None,
+        align="center",
+        resetzoom=True,
+        copy=True,
+        z=None,
+        baseline=None,
+    ):
         """Add an histogram to the graph.
 
         This is NOT computing the histogram, this method takes as parameter
@@ -1301,7 +1330,7 @@ class PlotWidget(qt.QMainWindow):
         :type: Union[None,float,numpy.ndarray]
         :returns: The key string identify this histogram
         """
-        legend = 'Unnamed histogram' if legend is None else str(legend)
+        legend = "Unnamed histogram" if legend is None else str(legend)
 
         # Create/Update histogram object
         histo = self.getHistogram(legend)
@@ -1317,7 +1346,8 @@ class PlotWidget(qt.QMainWindow):
         if color is not None:
             histo.setColor(
                 colors.rgba(color, colors=self.getDefaultColors())
-                if isinstance(color, str) else color
+                if isinstance(color, str)
+                else color
             )
         if fill is not None:
             histo.setFill(fill)
@@ -1325,8 +1355,9 @@ class PlotWidget(qt.QMainWindow):
             histo.setZValue(z=z)
 
         # Set histogram data
-        histo.setData(histogram=histogram, edges=edges, baseline=baseline,
-                      align=align, copy=copy)
+        histo.setData(
+            histogram=histogram, edges=edges, baseline=baseline, align=align, copy=copy
+        )
 
         if mustBeAdded:
             self.addItem(histo)
@@ -1341,14 +1372,24 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
-    def addImage(self, data, legend=None, info=None,
-                 replace=False,
-                 z=None,
-                 selectable=None, draggable=None,
-                 colormap=None, pixmap=None,
-                 xlabel=None, ylabel=None,
-                 origin=None, scale=None,
-                 resetzoom=True, copy=True):
+    def addImage(
+        self,
+        data,
+        legend=None,
+        info=None,
+        replace=False,
+        z=None,
+        selectable=None,
+        draggable=None,
+        colormap=None,
+        pixmap=None,
+        xlabel=None,
+        ylabel=None,
+        origin=None,
+        scale=None,
+        resetzoom=True,
+        copy=True,
+    ):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -1457,7 +1498,8 @@ class PlotWidget(qt.QMainWindow):
             else:  # RGB(A) image
                 if pixmap is not None:
                     _logger.warning(
-                        'addImage: pixmap argument ignored when data is RGB(A)')
+                        "addImage: pixmap argument ignored when data is RGB(A)"
+                    )
                 image.setData(data, copy=copy)
 
         if replace:
@@ -1481,9 +1523,20 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
-    def addScatter(self, x, y, value, legend=None, colormap=None,
-                   info=None, symbol=None, xerror=None, yerror=None,
-                   z=None, copy=True):
+    def addScatter(
+        self,
+        x,
+        y,
+        value,
+        legend=None,
+        colormap=None,
+        info=None,
+        symbol=None,
+        xerror=None,
+        yerror=None,
+        z=None,
+        copy=True,
+    ):
         """Add a (x, y, value) scatter to the graph.
 
         Scatters are uniquely identified by their legend.
@@ -1528,14 +1581,13 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :returns: The key string identify this scatter
         """
-        legend = 'Unnamed scatter 1.1' if legend is None else str(legend)
+        legend = "Unnamed scatter 1.1" if legend is None else str(legend)
 
         # Check if scatter was previously active
-        wasActive = self._getActiveItem(kind='scatter',
-                                        just_legend=True) == legend
+        wasActive = self._getActiveItem(kind="scatter", just_legend=True) == legend
 
         # Create/Update curve object
-        scatter = self._getItem(kind='scatter', legend=legend)
+        scatter = self._getItem(kind="scatter", legend=legend)
         mustBeAdded = scatter is None
         if scatter is None:
             # No previous scatter, create a default one and add it to the plot
@@ -1577,18 +1629,32 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(scatter)
 
-        scatters = [item for item in self.getItems()
-                    if isinstance(item, items.Scatter) and item.isVisible()]
+        scatters = [
+            item
+            for item in self.getItems()
+            if isinstance(item, items.Scatter) and item.isVisible()
+        ]
         if len(scatters) == 1 or wasActive:
-            self._setActiveItem('scatter', scatter.getName())
+            self._setActiveItem("scatter", scatter.getName())
 
         return legend
 
-    def addShape(self, xdata, ydata, legend=None, info=None,
-                replace=False,
-                shape="polygon", color='black', fill=True,
-                overlay=False, z=None, linestyle="-", linewidth=1.0,
-                linebgcolor=None):
+    def addShape(
+        self,
+        xdata,
+        ydata,
+        legend=None,
+        info=None,
+        replace=False,
+        shape="polygon",
+        color="black",
+        fill=True,
+        overlay=False,
+        z=None,
+        linestyle="-",
+        linewidth=1.0,
+        linebgcolor=None,
+    ):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
@@ -1635,9 +1701,9 @@ class PlotWidget(qt.QMainWindow):
         z = int(z) if z is not None else 2
 
         if replace:
-            self.remove(kind='item')
+            self.remove(kind="item")
         else:
-            self.remove(legend, kind='item')
+            self.remove(legend, kind="item")
 
         item = items.Shape(shape)
         item.setName(legend)
@@ -1655,13 +1721,17 @@ class PlotWidget(qt.QMainWindow):
 
         return legend
 
-    def addXMarker(self, x, legend=None,
-                   text=None,
-                   color=None,
-                   selectable=False,
-                   draggable=False,
-                   constraint=None,
-                   yaxis='left'):
+    def addXMarker(
+        self,
+        x,
+        legend=None,
+        text=None,
+        color=None,
+        selectable=False,
+        draggable=False,
+        constraint=None,
+        yaxis="left",
+    ):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1690,20 +1760,30 @@ class PlotWidget(qt.QMainWindow):
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
-        return self._addMarker(x=x, y=None, legend=legend,
-                               text=text, color=color,
-                               selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint,
-                               yaxis=yaxis)
+        return self._addMarker(
+            x=x,
+            y=None,
+            legend=legend,
+            text=text,
+            color=color,
+            selectable=selectable,
+            draggable=draggable,
+            symbol=None,
+            constraint=constraint,
+            yaxis=yaxis,
+        )
 
-    def addYMarker(self, y,
-                   legend=None,
-                   text=None,
-                   color=None,
-                   selectable=False,
-                   draggable=False,
-                   constraint=None,
-                   yaxis='left'):
+    def addYMarker(
+        self,
+        y,
+        legend=None,
+        text=None,
+        color=None,
+        selectable=False,
+        draggable=False,
+        constraint=None,
+        yaxis="left",
+    ):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1732,20 +1812,32 @@ class PlotWidget(qt.QMainWindow):
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
         :return: The key string identify this marker
         """
-        return self._addMarker(x=None, y=y, legend=legend,
-                               text=text, color=color,
-                               selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=constraint,
-                               yaxis=yaxis)
+        return self._addMarker(
+            x=None,
+            y=y,
+            legend=legend,
+            text=text,
+            color=color,
+            selectable=selectable,
+            draggable=draggable,
+            symbol=None,
+            constraint=constraint,
+            yaxis=yaxis,
+        )
 
-    def addMarker(self, x, y, legend=None,
-                  text=None,
-                  color=None,
-                  selectable=False,
-                  draggable=False,
-                  symbol='+',
-                  constraint=None,
-                  yaxis='left'):
+    def addMarker(
+        self,
+        x,
+        y,
+        legend=None,
+        text=None,
+        color=None,
+        selectable=False,
+        draggable=False,
+        symbol="+",
+        constraint=None,
+        yaxis="left",
+    ):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
@@ -1794,17 +1886,32 @@ class PlotWidget(qt.QMainWindow):
             ymin, ymax = self._yAxis.getLimits()
             y = 0.5 * (ymax + ymin)
 
-        return self._addMarker(x=x, y=y, legend=legend,
-                               text=text, color=color,
-                               selectable=selectable, draggable=draggable,
-                               symbol=symbol, constraint=constraint,
-                               yaxis=yaxis)
+        return self._addMarker(
+            x=x,
+            y=y,
+            legend=legend,
+            text=text,
+            color=color,
+            selectable=selectable,
+            draggable=draggable,
+            symbol=symbol,
+            constraint=constraint,
+            yaxis=yaxis,
+        )
 
-    def _addMarker(self, x, y, legend,
-                   text, color,
-                   selectable, draggable,
-                   symbol, constraint,
-                   yaxis=None):
+    def _addMarker(
+        self,
+        x,
+        y,
+        legend,
+        text,
+        color,
+        selectable,
+        draggable,
+        symbol,
+        constraint,
+        yaxis=None,
+    ):
         """Common method for adding point, vline and hline marker.
 
         See :meth:`addMarker` for argument documentation.
@@ -1812,8 +1919,11 @@ class PlotWidget(qt.QMainWindow):
         assert (x, y) != (None, None)
 
         if legend is None:  # Find an unused legend
-            markerLegends = [item.getName() for item in self.getItems()
-                             if isinstance(item, items.MarkerBase)]
+            markerLegends = [
+                item.getName()
+                for item in self.getItems()
+                if isinstance(item, items.MarkerBase)
+            ]
             for index in itertools.count():
                 legend = "Unnamed Marker %d" % index
                 if legend not in markerLegends:
@@ -1830,8 +1940,9 @@ class PlotWidget(qt.QMainWindow):
         # Create/Update marker object
         marker = self._getMarker(legend)
         if marker is not None and not isinstance(marker, markerClass):
-            _logger.warning('Adding marker with same legend'
-                            ' but different type replaces it')
+            _logger.warning(
+                "Adding marker with same legend" " but different type replaces it"
+            )
             self.removeItem(marker)
             marker = None
 
@@ -1874,7 +1985,7 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend key identifying the curve
         :return: True if the associated curve is hidden, False otherwise
         """
-        curve = self._getItem('curve', legend)
+        curve = self._getItem("curve", legend)
         return curve is not None and not curve.isVisible()
 
     def hideCurve(self, legend, flag=True):
@@ -1885,9 +1996,9 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the curve to be hidden
         :param bool flag: True (default) to hide the curve, False to show it
         """
-        curve = self._getItem('curve', legend)
+        curve = self._getItem("curve", legend)
         if curve is None:
-            _logger.warning('Curve not in plot: %s', legend)
+            _logger.warning("Curve not in plot: %s", legend)
             return
 
         isVisible = not flag
@@ -1896,10 +2007,10 @@ class PlotWidget(qt.QMainWindow):
 
     # Remove
 
-    ITEM_KINDS = 'curve', 'image', 'scatter', 'item', 'marker', 'histogram'
+    ITEM_KINDS = "curve", "image", "scatter", "item", "marker", "histogram"
     """List of supported kind of items in the plot."""
 
-    _ACTIVE_ITEM_KINDS = 'curve', 'scatter', 'image'
+    _ACTIVE_ITEM_KINDS = "curve", "scatter", "image"
     """List of item's kind which have a active item."""
 
     def remove(self, legend=None, kind=ITEM_KINDS):
@@ -1923,7 +2034,7 @@ class PlotWidget(qt.QMainWindow):
                      By default, it removes all kind of elements.
         :type kind: str or tuple of str to specify multiple kinds.
         """
-        if kind == 'all':  # Replace all by tuple of all kinds
+        if kind == "all":  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
         if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
@@ -1936,8 +2047,10 @@ class PlotWidget(qt.QMainWindow):
             # Clear each given kind
             for aKind in kind:
                 for item in self.getItems():
-                    if (isinstance(item, self._KIND_TO_CLASSES[aKind]) and
-                            item.getPlot() is self):  # Make sure item is still in the plot
+                    if (
+                        isinstance(item, self._KIND_TO_CLASSES[aKind])
+                        and item.getPlot() is self
+                    ):  # Make sure item is still in the plot
                         self.removeItem(item)
 
         else:  # This is removing a single element
@@ -1954,7 +2067,7 @@ class PlotWidget(qt.QMainWindow):
         """
         if legend is None:
             return
-        self.remove(legend, kind='curve')
+        self.remove(legend, kind="curve")
 
     def removeImage(self, legend):
         """Remove the image associated to legend from the graph.
@@ -1963,7 +2076,7 @@ class PlotWidget(qt.QMainWindow):
         """
         if legend is None:
             return
-        self.remove(legend, kind='image')
+        self.remove(legend, kind="image")
 
     def removeMarker(self, legend):
         """Remove the marker associated to legend from the graph.
@@ -1972,7 +2085,7 @@ class PlotWidget(qt.QMainWindow):
         """
         if legend is None:
             return
-        self.remove(legend, kind='marker')
+        self.remove(legend, kind="marker")
 
     # Clear
 
@@ -1984,19 +2097,19 @@ class PlotWidget(qt.QMainWindow):
 
     def clearCurves(self):
         """Remove all the curves from the plot."""
-        self.remove(kind='curve')
+        self.remove(kind="curve")
 
     def clearImages(self):
         """Remove all the images from the plot."""
-        self.remove(kind='image')
+        self.remove(kind="image")
 
     def clearItems(self):
-        """Remove all the items from the plot. """
-        self.remove(kind='item')
+        """Remove all the items from the plot."""
+        self.remove(kind="item")
 
     def clearMarkers(self):
         """Remove all the markers from the plot."""
-        self.remove(kind='marker')
+        self.remove(kind="marker")
 
     # Interaction
 
@@ -2010,8 +2123,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._cursorConfiguration
 
-    def setGraphCursor(self, flag=False, color='black',
-                       linewidth=1, linestyle='-'):
+    def setGraphCursor(self, flag=False, color="black", linewidth=1, linestyle="-"):
         """Toggle the display of a crosshair cursor and set its attributes.
 
         :param bool flag: Toggle the display of a crosshair cursor.
@@ -2035,11 +2147,11 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._cursorConfiguration = None
 
-        self._backend.setGraphCursor(flag=flag, color=color,
-                                     linewidth=linewidth, linestyle=linestyle)
+        self._backend.setGraphCursor(
+            flag=flag, color=color, linewidth=linewidth, linestyle=linestyle
+        )
         self._setDirtyPlot()
-        self.notify('setGraphCursor',
-                    state=self._cursorConfiguration is not None)
+        self.notify("setGraphCursor", state=self._cursorConfiguration is not None)
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -2050,20 +2162,21 @@ class PlotWidget(qt.QMainWindow):
         :param float factor: Proportion of the range used to pan the graph.
                              Must be strictly positive.
         """
-        assert direction in ('up', 'down', 'left', 'right')
-        assert factor > 0.
+        assert direction in ("up", "down", "left", "right")
+        assert factor > 0.0
 
-        if direction in ('left', 'right'):
-            xFactor = factor if direction == 'right' else - factor
+        if direction in ("left", "right"):
+            xFactor = factor if direction == "right" else -factor
             xMin, xMax = self._xAxis.getLimits()
 
-            xMin, xMax = _utils.applyPan(xMin, xMax, xFactor,
-                                         self._xAxis.getScale() == self._xAxis.LOGARITHMIC)
+            xMin, xMax = _utils.applyPan(
+                xMin, xMax, xFactor, self._xAxis.getScale() == self._xAxis.LOGARITHMIC
+            )
             self._xAxis.setLimits(xMin, xMax)
 
         else:  # direction in ('up', 'down')
-            sign = -1. if self._yAxis.isInverted() else 1.
-            yFactor = sign * (factor if direction == 'up' else -factor)
+            sign = -1.0 if self._yAxis.isInverted() else 1.0
+            yFactor = sign * (factor if direction == "up" else -factor)
             yMin, yMax = self._yAxis.getLimits()
             yIsLog = self._yAxis.getScale() == self._yAxis.LOGARITHMIC
 
@@ -2082,7 +2195,7 @@ class PlotWidget(qt.QMainWindow):
 
         :rtype: bool
         """
-        return self.getActiveCurveSelectionMode() != 'none'
+        return self.getActiveCurveSelectionMode() != "none"
 
     def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
@@ -2090,7 +2203,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to enable 'atmostone' active curve selection,
             False to disable active curve selection.
         """
-        self.setActiveCurveSelectionMode('atmostone' if flag else 'none')
+        self.setActiveCurveSelectionMode("atmostone" if flag else "none")
 
     def getActiveCurveStyle(self):
         """Returns the current style applied to active curve
@@ -2099,12 +2212,9 @@ class PlotWidget(qt.QMainWindow):
         """
         return self._activeCurveStyle
 
-    def setActiveCurveStyle(self,
-                            color=None,
-                            linewidth=None,
-                            linestyle=None,
-                            symbol=None,
-                            symbolsize=None):
+    def setActiveCurveStyle(
+        self, color=None, linewidth=None, linestyle=None, symbol=None, symbolsize=None
+    ):
         """Set the style of active curve
 
         :param color: Color
@@ -2113,11 +2223,13 @@ class PlotWidget(qt.QMainWindow):
         :param Union[str,None] symbol: Symbol of the markers
         :param Union[float,None] symbolsize: Size of the symbols
         """
-        self._activeCurveStyle = CurveStyle(color=color,
-                                            linewidth=linewidth,
-                                            linestyle=linestyle,
-                                            symbol=symbol,
-                                            symbolsize=symbolsize)
+        self._activeCurveStyle = CurveStyle(
+            color=color,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            symbol=symbol,
+            symbolsize=symbolsize,
+        )
         curve = self.getActiveCurve()
         if curve is not None:
             curve.setHighlightedStyle(self.getActiveCurveStyle())
@@ -2137,7 +2249,7 @@ class PlotWidget(qt.QMainWindow):
         if not self.isActiveCurveHandling():
             return None
 
-        return self._getActiveItem(kind='curve', just_legend=just_legend)
+        return self._getActiveItem(kind="curve", just_legend=just_legend)
 
     def setActiveCurve(self, legend):
         """Make the curve associated to legend the active curve.
@@ -2150,10 +2262,11 @@ class PlotWidget(qt.QMainWindow):
             return
         if legend is None and self.getActiveCurveSelectionMode() == "legacy":
             _logger.info(
-                'setActiveCurve(None) ignored due to active curve selection mode')
+                "setActiveCurve(None) ignored due to active curve selection mode"
+            )
             return
 
-        return self._setActiveItem(kind='curve', legend=legend)
+        return self._setActiveItem(kind="curve", legend=legend)
 
     def setActiveCurveSelectionMode(self, mode):
         """Sets the current selection mode.
@@ -2161,17 +2274,16 @@ class PlotWidget(qt.QMainWindow):
         :param str mode: The active curve selection mode to use.
             It can be: 'legacy', 'atmostone' or 'none'.
         """
-        assert mode in ('legacy', 'atmostone', 'none')
+        assert mode in ("legacy", "atmostone", "none")
 
         if mode != self._activeCurveSelectionMode:
             self._activeCurveSelectionMode = mode
-            if mode == 'none':  # reset active curve
-                self._setActiveItem(kind='curve', legend=None)
+            if mode == "none":  # reset active curve
+                self._setActiveItem(kind="curve", legend=None)
 
-            elif mode == 'legacy' and self.getActiveCurve() is None:
+            elif mode == "legacy" and self.getActiveCurve() is None:
                 # Select an active curve
-                curves = self.getAllCurves(just_legend=False,
-                                           withhidden=False)
+                curves = self.getAllCurves(just_legend=False, withhidden=False)
                 if len(curves) == 1:
                     if curves[0].isVisible():
                         self.setActiveCurve(curves[0].getName())
@@ -2197,7 +2309,7 @@ class PlotWidget(qt.QMainWindow):
         :rtype: str, :class:`.items.ImageData`, :class:`.items.ImageRgba`
                 or None
         """
-        return self._getActiveItem(kind='image', just_legend=just_legend)
+        return self._getActiveItem(kind="image", just_legend=just_legend)
 
     def setActiveImage(self, legend):
         """Make the image associated to legend the active image.
@@ -2205,7 +2317,7 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the image
                            or None to have no active image.
         """
-        return self._setActiveItem(kind='image', legend=legend)
+        return self._setActiveItem(kind="image", legend=legend)
 
     def getActiveScatter(self, just_legend=False):
         """Returns the currently active scatter.
@@ -2218,7 +2330,7 @@ class PlotWidget(qt.QMainWindow):
         :return: Active scatter's legend or corresponding scatter object
         :rtype: str, :class:`.items.Scatter` or None
         """
-        return self._getActiveItem(kind='scatter', just_legend=just_legend)
+        return self._getActiveItem(kind="scatter", just_legend=just_legend)
 
     def setActiveScatter(self, legend):
         """Make the scatter associated to legend the active scatter.
@@ -2226,7 +2338,7 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the scatter
                            or None to have no active scatter.
         """
-        return self._setActiveItem(kind='scatter', legend=legend)
+        return self._setActiveItem(kind="scatter", legend=legend)
 
     def _getActiveItem(self, kind, just_legend=False):
         """Return the currently active item of that kind if any
@@ -2267,7 +2379,7 @@ class PlotWidget(qt.QMainWindow):
             oldActiveItem.sigItemChanged.disconnect(self._activeItemChanged)
 
         # Curve specific: Reset highlight of previous active curve
-        if kind == 'curve' and oldActiveItem is not None:
+        if kind == "curve" and oldActiveItem is not None:
             oldActiveItem.setHighlighted(False)
 
         if legend is None:
@@ -2282,7 +2394,7 @@ class PlotWidget(qt.QMainWindow):
                 self._activeLegend[kind] = legend
 
                 # Curve specific: handle highlight
-                if kind == 'curve':
+                if kind == "curve":
                     item.setHighlightedStyle(self.getActiveCurveStyle())
                     item.setHighlighted(True)
 
@@ -2290,8 +2402,10 @@ class PlotWidget(qt.QMainWindow):
                     if item.getXLabel() is not None:
                         xLabel = item.getXLabel()
                     if item.getYLabel() is not None:
-                        if (isinstance(item, items.YAxisMixIn) and
-                                item.getYAxis() == 'right'):
+                        if (
+                            isinstance(item, items.YAxisMixIn)
+                            and item.getYAxis() == "right"
+                        ):
                             yRightLabel = item.getYLabel()
                         else:
                             yLabel = item.getYLabel()
@@ -2313,10 +2427,11 @@ class PlotWidget(qt.QMainWindow):
             else:
                 oldActiveLegend = oldActiveItem.getName()
             self.notify(
-                'active' + kind[0].upper() + kind[1:] + 'Changed',
+                "active" + kind[0].upper() + kind[1:] + "Changed",
                 updated=oldActiveLegend != activeLegend,
                 previous=oldActiveLegend,
-                legend=activeLegend)
+                legend=activeLegend,
+            )
 
         return activeLegend
 
@@ -2330,10 +2445,11 @@ class PlotWidget(qt.QMainWindow):
             if item is not None:
                 kind = self._itemKind(item)
                 self.notify(
-                    'active' + kind[0].upper() + kind[1:] + 'Changed',
+                    "active" + kind[0].upper() + kind[1:] + "Changed",
                     updated=False,
                     previous=item.getName(),
-                    legend=item.getName())
+                    legend=item.getName(),
+                )
 
     # Getters
 
@@ -2353,9 +2469,11 @@ class PlotWidget(qt.QMainWindow):
         :return: list of curves' legend or :class:`.items.Curve`
         :rtype: list of str or list of :class:`.items.Curve`
         """
-        curves = [item for item in self.getItems() if
-                  isinstance(item, items.Curve) and
-                  (withhidden or item.isVisible())]
+        curves = [
+            item
+            for item in self.getItems()
+            if isinstance(item, items.Curve) and (withhidden or item.isVisible())
+        ]
         return [curve.getName() for curve in curves] if just_legend else curves
 
     def getCurve(self, legend=None):
@@ -2370,7 +2488,7 @@ class PlotWidget(qt.QMainWindow):
             not hidden is returned if there are curves in the plot.
         :return: None or :class:`.items.Curve` object
         """
-        return self._getItem(kind='curve', legend=legend)
+        return self._getItem(kind="curve", legend=legend)
 
     def getAllImages(self, just_legend=False):
         """Returns all images legend or objects.
@@ -2387,8 +2505,7 @@ class PlotWidget(qt.QMainWindow):
         :return: list of images' legend or :class:`.items.ImageBase`
         :rtype: list of str or list of :class:`.items.ImageBase`
         """
-        images = [item for item in self.getItems()
-                  if isinstance(item, items.ImageBase)]
+        images = [item for item in self.getItems() if isinstance(item, items.ImageBase)]
         return [image.getName() for image in images] if just_legend else images
 
     def getImage(self, legend=None):
@@ -2403,7 +2520,7 @@ class PlotWidget(qt.QMainWindow):
             is returned if there are images in the plot.
         :return: None or :class:`.items.ImageBase` object
         """
-        return self._getItem(kind='image', legend=legend)
+        return self._getItem(kind="image", legend=legend)
 
     def getScatter(self, legend=None):
         """Get the object describing a specific scatter.
@@ -2417,7 +2534,7 @@ class PlotWidget(qt.QMainWindow):
             scatter is returned if there are scatters in the plot.
         :return: None or :class:`.items.Scatter` object
         """
-        return self._getItem(kind='scatter', legend=legend)
+        return self._getItem(kind="scatter", legend=legend)
 
     def getHistogram(self, legend=None):
         """Get the object describing a specific histogram.
@@ -2430,7 +2547,7 @@ class PlotWidget(qt.QMainWindow):
             is returned if there are histograms in the plot.
         :return: None or :class:`.items.Histogram` object
         """
-        return self._getItem(kind='histogram', legend=legend)
+        return self._getItem(kind="histogram", legend=legend)
 
     def _getItem(self, kind, legend=None):
         """Get an item from the plot: either an image or a curve.
@@ -2457,8 +2574,11 @@ class PlotWidget(qt.QMainWindow):
                 return item
         # Return last visible item if any
         itemClasses = self._KIND_TO_CLASSES[kind]
-        allItems = [item for item in self.getItems()
-                    if isinstance(item, itemClasses) and item.isVisible()]
+        allItems = [
+            item
+            for item in self.getItems()
+            if isinstance(item, itemClasses) and item.isVisible()
+        ]
         return allItems[-1] if allItems else None
 
     # Limits
@@ -2474,7 +2594,8 @@ class PlotWidget(qt.QMainWindow):
             for axis, limits in zip(axes, ranges):
                 axis.sigLimitsChanged.emit(*limits)
         event = PlotEvents.prepareLimitsChangedSignal(
-            id(self.getWidgetHandle()), xRange, yRange, y2Range)
+            id(self.getWidgetHandle()), xRange, yRange, y2Range
+        )
         self.notify(**event)
 
     def getLimitsHistory(self):
@@ -2496,18 +2617,18 @@ class PlotWidget(qt.QMainWindow):
         """
         self._xAxis.setLimits(xmin, xmax)
 
-    def getGraphYLimits(self, axis='left'):
+    def getGraphYLimits(self, axis="left"):
         """Get the graph Y limits.
 
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         :return: Minimum and maximum values of the X axis
         """
-        assert axis in ('left', 'right')
-        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        assert axis in ("left", "right")
+        yAxis = self._yAxis if axis == "left" else self._yRightAxis
         return yAxis.getLimits()
 
-    def setGraphYLimits(self, ymin, ymax, axis='left'):
+    def setGraphYLimits(self, ymin, ymax, axis="left"):
         """Set the graph Y limits.
 
         :param float ymin: minimum bottom axis value
@@ -2515,8 +2636,8 @@ class PlotWidget(qt.QMainWindow):
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
         """
-        assert axis in ('left', 'right')
-        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        assert axis in ("left", "right")
+        yAxis = self._yAxis if axis == "left" else self._yRightAxis
         return yAxis.setLimits(ymin, ymax)
 
     def setLimits(
@@ -2525,9 +2646,9 @@ class PlotWidget(qt.QMainWindow):
         xmax: float,
         ymin: float,
         ymax: float,
-        y2min: Optional[float]=None,
-        y2max: Optional[float]=None,
-        margins: Union[bool, tuple[float, float, float, float]]=False,
+        y2min: Optional[float] = None,
+        y2max: Optional[float] = None,
+        margins: Union[bool, tuple[float, float, float, float]] = False,
     ):
         """Set the limits of the X and Y axes at once.
 
@@ -2550,9 +2671,7 @@ class PlotWidget(qt.QMainWindow):
 
         # Only consider y2 axis if both limits are not None
         if None not in (y2min, y2max):
-            limits.extend(
-                self.getYAxis(axis="right")._checkLimits(y2min, y2max)
-            )
+            limits.extend(self.getYAxis(axis="right")._checkLimits(y2min, y2max))
 
         if margins:  # Add margins around limits inside the plot area
             limits = list(
@@ -2632,16 +2751,16 @@ class PlotWidget(qt.QMainWindow):
         """
         self._xAxis.setLabel(label)
 
-    def getGraphYLabel(self, axis='left'):
+    def getGraphYLabel(self, axis="left"):
         """Return the current Y axis label as a str.
 
         :param str axis: The Y axis for which to get the label (left or right)
         """
-        assert axis in ('left', 'right')
-        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        assert axis in ("left", "right")
+        yAxis = self._yAxis if axis == "left" else self._yRightAxis
         return yAxis.getLabel()
 
-    def setGraphYLabel(self, label="Y", axis='left'):
+    def setGraphYLabel(self, label="Y", axis="left"):
         """Set the plot Y axis label.
 
         The provided label can be temporarily replaced by the Y label of the
@@ -2650,8 +2769,8 @@ class PlotWidget(qt.QMainWindow):
         :param str label: The Y axis label (default: 'Y')
         :param str axis: The Y axis for which to set the label (left or right)
         """
-        assert axis in ('left', 'right')
-        yAxis = self._yAxis if axis == 'left' else self._yRightAxis
+        assert axis in ("left", "right")
+        yAxis = self._yAxis if axis == "left" else self._yRightAxis
         return yAxis.setLabel(label)
 
     # Axes
@@ -2674,7 +2793,7 @@ class PlotWidget(qt.QMainWindow):
                          ('left' or 'right').
         :rtype: :class:`.items.Axis`
         """
-        assert(axis in ["left", "right"])
+        assert axis in ["left", "right"]
         return self._yAxis if axis == "left" else self._yRightAxis
 
     def setAxesDisplayed(self, displayed: bool):
@@ -2688,7 +2807,7 @@ class PlotWidget(qt.QMainWindow):
             if displayed:
                 self._backend.setAxesMargins(*self.__axesMargins)
             else:
-                self._backend.setAxesMargins(0., 0., 0., 0.)
+                self._backend.setAxesMargins(0.0, 0.0, 0.0, 0.0)
             self._setDirtyPlot()
             self._sigAxesVisibilityChanged.emit(displayed)
 
@@ -2699,8 +2818,7 @@ class PlotWidget(qt.QMainWindow):
         """
         return self.__axesDisplayed
 
-    def setAxesMargins(
-            self, left: float, top: float, right: float, bottom: float):
+    def setAxesMargins(self, left: float, top: float, right: float, bottom: float):
         """Set ratios of margins surrounding data plot area.
 
         All ratios must be within [0., 1.].
@@ -2713,9 +2831,9 @@ class PlotWidget(qt.QMainWindow):
         :raises ValueError:
         """
         for value in (left, top, right, bottom):
-            if value < 0. or value > 1.:
+            if value < 0.0 or value > 1.0:
                 raise ValueError("Margin ratios must be within [0., 1.]")
-        if left + right >= 1. or top + bottom >= 1.:
+        if left + right >= 1.0 or top + bottom >= 1.0:
             raise ValueError("Sum of ratios of opposed sides >= 1")
         margins = left, top, right, bottom
 
@@ -2806,7 +2924,7 @@ class PlotWidget(qt.QMainWindow):
         self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self._forceResetZoom()
-        self.notify('setKeepDataAspectRatio', state=flag)
+        self.notify("setKeepDataAspectRatio", state=flag)
 
     def getGraphGrid(self):
         """Return the current grid mode, either None, 'major' or 'both'.
@@ -2823,15 +2941,15 @@ class PlotWidget(qt.QMainWindow):
                       'both' for grid on both major and minor ticks.
         :type which: str of bool
         """
-        assert which in (None, True, False, 'both', 'major')
+        assert which in (None, True, False, "both", "major")
         if not which:
             which = None
         elif which is True:
-            which = 'major'
+            which = "major"
         self._grid = which
         self._backend.setGraphGrid(which)
         self._setDirtyPlot()
-        self.notify('setGraphGrid', which=str(which))
+        self.notify("setGraphGrid", which=str(which))
 
     # Defaults
 
@@ -2847,7 +2965,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool flag: True to use 'o' as the default curve symbol,
                           False to use no symbol.
         """
-        self._defaultPlotPoints = silx.config.DEFAULT_PLOT_SYMBOL if flag else ''
+        self._defaultPlotPoints = silx.config.DEFAULT_PLOT_SYMBOL if flag else ""
 
         # Reset symbol of all curves
         curves = self.getAllCurves(just_legend=False, withhidden=True)
@@ -2868,7 +2986,7 @@ class PlotWidget(qt.QMainWindow):
         """
         self._plotLines = bool(flag)
 
-        linestyle = '-' if self._plotLines else ' '
+        linestyle = "-" if self._plotLines else " "
 
         # Reset linestyle of all curves
         curves = self.getAllCurves(withhidden=True)
@@ -2898,16 +3016,18 @@ class PlotWidget(qt.QMainWindow):
             autoscale gray colormap.
         """
         if colormap is None:
-            colormap = Colormap(name=silx.config.DEFAULT_COLORMAP_NAME,
-                                normalization='linear',
-                                vmin=None,
-                                vmax=None)
+            colormap = Colormap(
+                name=silx.config.DEFAULT_COLORMAP_NAME,
+                normalization="linear",
+                vmin=None,
+                vmax=None,
+            )
         if isinstance(colormap, dict):
             self._defaultColormap = Colormap._fromDict(colormap)
         else:
             assert isinstance(colormap, Colormap)
             self._defaultColormap = colormap
-        self.notify('defaultColormapChanged')
+        self.notify("defaultColormapChanged")
 
     @staticmethod
     def getSupportedColormaps():
@@ -2956,7 +3076,7 @@ class PlotWidget(qt.QMainWindow):
             color, style = self._getColorAndStyle()
 
         if not self._plotLines:
-            style = ' '
+            style = " "
 
         return color, style
 
@@ -2979,32 +3099,30 @@ class PlotWidget(qt.QMainWindow):
         :param kwargs: The information of the event.
         """
         eventDict = kwargs.copy()
-        eventDict['event'] = event
+        eventDict["event"] = event
         self.sigPlotSignal.emit(eventDict)
 
-        if event == 'setKeepDataAspectRatio':
-            self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
-        elif event == 'setGraphGrid':
-            self.sigSetGraphGrid.emit(kwargs['which'])
-        elif event == 'setGraphCursor':
-            self.sigSetGraphCursor.emit(kwargs['state'])
-        elif event == 'contentChanged':
+        if event == "setKeepDataAspectRatio":
+            self.sigSetKeepDataAspectRatio.emit(kwargs["state"])
+        elif event == "setGraphGrid":
+            self.sigSetGraphGrid.emit(kwargs["which"])
+        elif event == "setGraphCursor":
+            self.sigSetGraphCursor.emit(kwargs["state"])
+        elif event == "contentChanged":
             self.sigContentChanged.emit(
-                kwargs['action'], kwargs['kind'], kwargs['legend'])
-        elif event == 'activeCurveChanged':
-            self.sigActiveCurveChanged.emit(
-                kwargs['previous'], kwargs['legend'])
-        elif event == 'activeImageChanged':
-            self.sigActiveImageChanged.emit(
-                kwargs['previous'], kwargs['legend'])
-        elif event == 'activeScatterChanged':
-            self.sigActiveScatterChanged.emit(
-                kwargs['previous'], kwargs['legend'])
-        elif event == 'interactiveModeChanged':
-            self.sigInteractiveModeChanged.emit(kwargs['source'])
+                kwargs["action"], kwargs["kind"], kwargs["legend"]
+            )
+        elif event == "activeCurveChanged":
+            self.sigActiveCurveChanged.emit(kwargs["previous"], kwargs["legend"])
+        elif event == "activeImageChanged":
+            self.sigActiveImageChanged.emit(kwargs["previous"], kwargs["legend"])
+        elif event == "activeScatterChanged":
+            self.sigActiveScatterChanged.emit(kwargs["previous"], kwargs["legend"])
+        elif event == "interactiveModeChanged":
+            self.sigInteractiveModeChanged.emit(kwargs["source"])
 
         eventDict = kwargs.copy()
-        eventDict['event'] = event
+        eventDict["event"] = event
         self._callback(eventDict)
 
     def setCallback(self, callbackFunction=None):
@@ -3034,11 +3152,11 @@ class PlotWidget(qt.QMainWindow):
             ddict = {}
         _logger.debug("Received dict keys = %s", str(ddict.keys()))
         _logger.debug(str(ddict))
-        if ddict['event'] in ["legendClicked", "curveClicked"]:
-            if ddict['button'] == "left":
-                self.setActiveCurve(ddict['label'])
-                qt.QToolTip.showText(self.cursor().pos(), ddict['label'])
-        elif ddict['event'] == 'mouseClicked' and ddict['button'] == 'left':
+        if ddict["event"] in ["legendClicked", "curveClicked"]:
+            if ddict["button"] == "left":
+                self.setActiveCurve(ddict["label"])
+                qt.QToolTip.showText(self.cursor().pos(), ddict["label"])
+        elif ddict["event"] == "mouseClicked" and ddict["button"] == "left":
             self.setActiveCurve(None)
 
     def saveGraph(self, filename, fileFormat=None, dpi=None):
@@ -3055,23 +3173,29 @@ class PlotWidget(qt.QMainWindow):
         :return: False if cannot save the plot, True otherwise
         """
         if fileFormat is None:
-            if not hasattr(filename, 'lower'):
-                _logger.warning(
-                    'saveGraph cancelled, cannot define file format.')
+            if not hasattr(filename, "lower"):
+                _logger.warning("saveGraph cancelled, cannot define file format.")
                 return False
             else:
                 fileFormat = (filename.split(".")[-1]).lower()
 
-        supportedFormats = ("png", "svg", "pdf", "ps", "eps",
-                            "tif", "tiff", "jpeg", "jpg")
+        supportedFormats = (
+            "png",
+            "svg",
+            "pdf",
+            "ps",
+            "eps",
+            "tif",
+            "tiff",
+            "jpeg",
+            "jpg",
+        )
 
         if fileFormat not in supportedFormats:
-            _logger.warning('Unsupported format %s', fileFormat)
+            _logger.warning("Unsupported format %s", fileFormat)
             return False
         else:
-            self._backend.saveGraph(filename,
-                                    fileFormat=fileFormat,
-                                    dpi=dpi)
+            self._backend.saveGraph(filename, fileFormat=fileFormat, dpi=dpi)
             return True
 
     def getDataMargins(self) -> tuple[float, float, float, float]:
@@ -3083,18 +3207,17 @@ class PlotWidget(qt.QMainWindow):
 
     def setDataMargins(
         self,
-        xMinMargin: float=0.,
-        xMaxMargin: float=0.,
-        yMinMargin: float=0.,
-        yMaxMargin: float=0.,
+        xMinMargin: float = 0.0,
+        xMaxMargin: float = 0.0,
+        yMinMargin: float = 0.0,
+        yMaxMargin: float = 0.0,
     ):
         """Set the default data margins to use in :meth:`resetZoom`.
 
         Set the default ratios of margins to add around the data
         inside the plot area for each side.
         """
-        self._defaultDataMargins = (xMinMargin, xMaxMargin,
-                                    yMinMargin, yMaxMargin)
+        self._defaultDataMargins = (xMinMargin, xMaxMargin, yMinMargin, yMaxMargin)
 
     def getAutoReplot(self):
         """Return True if replot is automatically handled, False otherwise.
@@ -3139,7 +3262,7 @@ class PlotWidget(qt.QMainWindow):
 
     def _forceResetZoom(
         self,
-        dataMargins: Optional[tuple[float, float, float, float]]=None,
+        dataMargins: Optional[tuple[float, float, float, float]] = None,
     ):
         """Reset the plot limits to the bounds of the data and redraw the plot.
 
@@ -3157,8 +3280,8 @@ class PlotWidget(qt.QMainWindow):
         """
         # Get data range
         ranges = self.getDataRange()
-        xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
-        ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+        xmin, xmax = (1.0, 100.0) if ranges.x is None else ranges.x
+        ymin, ymax = (1.0, 100.0) if ranges.y is None else ranges.y
         if ranges.yright is None:
             y2min, y2max = ymin, ymax
         else:
@@ -3204,7 +3327,9 @@ class PlotWidget(qt.QMainWindow):
         # This avoids issues with toggling log scale with matplotlib 2.1.0
         if self._xAxis.getScale() == self._xAxis.LOGARITHMIC and xLimits[0] <= 0:
             xAuto = True
-        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (yLimits[0] <= 0 or y2Limits[0] <= 0):
+        if self._yAxis.getScale() == self._yAxis.LOGARITHMIC and (
+            yLimits[0] <= 0 or y2Limits[0] <= 0
+        ):
             yAuto = True
 
         if not xAuto and not yAuto:
@@ -3217,14 +3342,15 @@ class PlotWidget(qt.QMainWindow):
                 self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
                 if y2Limits is not None:
-                    self.setGraphYLimits(
-                        y2Limits[0], y2Limits[1], axis='right')
+                    self.setGraphYLimits(y2Limits[0], y2Limits[1], axis="right")
                 if yLimits is not None:
-                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
+                    self.setGraphYLimits(yLimits[0], yLimits[1], axis="left")
 
-        if (xLimits != self._xAxis.getLimits() or
-                yLimits != self._yAxis.getLimits() or
-                y2Limits != self._yRightAxis.getLimits()):
+        if (
+            xLimits != self._xAxis.getLimits()
+            or yLimits != self._yAxis.getLimits()
+            or y2Limits != self._yRightAxis.getLimits()
+        ):
             self._notifyLimitsChanged()
 
     # Coord conversion
@@ -3267,7 +3393,7 @@ class PlotWidget(qt.QMainWindow):
         if check:
             isOutside = numpy.logical_or(
                 numpy.logical_or(x > xmax, x < xmin),
-                numpy.logical_or(y > ymax, y < ymin)
+                numpy.logical_or(y > ymax, y < ymin),
             )
 
             if numpy.any(isOutside):
@@ -3308,7 +3434,8 @@ class PlotWidget(qt.QMainWindow):
             left, top, width, height = self.getPlotBoundsInPixels()
             isOutside = numpy.logical_or(
                 numpy.logical_or(x < left, x > left + width),
-                numpy.logical_or(y < top, y > top + height))
+                numpy.logical_or(y < top, y > top + height),
+            )
             if numpy.any(isOutside):
                 return None
 
@@ -3345,10 +3472,13 @@ class PlotWidget(qt.QMainWindow):
         :param float y: Y position in pixels
         :rtype: None of marker object
         """
+
         def checkDraggable(item):
             return isinstance(item, items.MarkerBase) and item.isDraggable()
+
         def checkSelectable(item):
             return isinstance(item, items.MarkerBase) and item.isSelectable()
+
         def check(item):
             return isinstance(item, items.MarkerBase)
 
@@ -3368,7 +3498,7 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend of the marker to retrieve
         :rtype: None of marker object
         """
-        return self._getItem(kind='marker', legend=legend)
+        return self._getItem(kind="marker", legend=legend)
 
     def pickItems(self, x, y, condition=None):
         """Generator of picked items in the plot at given position.
@@ -3383,7 +3513,9 @@ class PlotWidget(qt.QMainWindow):
         :return: Iterable of :class:`PickingResult` objects at picked position.
             Items are ordered from front to back.
         """
-        for item in reversed(self._backend.getItemsFromBackToFront(condition=condition)):
+        for item in reversed(
+            self._backend.getItemsFromBackToFront(condition=condition)
+        ):
             result = item.pick(x, y)
             if result is not None:
                 yield result
@@ -3429,7 +3561,7 @@ class PlotWidget(qt.QMainWindow):
         """
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._pressedButtons.append(btn)
-            self._eventHandler.handleEvent('press', xPixel, yPixel, btn)
+            self._eventHandler.handleEvent("press", xPixel, yPixel, btn)
 
     def onMouseMove(self, xPixel, yPixel):
         """Handle mouse move event.
@@ -3442,8 +3574,7 @@ class PlotWidget(qt.QMainWindow):
 
         if self._cursorInPlot != isCursorInPlot:
             self._cursorInPlot = isCursorInPlot
-            self._eventHandler.handleEvent(
-                'enter' if self._cursorInPlot else 'leave')
+            self._eventHandler.handleEvent("enter" if self._cursorInPlot else "leave")
 
         if isCursorInPlot:
             # Signal mouse move event
@@ -3452,12 +3583,13 @@ class PlotWidget(qt.QMainWindow):
 
             btn = self._pressedButtons[-1] if self._pressedButtons else None
             event = PlotEvents.prepareMouseSignal(
-                'mouseMoved', btn, dataPos[0], dataPos[1], xPixel, yPixel)
+                "mouseMoved", btn, dataPos[0], dataPos[1], xPixel, yPixel
+            )
             self.notify(**event)
 
         # Either button was pressed in the plot or cursor is in the plot
         if isCursorInPlot or self._pressedButtons:
-            self._eventHandler.handleEvent('move', inXPixel, inYPixel)
+            self._eventHandler.handleEvent("move", inXPixel, inYPixel)
 
     def onMouseRelease(self, xPixel, yPixel, btn):
         """Handle mouse release event.
@@ -3472,7 +3604,7 @@ class PlotWidget(qt.QMainWindow):
             pass
         else:
             xPixel, yPixel = self._isPositionInPlotArea(xPixel, yPixel)
-            self._eventHandler.handleEvent('release', xPixel, yPixel, btn)
+            self._eventHandler.handleEvent("release", xPixel, yPixel, btn)
 
     def onMouseWheel(self, xPixel, yPixel, angleInDegrees):
         """Handle mouse wheel event.
@@ -3484,14 +3616,13 @@ class PlotWidget(qt.QMainWindow):
                                      negative for movement toward the user.
         """
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
-            self._eventHandler.handleEvent(
-                'wheel', xPixel, yPixel, angleInDegrees)
+            self._eventHandler.handleEvent("wheel", xPixel, yPixel, angleInDegrees)
 
     def onMouseLeaveWidget(self):
         """Handle mouse leave widget event."""
         if self._cursorInPlot:
             self._cursorInPlot = False
-            self._eventHandler.handleEvent('leave')
+            self._eventHandler.handleEvent("leave")
 
     # Interaction modes #
 
@@ -3526,12 +3657,12 @@ class PlotWidget(qt.QMainWindow):
     def setInteractiveMode(
         self,
         mode: str,
-        color: Union[str, Sequence[numbers.Real]]='black',
-        shape: str='polygon',
-        label: Optional[str]=None,
-        zoomOnWheel: bool=True,
+        color: Union[str, Sequence[numbers.Real]] = "black",
+        shape: str = "polygon",
+        label: Optional[str] = None,
+        zoomOnWheel: bool = True,
         source=None,
-        width: Optional[float]=None
+        width: Optional[float] = None,
     ):
         """Switch the interactive mode.
 
@@ -3563,8 +3694,7 @@ class PlotWidget(qt.QMainWindow):
         if mode in ["pan", "zoom"]:
             self._previousDefaultMode = mode, zoomOnWheel
 
-        self.notify(
-            'interactiveModeChanged', source=source)
+        self.notify("interactiveModeChanged", source=source)
 
     # Panning with arrow keys
 
@@ -3597,10 +3727,10 @@ class PlotWidget(qt.QMainWindow):
 
     # Dict to convert Qt arrow key code to direction str.
     _ARROWS_TO_PAN_DIRECTION = {
-        qt.Qt.Key_Left: 'left',
-        qt.Qt.Key_Right: 'right',
-        qt.Qt.Key_Up: 'up',
-        qt.Qt.Key_Down: 'down'
+        qt.Qt.Key_Left: "left",
+        qt.Qt.Key_Right: "right",
+        qt.Qt.Key_Up: "up",
+        qt.Qt.Key_Down: "down",
     }
 
     def __simulateMouseMove(self):
@@ -3610,7 +3740,8 @@ class PlotWidget(qt.QMainWindow):
             qt.QPointF(self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos())),
             qt.Qt.NoButton,
             qapp.mouseButtons(),
-            qapp.keyboardModifiers())
+            qapp.keyboardModifiers(),
+        )
         qapp.sendEvent(self.getWidgetHandle(), event)
 
     def keyPressEvent(self, event):

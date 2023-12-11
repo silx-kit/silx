@@ -36,8 +36,14 @@ import numpy
 
 from ....utils.proxy import docstring
 from ....utils.deprecation import deprecated_warning
-from .core import (DataItem, LabelsMixIn, DraggableMixIn, ColormapMixIn,
-                   AlphaMixIn, ItemChangedType)
+from .core import (
+    DataItem,
+    LabelsMixIn,
+    DraggableMixIn,
+    ColormapMixIn,
+    AlphaMixIn,
+    ItemChangedType,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -60,23 +66,22 @@ def _convertImageToRgba32(image, copy=True):
     assert image.shape[-1] in (3, 4)
 
     # Convert type to uint8
-    if image.dtype.name != 'uint8':
-        if image.dtype.kind == 'f':  # Float in [0, 1]
-            image = (numpy.clip(image, 0., 1.) * 255).astype(numpy.uint8)
-        elif image.dtype.kind == 'b':  # boolean
+    if image.dtype.name != "uint8":
+        if image.dtype.kind == "f":  # Float in [0, 1]
+            image = (numpy.clip(image, 0.0, 1.0) * 255).astype(numpy.uint8)
+        elif image.dtype.kind == "b":  # boolean
             image = image.astype(numpy.uint8) * 255
-        elif image.dtype.kind in ('i', 'u'):  # int, uint
+        elif image.dtype.kind in ("i", "u"):  # int, uint
             image = numpy.clip(image, 0, 255).astype(numpy.uint8)
         else:
-            raise ValueError('Unsupported image dtype: %s', image.dtype.name)
+            raise ValueError("Unsupported image dtype: %s", image.dtype.name)
         copy = False  # A copy as already been done, avoid next one
 
     # Convert RGB to RGBA
     if image.shape[-1] == 3:
-        new_image = numpy.empty((image.shape[0], image.shape[1], 4),
-                                dtype=numpy.uint8)
-        new_image[:,:,:3] = image
-        new_image[:,:, 3] = 255
+        new_image = numpy.empty((image.shape[0], image.shape[1], 4), dtype=numpy.uint8)
+        new_image[:, :, :3] = image
+        new_image[:, :, 3] = 255
         return new_image  # This is a copy anyway
     else:
         return numpy.array(image, copy=copy)
@@ -98,12 +103,17 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._data = data
         self._mask = mask
         self.__valueDataCache = None  # Store default data
-        self._origin = (0., 0.)
-        self._scale = (1., 1.)
+        self._origin = (0.0, 0.0)
+        self._scale = (1.0, 1.0)
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
-        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageBase methods")
+        deprecated_warning(
+            "Attributes",
+            "__getitem__",
+            since_version="2.0.0",
+            replacement="Use ImageBase methods",
+        )
         if isinstance(item, slice):
             return [self[index] for index in range(*item.indices(5))]
         elif item == 0:
@@ -117,15 +127,15 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
             return None
         elif item == 4:
             params = {
-                'info': self.getInfo(),
-                'origin': self.getOrigin(),
-                'scale': self.getScale(),
-                'z': self.getZValue(),
-                'selectable': self.isSelectable(),
-                'draggable': self.isDraggable(),
-                'colormap': None,
-                'xlabel': self.getXLabel(),
-                'ylabel': self.getYLabel(),
+                "info": self.getInfo(),
+                "origin": self.getOrigin(),
+                "scale": self.getScale(),
+                "z": self.getZValue(),
+                "selectable": self.isSelectable(),
+                "draggable": self.isDraggable(),
+                "colormap": None,
+                "xlabel": self.getXLabel(),
+                "ylabel": self.getYLabel(),
             }
             return params
         else:
@@ -166,8 +176,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
     @docstring(DraggableMixIn)
     def drag(self, from_, to):
         origin = self.getOrigin()
-        self.setOrigin((origin[0] + to[0] - from_[0],
-                        origin[1] + to[1] - from_[1]))
+        self.setOrigin((origin[0] + to[0] - from_[0], origin[1] + to[1] - from_[1]))
 
     def getData(self, copy=True):
         """Returns the image data
@@ -189,8 +198,10 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         self._boundsChanged()
         self._updated(ItemChangedType.DATA)
 
-        if (self.getMaskData(copy=False) is not None and
-                previousShape != self._data.shape):
+        if (
+            self.getMaskData(copy=False) is not None
+            and previousShape != self._data.shape
+        ):
             # Data shape changed, so mask shape changes.
             # Send event, mask is lazily updated in getMaskData
             self._updated(ItemChangedType.MASK)
@@ -210,7 +221,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
         if self._mask.shape != shape:
             # Clip/extend mask to match data
             newMask = numpy.zeros(shape, dtype=self._mask.dtype)
-            newMask[:self._mask.shape[0], :self._mask.shape[1]] = self._mask[:shape[0], :shape[1]]
+            newMask[: self._mask.shape[0], : self._mask.shape[1]] = self._mask[
+                : shape[0], : shape[1]
+            ]
             self._mask = newMask
 
         return numpy.array(self._mask, copy=copy)
@@ -227,7 +240,9 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
 
             shape = self.getData(copy=False).shape[:2]
             if mask.shape != shape:
-                _logger.warning("Inconsistent shape between mask and data %s, %s", mask.shape, shape)
+                _logger.warning(
+                    "Inconsistent shape between mask and data %s, %s", mask.shape, shape
+                )
                 # Clip/extent is done lazily in getMaskData
         elif self._mask is None:
             return  # No update
@@ -277,7 +292,7 @@ class ImageBase(DataItem, LabelsMixIn, DraggableMixIn, AlphaMixIn):
                           False to use internal representation (do not modify!)
         :returns: numpy.ndarray of uint8 of shape (height, width, 4)
         """
-        raise NotImplementedError('This MUST be implemented in sub-class')
+        raise NotImplementedError("This MUST be implemented in sub-class")
 
     def getOrigin(self):
         """Returns the offset from origin at which to display the image.
@@ -359,13 +374,11 @@ class ImageDataBase(ImageBase, ColormapMixIn):
         """
         data = numpy.array(data, copy=copy)
         assert data.ndim == 2
-        if data.dtype.kind == 'b':
-            _logger.warning(
-                'Converting boolean image to int8 to plot it.')
+        if data.dtype.kind == "b":
+            _logger.warning("Converting boolean image to int8 to plot it.")
             data = numpy.array(data, copy=False, dtype=numpy.int8)
         elif numpy.iscomplexobj(data):
-            _logger.warning(
-                'Converting complex image to absolute value to plot it.')
+            _logger.warning("Converting complex image to absolute value to plot it.")
             data = numpy.absolute(data)
         super().setData(data)
 
@@ -392,8 +405,10 @@ class ImageData(ImageDataBase):
             # Do not render with non linear scales
             return None
 
-        if (self.getAlternativeImageData(copy=False) is not None or
-                self.getAlphaData(copy=False) is not None):
+        if (
+            self.getAlternativeImageData(copy=False) is not None
+            or self.getAlphaData(copy=False) is not None
+        ):
             dataToUse = self.getRgbaImageData(copy=False)
         else:
             dataToUse = self.getData(copy=False)
@@ -401,21 +416,28 @@ class ImageData(ImageDataBase):
         if dataToUse.size == 0:
             return None  # No data to display
 
-        return backend.addImage(dataToUse,
-                                origin=self.getOrigin(),
-                                scale=self.getScale(),
-                                colormap=self._getColormapForRendering(),
-                                alpha=self.getAlpha())
+        return backend.addImage(
+            dataToUse,
+            origin=self.getOrigin(),
+            scale=self.getScale(),
+            colormap=self._getColormapForRendering(),
+            alpha=self.getAlpha(),
+        )
 
     def __getitem__(self, item):
         """Compatibility with PyMca and silx <= 0.4.0"""
-        deprecated_warning("Attributes", "__getitem__", since_version="2.0.0", replacement="Use ImageData methods")
+        deprecated_warning(
+            "Attributes",
+            "__getitem__",
+            since_version="2.0.0",
+            replacement="Use ImageData methods",
+        )
         if item == 3:
             return self.getAlternativeImageData(copy=False)
 
         params = ImageBase.__getitem__(self, item)
         if item == 4:
-            params['colormap'] = self.getColormap()
+            params["colormap"] = self.getColormap()
 
         return params
 
@@ -433,7 +455,7 @@ class ImageData(ImageDataBase):
             alphaImage = self.getAlphaData(copy=False)
             if alphaImage is not None:
                 # Apply transparency
-                image[:,:, 3] = image[:,:, 3] * alphaImage
+                image[:, :, 3] = image[:, :, 3] * alphaImage
             return image
 
     def getAlternativeImageData(self, copy=True):
@@ -486,10 +508,10 @@ class ImageData(ImageDataBase):
         if alpha is not None:
             alpha = numpy.array(alpha, copy=copy)
             assert alpha.shape == data.shape
-            if alpha.dtype.kind != 'f':
+            if alpha.dtype.kind != "f":
                 alpha = alpha.astype(numpy.float32)
-            if numpy.any(numpy.logical_or(alpha < 0., alpha > 1.)):
-                alpha = numpy.clip(alpha, 0., 1.)
+            if numpy.any(numpy.logical_or(alpha < 0.0, alpha > 1.0)):
+                alpha = numpy.clip(alpha, 0.0, 1.0)
         self.__alpha = alpha
 
         super().setData(data)
@@ -514,11 +536,13 @@ class ImageRgba(ImageBase):
         if data.size == 0:
             return None  # No data to display
 
-        return backend.addImage(data,
-                                origin=self.getOrigin(),
-                                scale=self.getScale(),
-                                colormap=None,
-                                alpha=self.getAlpha())
+        return backend.addImage(
+            data,
+            origin=self.getOrigin(),
+            scale=self.getScale(),
+            colormap=None,
+            alpha=self.getAlpha(),
+        )
 
     def getRgbaImageData(self, copy=True):
         """Get the displayed RGB(A) image
@@ -536,9 +560,13 @@ class ImageRgba(ImageBase):
         """
         data = numpy.array(data, copy=copy)
         if data.ndim != 3:
-            raise ValueError(f"RGB(A) image is expected to be a 3D dataset. Got {data.ndim} dimensions")
+            raise ValueError(
+                f"RGB(A) image is expected to be a 3D dataset. Got {data.ndim} dimensions"
+            )
         if data.shape[-1] not in (3, 4):
-            raise ValueError(f"RGB(A) image is expected to have 3 or 4 elements as last dimension. Got {data.shape[-1]}")
+            raise ValueError(
+                f"RGB(A) image is expected to have 3 or 4 elements as last dimension. Got {data.shape[-1]}"
+            )
         super().setData(data)
 
     def _getValueData(self, copy=True):
@@ -549,10 +577,10 @@ class ImageRgba(ImageBase):
         :param bool copy:
         """
         rgba = self.getRgbaImageData(copy=False).astype(numpy.float32)
-        intensity = (rgba[:, :, 0] * 0.299 +
-                     rgba[:, :, 1] * 0.587 +
-                     rgba[:, :, 2] * 0.114)
-        intensity *= rgba[:, :, 3] / 255.
+        intensity = (
+            rgba[:, :, 0] * 0.299 + rgba[:, :, 1] * 0.587 + rgba[:, :, 2] * 0.114
+        )
+        intensity *= rgba[:, :, 3] / 255.0
         return intensity
 
 
@@ -562,6 +590,7 @@ class MaskImageData(ImageData):
     This class is used to flag mask items. This information is used to improve
     internal silx widgets.
     """
+
     pass
 
 

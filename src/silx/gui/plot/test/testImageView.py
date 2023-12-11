@@ -92,31 +92,33 @@ class TestImageView(TestCaseQt):
         self.plot.setImage(image)
 
         # Colormap as dict
-        self.plot.setColormap({'name': 'viridis',
-                               'normalization': 'log',
-                               'autoscale': False,
-                               'vmin': 0,
-                               'vmax': 1})
+        self.plot.setColormap(
+            {
+                "name": "viridis",
+                "normalization": "log",
+                "autoscale": False,
+                "vmin": 0,
+                "vmax": 1,
+            }
+        )
         colormap = self.plot.getColormap()
-        self.assertEqual(colormap.getName(), 'viridis')
-        self.assertEqual(colormap.getNormalization(), 'log')
+        self.assertEqual(colormap.getName(), "viridis")
+        self.assertEqual(colormap.getNormalization(), "log")
         self.assertEqual(colormap.getVMin(), 0)
         self.assertEqual(colormap.getVMax(), 1)
 
         # Colormap as keyword arguments
-        self.plot.setColormap(colormap='magma',
-                              normalization='linear',
-                              autoscale=True,
-                              vmin=1,
-                              vmax=2)
-        self.assertEqual(colormap.getName(), 'magma')
-        self.assertEqual(colormap.getNormalization(), 'linear')
+        self.plot.setColormap(
+            colormap="magma", normalization="linear", autoscale=True, vmin=1, vmax=2
+        )
+        self.assertEqual(colormap.getName(), "magma")
+        self.assertEqual(colormap.getNormalization(), "linear")
         self.assertEqual(colormap.getVMin(), None)
         self.assertEqual(colormap.getVMax(), None)
 
         # Update colormap with keyword argument
-        self.plot.setColormap(normalization='log')
-        self.assertEqual(colormap.getNormalization(), 'log')
+        self.plot.setColormap(normalization="log")
+        self.assertEqual(colormap.getNormalization(), "log")
 
         # Colormap as Colormap object
         cmap = Colormap()
@@ -130,7 +132,7 @@ class TestImageView(TestCaseQt):
             ImageView.ProfileWindowBehavior.POPUP,
         )
 
-        self.plot.setProfileWindowBehavior('embedded')
+        self.plot.setProfileWindowBehavior("embedded")
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
             ImageView.ProfileWindowBehavior.EMBEDDED,
@@ -139,9 +141,7 @@ class TestImageView(TestCaseQt):
         image = numpy.arange(100).reshape(10, 10)
         self.plot.setImage(image)
 
-        self.plot.setProfileWindowBehavior(
-            ImageView.ProfileWindowBehavior.POPUP
-        )
+        self.plot.setProfileWindowBehavior(ImageView.ProfileWindowBehavior.POPUP)
         self.assertIs(
             self.plot.getProfileWindowBehavior(),
             ImageView.ProfileWindowBehavior.POPUP,
@@ -170,7 +170,9 @@ class TestImageView(TestCaseQt):
         image = numpy.arange(100).reshape(10, 10)
         self.plot.setImage(image, reset=True)
         self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.plot.getAggregationModeAction().setAggregationMode(
+            items.ImageDataAggregated.Aggregation.MAX
+        )
         self.qWait(100)
 
     def testImageAggregationModeBackToNormalMode(self):
@@ -178,9 +180,13 @@ class TestImageView(TestCaseQt):
         image = numpy.arange(100).reshape(10, 10)
         self.plot.setImage(image, reset=True)
         self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.plot.getAggregationModeAction().setAggregationMode(
+            items.ImageDataAggregated.Aggregation.MAX
+        )
         self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.NONE)
+        self.plot.getAggregationModeAction().setAggregationMode(
+            items.ImageDataAggregated.Aggregation.NONE
+        )
         self.qWait(100)
 
     def testRGBAInAggregationMode(self):
@@ -189,5 +195,7 @@ class TestImageView(TestCaseQt):
 
         self.plot.setImage(image, reset=True)
         self.qWait(100)
-        self.plot.getAggregationModeAction().setAggregationMode(items.ImageDataAggregated.Aggregation.MAX)
+        self.plot.getAggregationModeAction().setAggregationMode(
+            items.ImageDataAggregated.Aggregation.MAX
+        )
         self.qWait(100)

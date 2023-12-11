@@ -36,7 +36,7 @@ __date__ = "08/10/2018"
 from . import _qt as qt
 
 
-if qt.BINDING == 'PyQt5':
+if qt.BINDING == "PyQt5":
     try:
         from PyQt5.sip import isdeleted as _isdeleted  # noqa
         from PyQt5.sip import ispycreated as createdByPython  # noqa
@@ -46,7 +46,6 @@ if qt.BINDING == 'PyQt5':
         from sip import ispycreated as createdByPython  # noqa
         from sip import ispyowned as ownedByPython  # noqa
 
-
     def isValid(obj):
         """Returns True if underlying C++ object is valid.
 
@@ -55,10 +54,10 @@ if qt.BINDING == 'PyQt5':
         """
         return not _isdeleted(obj)
 
-elif qt.BINDING == 'PySide6':
+elif qt.BINDING == "PySide6":
     from shiboken6 import isValid, createdByPython, ownedByPython  # noqa
 
-elif qt.BINDING == 'PyQt6':
+elif qt.BINDING == "PyQt6":
     from PyQt6.sip import isdeleted as _isdeleted  # noqa
     from PyQt6.sip import ispycreated as createdByPython  # noqa
     from PyQt6.sip import ispyowned as ownedByPython  # noqa
@@ -71,9 +70,7 @@ elif qt.BINDING == 'PyQt6':
         """
         return not _isdeleted(obj)
 
-
-
 else:
     raise ImportError("Unsupported Qt binding %s" % qt.BINDING)
 
-__all__ = ['isValid', 'createdByPython', 'ownedByPython']
+__all__ = ["isValid", "createdByPython", "ownedByPython"]

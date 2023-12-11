@@ -37,7 +37,6 @@ from silx.gui import qt
 
 
 class Codec(object):
-
     def __init__(self, any_fabio=False, any_silx=False, fabio_codec=None, auto=False):
         self.__any_fabio = any_fabio
         self.__any_silx = any_silx
@@ -65,7 +64,7 @@ class FileTypeComboBox(qt.QComboBox):
 
     CODEC_ROLE = qt.Qt.UserRole + 2
 
-    INDENTATION = u"\u2022 "
+    INDENTATION = "\u2022 "
 
     def __init__(self, parent=None):
         qt.QComboBox.__init__(self, parent)
@@ -158,7 +157,9 @@ class FileTypeComboBox(qt.QComboBox):
             allExtensions.update(ext)
             if ext == []:
                 ext = ["*"]
-            extensions.append((reader.DESCRIPTION, displayext, ext, reader.codec_name()))
+            extensions.append(
+                (reader.DESCRIPTION, displayext, ext, reader.codec_name())
+            )
         extensions = list(sorted(extensions))
 
         allExtensions = list(sorted(list(allExtensions)))
@@ -171,7 +172,9 @@ class FileTypeComboBox(qt.QComboBox):
             description, displayExt, allExt, _codecName = e
             index = self.count()
             if len(e[1]) < 10:
-                self.addItem("%s%s (%s)" % (self.INDENTATION, description, " ".join(displayExt)))
+                self.addItem(
+                    "%s%s (%s)" % (self.INDENTATION, description, " ".join(displayExt))
+                )
             else:
                 self.addItem("%s%s" % (self.INDENTATION, description))
             codec = Codec(fabio_codec=_codecName)

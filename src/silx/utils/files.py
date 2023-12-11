@@ -31,6 +31,7 @@ __date__ = "19/09/2016"
 import os.path
 import glob
 
+
 def expand_filenames(filenames):
     """
     Takes a list of paths and expand it into a list of files.

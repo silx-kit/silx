@@ -56,7 +56,6 @@ some version of PyQt."""
 
 
 class _IconProvider(object):
-
     FileDialogToParentDir = qt.QStyle.SP_CustomBase + 1
 
     FileDialogToParentFile = qt.QStyle.SP_CustomBase + 2
@@ -92,7 +91,9 @@ class _IconProvider(object):
             pixmap.fill(qt.Qt.transparent)
             painter = qt.QPainter(pixmap)
             painter.drawPixmap(0, 0, backgroundIcon.pixmap(baseSize, mode=mode))
-            painter.drawPixmap(0, size.height() // 3, baseIcon.pixmap(baseSize, mode=mode))
+            painter.drawPixmap(
+                0, size.height() // 3, baseIcon.pixmap(baseSize, mode=mode)
+            )
             painter.end()
             icon.addPixmap(pixmap, mode=mode)
 
@@ -100,12 +101,16 @@ class _IconProvider(object):
 
     def getFileDialogToParentDir(self):
         if self.__iconFileDialogToParentDir is None:
-            self.__iconFileDialogToParentDir = self._createIconToParent(qt.QStyle.SP_DirIcon)
+            self.__iconFileDialogToParentDir = self._createIconToParent(
+                qt.QStyle.SP_DirIcon
+            )
         return self.__iconFileDialogToParentDir
 
     def getFileDialogToParentFile(self):
         if self.__iconFileDialogToParentFile is None:
-            self.__iconFileDialogToParentFile = self._createIconToParent(qt.QStyle.SP_FileIcon)
+            self.__iconFileDialogToParentFile = self._createIconToParent(
+                qt.QStyle.SP_FileIcon
+            )
         return self.__iconFileDialogToParentFile
 
     def icon(self, kind):
@@ -147,13 +152,17 @@ class _SideBar(qt.QListView):
         :rtype: List[str]
         """
         urls = []
-        version = tuple(map(int, qt.qVersion().split('.')[:3]))
+        version = tuple(map(int, qt.qVersion().split(".")[:3]))
         feed_sidebar = True
 
         if not DEFAULT_SIDEBAR_URL:
             _logger.debug("Skip default sidebar URLs (from setted variable)")
             feed_sidebar = False
-        elif version < (5, 11, 2) and qt.BINDING == "PyQt5" and sys.platform in ["linux", "linux2"]:
+        elif (
+            version < (5, 11, 2)
+            and qt.BINDING == "PyQt5"
+            and sys.platform in ["linux", "linux2"]
+        ):
             # Avoid segfault on PyQt5 + gtk
             _logger.debug("Skip default sidebar URLs (avoid PyQt5 segfault)")
             feed_sidebar = False
@@ -186,7 +195,9 @@ class _SideBar(qt.QListView):
 
         selectionModel = self.selectionModel()
         if selected is not None:
-            selectionModel.setCurrentIndex(selected, qt.QItemSelectionModel.ClearAndSelect)
+            selectionModel.setCurrentIndex(
+                selected, qt.QItemSelectionModel.ClearAndSelect
+            )
         else:
             selectionModel.clear()
 
@@ -232,11 +243,12 @@ class _SideBar(qt.QListView):
 
     def sizeHint(self):
         index = self.model().index(0, 0)
-        return self.sizeHintForIndex(index) + qt.QSize(2 * self.frameWidth(), 2 * self.frameWidth())
+        return self.sizeHintForIndex(index) + qt.QSize(
+            2 * self.frameWidth(), 2 * self.frameWidth()
+        )
 
 
 class _Browser(qt.QStackedWidget):
-
     activated = qt.Signal(qt.QModelIndex)
     selected = qt.Signal(qt.QModelIndex)
     rootIndexChanged = qt.Signal(qt.QModelIndex)
@@ -302,7 +314,7 @@ class _Browser(qt.QStackedWidget):
         elif self.currentIndex() == 1:
             return qt.QFileDialog.Detail
         else:
-            assert(False)
+            assert False
 
     def setViewMode(self, mode):
         """Set the current view mode.
@@ -314,7 +326,7 @@ class _Browser(qt.QStackedWidget):
         elif mode == qt.QFileDialog.List:
             self.showList()
         else:
-            assert(False)
+            assert False
 
     def showList(self):
         self.__listView.show()
@@ -342,11 +354,10 @@ class _Browser(qt.QStackedWidget):
         self.__detailView.setModel(None)
 
     def setRootIndex(self, index, model=None):
-        """Sets the root item to the item at the given index.
-        """
+        """Sets the root item to the item at the given index."""
         rootIndex = self.__listView.rootIndex()
         newModel = model or index.model()
-        assert(newModel is not None)
+        assert newModel is not None
 
         if rootIndex is None or rootIndex.model() is not newModel:
             # update the model
@@ -415,12 +426,16 @@ class _Browser(qt.QStackedWidget):
 
         nameId = stream.readQString()
         if nameId != "Browser":
-            _logger.warning("Stored state contains an invalid name id. Browser restoration cancelled.")
+            _logger.warning(
+                "Stored state contains an invalid name id. Browser restoration cancelled."
+            )
             return False
 
         version = stream.readInt32()
         if version != self.__serialVersion:
-            _logger.warning("Stored state contains an invalid version. Browser restoration cancelled.")
+            _logger.warning(
+                "Stored state contains an invalid version. Browser restoration cancelled."
+            )
             return False
 
         headerData = stream.readQVariant()
@@ -438,12 +453,12 @@ class _Browser(qt.QStackedWidget):
         data = qt.QByteArray()
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
-        nameId = u"Browser"
+        nameId = "Browser"
         stream.writeQString(nameId)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__detailView.header().saveState())
         viewMode = self.viewMode()
-        if qt.BINDING in ('PyQt6', 'PySide6'):  # No auto conversion to int
+        if qt.BINDING in ("PyQt6", "PySide6"):  # No auto conversion to int
             viewMode = viewMode.value
         stream.writeInt32(viewMode)
 
@@ -451,7 +466,6 @@ class _Browser(qt.QStackedWidget):
 
 
 class _FabioData(object):
-
     def __init__(self, fabioFile):
         self.__fabioFile = fabioFile
 
@@ -492,7 +506,6 @@ class _PathEdit(qt.QLineEdit):
 
 
 class _CatchResizeEvent(qt.QObject):
-
     resized = qt.Signal(qt.QResizeEvent)
 
     def __init__(self, parent, target):
@@ -565,6 +578,7 @@ class AbstractDataFileDialog(qt.QDialog):
         _logger.debug("Uses default QFileSystemModel with a SafeFileIconProvider")
         self.__fileModel = qt.QFileSystemModel(self)
         from .SafeFileIconProvider import SafeFileIconProvider
+
         iconProvider = SafeFileIconProvider()
         self.__fileModel.setIconProvider(iconProvider)
 
@@ -677,8 +691,12 @@ class AbstractDataFileDialog(qt.QDialog):
         self.__fileTypeCombo = FileTypeComboBox(self)
         self.__fileTypeCombo.setObjectName("fileTypeCombo")
         self.__fileTypeCombo.setDuplicatesEnabled(False)
-        self.__fileTypeCombo.setSizeAdjustPolicy(qt.QComboBox.AdjustToMinimumContentsLengthWithIcon)
-        self.__fileTypeCombo.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
+        self.__fileTypeCombo.setSizeAdjustPolicy(
+            qt.QComboBox.AdjustToMinimumContentsLengthWithIcon
+        )
+        self.__fileTypeCombo.setSizePolicy(
+            qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed
+        )
         self.__fileTypeCombo.activated[int].connect(self.__filterSelected)
         self.__fileTypeCombo.setFabioUrlSupproted(self._isFabioFilesSupported())
 
@@ -708,7 +726,9 @@ class AbstractDataFileDialog(qt.QDialog):
         if self.__selectorWidget is not None:
             self.__selectorWidget.selectionChanged.connect(self.__selectorWidgetChanged)
 
-        self.__previewToolBar = self._createPreviewToolbar(self, self.__previewWidget, self.__selectorWidget)
+        self.__previewToolBar = self._createPreviewToolbar(
+            self, self.__previewWidget, self.__selectorWidget
+        )
 
         self.__dataIcon = qt.QLabel(self)
         self.__dataIcon.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed)
@@ -767,7 +787,9 @@ class AbstractDataFileDialog(qt.QDialog):
         parentFileDirectory = qt.QAction(toolbar)
         parentFileDirectory.setText("Parent directory of the file")
         parentFileDirectory.setObjectName("toDirectoryAction")
-        parentFileDirectory.setIcon(iconProvider.icon(iconProvider.FileDialogToParentDir))
+        parentFileDirectory.setIcon(
+            iconProvider.icon(iconProvider.FileDialogToParentDir)
+        )
         parentFileDirectory.triggered.connect(self.__navigateToParentDir)
         self.__parentFileDirectoryAction = parentFileDirectory
 
@@ -818,11 +840,15 @@ class AbstractDataFileDialog(qt.QDialog):
 
         dummyCombo.setFixedHeight(self.__fileTypeCombo.height())
         self.__resizeCombo = _CatchResizeEvent(self, self.__fileTypeCombo)
-        self.__resizeCombo.resized.connect(lambda e: dummyCombo.setFixedHeight(e.size().height()))
+        self.__resizeCombo.resized.connect(
+            lambda e: dummyCombo.setFixedHeight(e.size().height())
+        )
 
         dummyToolBar.setFixedHeight(self.__browseToolBar.height())
         self.__resizeToolbar = _CatchResizeEvent(self, self.__browseToolBar)
-        self.__resizeToolbar.resized.connect(lambda e: dummyToolBar.setFixedHeight(e.size().height()))
+        self.__resizeToolbar.resized.connect(
+            lambda e: dummyToolBar.setFixedHeight(e.size().height())
+        )
 
         datasetSelection = qt.QWidget(self)
         layoutLeft = qt.QVBoxLayout()
@@ -831,7 +857,9 @@ class AbstractDataFileDialog(qt.QDialog):
         layoutLeft.addWidget(self.__browser)
         layoutLeft.addWidget(self.__fileTypeCombo)
         datasetSelection.setLayout(layoutLeft)
-        datasetSelection.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding)
+        datasetSelection.setSizePolicy(
+            qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Expanding
+        )
 
         infoLayout = qt.QHBoxLayout()
         infoLayout.setContentsMargins(0, 0, 0, 0)
@@ -858,7 +886,9 @@ class AbstractDataFileDialog(qt.QDialog):
             dummyToolbar2.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
             dummyToolbar2.setFixedHeight(self.__browseToolBar.height())
             self.__resizeToolbar = _CatchResizeEvent(self, self.__browseToolBar)
-            self.__resizeToolbar.resized.connect(lambda e: dummyToolbar2.setFixedHeight(e.size().height()))
+            self.__resizeToolbar.resized.connect(
+                lambda e: dummyToolbar2.setFixedHeight(e.size().height())
+            )
             dataLayout.addWidget(dummyToolbar2)
 
         dataLayout.addWidget(dataFrame)
@@ -870,7 +900,9 @@ class AbstractDataFileDialog(qt.QDialog):
             dummyCombo2.setSizePolicy(qt.QSizePolicy.Expanding, qt.QSizePolicy.Fixed)
             dummyCombo2.setFixedHeight(self.__fileTypeCombo.height())
             self.__resizeToolbar = _CatchResizeEvent(self, self.__fileTypeCombo)
-            self.__resizeToolbar.resized.connect(lambda e: dummyCombo2.setFixedHeight(e.size().height()))
+            self.__resizeToolbar.resized.connect(
+                lambda e: dummyCombo2.setFixedHeight(e.size().height())
+            )
             dataLayout.addWidget(dummyCombo2)
         dataSelection.setLayout(dataLayout)
 
@@ -904,7 +936,10 @@ class AbstractDataFileDialog(qt.QDialog):
 
     def __navigateForward(self):
         """Navigate through  the history one step forward."""
-        if len(self.__currentHistory) > 0 and self.__currentHistoryLocation < len(self.__currentHistory) - 1:
+        if (
+            len(self.__currentHistory) > 0
+            and self.__currentHistoryLocation < len(self.__currentHistory) - 1
+        ):
             self.__currentHistoryLocation += 1
             url = self.__currentHistory[self.__currentHistoryLocation]
             self.selectUrl(url)
@@ -971,7 +1006,7 @@ class AbstractDataFileDialog(qt.QDialog):
             self.__listViewAction.setChecked(True)
             self.__detailViewAction.setChecked(False)
         else:
-            assert(False)
+            assert False
 
     def __showAsListView(self):
         self.setViewMode(qt.QFileDialog.List)
@@ -1005,7 +1040,7 @@ class AbstractDataFileDialog(qt.QDialog):
             if silx.io.is_group(obj):
                 self.__browser.setRootIndex(index)
         else:
-            assert(False)
+            assert False
 
     def __browsedItemSelected(self, index):
         self.__dataSelected(index)
@@ -1020,7 +1055,7 @@ class AbstractDataFileDialog(qt.QDialog):
 
         :param str path: Path to load
         """
-        assert(path is not None)
+        assert path is not None
         if path != "" and not os.path.exists(path):
             return
         if self.hasPendingEvents():
@@ -1102,8 +1137,7 @@ class AbstractDataFileDialog(qt.QDialog):
             return True
 
     def __isSilxHavePriority(self, filename):
-        """Silx have priority when there is a specific decoder
-        """
+        """Silx have priority when there is a specific decoder"""
         _, ext = os.path.splitext(filename)
         ext = "*%s" % ext
         formats = silx.io.supported_extensions(flat_formats=False)
@@ -1166,14 +1200,17 @@ class AbstractDataFileDialog(qt.QDialog):
                     if os.path.isfile(path):
                         codec = self.__fileTypeCombo.currentCodec()
                         is_fabio_decoder = codec.is_fabio_codec()
-                        is_fabio_have_priority = not codec.is_silx_codec() and not self.__isSilxHavePriority(path)
+                        is_fabio_have_priority = (
+                            not codec.is_silx_codec()
+                            and not self.__isSilxHavePriority(path)
+                        )
                         if is_fabio_decoder or is_fabio_have_priority:
                             # Then it's flat frame container
                             self.__openFabioFile(path)
                             if self.__fabio is not None:
                                 selectedData = _FabioData(self.__fabio)
             else:
-                assert(False)
+                assert False
 
         self.__setData(selectedData)
 
@@ -1193,7 +1230,9 @@ class AbstractDataFileDialog(qt.QDialog):
                     self.__setSelectedData(data)
                     self.__selectorWidget.hide()
                 else:
-                    self.__selectorWidget.setVisible(self.__selectorWidget.hasVisibleSelectors())
+                    self.__selectorWidget.setVisible(
+                        self.__selectorWidget.hasVisibleSelectors()
+                    )
                     # Needed to fake the fact we have to reset the zoom in preview
                     self.__selectedData = None
                     self.__selectorWidget.selectionChanged.emit()
@@ -1266,7 +1305,10 @@ class AbstractDataFileDialog(qt.QDialog):
     def __updateDataInfo(self):
         if self.__errorWhileLoadingFile is not None:
             filename, message = self.__errorWhileLoadingFile
-            message = "<b>Error while loading file '%s'</b><hr/>%s" % (filename, message)
+            message = "<b>Error while loading file '%s'</b><hr/>%s" % (
+                filename,
+                message,
+            )
             size = self.__dataInfo.height()
             icon = self.style().standardIcon(qt.QStyle.SP_MessageBoxCritical)
             pixmap = icon.pixmap(size, size)
@@ -1317,7 +1359,11 @@ class AbstractDataFileDialog(qt.QDialog):
             filename = ""
             dataPath = None
 
-        if useSelectorWidget and self.__selectorWidget is not None and self.__selectorWidget.isUsed():
+        if (
+            useSelectorWidget
+            and self.__selectorWidget is not None
+            and self.__selectorWidget.isUsed()
+        ):
             slicing = self.__selectorWidget.slicing()
             if slicing == tuple():
                 slicing = None
@@ -1340,7 +1386,9 @@ class AbstractDataFileDialog(qt.QDialog):
             else:
                 scheme = None
 
-        url = silx.io.url.DataUrl(file_path=filename, data_path=dataPath, data_slice=slicing, scheme=scheme)
+        url = silx.io.url.DataUrl(
+            file_path=filename, data_path=dataPath, data_slice=slicing, scheme=scheme
+        )
         return url
 
     def __updatePath(self):
@@ -1362,7 +1410,9 @@ class AbstractDataFileDialog(qt.QDialog):
 
         if currentUrl is None or currentUrl != url.path():
             # clean up the forward history
-            self.__currentHistory = self.__currentHistory[0:self.__currentHistoryLocation + 1]
+            self.__currentHistory = self.__currentHistory[
+                0 : self.__currentHistoryLocation + 1
+            ]
             self.__currentHistory.append(url.path())
             self.__currentHistoryLocation += 1
 
@@ -1400,15 +1450,16 @@ class AbstractDataFileDialog(qt.QDialog):
         selectionModel.selectionChanged.connect(self.__shortcutSelected)
 
     def __updateActionHistory(self):
-        self.__forwardAction.setEnabled(len(self.__currentHistory) - 1 > self.__currentHistoryLocation)
+        self.__forwardAction.setEnabled(
+            len(self.__currentHistory) - 1 > self.__currentHistoryLocation
+        )
         self.__backwardAction.setEnabled(self.__currentHistoryLocation > 0)
 
     def __textChanged(self, text):
         self.__pathChanged()
 
     def _isFabioFilesSupported(self):
-        """Returns true fabio files can be loaded.
-        """
+        """Returns true fabio files can be loaded."""
         return True
 
     def _isLoadableUrl(self, url):
@@ -1479,7 +1530,7 @@ class AbstractDataFileDialog(qt.QDialog):
                         # data = _FabioData(self.__fabio)
                         # self.__setData(data)
                     else:
-                        assert(False)
+                        assert False
                 else:
                     self.__browser.setRootIndex(index, model=self.__fileModel)
                     self.__clearData()
@@ -1615,7 +1666,7 @@ class AbstractDataFileDialog(qt.QDialog):
         """
         if len(self.__currentHistory) <= 1:
             return []
-        history = self.__currentHistory[0:self.__currentHistoryLocation]
+        history = self.__currentHistory[0 : self.__currentHistoryLocation]
         return list(history)
 
     def setHistory(self, history):
@@ -1670,12 +1721,18 @@ class AbstractDataFileDialog(qt.QDialog):
 
         qualifiedName = stream.readQString()
         if qualifiedName != self.qualifiedName():
-            _logger.warning("Stored state contains an invalid qualified name. %s restoration cancelled.", self.__class__.__name__)
+            _logger.warning(
+                "Stored state contains an invalid qualified name. %s restoration cancelled.",
+                self.__class__.__name__,
+            )
             return False
 
         version = stream.readInt32()
         if version != self.__serialVersion:
-            _logger.warning("Stored state contains an invalid version. %s restoration cancelled.", self.__class__.__name__)
+            _logger.warning(
+                "Stored state contains an invalid version. %s restoration cancelled.",
+                self.__class__.__name__,
+            )
             return False
 
         result = True
@@ -1713,17 +1770,17 @@ class AbstractDataFileDialog(qt.QDialog):
         stream = qt.QDataStream(data, qt.QIODevice.WriteOnly)
 
         s = self.qualifiedName()
-        stream.writeQString(u"%s" % s)
+        stream.writeQString("%s" % s)
         stream.writeInt32(self.__serialVersion)
         stream.writeQVariant(self.__splitter.saveState())
-        strings = [u"%s" % s.toString() for s in self.sidebarUrls()]
+        strings = ["%s" % s.toString() for s in self.sidebarUrls()]
         stream.writeQStringList(strings)
-        strings = [u"%s" % s for s in self.history()]
+        strings = ["%s" % s for s in self.history()]
         stream.writeQStringList(strings)
-        stream.writeQString(u"%s" % self.directory())
+        stream.writeQString("%s" % self.directory())
         stream.writeQVariant(self.__browser.saveState())
         viewMode = self.viewMode()
-        if qt.BINDING in ('PyQt6', 'PySide6'):  # No auto conversion to int
+        if qt.BINDING in ("PyQt6", "PySide6"):  # No auto conversion to int
             viewMode = viewMode.value
         stream.writeInt32(viewMode)
         colormap = self.colormap()

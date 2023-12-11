@@ -42,6 +42,7 @@ _logger = logging.getLogger(__name__)
 
 # numpy #######################################################################
 
+
 def _uniqueAlongLastAxis(a):
     """Numpy unique on the last axis of a 2D array
 
@@ -57,12 +58,12 @@ def _uniqueAlongLastAxis(a):
     assert len(a.shape) == 2
 
     # Construct a type over last array dimension to run unique on a 1D array
-    if a.dtype.char in numpy.typecodes['AllInteger']:
+    if a.dtype.char in numpy.typecodes["AllInteger"]:
         # Bit-wise comparison of the 2 indices of a line at once
         # Expect a C contiguous array of shape N, 2
         uniquedt = numpy.dtype((numpy.void, a.itemsize * a.shape[-1]))
-    elif a.dtype.char in numpy.typecodes['Float']:
-        uniquedt = [('f{i}'.format(i=i), a.dtype) for i in range(a.shape[-1])]
+    elif a.dtype.char in numpy.typecodes["Float"]:
+        uniquedt = [("f{i}".format(i=i), a.dtype) for i in range(a.shape[-1])]
     else:
         raise TypeError("Unsupported type {dtype}".format(dtype=a.dtype))
 
@@ -71,6 +72,7 @@ def _uniqueAlongLastAxis(a):
 
 
 # conversions #################################################################
+
 
 def triangleToLineIndices(triangleIndices, unicity=False):
     """Generates lines indices from triangle indices.
@@ -88,8 +90,7 @@ def triangleToLineIndices(triangleIndices, unicity=False):
     triangleIndices = triangleIndices.reshape(-1, 3)
 
     # Pack line indices by triangle and by edge
-    lineindices = numpy.empty((len(triangleIndices), 3, 2),
-                              dtype=triangleIndices.dtype)
+    lineindices = numpy.empty((len(triangleIndices), 3, 2), dtype=triangleIndices.dtype)
     lineindices[:, 0] = triangleIndices[:, :2]  # edge = t0, t1
     lineindices[:, 1] = triangleIndices[:, 1:]  # edge =t1, t2
     lineindices[:, 2] = triangleIndices[:, ::2]  # edge = t0, t2
@@ -103,7 +104,7 @@ def triangleToLineIndices(triangleIndices, unicity=False):
     return lineindices
 
 
-def verticesNormalsToLines(vertices, normals, scale=1.):
+def verticesNormalsToLines(vertices, normals, scale=1.0):
     """Return vertices of lines representing normals at given positions.
 
     :param vertices: Positions of the points.
@@ -137,13 +138,19 @@ def unindexArrays(mode, indices, *arrays):
     """
     indices = numpy.array(indices, copy=False)
 
-    assert mode in ('points',
-                    'lines', 'line_strip', 'loop',
-                    'triangles', 'triangle_strip', 'fan')
+    assert mode in (
+        "points",
+        "lines",
+        "line_strip",
+        "loop",
+        "triangles",
+        "triangle_strip",
+        "fan",
+    )
 
-    if mode in ('lines', 'line_strip', 'loop'):
+    if mode in ("lines", "line_strip", "loop"):
         assert len(indices) >= 2
-    elif mode in ('triangles', 'triangle_strip', 'fan'):
+    elif mode in ("triangles", "triangle_strip", "fan"):
         assert len(indices) >= 3
 
     assert indices.min() >= 0
@@ -151,27 +158,27 @@ def unindexArrays(mode, indices, *arrays):
     for data in arrays:
         assert len(data) >= max_index
 
-    if mode == 'line_strip':
+    if mode == "line_strip":
         unpacked = numpy.empty((2 * (len(indices) - 1),), dtype=indices.dtype)
         unpacked[0::2] = indices[:-1]
         unpacked[1::2] = indices[1:]
         indices = unpacked
 
-    elif mode == 'loop':
+    elif mode == "loop":
         unpacked = numpy.empty((2 * len(indices),), dtype=indices.dtype)
         unpacked[0::2] = indices
         unpacked[1:-1:2] = indices[1:]
         unpacked[-1] = indices[0]
         indices = unpacked
 
-    elif mode == 'triangle_strip':
+    elif mode == "triangle_strip":
         unpacked = numpy.empty((3 * (len(indices) - 2),), dtype=indices.dtype)
         unpacked[0::3] = indices[:-2]
         unpacked[1::3] = indices[1:-1]
         unpacked[2::3] = indices[2:]
         indices = unpacked
 
-    elif mode == 'fan':
+    elif mode == "fan":
         unpacked = numpy.empty((3 * (len(indices) - 2),), dtype=indices.dtype)
         unpacked[0::3] = indices[0]
         unpacked[1::3] = indices[1:-1]
@@ -220,8 +227,9 @@ def trianglesNormal(positions):
 
     positions = numpy.array(positions, copy=False).reshape(-1, 3, 3)
 
-    normals = numpy.cross(positions[:, 1] - positions[:, 0],
-                          positions[:, 2] - positions[:, 0])
+    normals = numpy.cross(
+        positions[:, 1] - positions[:, 0], positions[:, 2] - positions[:, 0]
+    )
 
     # Normalize normals
     norms = numpy.linalg.norm(normals, axis=1)
@@ -231,6 +239,7 @@ def trianglesNormal(positions):
 
 
 # grid ########################################################################
+
 
 def gridVertices(dim0Array, dim1Array, dtype):
     """Generate an array of 2D positions from 2 arrays of 1D coordinates.
@@ -308,28 +317,27 @@ def linesGridIndices(dim0, dim1):
     nbsegmentalongdim1 = 2 * (dim1 - 1)
     nbsegmentalongdim0 = 2 * (dim0 - 1)
 
-    indices = numpy.empty(nbsegmentalongdim1 * dim0 +
-                          nbsegmentalongdim0 * dim1,
-                          dtype=numpy.uint32)
+    indices = numpy.empty(
+        nbsegmentalongdim1 * dim0 + nbsegmentalongdim0 * dim1, dtype=numpy.uint32
+    )
 
     # Line indices over dim0
-    onedim1line = (numpy.arange(nbsegmentalongdim1,
-                                dtype=numpy.uint32) + 1) // 2
-    indices[:dim0 * nbsegmentalongdim1] = \
-        (dim1 * numpy.arange(dim0, dtype=numpy.uint32)[:, None] +
-         onedim1line[None, :]).ravel()
+    onedim1line = (numpy.arange(nbsegmentalongdim1, dtype=numpy.uint32) + 1) // 2
+    indices[: dim0 * nbsegmentalongdim1] = (
+        dim1 * numpy.arange(dim0, dtype=numpy.uint32)[:, None] + onedim1line[None, :]
+    ).ravel()
 
     # Line indices over dim1
-    onedim0line = (numpy.arange(nbsegmentalongdim0,
-                                dtype=numpy.uint32) + 1) // 2
-    indices[dim0 * nbsegmentalongdim1:] = \
-        (numpy.arange(dim1, dtype=numpy.uint32)[:, None] +
-         dim1 * onedim0line[None, :]).ravel()
+    onedim0line = (numpy.arange(nbsegmentalongdim0, dtype=numpy.uint32) + 1) // 2
+    indices[dim0 * nbsegmentalongdim1 :] = (
+        numpy.arange(dim1, dtype=numpy.uint32)[:, None] + dim1 * onedim0line[None, :]
+    ).ravel()
 
     return indices
 
 
 # intersection ################################################################
+
 
 def angleBetweenVectors(refVector, vectors, norm=None):
     """Return the angle between 2 vectors.
@@ -357,10 +365,10 @@ def angleBetweenVectors(refVector, vectors, norm=None):
     vectors = numpy.array([v / numpy.linalg.norm(v) for v in vectors])
 
     dots = numpy.sum(refVector * vectors, axis=-1)
-    angles = numpy.arccos(numpy.clip(dots, -1., 1.))
+    angles = numpy.arccos(numpy.clip(dots, -1.0, 1.0))
     if norm is not None:
-        signs = numpy.sum(norm * numpy.cross(refVector, vectors), axis=-1) < 0.
-        angles[signs] = numpy.pi * 2. - angles[signs]
+        signs = numpy.sum(norm * numpy.cross(refVector, vectors), axis=-1) < 0.0
+        angles[signs] = numpy.pi * 2.0 - angles[signs]
 
     return angles[0] if singlevector else angles
 
@@ -391,8 +399,8 @@ def segmentPlaneIntersect(s0, s1, planeNorm, planePt):
         else:  # No intersection
             return []
 
-    alpha = - numpy.dot(planeNorm, s0 - planePt) / dotnormseg
-    if 0. <= alpha <= 1.:  # Intersection with segment
+    alpha = -numpy.dot(planeNorm, s0 - planePt) / dotnormseg
+    if 0.0 <= alpha <= 1.0:  # Intersection with segment
         return [s0 + alpha * segdir]
     else:  # intersection outside segment
         return []
@@ -459,8 +467,9 @@ def clipSegmentToBounds(segment, bounds):
     points.shape = -1, 3  # Set back to 2D array
 
     # Find intersection points that are included in the volume
-    mask = numpy.logical_and(numpy.all(bounds[0] <= points, axis=1),
-                             numpy.all(points <= bounds[1], axis=1))
+    mask = numpy.logical_and(
+        numpy.all(bounds[0] <= points, axis=1), numpy.all(points <= bounds[1], axis=1)
+    )
     intersections = numpy.unique(offsets[mask])
     if len(intersections) != 2:
         return None
@@ -519,12 +528,12 @@ def segmentVolumeIntersect(segment, nbins):
     # Get corresponding line parameters
     t = []
     if numpy.all(0 <= p0) and numpy.all(p0 <= nbins):
-        t.append([0.])  # p0 within volume, add it
+        t.append([0.0])  # p0 within volume, add it
     t += [(edgesByDim[i] - p0[i]) / delta[i] for i in range(dim) if delta[i] != 0]
     if numpy.all(0 <= p1) and numpy.all(p1 <= nbins):
-        t.append([1.])  # p1 within volume, add it
+        t.append([1.0])  # p1 within volume, add it
     t = numpy.concatenate(t)
-    t.sort(kind='mergesort')
+    t.sort(kind="mergesort")
 
     # Remove duplicates
     unique = numpy.ones((len(t),), dtype=bool)
@@ -536,12 +545,13 @@ def segmentVolumeIntersect(segment, nbins):
 
     # bin edges/line intersection points
     points = t.reshape(-1, 1) * delta + p0
-    centers = (points[:-1] + points[1:]) / 2.
+    centers = (points[:-1] + points[1:]) / 2.0
     bins = numpy.floor(centers).astype(numpy.int64)
     return bins
 
 
 # Plane #######################################################################
+
 
 class Plane(event.Notifier):
     """Object handling a plane and notifying plane changes.
@@ -552,7 +562,7 @@ class Plane(event.Notifier):
     :type normal: 3-tuple of float.
     """
 
-    def __init__(self, point=(0., 0., 0.), normal=(0., 0., 1.)):
+    def __init__(self, point=(0.0, 0.0, 0.0), normal=(0.0, 0.0, 1.0)):
         super(Plane, self).__init__()
 
         assert len(point) == 3
@@ -583,7 +593,7 @@ class Plane(event.Notifier):
             normal = numpy.array(normal, copy=True, dtype=numpy.float32)
 
             norm = numpy.linalg.norm(normal)
-            if norm != 0.:
+            if norm != 0.0:
                 normal /= norm
 
             if not numpy.all(numpy.equal(self._normal, normal)):
@@ -591,8 +601,11 @@ class Plane(event.Notifier):
                 planechanged = True
 
         if planechanged:
-            _logger.debug('Plane updated:\n\tpoint: %s\n\tnormal: %s',
-                          str(self._point), str(self._normal))
+            _logger.debug(
+                "Plane updated:\n\tpoint: %s\n\tnormal: %s",
+                str(self._point),
+                str(self._normal),
+            )
             self.notify()
 
     @property
@@ -616,8 +629,7 @@ class Plane(event.Notifier):
     @property
     def parameters(self):
         """Plane equation parameters: a*x + b*y + c*z + d = 0."""
-        return numpy.append(self._normal,
-                            - numpy.dot(self._point, self._normal))
+        return numpy.append(self._normal, -numpy.dot(self._point, self._normal))
 
     @parameters.setter
     def parameters(self, parameters):
@@ -630,13 +642,13 @@ class Plane(event.Notifier):
             parameters /= norm
 
         normal = parameters[:3]
-        point = - parameters[3] * normal
+        point = -parameters[3] * normal
         self.setPlane(point, normal)
 
     @property
     def isPlane(self):
         """True if a plane is defined (i.e., ||normal|| != 0)."""
-        return numpy.any(self.normal != 0.)
+        return numpy.any(self.normal != 0.0)
 
     def move(self, step):
         """Move the plane of step along the normal."""

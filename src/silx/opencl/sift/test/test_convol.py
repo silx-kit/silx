@@ -47,6 +47,7 @@ except ImportError:
     scipy = None
 else:
     import scipy.ndimage
+
     try:
         from scipy.misc import ascent
     except:
@@ -54,9 +55,11 @@ else:
 
 import unittest
 from silx.opencl import ocl
+
 if ocl:
     import pyopencl.array
 from ..utils import calc_size, get_opencl_code
+
 logger = logging.getLogger(__name__)
 
 
@@ -78,15 +81,21 @@ class TestConvol(unittest.TestCase):
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                    cls.ctx,
+                    properties=pyopencl.command_queue_properties.PROFILING_ENABLE,
+                )
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.max_wg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.max_wg, platform_id, device_id)
+            cls.max_wg = (
+                ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            )
+
+    #             logger.warning("max_work_group_size: %s on (%s, %s)", cls.max_wg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -102,8 +111,12 @@ class TestConvol(unittest.TestCase):
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)
-        self.gpu_tmp = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
-        self.gpu_out = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
+        self.gpu_tmp = pyopencl.array.empty(
+            self.queue, self.input.shape, dtype=numpy.float32, order="C"
+        )
+        self.gpu_out = pyopencl.array.empty(
+            self.queue, self.input.shape, dtype=numpy.float32, order="C"
+        )
         kernel_src = get_opencl_code(os.path.join("sift", "convolution.cl"))
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
@@ -127,18 +140,29 @@ class TestConvol(unittest.TestCase):
         """
         tests the convolution kernel
         """
-        for sigma in [2, 15 / 8.]:
+        for sigma in [2, 15 / 8.0]:
             ksize = int(8 * sigma + 1)
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
-            gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
+            gaussian = numpy.exp(-((x / sigma) ** 2) / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(self.queue, self.shape, self.wg,
-                                self.gpu_in.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
+            k1 = self.program.horizontal_convolution(
+                self.queue,
+                self.shape,
+                self.wg,
+                self.gpu_in.data,
+                self.gpu_out.data,
+                gpu_filter.data,
+                numpy.int32(ksize),
+                self.IMAGE_W,
+                self.IMAGE_H,
+            )
             res = self.gpu_out.get()
             t1 = time.time()
-            ref = scipy.ndimage.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
+            ref = scipy.ndimage.convolve1d(
+                self.input, gaussian, axis=-1, mode="reflect"
+            )
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  # we have a problem with even kernels !!!
@@ -147,27 +171,38 @@ class TestConvol(unittest.TestCase):
                 self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
-                logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-                logger.info("Horizontal convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+                logger.info(
+                    "Global execution time: CPU %.3fms, GPU: %.3fms."
+                    % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+                )
+                logger.info(
+                    "Horizontal convolution took %.3fms"
+                    % (1e-6 * (k1.profile.end - k1.profile.start))
+                )
 
     @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_vert(self):
         """
         tests the convolution kernel
         """
-        for sigma in [2, 15 / 8.]:
+        for sigma in [2, 15 / 8.0]:
             ksize = int(8 * sigma + 1)
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
-            gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
+            gaussian = numpy.exp(-((x / sigma) ** 2) / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.vertical_convolution(self.queue, self.shape, self.wg,
-                                                   self.gpu_in.data,
-                                                   self.gpu_out.data,
-                                                   gpu_filter.data,
-                                                   numpy.int32(ksize),
-                                                   self.IMAGE_W, self.IMAGE_H)
+            k1 = self.program.vertical_convolution(
+                self.queue,
+                self.shape,
+                self.wg,
+                self.gpu_in.data,
+                self.gpu_out.data,
+                gpu_filter.data,
+                numpy.int32(ksize),
+                self.IMAGE_W,
+                self.IMAGE_H,
+            )
             res = self.gpu_out.get()
             t1 = time.time()
             ref = scipy.ndimage.convolve1d(self.input, gaussian, axis=0, mode="reflect")
@@ -179,24 +214,48 @@ class TestConvol(unittest.TestCase):
                 self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
-                logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-                logger.info("Vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+                logger.info(
+                    "Global execution time: CPU %.3fms, GPU: %.3fms."
+                    % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+                )
+                logger.info(
+                    "Vertical convolution took %.3fms"
+                    % (1e-6 * (k1.profile.end - k1.profile.start))
+                )
 
     def test_convol(self):
         """
         tests the convolution kernel
         """
-        for sigma in [2, 15 / 8.]:
+        for sigma in [2, 15 / 8.0]:
             ksize = int(8 * sigma + 1)
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
-            gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
+            gaussian = numpy.exp(-((x / sigma) ** 2) / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
             gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(self.queue, self.shape, self.wg,
-                                self.gpu_in.data, self.gpu_tmp.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
-            k2 = self.program.vertical_convolution(self.queue, self.shape, self.wg,
-                                self.gpu_tmp.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
+            k1 = self.program.horizontal_convolution(
+                self.queue,
+                self.shape,
+                self.wg,
+                self.gpu_in.data,
+                self.gpu_tmp.data,
+                gpu_filter.data,
+                numpy.int32(ksize),
+                self.IMAGE_W,
+                self.IMAGE_H,
+            )
+            k2 = self.program.vertical_convolution(
+                self.queue,
+                self.shape,
+                self.wg,
+                self.gpu_tmp.data,
+                self.gpu_out.data,
+                gpu_filter.data,
+                numpy.int32(ksize),
+                self.IMAGE_W,
+                self.IMAGE_H,
+            )
             res = self.gpu_out.get()
             k2.wait()
             t1 = time.time()
@@ -210,6 +269,14 @@ class TestConvol(unittest.TestCase):
                 self.assertLess(delta, 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
             if self.PROFILE:
-                logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-                logger.info("Horizontal convolution took %.3fms and vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start),
-                                                                                          1e-6 * (k2.profile.end - k2.profile.start)))
+                logger.info(
+                    "Global execution time: CPU %.3fms, GPU: %.3fms."
+                    % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+                )
+                logger.info(
+                    "Horizontal convolution took %.3fms and vertical convolution took %.3fms"
+                    % (
+                        1e-6 * (k1.profile.end - k1.profile.start),
+                        1e-6 * (k2.profile.end - k2.profile.start),
+                    )
+                )

@@ -83,8 +83,8 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         data = self._buildData(size=32)
 
         self.widget.setData(data)
-        self.widget.addIsosurface(0.5, (1., 0., 0., 0.5))
-        self.widget.addIsosurface(0.7, qt.QColor('green'))
+        self.widget.addIsosurface(0.5, (1.0, 0.0, 0.0, 0.5))
+        self.widget.addIsosurface(0.7, qt.QColor("green"))
         self.qapp.processEvents()
 
     def testNotFinite(self):
@@ -94,9 +94,9 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         data = self._buildData(size=32)
         data[8, :, :] = numpy.nan
         data[16, :, :] = numpy.inf
-        data[24, :, :] = - numpy.inf
+        data[24, :, :] = -numpy.inf
 
-        self.widget.addIsosurface(0.5, 'red')
+        self.widget.addIsosurface(0.5, "red")
         self.widget.setData(data, copy=True)
         self.qapp.processEvents()
         self.widget.setData(None)
@@ -114,13 +114,13 @@ class TestScalarFieldView(TestCaseQt, ParametricTestCase):
         data = self._buildData(size=32)
 
         self.widget.setData(data)
-        self.widget.addIsosurface(0.5, (1., 0., 0., 0.5))
-        self.widget.addIsosurface(0.7, qt.QColor('green'))
+        self.widget.addIsosurface(0.5, (1.0, 0.0, 0.0, 0.5))
+        self.widget.addIsosurface(0.7, qt.QColor("green"))
         self.qapp.processEvents()
 
         # Add a second TreeView
         paramTreeWidget = TreeView(self.widget)
-        paramTreeWidget.setIsoLevelSliderNormalization('arcsinh')
+        paramTreeWidget.setIsoLevelSliderNormalization("arcsinh")
         paramTreeWidget.setSfView(self.widget)
 
         dock = qt.QDockWidget()

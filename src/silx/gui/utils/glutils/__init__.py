@@ -39,7 +39,7 @@ class _isOpenGLAvailableResult:
     an `error` string attribute storting the possible error message.
     """
 
-    def __init__(self, error: str = '', status: bool = False):
+    def __init__(self, error: str = "", status: bool = False):
         self.__error = str(error)
         self.__status = bool(status)
 
@@ -69,10 +69,9 @@ def _runtimeOpenGLCheck(
     """
     major, minor = str(version[0]), str(version[1])
     env = os.environ.copy()
-    env['PYTHONPATH'] = os.pathsep.join(
-        [os.path.abspath(p) for p in sys.path])
+    env["PYTHONPATH"] = os.pathsep.join([os.path.abspath(p) for p in sys.path])
 
-    cmd = [sys.executable, '-s', '-S', __file__, major, minor]
+    cmd = [sys.executable, "-s", "-S", __file__, major, minor]
     if shareOpenGLContexts:
         cmd.append("--shareOpenGLContexts")
 
@@ -80,12 +79,13 @@ def _runtimeOpenGLCheck(
         output = subprocess.check_output(cmd, env=env, timeout=2)
     except subprocess.TimeoutExpired:
         error = "Qt OpenGL widget hang"
-        if sys.platform.startswith('linux'):
-            error += ':\nIf connected remotely, GLX forwarding might be disabled.'
+        if sys.platform.startswith("linux"):
+            error += ":\nIf connected remotely, GLX forwarding might be disabled."
         return _isOpenGLAvailableResult(error)
     except subprocess.CalledProcessError as e:
         return _isOpenGLAvailableResult(
-            f"Qt OpenGL widget error: retcode={e.returncode}, error={e.output}")
+            f"Qt OpenGL widget error: retcode={e.returncode}, error={e.output}"
+        )
 
     return _isOpenGLAvailableResult(output.decode(), status=True)
 
@@ -117,33 +117,37 @@ def isOpenGLAvailable(
         which has a `status` boolean attribute (True if successful) and
         an `error` string attribute that is not empty if `status` is False.
     """
-    if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+    if sys.platform.startswith("linux") and not os.environ.get("DISPLAY", ""):
         # On Linux and no DISPLAY available (e.g., ssh without -X)
-        return _isOpenGLAvailableResult('DISPLAY environment variable not set')
+        return _isOpenGLAvailableResult("DISPLAY environment variable not set")
 
     # Check pyopengl availability
     try:
         from silx.gui._glutils import gl
     except ImportError:
         return _isOpenGLAvailableResult(
-            "Cannot import OpenGL wrapper: pyopengl is not installed")
+            "Cannot import OpenGL wrapper: pyopengl is not installed"
+        )
 
     # Pre checks for Qt < 5.4
-    if not hasattr(qt, 'QOpenGLWidget'):
+    if not hasattr(qt, "QOpenGLWidget"):
         if not qt.HAS_OPENGL:
-            return _isOpenGLAvailableResult(f'{qt.BINDING}.QtOpenGL not available')
+            return _isOpenGLAvailableResult(f"{qt.BINDING}.QtOpenGL not available")
 
-        if qt.BINDING == 'PyQt5' and qt.QApplication.instance() and not qt.QGLFormat.hasOpenGL():
+        if (
+            qt.BINDING == "PyQt5"
+            and qt.QApplication.instance()
+            and not qt.QGLFormat.hasOpenGL()
+        ):
             # qt.QGLFormat.hasOpenGL MUST be called with a QApplication created
             # so this is only checked if the QApplication is already created
-            return _isOpenGLAvailableResult('Qt reports OpenGL not available')
+            return _isOpenGLAvailableResult("Qt reports OpenGL not available")
 
     # Check compatibility between Qt platform and pyopengl selected platform
     qt_qpa_platform = qt.QGuiApplication.platformName()
     pyopengl_platform = gl.getPlatform()
-    if (
-        (qt_qpa_platform == 'wayland' and pyopengl_platform != 'EGLPlatform')
-        or (qt_qpa_platform == 'xcb' and pyopengl_platform != 'GLXPlatform')
+    if (qt_qpa_platform == "wayland" and pyopengl_platform != "EGLPlatform") or (
+        qt_qpa_platform == "xcb" and pyopengl_platform != "GLXPlatform"
     ):
         return _isOpenGLAvailableResult(
             f"Qt platform '{qt_qpa_platform}' is not compatible with PyOpenGL platform '{pyopengl_platform}'"
@@ -178,7 +182,8 @@ if __name__ == "__main__":
                 alphaBufferSize=0,
                 depthBufferSize=0,
                 stencilBufferSize=0,
-                version=version)
+                version=version,
+            )
 
         def paintEvent(self, event):
             super(_TestOpenGLWidget, self).paintEvent(event)
@@ -192,25 +197,25 @@ if __name__ == "__main__":
                 qt.QTimer.singleShot(100, app.quit)
 
         def paintGL(self):
-            gl.glClearColor(1., 0., 0., 0.)
+            gl.glClearColor(1.0, 0.0, 0.0, 0.0)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('major')
-    parser.add_argument('minor')
-    parser.add_argument('--shareOpenGLContexts', action="store_true")
+    parser.add_argument("major")
+    parser.add_argument("minor")
+    parser.add_argument("--shareOpenGLContexts", action="store_true")
 
     args = parser.parse_args(args=sys.argv[1:])
 
     if args.shareOpenGLContexts:
         qt.QCoreApplication.setAttribute(qt.Qt.AA_ShareOpenGLContexts)
     app = qt.QApplication([])
-    window = qt.QMainWindow(flags=
-        qt.Qt.Popup |
-        qt.Qt.FramelessWindowHint |
-        qt.Qt.NoDropShadowWindowHint |
-        qt.Qt.WindowStaysOnTopHint)
+    window = qt.QMainWindow(
+        flags=qt.Qt.Popup
+        | qt.Qt.FramelessWindowHint
+        | qt.Qt.NoDropShadowWindowHint
+        | qt.Qt.WindowStaysOnTopHint
+    )
     window.setAttribute(qt.Qt.WA_ShowWithoutActivating)
     window.move(0, 0)
     window.resize(3, 3)

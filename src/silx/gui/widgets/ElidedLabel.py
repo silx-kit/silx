@@ -62,7 +62,7 @@ class ElidedLabel(qt.QLabel):
 
     def __updateMinimumSize(self):
         metrics = self.fontMetrics()
-        if qt.BINDING == 'PyQt5':
+        if qt.BINDING == "PyQt5":
             width = metrics.width("...")
         else:  # Qt6
             width = metrics.horizontalAdvance("...")
@@ -93,7 +93,7 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__text
 
-    @deprecated(replacement='text', since_version='1.1.0')
+    @deprecated(replacement="text", since_version="1.1.0")
     def getText(self):
         return self.text()
 
@@ -109,7 +109,7 @@ class ElidedLabel(qt.QLabel):
         """
         return self.__toolTip
 
-    @deprecated(replacement='toolTip', since_version='1.1.0')
+    @deprecated(replacement="toolTip", since_version="1.1.0")
     def getToolTip(self):
         return self.toolTip()
 

@@ -64,7 +64,7 @@ def setUpModule():
     f["complex_image"] = data * 1j
     f["group/image"] = data
     f["nxdata/foo"] = 10
-    f["nxdata"].attrs["NX_class"] = u"NXdata"
+    f["nxdata"].attrs["NX_class"] = "NXdata"
     f.close()
 
     directory = os.path.join(_tmpDirectory, "data")
@@ -77,7 +77,7 @@ def setUpModule():
     f["complex_image"] = data * 1j
     f["group/image"] = data
     f["nxdata/foo"] = 10
-    f["nxdata"].attrs["NX_class"] = u"NXdata"
+    f["nxdata"].attrs["NX_class"] = "NXdata"
     f.close()
 
     filename = _tmpDirectory + "/badformat.h5"
@@ -98,7 +98,6 @@ def tearDownModule():
 
 
 class _UtilsMixin(object):
-
     def createDialog(self):
         self._deleteDialog()
         self._dialog = self._createDialog()
@@ -138,7 +137,6 @@ class _UtilsMixin(object):
 
 
 class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -218,7 +216,11 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -248,7 +250,11 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -275,12 +281,16 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         self.assertSamePath(url.text(), path)
         # test
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         self.assertSamePath(url.text(), path)
 
         self.mouseClick(toParentButton, qt.Qt.LeftButton)
@@ -302,7 +312,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         filename = _tmpDirectory + "/data.h5"
 
         # init state
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
         self.assertSamePath(url.text(), path)
@@ -310,7 +322,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # test
         self.mouseClick(button, qt.Qt.LeftButton)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         self.assertSamePath(url.text(), path)
         # self.assertFalse(button.isEnabled())
 
@@ -328,7 +342,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         path = silx.io.url.DataUrl(file_path=filename, data_path="/group/image").path()
         dialog.selectUrl(path)
         self.qWaitForPendingActions(dialog)
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/image"
+        ).path()
         self.assertSamePath(url.text(), path)
         self.assertTrue(button.isEnabled())
         # test
@@ -347,8 +363,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
 
         url = testutils.findChildren(dialog, qt.QLineEdit, name="url")[0]
-        forwardAction = testutils.findChildren(dialog, qt.QAction, name="forwardAction")[0]
-        backwardAction = testutils.findChildren(dialog, qt.QAction, name="backwardAction")[0]
+        forwardAction = testutils.findChildren(
+            dialog, qt.QAction, name="forwardAction"
+        )[0]
+        backwardAction = testutils.findChildren(
+            dialog, qt.QAction, name="backwardAction"
+        )[0]
         filename = _tmpDirectory + "/data.h5"
 
         dialog.setDirectory(_tmpDirectory)
@@ -357,10 +377,14 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # Then we feed the history using selectPath
         dialog.selectUrl(filename)
         self.qWaitForPendingActions(dialog)
-        path2 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path2 = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         dialog.selectUrl(path2)
         self.qWaitForPendingActions(dialog)
-        path3 = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group").path()
+        path3 = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group"
+        ).path()
         dialog.selectUrl(path3)
         self.qWaitForPendingActions(dialog)
         self.assertFalse(forwardAction.isEnabled())
@@ -387,7 +411,11 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/singleimage.edf"
-        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scan_0/instrument/detector_0/data")
+        url = silx.io.url.DataUrl(
+            scheme="silx",
+            file_path=filename,
+            data_path="/scan_0/instrument/detector_0/data",
+        )
         dialog.selectUrl(url.path())
         self.assertEqual(dialog._selectedData().shape, (100, 100))
         self.assertSamePath(dialog.selectedFile(), filename)
@@ -400,7 +428,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/image").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/image"
+        ).path()
         dialog.selectUrl(path)
         # test
         self.assertEqual(dialog._selectedData().shape, (100, 100))
@@ -414,7 +444,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
 
         # init state
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/scalar").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/scalar"
+        ).path()
         dialog.selectUrl(path)
         # test
         self.assertEqual(dialog._selectedData()[()], 10)
@@ -463,7 +495,9 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
         filename = _tmpDirectory + "/data.h5"
-        path = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/").path()
+        path = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/"
+        ).path()
         index = browser.rootIndex().model().index(filename)
         # click
         browser.selectIndex(index)
@@ -507,11 +541,12 @@ class TestDataFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForWindowExposed(dialog)
         dialog.selectUrl(_tmpDirectory)
         self.qWaitForPendingActions(dialog)
-        self.assertEqual(self._countSelectableItems(browser.model(), browser.rootIndex()), 4)
+        self.assertEqual(
+            self._countSelectableItems(browser.model(), browser.rootIndex()), 4
+        )
 
 
 class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -538,7 +573,11 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -563,7 +602,11 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -581,7 +624,6 @@ class TestDataFileDialog_FilterDataset(testutils.TestCaseQt, _UtilsMixin):
 
 
 class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -608,7 +650,11 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -640,7 +686,11 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/scalar"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -650,7 +700,6 @@ class TestDataFileDialog_FilterGroup(testutils.TestCaseQt, _UtilsMixin):
 
 
 class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -658,7 +707,7 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
     def _createDialog(self):
         def customFilter(obj):
             if "NX_class" in obj.attrs:
-                return obj.attrs["NX_class"] == u"NXdata"
+                return obj.attrs["NX_class"] == "NXdata"
             return False
 
         dialog = DataFileDialog()
@@ -683,7 +732,11 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/group"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -710,7 +763,11 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
         self.qWaitForPendingActions(dialog)
 
         # select, then double click on the file
-        index = browser.rootIndex().model().indexFromH5Object(dialog._AbstractDataFileDialog__h5["/nxdata"])
+        index = (
+            browser.rootIndex()
+            .model()
+            .indexFromH5Object(dialog._AbstractDataFileDialog__h5["/nxdata"])
+        )
         browser.selectIndex(index)
         browser.activated.emit(index)
         self.qWaitForPendingActions(dialog)
@@ -725,7 +782,6 @@ class TestDataFileDialog_FilterNXdata(testutils.TestCaseQt, _UtilsMixin):
 
 
 class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
-
     def tearDown(self):
         self._deleteDialog()
         testutils.TestCaseQt.tearDown(self)
@@ -778,46 +834,50 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         print()
         print("\\\n".join(strings))
 
-    STATE_VERSION1_QT4 = b''\
-        b'\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i'\
-        b'\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00'\
-        b'a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00\xFF\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00\x00'\
-        b'}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00\xFF\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00\x00\x81'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00\x00\x00\x04'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
-        b'\x01\xFF\xFF\xFF\xFF'
+    STATE_VERSION1_QT4 = (
+        b""
+        b"\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00"
+        b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i"
+        b"\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00"
+        b"a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00"
+        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00"\x00\x00\x00\xFF\x00\x00'
+        b"\x00\x00\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+        b"\xFF\xFF\x01\x00\x00\x00\x06\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00\x00"
+        b"}\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00\x00\x00"
+        b"\x01\x00\x00\x00\x0C\x00\x00\x00\x00Z\x00\x00\x00\xFF\x00\x00"
+        b"\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00\x00\x81"
+        b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x01\x90\x00\x00\x00\x04"
+        b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x01\xFF\xFF\xFF\xFF"
+    )
     """Serialized state on Qt4. Generated using :meth:`printState`"""
 
-    STATE_VERSION1_QT5 = b''\
-        b'\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00'\
-        b'd\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i'\
-        b'\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00'\
-        b'a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00\xFF\x00\x00'\
-        b'\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-        b'\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00'\
-        b'\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00'\
-        b'\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87\x00\x00\x00\xFF'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00'\
-        b'\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00'\
-        b'\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00d\x00\x00'\
-        b'\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00'\
-        b'\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00'\
-        b'\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xE8\x00\xFF'\
-        b'\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x01'
+    STATE_VERSION1_QT5 = (
+        b""
+        b"\x00\x00\x00Z\x00s\x00i\x00l\x00x\x00.\x00g\x00u\x00i\x00.\x00"
+        b"d\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00a\x00F\x00i"
+        b"\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00.\x00D\x00a\x00t\x00"
+        b"a\x00F\x00i\x00l\x00e\x00D\x00i\x00a\x00l\x00o\x00g\x00\x00\x00"
+        b"\x01\x00\x00\x00\x0C\x00\x00\x00\x00#\x00\x00\x00\xFF\x00\x00"
+        b"\x00\x01\x00\x00\x00\x03\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
+        b"\xFF\xFF\x01\xFF\xFF\xFF\xFF\x01\x00\x00\x00\x01\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0C\x00\x00\x00"
+        b"\x00\xAA\x00\x00\x00\x0E\x00B\x00r\x00o\x00w\x00s\x00e\x00r\x00"
+        b"\x00\x00\x01\x00\x00\x00\x0C\x00\x00\x00\x00\x87\x00\x00\x00\xFF"
+        b"\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x01\x90\x00\x00\x00\x04\x01\x01\x00\x00\x00\x00\x00"
+        b"\x00\x00\x00\x00\x00\x00\x00\x00\x00d\xFF\xFF\xFF\xFF\x00\x00"
+        b"\x00\x81\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00d\x00\x00"
+        b"\x00\x01\x00\x00\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00"
+        b"\x00\x00\x00\x00\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+        b"\x00d\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x03\xE8\x00\xFF"
+        b"\xFF\xFF\xFF\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x01"
+    )
     """Serialized state on Qt5. Generated using :meth:`printState`"""
 
     def testAvoidRestoreRegression_Version1(self):
@@ -902,7 +962,9 @@ class TestDataFileDialogApi(testutils.TestCaseQt, _UtilsMixin):
         browser = testutils.findChildren(dialog, qt.QWidget, name="browser")[0]
 
         filename = _tmpDirectory + "/data.h5"
-        url = silx.io.url.DataUrl(scheme="silx", file_path=filename, data_path="/group/foobar")
+        url = silx.io.url.DataUrl(
+            scheme="silx", file_path=filename, data_path="/group/foobar"
+        )
         dialog.selectUrl(url.path())
         self.qWaitForPendingActions(dialog)
         self.assertIsNotNone(dialog._selectedData())

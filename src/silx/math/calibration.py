@@ -36,9 +36,8 @@ import numpy
 
 
 class AbstractCalibration(object):
-    """A calibration is a transformation to be applied to an axis (i.e. a 1D array).
+    """A calibration is a transformation to be applied to an axis (i.e. a 1D array)."""
 
-    """
     def __init__(self):
         super(AbstractCalibration, self).__init__()
 
@@ -47,8 +46,9 @@ class AbstractCalibration(object):
 
         :param x: Axis (1-D array), or value"""
         raise NotImplementedError(
-                "AbstractCalibration can not be used directly. " +
-                "You must subclass it and implement __call__")
+            "AbstractCalibration can not be used directly. "
+            + "You must subclass it and implement __call__"
+        )
 
     def is_affine(self):
         """Returns True for an affine calibration of the form
@@ -58,12 +58,13 @@ class AbstractCalibration(object):
 
     def get_slope(self):
         raise NotImplementedError(
-                "get_slope is implemented only for affine calibrations")
+            "get_slope is implemented only for affine calibrations"
+        )
 
 
 class NoCalibration(AbstractCalibration):
-    """No calibration :math:`x \\mapsto x`
-    """
+    """No calibration :math:`x \\mapsto x`"""
+
     def __init__(self):
         super(NoCalibration, self).__init__()
 
@@ -74,7 +75,7 @@ class NoCalibration(AbstractCalibration):
         return True
 
     def get_slope(self):
-        return 1.
+        return 1.0
 
 
 class LinearCalibration(AbstractCalibration):
@@ -84,6 +85,7 @@ class LinearCalibration(AbstractCalibration):
     :param y_intercept: y-intercept
     :param slope: Slope of the affine transformation
     """
+
     def __init__(self, y_intercept, slope):
         super(LinearCalibration, self).__init__()
         self.constant = y_intercept
@@ -109,27 +111,33 @@ class ArrayCalibration(AbstractCalibration):
     channels (:math:`0, 1, ..., n-1`).
 
     :param x1: Calibration array"""
+
     def __init__(self, x1):
         super(ArrayCalibration, self).__init__()
         if not isinstance(x1, (list, tuple)) and not hasattr(x1, "shape"):
             raise TypeError(
-                    "The calibration array must be a sequence (list, dataset, array)")
+                "The calibration array must be a sequence (list, dataset, array)"
+            )
         self.calibration_array = numpy.array(x1)
         if self.calibration_array.ndim != 1:
-            raise ValueError(f"1D array expected, got {self.calibration_array.ndim}D array")
+            raise ValueError(
+                f"1D array expected, got {self.calibration_array.ndim}D array"
+            )
         if self.calibration_array.size == 0:
             raise ValueError("Calibration array must not be empty")
 
     def __call__(self, x):
         # calibrate the entire axis
-        if isinstance(x, (list, tuple, numpy.ndarray)) and \
-                        len(self.calibration_array) == len(x):
+        if isinstance(x, (list, tuple, numpy.ndarray)) and len(
+            self.calibration_array
+        ) == len(x):
             return self.calibration_array
         # calibrate one value, by index
         if isinstance(x, int) and x < len(self.calibration_array):
             return self.calibration_array[x]
-        raise ValueError("ArrayCalibration must be applied to array of same size "
-                         "or to index.")
+        raise ValueError(
+            "ArrayCalibration must be applied to array of same size " "or to index."
+        )
 
     @functools.lru_cache()
     def is_affine(self):
@@ -155,6 +163,7 @@ class FunctionCalibration(AbstractCalibration):
     """Calibration defined by a function *f*, such as :math:`x \\mapsto f(x)`*.
 
     :param function: Calibration function"""
+
     def __init__(self, function, is_affine=False):
         super(FunctionCalibration, self).__init__()
         if not hasattr(function, "__call__"):

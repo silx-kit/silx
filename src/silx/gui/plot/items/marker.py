@@ -33,8 +33,15 @@ __date__ = "06/03/2017"
 import logging
 
 from ....utils.proxy import docstring
-from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
-                   ItemChangedType, YAxisMixIn)
+from .core import (
+    Item,
+    DraggableMixIn,
+    ColorMixIn,
+    LineMixIn,
+    SymbolMixIn,
+    ItemChangedType,
+    YAxisMixIn,
+)
 from silx import config
 from silx.gui import qt
 
@@ -49,7 +56,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
     sigDragFinished = qt.Signal()
     """Signal emitted when the marker is released"""
 
-    _DEFAULT_COLOR = (0., 0., 0., 1.)
+    _DEFAULT_COLOR = (0.0, 0.0, 0.0, 1.0)
     """Default color of the markers"""
 
     def __init__(self):
@@ -58,7 +65,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         ColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
 
-        self._text = ''
+        self._text = ""
         self._font = None
         if config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE is not None:
             self._font = qt.QFont(
@@ -71,8 +78,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
 
-    def _addRendererCall(self, backend,
-                         symbol=None, linestyle='-', linewidth=1):
+    def _addRendererCall(self, backend, symbol=None, linestyle="-", linewidth=1):
         """Perform the update of the backend renderer"""
         return backend.addMarker(
             x=self.getXPosition(),
@@ -215,15 +221,15 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 class Marker(MarkerBase, SymbolMixIn):
     """Description of a marker"""
 
-    _DEFAULT_SYMBOL = '+'
+    _DEFAULT_SYMBOL = "+"
     """Default symbol of the marker"""
 
     def __init__(self):
         MarkerBase.__init__(self)
         SymbolMixIn.__init__(self)
 
-        self._x = 0.
-        self._y = 0.
+        self._x = 0.0
+        self._y = 0.0
 
     def _addBackendRenderer(self, backend):
         return self._addRendererCall(backend, symbol=self.getSymbol())
@@ -236,9 +242,9 @@ class Marker(MarkerBase, SymbolMixIn):
         :param constraint: The constraint of the dragging of this marker
         :type: constraint: callable or str
         """
-        if constraint == 'horizontal':
+        if constraint == "horizontal":
             constraint = self._horizontalConstraint
-        elif constraint == 'vertical':
+        elif constraint == "vertical":
             constraint = self._verticalConstraint
 
         super(Marker, self)._setConstraint(constraint)
@@ -258,9 +264,9 @@ class _LineMarker(MarkerBase, LineMixIn):
         LineMixIn.__init__(self)
 
     def _addBackendRenderer(self, backend):
-        return self._addRendererCall(backend,
-                                     linestyle=self.getLineStyle(),
-                                     linewidth=self.getLineWidth())
+        return self._addRendererCall(
+            backend, linestyle=self.getLineStyle(), linewidth=self.getLineWidth()
+        )
 
 
 class XMarker(_LineMarker):
@@ -268,7 +274,7 @@ class XMarker(_LineMarker):
 
     def __init__(self):
         _LineMarker.__init__(self)
-        self._x = 0.
+        self._x = 0.0
 
     def setPosition(self, x, y):
         """Set marker line position in data coordinates
@@ -290,7 +296,7 @@ class YMarker(_LineMarker):
 
     def __init__(self):
         _LineMarker.__init__(self)
-        self._y = 0.
+        self._y = 0.0
 
     def setPosition(self, x, y):
         """Set marker line position in data coordinates
