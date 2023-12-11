@@ -574,6 +574,10 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         if event == items.ItemChangedType.TEXT:
             self._updateText(self.getText())
         elif event == items.ItemChangedType.HIGHLIGHTED:
+            for item in self.getItems():
+                zoffset = 1000 if self.isHighlighted() else 0
+                item.setZValue(item._DEFAULT_Z_LAYER + zoffset)
+
             style = self.getCurrentStyle()
             self._updatedStyle(event, style)
         else:
