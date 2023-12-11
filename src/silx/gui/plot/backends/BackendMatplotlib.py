@@ -603,7 +603,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return symbol
 
     def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
+                 color, gapcolor, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror,
                  fill, alpha, symbolsize, baseline):
@@ -691,6 +691,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   picker=True,
                                   pickradius=pickradius,
                                   markersize=symbolsize)
+
+            if gapcolor is not None and self._matplotlibVersion >= Version('3.6.0'):
+                for line2d in curveList:
+                    line2d.set_gapcolor(gapcolor)
             artists += list(curveList)
 
             if fill:

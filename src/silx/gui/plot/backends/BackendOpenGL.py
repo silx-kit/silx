@@ -519,7 +519,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             points[:, 0], points[:, 1],
                             style=item['linestyle'],
                             color=item['color'],
-                            dash2ndColor=item['linebgcolor'],
+                            gapColor=item['linebgcolor'],
                             width=item['linewidth'])
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -768,7 +768,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise ValueError('Unsupported data type')
 
     def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
+                 color, gapcolor, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror,
                  fill, alpha, symbolsize, baseline):
@@ -872,6 +872,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             yError=yerror,
             lineStyle=linestyle,
             lineColor=color,
+            lineGapColor=gapcolor,
             lineWidth=linewidth,
             marker=symbol,
             markerColor=color,

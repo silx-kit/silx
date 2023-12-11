@@ -36,7 +36,7 @@ from collections import abc
 
 from ....utils.proxy import docstring
 from .core import (DataItem, AlphaMixIn, BaselineMixIn, ColorMixIn, FillMixIn,
-                   LineMixIn, YAxisMixIn, ItemChangedType)
+                   LineMixIn, LineGapColorMixIn, YAxisMixIn, ItemChangedType)
 from ._pick import PickingResult
 
 _logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ def _getHistogramCurve(histogram, edges):
 
 # TODO: Yerror, test log scale
 class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
-                LineMixIn, YAxisMixIn, BaselineMixIn):
+                LineMixIn, LineGapColorMixIn, YAxisMixIn, BaselineMixIn):
     """Description of an histogram"""
 
     _DEFAULT_Z_LAYER = 1
@@ -123,6 +123,7 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
         ColorMixIn.__init__(self)
         FillMixIn.__init__(self)
         LineMixIn.__init__(self)
+        LineGapColorMixIn.__init__(self)
         YAxisMixIn.__init__(self)
 
         self._histogram = ()
@@ -162,6 +163,7 @@ class Histogram(DataItem, AlphaMixIn, ColorMixIn, FillMixIn,
 
         return backend.addCurve(x, y,
                                 color=self.getColor(),
+                                gapcolor=self.getLineGapColor(),
                                 symbol='',
                                 linestyle=self.getLineStyle(),
                                 linewidth=self.getLineWidth(),

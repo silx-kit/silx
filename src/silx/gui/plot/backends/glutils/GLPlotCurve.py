@@ -321,7 +321,7 @@ class GLLines2D(object):
         /* Dashes: [0, x], [y, z]
            Dash period: w */
         uniform vec4 dash;
-        uniform vec4 dash2ndColor;
+        uniform vec4 gapColor;
 
         varying float vDist;
         varying vec4 vColor;
@@ -329,10 +329,10 @@ class GLLines2D(object):
         void main(void) {
             float dist = mod(vDist, dash.w);
             if ((dist > dash.x && dist < dash.y) || dist > dash.z) {
-                if (dash2ndColor.a == 0.) {
+                if (gapColor.a == 0.) {
                     discard;  // Discard full transparent bg color
                 } else {
-                    gl_FragColor = dash2ndColor;
+                    gl_FragColor = gapColor;
                 }
             } else {
                 gl_FragColor = vColor;
@@ -343,7 +343,7 @@ class GLLines2D(object):
 
     def __init__(self, xVboData=None, yVboData=None,
                  colorVboData=None, distVboData=None,
-                 style=SOLID, color=(0., 0., 0., 1.), dash2ndColor=None,
+                 style=SOLID, color=(0., 0., 0., 1.), gapColor=None,
                  width=1, dashPeriod=10., drawMode=None,
                  offset=(0., 0.)):
         if (xVboData is not None and
@@ -374,7 +374,7 @@ class GLLines2D(object):
         self.useColorVboData = colorVboData is not None
 
         self.color = color
-        self.dash2ndColor = dash2ndColor
+        self.gapColor = gapColor
         self.width = width
         self._style = None
         self.style = style
@@ -439,12 +439,12 @@ class GLLines2D(object):
 
             gl.glUniform4f(program.uniforms['dash'], *dash)
 
-            if self.dash2ndColor is None:
+            if self.gapColor is None:
                 # Use fully transparent color which gets discarded in shader
-                dash2ndColor = (0., 0., 0., 0.)
+                gapColor = (0., 0., 0., 0.)
             else:
-                dash2ndColor = self.dash2ndColor
-            gl.glUniform4f(program.uniforms['dash2ndColor'], *dash2ndColor)
+                gapColor = self.gapColor
+            gl.glUniform4f(program.uniforms['gapColor'], *gapColor)
 
             viewWidth = gl.glGetFloatv(gl.GL_VIEWPORT)[2]
             xNDCPerData = (
@@ -1130,6 +1130,7 @@ class GLPlotCurve2D(GLPlotItem):
                  xError=None, yError=None,
                  lineStyle=SOLID,
                  lineColor=(0., 0., 0., 1.),
+                 lineGapColor=None,
                  lineWidth=1,
                  lineDashPeriod=20,
                  marker=SQUARE,
@@ -1211,6 +1212,7 @@ class GLPlotCurve2D(GLPlotItem):
         self.lines = GLLines2D()
         self.lines.style = lineStyle
         self.lines.color = lineColor
+        self.lines.gapColor = lineGapColor
         self.lines.width = lineWidth
         self.lines.dashPeriod = lineDashPeriod
         self.lines.offset = self.offset
@@ -1236,6 +1238,8 @@ class GLPlotCurve2D(GLPlotItem):
     lineStyle = _proxyProperty(('lines', 'style'))
 
     lineColor = _proxyProperty(('lines', 'color'))
+
+    lineGapColor = _proxyProperty(('lines', 'gapColor'))
 
     lineWidth = _proxyProperty(('lines', 'width'))
 

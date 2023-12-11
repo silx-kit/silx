@@ -88,7 +88,7 @@ class BackendBase(object):
     # Add methods
 
     def addCurve(self, x, y,
-                 color, symbol, linewidth, linestyle,
+                 color, gapcolor, symbol, linewidth, linestyle,
                  yaxis,
                  xerror, yerror,
                  fill, alpha, symbolsize, baseline):
@@ -99,6 +99,8 @@ class BackendBase(object):
         :param color: color(s) to be used
         :type color: string ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in colors.py
+        :param Union[str, None] gapcolor:
+            color used to fill dashed line gaps.
         :param str symbol: Symbol to be drawn at each (x, y) position::
 
             - ' ' or '' no symbol
