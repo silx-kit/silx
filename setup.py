@@ -198,8 +198,11 @@ def get_project_configuration():
 
     doc_requires = {
         "nbsphinx",
+        "pandoc",
+        "pillow",
         "pydata_sphinx_theme",
         "sphinx",
+        "sphinx-autodoc-typehints",
     }
 
     extras_require = {
