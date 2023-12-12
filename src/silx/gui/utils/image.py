@@ -81,16 +81,19 @@ def convertQImageToArray(image: qt.QImage) -> numpy.ndarray:
     """Convert a QImage to a numpy array.
 
     If QImage format is not one of:
+
         - Format_Grayscale8
         - Format_RGB888
         - Format_RGBA8888
         - Format_ARGB32,
+
     it is first converted to one of this format.
 
     The created numpy array is using a copy of the QImage data.
 
     :param QImage image: The QImage to convert.
     :return: Image array of uint8 of shape:
+
         - (height, width) for grayscale images
         - (height, width, channels (3 or 4)) for RGB and RGBA images
     """
