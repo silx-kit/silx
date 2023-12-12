@@ -196,8 +196,15 @@ def get_project_configuration():
 
     test_requires = ["pytest", "pytest-xvfb", "pytest-mock", "bitshuffle"]
 
+    doc_requires = {
+        "nbsphinx",
+        "pydata_sphinx_theme",
+        "sphinx",
+    }
+
     extras_require = {
         "full": full_requires,
+        "doc": doc_requires,
         "test": test_requires,
     }
 
