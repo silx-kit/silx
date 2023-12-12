@@ -156,15 +156,14 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "icon_links": [
         {
-            "name": "pypi",
-            "url": "https://pypi.org/project/silx",
-            "icon": "_static/navbar_icons/pypi.svg",
-            "type": "local",
+            "name": "GitHub",
+            "url": "https://github.com/silx-kit/silx",
+            "icon": "fa-brands fa-github",
         },
         {
-            "name": "github",
-            "url": "https://github.com/silx-kit/silx",
-            "icon": "_static/navbar_icons/github.svg",
+            "name": "PyPI",
+            "url": "https://pypi.org/project/silx",
+            "icon": "_static/navbar_icons/pypi.svg",
             "type": "local",
         },
     ],
