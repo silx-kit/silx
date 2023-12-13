@@ -40,132 +40,125 @@ from silx.gui.plot.items.curve import CurveStyle
 from .utils import PlotWidgetTestCase
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testActiveCurveAndLabels(qWidgetFactory, backend, request):
+@pytest.fixture
+def plotWidget(qWidgetFactory, request):
+    backend = request.param
     if backend == "gl":
         request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
+    yield qWidgetFactory(PlotWidget, backend=backend)
 
-    plot = qWidgetFactory(PlotWidget, backend=backend)
 
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testActiveCurveAndLabels(plotWidget):
     # Active curve handling off, no label change
-    plot.setActiveCurveHandling(False)
-    plot.getXAxis().setLabel("XLabel")
-    plot.getYAxis().setLabel("YLabel")
-    plot.addCurve((1, 2), (1, 2))
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.setActiveCurveHandling(False)
+    plotWidget.getXAxis().setLabel("XLabel")
+    plotWidget.getYAxis().setLabel("YLabel")
+    plotWidget.addCurve((1, 2), (1, 2))
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.addCurve((1, 2), (2, 3), xlabel="x1", ylabel="y1")
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.addCurve((1, 2), (2, 3), xlabel="x1", ylabel="y1")
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.clear()
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.clear()
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
     # Active curve handling on, label changes
-    plot.setActiveCurveHandling(True)
-    plot.getXAxis().setLabel("XLabel")
-    plot.getYAxis().setLabel("YLabel")
+    plotWidget.setActiveCurveHandling(True)
+    plotWidget.getXAxis().setLabel("XLabel")
+    plotWidget.getYAxis().setLabel("YLabel")
 
     # labels changed as active curve
-    plot.addCurve((1, 2), (1, 2), legend="1", xlabel="x1", ylabel="y1")
-    plot.setActiveCurve("1")
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    plotWidget.addCurve((1, 2), (1, 2), legend="1", xlabel="x1", ylabel="y1")
+    plotWidget.setActiveCurve("1")
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
     # labels not changed as not active curve
-    plot.addCurve((1, 2), (2, 3), legend="2")
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    plotWidget.addCurve((1, 2), (2, 3), legend="2")
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
     # labels changed
-    plot.setActiveCurve("2")
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.setActiveCurve("2")
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.setActiveCurve("1")
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    plotWidget.setActiveCurve("1")
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
-    plot.clear()
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.clear()
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.setActiveCurveHandling(False)
+    plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testPlotActiveCurveSelectionMode(qWidgetFactory, backend, request):
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testPlotActiveCurveSelectionMode(plotWidget):
     xData = numpy.arange(1000)
     yData = -500 + 100 * numpy.sin(xData)
     xData2 = xData + 1000
     yData2 = xData - 1000 + 200 * numpy.random.random(1000)
 
-    plot = qWidgetFactory(PlotWidget)
-
-    plot.clear()
-    plot.setActiveCurveHandling(True)
+    plotWidget.clear()
+    plotWidget.setActiveCurveHandling(True)
     legend = "curve 1"
-    plot.addCurve(xData, yData, legend=legend, color="green")
+    plotWidget.addCurve(xData, yData, legend=legend, color="green")
 
     # active curve should be None
-    assert plot.getActiveCurve(just_legend=True) is None
+    assert plotWidget.getActiveCurve(just_legend=True) is None
 
     # active curve should be None when None is set as active curve
-    plot.setActiveCurve(legend)
-    current = plot.getActiveCurve(just_legend=True)
+    plotWidget.setActiveCurve(legend)
+    current = plotWidget.getActiveCurve(just_legend=True)
     assert current == legend
-    plot.setActiveCurve(None)
-    current = plot.getActiveCurve(just_legend=True)
+    plotWidget.setActiveCurve(None)
+    current = plotWidget.getActiveCurve(just_legend=True)
     assert current is None
 
     # testing it automatically toggles if there is only one
-    plot.setActiveCurveSelectionMode("legacy")
-    current = plot.getActiveCurve(just_legend=True)
+    plotWidget.setActiveCurveSelectionMode("legacy")
+    current = plotWidget.getActiveCurve(just_legend=True)
     assert current == legend
 
     # active curve should not change when None set as active curve
-    assert plot.getActiveCurveSelectionMode() == "legacy"
-    plot.setActiveCurve(None)
-    current = plot.getActiveCurve(just_legend=True)
+    assert plotWidget.getActiveCurveSelectionMode() == "legacy"
+    plotWidget.setActiveCurve(None)
+    current = plotWidget.getActiveCurve(just_legend=True)
     assert current == legend
 
     # situation where no curve is active
-    plot.clear()
-    plot.setActiveCurveHandling(True)
-    assert plot.getActiveCurveSelectionMode() == "atmostone"
-    plot.addCurve(xData, yData, legend=legend, color="green")
-    assert plot.getActiveCurve(just_legend=True) is None
-    plot.addCurve(xData2, yData2, legend="curve 2", color="red")
-    assert plot.getActiveCurve(just_legend=True) is None
-    plot.setActiveCurveSelectionMode("legacy")
-    assert plot.getActiveCurve(just_legend=True) is None
+    plotWidget.clear()
+    plotWidget.setActiveCurveHandling(True)
+    assert plotWidget.getActiveCurveSelectionMode() == "atmostone"
+    plotWidget.addCurve(xData, yData, legend=legend, color="green")
+    assert plotWidget.getActiveCurve(just_legend=True) is None
+    plotWidget.addCurve(xData2, yData2, legend="curve 2", color="red")
+    assert plotWidget.getActiveCurve(just_legend=True) is None
+    plotWidget.setActiveCurveSelectionMode("legacy")
+    assert plotWidget.getActiveCurve(just_legend=True) is None
 
     # the first curve added should be active
-    plot.clear()
-    plot.addCurve(xData, yData, legend=legend, color="green")
-    assert plot.getActiveCurve(just_legend=True) == legend
-    plot.addCurve(xData2, yData2, legend="curve 2", color="red")
-    assert plot.getActiveCurve(just_legend=True) == legend
+    plotWidget.clear()
+    plotWidget.addCurve(xData, yData, legend=legend, color="green")
+    assert plotWidget.getActiveCurve(just_legend=True) == legend
+    plotWidget.addCurve(xData2, yData2, legend="curve 2", color="red")
+    assert plotWidget.getActiveCurve(just_legend=True) == legend
 
-    plot.setActiveCurveHandling(False)
+    plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testActiveCurveStyle(qWidgetFactory, backend, request):
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testActiveCurveStyle(plotWidget):
     """Test change of active curve style"""
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-
-    plot = qWidgetFactory(PlotWidget)
-
-    plot.setActiveCurveHandling(True)
-    plot.setActiveCurveStyle(color="black")
-    style = plot.getActiveCurveStyle()
+    plotWidget.setActiveCurveHandling(True)
+    plotWidget.setActiveCurveStyle(color="black")
+    style = plotWidget.getActiveCurveStyle()
     assert style.getColor() == (0.0, 0.0, 0.0, 1.0)
     assert style.getLineStyle() is None
     assert style.getLineWidth() is None
@@ -174,8 +167,8 @@ def testActiveCurveStyle(qWidgetFactory, backend, request):
 
     xData = numpy.arange(1000)
     yData = -500 + 100 * numpy.sin(xData)
-    plot.addCurve(x=xData, y=yData, legend="curve1")
-    curve = plot.getCurve("curve1")
+    plotWidget.addCurve(x=xData, y=yData, legend="curve1")
+    curve = plotWidget.getCurve("curve1")
     curve.setColor("blue")
     curve.setLineStyle("-")
     curve.setLineWidth(1)
@@ -189,7 +182,7 @@ def testActiveCurveStyle(qWidgetFactory, backend, request):
     )
 
     # Activate curve with highlight color=black
-    plot.setActiveCurve("curve1")
+    plotWidget.setActiveCurve("curve1")
     style = curve.getCurrentStyle()
     assert style.getColor() == (0.0, 0.0, 0.0, 1.0)
     assert style.getLineStyle() == "-"
@@ -198,7 +191,7 @@ def testActiveCurveStyle(qWidgetFactory, backend, request):
     assert style.getSymbolSize() == 5
 
     # Change highlight to linewidth=2
-    plot.setActiveCurveStyle(linewidth=2)
+    plotWidget.setActiveCurveStyle(linewidth=2)
     style = curve.getCurrentStyle()
     assert style.getColor() == (0.0, 0.0, 1.0, 1.0)
     assert style.getLineStyle() == "-"
@@ -206,49 +199,44 @@ def testActiveCurveStyle(qWidgetFactory, backend, request):
     assert style.getSymbol() == "o"
     assert style.getSymbolSize() == 5
 
-    plot.setActiveCurve(None)
+    plotWidget.setActiveCurve(None)
     assert curve.getCurrentStyle() == defaultStyle
 
-    plot.setActiveCurveHandling(False)
+    plotWidget.setActiveCurveHandling(False)
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testActiveImageAndLabels(qWidgetFactory, backend, request):
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-
-    plot = qWidgetFactory(PlotWidget)
-
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testActiveImageAndLabels(plotWidget):
     # Active image handling always on, no API for toggling it
-    plot.getXAxis().setLabel("XLabel")
-    plot.getYAxis().setLabel("YLabel")
+    plotWidget.getXAxis().setLabel("XLabel")
+    plotWidget.getYAxis().setLabel("YLabel")
 
     # labels changed as active curve
-    plot.addImage(
+    plotWidget.addImage(
         numpy.arange(100).reshape(10, 10), legend="1", xlabel="x1", ylabel="y1"
     )
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
     # labels not changed as not active curve
-    plot.addImage(numpy.arange(100).reshape(10, 10), legend="2")
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    plotWidget.addImage(numpy.arange(100).reshape(10, 10), legend="2")
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
     # labels changed
-    plot.setActiveImage("2")
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.setActiveImage("2")
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.setActiveImage("1")
-    assert plot.getXAxis().getLabel() == "x1"
-    assert plot.getYAxis().getLabel() == "y1"
+    plotWidget.setActiveImage("1")
+    assert plotWidget.getXAxis().getLabel() == "x1"
+    assert plotWidget.getYAxis().getLabel() == "y1"
 
-    plot.clear()
-    assert plot.getXAxis().getLabel() == "XLabel"
-    assert plot.getYAxis().getLabel() == "YLabel"
+    plotWidget.clear()
+    assert plotWidget.getXAxis().getLabel() == "XLabel"
+    assert plotWidget.getYAxis().getLabel() == "YLabel"
 
-    plot.setActiveCurveHandling(False)
+    plotWidget.setActiveCurveHandling(False)
 
 
 def _checkSelection(selection, current=None, selected=()):
@@ -257,160 +245,145 @@ def _checkSelection(selection, current=None, selected=()):
     assert selection.getSelectedItems() == selected
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testSyncWithActiveItems(qWidgetFactory, backend, request):
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testSelectionSyncWithActiveItems(plotWidget):
     """Test update of PlotWidgetSelection according to active items"""
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-
-    plot = qWidgetFactory(PlotWidget, backend=backend)
-
     listener = SignalListener()
 
-    selection = plot.selection()
+    selection = plotWidget.selection()
     selection.sigCurrentItemChanged.connect(listener)
     _checkSelection(selection)
 
     # Active item is current
-    plot.addImage(((0, 1), (2, 3)), legend="image")
-    image = plot.getActiveImage()
+    plotWidget.addImage(((0, 1), (2, 3)), legend="image")
+    image = plotWidget.getActiveImage()
     assert listener.callCount() == 1
     _checkSelection(selection, image, (image,))
 
     # No active = no current
-    plot.setActiveImage(None)
+    plotWidget.setActiveImage(None)
     assert listener.callCount() == 2
     _checkSelection(selection)
 
     # Active item is current
-    plot.setActiveImage("image")
+    plotWidget.setActiveImage("image")
     assert listener.callCount() == 3
     _checkSelection(selection, image, (image,))
 
     # Mosted recently "actived" item is current
-    plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
-    scatter = plot.getActiveScatter()
+    plotWidget.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
+    scatter = plotWidget.getActiveScatter()
     assert listener.callCount() == 4
     _checkSelection(selection, scatter, (scatter, image))
 
     # Previously mosted recently "actived" item is current
-    plot.setActiveScatter(None)
+    plotWidget.setActiveScatter(None)
     assert listener.callCount() == 5
     _checkSelection(selection, image, (image,))
 
     # Mosted recently "actived" item is current
-    plot.setActiveScatter("scatter")
+    plotWidget.setActiveScatter("scatter")
     assert listener.callCount() == 6
     _checkSelection(selection, scatter, (scatter, image))
 
     # No active = no current
-    plot.setActiveImage(None)
-    plot.setActiveScatter(None)
+    plotWidget.setActiveImage(None)
+    plotWidget.setActiveScatter(None)
     assert listener.callCount() == 7
     _checkSelection(selection)
 
     # Mosted recently "actived" item is current
-    plot.setActiveScatter("scatter")
+    plotWidget.setActiveScatter("scatter")
     assert listener.callCount() == 8
-    plot.setActiveImage("image")
+    plotWidget.setActiveImage("image")
     assert listener.callCount() == 9
     _checkSelection(selection, image, (image, scatter))
 
     # Add a curve which is not active by default
-    plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
-    curve = plot.getCurve("curve")
+    plotWidget.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+    curve = plotWidget.getCurve("curve")
     assert listener.callCount() == 9
     _checkSelection(selection, image, (image, scatter))
 
     # Mosted recently "actived" item is current
-    plot.setActiveCurve("curve")
+    plotWidget.setActiveCurve("curve")
     assert listener.callCount() == 10
     _checkSelection(selection, curve, (curve, image, scatter))
 
     # Add a curve which is not active by default
-    plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve2")
-    curve2 = plot.getCurve("curve2")
+    plotWidget.addCurve((0, 1, 2), (0, 1, 2), legend="curve2")
+    curve2 = plotWidget.getCurve("curve2")
     assert listener.callCount() == 10
     _checkSelection(selection, curve, (curve, image, scatter))
 
     # Mosted recently "actived" item is current, previous curve is removed
-    plot.setActiveCurve("curve2")
+    plotWidget.setActiveCurve("curve2")
     assert listener.callCount() == 11
     _checkSelection(selection, curve2, (curve2, image, scatter))
 
     # No items = no current
-    plot.clear()
+    plotWidget.clear()
     assert listener.callCount() == 12
     _checkSelection(selection)
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testPlotWidgetWithItems(qWidgetFactory, backend, request):
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testSelectionWithItems(plotWidget):
     """Test init of selection on a plot with items"""
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
+    plotWidget.addImage(((0, 1), (2, 3)), legend="image")
+    plotWidget.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
+    plotWidget.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+    plotWidget.setActiveCurve("curve")
 
-    plot = qWidgetFactory(PlotWidget, backend=backend)
-
-    plot.addImage(((0, 1), (2, 3)), legend="image")
-    plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
-    plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
-    plot.setActiveCurve("curve")
-
-    selection = plot.selection()
+    selection = plotWidget.selection()
     assert selection.getCurrentItem() is not None
     selected = selection.getSelectedItems()
     assert len(selected) == 3
-    assert plot.getActiveCurve() in selected
-    assert plot.getActiveImage() in selected
-    assert plot.getActiveScatter() in selected
+    assert plotWidget.getActiveCurve() in selected
+    assert plotWidget.getActiveImage() in selected
+    assert plotWidget.getActiveScatter() in selected
 
 
-@pytest.mark.parametrize("backend", ("mpl", "gl"))
-def testSetCurrentItem(qWidgetFactory, backend, request):
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testSelectionSetCurrentItem(plotWidget):
     """Test setCurrentItem"""
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-
-    plot = qWidgetFactory(PlotWidget, backend=backend)
-
     # Add items to the plot
-    plot.addImage(((0, 1), (2, 3)), legend="image")
-    image = plot.getActiveImage()
-    plot.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
-    scatter = plot.getActiveScatter()
-    plot.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
-    plot.setActiveCurve("curve")
-    curve = plot.getActiveCurve()
+    plotWidget.addImage(((0, 1), (2, 3)), legend="image")
+    image = plotWidget.getActiveImage()
+    plotWidget.addScatter((3, 2, 1), (0, 1, 2), (0, 1, 2), legend="scatter")
+    scatter = plotWidget.getActiveScatter()
+    plotWidget.addCurve((0, 1, 2), (0, 1, 2), legend="curve")
+    plotWidget.setActiveCurve("curve")
+    curve = plotWidget.getActiveCurve()
 
-    selection = plot.selection()
+    selection = plotWidget.selection()
     assert selection.getCurrentItem() is not None
     assert len(selection.getSelectedItems()) == 3
 
     # Set current to None reset all active items
     selection.setCurrentItem(None)
     _checkSelection(selection)
-    assert plot.getActiveCurve() is None
-    assert plot.getActiveImage() is None
-    assert plot.getActiveScatter() is None
+    assert plotWidget.getActiveCurve() is None
+    assert plotWidget.getActiveImage() is None
+    assert plotWidget.getActiveScatter() is None
 
     # Set current to an item makes it active
     selection.setCurrentItem(image)
     _checkSelection(selection, image, (image,))
-    assert plot.getActiveCurve() is None
-    assert plot.getActiveImage() is image
-    assert plot.getActiveScatter() is None
+    assert plotWidget.getActiveCurve() is None
+    assert plotWidget.getActiveImage() is image
+    assert plotWidget.getActiveScatter() is None
 
     # Set current to an item makes it active and keeps other active
     selection.setCurrentItem(curve)
     _checkSelection(selection, curve, (curve, image))
-    assert plot.getActiveCurve() is curve
-    assert plot.getActiveImage() is image
-    assert plot.getActiveScatter() is None
+    assert plotWidget.getActiveCurve() is curve
+    assert plotWidget.getActiveImage() is image
+    assert plotWidget.getActiveScatter() is None
 
     # Set current to an item makes it active and keeps other active
     selection.setCurrentItem(scatter)
     _checkSelection(selection, scatter, (scatter, curve, image))
-    assert plot.getActiveCurve() is curve
-    assert plot.getActiveImage() is image
-    assert plot.getActiveScatter() is scatter
+    assert plotWidget.getActiveCurve() is curve
+    assert plotWidget.getActiveImage() is image
+    assert plotWidget.getActiveScatter() is scatter
