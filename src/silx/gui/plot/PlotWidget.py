@@ -1152,11 +1152,11 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :param baseline: curve baseline
         :type: Union[None,float,numpy.ndarray]
-        :returns: The key string identify this curve
+        :returns: The curve item
         """
         # This is an histogram, use addHistogram
         if histogram is not None:
-            histoLegend = self.addHistogram(
+            histo = self.addHistogram(
                 histogram=y,
                 edges=x,
                 legend=legend,
@@ -1165,7 +1165,6 @@ class PlotWidget(qt.QMainWindow):
                 align=histogram,
                 copy=copy,
             )
-            histo = self.getHistogram(histoLegend)
 
             histo.setInfo(info)
             if linewidth is not None:
@@ -1185,7 +1184,7 @@ class PlotWidget(qt.QMainWindow):
                     "addCurve: Histogram does not support selectable argument"
                 )
 
-            return
+            return histo
 
         legend = "Unnamed curve 1.1" if legend is None else str(legend)
 
@@ -1277,7 +1276,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return curve
 
     def addHistogram(
         self,
@@ -1325,7 +1324,7 @@ class PlotWidget(qt.QMainWindow):
         :param int z: Layer on which to draw the histogram
         :param baseline: histogram baseline
         :type: Union[None,float,numpy.ndarray]
-        :returns: The key string identify this histogram
+        :returns: The histogram item
         """
         legend = "Unnamed histogram" if legend is None else str(legend)
 
@@ -1367,7 +1366,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return histo
 
     def addImage(
         self,
@@ -1436,7 +1435,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
-        :returns: The key string identify this image
+        :returns: The image item
         """
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
@@ -1515,7 +1514,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return image
 
     def addScatter(
         self,
@@ -1573,7 +1572,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
-        :returns: The key string identify this scatter
+        :returns: The scatter item
         """
         legend = "Unnamed scatter 1.1" if legend is None else str(legend)
 
@@ -1628,7 +1627,7 @@ class PlotWidget(qt.QMainWindow):
         if len(scatters) == 1 or scatter is self.getActiveScatter():
             self.setActiveScatter(scatter)
 
-        return legend
+        return scatter
 
     def addShape(
         self,
@@ -1683,7 +1682,7 @@ class PlotWidget(qt.QMainWindow):
             Only relevant for line markers where X or Y is None.
         :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
             '#FF0000'. It is used to draw dotted line using a second color.
-        :returns: The key string identify this item
+        :returns: The shape item
         """
         # expected to receive the same parameters as the signal
 
@@ -1710,7 +1709,7 @@ class PlotWidget(qt.QMainWindow):
 
         self.addItem(item)
 
-        return legend
+        return item
 
     def addXMarker(
         self,
@@ -1749,7 +1748,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         return self._addMarker(
             x=x,
@@ -1801,7 +1800,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         return self._addMarker(
             x=None,
@@ -1867,7 +1866,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         if x is None:
             xmin, xmax = self._xAxis.getLimits()
@@ -1966,7 +1965,7 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(marker)
 
-        return legend
+        return marker
 
     # Hide
 
