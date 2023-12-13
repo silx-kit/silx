@@ -922,32 +922,25 @@ class TestPlotMarker(PlotWidgetTestCase):
     def testPlotMarkerYAxis(self):
         # Check only the API
 
-        legend = self.plot.addMarker(10, 10)
-        item = self.plot._getMarker(legend)
+        item = self.plot.addMarker(10, 10)
         self.assertEqual(item.getYAxis(), "left")
 
-        legend = self.plot.addMarker(10, 10, yaxis="right")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addMarker(10, 10, yaxis="right")
         self.assertEqual(item.getYAxis(), "right")
 
-        legend = self.plot.addMarker(10, 10, yaxis="left")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addMarker(10, 10, yaxis="left")
         self.assertEqual(item.getYAxis(), "left")
 
-        legend = self.plot.addXMarker(10, yaxis="right")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addXMarker(10, yaxis="right")
         self.assertEqual(item.getYAxis(), "right")
 
-        legend = self.plot.addXMarker(10, yaxis="left")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addXMarker(10, yaxis="left")
         self.assertEqual(item.getYAxis(), "left")
 
-        legend = self.plot.addYMarker(10, yaxis="right")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addYMarker(10, yaxis="right")
         self.assertEqual(item.getYAxis(), "right")
 
-        legend = self.plot.addYMarker(10, yaxis="left")
-        item = self.plot._getMarker(legend)
+        item = self.plot.addYMarker(10, yaxis="left")
         self.assertEqual(item.getYAxis(), "left")
 
         self.plot.resetZoom()
