@@ -32,20 +32,7 @@ import numpy
 import pytest
 
 from silx.gui.utils.testutils import SignalListener
-
-from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
-
-
-@pytest.fixture
-def plotWidget(qWidgetFactory, request):
-    try:
-        backend = request.param
-    except AttributeError:
-        backend = "mpl"  # Backend was not defined
-    if backend == "gl":
-        request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
-    yield qWidgetFactory(PlotWidget, backend=backend)
 
 
 @pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)

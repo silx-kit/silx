@@ -30,14 +30,6 @@ __date__ = "11/05/2023"
 import numpy
 import pytest
 
-from silx.gui.plot import PlotWidget
-
-
-@pytest.fixture
-def plotWidget(qWidgetFactory):
-    """Fixture providing a PlotWidget"""
-    yield qWidgetFactory(PlotWidget)
-
 
 def testDefaultDataMargins(plotWidget):
     """Test default PlotWidget data margins: No margins"""
