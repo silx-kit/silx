@@ -401,9 +401,7 @@ def testRegionOfInterestText():
     assert roi.getText() == "even_newer_name"
 
 
-def testPlotAddItemsWithoutLegend(qWidgetFactory):
-    plotWidget = qWidgetFactory(PlotWidget)
-
+def testPlotAddItemsWithoutLegend(plotWidget):
     curve1 = items.Curve()
     curve1.setData([0, 10], [0, 20])
     plotWidget.addItem(curve1)
@@ -421,3 +419,98 @@ def testPlotAddItemsWithoutLegend(qWidgetFactory):
     plotWidget.resetZoom()
     assert plotWidget.getXAxis().getLimits() == (-10, 10)
     assert plotWidget.getYAxis().getLimits() == (-20, 20)
+
+
+def testPlotWidgetAddCurve(plotWidget):
+    curve = plotWidget.addCurve(x=(0, 1), y=(1, 0), legend="test", symbol="s")
+    assert isinstance(curve, items.Curve)
+    assert numpy.array_equal(curve.getXData(copy=False), (0, 1))
+    assert numpy.array_equal(curve.getYData(copy=False), (1, 0))
+    assert curve.getName() == "test"
+    assert curve.getSymbol() == "s"
+
+    curveUpdated = plotWidget.addCurve(
+        x=(0, 1, 2), y=(1, 0, 1), legend="test", symbol="o"
+    )
+    assert curveUpdated is curve
+    assert numpy.array_equal(curveUpdated.getXData(copy=False), (0, 1, 2))
+    assert numpy.array_equal(curveUpdated.getYData(copy=False), (1, 0, 1))
+    assert curveUpdated.getName() == "test"
+    assert curveUpdated.getSymbol() == "o"
+
+
+def testPlotWidgetAddImage(plotWidget):
+    image = plotWidget.addImage(((0, 1), (2, 3)), legend="test")
+    assert isinstance(image, items.ImageData)
+    assert numpy.array_equal(image.getData(copy=False), ((0, 1), (2, 3)))
+    assert image.getName() == "test"
+
+    imageUpdated = plotWidget.addImage([(0, 1)], legend="test")
+    assert imageUpdated is image
+    assert numpy.array_equal(image.getData(copy=False), [(0, 1)])
+    assert image.getName() == "test"
+
+    # Update with a 1pixel RGB image
+    imageRgb = plotWidget.addImage([[(0.0, 0.0, 1.0)]], legend="test")
+    assert isinstance(imageRgb, items.ImageRgba)
+    assert numpy.array_equal(imageRgb.getData(copy=False), [[(0.0, 0.0, 1.0)]])
+    assert imageRgb.getName() == "test"
+
+    # Update with a 1pixel RGB image
+    imageRgbUpdated = plotWidget.addImage([[(1.0, 0.0, 0.0)]], legend="test")
+    assert imageRgbUpdated is imageRgb
+    assert numpy.array_equal(imageRgbUpdated.getData(copy=False), [[(1.0, 0.0, 0.0)]])
+    assert imageRgbUpdated.getName() == "test"
+
+
+def testPlotWidgetAddScatter(plotWidget):
+    scatter = plotWidget.addScatter(
+        x=(0, 1), y=(0, 1), value=(0, 1), legend="test", symbol="s"
+    )
+    assert isinstance(scatter, items.Scatter)
+    assert numpy.array_equal(scatter.getXData(copy=False), (0, 1))
+    assert numpy.array_equal(scatter.getYData(copy=False), (0, 1))
+    assert numpy.array_equal(scatter.getValueData(copy=False), (0, 1))
+    assert scatter.getName() == "test"
+    assert scatter.getSymbol() == "s"
+
+
+def testPlotWidgetAddHistogram(plotWidget):
+    histogram = plotWidget.addHistogram(
+        histogram=[1], edges=(0, 1), legend="test", fill=True
+    )
+    assert isinstance(histogram, items.Histogram)
+    assert numpy.array_equal(histogram.getBinEdgesData(copy=False), (0, 1))
+    assert numpy.array_equal(histogram.getValueData(copy=False), [1])
+    assert histogram.getName() == "test"
+    assert histogram.isFill()
+
+
+def testPlotWidgetAddMarker(plotWidget):
+    marker = plotWidget.addMarker(x=0, y=1, legend="test")
+    assert isinstance(marker, items.Marker)
+    assert marker.getPosition() == (0, 1)
+    assert marker.getName() == "test"
+    assert plotWidget.getItems() == (marker,)
+
+    xmarker = plotWidget.addXMarker(1, legend="test")
+    assert isinstance(xmarker, items.XMarker)
+    assert xmarker.getPosition() == (1, None)
+    assert xmarker.getName() == "test"
+    assert plotWidget.getItems() == (xmarker,)
+
+    ymarker = plotWidget.addYMarker(2, legend="test")
+    assert isinstance(ymarker, items.YMarker)
+    assert ymarker.getPosition() == (None, 2)
+    assert ymarker.getName() == "test"
+    assert plotWidget.getItems() == (ymarker,)
+
+
+def testPlotWidgetAddShape(plotWidget):
+    shape = plotWidget.addShape(
+        xdata=(0, 1), ydata=(0, 1), legend="test", shape="polygon"
+    )
+    assert isinstance(shape, items.Shape)
+    assert numpy.array_equal(shape.getPoints(copy=False), ((0, 0), (1, 1)))
+    assert shape.getName() == "test"
+    assert shape.getType() == "polygon"
