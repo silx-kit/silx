@@ -2474,18 +2474,21 @@ class PlotWidget(qt.QMainWindow):
         ]
         return [curve.getName() for curve in curves] if just_legend else curves
 
-    def getCurve(self, legend=None):
+    def getCurve(self, legend: str | items.Curve | None = None) -> items.Curve:
         """Get the object describing a specific curve.
 
         It returns None in case no matching curve is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the curve.
             If not provided or None (the default), the active curve is returned
             or if there is no active curve, the latest updated curve that is
             not hidden is returned if there are curves in the plot.
         :return: None or :class:`.items.Curve` object
         """
+        if isinstance(legend, items.Curve):
+            _logger.warning("getCurve call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="curve", legend=legend)
 
     def getAllImages(self, just_legend=False):
@@ -2506,48 +2509,59 @@ class PlotWidget(qt.QMainWindow):
         images = [item for item in self.getItems() if isinstance(item, items.ImageBase)]
         return [image.getName() for image in images] if just_legend else images
 
-    def getImage(self, legend=None):
+    def getImage(self, legend: str | items.ImageBase | None = None) -> items.ImageBase:
         """Get the object describing a specific image.
 
         It returns None in case no matching image is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the image.
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
         :return: None or :class:`.items.ImageBase` object
         """
+        if isinstance(legend, items.ImageBase):
+            _logger.warning("getImage call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="image", legend=legend)
 
-    def getScatter(self, legend=None):
+    def getScatter(self, legend: str | items.Scatter | None = None) -> items.Scatter:
         """Get the object describing a specific scatter.
 
         It returns None in case no matching scatter is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the scatter.
             If not provided or None (the default), the active scatter is
             returned or if there is no active scatter, the latest updated
             scatter is returned if there are scatters in the plot.
         :return: None or :class:`.items.Scatter` object
         """
+        if isinstance(legend, items.Scatter):
+            _logger.warning("getScatter call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="scatter", legend=legend)
 
-    def getHistogram(self, legend=None):
+    def getHistogram(
+        self, legend: str | items.Histogram | None = None
+    ) -> items.Histogram:
         """Get the object describing a specific histogram.
 
         It returns None in case no matching histogram is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the histogram.
             If not provided or None (the default), the latest updated scatter
             is returned if there are histograms in the plot.
         :return: None or :class:`.items.Histogram` object
         """
+        if isinstance(legend, items.Histogram):
+            _logger.warning("getHistogram call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="histogram", legend=legend)
 
-    def _getItem(self, kind, legend=None):
+    def _getItem(self, kind, legend=None) -> items.Item:
         """Get an item from the plot: either an image or a curve.
 
         Returns None if no match found.
@@ -2558,6 +2572,10 @@ class PlotWidget(qt.QMainWindow):
                            None to get active or last item
         :return: Object describing the item or None
         """
+        if isinstance(legend, items.Item):
+            _logger.warning("_getItem call not needed: legend is already an item")
+            return legend
+
         assert kind in self.ITEM_KINDS
 
         if legend is not None:
