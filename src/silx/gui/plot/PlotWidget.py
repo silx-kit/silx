@@ -1152,11 +1152,11 @@ class PlotWidget(qt.QMainWindow):
                           False to use provided arrays.
         :param baseline: curve baseline
         :type: Union[None,float,numpy.ndarray]
-        :returns: The key string identify this curve
+        :returns: The curve item
         """
         # This is an histogram, use addHistogram
         if histogram is not None:
-            histoLegend = self.addHistogram(
+            histo = self.addHistogram(
                 histogram=y,
                 edges=x,
                 legend=legend,
@@ -1165,7 +1165,6 @@ class PlotWidget(qt.QMainWindow):
                 align=histogram,
                 copy=copy,
             )
-            histo = self.getHistogram(histoLegend)
 
             histo.setInfo(info)
             if linewidth is not None:
@@ -1185,7 +1184,7 @@ class PlotWidget(qt.QMainWindow):
                     "addCurve: Histogram does not support selectable argument"
                 )
 
-            return
+            return histo
 
         legend = "Unnamed curve 1.1" if legend is None else str(legend)
 
@@ -1277,7 +1276,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return curve
 
     def addHistogram(
         self,
@@ -1325,7 +1324,7 @@ class PlotWidget(qt.QMainWindow):
         :param int z: Layer on which to draw the histogram
         :param baseline: histogram baseline
         :type: Union[None,float,numpy.ndarray]
-        :returns: The key string identify this histogram
+        :returns: The histogram item
         """
         legend = "Unnamed histogram" if legend is None else str(legend)
 
@@ -1367,7 +1366,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return histo
 
     def addImage(
         self,
@@ -1436,7 +1435,7 @@ class PlotWidget(qt.QMainWindow):
         :param bool resetzoom: True (the default) to reset the zoom.
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
-        :returns: The key string identify this image
+        :returns: The image item
         """
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
@@ -1515,7 +1514,7 @@ class PlotWidget(qt.QMainWindow):
             # axes has to be set to off.
             self.resetZoom()
 
-        return legend
+        return image
 
     def addScatter(
         self,
@@ -1573,7 +1572,7 @@ class PlotWidget(qt.QMainWindow):
 
         :param bool copy: True make a copy of the data (default),
                           False to use provided arrays.
-        :returns: The key string identify this scatter
+        :returns: The scatter item
         """
         legend = "Unnamed scatter 1.1" if legend is None else str(legend)
 
@@ -1628,7 +1627,7 @@ class PlotWidget(qt.QMainWindow):
         if len(scatters) == 1 or scatter is self.getActiveScatter():
             self.setActiveScatter(scatter)
 
-        return legend
+        return scatter
 
     def addShape(
         self,
@@ -1683,7 +1682,7 @@ class PlotWidget(qt.QMainWindow):
             Only relevant for line markers where X or Y is None.
         :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
             '#FF0000'. It is used to draw dotted line using a second color.
-        :returns: The key string identify this item
+        :returns: The shape item
         """
         # expected to receive the same parameters as the signal
 
@@ -1710,7 +1709,7 @@ class PlotWidget(qt.QMainWindow):
 
         self.addItem(item)
 
-        return legend
+        return item
 
     def addXMarker(
         self,
@@ -1749,7 +1748,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         return self._addMarker(
             x=x,
@@ -1801,7 +1800,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         return self._addMarker(
             x=None,
@@ -1867,7 +1866,7 @@ class PlotWidget(qt.QMainWindow):
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
         :param str yaxis: The Y axis this marker belongs to in: 'left', 'right'
-        :return: The key string identify this marker
+        :return: The marker item
         """
         if x is None:
             xmin, xmax = self._xAxis.getLimits()
@@ -1966,7 +1965,7 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(marker)
 
-        return legend
+        return marker
 
     # Hide
 
@@ -2004,7 +2003,11 @@ class PlotWidget(qt.QMainWindow):
     _ACTIVE_ITEM_KINDS = "curve", "scatter", "image"
     """List of item's kind which have a active item."""
 
-    def remove(self, legend=None, kind=ITEM_KINDS):
+    def remove(
+        self,
+        legend: str | items.Item | None = None,
+        kind: str | Sequence[str] = ITEM_KINDS,
+    ):
         """Remove one or all element(s) of the given legend and kind.
 
         Examples:
@@ -2018,13 +2021,16 @@ class PlotWidget(qt.QMainWindow):
         - ``remove('myImage')`` removes elements (for instance curve, image,
           item and marker) with legend 'myImage'.
 
-        :param str legend: The legend associated to the element to remove,
-                           or None to remove
-        :param kind: The kind of elements to remove from the plot.
+        :param legend:
+            The legend of the item to remove or the item itself.
+            If None all items of given kind are removed.
+        :param kind: The kind of items to remove from the plot.
                      See :attr:`ITEM_KINDS`.
                      By default, it removes all kind of elements.
-        :type kind: str or tuple of str to specify multiple kinds.
         """
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
+
         if kind == "all":  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
@@ -2051,31 +2057,40 @@ class PlotWidget(qt.QMainWindow):
                 if item is not None:
                     self.removeItem(item)
 
-    def removeCurve(self, legend):
+    def removeCurve(self, legend: str | items.Curve | None):
         """Remove the curve associated to legend from the graph.
 
-        :param str legend: The legend associated to the curve to be deleted
+        :param legend:
+             The legend of the curve to be deleted or the curve item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="curve")
 
-    def removeImage(self, legend):
+    def removeImage(self, legend: str | items.ImageBase | None):
         """Remove the image associated to legend from the graph.
 
-        :param str legend: The legend associated to the image to be deleted
+        :param legend:
+            The legend of the image to be deleted or the image item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="image")
 
-    def removeMarker(self, legend):
+    def removeMarker(self, legend: str | items.Marker | None):
         """Remove the marker associated to legend from the graph.
 
-        :param str legend: The legend associated to the marker to be deleted
+        :param legend:
+            The legend of the marker to be deleted or the marker item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="marker")
 
     # Clear
@@ -2459,18 +2474,21 @@ class PlotWidget(qt.QMainWindow):
         ]
         return [curve.getName() for curve in curves] if just_legend else curves
 
-    def getCurve(self, legend=None):
+    def getCurve(self, legend: str | items.Curve | None = None) -> items.Curve:
         """Get the object describing a specific curve.
 
         It returns None in case no matching curve is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the curve.
             If not provided or None (the default), the active curve is returned
             or if there is no active curve, the latest updated curve that is
             not hidden is returned if there are curves in the plot.
         :return: None or :class:`.items.Curve` object
         """
+        if isinstance(legend, items.Curve):
+            _logger.warning("getCurve call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="curve", legend=legend)
 
     def getAllImages(self, just_legend=False):
@@ -2491,48 +2509,59 @@ class PlotWidget(qt.QMainWindow):
         images = [item for item in self.getItems() if isinstance(item, items.ImageBase)]
         return [image.getName() for image in images] if just_legend else images
 
-    def getImage(self, legend=None):
+    def getImage(self, legend: str | items.ImageBase | None = None) -> items.ImageBase:
         """Get the object describing a specific image.
 
         It returns None in case no matching image is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the image.
             If not provided or None (the default), the active image is returned
             or if there is no active image, the latest updated image
             is returned if there are images in the plot.
         :return: None or :class:`.items.ImageBase` object
         """
+        if isinstance(legend, items.ImageBase):
+            _logger.warning("getImage call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="image", legend=legend)
 
-    def getScatter(self, legend=None):
+    def getScatter(self, legend: str | items.Scatter | None = None) -> items.Scatter:
         """Get the object describing a specific scatter.
 
         It returns None in case no matching scatter is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the scatter.
             If not provided or None (the default), the active scatter is
             returned or if there is no active scatter, the latest updated
             scatter is returned if there are scatters in the plot.
         :return: None or :class:`.items.Scatter` object
         """
+        if isinstance(legend, items.Scatter):
+            _logger.warning("getScatter call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="scatter", legend=legend)
 
-    def getHistogram(self, legend=None):
+    def getHistogram(
+        self, legend: str | items.Histogram | None = None
+    ) -> items.Histogram:
         """Get the object describing a specific histogram.
 
         It returns None in case no matching histogram is found.
 
-        :param str legend:
+        :param legend:
             The legend identifying the histogram.
             If not provided or None (the default), the latest updated scatter
             is returned if there are histograms in the plot.
         :return: None or :class:`.items.Histogram` object
         """
+        if isinstance(legend, items.Histogram):
+            _logger.warning("getHistogram call not needed: legend is already an item")
+            return legend
         return self._getItem(kind="histogram", legend=legend)
 
-    def _getItem(self, kind, legend=None):
+    def _getItem(self, kind, legend=None) -> items.Item:
         """Get an item from the plot: either an image or a curve.
 
         Returns None if no match found.
@@ -2543,6 +2572,10 @@ class PlotWidget(qt.QMainWindow):
                            None to get active or last item
         :return: Object describing the item or None
         """
+        if isinstance(legend, items.Item):
+            _logger.warning("_getItem call not needed: legend is already an item")
+            return legend
+
         assert kind in self.ITEM_KINDS
 
         if legend is not None:

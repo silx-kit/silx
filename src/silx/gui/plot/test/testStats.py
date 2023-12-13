@@ -766,7 +766,7 @@ class TestLineWidget(TestCaseQt):
         self.plot.show()
         self.x = range(20)
         self.y0 = range(20)
-        self.curve0 = self.plot.addCurve(self.x, self.y0, legend="curve0")
+        self.plot.addCurve(self.x, self.y0, legend="curve0")
         self.y1 = range(12, 32)
         self.plot.addCurve(self.x, self.y1, legend="curve1")
         self.y2 = range(-2, 18)
@@ -821,7 +821,7 @@ class TestLineWidget(TestCaseQt):
 
     def testUpdateMode(self):
         """Make sure the update modes are well take into account"""
-        self.plot.setActiveCurve(self.curve0)
+        self.plot.setActiveCurve("curve0")
         _autoRB = self.widget._options._autoRB
         _manualRB = self.widget._options._manualRB
         # test from api
@@ -832,7 +832,7 @@ class TestLineWidget(TestCaseQt):
         # check stats change in auto mode
         curve0_min = self.widget._lineStatsWidget._statQlineEdit["min"].text()
         new_y = numpy.array(self.y0) - 2.56
-        self.plot.addCurve(x=self.x, y=new_y, legend=self.curve0)
+        self.plot.addCurve(x=self.x, y=new_y, legend="curve0")
         curve0_min2 = self.widget._lineStatsWidget._statQlineEdit["min"].text()
         self.assertTrue(curve0_min != curve0_min2)
 
@@ -842,7 +842,7 @@ class TestLineWidget(TestCaseQt):
         self.assertTrue(_manualRB.isChecked())
 
         new_y = numpy.array(self.y0) - 1.2
-        self.plot.addCurve(x=self.x, y=new_y, legend=self.curve0)
+        self.plot.addCurve(x=self.x, y=new_y, legend="curve0")
         curve0_min3 = self.widget._lineStatsWidget._statQlineEdit["min"].text()
         self.assertTrue(curve0_min3 == curve0_min2)
         self.widget._options._updateRequested()

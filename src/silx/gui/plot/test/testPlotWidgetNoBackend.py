@@ -659,7 +659,7 @@ def testSetDefaultColorsAddCurve(qWidgetFactory):
     assert plot.getDefaultColors() == colors
 
     # Check that the color index is reset
-    curve = plot.getCurve(plot.addCurve((1, 2), (0, 1), legend="newcurve"))
+    curve = plot.addCurve((1, 2), (0, 1), legend="newcurve")
     assert curve.getColor() == rgba(colors[0])
 
 
@@ -678,7 +678,7 @@ def testDefaultColorsUpdateConfig(qWidgetFactory):
         assert plot.getDefaultColors() == colors
 
         # Check that the color index is reset
-        curve = plot.getCurve(plot.addCurve((1, 2), (0, 1), legend="newcurve"))
+        curve = plot.addCurve((1, 2), (0, 1), legend="newcurve")
         assert curve.getColor() == rgba(colors[0])
 
     finally:
