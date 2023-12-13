@@ -33,16 +33,16 @@ import pytest
 
 from silx.gui.utils.testutils import SignalListener
 
-from silx.gui import qt
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.items.curve import CurveStyle
-
-from .utils import PlotWidgetTestCase
 
 
 @pytest.fixture
 def plotWidget(qWidgetFactory, request):
-    backend = request.param
+    try:
+        backend = request.param
+    except AttributeError:
+        backend = "mpl"  # Backend was not defined
     if backend == "gl":
         request.getfixturevalue("use_opengl")  # Skip test if OpenGL test disabled
     yield qWidgetFactory(PlotWidget, backend=backend)
@@ -386,4 +386,44 @@ def testSelectionSetCurrentItem(plotWidget):
     _checkSelection(selection, scatter, (scatter, curve, image))
     assert plotWidget.getActiveCurve() is curve
     assert plotWidget.getActiveImage() is image
+    assert plotWidget.getActiveScatter() is scatter
+
+
+def testSetActiveCurveWithInstance(plotWidget):
+    """Test setting the active curve with a curve item instance"""
+    plotWidget.addCurve((0, 1), (0, 1), legend="curve0")
+    plotWidget.addCurve((0, 1), (1, 0), legend="curve1")
+    curve0, curve1 = plotWidget.getItems()
+
+    plotWidget.setActiveCurve(curve0)
+    assert plotWidget.getActiveCurve() is curve0
+
+    plotWidget.setActiveCurve(curve1)
+    assert plotWidget.getActiveCurve() is curve1
+
+    plotWidget.setActiveCurve(None)
+    assert plotWidget.getActiveCurve() is None
+
+
+def testSetActiveImageWithInstance(plotWidget):
+    """Test setting the active image with an image item instance"""
+    plotWidget.addImage(((0, 1), (2, 3)), legend="image")
+    image = plotWidget.getItems()[0]
+
+    plotWidget.setActiveImage(None)
+    assert plotWidget.getActiveImage() is None
+
+    plotWidget.setActiveImage(image)
+    assert plotWidget.getActiveImage() is image
+
+
+def testSetActiveScatterWithInstance(plotWidget):
+    """Test setting the active scatter with a scatter item instance"""
+    plotWidget.addScatter((0, 1), (0, 1), (0, 1), legend="scatter")
+    scatter = plotWidget.getItems()[0]
+
+    plotWidget.setActiveScatter(None)
+    assert plotWidget.getActiveScatter() is None
+
+    plotWidget.setActiveScatter(scatter)
     assert plotWidget.getActiveScatter() is scatter
