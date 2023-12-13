@@ -2003,7 +2003,11 @@ class PlotWidget(qt.QMainWindow):
     _ACTIVE_ITEM_KINDS = "curve", "scatter", "image"
     """List of item's kind which have a active item."""
 
-    def remove(self, legend=None, kind=ITEM_KINDS):
+    def remove(
+        self,
+        legend: str | items.Item | None = None,
+        kind: str | Sequence[str] = ITEM_KINDS,
+    ):
         """Remove one or all element(s) of the given legend and kind.
 
         Examples:
@@ -2017,13 +2021,16 @@ class PlotWidget(qt.QMainWindow):
         - ``remove('myImage')`` removes elements (for instance curve, image,
           item and marker) with legend 'myImage'.
 
-        :param str legend: The legend associated to the element to remove,
-                           or None to remove
-        :param kind: The kind of elements to remove from the plot.
+        :param legend:
+            The legend of the item to remove or the item itself.
+            If None all items of given kind are removed.
+        :param kind: The kind of items to remove from the plot.
                      See :attr:`ITEM_KINDS`.
                      By default, it removes all kind of elements.
-        :type kind: str or tuple of str to specify multiple kinds.
         """
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
+
         if kind == "all":  # Replace all by tuple of all kinds
             kind = self.ITEM_KINDS
 
@@ -2050,31 +2057,40 @@ class PlotWidget(qt.QMainWindow):
                 if item is not None:
                     self.removeItem(item)
 
-    def removeCurve(self, legend):
+    def removeCurve(self, legend: str | items.Curve | None):
         """Remove the curve associated to legend from the graph.
 
-        :param str legend: The legend associated to the curve to be deleted
+        :param legend:
+             The legend of the curve to be deleted or the curve item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="curve")
 
-    def removeImage(self, legend):
+    def removeImage(self, legend: str | items.ImageBase | None):
         """Remove the image associated to legend from the graph.
 
-        :param str legend: The legend associated to the image to be deleted
+        :param legend:
+            The legend of the image to be deleted or the image item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="image")
 
-    def removeMarker(self, legend):
+    def removeMarker(self, legend: str | items.Marker | None):
         """Remove the marker associated to legend from the graph.
 
-        :param str legend: The legend associated to the marker to be deleted
+        :param legend:
+            The legend of the marker to be deleted or the marker item
         """
         if legend is None:
             return
+        if isinstance(legend, items.Item):
+            return self.removeItem(legend)
         self.remove(legend, kind="marker")
 
     # Clear
