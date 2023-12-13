@@ -181,7 +181,7 @@ class _PlotWidgetSelection(qt.QObject):
             if kind in plot._ACTIVE_ITEM_KINDS and item is not plot._getActiveItem(
                 kind
             ):
-                plot._setActiveItem(kind, item.getName())
+                plot._setActiveItem(kind, item)
         else:
             raise ValueError("Not an Item: %s" % str(item))
 
@@ -392,6 +392,7 @@ class PlotWidget(qt.QMainWindow):
         # Items handling
         self.__items = []
         self.__itemsToUpdate = []  # Used as an OrderedSet
+        self.__activeItems = {"curve": None, "image": None, "scatter": None}
 
         self._dataRange = None
 
@@ -406,7 +407,6 @@ class PlotWidget(qt.QMainWindow):
             color=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_COLOR,
             linewidth=silx.config.DEFAULT_PLOT_ACTIVE_CURVE_LINEWIDTH,
         )
-        self._activeLegend = {"curve": None, "image": None, "scatter": None}
 
         # plot colors (updated later to sync backend)
         self._foregroundColor = 0.0, 0.0, 0.0, 1.0
@@ -1189,9 +1189,6 @@ class PlotWidget(qt.QMainWindow):
 
         legend = "Unnamed curve 1.1" if legend is None else str(legend)
 
-        # Check if curve was previously active
-        wasActive = self.getActiveCurve(just_legend=True) == legend
-
         if replace:
             self._resetColorAndStyle()
 
@@ -1266,13 +1263,13 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(curve)
 
-        if wasActive:
-            self.setActiveCurve(curve.getName())
-        elif self.getActiveCurveSelectionMode() == "legacy":
-            if self.getActiveCurve(just_legend=True) is None:
-                if len(self.getAllCurves(just_legend=True, withhidden=False)) == 1:
-                    if curve.isVisible():
-                        self.setActiveCurve(curve.getName())
+        if curve is self.getActiveCurve() or (
+            self.getActiveCurveSelectionMode() == "legacy"
+            and self.getActiveCurve() is None
+            and len(self.getAllCurves(just_legend=True, withhidden=False)) == 1
+            and curve.isVisible()
+        ):
+            self.setActiveCurve(curve)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1443,9 +1440,6 @@ class PlotWidget(qt.QMainWindow):
         """
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
-        # Check if image was previously active
-        wasActive = self.getActiveImage(just_legend=True) == legend
-
         data = numpy.array(data, copy=False)
         assert data.ndim in (2, 3)
 
@@ -1512,8 +1506,8 @@ class PlotWidget(qt.QMainWindow):
         else:
             self._notifyContentChanged(image)
 
-        if len(self.getAllImages()) == 1 or wasActive:
-            self.setActiveImage(legend)
+        if len(self.getAllImages()) == 1 or image is self.getActiveImage():
+            self.setActiveImage(image)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
@@ -1583,9 +1577,6 @@ class PlotWidget(qt.QMainWindow):
         """
         legend = "Unnamed scatter 1.1" if legend is None else str(legend)
 
-        # Check if scatter was previously active
-        wasActive = self._getActiveItem(kind="scatter", just_legend=True) == legend
-
         # Create/Update curve object
         scatter = self._getItem(kind="scatter", legend=legend)
         mustBeAdded = scatter is None
@@ -1634,8 +1625,8 @@ class PlotWidget(qt.QMainWindow):
             for item in self.getItems()
             if isinstance(item, items.Scatter) and item.isVisible()
         ]
-        if len(scatters) == 1 or wasActive:
-            self._setActiveItem("scatter", scatter.getName())
+        if len(scatters) == 1 or scatter is self.getActiveScatter():
+            self.setActiveScatter(scatter)
 
         return legend
 
@@ -2266,7 +2257,7 @@ class PlotWidget(qt.QMainWindow):
             )
             return
 
-        return self._setActiveItem(kind="curve", legend=legend)
+        return self._setActiveItem(kind="curve", item=legend)
 
     def setActiveCurveSelectionMode(self, mode):
         """Sets the current selection mode.
@@ -2279,7 +2270,7 @@ class PlotWidget(qt.QMainWindow):
         if mode != self._activeCurveSelectionMode:
             self._activeCurveSelectionMode = mode
             if mode == "none":  # reset active curve
-                self._setActiveItem(kind="curve", legend=None)
+                self._setActiveItem(kind="curve", item=None)
 
             elif mode == "legacy" and self.getActiveCurve() is None:
                 # Select an active curve
@@ -2317,7 +2308,7 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the image
                            or None to have no active image.
         """
-        return self._setActiveItem(kind="image", legend=legend)
+        return self._setActiveItem(kind="image", item=legend)
 
     def getActiveScatter(self, just_legend=False):
         """Returns the currently active scatter.
@@ -2338,80 +2329,79 @@ class PlotWidget(qt.QMainWindow):
         :param str legend: The legend associated to the scatter
                            or None to have no active scatter.
         """
-        return self._setActiveItem(kind="scatter", legend=legend)
+        return self._setActiveItem(kind="scatter", item=legend)
 
-    def _getActiveItem(self, kind, just_legend=False):
-        """Return the currently active item of that kind if any
+    def _getActiveItem(
+        self,
+        kind: str | None,
+        just_legend: bool = False,
+    ) -> items.Curve | items.Scatter | items.ImageBase | None:
+        """Return the currently active item of given kind if any.
 
-        :param str kind: Type of item: 'curve', 'scatter' or 'image'
-        :param bool just_legend: True to get the legend,
-                                 False (default) to get the item
-        :return: legend or item or None if no active item
+        :param kind: Type of item: 'curve', 'scatter' or 'image'
+        :param just_legend:
+            True to get the item's legend, False (the default) to get the item
+        """
+        assert kind in self._ACTIVE_ITEM_KINDS
+        item = self.__activeItems[kind]
+        if item is not None and just_legend:
+            return item.getName()
+        return item
+
+    def _setActiveItem(
+        self,
+        kind: str,
+        item: items.Curve | items.ImageBase | items.Scatter | str | None,
+    ) -> str | None:
+        """Make the given item active.
+
+        Note: There is one active item per "kind" of item.
         """
         assert kind in self._ACTIVE_ITEM_KINDS
 
-        if self._activeLegend[kind] is None:
-            return None
-
-        item = self._getItem(kind, self._activeLegend[kind])
         if item is None:
+            legend = None
+        elif isinstance(item, items.Item):
+            legend = item.getName()
+        else:
+            legend = str(item)
+            item = self._getItem(kind, legend)
+            if item is None:
+                _logger.warning("This %s does not exist: %s", kind, legend)
+
+        oldActiveItem = self._getActiveItem(kind=kind)
+
+        if oldActiveItem is None and item is None:
             return None
 
-        return item.getName() if just_legend else item
+        if oldActiveItem is not None:
+            # Stop listening previous active item
+            oldActiveItem.sigItemChanged.disconnect(self._activeItemChanged)
+            # Curve specific: Reset highlight of previous active curve
+            if kind == "curve":
+                oldActiveItem.setHighlighted(False)
 
-    def _setActiveItem(self, kind, legend):
-        """Make the curve associated to legend the active curve.
-
-        :param str kind: Type of item: 'curve' or 'image'
-        :param legend: The legend associated to the curve
-                       or None to have no active curve.
-        :type legend: str or None
-        """
-        assert kind in self._ACTIVE_ITEM_KINDS
+        self.__activeItems[kind] = item
 
         xLabel = None
         yLabel = None
         yRightLabel = None
 
-        oldActiveItem = self._getActiveItem(kind=kind)
+        if item is not None:
+            # Curve specific: handle highlight
+            if kind == "curve":
+                item.setHighlightedStyle(self.getActiveCurveStyle())
+                item.setHighlighted(True)
 
-        if oldActiveItem is not None:  # Stop listening previous active image
-            oldActiveItem.sigItemChanged.disconnect(self._activeItemChanged)
+            if isinstance(item, items.LabelsMixIn):
+                xLabel = item.getXLabel()
+                if isinstance(item, items.YAxisMixIn) and item.getYAxis() == "right":
+                    yRightLabel = item.getYLabel()
+                else:
+                    yLabel = item.getYLabel()
 
-        # Curve specific: Reset highlight of previous active curve
-        if kind == "curve" and oldActiveItem is not None:
-            oldActiveItem.setHighlighted(False)
-
-        if legend is None:
-            self._activeLegend[kind] = None
-        else:
-            legend = str(legend)
-            item = self._getItem(kind, legend)
-            if item is None:
-                _logger.warning("This %s does not exist: %s", kind, legend)
-                self._activeLegend[kind] = None
-            else:
-                self._activeLegend[kind] = legend
-
-                # Curve specific: handle highlight
-                if kind == "curve":
-                    item.setHighlightedStyle(self.getActiveCurveStyle())
-                    item.setHighlighted(True)
-
-                if isinstance(item, items.LabelsMixIn):
-                    if item.getXLabel() is not None:
-                        xLabel = item.getXLabel()
-                    if item.getYLabel() is not None:
-                        if (
-                            isinstance(item, items.YAxisMixIn)
-                            and item.getYAxis() == "right"
-                        ):
-                            yRightLabel = item.getYLabel()
-                        else:
-                            yLabel = item.getYLabel()
-
-                # Start listening new active item
-                item.sigItemChanged.connect(self._activeItemChanged)
+            # Start listening new active item
+            item.sigItemChanged.connect(self._activeItemChanged)
 
         # Store current labels and update plot
         self._xAxis._setCurrentLabel(xLabel)
@@ -2420,20 +2410,13 @@ class PlotWidget(qt.QMainWindow):
 
         self._setDirtyPlot()
 
-        activeLegend = self._activeLegend[kind]
-        if oldActiveItem is not None or activeLegend is not None:
-            if oldActiveItem is None:
-                oldActiveLegend = None
-            else:
-                oldActiveLegend = oldActiveItem.getName()
-            self.notify(
-                "active" + kind[0].upper() + kind[1:] + "Changed",
-                updated=oldActiveLegend != activeLegend,
-                previous=oldActiveLegend,
-                legend=activeLegend,
-            )
-
-        return activeLegend
+        self.notify(
+            f"active{kind.capitalize()}Changed",
+            updated=oldActiveItem is not item,
+            previous=None if oldActiveItem is None else oldActiveItem.getName(),
+            legend=legend,
+        )
+        return legend
 
     def _activeItemChanged(self, type_):
         """Listen for active item changed signal and broadcast signal
@@ -3152,9 +3135,9 @@ class PlotWidget(qt.QMainWindow):
             ddict = {}
         _logger.debug("Received dict keys = %s", str(ddict.keys()))
         _logger.debug(str(ddict))
-        if ddict["event"] in ["legendClicked", "curveClicked"]:
+        if ddict["event"] == "curveClicked":
             if ddict["button"] == "left":
-                self.setActiveCurve(ddict["label"])
+                self.setActiveCurve(ddict["item"])
                 qt.QToolTip.showText(self.cursor().pos(), ddict["label"])
         elif ddict["event"] == "mouseClicked" and ddict["button"] == "left":
             self.setActiveCurve(None)

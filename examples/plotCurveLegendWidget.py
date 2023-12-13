@@ -69,7 +69,7 @@ class MyCurveLegendsWidget(CurveLegendsWidget):
         :param silx.gui.plot.items.Curve curve:
         """
         plot = curve.getPlot()
-        plot.setActiveCurve(curve.getName() if curve != plot.getActiveCurve() else None)
+        plot.setActiveCurve(curve if curve != plot.getActiveCurve() else None)
 
     def _switchCurveVisibility(self, curve):
         """Toggle the visibility of a curve

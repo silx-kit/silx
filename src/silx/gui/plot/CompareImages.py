@@ -110,7 +110,7 @@ class CompareImages(qt.QMainWindow):
         if silx.config.DEFAULT_PLOT_IMAGE_Y_AXIS_ORIENTATION == "downward":
             self.__plot.getYAxis().setInverted(True)
         self.__plot.addItem(self.__item)
-        self.__plot.setActiveImage("_virtual")
+        self.__plot.setActiveImage(self.__item)
 
         self.__plot.setKeepDataAspectRatio(True)
         self.__plot.sigPlotSignal.connect(self.__plotSlot)

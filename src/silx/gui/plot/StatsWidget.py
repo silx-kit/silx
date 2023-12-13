@@ -199,7 +199,7 @@ class _PlotWidgetWrapper(_Wrapper):
             kind = self.getKind(item)
             if kind in plot._ACTIVE_ITEM_KINDS:
                 if plot._getActiveItem(kind) != item:
-                    plot._setActiveItem(kind, item.getName())
+                    plot._setActiveItem(kind, item)
 
     def getLabel(self, item):
         return item.getName()
