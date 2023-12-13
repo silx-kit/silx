@@ -160,8 +160,7 @@ class MyPlotWindow(qt.QMainWindow):
         x = numpy.random.rand(nbPoints)
         y = numpy.random.rand(nbPoints)
         value = numpy.random.rand(nbPoints)
-        legend = plot.addScatter(x=x, y=y, value=value)
-        scatter = plot.getScatter(legend)
+        scatter = plot.addScatter(x=x, y=y, value=value)
         scatter.setVisualization("solid")
         plot.resetZoom()
 
