@@ -50,7 +50,12 @@ from ..._utils import checkAxisLimits, FLOAT32_MINPOS
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-from ..._utils.dtime_ticklayout import calcTicksAdaptive, bestFormatString
+from ..._utils.dtime_ticklayout import (
+    bestUnit,
+    calcTicksAdaptive,
+    bestFormatString,
+    DtUnit,
+)
 from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
@@ -390,6 +395,12 @@ class PlotAxis(object):
                     except ValueError:
                         _logger.warning("Data range cannot be displayed with time axis")
                         return  # Range is out of bound of the datetime
+
+                    if bestUnit(
+                        (dtMax - dtMin).total_seconds() == DtUnit.MICRO_SECONDS
+                    ):
+                        # Special case for micro seconds: Reduce tick density
+                        tickDensity = 1.0 * self.devicePixelRatio / self.dotsPerInch
 
                     tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity
