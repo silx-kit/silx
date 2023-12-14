@@ -60,7 +60,11 @@ from matplotlib import path as mpath
 from . import BackendBase
 from .. import items
 from .._utils import FLOAT32_MINPOS
-from .._utils.dtime_ticklayout import calcTicks, bestFormatString, timestamp
+from .._utils.dtime_ticklayout import (
+    calcTicks,
+    formatDatetimes,
+    timestamp,
+)
 from ...qt import inspect as qt_inspect
 from .... import config
 
@@ -215,21 +219,25 @@ class NiceAutoDateFormatter(Formatter):
         self.locator = locator
         self.tz = tz
 
-    @property
-    def formatString(self):
-        if self.locator.spacing is None or self.locator.unit is None:
-            # Locator has no spacing or units yet. Return elaborate fmtString
-            return "Y-%m-%d %H:%M:%S"
-        else:
-            return bestFormatString(self.locator.spacing, self.locator.unit)
-
     def __call__(self, x, pos=None):
         """Return the format for tick val *x* at position *pos*
         Expects x to be a POSIX timestamp (seconds since 1 Jan 1970)
         """
-        dateTime = dt.datetime.fromtimestamp(x, tz=self.tz)
-        tickStr = dateTime.strftime(self.formatString)
-        return tickStr
+        datetime = dt.datetime.fromtimestamp(x, tz=self.tz)
+        return formatDatetimes(
+            [datetime],
+            self.locator.spacing,
+            self.locator.unit,
+        )[datetime]
+
+    def format_ticks(self, values):
+        return tuple(
+            formatDatetimes(
+                [dt.datetime.fromtimestamp(value, tz=self.tz) for value in values],
+                self.locator.spacing,
+                self.locator.unit,
+            ).values()
+        )
 
 
 class _PickableContainer(Container):

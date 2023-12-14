@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+from __future__ import annotations
+
 """This module implements date-time labels layout on graph axes."""
 
 __authors__ = ["P. Kenter"]
@@ -28,6 +30,7 @@ __license__ = "MIT"
 __date__ = "04/04/2018"
 
 
+from collections.abc import Sequence
 import datetime as dt
 import enum
 import logging
@@ -293,7 +296,7 @@ NICE_DATE_VALUES = {
     DtUnit.HOURS: [1, 2, 3, 4, 6, 12],
     DtUnit.MINUTES: [1, 2, 3, 5, 10, 15, 30],
     DtUnit.SECONDS: [1, 2, 3, 5, 10, 15, 30],
-    DtUnit.MICRO_SECONDS: [1.0, 2.0, 5.0, 10.0],  # floats for microsec
+    DtUnit.MICRO_SECONDS: [1.0, 2.0, 3.0, 4.0, 5.0, 10.0],  # floats for microsec
 }
 
 
@@ -326,6 +329,29 @@ def bestFormatString(spacing, unit):
         return "%S.%f"
     else:
         raise ValueError("Unexpected DtUnit: {}".format(unit))
+
+
+def formatDatetimes(
+    datetimes: Sequence[dt.datetime], spacing: int | None, unit: DtUnit | None
+) -> dict[dt.datetime, str]:
+    """Returns formatted string for each datetime according to tick spacing and time unit"""
+    if spacing is None or unit is None:
+        # Locator has no spacing or units yet: Use elaborate fmtString
+        return {
+            datetime: datetime.strftime("Y-%m-%d %H:%M:%S") for datetime in datetimes
+        }
+
+    formatString = bestFormatString(spacing, unit)
+    if unit != DtUnit.MICRO_SECONDS:
+        return {datetime: datetime.strftime(formatString) for datetime in datetimes}
+
+    # For microseconds: Strip leading/trailing zeros
+    texts = tuple(datetime.strftime(formatString) for datetime in datetimes)
+    nzeros = min(len(text) - len(text.rstrip("0")) for text in texts)
+    return {
+        datetime: text[0 if text[0] != "0" else 1 : -min(nzeros, 5)]
+        for datetime, text in zip(datetimes, texts)
+    }
 
 
 def niceDateTimeElement(value, unit, isRound=False):

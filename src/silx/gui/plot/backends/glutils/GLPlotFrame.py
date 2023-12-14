@@ -50,7 +50,12 @@ from ..._utils import checkAxisLimits, FLOAT32_MINPOS
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
-from ..._utils.dtime_ticklayout import calcTicksAdaptive, bestFormatString
+from ..._utils.dtime_ticklayout import (
+    DtUnit,
+    bestUnit,
+    calcTicksAdaptive,
+    formatDatetimes,
+)
 from ..._utils.dtime_ticklayout import timestamp
 
 _logger = logging.getLogger(__name__)
@@ -170,6 +175,12 @@ class PlotAxis(object):
         """Returns the ratio between qt pixels and device pixels."""
         plotFrame = self._plotFrameRef()
         return plotFrame.devicePixelRatio if plotFrame is not None else 1.0
+
+    @property
+    def dotsPerInch(self):
+        """Returns the screen DPI"""
+        plotFrame = self._plotFrameRef()
+        return plotFrame.dotsPerInch if plotFrame is not None else 92
 
     @property
     def title(self):
@@ -359,7 +370,7 @@ class PlotAxis(object):
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
-                tickDensity = 1.3 / 92
+                tickDensity = 1.3 * self.devicePixelRatio / self.dotsPerInch
 
                 if not self.isTimeSeries:
                     tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
@@ -385,20 +396,25 @@ class PlotAxis(object):
                         _logger.warning("Data range cannot be displayed with time axis")
                         return  # Range is out of bound of the datetime
 
+                    if bestUnit(
+                        (dtMax - dtMin).total_seconds() == DtUnit.MICRO_SECONDS
+                    ):
+                        # Special case for micro seconds: Reduce tick density
+                        tickDensity = 1.0 * self.devicePixelRatio / self.dotsPerInch
+
                     tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity
                     )
+                    visibleDatetimes = tuple(
+                        dt for dt in tickDateTimes if dtMin <= dt <= dtMax
+                    )
+                    ticks = formatDatetimes(visibleDatetimes, spacing, unit)
 
-                    for tickDateTime in tickDateTimes:
-                        if dtMin <= tickDateTime <= dtMax:
-                            dataPos = timestamp(tickDateTime)
-                            xPixel = x0 + (dataPos - dataMin) * xScale
-                            yPixel = y0 + (dataPos - dataMin) * yScale
-
-                            fmtStr = bestFormatString(spacing, unit)
-                            text = tickDateTime.strftime(fmtStr)
-
-                            yield ((xPixel, yPixel), dataPos, text)
+                    for tickDateTime, text in ticks.items():
+                        dataPos = timestamp(tickDateTime)
+                        xPixel = x0 + (dataPos - dataMin) * xScale
+                        yPixel = y0 + (dataPos - dataMin) * yScale
+                        yield ((xPixel, yPixel), dataPos, text)
 
 
 # GLPlotFrame #################################################################
@@ -463,6 +479,7 @@ class GLPlotFrame(object):
         self._title = ""
 
         self._devicePixelRatio = 1.0
+        self._dpi = 92
 
     @property
     def isDirty(self):
@@ -547,6 +564,16 @@ class GLPlotFrame(object):
     def devicePixelRatio(self, ratio):
         if ratio != self._devicePixelRatio:
             self._devicePixelRatio = ratio
+            self._dirty()
+
+    @property
+    def dotsPerInch(self):
+        return self._dpi
+
+    @dotsPerInch.setter
+    def dotsPerInch(self, dpi):
+        if dpi != self._dpi:
+            self._dpi = dpi
             self._dirty()
 
     @property
