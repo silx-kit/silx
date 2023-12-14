@@ -41,6 +41,7 @@ from .PlotToolButton import PlotToolButton
 
 from silx.gui.plot.tools.roi import RegionOfInterestManager
 from silx.gui.plot.items.roi import LineROI
+from silx.gui.plot import items
 
 
 _logger = logging.getLogger(__name__)
@@ -54,6 +55,7 @@ class _RulerROI(LineROI):
                 [numpy.ndarray, numpy.ndarray], str
             ]
         ] = None
+        self.setColor("#001122")  # Only there to trig updateStyle
 
     def registerFormatFunction(
         self,
@@ -63,6 +65,17 @@ class _RulerROI(LineROI):
     ):
         """Register a function for the formatting of the label"""
         self._formatFunction = fct
+
+    def _updatedStyle(self, event, style: items.CurveStyle):
+        style = items.CurveStyle(
+            color="red",
+            gapcolor="white",
+            linestyle=(0, (5, 5)),
+            linewidth=style.getLineWidth())
+        LineROI._updatedStyle(self, event, style)
+        self._handleLabel.setColor("black")
+        self._handleLabel.setBackgroundColor("#FFFFFF60")
+        self._handleLabel.setZValue(1000)
 
     def setEndPoints(self, startPoint: numpy.ndarray, endPoint: numpy.ndarray):
         super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
@@ -90,9 +103,7 @@ class RulerToolButton(PlotToolButton):
         self,
         parent=None,
         plot=None,
-        color: str = "yellow",
     ):
-        self.__color = color
         super().__init__(parent=parent, plot=plot)
         self.setCheckable(True)
         self._roiManager = None
@@ -143,7 +154,6 @@ class RulerToolButton(PlotToolButton):
         if plot is None:
             return
         self._roiManager = RegionOfInterestManager(plot)
-        self._roiManager.setColor(self.__color)  # Set the color of ROI
         self._roiManager.sigRoiAdded.connect(self._registerCurrentROI)
 
     def _disconnectPlot(self, plot):
