@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2014-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -507,8 +507,7 @@ class GLLines2D(object):
                     distAttrib, 1, gl.GL_FLOAT, False, 0, self.distVboData
                 )
 
-        if width != 1:
-            gl.glEnable(gl.GL_LINE_SMOOTH)
+        gl.glEnable(gl.GL_LINE_SMOOTH)
 
         matrix = numpy.dot(context.matrix, mat4Translate(*self.offset)).astype(
             numpy.float32
