@@ -91,8 +91,7 @@ class ItemChangedType(enum.Enum):
     COLOR = "colorChanged"
     """Item's color changed flag."""
 
-    LINE_BG_COLOR = "lineBgColorChanged"
-    """Item's line background color changed flag."""
+    LINE_BG_COLOR = "lineBgColorChanged"  # Deprecated, use LINE_GAP_COLOR
 
     LINE_GAP_COLOR = "lineGapColorChanged"
     """Item's dashed line gap color changed flag."""

@@ -1705,7 +1705,7 @@ class PlotWidget(qt.QMainWindow):
         item.setPoints(numpy.array((xdata, ydata)).T)
         item.setLineStyle(linestyle)
         item.setLineWidth(linewidth)
-        item.setLineBgColor(linebgcolor)
+        item.setLineGapColor(linebgcolor)
 
         self.addItem(item)
 
