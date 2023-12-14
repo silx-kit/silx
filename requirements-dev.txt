@@ -7,6 +7,7 @@ wheel             # To build wheels
 Sphinx            # To build the documentation in doc/
 sphinx-autodoc-typehints  # For leveraging Python type hints from Sphinx
 pillow            # For loading images in documentation generation
+pydata_sphinx_theme  # Sphinx theme
 nbsphinx          # For converting ipynb in documentation
 pandoc            # For documentation Qt snapshot updates
 black[jupyter]    # Formatting
