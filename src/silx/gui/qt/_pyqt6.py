@@ -45,21 +45,35 @@ def patch_enums(*modules):
     for module in modules:
         for clsName in dir(module):
             cls = getattr(module, clsName, None)
-            if isinstance(cls, PyQt6.sip.wrappertype) and clsName.startswith("Q"):
-                for qenumName in dir(cls):
-                    if qenumName[0].isupper():
-                        qenum = getattr(cls, qenumName, None)
-                        if isinstance(qenum, enum.EnumMeta):
-                            if qenum is getattr(cls.__mro__[1], qenumName, None):
-                                continue  # Only handle it once
-                            for item in qenum:
-                                # Special cases to avoid overrides and mimic PySide6
-                                if clsName == "QColorSpace" and qenumName in (
-                                    "Primaries",
-                                    "TransferFunction",
-                                ):
-                                    break
-                                if qenumName in ("DeviceType", "PointerType"):
-                                    break
+            if not isinstance(cls, PyQt6.sip.wrappertype) or not clsName.startswith(
+                "Q"
+            ):
+                continue
 
-                                setattr(cls, item.name, item)
+            for qenumName in dir(cls):
+                if not qenumName[0].isupper():
+                    continue
+                # Special cases to avoid overrides and mimic PySide6
+                if clsName == "QColorSpace" and qenumName in (
+                    "Primaries",
+                    "TransferFunction",
+                ):
+                    continue
+                if qenumName in ("DeviceType", "PointerType"):
+                    continue
+
+                qenum = getattr(cls, qenumName)
+                if not isinstance(qenum, enum.EnumMeta):
+                    continue
+
+                if any(
+                    map(
+                        lambda ancestor: isinstance(ancestor, PyQt6.sip.wrappertype)
+                        and qenum is getattr(ancestor, qenumName, None),
+                        cls.__mro__[1:],
+                    )
+                ):
+                    continue  # Only handle it once in case of inheritance
+
+                for name, value in qenum.__members__.items():
+                    setattr(cls, name, value)
