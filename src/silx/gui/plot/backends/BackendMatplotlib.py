@@ -846,15 +846,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return collection
 
     def addShape(
-        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
     ):
-        if linebgcolor is not None and shape not in (
+        if gapcolor is not None and shape not in (
             "rectangle",
             "polygon",
             "polylines",
         ):
             _logger.warning(
-                "linebgcolor not implemented for %s with matplotlib backend", shape
+                "gapcolor not implemented for %s with matplotlib backend", shape
             )
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
@@ -896,7 +896,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 linestyle=linestyle,
                 linewidth=linewidth,
             )
-            item.set_second_edgecolor(linebgcolor)
+            item.set_second_edgecolor(gapcolor)
 
             if fill:
                 item.set_hatch(".")
@@ -917,7 +917,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 linestyle=linestyle,
                 linewidth=linewidth,
             )
-            item.set_second_edgecolor(linebgcolor)
+            item.set_second_edgecolor(gapcolor)
 
             if fill and shape == "polygon":
                 item.set_hatch("/")

@@ -141,7 +141,7 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
             overlay=self.isOverlay(),
             linestyle=self.getLineStyle(),
             linewidth=self.getLineWidth(),
-            linebgcolor=self.getLineBgColor(),
+            gapcolor=self.getLineBgColor(),
         )
 
     def getType(self):
@@ -409,5 +409,5 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
             overlay=self.isOverlay(),
             linestyle=self.getLineStyle(),
             linewidth=self.getLineWidth(),
-            linebgcolor=self.getLineBgColor(),
+            gapcolor=self.getLineBgColor(),
         )

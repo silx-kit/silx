@@ -55,7 +55,7 @@ _logger = logging.getLogger(__name__)
 
 class _ShapeItem(dict):
     def __init__(
-        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
     ):
         super(_ShapeItem, self).__init__()
 
@@ -83,7 +83,7 @@ class _ShapeItem(dict):
                 "y": y,
                 "linestyle": linestyle,
                 "linewidth": linewidth,
-                "linebgcolor": linebgcolor,
+                "gapcolor": gapcolor,
             }
         )
 
@@ -571,7 +571,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             points[:, 1],
                             style=item["linestyle"],
                             color=item["color"],
-                            gapColor=item["linebgcolor"],
+                            gapColor=item["gapcolor"],
                             width=item["linewidth"],
                         )
                         context.matrix = self.matScreenProj
@@ -1067,7 +1067,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return triangles
 
     def addShape(
-        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
     ):
         x = numpy.array(x, copy=False)
         y = numpy.array(y, copy=False)
@@ -1079,7 +1079,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             raise RuntimeError("Cannot add item with Y <= 0 with Y axis log scale")
 
         return _ShapeItem(
-            x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+            x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
         )
 
     def addMarker(
