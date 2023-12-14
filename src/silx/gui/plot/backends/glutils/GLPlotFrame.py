@@ -51,10 +51,10 @@ from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
 from ..._utils.ticklayout import niceNumbersAdaptative, niceNumbersForLog10
 from ..._utils.dtime_ticklayout import (
+    DtUnit,
     bestUnit,
     calcTicksAdaptive,
-    bestFormatString,
-    DtUnit,
+    formatDatetimes,
 )
 from ..._utils.dtime_ticklayout import timestamp
 
@@ -405,17 +405,16 @@ class PlotAxis(object):
                     tickDateTimes, spacing, unit = calcTicksAdaptive(
                         dtMin, dtMax, nbPixels, tickDensity
                     )
+                    visibleDatetimes = tuple(
+                        dt for dt in tickDateTimes if dtMin <= dt <= dtMax
+                    )
+                    ticks = formatDatetimes(visibleDatetimes, spacing, unit)
 
-                    for tickDateTime in tickDateTimes:
-                        if dtMin <= tickDateTime <= dtMax:
-                            dataPos = timestamp(tickDateTime)
-                            xPixel = x0 + (dataPos - dataMin) * xScale
-                            yPixel = y0 + (dataPos - dataMin) * yScale
-
-                            fmtStr = bestFormatString(spacing, unit)
-                            text = tickDateTime.strftime(fmtStr)
-
-                            yield ((xPixel, yPixel), dataPos, text)
+                    for tickDateTime, text in ticks.items():
+                        dataPos = timestamp(tickDateTime)
+                        xPixel = x0 + (dataPos - dataMin) * xScale
+                        yPixel = y0 + (dataPos - dataMin) * yScale
+                        yield ((xPixel, yPixel), dataPos, text)
 
 
 # GLPlotFrame #################################################################
