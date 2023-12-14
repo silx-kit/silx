@@ -427,6 +427,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
 
                 # Sync plot frame with window
                 self._plotFrame.devicePixelRatio = self.getDevicePixelRatio()
+                self._plotFrame.dotsPerInch = self.getDotsPerInch()
                 # self._paintDirectGL()
                 self._paintFBOGL()
 

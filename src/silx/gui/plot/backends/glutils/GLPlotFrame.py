@@ -172,6 +172,12 @@ class PlotAxis(object):
         return plotFrame.devicePixelRatio if plotFrame is not None else 1.0
 
     @property
+    def dotsPerInch(self):
+        """Returns the screen DPI"""
+        plotFrame = self._plotFrameRef()
+        return plotFrame.dotsPerInch if plotFrame is not None else 92
+
+    @property
     def title(self):
         """The text label associated with this axis as a str in latin-1."""
         return self._title
@@ -359,7 +365,7 @@ class PlotAxis(object):
 
                 # Density of 1.3 label per 92 pixels
                 # i.e., 1.3 label per inch on a 92 dpi screen
-                tickDensity = 1.3 / 92
+                tickDensity = 1.3 * self.devicePixelRatio / self.dotsPerInch
 
                 if not self.isTimeSeries:
                     tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
@@ -463,6 +469,7 @@ class GLPlotFrame(object):
         self._title = ""
 
         self._devicePixelRatio = 1.0
+        self._dpi = 92
 
     @property
     def isDirty(self):
@@ -547,6 +554,16 @@ class GLPlotFrame(object):
     def devicePixelRatio(self, ratio):
         if ratio != self._devicePixelRatio:
             self._devicePixelRatio = ratio
+            self._dirty()
+
+    @property
+    def dotsPerInch(self):
+        return self._dpi
+
+    @dotsPerInch.setter
+    def dotsPerInch(self, dpi):
+        if dpi != self._dpi:
+            self._dpi = dpi
             self._dirty()
 
     @property
