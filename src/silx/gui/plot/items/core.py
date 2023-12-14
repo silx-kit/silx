@@ -975,7 +975,7 @@ class LineGapColorMixIn(ItemMixInBase):
         :param color: line background color to be used
         :type color: Union[str, List[int], List[float], QColor, None]
         """
-        self.__lineGapColor = colors.rgba(color)
+        self.__lineGapColor = None if color is None else colors.rgba(color)
         self._updated(ItemChangedType.LINE_GAP_COLOR)
 
 
