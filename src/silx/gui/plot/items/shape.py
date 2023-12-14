@@ -33,7 +33,6 @@ import logging
 
 import numpy
 
-from ... import colors
 from .core import (
     Item,
     DataItem,
@@ -42,8 +41,10 @@ from .core import (
     FillMixIn,
     ItemChangedType,
     LineMixIn,
+    LineGapColorMixIn,
     YAxisMixIn,
 )
+from ....utils.deprecation import deprecated
 
 
 _logger = logging.getLogger(__name__)
@@ -71,41 +72,20 @@ class _OverlayItem(Item):
             self._updated(ItemChangedType.OVERLAY)
 
 
-class _TwoColorsLineMixIn(LineMixIn):
+class _TwoColorsLineMixIn(LineMixIn, LineGapColorMixIn):
     """Mix-in class for items with a background color for dashes"""
 
     def __init__(self):
         LineMixIn.__init__(self)
-        self.__backgroundColor = None
+        LineGapColorMixIn.__init__(self)
 
+    @deprecated(replacement="getLineGapColor", since_version="2.0.0")
     def getLineBgColor(self):
-        """Returns the RGBA background color of dash line
+        return self.getLineGapColor()
 
-        :rtype: 4-tuple of float in [0, 1] or array of colors
-        """
-        return self.__backgroundColor
-
+    @deprecated(replacement="setLineGapColor", since_version="2.0.0")
     def setLineBgColor(self, color, copy: bool = True):
-        """Set dash line background color
-
-        :param color: color(s) to be used
-        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
-            one of the predefined color names defined in colors.py
-        :param copy: True (Default) to get a copy,
-            False to use internal representation (do not modify!)
-        """
-        if color is not None:
-            if isinstance(color, str):
-                color = colors.rgba(color)
-            else:
-                color = numpy.array(color, copy=copy)
-                # TODO more checks + improve color array support
-                if color.ndim == 1:  # Single RGBA color
-                    color = colors.rgba(color)
-                else:  # Array of colors
-                    assert color.ndim == 2
-
-        self.__backgroundColor = color
+        self.setLineGapColor(color)
         self._updated(ItemChangedType.LINE_BG_COLOR)
 
 
@@ -141,7 +121,7 @@ class Shape(_OverlayItem, ColorMixIn, FillMixIn, _TwoColorsLineMixIn):
             overlay=self.isOverlay(),
             linestyle=self.getLineStyle(),
             linewidth=self.getLineWidth(),
-            linebgcolor=self.getLineBgColor(),
+            gapcolor=self.getLineGapColor(),
         )
 
     def getType(self):
@@ -409,5 +389,5 @@ class Line(_OverlayItem, AlphaMixIn, ColorMixIn, _TwoColorsLineMixIn):
             overlay=self.isOverlay(),
             linestyle=self.getLineStyle(),
             linewidth=self.getLineWidth(),
-            linebgcolor=self.getLineBgColor(),
+            gapcolor=self.getLineGapColor(),
         )

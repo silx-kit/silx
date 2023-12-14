@@ -70,6 +70,7 @@ from .items.axis import TickMode  # noqa
 from .. import qt
 from ._utils.panzoom import ViewConstraints
 from ...gui.plot._utils.dtime_ticklayout import timestamp
+from ...utils.deprecation import deprecated_warning
 
 
 """
@@ -1643,7 +1644,8 @@ class PlotWidget(qt.QMainWindow):
         z=None,
         linestyle="-",
         linewidth=1.0,
-        linebgcolor=None,
+        linebgcolor="deprecated",
+        gapcolor=None,
     ):
         """Add an item (i.e. a shape) to the plot.
 
@@ -1680,7 +1682,7 @@ class PlotWidget(qt.QMainWindow):
             - ':'  dotted line
         :param float linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
-        :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
+        :param str gapcolor: Gap color of the line, e.g., 'blue', 'b',
             '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The shape item
         """
@@ -1705,7 +1707,15 @@ class PlotWidget(qt.QMainWindow):
         item.setPoints(numpy.array((xdata, ydata)).T)
         item.setLineStyle(linestyle)
         item.setLineWidth(linewidth)
-        item.setLineBgColor(linebgcolor)
+        if linebgcolor != "deprecated":
+            deprecated_warning(
+                type_="Argument",
+                name="linebgcolor",
+                replacement="gapcolor",
+                since_version="2.0.0",
+            )
+            gapcolor = linebgcolor if gapcolor is None else gapcolor
+        item.setLineGapColor(gapcolor)
 
         self.addItem(item)
 

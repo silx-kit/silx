@@ -178,7 +178,7 @@ class BackendBase(object):
         return object()
 
     def addShape(
-        self, x, y, shape, color, fill, overlay, linestyle, linewidth, linebgcolor
+        self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
     ):
         """Add an item (i.e. a shape) to the plot.
 
@@ -200,7 +200,7 @@ class BackendBase(object):
             - ':'  dotted line
         :param float linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
-        :param str linebgcolor: Background color of the line, e.g., 'blue', 'b',
+        :param str gapcolor: Background color of the line, e.g., 'blue', 'b',
             '#FF0000'. It is used to draw dotted line using a second color.
         :returns: The handle used by the backend to univocally access the item
         """
