@@ -134,7 +134,7 @@ class _PlotInteraction(object):
             shape=shape,
             fill=fill,
             color=color,
-            linebgcolor=color2,
+            gapcolor=color2,
             linestyle="--",
             overlay=True,
         )
