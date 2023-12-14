@@ -293,7 +293,7 @@ NICE_DATE_VALUES = {
     DtUnit.HOURS: [1, 2, 3, 4, 6, 12],
     DtUnit.MINUTES: [1, 2, 3, 5, 10, 15, 30],
     DtUnit.SECONDS: [1, 2, 3, 5, 10, 15, 30],
-    DtUnit.MICRO_SECONDS: [1.0, 2.0, 5.0, 10.0],  # floats for microsec
+    DtUnit.MICRO_SECONDS: [1.0, 2.0, 3.0, 4.0, 5.0, 10.0],  # floats for microsec
 }
 
 
