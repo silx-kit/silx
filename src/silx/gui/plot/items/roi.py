@@ -242,6 +242,7 @@ class LineROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        self.__shape.setLineGapColor(style.getLineGapColor())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -531,6 +532,7 @@ class RectangleROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        self.__shape.setLineGapColor(style.getLineGapColor())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -754,6 +756,7 @@ class CircleROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        self.__shape.setLineGapColor(style.getLineGapColor())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -898,6 +901,7 @@ class EllipseROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        self.__shape.setLineGapColor(style.getLineGapColor())
 
     def setFirstShapePoints(self, points):
         assert len(points) == 2
@@ -1175,6 +1179,7 @@ class PolygonROI(HandleBasedROI, items.LineMixIn):
         self.__shape.setColor(style.getColor())
         self.__shape.setLineStyle(style.getLineStyle())
         self.__shape.setLineWidth(style.getLineWidth())
+        self.__shape.setLineGapColor(style.getLineGapColor())
         if self._handleClose is not None:
             color = self._computeHandleColor(style.getColor())
             self._handleClose.setColor(color)
