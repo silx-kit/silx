@@ -29,7 +29,7 @@
 
 __authors__ = ["D. Naudet", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "03/11/2023"
+__date__ = "14/12/2023"
 
 
 import numpy as numpy
@@ -514,7 +514,8 @@ class RangeSlider(qt.QWidget):
             position = event.pos()
         else:
             # qt-6 returns QPointF
-            position = event.position()
+            # convert it to QPoint
+            position = event.position().toPoint()
         return position
 
     def mousePressEvent(self, event):
