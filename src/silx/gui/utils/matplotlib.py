@@ -54,7 +54,17 @@ else:
 
 from matplotlib.font_manager import FontProperties
 from matplotlib.mathtext import MathTextParser
+from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
 from matplotlib import figure
+
+
+class DefaultTickFormatter(_ScalarFormatter):
+    """Tick label formatter"""
+
+    def __init__(self):
+        super().__init__(useOffset=True, useMathText=True)
+        self.set_scientific(True)
+        self.create_dummy_axis()
 
 
 _FONT_STYLES = {

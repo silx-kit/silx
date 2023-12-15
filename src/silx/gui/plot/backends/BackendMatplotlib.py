@@ -42,7 +42,11 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ...utils.matplotlib import FigureCanvasQTAgg, qFontToFontProperties
+from ...utils.matplotlib import (
+    DefaultTickFormatter,
+    FigureCanvasQTAgg,
+    qFontToFontProperties,
+)
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -52,7 +56,7 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 from matplotlib.collections import PathCollection, LineCollection
-from matplotlib.ticker import Formatter, ScalarFormatter, Locator
+from matplotlib.ticker import Formatter, Locator
 from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
 from matplotlib import path as mpath
@@ -543,7 +547,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         # Configure axes tick label formatter
         for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
-            self.__setAxisFormatter(axis)
+            axis.set_major_formatter(DefaultTickFormatter())
 
         self.ax2.set_autoscaley_on(True)
 
@@ -562,13 +566,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._enableAxis("right", False)
         self._isXAxisTimeSeries = False
-
-    @staticmethod
-    def __setAxisFormatter(axis):
-        """Configure matplotlib Axis formatter"""
-        formatter = ScalarFormatter(useOffset=True, useMathText=True)
-        formatter.set_scientific(True)
-        axis.set_major_formatter(formatter)
 
     def getItemsFromBackToFront(self, condition=None):
         """Order as BackendBase + take into account matplotlib Axes structure"""
@@ -1262,7 +1259,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
             )
         else:
-            self.__setAxisFormatter(self.ax.xaxis)
+            self.ax.xaxis.set_major_formatter(DefaultTickFormatter())
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
