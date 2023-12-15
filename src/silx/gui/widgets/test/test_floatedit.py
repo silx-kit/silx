@@ -32,21 +32,20 @@ from silx.gui.widgets.FloatEdit import FloatEdit
 
 @pytest.fixture
 def floatEdit(qWidgetFactory):
-    proxy = qWidgetFactory(FloatEdit)
-    yield proxy
+    widget = qWidgetFactory(FloatEdit)
+    yield widget
 
 
 @pytest.fixture
-def floatEditHolder(qapp, qapp_utils, qWidgetFactory, floatEdit):
-    proxy = qWidgetFactory(qt.QWidget)
-    holder = proxy.__repr__.__self__
-    layout = qt.QHBoxLayout(holder)
+def floatEditHolder(qWidgetFactory, floatEdit):
+    widget = qWidgetFactory(qt.QWidget)
+    layout = qt.QHBoxLayout(widget)
     layout.addStretch()
-    layout.addWidget(floatEdit.__repr__.__self__)
-    yield proxy
+    layout.addWidget(floatEdit)
+    yield widget
 
 
-def test_show(qapp_utils, floatEdit):
+def test_show(floatEdit):
     pass
 
 
@@ -55,7 +54,7 @@ def test_value(floatEdit):
     assert floatEdit.value() == 1.5
 
 
-def test_no_widgetresize(qapp_utils, floatEditHolder, floatEdit):
+def test_no_widgetresize(floatEditHolder, floatEdit):
     floatEditHolder.resize(50, 50)
     floatEdit.setValue(123)
     a = floatEdit.width()
