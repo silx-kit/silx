@@ -52,6 +52,8 @@ _logger = logging.getLogger(__name__)
 
 # Content #####################################################################
 
+LINE_WIDTH_OFFSET = 0.33
+
 
 class _ShapeItem(dict):
     def __init__(
@@ -82,7 +84,7 @@ class _ShapeItem(dict):
                 "x": x,
                 "y": y,
                 "linestyle": linestyle,
-                "linewidth": linewidth,
+                "linewidth": linewidth + LINE_WIDTH_OFFSET,
                 "gapcolor": gapcolor,
             }
         )
@@ -111,7 +113,7 @@ class _MarkerItem(dict):
                 "constraint": constraint if isConstraint else None,
                 "symbol": symbol,
                 "linestyle": linestyle,
-                "linewidth": linewidth,
+                "linewidth": linewidth + LINE_WIDTH_OFFSET,
                 "yaxis": yaxis,
                 "font": font,
             }
@@ -573,7 +575,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             style=item["linestyle"],
                             color=item["color"],
                             gapColor=item["gapcolor"],
-                            width=item["linewidth"],
+                            width=item["linewidth"] + LINE_WIDTH_OFFSET,
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -626,7 +628,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             (pixelPos[1], pixelPos[1]),
                             style=item["linestyle"],
                             color=item["color"],
-                            width=item["linewidth"],
+                            width=item["linewidth"] + LINE_WIDTH_OFFSET,
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -659,7 +661,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             (0, height),
                             style=item["linestyle"],
                             color=item["color"],
-                            width=item["linewidth"],
+                            width=item["linewidth"] + LINE_WIDTH_OFFSET,
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -767,7 +769,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             gl.glVertexAttribPointer(
                 posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, vertices
             )
-            gl.glLineWidth(lineWidth)
+            gl.glLineWidth(lineWidth + LINE_WIDTH_OFFSET)
             gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
