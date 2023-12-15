@@ -46,6 +46,7 @@ import numpy
 
 from .... import qt
 from ...._glutils import gl, Program
+from ....utils.matplotlib import DefaultTickFormatter
 from ..._utils import checkAxisLimits, FLOAT32_MINPOS
 from .GLSupport import mat4Ortho
 from .GLText import Text2D, CENTER, BOTTOM, TOP, LEFT, RIGHT, ROTATE_270
@@ -78,10 +79,14 @@ class PlotAxis(object):
         labelVAlign=CENTER,
         titleAlign=CENTER,
         titleVAlign=CENTER,
+        orderOffsetAlign=CENTER,
+        orderOffsetVAlign=CENTER,
         titleRotate=0,
         titleOffset=(0.0, 0.0),
     ):
+        self._tickFormatter = DefaultTickFormatter()
         self._ticks = None
+        self._orderAndOffsetText = ""
 
         self._plotFrameRef = weakref.ref(plotFrame)
 
@@ -96,6 +101,9 @@ class PlotAxis(object):
         self._foregroundColor = foregroundColor
         self._labelAlign = labelAlign
         self._labelVAlign = labelVAlign
+        self._orderOffetAnchor = (1.0, 0.0)
+        self._orderOffsetAlign = orderOffsetAlign
+        self._orderOffsetVAlign = orderOffsetVAlign
         self._titleAlign = titleAlign
         self._titleVAlign = titleVAlign
         self._titleRotate = titleRotate
@@ -192,6 +200,17 @@ class PlotAxis(object):
         if title != self._title:
             self._title = title
             self._dirtyPlotFrame()
+
+    @property
+    def orderOffetAnchor(self) -> tuple[float, float]:
+        """Anchor position for the tick order&offset text"""
+        return self._orderOffetAnchor
+
+    @orderOffetAnchor.setter
+    def orderOffetAnchor(self, position: tuple[float, float]):
+        if position != self._orderOffetAnchor:
+            self._orderOffetAnchor = position
+            self._dirtyTicks()
 
     @property
     def titleOffset(self):
@@ -296,6 +315,20 @@ class PlotAxis(object):
         )
         labels.append(axisTitle)
 
+        if self._orderAndOffsetText:
+            xOrderOffset, yOrderOffet = self.orderOffetAnchor
+            labels.append(
+                Text2D(
+                    text=self._orderAndOffsetText,
+                    font=font,
+                    color=self._foregroundColor,
+                    x=xOrderOffset,
+                    y=yOrderOffet,
+                    align=self._orderOffsetAlign,
+                    valign=self._orderOffsetVAlign,
+                    devicePixelRatio=self.devicePixelRatio,
+                )
+            )
         return vertices, labels
 
     def _dirtyPlotFrame(self):
@@ -320,6 +353,8 @@ class PlotAxis(object):
         """Generator of ticks as tuples:
         ((x, y) in display, dataPos, textLabel).
         """
+        self._orderAndOffsetText = ""
+
         dataMin, dataMax = self.dataRange
         if self.isLog and dataMin <= 0.0:
             _logger.warning("Getting ticks while isLog=True and dataRange[0]<=0.")
@@ -373,20 +408,25 @@ class PlotAxis(object):
                 tickDensity = 1.3 * self.devicePixelRatio / self.dotsPerInch
 
                 if not self.isTimeSeries:
-                    tickMin, tickMax, step, nbFrac = niceNumbersAdaptative(
+                    tickMin, tickMax, step, _ = niceNumbersAdaptative(
                         dataMin, dataMax, nbPixels, tickDensity
                     )
 
-                    for dataPos in self._frange(tickMin, tickMax, step):
-                        if dataMin <= dataPos <= dataMax:
-                            xPixel = x0 + (dataPos - dataMin) * xScale
-                            yPixel = y0 + (dataPos - dataMin) * yScale
+                    visibleTickPositions = [
+                        pos
+                        for pos in self._frange(tickMin, tickMax, step)
+                        if dataMin <= pos <= dataMax
+                    ]
+                    self._tickFormatter.axis.set_view_interval(dataMin, dataMax)
+                    self._tickFormatter.axis.set_data_interval(dataMin, dataMax)
+                    texts = self._tickFormatter.format_ticks(visibleTickPositions)
+                    self._orderAndOffsetText = self._tickFormatter.get_offset()
 
-                            if nbFrac == 0:
-                                text = "%g" % dataPos
-                            else:
-                                text = ("%." + str(nbFrac) + "f") % dataPos
-                            yield ((xPixel, yPixel), dataPos, text)
+                    for dataPos, text in zip(visibleTickPositions, texts):
+                        xPixel = x0 + (dataPos - dataMin) * xScale
+                        yPixel = y0 + (dataPos - dataMin) * yScale
+                        yield ((xPixel, yPixel), dataPos, text)
+
                 else:
                     # Time series
                     try:
@@ -795,6 +835,8 @@ class GLPlotFrame2D(GLPlotFrame):
                 foregroundColor=self._foregroundColor,
                 labelAlign=CENTER,
                 labelVAlign=TOP,
+                orderOffsetAlign=RIGHT,
+                orderOffsetVAlign=TOP,
                 titleAlign=CENTER,
                 titleVAlign=TOP,
                 titleRotate=0,
@@ -810,6 +852,8 @@ class GLPlotFrame2D(GLPlotFrame):
                 foregroundColor=self._foregroundColor,
                 labelAlign=RIGHT,
                 labelVAlign=CENTER,
+                orderOffsetAlign=LEFT,
+                orderOffsetVAlign=BOTTOM,
                 titleAlign=CENTER,
                 titleVAlign=BOTTOM,
                 titleRotate=ROTATE_270,
@@ -822,6 +866,8 @@ class GLPlotFrame2D(GLPlotFrame):
             foregroundColor=self._foregroundColor,
             labelAlign=LEFT,
             labelVAlign=CENTER,
+            orderOffsetAlign=RIGHT,
+            orderOffsetVAlign=BOTTOM,
             titleAlign=CENTER,
             titleVAlign=TOP,
             titleRotate=ROTATE_270,
@@ -1280,6 +1326,25 @@ class GLPlotFrame2D(GLPlotFrame):
         )
 
         self._x2AxisCoords = ((xCoords[0], yCoords[1]), (xCoords[1], yCoords[1]))
+
+        # Set order&offset anchor **before** handling Y axis inversion
+        font = qt.QApplication.instance().font()
+        fontPixelSize = font.pixelSize()
+        if fontPixelSize == -1:
+            fontPixelSize = font.pointSizeF() / 72.0 * self.dotsPerInch
+
+        self.axes[0].orderOffetAnchor = (
+            xCoords[1],
+            yCoords[0] + fontPixelSize * 1.2,
+        )
+        self.axes[1].orderOffetAnchor = (
+            xCoords[0],
+            yCoords[1] - 4 * self.devicePixelRatio,
+        )
+        self._y2Axis.orderOffetAnchor = (
+            xCoords[1],
+            yCoords[1] - 4 * self.devicePixelRatio,
+        )
 
         if self.isYAxisInverted:
             # Y axes are inverted, axes coordinates are inverted
