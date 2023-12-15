@@ -39,9 +39,8 @@ class FloatEdit(qt.QLineEdit):
     The value can be modified with :meth:`value` and :meth:`setValue`.
 
     The property :meth:`widgetResizable` allow to change the default
-    behaviour in order to automatically resize the widhet to avoid
-    to scroll to see the whole value. You still can enforce your own
-    minimum width with :meth:`setMinimumWidth`.
+    behaviour in order to automatically resize the widget to the displayed value.
+    Use :meth:`setMinimumWidth` to enforce the minimum width.
 
     :param parent: Parent of the widget
     :param value: The value to set the QLineEdit to.
@@ -93,14 +92,15 @@ class FloatEdit(qt.QLineEdit):
 
     def widgetResizable(self) -> bool:
         """
-        Returns wether the widget auto resize itself based on it's content
+        Returns whether or not the widget auto resizes itself based on it's content
         """
         return self.__widgetResizable
 
     def setWidgetResizable(self, resizable: bool):
         """
-        If true, the widget will automatically resize itself in order to avoid
-        to scroll to see it's content where they can be avoided, or to take
+        If true, the widget will automatically resize itself to its displayed content.
+
+        This avoids to have to scroll to see the widget's content, and allow to take
         advantage of extra space.
         """
         if self.__widgetResizable == resizable:

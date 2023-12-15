@@ -26,36 +26,28 @@
 __license__ = "MIT"
 
 import pytest
-import weakref
 from silx.gui import qt
 from silx.gui.widgets.FloatEdit import FloatEdit
 
 
 @pytest.fixture
-def floatEdit(qapp, qapp_utils):
-    widget = FloatEdit()
-    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    yield widget
-    widget.close()
-    ref = weakref.ref(widget)
-    widget = None
-    qapp_utils.qWaitForDestroy(ref)
+def floatEdit(qWidgetFactory):
+    proxy = qWidgetFactory(FloatEdit)
+    yield proxy
 
 
 @pytest.fixture
-def holder(qapp, qapp_utils):
-    widget = qt.QWidget()
-    qt.QHBoxLayout(widget)
-    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    yield widget
-    widget.close()
-    ref = weakref.ref(widget)
-    widget = None
-    qapp_utils.qWaitForDestroy(ref)
+def floatEditHolder(qapp, qapp_utils, qWidgetFactory, floatEdit):
+    proxy = qWidgetFactory(qt.QWidget)
+    holder = proxy.__repr__.__self__
+    layout = qt.QHBoxLayout(holder)
+    layout.addStretch()
+    layout.addWidget(floatEdit.__repr__.__self__)
+    yield proxy
 
 
 def test_show(qapp_utils, floatEdit):
-    qapp_utils.qWaitForWindowExposed(floatEdit)
+    pass
 
 
 def test_value(floatEdit):
@@ -63,11 +55,8 @@ def test_value(floatEdit):
     assert floatEdit.value() == 1.5
 
 
-def test_no_widgetresize(qapp_utils, holder, floatEdit):
-    holder.layout().addWidget(floatEdit)
-    holder.resize(100, 100)
-    holder.show()
-    qapp_utils.qWaitForWindowExposed(holder)
+def test_no_widgetresize(qapp_utils, floatEditHolder, floatEdit):
+    floatEditHolder.resize(50, 50)
     floatEdit.setValue(123)
     a = floatEdit.width()
     floatEdit.setValue(123456789123456789.123456789123456789)
@@ -75,14 +64,20 @@ def test_no_widgetresize(qapp_utils, holder, floatEdit):
     assert b == a
 
 
-def test_widgetresize(qapp_utils, holder, floatEdit):
-    holder.layout().addWidget(floatEdit)
-    holder.resize(100, 100)
-    holder.show()
-    qapp_utils.qWaitForWindowExposed(holder)
+def test_widgetresize(qapp_utils, floatEditHolder, floatEdit):
+    floatEditHolder.resize(50, 50)
     floatEdit.setWidgetResizable(True)
+    # Initial
     floatEdit.setValue(123)
+    qapp_utils.qWait()
     a = floatEdit.width()
+    # Grow
     floatEdit.setValue(123456789123456789.123456789123456789)
+    qapp_utils.qWait()
     b = floatEdit.width()
+    # Shrink
+    floatEdit.setValue(123)
+    qapp_utils.qWait()
+    c = floatEdit.width()
     assert b > a
+    assert a <= c < b
