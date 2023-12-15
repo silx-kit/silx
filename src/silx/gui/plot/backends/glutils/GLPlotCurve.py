@@ -25,6 +25,8 @@
 This module provides classes to render 2D lines and scatter plots
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
@@ -383,7 +385,7 @@ class GLLines2D(object):
         yVboData=None,
         colorVboData=None,
         distVboData=None,
-        style=SOLID,
+        style: str | tuple[int, tuple[int, int]] | None=SOLID,
         color=(0.0, 0.0, 0.0, 1.0),
         gapColor=None,
         width=1,
@@ -419,7 +421,7 @@ class GLLines2D(object):
         self.color = color
         self.gapColor = gapColor
         self.width = width
-        self._style = None
+        self._style: str | tuple[int, tuple[int, int]] | None = None
         self.style = style
         self.dashPeriod = dashPeriod
         self.offset = offset
@@ -427,14 +429,16 @@ class GLLines2D(object):
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
 
     @property
-    def style(self):
-        """Line style (Union[str,None])"""
+    def style(self) -> str | tuple[int, tuple[int, int]] | None:
+        """Line style"""
         return self._style
 
     @style.setter
     def style(self, style):
         if style in _MPL_NONES:
             self._style = None
+        elif isinstance(style, tuple):
+            self._style = style
         else:
             assert style in self.STYLES
             self._style = style
@@ -458,6 +462,20 @@ class GLLines2D(object):
         elif style == SOLID:
             program = self._SOLID_PROGRAM
             program.use()
+
+        elif isinstance(style, tuple):
+            program = self._DASH_PROGRAM
+            program.use()
+
+            offset, (dash1, dash2) = style
+            # FIXME: The offset is not handled
+            # FIXME: The period looks fixed
+            dash = (
+                (dash1) * width,
+                (dash1 + dash2) * width,
+                (dash1 + dash2 + dash1) * width,
+                (dash1 + dash2 + dash1 + dash2) * width,
+            )
 
         else:  # DASHED, DASHDOT, DOTTED
             program = self._DASH_PROGRAM

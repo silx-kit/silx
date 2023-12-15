@@ -24,6 +24,8 @@
 """This module provides the base class for items of the :class:`Plot`.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
@@ -843,12 +845,12 @@ class LineMixIn(ItemMixInBase):
     """Supported line styles"""
 
     def __init__(self):
-        self._linewidth = self._DEFAULT_LINEWIDTH
-        self._linestyle = self._DEFAULT_LINESTYLE
+        self._linewidth: float = self._DEFAULT_LINEWIDTH
+        self._linestyle: str | tuple[int, tuple[int, int]] = self._DEFAULT_LINESTYLE
 
     @classmethod
     def getSupportedLineStyles(cls):
-        """Returns list of supported line styles.
+        """Returns list of supported constant line styles.
 
         :rtype: List[str,None]
         """
@@ -893,7 +895,7 @@ class LineMixIn(ItemMixInBase):
             self._linewidth = width
             self._updated(ItemChangedType.LINE_WIDTH)
 
-    def getLineStyle(self):
+    def getLineStyle(self) -> str | tuple[int, tuple[int, int]]:
         """Return the type of the line
 
         Type of line::
@@ -903,20 +905,20 @@ class LineMixIn(ItemMixInBase):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
+            - `tuple[int, tuple[int, int]]`
 
         :rtype: str
         """
         return self._linestyle
 
-    def setLineStyle(self, style):
+    def setLineStyle(self, style: str | tuple[int, tuple[int, int]] | None):
         """Set the style of the curve line.
 
         See :meth:`getLineStyle`.
 
         :param str style: Line style
         """
-        style = str(style)
-        assert style in self.getSupportedLineStyles()
+        self.validateLineStyle(style)
         if style is None:
             style = self._DEFAULT_LINESTYLE
         if style != self._linestyle:

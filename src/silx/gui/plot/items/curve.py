@@ -24,6 +24,8 @@
 """This module provides the :class:`Curve` item of the :class:`Plot`.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "24/04/2018"
@@ -69,7 +71,7 @@ class CurveStyle(_Style):
     def __init__(
         self,
         color=None,
-        linestyle=None,
+        linestyle: str | tuple[int, tuple[int, int]] | None = None,
         linewidth=None,
         symbol=None,
         symbolsize=None,
@@ -86,8 +88,7 @@ class CurveStyle(_Style):
                     color = colors.rgba(color)
             self._color = color
 
-        if linestyle is not None:
-            assert linestyle in LineMixIn.getSupportedLineStyles()
+        LineMixIn.validateLineStyle(linestyle)
         self._linestyle = linestyle
 
         self._linewidth = None if linewidth is None else float(linewidth)
@@ -120,7 +121,7 @@ class CurveStyle(_Style):
         """
         return self._gapcolor
 
-    def getLineStyle(self):
+    def getLineStyle(self) -> str | tuple[int, tuple[int, int]] | None:
         """Return the type of the line or None if not set.
 
         Type of line::
@@ -130,6 +131,7 @@ class CurveStyle(_Style):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
+            - `tuple[int, tuple[int, int]]`
 
         :rtype: Union[str,None]
         """
