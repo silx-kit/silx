@@ -541,21 +541,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Set axis zorder=0.5 so grid is displayed at 0.5
         self.ax.set_axisbelow(True)
 
-        # disable the use of offsets
-        try:
-            axes = [
-                self.ax.get_yaxis().get_major_formatter(),
-                self.ax.get_xaxis().get_major_formatter(),
-                self.ax2.get_yaxis().get_major_formatter(),
-                self.ax2.get_xaxis().get_major_formatter(),
-            ]
-            for axis in axes:
-                axis.set_useOffset(False)
-                axis.set_scientific(False)
-        except:
-            _logger.warning(
-                "Cannot disabled axes offsets in %s " % matplotlib.__version__
-            )
+        # Configure axes tick label formatter
+        for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
+            self.__setAxisFormatter(axis)
 
         self.ax2.set_autoscaley_on(True)
 
@@ -574,6 +562,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._enableAxis("right", False)
         self._isXAxisTimeSeries = False
+
+    @staticmethod
+    def __setAxisFormatter(axis):
+        """Configure matplotlib Axis formatter"""
+        formatter = ScalarFormatter(useOffset=True, useMathText=True)
+        formatter.set_scientific(True)
+        axis.set_major_formatter(formatter)
 
     def getItemsFromBackToFront(self, condition=None):
         """Order as BackendBase + take into account matplotlib Axes structure"""
@@ -1267,14 +1262,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
             )
         else:
-            try:
-                scalarFormatter = ScalarFormatter(useOffset=False)
-            except:
-                _logger.warning(
-                    "Cannot disabled axes offsets in %s " % matplotlib.__version__
-                )
-                scalarFormatter = ScalarFormatter()
-            self.ax.xaxis.set_major_formatter(scalarFormatter)
+            self.__setAxisFormatter(self.ax.xaxis)
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
