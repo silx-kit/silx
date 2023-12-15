@@ -1,4 +1,3 @@
-import weakref
 import pytest
 
 from silx.gui import qt
@@ -27,7 +26,7 @@ def qWidgetFactory(qapp, qapp_utils):
         qapp_utils.qWaitForWindowExposed(widget)
         widgets.append(widget)
 
-        return weakref.proxy(widget)
+        return widget
 
     yield createWidget
 
