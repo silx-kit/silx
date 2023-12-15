@@ -854,6 +854,26 @@ class LineMixIn(ItemMixInBase):
         """
         return cls._SUPPORTED_LINESTYLE
 
+    @classmethod
+    def validateLineStyle(self, style):
+        """Raises an exception if the style is not supported"""
+        if style is None:
+            return
+        elif isinstance(style, str):
+            if style in self.getSupportedLineStyles():
+                return
+        elif isinstance(style, tuple):
+            if (
+                len(style) == 2
+                and isinstance(style[0], int)
+                and isinstance(style[1], tuple)
+                and len(style[1]) == 2
+                and isinstance(style[1][0], int)
+                and isinstance(style[1][1], int)
+            ):
+                return
+        raise TypeError(f"Unsupported style '{style}' ({type(style)})")
+
     def getLineWidth(self):
         """Return the curve line width in pixels
 
