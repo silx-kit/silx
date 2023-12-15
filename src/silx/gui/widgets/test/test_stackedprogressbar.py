@@ -26,24 +26,17 @@
 __license__ = "MIT"
 
 import pytest
-import weakref
 from silx.gui import qt
 from silx.gui.widgets.StackedProgressBar import StackedProgressBar
 
 
 @pytest.fixture
-def stackedProgressBar(qapp, qapp_utils):
-    widget = StackedProgressBar()
-    widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    yield widget
-    widget.close()
-    ref = weakref.ref(widget)
-    widget = None
-    qapp_utils.qWaitForDestroy(ref)
+def stackedProgressBar(qWidgetFactory):
+    yield qWidgetFactory(StackedProgressBar)
 
 
 def test_show(qapp_utils, stackedProgressBar: StackedProgressBar):
-    qapp_utils.qWaitForWindowExposed(stackedProgressBar)
+    pass
 
 
 def test_value(qapp_utils, stackedProgressBar: StackedProgressBar):
@@ -51,7 +44,6 @@ def test_value(qapp_utils, stackedProgressBar: StackedProgressBar):
     stackedProgressBar.setProgressItem("foo", value=0)
     stackedProgressBar.setProgressItem("foo", value=50)
     stackedProgressBar.setProgressItem("foo", value=100)
-    qapp_utils.qWaitForWindowExposed(stackedProgressBar)
 
 
 def test_animation(qapp_utils, stackedProgressBar: StackedProgressBar):
@@ -59,7 +51,6 @@ def test_animation(qapp_utils, stackedProgressBar: StackedProgressBar):
     stackedProgressBar.setProgressItem("foo", value=0, striped=True, animated=True)
     stackedProgressBar.setProgressItem("foo", value=50)
     stackedProgressBar.setProgressItem("foo", value=100)
-    qapp_utils.qWaitForWindowExposed(stackedProgressBar)
 
 
 def test_stack(qapp_utils, stackedProgressBar: StackedProgressBar):
@@ -67,4 +58,3 @@ def test_stack(qapp_utils, stackedProgressBar: StackedProgressBar):
     stackedProgressBar.setProgressItem("foo1", value=10, color=qt.QColor("#FF0000"))
     stackedProgressBar.setProgressItem("foo2", value=50, color=qt.QColor("#00FF00"))
     stackedProgressBar.setProgressItem("foo3", value=20, color=qt.QColor("#0000FF"))
-    qapp_utils.qWaitForWindowExposed(stackedProgressBar)

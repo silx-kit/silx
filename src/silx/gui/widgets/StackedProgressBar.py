@@ -93,8 +93,9 @@ class StackedProgressBar(qt.QProgressBar):
         """
         Set whether consecutive spacing should be collapsed.
 
-        It can be usedul to disable that to ensure pixel perfect
+        It can be useful to disable that to ensure pixel perfect
         rendering is some use cases.
+
 
         By default, this property is true.
         """
