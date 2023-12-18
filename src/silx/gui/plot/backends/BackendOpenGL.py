@@ -214,6 +214,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
     So, the caller should not modify these arrays afterwards.
     """
 
+    _TEXT_MARKER_PADDING = 4
+
     def __init__(self, plot, parent=None, f=qt.Qt.Widget):
         glu.OpenGLWidget.__init__(
             self,
@@ -629,6 +631,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                 align=glutils.RIGHT,
                                 valign=glutils.BOTTOM,
                                 devicePixelRatio=self.getDevicePixelRatio(),
+                                padding=self._TEXT_MARKER_PADDING,
                             )
                             labels.append(label)
 
@@ -662,6 +665,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                                 align=glutils.LEFT,
                                 valign=glutils.TOP,
                                 devicePixelRatio=self.getDevicePixelRatio(),
+                                padding=self._TEXT_MARKER_PADDING,
                             )
                             labels.append(label)
 
@@ -704,6 +708,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             align=glutils.LEFT,
                             valign=valign,
                             devicePixelRatio=self.getDevicePixelRatio(),
+                            padding=self._TEXT_MARKER_PADDING,
                         )
                         labels.append(label)
 

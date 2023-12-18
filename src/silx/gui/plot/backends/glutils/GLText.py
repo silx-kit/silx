@@ -146,11 +146,13 @@ class Text2D:
         valign: str = BASELINE,
         rotate: float = 0.0,
         devicePixelRatio: float = 1.0,
+        padding: int = 0,
     ):
         self.devicePixelRatio = devicePixelRatio
         self.font = font
         self._vertices = None
         self._text = text
+        self._padding: int = padding
         self.x = x
         self.y = y
         self.color = color
@@ -219,6 +221,57 @@ class Text2D:
 
         if self._align == LEFT:
             xOrig = 0
+            xOrig += self._padding
+        elif self._align == RIGHT:
+            xOrig = -width
+            xOrig -= self._padding
+        else:  # CENTER
+            xOrig = -width // 2
+
+        if self._valign == BASELINE:
+            yOrig = -offset
+            yOrig += self._padding
+        elif self._valign == TOP:
+            yOrig = 0
+            yOrig += self._padding
+        elif self._valign == BOTTOM:
+            yOrig = -height
+            yOrig -= self._padding
+        else:  # CENTER
+            yOrig = -height // 2
+
+        vertices = numpy.array(
+            (
+                (xOrig, yOrig),
+                (xOrig + width, yOrig),
+                (xOrig, yOrig + height),
+                (xOrig + width, yOrig + height),
+            ),
+            dtype=numpy.float32,
+        )
+
+        cos, sin = numpy.cos(self._rotate), numpy.sin(self._rotate)
+        vertices = numpy.ascontiguousarray(
+            numpy.transpose(
+                numpy.array(
+                    (
+                        cos * vertices[:, 0] - sin * vertices[:, 1],
+                        sin * vertices[:, 0] + cos * vertices[:, 1],
+                    ),
+                    dtype=numpy.float32,
+                )
+            )
+        )
+
+        return vertices
+
+    def getBgVertices(self, offset: int, shape: tuple[int, int]) -> numpy.ndarray:
+        height, width = shape
+        height = height + self._padding + self._padding
+        width = width + self._padding + self._padding
+
+        if self._align == LEFT:
+            xOrig = 0
         elif self._align == RIGHT:
             xOrig = -width
         else:  # CENTER
@@ -268,21 +321,32 @@ class Text2D:
         texUnit = 0
         texture, offset = self._getTexture()
 
-        gl.glUniform1i(prog.uniforms["texText"], texUnit)
-
         mat = numpy.dot(matrix, mat4Translate(int(self.x), int(self.y)))
+
+        vertices = self.getVertices(offset, texture.shape)
+        bgVertices = self.getBgVertices(offset, texture.shape)
+
         gl.glUniformMatrix4fv(
             prog.uniforms["matrix"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
         )
-
-        gl.glUniform4f(prog.uniforms["color"], *self.color)
         if self.bgColor is not None:
             bgColor = self.bgColor
         else:
             bgColor = self.color[0], self.color[1], self.color[2], 0.0
         gl.glUniform4f(prog.uniforms["bgColor"], *bgColor)
+        posAttrib = prog.attributes["position"]
+        gl.glEnableVertexAttribArray(posAttrib)
+        gl.glVertexAttribPointer(posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, bgVertices)
+        gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
 
-        vertices = self.getVertices(offset, texture.shape)
+        gl.glUniform1i(prog.uniforms["texText"], texUnit)
+
+        gl.glUniformMatrix4fv(
+            prog.uniforms["matrix"], 1, gl.GL_TRUE, mat.astype(numpy.float32)
+        )
+
+        gl.glUniform4f(prog.uniforms["color"], *self.color)
+        gl.glUniform4f(prog.uniforms["bgColor"], 0, 0, 0, 0)
 
         posAttrib = prog.attributes["position"]
         gl.glEnableVertexAttribArray(posAttrib)
