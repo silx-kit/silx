@@ -291,7 +291,7 @@ class GLLines2D(object):
     :param str style: Line style in: '-', '--', '-.', ':'
     :param List[float] color: RGBA color as 4 float in [0, 1]
     :param float width: Line width
-    :param float dashPeriod: Period of dashes
+    :param List[float] dashPattern: "Unscaled" dash pattern in points
     :param drawMode: OpenGL drawing mode
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
@@ -387,7 +387,7 @@ class GLLines2D(object):
         color=(0.0, 0.0, 0.0, 1.0),
         gapColor=None,
         width=1,
-        dashPeriod=10.0,
+        dashPeriod=20.0,
         drawMode=None,
         offset=(0.0, 0.0),
     ):
