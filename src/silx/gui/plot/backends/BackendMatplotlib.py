@@ -1238,6 +1238,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph axes
 
+    def __initXAxisFormatterAndLocator(self):
+        if self.ax.xaxis.get_scale() != "linear":
+            return  # Do not override formatter and locator
+
+        if not self.isXAxisTimeSeries():
+            self.ax.xaxis.set_major_formatter(DefaultTickFormatter())
+            return
+
+        # We can't use a matplotlib.dates.DateFormatter because it expects
+        # the data to be in datetimes. Silx works internally with
+        # timestamps (floats).
+        locator = NiceDateLocator(tz=self.getXAxisTimeZone())
+        self.ax.xaxis.set_major_locator(locator)
+        self.ax.xaxis.set_major_formatter(
+            NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
+        )
+
     def setXAxisTimeZone(self, tz):
         super(BackendMatplotlib, self).setXAxisTimeZone(tz)
 
@@ -1249,17 +1266,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setXAxisTimeSeries(self, isTimeSeries):
         self._isXAxisTimeSeries = isTimeSeries
-        if self._isXAxisTimeSeries:
-            # We can't use a matplotlib.dates.DateFormatter because it expects
-            # the data to be in datetimes. Silx works internally with
-            # timestamps (floats).
-            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
-            self.ax.xaxis.set_major_locator(locator)
-            self.ax.xaxis.set_major_formatter(
-                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
-            )
-        else:
-            self.ax.xaxis.set_major_formatter(DefaultTickFormatter())
+        self.__initXAxisFormatterAndLocator()
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
@@ -1271,8 +1278,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 self.ax.set_xlim(1, 10)
                 self.draw()
 
-        self.ax2.set_xscale("log" if flag else "linear")
-        self.ax.set_xscale("log" if flag else "linear")
+        xscale = "log" if flag else "linear"
+        self.ax2.set_xscale(xscale)
+        self.ax.set_xscale(xscale)
+        self.__initXAxisFormatterAndLocator()
 
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
@@ -1290,8 +1299,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if redraw:
                 self.draw()
 
-        self.ax2.set_yscale("log" if flag else "linear")
-        self.ax.set_yscale("log" if flag else "linear")
+        if flag:
+            self.ax2.set_yscale("log")
+            self.ax.set_yscale("log")
+            return
+
+        self.ax2.set_yscale("linear")
+        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
+        self.ax.set_yscale("linear")
+        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
