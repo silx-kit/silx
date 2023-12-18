@@ -595,7 +595,10 @@ class _ColorScale(qt.QWidget):
     def _getRelativePosition(self, yPixel):
         """yPixel : pixel position into _ColorScale widget reference"""
         # widgets are bottom-top referencial but we display in top-bottom referential
-        return 1.0 - (yPixel - self.margin) / float(self.height() - 2 * self.margin)
+        height = float(self.height() - 2 * self.margin)
+        if height == 0:
+            return 0.0
+        return 1.0 - (yPixel - self.margin) / height
 
     def getValueFromRelativePosition(self, value):
         """Return the value in the colorMap from a relative position in the
@@ -814,8 +817,9 @@ class _TickBar(qt.QWidget):
 
         if normMin == normMax:
             return 0.0
-        else:
-            return 1.0 - (normVal - normMin) / (normMax - normMin)
+        if not numpy.isfinite(normVal):
+            return 0.0
+        return 1.0 - (normVal - normMin) / (normMax - normMin)
 
     def _paintTick(self, val, painter, majorTick=True):
         """
