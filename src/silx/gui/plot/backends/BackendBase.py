@@ -218,6 +218,7 @@ class BackendBase(object):
         constraint: Callable[[float, float], tuple[float, float]] | None,
         yaxis: str,
         font: qt.QFont,
+        bgcolor: str,
     ) -> object:
         """Add a point, vertical line or horizontal line marker to the plot.
 

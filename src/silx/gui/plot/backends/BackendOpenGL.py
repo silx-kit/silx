@@ -92,7 +92,18 @@ class _ShapeItem(dict):
 
 class _MarkerItem(dict):
     def __init__(
-        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+        self,
+        x,
+        y,
+        text,
+        color,
+        symbol,
+        linestyle,
+        linewidth,
+        constraint,
+        yaxis,
+        font,
+        bgcolor,
     ):
         super(_MarkerItem, self).__init__()
 
@@ -116,6 +127,7 @@ class _MarkerItem(dict):
                 "linewidth": linewidth + LINE_WIDTH_OFFSET,
                 "yaxis": yaxis,
                 "font": font,
+                "bgcolor": bgcolor,
             }
         )
 
@@ -592,10 +604,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                     continue
 
                 color = item["color"]
-                intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
-                bgColor = (
-                    (1.0, 1.0, 1.0, 0.75) if intensity <= 0.5 else (0.0, 0.0, 0.0, 0.75)
-                )
+                bgColor = item["bgcolor"]
+                if bgColor is None:
+                    bgColor = 1.0, 1.0, 1.0, 1.0
                 if xCoord is None or yCoord is None:
                     if xCoord is None:  # Horizontal line in data space
                         pixelPos = self._plotFrame.dataToPixel(
@@ -1086,11 +1097,32 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         )
 
     def addMarker(
-        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+        self,
+        x,
+        y,
+        text,
+        color,
+        symbol,
+        linestyle,
+        linewidth,
+        constraint,
+        yaxis,
+        font,
+        bgcolor: str,
     ):
         font = qt.QApplication.instance().font() if font is None else font
         return _MarkerItem(
-            x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+            x,
+            y,
+            text,
+            color,
+            symbol,
+            linestyle,
+            linewidth,
+            constraint,
+            yaxis,
+            font,
+            bgcolor,
         )
 
     # Remove methods

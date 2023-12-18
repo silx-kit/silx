@@ -941,7 +941,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return item
 
     def addMarker(
-        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+        self,
+        x,
+        y,
+        text,
+        color,
+        symbol,
+        linestyle,
+        linewidth,
+        constraint,
+        yaxis,
+        font,
+        bgcolor: str = None,
     ):
         textArtist = None
         fontProperties = None if font is None else qFontToFontProperties(font)
@@ -968,6 +979,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     y,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="left",
                     fontproperties=fontProperties,
                 )
@@ -982,6 +994,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     1.0,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="left",
                     verticalalignment="top",
                     fontproperties=fontProperties,
@@ -997,6 +1010,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     y,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="right",
                     verticalalignment="top",
                     fontproperties=fontProperties,

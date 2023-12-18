@@ -80,17 +80,23 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
     def _addRendererCall(self, backend, symbol=None, linestyle="-", linewidth=1):
         """Perform the update of the backend renderer"""
+        color = self.getColor()
+        intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
+        bgColor = (
+            (1.0, 1.0, 1.0, 0.75) if intensity <= 0.5 else (0.0, 0.0, 0.0, 0.75)
+        )
         return backend.addMarker(
             x=self.getXPosition(),
             y=self.getYPosition(),
             text=self.getText(),
-            color=self.getColor(),
+            color=color,
             symbol=symbol,
             linestyle=linestyle,
             linewidth=linewidth,
             constraint=self.getConstraint(),
             yaxis=self.getYAxis(),
             font=self._font,  # Do not use getFont to spare creating a new QFont
+            bgcolor=bgColor,
         )
 
     def _addBackendRenderer(self, backend):
