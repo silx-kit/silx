@@ -1110,7 +1110,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         font,
         bgcolor: str,
     ):
-        font = qt.QApplication.instance().font() if font is None else font
+        if font is None:
+            from matplotlib.font_manager import findfont, FontProperties
+            font_filename = findfont(FontProperties(family=["sans-serif"]))
+            _logger.debug("Load font from mpl: %s", font_filename)
+            id = qt.QFontDatabase.addApplicationFont(font_filename)
+            family = qt.QFontDatabase.applicationFontFamilies(id)[0]
+            font = qt.QFont(family, 10, qt.QFont.Normal, False)
+            font.setStretch(110)  # Local tuning
+            font.setPointSizeF(8.5)  # Local tuning
+            font.setStyleStrategy(qt.QFont.PreferAntialias)
+
         return _MarkerItem(
             x,
             y,
