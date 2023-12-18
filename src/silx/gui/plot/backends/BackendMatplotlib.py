@@ -23,6 +23,8 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
+from __future__ import annotations
+
 __authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "21/12/2018"
@@ -67,6 +69,7 @@ from .._utils.dtime_ticklayout import (
 )
 from ...qt import inspect as qt_inspect
 from .... import config
+from silx.gui.colors import RGBAColorType
 
 _PATCH_LINESTYLE = {
     "-": "solid",
@@ -941,7 +944,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return item
 
     def addMarker(
-        self, x, y, text, color, symbol, linestyle, linewidth, constraint, yaxis, font
+        self,
+        x,
+        y,
+        text,
+        color,
+        symbol,
+        linestyle,
+        linewidth,
+        constraint,
+        yaxis,
+        font,
+        bgcolor: RGBAColorType | None,
     ):
         textArtist = None
         fontProperties = None if font is None else qFontToFontProperties(font)
@@ -968,6 +982,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     y,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="left",
                     fontproperties=fontProperties,
                 )
@@ -982,6 +997,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     1.0,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="left",
                     verticalalignment="top",
                     fontproperties=fontProperties,
@@ -997,6 +1013,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     y,
                     text,
                     color=color,
+                    backgroundcolor=bgcolor,
                     horizontalalignment="right",
                     verticalalignment="top",
                     fontproperties=fontProperties,

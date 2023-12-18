@@ -41,6 +41,7 @@ import numpy
 from .... import qt
 from ...._glutils import font, gl, Context, Program, Texture
 from .GLSupport import mat4Translate
+from silx.gui.colors import RGBAColorType
 
 
 class _Cache:
@@ -140,7 +141,7 @@ class Text2D:
         x: float = 0.0,
         y: float = 0.0,
         color: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0),
-        bgColor: tuple[float, float, float, float] | None = None,
+        bgColor: RGBAColorType | None = None,
         align: str = LEFT,
         valign: str = BASELINE,
         rotate: float = 0.0,
