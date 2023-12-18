@@ -226,6 +226,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         )
         BackendBase.BackendBase.__init__(self, plot, parent)
 
+        self._defaultFont: qt.QFont = None
         self.__isOpenGLValid = False
 
         self._backgroundColor = 1.0, 1.0, 1.0, 1.0
@@ -248,6 +249,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             foregroundColor=(0.0, 0.0, 0.0, 1.0),
             gridColor=(0.7, 0.7, 0.7, 1.0),
             marginRatios=(0.15, 0.1, 0.1, 0.15),
+            font=self.getDefaultFont(),
         )
         self._plotFrame.size = (  # Init size with size int
             int(self.getDevicePixelRatio() * 640),
@@ -1113,6 +1115,19 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             x, y, shape, color, fill, overlay, linewidth, dashpattern, gapcolor
         )
 
+    def getDefaultFont(self):
+        """Returns the default font, used by raw markers and axes labels"""
+        if self._defaultFont is None:
+            from matplotlib.font_manager import findfont, FontProperties
+            font_filename = findfont(FontProperties(family=["sans-serif"]))
+            _logger.debug("Load font from mpl: %s", font_filename)
+            id = qt.QFontDatabase.addApplicationFont(font_filename)
+            family = qt.QFontDatabase.applicationFontFamilies(id)[0]
+            font = qt.QFont(family, 10, qt.QFont.Normal, False)
+            font.setStyleStrategy(qt.QFont.PreferAntialias)
+            self._defaultFont = font
+        return self._defaultFont
+
     def addMarker(
         self,
         x,
@@ -1127,7 +1142,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         font,
         bgcolor: RGBAColorType | None,
     ):
-        font = qt.QApplication.instance().font() if font is None else font
+        if font is None:
+            font = self.getDefaultFont()
+
         dashpattern = self._lineStyleToDashPattern(linestyle)
         return _MarkerItem(
             x,
