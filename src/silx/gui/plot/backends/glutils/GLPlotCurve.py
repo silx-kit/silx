@@ -278,8 +278,6 @@ class _Fill2D(object):
 
 # line ########################################################################
 
-SOLID, DASHED, DASHDOT, DOTTED = "-", "--", "-.", ":"
-
 
 class GLLines2D(object):
     """Object rendering curve as a polyline
@@ -288,16 +286,15 @@ class GLLines2D(object):
     :param yVboData: Y coordinates VBO
     :param colorVboData: VBO of colors
     :param distVboData: VBO of distance along the polyline
-    :param str style: Line style in: '-', '--', '-.', ':'
     :param List[float] color: RGBA color as 4 float in [0, 1]
     :param float width: Line width
-    :param List[float] dashPattern: "Unscaled" dash pattern in points
+    :param List[float] dashPattern:
+        "unscaled" dash pattern as 4 lengths in points (dash1, gap1, dash2, gap2).
+        This pattern is scaled with the line width.
+        Set to () to draw solid lines (default), and to None to disable rendering.
     :param drawMode: OpenGL drawing mode
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
-
-    STYLES = SOLID, DASHED, DASHDOT, DOTTED
-    """Supported line styles"""
 
     _SOLID_PROGRAM = Program(
         vertexShader="""
@@ -383,11 +380,10 @@ class GLLines2D(object):
         yVboData=None,
         colorVboData=None,
         distVboData=None,
-        style=SOLID,
         color=(0.0, 0.0, 0.0, 1.0),
         gapColor=None,
         width=1,
-        dashPeriod=20.0,
+        dashPattern=(),
         drawMode=None,
         offset=(0.0, 0.0),
     ):
@@ -419,25 +415,10 @@ class GLLines2D(object):
         self.color = color
         self.gapColor = gapColor
         self.width = width
-        self._style = None
-        self.style = style
-        self.dashPeriod = dashPeriod
+        self.dashPattern = dashPattern
         self.offset = offset
 
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
-
-    @property
-    def style(self):
-        """Line style (Union[str,None])"""
-        return self._style
-
-    @style.setter
-    def style(self, style):
-        if style in _MPL_NONES:
-            self._style = None
-        else:
-            assert style in self.STYLES
-            self._style = style
 
     @classmethod
     def init(cls):
@@ -449,39 +430,23 @@ class GLLines2D(object):
 
         :param RenderContext context:
         """
-        width = self.width / 72.0 * context.dpi
-
-        style = self.style
-        if style is None:
+        if self.dashPattern is None:  # Nothing to display
             return
 
-        elif style == SOLID:
+        if self.dashPattern == ():  # No dash: solid line
             program = self._SOLID_PROGRAM
             program.use()
 
-        else:  # DASHED, DASHDOT, DOTTED
+        else:  # Dashed line defined by 4 control points
             program = self._DASH_PROGRAM
             program.use()
 
-            dashPeriod = self.dashPeriod * width
-            if self.style == DOTTED:
-                dash = (
-                    0.2 * dashPeriod,
-                    0.5 * dashPeriod,
-                    0.7 * dashPeriod,
-                    dashPeriod,
-                )
-            elif self.style == DASHDOT:
-                dash = (
-                    0.3 * dashPeriod,
-                    0.5 * dashPeriod,
-                    0.6 * dashPeriod,
-                    dashPeriod,
-                )
-            else:
-                dash = (0.5 * dashPeriod, dashPeriod, dashPeriod, dashPeriod)
-
-            gl.glUniform4f(program.uniforms["dash"], *dash)
+            # Scale pattern by width, convert from lengths in points to offsets in pixels
+            scale = self.width / 72.0 * context.dpi
+            dashOffsets = tuple(
+                offset * scale for offset in numpy.cumsum(self.dashPattern)
+            )
+            gl.glUniform4f(program.uniforms["dash"], *dashOffsets)
 
             if self.gapColor is None:
                 # Use fully transparent color which gets discarded in shader
@@ -540,7 +505,7 @@ class GLLines2D(object):
                 yPosAttrib, 1, gl.GL_FLOAT, False, 0, self.yVboData
             )
 
-        gl.glLineWidth(width)
+        gl.glLineWidth(self.width / 72.0 * context.dpi)
         gl.glDrawArrays(self._drawMode, 0, self.xVboData.size)
 
         gl.glDisable(gl.GL_LINE_SMOOTH)
@@ -1220,11 +1185,10 @@ class GLPlotCurve2D(GLPlotItem):
         colorData=None,
         xError=None,
         yError=None,
-        lineStyle=SOLID,
         lineColor=(0.0, 0.0, 0.0, 1.0),
         lineGapColor=None,
         lineWidth=1,
-        lineDashPeriod=20,
+        lineDashPattern=(),
         marker=SQUARE,
         markerColor=(0.0, 0.0, 0.0, 1.0),
         markerSize=7,
@@ -1311,11 +1275,10 @@ class GLPlotCurve2D(GLPlotItem):
         )
 
         self.lines = GLLines2D()
-        self.lines.style = lineStyle
         self.lines.color = lineColor
         self.lines.gapColor = lineGapColor
         self.lines.width = lineWidth
-        self.lines.dashPeriod = lineDashPeriod
+        self.lines.dashPattern = lineDashPattern
         self.lines.offset = self.offset
 
         self.points = Points2D()
@@ -1336,15 +1299,13 @@ class GLPlotCurve2D(GLPlotItem):
 
     distVboData = _proxyProperty(("lines", "distVboData"))
 
-    lineStyle = _proxyProperty(("lines", "style"))
-
     lineColor = _proxyProperty(("lines", "color"))
 
     lineGapColor = _proxyProperty(("lines", "gapColor"))
 
     lineWidth = _proxyProperty(("lines", "width"))
 
-    lineDashPeriod = _proxyProperty(("lines", "dashPeriod"))
+    lineDashPattern = _proxyProperty(("lines", "dashPattern"))
 
     marker = _proxyProperty(("points", "marker"))
 
@@ -1362,7 +1323,7 @@ class GLPlotCurve2D(GLPlotItem):
         """Rendering preparation: build indices and bounding box vertices"""
         if self.xVboData is None:
             xAttrib, yAttrib, cAttrib, dAttrib = None, None, None, None
-            if self.lineStyle in (DASHED, DASHDOT, DOTTED):
+            if self.lineDashPattern:
                 dists = distancesFromArrays(self.xData, self.yData, self._ratio)
                 if self.colorData is None:
                     xAttrib, yAttrib, dAttrib = vertexBuffer(
@@ -1393,7 +1354,7 @@ class GLPlotCurve2D(GLPlotItem):
 
         :param RenderContext context: Rendering information
         """
-        if self.lineStyle in (DASHED, DASHDOT, DOTTED):
+        if self.lineDashPattern:
             visibleRanges = context.plotFrame.transformedDataRanges
             xLimits = visibleRanges.x
             yLimits = visibleRanges.y if self.yaxis == "left" else visibleRanges.y2
@@ -1450,7 +1411,7 @@ class GLPlotCurve2D(GLPlotItem):
         :rtype: Union[List[int],None]
         """
         if (
-            (self.marker is None and self.lineStyle is None)
+            (self.marker is None and self.lineDashPattern is None)
             or self.xMin > xPickMax
             or xPickMin > self.xMax
             or self.yMin > yPickMax
@@ -1464,7 +1425,7 @@ class GLPlotCurve2D(GLPlotItem):
         yPickMin = yPickMin - self.offset[1]
         yPickMax = yPickMax - self.offset[1]
 
-        if self.lineStyle is not None:
+        if self.lineDashPattern is not None:
             # Using Cohen-Sutherland algorithm for line clipping
             with numpy.errstate(invalid="ignore"):  # Ignore NaN comparison warnings
                 codes = (
