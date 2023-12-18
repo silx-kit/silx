@@ -78,7 +78,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
         self._x = None
         self._y = None
-        self._bgColor: colors.RGBAColorType | numpy.ndarray | None = None
+        self._bgColor: colors.RGBAColorType | None = None
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
 
