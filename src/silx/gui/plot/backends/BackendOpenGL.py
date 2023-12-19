@@ -58,7 +58,7 @@ _logger = logging.getLogger(__name__)
 
 class _ShapeItem(dict):
     def __init__(
-        self, x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
+        self, x, y, shape, color, fill, overlay, linewidth, dashpattern, gapcolor
     ):
         super(_ShapeItem, self).__init__()
 
@@ -84,8 +84,8 @@ class _ShapeItem(dict):
                 "fill": "hatch" if fill else None,
                 "x": x,
                 "y": y,
-                "linestyle": linestyle,
                 "linewidth": linewidth,
+                "dashpattern": dashpattern,
                 "gapcolor": gapcolor,
             }
         )
@@ -99,8 +99,8 @@ class _MarkerItem(dict):
         text,
         color,
         symbol,
-        linestyle,
         linewidth,
+        dashpattern,
         constraint,
         yaxis,
         font,
@@ -124,8 +124,8 @@ class _MarkerItem(dict):
                 "color": colors.rgba(color),
                 "constraint": constraint if isConstraint else None,
                 "symbol": symbol,
-                "linestyle": linestyle,
                 "linewidth": linewidth,
+                "dashpattern": dashpattern,
                 "yaxis": yaxis,
                 "font": font,
                 "bgcolor": bgcolor,
@@ -575,7 +575,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         )
 
                     # Draw the stroke
-                    if item["linestyle"] not in ("", " ", None):
+                    if item["dashpattern"] is not None:
                         if item["shape"] != "polylines":
                             # close the polyline
                             points = numpy.append(
@@ -585,10 +585,10 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines = glutils.GLLines2D(
                             points[:, 0],
                             points[:, 1],
-                            style=item["linestyle"],
                             color=item["color"],
                             gapColor=item["gapcolor"],
                             width=item["linewidth"],
+                            dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -636,9 +636,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines = glutils.GLLines2D(
                             (0, width),
                             (pixelPos[1], pixelPos[1]),
-                            style=item["linestyle"],
                             color=color,
                             width=item["linewidth"],
+                            dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -669,9 +669,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         lines = glutils.GLLines2D(
                             (pixelPos[0], pixelPos[0]),
                             (0, height),
-                            style=item["linestyle"],
                             color=color,
                             width=item["linewidth"],
+                            dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
                         lines.render(context)
@@ -859,6 +859,22 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise ValueError("Unsupported data type")
 
+    _DASH_PATTERNS = {  # Convert from linestyle to dash pattern
+        "": None,
+        " ": None,
+        "-": (),
+        "--": (3.7, 1.6, 3.7, 1.6),
+        "-.": (6.4, 1.6, 1, 1.6),
+        ":": (1, 1.65, 1, 1.65),
+        None: None,
+    }
+
+    def _lineStyleToDashPattern(
+        self, style: str | None
+    ) -> tuple[float, float, float, float] | tuple[()] | None:
+        """Convert a linestyle to its corresponding dash pattern"""
+        return self._DASH_PATTERNS[style]
+
     def addCurve(
         self,
         x,
@@ -977,16 +993,17 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         fillColor = None
         if fill is True:
             fillColor = color
+
         curve = glutils.GLPlotCurve2D(
             x,
             y,
             colorArray,
             xError=xerror,
             yError=yerror,
-            lineStyle=linestyle,
             lineColor=color,
             lineGapColor=gapcolor,
             lineWidth=linewidth,
+            lineDashPattern=self._lineStyleToDashPattern(linestyle),
             marker=symbol,
             markerColor=color,
             markerSize=symbolsize,
@@ -1091,8 +1108,9 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if self._plotFrame.yAxis.isLog and y.min() <= 0.0:
             raise RuntimeError("Cannot add item with Y <= 0 with Y axis log scale")
 
+        dashpattern = self._lineStyleToDashPattern(linestyle)
         return _ShapeItem(
-            x, y, shape, color, fill, overlay, linestyle, linewidth, gapcolor
+            x, y, shape, color, fill, overlay, linewidth, dashpattern, gapcolor
         )
 
     def addMarker(
@@ -1110,14 +1128,15 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         bgcolor: RGBAColorType | None,
     ):
         font = qt.QApplication.instance().font() if font is None else font
+        dashpattern = self._lineStyleToDashPattern(linestyle)
         return _MarkerItem(
             x,
             y,
             text,
             color,
             symbol,
-            linestyle,
             linewidth,
+            dashpattern,
             constraint,
             yaxis,
             font,
@@ -1209,7 +1228,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
             size = item.markerSize / 72.0 * qtDpi
             offset = max(size / 2.0, offset)
-        if item.lineStyle is not None:
+        if item.lineDashPattern is not None:
             # Convert line width from points to qt pixels
             qtDpi = self.getDotsPerInch() / self.getDevicePixelRatio()
             lineWidth = item.lineWidth / 72.0 * qtDpi
