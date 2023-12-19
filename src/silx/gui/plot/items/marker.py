@@ -31,6 +31,7 @@ __date__ = "06/03/2017"
 
 
 import logging
+import numpy
 
 from ....utils.proxy import docstring
 from .core import (
@@ -44,6 +45,8 @@ from .core import (
 )
 from silx import config
 from silx.gui import qt
+from silx.gui import colors
+
 
 _logger = logging.getLogger(__name__)
 
@@ -75,6 +78,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
 
         self._x = None
         self._y = None
+        self._bgColor: colors.RGBAColorType | None = None
         self._constraint = self._defaultConstraint
         self.__isBeingDragged = False
 
@@ -91,6 +95,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             constraint=self.getConstraint(),
             yaxis=self.getYAxis(),
             font=self._font,  # Do not use getFont to spare creating a new QFont
+            bgcolor=self.getBackgroundColor(),
         )
 
     def _addBackendRenderer(self, backend):
@@ -140,6 +145,23 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         if font != self._font:
             self._font = None if font is None else qt.QFont(font)
             self._updated(ItemChangedType.FONT)
+
+    def getBackgroundColor(self) -> colors.RGBAColorType | None:
+        """Returns the RGBA background color of the item"""
+        return self._bgColor
+
+    def setBackgroundColor(self, color):
+        """Set item text background color
+
+        :param color: color(s) to be used as a str ("#RRGGBB") or (npoints, 4)
+                      unsigned byte array or one of the predefined color names
+                      defined in colors.py
+        """
+        if color is not None:
+            color = colors.rgba(color)
+        if self._bgColor != color:
+            self._bgColor = color
+            self._updated(ItemChangedType.BACKGROUND_COLOR)
 
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates

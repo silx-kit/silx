@@ -154,6 +154,9 @@ class ItemChangedType(enum.Enum):
     FONT = "fontChanged"
     """Item's text font changed flag."""
 
+    BACKGROUND_COLOR = "backgroundColorChanged"
+    """Item's text background color changed flag."""
+
 
 class Item(qt.QObject):
     """Description of an item of the plot"""

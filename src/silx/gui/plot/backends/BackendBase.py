@@ -37,6 +37,7 @@ __date__ = "21/12/2018"
 
 from collections.abc import Callable
 import weakref
+from silx.gui.colors import RGBAColorType
 
 from ... import qt
 
@@ -218,6 +219,7 @@ class BackendBase(object):
         constraint: Callable[[float, float], tuple[float, float]] | None,
         yaxis: str,
         font: qt.QFont,
+        bgcolor: RGBAColorType | None,
     ) -> object:
         """Add a point, vertical line or horizontal line marker to the plot.
 
@@ -227,6 +229,7 @@ class BackendBase(object):
             If None, the marker is a vertical line.
         :param text: Text associated to the marker (or None for no text)
         :param color: Color to be used for instance 'blue', 'b', '#FF0000'
+        :param bgcolor: Text background color to be used for instance 'blue', 'b', '#FF0000'
         :param symbol: Symbol representing the marker.
             Only relevant for point markers where X and Y are not None.
             Value in:
