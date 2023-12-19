@@ -44,7 +44,11 @@ _logger = logging.getLogger(__name__)
 from ... import qt
 
 # First of all init matplotlib and set its backend
-from ...utils.matplotlib import FigureCanvasQTAgg, qFontToFontProperties
+from ...utils.matplotlib import (
+    DefaultTickFormatter,
+    FigureCanvasQTAgg,
+    qFontToFontProperties,
+)
 import matplotlib
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -54,7 +58,7 @@ from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 from matplotlib.collections import PathCollection, LineCollection
-from matplotlib.ticker import Formatter, ScalarFormatter, Locator
+from matplotlib.ticker import Formatter, Locator
 from matplotlib.tri import Triangulation
 from matplotlib.collections import TriMesh
 from matplotlib import path as mpath
@@ -544,21 +548,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # Set axis zorder=0.5 so grid is displayed at 0.5
         self.ax.set_axisbelow(True)
 
-        # disable the use of offsets
-        try:
-            axes = [
-                self.ax.get_yaxis().get_major_formatter(),
-                self.ax.get_xaxis().get_major_formatter(),
-                self.ax2.get_yaxis().get_major_formatter(),
-                self.ax2.get_xaxis().get_major_formatter(),
-            ]
-            for axis in axes:
-                axis.set_useOffset(False)
-                axis.set_scientific(False)
-        except:
-            _logger.warning(
-                "Cannot disabled axes offsets in %s " % matplotlib.__version__
-            )
+        # Configure axes tick label formatter
+        for axis in (self.ax.yaxis, self.ax.xaxis, self.ax2.yaxis, self.ax2.xaxis):
+            axis.set_major_formatter(DefaultTickFormatter())
 
         self.ax2.set_autoscaley_on(True)
 
@@ -1263,6 +1255,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Graph axes
 
+    def __initXAxisFormatterAndLocator(self):
+        if self.ax.xaxis.get_scale() != "linear":
+            return  # Do not override formatter and locator
+
+        if not self.isXAxisTimeSeries():
+            self.ax.xaxis.set_major_formatter(DefaultTickFormatter())
+            return
+
+        # We can't use a matplotlib.dates.DateFormatter because it expects
+        # the data to be in datetimes. Silx works internally with
+        # timestamps (floats).
+        locator = NiceDateLocator(tz=self.getXAxisTimeZone())
+        self.ax.xaxis.set_major_locator(locator)
+        self.ax.xaxis.set_major_formatter(
+            NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
+        )
+
     def setXAxisTimeZone(self, tz):
         super(BackendMatplotlib, self).setXAxisTimeZone(tz)
 
@@ -1274,24 +1283,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setXAxisTimeSeries(self, isTimeSeries):
         self._isXAxisTimeSeries = isTimeSeries
-        if self._isXAxisTimeSeries:
-            # We can't use a matplotlib.dates.DateFormatter because it expects
-            # the data to be in datetimes. Silx works internally with
-            # timestamps (floats).
-            locator = NiceDateLocator(tz=self.getXAxisTimeZone())
-            self.ax.xaxis.set_major_locator(locator)
-            self.ax.xaxis.set_major_formatter(
-                NiceAutoDateFormatter(locator, tz=self.getXAxisTimeZone())
-            )
-        else:
-            try:
-                scalarFormatter = ScalarFormatter(useOffset=False)
-            except:
-                _logger.warning(
-                    "Cannot disabled axes offsets in %s " % matplotlib.__version__
-                )
-                scalarFormatter = ScalarFormatter()
-            self.ax.xaxis.set_major_formatter(scalarFormatter)
+        self.__initXAxisFormatterAndLocator()
 
     def setXAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.1.0 when one tries to set an axis
@@ -1303,8 +1295,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 self.ax.set_xlim(1, 10)
                 self.draw()
 
-        self.ax2.set_xscale("log" if flag else "linear")
-        self.ax.set_xscale("log" if flag else "linear")
+        xscale = "log" if flag else "linear"
+        self.ax2.set_xscale(xscale)
+        self.ax.set_xscale(xscale)
+        self.__initXAxisFormatterAndLocator()
 
     def setYAxisLogarithmic(self, flag):
         # Workaround for matplotlib 2.0 issue with negative bounds
@@ -1322,8 +1316,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if redraw:
                 self.draw()
 
-        self.ax2.set_yscale("log" if flag else "linear")
-        self.ax.set_yscale("log" if flag else "linear")
+        if flag:
+            self.ax2.set_yscale("log")
+            self.ax.set_yscale("log")
+            return
+
+        self.ax2.set_yscale("linear")
+        self.ax2.yaxis.set_major_formatter(DefaultTickFormatter())
+        self.ax.set_yscale("linear")
+        self.ax.yaxis.set_major_formatter(DefaultTickFormatter())
 
     def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):

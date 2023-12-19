@@ -54,7 +54,26 @@ else:
 
 from matplotlib.font_manager import FontProperties
 from matplotlib.mathtext import MathTextParser
-from matplotlib import figure
+from matplotlib.ticker import ScalarFormatter as _ScalarFormatter
+from matplotlib import figure, font_manager
+from packaging.version import Version
+
+_MATPLOTLIB_VERSION = Version(matplotlib.__version__)
+
+
+class DefaultTickFormatter(_ScalarFormatter):
+    """Tick label formatter"""
+
+    def __init__(self):
+        super().__init__(useOffset=True, useMathText=True)
+        self.set_scientific(True)
+        self.create_dummy_axis()
+
+    if _MATPLOTLIB_VERSION < Version("3.1.0"):
+
+        def format_ticks(self, values):
+            self.set_locs(values)
+            return [self(value, i) for i, value in enumerate(values)]
 
 
 _FONT_STYLES = {
@@ -67,8 +86,15 @@ _FONT_STYLES = {
 def qFontToFontProperties(font: qt.QFont):
     """Convert a QFont to a matplotlib FontProperties"""
     weightFactor = 10 if qt.BINDING == "PyQt5" else 1
+    families = [font.family(), font.defaultFamily()]
+    if _MATPLOTLIB_VERSION >= Version("3.6.0"):
+        # Prevent 'Font family not found warnings'
+        availableNames = font_manager.get_font_names()
+        families = [f for f in families if f in availableNames]
+        families.append(font_manager.fontManager.defaultFamily["ttf"])
+
     return FontProperties(
-        family=[font.family(), font.defaultFamily()],
+        family=families,
         style=_FONT_STYLES[font.style()],
         weight=weightFactor * font.weight(),
         size=font.pointSizeF(),
