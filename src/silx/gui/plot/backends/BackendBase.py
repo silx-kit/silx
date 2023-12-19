@@ -216,7 +216,7 @@ class BackendBase(object):
         text: str | None,
         color: str,
         symbol: str | None,
-        linestyle: str | tuple[float, tuple[float, ...]],
+        linestyle: str | tuple[float, tuple[float, ...] | None],
         linewidth: float,
         constraint: Callable[[float, float], tuple[float, float]] | None,
         yaxis: str,

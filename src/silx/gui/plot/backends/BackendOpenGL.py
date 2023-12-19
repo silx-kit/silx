@@ -875,7 +875,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise ValueError("Unsupported data type")
 
-    _DASH_PATTERNS = {  # Convert from linestyle to offset and dash pattern
+    _DASH_PATTERNS = {
         "": (0.0, None),
         " ": (0.0, None),
         "-": (0.0, ()),
@@ -884,6 +884,12 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         ":": (0.0, (1, 1.65, 1, 1.65)),
         None: (0.0, None),
     }
+    """Convert from linestyle to (offset, (dash pattern))
+
+    Note: dash pattern internal convention differs from matplotlib:
+    - None: no line at all
+    - (): "solid" line
+    """
 
     def _lineStyleToDashOffsetPattern(
         self, style
@@ -892,8 +898,11 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if style is None or isinstance(style, str):
             return self._DASH_PATTERNS[style]
 
-        # (offset, (dash pattern))
+        # (offset, (dash pattern)) case
         offset, pattern = style
+        if pattern is None:
+            # Convert from matplotlib to internal representation of solid
+            pattern = ()
         if len(pattern) == 2:
             pattern = pattern * 2
         return offset, pattern
