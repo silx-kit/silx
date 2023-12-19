@@ -853,7 +853,7 @@ class LineMixIn(ItemMixInBase):
     _DEFAULT_LINESTYLE: LineStyleType = "-"
     """Default line style"""
 
-    _SUPPORTED_LINESTYLE: str | None = "", " ", "-", "--", "-.", ":", None
+    _SUPPORTED_LINESTYLE = "", " ", "-", "--", "-.", ":", None
     """Supported line styles"""
 
     def __init__(self):
