@@ -835,7 +835,11 @@ class SymbolMixIn(ItemMixInBase):
             self._updated(ItemChangedType.SYMBOL_SIZE)
 
 
-LineStyleType = Union[str, Tuple[float, float], Tuple[float, float, float, float]]
+LineStyleType = Union[
+    str,
+    Tuple[float, Tuple[float, float]],
+    Tuple[float, Tuple[float, float, float, float]],
+]
 """Type for :class:`LineMixIn`'s line style"""
 
 
