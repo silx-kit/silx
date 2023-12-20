@@ -1636,6 +1636,10 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
 
         self.updateZOrder()
 
+        if not qt_inspect.isValid(self):
+            _logger.info("draw requested but widget no longer exists")
+            return
+
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         if self._matplotlibVersion >= Version("2.0.0"):

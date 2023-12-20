@@ -29,11 +29,12 @@ __date__ = "01/09/2017"
 
 
 import numpy
+import pytest
 
 from silx.gui.utils.testutils import SignalListener
 from silx.gui.plot.items.roi import RegionOfInterest
 from silx.gui.plot.items import ItemChangedType
-from silx.gui.plot import items, PlotWidget
+from silx.gui.plot import items
 from .utils import PlotWidgetTestCase
 
 
@@ -514,3 +515,51 @@ def testPlotWidgetAddShape(plotWidget):
     assert numpy.array_equal(shape.getPoints(copy=False), ((0, 0), (1, 1)))
     assert shape.getName() == "test"
     assert shape.getType() == "polygon"
+
+
+@pytest.mark.parametrize(
+    "linestyle",
+    (
+        "",
+        "-",
+        "--",
+        "-.",
+        ":",
+        (0.0, None),
+        (0.5, ()),
+        (0.0, (5.0, 5.0)),
+        (4.0, (8.0, 4.0, 4.0, 4.0)),
+    ),
+)
+@pytest.mark.parametrize("plotWidget", ("mpl", "gl"), indirect=True)
+def testLineStyle(qapp_utils, plotWidget, linestyle):
+    """Test different line styles for LineMixIn items"""
+    plotWidget.setGraphTitle(f"Line style: {linestyle}")
+
+    curve = plotWidget.addCurve((0, 1), (0, 1), linestyle=linestyle)
+    assert curve.getLineStyle() == linestyle
+
+    histogram = plotWidget.addHistogram((0.25, 0.75, 0.25), (0.0, 0.33, 0.66, 1.0))
+    histogram.setLineStyle(linestyle)
+    assert histogram.getLineStyle() == linestyle
+
+    polylines = plotWidget.addShape(
+        (0, 1), (1, 0), shape="polylines", linestyle=linestyle
+    )
+    assert polylines.getLineStyle() == linestyle
+
+    rectangle = plotWidget.addShape(
+        (0.4, 0.6), (0.4, 0.6), shape="rectangle", linestyle=linestyle
+    )
+    assert rectangle.getLineStyle() == linestyle
+
+    xmarker = plotWidget.addXMarker(0.5)
+    xmarker.setLineStyle(linestyle)
+    assert xmarker.getLineStyle() == linestyle
+
+    ymarker = plotWidget.addYMarker(0.5)
+    ymarker.setLineStyle(linestyle)
+    assert ymarker.getLineStyle() == linestyle
+
+    plotWidget.replot()
+    qapp_utils.qWait(100)
