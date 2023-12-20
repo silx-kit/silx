@@ -837,9 +837,9 @@ class SymbolMixIn(ItemMixInBase):
 
 LineStyleType = Union[
     str,
-    Tuple[float, None],
-    Tuple[float, Tuple[float, float]],
-    Tuple[float, Tuple[float, float, float, float]],
+    Tuple[Union[float, int], None],
+    Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int]]],
+    Tuple[Union[float, int], Tuple[Union[float, int], Union[float, int], Union[float, int], Union[float, int]]],
 ]
 """Type for :class:`LineMixIn`'s line style"""
 
@@ -888,14 +888,14 @@ class LineMixIn(ItemMixInBase):
             return False
         if (
             len(style) == 2
-            and isinstance(style[0], float)
+            and isinstance(style[0], (float, int))
             and (
                 style[1] is None
                 or style[1] == ()
                 or (
                     isinstance(style[1], tuple)
                     and len(style[1]) in (2, 4)
-                    and all(map(lambda item: isinstance(item, float), style[1]))
+                    and all(map(lambda item: isinstance(item, (float, int)), style[1]))
                 )
             )
         ):
