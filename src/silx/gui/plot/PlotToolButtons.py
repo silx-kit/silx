@@ -47,6 +47,7 @@ import numpy
 from .. import icons
 from .. import qt
 from ... import config
+from .tools.PlotToolButton import PlotToolButton
 
 from .items import SymbolMixIn, Scatter
 from silx.gui.plot.tools.roi import RegionOfInterestManager
@@ -54,57 +55,6 @@ from silx.gui.plot.items.roi import LineROI
 
 
 _logger = logging.getLogger(__name__)
-
-
-class PlotToolButton(qt.QToolButton):
-    """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`."""
-
-    def __init__(self, parent=None, plot=None):
-        super(PlotToolButton, self).__init__(parent)
-        self._plotRef = None
-        if plot is not None:
-            self.setPlot(plot)
-
-    def plot(self):
-        """
-        Returns the plot connected to the widget.
-        """
-        return None if self._plotRef is None else self._plotRef()
-
-    def setPlot(self, plot):
-        """
-        Set the plot connected to the widget
-
-        :param plot: :class:`.PlotWidget` instance on which to operate.
-        """
-        previousPlot = self.plot()
-
-        if previousPlot is plot:
-            return
-        if previousPlot is not None:
-            self._disconnectPlot(previousPlot)
-
-        if plot is None:
-            self._plotRef = None
-        else:
-            self._plotRef = weakref.ref(plot)
-            self._connectPlot(plot)
-
-    def _connectPlot(self, plot):
-        """
-        Called when the plot is connected to the widget
-
-        :param plot: :class:`.PlotWidget` instance
-        """
-        pass
-
-    def _disconnectPlot(self, plot):
-        """
-        Called when the plot is disconnected from the widget
-
-        :param plot: :class:`.PlotWidget` instance
-        """
-        pass
 
 
 class AspectToolButton(PlotToolButton):
