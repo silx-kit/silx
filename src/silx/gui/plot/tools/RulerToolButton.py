@@ -33,6 +33,7 @@ __date__ = "30/10/2023"
 import logging
 import numpy
 import weakref
+import typing
 
 from silx.gui import icons
 
@@ -48,13 +49,22 @@ _logger = logging.getLogger(__name__)
 class _RulerROI(LineROI):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._formatFunction = None
+        self._formatFunction: typing.Optional[
+            typing.Callable[
+                [numpy.ndarray, numpy.ndarray], str
+            ]
+        ] = None
 
-    def registerFormatFunction(self, fct):
-        """fct is expected to be a function taking (startPoint, endPoint) as parameter"""
+    def registerFormatFunction(
+        self,
+        fct: typing.Callable[
+            [numpy.ndarray, numpy.ndarray], str
+        ],
+    ):
+        """Register a function for the formatting of the label"""
         self._formatFunction = fct
 
-    def setEndPoints(self, startPoint, endPoint):
+    def setEndPoints(self, startPoint: numpy.ndarray, endPoint: numpy.ndarray):
         super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
         if self._formatFunction is not None:
             ruler_text = self._formatFunction(
@@ -151,7 +161,7 @@ class RulerToolButton(PlotToolButton):
             currentRoi.registerFormatFunction(self.buildDistanceText)
             self.__lastRoiCreated = weakref.ref(currentRoi)
 
-    def buildDistanceText(self, startPoint, endPoint):
+    def buildDistanceText(self, startPoint: numpy.ndarray, endPoint: numpy.ndarray) -> str:
         """
         Define the text to be displayed by the ruler.
 
