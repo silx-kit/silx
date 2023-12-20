@@ -650,22 +650,14 @@ class Points2D(object):
         PLUS: """
         float alphaSymbol(vec2 coord, float size) {
             vec2 d = abs(size * (coord - vec2(0.5, 0.5)));
-            if (min(d.x, d.y) < 0.5) {
-                return 1.0;
-            } else {
-                return 0.0;
-            }
+            return smoothstep(1.5, 0.5, min(d.x, d.y));
         }
         """,
         X_MARKER: """
         float alphaSymbol(vec2 coord, float size) {
             vec2 pos = floor(size * coord) + 0.5;
             vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
-            if (min(d_x.x, d_x.y) <= 0.5) {
-                return 1.0;
-            } else {
-                return 0.0;
-            }
+            return smoothstep(1.5, 0.5, min(d_x.x, d_x.y));
         }
         """,
         ASTERISK: """
@@ -686,22 +678,14 @@ class Points2D(object):
         """,
         H_LINE: """
         float alphaSymbol(vec2 coord, float size) {
-            float dy = abs(size * (coord.y - 0.5));
-            if (dy < 0.5) {
-                return 1.0;
-            } else {
-                return 0.0;
-            }
+            float d = abs(size * (coord.y - 0.5));
+            return smoothstep(1.5, 0.5, d);
         }
         """,
         V_LINE: """
         float alphaSymbol(vec2 coord, float size) {
-            float dx = abs(size * (coord.x - 0.5));
-            if (dx < 0.5) {
-                return 1.0;
-            } else {
-                return 0.0;
-            }
+            float d = abs(size * (coord.x - 0.5));
+            return smoothstep(1.5, 0.5, d);
         }
         """,
         HEART: """
@@ -723,44 +707,40 @@ class Points2D(object):
         float alphaSymbol(vec2 coord, float size) {
             coord  = size * (coord - 0.5);
             float dy = abs(coord.y);
-            if (dy < 0.5 && coord.x < 0.5) {
-                return 1.0;
-            } else {
+            if (coord.x > 0.5) {
                 return 0.0;
             }
+            return smoothstep(1.5, 0.5, dy);
         }
         """,
         TICK_RIGHT: """
         float alphaSymbol(vec2 coord, float size) {
             coord  = size * (coord - 0.5);
             float dy = abs(coord.y);
-            if (dy < 0.5 && coord.x > -0.5) {
-                return 1.0;
-            } else {
+            if (coord.x < -0.5) {
                 return 0.0;
             }
+            return smoothstep(1.5, 0.5, dy);
         }
         """,
         TICK_UP: """
         float alphaSymbol(vec2 coord, float size) {
-            coord  = size * (coord - 0.5);
+            coord = size * (coord - 0.5);
             float dx = abs(coord.x);
-            if (dx < 0.5 && coord.y < 0.5) {
-                return 1.0;
-            } else {
+            if (coord.y > 0.5) {
                 return 0.0;
             }
+            return smoothstep(1.5, 0.5, dx);
         }
         """,
         TICK_DOWN: """
         float alphaSymbol(vec2 coord, float size) {
             coord  = size * (coord - 0.5);
             float dx = abs(coord.x);
-            if (dx < 0.5 && coord.y > -0.5) {
-                return 1.0;
-            } else {
+            if (coord.y < -0.5) {
                 return 0.0;
             }
+            return smoothstep(1.5, 0.5, dx);
         }
         """,
         CARET_LEFT: """
