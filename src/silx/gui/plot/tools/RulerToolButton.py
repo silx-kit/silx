@@ -32,6 +32,7 @@ __date__ = "30/10/2023"
 
 import logging
 import numpy
+import weakref
 
 from silx.gui import icons
 
@@ -85,13 +86,19 @@ class RulerToolButton(PlotToolButton):
         super().__init__(parent=parent, plot=plot)
         self.setCheckable(True)
         self._roiManager = None
-        self._lastRoiCreated = None
+        self.__lastRoiCreated = None
         self.setIcon(icons.getQIcon("ruler"))
         self.toggled.connect(self._callback)
         self._connectPlot(plot)
 
     def setPlot(self, plot):
         return super().setPlot(plot)
+
+    @property
+    def _lastRoiCreated(self):
+        if self.__lastRoiCreated is None:
+            return None
+        return self.__lastRoiCreated()
 
     def _callback(self, *args, **kwargs):
         if not self._roiManager:
@@ -132,23 +139,25 @@ class RulerToolButton(PlotToolButton):
     def _disconnectPlot(self, plot):
         if plot and self._lastRoiCreated is not None:
             self._roiManager.removeRoi(self._lastRoiCreated)
-            self._lastRoiCreated = None
+            self.__lastRoiCreated = None
         return super()._disconnectPlot(plot)
 
     def _registerCurrentROI(self, currentRoi):
         if self._lastRoiCreated is None:
-            self._lastRoiCreated = currentRoi
+            self.__lastRoiCreated = weakref.ref(currentRoi)
             self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
-        elif currentRoi != self._lastRoiCreated and self._roiManager is not None:
+        elif currentRoi is not self._lastRoiCreated and self._roiManager is not None:
             self._roiManager.removeRoi(self._lastRoiCreated)
-            self._lastRoiCreated = currentRoi
-            self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
+            currentRoi.registerFormatFunction(self.buildDistanceText)
+            self.__lastRoiCreated = weakref.ref(currentRoi)
 
     def buildDistanceText(self, startPoint, endPoint):
         """
-        define the text to be displayed by the ruler.
+        Define the text to be displayed by the ruler.
+
         It can be redefine to modify precision or handle other parameters
-        (handling pixel size to display metric distance, display distance on each distance - for non-square pixels...)
+        (handling pixel size to display metric distance, display distance
+        on each distance - for non-square pixels...)
         """
         distance = numpy.linalg.norm(endPoint - startPoint)
         return f"{distance: .1f}px"
