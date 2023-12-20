@@ -962,6 +962,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             assert False
 
+        if bgcolor is None:
+            bgcolor = "none"
+
         marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
             line = ax.plot(
