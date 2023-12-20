@@ -110,6 +110,7 @@ class _MarkerItem(dict):
         text,
         color,
         symbol,
+        symbolsize,
         linewidth,
         dashoffset,
         dashpattern,
@@ -136,6 +137,7 @@ class _MarkerItem(dict):
                 "color": colors.rgba(color),
                 "constraint": constraint if isConstraint else None,
                 "symbol": symbol,
+                "symbolsize": symbolsize,
                 "linewidth": linewidth,
                 "dashoffset": dashoffset,
                 "dashpattern": dashpattern,
@@ -737,7 +739,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         (pixelPos[1],),
                         marker=item["symbol"],
                         color=color,
-                        size=11,
+                        size=item["symbolsize"],
                     )
                     context.matrix = self.matScreenProj
                     marker.render(context)
@@ -1184,6 +1186,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         text,
         color,
         symbol,
+        symbolsize: float,
         linestyle,
         linewidth,
         constraint,
@@ -1201,6 +1204,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             text,
             color,
             symbol,
+            symbolsize,
             linewidth,
             dashoffset,
             dashpattern,
