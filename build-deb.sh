@@ -236,6 +236,9 @@ build_deb() {
         11)
             debian_name=bullseye
             ;;
+        12)
+            debain_name=bookworm
+            ;;
     esac
 
     dch -v ${debianversion}-1 "upstream development build of ${project} ${version}"
