@@ -942,6 +942,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         text,
         color,
         symbol,
+        symbolsize: float,
         linestyle,
         linewidth,
         constraint,
@@ -965,7 +966,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
             line = ax.plot(
-                x, y, linestyle=" ", color=color, marker=marker, markersize=10.0
+                x, y, linestyle=" ", color=color, marker=marker, markersize=symbolsize
             )[-1]
 
             if text is not None:

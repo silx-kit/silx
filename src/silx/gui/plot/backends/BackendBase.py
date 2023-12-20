@@ -214,6 +214,7 @@ class BackendBase(object):
         text: str | None,
         color: str,
         symbol: str | None,
+        symbolsize: float,
         linestyle: str,
         linewidth: float,
         constraint: Callable[[float, float], tuple[float, float]] | None,
