@@ -97,7 +97,14 @@ class TestCurveLegendsWidget(TestCaseQt, ParametricTestCase):
         # Change curve style
         curve = self.plot.getCurve("a")
         curve.setLineWidth(2)
-        for linestyle in (":", "", "--", "-"):
+        for linestyle in (
+            ":",
+            "",
+            "--",
+            "-",
+            (0.0, (5.0, 5.0)),
+            (5.0, (10.0, 2.0, 2.0, 5.0)),
+        ):
             with self.subTest(linestyle=linestyle):
                 curve.setLineStyle(linestyle)
                 self.qapp.processEvents()
