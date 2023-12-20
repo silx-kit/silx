@@ -1138,7 +1138,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             text,
             color,
             symbol,
-            symbolsize,
+            int(symbolsize + 0),
             linewidth,
             dashpattern,
             constraint,
