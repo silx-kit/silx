@@ -44,6 +44,24 @@ from silx.gui.plot.items.roi import LineROI
 _logger = logging.getLogger(__name__)
 
 
+class _RulerROI(LineROI):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._formatFunction = None
+
+    def registerFormatFunction(self, fct):
+        """fct is expected to be a function taking (startPoint, endPoint) as parameter"""
+        self._formatFunction = fct
+
+    def setEndPoints(self, startPoint, endPoint):
+        super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
+        if self._formatFunction is not None:
+            ruler_text = self._formatFunction(
+                startPoint=startPoint, endPoint=endPoint
+            )
+            self._updateText(ruler_text)
+
+
 class RulerToolButton(PlotToolButton):
     """
     Button to active measurement between two point of the plot
@@ -56,23 +74,6 @@ class RulerToolButton(PlotToolButton):
         rulerButton = RulerToolButton(parent=plot, plot=plot)
         plot.toolBar().addWidget(rulerButton)
     """
-
-    class RulerROI(LineROI):
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self._formatFunction = None
-
-        def registerFormatFunction(self, fct):
-            """fct is expected to be a function taking (startPoint, endPoint) as parameter"""
-            self._formatFunction = fct
-
-        def setEndPoints(self, startPoint, endPoint):
-            super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
-            if self._formatFunction is not None:
-                ruler_text = self._formatFunction(
-                    startPoint=startPoint, endPoint=endPoint
-                )
-                self._updateText(ruler_text)
 
     def __init__(
         self,
@@ -98,10 +99,7 @@ class RulerToolButton(PlotToolButton):
         if self._lastRoiCreated is not None:
             self._lastRoiCreated.setVisible(self.isChecked())
         if self.isChecked():
-            self._roiManager.start(
-                self.RulerROI,
-                self,
-            )
+            self._roiManager.start(_RulerROI, self)
             self.__interactiveModeStarted(self._roiManager)
         else:
             source = self._roiManager.getInteractionSource()
