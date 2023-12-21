@@ -93,6 +93,9 @@ def qFontToFontProperties(font: qt.QFont):
         families = [f for f in families if f in availableNames]
         families.append(font_manager.fontManager.defaultFamily["ttf"])
 
+    if "Sans" in font.family():
+        families.insert(0, "sans-serif")
+
     return FontProperties(
         family=families,
         style=_FONT_STYLES[font.style()],
