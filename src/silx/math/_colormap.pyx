@@ -1,3 +1,8 @@
+#cython: embedsignature=True, language_level=3
+## This is for optimisation
+##cython: boundscheck=False, wraparound=False, cdivision=True, initializedcheck=False,
+## This is for developping:
+##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
 # /*##########################################################################
 #
 # Copyright (c) 2018-2023 European Synchrotron Radiation Facility
@@ -26,7 +31,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/05/2018"
+__date__ = "21/12/2023"
 
 
 import os
@@ -101,7 +106,7 @@ ctypedef fused image_types:
 
 # Normalization
 
-ctypedef double (*NormalizationFunction)(double) nogil
+# ctypedef double (*NormalizationFunction)(double) nogil
 
 
 cdef class Normalization:
@@ -153,7 +158,7 @@ cdef class Normalization:
                     <double> data1d[index], vmin, vmax)
             return numpy.array(result).reshape(data.shape)
 
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         """Apply normalization to a floating point value
 
         Override in subclass
@@ -164,7 +169,7 @@ cdef class Normalization:
         """
         return value
 
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         """Apply inverse of normalization to a floating point value
 
         Override in subclass
@@ -179,10 +184,10 @@ cdef class Normalization:
 cdef class LinearNormalization(Normalization):
     """Linear normalization"""
 
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         return value
 
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         return value
 
 
@@ -208,7 +213,7 @@ cdef class LogarithmicNormalization(Normalization):
     @cython.boundscheck(False)
     @cython.nonecheck(False)
     @cython.cdivision(True)
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         """Return log10(value) fast approximation based on LUT"""
         cdef double result = NAN  # if value < 0.0 or value == NAN
         cdef int exponent, index_lut
@@ -227,27 +232,27 @@ cdef class LogarithmicNormalization(Normalization):
                                             self.lut[index_lut])
         return result
 
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         return c_pow(10, value)
 
 
 cdef class ArcsinhNormalization(Normalization):
     """Inverse hyperbolic sine normalization"""
 
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         return asinh(value)
 
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         return sinh(value)
 
 
 cdef class SqrtNormalization(Normalization):
     """Square root normalization"""
 
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         return sqrt(value)
 
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         return value*value
 
 
@@ -270,7 +275,7 @@ cdef class PowerNormalization(Normalization):
         pass
 
     @cython.cdivision(True)
-    cdef double apply_double(self, double value, double vmin, double vmax) nogil:
+    cdef double apply_double(self, double value, double vmin, double vmax) noexcept nogil:
         if vmin == vmax:
             return 0.
         elif value <= vmin:
@@ -281,7 +286,7 @@ cdef class PowerNormalization(Normalization):
             return c_pow(((value - vmin) / (vmax - vmin)), self.gamma)
 
     @cython.cdivision(True)
-    cdef double revert_double(self, double value, double vmin, double vmax) nogil:
+    cdef double revert_double(self, double value, double vmin, double vmax) noexcept nogil:
         if value <= 0.:
             return vmin
         elif value >= 1.:

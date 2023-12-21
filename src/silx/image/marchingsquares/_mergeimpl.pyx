@@ -1,5 +1,11 @@
+#cython: embedsignature=True, language_level=3
+## This is for optimisation
+#cython: boundscheck=False, wraparound=False, cdivision=True, initializedcheck=False,
+## This is for developping:
+##cython: profile=True, warn.undeclared=True, warn.unused=True, warn.unused_result=False, warn.unused_arg=True
+
 # /*##########################################################################
-# Copyright (C) 2018-2020 European Synchrotron Radiation Facility
+# Copyright (C) 2018-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +32,7 @@ Marching squares implementation based on a merge of segements and polygons.
 
 __authors__ = ["Almar Klein", "Jerome Kieffer", "Valentin Valls"]
 __license__ = "MIT"
-__date__ = "23/04/2018"
+__date__ = "21/12/2023"
 
 import numpy
 cimport numpy as cnumpy
@@ -78,7 +84,7 @@ cdef cppclass PolygonDescription:
     point_index_t end
     clist[point_t] points
 
-    PolygonDescription() nogil:
+    PolygonDescription() noexcept nogil:
         pass
 
 """Description of a tile context.
@@ -101,7 +107,7 @@ cdef cppclass TileContext:
     clist[coord_t] final_pixels
     cset[coord_t] pixels
 
-    TileContext() nogil:
+    TileContext() noexcept nogil:
         pass
 
 
@@ -133,7 +139,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void marching_squares(self, cnumpy.float64_t level) nogil:
+    cdef void marching_squares(self, cnumpy.float64_t level) noexcept nogil:
         """
         Main method to execute the marching squares.
 
@@ -188,7 +194,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) nogil:
+    cdef void reduction_2d(self, int dim_x, int dim_y, TileContext **contexts) noexcept nogil:
         """
         Reduce the problem merging first neighbours together in a recursive
         process. Optimized with OpenMP.
@@ -237,7 +243,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     cdef inline void merge_array_contexts(self,
                                           TileContext **contexts,
                                           int index1,
-                                          int index2) nogil:
+                                          int index2) noexcept nogil:
         """
         Merge contexts from `index2` to `index1` and delete the one from index2.
         If the one from index1 was NULL, the one from index2 is moved to index1
@@ -265,7 +271,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void sequencial_reduction(self,
                                    int nb_contexts,
-                                   TileContext **contexts) nogil:
+                                   TileContext **contexts) noexcept nogil:
         """
         Reduce the problem sequencially without taking care of the topology
 
@@ -286,7 +292,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void marching_squares_mp(self,
                                   TileContext *context,
-                                  cnumpy.float64_t level) nogil:
+                                  cnumpy.float64_t level) noexcept nogil:
         """
         Main entry of the marching squares algorithm for each threads.
 
@@ -362,7 +368,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void after_marching_squares(self, TileContext *context) nogil:
+    cdef void after_marching_squares(self, TileContext *context) noexcept nogil:
         """
         Called by each threads after execution of the marching squares
         algorithm. Called before merging together the contextes.
@@ -379,7 +385,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t level) nogil:
+                             cnumpy.float64_t level) noexcept nogil:
         """
         Called by the marching squares algorithm each time a pattern is found.
 
@@ -396,7 +402,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.cdivision(True)
     cdef void merge_context(self,
                             TileContext *context,
-                            TileContext *other) nogil:
+                            TileContext *other) noexcept nogil:
         """
         Merge into a context another context.
 
@@ -413,7 +419,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                                        cnumpy.float64_t level,
                                        int* dim_x,
                                        int* dim_y,
-                                       int* nb_valid_contexts) nogil:
+                                       int* nb_valid_contexts) noexcept nogil:
         """
         Create and initialize a 2d-array of contexts.
 
@@ -473,7 +479,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                                      int x,
                                      int y,
                                      int dim_x,
-                                     int dim_y) nogil:
+                                     int dim_y) noexcept nogil:
         """
         Allocate and initialize a context.
 
@@ -507,7 +513,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                             cnumpy.uint32_t y,
                             cnumpy.uint8_t edge,
                             cnumpy.float64_t level,
-                            point_t *result_point) nogil:
+                            point_t *result_point) noexcept nogil:
         """
         Compute the location of a point of the polygons according to the level
         and the neighbours.
@@ -551,7 +557,7 @@ cdef class _MarchingSquaresAlgorithm(object):
                              cnumpy.uint32_t y,
                              cnumpy.uint8_t edge,
                              cnumpy.float64_t level,
-                             coord_t *result_coord) nogil:
+                             coord_t *result_coord) noexcept nogil:
         """
         Compute the location of pixel which contains the point of the polygons
         according to the level and the neighbours.
@@ -594,7 +600,7 @@ cdef class _MarchingSquaresAlgorithm(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef point_index_t create_point_index(self, int yx, cnumpy.uint8_t edge) nogil:
+    cdef point_index_t create_point_index(self, int yx, cnumpy.uint8_t edge) noexcept nogil:
         """
         Create a unique identifier for a point of a polygon based on the
         pattern location and the edge.
@@ -633,7 +639,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t level) nogil:
+                             cnumpy.float64_t level) noexcept nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
@@ -648,7 +654,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
                              int x, int y,
                              cnumpy.uint8_t begin_edge,
                              cnumpy.uint8_t end_edge,
-                             cnumpy.float64_t level) nogil:
+                             cnumpy.float64_t level) noexcept nogil:
         cdef:
             int i, yx
             point_t point
@@ -757,7 +763,7 @@ cdef class _MarchingSquaresContours(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void merge_context(self, TileContext *context, TileContext *other) nogil:
+    cdef void merge_context(self, TileContext *context, TileContext *other) noexcept nogil:
         cdef:
             map[point_index_t, PolygonDescription*].iterator it_begin
             map[point_index_t, PolygonDescription*].iterator it_end
@@ -928,7 +934,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                              int x,
                              int y,
                              int pattern,
-                             cnumpy.float64_t level) nogil:
+                             cnumpy.float64_t level) noexcept nogil:
         cdef:
             int segment
         for segment in range(CELL_TO_EDGE[pattern][0]):
@@ -943,7 +949,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
                              int x, int y,
                              cnumpy.uint8_t begin_edge,
                              cnumpy.uint8_t end_edge,
-                             cnumpy.float64_t level) nogil:
+                             cnumpy.float64_t level) noexcept nogil:
         cdef:
             coord_t coord
         self.compute_ipoint(x, y, begin_edge, level, &coord)
@@ -954,7 +960,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void after_marching_squares(self, TileContext *context) nogil:
+    cdef void after_marching_squares(self, TileContext *context) noexcept nogil:
         cdef:
             coord_t coord
             cset[coord_t].iterator it_coord
@@ -976,7 +982,7 @@ cdef class _MarchingSquaresPixels(_MarchingSquaresAlgorithm):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void merge_context(self, TileContext *context, TileContext *other) nogil:
+    cdef void merge_context(self, TileContext *context, TileContext *other) noexcept nogil:
         cdef:
             cset[coord_t].iterator it_coord
 
@@ -1161,7 +1167,7 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _compute_minmax_on_block(self, int block_x, int block_y, int block_index) nogil:
+    cdef void _compute_minmax_on_block(self, int block_x, int block_y, int block_index) noexcept nogil:
         """
         Initialize the minmax cache.
 
@@ -1228,7 +1234,7 @@ cdef class MarchingSquaresMergeImpl(object):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef void _create_minmax_cache(self) nogil:
+    cdef void _create_minmax_cache(self) noexcept nogil:
         """
         Create and initialize minmax cache.
         """
