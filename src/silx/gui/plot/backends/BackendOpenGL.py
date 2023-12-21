@@ -912,7 +912,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             pattern = ()
         if len(pattern) == 2:
             pattern = pattern * 2
-        return offset, pattern
+        return float(offset), tuple(float(v) for v in pattern)
 
     def addCurve(
         self,
