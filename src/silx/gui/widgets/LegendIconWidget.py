@@ -153,6 +153,7 @@ class LegendIconWidget(qt.QWidget):
 
         # Line attributes
         self.lineStyle = qt.Qt.NoPen
+        self.__dashPattern = []
         self.lineWidth = 1.0
         self.lineColor = qt.Qt.green
 
@@ -212,12 +213,21 @@ class LegendIconWidget(qt.QWidget):
         - '--': dashed
         - ':': dotted
         - '-.': dash and dot
+        - (offset, (dash pattern))
 
-        :param str style: The linestyle to use
+        :param style: The linestyle to use
         """
+        print("setLineStyle", style)
         if style not in _LineStyles:
-            raise ValueError("Unknown style: %s", style)
-        self.lineStyle = _LineStyles[style]
+            self.lineStyle = qt.Qt.SolidLine
+            dashPattern = style[1]
+            if dashPattern is None or dashPattern == ():
+                self.__dashPattern = None
+            else:
+                self.__dashPattern = style[1]
+        else:
+            self.lineStyle = _LineStyles[style]
+            self.__dashPattern = None
         self.update()
 
     def _toLut(self, colormap):
@@ -382,6 +392,8 @@ class LegendIconWidget(qt.QWidget):
                 self.lineStyle,
                 qt.Qt.FlatCap,
             )
+            if self.__dashPattern is not None:
+                linePen.setDashPattern(self.__dashPattern)
             llist.append((linePath, linePen, lineBrush))
 
         isValidSymbol = len(self.symbol) and self.symbol not in _NoSymbols

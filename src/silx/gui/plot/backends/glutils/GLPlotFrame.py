@@ -494,7 +494,7 @@ class GLPlotFrame(object):
     # Margins used when plot frame is not displayed
     _NoDisplayMargins = _Margins(0, 0, 0, 0)
 
-    def __init__(self, marginRatios, foregroundColor, gridColor):
+    def __init__(self, marginRatios, foregroundColor, gridColor, font: qt.QFont):
         """
         :param List[float] marginRatios:
             The ratios of margins around plot area for axis and labels.
@@ -503,6 +503,7 @@ class GLPlotFrame(object):
         :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
         :param gridColor: color used for grid lines.
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
+        :param font: Font used by the axes label
         """
         self._renderResources = None
 
@@ -517,6 +518,7 @@ class GLPlotFrame(object):
         self._grid = False
         self._size = 0.0, 0.0
         self._title = ""
+        self._font: qt.QFont = font
 
         self._devicePixelRatio = 1.0
         self._dpi = 92
@@ -730,7 +732,7 @@ class GLPlotFrame(object):
         labels.append(
             Text2D(
                 text=self.title,
-                font=qt.QApplication.instance().font(),
+                font=self._font,
                 color=self._foregroundColor,
                 x=xTitle,
                 y=yTitle,
@@ -816,7 +818,7 @@ class GLPlotFrame(object):
 
 
 class GLPlotFrame2D(GLPlotFrame):
-    def __init__(self, marginRatios, foregroundColor, gridColor):
+    def __init__(self, marginRatios, foregroundColor, gridColor, font: qt.QFont):
         """
         :param List[float] marginRatios:
             The ratios of margins around plot area for axis and labels.
@@ -825,9 +827,9 @@ class GLPlotFrame2D(GLPlotFrame):
         :type foregroundColor: tuple with RGBA values ranging from 0.0 to 1.0
         :param gridColor: color used for grid lines.
         :type gridColor: tuple RGBA with RGBA values ranging from 0.0 to 1.0
-
+        :param font: Font used by the axes label
         """
-        super(GLPlotFrame2D, self).__init__(marginRatios, foregroundColor, gridColor)
+        super(GLPlotFrame2D, self).__init__(marginRatios, foregroundColor, gridColor, font)
         self.axes.append(
             PlotAxis(
                 self,

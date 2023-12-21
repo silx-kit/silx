@@ -963,6 +963,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         else:
             assert False
 
+        if bgcolor is None:
+            bgcolor = "none"
+
         marker = self._getMarkerFromSymbol(symbol)
         if x is not None and y is not None:
             line = ax.plot(
@@ -1636,6 +1639,10 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             return  # Skip rendering of 0-sized canvas
 
         self.updateZOrder()
+
+        if not qt_inspect.isValid(self):
+            _logger.info("draw requested but widget no longer exists")
+            return
 
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,

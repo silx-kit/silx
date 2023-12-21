@@ -603,7 +603,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         if event == items.ItemChangedType.NAME and self.__text is None:
             self._updated(items.ItemChangedType.TEXT, checkVisibility)
 
-    def _updatedStyle(self, event, style):
+    def _updatedStyle(self, event, style: items.CurveStyle):
         """Called when the current displayed style of the ROI was changed.
 
         :param event: The event responsible of the change of the style
@@ -611,7 +611,7 @@ class RegionOfInterest(_RegionOfInterestBase, core.HighlightedMixIn):
         """
         pass
 
-    def getCurrentStyle(self):
+    def getCurrentStyle(self) -> items.CurveStyle:
         """Returns the current curve style.
 
         Curve style depends on curve highlighting

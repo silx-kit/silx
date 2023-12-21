@@ -126,13 +126,14 @@ class BackendBase(object):
             - 's' square
 
         :param float linewidth: The width of the curve in pixels
-        :param str linestyle: Type of line::
+        :param linestyle: Type of line::
 
             - ' ' or ''  no line
             - '-'  solid line
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
+            - (offset, (dash pattern))
 
         :param str yaxis: The Y axis this curve belongs to in: 'left', 'right'
         :param xerror: Values with the uncertainties on the x values
@@ -190,7 +191,7 @@ class BackendBase(object):
         :param str color: Color of the item
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
-        :param str linestyle: Style of the line.
+        :param linestyle: Style of the line.
             Only relevant for line markers where X or Y is None.
             Value in:
 
@@ -199,6 +200,7 @@ class BackendBase(object):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
+            - (offset, (dash pattern))
         :param float linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
         :param str gapcolor: Background color of the line, e.g., 'blue', 'b',
@@ -215,7 +217,7 @@ class BackendBase(object):
         color: str,
         symbol: str | None,
         symbolsize: float,
-        linestyle: str,
+        linestyle: str | tuple[float, tuple[float, ...] | None],
         linewidth: float,
         constraint: Callable[[float, float], tuple[float, float]] | None,
         yaxis: str,
@@ -251,6 +253,7 @@ class BackendBase(object):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
+            - (offset, (dash pattern))
         :param linewidth: Width of the line.
             Only relevant for line markers where X or Y is None.
         :param constraint: A function filtering marker displacement by
@@ -301,8 +304,9 @@ class BackendBase(object):
                 - '--' dashed line
                 - '-.' dash-dot line
                 - ':' dotted line
+                - (offset, (dash pattern))
 
-        :type linestyle: None or one of the predefined styles.
+        :type linestyle: None, one of the predefined styles or (offset, (dash pattern)).
         """
         pass
 

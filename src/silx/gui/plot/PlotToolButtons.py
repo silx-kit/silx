@@ -41,70 +41,16 @@ __date__ = "27/06/2017"
 
 import functools
 import logging
-import weakref
-import numpy
 
 from .. import icons
 from .. import qt
 from ... import config
+from .tools.PlotToolButton import PlotToolButton
 
 from .items import SymbolMixIn, Scatter
-from silx.gui.plot.tools.roi import RegionOfInterestManager
-from silx.gui.plot.items.roi import LineROI
 
 
 _logger = logging.getLogger(__name__)
-
-
-class PlotToolButton(qt.QToolButton):
-    """A QToolButton connected to a :class:`~silx.gui.plot.PlotWidget`."""
-
-    def __init__(self, parent=None, plot=None):
-        super(PlotToolButton, self).__init__(parent)
-        self._plotRef = None
-        if plot is not None:
-            self.setPlot(plot)
-
-    def plot(self):
-        """
-        Returns the plot connected to the widget.
-        """
-        return None if self._plotRef is None else self._plotRef()
-
-    def setPlot(self, plot):
-        """
-        Set the plot connected to the widget
-
-        :param plot: :class:`.PlotWidget` instance on which to operate.
-        """
-        previousPlot = self.plot()
-
-        if previousPlot is plot:
-            return
-        if previousPlot is not None:
-            self._disconnectPlot(previousPlot)
-
-        if plot is None:
-            self._plotRef = None
-        else:
-            self._plotRef = weakref.ref(plot)
-            self._connectPlot(plot)
-
-    def _connectPlot(self, plot):
-        """
-        Called when the plot is connected to the widget
-
-        :param plot: :class:`.PlotWidget` instance
-        """
-        pass
-
-    def _disconnectPlot(self, plot):
-        """
-        Called when the plot is disconnected from the widget
-
-        :param plot: :class:`.PlotWidget` instance
-        """
-        pass
 
 
 class AspectToolButton(PlotToolButton):
@@ -606,115 +552,3 @@ class ScatterVisualizationToolButton(_SymbolToolButtonBase):
                     (value, value),
                 )
                 item.setVisualization(Scatter.Visualization.BINNED_STATISTIC)
-
-
-class RulerToolButton(PlotToolButton):
-    """
-    Button to active measurement between two point of the plot
-
-    An instance of `RulerToolButton` can be added to a plot toolbar like:
-    .. code-block:: python
-
-        plot = Plot2D()
-
-        rulerButton = RulerToolButton(parent=plot, plot=plot)
-        plot.toolBar().addWidget(rulerButton)
-    """
-
-    class RulerROI(LineROI):
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self._formatFunction = None
-
-        def registerFormatFunction(self, fct):
-            """fct is expected to be a function taking (startPoint, endPoint) as parameter"""
-            self._formatFunction = fct
-
-        def setEndPoints(self, startPoint, endPoint):
-            super().setEndPoints(startPoint=startPoint, endPoint=endPoint)
-            if self._formatFunction is not None:
-                ruler_text = self._formatFunction(
-                    startPoint=startPoint, endPoint=endPoint
-                )
-                self._updateText(ruler_text)
-
-    def __init__(
-        self,
-        parent=None,
-        plot=None,
-        color: str = "yellow",
-    ):
-        self.__color = color
-        super().__init__(parent=parent, plot=plot)
-        self.setCheckable(True)
-        self._roiManager = None
-        self._lastRoiCreated = None
-        self.setIcon(icons.getQIcon("ruler"))
-        self.toggled.connect(self._callback)
-        self._connectPlot(plot)
-
-    def setPlot(self, plot):
-        return super().setPlot(plot)
-
-    def _callback(self, *args, **kwargs):
-        if not self._roiManager:
-            return
-        if self._lastRoiCreated is not None:
-            self._lastRoiCreated.setVisible(self.isChecked())
-        if self.isChecked():
-            self._roiManager.start(
-                self.RulerROI,
-                self,
-            )
-            self.__interactiveModeStarted(self._roiManager)
-        else:
-            source = self._roiManager.getInteractionSource()
-            if source is self:
-                self._roiManager.stop()
-
-    def __interactiveModeStarted(self, roiManager):
-        roiManager.sigInteractiveModeFinished.connect(self.__interactiveModeFinished)
-
-    def __interactiveModeFinished(self):
-        roiManager = self._roiManager
-        if roiManager is not None:
-            roiManager.sigInteractiveModeFinished.disconnect(
-                self.__interactiveModeFinished
-            )
-        self.setChecked(False)
-
-    def _connectPlot(self, plot):
-        """
-        Called when the plot is connected to the widget
-
-        :param plot: :class:`.PlotWidget` instance
-        """
-        if plot is None:
-            return
-        self._roiManager = RegionOfInterestManager(plot)
-        self._roiManager.setColor(self.__color)  # Set the color of ROI
-        self._roiManager.sigRoiAdded.connect(self._registerCurrentROI)
-
-    def _disconnectPlot(self, plot):
-        if plot and self._lastRoiCreated is not None:
-            self._roiManager.removeRoi(self._lastRoiCreated)
-            self._lastRoiCreated = None
-        return super()._disconnectPlot(plot)
-
-    def _registerCurrentROI(self, currentRoi):
-        if self._lastRoiCreated is None:
-            self._lastRoiCreated = currentRoi
-            self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
-        elif currentRoi != self._lastRoiCreated and self._roiManager is not None:
-            self._roiManager.removeRoi(self._lastRoiCreated)
-            self._lastRoiCreated = currentRoi
-            self._lastRoiCreated.registerFormatFunction(self.buildDistanceText)
-
-    def buildDistanceText(self, startPoint, endPoint):
-        """
-        define the text to be displayed by the ruler.
-        It can be redefine to modify precision or handle other parameters
-        (handling pixel size to display metric distance, display distance on each distance - for non-square pixels...)
-        """
-        distance = numpy.linalg.norm(endPoint - startPoint)
-        return f"{distance: .1f}px"

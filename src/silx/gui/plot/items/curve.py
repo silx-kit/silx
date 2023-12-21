@@ -23,6 +23,7 @@
 # ###########################################################################*/
 """This module provides the :class:`Curve` item of the :class:`Plot`.
 """
+from __future__ import annotations
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -43,6 +44,7 @@ from .core import (
     FillMixIn,
     LineMixIn,
     LineGapColorMixIn,
+    LineStyleType,
     SymbolMixIn,
     BaselineMixIn,
     HighlightedMixIn,
@@ -59,21 +61,21 @@ class CurveStyle(_Style):
     Set a value to None to use the default
 
     :param color: Color
-    :param Union[str,None] linestyle: Style of the line
-    :param Union[float,None] linewidth: Width of the line
-    :param Union[str,None] symbol: Symbol for markers
-    :param Union[float,None] symbolsize: Size of the markers
+    :param linestyle: Style of the line
+    :param linewidth: Width of the line
+    :param symbol: Symbol for markers
+    :param symbolsize: Size of the markers
     :param gapcolor: Color of gaps of dashed line
     """
 
     def __init__(
         self,
-        color=None,
-        linestyle=None,
-        linewidth=None,
-        symbol=None,
-        symbolsize=None,
-        gapcolor=None,
+        color: colors.RGBAColorType | None = None,
+        linestyle: LineStyleType | None = None,
+        linewidth: float | None = None,
+        symbol: str | None = None,
+        symbolsize: float | None = None,
+        gapcolor: colors.RGBAColorType | None = None,
     ):
         if color is None:
             self._color = None
@@ -86,8 +88,8 @@ class CurveStyle(_Style):
                     color = colors.rgba(color)
             self._color = color
 
-        if linestyle is not None:
-            assert linestyle in LineMixIn.getSupportedLineStyles()
+        if not LineMixIn.isValidLineStyle(linestyle):
+            raise ValueError(f"Not a valid line style: {linestyle}")
         self._linestyle = linestyle
 
         self._linewidth = None if linewidth is None else float(linewidth)
@@ -120,7 +122,7 @@ class CurveStyle(_Style):
         """
         return self._gapcolor
 
-    def getLineStyle(self):
+    def getLineStyle(self) -> LineStyleType | None:
         """Return the type of the line or None if not set.
 
         Type of line::
@@ -130,8 +132,7 @@ class CurveStyle(_Style):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
-
-        :rtype: Union[str,None]
+            - (offset, (dash pattern))
         """
         return self._linestyle
 
