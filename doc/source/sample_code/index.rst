@@ -450,7 +450,7 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
        It can also be started without providing a file.
 
 :mod:`silx.gui.widgets` sample code
-++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++
 
 .. list-table::
    :widths: 1 1 4
@@ -460,7 +460,7 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
      - Screenshot
      - Description
    * - :download:`floatedit.py <../../../examples/floatedit.py>`
-     - .. image:: img/foatedit.png
+     - .. image:: img/floatedit.png
          :width: 150px
      - This script illustrates the use of :class:`silx.gui.widgets.FloatEdit.FloatEdit`.
    * - :download:`stackedprogressbar.py <../../../examples/stackedprogressbar.py>`
