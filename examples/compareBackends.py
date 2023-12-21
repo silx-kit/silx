@@ -23,7 +23,7 @@
 # ###########################################################################*/
 
 """
-Compare one to one backend rendering
+This script compares the rendering of PlotWidget's matplotlib and OpenGL backends.
 """
 
 from __future__ import annotations

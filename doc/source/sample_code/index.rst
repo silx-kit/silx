@@ -365,10 +365,6 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
-   * - :download:`compositeline.py <../../../examples/compositeline.py>`
-     - .. image:: img/compositeline.png
-         :width: 150px
-     - Example to show the use of markers to draw head and tail of lines.
    * - :download:`dropZones.py <../../../examples/dropZones.py>`
      - .. image:: img/dropZones.png
          :width: 150px
@@ -386,6 +382,10 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
          :width: 150px
      - This script is an example to illustrate how to use axis synchronization
        tool.
+   * - :download:`compareBackends.py <../../../examples/compareBackends.py>`
+     - .. image:: img/compareBackends.png
+         :width: 150px
+     - This script compares the rendering of PlotWidget's matplotlib and OpenGL backends.
 
 
 .. _plot3d-sample-code:
@@ -449,6 +449,28 @@ Sample code that illustrates some functionalities of :class:`~silx.gui.plot.Plot
        an interactive cutting plane.
        It can also be started without providing a file.
 
+:mod:`silx.gui.widgets` sample code
+++++++++++++++++++++++++++++++++++
+
+.. list-table::
+   :widths: 1 1 4
+   :header-rows: 1
+
+   * - Source
+     - Screenshot
+     - Description
+   * - :download:`floatedit.py <../../../examples/floatedit.py>`
+     - .. image:: img/foatedit.png
+         :width: 150px
+     - This script illustrates the use of :class:`silx.gui.widgets.FloatEdit.FloatEdit`.
+   * - :download:`stackedprogressbar.py <../../../examples/stackedprogressbar.py>`
+     - .. image:: img/stackedprogressbar.png
+         :width: 150px
+     - This script illustrates the use of :class:`silx.gui.widgets.StackedProgressBar.StackedProgressBar`.
+   * - :download:`waiterOverlay.py <../../../examples/waiterOverlay.py>`
+     - .. image:: img/waiterOverlay.png
+         :width: 150px
+     - Demonstration window that displays a wait icon until the plot is updated.
 
 :mod:`silx.io` sample code
 ++++++++++++++++++++++++++

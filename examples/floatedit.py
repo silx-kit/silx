@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-Test FloatEdit widgets
+This script illustrates the use of :class:`silx.gui.widgets.FloatEdit.FloatEdit`.
 """
 
 from silx.gui import qt

@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """
-Test StackedProgressBar widgets
+This script illustrates the use of :class:`silx.gui.widgets.StackedProgressBar.StackedProgressBar`.
 """
 
 from silx.gui import qt
