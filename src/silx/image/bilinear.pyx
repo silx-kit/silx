@@ -9,7 +9,7 @@
 #    Project: silx (originally pyFAI)
 #             https://github.com/silx-kit/silx
 #
-#    Copyright (C) 2012-2020  European Synchrotron Radiation Facility, Grenoble, France
+#    Copyright (C) 2012-2023  European Synchrotron Radiation Facility, Grenoble, France
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@
 """Bilinear interpolator, peak finder, line-profile for images"""
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "26/11/2020"
+__date__ = "21/12/2023"
 
 # C-level imports
 from libc.stdint cimport uint8_t
@@ -67,9 +67,9 @@ cdef class BilinearImage:
     
     # C-level declarations
     cpdef Py_ssize_t coarse_local_maxi(self, Py_ssize_t)
-    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t) nogil
-    cdef data_t c_funct(self, data_t, data_t) nogil
-    cdef void _init_min_max(self) nogil
+    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t) noexcept nogil
+    cdef data_t c_funct(self, data_t, data_t) noexcept nogil
+    cdef void _init_min_max(self) noexcept nogil
     
     def __cinit__(self, data not None, mask=None):
         """Constructor
@@ -102,7 +102,7 @@ cdef class BilinearImage:
         """
         return self.c_funct(coord[1], coord[0])
     
-    cdef void _init_min_max(self) nogil:
+    cdef void _init_min_max(self) noexcept nogil:
         "Calculate the min & max"
         cdef:
             Py_ssize_t i, j
@@ -118,7 +118,7 @@ cdef class BilinearImage:
         self.maxi = maxi
         self.mini = mini 
 
-    cdef data_t c_funct(self, data_t x, data_t y) nogil:
+    cdef data_t c_funct(self, data_t x, data_t y) noexcept nogil:
         """Function f(x, y) where f is a continuous function
         made from the image.
 
@@ -305,7 +305,7 @@ cdef class BilinearImage:
         """
         return self.c_local_maxi(x)
 
-    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t idx) nogil:
+    cdef Py_ssize_t c_local_maxi(self, Py_ssize_t idx) noexcept nogil:
         """Return the nearest local maximum without sub-pixel refinement
 
         :param idx: start index (=row*width+column)
