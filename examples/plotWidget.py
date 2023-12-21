@@ -45,7 +45,9 @@ from silx.gui.plot import PlotWidget
 from silx.gui.plot import tools  # QToolbars to use with PlotWidget
 from silx.gui.plot import actions  # QAction to use with PlotWidget
 from silx.gui.plot import PlotToolButtons  # QToolButton to use with PlotWidget
+from silx.gui.plot.tools.RulerToolButton import RulerToolButton
 from silx.gui.plot.ColorBar import ColorBarWidget
+from silx.gui.plot.actions import control as control_actions
 
 
 class MyPlotWindow(qt.QMainWindow):
@@ -113,6 +115,15 @@ class MyPlotWindow(qt.QMainWindow):
             parent=self, plot=self._plot
         )
         toolBar.addWidget(aspectRatioButton)
+
+        # Add tool buttons from silx.gui.plot.PlotToolButtons
+        rulerButton = RulerToolButton(
+            parent=self, plot=self._plot
+        )
+        toolBar.addWidget(rulerButton)
+
+        action = control_actions.OpenGLAction(parent=toolBar, plot=self._plot)
+        toolBar.addAction(action)
 
         # Add ready to use toolbar with copy, save and print buttons
         outputToolBar = tools.OutputToolBar(parent=self, plot=self._plot)

@@ -61,21 +61,21 @@ class CurveStyle(_Style):
     Set a value to None to use the default
 
     :param color: Color
-    :param Union[str,None] linestyle: Style of the line
-    :param Union[float,None] linewidth: Width of the line
-    :param Union[str,None] symbol: Symbol for markers
-    :param Union[float,None] symbolsize: Size of the markers
+    :param linestyle: Style of the line
+    :param linewidth: Width of the line
+    :param symbol: Symbol for markers
+    :param symbolsize: Size of the markers
     :param gapcolor: Color of gaps of dashed line
     """
 
     def __init__(
         self,
-        color=None,
+        color: colors.RGBAColorType | None = None,
         linestyle: LineStyleType | None = None,
-        linewidth=None,
-        symbol=None,
-        symbolsize=None,
-        gapcolor=None,
+        linewidth: float | None = None,
+        symbol: str | None = None,
+        symbolsize: float | None = None,
+        gapcolor: colors.RGBAColorType | None = None,
     ):
         if color is None:
             self._color = None
