@@ -28,7 +28,6 @@ __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
 
-import collections
 from collections import abc
 from copy import deepcopy
 import logging

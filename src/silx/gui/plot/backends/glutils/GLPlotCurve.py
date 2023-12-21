@@ -650,14 +650,14 @@ class Points2D(object):
         PLUS: """
         float alphaSymbol(vec2 coord, float size) {
             vec2 d = abs(size * (coord - vec2(0.5, 0.5)));
-            return smoothstep(1.5, 0.5, min(d.x, d.y));
+            return local_smoothstep(1.5, 0.5, min(d.x, d.y));
         }
         """,
         X_MARKER: """
         float alphaSymbol(vec2 coord, float size) {
             vec2 pos = floor(size * coord) + 0.5;
             vec2 d_x = abs(pos.x + vec2(- pos.y, pos.y - size));
-            return smoothstep(1.5, 0.5, min(d_x.x, d_x.y));
+            return local_smoothstep(1.5, 0.5, min(d_x.x, d_x.y));
         }
         """,
         ASTERISK: """
@@ -679,13 +679,13 @@ class Points2D(object):
         H_LINE: """
         float alphaSymbol(vec2 coord, float size) {
             float d = abs(size * (coord.y - 0.5));
-            return smoothstep(1.5, 0.5, d);
+            return local_smoothstep(1.5, 0.5, d);
         }
         """,
         V_LINE: """
         float alphaSymbol(vec2 coord, float size) {
             float d = abs(size * (coord.x - 0.5));
-            return smoothstep(1.5, 0.5, d);
+            return local_smoothstep(1.5, 0.5, d);
         }
         """,
         HEART: """
@@ -699,7 +699,7 @@ class Points2D(object):
             float d = (13.0*h - 22.0*h*h + 10.0*h*h*h)/(6.0-5.0*h);
             float res = clamp(r-d, 0., 1.);
             // antialiasing
-            res = smoothstep(0.1, 0.001, res);
+            res = local_smoothstep(0.1, 0.001, res);
             return res;
         }
         """,
@@ -710,7 +710,7 @@ class Points2D(object):
             if (coord.x > 0.5) {
                 return 0.0;
             }
-            return smoothstep(1.5, 0.5, dy);
+            return local_smoothstep(1.5, 0.5, dy);
         }
         """,
         TICK_RIGHT: """
@@ -720,7 +720,7 @@ class Points2D(object):
             if (coord.x < -0.5) {
                 return 0.0;
             }
-            return smoothstep(1.5, 0.5, dy);
+            return local_smoothstep(1.5, 0.5, dy);
         }
         """,
         TICK_UP: """
@@ -730,7 +730,7 @@ class Points2D(object):
             if (coord.y > 0.5) {
                 return 0.0;
             }
-            return smoothstep(1.5, 0.5, dx);
+            return local_smoothstep(1.5, 0.5, dx);
         }
         """,
         TICK_DOWN: """
@@ -740,7 +740,7 @@ class Points2D(object):
             if (coord.y < -0.5) {
                 return 0.0;
             }
-            return smoothstep(1.5, 0.5, dx);
+            return local_smoothstep(1.5, 0.5, dx);
         }
         """,
         CARET_LEFT: """
@@ -748,7 +748,7 @@ class Points2D(object):
             coord  = size * (coord - 0.5);
             float d = abs(coord.x) - abs(coord.y);
             if (d >= -0.1 && coord.x > 0.5) {
-                return smoothstep(-0.1, 0.1, d);
+                return local_smoothstep(-0.1, 0.1, d);
             } else {
                 return 0.0;
             }
@@ -759,7 +759,7 @@ class Points2D(object):
             coord  = size * (coord - 0.5);
             float d = abs(coord.x) - abs(coord.y);
             if (d >= -0.1 && coord.x < 0.5) {
-                return smoothstep(-0.1, 0.1, d);
+                return local_smoothstep(-0.1, 0.1, d);
             } else {
                 return 0.0;
             }
@@ -770,7 +770,7 @@ class Points2D(object):
             coord  = size * (coord - 0.5);
             float d = abs(coord.y) - abs(coord.x);
             if (d >= -0.1 && coord.y > 0.5) {
-                return smoothstep(-0.1, 0.1, d);
+                return local_smoothstep(-0.1, 0.1, d);
             } else {
                 return 0.0;
             }
@@ -781,7 +781,7 @@ class Points2D(object):
             coord  = size * (coord - 0.5);
             float d = abs(coord.y) - abs(coord.x);
             if (d >= -0.1 && coord.y < 0.5) {
-                return smoothstep(-0.1, 0.1, d);
+                return local_smoothstep(-0.1, 0.1, d);
             } else {
                 return 0.0;
             }
@@ -795,6 +795,13 @@ class Points2D(object):
     uniform float size;
 
     varying vec4 vColor;
+
+    /* smoothstep function implementation to support GLSL 1.20 */
+    float local_smoothstep(float edge0, float edge1, float x) {
+        float t;
+        t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+    }
 
     %s
 
