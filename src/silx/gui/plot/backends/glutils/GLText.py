@@ -116,14 +116,14 @@ class Text2D:
     varying vec2 vCoords;
 
     void main(void) {
-        gl_FragColor = mix(bgColor, color, texture2D(texText, vCoords).r);
+        if (vCoords.x < 0.0 || vCoords.x > 1.0 || vCoords.y < 0.0 || vCoords.y > 1.0) {
+            gl_FragColor = bgColor;
+        } else {
+            gl_FragColor = mix(bgColor, color, texture2D(texText, vCoords).r);
+        }
     }
     """,
     }
-
-    _TEX_COORDS = numpy.array(
-        ((0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)), dtype=numpy.float32
-    ).ravel()
 
     _program = Program(_SHADERS["vertex"], _SHADERS["fragment"], attrib0="position")
 
@@ -146,11 +146,13 @@ class Text2D:
         valign: str = BASELINE,
         rotate: float = 0.0,
         devicePixelRatio: float = 1.0,
+        padding: int = 0,
     ):
         self.devicePixelRatio = devicePixelRatio
         self.font = font
         self._vertices = None
         self._text = text
+        self._padding = padding
         self.x = x
         self.y = y
         self.color = color
@@ -203,6 +205,10 @@ class Text2D:
     @property
     def text(self) -> str:
         return self._text
+
+    @property
+    def padding(self) -> int:
+        return self._padding
 
     @property
     def size(self) -> tuple[int, int]:
@@ -282,17 +288,31 @@ class Text2D:
             bgColor = self.color[0], self.color[1], self.color[2], 0.0
         gl.glUniform4f(prog.uniforms["bgColor"], *bgColor)
 
-        vertices = self.getVertices(offset, texture.shape)
+        paddingOffset = max(0, int(self.padding * self.devicePixelRatio))
+        height, width = texture.shape
+        vertices = self.getVertices(
+            offset, (height + 2 * paddingOffset, width + 2 * paddingOffset)
+        )
 
         posAttrib = prog.attributes["position"]
         gl.glEnableVertexAttribArray(posAttrib)
         gl.glVertexAttribPointer(posAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, vertices)
 
+        xoffset = paddingOffset / width
+        yoffset = paddingOffset / height
+        texCoords = numpy.array(
+            (
+                (-xoffset, -yoffset),
+                (1.0 + xoffset, -yoffset),
+                (-xoffset, 1.0 + yoffset),
+                (1.0 + xoffset, 1.0 + yoffset),
+            ),
+            dtype=numpy.float32,
+        ).ravel()
+
         texAttrib = prog.attributes["texCoords"]
         gl.glEnableVertexAttribArray(texAttrib)
-        gl.glVertexAttribPointer(
-            texAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, self._TEX_COORDS
-        )
+        gl.glVertexAttribPointer(texAttrib, 2, gl.GL_FLOAT, gl.GL_FALSE, 0, texCoords)
 
         with texture:
             gl.glDrawArrays(gl.GL_TRIANGLE_STRIP, 0, 4)
