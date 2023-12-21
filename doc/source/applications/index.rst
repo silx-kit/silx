@@ -1,6 +1,6 @@
 
-Applications documentation
-==========================
+Application
+===========
 
 While *silx* is first and foremost a Python library to be used by developers,
 a set of command line applications is provided to use some key features of

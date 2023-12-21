@@ -1,6 +1,6 @@
 
-Installation steps
-==================
+Installation
+============
 
 *silx* supports most operating systems and different versions of the Python
 programming language.

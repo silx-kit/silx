@@ -1,18 +1,51 @@
 silx |version|
 ==============
 
-.. |silxView| image:: http://www.silx.org/doc/silx/img/silx-view-v1-0.gif
-   :height: 80px
+.. toctree::
+   :hidden:
 
-The silx project aims to provide a collection of Python packages to support the
+   user_guide.rst
+   applications/index.rst
+   tutorials.rst
+   modules/index.rst
+   changelog.rst
+
+.. |silxView| image:: http://www.silx.org/doc/silx/img/silx-view-v1-0.gif
+   :width: 480px
+
+silx provides applications and Python modules to support the
 development of data assessment, reduction and analysis at synchrotron radiation
 facilities.
-It intends to provide reading/writing tools for different file formats, data
+It provides reading/writing tools for different file formats, data
 reduction routines and a set of Qt widgets to browse and visualise data.
-Silx can be cited by its DOIs referenced on
-`Zenodo <https://doi.org/10.5281/zenodo.591709>`_.
 
-The current version (v\ |version|) caters for:
+:doc:`install`
+--------------
+
+You can install ``silx`` using `pip <https://pypi.org/project/pip>`_::
+
+    pip install silx[full]
+
+Using `conda <https://docs.conda.io>`_::
+
+    conda install -c conda-forge silx
+
+And on Debian and Ubuntu with::
+
+    sudo apt-get install silx
+
+:doc:`applications/index`
+-------------------------
+
+The :ref:`silx view` unified viewer supports HDF5, SPEC and image file formats:
+
+|silxView|
+
+
+Python package
+--------------
+
+Features:
 
 * Supporting `HDF5 <https://www.hdfgroup.org/HDF5/>`_,
   `SPEC <https://certif.com/spec.html>`_ and
@@ -29,63 +62,8 @@ The current version (v\ |version|) caters for:
   * a unified browser for HDF5, SPEC and image file formats supporting inspection and
     visualization of n-dimensional datasets.
 
-* a set of applications:
+Resources:
 
-    * a unified viewer (:ref:`silx view` *filename*) for HDF5, SPEC and image file formats
-
-      |silxView|
-
-    * a unified converter to HDF5 format (*silx convert filename*)
-
-   
-
-.. toctree::
-   :hidden:
-
-   overview.rst
-   install.rst
-   description/index.rst
-   tutorials.rst
-   modules/index.rst
-   applications/index.rst
-   changelog.rst
-   license.rst
-   virtualenv.rst
-   troubleshooting.rst
-
-:doc:`overview`
-    Releases, repository, issue tracker, mailing list, ...
-
-:doc:`install`
-    How to install *silx* on Linux, Windows and MacOS X
-
-:doc:`description/index`
-    Description of the different algorithms and their implementation
-
-:doc:`tutorials`
-    Tutorials and sample code
-
-:doc:`modules/index`
-    Documentation of the packages included in *silx*
-
-:doc:`applications/index`
-    Documentation of the applications provided by *silx*
-
-:doc:`modules/gui/gallery`
-    Widgets gallery and screenshots
-
-:doc:`changelog`
-    List of changes between releases
-
-:doc:`license`
-    License and copyright information
-
-:doc:`troubleshooting`
-    When things do not work as expected
-
-Indices
-=======
-
-* :ref:`modindex`
-* :ref:`search`
-* :ref:`genindex`
+- :doc:`tutorials`
+- :doc:`modules/gui/gallery`
+- :doc:`modules/index`
