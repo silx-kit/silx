@@ -58,7 +58,17 @@ _logger = logging.getLogger(__name__)
 
 class _ShapeItem(dict):
     def __init__(
-        self, x, y, shape, color, fill, overlay, linewidth, dashpattern, gapcolor
+        self,
+        x,
+        y,
+        shape,
+        color,
+        fill,
+        overlay,
+        linewidth,
+        dashoffset,
+        dashpattern,
+        gapcolor,
     ):
         super(_ShapeItem, self).__init__()
 
@@ -85,6 +95,7 @@ class _ShapeItem(dict):
                 "x": x,
                 "y": y,
                 "linewidth": linewidth,
+                "dashoffset": dashoffset,
                 "dashpattern": dashpattern,
                 "gapcolor": gapcolor,
             }
@@ -100,6 +111,7 @@ class _MarkerItem(dict):
         color,
         symbol,
         linewidth,
+        dashoffset,
         dashpattern,
         constraint,
         yaxis,
@@ -125,6 +137,7 @@ class _MarkerItem(dict):
                 "constraint": constraint if isConstraint else None,
                 "symbol": symbol,
                 "linewidth": linewidth,
+                "dashoffset": dashoffset,
                 "dashpattern": dashpattern,
                 "yaxis": yaxis,
                 "font": font,
@@ -590,6 +603,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             color=item["color"],
                             gapColor=item["gapcolor"],
                             width=item["linewidth"],
+                            dashOffset=item["dashoffset"],
                             dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
@@ -640,6 +654,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             (pixelPos[1], pixelPos[1]),
                             color=color,
                             width=item["linewidth"],
+                            dashOffset=item["dashoffset"],
                             dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
@@ -673,6 +688,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                             (0, height),
                             color=color,
                             width=item["linewidth"],
+                            dashOffset=item["dashoffset"],
                             dashPattern=item["dashpattern"],
                         )
                         context.matrix = self.matScreenProj
@@ -861,21 +877,37 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         else:
             raise ValueError("Unsupported data type")
 
-    _DASH_PATTERNS = {  # Convert from linestyle to dash pattern
-        "": None,
-        " ": None,
-        "-": (),
-        "--": (3.7, 1.6, 3.7, 1.6),
-        "-.": (6.4, 1.6, 1, 1.6),
-        ":": (1, 1.65, 1, 1.65),
-        None: None,
+    _DASH_PATTERNS = {
+        "": (0.0, None),
+        " ": (0.0, None),
+        "-": (0.0, ()),
+        "--": (0.0, (3.7, 1.6, 3.7, 1.6)),
+        "-.": (0.0, (6.4, 1.6, 1, 1.6)),
+        ":": (0.0, (1, 1.65, 1, 1.65)),
+        None: (0.0, None),
     }
+    """Convert from linestyle to (offset, (dash pattern))
 
-    def _lineStyleToDashPattern(
-        self, style: str | None
-    ) -> tuple[float, float, float, float] | tuple[()] | None:
-        """Convert a linestyle to its corresponding dash pattern"""
-        return self._DASH_PATTERNS[style]
+    Note: dash pattern internal convention differs from matplotlib:
+    - None: no line at all
+    - (): "solid" line
+    """
+
+    def _lineStyleToDashOffsetPattern(
+        self, style
+    ) -> tuple[float, tuple[float, float, float, float] | tuple[()] | None]:
+        """Convert a linestyle to its corresponding offset and dash pattern"""
+        if style is None or isinstance(style, str):
+            return self._DASH_PATTERNS[style]
+
+        # (offset, (dash pattern)) case
+        offset, pattern = style
+        if pattern is None:
+            # Convert from matplotlib to internal representation of solid
+            pattern = ()
+        if len(pattern) == 2:
+            pattern = pattern * 2
+        return offset, pattern
 
     def addCurve(
         self,
@@ -996,6 +1028,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if fill is True:
             fillColor = color
 
+        dashoffset, dashpattern = self._lineStyleToDashOffsetPattern(linestyle)
         curve = glutils.GLPlotCurve2D(
             x,
             y,
@@ -1005,7 +1038,8 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             lineColor=color,
             lineGapColor=gapcolor,
             lineWidth=linewidth,
-            lineDashPattern=self._lineStyleToDashPattern(linestyle),
+            lineDashOffset=dashoffset,
+            lineDashPattern=dashpattern,
             marker=symbol,
             markerColor=color,
             markerSize=symbolsize,
@@ -1110,9 +1144,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if self._plotFrame.yAxis.isLog and y.min() <= 0.0:
             raise RuntimeError("Cannot add item with Y <= 0 with Y axis log scale")
 
-        dashpattern = self._lineStyleToDashPattern(linestyle)
+        dashoffset, dashpattern = self._lineStyleToDashOffsetPattern(linestyle)
         return _ShapeItem(
-            x, y, shape, color, fill, overlay, linewidth, dashpattern, gapcolor
+            x,
+            y,
+            shape,
+            color,
+            fill,
+            overlay,
+            linewidth,
+            dashoffset,
+            dashpattern,
+            gapcolor,
         )
 
     def getDefaultFont(self):
@@ -1145,7 +1188,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         if font is None:
             font = self.getDefaultFont()
 
-        dashpattern = self._lineStyleToDashPattern(linestyle)
+        dashoffset, dashpattern = self._lineStyleToDashOffsetPattern(linestyle)
         return _MarkerItem(
             x,
             y,
@@ -1153,6 +1196,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             color,
             symbol,
             linewidth,
+            dashoffset,
             dashpattern,
             constraint,
             yaxis,

@@ -292,6 +292,8 @@ class GLLines2D(object):
         "unscaled" dash pattern as 4 lengths in points (dash1, gap1, dash2, gap2).
         This pattern is scaled with the line width.
         Set to () to draw solid lines (default), and to None to disable rendering.
+    :param float dashOffset: The offset in points the patterns starts at.
+        The offset is scaled with the line width.
     :param drawMode: OpenGL drawing mode
     :param List[float] offset: Translation of coordinates (ox, oy)
     """
@@ -353,13 +355,14 @@ class GLLines2D(object):
         /* Dashes: [0, x], [y, z]
            Dash period: w */
         uniform vec4 dash;
+        uniform float dashOffset;
         uniform vec4 gapColor;
 
         varying float vDist;
         varying vec4 vColor;
 
         void main(void) {
-            float dist = mod(vDist, dash.w);
+            float dist = mod(vDist + dashOffset, dash.w);
             if ((dist > dash.x && dist < dash.y) || dist > dash.z) {
                 if (gapColor.a == 0.) {
                     discard;  // Discard full transparent bg color
@@ -383,6 +386,7 @@ class GLLines2D(object):
         color=(0.0, 0.0, 0.0, 1.0),
         gapColor=None,
         width=1,
+        dashOffset=0.0,
         dashPattern=(),
         drawMode=None,
         offset=(0.0, 0.0),
@@ -416,6 +420,7 @@ class GLLines2D(object):
         self.gapColor = gapColor
         self.width = width
         self.dashPattern = dashPattern
+        self.dashOffset = dashOffset
         self.offset = offset
 
         self._drawMode = drawMode if drawMode is not None else gl.GL_LINE_STRIP
@@ -447,6 +452,7 @@ class GLLines2D(object):
                 offset * scale for offset in numpy.cumsum(self.dashPattern)
             )
             gl.glUniform4f(program.uniforms["dash"], *dashOffsets)
+            gl.glUniform1f(program.uniforms["dashOffset"], self.dashOffset * scale)
 
             if self.gapColor is None:
                 # Use fully transparent color which gets discarded in shader
@@ -1188,6 +1194,7 @@ class GLPlotCurve2D(GLPlotItem):
         lineColor=(0.0, 0.0, 0.0, 1.0),
         lineGapColor=None,
         lineWidth=1,
+        lineDashOffset=0.0,
         lineDashPattern=(),
         marker=SQUARE,
         markerColor=(0.0, 0.0, 0.0, 1.0),
@@ -1278,6 +1285,7 @@ class GLPlotCurve2D(GLPlotItem):
         self.lines.color = lineColor
         self.lines.gapColor = lineGapColor
         self.lines.width = lineWidth
+        self.lines.dashOffset = lineDashOffset
         self.lines.dashPattern = lineDashPattern
         self.lines.offset = self.offset
 
@@ -1304,6 +1312,8 @@ class GLPlotCurve2D(GLPlotItem):
     lineGapColor = _proxyProperty(("lines", "gapColor"))
 
     lineWidth = _proxyProperty(("lines", "width"))
+
+    lineDashOffset = _proxyProperty(("lines", "dashOffset"))
 
     lineDashPattern = _proxyProperty(("lines", "dashPattern"))
 

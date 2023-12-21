@@ -252,7 +252,7 @@ class LegendModel(qt.QAbstractListModel):
             elif role == self.iconLineWidthRole:
                 item[1]["linewidth"] = int(value)
             elif role == self.iconLineStyleRole:
-                item[1]["linestyle"] = str(value)
+                item[1]["linestyle"] = value
             elif role == self.iconSymbolRole:
                 item[1]["symbol"] = str(value)
             elif role == qt.Qt.CheckStateRole:
@@ -674,7 +674,7 @@ class LegendListView(qt.QListView):
             "legend": str(modelIndex.data(qt.Qt.DisplayRole)),
             "icon": {
                 "linewidth": str(modelIndex.data(LegendModel.iconLineWidthRole)),
-                "linestyle": str(modelIndex.data(LegendModel.iconLineStyleRole)),
+                "linestyle": modelIndex.data(LegendModel.iconLineStyleRole),
                 "symbol": str(modelIndex.data(LegendModel.iconSymbolRole)),
             },
             "selected": modelIndex.data(qt.Qt.CheckStateRole),

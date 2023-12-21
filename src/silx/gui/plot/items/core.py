@@ -23,12 +23,13 @@
 # ###########################################################################*/
 """This module provides the base class for items of the :class:`Plot`.
 """
+from __future__ import annotations
+
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
 
-import collections
 from collections import abc
 from copy import deepcopy
 import logging
@@ -834,50 +835,74 @@ class SymbolMixIn(ItemMixInBase):
             self._updated(ItemChangedType.SYMBOL_SIZE)
 
 
+LineStyleType = Union[
+    str,
+    Tuple[float, None],
+    Tuple[float, Tuple[float, float]],
+    Tuple[float, Tuple[float, float, float, float]],
+]
+"""Type for :class:`LineMixIn`'s line style"""
+
+
 class LineMixIn(ItemMixInBase):
     """Mix-in class for item with line"""
 
-    _DEFAULT_LINEWIDTH = 1.0
+    _DEFAULT_LINEWIDTH: float = 1.0
     """Default line width"""
 
-    _DEFAULT_LINESTYLE = "-"
+    _DEFAULT_LINESTYLE: LineStyleType = "-"
     """Default line style"""
 
     _SUPPORTED_LINESTYLE = "", " ", "-", "--", "-.", ":", None
     """Supported line styles"""
 
     def __init__(self):
-        self._linewidth = self._DEFAULT_LINEWIDTH
-        self._linestyle = self._DEFAULT_LINESTYLE
+        self._linewidth: float = self._DEFAULT_LINEWIDTH
+        self._linestyle: LineStyleType = self._DEFAULT_LINESTYLE
 
     @classmethod
-    def getSupportedLineStyles(cls):
-        """Returns list of supported line styles.
-
-        :rtype: List[str,None]
-        """
+    def getSupportedLineStyles(cls) -> tuple[str | None]:
+        """Returns list of supported constant line styles."""
         return cls._SUPPORTED_LINESTYLE
 
-    def getLineWidth(self):
-        """Return the curve line width in pixels
-
-        :rtype: float
-        """
+    def getLineWidth(self) -> float:
+        """Return the curve line width in pixels"""
         return self._linewidth
 
-    def setLineWidth(self, width):
+    def setLineWidth(self, width: float):
         """Set the width in pixel of the curve line
 
         See :meth:`getLineWidth`.
-
-        :param float width: Width in pixels
         """
         width = float(width)
         if width != self._linewidth:
             self._linewidth = width
             self._updated(ItemChangedType.LINE_WIDTH)
 
-    def getLineStyle(self):
+    @classmethod
+    def isValidLineStyle(cls, style: LineStyleType | None) -> bool:
+        """Returns True for valid styles"""
+        if style is None or style in cls.getSupportedLineStyles():
+            return True
+        if not isinstance(style, tuple):
+            return False
+        if (
+            len(style) == 2
+            and isinstance(style[0], float)
+            and (
+                style[1] is None
+                or style[1] == ()
+                or (
+                    isinstance(style[1], tuple)
+                    and len(style[1]) in (2, 4)
+                    and all(map(lambda item: isinstance(item, float), style[1]))
+                )
+            )
+        ):
+            return True
+        return False
+
+    def getLineStyle(self) -> LineStyleType:
         """Return the type of the line
 
         Type of line::
@@ -887,20 +912,19 @@ class LineMixIn(ItemMixInBase):
             - '--' dashed line
             - '-.' dash-dot line
             - ':'  dotted line
-
-        :rtype: str
+            - (offset, (dash pattern))
         """
         return self._linestyle
 
-    def setLineStyle(self, style):
+    def setLineStyle(self, style: LineStyleType | None):
         """Set the style of the curve line.
 
         See :meth:`getLineStyle`.
 
-        :param str style: Line style
+        :param style: Line style
         """
-        style = str(style)
-        assert style in self.getSupportedLineStyles()
+        if not self.isValidLineStyle(style):
+            raise ValueError(f"No a valid line style: {style}")
         if style is None:
             style = self._DEFAULT_LINESTYLE
         if style != self._linestyle:
