@@ -1,5 +1,5 @@
-Tutorials and sample code
-=========================
+Tutorials & Sample Code
+=======================
 
 Tutorials and cookbooks:
 
