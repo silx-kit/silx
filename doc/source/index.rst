@@ -22,17 +22,27 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 :doc:`install`
 --------------
 
-You can install ``silx`` using `pip <https://pypi.org/project/pip>`_::
+You can install ``silx`` via `pip <https://pypi.org/project/pip>`_, `conda <https://docs.conda.io>`_ or on Linux with the following commands:
 
-    pip install silx[full]
+.. tabs::
 
-Using `conda <https://docs.conda.io>`_::
+   .. tab:: pip
 
-    conda install -c conda-forge silx
+      .. code-block:: bash
 
-And on Debian and Ubuntu with::
+         pip install silx[full]
 
-    sudo apt-get install silx
+   .. tab:: conda
+
+      .. code-block:: bash
+
+         conda install -c conda-forge silx
+
+   .. tab:: Debian & Ubuntu
+
+      .. code-block:: bash
+
+         sudo apt-get install silx
 
 :doc:`applications/index`
 -------------------------

@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (C) 2015-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -67,6 +67,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
     "sphinx.ext.inheritance_diagram",
+    "sphinx_tabs.tabs",
     "sphinxext-archive",
     "snapshotqt_directive",
     "nbsphinx",
@@ -78,6 +79,8 @@ if importlib.util.find_spec("sphinx_autodoc_typehints"):
     always_document_param_types = True
 
 autodoc_member_order = "bysource"
+
+sphinx_tabs_disable_tab_closing = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
