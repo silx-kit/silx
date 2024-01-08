@@ -317,6 +317,8 @@ Available icons
      - rotate-3d
    * - |rudder|
      - rudder
+   * - |ruler|
+     - ruler
    * - |scale-auto|
      - scale-auto
    * - |scale-fixed|
@@ -561,6 +563,7 @@ Available icons
 .. |rm| image:: ../../../../src/silx/resources/gui/icons/rm.png
 .. |rotate-3d| image:: ../../../../src/silx/resources/gui/icons/rotate-3d.png
 .. |rudder| image:: ../../../../src/silx/resources/gui/icons/rudder.png
+.. |ruler| image:: ../../../../src/silx/resources/gui/icons/ruler.png
 .. |scale-auto| image:: ../../../../src/silx/resources/gui/icons/scale-auto.png
 .. |scale-fixed| image:: ../../../../src/silx/resources/gui/icons/scale-fixed.png
 .. |selected| image:: ../../../../src/silx/resources/gui/icons/selected.png

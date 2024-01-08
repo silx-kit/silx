@@ -11,7 +11,7 @@ include requirements-dev.txt
 include pyproject.toml
 recursive-include src/silx *.pyx *.pxd *.pxi
 recursive-include src/silx *.h *.c *.hpp *.cpp
-recursive-include doc/source *.py *.rst *.png *.ico *.ipynb
+recursive-include doc/source *.py *.rst *.png *.ico *.ipynb *.html *.svg
 global-exclude .ipynb_checkpoints/*
 recursive-include qtdesigner_plugins *.py *.rst
 recursive-include src/silx/resources *
