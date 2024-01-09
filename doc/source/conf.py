@@ -67,7 +67,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.doctest",
     "sphinx.ext.inheritance_diagram",
-    "sphinx_tabs.tabs",
+    "sphinx_panels",
     "sphinxext-archive",
     "snapshotqt_directive",
     "nbsphinx",
@@ -79,8 +79,6 @@ if importlib.util.find_spec("sphinx_autodoc_typehints"):
     always_document_param_types = True
 
 autodoc_member_order = "bysource"
-
-sphinx_tabs_disable_tab_closing = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
