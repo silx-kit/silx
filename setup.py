@@ -203,6 +203,7 @@ def get_project_configuration():
         "pydata_sphinx_theme",
         "sphinx",
         "sphinx-autodoc-typehints",
+        "sphinx-panels",
     }
 
     extras_require = {

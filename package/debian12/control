@@ -33,6 +33,7 @@ Build-Depends: cython3 (>= 0.23.2),
                python3-scipy,
                python3-setuptools,
                python3-sphinx,
+               python3-sphinx-panels,
                python3-sphinxcontrib.programoutput,
                xauth,
                xvfb

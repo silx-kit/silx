@@ -6,6 +6,7 @@ build             # To build the project
 wheel             # To build wheels
 Sphinx            # To build the documentation in doc/
 sphinx-autodoc-typehints  # For leveraging Python type hints from Sphinx
+sphinx-panels     # For tabs and grid in documentation
 pillow            # For loading images in documentation generation
 pydata_sphinx_theme  # Sphinx theme
 nbsphinx          # For converting ipynb in documentation
