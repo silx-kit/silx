@@ -20,5 +20,4 @@ pytest-mock
 
 hdf5plugin        # For HDF5 compression filters handling
 
-# Use dev version of PyInstaller to keep hooks up-to-date
-https://github.com/pyinstaller/pyinstaller/archive/develop.zip; sys_platform == "win32"
+pyinstaller>=6.0.0; sys_platform == "win32"
