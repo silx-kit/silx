@@ -19,7 +19,7 @@ reduction routines and a set of Qt widgets to browse and visualise data.
 :ref:`Installation`
 -------------------
 
-You can install ``silx`` via `pip <https://pypi.org/project/pip>`_, `conda <https://docs.conda.io>`_ or on Linux with the following commands:
+You can install **silx** via `pip <https://pypi.org/project/pip>`_, `conda <https://docs.conda.io>`_ or on Linux with the following commands:
 
 .. tabbed:: pip
 
@@ -38,6 +38,8 @@ You can install ``silx`` via `pip <https://pypi.org/project/pip>`_, `conda <http
    .. code-block:: bash
 
       sudo apt-get install silx
+
+|silx_installer_btn| or decompress the |silx_archive|.
 
 :ref:`Applications`
 -------------------
