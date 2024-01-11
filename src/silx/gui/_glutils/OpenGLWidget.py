@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2023 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -353,13 +353,17 @@ class OpenGLWidget(qt.QWidget):
         :rtype: float
         """
         screen = self.window().windowHandle().screen()
-        if screen is not None:
-            # TODO check if this is correct on different OS/screen
-            # OK on macOS10.12/qt5.13.2
-            dpi = screen.physicalDotsPerInch() * self.getDevicePixelRatio()
-        else:  # Fallback
-            dpi = 96.0 * self.getDevicePixelRatio()
-        return dpi
+        if screen is None:
+            return 96.0 * self.getDevicePixelRatio()
+
+        physicalDPI = screen.physicalDotsPerInch()
+        if physicalDPI > 1000.0:
+            _logger.error(
+                "Reported screen DPI too high: %f, using default value instead",
+                physicalDPI,
+            )
+            physicalDPI = 96.0
+        return physicalDPI * self.getDevicePixelRatio()
 
     def getOpenGLVersion(self):
         """Returns the available OpenGL version.
