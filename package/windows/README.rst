@@ -23,3 +23,16 @@ Procedure
 - Run ``pyinstaller pyinstaller.spec``.
   This will generates the fat binary in ``package/windows/dist/``.
   It will then run InnoSetup to create the installer in ``package/windows/artifacts/``.
+
+
+Troubleshooting
+---------------
+
+In case of issues with anti-virus during the build process, try to re-install PyInstaller
+from source and rebuild the bootloader:
+
+```
+SET PYINSTALLER_COMPILE_BOOTLOADER=1
+SET PYINSTALLER_BOOTLOADER_WAF_ARGS=--msvc_target=x64
+pip install pyinstaller --no-binary pyinstaller
+```
