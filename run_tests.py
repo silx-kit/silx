@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /*##########################################################################
 #
-# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ import os
 import subprocess
 import sys
 import sysconfig
+from pathlib import Path
 
 
 # Capture all default warnings
@@ -153,15 +154,13 @@ def import_project_module(project_name, project_dir):
 
 
 if __name__ == "__main__":  # Needed for multiprocessing support on Windows
-    import pytest
-
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_NAME = get_project_name(PROJECT_DIR)
     logger.info("Project name: %s", PROJECT_NAME)
 
     project_module = import_project_module(PROJECT_NAME, PROJECT_DIR)
     PROJECT_VERSION = getattr(project_module, "version", "")
-    PROJECT_PATH = project_module.__path__[0]
+    PROJECT_PATH = str(Path(project_module.__path__[0]).resolve())
 
     def normalize_option(option):
         option_parts = option.split(os.path.sep)
@@ -179,4 +178,14 @@ if __name__ == "__main__":  # Needed for multiprocessing support on Windows
         args += [PROJECT_PATH]
 
     argv = ["--rootdir", PROJECT_PATH] + args
-    sys.exit(pytest.main(argv))
+    sys.exit(
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+            ]
+            + argv,
+            check=False,
+        ).returncode
+    )
