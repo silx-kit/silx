@@ -33,7 +33,8 @@ def qWidgetFactory(qapp, qapp_utils):
     qapp.processEvents()
 
     for widget in widgets:
-        widget.close()
+        if isValid(widget):
+            widget.close()
     qapp.processEvents()
 
     # Wait some time for all widgets to be deleted
