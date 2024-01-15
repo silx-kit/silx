@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2015-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 """
 
 import logging
+import subprocess
+import sys
 
 
 try:
@@ -37,14 +39,17 @@ except ImportError:
 
 
 def run_tests(module: str = "silx", verbosity: int = 0, args=()):
-    """Run tests
+    """Run tests in a subprocess
 
     :param module: Name of the silx module to test (default: 'silx')
     :param verbosity: Requested level of verbosity
     :param args: List of extra arguments to pass to `pytest`
     """
-    return pytest.main(
+    return subprocess.run(
         [
+            sys.executable,
+            "-m",
+            "pytest",
             "--pyargs",
             module,
             "--verbosity",
@@ -53,5 +58,6 @@ def run_tests(module: str = "silx", verbosity: int = 0, args=()):
             '-o python_classes=["Test"]',
             '-o python_functions=["test"]',
         ]
-        + list(args)
-    )
+        + list(args),
+        check=False,
+    ).returncode
