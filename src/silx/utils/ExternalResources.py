@@ -29,15 +29,19 @@ __license__ = "MIT"
 __date__ = "21/12/2021"
 
 
-import os
-import threading
+import hashlib
 import json
 import logging
+import os
+import sys
+import tarfile
+import threading
 import tempfile
 import unittest
 import urllib.request
 import urllib.error
-import hashlib
+import zipfile
+
 
 logger = logging.getLogger(__name__)
 
@@ -236,34 +240,25 @@ class ExternalResources(object):
         :return: list of files with their full path.
         """
         lodn = dirname.lower()
-        if (
-            lodn.endswith("tar")
-            or lodn.endswith("tgz")
-            or lodn.endswith("tbz2")
-            or lodn.endswith("tar.gz")
-            or lodn.endswith("tar.bz2")
-        ):
-            import tarfile
-
-            engine = tarfile.TarFile.open
-        elif lodn.endswith("zip"):
-            import zipfile
-
-            engine = zipfile.ZipFile
-        else:
-            raise RuntimeError(
-                "Unsupported archive format. Only tar and zip "
-                "are currently supported"
-            )
         full_path = self.getfile(dirname)
-        with engine(full_path, mode="r") as fd:
-            output = os.path.join(self.data_home, dirname + "__content")
-            fd.extractall(output)
-            if lodn.endswith("zip"):
-                result = [os.path.join(output, i) for i in fd.namelist()]
-            else:
-                result = [os.path.join(output, i) for i in fd.getnames()]
-        return result
+        output = os.path.join(self.data_home, dirname + "__content")
+
+        if lodn.endswith(("tar", "tgz", "tbz2", "tar.gz", "tar.bz2")):
+            with tarfile.TarFile.open(full_path, mode="r") as fd:
+                # Avoid unsafe filter deprecation warning during transistion of mode change
+                if (3, 12) <= sys.version_info < (3, 14):
+                    fd.extraction_filter = tarfile.data_filter
+                fd.extractall(output)
+                return [os.path.join(output, i) for i in fd.getnames()]
+
+        if lodn.endswith("zip"):
+            with zipfile.ZipFile(full_path, mode="r") as fd:
+                fd.extractall(output)
+                return [os.path.join(output, i) for i in fd.namelist()]
+
+        raise RuntimeError(
+            "Unsupported archive format. Only tar and zip " "are currently supported"
+        )
 
     def get_file_and_repack(self, filename):
         """
