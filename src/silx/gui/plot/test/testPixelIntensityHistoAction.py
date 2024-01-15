@@ -66,7 +66,7 @@ class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
         self.assertTrue(histoAction.getHistogramWidget().isVisible())
 
         # test the pixel intensity diagram is hiding
-        self.qapp.setActiveWindow(self.plotImage)
+        self.plotImage.activateWindow()
         self.qapp.processEvents()
         self.mouseMove(button)
         self.mouseClick(button, qt.Qt.LeftButton)
