@@ -560,9 +560,10 @@ class Viewport(event.Notifier):
         # Bind used framebuffer to get depth
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, self.framebuffer)
 
-        if False:  # offset == 0:  # Fast path
+        if offset == 0:  # Fast path
             # glReadPixels is not GL|ES friendly
-            depth = gl.glReadPixels(x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)[0]
+            depthPatch = gl.glReadPixels(x, y, 1, 1, gl.GL_DEPTH_COMPONENT, gl.GL_FLOAT)
+            depth = numpy.ravel(depthPatch)[0]
         else:
             offset = abs(int(offset))
             size = 2 * offset + 1
@@ -582,9 +583,7 @@ class Viewport(event.Notifier):
 
             # Take first depth that is not 1 in the sorted values
             hits = sortedValues[sortedValues != 1.0]
-            print("XX", hits, type(hits), hits.shape)
             depth = 1.0 if len(hits) == 0 else hits[0]
-            print("YYY", depth, type(depth))
 
         gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0)
 
