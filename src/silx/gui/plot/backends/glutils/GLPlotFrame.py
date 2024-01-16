@@ -25,6 +25,8 @@
 This modules provides the rendering of plot titles, axes and grid.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/04/2017"
