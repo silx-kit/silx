@@ -749,7 +749,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         # Render marker labels
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
         for label in labels:
-            label.render(self.matScreenProj)
+            label.render(self.matScreenProj, self._plotFrame.dotsPerInch)
 
     def _renderOverlayGL(self):
         """Render overlay layer: overlay items and crosshair."""

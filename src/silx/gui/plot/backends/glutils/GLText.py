@@ -131,9 +131,6 @@ class Text2D:
     _textures = weakref.WeakKeyDictionary()
     """Cache already created textures"""
 
-    _sizes = _Cache()
-    """Cache already computed sizes"""
-
     def __init__(
         self,
         text: str,
@@ -168,13 +165,9 @@ class Text2D:
 
         self._rotate = numpy.radians(rotate)
 
-    def _textureKey(self) -> tuple[str, str, float]:
-        """Returns the current texture key"""
-        return self.text, self.font.key(), self.devicePixelRatio
-
-    def _getTexture(self) -> tuple[Texture, int]:
+    def _getTexture(self, dotsPerInch: float) -> tuple[Texture, int]:
         # Retrieve/initialize texture cache for current context
-        textureKey = self._textureKey()
+        key = self.text, self.font.key(), dotsPerInch
 
         context = Context.getCurrent()
         if context not in self._textures:
@@ -183,12 +176,8 @@ class Text2D:
             )
         textures = self._textures[context]
 
-        if textureKey not in textures:
-            image, offset = font.rasterText(
-                self.text, self.font, devicePixelRatio=self.devicePixelRatio
-            )
-            if textureKey not in self._sizes:
-                self._sizes[textureKey] = image.shape[1], image.shape[0]
+        if key not in textures:
+            image, offset = font.rasterText(self.text, self.font, dotsPerInch)
 
             texture = Texture(
                 gl.GL_RED,
@@ -198,9 +187,9 @@ class Text2D:
                 wrap=(gl.GL_CLAMP_TO_EDGE, gl.GL_CLAMP_TO_EDGE),
             )
             texture.prepare()
-            textures[textureKey] = texture, offset
+            textures[key] = texture, offset
 
-        return textures[textureKey]
+        return textures[key]
 
     @property
     def text(self) -> str:
@@ -209,16 +198,6 @@ class Text2D:
     @property
     def padding(self) -> int:
         return self._padding
-
-    @property
-    def size(self) -> tuple[int, int]:
-        textureKey = self._textureKey()
-        if textureKey not in self._sizes:
-            image, offset = font.rasterText(
-                self.text, self.font, devicePixelRatio=self.devicePixelRatio
-            )
-            self._sizes[textureKey] = image.shape[1], image.shape[0]
-        return self._sizes[textureKey]
 
     def getVertices(self, offset: int, shape: tuple[int, int]) -> numpy.ndarray:
         height, width = shape
@@ -264,7 +243,7 @@ class Text2D:
 
         return vertices
 
-    def render(self, matrix: numpy.ndarray):
+    def render(self, matrix: numpy.ndarray, dotsPerInch: float):
         if not self.text.strip():
             return
 
@@ -272,7 +251,7 @@ class Text2D:
         prog.use()
 
         texUnit = 0
-        texture, offset = self._getTexture()
+        texture, offset = self._getTexture(dotsPerInch)
 
         gl.glUniform1i(prog.uniforms["texText"], texUnit)
 
