@@ -33,7 +33,7 @@ import numpy
 
 from silx.gui.colors import rgba
 
-from ... import _glutils
+from ... import _glutils, qt
 from ..._glutils import gl
 
 from ..._glutils import font as _font
@@ -111,7 +111,7 @@ class Text2D(primitives.Geometry):
         self._overlay = False
         self._align = "left"
         self._valign = "baseline"
-        self._devicePixelRatio = 1.0  # Store it to check for changes
+        self._dotsPerInch = 96.0  # Store it to check for changes
 
         self._texture = None
         self._textureDirty = True
@@ -202,37 +202,42 @@ class Text2D(primitives.Geometry):
         Either 'top', 'baseline' (default), 'center' or 'bottom'""",
     )
 
-    def _raster(self, devicePixelRatio):
+    def _raster(self, dotsPerInch: float):
         """Raster current primitive to a bitmap
 
-        :param float devicePixelRatio:
-            The ratio between device and device-independent pixels
+        :param dotsPerInch: Screen resolution in pixels per inch
         :return: Corresponding image in grayscale and baseline offset from top
         :rtype: (HxW numpy.ndarray of uint8, int)
         """
-        params = (
+        key = (
             self.text,
             self.font.name,
             self.font.size,
             self.font.weight,
             self.font.italic,
-            devicePixelRatio,
+            dotsPerInch,
         )
 
-        if params not in self._rasterTextCache:  # Add to cache
-            self._rasterTextCache[params] = _font.rasterText(*params)
+        if key not in self._rasterTextCache:  # Add to cache
+            font = qt.QFont(
+                self.font.name,
+                self.font.size,
+                self.font.weight,
+                self.font.italic,
+            )
+            self._rasterTextCache[key] = _font.rasterText(self.text, font, dotsPerInch)
 
-        array, offset = self._rasterTextCache[params]
+        array, offset = self._rasterTextCache[key]
         return array.copy(), offset
 
     def _bounds(self, dataBounds=False):
         return None
 
     def prepareGL2(self, context):
-        # Check if devicePixelRatio has changed since last rendering
-        devicePixelRatio = context.glCtx.devicePixelRatio
-        if self._devicePixelRatio != devicePixelRatio:
-            self._devicePixelRatio = devicePixelRatio
+        # Check if dotsPerInch has changed since last rendering
+        dotsPerInch = context.glCtx.dotsPerInch
+        if self._dotsPerInch != dotsPerInch:
+            self._dotsPerInch = dotsPerInch
             self._dirtyTexture = True
 
         if self._dirtyTexture:
@@ -244,7 +249,7 @@ class Text2D(primitives.Geometry):
             self._baselineOffset = 0
 
             if self.text:
-                image, self._baselineOffset = self._raster(self._devicePixelRatio)
+                image, self._baselineOffset = self._raster(dotsPerInch)
                 self._texture = _glutils.Texture(
                     gl.GL_R8,
                     image,
